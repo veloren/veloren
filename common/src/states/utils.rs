@@ -5,8 +5,8 @@ use crate::{
         item::{Hands, ItemKind, Tool, ToolKind},
         quadruped_low, quadruped_medium, quadruped_small, ship,
         skills::{Skill, SwimSkill},
-        theropod, Body, CharacterAbility, CharacterState, InputAttr, InputKind, InventoryAction,
-        StateUpdate,
+        theropod, Body, CharacterAbility, CharacterState, Density, InputAttr, InputKind,
+        InventoryAction, StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{LocalEvent, ServerEvent},
@@ -18,23 +18,6 @@ use std::time::Duration;
 use vek::*;
 
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
-const BASE_HUMANOID_AIR_ACCEL: f32 = 2.0;
-const BASE_FLIGHT_ACCEL: f32 = 2.0;
-const BASE_HUMANOID_WATER_ACCEL: f32 = 150.0;
-const BASE_HUMANOID_WATER_SPEED: f32 = 180.0;
-pub const BASE_JUMP_IMPULSE: f32 = 16.0;
-// const BASE_HUMANOID_CLIMB_ACCEL: f32 = 10.0;
-// const ROLL_SPEED: f32 = 17.0;
-// const CHARGE_SPEED: f32 = 20.0;
-// const GLIDE_ACCEL: f32 = 15.0;
-// const GLIDE_SPEED: f32 = 45.0;
-// const BLOCK_ACCEL: f32 = 30.0;
-// const BLOCK_SPEED: f32 = 75.0;
-// Gravity is 9.81 * 4, so this makes gravity equal to .15 //TODO: <- is wrong
-//
-// const GLIDE_ANTIGRAV: f32 = GRAVITY * 0.96;
-// const CLIMB_SPEED: f32 = 5.0;
-// const CLIMB_COST: i32 = 5;
 
 impl Body {
     pub fn base_accel(&self) -> f32 {
@@ -119,7 +102,7 @@ impl Body {
                 quadruped_low::Species::Basilisk => 120.0,
                 quadruped_low::Species::Deadwood => 140.0,
             },
-            Body::Ship(_) => 30.0,
+            Body::Ship(_) => 0.0,
         }
     }
 
@@ -128,8 +111,7 @@ impl Body {
     pub fn max_speed_approx(&self) -> f32 {
         // Inverse kinematics: at what velocity will acceleration
         // be cancelled out by friction drag?
-        // Note: we assume no air (this is fine, current physics
-        // uses max(air_drag, ground_drag)).
+        // Note: we assume no air, since it's such a small factor.
         // Derived via...
         // v = (v + dv / 30) * (1 - drag).powi(2) (accel cancels drag)
         // => 1 = (1 + (dv / 30) / v) * (1 - drag).powi(2)
@@ -142,53 +124,94 @@ impl Body {
         v
     }
 
+    /// The turn rate in 180°/s (or (rotations per second)/2)
     pub fn base_ori_rate(&self) -> f32 {
         match self {
-            Body::Humanoid(_) => 20.0,
-            Body::QuadrupedSmall(_) => 15.0,
-            Body::QuadrupedMedium(_) => 8.0,
-            Body::BirdMedium(_) => 30.0,
-            Body::FishMedium(_) => 5.0,
-            Body::Dragon(_) => 5.0,
-            Body::BirdSmall(_) => 35.0,
-            Body::FishSmall(_) => 10.0,
-            Body::BipedLarge(_) => 8.0,
-            Body::BipedSmall(_) => 12.0,
-            Body::Object(_) => 10.0,
-            Body::Golem(_) => 8.0,
+            Body::Humanoid(_) => 4.0,
+            Body::QuadrupedSmall(_) => 3.0,
+            Body::QuadrupedMedium(_) => 1.6,
+            Body::BirdMedium(_) => 6.0,
+            Body::FishMedium(_) => 6.0,
+            Body::Dragon(_) => 1.0,
+            Body::BirdSmall(_) => 7.0,
+            Body::FishSmall(_) => 7.0,
+            Body::BipedLarge(_) => 1.6,
+            Body::BipedSmall(_) => 2.4,
+            Body::Object(_) => 2.0,
+            Body::Golem(_) => 0.8,
             Body::Theropod(theropod) => match theropod.species {
-                theropod::Species::Archaeos => 2.5,
-                theropod::Species::Odonto => 2.5,
-                theropod::Species::Ntouka => 2.5,
-                _ => 7.0,
+                theropod::Species::Archaeos => 0.5,
+                theropod::Species::Odonto => 0.5,
+                theropod::Species::Ntouka => 0.5,
+                _ => 1.4,
             },
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
-                quadruped_low::Species::Monitor => 9.0,
-                quadruped_low::Species::Asp => 8.0,
-                quadruped_low::Species::Tortoise => 3.0,
-                quadruped_low::Species::Rocksnapper => 4.0,
-                quadruped_low::Species::Maneater => 5.0,
-                quadruped_low::Species::Lavadrake => 4.0,
-                _ => 6.0,
+                quadruped_low::Species::Monitor => 1.8,
+                quadruped_low::Species::Asp => 1.6,
+                quadruped_low::Species::Tortoise => 0.6,
+                quadruped_low::Species::Rocksnapper => 0.8,
+                quadruped_low::Species::Maneater => 1.0,
+                quadruped_low::Species::Lavadrake => 0.8,
+                _ => 1.2,
             },
-            Body::Ship(_) => 0.175,
+            Body::Ship(_) => 0.035,
         }
     }
 
-    /// Returns flying speed if the body type can fly, otherwise None
-    pub fn can_fly(&self) -> Option<f32> {
+    /// Returns thrust force if the body type can swim, otherwise None
+    pub fn swim_thrust(&self) -> Option<f32> {
         match self {
-            Body::BirdMedium(_) | Body::Dragon(_) | Body::BirdSmall(_) => Some(1.0),
-            Body::Ship(ship::Body::DefaultAirship) => Some(1.0),
+            Body::Object(_) | Body::Ship(_) => None,
+            Body::BipedLarge(_) | Body::Golem(_) => Some(200.0 * self.mass().0),
+            Body::BipedSmall(_) => Some(100.0 * self.mass().0),
+            Body::BirdMedium(_) => Some(50.0 * self.mass().0),
+            Body::BirdSmall(_) => Some(50.0 * self.mass().0),
+            Body::FishMedium(_) => Some(50.0 * self.mass().0),
+            Body::FishSmall(_) => Some(50.0 * self.mass().0),
+            Body::Dragon(_) => Some(200.0 * self.mass().0),
+            Body::Humanoid(_) => Some(200.0 * self.mass().0),
+            Body::Theropod(body) => match body.species {
+                theropod::Species::Sandraptor
+                | theropod::Species::Snowraptor
+                | theropod::Species::Sunlizard
+                | theropod::Species::Woodraptor
+                | theropod::Species::Yale => Some(200.0 * self.mass().0),
+                _ => Some(100.0 * self.mass().0),
+            },
+            Body::QuadrupedLow(_) => Some(300.0 * self.mass().0),
+            Body::QuadrupedMedium(_) => Some(300.0 * self.mass().0),
+            Body::QuadrupedSmall(_) => Some(300.0 * self.mass().0),
+        }
+    }
+
+    /// Returns thrust force if the body type can fly, otherwise None
+    pub fn fly_thrust(&self) -> Option<f32> {
+        match self {
+            Body::BirdMedium(_) => Some(GRAVITY * self.mass().0 * 2.0),
+            Body::BirdSmall(_) => Some(GRAVITY * self.mass().0 * 2.0),
+            Body::Dragon(_) => Some(200_000.0),
+            Body::Ship(ship::Body::DefaultAirship) => Some(300_000.0),
             _ => None,
         }
     }
 
+    /// Returns jump impulse if the body type can jump, otherwise None
     pub fn jump_impulse(&self) -> Option<f32> {
         match self {
             Body::Object(_) | Body::Ship(_) => None,
-            _ => Some(BASE_JUMP_IMPULSE),
+            Body::BipedLarge(_) | Body::Dragon(_) | Body::Golem(_) | Body::QuadrupedLow(_) => {
+                Some(0.1 * self.mass().0)
+            },
+            Body::QuadrupedMedium(_) => Some(0.4 * self.mass().0),
+            Body::Theropod(body) => match body.species {
+                theropod::Species::Snowraptor
+                | theropod::Species::Sandraptor
+                | theropod::Species::Woodraptor => Some(0.4 * self.mass().0),
+                _ => None,
+            },
+            _ => Some(0.4 * self.mass().0),
         }
+        .map(|f| f * GRAVITY)
     }
 
     pub fn can_climb(&self) -> bool { matches!(self, Body::Humanoid(_)) }
@@ -196,21 +219,22 @@ impl Body {
 
 /// Handles updating `Components` to move player based on state of `JoinData`
 pub fn handle_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
-    if let Some(depth) = data.physics.in_liquid {
-        swim_move(data, update, efficiency, depth);
-    } else if input_is_pressed(data, InputKind::Fly)
+    let submersion = data
+        .physics
+        .in_liquid()
+        .map(|depth| depth / data.body.height());
+
+    if input_is_pressed(data, InputKind::Fly)
+        && submersion.map_or(true, |sub| sub < 1.0)
         && (!data.physics.on_ground || data.body.jump_impulse().is_none())
-        && data.body.can_fly().is_some()
+        && data.body.fly_thrust().is_some()
     {
-        fly_move(
-            data,
-            update,
-            efficiency
-                * data
-                    .body
-                    .can_fly()
-                    .expect("can_fly is_some right above this"),
-        );
+        fly_move(data, update, efficiency);
+    } else if let Some(submersion) = (!data.physics.on_ground && data.body.swim_thrust().is_some())
+        .then_some(submersion)
+        .flatten()
+    {
+        swim_move(data, update, efficiency, submersion);
     } else {
         basic_move(data, update, efficiency);
     }
@@ -219,16 +243,23 @@ pub fn handle_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
 /// Updates components to move player as if theyre on ground or in air
 #[allow(clippy::assign_op_pattern)] // TODO: Pending review in #587
 fn basic_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
-    let accel = if data.physics.on_ground {
-        data.body.base_accel()
-    } else {
-        BASE_HUMANOID_AIR_ACCEL
-    };
+    handle_orientation(data, update, efficiency);
 
-    update.vel.0 =
-        update.vel.0 + Vec2::broadcast(data.dt.0) * data.inputs.move_dir * accel * efficiency;
-
-    handle_orientation(data, update, data.body.base_ori_rate());
+    if let Some(accel) = data
+        .physics
+        .on_ground
+        .then_some(data.body.base_accel() * efficiency)
+    {
+        // Should ability to backpedal be separate from ability to strafe?
+        update.vel.0 += Vec2::broadcast(data.dt.0)
+            * accel
+            * if data.body.can_strafe() {
+                data.inputs.move_dir
+            } else {
+                let fw = Vec2::from(update.ori);
+                fw * data.inputs.move_dir.dot(fw).max(0.0)
+            };
+    }
 }
 
 /// Handles forced movement
@@ -238,17 +269,15 @@ pub fn handle_forced_movement(
     movement: ForcedMovement,
     efficiency: f32,
 ) {
+    handle_orientation(data, update, efficiency);
+
     match movement {
         ForcedMovement::Forward { strength } => {
-            let accel = if data.physics.on_ground {
-                data.body.base_accel()
-            } else {
-                BASE_HUMANOID_AIR_ACCEL
-            };
-
-            update.vel.0 += Vec2::broadcast(data.dt.0)
-                * accel
-                * (data.inputs.move_dir * efficiency + Vec2::from(update.ori) * strength);
+            if let Some(accel) = data.physics.on_ground.then_some(data.body.base_accel()) {
+                update.vel.0 += Vec2::broadcast(data.dt.0)
+                    * accel
+                    * (data.inputs.move_dir * efficiency + Vec2::from(update.ori) * strength);
+            }
         },
         ForcedMovement::Leap {
             vertical,
@@ -268,86 +297,129 @@ pub fn handle_forced_movement(
                 // Apply direction
                 + Vec3::from(dir)
                 // Multiply by forward leap strength
-                    * forward
+                * forward
                 // Control forward movement based on look direction.
                 // This allows players to stop moving forward when they
                 // look downward at target
-                    * (1.0 - data.inputs.look_dir.z.abs());
+                * (1.0 - data.inputs.look_dir.z.abs());
         },
         ForcedMovement::Hover { move_input } => {
             update.vel.0 = Vec3::new(data.vel.0.x, data.vel.0.y, 0.0)
                 + move_input * data.inputs.move_dir.try_normalized().unwrap_or_default();
         },
     }
-    handle_orientation(data, update, data.body.base_ori_rate() * efficiency);
 }
 
-pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, rate: f32) {
-    // Set direction based on move direction
-    let ori_dir = if (update.character.is_aimed() && data.body.can_strafe())
-        || update.character.is_attack()
+pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
+    let strafe_aim = update.character.is_aimed() && data.body.can_strafe();
+    if let Some(dir) = (strafe_aim || update.character.is_attack())
+        .then(|| data.inputs.look_dir.to_horizontal().unwrap_or_default())
+        .or_else(|| Dir::from_unnormalized(data.inputs.move_dir.into()))
     {
-        data.inputs.look_dir.xy()
-    } else if !data.inputs.move_dir.is_approx_zero() {
-        data.inputs.move_dir
-    } else {
-        update.ori.into()
+        let rate = {
+            let angle = update.ori.look_dir().angle_between(*dir);
+            data.body.base_ori_rate() * efficiency * std::f32::consts::PI / angle
+        };
+        update.ori = update
+            .ori
+            .slerped_towards(dir.into(), (data.dt.0 * rate).min(0.1));
     };
-
-    // Smooth orientation
-    update.ori = Dir::slerp_to_vec3(update.ori.look_dir(), ori_dir.into(), rate * data.dt.0).into();
 }
 
 /// Updates components to move player as if theyre swimming
-fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, depth: f32) {
-    let mut water_accel = BASE_HUMANOID_WATER_ACCEL;
-    let mut water_speed = BASE_HUMANOID_WATER_SPEED;
-    if let Ok(Some(level)) = data.skill_set.skill_level(Skill::Swim(SwimSkill::Speed)) {
-        water_speed *= 1.4_f32.powi(level.into());
-        water_accel *= 1.4_f32.powi(level.into());
-    }
+fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, submersion: f32) -> bool {
+    if let Some(force) = data.body.swim_thrust() {
+        handle_orientation(data, update, efficiency * 0.2);
 
-    // Update velocity
-    update.vel.0 += Vec2::broadcast(data.dt.0)
-        * data.inputs.move_dir
-        * if update.vel.0.magnitude_squared() < water_speed.powi(2) {
-            water_accel
-        } else {
-            0.0
+        let force = efficiency * force;
+        let mut water_accel = force / data.mass.0;
+
+        if let Ok(Some(level)) = data.skill_set.skill_level(Skill::Swim(SwimSkill::Speed)) {
+            water_accel *= 1.4_f32.powi(level.into());
         }
-        * efficiency;
 
-    handle_orientation(
-        data,
-        update,
-        data.body.base_ori_rate() * if data.physics.on_ground { 0.5 } else { 0.1 },
-    );
+        let dir = if data.body.can_strafe() {
+            data.inputs.move_dir
+        } else {
+            let fw = Vec2::from(update.ori);
+            fw * data.inputs.move_dir.dot(fw).max(0.0)
+        };
 
-    // Swim
-    update.vel.0.z = (update.vel.0.z
-        + data.dt.0
-            * GRAVITY
-            * 4.0
-            * data
-                .inputs
-                .move_z
-                .clamped(-1.0, depth.clamped(0.0, 1.0).powi(3)))
-    .min(water_speed);
+        // Autoswim to stay afloat
+        let move_z = if submersion < 1.0 && data.inputs.move_z.abs() < std::f32::EPSILON {
+            (submersion - 0.1).max(0.0)
+        } else {
+            data.inputs.move_z
+        };
+
+        update.vel.0 += Vec3::broadcast(data.dt.0)
+            * Vec3::new(dir.x, dir.y, move_z)
+                .try_normalized()
+                .unwrap_or_default()
+            * water_accel
+            * (submersion - 0.2).clamp(0.0, 1.0).powi(2);
+
+        true
+    } else {
+        false
+    }
 }
 
 /// Updates components to move entity as if it's flying
-fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
-    // Update velocity (counteract gravity with lift)
-    update.vel.0 += Vec3::unit_z() * data.dt.0 * GRAVITY
-        + Vec3::new(
-            data.inputs.move_dir.x,
-            data.inputs.move_dir.y,
-            data.inputs.move_z,
-        ) * data.dt.0
-            * BASE_FLIGHT_ACCEL
-            * efficiency;
+pub fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) -> bool {
+    if let Some(force) = data.body.fly_thrust() {
+        let thrust = efficiency * force;
 
-    handle_orientation(data, update, data.body.base_ori_rate());
+        let accel = thrust / data.mass.0;
+
+        handle_orientation(data, update, efficiency);
+
+        // Elevation control
+        match data.body {
+            // flappy flappy
+            Body::Dragon(_) | Body::BirdMedium(_) | Body::BirdSmall(_) => {
+                let anti_grav = GRAVITY * (1.0 + data.inputs.move_z.min(0.0));
+                update.vel.0.z += data.dt.0 * (anti_grav + accel * data.inputs.move_z.max(0.0));
+            },
+            // floaty floaty
+            Body::Ship(ship @ ship::Body::DefaultAirship) => {
+                let regulate_density = |min: f32, max: f32, def: f32, rate: f32| -> Density {
+                    // Reset to default on no input
+                    let change = if data.inputs.move_z.abs() > std::f32::EPSILON {
+                        -data.inputs.move_z
+                    } else {
+                        (def - data.density.0).max(-1.0).min(1.0)
+                    };
+                    Density((update.density.0 + data.dt.0 * rate * change).clamp(min, max))
+                };
+                let def_density = ship.density().0;
+                if data.physics.in_liquid().is_some() {
+                    let hull_density = ship.hull_density().0;
+                    update.density.0 =
+                        regulate_density(def_density * 0.6, hull_density, hull_density, 25.0).0;
+                } else {
+                    update.density.0 =
+                        regulate_density(def_density * 0.5, def_density * 1.5, def_density, 0.5).0;
+                };
+            },
+            // oopsie woopsie
+            // TODO: refactor to make this state impossible
+            _ => {},
+        };
+
+        update.vel.0 += Vec2::broadcast(data.dt.0)
+            * accel
+            * if data.body.can_strafe() {
+                data.inputs.move_dir
+            } else {
+                let fw = Vec2::from(update.ori);
+                fw * data.inputs.move_dir.dot(fw).max(0.0)
+            };
+
+        true
+    } else {
+        false
+    }
 }
 
 /// Checks if an input related to an attack is held. If one is, moves entity
@@ -408,7 +480,7 @@ pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
         && !data.physics.on_ground
         && !data
             .physics
-            .in_liquid
+            .in_liquid()
             .map(|depth| depth > 1.0)
             .unwrap_or(false)
         //&& update.vel.0.z < 0.0
@@ -442,7 +514,7 @@ pub fn attempt_glide_wield(data: &JoinData, update: &mut StateUpdate) {
     if data.inventory.equipped(EquipSlot::Glider).is_some()
         && !data
             .physics
-            .in_liquid
+            .in_liquid()
             .map(|depth| depth > 1.0)
             .unwrap_or(false)
         && data.body.is_humanoid()
@@ -453,23 +525,16 @@ pub fn attempt_glide_wield(data: &JoinData, update: &mut StateUpdate) {
 
 /// Checks that player can jump and sends jump event if so
 pub fn handle_jump(data: &JoinData, update: &mut StateUpdate, strength: f32) -> bool {
-    if input_is_pressed(data, InputKind::Jump)
-        && data.physics.on_ground
-        && !data
-            .physics
-            .in_liquid
-            .map(|depth| depth > 1.0)
-            .unwrap_or(false)
-        && data.body.jump_impulse().is_some()
-    {
-        update.local_events.push_front(LocalEvent::Jump(
-            data.entity,
-            data.body.jump_impulse().unwrap() * strength,
-        ));
-        true
-    } else {
-        false
-    }
+    (input_is_pressed(data, InputKind::Jump) && data.physics.on_ground)
+        .then(|| data.body.jump_impulse())
+        .flatten()
+        .map(|impulse| {
+            update.local_events.push_front(LocalEvent::Jump(
+                data.entity,
+                strength * impulse / data.mass.0,
+            ));
+        })
+        .is_some()
 }
 
 fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
@@ -666,7 +731,12 @@ impl MovementDirection {
     pub fn get_2d_dir(self, data: &JoinData) -> Vec2<f32> {
         use MovementDirection::*;
         match self {
-            Look => data.inputs.look_dir.xy(),
+            Look => data
+                .inputs
+                .look_dir
+                .to_horizontal()
+                .unwrap_or_default()
+                .xy(),
             Move => data.inputs.move_dir,
         }
         .try_normalized()

@@ -1,7 +1,7 @@
 use common::{
     comp::{
         item::MaterialStatManifest, Auras, BeamSegment, Body, Buffs, CanBuild, CharacterState,
-        Collider, Combo, Energy, Gravity, Group, Health, Inventory, Item, LightEmitter, Mass,
+        Collider, Combo, Density, Energy, Group, Health, Inventory, Item, LightEmitter, Mass,
         MountState, Mounting, Ori, Player, Poise, Pos, Scale, Shockwave, SkillSet, Stats, Sticky,
         Vel,
     },
@@ -58,9 +58,9 @@ pub struct TrackedComps<'a> {
     pub mount_state: ReadStorage<'a, MountState>,
     pub group: ReadStorage<'a, Group>,
     pub mass: ReadStorage<'a, Mass>,
+    pub density: ReadStorage<'a, Density>,
     pub collider: ReadStorage<'a, Collider>,
     pub sticky: ReadStorage<'a, Sticky>,
-    pub gravity: ReadStorage<'a, Gravity>,
     pub inventory: ReadStorage<'a, Inventory>,
     pub character_state: ReadStorage<'a, CharacterState>,
     pub shockwave: ReadStorage<'a, Shockwave>,
@@ -143,15 +143,15 @@ impl<'a> TrackedComps<'a> {
             .cloned()
             .map(|c| comps.push(c.into()));
         self.mass.get(entity).copied().map(|c| comps.push(c.into()));
+        self.density
+            .get(entity)
+            .copied()
+            .map(|c| comps.push(c.into()));
         self.collider
             .get(entity)
             .cloned()
             .map(|c| comps.push(c.into()));
         self.sticky
-            .get(entity)
-            .copied()
-            .map(|c| comps.push(c.into()));
-        self.gravity
             .get(entity)
             .copied()
             .map(|c| comps.push(c.into()));
@@ -201,9 +201,9 @@ pub struct ReadTrackers<'a> {
     pub mount_state: ReadExpect<'a, UpdateTracker<MountState>>,
     pub group: ReadExpect<'a, UpdateTracker<Group>>,
     pub mass: ReadExpect<'a, UpdateTracker<Mass>>,
+    pub density: ReadExpect<'a, UpdateTracker<Density>>,
     pub collider: ReadExpect<'a, UpdateTracker<Collider>>,
     pub sticky: ReadExpect<'a, UpdateTracker<Sticky>>,
-    pub gravity: ReadExpect<'a, UpdateTracker<Gravity>>,
     pub character_state: ReadExpect<'a, UpdateTracker<CharacterState>>,
     pub shockwave: ReadExpect<'a, UpdateTracker<Shockwave>>,
     pub beam_segment: ReadExpect<'a, UpdateTracker<BeamSegment>>,
@@ -241,9 +241,9 @@ impl<'a> ReadTrackers<'a> {
             .with_component(&comps.uid, &*self.mount_state, &comps.mount_state, filter)
             .with_component(&comps.uid, &*self.group, &comps.group, filter)
             .with_component(&comps.uid, &*self.mass, &comps.mass, filter)
+            .with_component(&comps.uid, &*self.density, &comps.density, filter)
             .with_component(&comps.uid, &*self.collider, &comps.collider, filter)
             .with_component(&comps.uid, &*self.sticky, &comps.sticky, filter)
-            .with_component(&comps.uid, &*self.gravity, &comps.gravity, filter)
             .with_component(&comps.uid, &*self.inventory, &comps.inventory, filter)
             .with_component(
                 &comps.uid,
@@ -279,9 +279,9 @@ pub struct WriteTrackers<'a> {
     mount_state: WriteExpect<'a, UpdateTracker<MountState>>,
     group: WriteExpect<'a, UpdateTracker<Group>>,
     mass: WriteExpect<'a, UpdateTracker<Mass>>,
+    density: WriteExpect<'a, UpdateTracker<Density>>,
     collider: WriteExpect<'a, UpdateTracker<Collider>>,
     sticky: WriteExpect<'a, UpdateTracker<Sticky>>,
-    gravity: WriteExpect<'a, UpdateTracker<Gravity>>,
     inventory: WriteExpect<'a, UpdateTracker<Inventory>>,
     character_state: WriteExpect<'a, UpdateTracker<CharacterState>>,
     shockwave: WriteExpect<'a, UpdateTracker<Shockwave>>,
@@ -309,9 +309,9 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     trackers.mount_state.record_changes(&comps.mount_state);
     trackers.group.record_changes(&comps.group);
     trackers.mass.record_changes(&comps.mass);
+    trackers.density.record_changes(&comps.density);
     trackers.collider.record_changes(&comps.collider);
     trackers.sticky.record_changes(&comps.sticky);
-    trackers.gravity.record_changes(&comps.gravity);
     trackers.inventory.record_changes(&comps.inventory);
     trackers
         .character_state
@@ -350,9 +350,9 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     log_counts!(mounting, "Mountings");
     log_counts!(mount_state, "Mount States");
     log_counts!(mass, "Masses");
+    log_counts!(mass, "Densities");
     log_counts!(collider, "Colliders");
     log_counts!(sticky, "Stickies");
-    log_counts!(gravity, "Gravitys");
     log_counts!(loadout, "Loadouts");
     log_counts!(character_state, "Character States");
     log_counts!(shockwave, "Shockwaves");
@@ -380,9 +380,9 @@ pub fn register_trackers(world: &mut World) {
     world.register_tracker::<MountState>();
     world.register_tracker::<Group>();
     world.register_tracker::<Mass>();
+    world.register_tracker::<Density>();
     world.register_tracker::<Collider>();
     world.register_tracker::<Sticky>();
-    world.register_tracker::<Gravity>();
     world.register_tracker::<Inventory>();
     world.register_tracker::<CharacterState>();
     world.register_tracker::<Shockwave>();

@@ -9,6 +9,5 @@ BasicRanged(
     ),
     projectile_body: Object(Arrow),
     projectile_light: None,
-    projectile_gravity: Some(Gravity(0.2)),
-    projectile_speed: 100.0,
+    projectile_speed: 60.0,
 )

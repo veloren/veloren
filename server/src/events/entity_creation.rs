@@ -7,7 +7,7 @@ use common::{
         beam,
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
         inventory::loadout::Loadout,
-        shockwave, Agent, Alignment, Body, Gravity, Health, HomeChunk, Inventory, Item, ItemDrop,
+        shockwave, Agent, Alignment, Body, Health, HomeChunk, Inventory, Item, ItemDrop,
         LightEmitter, Object, Ori, Poise, Pos, Projectile, Scale, SkillSet, Stats, Vel,
         WaypointArea,
     },
@@ -163,7 +163,6 @@ pub fn handle_shoot(
     body: Body,
     light: Option<LightEmitter>,
     projectile: Projectile,
-    gravity: Option<Gravity>,
     speed: f32,
     object: Option<Object>,
 ) {
@@ -199,9 +198,6 @@ pub fn handle_shoot(
     let mut builder = state.create_projectile(Pos(pos), Vel(vel), body, projectile);
     if let Some(light) = light {
         builder = builder.with(light)
-    }
-    if let Some(gravity) = gravity {
-        builder = builder.with(gravity)
     }
     if let Some(object) = object {
         builder = builder.with(object)

@@ -10,8 +10,9 @@ use common::{
             item::MaterialStatManifest,
             slot::{EquipSlot, Slot},
         },
-        Beam, Body, CharacterState, Combo, Controller, Energy, Health, Inventory, Melee, Mounting,
-        Ori, PhysicsState, Poise, PoiseState, Pos, SkillSet, StateUpdate, Stats, Vel,
+        Beam, Body, CharacterState, Combo, Controller, Density, Energy, Health, Inventory, Mass,
+        Melee, Mounting, Ori, PhysicsState, Poise, PoiseState, Pos, SkillSet, StateUpdate, Stats,
+        Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     resources::DeltaTime,
@@ -32,6 +33,7 @@ fn incorporate_update(join: &mut JoinStruct, mut state_update: StateUpdate) {
     *join.pos = state_update.pos;
     *join.vel = state_update.vel;
     *join.ori = state_update.ori;
+    *join.density = state_update.density;
     // Note: might be changed every tick by timer anyway
     if join.energy.get_unchecked() != &state_update.energy {
         *join.energy.get_mut_unchecked() = state_update.energy
@@ -67,6 +69,7 @@ pub struct ReadData<'a> {
     lazy_update: Read<'a, LazyUpdate>,
     healths: ReadStorage<'a, Health>,
     bodies: ReadStorage<'a, Body>,
+    masses: ReadStorage<'a, Mass>,
     physics_states: ReadStorage<'a, PhysicsState>,
     melee_attacks: ReadStorage<'a, Melee>,
     beams: ReadStorage<'a, Beam>,
@@ -93,6 +96,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
+        WriteStorage<'a, Density>,
         WriteStorage<'a, Energy>,
         WriteStorage<'a, Inventory>,
         WriteStorage<'a, Controller>,
@@ -112,6 +116,7 @@ impl<'a> System<'a> for Sys {
             mut positions,
             mut velocities,
             mut orientations,
+            mut densities,
             mut energies,
             mut inventories,
             mut controllers,
@@ -128,14 +133,15 @@ impl<'a> System<'a> for Sys {
             mut pos,
             mut vel,
             mut ori,
+            mass,
+            mut density,
             energy,
             inventory,
             mut controller,
             health,
             body,
             physics,
-            stat,
-            skill_set,
+            (stat, skill_set),
             combo,
         ) in (
             &read_data.entities,
@@ -144,14 +150,15 @@ impl<'a> System<'a> for Sys {
             &mut positions,
             &mut velocities,
             &mut orientations,
+            &read_data.masses,
+            &mut densities,
             &mut energies.restrict_mut(),
             &mut inventories.restrict_mut(),
             &mut controllers,
             read_data.healths.maybe(),
             &read_data.bodies,
             &read_data.physics_states,
-            &read_data.stats,
-            &read_data.skill_sets,
+            (&read_data.stats, &read_data.skill_sets),
             &read_data.combos,
         )
             .join()
@@ -253,6 +260,8 @@ impl<'a> System<'a> for Sys {
                 pos: &mut pos,
                 vel: &mut vel,
                 ori: &mut ori,
+                mass: &mass,
+                density: &mut density,
                 energy,
                 inventory,
                 controller: &mut controller,

@@ -184,6 +184,8 @@ impl StateExt for State {
                 ))
                 .unwrap_or_default(),
             )
+            .with(body.mass())
+            .with(body.density())
             .with(match body {
                 comp::Body::Ship(ship) => comp::Collider::Voxel {
                     id: ship.manifest_entry().to_string(),
@@ -208,7 +210,6 @@ impl StateExt for State {
             .with(health)
             .with(poise)
             .with(comp::Alignment::Npc)
-            .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
             .with(inventory)
             .with(comp::Buffs::default())
@@ -217,19 +218,20 @@ impl StateExt for State {
     }
 
     fn create_object(&mut self, pos: comp::Pos, object: comp::object::Body) -> EcsEntityBuilder {
+        let body = comp::Body::Object(object);
         self.ecs_mut()
             .create_entity_synced()
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
             .with(comp::Ori::default())
-            .with(comp::Mass(5.0))
+            .with(body.mass())
+            .with(body.density())
             .with(comp::Collider::Box {
-                radius: comp::Body::Object(object).radius(),
+                radius: body.radius(),
                 z_min: 0.0,
-                z_max: comp::Body::Object(object).height(),
+                z_max: body.height(),
             })
-            .with(comp::Body::Object(object))
-            .with(comp::Gravity(1.0))
+            .with(body)
     }
 
     fn create_ship(
@@ -238,18 +240,19 @@ impl StateExt for State {
         ship: comp::ship::Body,
         mountable: bool,
     ) -> EcsEntityBuilder {
+        let body = comp::Body::Ship(ship);
         let mut builder = self
             .ecs_mut()
             .create_entity_synced()
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
             .with(comp::Ori::default())
-            .with(comp::Mass(50.0))
+            .with(body.mass())
+            .with(body.density())
             .with(comp::Collider::Voxel {
                 id: ship.manifest_entry().to_string(),
             })
-            .with(comp::Body::Ship(ship))
-            .with(comp::Gravity(1.0))
+            .with(body)
             .with(comp::Scale(comp::ship::AIRSHIP_SCALE))
             .with(comp::Controller::default())
             .with(comp::inventory::Inventory::new_empty())
@@ -279,7 +282,8 @@ impl StateExt for State {
             .with(pos)
             .with(vel)
             .with(comp::Ori::from_unnormalized_vec(vel.0).unwrap_or_default())
-            .with(comp::Mass(0.0))
+            .with(body.mass())
+            .with(body.density())
             .with(comp::Collider::Point)
             .with(body)
             .with(projectile)
@@ -406,7 +410,6 @@ impl StateExt for State {
                 z_min: 0.0,
                 z_max: 1.75,
             });
-            self.write_component_ignore_entity_dead(entity, comp::Gravity(1.0));
             self.write_component_ignore_entity_dead(entity, comp::CharacterState::default());
             self.write_component_ignore_entity_dead(entity, comp::Alignment::Owned(player_uid));
             self.write_component_ignore_entity_dead(entity, comp::Buffs::default());
@@ -450,6 +453,8 @@ impl StateExt for State {
                 z_max: body.height(),
             });
             self.write_component_ignore_entity_dead(entity, body);
+            self.write_component_ignore_entity_dead(entity, body.mass());
+            self.write_component_ignore_entity_dead(entity, body.density());
             let (health_level, energy_level) = (
                 skill_set
                     .skill_level(Skill::General(GeneralSkill::HealthIncrease))

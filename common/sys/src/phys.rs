@@ -5,15 +5,17 @@ use spatial_grid::SpatialGrid;
 use common::{
     comp::{
         body::ship::figuredata::{VoxelCollider, VOXEL_COLLIDER_MANIFEST},
-        BeamSegment, Body, CharacterState, Collider, Gravity, Mass, Mounting, Ori, PhysicsState,
-        Pos, PosVelDefer, PreviousPhysCache, Projectile, Scale, Shockwave, Sticky, Vel,
+        BeamSegment, Body, CharacterState, Collider, Density, Fluid, Mass, Mounting, Ori,
+        PhysicsState, Pos, PosVelDefer, PreviousPhysCache, Projectile, Scale, Shockwave, Sticky,
+        Vel,
     },
-    consts::{FRIC_GROUND, GRAVITY},
+    consts::{AIR_DENSITY, FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
     outcome::Outcome,
     resources::DeltaTime,
     terrain::{Block, TerrainGrid},
     uid::Uid,
+    util::Projection,
     vol::{BaseVol, ReadVol},
 };
 use common_base::{prof_span, span};
@@ -24,39 +26,84 @@ use specs::{
     Entities, Entity, Join, ParJoin, Read, ReadExpect, ReadStorage, SystemData, Write, WriteExpect,
     WriteStorage,
 };
-use std::ops::Range;
+use std::{f32::consts::PI, ops::Range};
 use vek::*;
 
-pub const BOUYANCY: f32 = 1.0;
-// Friction values used for linear damping. They are unitless quantities. The
-// value of these quantities must be between zero and one. They represent the
-// amount an object will slow down within 1/60th of a second. Eg. if the
-// friction is 0.01, and the speed is 1.0, then after 1/60th of a second the
-// speed will be 0.99. after 1 second the speed will be 0.54, which is 0.99 ^
-// 60.
-pub const FRIC_AIR: f32 = 0.0025;
-pub const FRIC_FLUID: f32 = 0.4;
+/// The density of the fluid as a function of submersion ratio in given fluid
+/// where it is assumed that any unsubmersed part is is air.
+// This is a pretty silly way of doing it as it assumes everything is spherical
+// in shape and uniform in mass distribution, but the result feels good enough.
+// TODO: Make the shape a capsule?
+fn fluid_density(height: f32, fluid: &Fluid) -> Density {
+    // If depth is less than our height (partial submersion), remove
+    // fluid density based on the ratio of displacement to full volume.
+    // The displacement is modelled as a gradually submersed sphere.
+    let immersion = fluid.depth().map_or(1.0, |depth| {
+        if height < depth {
+            1.0
+        } else {
+            let hemisphere_filled_vol = |r: f32, h: f32| -> f32 {
+                let r_ = (r.powi(2) - (r - h).powi(2)).sqrt();
+                (1.0 / 6.0) * PI * h * (3.0 * r_.powi(2) + h.powi(2))
+            };
+            let hemisphere_vol = |r: f32| -> f32 { (2.0 / 3.0) * PI * r.powi(3) };
+            let r = height / 2.0;
+            let sphere_vol = 2.0 * hemisphere_vol(r);
+            if depth < r {
+                hemisphere_filled_vol(r, depth) / sphere_vol
+            } else {
+                1.0 - hemisphere_filled_vol(r, height - depth) / sphere_vol
+            }
+        }
+    });
 
-// Integrates forces, calculates the new velocity based off of the old velocity
-// dt = delta time
-// lv = linear velocity
-// damp = linear damping
-// Friction is a type of damping.
-fn integrate_forces(dt: f32, mut lv: Vec3<f32>, grav: f32, damp: f32) -> Vec3<f32> {
-    // Clamp dt to an effective 10 TPS, to prevent gravity from slamming the players
-    // into the floor when stationary if other systems cause the server to lag
-    // (as observed in the 0.9 release party).
-    let dt = dt.min(0.1);
+    Density(fluid.density().0 * immersion + AIR_DENSITY * (1.0 - immersion))
+}
 
-    // this is not linear damping, because it is proportional to the original
-    // velocity this "linear" damping in in fact, quite exponential. and thus
-    // must be interpolated accordingly
-    let linear_damp = (1.0 - damp.min(1.0)).powf(dt * 60.0);
+#[allow(clippy::too_many_arguments)]
+fn integrate_forces(
+    dt: &DeltaTime,
+    mut vel: Vel,
+    body: &Body,
+    density: &Density,
+    mass: &Mass,
+    fluid: &Fluid,
+    gravity: f32,
+) -> Vel {
+    let dim = body.dimensions();
+    let height = dim.z;
+    let rel_flow = fluid.relative_flow(&vel);
+    let fluid_density = fluid_density(height, fluid);
+    debug_assert!(mass.0 > 0.0);
+    debug_assert!(density.0 > 0.0);
 
-    // TODO: investigate if we can have air friction provide the neccessary limits
-    // here
-    lv.z = (lv.z - grav * dt).max(-80.0).min(lv.z);
-    lv * linear_damp
+    // Aerodynamic/hydrodynamic forces
+    if !rel_flow.0.is_approx_zero() {
+        debug_assert!(!rel_flow.0.map(|a| a.is_nan()).reduce_or());
+        let impulse = dt.0 * body.aerodynamic_forces(&rel_flow, fluid_density.0);
+        debug_assert!(!impulse.map(|a| a.is_nan()).reduce_or());
+        if !impulse.is_approx_zero() {
+            let new_v = vel.0 + impulse / mass.0;
+            // If the new velocity is in the opposite direction, it's because the forces
+            // involved are too high for the current tick to handle. We deal with this by
+            // removing the component of our velocity vector along the direction of force.
+            // This way we can only ever lose velocity and will never experience a reverse
+            // in direction from events such as falling into water at high velocities.
+            if new_v.dot(vel.0) < 0.0 {
+                vel.0 -= vel.0.projected(&impulse);
+            } else {
+                vel.0 = new_v;
+            }
+        };
+        debug_assert!(!vel.0.map(|a| a.is_nan()).reduce_or());
+    };
+
+    // Hydrostatic/aerostatic forces
+    // modify gravity to account for the effective density as a result of buoyancy
+    let down_force = dt.0 * gravity * (density.0 - fluid_density.0) / density.0;
+    vel.0.z -= down_force;
+
+    vel
 }
 
 fn calc_z_limit(
@@ -88,7 +135,6 @@ pub struct PhysicsRead<'a> {
     stickies: ReadStorage<'a, Sticky>,
     masses: ReadStorage<'a, Mass>,
     colliders: ReadStorage<'a, Collider>,
-    gravities: ReadStorage<'a, Gravity>,
     mountings: ReadStorage<'a, Mounting>,
     projectiles: ReadStorage<'a, Projectile>,
     beams: ReadStorage<'a, BeamSegment>,
@@ -96,6 +142,7 @@ pub struct PhysicsRead<'a> {
     char_states: ReadStorage<'a, CharacterState>,
     bodies: ReadStorage<'a, Body>,
     character_states: ReadStorage<'a, CharacterState>,
+    densities: ReadStorage<'a, Density>,
 }
 
 #[derive(SystemData)]
@@ -255,7 +302,7 @@ impl<'a> PhysicsData<'a> {
             positions,
             &mut write.velocities,
             previous_phys_cache,
-            read.masses.maybe(),
+            &read.masses,
             read.colliders.maybe(),
             !&read.mountings,
             read.stickies.maybe(),
@@ -288,7 +335,6 @@ impl<'a> PhysicsData<'a> {
                     char_state_maybe,
                 )| {
                     let z_limits = calc_z_limit(char_state_maybe, collider);
-                    let mass = mass.map(|m| m.0).unwrap_or(previous_cache.scale);
 
                     // Resets touch_entities in physics
                     physics.touch_entities.clear();
@@ -320,13 +366,14 @@ impl<'a> PhysicsData<'a> {
                                 .get(entity)
                                 .zip(positions.get(entity))
                                 .zip(previous_phys_cache.get(entity))
-                                .map(|((uid, pos), previous_cache)| {
+                                .zip(read.masses.get(entity))
+                                .map(|(((uid, pos), previous_cache), mass)| {
                                     (
                                         entity,
                                         uid,
                                         pos,
                                         previous_cache,
-                                        read.masses.get(entity),
+                                        mass,
                                         read.colliders.get(entity),
                                         read.char_states.get(entity),
                                     )
@@ -357,16 +404,6 @@ impl<'a> PhysicsData<'a> {
                                     + previous_cache_other.scaled_radius;
                                 let z_limits_other =
                                     calc_z_limit(char_state_other_maybe, collider_other);
-
-                                let mass_other = mass_other
-                                    .map(|m| m.0)
-                                    .unwrap_or(previous_cache_other.scale);
-                                // This check after the pos check, as we currently don't have
-                                // that many
-                                // massless entites [citation needed]
-                                if mass_other == 0.0 {
-                                    return;
-                                }
 
                                 entity_entity_collision_checks += 1;
 
@@ -418,8 +455,8 @@ impl<'a> PhysicsData<'a> {
                                         {
                                             let force = 400.0
                                                 * (collision_dist - diff.magnitude())
-                                                * mass_other
-                                                / (mass + mass_other);
+                                                * mass_other.0
+                                                / (mass.0 + mass_other.0);
 
                                             vel_delta +=
                                                 Vec3::from(diff.normalized()) * force * step_delta;
@@ -542,10 +579,12 @@ impl<'a> PhysicsData<'a> {
         // We do this in a first pass because it helps keep things more stable for
         // entities that are anchored to other entities (such as airships).
         (
-            &read.entities,
             positions,
             velocities,
+            &read.bodies,
             &write.physics_states,
+            &read.masses,
+            &read.densities,
             !&read.mountings,
         )
             .par_join()
@@ -554,38 +593,31 @@ impl<'a> PhysicsData<'a> {
                     prof_span!(guard, "velocity update rayon job");
                     guard
                 },
-                |_guard, (entity, pos, vel, physics_state, _)| {
+                |_guard, (pos, vel, body, physics_state, mass, density, _)| {
                     let in_loaded_chunk = read
                         .terrain
                         .get_key(read.terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
                         .is_some();
-                    // Integrate forces
-                    // Friction is assumed to be a constant dependent on location
-                    let friction = if physics_state.on_ground { 0.0 } else { FRIC_AIR }
-                        // .max(if physics_state.on_ground {
-                        //     FRIC_GROUND
-                        // } else {
-                        //     0.0
-                        // })
-                        .max(if physics_state.in_liquid.is_some() {
-                            FRIC_FLUID
-                        } else {
-                            0.0
-                        });
-                    let downward_force =
-                        if !in_loaded_chunk {
-                            0.0 // No gravity in unloaded chunks
-                        } else if physics_state
-                            .in_liquid
-                            .map(|depth| depth > 0.75)
-                            .unwrap_or(false)
-                        {
-                            (1.0 - BOUYANCY) * GRAVITY
-                        } else {
-                            GRAVITY
-                        } * read.gravities.get(entity).map(|g| g.0).unwrap_or_default();
 
-                    vel.0 = integrate_forces(read.dt.0, vel.0, downward_force, friction);
+                    // Apply physics only if in a loaded chunk
+                    if in_loaded_chunk {
+                        // Clamp dt to an effective 10 TPS, to prevent gravity from slamming the
+                        // players into the floor when stationary if other systems cause the server
+                        // to lag (as observed in the 0.9 release party).
+                        let dt = DeltaTime(read.dt.0.min(0.1));
+
+                        match physics_state.in_fluid {
+                            None => {
+                                vel.0.z -= dt.0 * GRAVITY;
+                            },
+                            Some(fluid) => {
+                                vel.0 = integrate_forces(
+                                    &dt, *vel, body, density, mass, &fluid, GRAVITY,
+                                )
+                                .0
+                            },
+                        }
+                    }
                 },
             );
 
@@ -671,8 +703,7 @@ impl<'a> PhysicsData<'a> {
                     let mut tgt_pos = pos.0 + pos_delta;
 
                     let was_on_ground = physics_state.on_ground;
-
-                    let block_snap = body.map_or(false, |body| body.jump_impulse().is_some());
+                    let block_snap = body.map_or(false, |b| !matches!(b, Body::Ship(_)));
                     let climbing =
                         character_state.map_or(false, |cs| matches!(cs, CharacterState::Climb(_)));
 
@@ -816,11 +847,21 @@ impl<'a> PhysicsData<'a> {
                                 }
                             }
 
-                            physics_state.in_liquid = read
+                            physics_state.in_fluid = read
                                 .terrain
                                 .get(pos.0.map(|e| e.floor() as i32))
                                 .ok()
-                                .and_then(|vox| vox.is_liquid().then_some(1.0));
+                                .and_then(|vox| vox.is_liquid().then_some(1.0))
+                                .map(|depth| Fluid::Water {
+                                    depth,
+                                    vel: Vel::zero(),
+                                })
+                                .or_else(|| {
+                                    Some(Fluid::Air {
+                                        elevation: pos.0.z,
+                                        vel: Vel::zero(),
+                                    })
+                                });
 
                             tgt_pos = pos.0;
                         },
@@ -989,12 +1030,19 @@ impl<'a> PhysicsData<'a> {
                                             .on_wall
                                             .map(|dir| ori_from.mul_direction(dir))
                                     });
-                                    physics_state.in_liquid = match (
-                                        physics_state.in_liquid,
-                                        physics_state_delta.in_liquid,
+                                    physics_state.in_fluid = match (
+                                        physics_state.in_fluid,
+                                        physics_state_delta.in_fluid,
                                     ) {
-                                        // this match computes `x <|> y <|> liftA2 max x y`
-                                        (Some(x), Some(y)) => Some(x.max(y)),
+                                        (Some(x), Some(y)) => x
+                                            .depth()
+                                            .and_then(|xh| {
+                                                y.depth()
+                                                    .map(|yh| xh > yh)
+                                                    .unwrap_or(true)
+                                                    .then_some(x)
+                                            })
+                                            .or(Some(y)),
                                         (x @ Some(_), _) => x,
                                         (_, y @ Some(_)) => y,
                                         _ => None,
@@ -1108,7 +1156,7 @@ impl<'a> System<'a> for Sys {
 
 #[allow(clippy::too_many_arguments)]
 fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
-    cylinder: (f32, f32, f32),
+    cylinder: (f32, f32, f32), // effective collision cylinder
     terrain: &'a T,
     entity: Entity,
     pos: &mut Pos,
@@ -1450,8 +1498,27 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         physics_state.ground_vel = ground_vel;
     }
 
-    // Set in_liquid state
-    physics_state.in_liquid = max_liquid_z.map(|max_z| max_z - pos.0.z);
+    physics_state.in_fluid = max_liquid_z
+        .map(|max_z| max_z - pos.0.z) // NOTE: assumes min_z == 0.0
+        .map(|depth| {
+            physics_state
+                .in_liquid()
+                // This is suboptimal because it doesn't check for true depth,
+                // so it can cause problems for situations like swimming down
+                // a river and spawning or teleporting in(/to) water
+                .map(|old_depth| (old_depth + old_pos.z - pos.0.z).max(depth))
+                .unwrap_or(depth)
+        })
+        .map(|depth| Fluid::Water {
+            depth,
+            vel: Vel::zero(),
+        })
+        .or_else(|| {
+            Some(Fluid::Air {
+                elevation: pos.0.z,
+                vel: Vel::zero(),
+            })
+        });
 }
 
 fn voxel_collider_bounding_sphere(

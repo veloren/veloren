@@ -19,6 +19,7 @@ use common::{
         InputKind, Inventory, InventoryAction, LightEmitter, MountState, Ori, PhysicsState, Pos,
         Scale, SkillSet, Stats, UnresolvedChatMsg, Vel,
     },
+    consts::GRAVITY,
     effect::{BuffEffect, Effect},
     event::{Emitter, EventBus, ServerEvent},
     path::TraversalConfig,
@@ -233,10 +234,10 @@ impl<'a> System<'a> for Sys {
                         node_tolerance,
                         slow_factor,
                         on_ground: physics_state.on_ground,
-                        in_liquid: physics_state.in_liquid.is_some(),
+                        in_liquid: physics_state.in_liquid().is_some(),
                         min_tgt_dist: 1.0,
                         can_climb: body.map(|b| b.can_climb()).unwrap_or(false),
-                        can_fly: body.map(|b| b.can_fly().is_some()).unwrap_or(false),
+                        can_fly: body.map(|b| b.fly_thrust().is_some()).unwrap_or(false),
                     };
 
                     if traversal_config.can_fly {
@@ -743,7 +744,7 @@ impl<'a> AgentData<'a> {
                         * speed.min(agent.rtsim_controller.speed_factor);
                 self.jump_if(controller, bearing.z > 1.5 || self.traversal_config.can_fly);
                 controller.inputs.climb = Some(comp::Climb::Up);
-                //.filter(|_| bearing.z > 0.1 || self.physics_state.in_liquid.is_some());
+                //.filter(|_| bearing.z > 0.1 || self.physics_state.in_liquid().is_some());
 
                 controller.inputs.move_z = bearing.z
                     + if self.traversal_config.can_fly {
@@ -1543,37 +1544,35 @@ impl<'a> AgentData<'a> {
                        0.0
                    };
 
-        // Hacky distance offset for ranged weapons. This is
-        // intentionally hacky for now before we make ranged
-        // NPCs lead targets and implement varying aiming
-        // skill
-        let distance_offset = match tactic {
-            Tactic::Bow => {
-                0.0004 /* Yay magic numbers */ * self.pos.0.distance_squared(tgt_pos.0)
-            },
-            Tactic::Staff => {
-                0.0015 /* Yay magic numbers */ * self.pos.0.distance_squared(tgt_pos.0)
-            },
-            Tactic::QuadLowRanged => {
-                0.03 /* Yay magic numbers */ * self.pos.0.distance_squared(tgt_pos.0)
-            },
-            _ => 0.0,
-        };
+        let dist_sqrd = self.pos.0.distance_squared(tgt_pos.0);
 
-        // Apply the distance and eye offsets to make the
-        // look_dir the vector from projectile launch to
-        // target point
-        if let Some(dir) = Dir::from_unnormalized(
-            Vec3::new(
-                tgt_pos.0.x,
-                tgt_pos.0.y,
-                tgt_pos.0.z + tgt_eye_offset + distance_offset,
-            ) - Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
-        ) {
+        // FIXME: Retrieve actual projectile speed!
+        // We have to assume projectiles are faster than base speed because there are
+        // skills that increase it, and in most cases this will cause agents to
+        // overshoot
+        if let Some(dir) = match tactic {
+            Tactic::Bow
+            | Tactic::FixedTurret
+            | Tactic::QuadLowRanged
+            | Tactic::QuadMedJump
+            | Tactic::RotatingTurret
+            | Tactic::Staff
+            | Tactic::Turret
+                if dist_sqrd > 0.0 =>
+            {
+                aim_projectile(
+                    90.0, // + self.vel.0.magnitude(),
+                    Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+                    Vec3::new(tgt_pos.0.x, tgt_pos.0.y, tgt_pos.0.z + tgt_eye_offset),
+                )
+            }
+            _ => Dir::from_unnormalized(
+                Vec3::new(tgt_pos.0.x, tgt_pos.0.y, tgt_pos.0.z + tgt_eye_offset)
+                    - Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+            ),
+        } {
             controller.inputs.look_dir = dir;
         }
-
-        let dist_sqrd = self.pos.0.distance_squared(tgt_pos.0);
 
         // Match on tactic. Each tactic has different controls
         // depending on the distance from the agent to the target
@@ -2632,4 +2631,19 @@ fn try_owner_alignment<'a>(
         }
     }
     alignment
+}
+
+/// Projectile motion: Returns the direction to aim for the projectile to reach
+/// target position. Does not take any forces but gravity into account.
+fn aim_projectile(speed: f32, pos: Vec3<f32>, tgt: Vec3<f32>) -> Option<Dir> {
+    let mut to_tgt = tgt - pos;
+    let dist_sqrd = to_tgt.xy().magnitude_squared();
+    let u_sqrd = speed.powi(2);
+    to_tgt.z = (u_sqrd
+        - (u_sqrd.powi(2) - GRAVITY * (GRAVITY * dist_sqrd + 2.0 * to_tgt.z * u_sqrd))
+            .sqrt()
+            .max(0.0))
+        / GRAVITY;
+
+    Dir::from_unnormalized(to_tgt)
 }

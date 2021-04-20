@@ -38,7 +38,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sort inventory button
 - Option to change the master volume when window is unfocused
 - Crafting stations in towns
-
+- Option to change the master volume when window is unfocused 
+- Entities now have mass
+- Entities now have density
+- Buoyancy is calculated from the difference in density between an entity and surrounding fluid
+- Drag is now calculated based on physical properties
 
 ### Changed
 
@@ -64,10 +68,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Certain uses of client-authoritative physics now subject the player to server-authoritative physics.
 - Dodge roll iframes and staff explosion are now unlocked by default, with points refunded for existing characters.
 - Dash melee now stops after hitting something. Infinite dash also now replaced with dash through.
+- Collisions, knockbacks, jumping and drag are now physical forces applied to the entity's body mass
+- Turning rate has been made more consistent across angles
+- Gravity has been lowered so that physics can work more reasonably
+- Jump has been decreased in height but extended in length as a result of the new gravity
+- Fall damage has been adjusted with the new gravity in mind
+- Projectiles now generally have a different arc because they no longer have their own gravity modifier
 
 ### Removed
 
 - Removed command: "debug", use "/kit debug" instead
+- Gravity component has been removed
+- In-air movement has been removed
 
 ### Fixed
 

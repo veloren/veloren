@@ -16,6 +16,7 @@ pub mod theropod;
 
 use crate::{
     assets::{self, Asset},
+    consts::{HUMAN_DENSITY, WATER_DENSITY},
     make_case_elim,
     npc::NpcKind,
 };
@@ -24,7 +25,7 @@ use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use vek::*;
 
-use super::BuffKind;
+use super::{BuffKind, Density, Mass};
 
 make_case_elim!(
     body,
@@ -145,164 +146,227 @@ impl<
 impl Body {
     pub fn is_humanoid(&self) -> bool { matches!(self, Body::Humanoid(_)) }
 
-    // Note: this might need to be refined to something more complex for realistic
-    // behavior with less cylindrical bodies (e.g. wolfs)
-    #[allow(unreachable_patterns)]
-    pub fn radius(&self) -> f32 {
-        // TODO: Improve these values (some might be reliant on more info in inner type)
-        match self {
-            Body::Humanoid(humanoid) => match (humanoid.species, humanoid.body_type) {
-                (humanoid::Species::Orc, humanoid::BodyType::Male) => 0.75,
-                (humanoid::Species::Orc, humanoid::BodyType::Female) => 0.75,
-                (humanoid::Species::Human, humanoid::BodyType::Male) => 0.75,
-                (humanoid::Species::Human, humanoid::BodyType::Female) => 0.75,
-                (humanoid::Species::Elf, humanoid::BodyType::Male) => 0.75,
-                (humanoid::Species::Elf, humanoid::BodyType::Female) => 0.75,
-                (humanoid::Species::Dwarf, humanoid::BodyType::Male) => 0.75,
-                (humanoid::Species::Dwarf, humanoid::BodyType::Female) => 0.75,
-                (humanoid::Species::Undead, humanoid::BodyType::Male) => 0.75,
-                (humanoid::Species::Undead, humanoid::BodyType::Female) => 0.75,
-                (humanoid::Species::Danari, humanoid::BodyType::Male) => 0.75,
-                (humanoid::Species::Danari, humanoid::BodyType::Female) => 0.75,
-                _ => 0.75,
-            },
-            Body::QuadrupedSmall(_) => 0.6,
-            Body::QuadrupedMedium(body) => match body.species {
-                quadruped_medium::Species::Grolgar => 2.0,
-                quadruped_medium::Species::Tarasque => 2.0,
-                quadruped_medium::Species::Lion => 2.0,
-                quadruped_medium::Species::Saber => 2.0,
-                quadruped_medium::Species::Catoblepas => 2.0,
-                quadruped_medium::Species::Horse => 1.5,
-                quadruped_medium::Species::Deer => 1.5,
-                quadruped_medium::Species::Donkey => 1.5,
-                quadruped_medium::Species::Kelpie => 1.5,
-                quadruped_medium::Species::Barghest => 1.8,
-                quadruped_medium::Species::Cattle => 1.8,
-                quadruped_medium::Species::Highland => 1.8,
-                quadruped_medium::Species::Yak => 1.8,
-                quadruped_medium::Species::Panda => 1.8,
-                quadruped_medium::Species::Bear => 1.8,
-                _ => 1.5,
-            },
-            Body::QuadrupedLow(body) => match body.species {
-                quadruped_low::Species::Asp => 2.5,
-                quadruped_low::Species::Monitor => 2.3,
-                quadruped_low::Species::Crocodile => 2.4,
-                quadruped_low::Species::Salamander => 2.4,
-                quadruped_low::Species::Pangolin => 2.0,
-                quadruped_low::Species::Lavadrake => 2.5,
-                quadruped_low::Species::Deadwood => 0.5,
-                _ => 1.6,
-            },
-            Body::Theropod(body) => match body.species {
-                theropod::Species::Snowraptor => 1.5,
-                theropod::Species::Sandraptor => 1.5,
-                theropod::Species::Woodraptor => 1.5,
-                theropod::Species::Archaeos => 3.5,
-                theropod::Species::Odonto => 3.5,
-                theropod::Species::Yale => 0.8,
-                theropod::Species::Ntouka => 3.0,
-                _ => 1.8,
-            },
-            Body::BirdMedium(_) => 1.0,
-            Body::FishMedium(_) => 1.0,
-            Body::Dragon(_) => 8.0,
-            Body::BirdSmall(_) => 0.6,
-            Body::FishSmall(_) => 0.6,
-            Body::BipedLarge(body) => match body.species {
-                biped_large::Species::Slysaurok => 2.0,
-                biped_large::Species::Occultsaurok => 2.0,
-                biped_large::Species::Mightysaurok => 2.0,
-                biped_large::Species::Mindflayer => 2.2,
-                biped_large::Species::Minotaur => 3.0,
+    /// Average density of the body
+    // Units are based on kg/m³
+    pub fn density(&self) -> Density {
+        let d = match self {
+            // based on a house sparrow (Passer domesticus)
+            Body::BirdMedium(_) => 700.0,
+            Body::BirdSmall(_) => 700.0,
 
-                _ => 2.3,
-            },
-            Body::Golem(_) => 2.5,
-            Body::BipedSmall(_) => 0.75,
-            Body::Object(_) => 0.4,
-            Body::Ship(_) => 1.0,
-        }
+            // based on its mass divided by the volume of a bird scaled up to the size of the dragon
+            Body::Dragon(_) => 3_700.0,
+
+            Body::Golem(_) => WATER_DENSITY * 2.5,
+            Body::Humanoid(_) => HUMAN_DENSITY,
+            Body::Ship(ship) => ship.density().0,
+            Body::Object(object) => object.density().0,
+            _ => HUMAN_DENSITY,
+        };
+        Density(d)
     }
 
-    pub fn height(&self) -> f32 {
-        match self {
-            Body::Humanoid(humanoid) => match (humanoid.species, humanoid.body_type) {
-                (humanoid::Species::Orc, humanoid::BodyType::Male) => 2.3,
-                (humanoid::Species::Orc, humanoid::BodyType::Female) => 2.2,
-                (humanoid::Species::Human, humanoid::BodyType::Male) => 2.3,
-                (humanoid::Species::Human, humanoid::BodyType::Female) => 2.2,
-                (humanoid::Species::Elf, humanoid::BodyType::Male) => 2.3,
-                (humanoid::Species::Elf, humanoid::BodyType::Female) => 2.2,
-                (humanoid::Species::Dwarf, humanoid::BodyType::Male) => 1.9,
-                (humanoid::Species::Dwarf, humanoid::BodyType::Female) => 1.8,
-                (humanoid::Species::Undead, humanoid::BodyType::Male) => 2.2,
-                (humanoid::Species::Undead, humanoid::BodyType::Female) => 2.1,
-                (humanoid::Species::Danari, humanoid::BodyType::Male) => 1.5,
-                (humanoid::Species::Danari, humanoid::BodyType::Female) => 1.4,
+    // Values marked with ~✅ are checked based on their RL equivalent.
+    // Discrepancy in size compared to their RL equivalents has not necessarily been
+    // taken into account.
+    pub fn mass(&self) -> Mass {
+        let m = match self {
+            Body::BipedLarge(body) => match body.species {
+                biped_large::Species::Slysaurok => 400.0,
+                biped_large::Species::Occultsaurok => 400.0,
+                biped_large::Species::Mightysaurok => 400.0,
+                biped_large::Species::Mindflayer => 420.0,
+                biped_large::Species::Minotaur => 500.0,
+                _ => 400.0,
+            },
+            Body::BipedSmall(_) => 50.0,
+
+            // ravens are 0.69-2 kg, crows are 0.51 kg on average
+            Body::BirdMedium(_) => 1.0,
+            // australian magpies are around 0.22-0.35 kg
+            Body::BirdSmall(_) => 0.3,
+
+            Body::Dragon(_) => 20_000.0,
+            Body::FishMedium(_) => 2.5,
+            Body::FishSmall(_) => 1.0,
+            Body::Golem(_) => 10_000.0,
+            Body::Humanoid(humanoid) => {
+                // humanoids are quite a bit larger than in real life, so we multiply their mass
+                // to scale it up proportionally (remember cube law)
+                1.0 * match (humanoid.species, humanoid.body_type) {
+                    (humanoid::Species::Orc, humanoid::BodyType::Male) => 120.0,
+                    (humanoid::Species::Orc, humanoid::BodyType::Female) => 120.0,
+                    (humanoid::Species::Human, humanoid::BodyType::Male) => 77.0, // ~✅
+                    (humanoid::Species::Human, humanoid::BodyType::Female) => 59.0, // ~✅
+                    (humanoid::Species::Elf, humanoid::BodyType::Male) => 77.0,
+                    (humanoid::Species::Elf, humanoid::BodyType::Female) => 59.0,
+                    (humanoid::Species::Dwarf, humanoid::BodyType::Male) => 70.0,
+                    (humanoid::Species::Dwarf, humanoid::BodyType::Female) => 70.0,
+                    (humanoid::Species::Undead, humanoid::BodyType::Male) => 70.0,
+                    (humanoid::Species::Undead, humanoid::BodyType::Female) => 50.0,
+                    (humanoid::Species::Danari, humanoid::BodyType::Male) => 80.0,
+                    (humanoid::Species::Danari, humanoid::BodyType::Female) => 60.0,
+                }
+            },
+            Body::Object(obj) => obj.mass().0,
+            Body::QuadrupedLow(body) => match body.species {
+                quadruped_low::Species::Alligator => 360.0, // ~✅
+                quadruped_low::Species::Asp => 300.0,
+                // saltwater crocodiles can weigh around 1 ton, but our version is the size of an
+                // alligator or smaller, so whatever
+                quadruped_low::Species::Crocodile => 360.0,
+                quadruped_low::Species::Deadwood => 400.0,
+                quadruped_low::Species::Lavadrake => 500.0,
+                quadruped_low::Species::Monitor => 100.0,
+                quadruped_low::Species::Pangolin => 100.0,
+                quadruped_low::Species::Salamander => 65.0,
+                quadruped_low::Species::Tortoise => 200.0,
+                _ => 200.0,
+            },
+            Body::QuadrupedMedium(body) => match body.species {
+                quadruped_medium::Species::Bear => 500.0, // ~✅ (350-700 kg)
+                quadruped_medium::Species::Cattle => 575.0, // ~✅ (500-650 kg)
+                quadruped_medium::Species::Deer => 80.0,
+                quadruped_medium::Species::Donkey => 200.0,
+                quadruped_medium::Species::Highland => 200.0,
+                quadruped_medium::Species::Horse => 500.0, // ~✅
+                quadruped_medium::Species::Kelpie => 200.0,
+                quadruped_medium::Species::Lion => 170.0, // ~✅ (110-225 kg)
+                quadruped_medium::Species::Panda => 200.0,
+                quadruped_medium::Species::Saber => 130.0,
+                quadruped_medium::Species::Yak => 200.0,
+                _ => 200.0,
             },
             Body::QuadrupedSmall(body) => match body.species {
-                quadruped_small::Species::Dodarock => 1.5,
-                quadruped_small::Species::Holladon => 1.5,
-                quadruped_small::Species::Truffler => 2.0,
-                _ => 1.0,
-            },
-            Body::QuadrupedMedium(body) => match body.species {
-                quadruped_medium::Species::Tarasque => 2.6,
-                quadruped_medium::Species::Lion => 2.0,
-                quadruped_medium::Species::Saber => 2.0,
-                quadruped_medium::Species::Catoblepas => 2.9,
-                quadruped_medium::Species::Barghest => 2.5,
-                quadruped_medium::Species::Dreadhorn => 2.5,
-                quadruped_medium::Species::Moose => 2.5,
-                _ => 1.6,
-            },
-            Body::QuadrupedLow(body) => match body.species {
-                quadruped_low::Species::Monitor => 1.5,
-                quadruped_low::Species::Tortoise => 2.0,
-                quadruped_low::Species::Rocksnapper => 2.9,
-                quadruped_low::Species::Maneater => 4.0,
-                _ => 1.3,
+                quadruped_small::Species::Batfox => 50.0,
+                quadruped_small::Species::Boar => 80.0, // ~✅ (60-100 kg)
+                quadruped_small::Species::Dodarock => 150.0,
+                quadruped_small::Species::Holladon => 150.0,
+                quadruped_small::Species::Hyena => 70.0, // ~✅ (vaguely)
+                quadruped_small::Species::Truffler => 150.0,
+                _ => 80.0,
             },
             Body::Theropod(body) => match body.species {
-                theropod::Species::Snowraptor => 2.6,
-                theropod::Species::Sandraptor => 2.6,
-                theropod::Species::Woodraptor => 2.6,
-                theropod::Species::Sunlizard => 2.5,
-                theropod::Species::Yale => 3.0,
-                _ => 8.0,
-            },
-            Body::BirdMedium(body) => match body.species {
-                bird_medium::Species::Cockatrice => 1.8,
-                _ => 1.1,
-            },
-            Body::FishMedium(_) => 0.8,
-            Body::Dragon(_) => 16.0,
-            Body::BirdSmall(_) => 1.1,
-            Body::FishSmall(_) => 0.6,
-            Body::BipedLarge(body) => match body.species {
-                biped_large::Species::Slysaurok => 3.4,
-                biped_large::Species::Occultsaurok => 3.4,
-                biped_large::Species::Mightysaurok => 3.4,
-                biped_large::Species::Mindflayer => 8.0,
-                biped_large::Species::Minotaur => 8.0,
-                biped_large::Species::Dullahan => 5.5,
-                biped_large::Species::Cyclops => 6.5,
-                biped_large::Species::Werewolf => 3.5,
+                // for reference, elephants are in the range of 2.6-6.9 tons
+                // and Tyrannosaurus rex were ~8.4-14 tons
+                theropod::Species::Archaeos => 13_000.0,
+                theropod::Species::Ntouka => 13_000.0,
+                theropod::Species::Odonto => 13_000.0,
 
-                _ => 6.0,
+                theropod::Species::Sandraptor => 500.0,
+                theropod::Species::Snowraptor => 500.0,
+                theropod::Species::Sunlizard => 500.0,
+                theropod::Species::Woodraptor => 500.0,
+                theropod::Species::Yale => 1_000.0,
             },
-            Body::Golem(_) => 5.0,
-            Body::BipedSmall(_) => 1.4,
-            Body::Object(object) => match object {
-                object::Body::Crossbow => 1.7,
-                object::Body::TrainingDummy => 2.2,
-                _ => 1.0,
+            Body::Ship(ship) => ship.mass().0,
+        };
+        Mass(m)
+    }
+
+    /// The width (shoulder to shoulder), length (nose to tail) and height
+    /// respectively
+    pub fn dimensions(&self) -> Vec3<f32> {
+        match self {
+            Body::BipedLarge(body) => match body.species {
+                biped_large::Species::Cyclops => Vec3::new(4.6, 3.0, 6.5),
+                biped_large::Species::Dullahan => Vec3::new(4.6, 3.0, 5.5),
+                biped_large::Species::Mightysaurok => Vec3::new(4.0, 3.0, 3.4),
+                biped_large::Species::Mindflayer => Vec3::new(4.4, 3.0, 8.0),
+                biped_large::Species::Minotaur => Vec3::new(6.0, 3.0, 8.0),
+                biped_large::Species::Occultsaurok => Vec3::new(4.0, 3.0, 3.4),
+                biped_large::Species::Slysaurok => Vec3::new(4.0, 3.0, 3.4),
+                biped_large::Species::Werewolf => Vec3::new(4.0, 3.0, 3.5),
+
+                _ => Vec3::new(4.6, 3.0, 6.0),
             },
-            Body::Ship(_) => 1.0,
+            Body::BipedSmall(_) => Vec3::new(1.0, 0.75, 1.4),
+            Body::BirdMedium(body) => match body.species {
+                bird_medium::Species::Cockatrice => Vec3::new(2.0, 1.0, 1.8),
+                _ => Vec3::new(2.0, 1.0, 1.1),
+            },
+            Body::BirdSmall(_) => Vec3::new(1.2, 0.6, 1.1),
+            Body::Dragon(_) => Vec3::new(16.0, 10.0, 16.0),
+            Body::FishMedium(_) => Vec3::new(0.5, 2.0, 0.8),
+            Body::FishSmall(_) => Vec3::new(0.3, 1.2, 0.6),
+            Body::Golem(_) => Vec3::new(5.0, 5.0, 5.0),
+            Body::Humanoid(humanoid) => {
+                let height = match (humanoid.species, humanoid.body_type) {
+                    (humanoid::Species::Orc, humanoid::BodyType::Male) => 2.3,
+                    (humanoid::Species::Orc, humanoid::BodyType::Female) => 2.2,
+                    (humanoid::Species::Human, humanoid::BodyType::Male) => 2.3,
+                    (humanoid::Species::Human, humanoid::BodyType::Female) => 2.2,
+                    (humanoid::Species::Elf, humanoid::BodyType::Male) => 2.3,
+                    (humanoid::Species::Elf, humanoid::BodyType::Female) => 2.2,
+                    (humanoid::Species::Dwarf, humanoid::BodyType::Male) => 1.9,
+                    (humanoid::Species::Dwarf, humanoid::BodyType::Female) => 1.8,
+                    (humanoid::Species::Undead, humanoid::BodyType::Male) => 2.2,
+                    (humanoid::Species::Undead, humanoid::BodyType::Female) => 2.1,
+                    (humanoid::Species::Danari, humanoid::BodyType::Male) => 1.5,
+                    (humanoid::Species::Danari, humanoid::BodyType::Female) => 1.4,
+                };
+                Vec3::new(1.5, 0.5, height)
+            },
+            Body::Object(object) => object.dimensions(),
+            Body::QuadrupedMedium(body) => match body.species {
+                quadruped_medium::Species::Barghest => Vec3::new(2.0, 3.6, 2.5),
+                quadruped_medium::Species::Bear => Vec3::new(2.0, 3.6, 2.0),
+                quadruped_medium::Species::Catoblepas => Vec3::new(2.0, 4.0, 2.9),
+                quadruped_medium::Species::Cattle => Vec3::new(2.0, 3.6, 2.0),
+                quadruped_medium::Species::Deer => Vec3::new(2.0, 3.0, 2.0),
+                quadruped_medium::Species::Dreadhorn => Vec3::new(2.0, 3.0, 2.5),
+                quadruped_medium::Species::Grolgar => Vec3::new(2.0, 4.0, 2.0),
+                quadruped_medium::Species::Highland => Vec3::new(2.0, 3.6, 2.0),
+                quadruped_medium::Species::Horse => Vec3::new(2.0, 3.0, 2.0),
+                quadruped_medium::Species::Lion => Vec3::new(2.0, 3.0, 2.0),
+                quadruped_medium::Species::Moose => Vec3::new(2.0, 4.0, 2.5),
+                quadruped_medium::Species::Saber => Vec3::new(2.0, 4.0, 2.0),
+                quadruped_medium::Species::Tarasque => Vec3::new(2.0, 4.0, 2.6),
+                quadruped_medium::Species::Yak => Vec3::new(2.0, 3.6, 2.0),
+                _ => Vec3::new(2.0, 3.0, 2.0),
+            },
+            Body::QuadrupedSmall(body) => match body.species {
+                quadruped_small::Species::Dodarock => Vec3::new(1.2, 1.2, 1.5),
+                quadruped_small::Species::Holladon => Vec3::new(1.2, 1.2, 1.5),
+                quadruped_small::Species::Truffler => Vec3::new(1.2, 1.2, 2.0),
+                _ => Vec3::new(1.2, 1.2, 1.0),
+            },
+            Body::QuadrupedLow(body) => match body.species {
+                quadruped_low::Species::Asp => Vec3::new(1.0, 2.5, 1.3),
+                quadruped_low::Species::Crocodile => Vec3::new(1.0, 2.4, 1.3),
+                quadruped_low::Species::Deadwood => Vec3::new(1.0, 0.5, 1.3),
+                quadruped_low::Species::Lavadrake => Vec3::new(1.0, 2.5, 1.3),
+                quadruped_low::Species::Maneater => Vec3::new(1.0, 1.6, 4.0),
+                quadruped_low::Species::Monitor => Vec3::new(1.0, 2.3, 1.5),
+                quadruped_low::Species::Pangolin => Vec3::new(1.0, 2.0, 1.3),
+                quadruped_low::Species::Rocksnapper => Vec3::new(1.0, 1.6, 2.9),
+                quadruped_low::Species::Salamander => Vec3::new(1.0, 2.4, 1.3),
+                quadruped_low::Species::Tortoise => Vec3::new(1.0, 1.6, 2.0),
+                _ => Vec3::new(1.0, 1.6, 1.3),
+            },
+            Body::Ship(ship) => ship.dimensions(),
+            Body::Theropod(body) => match body.species {
+                theropod::Species::Archaeos => Vec3::new(4.0, 7.0, 8.0),
+                theropod::Species::Ntouka => Vec3::new(4.0, 6.0, 8.0),
+                theropod::Species::Odonto => Vec3::new(4.0, 6.5, 8.0),
+                theropod::Species::Sandraptor => Vec3::new(2.0, 3.0, 2.6),
+                theropod::Species::Snowraptor => Vec3::new(2.0, 3.0, 2.6),
+                theropod::Species::Sunlizard => Vec3::new(2.0, 3.6, 2.5),
+                theropod::Species::Woodraptor => Vec3::new(2.0, 3.0, 2.6),
+                theropod::Species::Yale => Vec3::new(1.5, 3.2, 6.0),
+            },
         }
     }
+
+    // Note: This is used for collisions, but it's not very accurate for shapes that
+    // are very much not cylindrical. Eventually this ought to be replaced by more
+    // accurate collision shapes.
+    pub fn radius(&self) -> f32 {
+        let dim = self.dimensions();
+        dim.x.max(dim.y) / 2.0
+    }
+
+    pub fn height(&self) -> f32 { self.dimensions().z }
 
     pub fn base_energy(&self) -> u32 {
         match self {

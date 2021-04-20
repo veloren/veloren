@@ -76,7 +76,7 @@ impl<'a> System<'a> for Sys {
                         const ENABLE_RECURSIVE_FIREWORKS: bool = true;
                         if ENABLE_RECURSIVE_FIREWORKS {
                             use common::{
-                                comp::{object, Body, Gravity, LightEmitter, Projectile},
+                                comp::{object, Body, LightEmitter, Projectile},
                                 util::Dir,
                             };
                             use rand::Rng;
@@ -132,7 +132,6 @@ impl<'a> System<'a> for Sys {
                                         owner: *owner,
                                         ignore_group: true,
                                     },
-                                    gravity: Some(Gravity(1.0)),
                                     speed,
                                     object: Some(Object::Firework {
                                         owner: *owner,
