@@ -20,10 +20,10 @@ use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteSto
 use tracing::trace;
 
 #[cfg(feature = "plugins")]
-use common_sys::plugin::memory_manager::EcsWorld;
+use common_state::plugin::memory_manager::EcsWorld;
 
 #[cfg(feature = "plugins")]
-use common_sys::plugin::PluginMgr;
+use common_state::plugin::PluginMgr;
 
 #[cfg(feature = "plugins")]
 type ReadPlugin<'a> = Read<'a, PluginMgr>;

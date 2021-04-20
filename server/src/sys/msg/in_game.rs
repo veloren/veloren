@@ -10,7 +10,7 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{ClientGeneral, PresenceKind, ServerGeneral};
-use common_sys::state::{BlockChange, BuildAreas};
+use common_state::{BlockChange, BuildAreas};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
 use tracing::{debug, trace, warn};
 

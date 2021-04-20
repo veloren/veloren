@@ -98,7 +98,7 @@ use common::{
     outcome::Outcome,
     terrain::{BlockKind, TerrainChunk},
 };
-use common_sys::state::State;
+use common_state::State;
 use event_mapper::SfxEventMapper;
 use hashbrown::HashMap;
 use rand::prelude::*;

@@ -14,7 +14,7 @@ use common::{
     vol::RectRasterableVol,
 };
 use common_ecs::{dispatch, System};
-use common_sys::state::State;
+use common_state::State;
 use rand::prelude::*;
 use slab::Slab;
 use specs::{DispatcherBuilder, WorldExt};

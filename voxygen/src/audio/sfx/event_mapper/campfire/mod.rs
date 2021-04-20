@@ -13,7 +13,7 @@ use common::{
     terrain::TerrainChunk,
     vol::ReadVol,
 };
-use common_sys::state::State;
+use common_state::State;
 use hashbrown::HashMap;
 use specs::{Entity as EcsEntity, Join, WorldExt};
 use std::time::{Duration, Instant};

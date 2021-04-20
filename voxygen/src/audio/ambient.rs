@@ -8,7 +8,7 @@ use common::{
     assets::{self, AssetExt, AssetHandle},
     vol::ReadVol,
 };
-use common_sys::state::State;
+use common_state::State;
 use serde::Deserialize;
 use std::time::Instant;
 use tracing::warn;

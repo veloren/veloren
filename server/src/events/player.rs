@@ -10,7 +10,7 @@ use common::{
 };
 use common_base::span;
 use common_net::msg::{PlayerListUpdate, PresenceKind, ServerGeneral};
-use common_sys::state::State;
+use common_state::State;
 use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, WorldExt};
 use tracing::{debug, error, trace, warn, Instrument};
 

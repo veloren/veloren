@@ -2,9 +2,9 @@ use crate::settings::BanRecord;
 use authc::{AuthClient, AuthClientError, AuthToken, Uuid};
 use common_net::msg::RegisterError;
 #[cfg(feature = "plugins")]
-use common_sys::plugin::memory_manager::EcsWorld;
+use common_state::plugin::memory_manager::EcsWorld;
 #[cfg(feature = "plugins")]
-use common_sys::plugin::PluginMgr;
+use common_state::plugin::PluginMgr;
 use hashbrown::{HashMap, HashSet};
 use plugin_api::event::{PlayerJoinEvent, PlayerJoinResult};
 use specs::Component;
@@ -167,9 +167,17 @@ impl LoginProvider {
         let token = AuthToken::from_str(username_or_token)
             .map_err(|e| RegisterError::AuthError(e.to_string()))?;
         // Validate token
-        let uuid = srv.validate(token).await?;
-        let username = srv.uuid_to_username(uuid).await?;
-        Ok((username, uuid))
+        match async {
+            let uuid = srv.validate(token).await?;
+            let username = srv.uuid_to_username(uuid).await?;
+            let r: Result<_, authc::AuthClientError> = Ok((username, uuid));
+            r
+        }
+        .await
+        {
+            Err(e) => Err(RegisterError::AuthError(e.to_string())),
+            Ok((username, uuid)) => Ok((username, uuid)),
+        }
     }
 
     pub fn username_to_uuid(&self, username: &str) -> Result<Uuid, AuthClientError> {

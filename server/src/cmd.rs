@@ -34,7 +34,7 @@ use common_net::{
     msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
     sync::WorldSyncExt,
 };
-use common_sys::state::{BuildAreaError, BuildAreas};
+use common_state::{BuildAreaError, BuildAreas};
 use core::{convert::TryFrom, ops::Not, time::Duration};
 use hashbrown::HashSet;
 use rand::Rng;

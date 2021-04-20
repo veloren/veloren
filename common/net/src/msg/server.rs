@@ -1,6 +1,5 @@
 use super::{world_msg::EconomyInfo, ClientType, EcsCompPacket, PingMsg};
 use crate::sync;
-use authc::AuthClientError;
 use common::{
     character::{self, CharacterItem},
     comp::{self, invite::InviteKind, item::MaterialStatManifest},
@@ -257,10 +256,6 @@ impl ServerMsg {
             ServerMsg::Ping(_) => true,
         }
     }
-}
-
-impl From<AuthClientError> for RegisterError {
-    fn from(err: AuthClientError) -> Self { Self::AuthError(err.to_string()) }
 }
 
 impl From<comp::ChatMsg> for ServerGeneral {

@@ -8,7 +8,7 @@ edition = "2018"
 worldgen = []
 tracy = ["common/tracy", "common-base/tracy", "common-ecs/tracy", "common-sys/tracy", "common-net/tracy", "world/tracy"]
 simd = ["vek/platform_intrinsics"]
-plugins = ["common-sys/plugins"]
+plugins = ["common-state/plugins"]
 
 default = ["worldgen", "plugins", "simd"]
 
@@ -16,6 +16,7 @@ default = ["worldgen", "plugins", "simd"]
 common = { package = "veloren-common", path = "../common" }
 common-base = { package = "veloren-common-base", path = "../common/base" }
 common-ecs = { package = "veloren-common-ecs", path = "../common/ecs" }
+common-state = { package = "veloren-common-state", path = "../common/state" }
 common-sys = { package = "veloren-common-sys", path = "../common/sys" }
 common-net = { package = "veloren-common-net", path = "../common/net" }
 world = { package = "veloren-world", path = "../world" }

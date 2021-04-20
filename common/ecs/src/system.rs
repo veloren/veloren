@@ -30,6 +30,17 @@ pub enum Origin {
     Frontend(&'static str),
 }
 
+impl Origin {
+    fn name(&self) -> &'static str {
+        match self {
+            Origin::Common => "Common",
+            Origin::Client => "Client",
+            Origin::Server => "Server",
+            Origin::Frontend(name) => name,
+        }
+    }
+}
+
 #[derive(Default, Debug, Clone)]
 pub struct CpuTimeline {
     /// measurements for a System
@@ -234,7 +245,7 @@ pub trait System<'a> {
 
     type SystemData: specs::SystemData<'a>;
     fn run(job: &mut Job<Self>, data: Self::SystemData);
-    fn sys_name() -> String { format!("{}_sys", Self::NAME) }
+    fn sys_name() -> String { format!("{}_{}_sys", Self::ORIGIN.name(), Self::NAME) }
 }
 
 pub fn dispatch<'a, 'b, T>(builder: &mut specs::DispatcherBuilder<'a, 'b>, dep: &[&str])

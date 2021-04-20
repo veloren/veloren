@@ -1,3 +1,5 @@
+#[cfg(feature = "plugins")] pub mod plugin;
+
 #[cfg(feature = "plugins")]
 use crate::plugin::memory_manager::EcsWorld;
 #[cfg(feature = "plugins")]
@@ -18,7 +20,7 @@ use common::{
     vol::{ReadVol, WriteVol},
 };
 use common_base::span;
-use common_ecs::{run_now, PhysicsMetrics, SysMetrics};
+use common_ecs::{PhysicsMetrics, SysMetrics};
 use common_net::sync::{interpolation as sync_interp, WorldSyncExt};
 use core::{convert::identity, time::Duration};
 use hashbrown::{hash_map, HashMap, HashSet};
@@ -506,7 +508,7 @@ impl State {
     pub fn tick(
         &mut self,
         dt: Duration,
-        add_foreign_systems: impl Fn(&mut DispatcherBuilder),
+        add_systems: impl Fn(&mut DispatcherBuilder),
         update_terrain_and_regions: bool,
     ) {
         span!(_guard, "tick", "State::tick");
@@ -528,14 +530,12 @@ impl State {
         // Create and run a dispatcher for ecs systems.
         let mut dispatch_builder =
             DispatcherBuilder::new().with_pool(Arc::clone(&self.thread_pool));
-        crate::add_local_systems(&mut dispatch_builder);
         // TODO: Consider alternative ways to do this
-        add_foreign_systems(&mut dispatch_builder);
+        add_systems(&mut dispatch_builder);
         // This dispatches all the systems in parallel.
         let mut dispatcher = dispatch_builder.build();
         drop(guard);
         span!(guard, "run systems");
-        run_now::<crate::interpolation::InterpolationSystem>(&self.ecs);
         dispatcher.dispatch(&self.ecs);
         drop(guard);
 

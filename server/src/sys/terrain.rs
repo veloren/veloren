@@ -15,7 +15,7 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::ServerGeneral;
-use common_sys::state::TerrainChanges;
+use common_state::TerrainChanges;
 use comp::Behavior;
 use specs::{Join, Read, ReadStorage, Write, WriteExpect};
 use std::sync::Arc;
