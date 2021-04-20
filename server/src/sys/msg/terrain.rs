@@ -2,11 +2,11 @@ use crate::{client::Client, metrics::NetworkRequestMetrics, presence::Presence};
 use common::{
     comp::Pos,
     event::{EventBus, ServerEvent},
-    terrain::{SerializedTerrainChunk, TerrainChunkSize, TerrainGrid},
+    terrain::{TerrainChunkSize, TerrainGrid},
     vol::RectVolSize,
 };
 use common_ecs::{Job, Origin, ParMode, Phase, System};
-use common_net::msg::{ClientGeneral, ServerGeneral};
+use common_net::msg::{ClientGeneral, CompressedData, ServerGeneral};
 use rayon::iter::ParallelIterator;
 use specs::{Entities, Join, ParJoin, Read, ReadExpect, ReadStorage};
 use std::sync::Arc;
@@ -80,7 +80,7 @@ impl<'a> System<'a> for Sys {
                                         network_metrics.chunks_served_from_memory.inc();
                                         client.send(ServerGeneral::TerrainChunkUpdate {
                                             key,
-                                            chunk: Ok(SerializedTerrainChunk::from_chunk(&chunk)),
+                                            chunk: Ok(CompressedData::compress(&chunk, 5)),
                                         })?
                                     },
                                     None => {

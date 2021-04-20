@@ -1,4 +1,4 @@
-use super::{world_msg::EconomyInfo, ClientType, EcsCompPacket, PingMsg};
+use super::{world_msg::EconomyInfo, ClientType, CompressedData, EcsCompPacket, PingMsg};
 use crate::sync;
 use common::{
     character::{self, CharacterItem},
@@ -6,7 +6,7 @@ use common::{
     outcome::Outcome,
     recipe::RecipeBook,
     resources::TimeOfDay,
-    terrain::{Block, SerializedTerrainChunk},
+    terrain::{Block, TerrainChunk},
     trade::{PendingTrade, SitePrices, TradeId, TradeResult},
     uid::Uid,
 };
@@ -106,9 +106,9 @@ pub enum ServerGeneral {
     // Ingame related AND terrain stream
     TerrainChunkUpdate {
         key: Vec2<i32>,
-        chunk: Result<SerializedTerrainChunk, ()>,
+        chunk: Result<CompressedData<TerrainChunk>, ()>,
     },
-    TerrainBlockUpdates(HashMap<Vec3<i32>, Block>),
+    TerrainBlockUpdates(CompressedData<HashMap<Vec3<i32>, Block>>),
     // Always possible
     PlayerListUpdate(PlayerListUpdate),
     /// A message to go into the client chat box. The client is responsible for

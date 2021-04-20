@@ -17,7 +17,6 @@ pub use self::{
 };
 use roots::find_roots_cubic;
 use serde::{Deserialize, Serialize};
-use tracing::trace;
 
 use crate::{
     vol::{ReadVol, RectVolSize},
@@ -142,56 +141,6 @@ impl TerrainChunkMeta {
 
 pub type TerrainChunk = chonk::Chonk<Block, TerrainChunkSize, TerrainChunkMeta>;
 pub type TerrainGrid = VolGrid2d<TerrainChunk>;
-
-/// Wrapper for custom serialization strategies (e.g. compression) for terrain
-/// chunks
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SerializedTerrainChunk(pub Vec<u8>);
-
-impl SerializedTerrainChunk {
-    pub fn from_chunk(chunk: &TerrainChunk) -> Self {
-        let uncompressed = bincode::serialize(chunk)
-            .expect("bincode serialization can only fail if a byte limit is set");
-        #[cfg(feature = "compression")]
-        {
-            use flate2::{write::DeflateEncoder, Compression};
-            use std::io::Write;
-            const EXPECT_MSG: &str =
-                "compression only fails for fallible Read/Write impls (which Vec<u8> is not)";
-
-            let mut encoder = DeflateEncoder::new(Vec::new(), Compression::new(5));
-            encoder.write_all(&*uncompressed).expect(EXPECT_MSG);
-            let compressed = encoder.finish().expect(EXPECT_MSG);
-            trace!(
-                "compressed {}, uncompressed {}, ratio {}",
-                compressed.len(),
-                uncompressed.len(),
-                compressed.len() as f32 / uncompressed.len() as f32
-            );
-            SerializedTerrainChunk(compressed)
-        }
-        #[cfg(not(feature = "compression"))]
-        {
-            SerializedTerrainChunk(uncompressed)
-        }
-    }
-
-    pub fn to_chunk(&self) -> Option<TerrainChunk> {
-        #[cfg(feature = "compression")]
-        {
-            use std::io::Read;
-            let mut uncompressed = Vec::new();
-            flate2::read::DeflateDecoder::new(&*self.0)
-                .read_to_end(&mut uncompressed)
-                .ok()?;
-            bincode::deserialize(&*uncompressed).ok()
-        }
-        #[cfg(not(feature = "compression"))]
-        {
-            bincode::deserialize(&self.0).ok()
-        }
-    }
-}
 
 impl TerrainGrid {
     /// Find a location suitable for spawning an entity near the given

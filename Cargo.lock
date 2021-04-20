@@ -5463,7 +5463,6 @@ dependencies = [
  "approx 0.4.0",
  "arraygen",
  "assets_manager",
- "bincode",
  "bitflags",
  "criterion",
  "crossbeam-channel",
@@ -5471,7 +5470,6 @@ dependencies = [
  "csv",
  "dot_vox",
  "enum-iterator",
- "flate2",
  "hashbrown",
  "image",
  "indexmap",
@@ -5535,6 +5533,8 @@ dependencies = [
 name = "veloren-common-net"
 version = "0.9.0"
 dependencies = [
+ "bincode",
+ "flate2",
  "hashbrown",
  "serde",
  "specs",

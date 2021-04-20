@@ -1923,15 +1923,17 @@ impl Client {
     fn handle_server_terrain_msg(&mut self, msg: ServerGeneral) -> Result<(), Error> {
         match msg {
             ServerGeneral::TerrainChunkUpdate { key, chunk } => {
-                if let Some(chunk) = chunk.ok().and_then(|c| c.to_chunk()) {
+                if let Some(chunk) = chunk.ok().and_then(|c| c.decompress()) {
                     self.state.insert_chunk(key, chunk);
                 }
                 self.pending_chunks.remove(&key);
             },
-            ServerGeneral::TerrainBlockUpdates(mut blocks) => {
-                blocks.drain().for_each(|(pos, block)| {
-                    self.state.set_block(pos, block);
-                });
+            ServerGeneral::TerrainBlockUpdates(blocks) => {
+                if let Some(mut blocks) = blocks.decompress() {
+                    blocks.drain().for_each(|(pos, block)| {
+                        self.state.set_block(pos, block);
+                    });
+                }
             },
             _ => unreachable!("Not a terrain message"),
         }

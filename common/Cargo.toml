@@ -9,9 +9,8 @@ no-assets = []
 tracy = ["common-base/tracy"]
 simd = ["vek/platform_intrinsics"]
 bin_csv = ["csv", "structopt"]
-compression = ["flate2"]
 
-default = ["simd", "compression"]
+default = ["simd"]
 
 [dependencies]
 
@@ -24,13 +23,11 @@ serde = { version = "1.0.110", features = ["derive", "rc"] }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 approx = "0.4.0"
 arraygen = "0.1.13"
-bincode = "1.3.3"
 crossbeam-utils = "0.8.1"
 bitflags = "1.2"
 crossbeam-channel = "0.5"
 enum-iterator = "0.6"
 lazy_static = "1.4.0"
-flate2 = { version = "1.0.20", optional = true }
 num-derive = "0.3"
 num-traits = "0.2"
 ordered-float = { version = "2.0.1", default-features = false }

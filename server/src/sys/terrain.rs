@@ -10,11 +10,11 @@ use common::{
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
     npc::NPC_NAMES,
-    terrain::{SerializedTerrainChunk, TerrainGrid},
+    terrain::TerrainGrid,
     LoadoutBuilder, SkillSetBuilder,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use common_net::msg::ServerGeneral;
+use common_net::msg::{CompressedData, ServerGeneral};
 use common_state::TerrainChanges;
 use comp::Behavior;
 use specs::{Join, Read, ReadStorage, Write, WriteExpect};
@@ -108,7 +108,7 @@ impl<'a> System<'a> for Sys {
                     if lazy_msg.is_none() {
                         lazy_msg = Some(client.prepare(ServerGeneral::TerrainChunkUpdate {
                             key,
-                            chunk: Ok(SerializedTerrainChunk::from_chunk(&*chunk)),
+                            chunk: Ok(CompressedData::compress(&*chunk, 5)),
                         }));
                     }
                     lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));
