@@ -993,9 +993,10 @@ impl Client {
         recipe: &str,
         craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
     ) -> bool {
-        if self.can_craft_recipe(recipe).map_or(false, |cs| {
+        let can_craft = self.can_craft_recipe(recipe).map_or(false, |cs| {
             cs.map_or(true, |cs| Some(cs) == craft_sprite.map(|(_, s)| s))
-        }) {
+        });
+        if can_craft {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
                 InventoryEvent::CraftRecipe {
                     recipe: recipe.to_string(),
