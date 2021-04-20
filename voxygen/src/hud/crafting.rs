@@ -702,11 +702,13 @@ impl<'a> Widget for Crafting<'a> {
                     .right_from(state.ids.req_station_img, 10.0)
                     .font_id(self.fonts.cyri.conrod_id)
                     .font_size(self.fonts.cyri.scale(14))
-                    .color(if self.show.craft_sprite.is_some() {
-                        TEXT_COLOR
-                    } else {
-                        TEXT_DULL_RED_COLOR
-                    })
+                    .color(
+                        if self.show.craft_sprite.map(|(_, s)| s) == recipe.craft_sprite {
+                            TEXT_COLOR
+                        } else {
+                            TEXT_DULL_RED_COLOR
+                        },
+                    )
                     .set(state.ids.req_station_txt, ui);
             }
             // Ingredients Text
