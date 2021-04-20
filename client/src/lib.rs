@@ -974,18 +974,19 @@ impl Client {
         &self.available_recipes
     }
 
-    pub fn can_craft_recipe(&self, recipe: &str) -> Option<Option<SpriteKind>> {
+    /// Returns whether the specified recipe can be crafted and the sprite, if
+    /// any, that is required to do so.
+    pub fn can_craft_recipe(&self, recipe: &str) -> (bool, Option<SpriteKind>) {
         self.recipe_book
             .get(recipe)
             .zip(self.inventories().get(self.entity()))
             .map(|(recipe, inv)| {
-                if inv.contains_ingredients(&*recipe).is_ok() {
-                    Some(recipe.craft_sprite)
-                } else {
-                    None
-                }
+                (
+                    inv.contains_ingredients(&*recipe).is_ok(),
+                    recipe.craft_sprite,
+                )
             })
-            .unwrap_or(None)
+            .unwrap_or((false, None))
     }
 
     pub fn craft_recipe(
@@ -993,10 +994,9 @@ impl Client {
         recipe: &str,
         craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
     ) -> bool {
-        let can_craft = self.can_craft_recipe(recipe).map_or(false, |cs| {
-            cs.map_or(true, |cs| Some(cs) == craft_sprite.map(|(_, s)| s))
-        });
-        if can_craft {
+        let (can_craft, required_sprite) = self.can_craft_recipe(recipe);
+        let has_sprite = required_sprite.map_or(true, |s| Some(s) == craft_sprite.map(|(_, s)| s));
+        if can_craft && has_sprite {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
                 InventoryEvent::CraftRecipe {
                     recipe: recipe.to_string(),
@@ -1015,8 +1015,12 @@ impl Client {
             .iter()
             .map(|(name, _)| name.clone())
             .filter_map(|name| {
-                let required_sprite = self.can_craft_recipe(&name)?;
-                Some((name, required_sprite))
+                let (can_craft, required_sprite) = self.can_craft_recipe(&name);
+                if can_craft {
+                    Some((name, required_sprite))
+                } else {
+                    None
+                }
             })
             .collect();
     }

@@ -98,7 +98,6 @@ pub(crate) struct RawRecipe {
 
 #[derive(Clone, Deserialize)]
 #[serde(transparent)]
-#[allow(clippy::type_complexity)]
 pub(crate) struct RawRecipeBook(pub(crate) HashMap<String, RawRecipe>);
 
 impl assets::Asset for RawRecipeBook {

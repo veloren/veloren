@@ -596,8 +596,8 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 }) {
                                     debug!(
                                         ?entity_cylinder,
-                                        "Failed to pick up block as not within range, block pos: \
-                                         {}",
+                                        "Failed to craft recipe as not within range of required \
+                                         sprite, sprite pos: {}",
                                         pos
                                     );
                                     false
@@ -609,7 +609,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             .and_then(|block| block.get_sprite());
                         Some(needed_sprite) == sprite
                     } else {
-                        false
+                        true
                     }
                 })
                 .and_then(|r| {
