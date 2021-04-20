@@ -1941,11 +1941,7 @@
     Tool("common.items.tool.craftsman_hammer"): VoxTrans( 
         "voxel.weapon.hammer.craftsman",
         (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 0.9,
-    ),
-    Ingredient("CraftsmanHammer"): VoxTrans(
-        "voxel.weapon.hammer.craftsman",
-        (1.0, 1.0, 0.0), (-135.0, 90.0, 0.0), 0.8,
-    ),
+    ),    
     Ingredient("SewingSet"): Png(
         "element.items.sewing_set",
     ),

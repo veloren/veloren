@@ -1,9 +1,0 @@
-ItemDef(
-    name: "Old Hammer",
-    description: "You don't quite remember where you got this from...",
-    kind: Ingredient(
-        kind: "CraftsmanHammer",
-    ),
-    quality: Low,
-    tags: [CraftingTool],
-)
