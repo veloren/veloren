@@ -41,7 +41,6 @@ impl Animation for FeedAnimation {
 
         next.head.scale = Vec3::one() * 0.98;
         next.neck.scale = Vec3::one() * 1.02;
-        next.beak.scale = Vec3::one() * 0.98;
         next.leg_l.scale = Vec3::one() / 8.0 * 0.98;
         next.leg_r.scale = Vec3::one() / 8.0 * 0.98;
         next.foot_l.scale = Vec3::one() * 1.02;
@@ -51,7 +50,7 @@ impl Animation for FeedAnimation {
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + wave_slow_cos * 0.06 - 1.8)
             * s_a.scaler
             / 8.0;
-        next.chest.orientation = Quaternion::rotation_x(-0.5);
+        next.chest.orientation = Quaternion::rotation_x(s_a.feed);
 
         next.neck.position = Vec3::new(0.0, s_a.neck.0, s_a.neck.1);
         next.neck.orientation = Quaternion::rotation_x(-0.2);
@@ -72,11 +71,9 @@ impl Animation for FeedAnimation {
         next.wing_in_r.position = Vec3::new(s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
 
         next.wing_in_l.orientation =
-            Quaternion::rotation_y(-s_a.wings_angle + 0.3 + wave_fast * 0.08)
-                * Quaternion::rotation_z(0.2);
+            Quaternion::rotation_y(-0.7 + wave_fast * 0.08) * Quaternion::rotation_z(0.2);
         next.wing_in_r.orientation =
-            Quaternion::rotation_y(s_a.wings_angle - 0.3 - wave_fast * 0.08)
-                * Quaternion::rotation_z(-0.2);
+            Quaternion::rotation_y(0.7 - wave_fast * 0.08) * Quaternion::rotation_z(-0.2);
 
         next.wing_mid_l.position = Vec3::new(-s_a.wing_mid.0, s_a.wing_mid.1, s_a.wing_mid.2);
         next.wing_mid_r.position = Vec3::new(s_a.wing_mid.0, s_a.wing_mid.1, s_a.wing_mid.2);

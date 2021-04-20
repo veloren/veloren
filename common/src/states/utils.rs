@@ -188,7 +188,7 @@ impl Body {
     pub fn fly_thrust(&self) -> Option<f32> {
         match self {
             Body::BirdMedium(_) => Some(GRAVITY * self.mass().0 * 2.0),
-            Body::BirdLarge(_) => Some(GRAVITY * self.mass().0 * 2.0),
+            Body::BirdLarge(_) => Some(GRAVITY * self.mass().0 * 3.0),
             Body::Dragon(_) => Some(200_000.0),
             Body::Ship(ship::Body::DefaultAirship) => Some(300_000.0),
             _ => None,

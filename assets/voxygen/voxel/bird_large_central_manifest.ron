@@ -1,53 +1,53 @@
 ({
     (Phoenix, Male): (
         head: (
-            offset: (-2.0, -1.0, -0.0),
+            offset: (-4.0, -4.0, 0.0),
             central: ("npc.phoenix.male.head"),
         ),
         beak: (
-            offset: (-2.0, 0.0, -1.0),
+            offset: (-2.0, 0.0, -3.0),
             central: ("npc.phoenix.male.beak"),
         ),
         neck: (
-            offset: (-2.0, -0.0, -0.0),
+            offset: (-4.0, 0.0, 0.0),
             central: ("npc.phoenix.male.neck"),
         ),
         chest: (
-            offset: (-3.0, -5.5, -4.0),
+            offset: (-6.0, -9.5, -7.5),
             central: ("npc.phoenix.male.chest"),
         ),
         tail_front: (
-            offset: (-2.0, -3.0, -3.0),
+            offset: (-10.0, -14.0, -3.0),
             central: ("npc.phoenix.male.tail_front"),
         ),
         tail_rear: (
-            offset: (-1.0, -3.0, -3.0),
+            offset: (-9.0, -30.0, -2.0),
             central: ("npc.phoenix.male.tail_rear"),
         )
     ),
     (Phoenix, Female): (
         head: (
-            offset: (-2.0, -1.0, -0.0),
+            offset: (-4.0, -4.0, 0.0),
             central: ("npc.phoenix.male.head"),
         ),
         beak: (
-            offset: (-2.0, 0.0, -1.0),
+            offset: (-2.0, 0.0, -3.0),
             central: ("npc.phoenix.male.beak"),
         ),
         neck: (
-            offset: (-2.0, -0.0, -0.0),
+            offset: (-4.0, 0.0, 0.0),
             central: ("npc.phoenix.male.neck"),
         ),
         chest: (
-            offset: (-3.0, -5.5, -4.0),
+            offset: (-6.0, -9.5, -7.5),
             central: ("npc.phoenix.male.chest"),
         ),
         tail_front: (
-            offset: (-2.0, -3.0, -3.0),
+            offset: (-10.0, -14.0, -3.0),
             central: ("npc.phoenix.male.tail_front"),
         ),
         tail_rear: (
-            offset: (-1.0, -3.0, -3.0),
+            offset: (-9.0, -30.0, -2.0),
             central: ("npc.phoenix.male.tail_rear"),
         )
     ),
@@ -61,7 +61,7 @@
             central: ("npc.cockatrice.male.beak"),
         ),
         neck: (
-            offset: (-3.5, -0.0, -6.0),
+            offset: (-3.5, 0.0, -6.0),
             central: ("npc.cockatrice.male.neck"),
         ),
         chest: (
@@ -87,7 +87,7 @@
             central: ("npc.cockatrice.male.beak"),
         ),
         neck: (
-            offset: (-3.5, -0.0, -6.0),
+            offset: (-3.5, 0.0, -6.0),
             central: ("npc.cockatrice.male.neck"),
         ),
         chest: (

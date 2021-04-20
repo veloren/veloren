@@ -339,7 +339,11 @@ impl LoadoutBuilder {
                             "common.items.npc_weapons.unique.birdlargebreathe",
                         ));
                     },
-                    _ => {},
+                    (bird_large::Species::Phoenix, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.birdlargefire",
+                        ));
+                    },
                 },
                 _ => {},
             };

@@ -522,6 +522,7 @@ impl PlayState for SessionState {
                                     select_pos,
                                     target_entity.map(|t| t.0),
                                 );
+                                dbg!(self.key_state.fly);
                             },
                             GameInput::Climb => {
                                 self.key_state.climb_up = state;

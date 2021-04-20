@@ -372,6 +372,10 @@ impl Body {
                 biped_large::Species::Dullahan => 4000,
                 _ => 3000,
             },
+            Body::BirdLarge(body) => match body.species {
+                bird_large::Species::Cockatrice => 4000,
+                bird_large::Species::Phoenix => 6000,
+            },
             Body::Humanoid(_) => 750,
             _ => 1000,
         }
@@ -583,7 +587,7 @@ impl Body {
 
     pub fn flying_height(&self) -> f32 {
         match self {
-            Body::BirdLarge(_) => 30.0,
+            Body::BirdLarge(_) => 50.0,
             Body::BirdMedium(_) => 40.0,
             Body::Dragon(_) => 60.0,
             Body::Ship(ship::Body::DefaultAirship) => 60.0,

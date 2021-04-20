@@ -7,7 +7,7 @@ use common::states::utils::StageSection;
 pub struct AlphaAnimation;
 
 impl Animation for AlphaAnimation {
-    type Dependency = (Option<StageSection>, f32, f32);
+    type Dependency = (Option<StageSection>, Vec3<f32>, Vec3<f32>, f32, f32);
     type Skeleton = BirdLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,7 +16,7 @@ impl Animation for AlphaAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_alpha")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (stage_section, _global_time, _timer): Self::Dependency,
+        (stage_section, orientation, last_ori, _global_time, _timer): Self::Dependency,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -37,9 +37,22 @@ impl Animation for AlphaAnimation {
         let move1 = move1base * pullback;
         let move2 = move2base * pullback;
 
+        let ori: Vec2<f32> = Vec2::from(orientation);
+        let last_ori = Vec2::from(last_ori);
+        let tilt = if ::vek::Vec2::new(ori, last_ori)
+            .map(|o| o.magnitude_squared())
+            .map(|m| m > 0.001 && m.is_finite())
+            .reduce_and()
+            && ori.angle_between(last_ori).is_finite()
+        {
+            ori.angle_between(last_ori).min(0.2)
+                * last_ori.determine_side(Vec2::zero(), ori).signum()
+        } else {
+            0.0
+        } * 1.3;
+
         next.head.scale = Vec3::one() * 0.98;
         next.neck.scale = Vec3::one() * 1.02;
-        next.beak.scale = Vec3::one() * 0.98;
         next.leg_l.scale = Vec3::one() / 8.0 * 0.98;
         next.leg_r.scale = Vec3::one() / 8.0 * 0.98;
         next.foot_l.scale = Vec3::one() * 1.02;
@@ -51,7 +64,8 @@ impl Animation for AlphaAnimation {
         next.chest.orientation = Quaternion::rotation_x(move1 * 0.5 - move2 * 0.8);
 
         next.neck.position = Vec3::new(0.0, s_a.neck.0, s_a.neck.1);
-        next.neck.orientation = Quaternion::rotation_x(move1 * 0.5 - move2 * 0.8);
+        next.neck.orientation = Quaternion::rotation_x(move1 * 0.5 - move2 * 0.8)
+            * Quaternion::rotation_z(move1 * tilt * 1.5);
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation = Quaternion::rotation_x(move1 * 0.5 - move2 * 0.8);

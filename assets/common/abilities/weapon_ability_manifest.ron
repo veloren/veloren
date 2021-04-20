@@ -212,6 +212,14 @@
         secondary: "common.abilities.unique.birdlargebreathe.triplestrike",
         abilities: [],
     ),
+    Unique(BirdLargeFire): (
+        primary: "common.abilities.unique.birdlargefire.flamethrower",
+        secondary: "common.abilities.unique.birdlargefire.triplestrike",
+        abilities: [
+            (None, "common.abilities.staff.fireshockwave"),
+            (None, "common.abilities.staff.firebomb"),
+        ],
+    ),
     Debug: (
         primary: "common.abilities.debug.forwardboost",
         secondary: "common.abilities.debug.upboost",

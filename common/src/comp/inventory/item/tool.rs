@@ -442,4 +442,5 @@ pub enum UniqueKind {
     WoodenSpear,
     MindflayerStaff,
     BirdLargeBreathe,
+    BirdLargeFire,
 }
