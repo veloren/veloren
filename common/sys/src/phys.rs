@@ -1363,7 +1363,6 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         radius,
         z_range.clone(),
     ) && vel.0.z <= 0.0
-        && vel.0.z > -1.5
         && was_on_ground
         && block_snap
     {
