@@ -671,6 +671,7 @@ impl<'a> PhysicsData<'a> {
                     let mut tgt_pos = pos.0 + pos_delta;
 
                     let was_on_ground = physics_state.on_ground;
+
                     let block_snap = body.map_or(false, |body| body.jump_impulse().is_some());
                     let climbing =
                         character_state.map_or(false, |cs| matches!(cs, CharacterState::Climb(_)));
@@ -1316,6 +1317,10 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
                 // ...block-hop!
                 pos.0.z = (pos.0.z + 0.1).floor() + block_height;
                 vel.0.z = vel.0.z.max(0.0);
+                // Push the character on to the block very slightly to avoid jitter due to imprecision
+                if (vel.0 * resolve_dir).xy().magnitude_squared() < 1.0f32.powi(2) {
+                    pos.0 -= resolve_dir.normalized() * 0.05;
+                }
                 on_ground = true;
                 break;
             } else {
@@ -1357,8 +1362,9 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         near_iter.clone(),
         radius,
         z_range.clone(),
-    ) && vel.0.z < 0.25
+    ) && vel.0.z <= 0.0
         && vel.0.z > -1.5
+        && was_on_ground
         && block_snap
     {
         let snap_height = terrain
