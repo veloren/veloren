@@ -22,36 +22,18 @@ use specs::{
     Entities, Entity, Join, ParJoin, Read, ReadExpect, ReadStorage, SystemData, Write, WriteExpect,
     WriteStorage,
 };
-use std::{f32::consts::PI, ops::Range};
+use std::ops::Range;
 use vek::*;
 
 /// The density of the fluid as a function of submersion ratio in given fluid
 /// where it is assumed that any unsubmersed part is is air.
-// This is a pretty silly way of doing it as it assumes everything is spherical
-// in shape and uniform in mass distribution, but the result feels good enough.
-// TODO: Make the shape a capsule?
+// TODO: Better suited partial submersion curve?
 fn fluid_density(height: f32, fluid: &Fluid) -> Density {
     // If depth is less than our height (partial submersion), remove
     // fluid density based on the ratio of displacement to full volume.
-    // The displacement is modelled as a gradually submersed sphere.
-    let immersion = fluid.depth().map_or(1.0, |depth| {
-        if height < depth {
-            1.0
-        } else {
-            let hemisphere_filled_vol = |r: f32, h: f32| -> f32 {
-                let r_ = (r.powi(2) - (r - h).powi(2)).sqrt();
-                (1.0 / 6.0) * PI * h * (3.0 * r_.powi(2) + h.powi(2))
-            };
-            let hemisphere_vol = |r: f32| -> f32 { (2.0 / 3.0) * PI * r.powi(3) };
-            let r = height / 2.0;
-            let sphere_vol = 2.0 * hemisphere_vol(r);
-            if depth < r {
-                hemisphere_filled_vol(r, depth) / sphere_vol
-            } else {
-                1.0 - hemisphere_filled_vol(r, height - depth) / sphere_vol
-            }
-        }
-    });
+    let immersion = fluid
+        .depth()
+        .map_or(1.0, |depth| (depth / height).clamp(0.0, 1.0));
 
     Density(fluid.density().0 * immersion + AIR_DENSITY * (1.0 - immersion))
 }
