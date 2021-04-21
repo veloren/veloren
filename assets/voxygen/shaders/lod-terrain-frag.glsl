@@ -107,7 +107,7 @@ void main() {
     // mat4 invfoo = foo * inverse(foo * all_mat);
     // vec3 old_coord = all_mat * vec4(f_pos.xyz, 1.0);
     // vec4 new_f_pos = invfoo * (old_coord);//vec4(f_pos, 1.0);
-    vec3 f_col_raw = mix(lod_col(f_pos.xy), vec3(0), clamp(pull_down / 10, 0, 1));
+    vec3 f_col_raw = mix(lod_col(f_pos.xy), vec3(0), clamp(pull_down / 30, 0, 1));
     // tgt_color = vec4(f_col, 1.0);
     // return;
     // vec3 f_col = srgb_to_linear(vec3(1.0));
