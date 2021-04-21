@@ -93,28 +93,6 @@ impl<'a> System<'a> for Sys {
             // Add to list of chunks to send to nearby players.
             new_chunks.push((key, Arc::clone(&chunk)));
 
-            // Send the chunk to all nearby players.
-            let mut lazy_msg = None;
-            for (presence, pos, client) in (&presences, &positions, &clients).join() {
-                let chunk_pos = terrain.pos_key(pos.0.map(|e| e as i32));
-                // Subtract 2 from the offset before computing squared magnitude
-                // 1 since chunks need neighbors to be meshed
-                // 1 to act as a buffer if the player moves in that direction
-                let adjusted_dist_sqr = (chunk_pos - key)
-                    .map(|e: i32| (e.abs() as u32).saturating_sub(2))
-                    .magnitude_squared();
-
-                if adjusted_dist_sqr <= presence.view_distance.pow(2) {
-                    if lazy_msg.is_none() {
-                        lazy_msg = Some(client.prepare(ServerGeneral::TerrainChunkUpdate {
-                            key,
-                            chunk: Ok(CompressedData::compress(&*chunk, 5)),
-                        }));
-                    }
-                    lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));
-                }
-            }
-
             // TODO: code duplication for chunk insertion between here and state.rs
             // Insert the chunk into terrain changes
             if terrain.insert(key, chunk).is_some() {
