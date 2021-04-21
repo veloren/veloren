@@ -4,7 +4,6 @@ use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{CompressedData, ServerGeneral};
 use common_state::TerrainChanges;
 use specs::{Join, Read, ReadExpect, ReadStorage};
-use std::sync::Arc;
 
 /// This systems sends new chunks to clients as well as changes to existing
 /// chunks

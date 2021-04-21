@@ -1924,7 +1924,7 @@ impl Client {
         match msg {
             ServerGeneral::TerrainChunkUpdate { key, chunk } => {
                 if let Some(chunk) = chunk.ok().and_then(|c| c.decompress()) {
-                    self.state.insert_chunk(key, chunk);
+                    self.state.insert_chunk(key, Arc::new(chunk));
                 }
                 self.pending_chunks.remove(&key);
             },

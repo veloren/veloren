@@ -9,7 +9,6 @@ use common_ecs::{Job, Origin, ParMode, Phase, System};
 use common_net::msg::{ClientGeneral, CompressedData, ServerGeneral};
 use rayon::iter::ParallelIterator;
 use specs::{Entities, Join, ParJoin, Read, ReadExpect, ReadStorage};
-use std::sync::Arc;
 use tracing::{debug, trace};
 
 /// This system will handle new messages from clients

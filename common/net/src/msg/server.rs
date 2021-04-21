@@ -12,7 +12,7 @@ use common::{
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 use vek::*;
 
 ///This struct contains all messages the server might send (on different
