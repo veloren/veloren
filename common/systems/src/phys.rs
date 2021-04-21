@@ -315,6 +315,19 @@ impl<'a> PhysicsData<'a> {
                     projectile,
                     char_state_maybe,
                 )| {
+                    let mut entity_entity_collision_checks = 0;
+                    let mut entity_entity_collisions = 0;
+
+                    // TODO: quick fix for bad performance at extrememly high velocities
+                    // use oriented rectangles at some threshold of displacement/radius
+                    // to query the spatial grid and limit max displacement per tick somehow
+                    if previous_cache.collision_boundary > 128.0 {
+                        return PhysicsMetrics {
+                            entity_entity_collision_checks,
+                            entity_entity_collisions,
+                        };
+                    }
+
                     let z_limits = calc_z_limit(char_state_maybe, collider);
 
                     // Resets touch_entities in physics
@@ -323,9 +336,6 @@ impl<'a> PhysicsData<'a> {
                     let is_projectile = projectile.is_some();
 
                     let mut vel_delta = Vec3::zero();
-
-                    let mut entity_entity_collision_checks = 0;
-                    let mut entity_entity_collisions = 0;
 
                     let query_center = previous_cache.center.xy();
                     let query_radius = previous_cache.collision_boundary;
