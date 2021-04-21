@@ -1,7 +1,3 @@
-mod spatial_grid;
-
-use spatial_grid::SpatialGrid;
-
 use common::{
     comp::{
         body::ship::figuredata::{VoxelCollider, VOXEL_COLLIDER_MANIFEST},
@@ -15,7 +11,7 @@ use common::{
     resources::DeltaTime,
     terrain::{Block, TerrainGrid},
     uid::Uid,
-    util::Projection,
+    util::{Projection, SpatialGrid},
     vol::{BaseVol, ReadVol},
 };
 use common_base::{prof_span, span};
@@ -132,6 +128,7 @@ pub struct PhysicsRead<'a> {
 #[derive(SystemData)]
 pub struct PhysicsWrite<'a> {
     physics_metrics: WriteExpect<'a, PhysicsMetrics>,
+    cached_spatial_grid: Write<'a, common::CachedSpatialGrid>,
     physics_states: WriteStorage<'a, PhysicsState>,
     positions: WriteStorage<'a, Pos>,
     velocities: WriteStorage<'a, Vel>,
@@ -330,27 +327,17 @@ impl<'a> PhysicsData<'a> {
                     let mut entity_entity_collision_checks = 0;
                     let mut entity_entity_collisions = 0;
 
-                    let aabr = {
-                        let center = previous_cache.center.xy().map(|e| e as i32);
-                        let radius = previous_cache.collision_boundary.ceil() as i32;
-                        // From conversion of center above
-                        const CENTER_TRUNCATION_ERROR: i32 = 1;
-                        let max_dist = radius + CENTER_TRUNCATION_ERROR;
-
-                        Aabr {
-                            min: center - max_dist,
-                            max: center + max_dist,
-                        }
-                    };
+                    let query_center = previous_cache.center.xy();
+                    let query_radius = previous_cache.collision_boundary;
 
                     spatial_grid
-                        .in_aabr(aabr)
+                        .in_circle_aabr(query_center, query_radius)
                         .filter_map(|entity| {
                             read.uids
                                 .get(entity)
-                                .zip(positions.get(entity))
-                                .zip(previous_phys_cache.get(entity))
-                                .zip(read.masses.get(entity))
+                                .and_then(|l| positions.get(entity).map(|r| (l, r)))
+                                .and_then(|l| previous_phys_cache.get(entity).map(|r| (l, r)))
+                                .and_then(|l| read.masses.get(entity).map(|r| (l, r)))
                                 .map(|(((uid, pos), previous_cache), mass)| {
                                     (
                                         entity,
@@ -873,27 +860,17 @@ impl<'a> PhysicsData<'a> {
                         }
                     };
                     // Collide with terrain-like entities
-                    let aabr = {
-                        let center = path_sphere.center.xy().map(|e| e as i32);
-                        let radius = path_sphere.radius.ceil() as i32;
-                        // From conversion of center above
-                        const CENTER_TRUNCATION_ERROR: i32 = 1;
-                        let max_dist = radius + CENTER_TRUNCATION_ERROR;
-
-                        Aabr {
-                            min: center - max_dist,
-                            max: center + max_dist,
-                        }
-                    };
+                    let query_center = path_sphere.center.xy();
+                    let query_radius = path_sphere.radius;
                     voxel_collider_spatial_grid
-                        .in_aabr(aabr)
+                        .in_circle_aabr(query_center, query_radius)
                         .filter_map(|entity| {
                             positions
                                 .get(entity)
-                                .zip(velocities.get(entity))
-                                .zip(previous_phys_cache.get(entity))
-                                .zip(read.colliders.get(entity))
-                                .zip(orientations.get(entity))
+                                .and_then(|l| velocities.get(entity).map(|r| (l, r)))
+                                .and_then(|l| previous_phys_cache.get(entity).map(|r| (l, r)))
+                                .and_then(|l| read.colliders.get(entity).map(|r| (l, r)))
+                                .and_then(|l| orientations.get(entity).map(|r| (l, r)))
                                 .map(|((((pos, vel), previous_cache), collider), ori)| {
                                     (entity, pos, vel, previous_cache, collider, ori)
                                 })
@@ -1103,6 +1080,32 @@ impl<'a> PhysicsData<'a> {
             event_emitter.emit(ServerEvent::LandOnGround { entity, vel: vel.0 });
         });
     }
+
+    fn update_cached_spatial_grid(&mut self) {
+        span!(_guard, "Update cached spatial grid");
+        let PhysicsData {
+            ref read,
+            ref mut write,
+        } = self;
+
+        let spatial_grid = &mut write.cached_spatial_grid.0;
+        spatial_grid.clear();
+        (
+            &read.entities,
+            &write.positions,
+            read.scales.maybe(),
+            read.colliders.maybe(),
+        )
+            .join()
+            .for_each(|(entity, pos, scale, collider)| {
+                let scale = scale.map(|s| s.0).unwrap_or(1.0);
+                let radius_2d =
+                    (collider.map(|c| c.get_radius()).unwrap_or(0.5) * scale).ceil() as u32;
+                let pos_2d = pos.0.xy().map(|e| e as i32);
+                const POS_TRUNCATION_ERROR: u32 = 1;
+                spatial_grid.insert(pos_2d, radius_2d + POS_TRUNCATION_ERROR, entity);
+            });
+    }
 }
 
 impl<'a> System<'a> for Sys {
@@ -1112,8 +1115,8 @@ impl<'a> System<'a> for Sys {
     const ORIGIN: Origin = Origin::Common;
     const PHASE: Phase = Phase::Create;
 
-    fn run(job: &mut Job<Self>, mut psd: Self::SystemData) {
-        psd.reset();
+    fn run(job: &mut Job<Self>, mut physics_data: Self::SystemData) {
+        physics_data.reset();
 
         // Apply pushback
         //
@@ -1128,13 +1131,16 @@ impl<'a> System<'a> for Sys {
         // terrain collision code below, although that's not trivial to do since
         // it means the step needs to take into account the speeds of both
         // entities.
-        psd.maintain_pushback_cache();
+        physics_data.maintain_pushback_cache();
 
-        let spatial_grid = psd.construct_spatial_grid();
-        psd.apply_pushback(job, &spatial_grid);
+        let spatial_grid = physics_data.construct_spatial_grid();
+        physics_data.apply_pushback(job, &spatial_grid);
 
-        let voxel_collider_spatial_grid = psd.construct_voxel_collider_spatial_grid();
-        psd.handle_movement_and_terrain(job, &voxel_collider_spatial_grid);
+        let voxel_collider_spatial_grid = physics_data.construct_voxel_collider_spatial_grid();
+        physics_data.handle_movement_and_terrain(job, &voxel_collider_spatial_grid);
+
+        // Spatial grid used by other systems
+        physics_data.update_cached_spatial_grid();
     }
 }
 

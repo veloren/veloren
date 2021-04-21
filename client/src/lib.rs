@@ -55,7 +55,7 @@ use common_net::{
     sync::WorldSyncExt,
 };
 use common_state::State;
-use common_sys::add_local_systems;
+use common_systems::add_local_systems;
 use comp::BuffKind;
 use futures_util::FutureExt;
 use hashbrown::{HashMap, HashSet};
@@ -1924,7 +1924,7 @@ impl Client {
         match msg {
             ServerGeneral::TerrainChunkUpdate { key, chunk } => {
                 if let Ok(chunk) = chunk {
-                    self.state.insert_chunk(key, *chunk);
+                    self.state.insert_chunk(key, chunk);
                 }
                 self.pending_chunks.remove(&key);
             },

@@ -4,6 +4,9 @@ pub mod find_dist;
 mod option;
 pub mod plane;
 pub mod projection;
+/// Contains [`SpatialGrid`] which is useful for accelerating queries of nearby
+/// entities
+mod spatial_grid;
 
 pub const GIT_VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/githash"));
 pub const GIT_TAG: &str = include_str!(concat!(env!("OUT_DIR"), "/gittag"));
@@ -28,6 +31,7 @@ lazy_static::lazy_static! {
 
 pub use color::*;
 pub use dir::*;
-pub use option::*;
-pub use plane::*;
-pub use projection::*;
+pub use option::either_with;
+pub use plane::Plane;
+pub use projection::Projection;
+pub use spatial_grid::SpatialGrid;

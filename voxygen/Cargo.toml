@@ -24,7 +24,7 @@ gl = ["gfx_device_gl", "gfx_gl"]
 hot-anim = ["anim/use-dyn-lib"]
 singleplayer = ["server"]
 simd = ["vek/platform_intrinsics"]
-tracy = ["common/tracy", "common-ecs/tracy", "common-frontend/tracy", "common-net/tracy", "common-state/tracy", "client/tracy"]
+tracy = ["common/tracy", "common-ecs/tracy", "common-frontend/tracy", "common-net/tracy", "common-systems/tracy", "common-state/tracy", "client/tracy"]
 plugins = ["client/plugins"]
 
 default = ["gl", "singleplayer", "native-dialog", "plugins", "simd"]
@@ -36,8 +36,8 @@ common-base = {package = "veloren-common-base", path = "../common/base"}
 common-ecs = {package = "veloren-common-ecs", path = "../common/ecs"}
 common-frontend = {package = "veloren-common-frontend", path = "../common/frontend"}
 common-net = {package = "veloren-common-net", path = "../common/net"}
+common-systems = {package = "veloren-common-systems", path = "../common/systems"}
 common-state = {package = "veloren-common-state", path = "../common/state"}
-common-sys = {package = "veloren-common-sys", path = "../common/sys"}
 
 anim = {package = "veloren-voxygen-anim", path = "anim"}
 
