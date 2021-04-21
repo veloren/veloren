@@ -74,8 +74,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Jump has been decreased in height but extended in length as a result of the new gravity
 - Fall damage has been adjusted with the new gravity in mind
 - Projectiles now generally have a different arc because they no longer have their own gravity modifier
-- Increased agent system target search efficiency speeding up the server
-- Added more parallelization to terrain serialization and removed extra cloning speeding up the server
 
 ### Removed
 

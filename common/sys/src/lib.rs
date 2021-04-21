@@ -6,7 +6,7 @@ mod beam;
 mod buff;
 pub mod character_behavior;
 pub mod controller;
-mod interpolation;
+pub mod interpolation;
 pub mod melee;
 mod mount;
 pub mod phys;

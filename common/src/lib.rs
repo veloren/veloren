@@ -26,8 +26,6 @@ pub use uuid;
 pub mod assets;
 #[cfg(not(target_arch = "wasm32"))] pub mod astar;
 #[cfg(not(target_arch = "wasm32"))]
-mod cached_spatial_grid;
-#[cfg(not(target_arch = "wasm32"))]
 pub mod character;
 #[cfg(not(target_arch = "wasm32"))] pub mod clock;
 #[cfg(not(target_arch = "wasm32"))] pub mod cmd;
@@ -80,8 +78,6 @@ pub mod uid;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod volumes;
 
-#[cfg(not(target_arch = "wasm32"))]
-pub use cached_spatial_grid::CachedSpatialGrid;
 pub use combat::DamageSource;
 #[cfg(not(target_arch = "wasm32"))]
 pub use combat::{Damage, GroupTarget, Knockback, KnockbackDir};

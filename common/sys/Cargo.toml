@@ -1,7 +1,7 @@
 [package]
 authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
 edition = "2018"
-name = "veloren-common-systems"
+name = "veloren-common-sys"
 version = "0.9.0"
 
 [features]

@@ -5,7 +5,7 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"
 
 [features]
-tracy = ["common/tracy", "common-base/tracy", "common-state/tracy", "common-systems/tracy", "common-net/tracy", "common-frontend/tracy"]
+tracy = ["common/tracy", "common-base/tracy", "common-sys/tracy", "common-net/tracy", "common-frontend/tracy"]
 simd = ["vek/platform_intrinsics"]
 plugins = ["common-state/plugins"]
 bin_bot = ["common-ecs", "serde", "ron", "clap", "rustyline", "common-frontend", "async-channel"]
@@ -16,7 +16,7 @@ default = ["simd"]
 common = { package = "veloren-common", path = "../common", features = ["no-assets"] }
 common-base = { package = "veloren-common-base", path = "../common/base" }
 common-state = { package = "veloren-common-state", path = "../common/state", default-features = false }
-common-systems = { package = "veloren-common-systems", path = "../common/systems", default-features = false }
+common-sys = { package = "veloren-common-sys", path = "../common/sys", default-features = false }
 common-net = { package = "veloren-common-net", path = "../common/net" }
 network = { package = "veloren-network", path = "../network", features = ["compression"], default-features = false }
 
@@ -32,7 +32,6 @@ vek = { version = "=0.14.1", features = ["serde"] }
 hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "fb3dcbc4962b367253f8f2f92760ef44d2679c9a" }
 
-#TODO: put bot in a different crate
 #bot only
 async-channel = { version = "1.6", optional = true }
 common-ecs = { package = "veloren-common-ecs", path = "../common/ecs", optional = true }
