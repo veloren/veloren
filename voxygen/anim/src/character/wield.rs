@@ -320,17 +320,17 @@ impl Animation for WieldAnimation {
         };
         match hands {
             (None, None) | (None, Some(Hands::One)) => {
-                //next.hand_l.position = Vec3::new(-4.5, 8.0, 5.0);
-                //next.hand_l.orientation = Quaternion::rotation_x(1.9) *
-                // Quaternion::rotation_y(-0.5)
+                next.hand_l.position = Vec3::new(-8.0, 2.0, 1.0);
+                next.hand_l.orientation =
+                    Quaternion::rotation_x(0.5) * Quaternion::rotation_y(0.25);
             },
             (_, _) => {},
         };
         match hands {
             (None, None) | (Some(Hands::One), None) => {
-                //next.hand_r.position = Vec3::new(4.5, 8.0, 5.0);
-                //next.hand_r.orientation = Quaternion::rotation_x(1.9) *
-                // Quaternion::rotation_y(0.5)
+                next.hand_r.position = Vec3::new(8.0, 2.0, 1.0);
+                next.hand_r.orientation =
+                    Quaternion::rotation_x(0.5) * Quaternion::rotation_y(-0.25);
             },
             (_, _) => {},
         };

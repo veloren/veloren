@@ -264,7 +264,7 @@ impl Animation for RunAnimation {
             );
             next.hand_r.orientation = Quaternion::rotation_x(2.25) * Quaternion::rotation_z(0.9);
 
-            next.lantern.position = Vec3::new(0.0, 0.0, -3.5);
+            next.lantern.position = Vec3::new(0.0, 0.0, -2.5);
             next.lantern.orientation = next.hand_r.orientation.inverse()
                 * Quaternion::rotation_x((foothorir + 0.5) * 1.0 * speednorm)
                 * Quaternion::rotation_y(tilt * 4.0 * foothorir + tilt * 3.0);

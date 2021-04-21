@@ -149,7 +149,7 @@ impl Animation for StandAnimation {
                 s_a.hand.1 + 5.0 - head_look.y * 8.0 + slow * 0.15 - impact * 0.2,
                 s_a.hand.2 + 11.0 + slow * 0.5 + impact * -0.1,
             );
-            next.hand_r.orientation = Quaternion::rotation_x(2.25 + slow * -0.06 + impact * -0.1)
+            next.hand_r.orientation = Quaternion::rotation_x(2.5 + slow * -0.06 + impact * -0.1)
                 * Quaternion::rotation_z(0.9)
                 * Quaternion::rotation_y(head_look.x * 3.0)
                 * Quaternion::rotation_x(head_look.y * 3.0);

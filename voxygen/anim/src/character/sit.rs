@@ -90,8 +90,8 @@ impl Animation for SitAnimation {
         if skeleton.holding_lantern {
             next.hand_r.position = Vec3::new(
                 s_a.hand.0 - head_look.x * 10.0,
-                s_a.hand.1 + 5.0 - head_look.y * 8.0,
-                s_a.hand.2 + 11.0,
+                s_a.hand.1 + 5.0 + head_look.y * 12.0,
+                s_a.hand.2 + 9.0 - head_look.y * 12.0,
             );
             next.hand_r.orientation = Quaternion::rotation_x(2.25)
                 * Quaternion::rotation_z(0.9)
