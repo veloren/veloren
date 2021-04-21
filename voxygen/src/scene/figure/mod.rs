@@ -28,7 +28,7 @@ use anim::{
 use common::{
     comp::{
         inventory::slot::EquipSlot,
-        item::{Hands, ItemKind, ToolKind},
+        item::{ItemKind, ToolKind},
         Body, CharacterState, Controller, Health, Inventory, Item, Last, LightAnimation,
         LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
     },
