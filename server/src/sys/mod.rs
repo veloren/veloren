@@ -12,7 +12,7 @@ pub mod terrain_sync;
 pub mod waypoint;
 
 use common_ecs::{dispatch, run_now, System};
-use common_sys::{melee, projectile};
+use common_systems::{melee, projectile};
 use specs::DispatcherBuilder;
 use std::{
     marker::PhantomData,
