@@ -5,12 +5,15 @@
 compile_error!("Can't use both \"be-dyn-lib\" and \"use-dyn-lib\" features at once");
 
 macro_rules! skeleton_impls {
-    { struct $Skeleton:ident { $( $(+)? $bone:ident ),* $(,)? } } => {
+    { struct $Skeleton:ident { $( $(+)? $bone:ident ),* $(,)? $(:: $($field:ident : $field_ty:ty),* $(,)? )? } } => {
         #[derive(Clone, Default)]
         pub struct $Skeleton {
             $(
                 $bone: $crate::Bone,
             )*
+            $($(
+                $field : $field_ty,
+            )*)?
         }
 
         impl<'a, Factor> $crate::vek::Lerp<Factor> for &'a $Skeleton
@@ -25,6 +28,9 @@ macro_rules! skeleton_impls {
                     $(
                         $bone: Lerp::lerp_unclamped_precise(from.$bone, to.$bone, factor),
                     )*
+                    $($(
+                        $field : to.$field.clone(),
+                    )*)?
                 }
             }
 
@@ -33,6 +39,9 @@ macro_rules! skeleton_impls {
                     $(
                         $bone: Lerp::lerp_unclamped(from.$bone, to.$bone, factor),
                     )*
+                    $($(
+                        $field : to.$field.clone(),
+                    )*)?
                 }
             }
         }

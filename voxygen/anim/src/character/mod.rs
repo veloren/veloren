@@ -69,7 +69,18 @@ skeleton_impls!(struct CharacterSkeleton {
     control,
     control_l,
     control_r,
+    :: // Begin non-bone fields
+    holding_lantern: bool,
 });
+
+impl CharacterSkeleton {
+    pub fn new(holding_lantern: bool) -> Self {
+        Self {
+            holding_lantern,
+            ..Self::default()
+        }
+    }
+}
 
 impl Skeleton for CharacterSkeleton {
     type Attr = SkeletonAttr;
@@ -93,9 +104,14 @@ impl Skeleton for CharacterSkeleton {
         let control_mat = chest_mat * Mat4::<f32>::from(self.control);
         let control_l_mat = control_mat * Mat4::<f32>::from(self.control_l);
         let control_r_mat = control_mat * Mat4::<f32>::from(self.control_r);
+        let hand_r_mat = control_r_mat * Mat4::<f32>::from(self.hand_r);
 
         let hand_l_mat = Mat4::<f32>::from(self.hand_l);
-        let lantern_mat = Mat4::<f32>::from(self.lantern);
+        let lantern_mat = if self.holding_lantern {
+            hand_r_mat
+        } else {
+            shorts_mat
+        } * Mat4::<f32>::from(self.lantern);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
             make_bone(head_mat),
@@ -104,7 +120,7 @@ impl Skeleton for CharacterSkeleton {
             make_bone(chest_mat * Mat4::<f32>::from(self.back)),
             make_bone(shorts_mat),
             make_bone(control_l_mat * hand_l_mat),
-            make_bone(control_r_mat * Mat4::<f32>::from(self.hand_r)),
+            make_bone(hand_r_mat),
             make_bone(torso_mat * Mat4::<f32>::from(self.foot_l)),
             make_bone(torso_mat * Mat4::<f32>::from(self.foot_r)),
             make_bone(chest_mat * Mat4::<f32>::from(self.shoulder_l)),
@@ -112,12 +128,11 @@ impl Skeleton for CharacterSkeleton {
             make_bone(chest_mat * Mat4::<f32>::from(self.glider)),
             make_bone(control_l_mat * Mat4::<f32>::from(self.main)),
             make_bone(control_r_mat * Mat4::<f32>::from(self.second)),
-            make_bone(shorts_mat * lantern_mat),
+            make_bone(lantern_mat),
             // FIXME: Should this be control_l_mat?
             make_bone(control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
         ];
-        // NOTE: lantern_mat.cols.w = lantern_mat * Vec4::unit_w()
-        Vec3::new(-0.3, 0.1, 0.8) + (lantern_mat.cols.w / 13.0).xyz()
+        (lantern_mat * Vec4::new(-0.0, -0.0, -1.5, 1.0)).xyz()
     }
 }
 

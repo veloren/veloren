@@ -158,6 +158,15 @@ impl Animation for SneakAnimation {
 
             next.foot_r.position = Vec3::new(s_a.foot.0, 4.0 + s_a.foot.1, s_a.foot.2);
         }
+
+        if skeleton.holding_lantern {
+            next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1 + 5.0, s_a.hand.2 + 9.0);
+            next.hand_r.orientation = Quaternion::rotation_x(2.5);
+
+            next.lantern.position = Vec3::new(0.0, 1.5, -5.5);
+            next.lantern.orientation = next.hand_r.orientation.inverse();
+        }
+
         next
     }
 }

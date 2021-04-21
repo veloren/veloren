@@ -560,7 +560,6 @@ impl Scene {
         lights.extend(
             (
                 &scene_data.state.ecs().read_storage::<comp::Pos>(),
-                scene_data.state.ecs().read_storage::<comp::Ori>().maybe(),
                 scene_data
                     .state
                     .ecs()
@@ -572,23 +571,16 @@ impl Scene {
                     .read_storage::<comp::LightAnimation>(),
             )
                 .join()
-                .filter(|(pos, _, _, light_anim)| {
+                .filter(|(pos, _, light_anim)| {
                     light_anim.col != Rgb::zero()
                         && light_anim.strength > 0.0
                         && (pos.0.distance_squared(player_pos) as f32)
                             < loaded_distance.powi(2) + LIGHT_DIST_RADIUS
                 })
-                .map(|(pos, ori, interpolated, light_anim)| {
+                .map(|(pos, interpolated, light_anim)| {
                     // Use interpolated values if they are available
-                    let (pos, rot) = interpolated
-                        .map_or((pos.0, ori.copied().unwrap_or_default()), |i| {
-                            (i.pos, i.ori)
-                        });
-                    Light::new(
-                        pos + (rot.to_quat() * light_anim.offset),
-                        light_anim.col,
-                        light_anim.strength,
-                    )
+                    let pos = interpolated.map_or(pos.0, |i| i.pos);
+                    Light::new(pos + light_anim.offset, light_anim.col, light_anim.strength)
                 })
                 .chain(
                     self.event_lights

@@ -184,7 +184,8 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
 #if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
         is_direct = true;
 #endif
-        vec3 direct_light = PI * color * strength * square_factor * light_reflection_factor(/*direct_norm_dir*/wnorm, /*cam_to_frag*/view_dir, direct_light_dir, k_d, k_s, alpha, voxel_norm, voxel_lighting);
+        vec3 lrf = light_reflection_factor(/*direct_norm_dir*/wnorm, /*cam_to_frag*/view_dir, direct_light_dir, k_d, k_s, alpha, voxel_norm, voxel_lighting);
+        vec3 direct_light = PI * color * strength * square_factor * pow(lrf, vec3(0.5)); // TODO: Don't use ^0.5, it's non-physical but helps with hill climbing
         float computed_shadow = ShadowCalculationPoint(i, -difference, wnorm, wpos/*, light_distance*/);
         // directed_light += is_direct ? max(computed_shadow, /*LIGHT_AMBIANCE*/0.0) * direct_light * square_factor : vec3(0.0);
         #ifdef FIGURE_SHADER

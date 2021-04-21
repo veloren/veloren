@@ -32,6 +32,7 @@ impl Animation for StandAnimation {
         let mut next = (*skeleton).clone();
 
         let slow = (anim_time * 1.0).sin();
+        let fast = (anim_time * 5.0).sin();
         let impact = (avg_vel.z).max(-15.0);
         let head_look = Vec2::new(
             ((global_time + anim_time) / 10.0).floor().mul(7331.0).sin() * 0.15,
@@ -141,6 +142,22 @@ impl Animation for StandAnimation {
 
         next.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
         next.lantern.orientation = Quaternion::rotation_x(0.1) * Quaternion::rotation_y(0.1);
+
+        if skeleton.holding_lantern {
+            next.hand_r.position = Vec3::new(
+                s_a.hand.0 - head_look.x * 10.0,
+                s_a.hand.1 + 5.0 - head_look.y * 8.0 + slow * 0.15 - impact * 0.2,
+                s_a.hand.2 + 11.0 + slow * 0.5 + impact * -0.1,
+            );
+            next.hand_r.orientation = Quaternion::rotation_x(2.5 + slow * -0.06 + impact * -0.1)
+                * Quaternion::rotation_z(0.9)
+                * Quaternion::rotation_y(head_look.x * 3.0)
+                * Quaternion::rotation_x(head_look.y * 3.0);
+
+            next.lantern.position = Vec3::new(0.0, 0.0, -3.5);
+            next.lantern.orientation =
+                next.hand_r.orientation.inverse() * Quaternion::rotation_x(fast * 0.1);
+        }
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
         next.second.scale = Vec3::one();
