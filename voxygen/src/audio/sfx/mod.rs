@@ -416,9 +416,23 @@ impl SfxMgr {
                 ][rand::thread_rng().gen_range(1..4)];
                 audio.play_sfx(file_ref, *pos, None);
             },
-            Outcome::Block { pos, parry: _parry } => {
+            Outcome::Block { pos, parry } => {
                 // TODO: Get audio for blocking and parrying
-                audio.play_sfx("voxygen.audio.sfx.character.arrow_hit", *pos, Some(2.0));
+                let file_ref_block = vec![
+                    "voxygen.audio.sfx.character.block_1",
+                    "voxygen.audio.sfx.character.block_2",
+                    "voxygen.audio.sfx.character.block_3",
+                ][rand::thread_rng().gen_range(1..3)];
+                let file_ref_parry = vec![
+                    "voxygen.audio.sfx.character.parry_1",
+                    "voxygen.audio.sfx.character.parry_2",
+                ][rand::thread_rng().gen_range(1..2)];
+                if *parry {
+                    audio.play_sfx(file_ref_parry, *pos, Some(2.0));
+                }
+                else {
+                    audio.play_sfx(file_ref_block, *pos, Some(2.0));
+                }
             },
             Outcome::ExpChange { .. }
             | Outcome::ComboChange { .. }
