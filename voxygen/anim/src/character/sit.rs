@@ -29,8 +29,16 @@ impl Animation for SitAnimation {
         let stop = (anim_time * 3.0).min(PI / 2.0).sin();
 
         let head_look = Vec2::new(
-            (global_time + anim_time / 18.0).floor().mul(7331.0).sin() * 0.25,
-            (global_time + anim_time / 18.0).floor().mul(1337.0).sin() * 0.125,
+            (global_time * 0.05 + anim_time / 15.0)
+                .floor()
+                .mul(7331.0)
+                .sin()
+                * 0.25,
+            (global_time * 0.05 + anim_time / 15.0)
+                .floor()
+                .mul(1337.0)
+                .sin()
+                * 0.125,
         );
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + slow * 0.1 + stop * -0.8);
         next.head.orientation = Quaternion::rotation_z(head_look.x + slow * 0.2 - slow * 0.1)
@@ -78,6 +86,21 @@ impl Animation for SitAnimation {
         next.shoulder_r.orientation = Quaternion::rotation_x(0.0);
 
         next.torso.position = Vec3::new(0.0, -0.2, stop * -0.16) * s_a.scaler;
+
+        if skeleton.holding_lantern {
+            next.hand_r.position = Vec3::new(
+                s_a.hand.0 - head_look.x * 10.0,
+                s_a.hand.1 + 5.0 - head_look.y * 8.0,
+                s_a.hand.2 + 11.0,
+            );
+            next.hand_r.orientation = Quaternion::rotation_x(2.25)
+                * Quaternion::rotation_z(0.9)
+                * Quaternion::rotation_y(head_look.x * 3.0)
+                * Quaternion::rotation_x(head_look.y * 3.0);
+
+            next.lantern.position = Vec3::new(0.0, 0.0, -3.5);
+            next.lantern.orientation = next.hand_r.orientation.inverse();
+        }
 
         next
     }

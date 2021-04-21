@@ -192,6 +192,16 @@ impl Animation for JumpAnimation {
         next.lantern.scale = Vec3::one() * 0.65;
         next.hold.scale = Vec3::one() * 0.0;
 
+        if skeleton.holding_lantern {
+            next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1 + 5.0, s_a.hand.2 + 9.0);
+            next.hand_r.orientation = Quaternion::rotation_x(2.25) * Quaternion::rotation_z(0.9);
+
+            next.lantern.position = Vec3::new(0.0, 0.0, -3.5);
+            next.lantern.orientation = next.hand_r.orientation.inverse()
+                * Quaternion::rotation_x(slow * 0.5)
+                * Quaternion::rotation_y(tilt * 4.0 * slow + tilt * 3.0);
+        }
+
         next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
         next.torso.orientation = Quaternion::rotation_x(0.0);
         next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;

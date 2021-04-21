@@ -28,7 +28,7 @@ use anim::{
 use common::{
     comp::{
         inventory::slot::EquipSlot,
-        item::{ItemKind, ToolKind},
+        item::{Hands, ItemKind, ToolKind},
         Body, CharacterState, Controller, Health, Inventory, Item, Last, LightAnimation,
         LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
     },
@@ -584,6 +584,7 @@ impl FigureMgr {
                 health,
                 inventory,
                 item,
+                light_emitter,
             ),
         ) in (
             &ecs.entities(),
@@ -599,6 +600,7 @@ impl FigureMgr {
             ecs.read_storage::<Health>().maybe(),
             ecs.read_storage::<Inventory>().maybe(),
             ecs.read_storage::<Item>().maybe(),
+            ecs.read_storage::<LightEmitter>().maybe(),
         )
             .join()
             .enumerate()
@@ -760,12 +762,20 @@ impl FigureMgr {
                         &slow_jobs,
                     );
 
+                    let holding_lantern = inventory
+                        .map_or(false, |i| i.equipped(EquipSlot::Lantern).is_some())
+                        && light_emitter.is_some()
+                        && !(matches!(second_tool_hand, Some(_))
+                            && character.map_or(false, |c| c.is_wield()))
+                        && !character.map_or(false, |c| c.is_using_hands())
+                        && physics.in_liquid().is_none();
+
                     let state = self
                         .states
                         .character_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, CharacterSkeleton::default())
+                            FigureState::new(renderer, CharacterSkeleton::new(holding_lantern))
                         });
 
                     // Average velocity relative to the current ground
@@ -787,7 +797,7 @@ impl FigureMgr {
                     ) {
                         // Standing
                         (true, false, false) => anim::character::StandAnimation::update_skeleton(
-                            &CharacterSkeleton::default(),
+                            &CharacterSkeleton::new(holding_lantern),
                             (active_tool_kind, second_tool_kind, hands, time, rel_avg_vel),
                             state.state_time,
                             &mut state_animation_rate,
@@ -795,7 +805,7 @@ impl FigureMgr {
                         ),
                         // Running
                         (true, true, false) => anim::character::RunAnimation::update_skeleton(
-                            &CharacterSkeleton::default(),
+                            &CharacterSkeleton::new(holding_lantern),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -814,7 +824,7 @@ impl FigureMgr {
                         ),
                         // In air
                         (false, _, false) => anim::character::JumpAnimation::update_skeleton(
-                            &CharacterSkeleton::default(),
+                            &CharacterSkeleton::new(holding_lantern),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -831,7 +841,7 @@ impl FigureMgr {
                         ),
                         // Swim
                         (_, _, true) => anim::character::SwimAnimation::update_skeleton(
-                            &CharacterSkeleton::default(),
+                            &CharacterSkeleton::new(holding_lantern),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -1376,7 +1386,7 @@ impl FigureMgr {
                         },
                         CharacterState::BasicBlock { .. } => {
                             anim::character::BlockAnimation::update_skeleton(
-                                &CharacterSkeleton::default(),
+                                &CharacterSkeleton::new(holding_lantern),
                                 (active_tool_kind, second_tool_kind, time),
                                 state.state_time,
                                 &mut state_animation_rate,

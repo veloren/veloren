@@ -167,6 +167,18 @@ impl CharacterState {
         )
     }
 
+    pub fn is_using_hands(&self) -> bool {
+        matches!(
+            self,
+            CharacterState::Climb(_)
+                | CharacterState::Equipping(_)
+                | CharacterState::Dance
+                | CharacterState::Glide
+                | CharacterState::GlideWield
+                | CharacterState::Roll(_),
+        )
+    }
+
     pub fn is_block(&self) -> bool { matches!(self, CharacterState::BasicBlock) }
 
     pub fn is_dodge(&self) -> bool { matches!(self, CharacterState::Roll(_)) }
