@@ -131,9 +131,9 @@ impl Animation for StandAnimation {
         match hands {
             (None | Some(Hands::One), Some(Hands::One)) => match second_tool_kind {
                 Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
-                    next.second.position = Vec3::new(4.0, -5.5, 10.0);
+                    next.second.position = Vec3::new(4.0, -6.0, 10.0);
                     next.second.orientation =
-                        Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(1.57);
+                        Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(-1.57);
                 },
                 _ => {},
             },
