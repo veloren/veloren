@@ -5443,7 +5443,7 @@ dependencies = [
  "veloren-common-frontend",
  "veloren-common-net",
  "veloren-common-state",
- "veloren-common-systems",
+ "veloren-common-sys",
  "veloren-network",
 ]
 
@@ -5557,7 +5557,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "veloren-common-systems"
+name = "veloren-common-sys"
 version = "0.9.0"
 dependencies = [
  "hashbrown",
@@ -5682,7 +5682,7 @@ dependencies = [
  "veloren-common-ecs",
  "veloren-common-net",
  "veloren-common-state",
- "veloren-common-systems",
+ "veloren-common-sys",
  "veloren-network",
  "veloren-plugin-api",
  "veloren-world",
@@ -5770,7 +5770,7 @@ dependencies = [
  "veloren-common-frontend",
  "veloren-common-net",
  "veloren-common-state",
- "veloren-common-systems",
+ "veloren-common-sys",
  "veloren-server",
  "veloren-voxygen-anim",
  "veloren-world",

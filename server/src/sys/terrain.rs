@@ -69,7 +69,6 @@ impl<'a> System<'a> for Sys {
 
         // Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.
-        let mut new_chunks = Vec::new();
         'insert_terrain_chunks: while let Some((key, res)) = chunk_generator.recv_new_chunk() {
             let (chunk, supplement) = match res {
                 Ok((chunk, supplement)) => (chunk, supplement),
@@ -86,16 +85,31 @@ impl<'a> System<'a> for Sys {
                     continue 'insert_terrain_chunks;
                 },
             };
+            // Send the chunk to all nearby players.
+            let mut lazy_msg = None;
+            for (presence, pos, client) in (&presences, &positions, &clients).join() {
+                let chunk_pos = terrain.pos_key(pos.0.map(|e| e as i32));
+                // Subtract 2 from the offset before computing squared magnitude
+                // 1 since chunks need neighbors to be meshed
+                // 1 to act as a buffer if the player moves in that direction
+                let adjusted_dist_sqr = (chunk_pos - key)
+                    .map(|e: i32| (e.abs() as u32).saturating_sub(2))
+                    .magnitude_squared();
 
-            // Arcify the chunk
-            let chunk = Arc::new(chunk);
-
-            // Add to list of chunks to send to nearby players.
-            new_chunks.push((key, Arc::clone(&chunk)));
+                if adjusted_dist_sqr <= presence.view_distance.pow(2) {
+                    if lazy_msg.is_none() {
+                        lazy_msg = Some(client.prepare(ServerGeneral::TerrainChunkUpdate {
+                            key,
+                            chunk: Ok(Box::new(chunk.clone())),
+                        }));
+                    }
+                    lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));
+                }
+            }
 
             // TODO: code duplication for chunk insertion between here and state.rs
             // Insert the chunk into terrain changes
-            if terrain.insert(key, chunk).is_some() {
+            if terrain.insert(key, Arc::new(chunk)).is_some() {
                 terrain_changes.modified_chunks.insert(key);
             } else {
                 terrain_changes.new_chunks.insert(key);
@@ -218,36 +232,6 @@ impl<'a> System<'a> for Sys {
                 });
             }
         }
-
-        // Send the chunk to all nearby players.
-        use rayon::iter::{IntoParallelIterator, ParallelIterator};
-        new_chunks.into_par_iter().for_each(|(key, chunk)| {
-            let mut msg = Some(ServerGeneral::TerrainChunkUpdate {
-                key,
-                chunk: Ok(chunk),
-            });
-            let mut lazy_msg = None;
-
-            (&presences, &positions, &clients)
-                .join()
-                .for_each(|(presence, pos, client)| {
-                    let chunk_pos = terrain.pos_key(pos.0.map(|e| e as i32));
-                    // Subtract 2 from the offset before computing squared magnitude
-                    // 1 since chunks need neighbors to be meshed
-                    // 1 to act as a buffer if the player moves in that direction
-                    let adjusted_dist_sqr = (chunk_pos - key)
-                        .map(|e: i32| (e.abs() as u32).saturating_sub(2))
-                        .magnitude_squared();
-
-                    if adjusted_dist_sqr <= presence.view_distance.pow(2) {
-                        if let Some(msg) = msg.take() {
-                            lazy_msg = Some(client.prepare(msg));
-                        };
-
-                        lazy_msg.as_ref().map(|msg| client.send_prepared(msg));
-                    }
-                });
-        });
 
         // Remove chunks that are too far from players.
         let mut chunks_to_remove = Vec::new();
