@@ -1,4 +1,5 @@
 use common::{
+    spiral::Spiral2d,
     terrain::{chonk::Chonk, Block, BlockKind, SpriteKind},
     vol::{IntoVolIterator, RectVolSize, SizedVol, WriteVol},
     volumes::dyna::{Access, ColumnAccess, Dyna},
@@ -144,103 +145,106 @@ fn main() {
     let mut totals = [0.0; 5];
     let mut total_timings = [0.0; 2];
     let mut count = 0;
-    for y in 1..sz.y {
-        for x in 1..sz.x {
-            let chunk =
-                world.generate_chunk(index.as_index_ref(), Vec2::new(x as _, y as _), || false);
-            if let Ok((chunk, _)) = chunk {
-                let uncompressed = bincode::serialize(&chunk).unwrap();
-                for w in uncompressed.windows(k) {
-                    *histogram.entry(w.to_vec()).or_default() += 1;
-                }
-                if x % 128 == 0 {
-                    histogram_to_dictionary(&histogram, &mut dictionary);
-                }
-                let lz4chonk_pre = Instant::now();
-                let lz4_chonk = lz4_with_dictionary(&bincode::serialize(&chunk).unwrap(), &[]);
-                let lz4chonk_post = Instant::now();
-                //let lz4_dict_chonk = SerializedTerrainChunk::from_chunk(&chunk,
-                // &*dictionary);
-
-                let deflatechonk_pre = Instant::now();
-                let deflate_chonk = do_deflate_flate2(&bincode::serialize(&chunk).unwrap());
-                let deflatechonk_post = Instant::now();
-
-                let dyna: Dyna<_, _, ColumnAccess> = chonk_to_dyna(&chunk, Block::empty());
-                let ser_dyna = bincode::serialize(&dyna).unwrap();
-                for w in ser_dyna.windows(k) {
-                    *histogram2.entry(w.to_vec()).or_default() += 1;
-                }
-                if x % 128 == 0 {
-                    histogram_to_dictionary(&histogram2, &mut dictionary2);
-                }
-                let lz4_dyna = lz4_with_dictionary(&*ser_dyna, &[]);
-                //let lz4_dict_dyna = lz4_with_dictionary(&*ser_dyna, &dictionary2);
-                let deflate_dyna = do_deflate(&*ser_dyna);
-                let deflate_channeled_dyna =
-                    do_deflate_flate2(&bincode::serialize(&channelize_dyna(&dyna)).unwrap());
-                let n = uncompressed.len();
-                let sizes = [
-                    lz4_chonk.len() as f32 / n as f32,
-                    deflate_chonk.len() as f32 / n as f32,
-                    lz4_dyna.len() as f32 / n as f32,
-                    deflate_dyna.len() as f32 / n as f32,
-                    deflate_channeled_dyna.len() as f32 / n as f32,
-                ];
-                let i = sizes
-                    .iter()
-                    .enumerate()
-                    .fold((1.0, 0), |(best, i), (j, ratio)| {
-                        if ratio < &best {
-                            (*ratio, j)
-                        } else {
-                            (best, i)
-                        }
-                    })
-                    .1;
-                let timings = [
-                    (lz4chonk_post - lz4chonk_pre).subsec_nanos(),
-                    (deflatechonk_post - deflatechonk_pre).subsec_nanos(),
-                ];
-                trace!(
-                    "{} {}: uncompressed: {}, {:?} {} {:?}",
-                    x,
-                    y,
-                    n,
-                    sizes,
-                    i,
-                    timings
-                );
-                for i in 0..5 {
-                    totals[i] += sizes[i];
-                }
-                for i in 0..2 {
-                    total_timings[i] += timings[i] as f32;
-                }
-                count += 1;
+    for (i, (x, y)) in Spiral2d::new()
+        .radius(20)
+        .map(|v| (v.x + sz.x as i32 / 2, v.y + sz.y as i32 / 2))
+        .enumerate()
+    {
+        let chunk = world.generate_chunk(index.as_index_ref(), Vec2::new(x as _, y as _), || false);
+        if let Ok((chunk, _)) = chunk {
+            let uncompressed = bincode::serialize(&chunk).unwrap();
+            for w in uncompressed.windows(k) {
+                *histogram.entry(w.to_vec()).or_default() += 1;
             }
-            if x % 64 == 0 {
-                println!("Chunks processed: {}\n", count);
-                println!("Average lz4_chonk: {}", totals[0] / count as f32);
-                println!("Average deflate_chonk: {}", totals[1] / count as f32);
-                println!("Average lz4_dyna: {}", totals[2] / count as f32);
-                println!("Average deflate_dyna: {}", totals[3] / count as f32);
-                println!(
-                    "Average deflate_channeled_dyna: {}",
-                    totals[4] / count as f32
-                );
-                println!("");
-                println!(
-                    "Average lz4_chonk nanos    : {:02}",
-                    total_timings[0] / count as f32
-                );
-                println!(
-                    "Average deflate_chonk nanos: {:02}",
-                    total_timings[1] / count as f32
-                );
-                println!("-----");
+            if i % 128 == 0 {
+                histogram_to_dictionary(&histogram, &mut dictionary);
             }
+            let lz4chonk_pre = Instant::now();
+            let lz4_chonk = lz4_with_dictionary(&bincode::serialize(&chunk).unwrap(), &[]);
+            let lz4chonk_post = Instant::now();
+            //let lz4_dict_chonk = SerializedTerrainChunk::from_chunk(&chunk,
+            // &*dictionary);
+
+            let deflatechonk_pre = Instant::now();
+            let deflate_chonk = do_deflate_flate2(&bincode::serialize(&chunk).unwrap());
+            let deflatechonk_post = Instant::now();
+
+            let dyna: Dyna<_, _, ColumnAccess> = chonk_to_dyna(&chunk, Block::empty());
+            let ser_dyna = bincode::serialize(&dyna).unwrap();
+            for w in ser_dyna.windows(k) {
+                *histogram2.entry(w.to_vec()).or_default() += 1;
+            }
+            if i % 128 == 0 {
+                histogram_to_dictionary(&histogram2, &mut dictionary2);
+            }
+            let lz4_dyna = lz4_with_dictionary(&*ser_dyna, &[]);
+            //let lz4_dict_dyna = lz4_with_dictionary(&*ser_dyna, &dictionary2);
+            let deflate_dyna = do_deflate(&*ser_dyna);
+            let deflate_channeled_dyna =
+                do_deflate_flate2(&bincode::serialize(&channelize_dyna(&dyna)).unwrap());
+            let n = uncompressed.len();
+            let sizes = [
+                lz4_chonk.len() as f32 / n as f32,
+                deflate_chonk.len() as f32 / n as f32,
+                lz4_dyna.len() as f32 / n as f32,
+                deflate_dyna.len() as f32 / n as f32,
+                deflate_channeled_dyna.len() as f32 / n as f32,
+            ];
+            let best_idx = sizes
+                .iter()
+                .enumerate()
+                .fold((1.0, 0), |(best, i), (j, ratio)| {
+                    if ratio < &best {
+                        (*ratio, j)
+                    } else {
+                        (best, i)
+                    }
+                })
+                .1;
+            let timings = [
+                (lz4chonk_post - lz4chonk_pre).subsec_nanos(),
+                (deflatechonk_post - deflatechonk_pre).subsec_nanos(),
+            ];
+            trace!(
+                "{} {}: uncompressed: {}, {:?} {} {:?}",
+                x,
+                y,
+                n,
+                sizes,
+                best_idx,
+                timings
+            );
+            for j in 0..5 {
+                totals[j] += sizes[j];
+            }
+            for j in 0..2 {
+                total_timings[j] += timings[j] as f32;
+            }
+            count += 1;
         }
-        histogram.clear();
+        if i % 64 == 0 {
+            println!("Chunks processed: {}\n", count);
+            println!("Average lz4_chonk: {}", totals[0] / count as f32);
+            println!("Average deflate_chonk: {}", totals[1] / count as f32);
+            println!("Average lz4_dyna: {}", totals[2] / count as f32);
+            println!("Average deflate_dyna: {}", totals[3] / count as f32);
+            println!(
+                "Average deflate_channeled_dyna: {}",
+                totals[4] / count as f32
+            );
+            println!("");
+            println!(
+                "Average lz4_chonk nanos    : {:02}",
+                total_timings[0] / count as f32
+            );
+            println!(
+                "Average deflate_chonk nanos: {:02}",
+                total_timings[1] / count as f32
+            );
+            println!("-----");
+        }
+        if i % 256 == 0 {
+            histogram.clear();
+        }
     }
 }
