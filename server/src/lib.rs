@@ -81,7 +81,7 @@ use common_state::plugin::memory_manager::EcsWorld;
 #[cfg(feature = "plugins")]
 use common_state::plugin::PluginMgr;
 use common_state::{BuildAreas, State};
-use common_sys::add_local_systems;
+use common_systems::add_local_systems;
 use metrics::{EcsSystemMetrics, PhysicsMetrics, TickMetrics};
 use network::{Network, Pid, ProtocolAddr};
 use persistence::{

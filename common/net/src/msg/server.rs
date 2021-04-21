@@ -12,7 +12,7 @@ use common::{
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 use vek::*;
 
 ///This struct contains all messages the server might send (on different
@@ -106,7 +106,7 @@ pub enum ServerGeneral {
     // Ingame related AND terrain stream
     TerrainChunkUpdate {
         key: Vec2<i32>,
-        chunk: Result<Box<TerrainChunk>, ()>,
+        chunk: Result<Arc<TerrainChunk>, ()>,
     },
     TerrainBlockUpdates(HashMap<Vec3<i32>, Block>),
     // Always possible

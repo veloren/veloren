@@ -4,6 +4,7 @@ use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::ServerGeneral;
 use common_state::TerrainChanges;
 use specs::{Join, Read, ReadExpect, ReadStorage};
+use std::sync::Arc;
 
 /// This systems sends new chunks to clients as well as changes to existing
 /// chunks
@@ -37,10 +38,10 @@ impl<'a> System<'a> for Sys {
                     if lazy_msg.is_none() {
                         lazy_msg = Some(client.prepare(ServerGeneral::TerrainChunkUpdate {
                             key: *chunk_key,
-                            chunk: Ok(Box::new(match terrain.get_key(*chunk_key) {
-                                Some(chunk) => chunk.clone(),
+                            chunk: Ok(match terrain.get_key_arc(*chunk_key) {
+                                Some(chunk) => Arc::clone(chunk),
                                 None => break 'chunk,
-                            })),
+                            }),
                         }));
                     }
                     lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));
