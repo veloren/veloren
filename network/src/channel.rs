@@ -1,3 +1,4 @@
+use crate::api::NetworkConnectError;
 use async_trait::async_trait;
 use bytes::BytesMut;
 use network_protocol::{
@@ -9,10 +10,12 @@ use network_protocol::{
 use std::{sync::Arc, time::Duration};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
+    net,
     net::tcp::{OwnedReadHalf, OwnedWriteHalf},
-    sync::mpsc,
+    sync::{mpsc, oneshot},
 };
 use tokio_stream::StreamExt;
+use tracing::{info, trace};
 
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
@@ -40,6 +43,23 @@ pub(crate) enum RecvProtocols {
 }
 
 impl Protocols {
+    const MPSC_CHANNEL_BOUND: usize = 1000;
+
+    pub(crate) async fn with_tcp_connect(
+        addr: std::net::SocketAddr,
+        cid: Cid,
+        metrics: Arc<ProtocolMetrics>,
+    ) -> Result<Self, NetworkConnectError> {
+        let stream = match net::TcpStream::connect(addr).await {
+            Ok(stream) => stream,
+            Err(e) => {
+                return Err(crate::api::NetworkConnectError::Io(e));
+            },
+        };
+        info!("Connecting Tcp to: {}", stream.peer_addr().unwrap());
+        Ok(Protocols::new_tcp(stream, cid, metrics))
+    }
+
     pub(crate) fn new_tcp(
         stream: tokio::net::TcpStream,
         cid: Cid,
@@ -59,6 +79,49 @@ impl Protocols {
         Protocols::Tcp((sp, rp))
     }
 
+    pub(crate) async fn with_mpsc_connect(
+        addr: u64,
+        cid: Cid,
+        metrics: Arc<ProtocolMetrics>,
+    ) -> Result<Self, NetworkConnectError> {
+        let mpsc_s = match crate::scheduler::MPSC_POOL.lock().await.get(&addr) {
+            Some(s) => s.clone(),
+            None => {
+                return Err(NetworkConnectError::Io(std::io::Error::new(
+                    std::io::ErrorKind::NotConnected,
+                    "no mpsc listen on this addr",
+                )));
+            },
+        };
+        let (remote_to_local_s, remote_to_local_r) = mpsc::channel(Self::MPSC_CHANNEL_BOUND);
+        let (local_to_remote_oneshot_s, local_to_remote_oneshot_r) = oneshot::channel();
+        if mpsc_s
+            .send((remote_to_local_s, local_to_remote_oneshot_s))
+            .is_err()
+        {
+            return Err(NetworkConnectError::Io(std::io::Error::new(
+                std::io::ErrorKind::BrokenPipe,
+                "mpsc pipe broke during connect",
+            )));
+        }
+        let local_to_remote_s = match local_to_remote_oneshot_r.await {
+            Ok(s) => s,
+            Err(e) => {
+                return Err(NetworkConnectError::Io(std::io::Error::new(
+                    std::io::ErrorKind::BrokenPipe,
+                    e,
+                )));
+            },
+        };
+        info!(?addr, "Connecting Mpsc");
+        Ok(Self::new_mpsc(
+            local_to_remote_s,
+            remote_to_local_r,
+            cid,
+            metrics,
+        ))
+    }
+
     pub(crate) fn new_mpsc(
         sender: mpsc::Sender<MpscMsg>,
         receiver: mpsc::Receiver<MpscMsg>,
@@ -72,6 +135,46 @@ impl Protocols {
         Protocols::Mpsc((sp, rp))
     }
 
+    pub(crate) async fn with_quic_connect(
+        addr: std::net::SocketAddr,
+        config: quinn::ClientConfig,
+        name: String,
+        cid: Cid,
+        metrics: Arc<ProtocolMetrics>,
+    ) -> Result<Self, NetworkConnectError> {
+        let config = config.clone();
+        let endpoint = quinn::Endpoint::builder();
+        let (endpoint, _) = match endpoint.bind(&"[::]:0".parse().unwrap()) {
+            Ok(e) => e,
+            Err(quinn::EndpointError::Socket(e)) => return Err(NetworkConnectError::Io(e)),
+        };
+
+        info!("Connecting Quic to: {}", &addr);
+        let connecting = endpoint.connect_with(config, &addr, &name).map_err(|e| {
+            trace!(?e, "error setting up quic");
+            NetworkConnectError::Io(std::io::Error::new(
+                std::io::ErrorKind::ConnectionAborted,
+                e,
+            ))
+        })?;
+        let connection = connecting.await.map_err(|e| {
+            trace!(?e, "error with quic connection");
+            NetworkConnectError::Io(std::io::Error::new(
+                std::io::ErrorKind::ConnectionAborted,
+                e,
+            ))
+        })?;
+        Protocols::new_quic(connection, false, cid, metrics)
+            .await
+            .map_err(|e| {
+                trace!(?e, "error with quic");
+                NetworkConnectError::Io(std::io::Error::new(
+                    std::io::ErrorKind::ConnectionAborted,
+                    e,
+                ))
+            })
+    }
+
     #[cfg(feature = "quic")]
     pub(crate) async fn new_quic(
         mut connection: quinn::NewConnection,
@@ -81,14 +184,18 @@ impl Protocols {
     ) -> Result<Self, quinn::ConnectionError> {
         let metrics = ProtocolMetricCache::new(&cid.to_string(), metrics);
 
-        let (sendstream, recvstream) =  if listen {
+        let (sendstream, recvstream) = if listen {
             connection.connection.open_bi().await?
         } else {
-            connection.bi_streams.next().await.expect("none").expect("dasdasd")
+            connection
+                .bi_streams
+                .next()
+                .await
+                .ok_or_else(|| quinn::ConnectionError::LocallyClosed)??
         };
-        let (recvstreams_s,recvstreams_r) = mpsc::unbounded_channel();
+        let (recvstreams_s, recvstreams_r) = mpsc::unbounded_channel();
         let streams_s_clone = recvstreams_s.clone();
-        let (sendstreams_s,sendstreams_r) = mpsc::unbounded_channel();
+        let (sendstreams_s, sendstreams_r) = mpsc::unbounded_channel();
         let sp = QuicSendProtocol::new(
             QuicDrain {
                 con: connection.connection.clone(),
@@ -261,7 +368,12 @@ impl UnreliableSink for MpscSink {
 ///////////////////////////////////////
 //// QUIC
 #[cfg(feature = "quic")]
-type QuicStream = (BytesMut, Result<Option<usize>, quinn::ReadError>, quinn::RecvStream, Option<Sid>);
+type QuicStream = (
+    BytesMut,
+    Result<Option<usize>, quinn::ReadError>,
+    quinn::RecvStream,
+    Option<Sid>,
+);
 
 #[cfg(feature = "quic")]
 #[derive(Debug)]
@@ -284,7 +396,11 @@ pub struct QuicSink {
 }
 
 #[cfg(feature = "quic")]
-fn spawn_new(mut recvstream: quinn::RecvStream, sid: Option<Sid>, streams_s: &mpsc::UnboundedSender<QuicStream>) {
+fn spawn_new(
+    mut recvstream: quinn::RecvStream,
+    sid: Option<Sid>,
+    streams_s: &mpsc::UnboundedSender<QuicStream>,
+) {
     let streams_s_clone = streams_s.clone();
     tokio::spawn(async move {
         let mut buffer = BytesMut::new();
@@ -301,19 +417,16 @@ impl UnreliableDrain for QuicDrain {
 
     async fn send(&mut self, data: Self::DataFormat) -> Result<(), ProtocolError> {
         match match data.stream {
-            QuicDataFormatStream::Main => {
-                self.main.write_all(&data.data).await
-            },
+            QuicDataFormatStream::Main => self.main.write_all(&data.data).await,
             QuicDataFormatStream::Unreliable => unimplemented!(),
             QuicDataFormatStream::Reliable(sid) => {
                 use std::collections::hash_map::Entry;
                 tracing::trace!(?sid, "Reliable");
                 match self.reliables.entry(sid) {
-                    Entry::Occupied(mut occupied) => {
-                        occupied.get_mut().write_all(&data.data).await
-                    },
+                    Entry::Occupied(mut occupied) => occupied.get_mut().write_all(&data.data).await,
                     Entry::Vacant(vacant) => {
-                        // IF the buffer is empty this was created localy and WE are allowed to open_bi(), if not, we NEED to block on sendstreams_r
+                        // IF the buffer is empty this was created localy and WE are allowed to
+                        // open_bi(), if not, we NEED to block on sendstreams_r
                         if data.data.is_empty() {
                             match self.con.open_bi().await {
                                 Ok((mut sendstream, recvstream)) => {
@@ -327,14 +440,17 @@ impl UnreliableDrain for QuicDrain {
                                 Err(_) => return Err(ProtocolError::Closed),
                             }
                         } else {
-                            let sendstream = self.sendstreams_r.recv().await.ok_or(ProtocolError::Closed)?;
+                            let sendstream = self
+                                .sendstreams_r
+                                .recv()
+                                .await
+                                .ok_or(ProtocolError::Closed)?;
                             vacant.insert(sendstream).write_all(&data.data).await
                         }
                     },
                 }
             },
-        }
-        {
+        } {
             Ok(()) => Ok(()),
             Err(_) => Err(ProtocolError::Closed),
         }
@@ -390,7 +506,6 @@ impl UnreliableSink for QuicSink {
             Ok(None) => Err(ProtocolError::Closed),
             Err(_) => Err(ProtocolError::Closed),
         }?;
-
 
         let streams_s_clone = self.recvstreams_s.clone();
         tokio::spawn(async move {

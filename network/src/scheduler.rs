@@ -34,7 +34,7 @@ use tracing::*;
 //  - c: channel/handshake
 
 lazy_static::lazy_static! {
-    static ref MPSC_POOL: Mutex<HashMap<u64, mpsc::UnboundedSender<S2sMpscConnect>>> = {
+    pub(crate) static ref MPSC_POOL: Mutex<HashMap<u64, mpsc::UnboundedSender<S2sMpscConnect>>> = {
         Mutex::new(HashMap::new())
     };
 }
@@ -197,94 +197,23 @@ impl Scheduler {
             let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
             let metrics = Arc::clone(&self.protocol_metrics);
             self.metrics.connect_request(&addr);
-            let (protocol, handshake) = match addr {
-                ConnectAddr::Tcp(addr) => {
-                    let stream = match net::TcpStream::connect(addr).await {
-                        Ok(stream) => stream,
-                        Err(e) => {
-                            pid_sender.send(Err(NetworkConnectError::Io(e))).unwrap();
-                            continue;
-                        },
-                    };
-                    info!("Connecting Tcp to: {}", stream.peer_addr().unwrap());
-                    (Protocols::new_tcp(stream, cid, metrics), false)
-                },
+            let protocol = match addr {
+                ConnectAddr::Tcp(addr) => Protocols::with_tcp_connect(addr, cid, metrics).await,
                 #[cfg(feature = "quic")]
                 ConnectAddr::Quic(addr, ref config, name) => {
-                    let config = config.clone();
-                    let endpoint = quinn::Endpoint::builder();
-                    let (endpoint, _) = endpoint.bind(&"[::]:0".parse().unwrap()).expect("FIXME");
-
-                    let connecting = endpoint.connect_with(config, &addr, &name).expect("FIXME");
-                    let connection = connecting.await.expect("FIXME");
-                    (
-                        Protocols::new_quic(connection, false, cid, metrics).await.unwrap(),
-                        false,
-                    )
-                    //pid_sender.send(Ok(())).unwrap();
+                    Protocols::with_quic_connect(addr, config.clone(), name, cid, metrics).await
                 },
-                ConnectAddr::Mpsc(addr) => {
-                    let mpsc_s = match MPSC_POOL.lock().await.get(&addr) {
-                        Some(s) => s.clone(),
-                        None => {
-                            pid_sender
-                                .send(Err(NetworkConnectError::Io(std::io::Error::new(
-                                    std::io::ErrorKind::NotConnected,
-                                    "no mpsc listen on this addr",
-                                ))))
-                                .unwrap();
-                            continue;
-                        },
-                    };
-                    let (remote_to_local_s, remote_to_local_r) =
-                        mpsc::channel(Self::MPSC_CHANNEL_BOUND);
-                    let (local_to_remote_oneshot_s, local_to_remote_oneshot_r) = oneshot::channel();
-                    mpsc_s
-                        .send((remote_to_local_s, local_to_remote_oneshot_s))
-                        .unwrap();
-                    let local_to_remote_s = local_to_remote_oneshot_r.await.unwrap();
-                    info!(?addr, "Connecting Mpsc");
-                    (
-                        Protocols::new_mpsc(local_to_remote_s, remote_to_local_r, cid, metrics),
-                        false,
-                    )
-                },
-                /* */
-                //ProtocolConnectAddr::Udp(addr) => {
-                //#[cfg(feature = "metrics")]
-                //self.metrics
-                //.connect_requests_total
-                //.with_label_values(&["udp"])
-                //.inc();
-                //let socket = match net::UdpSocket::bind("0.0.0.0:0").await {
-                //Ok(socket) => Arc::new(socket),
-                //Err(e) => {
-                //pid_sender.send(Err(e)).unwrap();
-                //continue;
-                //},
-                //};
-                //if let Err(e) = socket.connect(addr).await {
-                //pid_sender.send(Err(e)).unwrap();
-                //continue;
-                //};
-                //info!("Connecting Udp to: {}", addr);
-                //let (udp_data_sender, udp_data_receiver) = mpsc::unbounded_channel::<Vec<u8>>();
-                //let protocol = UdpProtocol::new(
-                //Arc::clone(&socket),
-                //addr,
-                //#[cfg(feature = "metrics")]
-                //Arc::clone(&self.metrics),
-                //udp_data_receiver,
-                //);
-                //self.runtime.spawn(
-                //Self::udp_single_channel_connect(Arc::clone(&socket), udp_data_sender)
-                //.instrument(tracing::info_span!("udp", ?addr)),
-                //);
-                //(Protocols::Udp(protocol), true)
-                //},
+                ConnectAddr::Mpsc(addr) => Protocols::with_mpsc_connect(addr, cid, metrics).await,
                 _ => unimplemented!(),
             };
-            self.init_protocol(protocol, cid, Some(pid_sender), handshake)
+            let protocol = match protocol {
+                Ok(p) => p,
+                Err(e) => {
+                    pid_sender.send(Err(e)).unwrap();
+                    continue;
+                },
+            };
+            self.init_protocol(protocol, cid, Some(pid_sender), false)
                 .await;
         }
         trace!("Stop connect_mgr");

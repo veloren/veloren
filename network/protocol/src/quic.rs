@@ -222,7 +222,9 @@ where
                 if is_reliable(&promises) {
                     self.reliable_buffers.insert(sid, BytesMut::new());
                     //Send a empty message to notify local drain of stream
-                    self.drain.send(QuicDataFormat::with_reliable(&mut BytesMut::new(), sid)).await?;
+                    self.drain
+                        .send(QuicDataFormat::with_reliable(&mut BytesMut::new(), sid))
+                        .await?;
                 }
                 event.to_frame().write_bytes(&mut self.main_buffer);
                 self.drain
