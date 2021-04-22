@@ -985,7 +985,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                                 (e as f32 / group_size as f32 * 2.0 * f32::consts::PI).sin(),
                                 (e as f32 / group_size as f32 * 2.0 * f32::consts::PI).cos(),
                                 0.0,
-                            );
+                            ) * (5.0 + dynamic_rng.gen::<f32>().powf(0.5) * 5.0);
                         supplement.add_entity(entity.with_automatic_name());
                     }
                 }
