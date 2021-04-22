@@ -3,12 +3,12 @@ ItemDef(
     description: "Illuminates even the darkest dungeon\nA great monster was slain for this item",
     kind: Lantern(
         (
-            kind: "Blue0",
+            kind: "Green0",
             color: (r: 128, g: 26, b: 255),
             strength_thousandths: 8500,
             flicker_thousandths: 300,
         ),
     ),
-    quality: High,
+    quality: Epic,
     tags: [Utility],
 )

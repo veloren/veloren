@@ -132,7 +132,7 @@ impl Skeleton for CharacterSkeleton {
             // FIXME: Should this be control_l_mat?
             make_bone(control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
         ];
-        (lantern_mat * Vec4::new(-0.0, -0.0, -1.5, 1.0)).xyz()
+        (lantern_mat * Vec4::new(0.0, 0.0, -4.0, 1.0)).xyz()
     }
 }
 

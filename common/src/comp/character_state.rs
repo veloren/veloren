@@ -175,6 +175,7 @@ impl CharacterState {
                 | CharacterState::Dance
                 | CharacterState::Glide
                 | CharacterState::GlideWield
+                | CharacterState::Talk
                 | CharacterState::Roll(_),
         )
     }

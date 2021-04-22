@@ -258,16 +258,19 @@ impl Animation for RunAnimation {
 
         if skeleton.holding_lantern {
             next.hand_r.position = Vec3::new(
-                s_a.hand.0,
-                s_a.hand.1 + 5.0 - impact * 0.2,
-                s_a.hand.2 + 11.0 + impact * -0.1,
+                s_a.hand.0 + 1.0,
+                s_a.hand.1 + 2.0 - impact * 0.2,
+                s_a.hand.2 + 12.0 + impact * -0.1,
             );
             next.hand_r.orientation = Quaternion::rotation_x(2.25) * Quaternion::rotation_z(0.9);
 
-            next.lantern.position = Vec3::new(0.0, 0.0, -2.5);
+            let fast = (anim_time * 8.0).sin();
+            let fast2 = (anim_time * 6.0 + 8.0).sin();
+
+            next.lantern.position = Vec3::new(-0.5, -0.5, -2.5);
             next.lantern.orientation = next.hand_r.orientation.inverse()
-                * Quaternion::rotation_x((foothorir + 0.5) * 1.0 * speednorm)
-                * Quaternion::rotation_y(tilt * 4.0 * foothorir + tilt * 3.0);
+                * Quaternion::rotation_x((fast + 0.5) * 1.0 * speednorm)
+                * Quaternion::rotation_y(tilt * 4.0 * fast + tilt * 3.0 + fast2 * speednorm * 0.25);
         }
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
