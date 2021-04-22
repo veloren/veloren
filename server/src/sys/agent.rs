@@ -2590,74 +2590,89 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::BirdLargeFire => {
-                if self.physics_state.on_ground {
-                    controller
-                        .actions
-                        .push(ControlAction::CancelInput(InputKind::Fly));
-                    if self.energy.current() > 600 && thread_rng().gen_bool(0.3) {
-                        if thread_rng().gen_bool(0.99) {
-                            if dist_sqrd < (2.5 * min_attack_dist).powi(2)
-                                && self.energy.current() > 600
-                            {
-                                dbg!("shockwave");
-                                controller
-                                    .actions
-                                    .push(ControlAction::basic_input(InputKind::Ability(0)));
-                            } else {
-                                if let Some((bearing, speed)) = agent.chaser.chase(
-                                    &*terrain,
-                                    self.pos.0,
-                                    self.vel.0,
-                                    tgt_pos.0,
-                                    TraversalConfig {
-                                        min_tgt_dist: 1.25,
-                                        ..self.traversal_config
-                                    },
-                                ) {
-                                    if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd)
-                                        && agent.action_timer > 1.0
-                                    {
-                                        dbg!("fireball1");
-                                        controller.inputs.move_dir = bearing
-                                            .xy()
-                                            .rotated_z(thread_rng().gen_range(-1.57..-0.5))
-                                            .try_normalized()
-                                            .unwrap_or_else(Vec2::zero)
-                                            * speed;
-                                        controller.actions.push(ControlAction::basic_input(
-                                            InputKind::Ability(1),
-                                        ));
-                                        agent.action_timer = 0.0;
-                                    } else {
-                                        dbg!("walk to player1");
-                                        controller.inputs.move_dir = bearing
-                                            .xy()
-                                            .try_normalized()
-                                            .unwrap_or_else(Vec2::zero)
-                                            * speed;
-                                        self.jump_if(controller, bearing.z > 1.5);
-                                        controller.inputs.move_z = bearing.z;
-                                        agent.action_timer += dt.0;
-                                    }
-                                }
-                            }
-                        } else {
-                            dbg!("fly");
+                // Set fly to false
+                controller
+                    .actions
+                    .push(ControlAction::CancelInput(InputKind::Fly));
+                if dist_sqrd > 30.0_f32.powi(2) {
+                    if thread_rng().gen_bool(0.05)
+                        && can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd)
+                    {
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Ability(1)));
+                    }
+                    if let Some((bearing, speed)) = agent.chaser.chase(
+                        &*terrain,
+                        self.pos.0,
+                        self.vel.0,
+                        tgt_pos.0,
+                        TraversalConfig {
+                            min_tgt_dist: 1.25,
+                            ..self.traversal_config
+                        },
+                    ) {
+                        dbg!("fly towards target");
+                        controller.inputs.move_dir =
+                            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                        if (self.pos.0.z - tgt_pos.0.z) < 20.0 {
                             controller
                                 .actions
                                 .push(ControlAction::basic_input(InputKind::Fly));
                             controller
                                 .actions
                                 .push(ControlAction::basic_input(InputKind::Jump));
-                            controller.inputs.move_z = 6.0;
+                            controller.inputs.move_z = 1.0;
+                        } else {
+                            self.jump_if(controller, bearing.z > 1.5);
+                            controller.inputs.move_z = bearing.z;
                         }
-                    } else {
-                        if dist_sqrd < (2.0 * min_attack_dist).powi(2) {
+                    }
+                } else if agent.action_timer < 3.0 {
+                    if thread_rng().gen_bool(0.1) {
+                        if thread_rng().gen_bool(0.5) {
+                            controller
+                                .actions
+                                .push(ControlAction::basic_input(InputKind::Ability(1)));
+                        }
+                    } else if thread_rng().gen_bool(0.5) && (self.pos.0.z - tgt_pos.0.z) < 15.0 {
+                        dbg!("fly");
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Fly));
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Jump));
+                        controller.inputs.move_z = 1.0;
+                    }
+                    agent.action_timer += dt.0;
+                } else if !self.physics_state.on_ground {
+                    // Do not increment the timer during this movement
+                    // The next stage shouldn't trigger until the entity
+                    // is on the ground
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Fly));
+                    dbg!("fly to player2");
+                    let move_dir = tgt_pos.0 - self.pos.0;
+                    controller.inputs.move_dir =
+                        move_dir.xy().try_normalized().unwrap_or_else(Vec2::zero) * 2.0;
+                    controller.inputs.move_z = move_dir.z - 0.5;
+                } else if agent.action_timer < 7.0 {
+                    if dist_sqrd < (2.5 * min_attack_dist).powi(2) {
+                        if self.energy.current() > 600 && thread_rng().gen_bool(0.3) {
+                            dbg!("shockwave");
+                            controller
+                                .actions
+                                .push(ControlAction::basic_input(InputKind::Ability(0)));
+                        } else {
                             dbg!("triple strike");
                             controller
                                 .actions
                                 .push(ControlAction::basic_input(InputKind::Secondary));
-                        } else if let Some((bearing, speed)) = agent.chaser.chase(
+                        }
+                    } else {
+                        if let Some((bearing, speed)) = agent.chaser.chase(
                             &*terrain,
                             self.pos.0,
                             self.vel.0,
@@ -2667,13 +2682,28 @@ impl<'a> AgentData<'a> {
                                 ..self.traversal_config
                             },
                         ) {
-                            dbg!("walk to player2");
+                            if thread_rng().gen_bool(0.2)
+                                && can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd)
+                            {
+                                dbg!("fireball1");
+                                controller
+                                    .actions
+                                    .push(ControlAction::basic_input(InputKind::Ability(1)));
+                                agent.action_timer = 0.0;
+                            }
+                            dbg!("walk to player1");
                             controller.inputs.move_dir =
                                 bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
                             self.jump_if(controller, bearing.z > 1.5);
                             controller.inputs.move_z = bearing.z;
                         }
                     }
+                    agent.action_timer += dt.0;
+                }
+                if agent.action_timer > 7.0 {
+                    agent.action_timer = 0.0;
+                }
+                /*
                 } else {
                     if read_data
                         .terrain
@@ -2751,6 +2781,7 @@ impl<'a> AgentData<'a> {
                         }
                     }
                 }
+                */
             },
             Tactic::BirdLargeBreathe => {
                 if dist_sqrd < (2.5 * min_attack_dist).powi(2) {
