@@ -562,6 +562,7 @@ impl<'a> PhysicsData<'a> {
         (
             positions,
             velocities,
+            read.stickies.maybe(),
             &read.bodies,
             &write.physics_states,
             &read.masses,
@@ -574,14 +575,17 @@ impl<'a> PhysicsData<'a> {
                     prof_span!(guard, "velocity update rayon job");
                     guard
                 },
-                |_guard, (pos, vel, body, physics_state, mass, density, _)| {
+                |_guard, (pos, vel, sticky, body, physics_state, mass, density, _)| {
                     let in_loaded_chunk = read
                         .terrain
                         .get_key(read.terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
                         .is_some();
 
                     // Apply physics only if in a loaded chunk
-                    if in_loaded_chunk {
+                    if in_loaded_chunk
+                    // And not already stuck on a block (e.g., for arrows)
+                    && !(physics_state.on_surface().is_some() && sticky.is_some())
+                    {
                         // Clamp dt to an effective 10 TPS, to prevent gravity from slamming the
                         // players into the floor when stationary if other systems cause the server
                         // to lag (as observed in the 0.9 release party).
