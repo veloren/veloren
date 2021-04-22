@@ -27,7 +27,16 @@ impl Animation for ShootAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_shoot")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_velocity, global_time, orientation, last_ori, stage_section, timer, look_dir, on_ground): Self::Dependency,
+        (
+            _velocity,
+            global_time,
+            _orientation,
+            _last_ori,
+            stage_section,
+            timer,
+            look_dir,
+            on_ground,
+        ): Self::Dependency,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -67,9 +76,6 @@ impl Animation for ShootAnimation {
         ) * s_a.scaler
             / 8.0;
 
-        next.neck.position = Vec3::new(0.0, s_a.neck.0, s_a.neck.1);
-        next.neck.orientation = Quaternion::rotation_x(movement1abs * 0.5 - movement2abs * 0.5);
-
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation =
             Quaternion::rotation_x(movement1abs * 0.5 - movement2abs * 0.5 + look_dir.z * 0.4);
@@ -78,6 +84,9 @@ impl Animation for ShootAnimation {
         next.beak.orientation = Quaternion::rotation_x(movement1abs * -0.7 + twitch2 * 0.1);
 
         if on_ground {
+            next.neck.position = Vec3::new(0.0, s_a.neck.0, s_a.neck.1);
+            next.neck.orientation = Quaternion::rotation_x(movement1abs * 0.5 - movement2abs * 0.5);
+
             next.chest.orientation =
                 Quaternion::rotation_x(movement1abs * 0.1 - movement2abs * 0.1);
 
@@ -112,23 +121,6 @@ impl Animation for ShootAnimation {
             next.tail_rear.orientation =
                 Quaternion::rotation_x(-movement1abs * 0.1 + movement2abs * 0.1 + twitch2 * 0.02);
         } else {
-            let ori: Vec2<f32> = Vec2::from(orientation);
-            let last_ori = Vec2::from(last_ori);
-            let tilt = if ::vek::Vec2::new(ori, last_ori)
-                .map(|o| o.magnitude_squared())
-                .map(|m| m > 0.001 && m.is_finite())
-                .reduce_and()
-                && ori.angle_between(last_ori).is_finite()
-            {
-                ori.angle_between(last_ori).min(0.2)
-                    * last_ori.determine_side(Vec2::zero(), ori).signum()
-            } else {
-                0.0
-            } * 1.3;
-
-            next.chest.orientation =
-                Quaternion::rotation_x(movement1abs * 0.1 - movement2abs * 0.1)
-                    * Quaternion::rotation_y(tilt * 1.8);
         }
 
         next

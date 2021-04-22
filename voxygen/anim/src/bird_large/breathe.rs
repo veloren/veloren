@@ -8,7 +8,6 @@ pub struct BreatheAnimation;
 
 type BreatheAnimationDependency = (
     f32,
-    f32,
     Vec3<f32>,
     Vec3<f32>,
     Option<StageSection>,
@@ -27,7 +26,7 @@ impl Animation for BreatheAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_breathe")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_velocity, global_time, orientation, last_ori, stage_section, timer, look_dir, on_ground): Self::Dependency,
+        (global_time, orientation, last_ori, stage_section, timer, look_dir, on_ground): Self::Dependency,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

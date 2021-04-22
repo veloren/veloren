@@ -153,7 +153,7 @@ impl Body {
         let d = match self {
             // based on a house sparrow (Passer domesticus)
             Body::BirdMedium(_) => 700.0,
-            Body::BirdLarge(_) => 700.0,
+            Body::BirdLarge(_) => 2_200.0,
 
             // based on its mass divided by the volume of a bird scaled up to the size of the dragon
             Body::Dragon(_) => 3_700.0,
@@ -184,8 +184,7 @@ impl Body {
 
             // ravens are 0.69-2 kg, crows are 0.51 kg on average
             Body::BirdMedium(_) => 1.0,
-            // australian magpies are around 0.22-0.35 kg
-            Body::BirdLarge(_) => 0.3,
+            Body::BirdLarge(_) => 200.0,
 
             Body::Dragon(_) => 20_000.0,
             Body::FishMedium(_) => 2.5,
@@ -283,7 +282,7 @@ impl Body {
             },
             Body::BipedSmall(_) => Vec3::new(1.0, 0.75, 1.4),
             Body::BirdMedium(_) => Vec3::new(2.0, 1.0, 1.1),
-            Body::BirdLarge(_) => Vec3::new(2.0, 1.0, 1.8),
+            Body::BirdLarge(_) => Vec3::new(2.0, 5.5, 3.8),
             Body::Dragon(_) => Vec3::new(16.0, 10.0, 16.0),
             Body::FishMedium(_) => Vec3::new(0.5, 2.0, 0.8),
             Body::FishSmall(_) => Vec3::new(0.3, 1.2, 0.6),
@@ -436,7 +435,7 @@ impl Body {
             },
             Body::FishMedium(_) => 50,
             Body::Dragon(_) => 5000,
-            Body::BirdLarge(_) => 9999999,
+            Body::BirdLarge(_) => 3000,
             Body::FishSmall(_) => 20,
             Body::BipedLarge(biped_large) => match biped_large.species {
                 biped_large::Species::Ogre => 2500,
@@ -548,7 +547,7 @@ impl Body {
             },
             Body::FishMedium(_) => 10,
             Body::Dragon(_) => 500,
-            Body::BirdLarge(_) => 10,
+            Body::BirdLarge(_) => 120,
             Body::FishSmall(_) => 10,
             Body::BipedLarge(biped_large) => match biped_large.species {
                 biped_large::Species::Ogre => 70,

@@ -8,7 +8,7 @@ pub struct SwimAnimation;
 
 impl Animation for SwimAnimation {
     #[allow(clippy::type_complexity)]
-    type Dependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f32);
+    type Dependency = f32;
     type Skeleton = BirdLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,7 +17,7 @@ impl Animation for SwimAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_swim")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_velocity, _orientation, _last_ori, global_time): Self::Dependency,
+        global_time: Self::Dependency,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

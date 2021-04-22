@@ -208,16 +208,17 @@
         ],
     ),
     Unique(BirdLargeBreathe): (
-        primary: "common.abilities.unique.birdlargebreathe.flamethrower",
+        primary: "common.abilities.unique.birdlargebreathe.firebomb",
         secondary: "common.abilities.unique.birdlargebreathe.triplestrike",
-        abilities: [],
+        abilities: [
+            (None, "common.abilities.unique.birdlargebreathe.flamethrower"),
+        ],
     ),
     Unique(BirdLargeFire): (
-        primary: "common.abilities.unique.birdlargefire.flamethrower",
+        primary: "common.abilities.unique.birdlargefire.firebomb",
         secondary: "common.abilities.unique.birdlargefire.triplestrike",
         abilities: [
-            (None, "common.abilities.staff.fireshockwave"),
-            (None, "common.abilities.staff.firebomb"),
+            (None, "common.abilities.unique.birdlargefire.fireshockwave"),
         ],
     ),
     Debug: (

@@ -3335,13 +3335,7 @@ impl FigureMgr {
                         // Swim
                         (_, true, _) => anim::bird_large::SwimAnimation::update_skeleton(
                             &BirdLargeSkeleton::default(),
-                            (
-                                rel_vel,
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
-                            ),
+                            time,
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -3380,7 +3374,6 @@ impl FigureMgr {
                             anim::bird_large::BreatheAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    rel_vel.magnitude(),
                                     time,
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
                                     state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
@@ -3425,8 +3418,7 @@ impl FigureMgr {
                                     Some(s.stage_section),
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
                                     state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                    state.state_time,
+                                    physics.on_ground,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -3479,7 +3471,7 @@ impl FigureMgr {
                             };
                             anim::bird_large::ShockwaveAnimation::update_skeleton(
                                 &target_base,
-                                (time, rel_vel.magnitude(), Some(s.stage_section)),
+                                (Some(s.stage_section), physics.on_ground),
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
