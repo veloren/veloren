@@ -341,17 +341,24 @@ impl Animation for WieldAnimation {
 
         if skeleton.holding_lantern {
             next.hand_r.position = Vec3::new(
-                s_a.hand.0 - head_look.x * 10.0,
-                s_a.hand.1 + 5.0 + slow * 0.15,
-                s_a.hand.2 + 9.0 + head_look.y * 18.0 + slow * 0.5,
+                s_a.hand.0 - head_look.x * 6.0,
+                s_a.hand.1 + 5.0 - head_look.y * 10.0 + slow * 0.15,
+                s_a.hand.2 + 12.0 + head_look.y * 6.0 + slow * 0.5,
             );
             next.hand_r.orientation = Quaternion::rotation_x(2.25 + slow * -0.06)
                 * Quaternion::rotation_z(0.9)
-                * Quaternion::rotation_y(head_look.x * 3.0)
-                * Quaternion::rotation_x(head_look.y * 3.0);
+                * Quaternion::rotation_y(head_look.x * 1.5)
+                * Quaternion::rotation_x(head_look.y * 1.5);
 
-            next.lantern.position = Vec3::new(0.0, 0.0, -3.5);
-            next.lantern.orientation = next.hand_r.orientation.inverse();
+            let fast = (anim_time * 8.0).sin();
+            let fast2 = (anim_time * 6.0 + 8.0).sin();
+
+            next.lantern.position = Vec3::new(-0.5, -0.5, -2.5);
+            next.lantern.orientation = next.hand_r.orientation.inverse()
+                * Quaternion::rotation_x((fast + 0.5) * 1.0 * speednorm + fast * 0.1)
+                * Quaternion::rotation_y(
+                    tilt * 1.0 * fast + tilt * 1.0 + fast2 * speednorm * 0.25 + fast2 * 0.1,
+                );
         }
 
         next

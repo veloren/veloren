@@ -290,6 +290,14 @@ impl Animation for AlphaAnimation {
             next.second = next.main;
         }
 
+        if skeleton.holding_lantern {
+            next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1 + 5.0, s_a.hand.2 + 12.0);
+            next.hand_r.orientation = Quaternion::rotation_x(2.25) * Quaternion::rotation_z(0.9);
+
+            next.lantern.position = Vec3::new(-0.5, -0.5, -1.5);
+            next.lantern.orientation = next.hand_r.orientation.inverse();
+        }
+
         next
     }
 }

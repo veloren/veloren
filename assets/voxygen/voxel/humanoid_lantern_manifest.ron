@@ -5,23 +5,23 @@
     ),
     map: {
       "Green0": (
-          vox_spec: ("armor.misc.lantern.green-0", (-2.0, -2.0, -7.0)),
+          vox_spec: ("lantern.green-0", (-2.0, -2.0, -7.0)),
           color: None
       ),
       "Black0": (
-          vox_spec: ("armor.misc.lantern.black-0", (-2.0, -2.0, -7.0)),
+          vox_spec: ("lantern.black-0", (-2.0, -2.0, -8.5)),
           color: None
       ),
       "Red0": (
-          vox_spec: ("armor.misc.lantern.red-0", (-2.0, -2.0, -7.0)),
+          vox_spec: ("lantern.red-0", (-2.0, -2.0, -7.0)),
           color: None
       ),
       "Blue0": (
-          vox_spec: ("armor.misc.lantern.blue-0", (-2.0, -2.0, -7.0)),
+          vox_spec: ("lantern.blue-0", (-2.0, -2.0, -7.0)),
           color: None
       ),
       "GeodePurp": (
-          vox_spec: ("lantern.geode_purp", (-3.0, -3.0, -7.0)),
+          vox_spec: ("lantern.geode_purp", (-2.5, -2.5, -9.5)),
           color: None
       ),
     },

@@ -28,7 +28,7 @@ use anim::{
 use common::{
     comp::{
         inventory::slot::EquipSlot,
-        item::{ItemKind, ToolKind},
+        item::{Hands, ItemKind, ToolKind},
         Body, CharacterState, Controller, Health, Inventory, Item, Last, LightAnimation,
         LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
     },
@@ -765,7 +765,8 @@ impl FigureMgr {
                     let holding_lantern = inventory
                         .map_or(false, |i| i.equipped(EquipSlot::Lantern).is_some())
                         && light_emitter.is_some()
-                        && !(matches!(second_tool_hand, Some(_))
+                        && !((matches!(second_tool_hand, Some(_))
+                            || matches!(active_tool_hand, Some(Hands::Two)))
                             && character.map_or(false, |c| c.is_wield()))
                         && !character.map_or(false, |c| c.is_using_hands())
                         && physics.in_liquid().is_none();
