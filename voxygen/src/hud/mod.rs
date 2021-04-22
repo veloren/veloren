@@ -571,7 +571,7 @@ impl Show {
     ) {
         self.selected_crafting_tab(tab);
         self.crafting(true);
-        self.craft_sprite = craft_sprite;
+        self.craft_sprite = self.craft_sprite.or(craft_sprite);
     }
 
     fn diary(&mut self, open: bool) {
