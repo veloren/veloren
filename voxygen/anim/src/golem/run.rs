@@ -24,7 +24,7 @@ impl Animation for RunAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
         let speed = Vec2::<f32>::from(velocity).magnitude();
-        let mixed_vel = acc_vel + anim_time * 2.0;
+        let mixed_vel = acc_vel + anim_time * 2.0; //sets run frequency using speed, with anim_time setting a floor
 
         let lab: f32 = 0.45 * s_a.tempo;
         let speednorm = (speed / 7.0).powf(0.6);

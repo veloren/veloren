@@ -30,7 +30,7 @@ impl Animation for RunAnimation {
         let amplitude3 = (speed / 24.0).powf(0.6);
         let speedmult = s_a.tempo;
         let canceler = (speed / 24.0).powf(0.6);
-        let mixed_vel = acc_vel + anim_time * 2.5;
+        let mixed_vel = acc_vel + anim_time * 2.5; //sets run frequency using speed, with anim_time setting a floor
 
         let short = ((1.0
             / (0.72

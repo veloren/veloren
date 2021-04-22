@@ -25,7 +25,7 @@ impl Animation for RunAnimation {
         let speed = (Vec2::<f32>::from(velocity).magnitude()).min(15.0);
 
         let speednorm = (speed / 15.0).powf(0.25);
-        let mixed_vel = acc_vel + anim_time * 6.0;
+        let mixed_vel = acc_vel + anim_time * 6.0; //sets run frequency using speed, with anim_time setting a floor
 
         let lab: f32 = 0.8 * s_a.tempo;
         let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude()).max(-0.7) * speednorm;

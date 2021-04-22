@@ -26,7 +26,7 @@ impl Animation for RunAnimation {
 
         //let speednorm = speed / 13.0;
         let speednorm = (speed / 13.0).powf(0.25);
-        let mixed_vel = acc_vel + anim_time * 6.0;
+        let mixed_vel = acc_vel + anim_time * 6.0; //sets run frequency using speed, with anim_time setting a floor
 
         let speedmult = 1.0;
         let lab: f32 = 0.6; //6
