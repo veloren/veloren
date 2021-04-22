@@ -13,11 +13,14 @@ use crate::{
 };
 #[cfg(feature = "singleplayer")]
 use client::addr::ConnectionArgs;
-use client::error::{InitProtocolError, NetworkConnectError, NetworkError};
+use client::{
+    error::{InitProtocolError, NetworkConnectError, NetworkError},
+    ServerInfo,
+};
 use client_init::{ClientConnArgs, ClientInit, Error as InitError, Msg as InitMsg};
 use common::{assets::AssetExt, comp};
 use common_base::span;
-use std::sync::Arc;
+use std::{fmt::Debug, sync::Arc};
 use tokio::runtime;
 use tracing::error;
 use ui::{Event as MainMenuEvent, MainMenuUi};
@@ -125,7 +128,10 @@ impl PlayState for MainMenuState {
                         InitError::NoAddress => {
                             localized_strings.get("main.login.server_not_found").into()
                         },
-                        InitError::ClientError(err) => match err {
+                        InitError::ClientError {
+                            error,
+                            mismatched_server_info,
+                        } => match error {
                             client::Error::SpecsErr(e) => format!(
                                 "{}: {}",
                                 localized_strings.get("main.login.internal_error"),
@@ -165,23 +171,25 @@ impl PlayState for MainMenuState {
                             },
                             client::Error::NetworkErr(NetworkError::ConnectFailed(
                                 NetworkConnectError::Handshake(InitProtocolError::WrongVersion(_)),
-                            )) => localized_strings
-                                .get("main.login.network_wrong_version")
-                                .into(),
-                            client::Error::NetworkErr(e) => format!(
-                                "{}: {:?}",
-                                localized_strings.get("main.login.network_error"),
-                                e
+                            )) => get_network_error_text(
+                                &localized_strings,
+                                localized_strings.get("main.login.network_wrong_version"),
+                                mismatched_server_info,
                             ),
-                            client::Error::ParticipantErr(e) => format!(
-                                "{}: {:?}",
-                                localized_strings.get("main.login.network_error"),
-                                e
+                            client::Error::NetworkErr(e) => get_network_error_text(
+                                &localized_strings,
+                                e,
+                                mismatched_server_info,
                             ),
-                            client::Error::StreamErr(e) => format!(
-                                "{}: {:?}",
-                                localized_strings.get("main.login.network_error"),
-                                e
+                            client::Error::ParticipantErr(e) => get_network_error_text(
+                                &localized_strings,
+                                e,
+                                mismatched_server_info,
+                            ),
+                            client::Error::StreamErr(e) => get_network_error_text(
+                                &localized_strings,
+                                e,
+                                mismatched_server_info,
                             ),
                             client::Error::Other(e) => {
                                 format!("{}: {}", localized_strings.get("common.error"), e)
@@ -336,6 +344,31 @@ impl PlayState for MainMenuState {
     }
 }
 
+/// When a network error is received and there is a mismatch between the client
+/// and server version it is almost definitely due to this mismatch rather than
+/// a true networking error.
+fn get_network_error_text(
+    localization: &Localization,
+    error: impl Debug,
+    mismatched_server_info: Option<ServerInfo>,
+) -> String {
+    if let Some(server_info) = mismatched_server_info {
+        format!(
+            "{} {}: {} {}: {}",
+            localization.get("main.login.network_wrong_version"),
+            localization.get("main.login.client_version"),
+            common::util::GIT_HASH.to_string(),
+            localization.get("main.login.server_version"),
+            server_info.git_hash
+        )
+    } else {
+        format!(
+            "{}: {:?}",
+            localization.get("main.login.network_error"),
+            error
+        )
+    }
+}
 fn attempt_login(
     settings: &mut Settings,
     info_message: &mut Option<String>,

@@ -20,7 +20,7 @@ use crate::{
     },
     window, GlobalState,
 };
-use client::Client;
+use client::{Client, ServerInfo};
 use common::{
     assets::AssetHandle,
     character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER, MAX_NAME_LENGTH},
@@ -223,7 +223,7 @@ struct Controls {
     version: String,
     // Alpha disclaimer
     alpha: String,
-
+    server_mismatched_version: Option<String>,
     tooltip_manager: TooltipManager,
     // Zone for rotating the character with the mouse
     mouse_detector: mouse_detector::State,
@@ -264,16 +264,25 @@ enum Message {
 }
 
 impl Controls {
-    fn new(fonts: Fonts, imgs: Imgs, selected: Option<CharacterId>, default_name: String) -> Self {
+    fn new(
+        fonts: Fonts,
+        imgs: Imgs,
+        selected: Option<CharacterId>,
+        default_name: String,
+        server_info: &ServerInfo,
+    ) -> Self {
         let version = common::util::DISPLAY_VERSION_LONG.clone();
         let alpha = format!("Veloren {}", common::util::DISPLAY_VERSION.as_str());
+        let server_mismatched_version = (common::util::GIT_HASH.to_string()
+            != server_info.git_hash)
+            .then(|| server_info.git_hash.clone());
 
         Self {
             fonts,
             imgs,
             version,
             alpha,
-
+            server_mismatched_version,
             tooltip_manager: TooltipManager::new(TOOLTIP_HOVER_DUR, TOOLTIP_FADE_DUR),
             mouse_detector: Default::default(),
             mode: Mode::select(Some(InfoContent::LoadingCharacters)),
@@ -1210,14 +1219,46 @@ impl Controls {
             },
         };
 
-        Container::new(
-            Column::with_children(vec![top_text.into(), content])
-                .spacing(3)
-                .width(Length::Fill)
-                .height(Length::Fill),
-        )
-        .padding(3)
-        .into()
+        // TODO: There is probably a better way to conditionally add in the warning box
+        // here
+        if let Some(mismatched_version) = &self.server_mismatched_version {
+            let warning = iced::Text::<IcedRenderer>::new(format!(
+                "{}\n{}: {} {}: {}",
+                i18n.get("char_selection.version_mismatch"),
+                i18n.get("main.login.server_version"),
+                mismatched_version,
+                i18n.get("main.login.client_version"),
+                common::util::GIT_HASH.to_string()
+            ))
+            .size(self.fonts.cyri.scale(18))
+            .color(iced::Color::from_rgb(1.0, 0.0, 0.0))
+            .width(Length::Fill)
+            .horizontal_alignment(HorizontalAlignment::Center);
+            let warning_container =
+                Container::new(Row::with_children(vec![warning.into()]).width(Length::Fill))
+                    .style(style::container::Style::color(Rgba::new(0, 0, 0, 217)))
+                    .padding(12)
+                    .center_x()
+                    .width(Length::Fill);
+
+            Container::new(
+                Column::with_children(vec![top_text.into(), warning_container.into(), content])
+                    .spacing(3)
+                    .width(Length::Fill)
+                    .height(Length::Fill),
+            )
+            .padding(3)
+            .into()
+        } else {
+            Container::new(
+                Column::with_children(vec![top_text.into(), content])
+                    .spacing(3)
+                    .width(Length::Fill)
+                    .height(Length::Fill),
+            )
+            .padding(3)
+            .into()
+        }
     }
 
     fn update(&mut self, message: Message, events: &mut Vec<Event>, characters: &[CharacterItem]) {
@@ -1451,6 +1492,7 @@ impl CharSelectionUi {
             Imgs::load(&mut ui).expect("Failed to load images"),
             selected_character,
             default_name,
+            client.server_info(),
         );
 
         Self {

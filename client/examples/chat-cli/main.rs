@@ -52,7 +52,7 @@ fn main() {
             let addr = ConnectionArgs::resolve(&server_addr, false)
                 .await
                 .expect("dns resolve failed");
-            Client::new(addr, None, runtime2).await
+            Client::new(addr, None, runtime2, &mut None).await
         })
         .expect("Failed to create client instance");
 

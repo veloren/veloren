@@ -1,7 +1,7 @@
 use client::{
     addr::ConnectionArgs,
     error::{Error as ClientError, NetworkConnectError, NetworkError},
-    Client,
+    Client, ServerInfo,
 };
 use crossbeam::channel::{unbounded, Receiver, Sender, TryRecvError};
 use std::{
@@ -17,7 +17,10 @@ use tracing::{trace, warn};
 #[derive(Debug)]
 pub enum Error {
     NoAddress,
-    ClientError(ClientError),
+    ClientError {
+        error: ClientError,
+        mismatched_server_info: Option<ServerInfo>,
+    },
     ClientCrashed,
 }
 
@@ -103,16 +106,21 @@ impl ClientInit {
                 if cancel2.load(Ordering::Relaxed) {
                     break;
                 }
+                let mut mismatched_server_info = None;
                 match Client::new(
                     connection_args.clone(),
                     view_distance,
                     Arc::clone(&runtime2),
+                    &mut mismatched_server_info,
                 )
                 .await
                 {
                     Ok(mut client) => {
                         if let Err(e) = client.register(username, password, trust_fn).await {
-                            last_err = Some(Error::ClientError(e));
+                            last_err = Some(Error::ClientError {
+                                error: e,
+                                mismatched_server_info: None,
+                            });
                             break 'tries;
                         }
                         let _ = tx.send(Msg::Done(Ok(client)));
@@ -126,7 +134,10 @@ impl ClientInit {
                     },
                     Err(e) => {
                         trace!(?e, "Aborting server connection attempt");
-                        last_err = Some(Error::ClientError(e));
+                        last_err = Some(Error::ClientError {
+                            error: e,
+                            mismatched_server_info,
+                        });
                         break 'tries;
                     },
                 }
