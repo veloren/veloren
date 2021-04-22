@@ -223,14 +223,14 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Ntouka, _) => (1.5, -1.0, -2.5),
             },
             scaler: match (body.species, body.body_type) {
-                (Archaeos, _) => (3.0),
-                (Odonto, _) => (3.0),
-                (Sandraptor, _) => (8.0),
-                (Snowraptor, _) => (8.0),
-                (Woodraptor, _) => (8.0),
-                (Sunlizard, _) => (8.0),
-                (Yale, _) => (7.0),
-                (Ntouka, _) => (3.0),
+                (Archaeos, _) => (3.75),
+                (Odonto, _) => (3.75),
+                (Sandraptor, _) => (10.0),
+                (Snowraptor, _) => (10.0),
+                (Woodraptor, _) => (10.0),
+                (Sunlizard, _) => (10.0),
+                (Yale, _) => (8.75),
+                (Ntouka, _) => (3.75),
             },
         }
     }

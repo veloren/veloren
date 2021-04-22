@@ -16,7 +16,7 @@ impl Animation for RunAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel): Self::Dependency,
-        _anim_time: f32,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -26,26 +26,27 @@ impl Animation for RunAnimation {
 
         //let speednorm = speed / 13.0;
         let speednorm = (speed / 13.0).powf(0.25);
+        let mixed_vel = acc_vel + anim_time * 6.0; //sets run frequency using speed, with anim_time setting a floor
 
         let speedmult = 1.0;
         let lab: f32 = 0.6; //6
 
         let short = ((1.0
             / (0.72
-                + 0.28 * ((acc_vel * 1.0 * lab * speedmult + PI * -0.15 - 0.5).sin()).powi(2)))
+                + 0.28 * ((mixed_vel * 1.0 * lab * speedmult + PI * -0.15 - 0.5).sin()).powi(2)))
         .sqrt())
-            * ((acc_vel * 1.0 * lab * speedmult + PI * -0.15 - 0.5).sin())
+            * ((mixed_vel * 1.0 * lab * speedmult + PI * -0.15 - 0.5).sin())
             * speednorm;
 
         //
-        let shortalt = (acc_vel * 1.0 * lab * speedmult + PI * 3.0 / 8.0 - 0.5).sin() * speednorm;
+        let shortalt = (mixed_vel * 1.0 * lab * speedmult + PI * 3.0 / 8.0 - 0.5).sin() * speednorm;
 
         //FL
-        let foot1a = (acc_vel * 1.0 * lab * speedmult + 0.0 + PI).sin() * speednorm; //1.5
-        let foot1b = (acc_vel * 1.0 * lab * speedmult + 1.57 + PI).sin() * speednorm; //1.9
+        let foot1a = (mixed_vel * 1.0 * lab * speedmult + 0.0 + PI).sin() * speednorm; //1.5
+        let foot1b = (mixed_vel * 1.0 * lab * speedmult + 1.57 + PI).sin() * speednorm; //1.9
         //FR
-        let foot2a = (acc_vel * 1.0 * lab * speedmult).sin() * speednorm; //1.2
-        let foot2b = (acc_vel * 1.0 * lab * speedmult + 1.57).sin() * speednorm; //1.6
+        let foot2a = (mixed_vel * 1.0 * lab * speedmult).sin() * speednorm; //1.2
+        let foot2b = (mixed_vel * 1.0 * lab * speedmult + 1.57).sin() * speednorm; //1.6
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
         let tilt = if ::vek::Vec2::new(ori, last_ori)

@@ -18,38 +18,39 @@ impl Animation for RunAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (velocity, orientation, last_ori, _global_time, acc_vel): Self::Dependency,
-        _anim_time: f32,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
         let speed = Vec2::<f32>::from(velocity).magnitude();
+        let mixed_vel = acc_vel + anim_time * 2.0; //sets run frequency using speed, with anim_time setting a floor
 
         let lab: f32 = 0.45 * s_a.tempo;
         let speednorm = (speed / 7.0).powf(0.6);
-        let foothoril = ((1.0 / (0.4 + (0.6) * ((acc_vel * 2.0 * lab + PI * 1.4).sin()).powi(2)))
-            .sqrt())
-            * ((acc_vel * 2.0 * lab + PI * 1.4).sin())
-            * speednorm;
-        let foothorir = ((1.0 / (0.4 + (0.6) * ((acc_vel * 2.0 * lab + PI * 0.4).sin()).powi(2)))
-            .sqrt())
-            * ((acc_vel * 2.0 * lab + PI * 0.4).sin())
-            * speednorm;
-        let footvertl = (acc_vel * 2.0 * lab).sin() * speednorm;
-        let footvertr = (acc_vel * 2.0 * lab + PI).sin() * speednorm;
+        let foothoril =
+            ((1.0 / (0.4 + (0.6) * ((mixed_vel * 2.0 * lab + PI * 1.4).sin()).powi(2))).sqrt())
+                * ((mixed_vel * 2.0 * lab + PI * 1.4).sin())
+                * speednorm;
+        let foothorir =
+            ((1.0 / (0.4 + (0.6) * ((mixed_vel * 2.0 * lab + PI * 0.4).sin()).powi(2))).sqrt())
+                * ((mixed_vel * 2.0 * lab + PI * 0.4).sin())
+                * speednorm;
+        let footvertl = (mixed_vel * 2.0 * lab).sin() * speednorm;
+        let footvertr = (mixed_vel * 2.0 * lab + PI).sin() * speednorm;
 
-        let footrotl = ((1.0 / (0.5 + (0.5) * ((acc_vel * 2.0 * lab + PI * 1.4).sin()).powi(2)))
+        let footrotl = ((1.0 / (0.5 + (0.5) * ((mixed_vel * 2.0 * lab + PI * 1.4).sin()).powi(2)))
             .sqrt())
-            * ((acc_vel * 2.0 * lab + PI * 1.4).sin())
-            * speednorm;
-
-        let footrotr = ((1.0 / (0.2 + (0.8) * ((acc_vel * 2.0 * lab + PI * 0.4).sin()).powi(2)))
-            .sqrt())
-            * ((acc_vel * 2.0 * lab + PI * 0.4).sin())
+            * ((mixed_vel * 2.0 * lab + PI * 1.4).sin())
             * speednorm;
 
-        let short = (acc_vel * lab * 2.0).sin() * speednorm;
-        let shortalt = (acc_vel * lab * 2.0 + PI / 2.0).sin() * speednorm;
+        let footrotr = ((1.0 / (0.2 + (0.8) * ((mixed_vel * 2.0 * lab + PI * 0.4).sin()).powi(2)))
+            .sqrt())
+            * ((mixed_vel * 2.0 * lab + PI * 0.4).sin())
+            * speednorm;
+
+        let short = (mixed_vel * lab * 2.0).sin() * speednorm;
+        let shortalt = (mixed_vel * lab * 2.0 + PI / 2.0).sin() * speednorm;
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
         let tilt = if ::vek::Vec2::new(ori, last_ori)

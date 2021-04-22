@@ -29,7 +29,7 @@ impl Animation for RunAnimation {
 
         // acc_vel and anim_time mix to make sure phase lenght isn't starting at
         // +infinite
-        let mixed_vel = acc_vel + anim_time * 12.0;
+        let mixed_vel = acc_vel + anim_time * 12.0; //sets run frequency using speed, with anim_time setting a floor
 
         let speedmult = s_a.tempo;
         let short = (mixed_vel * lab * speedmult + PI * 1.0).sin() * speednorm;

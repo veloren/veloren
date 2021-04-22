@@ -161,7 +161,7 @@ impl Animation for RunAnimation {
         next.foot_l.position = Vec3::new(
             -s_a.foot.0 + footstrafel * sideabs * 3.0 + tilt * -2.0,
             s_a.foot.1
-                + (1.0 - sideabs) * (-1.5 * speednorm + foothoril * -10.5 * speednorm)
+                + (1.0 - sideabs) * (-0.5 * speednorm + foothoril * -7.5 * speednorm)
                 + (direction * 5.0).max(0.0),
             s_a.foot.2
                 + (1.0 - sideabs) * (2.0 * speednorm + ((footvertl * -2.1 * speednorm).max(-1.0)))
@@ -176,7 +176,7 @@ impl Animation for RunAnimation {
         next.foot_r.position = Vec3::new(
             s_a.foot.0 + footstrafer * sideabs * 3.0 + tilt * -2.0,
             s_a.foot.1
-                + (1.0 - sideabs) * (-1.5 * speednorm + foothorir * -10.5 * speednorm)
+                + (1.0 - sideabs) * (-0.5 * speednorm + foothorir * -7.5 * speednorm)
                 + (direction * 5.0).max(0.0),
             s_a.foot.2
                 + (1.0 - sideabs) * (2.0 * speednorm + ((footvertr * -2.1 * speednorm).max(-1.0)))
@@ -288,9 +288,9 @@ impl Animation for RunAnimation {
         match hands {
             (None | Some(Hands::One), Some(Hands::One)) => match second_tool_kind {
                 Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
-                    next.second.position = Vec3::new(4.0, -5.5, 10.0);
+                    next.second.position = Vec3::new(4.0, -6.0, 10.0);
                     next.second.orientation =
-                        Quaternion::rotation_y(-2.35) * Quaternion::rotation_z(1.57);
+                        Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(-1.57);
                 },
                 _ => {},
             },

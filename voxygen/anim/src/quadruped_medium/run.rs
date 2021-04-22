@@ -30,15 +30,17 @@ impl Animation for RunAnimation {
         let amplitude3 = (speed / 24.0).powf(0.6);
         let speedmult = s_a.tempo;
         let canceler = (speed / 24.0).powf(0.6);
+        let mixed_vel = acc_vel + anim_time * 2.5; //sets run frequency using speed, with anim_time setting a floor
 
         let short = ((1.0
             / (0.72
-                + 0.28 * ((acc_vel * (1.0) * lab * speedmult + PI * -0.15 - 0.5).sin()).powi(2)))
+                + 0.28
+                    * ((mixed_vel * (1.0) * lab * speedmult + PI * -0.15 - 0.5).sin()).powi(2)))
         .sqrt())
-            * ((acc_vel * (1.0) * lab * speedmult + PI * -0.15 - 0.5).sin());
+            * ((mixed_vel * (1.0) * lab * speedmult + PI * -0.15 - 0.5).sin());
 
         //
-        let shortalt = (acc_vel * (1.0) * lab * speedmult + PI * 3.0 / 8.0 - 0.5).sin();
+        let shortalt = (mixed_vel * (1.0) * lab * speedmult + PI * 3.0 / 8.0 - 0.5).sin();
         let look = Vec2::new(
             (global_time / 2.0 + anim_time / 2.0)
                 .floor()
@@ -59,17 +61,17 @@ impl Animation for RunAnimation {
         let shift4 = speedadjust - PI * 3.0 / 4.0 + speedadjust * PI / 2.0;
 
         //FL
-        let foot1a = (acc_vel * (1.0) * lab * speedmult + 0.0 + canceler * 0.05 + shift1).sin(); //1.5
-        let foot1b = (acc_vel * (1.0) * lab * speedmult + 1.1 + canceler * 0.05 + shift1).sin(); //1.9
+        let foot1a = (mixed_vel * (1.0) * lab * speedmult + 0.0 + canceler * 0.05 + shift1).sin(); //1.5
+        let foot1b = (mixed_vel * (1.0) * lab * speedmult + 1.1 + canceler * 0.05 + shift1).sin(); //1.9
         //FR
-        let foot2a = (acc_vel * (1.0) * lab * speedmult + shift2).sin(); //1.0
-        let foot2b = (acc_vel * (1.0) * lab * speedmult + 1.1 + shift2).sin(); //1.0
+        let foot2a = (mixed_vel * (1.0) * lab * speedmult + shift2).sin(); //1.0
+        let foot2b = (mixed_vel * (1.0) * lab * speedmult + 1.1 + shift2).sin(); //1.0
         //BL
-        let foot3a = (acc_vel * (1.0) * lab * speedmult + shift3).sin(); //0.0
-        let foot3b = (acc_vel * (1.0) * lab * speedmult + 1.57 + shift3).sin(); //0.4
+        let foot3a = (mixed_vel * (1.0) * lab * speedmult + shift3).sin(); //0.0
+        let foot3b = (mixed_vel * (1.0) * lab * speedmult + 1.57 + shift3).sin(); //0.4
         //BR
-        let foot4a = (acc_vel * (1.0) * lab * speedmult + 0.0 + canceler * 0.05 + shift4).sin(); //0.3
-        let foot4b = (acc_vel * (1.0) * lab * speedmult + 1.57 + canceler * 0.05 + shift4).sin(); //0.7
+        let foot4a = (mixed_vel * (1.0) * lab * speedmult + 0.0 + canceler * 0.05 + shift4).sin(); //0.3
+        let foot4b = (mixed_vel * (1.0) * lab * speedmult + 1.57 + canceler * 0.05 + shift4).sin(); //0.7
         //
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
@@ -100,7 +102,7 @@ impl Animation for RunAnimation {
         next.ears.scale = Vec3::one() * 1.02;
 
         //Gallop
-        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + shortalt * -0.5);
+        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + shortalt * -0.2);
         next.head.orientation = Quaternion::rotation_x(
             look.y * 0.3 / ((canceler).max(0.5)) + amplitude * short * 0.05 - 0.1,
         ) * Quaternion::rotation_z(
@@ -151,20 +153,18 @@ impl Animation for RunAnimation {
             s_a.leg_f.1 + amplitude3 * foot1b * -1.6,
             s_a.leg_f.2 + amplitude3 * foot1a * 2.3,
         );
-        next.leg_fl.orientation =
-            Quaternion::rotation_x(0.2 * canceler + amplitude3 * foot1a * 0.85)
-                * Quaternion::rotation_z(tilt * -0.5)
-                * Quaternion::rotation_y(tilt * 1.5);
+        next.leg_fl.orientation = Quaternion::rotation_x(0.2 * canceler + amplitude3 * foot1a)
+            * Quaternion::rotation_z(tilt * -0.5)
+            * Quaternion::rotation_y(tilt * 1.5);
 
         next.leg_fr.position = Vec3::new(
             s_a.leg_f.0,
             s_a.leg_f.1 + amplitude3 * foot2b * -1.6,
             s_a.leg_f.2 + amplitude3 * foot2a * 2.3,
         );
-        next.leg_fr.orientation =
-            Quaternion::rotation_x(0.2 * canceler + amplitude3 * foot2a * 0.85)
-                * Quaternion::rotation_z(tilt * -0.5)
-                * Quaternion::rotation_y(tilt * 1.5);
+        next.leg_fr.orientation = Quaternion::rotation_x(0.2 * canceler + amplitude3 * foot2a)
+            * Quaternion::rotation_z(tilt * -0.5)
+            * Quaternion::rotation_y(tilt * 1.5);
 
         next.leg_bl.position = Vec3::new(
             -s_a.leg_b.0,
@@ -192,7 +192,7 @@ impl Animation for RunAnimation {
             s_a.feet_f.2 + (foot1a * 2.0).max(-1.0) * amplitude2 + 1.0 * canceler,
         );
         next.foot_fl.orientation =
-            Quaternion::rotation_x(s_a.startangle * canceler + amplitude2 * foot1b * -0.7)
+            Quaternion::rotation_x(s_a.startangle * canceler + amplitude2 * foot1b * -0.85)
                 * Quaternion::rotation_y(tilt * -1.0);
 
         next.foot_fr.position = Vec3::new(
@@ -201,7 +201,7 @@ impl Animation for RunAnimation {
             s_a.feet_f.2 + (foot2a * 2.0).max(-1.0) * amplitude2 + 1.0 * canceler,
         );
         next.foot_fr.orientation =
-            Quaternion::rotation_x(s_a.startangle * canceler + amplitude2 * foot2b * -0.7)
+            Quaternion::rotation_x(s_a.startangle * canceler + amplitude2 * foot2b * -0.85)
                 * Quaternion::rotation_y(tilt * -1.0);
 
         next.foot_bl.position = Vec3::new(
