@@ -1,4 +1,4 @@
-use super::{world_msg::EconomyInfo, ClientType, EcsCompPacket, PingMsg};
+use super::{world_msg::EconomyInfo, ClientType, CompressedData, EcsCompPacket, PingMsg};
 use crate::sync;
 use common::{
     character::{self, CharacterItem},
@@ -12,7 +12,7 @@ use common::{
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 use vek::*;
 
 ///This struct contains all messages the server might send (on different
@@ -106,9 +106,9 @@ pub enum ServerGeneral {
     // Ingame related AND terrain stream
     TerrainChunkUpdate {
         key: Vec2<i32>,
-        chunk: Result<Arc<TerrainChunk>, ()>,
+        chunk: Result<CompressedData<TerrainChunk>, ()>,
     },
-    TerrainBlockUpdates(HashMap<Vec3<i32>, Block>),
+    TerrainBlockUpdates(CompressedData<HashMap<Vec3<i32>, Block>>),
     // Always possible
     PlayerListUpdate(PlayerListUpdate),
     /// A message to go into the client chat box. The client is responsible for

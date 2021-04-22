@@ -105,7 +105,7 @@ impl ConnectionHandler {
         let mut register_stream = participant.open(3, reliablec, 500).await?;
         let character_screen_stream = participant.open(3, reliablec, 500).await?;
         let in_game_stream = participant.open(3, reliablec, 100_000).await?;
-        let terrain_stream = participant.open(4, reliablec, 20_000).await?;
+        let terrain_stream = participant.open(4, reliable, 20_000).await?;
 
         let server_data = receiver.recv()?;
 

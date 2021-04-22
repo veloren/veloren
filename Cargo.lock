@@ -1309,6 +1309,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "deflate"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5f95bf05dffba6e6cce8dfbb30def788154949ccd9aed761b472119c21e01c70"
+dependencies = [
+ "adler32",
+]
+
+[[package]]
 name = "derivative"
 version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3765,7 +3774,7 @@ checksum = "3c3287920cb847dee3de33d301c463fba14dda99db24214ddf93f83d3021f4c6"
 dependencies = [
  "bitflags",
  "crc32fast",
- "deflate",
+ "deflate 0.8.6",
  "miniz_oxide 0.3.7",
 ]
 
@@ -5524,6 +5533,8 @@ dependencies = [
 name = "veloren-common-net"
 version = "0.9.0"
 dependencies = [
+ "bincode",
+ "flate2",
  "hashbrown",
  "serde",
  "specs",
@@ -5809,12 +5820,15 @@ dependencies = [
  "bincode",
  "bitvec",
  "criterion",
+ "deflate 0.9.1",
  "enum-iterator",
+ "flate2",
  "fxhash",
  "hashbrown",
  "image",
  "itertools 0.10.0",
  "lazy_static",
+ "lz-fear",
  "minifb",
  "noise",
  "num 0.4.0",
@@ -5831,6 +5845,7 @@ dependencies = [
  "tracing-subscriber",
  "vek",
  "veloren-common",
+ "veloren-common-frontend",
  "veloren-common-net",
 ]
 
