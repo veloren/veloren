@@ -600,7 +600,14 @@ impl<V: RectRasterableVol> Terrain<V> {
             waves: {
                 let waves_tex = renderer
                     .create_texture(
-                        &assets::Image::load_expect("voxygen.texture.waves").read().0,
+                        // TODO: actually this is unused, remove?
+                        // TODO: re-add alpha channel?
+                        &image::DynamicImage::ImageRgba8(
+                            assets::Image::load_expect("voxygen.texture.waves")
+                                .read()
+                                .0
+                                .to_rgba8(),
+                        ),
                         Some(wgpu::FilterMode::Linear),
                         Some(wgpu::AddressMode::Repeat),
                     )
