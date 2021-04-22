@@ -5515,6 +5515,7 @@ dependencies = [
  "bincode",
  "flate2",
  "hashbrown",
+ "image",
  "serde",
  "specs",
  "specs-idvs",
