@@ -406,7 +406,6 @@ impl SpritePipeline {
         device: &wgpu::Device,
         vs_module: &wgpu::ShaderModule,
         fs_module: &wgpu::ShaderModule,
-        sc_desc: &wgpu::SwapChainDescriptor,
         global_layout: &GlobalsLayouts,
         layout: &SpriteLayout,
         terrain_layout: &TerrainLayout,
@@ -477,7 +476,7 @@ impl SpritePipeline {
                 module: fs_module,
                 entry_point: "main",
                 targets: &[wgpu::ColorTargetState {
-                    format: sc_desc.format,
+                    format: wgpu::TextureFormat::Rgba16Float,
                     // TODO: can we remove sprite transparency?
                     blend: Some(wgpu::BlendState {
                         color: wgpu::BlendComponent {

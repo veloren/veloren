@@ -210,7 +210,6 @@ impl TerrainPipeline {
         device: &wgpu::Device,
         vs_module: &wgpu::ShaderModule,
         fs_module: &wgpu::ShaderModule,
-        sc_desc: &wgpu::SwapChainDescriptor,
         global_layout: &GlobalsLayouts,
         layout: &TerrainLayout,
         aa_mode: AaMode,
@@ -278,7 +277,7 @@ impl TerrainPipeline {
                 module: fs_module,
                 entry_point: "main",
                 targets: &[wgpu::ColorTargetState {
-                    format: sc_desc.format,
+                    format: wgpu::TextureFormat::Rgba16Float,
                     blend: None,
                     write_mask: wgpu::ColorWrite::ALL,
                 }],

@@ -27,6 +27,7 @@ impl VertexTrait for Vertex {
     const STRIDE: wgpu::BufferAddress = mem::size_of::<Self>() as wgpu::BufferAddress;
 }
 
+// TODO: does skybox still do anything with new cloud shaders?
 pub struct SkyboxPipeline {
     pub pipeline: wgpu::RenderPipeline,
 }
@@ -36,7 +37,6 @@ impl SkyboxPipeline {
         device: &wgpu::Device,
         vs_module: &wgpu::ShaderModule,
         fs_module: &wgpu::ShaderModule,
-        sc_desc: &wgpu::SwapChainDescriptor,
         layouts: &GlobalsLayouts,
         aa_mode: AaMode,
     ) -> Self {
@@ -98,7 +98,7 @@ impl SkyboxPipeline {
                 module: fs_module,
                 entry_point: "main",
                 targets: &[wgpu::ColorTargetState {
-                    format: sc_desc.format,
+                    format: wgpu::TextureFormat::Rgba16Float,
                     blend: None,
                     write_mask: wgpu::ColorWrite::ALL,
                 }],

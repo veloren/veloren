@@ -115,7 +115,6 @@ impl FluidPipeline {
         device: &wgpu::Device,
         vs_module: &wgpu::ShaderModule,
         fs_module: &wgpu::ShaderModule,
-        sc_desc: &wgpu::SwapChainDescriptor,
         global_layout: &GlobalsLayouts,
         layout: &FluidLayout,
         terrain_layout: &TerrainLayout,
@@ -184,7 +183,7 @@ impl FluidPipeline {
                 module: fs_module,
                 entry_point: "main",
                 targets: &[wgpu::ColorTargetState {
-                    format: sc_desc.format,
+                    format: wgpu::TextureFormat::Rgba16Float,
                     blend: Some(wgpu::BlendState {
                         color: wgpu::BlendComponent {
                             src_factor: wgpu::BlendFactor::SrcAlpha,

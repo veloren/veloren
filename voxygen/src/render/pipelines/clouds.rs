@@ -145,7 +145,6 @@ impl CloudsPipeline {
         vs_module: &wgpu::ShaderModule,
         fs_module: &wgpu::ShaderModule,
         global_layout: &GlobalsLayouts,
-        sc_desc: &wgpu::SwapChainDescriptor,
         layout: &CloudsLayout,
         aa_mode: AaMode,
     ) -> Self {
@@ -196,7 +195,7 @@ impl CloudsPipeline {
                 module: fs_module,
                 entry_point: "main",
                 targets: &[wgpu::ColorTargetState {
-                    format: sc_desc.format,
+                    format: wgpu::TextureFormat::Rgba16Float,
                     blend: None,
                     write_mask: wgpu::ColorWrite::ALL,
                 }],

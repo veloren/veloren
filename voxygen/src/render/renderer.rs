@@ -549,13 +549,13 @@ impl Renderer {
                 mip_level_count: levels,
                 sample_count,
                 dimension: wgpu::TextureDimension::D2,
-                format: wgpu::TextureFormat::Bgra8UnormSrgb,
+                format: wgpu::TextureFormat::Rgba16Float,
                 usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
             });
 
             tex.create_view(&wgpu::TextureViewDescriptor {
                 label: None,
-                format: Some(wgpu::TextureFormat::Bgra8UnormSrgb),
+                format: Some(wgpu::TextureFormat::Rgba16Float),
                 dimension: Some(wgpu::TextureViewDimension::D2),
                 // TODO: why is this not Color?
                 aspect: wgpu::TextureAspect::All,
@@ -2062,7 +2062,6 @@ fn create_pipelines(
         device,
         &create_shader("skybox-vert", ShaderKind::Vertex)?,
         &create_shader("skybox-frag", ShaderKind::Fragment)?,
-        sc_desc,
         &layouts.global,
         mode.aa,
     );
@@ -2072,7 +2071,6 @@ fn create_pipelines(
         device,
         &figure_vert_mod,
         &create_shader("figure-frag", ShaderKind::Fragment)?,
-        sc_desc,
         &layouts.global,
         &layouts.figure,
         mode.aa,
@@ -2084,7 +2082,6 @@ fn create_pipelines(
         device,
         &terrain_vert,
         &create_shader("terrain-frag", ShaderKind::Fragment)?,
-        sc_desc,
         &layouts.global,
         &layouts.terrain,
         mode.aa,
@@ -2100,7 +2097,6 @@ fn create_pipelines(
         device,
         &create_shader("fluid-vert", ShaderKind::Vertex)?,
         &create_shader(&selected_fluid_shader, ShaderKind::Fragment)?,
-        sc_desc,
         &layouts.global,
         &layouts.fluid,
         &layouts.terrain,
@@ -2112,7 +2108,6 @@ fn create_pipelines(
         device,
         &create_shader("sprite-vert", ShaderKind::Vertex)?,
         &create_shader("sprite-frag", ShaderKind::Fragment)?,
-        sc_desc,
         &layouts.global,
         &layouts.sprite,
         &layouts.terrain,
@@ -2124,7 +2119,6 @@ fn create_pipelines(
         device,
         &create_shader("particle-vert", ShaderKind::Vertex)?,
         &create_shader("particle-frag", ShaderKind::Fragment)?,
-        sc_desc,
         &layouts.global,
         mode.aa,
     );
@@ -2144,7 +2138,6 @@ fn create_pipelines(
         device,
         &create_shader("lod-terrain-vert", ShaderKind::Vertex)?,
         &create_shader("lod-terrain-frag", ShaderKind::Fragment)?,
-        sc_desc,
         &layouts.global,
         mode.aa,
     );
@@ -2156,7 +2149,6 @@ fn create_pipelines(
         &create_shader("clouds-frag", ShaderKind::Fragment)?,
         // TODO: pass in format of intermediate color buffer
         &layouts.global,
-        sc_desc,
         &layouts.clouds,
         mode.aa,
     );
