@@ -4,7 +4,7 @@
 (
     string_map: {
         "gameinput.primary": "Базова атака",
-        "gameinput.secondary": "Другорядна атака/Блок/Приціл",
+        "gameinput.secondary": "Додаткова атака",
         "gameinput.slot1": "Слот швидкого доступу 1",
         "gameinput.slot2": "Слот швидкого доступу 2",
         "gameinput.slot3": "Слот швидкого доступу 3",
@@ -40,6 +40,7 @@
         "gameinput.escape": "Вихід",
         "gameinput.map": "Мапа",
         "gameinput.bag": "Інвентар",
+        "gameinput.trade": "Торгувати",
         "gameinput.social": "Інші гравці",
         "gameinput.sit": "Сісти",
         "gameinput.spellbook": "Чари",
@@ -49,7 +50,7 @@
         "gameinput.togglewield": "Дістати зброю",
         "gameinput.interact": "Взаємодіяти",
         "gameinput.freelook": "Вільний огляд",
-        "gameinput.autowalk": "Авто-хода",
+        "gameinput.autowalk": "Авто Рух/Політ",
         "gameinput.dance": "Танцювати",
         "gameinput.select": "Обрати",
         "gameinput.acceptgroupinvite": "Прийняти запрошення в групу",
@@ -61,7 +62,8 @@
         "gameinput.swimup": "Випливати",
         "gameinput.cameraclamp": "Закріпити камеру",
         "gameinput.cyclecamera": "Крутити камеру",
-        "gameinput.trade": "Торгувати",
+        "gameinput.mapzoomin": "Приблизити мапу",
+        "gameinput.mapzoomout": "Віддалити мапу",
     },
 
 

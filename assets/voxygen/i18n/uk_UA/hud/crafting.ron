@@ -9,6 +9,13 @@
         "hud.crafting.craft": "Виготовити",
         "hud.crafting.tool_cata": "Необхідно:",
 
+        // Crafting Stations
+        "hud.crafting.req_crafting_station": "Необхідне Приладдя:",
+        "hud.crafting.anvil": "Ковадло",
+        "hud.crafting.cauldron": "Казан",
+        "hud.crafting.cooking_pot": "Кастрюля",
+        "hud.crafting.crafting_bench": "Верстак",
+
         // Tabs
         "hud.crafting.tabs.all": "Усе",
         "hud.crafting.tabs.armor": "Броня",

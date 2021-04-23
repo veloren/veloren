@@ -42,7 +42,7 @@
         "hud.diary": "Щоденник",
 
         "hud.free_look_indicator": "Вільний огляд активовано. Натисніть {key}, щоб вимкнути.",
-        "hud.auto_walk_indicator": "Авто-хода активована",
+        "hud.auto_walk_indicator": "Авто Рух/Політ активовано",
         "hud.camera_clamp_indicator": "Камера вертикально закріплена. Натисніть {key} щоб відімкнути",
     },
 
