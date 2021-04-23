@@ -421,8 +421,8 @@ mod tests {
                         },
                     };
 
-                    if line >= e.final_start_line()
-                        && line < e.final_start_line() + e.lines_in_hunk()
+                    if line + 1 >= e.final_start_line()
+                        && line + 1 < e.final_start_line() + e.lines_in_hunk()
                     {
                         state.chuck_line_range = Some((
                             e.final_start_line(),
