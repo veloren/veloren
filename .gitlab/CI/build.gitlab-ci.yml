@@ -112,6 +112,22 @@ macos:
     - .tmacos
     - .release
 
+# build on schedule quickfix till airshipper 0.5
+air-linux:
+  extends:
+    - .tlinux
+    - .release-nightly-tmp-fix-airshipper
+
+air-windows:
+  extends:
+    - .twindows
+    - .release-nightly-tmp-fix-airshipper
+
+air-macos:
+  extends:
+    - .tmacos
+    - .release-nightly-tmp-fix-airshipper
+
 # if NOT release or master, allow optional builds
 opt-linux:
   extends:
