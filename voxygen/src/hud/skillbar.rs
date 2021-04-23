@@ -26,7 +26,7 @@ use common::comp::{
         tool::{AbilityMap, Tool, ToolKind},
         Hands, Item, ItemKind, MaterialStatManifest,
     },
-    Energy, Health, Inventory,
+    Energy, Health, Inventory, SkillSet,
 };
 use conrod_core::{
     color,
@@ -142,6 +142,7 @@ pub struct Skillbar<'a> {
     health: &'a Health,
     inventory: &'a Inventory,
     energy: &'a Energy,
+    skillset: &'a SkillSet,
     // character_state: &'a CharacterState,
     // controller: &'a ControllerInputs,
     hotbar: &'a hotbar::State,
@@ -169,6 +170,7 @@ impl<'a> Skillbar<'a> {
         health: &'a Health,
         inventory: &'a Inventory,
         energy: &'a Energy,
+        skillset: &'a SkillSet,
         // character_state: &'a CharacterState,
         pulse: f32,
         // controller: &'a ControllerInputs,
@@ -191,6 +193,7 @@ impl<'a> Skillbar<'a> {
             health,
             inventory,
             energy,
+            skillset,
             common: widget::CommonBuilder::default(),
             // character_state,
             pulse,
@@ -449,6 +452,7 @@ impl<'a> Widget for Skillbar<'a> {
             self.hotbar,
             self.inventory,
             self.energy,
+            self.skillset,
             self.ability_map,
             self.msm,
         ); // TODO: avoid this
@@ -739,6 +743,7 @@ impl<'a> Widget for Skillbar<'a> {
                 >= tool
                     .get_abilities(&self.msm, item.components(), self.ability_map)
                     .secondary
+                    .adjusted_by_skills(self.skillset, Some(tool.kind))
                     .get_energy_cost()
             {
                 Color::Rgba(1.0, 1.0, 1.0, 1.0)

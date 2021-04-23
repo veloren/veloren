@@ -2267,6 +2267,7 @@ impl Hud {
         let healths = ecs.read_storage::<comp::Health>();
         let inventories = ecs.read_storage::<comp::Inventory>();
         let energies = ecs.read_storage::<comp::Energy>();
+        let skillsets = ecs.read_storage::<comp::SkillSet>();
         let character_states = ecs.read_storage::<comp::CharacterState>();
         let controllers = ecs.read_storage::<comp::Controller>();
         let ability_map = ecs.fetch::<comp::item::tool::AbilityMap>();
@@ -2289,12 +2290,14 @@ impl Hud {
             Some(health),
             Some(inventory),
             Some(energy),
+            Some(skillset),
             Some(_character_state),
             Some(_controller),
         ) = (
             healths.get(entity),
             inventories.get(entity),
             energies.get(entity),
+            skillsets.get(entity),
             character_states.get(entity),
             controllers.get(entity).map(|c| &c.inputs),
         ) {
@@ -2308,6 +2311,7 @@ impl Hud {
                 &health,
                 &inventory,
                 &energy,
+                &skillset,
                 //&character_state,
                 self.pulse,
                 //&controller,
