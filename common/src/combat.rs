@@ -131,11 +131,12 @@ impl Attack {
                 {
                     if ori.look_vec().angle_between(-*dir) < data.static_data.max_angle.to_radians()
                     {
+                        let parry = matches!(data.stage_section, StageSection::Buildup);
                         emit_outcome(Outcome::Block {
-                            parry: data.parry,
+                            parry,
                             pos: target.pos,
                         });
-                        if data.parry && matches!(data.stage_section, StageSection::Buildup) {
+                        if parry {
                             1.0
                         } else {
                             data.static_data.block_strength

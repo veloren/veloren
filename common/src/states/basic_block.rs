@@ -30,8 +30,6 @@ pub struct Data {
     pub timer: Duration,
     /// What section the character stage is in
     pub stage_section: StageSection,
-    /// Whether the block was cancelled early enough to become a parry
-    pub parry: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -49,18 +47,13 @@ impl CharacterBehavior for Data {
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        parry: self.parry || !input_is_pressed(data, InputKind::Block),
                         ..*self
                     });
                 } else {
                     // Transitions to swing section of stage
                     update.character = CharacterState::BasicBlock(Data {
                         timer: Duration::default(),
-                        stage_section: if self.parry {
-                            StageSection::Recover
-                        } else {
-                            StageSection::Swing
-                        },
+                        stage_section: StageSection::Swing,
                         ..*self
                     });
                 }

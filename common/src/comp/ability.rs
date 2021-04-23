@@ -1277,7 +1277,6 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
-                parry: false,
             }),
             CharacterAbility::Roll {
                 energy_cost: _,

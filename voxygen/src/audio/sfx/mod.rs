@@ -429,8 +429,7 @@ impl SfxMgr {
                 ][rand::thread_rng().gen_range(1..2)];
                 if *parry {
                     audio.play_sfx(file_ref_parry, *pos, Some(2.0));
-                }
-                else {
+                } else {
                     audio.play_sfx(file_ref_block, *pos, Some(2.0));
                 }
             },

@@ -1,5 +1,5 @@
 SpinMelee(
-    buildup_duration: 0.6,
+    buildup_duration: 0.35,
     swing_duration: 0.4,
     recover_duration: 0.5,
     base_damage: 160,
