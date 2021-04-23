@@ -62,6 +62,8 @@
         "gameinput.sneak": "Furtividade",
         "gameinput.swimdown": "Mergulhar",
         "gameinput.swimup": "Emergir",
+        "gameinput.mapzoomin": "Aumentar zoom do mapa",
+        "gameinput.mapzoomout": "Reduzir zoom do mapa",     
     },
 
 

@@ -8,7 +8,12 @@
         "hud.crafting.ingredients": "Ingredientes:",
         "hud.crafting.craft": "Criar",
         "hud.crafting.tool_cata": "Requer:",
-
+        // Crafting Stations (Estações de Criação)
+        "hud.crafting.req_crafting_station": "Requer:",
+        "hud.crafting.anvil": "Bigorna",
+        "hud.crafting.cauldron": "Caldeirão",
+        "hud.crafting.cooking_pot": "Panela",
+        "hud.crafting.crafting_bench": "Bancada de Criação",
         // Tabs (Abas)
         "hud.crafting.tabs.all": "Tudo",
         "hud.crafting.tabs.armor": "Armadura",
