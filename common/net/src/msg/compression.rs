@@ -460,37 +460,17 @@ impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
 
     #[allow(clippy::many_single_char_names)]
     fn get_block(ws: &Self::Workspace, x: u32, y: u32, is_border: bool) -> Block {
-        //let a = inline_tweak::tweak!(10.0);
-        //let b = inline_tweak::tweak!(1.0);
-        let a = 2.0 / 3.0;
-        let b = 2.0;
         if let Some(kind) = BlockKind::from_u8(ws.0.get_pixel(x, y).0[0]) {
             if kind.is_filled() {
                 let (w, h) = ws.3.dimensions();
                 let mut rgb = match 1 {
+                    // Weighted-average interpolation
                     0 => {
-                        let mut rgb: Vec3<f64> =
-                            Vec3::<u8>::from(ws.3.get_pixel(x / N, y / N).0).as_();
-                        //rgb *= 2.0;
-                        let mut total = 1;
-                        for (dx, dy) in [(-1i32, 0i32), (1, 0), (0, -1), (0, 1)].iter() {
-                            let (i, j) = (
-                                (x.wrapping_add(*dx as u32) / N),
-                                (y.wrapping_add(*dy as u32) / N),
-                            );
-                            if i < w && j < h {
-                                rgb += Vec3::<u8>::from(ws.3.get_pixel(i, j).0).as_();
-                                total += 1;
-                            }
-                        }
-                        rgb /= total as f64;
-                        rgb
-                    },
-                    1 => {
+                        const SAMPLE_RADIUS: i32 = 2i32; // sample_size = SAMPLE_RADIUS * 2 + 1
                         let mut rgb: Vec3<f64> = Vec3::zero();
                         let mut total = 0.0;
-                        for dx in -2i32..=2 {
-                            for dy in -2i32..=2 {
+                        for dx in -SAMPLE_RADIUS..=SAMPLE_RADIUS {
+                            for dy in -SAMPLE_RADIUS..=SAMPLE_RADIUS {
                                 let (i, j) = (
                                     (x.wrapping_add(dx as u32) / N),
                                     (y.wrapping_add(dy as u32) / N),
@@ -505,7 +485,40 @@ impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
                         rgb /= total;
                         rgb
                     },
-                    _ => {
+                    // Mckol's Lanczos interpolation
+                    1 => {
+                        const LANCZOS_A: f64 = 2.0; // See https://www.desmos.com/calculator/xxejcymyua
+                        const SAMPLE_RADIUS: i32 = 2i32; // sample_size = SAMPLE_RADIUS * 2 + 1
+                        // As a reminder: x, y are destination pixel coordinates (not downscaled).
+                        let mut rgb: Vec3<f64> = Vec3::zero();
+                        for dx in -SAMPLE_RADIUS..=SAMPLE_RADIUS {
+                            for dy in -SAMPLE_RADIUS..=SAMPLE_RADIUS {
+                                // Source pixel coordinates (downscaled):
+                                let (src_x, src_y) = (
+                                    (x.wrapping_add(dx as u32) / N),
+                                    (y.wrapping_add(dy as u32) / N),
+                                );
+                                if src_x < w && src_y < h {
+                                    let pix: Vec3<f64> =
+                                        Vec3::<u8>::from(ws.3.get_pixel(src_x, src_y).0).as_();
+                                    // Relative coordinates where 1 unit is the size of one source
+                                    // pixel and 0 is the center of the source pixel:
+                                    let x_rel = ((x % N) as f64 - (N - 1) as f64 / 2.0) / N as f64;
+                                    let y_rel = ((y % N) as f64 - (N - 1) as f64 / 2.0) / N as f64;
+                                    // Distance from the currently processed target pixel's center
+                                    // to the currently processed source pixel's center:
+                                    rgb += lanczos((dx as f64 - x_rel).abs(), LANCZOS_A)
+                                        * lanczos((dy as f64 - y_rel).abs(), LANCZOS_A)
+                                        * pix;
+                                }
+                            }
+                        }
+                        rgb
+                    },
+                    // Aweinstock's Lanczos interpolation
+                    2 => {
+                        let a = 2.0 / 3.0;
+                        let b = 2.0;
                         let mut rgb: Vec3<f64> = Vec3::zero();
                         for dx in -1i32..=1 {
                             for dy in -1i32..=1 {
@@ -534,6 +547,8 @@ impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
                         }
                         rgb
                     },
+                    // No interpolation
+                    _ => Vec3::<u8>::from(ws.3.get_pixel(x / N, y / N).0).as_(),
                 };
                 if is_border {
                     rgb = Vec3::<u8>::from(ws.3.get_pixel(x / N, y / N).0).as_();
