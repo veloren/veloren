@@ -1,16 +1,15 @@
 use common::{
     spiral::Spiral2d,
     terrain::{chonk::Chonk, Block, BlockKind, SpriteKind},
-    vol::{BaseVol, IntoVolIterator, ReadVol, RectVolSize, SizedVol, WriteVol},
+    vol::{IntoVolIterator, RectVolSize, SizedVol, WriteVol},
     volumes::{
         dyna::{Access, ColumnAccess, Dyna},
         vol_grid_2d::VolGrid2d,
     },
 };
 use common_net::msg::compression::{
-    image_terrain, image_terrain_chonk, image_terrain_volgrid, CompressedData, GridLtrPacking,
-    JpegEncoding, MixedEncoding, PackingFormula, PngEncoding, QuadPngEncoding, TallPacking,
-    VoxelImageEncoding,
+    image_terrain_chonk, image_terrain_volgrid, CompressedData, GridLtrPacking, JpegEncoding,
+    MixedEncoding, PngEncoding, QuadPngEncoding, TallPacking, VoxelImageEncoding,
 };
 use hashbrown::HashMap;
 use image::ImageBuffer;
@@ -329,8 +328,8 @@ fn main() {
     ));
 
     for (sitename, sitepos) in sites.iter() {
-        let mut totals = [0.0; 13];
-        let mut total_timings = [0.0; 10];
+        let mut totals = [0.0; 15];
+        let mut total_timings = [0.0; 12];
         let mut count = 0;
         let mut volgrid = VolGrid2d::new().unwrap();
         for (i, spiralpos) in Spiral2d::new()
@@ -420,11 +419,32 @@ fn main() {
                 .unwrap();
                 let mixeddense_post = Instant::now();
 
-                let quadpng_pre = Instant::now();
-                let quadpng =
-                    image_terrain_chonk(QuadPngEncoding, TallPacking { flip_y: true }, &chunk)
-                        .unwrap();
-                let quadpng_post = Instant::now();
+                let quadpngfull_pre = Instant::now();
+                let quadpngfull = image_terrain_chonk(
+                    QuadPngEncoding::<1>(),
+                    TallPacking { flip_y: true },
+                    &chunk,
+                )
+                .unwrap();
+                let quadpngfull_post = Instant::now();
+
+                let quadpnghalf_pre = Instant::now();
+                let quadpnghalf = image_terrain_chonk(
+                    QuadPngEncoding::<2>(),
+                    TallPacking { flip_y: true },
+                    &chunk,
+                )
+                .unwrap();
+                let quadpnghalf_post = Instant::now();
+
+                let quadpngquart_pre = Instant::now();
+                let quadpngquart = image_terrain_chonk(
+                    QuadPngEncoding::<4>(),
+                    TallPacking { flip_y: true },
+                    &chunk,
+                )
+                .unwrap();
+                let quadpngquart_post = Instant::now();
 
                 let pngchonk_pre = Instant::now();
                 let pngchonk = image_terrain_chonk(PngEncoding, GridLtrPacking, &chunk).unwrap();
@@ -443,7 +463,9 @@ fn main() {
                     mixedchonk.0.len() as f32 / n as f32,
                     mixeddeflate.data.len() as f32 / n as f32,
                     mixeddense.0.len() as f32 / n as f32,
-                    quadpng.data.len() as f32 / n as f32,
+                    quadpngfull.data.len() as f32 / n as f32,
+                    quadpnghalf.data.len() as f32 / n as f32,
+                    quadpngquart.data.len() as f32 / n as f32,
                     pngchonk.len() as f32 / n as f32,
                 ];
                 let best_idx = sizes
@@ -466,7 +488,9 @@ fn main() {
                     (mixedchonk_post - mixedchonk_pre).subsec_nanos(),
                     (mixeddeflate_post - mixedchonk_pre).subsec_nanos(),
                     (mixeddense_post - mixeddense_pre).subsec_nanos(),
-                    (quadpng_post - quadpng_pre).subsec_nanos(),
+                    (quadpngfull_post - quadpngfull_pre).subsec_nanos(),
+                    (quadpnghalf_post - quadpnghalf_pre).subsec_nanos(),
+                    (quadpngquart_post - quadpngquart_pre).subsec_nanos(),
                     (pngchonk_post - pngchonk_pre).subsec_nanos(),
                 ];
                 trace!(
@@ -542,8 +566,10 @@ fn main() {
                 println!("Average mixedchonk: {}", totals[8] / count as f32);
                 println!("Average mixeddeflate: {}", totals[9] / count as f32);
                 println!("Average mixeddense: {}", totals[10] / count as f32);
-                println!("Average quadpng: {}", totals[11] / count as f32);
-                println!("Average pngchonk: {}", totals[12] / count as f32);
+                println!("Average quadpngfull: {}", totals[11] / count as f32);
+                println!("Average quadpnghalf: {}", totals[12] / count as f32);
+                println!("Average quadpngquart: {}", totals[13] / count as f32);
+                println!("Average pngchonk: {}", totals[14] / count as f32);
                 println!("");
                 println!(
                     "Average lz4_chonk nanos    : {:02}",
@@ -578,12 +604,20 @@ fn main() {
                     total_timings[7] / count as f32
                 );
                 println!(
-                    "Average quadpng nanos: {:02}",
+                    "Average quadpngfull nanos: {:02}",
                     total_timings[8] / count as f32
                 );
                 println!(
-                    "Average pngchonk nanos: {:02}",
+                    "Average quadpnghalf nanos: {:02}",
                     total_timings[9] / count as f32
+                );
+                println!(
+                    "Average quadpngquart nanos: {:02}",
+                    total_timings[10] / count as f32
+                );
+                println!(
+                    "Average pngchonk nanos: {:02}",
+                    total_timings[11] / count as f32
                 );
                 println!("-----");
             }

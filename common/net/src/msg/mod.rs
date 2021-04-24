@@ -9,7 +9,7 @@ pub use self::{
     client::{ClientGeneral, ClientMsg, ClientRegister, ClientType},
     compression::{
         CompressedData, GridLtrPacking, JpegEncoding, MixedEncoding, PackingFormula, PngEncoding,
-        TallPacking, VoxelImageEncoding, WireChonk,
+        QuadPngEncoding, TallPacking, VoxelImageEncoding, WireChonk,
     },
     ecs_packet::EcsCompPacket,
     server::{

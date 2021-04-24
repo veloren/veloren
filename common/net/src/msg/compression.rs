@@ -316,7 +316,6 @@ impl VoxelImageDecoding for MixedEncoding {
             indices[1]..indices[2],
             indices[2]..quad.len(),
         ];
-        tracing::info!("{:?} {:?}", ranges, indices);
         let a = image_from_bytes(PngDecoder::new(&quad[ranges[0].clone()]).ok()?)?;
         let b = image_from_bytes(PngDecoder::new(&quad[ranges[1].clone()]).ok()?)?;
         let c = image_from_bytes(PngDecoder::new(&quad[ranges[2].clone()]).ok()?)?;
@@ -350,9 +349,9 @@ impl VoxelImageDecoding for MixedEncoding {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct QuadPngEncoding;
+pub struct QuadPngEncoding<const RESOLUTION_DIVIDER: u32>();
 
-impl VoxelImageEncoding for QuadPngEncoding {
+impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
     type Output = CompressedData<(Vec<u8>, [usize; 3])>;
     #[allow(clippy::type_complexity)]
     type Workspace = (
@@ -367,7 +366,7 @@ impl VoxelImageEncoding for QuadPngEncoding {
             ImageBuffer::new(width, height),
             ImageBuffer::new(width, height),
             ImageBuffer::new(width, height),
-            ImageBuffer::new(width, height),
+            ImageBuffer::new(width / N, height / N),
         )
     }
 
@@ -375,7 +374,7 @@ impl VoxelImageEncoding for QuadPngEncoding {
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
         ws.1.put_pixel(x, y, image::Luma([0]));
         ws.2.put_pixel(x, y, image::Luma([0]));
-        ws.3.put_pixel(x, y, image::Rgb([rgb.r, rgb.g, rgb.b]));
+        ws.3.put_pixel(x / N, y / N, image::Rgb([rgb.r, rgb.g, rgb.b]));
     }
 
     fn put_sprite(
@@ -389,7 +388,6 @@ impl VoxelImageEncoding for QuadPngEncoding {
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
         ws.1.put_pixel(x, y, image::Luma([sprite as u8]));
         ws.2.put_pixel(x, y, image::Luma([ori.unwrap_or(0)]));
-        ws.3.put_pixel(x, y, image::Rgb([0; 3]));
     }
 
     fn finish(ws: &Self::Workspace) -> Option<Self::Output> {
@@ -427,6 +425,48 @@ impl VoxelImageEncoding for QuadPngEncoding {
         }
 
         Some(CompressedData::compress(&(buf, indices), 4))
+    }
+}
+
+impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
+    fn start(data: &Self::Output) -> Option<Self::Workspace> {
+        use image::codecs::png::PngDecoder;
+        let (quad, indices) = data.decompress()?;
+        let ranges: [_; 4] = [
+            0..indices[0],
+            indices[0]..indices[1],
+            indices[1]..indices[2],
+            indices[2]..quad.len(),
+        ];
+        let a = image_from_bytes(PngDecoder::new(&quad[ranges[0].clone()]).ok()?)?;
+        let b = image_from_bytes(PngDecoder::new(&quad[ranges[1].clone()]).ok()?)?;
+        let c = image_from_bytes(PngDecoder::new(&quad[ranges[2].clone()]).ok()?)?;
+        let d = image_from_bytes(PngDecoder::new(&quad[ranges[3].clone()]).ok()?)?;
+        Some((a, b, c, d))
+    }
+
+    fn get_block(ws: &Self::Workspace, x: u32, y: u32) -> Block {
+        if let Some(kind) = BlockKind::from_u8(ws.0.get_pixel(x, y).0[0]) {
+            if kind.is_filled() {
+                let rgb = ws.3.get_pixel(x / N, y / N);
+                Block::new(kind, Rgb {
+                    r: rgb[0],
+                    g: rgb[1],
+                    b: rgb[2],
+                })
+            } else {
+                let mut block = Block::new(kind, Rgb { r: 0, g: 0, b: 0 });
+                if let Some(spritekind) = SpriteKind::from_u8(ws.1.get_pixel(x, y).0[0]) {
+                    block = block.with_sprite(spritekind);
+                }
+                if let Some(oriblock) = block.with_ori(ws.2.get_pixel(x, y).0[0]) {
+                    block = oriblock;
+                }
+                block
+            }
+        } else {
+            Block::empty()
+        }
     }
 }
 
@@ -480,7 +520,6 @@ pub fn image_terrain<
     lo: Vec3<u32>,
     hi: Vec3<u32>,
 ) -> Option<VIE::Output> {
-    tracing::info!("image_terrain:  {:?} {:?}", lo, hi);
     let dims = Vec3::new(
         hi.x.wrapping_sub(lo.x),
         hi.y.wrapping_sub(lo.y),
