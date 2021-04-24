@@ -143,7 +143,7 @@ pub trait VoxelImageEncoding: Copy {
 
 pub trait VoxelImageDecoding: VoxelImageEncoding {
     fn start(ws: &Self::Output) -> Option<Self::Workspace>;
-    fn get_block(ws: &Self::Workspace, x: u32, y: u32) -> Block;
+    fn get_block(ws: &Self::Workspace, x: u32, y: u32, is_border: bool) -> Block;
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -324,7 +324,7 @@ impl VoxelImageDecoding for MixedEncoding {
         Some((a, b, c, d))
     }
 
-    fn get_block(ws: &Self::Workspace, x: u32, y: u32) -> Block {
+    fn get_block(ws: &Self::Workspace, x: u32, y: u32, _: bool) -> Block {
         if let Some(kind) = BlockKind::from_u8(ws.0.get_pixel(x, y).0[0]) {
             if kind.is_filled() {
                 let rgb = ws.3.get_pixel(x, y);
@@ -459,24 +459,24 @@ impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
     }
 
     #[allow(clippy::many_single_char_names)]
-    fn get_block(ws: &Self::Workspace, x: u32, y: u32) -> Block {
-        //let a = inline_tweak::tweak!(1.3);
-        //let b = inline_tweak::tweak!(4.0);
-        let a = 1.3;
-        let b = 4.0;
+    fn get_block(ws: &Self::Workspace, x: u32, y: u32, is_border: bool) -> Block {
+        //let a = inline_tweak::tweak!(10.0);
+        //let b = inline_tweak::tweak!(1.0);
+        let a = 2.0 / 3.0;
+        let b = 2.0;
         if let Some(kind) = BlockKind::from_u8(ws.0.get_pixel(x, y).0[0]) {
             if kind.is_filled() {
                 let (w, h) = ws.3.dimensions();
-                let rgb = match 1 {
+                let mut rgb = match 1 {
                     0 => {
                         let mut rgb: Vec3<f64> =
                             Vec3::<u8>::from(ws.3.get_pixel(x / N, y / N).0).as_();
-                        rgb *= 2.0;
-                        let mut total = 2;
+                        //rgb *= 2.0;
+                        let mut total = 1;
                         for (dx, dy) in [(-1i32, 0i32), (1, 0), (0, -1), (0, 1)].iter() {
                             let (i, j) = (
-                                (x / N).wrapping_add(*dx as u32),
-                                (y / N).wrapping_add(*dy as u32),
+                                (x.wrapping_add(*dx as u32) / N),
+                                (y.wrapping_add(*dy as u32) / N),
                             );
                             if i < w && j < h {
                                 rgb += Vec3::<u8>::from(ws.3.get_pixel(i, j).0).as_();
@@ -486,32 +486,58 @@ impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
                         rgb /= total as f64;
                         rgb
                     },
+                    1 => {
+                        let mut rgb: Vec3<f64> = Vec3::zero();
+                        let mut total = 0.0;
+                        for dx in -2i32..=2 {
+                            for dy in -2i32..=2 {
+                                let (i, j) = (
+                                    (x.wrapping_add(dx as u32) / N),
+                                    (y.wrapping_add(dy as u32) / N),
+                                );
+                                if i < w && j < h {
+                                    let r = 5.0 - (dx.abs() + dy.abs()) as f64;
+                                    rgb += r * Vec3::<u8>::from(ws.3.get_pixel(i, j).0).as_();
+                                    total += r;
+                                }
+                            }
+                        }
+                        rgb /= total;
+                        rgb
+                    },
                     _ => {
                         let mut rgb: Vec3<f64> = Vec3::zero();
                         for dx in -1i32..=1 {
                             for dy in -1i32..=1 {
                                 let (i, j) = (
-                                    (x / N).wrapping_add(dx as u32),
-                                    (y / N).wrapping_add(dy as u32),
+                                    (x.wrapping_add(dx as u32) / N),
+                                    (y.wrapping_add(dy as u32) / N),
                                 );
                                 if i < w && j < h {
                                     let pix: Vec3<f64> =
                                         Vec3::<u8>::from(ws.3.get_pixel(i, j).0).as_();
-                                    rgb += lanczos(
-                                        a * Vec2::new(
-                                            (x % N) as f64 - (N - 1) as f64 / 2.0,
-                                            (y % N) as f64 - (N - 1) as f64 / 2.0,
-                                        )
-                                        .magnitude(),
-                                        b,
-                                    ) * pix;
+                                    let c = (x.wrapping_add(dx as u32) % N) as f64
+                                        - (N - 1) as f64 / 2.0;
+                                    let d = (y.wrapping_add(dy as u32) % N) as f64
+                                        - (N - 1) as f64 / 2.0;
+                                    let _euclid = Vec2::new(c, d).magnitude();
+                                    let _manhattan = c.abs() + d.abs();
+                                    //println!("{:?}, {:?}, {:?}: {} {}", (x, y), (i, j), (c, d),
+                                    // euclid, manhattan);
+                                    // rgb += lanczos(a * euclid, b) * pix;
+                                    //rgb += lanczos(a * c, b) * lanczos(a * d, b) * pix;
+                                    rgb += lanczos(a * (i as f64 - (x / N) as f64), b)
+                                        * lanczos(a * (j as f64 - (y / N) as f64), b)
+                                        * pix;
                                 }
                             }
                         }
                         rgb
                     },
                 };
-                //let rgb = ;
+                if is_border {
+                    rgb = Vec3::<u8>::from(ws.3.get_pixel(x / N, y / N).0).as_();
+                }
                 Block::new(kind, Rgb {
                     r: rgb.x as u8,
                     g: rgb.y as u8,
@@ -537,6 +563,7 @@ impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
 pub struct TriPngEncoding;
 
 impl VoxelImageEncoding for TriPngEncoding {
+    #[allow(clippy::type_complexity)]
     type Output = CompressedData<(Vec<u8>, Vec<Rgb<u8>>, [usize; 3])>;
     #[allow(clippy::type_complexity)]
     type Workspace = (
@@ -641,7 +668,7 @@ impl VoxelImageDecoding for TriPngEncoding {
         Some((a, b, c, d))
     }
 
-    fn get_block(ws: &Self::Workspace, x: u32, y: u32) -> Block {
+    fn get_block(ws: &Self::Workspace, x: u32, y: u32, _: bool) -> Block {
         if let Some(kind) = BlockKind::from_u8(ws.0.get_pixel(x, y).0[0]) {
             if kind.is_filled() {
                 let rgb = *ws
@@ -781,7 +808,8 @@ pub fn write_image_terrain<
         for y in 0..dims.y {
             for x in 0..dims.x {
                 let (i, j) = packing.index(dims, x, y, z);
-                let block = VIE::get_block(&ws, i, j);
+                let is_border = x <= 1 || x >= dims.x - 2 || y <= 1 || y >= dims.y - 2;
+                let block = VIE::get_block(&ws, i, j, is_border);
                 if let Err(e) = vol.set(lo.as_() + Vec3::new(x, y, z).as_(), block) {
                     warn!(
                         "Error placing a block into a volume at {:?}: {:?}",
