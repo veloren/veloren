@@ -1055,7 +1055,7 @@ where
         handle.spawn(async move {
             match finished_receiver.await {
                 Ok(data) => f(data),
-                Err(e) => panic!("{}{}: {}", name, CHANNEL_ERR, e),
+                Err(e) => error!("{}{}: {}", name, CHANNEL_ERR, e),
             }
         });
     } else {

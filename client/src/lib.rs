@@ -9,6 +9,7 @@ pub mod error;
 // Reexports
 pub use crate::error::Error;
 pub use authc::AuthClientError;
+pub use common_net::msg::ServerInfo;
 pub use specs::{
     join::Join,
     saveload::{Marker, MarkerAllocator},
@@ -49,7 +50,7 @@ use common_net::{
         world_msg::{EconomyInfo, SiteId, SiteInfo},
         ChatMsgValidationError, ClientGeneral, ClientMsg, ClientRegister, ClientType,
         DisconnectReason, InviteAnswer, Notification, PingMsg, PlayerInfo, PlayerListUpdate,
-        PresenceKind, RegisterError, ServerGeneral, ServerInfo, ServerInit, ServerRegisterAnswer,
+        PresenceKind, RegisterError, ServerGeneral, ServerInit, ServerRegisterAnswer,
         MAX_BYTES_CHAT_MSG,
     },
     sync::WorldSyncExt,
@@ -66,6 +67,7 @@ use rayon::prelude::*;
 use specs::Component;
 use std::{
     collections::{BTreeMap, VecDeque},
+    mem,
     sync::Arc,
     time::{Duration, Instant},
 };
@@ -204,6 +206,8 @@ impl Client {
         addr: ConnectionArgs,
         view_distance: Option<u32>,
         runtime: Arc<Runtime>,
+        // TODO: refactor to avoid needing to use this out parameter
+        mismatched_server_info: &mut Option<ServerInfo>,
     ) -> Result<Self, Error> {
         let network = Network::new(Pid::new(), &runtime);
 
@@ -235,8 +239,6 @@ impl Client {
 
         register_stream.send(ClientType::Game)?;
         let server_info: ServerInfo = register_stream.recv().await?;
-
-        // TODO: Display that versions don't match in Voxygen
         if server_info.git_hash != *common::util::GIT_HASH {
             warn!(
                 "Server is running {}[{}], you are running {}[{}], versions might be incompatible!",
@@ -245,6 +247,10 @@ impl Client {
                 common::util::GIT_HASH.to_string(),
                 common::util::GIT_DATE.to_string(),
             );
+
+            // Pass the server info back to the caller to ensure they can access it even
+            // if this function errors.
+            mem::swap(mismatched_server_info, &mut Some(server_info.clone()));
         }
         debug!("Auth Server: {:?}", server_info.auth_provider);
 
@@ -2449,6 +2455,7 @@ mod tests {
             ConnectionArgs::IpAndPort(vec![socket]),
             view_distance,
             runtime2,
+            &mut None,
         ));
 
         let _ = veloren_client.map(|mut client| {

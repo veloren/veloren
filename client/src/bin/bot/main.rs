@@ -59,7 +59,7 @@ pub fn make_client(runtime: &Arc<Runtime>, server: &str) -> Client {
         let connection_args = ConnectionArgs::resolve(server, false)
             .await
             .expect("DNS resolution failed");
-        Client::new(connection_args, view_distance, runtime2)
+        Client::new(connection_args, view_distance, runtime2, &mut None)
             .await
             .expect("Failed to connect to server")
     })
