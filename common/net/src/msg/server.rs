@@ -1,6 +1,6 @@
 use super::{
     world_msg::EconomyInfo, ClientType, CompressedData, EcsCompPacket, MixedEncoding, PingMsg,
-    QuadPngEncoding, TallPacking, WireChonk,
+    QuadPngEncoding, TallPacking, TriPngEncoding, WireChonk,
 };
 use crate::sync;
 use common::{
@@ -70,10 +70,20 @@ pub type ServerRegisterAnswer = Result<(), RegisterError>;
 pub enum SerializedTerrainChunk {
     DeflatedChonk(CompressedData<TerrainChunk>),
     PngPngPngJpeg(WireChonk<MixedEncoding, TallPacking, TerrainChunkMeta, TerrainChunkSize>),
-    QuadPng(WireChonk<QuadPngEncoding<2>, TallPacking, TerrainChunkMeta, TerrainChunkSize>),
+    QuadPng(WireChonk<QuadPngEncoding<4>, TallPacking, TerrainChunkMeta, TerrainChunkSize>),
+    TriPng(WireChonk<TriPngEncoding, TallPacking, TerrainChunkMeta, TerrainChunkSize>),
 }
 
 impl SerializedTerrainChunk {
+    pub fn image(chunk: &TerrainChunk) -> Self {
+        match inline_tweak::tweak!(2) {
+            0 => Self::deflate(chunk),
+            1 => Self::jpeg(chunk),
+            2 => Self::quadpng(chunk),
+            _ => Self::tripng(chunk),
+        }
+    }
+
     pub fn deflate(chunk: &TerrainChunk) -> Self {
         Self::DeflatedChonk(CompressedData::compress(chunk, 5))
     }
@@ -88,11 +98,21 @@ impl SerializedTerrainChunk {
         }
     }
 
-    pub fn image(chunk: &TerrainChunk) -> Self {
+    pub fn quadpng(chunk: &TerrainChunk) -> Self {
         if let Some(wc) =
             WireChonk::from_chonk(QuadPngEncoding(), TallPacking { flip_y: true }, chunk)
         {
             Self::QuadPng(wc)
+        } else {
+            warn!("Image encoding failure occurred, falling back to deflate");
+            Self::deflate(chunk)
+        }
+    }
+
+    pub fn tripng(chunk: &TerrainChunk) -> Self {
+        if let Some(wc) = WireChonk::from_chonk(TriPngEncoding, TallPacking { flip_y: true }, chunk)
+        {
+            Self::TriPng(wc)
         } else {
             warn!("Image encoding failure occurred, falling back to deflate");
             Self::deflate(chunk)
@@ -104,6 +124,7 @@ impl SerializedTerrainChunk {
             Self::DeflatedChonk(chonk) => chonk.decompress(),
             Self::PngPngPngJpeg(wc) => wc.to_chonk(),
             Self::QuadPng(wc) => wc.to_chonk(),
+            Self::TriPng(wc) => wc.to_chonk(),
         }
     }
 }

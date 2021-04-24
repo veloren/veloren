@@ -9,7 +9,7 @@ use common::{
 };
 use common_net::msg::compression::{
     image_terrain_chonk, image_terrain_volgrid, CompressedData, GridLtrPacking, JpegEncoding,
-    MixedEncoding, PngEncoding, QuadPngEncoding, TallPacking, VoxelImageEncoding,
+    MixedEncoding, PngEncoding, QuadPngEncoding, TallPacking, TriPngEncoding, VoxelImageEncoding,
 };
 use hashbrown::HashMap;
 use image::ImageBuffer;
@@ -328,8 +328,8 @@ fn main() {
     ));
 
     for (sitename, sitepos) in sites.iter() {
-        let mut totals = [0.0; 15];
-        let mut total_timings = [0.0; 12];
+        let mut totals = [0.0; 16];
+        let mut total_timings = [0.0; 13];
         let mut count = 0;
         let mut volgrid = VolGrid2d::new().unwrap();
         for (i, spiralpos) in Spiral2d::new()
@@ -446,6 +446,12 @@ fn main() {
                 .unwrap();
                 let quadpngquart_post = Instant::now();
 
+                let tripng_pre = Instant::now();
+                let tripng =
+                    image_terrain_chonk(TriPngEncoding, TallPacking { flip_y: true }, &chunk)
+                        .unwrap();
+                let tripng_post = Instant::now();
+
                 let pngchonk_pre = Instant::now();
                 let pngchonk = image_terrain_chonk(PngEncoding, GridLtrPacking, &chunk).unwrap();
                 let pngchonk_post = Instant::now();
@@ -466,6 +472,7 @@ fn main() {
                     quadpngfull.data.len() as f32 / n as f32,
                     quadpnghalf.data.len() as f32 / n as f32,
                     quadpngquart.data.len() as f32 / n as f32,
+                    tripng.data.len() as f32 / n as f32,
                     pngchonk.len() as f32 / n as f32,
                 ];
                 let best_idx = sizes
@@ -491,6 +498,7 @@ fn main() {
                     (quadpngfull_post - quadpngfull_pre).subsec_nanos(),
                     (quadpnghalf_post - quadpnghalf_pre).subsec_nanos(),
                     (quadpngquart_post - quadpngquart_pre).subsec_nanos(),
+                    (tripng_post - tripng_pre).subsec_nanos(),
                     (pngchonk_post - pngchonk_pre).subsec_nanos(),
                 ];
                 trace!(
@@ -569,7 +577,8 @@ fn main() {
                 println!("Average quadpngfull: {}", totals[11] / count as f32);
                 println!("Average quadpnghalf: {}", totals[12] / count as f32);
                 println!("Average quadpngquart: {}", totals[13] / count as f32);
-                println!("Average pngchonk: {}", totals[14] / count as f32);
+                println!("Average tripng: {}", totals[14] / count as f32);
+                println!("Average pngchonk: {}", totals[15] / count as f32);
                 println!("");
                 println!(
                     "Average lz4_chonk nanos    : {:02}",
@@ -616,8 +625,12 @@ fn main() {
                     total_timings[10] / count as f32
                 );
                 println!(
-                    "Average pngchonk nanos: {:02}",
+                    "Average tripng nanos: {:02}",
                     total_timings[11] / count as f32
+                );
+                println!(
+                    "Average pngchonk nanos: {:02}",
+                    total_timings[12] / count as f32
                 );
                 println!("-----");
             }

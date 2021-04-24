@@ -3,6 +3,7 @@ use common::{
     vol::{BaseVol, ReadVol, RectVolSize, WriteVol},
     volumes::vol_grid_2d::VolGrid2d,
 };
+use hashbrown::HashMap;
 use image::{ImageBuffer, ImageDecoder, Pixel};
 use num_traits::cast::FromPrimitive;
 use serde::{Deserialize, Serialize};
@@ -428,6 +429,18 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
     }
 }
 
+/// https://en.wikipedia.org/wiki/Lanczos_resampling#Lanczos_kernel
+fn lanczos(x: f64, a: f64) -> f64 {
+    use std::f64::consts::PI;
+    if x < f64::EPSILON {
+        1.0
+    } else if -a <= x && x <= a {
+        (a * (PI * x).sin() * (PI * x / a).sin()) / (PI.powi(2) * x.powi(2))
+    } else {
+        0.0
+    }
+}
+
 impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
     fn start(data: &Self::Output) -> Option<Self::Workspace> {
         use image::codecs::png::PngDecoder;
@@ -445,15 +458,198 @@ impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
         Some((a, b, c, d))
     }
 
+    #[allow(clippy::many_single_char_names)]
+    fn get_block(ws: &Self::Workspace, x: u32, y: u32) -> Block {
+        //let a = inline_tweak::tweak!(1.3);
+        //let b = inline_tweak::tweak!(4.0);
+        let a = 1.3;
+        let b = 4.0;
+        if let Some(kind) = BlockKind::from_u8(ws.0.get_pixel(x, y).0[0]) {
+            if kind.is_filled() {
+                let (w, h) = ws.3.dimensions();
+                let rgb = match 1 {
+                    0 => {
+                        let mut rgb: Vec3<f64> =
+                            Vec3::<u8>::from(ws.3.get_pixel(x / N, y / N).0).as_();
+                        rgb *= 2.0;
+                        let mut total = 2;
+                        for (dx, dy) in [(-1i32, 0i32), (1, 0), (0, -1), (0, 1)].iter() {
+                            let (i, j) = (
+                                (x / N).wrapping_add(*dx as u32),
+                                (y / N).wrapping_add(*dy as u32),
+                            );
+                            if i < w && j < h {
+                                rgb += Vec3::<u8>::from(ws.3.get_pixel(i, j).0).as_();
+                                total += 1;
+                            }
+                        }
+                        rgb /= total as f64;
+                        rgb
+                    },
+                    _ => {
+                        let mut rgb: Vec3<f64> = Vec3::zero();
+                        for dx in -1i32..=1 {
+                            for dy in -1i32..=1 {
+                                let (i, j) = (
+                                    (x / N).wrapping_add(dx as u32),
+                                    (y / N).wrapping_add(dy as u32),
+                                );
+                                if i < w && j < h {
+                                    let pix: Vec3<f64> =
+                                        Vec3::<u8>::from(ws.3.get_pixel(i, j).0).as_();
+                                    rgb += lanczos(
+                                        a * Vec2::new(
+                                            (x % N) as f64 - (N - 1) as f64 / 2.0,
+                                            (y % N) as f64 - (N - 1) as f64 / 2.0,
+                                        )
+                                        .magnitude(),
+                                        b,
+                                    ) * pix;
+                                }
+                            }
+                        }
+                        rgb
+                    },
+                };
+                //let rgb = ;
+                Block::new(kind, Rgb {
+                    r: rgb.x as u8,
+                    g: rgb.y as u8,
+                    b: rgb.z as u8,
+                })
+            } else {
+                let mut block = Block::new(kind, Rgb { r: 0, g: 0, b: 0 });
+                if let Some(spritekind) = SpriteKind::from_u8(ws.1.get_pixel(x, y).0[0]) {
+                    block = block.with_sprite(spritekind);
+                }
+                if let Some(oriblock) = block.with_ori(ws.2.get_pixel(x, y).0[0]) {
+                    block = oriblock;
+                }
+                block
+            }
+        } else {
+            Block::empty()
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct TriPngEncoding;
+
+impl VoxelImageEncoding for TriPngEncoding {
+    type Output = CompressedData<(Vec<u8>, Vec<Rgb<u8>>, [usize; 3])>;
+    #[allow(clippy::type_complexity)]
+    type Workspace = (
+        ImageBuffer<image::Luma<u8>, Vec<u8>>,
+        ImageBuffer<image::Luma<u8>, Vec<u8>>,
+        ImageBuffer<image::Luma<u8>, Vec<u8>>,
+        HashMap<BlockKind, HashMap<Rgb<u8>, usize>>,
+    );
+
+    fn create(width: u32, height: u32) -> Self::Workspace {
+        (
+            ImageBuffer::new(width, height),
+            ImageBuffer::new(width, height),
+            ImageBuffer::new(width, height),
+            HashMap::new(),
+        )
+    }
+
+    fn put_solid(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
+        ws.0.put_pixel(x, y, image::Luma([kind as u8]));
+        ws.1.put_pixel(x, y, image::Luma([0]));
+        ws.2.put_pixel(x, y, image::Luma([0]));
+        *ws.3.entry(kind).or_default().entry(rgb).or_insert(0) += 1;
+    }
+
+    fn put_sprite(
+        ws: &mut Self::Workspace,
+        x: u32,
+        y: u32,
+        kind: BlockKind,
+        sprite: SpriteKind,
+        ori: Option<u8>,
+    ) {
+        ws.0.put_pixel(x, y, image::Luma([kind as u8]));
+        ws.1.put_pixel(x, y, image::Luma([sprite as u8]));
+        ws.2.put_pixel(x, y, image::Luma([ori.unwrap_or(0)]));
+    }
+
+    fn finish(ws: &Self::Workspace) -> Option<Self::Output> {
+        let mut buf = Vec::new();
+        use image::codecs::png::{CompressionType, FilterType};
+        let mut indices = [0; 3];
+        let mut f = |x: &ImageBuffer<_, Vec<u8>>, i| {
+            let png = image::codecs::png::PngEncoder::new_with_quality(
+                &mut buf,
+                CompressionType::Fast,
+                FilterType::Up,
+            );
+            png.encode(&*x.as_raw(), x.width(), x.height(), image::ColorType::L8)
+                .ok()?;
+            indices[i] = buf.len();
+            Some(())
+        };
+        f(&ws.0, 0)?;
+        f(&ws.1, 1)?;
+        f(&ws.2, 2)?;
+
+        let mut palette = vec![Rgb { r: 0, g: 0, b: 0 }; 256];
+        for (block, hist) in ws.3.iter() {
+            let (mut r, mut g, mut b) = (0.0, 0.0, 0.0);
+            let mut total = 0;
+            for (color, count) in hist.iter() {
+                r += color.r as f64 * *count as f64;
+                g += color.g as f64 * *count as f64;
+                b += color.b as f64 * *count as f64;
+                total += *count;
+            }
+            r /= total as f64;
+            g /= total as f64;
+            b /= total as f64;
+            palette[*block as u8 as usize].r = r as u8;
+            palette[*block as u8 as usize].g = g as u8;
+            palette[*block as u8 as usize].b = b as u8;
+        }
+
+        Some(CompressedData::compress(&(buf, palette, indices), 4))
+    }
+}
+
+impl VoxelImageDecoding for TriPngEncoding {
+    fn start(data: &Self::Output) -> Option<Self::Workspace> {
+        use image::codecs::png::PngDecoder;
+        let (quad, palette, indices) = data.decompress()?;
+        let ranges: [_; 3] = [
+            0..indices[0],
+            indices[0]..indices[1],
+            indices[1]..indices[2],
+        ];
+        let a = image_from_bytes(PngDecoder::new(&quad[ranges[0].clone()]).ok()?)?;
+        let b = image_from_bytes(PngDecoder::new(&quad[ranges[1].clone()]).ok()?)?;
+        let c = image_from_bytes(PngDecoder::new(&quad[ranges[2].clone()]).ok()?)?;
+        let mut d: HashMap<_, HashMap<_, _>> = HashMap::new();
+        for i in 0..=255 {
+            if let Some(block) = BlockKind::from_u8(i) {
+                d.entry(block)
+                    .or_default()
+                    .entry(palette[i as usize])
+                    .insert(1);
+            }
+        }
+
+        Some((a, b, c, d))
+    }
+
     fn get_block(ws: &Self::Workspace, x: u32, y: u32) -> Block {
         if let Some(kind) = BlockKind::from_u8(ws.0.get_pixel(x, y).0[0]) {
             if kind.is_filled() {
-                let rgb = ws.3.get_pixel(x / N, y / N);
-                Block::new(kind, Rgb {
-                    r: rgb[0],
-                    g: rgb[1],
-                    b: rgb[2],
-                })
+                let rgb = *ws
+                    .3
+                    .get(&kind)
+                    .and_then(|h| h.keys().next())
+                    .unwrap_or(&Rgb::default());
+                Block::new(kind, rgb)
             } else {
                 let mut block = Block::new(kind, Rgb { r: 0, g: 0, b: 0 });
                 if let Some(spritekind) = SpriteKind::from_u8(ws.1.get_pixel(x, y).0[0]) {
