@@ -97,6 +97,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Server now denies any running trades when a user exits to the character selection screen.
 - Sfx volume changes now also change the ambient sounds volume
 - Staff fire shockwave ability no longer has an unlimited vertical range
+- Skillbar buttons correctly account for skill points when checking if player has enough stamina for the ability.
 
 ## [0.9.0] - 2021-03-20
 

@@ -10,7 +10,7 @@ use common::comp::{
         ItemKind, MaterialStatManifest,
     },
     slot::InvSlotId,
-    Energy, Inventory,
+    Energy, Inventory, SkillSet,
 };
 use conrod_core::{image, Color};
 use specs::Entity as EcsEntity;
@@ -126,6 +126,7 @@ type HotbarSource<'a> = (
     &'a hotbar::State,
     &'a Inventory,
     &'a Energy,
+    &'a SkillSet,
     &'a AbilityMap,
     &'a MaterialStatManifest,
 );
@@ -136,7 +137,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
 
     fn image_key(
         &self,
-        (hotbar, inventory, energy, ability_map, msm): &HotbarSource<'a>,
+        (hotbar, inventory, energy, skillset, ability_map, msm): &HotbarSource<'a>,
     ) -> Option<(Self::ImageKey, Option<Color>)> {
         hotbar.get(*self).and_then(|contents| match contents {
             hotbar::SlotContents::Inventory(idx) => inventory
@@ -173,7 +174,13 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                                 .abilities
                                 .get(0)
                             {
-                                if energy.current() >= skill.1.get_energy_cost() {
+                                if energy.current()
+                                    >= skill
+                                        .1
+                                        .clone()
+                                        .adjusted_by_skills(skillset, Some(tool.kind))
+                                        .get_energy_cost()
+                                {
                                     Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                                 } else {
                                     Some(Color::Rgba(0.3, 0.3, 0.3, 0.8))
@@ -217,7 +224,13 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                                 .abilities
                                 .get(skill_index)
                             {
-                                if energy.current() >= skill.1.get_energy_cost() {
+                                if energy.current()
+                                    >= skill
+                                        .1
+                                        .clone()
+                                        .adjusted_by_skills(skillset, Some(tool.kind))
+                                        .get_energy_cost()
+                                {
                                     Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                                 } else {
                                     Some(Color::Rgba(0.3, 0.3, 0.3, 0.8))
@@ -232,7 +245,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
         })
     }
 
-    fn amount(&self, (hotbar, inventory, _, _, _): &HotbarSource<'a>) -> Option<u32> {
+    fn amount(&self, (hotbar, inventory, _, _, _, _): &HotbarSource<'a>) -> Option<u32> {
         hotbar
             .get(*self)
             .and_then(|content| match content {
