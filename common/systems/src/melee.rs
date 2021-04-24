@@ -87,11 +87,12 @@ impl<'a> System<'a> for Sys {
             }
 
             // Go through all other entities
-            for (target, pos_b, health_b, body_b) in (
+            for (target, pos_b, health_b, body_b, uid_b) in (
                 &read_data.entities,
                 &read_data.positions,
                 &read_data.healths,
                 &read_data.bodies,
+                &read_data.uids,
             )
                 .join()
             {
@@ -143,6 +144,7 @@ impl<'a> System<'a> for Sys {
 
                     let target_info = TargetInfo {
                         entity: target,
+                        uid: *uid_b,
                         inventory: read_data.inventories.get(target),
                         stats: read_data.stats.get(target),
                         health: read_data.healths.get(target),

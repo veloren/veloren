@@ -416,7 +416,7 @@ impl SfxMgr {
                 ][rand::thread_rng().gen_range(1..4)];
                 audio.play_sfx(file_ref, *pos, None);
             },
-            Outcome::Block { pos, parry } => {
+            Outcome::Block { pos, parry, .. } => {
                 // TODO: Get audio for blocking and parrying
                 let file_ref_block = vec![
                     "voxygen.audio.sfx.character.block_1",

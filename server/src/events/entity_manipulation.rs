@@ -682,6 +682,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                         stats_b_maybe,
                         ori_b_maybe,
                         char_state_b_maybe,
+                        uid_b,
                     ),
                 ) in (
                     &ecs.entities(),
@@ -693,6 +694,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                         ecs.read_storage::<comp::Stats>().maybe(),
                         ecs.read_storage::<comp::Ori>().maybe(),
                         ecs.read_storage::<comp::CharacterState>().maybe(),
+                        &ecs.read_storage::<Uid>(),
                     ),
                 )
                     .join()
@@ -736,6 +738,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
 
                         let target_info = combat::TargetInfo {
                             entity: entity_b,
+                            uid: *uid_b,
                             inventory: inventory_b_maybe,
                             stats: stats_b_maybe,
                             health: Some(health_b),

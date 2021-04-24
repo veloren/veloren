@@ -61,6 +61,7 @@ pub struct AttackerInfo<'a> {
 #[cfg(not(target_arch = "wasm32"))]
 pub struct TargetInfo<'a> {
     pub entity: EcsEntity,
+    pub uid: Uid,
     pub inventory: Option<&'a Inventory>,
     pub stats: Option<&'a Stats>,
     pub health: Option<&'a Health>,
@@ -135,6 +136,7 @@ impl Attack {
                         emit_outcome(Outcome::Block {
                             parry,
                             pos: target.pos,
+                            uid: target.uid,
                         });
                         if parry {
                             1.0

@@ -190,6 +190,7 @@ impl<'a> System<'a> for Sys {
 
                     let target_info = TargetInfo {
                         entity: target,
+                        uid: *uid_b,
                         inventory: read_data.inventories.get(target),
                         stats: read_data.stats.get(target),
                         health: read_data.healths.get(target),

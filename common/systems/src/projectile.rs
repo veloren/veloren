@@ -128,6 +128,7 @@ impl<'a> System<'a> for Sys {
 
                                     let target_info = TargetInfo {
                                         entity: target,
+                                        uid: other,
                                         inventory: read_data.inventories.get(target),
                                         stats: read_data.stats.get(target),
                                         health: read_data.healths.get(target),

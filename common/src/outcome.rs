@@ -62,6 +62,7 @@ pub enum Outcome {
     Block {
         pos: Vec3<f32>,
         parry: bool,
+        uid: Uid,
     },
 }
 
