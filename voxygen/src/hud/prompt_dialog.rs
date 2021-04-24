@@ -1,11 +1,10 @@
 use super::{img_ids::Imgs, TEXT_COLOR, UI_HIGHLIGHT_0};
 use crate::{
     hud::{Event, PromptDialogSettings},
-    i18n::Localization,
+    i18n::LocalizationHandle,
     settings::Settings,
     ui::fonts::Fonts,
     window::GameInput,
-    AssetHandle,
 };
 use conrod_core::{
     widget::{self, Button, Image, Text},
@@ -32,7 +31,7 @@ pub struct PromptDialog<'a> {
     fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    localized_strings: &'a AssetHandle<Localization>,
+    localized_strings: &'a LocalizationHandle,
     settings: &'a Settings,
     prompt_dialog_settings: &'a PromptDialogSettings,
     key_layout: &'a Option<KeyLayout>,
@@ -43,7 +42,7 @@ impl<'a> PromptDialog<'a> {
     pub fn new(
         imgs: &'a Imgs,
         fonts: &'a Fonts,
-        localized_strings: &'a AssetHandle<Localization>,
+        localized_strings: &'a LocalizationHandle,
         settings: &'a Settings,
         prompt_dialog_settings: &'a PromptDialogSettings,
         key_layout: &'a Option<KeyLayout>,
@@ -85,7 +84,7 @@ impl<'a> Widget for PromptDialog<'a> {
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
-        let _localized_strings = self.localized_strings;
+        let _localized_strings = &self.localized_strings;
         let mut event: Option<DialogOutcomeEvent> = None;
 
         let accept_key = self

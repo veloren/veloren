@@ -1,13 +1,13 @@
 use crate::{
     hud::{img_ids::Imgs, TEXT_COLOR},
-    i18n::list_localizations,
+    i18n::{list_localizations, Localization},
     session::settings_change::{Language as LanguageChange, Language::*},
-    ui::fonts::Fonts,
+    ui::{fonts::Fonts, ToggleButton},
     GlobalState,
 };
 use conrod_core::{
     color,
-    widget::{self, Button, Rectangle, Scrollbar},
+    widget::{self, Button, Rectangle, Scrollbar, Text},
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
@@ -15,6 +15,8 @@ widget_ids! {
     struct Ids {
         window,
         window_r,
+        english_fallback_button,
+        english_fallback_button_label,
         window_scrollbar,
         language_list[],
     }
@@ -23,15 +25,22 @@ widget_ids! {
 #[derive(WidgetCommon)]
 pub struct Language<'a> {
     global_state: &'a GlobalState,
+    localized_strings: &'a Localization,
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 impl<'a> Language<'a> {
-    pub fn new(global_state: &'a GlobalState, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(
+        global_state: &'a GlobalState,
+        imgs: &'a Imgs,
+        fonts: &'a Fonts,
+        localized_strings: &'a Localization,
+    ) -> Self {
         Self {
             global_state,
+            localized_strings,
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
@@ -79,6 +88,7 @@ impl<'a> Widget for Language<'a> {
 
         // List available languages
         let selected_language = &self.global_state.settings.language.selected_language;
+        let english_fallback = self.global_state.settings.language.use_english_fallback;
         let language_list = list_localizations();
         if state.ids.language_list.len() < language_list.len() {
             state.update(|state| {
@@ -116,6 +126,36 @@ impl<'a> Widget for Language<'a> {
                 events.push(ChangeLanguage(Box::new(language.to_owned())));
             }
         }
+
+        // English as fallback language
+        let show_english_fallback = ToggleButton::new(
+            english_fallback,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0);
+        let show_english_fallback = if let Some(id) = state.ids.language_list.last() {
+            show_english_fallback.down_from(*id, 8.0)
+            //mid_bottom_with_margin_on(id, -button_h)
+        } else {
+            show_english_fallback.mid_top_with_margin_on(state.ids.window, 20.0)
+        };
+        let show_english_fallback = show_english_fallback
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.english_fallback_button, ui);
+
+        if english_fallback != show_english_fallback {
+            events.push(ToggleEnglishFallback(show_english_fallback));
+        }
+
+        Text::new(&self.localized_strings.get("hud.settings.english_fallback"))
+            .right_from(state.ids.english_fallback_button, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.english_fallback_button)
+            .color(TEXT_COLOR)
+            .set(state.ids.english_fallback_button_label, ui);
 
         events
     }

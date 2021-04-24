@@ -26,6 +26,7 @@ lazy_static! {
 pub fn start_hot_reloading() { ASSETS.enhance_hot_reloading(); }
 
 pub type AssetHandle<T> = assets_manager::Handle<'static, T>;
+pub type AssetGuard<T> = assets_manager::AssetGuard<'static, T>;
 pub type AssetDir<T> = assets_manager::DirReader<'static, T, source::FileSystem>;
 
 /// The Asset trait, which is implemented by all structures that have their data

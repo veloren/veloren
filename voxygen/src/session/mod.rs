@@ -914,7 +914,7 @@ impl PlayState for SessionState {
             // Look for changes in the localization files
             if global_state.i18n.reloaded() {
                 hud_events.push(HudEvent::SettingsChange(
-                    ChangeLanguage(Box::new(global_state.i18n.read().metadata.clone())).into(),
+                    ChangeLanguage(Box::new(global_state.i18n.read().metadata().clone())).into(),
                 ));
             }
 

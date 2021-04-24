@@ -1,4 +1,4 @@
-use common::assets::{self, AssetExt};
+use common::assets::{self, AssetExt, AssetGuard, AssetHandle};
 use deunicode::deunicode;
 use hashbrown::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
@@ -45,7 +45,7 @@ pub type Fonts = HashMap<String, Font>;
 
 /// Raw localization data, expect the strings to not be loaded here
 /// However, metadata informations are correct
-/// See `Localization` for more info on each attributes
+/// See `Language` for more info on each attributes
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct RawLocalization {
     pub sub_directories: Vec<String>,
@@ -58,7 +58,7 @@ pub struct RawLocalization {
 
 /// Store internationalization data
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct Localization {
+struct Language {
     /// A list of subdirectories to lookup for localization files
     pub sub_directories: Vec<String>,
 
@@ -83,7 +83,7 @@ pub struct Localization {
 }
 
 /// Store internationalization maps
-/// These structs are meant to be merged into a Localization
+/// These structs are meant to be merged into a Language
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct LocalizationFragment {
     /// A map storing the localized texts
@@ -97,16 +97,13 @@ pub struct LocalizationFragment {
     pub vector_map: HashMap<String, Vec<String>>,
 }
 
-impl Localization {
+impl Language {
     /// Get a localized text from the given key
     ///
     /// If the key is not present in the localization object
     /// then the key is returned.
-    pub fn get<'a>(&'a self, key: &'a str) -> &str {
-        match self.string_map.get(key) {
-            Some(localized_text) => localized_text,
-            None => key,
-        }
+    pub fn get<'a>(&'a self, key: &'a str) -> Option<&str> {
+        self.string_map.get(key).map(|s| s.as_str())
     }
 
     /// Get a variation of localized text from the given key
@@ -115,55 +112,32 @@ impl Localization {
     ///
     /// If the key is not present in the localization object
     /// then the key is returned.
-    pub fn get_variation<'a>(&'a self, key: &'a str, index: u16) -> &str {
-        match self.vector_map.get(key) {
-            Some(v) if !v.is_empty() => &v[index as usize % v.len()],
-            _ => key,
-        }
+    pub fn get_variation<'a>(&'a self, key: &'a str, index: u16) -> Option<&str> {
+        self.vector_map
+            .get(key)
+            .map(|v| {
+                if !v.is_empty() {
+                    Some(v[index as usize % v.len()].as_str())
+                } else {
+                    None
+                }
+            })
+            .flatten()
     }
+}
 
-    /// Return the missing keys compared to the reference language
-    fn list_missing_entries(&self) -> (HashSet<String>, HashSet<String>) {
-        let reference_localization =
-            Localization::load_expect(&i18n_asset_key(REFERENCE_LANG)).read();
-
-        let reference_string_keys: HashSet<_> =
-            reference_localization.string_map.keys().cloned().collect();
-        let string_keys: HashSet<_> = self.string_map.keys().cloned().collect();
-        let strings = reference_string_keys
-            .difference(&string_keys)
-            .cloned()
-            .collect();
-
-        let reference_vector_keys: HashSet<_> =
-            reference_localization.vector_map.keys().cloned().collect();
-        let vector_keys: HashSet<_> = self.vector_map.keys().cloned().collect();
-        let vectors = reference_vector_keys
-            .difference(&vector_keys)
-            .cloned()
-            .collect();
-
-        (strings, vectors)
-    }
-
-    /// Log missing entries (compared to the reference language) as warnings
-    pub fn log_missing_entries(&self) {
-        let (missing_strings, missing_vectors) = self.list_missing_entries();
-        for missing_key in missing_strings {
-            warn!(
-                "[{:?}] Missing string key {:?}",
-                self.metadata.language_identifier, missing_key
-            );
-        }
-        for missing_key in missing_vectors {
-            warn!(
-                "[{:?}] Missing vector key {:?}",
-                self.metadata.language_identifier, missing_key
-            );
+impl Default for Language {
+    fn default() -> Self {
+        Self {
+            sub_directories: Vec::default(),
+            string_map: HashMap::default(),
+            vector_map: HashMap::default(),
+            ..Default::default()
         }
     }
 }
-impl From<RawLocalization> for Localization {
+
+impl From<RawLocalization> for Language {
     fn from(raw: RawLocalization) -> Self {
         Self {
             sub_directories: raw.sub_directories,
@@ -195,7 +169,7 @@ impl assets::Asset for LocalizationFragment {
     const EXTENSION: &'static str = "ron";
 }
 
-impl assets::Compound for Localization {
+impl assets::Compound for Language {
     fn load<S: assets::source::Source>(
         cache: &assets::AssetCache<S>,
         asset_key: &str,
@@ -203,7 +177,7 @@ impl assets::Compound for Localization {
         let raw = cache
             .load::<RawLocalization>(&[asset_key, ".", LANG_MANIFEST_FILE].concat())?
             .cloned();
-        let mut localization = Localization::from(raw);
+        let mut localization = Language::from(raw);
 
         // Walk through files in the folder, collecting localization fragment to merge
         // inside the asked_localization
@@ -245,6 +219,139 @@ impl assets::Compound for Localization {
 
         Ok(localization)
     }
+}
+
+/// the central data structure to handle localization in veloren
+// inherit Copy+Clone from AssetHandle
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub struct LocalizationHandle {
+    active: AssetHandle<Language>,
+    fallback: Option<AssetHandle<Language>>,
+    pub use_english_fallback: bool,
+}
+
+// RAII guard returned from Localization::read(), resembles AssetGuard
+pub struct LocalizationGuard {
+    active: AssetGuard<Language>,
+    fallback: Option<AssetGuard<Language>>,
+}
+
+// arbitrary choice to minimize changing all of veloren
+pub type Localization = LocalizationGuard;
+
+impl LocalizationGuard {
+    /// Get a localized text from the given key
+    ///
+    /// If the key is not present in the localization object
+    /// then the key is returned.
+    pub fn get<'a>(&'a self, key: &'a str) -> &str {
+        self.active.get(key).unwrap_or_else(|| {
+            self.fallback
+                .as_ref()
+                .map(|f| f.get(key))
+                .flatten()
+                .unwrap_or(key)
+        })
+    }
+
+    /// Get a variation of localized text from the given key
+    ///
+    /// `index` should be a random number from `0` to `u16::max()`
+    ///
+    /// If the key is not present in the localization object
+    /// then the key is returned.
+    pub fn get_variation<'a>(&'a self, key: &'a str, index: u16) -> &str {
+        self.active.get_variation(key, index).unwrap_or_else(|| {
+            self.fallback
+                .as_ref()
+                .map(|f| f.get_variation(key, index))
+                .flatten()
+                .unwrap_or(key)
+        })
+    }
+
+    /// Return the missing keys compared to the reference language
+    fn list_missing_entries(&self) -> (HashSet<String>, HashSet<String>) {
+        if let Some(ref_lang) = &self.fallback {
+            let reference_string_keys: HashSet<_> = ref_lang.string_map.keys().cloned().collect();
+            let string_keys: HashSet<_> = self.active.string_map.keys().cloned().collect();
+            let strings = reference_string_keys
+                .difference(&string_keys)
+                .cloned()
+                .collect();
+
+            let reference_vector_keys: HashSet<_> = ref_lang.vector_map.keys().cloned().collect();
+            let vector_keys: HashSet<_> = self.active.vector_map.keys().cloned().collect();
+            let vectors = reference_vector_keys
+                .difference(&vector_keys)
+                .cloned()
+                .collect();
+
+            (strings, vectors)
+        } else {
+            (HashSet::default(), HashSet::default())
+        }
+    }
+
+    /// Log missing entries (compared to the reference language) as warnings
+    pub fn log_missing_entries(&self) {
+        let (missing_strings, missing_vectors) = self.list_missing_entries();
+        for missing_key in missing_strings {
+            warn!(
+                "[{:?}] Missing string key {:?}",
+                self.metadata().language_identifier,
+                missing_key
+            );
+        }
+        for missing_key in missing_vectors {
+            warn!(
+                "[{:?}] Missing vector key {:?}",
+                self.metadata().language_identifier,
+                missing_key
+            );
+        }
+    }
+
+    pub fn fonts(&self) -> &Fonts { &self.active.fonts }
+
+    pub fn metadata(&self) -> &LanguageMetadata { &self.active.metadata }
+}
+
+impl LocalizationHandle {
+    pub fn set_english_fallback(&mut self, use_english_fallback: bool) {
+        self.use_english_fallback = use_english_fallback;
+    }
+
+    pub fn read(&self) -> LocalizationGuard {
+        LocalizationGuard {
+            active: self.active.read(),
+            fallback: if self.use_english_fallback {
+                self.fallback.map(|f| f.read())
+            } else {
+                None
+            },
+        }
+    }
+
+    pub fn load(specifier: &str) -> Result<Self, common::assets::Error> {
+        let default_key = i18n_asset_key(REFERENCE_LANG);
+        let is_default = specifier == default_key;
+        Ok(Self {
+            active: Language::load(specifier)?,
+            fallback: if is_default {
+                None
+            } else {
+                Language::load(&default_key).ok()
+            },
+            use_english_fallback: false,
+        })
+    }
+
+    pub fn load_expect(specifier: &str) -> Self {
+        Self::load(specifier).expect("Can't load language files")
+    }
+
+    pub fn reloaded(&mut self) -> bool { self.active.reloaded() }
 }
 
 #[derive(Clone, Debug)]

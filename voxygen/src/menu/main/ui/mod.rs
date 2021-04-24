@@ -5,7 +5,7 @@ mod login;
 mod servers;
 
 use crate::{
-    i18n::{LanguageMetadata, Localization},
+    i18n::{LanguageMetadata, LocalizationHandle},
     render::Renderer,
     ui::{
         self,
@@ -19,7 +19,7 @@ use crate::{
 use iced::{text_input, Column, Container, HorizontalAlignment, Length, Row, Space};
 //ImageFrame, Tooltip,
 use crate::settings::Settings;
-use common::assets::{self, AssetExt, AssetHandle};
+use common::assets::{self, AssetExt};
 use rand::{seq::SliceRandom, thread_rng};
 use std::time::Duration;
 
@@ -124,7 +124,7 @@ struct Controls {
     fonts: Fonts,
     imgs: Imgs,
     bg_img: widget::image::Handle,
-    i18n: AssetHandle<Localization>,
+    i18n: LocalizationHandle,
     // Voxygen version
     version: String,
     // Alpha disclaimer
@@ -169,7 +169,7 @@ impl Controls {
         fonts: Fonts,
         imgs: Imgs,
         bg_img: widget::image::Handle,
-        i18n: AssetHandle<Localization>,
+        i18n: LocalizationHandle,
         settings: &Settings,
     ) -> Self {
         let version = common::util::DISPLAY_VERSION_LONG.clone();
@@ -480,9 +480,9 @@ pub struct MainMenuUi {
 impl<'a> MainMenuUi {
     pub fn new(global_state: &mut GlobalState) -> Self {
         // Load language
-        let i18n = &*global_state.i18n.read();
+        let i18n = &global_state.i18n.read();
         // TODO: don't add default font twice
-        let font = load_font(&i18n.fonts.get("cyri").unwrap().asset_key);
+        let font = load_font(&i18n.fonts().get("cyri").unwrap().asset_key);
 
         let mut ui = Ui::new(
             &mut global_state.window,
@@ -491,7 +491,7 @@ impl<'a> MainMenuUi {
         )
         .unwrap();
 
-        let fonts = Fonts::load(&i18n.fonts, &mut ui).expect("Impossible to load fonts");
+        let fonts = Fonts::load(&i18n.fonts(), &mut ui).expect("Impossible to load fonts");
 
         let bg_img_spec = BG_IMGS.choose(&mut thread_rng()).unwrap();
 
@@ -507,13 +507,13 @@ impl<'a> MainMenuUi {
         Self { ui, controls }
     }
 
-    pub fn update_language(&mut self, i18n: AssetHandle<Localization>, settings: &Settings) {
+    pub fn update_language(&mut self, i18n: LocalizationHandle, settings: &Settings) {
         self.controls.i18n = i18n;
-        let i18n = &*i18n.read();
-        let font = load_font(&i18n.fonts.get("cyri").unwrap().asset_key);
+        let i18n = &i18n.read();
+        let font = load_font(&i18n.fonts().get("cyri").unwrap().asset_key);
         self.ui.clear_fonts(font);
         self.controls.fonts =
-            Fonts::load(&i18n.fonts, &mut self.ui).expect("Impossible to load fonts!");
+            Fonts::load(&i18n.fonts(), &mut self.ui).expect("Impossible to load fonts!");
         let language_metadatas = crate::i18n::list_localizations();
         self.controls.selected_language_index = language_metadatas
             .iter()
