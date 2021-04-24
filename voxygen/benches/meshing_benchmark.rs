@@ -27,7 +27,12 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     (0..GEN_SIZE)
         .flat_map(|x| (0..GEN_SIZE).map(move |y| Vec2::new(x, y)))
         .map(|offset| offset + CENTER)
-        .map(|pos| (pos, world.generate_chunk(index, pos, || false).unwrap()))
+        .map(|pos| {
+            (
+                pos,
+                world.generate_chunk(index, pos, || false, None).unwrap(),
+            )
+        })
         .for_each(|(key, chunk)| {
             terrain.insert(key, Arc::new(chunk.0));
         });

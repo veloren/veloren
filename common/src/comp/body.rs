@@ -282,7 +282,7 @@ impl Body {
             },
             Body::BipedSmall(_) => Vec3::new(1.0, 0.75, 1.4),
             Body::BirdMedium(_) => Vec3::new(2.0, 1.0, 1.1),
-            Body::BirdLarge(_) => Vec3::new(2.0, 5.5, 3.8),
+            Body::BirdLarge(_) => Vec3::new(2.0, 5.0, 2.4),
             Body::Dragon(_) => Vec3::new(16.0, 10.0, 16.0),
             Body::FishMedium(_) => Vec3::new(0.5, 2.0, 0.8),
             Body::FishSmall(_) => Vec3::new(0.3, 1.2, 0.6),

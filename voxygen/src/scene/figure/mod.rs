@@ -3441,10 +3441,7 @@ impl FigureMgr {
                             anim::bird_large::ShootAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    rel_vel.magnitude(),
                                     time,
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     Some(s.stage_section),
                                     state.state_time,
                                     look_dir,

@@ -6,16 +6,7 @@ use common::{states::utils::StageSection, util::Dir};
 
 pub struct ShootAnimation;
 
-type ShootAnimationDependency = (
-    f32,
-    f32,
-    Vec3<f32>,
-    Vec3<f32>,
-    Option<StageSection>,
-    f32,
-    Dir,
-    bool,
-);
+type ShootAnimationDependency = (f32, Option<StageSection>, f32, Dir, bool);
 
 impl Animation for ShootAnimation {
     type Dependency = ShootAnimationDependency;
@@ -27,16 +18,7 @@ impl Animation for ShootAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_shoot")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (
-            _velocity,
-            global_time,
-            _orientation,
-            _last_ori,
-            stage_section,
-            timer,
-            look_dir,
-            on_ground,
-        ): Self::Dependency,
+        (global_time, stage_section, timer, look_dir, on_ground): Self::Dependency,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

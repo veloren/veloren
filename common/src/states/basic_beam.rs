@@ -3,7 +3,7 @@ use crate::{
         Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageSource,
         GroupTarget,
     },
-    comp::{beam, CharacterState, EnergyChange, EnergySource, Ori, Pos, StateUpdate},
+    comp::{beam, Body, CharacterState, EnergyChange, EnergySource, Ori, Pos, StateUpdate},
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -136,11 +136,15 @@ impl CharacterBehavior for Data {
                         owner: Some(*data.uid),
                         specifier: self.static_data.specifier,
                     };
+                    let body_offsets_z = match data.body {
+                        Body::BirdLarge(_) => data.body.height() * 0.9,
+                        _ => data.body.height() * 0.5,
+                    };
                     // Gets offsets
                     let body_offsets = Vec3::new(
-                        (data.body.radius() + 0.2) * data.inputs.look_dir.x,
-                        (data.body.radius() + 0.2) * data.inputs.look_dir.y,
-                        data.body.eye_height() * 0.6,
+                        (data.body.radius() + 1.0) * data.inputs.look_dir.x,
+                        (data.body.radius() + 1.0) * data.inputs.look_dir.y,
+                        body_offsets_z,
                     );
                     let pos = Pos(data.pos.0 + body_offsets);
                     // Create beam segment
