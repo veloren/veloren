@@ -15,29 +15,48 @@ use std::{cmp::Ordering, time::Duration};
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize, PartialOrd, Ord)]
 pub enum BuffKind {
     /// Does damage to a creature over time
+    /// Strength should be 10x the DPS of the debuff
     Burning,
     /// Restores health/time for some period
+    /// Strength should be 10x the healing per second
     Regeneration,
     /// Restores health/time for some period for consumables
+    /// Strength should be 10x the healing per second
     Saturation,
     /// Lowers health over time for some duration
+    /// Strength should be 10x the DPS of the debuff
     Bleeding,
     /// Lower a creature's max health over time
+    /// Strength only affects the target max health, 0.5 targets 50% of base
+    /// max, 1.0 targets 100% of base max
     Cursed,
     /// Applied when drinking a potion
+    /// Strength should be 10x the healing per second
     Potion,
     /// Applied when sitting at a campfire
+    /// Strength is fraction of health resotred per second
     CampfireHeal,
     /// Raises maximum stamina
+    /// Strength should be 10x the effect to max energy
     IncreaseMaxEnergy,
     /// Raises maximum health
+    /// Strength should be 10x the effect to max health
     IncreaseMaxHealth,
     /// Makes you immune to attacks
+    /// Strength does not affect this buff
     Invulnerability,
     /// Reduces incoming damage
+    /// Strength scales the damage reduction non-linearly. 0.5 provides 50% DR,
+    /// 1.0 provides 67% DR
     ProtectingWard,
     /// Reduces movement speed and causes bleeding damage
+    /// Strength scales the movement speed debuff non-linearly. 0.5 is 50%
+    /// speed, 1.0 is 33% speed. Bleeding is at 10x the value of the strength.
     Crippled,
+    /// Increases movement speed and gives health regeneration
+    /// Strength scales the movement speed linearly. 0.5 is 150% speed, 1.0 is
+    /// 200% speed. Provides regeneration at 10x the value of the strength
+    Frenzied,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -57,6 +76,7 @@ impl BuffKind {
             BuffKind::ProtectingWard => true,
             BuffKind::Burning => false,
             BuffKind::Crippled => false,
+            BuffKind::Frenzied => true,
         }
     }
 
@@ -259,6 +279,17 @@ impl Buff {
                     BuffEffect::MovementSpeed(1.0 - nn_scaling(data.strength)),
                     BuffEffect::HealthChangeOverTime {
                         rate: -data.strength * 100.0,
+                        accumulated: 0.0,
+                        kind: ModifierKind::Additive,
+                    },
+                ],
+                data.duration,
+            ),
+            BuffKind::Frenzied => (
+                vec![
+                    BuffEffect::MovementSpeed(1.0 + data.strength),
+                    BuffEffect::HealthChangeOverTime {
+                        rate: data.strength * 100.0,
                         accumulated: 0.0,
                         kind: ModifierKind::Additive,
                     },

@@ -1,0 +1,131 @@
+use crate::{
+    comp::{
+        buff::{Buff, BuffChange, BuffData, BuffKind, BuffSource},
+        CharacterState, StateUpdate,
+    },
+    event::ServerEvent,
+    states::{
+        behavior::{CharacterBehavior, JoinData},
+        utils::*,
+    },
+};
+use serde::{Deserialize, Serialize};
+use std::time::Duration;
+
+/// Separated out to condense update portions of character state
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct StaticData {
+    /// How long until state should create the aura
+    pub buildup_duration: Duration,
+    /// How long the state is creating an aura
+    pub cast_duration: Duration,
+    /// How long the state has until exiting
+    pub recover_duration: Duration,
+    /// What kind of buff is created
+    pub buff_kind: BuffKind,
+    /// Strength of the created buff
+    pub buff_strength: f32,
+    /// How long buff lasts
+    pub buff_duration: Option<Duration>,
+    /// What key is used to press ability
+    pub ability_info: AbilityInfo,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Data {
+    /// Struct containing data that does not change over the course of the
+    /// character state
+    pub static_data: StaticData,
+    /// Timer for each stage
+    pub timer: Duration,
+    /// What section the character stage is in
+    pub stage_section: StageSection,
+}
+
+impl CharacterBehavior for Data {
+    fn behavior(&self, data: &JoinData) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+
+        handle_move(data, &mut update, 0.8);
+        handle_jump(data, &mut update, 1.0);
+
+        match self.stage_section {
+            StageSection::Buildup => {
+                if self.timer < self.static_data.buildup_duration {
+                    // Build up
+                    update.character = CharacterState::SelfBuff(Data {
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        ..*self
+                    });
+                } else {
+                    // Creates buff
+                    let buff = Buff::new(
+                        self.static_data.buff_kind,
+                        BuffData {
+                            strength: self.static_data.buff_strength,
+                            duration: self.static_data.buff_duration,
+                        },
+                        Vec::new(),
+                        BuffSource::Character { by: *data.uid },
+                    );
+                    update.server_events.push_front(ServerEvent::Buff {
+                        entity: data.entity,
+                        buff_change: BuffChange::Add(buff),
+                    });
+                    // Build up
+                    update.character = CharacterState::SelfBuff(Data {
+                        timer: Duration::default(),
+                        stage_section: StageSection::Cast,
+                        ..*self
+                    });
+                }
+            },
+            StageSection::Cast => {
+                if self.timer < self.static_data.cast_duration {
+                    // Cast
+                    update.character = CharacterState::SelfBuff(Data {
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        ..*self
+                    });
+                } else {
+                    update.character = CharacterState::SelfBuff(Data {
+                        timer: Duration::default(),
+                        stage_section: StageSection::Recover,
+                        ..*self
+                    });
+                }
+            },
+            StageSection::Recover => {
+                if self.timer < self.static_data.recover_duration {
+                    update.character = CharacterState::SelfBuff(Data {
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        ..*self
+                    });
+                } else {
+                    // Done
+                    update.character = CharacterState::Wielding;
+                }
+            },
+            _ => {
+                // If it somehow ends up in an incorrect stage section
+                update.character = CharacterState::Wielding;
+            },
+        }
+
+        // At end of state logic so an interrupt isn't overwritten
+        if !input_is_pressed(data, self.static_data.ability_info.input) {
+            handle_state_interrupt(data, &mut update, false);
+        }
+
+        update
+    }
+}

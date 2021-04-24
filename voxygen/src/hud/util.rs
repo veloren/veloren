@@ -119,7 +119,8 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> String {
                 | BuffKind::CampfireHeal
                 | BuffKind::Cursed
                 | BuffKind::ProtectingWard
-                | BuffKind::Crippled => continue,
+                | BuffKind::Crippled
+                | BuffKind::Frenzied => continue,
             };
 
             write!(&mut description, "{}", buff_desc).unwrap();
@@ -140,7 +141,8 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> String {
                     | BuffKind::CampfireHeal
                     | BuffKind::Cursed
                     | BuffKind::ProtectingWard
-                    | BuffKind::Crippled => continue,
+                    | BuffKind::Crippled
+                    | BuffKind::Frenzied => continue,
                 }
             } else if let BuffKind::Saturation | BuffKind::Regeneration = buff.kind {
                 i18n.get("buff.text.every_second").to_string()

@@ -19,6 +19,8 @@
         "buff.desc.invulnerability": "You cannot be damaged by any attack.",
         "buff.title.protectingward": "Protecting Ward",
         "buff.desc.protectingward": "You are protected, somewhat, from attacks.",
+        "buff.title.frenzied": "Frenzied",
+        "buff.desc.frenzied": "You are imbued with nunnatural speed and can ignore minor injuries."
         // Debuffs
         "buff.title.bleed": "Bleeding",
         "buff.desc.bleed": "Inflicts regular damage.",

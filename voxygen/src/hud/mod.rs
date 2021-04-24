@@ -3622,6 +3622,8 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::IncreaseMaxHealth { .. } => imgs.buff_healthplus_0,
         BuffKind::Invulnerability => imgs.buff_invincibility_0,
         BuffKind::ProtectingWard => imgs.buff_dmg_red_0,
+        // TODO: Get buff icon
+        BuffKind::Frenzied { .. } => imgs.buff_invincibility_0,
         //  Debuffs
         BuffKind::Bleeding { .. } => imgs.debuff_bleed_0,
         BuffKind::Cursed { .. } => imgs.debuff_skull_0,
@@ -3642,6 +3644,7 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> &str 
         BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get("buff.title.staminaup"),
         BuffKind::Invulnerability => localized_strings.get("buff.title.invulnerability"),
         BuffKind::ProtectingWard => localized_strings.get("buff.title.protectingward"),
+        BuffKind::Frenzied => localized_strings.get("buff.title.frenzied"),
         // Debuffs
         BuffKind::Bleeding { .. } => localized_strings.get("buff.title.bleed"),
         BuffKind::Cursed { .. } => localized_strings.get("buff.title.cursed"),
@@ -3673,6 +3676,7 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
         BuffKind::ProtectingWard => {
             Cow::Borrowed(localized_strings.get("buff.desc.protectingward"))
         },
+        BuffKind::Frenzied => Cow::Borrowed(localized_strings.get("buff.desc.frenzied")),
         // Debuffs
         BuffKind::Bleeding { .. } => Cow::Borrowed(localized_strings.get("buff.desc.bleed")),
         BuffKind::Cursed { .. } => Cow::Borrowed(localized_strings.get("buff.desc.cursed")),

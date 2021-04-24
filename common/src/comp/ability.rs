@@ -2,8 +2,8 @@ use crate::{
     assets::{self, Asset},
     combat::{self, CombatEffect, Knockback},
     comp::{
-        aura, beam, inventory::item::tool::ToolKind, projectile::ProjectileConstructor, skills,
-        Body, CharacterState, EnergySource, LightEmitter, StateUpdate,
+        aura, beam, buff, inventory::item::tool::ToolKind, projectile::ProjectileConstructor,
+        skills, Body, CharacterState, EnergySource, LightEmitter, StateUpdate,
     },
     states::{
         behavior::JoinData,
@@ -30,6 +30,7 @@ pub enum CharacterAbilityType {
     BasicBeam,
     RepeaterRanged,
     BasicAura,
+    SelfBuff,
 }
 
 impl From<&CharacterState> for CharacterAbilityType {
@@ -49,6 +50,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::BasicBeam(_) => Self::BasicBeam,
             CharacterState::RepeaterRanged(_) => Self::RepeaterRanged,
             CharacterState::BasicAura(_) => Self::BasicAura,
+            CharacterState::SelfBuff(_) => Self::SelfBuff,
             _ => Self::BasicMelee,
         }
     }
@@ -269,6 +271,15 @@ pub enum CharacterAbility {
         summon_amount: u32,
         summon_info: basic_summon::SummonInfo,
     },
+    SelfBuff {
+        buildup_duration: f32,
+        cast_duration: f32,
+        recover_duration: f32,
+        buff_kind: buff::BuffKind,
+        buff_strength: f32,
+        buff_duration: Option<f32>,
+        energy_cost: f32,
+    },
 }
 
 impl Default for CharacterAbility {
@@ -315,7 +326,8 @@ impl CharacterAbility {
             | CharacterAbility::ChargedMelee { energy_cost, .. }
             | CharacterAbility::Shockwave { energy_cost, .. }
             | CharacterAbility::BasicAura { energy_cost, .. }
-            | CharacterAbility::BasicBlock { energy_cost, .. } => update
+            | CharacterAbility::BasicBlock { energy_cost, .. }
+            | CharacterAbility::SelfBuff { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
@@ -336,7 +348,11 @@ impl CharacterAbility {
                         .is_ok()
             },
             CharacterAbility::HealingBeam { .. } => data.combo.counter() > 0,
-            _ => true,
+            CharacterAbility::ComboMelee { .. }
+            | CharacterAbility::Boost { .. }
+            | CharacterAbility::BasicBeam { .. }
+            | CharacterAbility::Blink { .. }
+            | CharacterAbility::BasicSummon { .. } => true,
         }
     }
 
@@ -588,6 +604,18 @@ impl CharacterAbility {
                 *cast_duration /= speed;
                 *recover_duration /= speed;
             },
+            SelfBuff {
+                ref mut buff_strength,
+                ref mut buildup_duration,
+                ref mut cast_duration,
+                ref mut recover_duration,
+                ..
+            } => {
+                *buff_strength *= power;
+                *buildup_duration /= speed;
+                *cast_duration /= speed;
+                *recover_duration /= speed;
+            },
         }
         self
     }
@@ -607,7 +635,8 @@ impl CharacterAbility {
             | Shockwave { energy_cost, .. }
             | HealingBeam { energy_cost, .. }
             | BasicAura { energy_cost, .. }
-            | BasicBlock { energy_cost, .. } => *energy_cost as u32,
+            | BasicBlock { energy_cost, .. }
+            | SelfBuff { energy_cost, .. } => *energy_cost as u32,
             BasicBeam { energy_drain, .. } => {
                 if *energy_drain > f32::EPSILON {
                     1
@@ -615,7 +644,10 @@ impl CharacterAbility {
                     0
                 }
             },
-            Boost { .. } | ComboMelee { .. } | Blink { .. } | BasicSummon { .. } => 0,
+            Boost { .. }
+            | ComboMelee { .. }
+            | Blink { .. }
+            | BasicSummon { .. } => 0,
         }
     }
 
@@ -1658,6 +1690,27 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     ability_info,
                 },
                 summon_count: 0,
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
+            }),
+            CharacterAbility::SelfBuff {
+                buildup_duration,
+                cast_duration,
+                recover_duration,
+                buff_kind,
+                buff_strength,
+                buff_duration,
+                energy_cost: _,
+            } => CharacterState::SelfBuff(self_buff::Data {
+                static_data: self_buff::StaticData {
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    cast_duration: Duration::from_secs_f32(*cast_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
+                    buff_kind: *buff_kind,
+                    buff_strength: *buff_strength,
+                    buff_duration: buff_duration.map(Duration::from_secs_f32),
+                    ability_info,
+                },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
             }),
