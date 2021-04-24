@@ -65,6 +65,7 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
+        handle_orientation(data, &mut update, 1.0);
         handle_move(data, &mut update, self.static_data.move_speed);
         handle_jump(data, &mut update, 1.0);
 
