@@ -1,4 +1,7 @@
-use super::{world_msg::EconomyInfo, ClientType, CompressedData, EcsCompPacket, PingMsg};
+use super::{
+    world_msg::EconomyInfo, ClientType, CompressedData, EcsCompPacket, MixedEncoding, PingMsg,
+    TallPacking, WireChonk,
+};
 use crate::sync;
 use common::{
     character::{self, CharacterItem},
@@ -6,13 +9,14 @@ use common::{
     outcome::Outcome,
     recipe::RecipeBook,
     resources::TimeOfDay,
-    terrain::{Block, TerrainChunk},
+    terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     trade::{PendingTrade, SitePrices, TradeId, TradeResult},
     uid::Uid,
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
+use tracing::warn;
 use vek::*;
 
 ///This struct contains all messages the server might send (on different
@@ -62,6 +66,35 @@ pub enum ServerInit {
 
 pub type ServerRegisterAnswer = Result<(), RegisterError>;
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum SerializedTerrainChunk {
+    DeflatedChonk(CompressedData<TerrainChunk>),
+    PngPngPngJpeg(WireChonk<MixedEncoding, TallPacking, TerrainChunkMeta, TerrainChunkSize>),
+}
+
+impl SerializedTerrainChunk {
+    pub fn deflate(chunk: &TerrainChunk) -> Self {
+        Self::DeflatedChonk(CompressedData::compress(chunk, 5))
+    }
+
+    pub fn image(chunk: &TerrainChunk) -> Self {
+        if let Some(wc) = WireChonk::from_chonk(MixedEncoding, TallPacking { flip_y: true }, chunk)
+        {
+            Self::PngPngPngJpeg(wc)
+        } else {
+            warn!("Image encoding failure occurred, falling back to deflate");
+            Self::deflate(chunk)
+        }
+    }
+
+    pub fn to_chunk(&self) -> Option<TerrainChunk> {
+        match self {
+            Self::DeflatedChonk(chonk) => chonk.decompress(),
+            Self::PngPngPngJpeg(wc) => wc.to_chonk(),
+        }
+    }
+}
+
 /// Messages sent from the server to the client
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ServerGeneral {
@@ -106,7 +139,7 @@ pub enum ServerGeneral {
     // Ingame related AND terrain stream
     TerrainChunkUpdate {
         key: Vec2<i32>,
-        chunk: Result<CompressedData<TerrainChunk>, ()>,
+        chunk: Result<SerializedTerrainChunk, ()>,
     },
     TerrainBlockUpdates(CompressedData<HashMap<Vec3<i32>, Block>>),
     // Always possible

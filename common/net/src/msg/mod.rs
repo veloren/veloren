@@ -9,12 +9,13 @@ pub use self::{
     client::{ClientGeneral, ClientMsg, ClientRegister, ClientType},
     compression::{
         CompressedData, GridLtrPacking, JpegEncoding, MixedEncoding, PackingFormula, PngEncoding,
-        TallPacking, VoxelImageEncoding,
+        TallPacking, VoxelImageEncoding, WireChonk,
     },
     ecs_packet::EcsCompPacket,
     server::{
         CharacterInfo, DisconnectReason, InviteAnswer, Notification, PlayerInfo, PlayerListUpdate,
-        RegisterError, ServerGeneral, ServerInfo, ServerInit, ServerMsg, ServerRegisterAnswer,
+        RegisterError, SerializedTerrainChunk, ServerGeneral, ServerInfo, ServerInit, ServerMsg,
+        ServerRegisterAnswer,
     },
     world_msg::WorldMapMsg,
 };

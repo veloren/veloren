@@ -1,7 +1,7 @@
 use crate::{client::Client, presence::Presence};
 use common::{comp::Pos, terrain::TerrainGrid};
 use common_ecs::{Job, Origin, Phase, System};
-use common_net::msg::{CompressedData, ServerGeneral};
+use common_net::msg::{CompressedData, SerializedTerrainChunk, ServerGeneral};
 use common_state::TerrainChanges;
 use specs::{Join, Read, ReadExpect, ReadStorage};
 
@@ -38,7 +38,7 @@ impl<'a> System<'a> for Sys {
                         lazy_msg = Some(client.prepare(ServerGeneral::TerrainChunkUpdate {
                             key: *chunk_key,
                             chunk: Ok(match terrain.get_key(*chunk_key) {
-                                Some(chunk) => CompressedData::compress(&chunk, 1),
+                                Some(chunk) => SerializedTerrainChunk::image(&chunk),
                                 None => break 'chunk,
                             }),
                         }));

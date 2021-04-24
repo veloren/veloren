@@ -6,7 +6,7 @@ use common::{
     vol::RectVolSize,
 };
 use common_ecs::{Job, Origin, ParMode, Phase, System};
-use common_net::msg::{ClientGeneral, CompressedData, ServerGeneral};
+use common_net::msg::{ClientGeneral, SerializedTerrainChunk, ServerGeneral};
 use rayon::iter::ParallelIterator;
 use specs::{Entities, Join, ParJoin, Read, ReadExpect, ReadStorage};
 use tracing::{debug, trace};
@@ -79,7 +79,7 @@ impl<'a> System<'a> for Sys {
                                         network_metrics.chunks_served_from_memory.inc();
                                         client.send(ServerGeneral::TerrainChunkUpdate {
                                             key,
-                                            chunk: Ok(CompressedData::compress(&chunk, 1)),
+                                            chunk: Ok(SerializedTerrainChunk::image(&chunk)),
                                         })?
                                     },
                                     None => {

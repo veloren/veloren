@@ -14,7 +14,7 @@ use common::{
     LoadoutBuilder, SkillSetBuilder,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use common_net::msg::{CompressedData, ServerGeneral};
+use common_net::msg::{SerializedTerrainChunk, ServerGeneral};
 use common_state::TerrainChanges;
 use comp::Behavior;
 use specs::{Join, Read, ReadStorage, Write, WriteExpect};
@@ -224,7 +224,7 @@ impl<'a> System<'a> for Sys {
         new_chunks.into_par_iter().for_each(|(key, chunk)| {
             let mut msg = Some(ServerGeneral::TerrainChunkUpdate {
                 key,
-                chunk: Ok(CompressedData::compress(&*chunk, 1)),
+                chunk: Ok(SerializedTerrainChunk::image(&*chunk)),
             });
             let mut lazy_msg = None;
 

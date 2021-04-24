@@ -1,16 +1,17 @@
 use common::{
     terrain::{chonk::Chonk, Block, BlockKind, SpriteKind},
-    vol::{BaseVol, IntoVolIterator, ReadVol, RectVolSize, SizedVol, WriteVol},
+    vol::{BaseVol, ReadVol, RectVolSize, WriteVol},
     volumes::vol_grid_2d::VolGrid2d,
 };
-use hashbrown::HashMap;
+use image::{ImageBuffer, ImageDecoder, Pixel};
+use num_traits::cast::FromPrimitive;
 use serde::{Deserialize, Serialize};
 use std::{
     fmt::Debug,
     io::{Read, Write},
     marker::PhantomData,
 };
-use tracing::trace;
+use tracing::{trace, warn};
 use vek::*;
 
 /// Wrapper for compressed, serialized data (for stuff that doesn't use the
@@ -71,7 +72,7 @@ impl<T: for<'a> Deserialize<'a>> CompressedData<T> {
 }
 
 /// Formula for packing voxel data into a 2d array
-pub trait PackingFormula {
+pub trait PackingFormula: Copy {
     fn dimensions(&self, dims: Vec3<u32>) -> (u32, u32);
     fn index(&self, dims: Vec3<u32>, x: u32, y: u32, z: u32) -> (u32, u32);
 }
@@ -79,6 +80,7 @@ pub trait PackingFormula {
 /// A tall, thin image, with no wasted space, but which most image viewers don't
 /// handle well. Z levels increase from top to bottom, xy-slices are stacked
 /// vertically.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct TallPacking {
     /// Making the borders go back and forth based on z-parity preserves spatial
     /// locality better, but is more confusing to look at
@@ -88,6 +90,7 @@ pub struct TallPacking {
 impl PackingFormula for TallPacking {
     fn dimensions(&self, dims: Vec3<u32>) -> (u32, u32) { (dims.x, dims.y * dims.z) }
 
+    #[allow(clippy::many_single_char_names)]
     fn index(&self, dims: Vec3<u32>, x: u32, y: u32, z: u32) -> (u32, u32) {
         let i = x;
         let j0 = if self.flip_y {
@@ -103,6 +106,7 @@ impl PackingFormula for TallPacking {
 /// A grid of the z levels, left to right, top to bottom, like English prose.
 /// Convenient for visualizing terrain, but wastes space if the number of z
 /// levels isn't a perfect square.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct GridLtrPacking;
 
 impl PackingFormula for GridLtrPacking {
@@ -111,6 +115,7 @@ impl PackingFormula for GridLtrPacking {
         (dims.x * rootz, dims.y * rootz)
     }
 
+    #[allow(clippy::many_single_char_names)]
     fn index(&self, dims: Vec3<u32>, x: u32, y: u32, z: u32) -> (u32, u32) {
         let rootz = (dims.z as f64).sqrt().ceil() as u32;
         let i = x + (z % rootz) * dims.x;
@@ -119,23 +124,36 @@ impl PackingFormula for GridLtrPacking {
     }
 }
 
-pub trait VoxelImageEncoding {
+pub trait VoxelImageEncoding: Copy {
     type Workspace;
     type Output;
     fn create(width: u32, height: u32) -> Self::Workspace;
     fn put_solid(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>);
-    fn put_sprite(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, sprite: SpriteKind, ori: Option<u8>);
-    fn finish(ws: &Self::Workspace) -> Self::Output;
+    fn put_sprite(
+        ws: &mut Self::Workspace,
+        x: u32,
+        y: u32,
+        kind: BlockKind,
+        sprite: SpriteKind,
+        ori: Option<u8>,
+    );
+    fn finish(ws: &Self::Workspace) -> Option<Self::Output>;
 }
 
+pub trait VoxelImageDecoding: VoxelImageEncoding {
+    fn start(ws: &Self::Output) -> Option<Self::Workspace>;
+    fn get_block(ws: &Self::Workspace, x: u32, y: u32) -> Block;
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct PngEncoding;
 
 impl VoxelImageEncoding for PngEncoding {
     type Output = Vec<u8>;
-    type Workspace = image::ImageBuffer<image::Rgba<u8>, Vec<u8>>;
+    type Workspace = ImageBuffer<image::Rgba<u8>, Vec<u8>>;
 
     fn create(width: u32, height: u32) -> Self::Workspace {
-        use image::{ImageBuffer, Rgba};
+        use image::Rgba;
         ImageBuffer::<Rgba<u8>, Vec<u8>>::new(width, height)
     }
 
@@ -143,11 +161,22 @@ impl VoxelImageEncoding for PngEncoding {
         ws.put_pixel(x, y, image::Rgba([rgb.r, rgb.g, rgb.b, 255 - kind as u8]));
     }
 
-    fn put_sprite(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, sprite: SpriteKind, ori: Option<u8>) {
-        ws.put_pixel(x, y, image::Rgba([kind as u8, sprite as u8, ori.unwrap_or(0), 255]));
+    fn put_sprite(
+        ws: &mut Self::Workspace,
+        x: u32,
+        y: u32,
+        kind: BlockKind,
+        sprite: SpriteKind,
+        ori: Option<u8>,
+    ) {
+        ws.put_pixel(
+            x,
+            y,
+            image::Rgba([kind as u8, sprite as u8, ori.unwrap_or(0), 255]),
+        );
     }
 
-    fn finish(ws: &Self::Workspace) -> Self::Output {
+    fn finish(ws: &Self::Workspace) -> Option<Self::Output> {
         use image::codecs::png::{CompressionType, FilterType};
         let mut buf = Vec::new();
         let png = image::codecs::png::PngEncoder::new_with_quality(
@@ -161,19 +190,20 @@ impl VoxelImageEncoding for PngEncoding {
             ws.height(),
             image::ColorType::Rgba8,
         )
-        .unwrap();
-        buf
+        .ok()?;
+        Some(buf)
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct JpegEncoding;
 
 impl VoxelImageEncoding for JpegEncoding {
     type Output = Vec<u8>;
-    type Workspace = image::ImageBuffer<image::Rgba<u8>, Vec<u8>>;
+    type Workspace = ImageBuffer<image::Rgba<u8>, Vec<u8>>;
 
     fn create(width: u32, height: u32) -> Self::Workspace {
-        use image::{ImageBuffer, Rgba};
+        use image::Rgba;
         ImageBuffer::<Rgba<u8>, Vec<u8>>::new(width, height)
     }
 
@@ -181,31 +211,39 @@ impl VoxelImageEncoding for JpegEncoding {
         ws.put_pixel(x, y, image::Rgba([rgb.r, rgb.g, rgb.b, 255 - kind as u8]));
     }
 
-    fn put_sprite(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, sprite: SpriteKind, _: Option<u8>) {
+    fn put_sprite(
+        ws: &mut Self::Workspace,
+        x: u32,
+        y: u32,
+        kind: BlockKind,
+        sprite: SpriteKind,
+        _: Option<u8>,
+    ) {
         ws.put_pixel(x, y, image::Rgba([kind as u8, sprite as u8, 255, 255]));
     }
 
-    fn finish(ws: &Self::Workspace) -> Self::Output {
+    fn finish(ws: &Self::Workspace) -> Option<Self::Output> {
         let mut buf = Vec::new();
         let mut jpeg = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut buf, 1);
-        jpeg.encode_image(ws).unwrap();
-        buf
+        jpeg.encode_image(ws).ok()?;
+        Some(buf)
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct MixedEncoding;
 
 impl VoxelImageEncoding for MixedEncoding {
     type Output = (Vec<u8>, [usize; 3]);
+    #[allow(clippy::type_complexity)]
     type Workspace = (
-        image::ImageBuffer<image::Luma<u8>, Vec<u8>>,
-        image::ImageBuffer<image::Luma<u8>, Vec<u8>>,
-        image::ImageBuffer<image::Luma<u8>, Vec<u8>>,
-        image::ImageBuffer<image::Rgb<u8>, Vec<u8>>,
+        ImageBuffer<image::Luma<u8>, Vec<u8>>,
+        ImageBuffer<image::Luma<u8>, Vec<u8>>,
+        ImageBuffer<image::Luma<u8>, Vec<u8>>,
+        ImageBuffer<image::Rgb<u8>, Vec<u8>>,
     );
 
     fn create(width: u32, height: u32) -> Self::Workspace {
-        use image::ImageBuffer;
         (
             ImageBuffer::new(width, height),
             ImageBuffer::new(width, height),
@@ -221,39 +259,174 @@ impl VoxelImageEncoding for MixedEncoding {
         ws.3.put_pixel(x, y, image::Rgb([rgb.r, rgb.g, rgb.b]));
     }
 
-    fn put_sprite(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, sprite: SpriteKind, ori: Option<u8>) {
+    fn put_sprite(
+        ws: &mut Self::Workspace,
+        x: u32,
+        y: u32,
+        kind: BlockKind,
+        sprite: SpriteKind,
+        ori: Option<u8>,
+    ) {
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
         ws.1.put_pixel(x, y, image::Luma([sprite as u8]));
         ws.2.put_pixel(x, y, image::Luma([ori.unwrap_or(0)]));
         ws.3.put_pixel(x, y, image::Rgb([0; 3]));
     }
 
-    fn finish(ws: &Self::Workspace) -> Self::Output {
+    fn finish(ws: &Self::Workspace) -> Option<Self::Output> {
         let mut buf = Vec::new();
         use image::codecs::png::{CompressionType, FilterType};
         let mut indices = [0; 3];
-        let mut f = |x: &image::ImageBuffer<_, Vec<u8>>, i| {
+        let mut f = |x: &ImageBuffer<_, Vec<u8>>, i| {
             let png = image::codecs::png::PngEncoder::new_with_quality(
                 &mut buf,
                 CompressionType::Fast,
                 FilterType::Up,
             );
-            png.encode(
-                &*x.as_raw(),
-                x.width(),
-                x.height(),
-                image::ColorType::L8,
-            )
-            .unwrap();
+            png.encode(&*x.as_raw(), x.width(), x.height(), image::ColorType::L8)
+                .ok()?;
             indices[i] = buf.len();
+            Some(())
         };
-        f(&ws.0, 0);
-        f(&ws.1, 1);
-        f(&ws.2, 2);
+        f(&ws.0, 0)?;
+        f(&ws.1, 1)?;
+        f(&ws.2, 2)?;
 
-        let mut jpeg = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut buf, 1);
-        jpeg.encode_image(&ws.3).unwrap();
-        (buf, indices)
+        let mut jpeg = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut buf, 10);
+        jpeg.encode_image(&ws.3).ok()?;
+        Some((buf, indices))
+    }
+}
+
+fn image_from_bytes<'a, I: ImageDecoder<'a>, P: 'static + Pixel<Subpixel = u8>>(
+    decoder: I,
+) -> Option<ImageBuffer<P, Vec<u8>>> {
+    let (w, h) = decoder.dimensions();
+    let mut buf = vec![0; decoder.total_bytes() as usize];
+    decoder.read_image(&mut buf).ok()?;
+    ImageBuffer::from_raw(w, h, buf)
+}
+
+impl VoxelImageDecoding for MixedEncoding {
+    fn start((quad, indices): &Self::Output) -> Option<Self::Workspace> {
+        use image::codecs::{jpeg::JpegDecoder, png::PngDecoder};
+        let ranges: [_; 4] = [
+            0..indices[0],
+            indices[0]..indices[1],
+            indices[1]..indices[2],
+            indices[2]..quad.len(),
+        ];
+        tracing::info!("{:?} {:?}", ranges, indices);
+        let a = image_from_bytes(PngDecoder::new(&quad[ranges[0].clone()]).ok()?)?;
+        let b = image_from_bytes(PngDecoder::new(&quad[ranges[1].clone()]).ok()?)?;
+        let c = image_from_bytes(PngDecoder::new(&quad[ranges[2].clone()]).ok()?)?;
+        let d = image_from_bytes(JpegDecoder::new(&quad[ranges[3].clone()]).ok()?)?;
+        Some((a, b, c, d))
+    }
+
+    fn get_block(ws: &Self::Workspace, x: u32, y: u32) -> Block {
+        if let Some(kind) = BlockKind::from_u8(ws.0.get_pixel(x, y).0[0]) {
+            if kind.is_filled() {
+                let rgb = ws.3.get_pixel(x, y);
+                Block::new(kind, Rgb {
+                    r: rgb[0],
+                    g: rgb[1],
+                    b: rgb[2],
+                })
+            } else {
+                let mut block = Block::new(kind, Rgb { r: 0, g: 0, b: 0 });
+                if let Some(spritekind) = SpriteKind::from_u8(ws.1.get_pixel(x, y).0[0]) {
+                    block = block.with_sprite(spritekind);
+                }
+                if let Some(oriblock) = block.with_ori(ws.2.get_pixel(x, y).0[0]) {
+                    block = oriblock;
+                }
+                block
+            }
+        } else {
+            Block::empty()
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct QuadPngEncoding;
+
+impl VoxelImageEncoding for QuadPngEncoding {
+    type Output = CompressedData<(Vec<u8>, [usize; 3])>;
+    #[allow(clippy::type_complexity)]
+    type Workspace = (
+        ImageBuffer<image::Luma<u8>, Vec<u8>>,
+        ImageBuffer<image::Luma<u8>, Vec<u8>>,
+        ImageBuffer<image::Luma<u8>, Vec<u8>>,
+        ImageBuffer<image::Rgb<u8>, Vec<u8>>,
+    );
+
+    fn create(width: u32, height: u32) -> Self::Workspace {
+        (
+            ImageBuffer::new(width, height),
+            ImageBuffer::new(width, height),
+            ImageBuffer::new(width, height),
+            ImageBuffer::new(width, height),
+        )
+    }
+
+    fn put_solid(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
+        ws.0.put_pixel(x, y, image::Luma([kind as u8]));
+        ws.1.put_pixel(x, y, image::Luma([0]));
+        ws.2.put_pixel(x, y, image::Luma([0]));
+        ws.3.put_pixel(x, y, image::Rgb([rgb.r, rgb.g, rgb.b]));
+    }
+
+    fn put_sprite(
+        ws: &mut Self::Workspace,
+        x: u32,
+        y: u32,
+        kind: BlockKind,
+        sprite: SpriteKind,
+        ori: Option<u8>,
+    ) {
+        ws.0.put_pixel(x, y, image::Luma([kind as u8]));
+        ws.1.put_pixel(x, y, image::Luma([sprite as u8]));
+        ws.2.put_pixel(x, y, image::Luma([ori.unwrap_or(0)]));
+        ws.3.put_pixel(x, y, image::Rgb([0; 3]));
+    }
+
+    fn finish(ws: &Self::Workspace) -> Option<Self::Output> {
+        let mut buf = Vec::new();
+        use image::codecs::png::{CompressionType, FilterType};
+        let mut indices = [0; 3];
+        let mut f = |x: &ImageBuffer<_, Vec<u8>>, i| {
+            let png = image::codecs::png::PngEncoder::new_with_quality(
+                &mut buf,
+                CompressionType::Fast,
+                FilterType::Up,
+            );
+            png.encode(&*x.as_raw(), x.width(), x.height(), image::ColorType::L8)
+                .ok()?;
+            indices[i] = buf.len();
+            Some(())
+        };
+        f(&ws.0, 0)?;
+        f(&ws.1, 1)?;
+        f(&ws.2, 2)?;
+
+        {
+            let png = image::codecs::png::PngEncoder::new_with_quality(
+                &mut buf,
+                CompressionType::Fast,
+                FilterType::Paeth,
+            );
+            png.encode(
+                &*ws.3.as_raw(),
+                ws.3.width(),
+                ws.3.height(),
+                image::ColorType::Rgb8,
+            )
+            .ok()?;
+        }
+
+        Some(CompressedData::compress(&(buf, indices), 4))
     }
 }
 
@@ -261,7 +434,7 @@ pub fn image_terrain_chonk<S: RectVolSize, M: Clone, P: PackingFormula, VIE: Vox
     vie: VIE,
     packing: P,
     chonk: &Chonk<Block, S, M>,
-) -> VIE::Output {
+) -> Option<VIE::Output> {
     image_terrain(
         vie,
         packing,
@@ -280,7 +453,7 @@ pub fn image_terrain_volgrid<
     vie: VIE,
     packing: P,
     volgrid: &VolGrid2d<Chonk<Block, S, M>>,
-) -> VIE::Output {
+) -> Option<VIE::Output> {
     let mut lo = Vec3::broadcast(i32::MAX);
     let mut hi = Vec3::broadcast(i32::MIN);
     for (pos, chonk) in volgrid.iter() {
@@ -306,8 +479,13 @@ pub fn image_terrain<
     vol: &V,
     lo: Vec3<u32>,
     hi: Vec3<u32>,
-) -> VIE::Output {
-    let dims = hi - lo;
+) -> Option<VIE::Output> {
+    tracing::info!("image_terrain:  {:?} {:?}", lo, hi);
+    let dims = Vec3::new(
+        hi.x.wrapping_sub(lo.x),
+        hi.y.wrapping_sub(lo.y),
+        hi.z.wrapping_sub(lo.z),
+    );
 
     let (width, height) = packing.dimensions(dims);
     let mut image = VIE::create(width, height);
@@ -317,7 +495,14 @@ pub fn image_terrain<
                 let (i, j) = packing.index(dims, x, y, z);
 
                 let block = *vol
-                    .get(Vec3::new(x + lo.x, y + lo.y, z + lo.z).as_())
+                    .get(
+                        Vec3::new(
+                            x.wrapping_add(lo.x),
+                            y.wrapping_add(lo.y),
+                            z.wrapping_add(lo.z),
+                        )
+                        .as_(),
+                    )
                     .unwrap_or(&Block::empty());
                 match (block.get_color(), block.get_sprite()) {
                     (Some(rgb), None) => {
@@ -339,69 +524,85 @@ pub fn image_terrain<
     VIE::finish(&image)
 }
 
-pub struct MixedEncodingDenseSprites;
-
-impl VoxelImageEncoding for MixedEncodingDenseSprites {
-    type Output = (Vec<u8>, [usize; 3]);
-    type Workspace = (
-        image::ImageBuffer<image::Luma<u8>, Vec<u8>>,
-        Vec<u8>,
-        Vec<u8>,
-        image::ImageBuffer<image::Rgb<u8>, Vec<u8>>,
+pub fn write_image_terrain<
+    V: BaseVol<Vox = Block> + WriteVol,
+    P: PackingFormula,
+    VIE: VoxelImageEncoding + VoxelImageDecoding,
+>(
+    _: VIE,
+    packing: P,
+    vol: &mut V,
+    data: &VIE::Output,
+    lo: Vec3<u32>,
+    hi: Vec3<u32>,
+) -> Option<()> {
+    let ws = VIE::start(data)?;
+    let dims = Vec3::new(
+        hi.x.wrapping_sub(lo.x),
+        hi.y.wrapping_sub(lo.y),
+        hi.z.wrapping_sub(lo.z),
     );
+    for z in 0..dims.z {
+        for y in 0..dims.y {
+            for x in 0..dims.x {
+                let (i, j) = packing.index(dims, x, y, z);
+                let block = VIE::get_block(&ws, i, j);
+                if let Err(e) = vol.set(lo.as_() + Vec3::new(x, y, z).as_(), block) {
+                    warn!(
+                        "Error placing a block into a volume at {:?}: {:?}",
+                        (x, y, z),
+                        e
+                    );
+                }
+            }
+        }
+    }
+    Some(())
+}
 
-    fn create(width: u32, height: u32) -> Self::Workspace {
-        use image::ImageBuffer;
-        (
-            ImageBuffer::new(width, height),
-            Vec::new(),
-            Vec::new(),
-            ImageBuffer::new(width, height),
-        )
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WireChonk<VIE: VoxelImageEncoding, P: PackingFormula, M: Clone, S: RectVolSize> {
+    zmin: i32,
+    zmax: i32,
+    data: VIE::Output,
+    below: Block,
+    above: Block,
+    meta: M,
+    vie: VIE,
+    packing: P,
+    size: PhantomData<S>,
+}
+
+impl<VIE: VoxelImageEncoding + VoxelImageDecoding, P: PackingFormula, M: Clone, S: RectVolSize>
+    WireChonk<VIE, P, M, S>
+{
+    pub fn from_chonk(vie: VIE, packing: P, chonk: &Chonk<Block, S, M>) -> Option<Self> {
+        let data = image_terrain_chonk(vie, packing, chonk)?;
+        Some(Self {
+            zmin: chonk.get_min_z(),
+            zmax: chonk.get_max_z(),
+            data,
+            below: *chonk
+                .get(Vec3::new(0, 0, chonk.get_min_z().saturating_sub(1)))
+                .ok()?,
+            above: *chonk.get(Vec3::new(0, 0, chonk.get_max_z() + 1)).ok()?,
+            meta: chonk.meta().clone(),
+            vie,
+            packing,
+            size: PhantomData,
+        })
     }
 
-    fn put_solid(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
-        ws.0.put_pixel(x, y, image::Luma([kind as u8]));
-        ws.3.put_pixel(x, y, image::Rgb([rgb.r, rgb.g, rgb.b]));
-    }
-
-    fn put_sprite(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, sprite: SpriteKind, ori: Option<u8>) {
-        ws.0.put_pixel(x, y, image::Luma([kind as u8]));
-        ws.1.push(sprite as u8);
-        ws.2.push(ori.unwrap_or(0));
-        ws.3.put_pixel(x, y, image::Rgb([0; 3]));
-    }
-
-    fn finish(ws: &Self::Workspace) -> Self::Output {
-        let mut buf = Vec::new();
-        use image::codecs::png::{CompressionType, FilterType};
-        let mut indices = [0; 3];
-        let mut f = |x: &image::ImageBuffer<_, Vec<u8>>, i| {
-            let png = image::codecs::png::PngEncoder::new_with_quality(
-                &mut buf,
-                CompressionType::Fast,
-                FilterType::Up,
-            );
-            png.encode(
-                &*x.as_raw(),
-                x.width(),
-                x.height(),
-                image::ColorType::L8,
-            )
-            .unwrap();
-            indices[i] = buf.len();
-        };
-        f(&ws.0, 0);
-        let mut g = |x: &[u8], i| {
-            buf.extend_from_slice(&*CompressedData::compress(&x, 4).data);
-            indices[i] = buf.len();
-        };
-
-        g(&ws.1, 1);
-        g(&ws.2, 2);
-
-        let mut jpeg = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut buf, 1);
-        jpeg.encode_image(&ws.3).unwrap();
-        (buf, indices)
+    pub fn to_chonk(&self) -> Option<Chonk<Block, S, M>> {
+        let mut chonk = Chonk::new(self.zmin, self.below, self.above, self.meta.clone());
+        write_image_terrain(
+            self.vie,
+            self.packing,
+            &mut chonk,
+            &self.data,
+            Vec3::new(0, 0, self.zmin as u32),
+            Vec3::new(S::RECT_SIZE.x, S::RECT_SIZE.y, self.zmax as u32),
+        )?;
+        Some(chonk)
     }
 }

@@ -9,10 +9,11 @@ use common::{
 };
 use common_net::msg::compression::{
     image_terrain, image_terrain_chonk, image_terrain_volgrid, CompressedData, GridLtrPacking,
-    JpegEncoding, MixedEncoding, MixedEncodingDenseSprites, PackingFormula, PngEncoding,
-    TallPacking, VoxelImageEncoding,
+    JpegEncoding, MixedEncoding, PackingFormula, PngEncoding, QuadPngEncoding, TallPacking,
+    VoxelImageEncoding,
 };
 use hashbrown::HashMap;
+use image::ImageBuffer;
 use std::{
     io::{Read, Write},
     sync::Arc,
@@ -120,6 +121,7 @@ fn channelize_dyna<M: Clone, A: Access>(
     (blocks, r, g, b, sprites)
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct MixedEncodingSparseSprites;
 
 impl VoxelImageEncoding for MixedEncodingSparseSprites {
@@ -135,7 +137,6 @@ impl VoxelImageEncoding for MixedEncodingSparseSprites {
     );
 
     fn create(width: u32, height: u32) -> Self::Workspace {
-        use image::ImageBuffer;
         (
             ImageBuffer::new(width, height),
             ImageBuffer::new(width, height),
@@ -161,7 +162,7 @@ impl VoxelImageEncoding for MixedEncodingSparseSprites {
         ws.2.insert(Vec2::new(x, y), (sprite, ori.unwrap_or(0)));
     }
 
-    fn finish(ws: &Self::Workspace) -> Self::Output {
+    fn finish(ws: &Self::Workspace) -> Option<Self::Output> {
         let mut buf = Vec::new();
         use image::codecs::png::{CompressionType, FilterType};
         let png = image::codecs::png::PngEncoder::new_with_quality(
@@ -175,11 +176,81 @@ impl VoxelImageEncoding for MixedEncodingSparseSprites {
             ws.0.height(),
             image::ColorType::L8,
         )
-        .unwrap();
+        .ok()?;
         let index = buf.len();
         let mut jpeg = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut buf, 1);
-        jpeg.encode_image(&ws.1).unwrap();
-        (buf, index, CompressedData::compress(&ws.2, 4))
+        jpeg.encode_image(&ws.1).ok()?;
+        Some((buf, index, CompressedData::compress(&ws.2, 4)))
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct MixedEncodingDenseSprites;
+
+impl VoxelImageEncoding for MixedEncodingDenseSprites {
+    type Output = (Vec<u8>, [usize; 3]);
+    type Workspace = (
+        ImageBuffer<image::Luma<u8>, Vec<u8>>,
+        Vec<u8>,
+        Vec<u8>,
+        ImageBuffer<image::Rgb<u8>, Vec<u8>>,
+    );
+
+    fn create(width: u32, height: u32) -> Self::Workspace {
+        (
+            ImageBuffer::new(width, height),
+            Vec::new(),
+            Vec::new(),
+            ImageBuffer::new(width, height),
+        )
+    }
+
+    fn put_solid(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
+        ws.0.put_pixel(x, y, image::Luma([kind as u8]));
+        ws.3.put_pixel(x, y, image::Rgb([rgb.r, rgb.g, rgb.b]));
+    }
+
+    fn put_sprite(
+        ws: &mut Self::Workspace,
+        x: u32,
+        y: u32,
+        kind: BlockKind,
+        sprite: SpriteKind,
+        ori: Option<u8>,
+    ) {
+        ws.0.put_pixel(x, y, image::Luma([kind as u8]));
+        ws.1.push(sprite as u8);
+        ws.2.push(ori.unwrap_or(0));
+        ws.3.put_pixel(x, y, image::Rgb([0; 3]));
+    }
+
+    fn finish(ws: &Self::Workspace) -> Option<Self::Output> {
+        let mut buf = Vec::new();
+        use image::codecs::png::{CompressionType, FilterType};
+        let mut indices = [0; 3];
+        let mut f = |x: &ImageBuffer<_, Vec<u8>>, i| {
+            let png = image::codecs::png::PngEncoder::new_with_quality(
+                &mut buf,
+                CompressionType::Fast,
+                FilterType::Up,
+            );
+            png.encode(&*x.as_raw(), x.width(), x.height(), image::ColorType::L8)
+                .ok()?;
+            indices[i] = buf.len();
+            Some(())
+        };
+        f(&ws.0, 0)?;
+        let mut g = |x: &[u8], i| {
+            buf.extend_from_slice(&*CompressedData::compress(&x, 4).data);
+            indices[i] = buf.len();
+        };
+
+        g(&ws.1, 1);
+        g(&ws.2, 2);
+
+        let mut jpeg = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut buf, 1);
+        jpeg.encode_image(&ws.3).ok()?;
+        Some((buf, indices))
     }
 }
 
@@ -258,8 +329,8 @@ fn main() {
     ));
 
     for (sitename, sitepos) in sites.iter() {
-        let mut totals = [0.0; 12];
-        let mut total_timings = [0.0; 9];
+        let mut totals = [0.0; 13];
+        let mut total_timings = [0.0; 10];
         let mut count = 0;
         let mut volgrid = VolGrid2d::new().unwrap();
         for (i, spiralpos) in Spiral2d::new()
@@ -305,7 +376,8 @@ fn main() {
                     do_deflate_flate2(&bincode::serialize(&channelize_dyna(&dyna)).unwrap());
 
                 let jpegchonkgrid_pre = Instant::now();
-                let jpegchonkgrid = image_terrain_chonk(JpegEncoding, GridLtrPacking, &chunk);
+                let jpegchonkgrid =
+                    image_terrain_chonk(JpegEncoding, GridLtrPacking, &chunk).unwrap();
                 let jpegchonkgrid_post = Instant::now();
 
                 if false {
@@ -320,29 +392,42 @@ fn main() {
 
                 let jpegchonktall_pre = Instant::now();
                 let jpegchonktall =
-                    image_terrain_chonk(JpegEncoding, TallPacking { flip_y: false }, &chunk);
+                    image_terrain_chonk(JpegEncoding, TallPacking { flip_y: false }, &chunk)
+                        .unwrap();
                 let jpegchonktall_post = Instant::now();
 
                 let jpegchonkflip_pre = Instant::now();
                 let jpegchonkflip =
-                    image_terrain_chonk(JpegEncoding, TallPacking { flip_y: true }, &chunk);
+                    image_terrain_chonk(JpegEncoding, TallPacking { flip_y: true }, &chunk)
+                        .unwrap();
                 let jpegchonkflip_post = Instant::now();
 
                 let mixedchonk_pre = Instant::now();
                 let mixedchonk =
-                    image_terrain_chonk(MixedEncoding, TallPacking { flip_y: true }, &chunk);
+                    image_terrain_chonk(MixedEncoding, TallPacking { flip_y: true }, &chunk)
+                        .unwrap();
                 let mixedchonk_post = Instant::now();
 
                 let mixeddeflate = CompressedData::compress(&mixedchonk, 1);
                 let mixeddeflate_post = Instant::now();
 
                 let mixeddense_pre = Instant::now();
-                let mixeddense =
-                    image_terrain_chonk(MixedEncodingDenseSprites, TallPacking { flip_y: true }, &chunk);
+                let mixeddense = image_terrain_chonk(
+                    MixedEncodingDenseSprites,
+                    TallPacking { flip_y: true },
+                    &chunk,
+                )
+                .unwrap();
                 let mixeddense_post = Instant::now();
 
+                let quadpng_pre = Instant::now();
+                let quadpng =
+                    image_terrain_chonk(QuadPngEncoding, TallPacking { flip_y: true }, &chunk)
+                        .unwrap();
+                let quadpng_post = Instant::now();
+
                 let pngchonk_pre = Instant::now();
-                let pngchonk = image_terrain_chonk(PngEncoding, GridLtrPacking, &chunk);
+                let pngchonk = image_terrain_chonk(PngEncoding, GridLtrPacking, &chunk).unwrap();
                 let pngchonk_post = Instant::now();
 
                 let n = uncompressed.len();
@@ -358,6 +443,7 @@ fn main() {
                     mixedchonk.0.len() as f32 / n as f32,
                     mixeddeflate.data.len() as f32 / n as f32,
                     mixeddense.0.len() as f32 / n as f32,
+                    quadpng.data.len() as f32 / n as f32,
                     pngchonk.len() as f32 / n as f32,
                 ];
                 let best_idx = sizes
@@ -380,6 +466,7 @@ fn main() {
                     (mixedchonk_post - mixedchonk_pre).subsec_nanos(),
                     (mixeddeflate_post - mixedchonk_pre).subsec_nanos(),
                     (mixeddense_post - mixeddense_pre).subsec_nanos(),
+                    (quadpng_post - quadpng_pre).subsec_nanos(),
                     (pngchonk_post - pngchonk_pre).subsec_nanos(),
                 ];
                 trace!(
@@ -408,12 +495,12 @@ fn main() {
                     let mut f =
                         File::create(&format!("chonkjpegs/{}_{}.jpg", sitename, count)).unwrap();
                     let jpeg_volgrid =
-                        image_terrain_volgrid(JpegEncoding, GridLtrPacking, &volgrid);
+                        image_terrain_volgrid(JpegEncoding, GridLtrPacking, &volgrid).unwrap();
                     f.write_all(&*jpeg_volgrid).unwrap();
 
                     let mixedgrid_pre = Instant::now();
                     let (mixed_volgrid, indices) =
-                        image_terrain_volgrid(MixedEncoding, GridLtrPacking, &volgrid);
+                        image_terrain_volgrid(MixedEncoding, GridLtrPacking, &volgrid).unwrap();
                     let mixedgrid_post = Instant::now();
                     let seconds = (mixedgrid_post - mixedgrid_pre).as_secs_f64();
                     println!(
@@ -455,7 +542,8 @@ fn main() {
                 println!("Average mixedchonk: {}", totals[8] / count as f32);
                 println!("Average mixeddeflate: {}", totals[9] / count as f32);
                 println!("Average mixeddense: {}", totals[10] / count as f32);
-                println!("Average pngchonk: {}", totals[11] / count as f32);
+                println!("Average quadpng: {}", totals[11] / count as f32);
+                println!("Average pngchonk: {}", totals[12] / count as f32);
                 println!("");
                 println!(
                     "Average lz4_chonk nanos    : {:02}",
@@ -490,8 +578,12 @@ fn main() {
                     total_timings[7] / count as f32
                 );
                 println!(
-                    "Average pngchonk nanos: {:02}",
+                    "Average quadpng nanos: {:02}",
                     total_timings[8] / count as f32
+                );
+                println!(
+                    "Average pngchonk nanos: {:02}",
+                    total_timings[9] / count as f32
                 );
                 println!("-----");
             }

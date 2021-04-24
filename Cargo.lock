@@ -5516,6 +5516,7 @@ dependencies = [
  "flate2",
  "hashbrown",
  "image",
+ "num-traits",
  "serde",
  "specs",
  "specs-idvs",

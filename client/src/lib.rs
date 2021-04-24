@@ -1952,7 +1952,7 @@ impl Client {
     fn handle_server_terrain_msg(&mut self, msg: ServerGeneral) -> Result<(), Error> {
         match msg {
             ServerGeneral::TerrainChunkUpdate { key, chunk } => {
-                if let Some(chunk) = chunk.ok().and_then(|c| c.decompress()) {
+                if let Some(chunk) = chunk.ok().and_then(|c| c.to_chunk()) {
                     self.state.insert_chunk(key, Arc::new(chunk));
                 }
                 self.pending_chunks.remove(&key);
