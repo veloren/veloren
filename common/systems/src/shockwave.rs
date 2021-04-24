@@ -164,6 +164,7 @@ impl<'a> System<'a> for Sys {
                 // Check if it is a hit
                 let hit = entity != target
                     && !health_b.is_dead
+                    && (pos_b.0 - pos.0).magnitude() < frame_end_dist + rad_b
                     // Collision shapes
                     && {
                         // TODO: write code to collide rect with the arc strip so that we can do
