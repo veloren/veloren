@@ -205,7 +205,7 @@ impl ParticleMgr {
             },
             Outcome::Block { pos, parry } => {
                 if *parry {
-                    self.particles.resize_with(self.particles.len() + 20, || {
+                    self.particles.resize_with(self.particles.len() + 10, || {
                         Particle::new(
                             Duration::from_millis(200),
                             time,

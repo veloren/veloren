@@ -350,8 +350,8 @@ impl CharacterAbility {
 
     pub fn default_block() -> CharacterAbility {
         CharacterAbility::BasicBlock {
-            buildup_duration: 0.3,
-            recover_duration: 0.2,
+            buildup_duration: 0.35,
+            recover_duration: 0.3,
             max_angle: 60.0,
             block_strength: 0.5,
             energy_cost: 50.0,
