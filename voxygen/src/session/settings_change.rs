@@ -5,7 +5,7 @@ use crate::{
         BarNumbers, BuffPosition, CrosshairType, Intro, PressBehavior, ScaleChange,
         ShortcutNumbers, XpBar,
     },
-    i18n::{i18n_asset_key, LanguageMetadata, Localization},
+    i18n::{i18n_asset_key, LanguageMetadata, LocalizationHandle},
     render::RenderMode,
     settings::{
         AudioSettings, ControlSettings, Fps, GamepadSettings, GameplaySettings, GraphicsSettings,
@@ -14,7 +14,6 @@ use crate::{
     window::{FullScreenSettings, GameInput},
     GlobalState,
 };
-use common::assets::AssetExt;
 use vek::*;
 
 #[derive(Clone)]
@@ -118,6 +117,7 @@ pub enum Interface {
 #[derive(Clone)]
 pub enum Language {
     ChangeLanguage(Box<LanguageMetadata>),
+    ToggleEnglishFallback(bool),
 }
 #[derive(Clone)]
 pub enum Networking {}
@@ -470,11 +470,20 @@ impl SettingsChange {
             SettingsChange::Language(language_change) => match language_change {
                 Language::ChangeLanguage(new_language) => {
                     settings.language.selected_language = new_language.language_identifier;
-                    global_state.i18n = Localization::load_expect(&i18n_asset_key(
+                    global_state.i18n = LocalizationHandle::load_expect(&i18n_asset_key(
                         &settings.language.selected_language,
                     ));
                     global_state.i18n.read().log_missing_entries();
+                    global_state
+                        .i18n
+                        .set_english_fallback(settings.language.use_english_fallback);
                     session_state.hud.update_fonts(&global_state.i18n.read());
+                },
+                Language::ToggleEnglishFallback(toggle_fallback) => {
+                    settings.language.use_english_fallback = toggle_fallback;
+                    global_state
+                        .i18n
+                        .set_english_fallback(settings.language.use_english_fallback);
                 },
             },
             SettingsChange::Networking(networking_change) => match networking_change {},

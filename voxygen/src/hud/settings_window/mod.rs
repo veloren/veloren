@@ -288,7 +288,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 }
             },
             SettingsTab::Lang => {
-                for change in language::Language::new(global_state, imgs, fonts)
+                for change in language::Language::new(global_state, imgs, fonts, localized_strings)
                     .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
                     .wh_of(state.ids.settings_content_align)
                     .set(state.ids.language, ui)

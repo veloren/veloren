@@ -1,5 +1,5 @@
 use crate::{
-    i18n::Localization,
+    i18n::{Localization, LocalizationHandle},
     render::Renderer,
     ui::{
         self,
@@ -22,7 +22,6 @@ use crate::{
 };
 use client::{Client, ServerInfo};
 use common::{
-    assets::AssetHandle,
     character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER, MAX_NAME_LENGTH},
     comp::{self, humanoid, inventory::slot::EquipSlot, Inventory, Item},
     LoadoutBuilder,
@@ -1467,7 +1466,7 @@ impl CharSelectionUi {
         let i18n = global_state.i18n.read();
 
         // TODO: don't add default font twice
-        let font = ui::ice::load_font(&i18n.fonts.get("cyri").unwrap().asset_key);
+        let font = ui::ice::load_font(&i18n.fonts().get("cyri").unwrap().asset_key);
 
         let mut ui = Ui::new(
             &mut global_state.window,
@@ -1476,7 +1475,7 @@ impl CharSelectionUi {
         )
         .unwrap();
 
-        let fonts = Fonts::load(&i18n.fonts, &mut ui).expect("Impossible to load fonts");
+        let fonts = Fonts::load(i18n.fonts(), &mut ui).expect("Impossible to load fonts");
 
         #[cfg(feature = "singleplayer")]
         let default_name = match global_state.singleplayer {
@@ -1538,13 +1537,13 @@ impl CharSelectionUi {
         }
     }
 
-    pub fn update_language(&mut self, i18n: AssetHandle<Localization>) {
+    pub fn update_language(&mut self, i18n: LocalizationHandle) {
         let i18n = i18n.read();
-        let font = ui::ice::load_font(&i18n.fonts.get("cyri").unwrap().asset_key);
+        let font = ui::ice::load_font(&i18n.fonts().get("cyri").unwrap().asset_key);
 
         self.ui.clear_fonts(font);
         self.controls.fonts =
-            Fonts::load(&i18n.fonts, &mut self.ui).expect("Impossible to load fonts!");
+            Fonts::load(i18n.fonts(), &mut self.ui).expect("Impossible to load fonts!");
     }
 
     pub fn set_scale_mode(&mut self, scale_mode: ui::ScaleMode) {

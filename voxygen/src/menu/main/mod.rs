@@ -5,7 +5,7 @@ use super::char_selection::CharSelectionState;
 #[cfg(feature = "singleplayer")]
 use crate::singleplayer::Singleplayer;
 use crate::{
-    i18n::{i18n_asset_key, Localization},
+    i18n::{i18n_asset_key, Localization, LocalizationHandle},
     render::Renderer,
     settings::Settings,
     window::Event,
@@ -18,7 +18,7 @@ use client::{
     ServerInfo,
 };
 use client_init::{ClientConnArgs, ClientInit, Error as InitError, Msg as InitMsg};
-use common::{assets::AssetExt, comp};
+use common::comp;
 use common_base::span;
 use std::{fmt::Debug, sync::Arc};
 use tokio::runtime;
@@ -295,10 +295,13 @@ impl PlayState for MainMenuState {
                 MainMenuEvent::ChangeLanguage(new_language) => {
                     global_state.settings.language.selected_language =
                         new_language.language_identifier;
-                    global_state.i18n = Localization::load_expect(&i18n_asset_key(
+                    global_state.i18n = LocalizationHandle::load_expect(&i18n_asset_key(
                         &global_state.settings.language.selected_language,
                     ));
                     global_state.i18n.read().log_missing_entries();
+                    global_state
+                        .i18n
+                        .set_english_fallback(global_state.settings.language.use_english_fallback);
                     self.main_menu_ui
                         .update_language(global_state.i18n, &global_state.settings);
                 },

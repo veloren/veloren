@@ -797,7 +797,7 @@ impl Hud {
         // Load item images.
         let item_imgs = ItemImgs::new(&mut ui, imgs.not_found);
         // Load fonts.
-        let fonts = Fonts::load(&global_state.i18n.read().fonts, &mut ui)
+        let fonts = Fonts::load(global_state.i18n.read().fonts(), &mut ui)
             .expect("Impossible to load fonts!");
         // Get the server name.
         let server = &client.server_info().name;
@@ -889,7 +889,7 @@ impl Hud {
     }
 
     pub fn update_fonts(&mut self, i18n: &Localization) {
-        self.fonts = Fonts::load(&i18n.fonts, &mut self.ui).expect("Impossible to load fonts!");
+        self.fonts = Fonts::load(i18n.fonts(), &mut self.ui).expect("Impossible to load fonts!");
     }
 
     #[allow(clippy::assign_op_pattern)] // TODO: Pending review in #587
@@ -913,7 +913,7 @@ impl Hud {
         // FPS
         let fps = global_state.clock.stats().average_tps;
         let version = common::util::DISPLAY_VERSION_LONG.clone();
-        let i18n = &*global_state.i18n.read();
+        let i18n = &global_state.i18n.read();
         let key_layout = &global_state.window.key_layout;
 
         if self.show.ingame {
@@ -2438,7 +2438,7 @@ impl Hud {
                     client,
                     &self.imgs,
                     &self.fonts,
-                    i18n,
+                    &*i18n,
                     self.pulse,
                     &self.rot_imgs,
                     item_tooltip_manager,

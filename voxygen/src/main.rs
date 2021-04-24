@@ -5,7 +5,7 @@
 
 use veloren_voxygen::{
     audio::AudioFrontend,
-    i18n::{self, i18n_asset_key, Localization},
+    i18n::{self, i18n_asset_key, LocalizationHandle},
     profile::Profile,
     run,
     scene::terrain::SpriteRenderContext,
@@ -15,7 +15,7 @@ use veloren_voxygen::{
 };
 
 use common::{
-    assets::{self, AssetExt},
+    assets::{self},
     clock::Clock,
 };
 use std::panic;
@@ -163,7 +163,7 @@ fn main() {
     // Load the profile.
     let profile = Profile::load();
 
-    let i18n = Localization::load(&i18n_asset_key(&settings.language.selected_language))
+    let mut i18n = LocalizationHandle::load(&i18n_asset_key(&settings.language.selected_language))
         .unwrap_or_else(|error| {
             let selected_language = &settings.language.selected_language;
             warn!(
@@ -172,9 +172,10 @@ fn main() {
                 "Impossible to load language: change to the default language (English) instead.",
             );
             settings.language.selected_language = i18n::REFERENCE_LANG.to_owned();
-            Localization::load_expect(&i18n_asset_key(&settings.language.selected_language))
+            LocalizationHandle::load_expect(&i18n_asset_key(&settings.language.selected_language))
         });
     i18n.read().log_missing_entries();
+    i18n.set_english_fallback(settings.language.use_english_fallback);
 
     // Create window
     let (mut window, event_loop) = Window::new(&settings).expect("Failed to create window!");
