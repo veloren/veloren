@@ -1373,7 +1373,7 @@ impl Hud {
                             1.0
                         };
 
-                        Text::new("Blocked")
+                        Text::new(&i18n.get("hud.sct.block"))
                             .font_size(font_size)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(0.0, 0.0, 0.0, fade))
@@ -1382,10 +1382,10 @@ impl Hud {
                                 ui_widgets.win_h * (tweak!(-0.3)) + y - tweak!(3.0),
                             )
                             .set(player_sct_bg_id, ui_widgets);
-                        Text::new("Blocked")
+                        Text::new(&i18n.get("hud.sct.block"))
                             .font_size(font_size)
                             .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(tweak!(0.9), tweak!(0.85), tweak!(0.2), fade))
+                            .color(Color::Rgba(tweak!(0.69), tweak!(0.82), tweak!(0.88), fade))
                             .x_y(
                                 ui_widgets.win_w * (tweak!(0.0)),
                                 ui_widgets.win_h * (tweak!(-0.3)) + y,
@@ -3656,8 +3656,8 @@ pub fn get_buff_desc(buff: BuffKind, localized_strings: &Localization) -> &str {
 
 pub fn get_buff_time(buff: BuffInfo) -> String {
     if let Some(dur) = buff.dur {
-        format!("Remaining: {:.0}s", dur.as_secs_f32())
+        format!("{:.0}s", dur.as_secs_f32())
     } else {
-        "Permanent".to_string()
+        "".to_string()
     }
 }
