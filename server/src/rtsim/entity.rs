@@ -75,10 +75,6 @@ impl Entity {
         }
     }
 
-    pub fn get_level(&self) -> u32 {
-        (self.rng(PERM_LEVEL).gen::<f32>().powi(2) * 15.0).ceil() as u32
-    }
-
     pub fn get_loadout(&self) -> comp::inventory::loadout::Loadout {
         let mut rng = self.rng(PERM_LOADOUT);
         let main_tool = comp::Item::new_from_asset_expect(
@@ -109,12 +105,15 @@ impl Entity {
             _ => None,
         };
 
-        let lantern = match rng.gen_range(0..3) {
+        let lantern = match rng.gen_range(0..4) {
             0 => Some(comp::Item::new_from_asset_expect(
                 "common.items.lantern.black_0",
             )),
             1 => Some(comp::Item::new_from_asset_expect(
                 "common.items.lantern.blue_0",
+            )),
+            2 => Some(comp::Item::new_from_asset_expect(
+                "common.items.lantern.green_0",
             )),
             _ => Some(comp::Item::new_from_asset_expect(
                 "common.items.lantern.red_0",
