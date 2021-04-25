@@ -619,23 +619,25 @@ impl<'a> AgentData<'a> {
                         self.idle(agent, controller, &read_data);
                     }
 
-                // If not fleeing, attack the hostile
-                // entity!
+                // If not fleeing, attack the hostile entity!
                 } else {
-                    // If the hostile entity is dead or in a safezone, return to idle
+                    // If the hostile entity is dead or has an invulnerability buff (eg, those
+                    // applied in safezones), return to idle
                     if should_stop_attacking(
                         read_data.healths.get(target),
                         read_data.buffs.get(target),
                     ) {
-                        agent.target = None;
                         if agent.behavior.can(BehaviorCapability::SPEAK) {
                             let msg = "npc.speech.villager_enemy_killed".to_string();
                             event_emitter
                                 .emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
                         }
+
+                        agent.target = None;
                     // Choose a new target every 10 seconds, but only for
                     // enemies
-                    // TODO: This should be more principled. Consider factoring
+                    // TODO: This should be more
+                    // principled. Consider factoring
                     // health, combat rating, wielded weapon, etc, into the
                     // decision to change target.
                     } else if read_data.time.0 - selected_at > RETARGETING_THRESHOLD_SECONDS
@@ -1411,6 +1413,7 @@ impl<'a> AgentData<'a> {
                         || e_pos.0.distance_squared(self.pos.0) < listen_dist.powi(2)) // TODO implement proper sound system for agents
                     && e != self.entity
                     && !e_health.is_dead
+                    && !invulnerability_is_in_buffs(read_data.buffs.get(*e))
                     && (try_owner_alignment(self.alignment, &read_data).and_then(|a| try_owner_alignment(*e_alignment, &read_data).map(|b| a.hostile_towards(*b))).unwrap_or(false) || (
                             if let Some(rtsim_entity) = &self.rtsim_entity {
                                 if rtsim_entity.brain.remembers_fight_with_character(&e_stats.name) {
@@ -2868,8 +2871,11 @@ fn can_see_tgt(terrain: &TerrainGrid, pos: &Pos, tgt_pos: &Pos, dist_sqrd: f32) 
 
 // If target is dead or has invulnerability buff, returns true
 fn should_stop_attacking(health: Option<&Health>, buffs: Option<&Buffs>) -> bool {
-    health.map_or(true, |a| a.is_dead)
-        || buffs.map_or(false, |b| b.kinds.contains_key(&BuffKind::Invulnerability))
+    health.map_or(true, |a| a.is_dead) || invulnerability_is_in_buffs(buffs)
+}
+
+fn invulnerability_is_in_buffs(buffs: Option<&Buffs>) -> bool {
+    buffs.map_or(false, |b| b.kinds.contains_key(&BuffKind::Invulnerability))
 }
 
 /// Attempts to get alignment of owner if entity has Owned alignment

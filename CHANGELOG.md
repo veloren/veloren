@@ -102,6 +102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Staff fire shockwave ability no longer has an unlimited vertical range
 - Skillbar buttons correctly account for skill points when checking if player has enough stamina for the ability.
 - Burning Debuff icon is now displayed correctly.
+- Villagers in safezones no longer spam messages upon seeing an enemy
 
 ## [0.9.0] - 2021-03-20
 
