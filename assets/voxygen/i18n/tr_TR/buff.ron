@@ -13,7 +13,7 @@
         "buff.title.saturation": "Tokluk",
         "buff.desc.saturation": "Tüketilebilen maddelerden zamanla can kazan.",
         "buff.title.campfire_heal": "Kamp Ateşi",
-        "buff.desc.campfire_heal": "Kamp ateşinin yakınında oturmak canını saniyede %1 iyileştirir.",
+        "buff.desc.campfire_heal": "Kamp ateşinin yakınında oturmak canını saniyede %{rate} iyileştirir.",
         "buff.title.bleed": "Kanama",
         "buff.desc.bleed": "Devamlı hasar verir.",
     },

@@ -14,7 +14,7 @@
         "buff.title.saturation": "サチュレーション",
         "buff.desc.saturation": "アイテムを使って一定時間体力を増やす",
         "buff.title.campfire_heal": "キャンプファイヤー ヒール",
-        "buff.desc.campfire_heal": "焚き火のそばに座ると1秒毎に1％体力回復",
+        "buff.desc.campfire_heal": "焚き火のそばに座ると1秒毎に{rate}％体力回復",
         "buff.title.invulnerability": "インバルネラビリティ",
         "buff.desc.invulnerability": "どんな攻撃のダメージも受けない",
         "buff.title.protectingward": "プロテクティング ワード",

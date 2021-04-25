@@ -12,7 +12,7 @@
         "buff.title.saturation": "Najedzenie",
         "buff.desc.saturation": "Odzyskaj zdrowie jedząc żywność.",
         "buff.title.campfire_heal": "Odpoczynek przy ognisku",
-        "buff.desc.campfire_heal": "Odpoczywanie przy ognisku odzyskuje 1% zdrowia na sekundę.",
+        "buff.desc.campfire_heal": "Odpoczywanie przy ognisku odzyskuje {rate}% zdrowia na sekundę.",
         "buff.title.invulnerability": "Nietykalność",
         "buff.desc.invulnerability": "Nie można Cię zranić.",
         "buff.title.protectingward": "Totem ochronny",

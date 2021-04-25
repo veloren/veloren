@@ -14,7 +14,7 @@
         "buff.title.saturation": "Saturation",
         "buff.desc.saturation": "Régénère progressivement des points de vie grâce à la nourriture.",
         "buff.title.campfire_heal": "Soin autour d'un feu de camp",
-        "buff.desc.campfire_heal": "Se reposer à côté d'un feu de camp restaure 1% de santé chaque seconde.",
+        "buff.desc.campfire_heal": "Se reposer à côté d'un feu de camp restaure {rate}% de santé chaque seconde.",
         "buff.title.invulnerability": "Invulnérabilité",
         "buff.desc.invulnerability": "Vous ne pouvez pas être blessé par une attaque.",
         "buff.title.protectingward": "Aura de Protection",

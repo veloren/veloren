@@ -72,7 +72,7 @@ use common::{
         inventory::trade_pricing::TradePricing,
         item::{tool::ToolKind, ItemDesc, MaterialStatManifest, Quality},
         skills::{Skill, SkillGroupKind},
-        BuffKind, Item,
+        BuffData, BuffKind, Item,
     },
     consts::MAX_PICKUP_RANGE,
     outcome::Outcome,
@@ -96,6 +96,7 @@ use hashbrown::HashMap;
 use rand::Rng;
 use specs::{Join, WorldExt};
 use std::{
+    borrow::Cow,
     collections::VecDeque,
     sync::Arc,
     time::{Duration, Instant},
@@ -3544,21 +3545,33 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> &str 
     }
 }
 
-pub fn get_buff_desc(buff: BuffKind, localized_strings: &Localization) -> &str {
+pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localization) -> Cow<str> {
     match buff {
         // Buffs
-        BuffKind::Regeneration { .. } => localized_strings.get("buff.desc.heal"),
-        BuffKind::Saturation { .. } => localized_strings.get("buff.desc.saturation"),
-        BuffKind::Potion { .. } => localized_strings.get("buff.desc.potion"),
-        BuffKind::CampfireHeal { .. } => localized_strings.get("buff.desc.campfire_heal"),
-        BuffKind::IncreaseMaxHealth { .. } => localized_strings.get("buff.desc.IncreaseMaxHealth"),
-        BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get("buff.desc.IncreaseMaxEnergy"),
-        BuffKind::Invulnerability => localized_strings.get("buff.desc.invulnerability"),
-        BuffKind::ProtectingWard => localized_strings.get("buff.desc.protectingward"),
+        BuffKind::Regeneration { .. } => Cow::Borrowed(localized_strings.get("buff.desc.heal")),
+        BuffKind::Saturation { .. } => Cow::Borrowed(localized_strings.get("buff.desc.saturation")),
+        BuffKind::Potion { .. } => Cow::Borrowed(localized_strings.get("buff.desc.potion")),
+        BuffKind::CampfireHeal { .. } => Cow::Owned(
+            localized_strings
+                .get("buff.desc.campfire_heal")
+                .replace("{rate}", &format!("{:.0}", data.strength * 100.0)),
+        ),
+        BuffKind::IncreaseMaxHealth { .. } => {
+            Cow::Borrowed(localized_strings.get("buff.desc.IncreaseMaxHealth"))
+        },
+        BuffKind::IncreaseMaxEnergy { .. } => {
+            Cow::Borrowed(localized_strings.get("buff.desc.IncreaseMaxEnergy"))
+        },
+        BuffKind::Invulnerability => {
+            Cow::Borrowed(localized_strings.get("buff.desc.invulnerability"))
+        },
+        BuffKind::ProtectingWard => {
+            Cow::Borrowed(localized_strings.get("buff.desc.protectingward"))
+        },
         // Debuffs
-        BuffKind::Bleeding { .. } => localized_strings.get("buff.desc.bleed"),
-        BuffKind::Cursed { .. } => localized_strings.get("buff.desc.cursed"),
-        BuffKind::Burning { .. } => localized_strings.get("buff.desc.burn"),
+        BuffKind::Bleeding { .. } => Cow::Borrowed(localized_strings.get("buff.desc.bleed")),
+        BuffKind::Cursed { .. } => Cow::Borrowed(localized_strings.get("buff.desc.cursed")),
+        BuffKind::Burning { .. } => Cow::Borrowed(localized_strings.get("buff.desc.burn")),
     }
 }
 

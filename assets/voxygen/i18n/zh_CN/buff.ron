@@ -14,7 +14,7 @@
         "buff.title.saturation": "饱腹",
         "buff.desc.saturation": "吃饱喝足后,一定时间内生命值随缓慢恢复.",
         "buff.title.campfire_heal": "篝火疗愈",
-        "buff.desc.campfire_heal": "在篝火旁休息每秒可治愈1%生命.",
+        "buff.desc.campfire_heal": "在篝火旁休息每秒可治愈{rate}%生命.",
         "buff.title.invulnerability": "无敌",
         "buff.desc.invulnerability": "你不会受到任何攻击的伤害.",
         "buff.title.protectingward": "守护领域",

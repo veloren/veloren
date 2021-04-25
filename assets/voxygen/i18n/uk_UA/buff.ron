@@ -14,7 +14,7 @@
         "buff.title.saturation": "Насичення",
         "buff.desc.saturation": "Поступово відновлює Здоров'я з їжі.",
         "buff.title.campfire_heal": "Відновлення біля ватри",
-        "buff.desc.campfire_heal": "Відпочинок біля ватри лікує на 1% за секунду.",
+        "buff.desc.campfire_heal": "Відпочинок біля ватри лікує на {rate}% за секунду.",
         "buff.title.invulnerability": "Невразливість",
         "buff.desc.invulnerability": "Ви невразливий, тільки тримайтесь подалі від омели.",
         "buff.title.protectingward": "Захисна Аура",

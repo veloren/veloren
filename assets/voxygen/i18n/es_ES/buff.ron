@@ -14,7 +14,7 @@
         "buff.title.saturation": "Saturación",
         "buff.desc.saturation": "Restaura salud durante un tiempo por consumibles.",
         "buff.title.campfire_heal": "Fogata curativa",
-        "buff.desc.campfire_heal": "Descansar en una fogata te sana 1% por segundo.",
+        "buff.desc.campfire_heal": "Descansar en una fogata te sana {rate}% por segundo.",
         "buff.title.invulnerability": "Invulnerabilidad",
         "buff.desc.invulnerability": "No puedes ser dañado por ningún ataque.",
         "buff.title.protectingward": "Guardián protector",
