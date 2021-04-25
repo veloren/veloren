@@ -1,7 +1,9 @@
 use crate::metrics::ChunkGenMetrics;
 #[cfg(not(feature = "worldgen"))]
 use crate::test_world::{IndexOwned, World};
-use common::{generation::ChunkSupplement, slowjob::SlowJobPool, terrain::TerrainChunk};
+use common::{
+    generation::ChunkSupplement, resources::TimeOfDay, slowjob::SlowJobPool, terrain::TerrainChunk,
+};
 use hashbrown::{hash_map::Entry, HashMap};
 use specs::Entity as EcsEntity;
 use std::sync::{
@@ -42,6 +44,7 @@ impl ChunkGenerator {
         slowjob_pool: &SlowJobPool,
         world: Arc<World>,
         index: IndexOwned,
+        time: TimeOfDay,
     ) {
         let v = if let Entry::Vacant(v) = self.pending_chunks.entry(key) {
             v
@@ -55,7 +58,7 @@ impl ChunkGenerator {
         slowjob_pool.spawn("CHUNK_GENERATOR", move || {
             let index = index.as_index_ref();
             let payload = world
-                .generate_chunk(index, key, || cancel.load(Ordering::Relaxed))
+                .generate_chunk(index, key, || cancel.load(Ordering::Relaxed), Some(time))
                 .map_err(|_| entity);
             let _ = chunk_tx.send((key, payload));
         });

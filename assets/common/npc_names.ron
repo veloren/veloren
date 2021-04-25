@@ -804,10 +804,6 @@
                 keyword: "parrot",
                 generic: "Parrot"
             ),
-            cockatrice: (
-                keyword: "cockatrice",
-                generic: "Cockatrice"
-            )
         )
     ),
     biped_large: (
@@ -1068,12 +1064,23 @@
             )
         )
     ),
-    bird_small: (
+    bird_large: (
         body: (
-            keyword: "bird_small",
-            names_0: []
+            keyword: "bird_large",
+            names_0: [
+                "Aitvaras"
+            ]
         ),
-        species: ()
+        species: (
+            phoenix: (
+                keyword: "phoenix",
+                generic: "Phoenix"
+            ),
+            cockatrice: (
+                keyword: "cockatrice",
+                generic: "Cockatrice"
+            ),
+        )
     ),
     quadruped_low: (
         body: (

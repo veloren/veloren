@@ -129,11 +129,11 @@ impl Body {
             },
 
             // Cross-section, zero-lift angle; exclude the wings (width * 0.2)
-            Body::BirdMedium(_) | Body::BirdSmall(_) | Body::Dragon(_) => {
+            Body::BirdMedium(_) | Body::BirdLarge(_) | Body::Dragon(_) => {
                 let dim = self.dimensions().map(|a| a * 0.5);
                 let cd = match self {
                     Body::BirdMedium(_) => 0.2,
-                    Body::BirdSmall(_) => 0.4,
+                    Body::BirdLarge(_) => 0.4,
                     _ => 0.7,
                 };
                 cd * std::f32::consts::PI * dim.x * 0.2 * dim.z

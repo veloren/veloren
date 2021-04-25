@@ -50,8 +50,8 @@ macro_rules! skeleton_impls {
 
 pub mod biped_large;
 pub mod biped_small;
+pub mod bird_large;
 pub mod bird_medium;
-pub mod bird_small;
 pub mod character;
 pub mod dragon;
 #[cfg(feature = "use-dyn-lib")] pub mod dyn_lib;

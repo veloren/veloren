@@ -50,7 +50,7 @@ pub use self::{
     aura::{Aura, AuraChange, AuraKind, Auras},
     beam::{Beam, BeamSegment},
     body::{
-        biped_large, biped_small, bird_medium, bird_small, dragon, fish_medium, fish_small, golem,
+        biped_large, biped_small, bird_large, bird_medium, dragon, fish_medium, fish_small, golem,
         humanoid, object, quadruped_low, quadruped_medium, quadruped_small, ship, theropod,
         AllBodies, Body, BodyData,
     },

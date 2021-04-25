@@ -99,7 +99,6 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Owl, Male) => (2.5, 5.0),
                 (Owl, Female) => (2.5, 7.0),
                 (Parrot, _) => (0.5, 4.5),
-                (Cockatrice, _) => (0.0, 4.0),
             },
             chest: match (body.species, body.body_type) {
                 (Duck, _) => (0.0, 5.0),
@@ -111,7 +110,6 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Owl, Male) => (0.0, 4.5),
                 (Owl, Female) => (0.0, 4.5),
                 (Parrot, _) => (0.0, 5.0),
-                (Cockatrice, _) => (0.0, 12.5),
             },
             tail: match (body.species, body.body_type) {
                 (Duck, _) => (-3.0, 1.5),
@@ -123,7 +121,6 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Owl, Male) => (-6.0, -2.0),
                 (Owl, Female) => (-6.0, -2.5),
                 (Parrot, _) => (-8.0, -2.0),
-                (Cockatrice, _) => (-10.0, -2.5),
             },
             wing: match (body.species, body.body_type) {
                 (Duck, _) => (2.75, 0.0, 1.0),
@@ -135,7 +132,6 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Owl, Male) => (3.5, -5.5, 4.0),
                 (Owl, Female) => (3.5, -6.0, 3.5),
                 (Parrot, _) => (2.0, -4.5, 3.0),
-                (Cockatrice, _) => (4.5, -2.5, 1.5),
             },
             foot: match (body.species, body.body_type) {
                 (Duck, _) => (2.0, -1.5, 4.0),
@@ -147,7 +143,6 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Owl, Male) => (1.5, -2.5, 7.0),
                 (Owl, Female) => (1.5, -3.0, 6.5),
                 (Parrot, _) => (1.5, -3.0, 3.0),
-                (Cockatrice, _) => (4.0, -3.5, 12.0),
             },
             feed: match (body.species, body.body_type) {
                 (Chicken, _) => 1.2,
@@ -155,7 +150,6 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Peacock, _) => 1.6,
                 (Eagle, _) => 1.2,
                 (Parrot, _) => 1.2,
-                (Cockatrice, _) => 1.3,
                 _ => 1.0,
             },
         }

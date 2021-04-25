@@ -50,6 +50,7 @@ use crate::{
 use common::{
     assets,
     generation::{ChunkSupplement, EntityInfo},
+    resources::TimeOfDay,
     terrain::{Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, WriteVol},
 };
@@ -171,7 +172,9 @@ impl World {
 
         // Unwrapping because generate_chunk only returns err when should_continue evals
         // to true
-        let (tc, _cs) = self.generate_chunk(index, chunk_pos, || false).unwrap();
+        let (tc, _cs) = self
+            .generate_chunk(index, chunk_pos, || false, None)
+            .unwrap();
         let min_z = tc.get_min_z();
         let max_z = tc.get_max_z();
 
@@ -209,6 +212,7 @@ impl World {
         chunk_pos: Vec2<i32>,
         // TODO: misleading name
         mut should_continue: impl FnMut() -> bool,
+        time: Option<TimeOfDay>,
     ) -> Result<(TerrainChunk, ChunkSupplement), ()> {
         let mut sampler = self.sample_blocks();
 
@@ -390,6 +394,7 @@ impl World {
             index,
             sim_chunk,
             &mut supplement,
+            time,
         );
 
         // Apply site supplementary information

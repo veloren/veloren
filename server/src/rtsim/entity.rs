@@ -38,11 +38,17 @@ impl Entity {
         match self.rng(PERM_GENUS).gen::<f32>() {
             // we want 5% airships, 45% birds, 50% humans
             x if x < 0.05 => comp::Body::Ship(comp::ship::Body::DefaultAirship),
-            x if x < 0.50 => {
+            x if x < 0.45 => {
                 let species = *(&comp::bird_medium::ALL_SPECIES)
                     .choose(&mut self.rng(PERM_SPECIES))
                     .unwrap();
                 comp::bird_medium::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
+            },
+            x if x < 0.50 => {
+                let species = *(&comp::bird_large::ALL_SPECIES)
+                    .choose(&mut self.rng(PERM_SPECIES))
+                    .unwrap();
+                comp::bird_large::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
             },
             _ => {
                 let species = *(&comp::humanoid::ALL_SPECIES)
@@ -60,7 +66,7 @@ impl Entity {
             comp::Body::BirdMedium(b) => {
                 get_npc_name(&npc_names.bird_medium, b.species).to_string()
             },
-            comp::Body::BirdSmall(_) => "Warbler".to_string(),
+            comp::Body::BirdLarge(b) => get_npc_name(&npc_names.bird_large, b.species).to_string(),
             comp::Body::Dragon(b) => get_npc_name(&npc_names.dragon, b.species).to_string(),
             comp::Body::Humanoid(b) => get_npc_name(&npc_names.humanoid, b.species).to_string(),
             comp::Body::Ship(_) => "Veloren Air".to_string(),

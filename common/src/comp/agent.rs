@@ -38,6 +38,8 @@ pub enum Tactic {
     FixedTurret,
     RotatingTurret,
     Mindflayer,
+    BirdLargeBreathe,
+    BirdLargeFire,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -247,7 +249,7 @@ impl<'a> From<&'a Body> for Psyche {
                 },
                 Body::BipedSmall(_) => 0.5,
                 Body::BirdMedium(_) => 0.5,
-                Body::BirdSmall(_) => 0.4,
+                Body::BirdLarge(_) => 0.9,
                 Body::FishMedium(_) => 0.15,
                 Body::FishSmall(_) => 0.0,
                 Body::BipedLarge(_) => 1.0,

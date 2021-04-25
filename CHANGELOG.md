@@ -45,6 +45,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Drag is now calculated based on physical properties
 - Terrain chunks are now deflate-compressed when sent over the network.
 - Missing translations can be displayed in English.
+- New large birds npcs
+- Day period dependant wildlife spawns
 
 ### Changed
 

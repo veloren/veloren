@@ -725,6 +725,7 @@ impl Server {
                             &slow_jobs,
                             Arc::clone(&world),
                             index.clone(),
+                            *ecs.read_resource::<TimeOfDay>(),
                         );
                     });
                 }
@@ -930,6 +931,7 @@ impl Server {
             &slow_jobs,
             Arc::clone(&self.world),
             self.index.clone(),
+            *ecs.read_resource::<TimeOfDay>(),
         );
     }
 

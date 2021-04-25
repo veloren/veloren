@@ -13,6 +13,7 @@ pub enum NpcKind {
     Wolf,
     Pig,
     Duck,
+    Phoenix,
     Clownfish,
     Marlin,
     Ogre,
@@ -23,11 +24,12 @@ pub enum NpcKind {
     Crocodile,
 }
 
-pub const ALL_NPCS: [NpcKind; 12] = [
+pub const ALL_NPCS: [NpcKind; 13] = [
     NpcKind::Humanoid,
     NpcKind::Wolf,
     NpcKind::Pig,
     NpcKind::Duck,
+    NpcKind::Phoenix,
     NpcKind::Clownfish,
     NpcKind::Marlin,
     NpcKind::Ogre,
@@ -122,6 +124,7 @@ pub fn kind_to_body(kind: NpcKind) -> Body {
         NpcKind::Pig => comp::quadruped_small::Body::random().into(),
         NpcKind::Wolf => comp::quadruped_medium::Body::random().into(),
         NpcKind::Duck => comp::bird_medium::Body::random().into(),
+        NpcKind::Phoenix => comp::bird_large::Body::random().into(),
         NpcKind::Clownfish => comp::fish_small::Body::random().into(),
         NpcKind::Marlin => comp::fish_medium::Body::random().into(),
         NpcKind::Ogre => comp::biped_large::Body::random().into(),
@@ -226,6 +229,14 @@ impl NpcBody {
                     NpcKind::Duck,
                     &npc_names.bird_medium,
                     comp::bird_medium::Body::random_with,
+                )
+            })
+            .or_else(|| {
+                parse(
+                    s,
+                    NpcKind::Phoenix,
+                    &npc_names.bird_large,
+                    comp::bird_large::Body::random_with,
                 )
             })
             .or_else(|| {

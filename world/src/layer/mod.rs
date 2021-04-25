@@ -282,7 +282,7 @@ pub fn apply_caves_supplement<'a>(
                         },
                         _ => {
                             is_hostile = true;
-                            let species = match dynamic_rng.gen_range(0..4) {
+                            let species = match dynamic_rng.gen_range(0..5) {
                                 0 => comp::biped_large::Species::Ogre,
                                 1 => comp::biped_large::Species::Cyclops,
                                 2 => comp::biped_large::Species::Wendigo,

@@ -93,7 +93,7 @@ impl EventMapper for MovementEventMapper {
                     Body::QuadrupedMedium(_) | Body::QuadrupedSmall(_) | Body::QuadrupedLow(_) => {
                         Self::map_quadruped_movement_event(physics, vel.0, underfoot_block_kind)
                     },
-                    Body::BirdMedium(_) | Body::BirdSmall(_) | Body::BipedLarge(_) => {
+                    Body::BirdMedium(_) | Body::BirdLarge(_) | Body::BipedLarge(_) => {
                         Self::map_non_humanoid_movement_event(physics, vel.0, underfoot_block_kind)
                     },
                     _ => SfxEvent::Idle, // Ignore fish, etc...
@@ -281,7 +281,7 @@ impl MovementEventMapper {
             Body::QuadrupedMedium(_) => 0.7,
             Body::QuadrupedLow(_) => 0.7,
             Body::BirdMedium(_) => 0.3,
-            Body::BirdSmall(_) => 0.2,
+            Body::BirdLarge(_) => 0.2,
             Body::BipedLarge(_) => 1.0,
             _ => 0.9,
         }
