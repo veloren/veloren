@@ -21,24 +21,41 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
     // Simulate the atmosphere thinning as you get higher. Not physically accurate, but then
     // it can't be since Veloren's world is flat, not spherical.
     float atmosphere_alt = CLOUD_AVG_ALT + 40000.0;
-    float air = 0.00005 * clamp((atmosphere_alt - pos.z) / 20000, 0, 1);
+    // Veloren's world is flat. This is, to put it mildly, somewhat non-physical. With the earth as an infinitely-big
+    // plane, the atmosphere is therefore capable of scattering 100% of any light source at the horizon, no matter how
+    // bright, because it has to travel through an infinite amount of atmosphere. This doesn't happen in reality
+    // because the earth has curvature and so there is an upper bound on the amount of atmosphere that a sunset must
+    // travel through. We 'simulate' this by fading out the atmosphere density with distance.
+    float flat_earth_hack = 1.0 / (1.0 + dist * 0.0001);
+    float air = 0.025 * clamp((atmosphere_alt - pos.z) / 20000, 0, 1) * flat_earth_hack;
+
+    float alt = alt_at(pos.xy - focus_off.xy);
 
     // Mist sits close to the ground in valleys (TODO: use base_alt to put it closer to water)
     float mist_min_alt = 0.5;
     #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
         mist_min_alt = (texture(t_noise, pos.xy / 50000.0).x - 0.5) * 1.5 + 0.5;
     #endif
-    mist_min_alt = view_distance.z * 1.5 * (1.0 + mist_min_alt * 0.5);
-    const float MIST_FADE_HEIGHT = 500;
-    float mist = 0.0005 * pow(clamp(1.0 - (pos.z - mist_min_alt) / MIST_FADE_HEIGHT, 0.0, 1), 4.0);
-
-    float alt = alt_at(pos.xy - focus_off.xy);
+    mist_min_alt = view_distance.z * 1.5 * (1.0 + mist_min_alt * 0.5) + alt * 0.5 + 250;
+    const float MIST_FADE_HEIGHT = 750;
+    float mist = 0.01 * pow(clamp(1.0 - (pos.z - mist_min_alt) / MIST_FADE_HEIGHT, 0.0, 1), 10.0);
 
     vec3 wind_pos = vec3(pos.xy + wind_offset, pos.z + noise_2d(pos.xy / 20000) * 500);
 
     // Clouds
     float cloud_tendency = cloud_tendency_at(pos.xy);
     float cloud = 0;
+
+    if (mist > 0.0) {
+        mist *= 0.5
+        #if (CLOUD_MODE >= CLOUD_MODE_LOW)
+            + 1.0 * (noise_2d(wind_pos.xy / 5000) - 0.5)
+        #endif
+        #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
+            + 0.25 * (noise_3d(wind_pos / 1000) - 0.5)
+        #endif
+        ;
+    }
 
     //vec2 cloud_attr = get_cloud_heights(wind_pos.xy);
     float sun_access = 0.0;
@@ -48,21 +65,13 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
     float cloud_broad_a = 0.0;
     float cloud_broad_b = 0.0;
     // This is a silly optimisation but it actually nets us a fair few fps by skipping quite a few expensive calcs
-    if ((pos.z < CLOUD_AVG_ALT + 15000.0 && cloud_tendency > 0.0) || mist > 0.0) {
+    if ((pos.z < CLOUD_AVG_ALT + 15000.0 && cloud_tendency > 0.0)) {
         // Turbulence (small variations in clouds/mist)
         const float turb_speed = -1.0; // Turbulence goes the opposite way
         vec3 turb_offset = vec3(1, 1, 0) * time_of_day.x * turb_speed;
-        mist *= 0.5
-        #if (CLOUD_MODE >= CLOUD_MODE_LOW)
-            + 1.0 * (noise_2d(wind_pos.xy / 5000) - 0.5)
-        #endif
-        #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
-            + 0.25 * (noise_3d(wind_pos / 1000) - 0.5)
-        #endif
-        ;
 
         float CLOUD_DEPTH = (view_distance.w - view_distance.z) * 0.8;
-        const float CLOUD_DENSITY = 5.0;
+        const float CLOUD_DENSITY = 5000.0;
         const float CLOUD_ALT_VARI_WIDTH = 100000.0;
         const float CLOUD_ALT_VARI_SCALE = 5000.0;
         float cloud_alt = CLOUD_AVG_ALT + alt * 0.5;
@@ -75,25 +84,25 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
             + 4 * (noise_3d((wind_pos + turb_offset) / 2000.0 / cloud_scale) - 0.5)
         #endif
         #if (CLOUD_MODE >= CLOUD_MODE_LOW)
-            + 0.5 * (noise_3d((wind_pos + turb_offset * 0.5) / 250.0 / cloud_scale) - 0.5)
+            + 0.75 * (noise_3d((wind_pos + turb_offset * 0.5) / 750.0 / cloud_scale) - 0.5)
         #endif
         #if (CLOUD_MODE >= CLOUD_MODE_HIGH)
-            + 0.5 * (noise_3d(wind_pos / 150.0 / cloud_scale) - 0.5)
+            + 0.75 * (noise_3d(wind_pos / 500.0 / cloud_scale) - 0.5)
         #endif
         ) * 0.01;
-        cloud = pow(max(cloud, 0), 3) * sign(cloud);
+        cloud = pow(max(cloud, 0), 4) * sign(cloud);
         cloud *= CLOUD_DENSITY * (cloud_tendency * 100) * falloff(abs(pos.z - cloud_alt) / CLOUD_DEPTH);
 
         // What proportion of sunlight is *not* being blocked by nearby cloud? (approximation)
         // Basically, just throw together a few values that roughly approximate this term and come up with an average
-        cloud_sun_access = (clamp((
+        cloud_sun_access = exp((
             // Cloud density gradient
             0.25 * (cloud_broad_a - cloud_broad_b + (0.25 * (noise_3d(wind_pos / 4000 / cloud_scale) - 0.5) + 0.1 * (noise_3d(wind_pos / 1000 / cloud_scale) - 0.5)))
         #if (CLOUD_MODE >= CLOUD_MODE_HIGH)
             // More noise
             + 0.01 * (noise_3d(wind_pos / 500) / cloud_scale - 0.5)
         #endif
-        ) * 4.0 - 0.7, -1, 1) + 1.0);
+        ) * 15.0 - 1.5) * 1.5;
         // Since we're assuming the sun/moon is always above (not always correct) it's the same for the moon
         cloud_moon_access = 1.0 - cloud_sun_access;
     }
@@ -114,7 +123,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
     #endif
     */
 
-    float mist_sun_access = noise_2d(wind_pos.xy / 10000);
+    float mist_sun_access = exp(mist);
     float mist_moon_access = mist_sun_access;
     sun_access = mix(cloud_sun_access, mist_sun_access, clamp(mist * 20000, 0, 1));
     moon_access = mix(cloud_moon_access, mist_moon_access, clamp(mist * 20000, 0, 1));
@@ -126,7 +135,8 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
 
     // Prevent clouds and mist appearing underground (but fade them out gently)
     float not_underground = clamp(1.0 - (alt - (pos.z - focus_off.z)) / 80.0 + dist * 0.001, 0, 1);
-    air *= not_underground;
+    sun_access *= not_underground;
+    moon_access *= not_underground;
     float vapor_density = (mist + cloud) * not_underground;
 
     if (emission_strength <= 0.0) {
@@ -185,14 +195,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
     // This hack adds a little direction-dependent noise to clouds. It's not correct, but it very cheaply
     // improves visual quality for low cloud settings
     float splay = 1.0;
-    vec3 dir_diff = vec3(0);
     #if (CLOUD_MODE == CLOUD_MODE_MINIMAL)
-        /* splay += (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 1.5 - time_of_day * 0.000025).x - 0.5) * 0.4 / (1.0 + pow(dir.z, 2) * 10); */
-        /* dir_diff = vec3( */
-        /*     (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 1.0 - time_of_day * 0.00005).x - 0.5) * 0.2 / (1.0 + pow(dir.z, 2) * 10), */
-        /*     (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 1.0 - time_of_day * 0.00005).x - 0.5) * 0.2 / (1.0 + pow(dir.z, 2) * 10), */
-        /*     (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 1.0 - time_of_day * 0.00005).x - 0.5) * 0.2 / (1.0 + pow(dir.z, 2) * 10) */
-        /* ) * 1500; */
         splay += (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 5.0 - time_of_day * 0.00005).x - 0.5) * 0.025 / (1.0 + pow(dir.z, 2) * 10);
     #endif
 
@@ -215,22 +218,25 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
         cdist = step_to_dist(trunc(dist_to_step(cdist - 0.25, quality)), quality);
 
         vec3 emission;
-        vec4 sample = cloud_at(origin + (dir + dir_diff / ldist) * ldist * splay, ldist, emission);
+        vec4 sample = cloud_at(origin + dir * ldist * splay, ldist, emission);
 
-        vec2 density_integrals = max(sample.zw, vec2(0)) * (ldist - cdist);
+        vec2 density_integrals = max(sample.zw, vec2(0));
 
         float sun_access = sample.x;
         float moon_access = sample.y;
-        float cloud_scatter_factor = 1.0 - 1.0 / (1.0 + clamp(density_integrals.x, 0, 1));
-        float global_scatter_factor = 1.0 - 1.0 / (1.0 + clamp(density_integrals.y, 0, 1));
+        float cloud_scatter_factor = density_integrals.x;
+        float global_scatter_factor = density_integrals.y;
+
+        float cloud_darken = pow(1.0 / (1.0 + cloud_scatter_factor), (ldist - cdist) * 0.01);
+        float global_darken = pow(1.0 / (1.0 + global_scatter_factor), (ldist - cdist) * 0.01);
 
         surf_color =
             // Attenuate light passing through the clouds
-            surf_color * (1.0 - cloud_scatter_factor - global_scatter_factor) +
+            surf_color * cloud_darken * global_darken +
             // Add the directed light light scattered into the camera by the clouds and the atmosphere (global illumination)
-            get_sun_color() * sun_scatter * get_sun_brightness() * (sun_access * cloud_scatter_factor /*+ sky_color * global_scatter_factor*/) +
-            get_moon_color() * moon_scatter * get_moon_brightness() * (moon_access * cloud_scatter_factor /*+ sky_color * global_scatter_factor*/) +
-            sky_light * global_scatter_factor +
+            get_sun_color() * sun_scatter * get_sun_brightness() * (sun_access * (1.0 - cloud_darken) /*+ sky_color * global_scatter_factor*/) +
+            get_moon_color() * moon_scatter * get_moon_brightness() * (moon_access * (1.0 - cloud_darken) /*+ sky_color * global_scatter_factor*/) +
+            sky_light * (1.0 - global_darken) +
             emission * density_integrals.y;
     }
 
