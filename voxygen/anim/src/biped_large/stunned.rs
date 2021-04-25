@@ -65,7 +65,8 @@ impl Animation for StunnedAnimation {
         let short = (acc_vel * lab).sin() * speednorm;
 
         let shortalt = (anim_time * lab * 16.0 + PI / 2.0).sin();
-
+        next.second.position = Vec3::new(0.0, 0.0, 0.0);
+        next.second.orientation = Quaternion::rotation_x(0.0);
         if s_a.beast {
             next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
         } else {
@@ -390,6 +391,24 @@ impl Animation for StunnedAnimation {
 
                                     next.torso.orientation = Quaternion::rotation_x(-0.25);
                                 }
+                            },
+                            "Minotaur" => {
+                                next.control_l.position = Vec3::new(0.0, 4.0, 5.0);
+                                next.control_r.position = Vec3::new(0.0, 4.0, 5.0);
+                                next.weapon_l.position = Vec3::new(-12.0, -6.0, -18.0);
+                                next.weapon_r.position = Vec3::new(12.0, -6.0, -18.0);
+
+                                next.weapon_l.orientation = Quaternion::rotation_x(-1.57 - 0.1);
+                                next.weapon_r.orientation = Quaternion::rotation_x(-1.57 - 0.1);
+
+                                next.control_l.orientation = Quaternion::rotation_x(1.57);
+                                next.control_r.orientation = Quaternion::rotation_x(1.57);
+
+                                next.control.orientation =
+                                    Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
+                                next.shoulder_l.orientation = Quaternion::rotation_x(-0.3);
+
+                                next.shoulder_r.orientation = Quaternion::rotation_x(-0.3);
                             },
                             _ => {},
                         }

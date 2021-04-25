@@ -63,7 +63,8 @@ impl Animation for AlphaAnimation {
         let pullback = 1.0 - move3;
         let move1 = move1base * pullback;
         let move2 = move2base * pullback;
-
+        next.second.position = Vec3::new(0.0, 0.0, 0.0);
+        next.second.orientation = Quaternion::rotation_x(0.0);
         next.shoulder_l.position = Vec3::new(
             -s_a.shoulder.0,
             s_a.shoulder.1,
@@ -79,7 +80,6 @@ impl Animation for AlphaAnimation {
         );
         next.shoulder_r.orientation =
             Quaternion::rotation_x(move1 * 0.8 + 0.6 * speednorm + (footrotl * -0.2) * speednorm);
-        next.torso.orientation = Quaternion::rotation_z(0.0);
 
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_x(0.0);
@@ -230,6 +230,38 @@ impl Animation for AlphaAnimation {
                                     * Quaternion::rotation_y(0.15)
                                     * Quaternion::rotation_z(move1 * -0.5 + move2 * 0.6);
                             next.head.orientation = Quaternion::rotation_x(move1 * 0.3);
+                        },
+                        "Minotaur" => {
+                            next.control_l.position = Vec3::new(0.0, 4.0, 5.0);
+                            next.control_r.position = Vec3::new(0.0, 4.0, 5.0);
+                            next.weapon_l.position = Vec3::new(
+                                -12.0 + move1 * -9.0 + move2 * 16.0,
+                                -6.0 + move2 * 8.0,
+                                -18.0 + move1 * 8.0 + move2 * -4.0,
+                            );
+                            next.weapon_r.position = Vec3::new(
+                                12.0 + move1 * 9.0 + move2 * -16.0,
+                                -6.0 + move2 * 8.0,
+                                -18.0 + move1 * 8.0 + move2 * -8.0,
+                            );
+
+                            next.weapon_l.orientation = Quaternion::rotation_x(-1.67)
+                                * Quaternion::rotation_y(move1 * -0.3 + move2 * 1.0)
+                                * Quaternion::rotation_z(move1 * 0.8 + move2 * -1.8);
+                            next.weapon_r.orientation = Quaternion::rotation_x(-1.67)
+                                * Quaternion::rotation_y(move1 * 0.3 + move2 * -0.6)
+                                * Quaternion::rotation_z(move1 * -0.8 + move2 * 1.8);
+
+                            next.control_l.orientation = Quaternion::rotation_x(1.57 + move2 * 1.0);
+                            next.control_r.orientation = Quaternion::rotation_x(1.57 + move2 * 1.0);
+
+                            next.shoulder_l.orientation = Quaternion::rotation_x(-0.3)
+                                * Quaternion::rotation_y(move1 * 0.7 + move2 * -0.7);
+
+                            next.shoulder_r.orientation = Quaternion::rotation_x(-0.3)
+                                * Quaternion::rotation_y(move1 * -0.7 + move2 * 0.7);
+                            next.head.orientation =
+                                Quaternion::rotation_x(move1 * -0.6 + move2 * 0.4)
                         },
                         _ => {},
                     }

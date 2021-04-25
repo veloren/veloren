@@ -3495,7 +3495,6 @@ struct SidedBLCentralVoxSpec {
     torso_upper: BipedLargeCentralSubSpec,
     torso_lower: BipedLargeCentralSubSpec,
     tail: BipedLargeCentralSubSpec,
-    second: BipedLargeCentralSubSpec,
 }
 #[derive(Deserialize)]
 struct BipedLargeCentralSubSpec {
@@ -3523,13 +3522,16 @@ struct BipedLargeLateralSubSpec {
     lateral: VoxSimple,
 }
 #[derive(Deserialize)]
-struct BipedLargeWeaponSpec(HashMap<String, ArmorVoxSpec>);
+struct BipedLargeMainSpec(HashMap<String, ArmorVoxSpec>);
+#[derive(Deserialize)]
+struct BipedLargeSecondSpec(HashMap<String, ArmorVoxSpec>);
 make_vox_spec!(
     biped_large::Body,
     struct BipedLargeSpec {
         central: BipedLargeCentralSpec = "voxygen.voxel.biped_large_central_manifest",
         lateral: BipedLargeLateralSpec = "voxygen.voxel.biped_large_lateral_manifest",
-        weapon: BipedLargeWeaponSpec = "voxygen.voxel.biped_weapon_manifest",
+        main: BipedLargeMainSpec = "voxygen.voxel.biped_weapon_manifest",
+        second: BipedLargeSecondSpec = "voxygen.voxel.biped_weapon_manifest",
     },
     |FigureKey { body, extra }, spec| {
         const DEFAULT_LOADOUT: super::cache::CharacterCacheKey = super::cache::CharacterCacheKey {
@@ -3567,15 +3569,17 @@ make_vox_spec!(
                 body.body_type,
             )),
             tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
-                spec.weapon.read().0.mesh_main(
+                spec.main.read().0.mesh_main(
                     &tool.name,
                     false,
                 )
             }),
-            Some(spec.central.read().0.mesh_second(
-                body.species,
-                body.body_type,
-            )),
+            tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
+                spec.second.read().0.mesh_second(
+                    &tool.name,
+                    false,
+                )
+            }),
             Some(spec.lateral.read().0.mesh_shoulder_l(
                 body.species,
                 body.body_type,
@@ -3692,22 +3696,6 @@ impl BipedLargeCentralSpec {
         let central = graceful_load_segment(&spec.tail.central.0);
 
         (central, Vec3::from(spec.tail.offset))
-    }
-
-    fn mesh_second(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
-        let spec = match self.0.get(&(species, body_type)) {
-            Some(spec) => spec,
-            None => {
-                error!(
-                    "No second weapon specification exists for the combination of {:?} and {:?}",
-                    species, body_type
-                );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            },
-        };
-        let central = graceful_load_segment(&spec.second.central.0);
-
-        (central, Vec3::from(spec.second.offset))
     }
 }
 impl BipedLargeLateralSpec {
@@ -3839,8 +3827,37 @@ impl BipedLargeLateralSpec {
         (lateral, Vec3::from(spec.foot_r.offset))
     }
 }
-impl BipedLargeWeaponSpec {
+impl BipedLargeMainSpec {
     fn mesh_main(&self, item_definition_id: &str, flipped: bool) -> BoneMeshes {
+        let spec = match self.0.get(item_definition_id) {
+            Some(spec) => spec,
+            None => {
+                error!(?item_definition_id, "No tool/weapon specification exists");
+                return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
+            },
+        };
+
+        let tool_kind_segment = if flipped {
+            graceful_load_segment_flipped(&spec.vox_spec.0, true)
+        } else {
+            graceful_load_segment(&spec.vox_spec.0)
+        };
+
+        let offset = Vec3::new(
+            if flipped {
+                0.0 - spec.vox_spec.1[0] - (tool_kind_segment.sz.x as f32)
+            } else {
+                spec.vox_spec.1[0]
+            },
+            spec.vox_spec.1[1],
+            spec.vox_spec.1[2],
+        );
+
+        (tool_kind_segment, offset)
+    }
+}
+impl BipedLargeSecondSpec {
+    fn mesh_second(&self, item_definition_id: &str, flipped: bool) -> BoneMeshes {
         let spec = match self.0.get(item_definition_id) {
             Some(spec) => spec,
             None => {

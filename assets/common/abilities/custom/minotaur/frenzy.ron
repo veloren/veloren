@@ -1,6 +1,6 @@
 SelfBuff(
-    buildup_duration: 0.5,
-    cast_duration: 0.25,
+    buildup_duration: 0.25,
+    cast_duration: 0.8,
     recover_duration: 0.25,
     buff_kind: Frenzied,
     buff_strength: 0.5,

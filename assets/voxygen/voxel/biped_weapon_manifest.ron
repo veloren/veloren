@@ -1043,7 +1043,7 @@
         color: None
     ),
     "common.items.npc_weapons.axe.minotaur_axe": (
-        vox_spec: ("weapon.axe.2haxe_minotaur", (-2.5, -9.0, -6.0)),
+        vox_spec: ("weapon.axe.2haxe_minotaur", (-2.5, -9.0, -8.0)),
         color: None
     ),
     "common.items.npc_weapons.hammer.yeti_hammer": (

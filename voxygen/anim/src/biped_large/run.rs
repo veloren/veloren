@@ -271,12 +271,12 @@ impl Animation for RunAnimation {
                 s_a.upper_torso.1 + shortalt * -1.5 * speednorm,
             );
             next.upper_torso.orientation =
-                Quaternion::rotation_z(short * 0.18 * speednorm + tilt * -1.0)
+                Quaternion::rotation_z(short * 0.07 * speednorm + tilt * -1.0)
                     * Quaternion::rotation_y(tilt);
 
             next.lower_torso.position = Vec3::new(0.0, s_a.lower_torso.0, s_a.lower_torso.1);
             next.lower_torso.orientation =
-                Quaternion::rotation_z(short * 0.15 * speednorm + tilt * 0.5)
+                Quaternion::rotation_z(short * 0.05 * speednorm + tilt * 0.5)
                     * Quaternion::rotation_y(tilt * -0.5)
                     * Quaternion::rotation_x(0.14 * speednorm);
 
@@ -287,7 +287,7 @@ impl Animation for RunAnimation {
             next.tail.orientation = Quaternion::rotation_x(shortalt * 0.3 * speednorm);
 
             next.second.position = Vec3::new(0.0, 0.0, 0.0);
-            next.second.orientation = Quaternion::rotation_x(PI)
+            next.second.orientation = Quaternion::rotation_x(0.0)
                 * Quaternion::rotation_y(0.0)
                 * Quaternion::rotation_z(0.0);
 
@@ -308,9 +308,12 @@ impl Animation for RunAnimation {
                         Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
                 },
                 Some(ToolKind::Hammer) | Some(ToolKind::Axe) => {
-                    next.main.position = Vec3::new(-10.0, -8.0, 12.0);
+                    next.main.position = Vec3::new(-6.0, -8.0, 8.0);
                     next.main.orientation =
                         Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+                    next.second.position = Vec3::new(6.0, -8.0, 8.0);
+                    next.second.orientation =
+                        Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(1.57);
                 },
                 _ => {
                     next.main.position = Vec3::new(-2.0, -5.0, -6.0);

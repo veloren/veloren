@@ -644,10 +644,7 @@ impl CharacterAbility {
                     0
                 }
             },
-            Boost { .. }
-            | ComboMelee { .. }
-            | Blink { .. }
-            | BasicSummon { .. } => 0,
+            Boost { .. } | ComboMelee { .. } | Blink { .. } | BasicSummon { .. } => 0,
         }
     }
 

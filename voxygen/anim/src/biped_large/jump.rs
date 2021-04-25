@@ -28,6 +28,7 @@ impl Animation for JumpAnimation {
         let torso = (anim_time * lab + 1.5 * PI).sin();
 
         let wave_slow = (anim_time * 0.8).sin();
+        next.hold.scale = Vec3::one() * 0.0;
 
         next.head.scale = Vec3::one() * 1.02;
 
@@ -57,7 +58,7 @@ impl Animation for JumpAnimation {
         next.second.position = Vec3::new(0.0, 0.0, 0.0);
         next.second.orientation =
             Quaternion::rotation_x(PI) * Quaternion::rotation_y(0.0) * Quaternion::rotation_z(0.0);
-        next.second.scale = Vec3::one() * 0.0;
+        next.second.scale = Vec3::one() * 1.0;
 
         match active_tool_kind {
             Some(ToolKind::Bow) => {

@@ -3713,7 +3713,84 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::BasicMelee(_) => {
+                        CharacterState::ChargedMelee(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+
+                            let stage_progress = match s.stage_section {
+                                StageSection::Charge => {
+                                    stage_time / s.static_data.charge_duration.as_secs_f32()
+                                },
+                                StageSection::Swing => {
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
+
+                            anim::biped_large::ChargeMeleeAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    (active_tool_kind, active_tool_spec),
+                                    (second_tool_kind, second_tool_spec),
+                                    rel_vel,
+                                    time,
+                                    Some(s.stage_section),
+                                    state.acc_vel,
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::SelfBuff(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Cast => {
+                                    stage_time / s.static_data.cast_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
+
+                            anim::biped_large::SelfBuffAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    (active_tool_kind, active_tool_spec),
+                                    (second_tool_kind, second_tool_spec),
+                                    rel_vel,
+                                    time,
+                                    Some(s.stage_section),
+                                    state.acc_vel,
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::BasicMelee(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Swing => {
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
+
                             anim::biped_large::AlphaAnimation::update_skeleton(
                                 &target_base,
                                 (
@@ -3721,10 +3798,10 @@ impl FigureMgr {
                                     (second_tool_kind, second_tool_spec),
                                     rel_vel,
                                     time,
-                                    None,
+                                    Some(s.stage_section),
                                     state.acc_vel,
                                 ),
-                                state.state_time,
+                                stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )
@@ -3875,8 +3952,8 @@ impl FigureMgr {
                             anim::biped_large::DashAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
+                                    (active_tool_kind, active_tool_spec),
+                                    (second_tool_kind, second_tool_spec),
                                     rel_vel,
                                     time,
                                     Some(s.stage_section),
