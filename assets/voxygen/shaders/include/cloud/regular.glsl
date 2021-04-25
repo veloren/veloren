@@ -71,7 +71,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
         vec3 turb_offset = vec3(1, 1, 0) * time_of_day.x * turb_speed;
 
         float CLOUD_DEPTH = (view_distance.w - view_distance.z) * 0.8;
-        const float CLOUD_DENSITY = 5000.0;
+        const float CLOUD_DENSITY = 10000.0;
         const float CLOUD_ALT_VARI_WIDTH = 100000.0;
         const float CLOUD_ALT_VARI_SCALE = 5000.0;
         float cloud_alt = CLOUD_AVG_ALT + alt * 0.5;
@@ -90,8 +90,8 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
             + 0.75 * (noise_3d(wind_pos / 500.0 / cloud_scale) - 0.5)
         #endif
         ) * 0.01;
-        cloud = pow(max(cloud, 0), 4) * sign(cloud);
-        cloud *= CLOUD_DENSITY * (cloud_tendency * 100) * falloff(abs(pos.z - cloud_alt) / CLOUD_DEPTH);
+        cloud = pow(max(cloud, 0), 3) * sign(cloud);
+        cloud *= CLOUD_DENSITY * sqrt(cloud_tendency) * falloff(abs(pos.z - cloud_alt) / CLOUD_DEPTH);
 
         // What proportion of sunlight is *not* being blocked by nearby cloud? (approximation)
         // Basically, just throw together a few values that roughly approximate this term and come up with an average
@@ -222,8 +222,8 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
 
         vec2 density_integrals = max(sample.zw, vec2(0));
 
-        float sun_access = sample.x;
-        float moon_access = sample.y;
+        float sun_access = max(sample.x, 0);
+        float moon_access = max(sample.y, 0);
         float cloud_scatter_factor = density_integrals.x;
         float global_scatter_factor = density_integrals.y;
 
