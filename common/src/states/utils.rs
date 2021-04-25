@@ -106,6 +106,8 @@ impl Body {
         }
     }
 
+    pub fn air_accel(&self) -> f32 { self.base_accel() * 0.025 }
+
     /// Attempt to determine the maximum speed of the character
     /// when moving on the ground
     pub fn max_speed_approx(&self) -> f32 {
@@ -243,23 +245,23 @@ pub fn handle_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
 /// Updates components to move player as if theyre on ground or in air
 #[allow(clippy::assign_op_pattern)] // TODO: Pending review in #587
 fn basic_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
-    handle_orientation(data, update, efficiency);
+    handle_orientation(data, update, 1.0);
 
-    if let Some(accel) = data
-        .physics
-        .on_ground
-        .then_some(data.body.base_accel() * efficiency)
-    {
-        // Should ability to backpedal be separate from ability to strafe?
-        update.vel.0 += Vec2::broadcast(data.dt.0)
-            * accel
-            * if data.body.can_strafe() {
-                data.inputs.move_dir
-            } else {
-                let fw = Vec2::from(update.ori);
-                fw * data.inputs.move_dir.dot(fw).max(0.0)
-            };
-    }
+    let accel = if data.physics.on_ground {
+        data.body.base_accel()
+    } else {
+        data.body.air_accel()
+    } * efficiency;
+
+    // Should ability to backpedal be separate from ability to strafe?
+    update.vel.0 += Vec2::broadcast(data.dt.0)
+        * accel
+        * if data.body.can_strafe() {
+            data.inputs.move_dir
+        } else {
+            let fw = Vec2::from(update.ori);
+            fw * data.inputs.move_dir.dot(fw).max(0.0)
+        };
 }
 
 /// Handles forced movement

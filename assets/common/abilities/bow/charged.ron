@@ -11,7 +11,7 @@ ChargedRanged(
     recover_duration: 0.5,
     projectile_body: Object(MultiArrow),
     projectile_light: None,
-    initial_projectile_speed: 60.0,
-    scaled_projectile_speed: 90.0,
+    initial_projectile_speed: 120.0,
+    scaled_projectile_speed: 160.0,
     move_speed: 0.3,
 )

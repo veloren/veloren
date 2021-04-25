@@ -25,7 +25,7 @@ const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
 const vec3 SKY_DUSK_MID = vec3(0.75, 0.1, 0.15);
 const vec3 SKY_DUSK_BOT = vec3(0.0, 0.1, 0.23);
 const vec3 DUSK_LIGHT   = vec3(8.0, 1.5, 0.15);
-const vec3 SUN_HALO_DUSK = vec3(5.2, 1.0, 0.1);
+const vec3 SUN_HALO_DUSK = vec3(10.2, 3.0, 0.1);
 
 const vec3 SKY_NIGHT_TOP = vec3(0.001, 0.001, 0.0025);
 const vec3 SKY_NIGHT_MID = vec3(0.001, 0.005, 0.02);
@@ -410,7 +410,7 @@ float is_star_at(vec3 dir) {
 
     //return 0.0;
 
-    return 1.0 / (1.0 + pow(dist * 750, 8));
+    return 5.0 / (1.0 + pow(dist * 750, 8));
 }
 
 vec3 get_sky_light(vec3 dir, float time_of_day, bool with_stars) {
@@ -434,7 +434,7 @@ vec3 get_sky_light(vec3 dir, float time_of_day, bool with_stars) {
     vec3 sky_mid = mix(
         mix( SKY_DUSK_MID,
             SKY_NIGHT_MID,
-            max(pow(sun_dir.z, 0.2), 0)
+            max(pow(sun_dir.z, 0.1), 0)
         ),
         SKY_DAY_MID,
         max(-sun_dir.z, 0)
@@ -454,7 +454,7 @@ vec3 get_sky_light(vec3 dir, float time_of_day, bool with_stars) {
         mix(
             sky_mid,
             sky_bot,
-            pow(max(-dir.z, 0), 0.4)
+            max(-dir.z, 0)
         ),
         sky_top,
         max(dir.z, 0)
@@ -474,7 +474,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
     // moon_dir = moon_dir.z <= 0 ? refract(moon_dir/*-view_dir*/, vec3(0.0, 0.0, 1.0), refractionIndex) : moon_dir;
 
     // Sun
-    const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 8.0;
+    const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 50.0;
 
     vec3 sun_halo_color = mix(
         SUN_HALO_DUSK,
@@ -482,7 +482,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
         pow(max(-sun_dir.z, 0.0), 0.5)
     );
 
-    vec3 sun_halo = sun_halo_color * 4 * pow(max(dot(dir, -sun_dir), 0), 20.0);
+    vec3 sun_halo = sun_halo_color * 25 * pow(max(dot(dir, -sun_dir), 0), 20.0);
     vec3 sun_surf = vec3(0);
     if (with_features) {
         float angle = 0.00035;
@@ -491,8 +491,8 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
     vec3 sun_light = sun_halo + sun_surf;
 
     // Moon
-    const vec3 MOON_SURF_COLOR = vec3(0.7, 1.0, 1.5) * 20.0;
-    const vec3 MOON_HALO_COLOR = vec3(0.015, 0.015, 0.05) * 48;
+    const vec3 MOON_SURF_COLOR = vec3(0.7, 1.0, 1.5) * 250.0;
+    const vec3 MOON_HALO_COLOR = vec3(0.015, 0.015, 0.05) * 250;
 
     vec3 moon_halo_color = MOON_HALO_COLOR;
     vec3 moon_halo = moon_halo_color * pow(max(dot(dir, -moon_dir), 0), 100.0);
