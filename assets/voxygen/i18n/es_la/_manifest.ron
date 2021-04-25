@@ -551,7 +551,7 @@ Protección
         "buff.title.saturation": "Saturación",
         "buff.desc.saturation": "Recupera vida durante un tiempo por objetos.",
         "buff.title.campfire_heal": "Curación de fogata",
-        "buff.desc.campfire_heal": "Descansar en una fogata recupera 1% por segundo.",
+        "buff.desc.campfire_heal": "Descansar en una fogata recupera {rate}% por segundo.",
         // Debuffs
         "buff.title.bleed": "Sangrando",
         "buff.desc.bleed": "Inflinge daño regularmente.",

@@ -225,7 +225,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         .set(*id, ui);
                     // Create Buff tooltip
                     let title = hud::get_buff_title(buff.kind, localized_strings);
-                    let desc_txt = hud::get_buff_desc(buff.kind, localized_strings);
+                    let desc_txt = hud::get_buff_desc(buff.kind, buff.data, localized_strings);
                     let remaining_time = hud::get_buff_time(*buff);
                     let click_to_remove = format!("<{}>", &localized_strings.get("buff.remove"));
                     let desc = format!("{}\n\n{}\n\n{}", desc_txt, remaining_time, click_to_remove);
@@ -307,7 +307,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         .set(*id, ui);
                     // Create Debuff tooltip
                     let title = hud::get_buff_title(debuff.kind, localized_strings);
-                    let desc_txt = hud::get_buff_desc(debuff.kind, localized_strings);
+                    let desc_txt = hud::get_buff_desc(debuff.kind, debuff.data, localized_strings);
                     let remaining_time = hud::get_buff_time(*debuff);
                     let desc = format!("{}\n\n{}", desc_txt, remaining_time);
                     Image::new(match duration_percentage as u64 {
@@ -403,7 +403,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         .set(*id, ui);
                     // Create Buff tooltip
                     let title = hud::get_buff_title(buff.kind, localized_strings);
-                    let desc_txt = hud::get_buff_desc(buff.kind, localized_strings);
+                    let desc_txt = hud::get_buff_desc(buff.kind, buff.data, localized_strings);
                     let remaining_time = hud::get_buff_time(*buff);
                     let click_to_remove = format!("<{}>", &localized_strings.get("buff.remove"));
                     let desc = if buff.is_buff {

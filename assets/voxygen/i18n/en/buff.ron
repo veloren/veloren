@@ -14,7 +14,7 @@
         "buff.title.saturation": "Saturation",
         "buff.desc.saturation": "Gain health over time from consumables.",
         "buff.title.campfire_heal": "Campfire Heal",
-        "buff.desc.campfire_heal": "Resting at a campfire heals 1% per second.",
+        "buff.desc.campfire_heal": "Resting at a campfire heals {rate}% per second.",
         "buff.title.invulnerability": "Invulnerability",
         "buff.desc.invulnerability": "You cannot be damaged by any attack.",
         "buff.title.protectingward": "Protecting Ward",

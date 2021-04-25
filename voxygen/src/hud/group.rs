@@ -550,7 +550,8 @@ impl<'a> Widget for Group<'a> {
                                     .set(id, ui);
                                 // Create Buff tooltip
                                 let title = hud::get_buff_title(buff.kind, localized_strings);
-                                let desc_txt = hud::get_buff_desc(buff.kind, localized_strings);
+                                let desc_txt =
+                                    hud::get_buff_desc(buff.kind, buff.data, localized_strings);
                                 let remaining_time = hud::get_buff_time(buff);
                                 let desc = format!("{}\n\n{}", desc_txt, remaining_time);
                                 Image::new(match duration_percentage as u64 {

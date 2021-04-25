@@ -14,7 +14,7 @@
         "buff.title.saturation": "Saturação",
         "buff.desc.saturation": "Ganha vida no decorrer do tempo através de consumíveis.",
         "buff.title.campfire_heal": "Cura de Acampamento",
-        "buff.desc.campfire_heal": "Descansar próximo a uma fogueira de acampamento cura 1% de vida por segundo.",
+        "buff.desc.campfire_heal": "Descansar próximo a uma fogueira de acampamento cura {rate}% de vida por segundo.",
         "buff.title.invulnerability": "Invulnerabilidade",
         "buff.desc.invulnerability": "Você não receberá dano de nenhum ataque.",
         "buff.title.protectingward": "Guardião Protetor",
