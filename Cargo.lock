@@ -180,18 +180,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "arraygen"
-version = "0.1.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5a1ae06b5f52588295bfd019b837b6fb1a6914d58ece30b0c43ae439ef08e562"
-dependencies = [
- "proc-macro-error",
- "proc-macro2 1.0.26",
- "quote 1.0.9",
- "syn 1.0.69",
-]
-
-[[package]]
 name = "arrayref"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1414,12 +1402,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "dotenv"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
-
-[[package]]
 name = "downcast-rs"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2414,15 +2396,6 @@ dependencies = [
  "autocfg",
  "hashbrown",
  "serde",
-]
-
-[[package]]
-name = "inline_tweak"
-version = "1.0.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7033e97b20277cc0d043226d1940fa7719ff08d2305d1fc7421e53066d00eb4b"
-dependencies = [
- "lazy_static",
 ]
 
 [[package]]
@@ -5461,7 +5434,6 @@ name = "veloren-common"
 version = "0.9.0"
 dependencies = [
  "approx 0.4.0",
- "arraygen",
  "assets_manager",
  "bitflags",
  "criterion",
@@ -5664,7 +5636,6 @@ dependencies = [
  "authc",
  "chrono",
  "crossbeam-channel",
- "dotenv",
  "futures-util",
  "hashbrown",
  "itertools 0.10.0",
@@ -5753,7 +5724,6 @@ dependencies = [
  "iced_native",
  "iced_winit",
  "image",
- "inline_tweak",
  "itertools 0.10.0",
  "keyboard-keynames",
  "lazy_static",
@@ -5795,7 +5765,6 @@ name = "veloren-voxygen-anim"
 version = "0.9.0"
 dependencies = [
  "find_folder",
- "inline_tweak",
  "lazy_static",
  "libloading 0.7.0",
  "notify 5.0.0-pre.6",
