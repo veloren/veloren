@@ -38,7 +38,7 @@ impl<'a> System<'a> for Sys {
                         lazy_msg = Some(client.prepare(ServerGeneral::TerrainChunkUpdate {
                             key: *chunk_key,
                             chunk: Ok(match terrain.get_key(*chunk_key) {
-                                Some(chunk) => CompressedData::compress(&chunk, 5),
+                                Some(chunk) => CompressedData::compress(&chunk, 1),
                                 None => break 'chunk,
                             }),
                         }));
@@ -55,7 +55,7 @@ impl<'a> System<'a> for Sys {
             for (_, client) in (&presences, &clients).join() {
                 if lazy_msg.is_none() {
                     lazy_msg = Some(client.prepare(ServerGeneral::TerrainBlockUpdates(
-                        CompressedData::compress(&terrain_changes.modified_blocks, 2),
+                        CompressedData::compress(&terrain_changes.modified_blocks, 1),
                     )));
                 }
                 lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));

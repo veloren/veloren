@@ -79,7 +79,7 @@ impl<'a> System<'a> for Sys {
                                         network_metrics.chunks_served_from_memory.inc();
                                         client.send(ServerGeneral::TerrainChunkUpdate {
                                             key,
-                                            chunk: Ok(CompressedData::compress(&chunk, 5)),
+                                            chunk: Ok(CompressedData::compress(&chunk, 1)),
                                         })?
                                     },
                                     None => {
