@@ -1,6 +1,6 @@
 use super::{
-    world_msg::EconomyInfo, ClientType, CompressedData, EcsCompPacket, GridLtrPacking,
-    MixedEncoding, PingMsg, QuadPngEncoding, TallPacking, TriPngEncoding, WireChonk,
+    world_msg::EconomyInfo, ClientType, CompressedData, EcsCompPacket, MixedEncoding, PingMsg,
+    QuadPngEncoding, TallPacking, TriPngEncoding, WireChonk,
 };
 use crate::sync;
 use common::{
@@ -70,13 +70,13 @@ pub type ServerRegisterAnswer = Result<(), RegisterError>;
 pub enum SerializedTerrainChunk {
     DeflatedChonk(CompressedData<TerrainChunk>),
     PngPngPngJpeg(WireChonk<MixedEncoding, TallPacking, TerrainChunkMeta, TerrainChunkSize>),
-    QuadPng(WireChonk<QuadPngEncoding<4>, GridLtrPacking, TerrainChunkMeta, TerrainChunkSize>),
+    QuadPng(WireChonk<QuadPngEncoding<4>, TallPacking, TerrainChunkMeta, TerrainChunkSize>),
     TriPng(WireChonk<TriPngEncoding, TallPacking, TerrainChunkMeta, TerrainChunkSize>),
 }
 
 impl SerializedTerrainChunk {
     pub fn image(chunk: &TerrainChunk) -> Self {
-        match inline_tweak::tweak!(2) {
+        match 2 {
             0 => Self::deflate(chunk),
             1 => Self::jpeg(chunk),
             2 => Self::quadpng(chunk),
@@ -99,7 +99,9 @@ impl SerializedTerrainChunk {
     }
 
     pub fn quadpng(chunk: &TerrainChunk) -> Self {
-        if let Some(wc) = WireChonk::from_chonk(QuadPngEncoding(), GridLtrPacking, chunk) {
+        if let Some(wc) =
+            WireChonk::from_chonk(QuadPngEncoding(), TallPacking { flip_y: true }, chunk)
+        {
             Self::QuadPng(wc)
         } else {
             warn!("Image encoding failure occurred, falling back to deflate");
