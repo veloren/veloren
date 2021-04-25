@@ -132,7 +132,6 @@ impl ShadowFigurePipeline {
     pub fn new(
         device: &wgpu::Device,
         vs_module: &wgpu::ShaderModule,
-        fs_module: &wgpu::ShaderModule,
         global_layout: &GlobalsLayouts,
         figure_layout: &FigureLayout,
         aa_mode: AaMode,
@@ -209,7 +208,6 @@ impl ShadowPipeline {
     pub fn new(
         device: &wgpu::Device,
         vs_module: &wgpu::ShaderModule,
-        fs_module: &wgpu::ShaderModule,
         global_layout: &GlobalsLayouts,
         terrain_layout: &TerrainLayout,
         aa_mode: AaMode,
@@ -283,7 +281,6 @@ impl PointShadowPipeline {
     pub fn new(
         device: &wgpu::Device,
         vs_module: &wgpu::ShaderModule,
-        fs_module: &wgpu::ShaderModule,
         global_layout: &GlobalsLayouts,
         terrain_layout: &TerrainLayout,
         aa_mode: AaMode,

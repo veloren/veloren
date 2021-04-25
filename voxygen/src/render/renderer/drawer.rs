@@ -60,8 +60,8 @@ impl<'frame> Drawer<'frame> {
         let borrow = RendererBorrow {
             queue: &renderer.queue,
             device: &renderer.device,
-            shadow: &renderer.shadow,
-            pipelines: &renderer.pipelines,
+            shadow: todo!(),    //&renderer.shadow,
+            pipelines: todo!(), //&renderer.pipelines,
             locals: &renderer.locals,
             views: &renderer.views,
             mode: &renderer.mode,
@@ -92,16 +92,14 @@ impl<'frame> Drawer<'frame> {
                 encoder.scoped_render_pass("shadow_pass", device, &wgpu::RenderPassDescriptor {
                     label: Some("shadow pass"),
                     color_attachments: &[],
-                    depth_stencil_attachment: Some(
-                        wgpu::RenderPassDepthStencilAttachment {
-                            view: &shadow_renderer.directed_depth.view,
-                            depth_ops: Some(wgpu::Operations {
-                                load: wgpu::LoadOp::Clear(1.0),
-                                store: true,
-                            }),
-                            stencil_ops: None,
-                        },
-                    ),
+                    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                        view: &shadow_renderer.directed_depth.view,
+                        depth_ops: Some(wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(1.0),
+                            store: true,
+                        }),
+                        stencil_ops: None,
+                    }),
                 });
 
             render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
@@ -244,16 +242,14 @@ impl<'frame> Drawer<'frame> {
                     encoder.scoped_render_pass(&label, device, &wgpu::RenderPassDescriptor {
                         label: Some(&label),
                         color_attachments: &[],
-                        depth_stencil_attachment: Some(
-                            wgpu::RenderPassDepthStencilAttachment {
-                                view: &view,
-                                depth_ops: Some(wgpu::Operations {
-                                    load: wgpu::LoadOp::Clear(1.0),
-                                    store: true,
-                                }),
-                                stencil_ops: None,
-                            },
-                        ),
+                        depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                            view: &view,
+                            depth_ops: Some(wgpu::Operations {
+                                load: wgpu::LoadOp::Clear(1.0),
+                                store: true,
+                            }),
+                            stencil_ops: None,
+                        }),
                     });
 
                 render_pass.set_pipeline(&shadow_renderer.point_pipeline.pipeline);
@@ -294,16 +290,14 @@ impl<'frame> Drawer<'frame> {
                 &wgpu::RenderPassDescriptor {
                     label: Some("clear directed shadow pass"),
                     color_attachments: &[],
-                    depth_stencil_attachment: Some(
-                        wgpu::RenderPassDepthStencilAttachment {
-                            view: &shadow_renderer.directed_depth.view,
-                            depth_ops: Some(wgpu::Operations {
-                                load: wgpu::LoadOp::Clear(1.0),
-                                store: true,
-                            }),
-                            stencil_ops: None,
-                        },
-                    ),
+                    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                        view: &shadow_renderer.directed_depth.view,
+                        depth_ops: Some(wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(1.0),
+                            store: true,
+                        }),
+                        stencil_ops: None,
+                    }),
                 },
             );
 
@@ -328,16 +322,14 @@ impl<'frame> Drawer<'frame> {
                 let _ = encoder.scoped_render_pass(&label, device, &wgpu::RenderPassDescriptor {
                     label: Some(&label),
                     color_attachments: &[],
-                    depth_stencil_attachment: Some(
-                        wgpu::RenderPassDepthStencilAttachment {
-                            view: &view,
-                            depth_ops: Some(wgpu::Operations {
-                                load: wgpu::LoadOp::Clear(1.0),
-                                store: true,
-                            }),
-                            stencil_ops: None,
-                        },
-                    ),
+                    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                        view: &view,
+                        depth_ops: Some(wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(1.0),
+                            store: true,
+                        }),
+                        stencil_ops: None,
+                    }),
                 });
             }
         }

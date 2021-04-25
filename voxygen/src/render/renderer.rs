@@ -2,11 +2,15 @@ mod binding;
 pub(super) mod drawer;
 // Consts and bind groups for post-process and clouds
 mod locals;
+mod pipeline_creation;
 mod screenshot;
 mod shaders;
 mod shadow_map;
 
 use locals::Locals;
+use pipeline_creation::{
+    IngameAndShadowPipelines, InterfacePipelines, PipelineCreation, Pipelines, ShadowPipelines,
+};
 use shaders::Shaders;
 use shadow_map::{ShadowMap, ShadowMapRenderer};
 
@@ -27,6 +31,7 @@ use super::{
 use common::assets::{self, AssetExt, AssetHandle};
 use common_base::span;
 use core::convert::TryFrom;
+use std::sync::Arc;
 use tracing::{error, info, warn};
 use vek::*;
 
@@ -54,23 +59,6 @@ struct Layouts {
     blit: blit::BlitLayout,
 }
 
-/// A type that stores all the pipelines associated with this renderer.
-struct Pipelines {
-    figure: figure::FigurePipeline,
-    fluid: fluid::FluidPipeline,
-    lod_terrain: lod_terrain::LodTerrainPipeline,
-    particle: particle::ParticlePipeline,
-    clouds: clouds::CloudsPipeline,
-    postprocess: postprocess::PostProcessPipeline,
-    // Consider reenabling at some time
-    // player_shadow: figure::FigurePipeline,
-    skybox: skybox::SkyboxPipeline,
-    sprite: sprite::SpritePipeline,
-    terrain: terrain::TerrainPipeline,
-    ui: ui::UiPipeline,
-    blit: blit::BlitPipeline,
-}
-
 /// Render target views
 struct Views {
     // NOTE: unused for now
@@ -88,13 +76,32 @@ struct Shadow {
     bind: ShadowTexturesBindGroup,
 }
 
+/// Represent two states of the renderer:
+/// 1. Only interface pipelines created
+/// 2. All of the pipelines have been created
+enum State {
+    // NOTE: this is used as a transient placeholder for moving things out of State temporarily
+    Nothing,
+    Interface {
+        pipelines: InterfacePipelines,
+        shadow_views: Option<(Texture, Texture)>,
+        // In progress creation of the remaining pipelines in the background
+        creating: PipelineCreation<IngameAndShadowPipelines>,
+    },
+    Complete {
+        pipelines: Pipelines,
+        shadow: Shadow,
+        recreating: Option<PipelineCreation<Result<(Pipelines, ShadowPipelines), RenderError>>>,
+    },
+}
+
 /// A type that encapsulates rendering state. `Renderer` is central to Voxygen's
 /// rendering subsystem and contains any state necessary to interact with the
 /// GPU, along with pipeline state objects (PSOs) needed to renderer different
 /// kinds of models to the screen.
 pub struct Renderer {
     // TODO: remove pub(super)
-    pub(super) device: wgpu::Device,
+    pub(super) device: Arc<wgpu::Device>,
     queue: wgpu::Queue,
     surface: wgpu::Surface,
     swap_chain: wgpu::SwapChain,
@@ -103,9 +110,12 @@ pub struct Renderer {
     sampler: wgpu::Sampler,
     depth_sampler: wgpu::Sampler,
 
-    layouts: Layouts,
-    pipelines: Pipelines,
-    shadow: Shadow,
+    state: State,
+    // true if there is a pending need to recreate the pipelines (e.g. RenderMode change or shader
+    // hotloading)
+    recreation_pending: bool,
+
+    layouts: Arc<Layouts>,
     // Note: we keep these here since their bind groups need to be updated if we resize the
     // color/depth textures
     locals: Locals,
@@ -231,7 +241,7 @@ impl Renderer {
 
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
-        let shadow_views = Self::create_shadow_views(
+        let shadow_views = ShadowMap::create_shadow_views(
             &device,
             (dims.width, dims.height),
             &ShadowMapMode::try_from(mode.shadow).unwrap_or_default(),
@@ -271,69 +281,27 @@ impl Renderer {
             }
         };
 
-        let (
-            pipelines,
-            //player_shadow_pipeline,
-            point_shadow_pipeline,
-            terrain_directed_shadow_pipeline,
-            figure_directed_shadow_pipeline,
-        ) = create_pipelines(
-            &device,
-            &layouts,
-            &shaders.read(),
-            &mode,
-            &sc_desc,
+        // Arcify the device and layouts
+        let device = Arc::new(device);
+        let layouts = Arc::new(layouts);
+
+        let (interface_pipelines, creating) = pipeline_creation::initial_create_pipelines(
+            // TODO: combine Arcs?
+            Arc::clone(&device),
+            Arc::clone(&layouts),
+            shaders.read().clone(),
+            mode.clone(),
+            sc_desc.clone(), // Note: cheap clone
             shadow_views.is_some(),
         )?;
 
-        let views = Self::create_rt_views(&device, (dims.width, dims.height), &mode)?;
-
-        let shadow_map = if let (
-            Some(point_pipeline),
-            Some(terrain_directed_pipeline),
-            Some(figure_directed_pipeline),
-            Some(shadow_views),
-        ) = (
-            point_shadow_pipeline,
-            terrain_directed_shadow_pipeline,
-            figure_directed_shadow_pipeline,
+        let state = State::Interface {
+            pipelines: interface_pipelines,
             shadow_views,
-        ) {
-            let (point_depth, directed_depth) = shadow_views;
-
-            let layout = shadow::ShadowLayout::new(&device);
-
-            ShadowMap::Enabled(ShadowMapRenderer {
-                // point_encoder: factory.create_command_buffer().into(),
-                // directed_encoder: factory.create_command_buffer().into(),
-                directed_depth,
-                point_depth,
-
-                point_pipeline,
-                terrain_directed_pipeline,
-                figure_directed_pipeline,
-
-                layout,
-            })
-        } else {
-            let (dummy_point, dummy_directed) = Self::create_dummy_shadow_tex(&device, &queue);
-            ShadowMap::Disabled {
-                dummy_point,
-                dummy_directed,
-            }
+            creating,
         };
 
-        let shadow_bind = {
-            let (point, directed) = shadow_map.textures();
-            layouts
-                .global
-                .bind_shadow_textures(&device, point, directed)
-        };
-
-        let shadow = Shadow {
-            map: shadow_map,
-            bind: shadow_bind,
-        };
+        let views = Self::create_rt_views(&device, (dims.width, dims.height), &mode)?;
 
         let create_sampler = |filter| {
             device.create_sampler(&wgpu::SamplerDescriptor {
@@ -393,9 +361,10 @@ impl Renderer {
             swap_chain,
             sc_desc,
 
+            state,
+            recreation_pending: false,
+
             layouts,
-            pipelines,
-            shadow,
             locals,
             views,
 
@@ -421,6 +390,13 @@ impl Renderer {
 
     /// Change the render mode.
     pub fn set_render_mode(&mut self, mode: RenderMode) -> Result<(), RenderError> {
+        // TODO: are there actually any issues with the current mode not matching the
+        // pipelines (since we could previously have inconsistencies from
+        // pipelines failing to build due to shader editing)?
+        // TODO: FIXME: defer mode changing until pipelines are rebuilt to prevent
+        // incompatibilities as pipelines are now rebuilt in a deferred mannder in the
+        // background TODO: consider separating changes that don't require
+        // rebuilding pipelines
         self.mode = mode;
         self.sc_desc.present_mode = self.mode.present_mode.into();
 
@@ -496,18 +472,48 @@ impl Renderer {
                 &self.depth_sampler,
             );
 
-            if let (ShadowMap::Enabled(shadow_map), ShadowMode::Map(mode)) =
-                (&mut self.shadow.map, self.mode.shadow)
+            let mode = &self.mode;
+            // Get mutable reference to shadow views out of the current state
+            let shadow_views = match &mut self.state {
+                State::Interface { shadow_views, .. } => {
+                    shadow_views.as_mut().map(|s| (&mut s.0, &mut s.1))
+                },
+                State::Complete {
+                    shadow:
+                        Shadow {
+                            map: ShadowMap::Enabled(shadow_map),
+                            ..
+                        },
+                    ..
+                } => Some((&mut shadow_map.point_depth, &mut shadow_map.directed_depth)),
+                State::Complete { .. } => None,
+                State::Nothing => None, // Should never hit this
+            };
+
+            if let (Some((point_depth, directed_depth)), ShadowMode::Map(mode)) =
+                (shadow_views, self.mode.shadow)
             {
-                match Self::create_shadow_views(&mut self.device, (dims.x, dims.y), &mode) {
-                    Ok((point_depth, directed_depth)) => {
-                        shadow_map.point_depth = point_depth;
-                        shadow_map.directed_depth = directed_depth;
-                        self.shadow.bind = self.layouts.global.bind_shadow_textures(
-                            &self.device,
-                            &shadow_map.point_depth,
-                            &shadow_map.directed_depth,
-                        );
+                match ShadowMap::create_shadow_views(&mut self.device, (dims.x, dims.y), &mode) {
+                    Ok((new_point_depth, new_directed_depth)) => {
+                        *point_depth = new_point_depth;
+                        *directed_depth = new_directed_depth;
+                        // Recreate the shadow bind group if needed
+                        if let State::Complete {
+                            shadow:
+                                Shadow {
+                                    bind,
+                                    map: ShadowMap::Enabled(shadow_map),
+                                    ..
+                                },
+                            ..
+                        } = &mut self.state
+                        {
+                            *bind = self.layouts.global.bind_shadow_textures(
+                                &self.device,
+                                &shadow_map.point_depth,
+                                &shadow_map.directed_depth,
+                            );
+                        }
                     },
                     Err(err) => {
                         warn!("Could not create shadow map views: {:?}", err);
@@ -626,222 +632,25 @@ impl Renderer {
         })
     }
 
-    fn create_dummy_shadow_tex(device: &wgpu::Device, queue: &wgpu::Queue) -> (Texture, Texture) {
-        let make_tex = |view_dim, depth| {
-            let tex = wgpu::TextureDescriptor {
-                label: None,
-                size: wgpu::Extent3d {
-                    width: 4,
-                    height: 4,
-                    depth_or_array_layers: depth,
-                },
-                mip_level_count: 1,
-                sample_count: 1,
-                dimension: wgpu::TextureDimension::D2,
-                format: wgpu::TextureFormat::Depth24Plus,
-                usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
-            };
-
-            let view = wgpu::TextureViewDescriptor {
-                label: None,
-                format: Some(wgpu::TextureFormat::Depth24Plus),
-                dimension: Some(view_dim),
-                aspect: wgpu::TextureAspect::DepthOnly,
-                base_mip_level: 0,
-                mip_level_count: None,
-                base_array_layer: 0,
-                array_layer_count: None,
-            };
-
-            let sampler_info = wgpu::SamplerDescriptor {
-                label: None,
-                address_mode_u: wgpu::AddressMode::ClampToEdge,
-                address_mode_v: wgpu::AddressMode::ClampToEdge,
-                address_mode_w: wgpu::AddressMode::ClampToEdge,
-                mag_filter: wgpu::FilterMode::Linear,
-                min_filter: wgpu::FilterMode::Linear,
-                mipmap_filter: wgpu::FilterMode::Nearest,
-                compare: Some(wgpu::CompareFunction::LessEqual),
-                ..Default::default()
-            };
-
-            Texture::new_raw(device, &tex, &view, &sampler_info)
-        };
-
-        let cube_tex = make_tex(wgpu::TextureViewDimension::Cube, 6);
-        let tex = make_tex(wgpu::TextureViewDimension::D2, 1);
-
-        // Clear to 1.0
-        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("Dummy shadow tex clearing encoder"),
-        });
-        let mut clear = |tex: &Texture| {
-            encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("Clear dummy shadow texture"),
-                color_attachments: &[],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &tex.view,
-                    depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(1.0),
-                        store: true,
-                    }),
-                    stencil_ops: None,
-                }),
-            });
-        };
-        clear(&cube_tex);
-        clear(&tex);
-        drop(clear);
-        queue.submit(std::iter::once(encoder.finish()));
-
-        (cube_tex, tex)
-    }
-
-    /// Create textures and views for shadow maps.
-    // This is a one-use type and the two halves are not guaranteed to remain identical, so we
-    // disable the type complexity lint.
-    #[allow(clippy::type_complexity)]
-    fn create_shadow_views(
-        device: &wgpu::Device,
-        size: (u32, u32),
-        mode: &ShadowMapMode,
-    ) -> Result<(Texture, Texture), RenderError> {
-        // (Attempt to) apply resolution factor to shadow map resolution.
-        let resolution_factor = mode.resolution.clamped(0.25, 4.0);
-
-        let max_texture_size = Self::max_texture_size_raw(device);
-        // Limit to max texture size, rather than erroring.
-        let size = Vec2::new(size.0, size.1).map(|e| {
-            let size = e as f32 * resolution_factor;
-            // NOTE: We know 0 <= e since we clamped the resolution factor to be between
-            // 0.25 and 4.0.
-            if size <= max_texture_size as f32 {
-                size as u32
-            } else {
-                max_texture_size
-            }
-        });
-
-        let levels = 1;
-        // Limit to max texture size rather than erroring.
-        let two_size = size.map(|e| {
-            u32::checked_next_power_of_two(e)
-                .filter(|&e| e <= max_texture_size)
-                .unwrap_or(max_texture_size)
-        });
-        let min_size = size.reduce_min();
-        let max_size = size.reduce_max();
-        let _min_two_size = two_size.reduce_min();
-        let _max_two_size = two_size.reduce_max();
-        // For rotated shadow maps, the maximum size of a pixel along any axis is the
-        // size of a diagonal along that axis.
-        let diag_size = size.map(f64::from).magnitude();
-        let diag_cross_size = f64::from(min_size) / f64::from(max_size) * diag_size;
-        let (diag_size, _diag_cross_size) =
-            if 0.0 < diag_size && diag_size <= f64::from(max_texture_size) {
-                // NOTE: diag_cross_size must be non-negative, since it is the ratio of a
-                // non-negative and a positive number (if max_size were zero,
-                // diag_size would be 0 too).  And it must be <= diag_size,
-                // since min_size <= max_size.  Therefore, if diag_size fits in a
-                // u16, so does diag_cross_size.
-                (diag_size as u32, diag_cross_size as u32)
-            } else {
-                // Limit to max texture resolution rather than error.
-                (max_texture_size as u32, max_texture_size as u32)
-            };
-        let diag_two_size = u32::checked_next_power_of_two(diag_size)
-            .filter(|&e| e <= max_texture_size)
-            // Limit to max texture resolution rather than error.
-            .unwrap_or(max_texture_size);
-
-        let point_shadow_tex = wgpu::TextureDescriptor {
-            label: None,
-            size: wgpu::Extent3d {
-                width: diag_two_size / 4,
-                height: diag_two_size / 4,
-                depth_or_array_layers: 6,
-            },
-            mip_level_count: levels,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Depth24Plus,
-            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
-        };
-
-        //TODO: (0, levels - 1), ?? from master
-        let point_shadow_view = wgpu::TextureViewDescriptor {
-            label: None,
-            format: Some(wgpu::TextureFormat::Depth24Plus),
-            dimension: Some(wgpu::TextureViewDimension::Cube),
-            aspect: wgpu::TextureAspect::DepthOnly,
-            base_mip_level: 0,
-            mip_level_count: None,
-            base_array_layer: 0,
-            array_layer_count: None,
-        };
-
-        let directed_shadow_tex = wgpu::TextureDescriptor {
-            label: None,
-            size: wgpu::Extent3d {
-                width: diag_two_size,
-                height: diag_two_size,
-                depth_or_array_layers: 1,
-            },
-            mip_level_count: levels,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Depth24Plus,
-            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
-        };
-
-        let directed_shadow_view = wgpu::TextureViewDescriptor {
-            label: None,
-            format: Some(wgpu::TextureFormat::Depth24Plus),
-            dimension: Some(wgpu::TextureViewDimension::D2),
-            aspect: wgpu::TextureAspect::DepthOnly,
-            base_mip_level: 0,
-            mip_level_count: None,
-            base_array_layer: 0,
-            array_layer_count: None,
-        };
-
-        let sampler_info = wgpu::SamplerDescriptor {
-            label: None,
-            address_mode_u: wgpu::AddressMode::ClampToEdge,
-            address_mode_v: wgpu::AddressMode::ClampToEdge,
-            address_mode_w: wgpu::AddressMode::ClampToEdge,
-            mag_filter: wgpu::FilterMode::Linear,
-            min_filter: wgpu::FilterMode::Linear,
-            mipmap_filter: wgpu::FilterMode::Nearest,
-            compare: Some(wgpu::CompareFunction::LessEqual),
-            ..Default::default()
-        };
-
-        let point_shadow_tex =
-            Texture::new_raw(device, &point_shadow_tex, &point_shadow_view, &sampler_info);
-        let directed_shadow_tex = Texture::new_raw(
-            device,
-            &directed_shadow_tex,
-            &directed_shadow_view,
-            &sampler_info,
-        );
-
-        Ok((point_shadow_tex, directed_shadow_tex))
-    }
-
     /// Get the resolution of the render target.
     pub fn resolution(&self) -> Vec2<u32> { self.resolution }
 
     /// Get the resolution of the shadow render target.
     pub fn get_shadow_resolution(&self) -> (Vec2<u32>, Vec2<u32>) {
-        if let ShadowMap::Enabled(shadow_map) = &self.shadow.map {
-            (
-                shadow_map.point_depth.get_dimensions().xy(),
-                shadow_map.directed_depth.get_dimensions().xy(),
-            )
-        } else {
-            (Vec2::new(1, 1), Vec2::new(1, 1))
+        match &self.state {
+            State::Interface { shadow_views, .. } => shadow_views.as_ref().map(|s| (&s.0, &s.1)),
+            State::Complete {
+                shadow:
+                    Shadow {
+                        map: ShadowMap::Enabled(shadow_map),
+                        ..
+                    },
+                ..
+            } => Some((&shadow_map.point_depth, &shadow_map.directed_depth)),
+            State::Complete { .. } | State::Nothing => None,
         }
+        .map(|(point, directed)| (point.get_dimensions().xy(), directed.get_dimensions().xy()))
+        .unwrap_or_else(|| (Vec2::new(1, 1), Vec2::new(1, 1)))
     }
 
     // /// Queue the clearing of the shadow targets ready for a new frame to be
@@ -901,6 +710,7 @@ impl Renderer {
             "start_recording_frame",
             "Renderer::start_recording_frame"
         );
+
         // Try to get the latest profiling results
         if self.mode.profiler_enabled {
             // Note: this lags a few frames behind
@@ -909,11 +719,115 @@ impl Renderer {
             }
         }
 
-        // TODO: does this make sense here?
-        self.device.poll(wgpu::Maintain::Poll);
+        // Handle polling background pipeline creation/recreation
+        // Temporarily set to nothing and then replace in the statement below
+        let state = core::mem::replace(&mut self.state, State::Nothing);
+        // If still creating initial pipelines, check if complete
+        self.state = if let State::Interface {
+            pipelines: interface,
+            shadow_views,
+            creating,
+        } = state
+        {
+            match creating.try_complete() {
+                Ok(pipelines) => {
+                    let IngameAndShadowPipelines { ingame, shadow } = pipelines;
+
+                    let pipelines = Pipelines::consolidate(interface, ingame);
+
+                    let shadow_map = ShadowMap::new(
+                        &self.device,
+                        &self.queue,
+                        shadow.point,
+                        shadow.directed,
+                        shadow.figure,
+                        shadow_views,
+                    );
+
+                    let shadow_bind = {
+                        let (point, directed) = shadow_map.textures();
+                        self.layouts
+                            .global
+                            .bind_shadow_textures(&self.device, point, directed)
+                    };
+
+                    let shadow = Shadow {
+                        map: shadow_map,
+                        bind: shadow_bind,
+                    };
+
+                    State::Complete {
+                        pipelines,
+                        shadow,
+                        recreating: None,
+                    }
+                },
+                // Not complete
+                Err(creating) => State::Interface {
+                    pipelines: interface,
+                    shadow_views,
+                    creating,
+                },
+            }
+        // If recreating the pipelines, check if that is complete
+        } else if let State::Complete {
+            pipelines,
+            mut shadow,
+            recreating: Some(recreating),
+        } = state
+        {
+            match recreating.try_complete() {
+                Ok(Ok((pipelines, shadow_pipelines))) => {
+                    if let (
+                        Some(point_pipeline),
+                        Some(terrain_directed_pipeline),
+                        Some(figure_directed_pipeline),
+                        ShadowMap::Enabled(shadow_map),
+                    ) = (
+                        shadow_pipelines.point,
+                        shadow_pipelines.directed,
+                        shadow_pipelines.figure,
+                        &mut shadow.map,
+                    ) {
+                        shadow_map.point_pipeline = point_pipeline;
+                        shadow_map.terrain_directed_pipeline = terrain_directed_pipeline;
+                        shadow_map.figure_directed_pipeline = figure_directed_pipeline;
+                    }
+                    State::Complete {
+                        pipelines,
+                        shadow,
+                        recreating: None,
+                    }
+                },
+                Ok(Err(e)) => {
+                    error!(?e, "Could not recreate shaders from assets due to an error");
+                    State::Complete {
+                        pipelines,
+                        shadow,
+                        recreating: None,
+                    }
+                },
+                // Not complete
+                Err(recreating) => State::Complete {
+                    pipelines,
+                    shadow,
+                    recreating: Some(recreating),
+                },
+            }
+        } else {
+            state
+        };
 
         // If the shaders files were changed attempt to recreate the shaders
         if self.shaders.reloaded() {
+            self.recreate_pipelines();
+        }
+
+        // Or if we have a recreation pending
+        if self.recreation_pending
+            && matches!(&self.state, State::Complete { recreating, .. } if recreating.is_none())
+        {
+            self.recreation_pending = false;
             self.recreate_pipelines();
         }
 
@@ -947,40 +861,30 @@ impl Renderer {
 
     /// Recreate the pipelines
     fn recreate_pipelines(&mut self) {
-        match create_pipelines(
-            &self.device,
-            &self.layouts,
-            &self.shaders.read(),
-            &self.mode,
-            &self.sc_desc,
-            self.shadow.map.is_enabled(),
-        ) {
-            Ok((
-                pipelines,
-                //player_shadow_pipeline,
-                point_shadow_pipeline,
-                terrain_directed_shadow_pipeline,
-                figure_directed_shadow_pipeline,
-            )) => {
-                self.pipelines = pipelines;
-                //self.player_shadow_pipeline = player_shadow_pipeline;
-                if let (
-                    Some(point_pipeline),
-                    Some(terrain_directed_pipeline),
-                    Some(figure_directed_pipeline),
-                    ShadowMap::Enabled(shadow_map),
-                ) = (
-                    point_shadow_pipeline,
-                    terrain_directed_shadow_pipeline,
-                    figure_directed_shadow_pipeline,
-                    &mut self.shadow.map,
-                ) {
-                    shadow_map.point_pipeline = point_pipeline;
-                    shadow_map.terrain_directed_pipeline = terrain_directed_pipeline;
-                    shadow_map.figure_directed_pipeline = figure_directed_pipeline;
-                }
+        match &mut self.state {
+            State::Complete { recreating, .. } if recreating.is_some() => {
+                // Defer recreation so that we are not building multiple sets of pipelines in
+                // the background at once
+                self.recreation_pending = true;
             },
-            Err(e) => error!(?e, "Could not recreate shaders from assets due to an error",),
+            State::Complete {
+                recreating, shadow, ..
+            } => {
+                *recreating = Some(pipeline_creation::recreate_pipelines(
+                    Arc::clone(&self.device),
+                    Arc::clone(&self.layouts),
+                    self.shaders.read().clone(),
+                    self.mode.clone(),
+                    self.sc_desc.clone(), // Note: cheap clone
+                    shadow.map.is_enabled(),
+                ));
+            },
+            State::Interface { .. } => {
+                // Defer recreation so that we are not building multiple sets of pipelines in
+                // the background at once
+                self.recreation_pending = true;
+            },
+            State::Nothing => {},
         }
     }
 
@@ -1924,348 +1828,6 @@ impl Renderer {
     // tgt_color: self.win_color_view.clone(),         },
     //     )
     // }
-}
-
-/// Creates all the pipelines used to render.
-fn create_pipelines(
-    device: &wgpu::Device,
-    layouts: &Layouts,
-    shaders: &Shaders,
-    mode: &RenderMode,
-    sc_desc: &wgpu::SwapChainDescriptor,
-    has_shadow_views: bool,
-) -> Result<
-    (
-        Pipelines,
-        //figure::FigurePipeline,
-        Option<shadow::PointShadowPipeline>,
-        Option<shadow::ShadowPipeline>,
-        Option<shadow::ShadowFigurePipeline>,
-    ),
-    RenderError,
-> {
-    use shaderc::{CompileOptions, Compiler, OptimizationLevel, ResolvedInclude, ShaderKind};
-
-    let constants = shaders.get("include.constants").unwrap();
-    let globals = shaders.get("include.globals").unwrap();
-    let sky = shaders.get("include.sky").unwrap();
-    let light = shaders.get("include.light").unwrap();
-    let srgb = shaders.get("include.srgb").unwrap();
-    let random = shaders.get("include.random").unwrap();
-    let lod = shaders.get("include.lod").unwrap();
-    let shadows = shaders.get("include.shadows").unwrap();
-
-    // We dynamically add extra configuration settings to the constants file.
-    let constants = format!(
-        r#"
-{}
-
-#define VOXYGEN_COMPUTATION_PREFERENCE {}
-#define FLUID_MODE {}
-#define CLOUD_MODE {}
-#define LIGHTING_ALGORITHM {}
-#define SHADOW_MODE {}
-
-"#,
-        &constants.0,
-        // TODO: Configurable vertex/fragment shader preference.
-        "VOXYGEN_COMPUTATION_PREFERENCE_FRAGMENT",
-        match mode.fluid {
-            FluidMode::Cheap => "FLUID_MODE_CHEAP",
-            FluidMode::Shiny => "FLUID_MODE_SHINY",
-        },
-        match mode.cloud {
-            CloudMode::None => "CLOUD_MODE_NONE",
-            CloudMode::Minimal => "CLOUD_MODE_MINIMAL",
-            CloudMode::Low => "CLOUD_MODE_LOW",
-            CloudMode::Medium => "CLOUD_MODE_MEDIUM",
-            CloudMode::High => "CLOUD_MODE_HIGH",
-            CloudMode::Ultra => "CLOUD_MODE_ULTRA",
-        },
-        match mode.lighting {
-            LightingMode::Ashikhmin => "LIGHTING_ALGORITHM_ASHIKHMIN",
-            LightingMode::BlinnPhong => "LIGHTING_ALGORITHM_BLINN_PHONG",
-            LightingMode::Lambertian => "LIGHTING_ALGORITHM_LAMBERTIAN",
-        },
-        match mode.shadow {
-            ShadowMode::None => "SHADOW_MODE_NONE",
-            ShadowMode::Map(_) if has_shadow_views => "SHADOW_MODE_MAP",
-            ShadowMode::Cheap | ShadowMode::Map(_) => "SHADOW_MODE_CHEAP",
-        },
-    );
-
-    let anti_alias = shaders
-        .get(match mode.aa {
-            AaMode::None => "antialias.none",
-            AaMode::Fxaa => "antialias.fxaa",
-            AaMode::MsaaX4 => "antialias.msaa-x4",
-            AaMode::MsaaX8 => "antialias.msaa-x8",
-            AaMode::MsaaX16 => "antialias.msaa-x16",
-        })
-        .unwrap();
-
-    let cloud = shaders
-        .get(match mode.cloud {
-            CloudMode::None => "include.cloud.none",
-            _ => "include.cloud.regular",
-        })
-        .unwrap();
-
-    let mut compiler = Compiler::new().ok_or(RenderError::ErrorInitializingCompiler)?;
-    let mut options = CompileOptions::new().ok_or(RenderError::ErrorInitializingCompiler)?;
-    options.set_optimization_level(OptimizationLevel::Performance);
-    options.set_forced_version_profile(430, shaderc::GlslProfile::Core);
-    options.set_include_callback(move |name, _, shader_name, _| {
-        Ok(ResolvedInclude {
-            resolved_name: name.to_string(),
-            content: match name {
-                "constants.glsl" => constants.clone(),
-                "globals.glsl" => globals.0.to_owned(),
-                "shadows.glsl" => shadows.0.to_owned(),
-                "sky.glsl" => sky.0.to_owned(),
-                "light.glsl" => light.0.to_owned(),
-                "srgb.glsl" => srgb.0.to_owned(),
-                "random.glsl" => random.0.to_owned(),
-                "lod.glsl" => lod.0.to_owned(),
-                "anti-aliasing.glsl" => anti_alias.0.to_owned(),
-                "cloud.glsl" => cloud.0.to_owned(),
-                other => return Err(format!("Include {} is not defined", other)),
-            },
-        })
-    });
-
-    let mut create_shader = |name, kind| {
-        let glsl = &shaders
-            .get(name)
-            .unwrap_or_else(|| panic!("Can't retrieve shader: {}", name))
-            .0;
-        let file_name = format!("{}.glsl", name);
-        create_shader_module(device, &mut compiler, glsl, kind, &file_name, &options)
-    };
-
-    let figure_vert_mod = create_shader("figure-vert", ShaderKind::Vertex)?;
-
-    // let terrain_point_shadow_vert_mod = create_shader("Point-light-shadows-vert",
-    // ShaderKind::Vertex)?;
-
-    let terrain_directed_shadow_vert_mod =
-        create_shader("light-shadows-directed-vert", ShaderKind::Vertex)?;
-
-    let figure_directed_shadow_vert_mod =
-        create_shader("light-shadows-figure-vert", ShaderKind::Vertex)?;
-
-    let directed_shadow_frag_mod =
-        create_shader("light-shadows-directed-frag", ShaderKind::Fragment)?;
-
-    // Construct a pipeline for rendering skyboxes
-    let skybox_pipeline = skybox::SkyboxPipeline::new(
-        device,
-        &create_shader("skybox-vert", ShaderKind::Vertex)?,
-        &create_shader("skybox-frag", ShaderKind::Fragment)?,
-        &layouts.global,
-        mode.aa,
-    );
-
-    // Construct a pipeline for rendering figures
-    let figure_pipeline = figure::FigurePipeline::new(
-        device,
-        &figure_vert_mod,
-        &create_shader("figure-frag", ShaderKind::Fragment)?,
-        &layouts.global,
-        &layouts.figure,
-        mode.aa,
-    );
-
-    let terrain_vert = create_shader("terrain-vert", ShaderKind::Vertex)?;
-    // Construct a pipeline for rendering terrain
-    let terrain_pipeline = terrain::TerrainPipeline::new(
-        device,
-        &terrain_vert,
-        &create_shader("terrain-frag", ShaderKind::Fragment)?,
-        &layouts.global,
-        &layouts.terrain,
-        mode.aa,
-    );
-
-    // Construct a pipeline for rendering fluids
-    let selected_fluid_shader = ["fluid-frag.", match mode.fluid {
-        FluidMode::Cheap => "cheap",
-        FluidMode::Shiny => "shiny",
-    }]
-    .concat();
-    let fluid_pipeline = fluid::FluidPipeline::new(
-        device,
-        &create_shader("fluid-vert", ShaderKind::Vertex)?,
-        &create_shader(&selected_fluid_shader, ShaderKind::Fragment)?,
-        &layouts.global,
-        &layouts.fluid,
-        &layouts.terrain,
-        mode.aa,
-    );
-
-    // Construct a pipeline for rendering sprites
-    let sprite_pipeline = sprite::SpritePipeline::new(
-        device,
-        &create_shader("sprite-vert", ShaderKind::Vertex)?,
-        &create_shader("sprite-frag", ShaderKind::Fragment)?,
-        &layouts.global,
-        &layouts.sprite,
-        &layouts.terrain,
-        mode.aa,
-    );
-
-    // Construct a pipeline for rendering particles
-    let particle_pipeline = particle::ParticlePipeline::new(
-        device,
-        &create_shader("particle-vert", ShaderKind::Vertex)?,
-        &create_shader("particle-frag", ShaderKind::Fragment)?,
-        &layouts.global,
-        mode.aa,
-    );
-
-    // Construct a pipeline for rendering UI elements
-    let ui_pipeline = ui::UiPipeline::new(
-        device,
-        &create_shader("ui-vert", ShaderKind::Vertex)?,
-        &create_shader("ui-frag", ShaderKind::Fragment)?,
-        sc_desc,
-        &layouts.global,
-        &layouts.ui,
-    );
-
-    // Construct a pipeline for rendering terrain
-    let lod_terrain_pipeline = lod_terrain::LodTerrainPipeline::new(
-        device,
-        &create_shader("lod-terrain-vert", ShaderKind::Vertex)?,
-        &create_shader("lod-terrain-frag", ShaderKind::Fragment)?,
-        &layouts.global,
-        mode.aa,
-    );
-
-    // Construct a pipeline for rendering our clouds (a kind of post-processing)
-    let clouds_pipeline = clouds::CloudsPipeline::new(
-        device,
-        &create_shader("clouds-vert", ShaderKind::Vertex)?,
-        &create_shader("clouds-frag", ShaderKind::Fragment)?,
-        // TODO: pass in format of intermediate color buffer
-        &layouts.global,
-        &layouts.clouds,
-        mode.aa,
-    );
-
-    // Construct a pipeline for rendering our post-processing
-    let postprocess_pipeline = postprocess::PostProcessPipeline::new(
-        device,
-        &create_shader("postprocess-vert", ShaderKind::Vertex)?,
-        &create_shader("postprocess-frag", ShaderKind::Fragment)?,
-        sc_desc,
-        &layouts.global,
-        &layouts.postprocess,
-    );
-
-    // Construct a pipeline for blitting, used during screenshotting
-    let blit_pipeline = blit::BlitPipeline::new(
-        device,
-        &create_shader("blit-vert", ShaderKind::Vertex)?,
-        &create_shader("blit-frag", ShaderKind::Fragment)?,
-        sc_desc,
-        &layouts.blit,
-    );
-
-    // Consider reenabling at some time in the future
-    //
-    // // Construct a pipeline for rendering the player silhouette
-    // let player_shadow_pipeline = create_pipeline(
-    //     factory,
-    //     figure::pipe::Init {
-    //         tgt_depth: (gfx::preset::depth::PASS_TEST/*,
-    //         Stencil::new(
-    //             Comparison::Equal,
-    //             0xff,
-    //             (StencilOp::Keep, StencilOp::Keep, StencilOp::Keep),
-    //         ),*/),
-    //         ..figure::pipe::new()
-    //     },
-    //     &figure_vert,
-    //     &Glsl::load_watched(
-    //         "voxygen.shaders.player-shadow-frag",
-    //         shader_reload_indicator,
-    //     )
-    //     .unwrap(),
-    //     &include_ctx,
-    //     gfx::state::CullFace::Back,
-    // )?;
-
-    // Construct a pipeline for rendering point light terrain shadow maps.
-    let point_shadow_pipeline = shadow::PointShadowPipeline::new(
-        device,
-        &create_shader("point-light-shadows-vert", ShaderKind::Vertex)?,
-        &create_shader("light-shadows-frag", ShaderKind::Fragment)?,
-        &layouts.global,
-        &layouts.terrain,
-        mode.aa,
-    );
-
-    // Construct a pipeline for rendering directional light terrain shadow maps.
-    let terrain_directed_shadow_pipeline = shadow::ShadowPipeline::new(
-        device,
-        &terrain_directed_shadow_vert_mod,
-        &directed_shadow_frag_mod,
-        &layouts.global,
-        &layouts.terrain,
-        mode.aa,
-    );
-
-    // Construct a pipeline for rendering directional light figure shadow maps.
-    let figure_directed_shadow_pipeline = shadow::ShadowFigurePipeline::new(
-        device,
-        &figure_directed_shadow_vert_mod,
-        &directed_shadow_frag_mod,
-        &layouts.global,
-        &layouts.figure,
-        mode.aa,
-    );
-
-    Ok((
-        Pipelines {
-            skybox: skybox_pipeline,
-            figure: figure_pipeline,
-            terrain: terrain_pipeline,
-            fluid: fluid_pipeline,
-            sprite: sprite_pipeline,
-            particle: particle_pipeline,
-            ui: ui_pipeline,
-            lod_terrain: lod_terrain_pipeline,
-            clouds: clouds_pipeline,
-            postprocess: postprocess_pipeline,
-            blit: blit_pipeline,
-        },
-        // player_shadow_pipeline,
-        Some(point_shadow_pipeline),
-        Some(terrain_directed_shadow_pipeline),
-        Some(figure_directed_shadow_pipeline),
-    ))
-}
-
-fn create_shader_module(
-    device: &wgpu::Device,
-    compiler: &mut shaderc::Compiler,
-    source: &str,
-    kind: shaderc::ShaderKind,
-    file_name: &str,
-    options: &shaderc::CompileOptions,
-) -> Result<wgpu::ShaderModule, RenderError> {
-    use std::borrow::Cow;
-
-    let spv = compiler
-        .compile_into_spirv(source, kind, file_name, "main", Some(options))
-        .map_err(|e| (file_name, e))?;
-
-    Ok(device.create_shader_module(&wgpu::ShaderModuleDescriptor {
-        label: Some(source),
-        source: wgpu::ShaderSource::SpirV(Cow::Borrowed(spv.as_binary())),
-        flags: wgpu::ShaderFlags::empty(), // TODO: renable wgpu::ShaderFlags::VALIDATION,
-    }))
 }
 
 fn create_quad_index_buffer_u16(device: &wgpu::Device, vert_length: usize) -> Buffer<u16> {

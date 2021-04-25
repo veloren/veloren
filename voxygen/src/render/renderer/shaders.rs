@@ -14,6 +14,9 @@ impl assets::Asset for Glsl {
     const EXTENSION: &'static str = "glsl";
 }
 
+// Note: we use this clone to send the shaders to a background thread
+// TODO: use Arc-ed asset and clone that instead
+#[derive(Clone)]
 pub struct Shaders {
     shaders: HashMap<String, AssetHandle<Glsl>>,
 }
@@ -44,7 +47,6 @@ impl assets::Compound for Shaders {
             "figure-vert",
             "light-shadows-figure-vert",
             "light-shadows-directed-vert",
-            "light-shadows-directed-frag",
             "point-light-shadows-vert",
             "skybox-vert",
             "skybox-frag",
@@ -68,9 +70,8 @@ impl assets::Compound for Shaders {
             "postprocess-frag",
             "blit-vert",
             "blit-frag",
-            "player-shadow-frag",
-            "light-shadows-geom",
-            "light-shadows-frag",
+            //"player-shadow-frag",
+            //"light-shadows-geom",
         ];
 
         let shaders = shaders
