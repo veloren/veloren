@@ -340,7 +340,8 @@ impl Buffs {
                 let buffs = &self.buffs;
                 // Intentionally sorted in reverse so that the strongest buffs are earlier in
                 // the vector
-                buff_order.sort_by(|a, b| buffs[&b].partial_cmp(&buffs[&a]).unwrap());
+                buff_order
+                    .sort_by(|a, b| buffs[&b].partial_cmp(&buffs[&a]).unwrap_or(Ordering::Equal));
             }
         }
     }
@@ -382,19 +383,19 @@ impl Buffs {
     pub fn iter_active(&self) -> impl Iterator<Item = &Buff> + '_ {
         self.kinds
             .values()
-            .map(move |ids| self.buffs.get(&ids[0]))
-            .filter(|buff| buff.is_some())
-            .map(|buff| buff.unwrap())
+            .filter_map(move |ids| self.buffs.get(&ids[0]))
     }
 
     // Gets most powerful buff of a given kind
     // pub fn get_active_kind(&self, kind: BuffKind) -> Buff
     pub fn remove(&mut self, buff_id: BuffId) {
-        let kind = self.buffs.remove(&buff_id).unwrap().kind;
-        self.kinds
-            .get_mut(&kind)
-            .map(|ids| ids.retain(|id| *id != buff_id));
-        self.sort_kind(kind);
+        if let Some(kind) = self.buffs.remove(&buff_id) {
+            let kind = kind.kind;
+            self.kinds
+                .get_mut(&kind)
+                .map(|ids| ids.retain(|id| *id != buff_id));
+            self.sort_kind(kind);
+        }
     }
 
     /// Returns an immutable reference to the buff kinds on an entity, and a
