@@ -1348,7 +1348,6 @@ impl Hud {
                     .for_each(|f| f.timer -= dt.as_secs_f32());
                 self.floaters.block_floaters.retain(|f| f.timer > 0_f32);
                 if let Some(uid) = uids.get(me) {
-                    use inline_tweak::tweak;
                     for floater in self
                         .floaters
                         .block_floaters
@@ -1378,18 +1377,15 @@ impl Hud {
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                             .x_y(
-                                ui_widgets.win_w * (tweak!(0.0)),
-                                ui_widgets.win_h * (tweak!(-0.3)) + y - tweak!(3.0),
+                                ui_widgets.win_w * (0.0),
+                                ui_widgets.win_h * (-0.3) + y - 3.0,
                             )
                             .set(player_sct_bg_id, ui_widgets);
                         Text::new(&i18n.get("hud.sct.block"))
                             .font_size(font_size)
                             .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(tweak!(0.69), tweak!(0.82), tweak!(0.88), fade))
-                            .x_y(
-                                ui_widgets.win_w * (tweak!(0.0)),
-                                ui_widgets.win_h * (tweak!(-0.3)) + y,
-                            )
+                            .color(Color::Rgba(0.69, 0.82, 0.88, fade))
+                            .x_y(ui_widgets.win_w * 0.0, ui_widgets.win_h * -0.3 + y)
                             .set(player_sct_id, ui_widgets);
                     }
                 }

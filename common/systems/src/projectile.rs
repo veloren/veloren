@@ -61,11 +61,11 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = read_data.server_bus.emitter();
 
         // Attacks
-        'projectile_loop: for (entity, pos, physics, ori, mut projectile) in (
+        'projectile_loop: for (entity, pos, physics, vel, mut projectile) in (
             &read_data.entities,
             &read_data.positions,
             &read_data.physics_states,
-            &mut orientations,
+            &read_data.velocities,
             &mut projectiles,
         )
             .join()
@@ -111,7 +111,10 @@ impl<'a> System<'a> for Sys {
                                 .uid_allocator
                                 .retrieve_entity_internal(other.into())
                             {
-                                if let Some(pos) = read_data.positions.get(target) {
+                                if let (Some(pos), Some(dir)) = (
+                                    read_data.positions.get(target),
+                                    Dir::from_unnormalized(vel.0),
+                                ) {
                                     let owner_entity = projectile.owner.and_then(|u| {
                                         read_data.uid_allocator.retrieve_entity_internal(u.into())
                                     });
@@ -133,9 +136,7 @@ impl<'a> System<'a> for Sys {
                                         stats: read_data.stats.get(target),
                                         health: read_data.healths.get(target),
                                         pos: pos.0,
-                                        // TODO: Let someone smarter figure this out
-                                        // ori: orientations.get(target),
-                                        ori: None,
+                                        ori: orientations.get(target),
                                         char_state: read_data.character_states.get(target),
                                     };
 
@@ -156,7 +157,7 @@ impl<'a> System<'a> for Sys {
                                         target_group,
                                         attacker_info,
                                         target_info,
-                                        ori.look_dir(),
+                                        dir,
                                         false,
                                         1.0,
                                         AttackSource::Projectile,
@@ -222,12 +223,10 @@ impl<'a> System<'a> for Sys {
                 if projectile_vanished {
                     continue 'projectile_loop;
                 }
-            } else if let Some(dir) = read_data
-                .velocities
-                .get(entity)
-                .and_then(|vel| Dir::from_unnormalized(vel.0))
-            {
-                *ori = dir.into();
+            } else if let Some(ori) = orientations.get_mut(entity) {
+                if let Some(dir) = Dir::from_unnormalized(vel.0) {
+                    *ori = dir.into();
+                }
             }
 
             if projectile.time_left == Duration::default() {
