@@ -99,9 +99,6 @@ pub struct LocalizationFragment {
 
 impl Language {
     /// Get a localized text from the given key
-    ///
-    /// If the key is not present in the localization object
-    /// then the key is returned.
     pub fn get<'a>(&'a self, key: &'a str) -> Option<&str> {
         self.string_map.get(key).map(|s| s.as_str())
     }
@@ -242,6 +239,8 @@ pub type Localization = LocalizationGuard;
 impl LocalizationGuard {
     /// Get a localized text from the given key
     ///
+    /// First lookup is done in the active language, second in
+    /// the fallback (if present).
     /// If the key is not present in the localization object
     /// then the key is returned.
     pub fn get<'a>(&'a self, key: &'a str) -> &str {
