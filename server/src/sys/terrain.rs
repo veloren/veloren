@@ -224,7 +224,7 @@ impl<'a> System<'a> for Sys {
         new_chunks.into_par_iter().for_each(|(key, chunk)| {
             let mut msg = Some(ServerGeneral::TerrainChunkUpdate {
                 key,
-                chunk: Ok(CompressedData::compress(&*chunk, 5)),
+                chunk: Ok(CompressedData::compress(&*chunk, 1)),
             });
             let mut lazy_msg = None;
 
