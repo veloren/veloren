@@ -213,6 +213,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         0.0 + y as f64 * (41.0),
                         1.5 + x as f64 * (43.0),
                     );
+
                     buff_widget
                         .color(
                             if current_duration.map_or(false, |cur| cur.as_secs_f32() < 10.0) {
@@ -284,11 +285,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         max_duration
                             .map_or(1000.0, |max| cur.as_secs_f32() / max.as_secs_f32() * 1000.0)
                     }) as u32; // Percentage to determine which frame of the timer overlay is displayed
-                    let debuff_img = match debuff.kind {
-                        BuffKind::Bleeding { .. } => self.imgs.debuff_bleed_0,
-                        BuffKind::Cursed { .. } => self.imgs.debuff_skull_0,
-                        _ => self.imgs.missing_icon,
-                    };
+                    let debuff_img = hud::get_buff_image(debuff.kind, self.imgs);
                     let debuff_widget = Image::new(debuff_img).w_h(40.0, 40.0);
                     // Sort buffs into rows of 11 slots
                     let x = i % 6;
@@ -385,7 +382,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         max_duration
                             .map_or(1000.0, |max| cur.as_secs_f32() / max.as_secs_f32() * 1000.0)
                     }) as u32;
-                    let buff_img = hud::get_buff_image(buff.kind, &self.imgs);
+                    let buff_img = hud::get_buff_image(buff.kind, self.imgs);
                     let buff_widget = Image::new(buff_img).w_h(40.0, 40.0);
                     // Sort buffs into rows of 6 slots
                     let x = i % 6;
