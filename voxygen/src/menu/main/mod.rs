@@ -259,7 +259,9 @@ impl PlayState for MainMenuState {
         };
 
         // Draw the UI to the screen.
-        self.main_menu_ui.render(&mut drawer.third_pass().draw_ui());
+        if let Some(mut ui_drawer) = drawer.third_pass().draw_ui() {
+            self.main_menu_ui.render(&mut ui_drawer);
+        };
     }
 }
 

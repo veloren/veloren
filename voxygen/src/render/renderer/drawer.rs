@@ -16,13 +16,47 @@ use std::sync::Arc;
 use vek::Aabr;
 use wgpu_profiler::scope::{ManualOwningScope, OwningScope, Scope};
 
+// Currently available pipelines
+// #[derive(Clone, Copy)]
+enum Pipelines<'frame> {
+    Interface(&'frame super::InterfacePipelines),
+    All(&'frame super::Pipelines),
+    // Should never be in this state for now but we need this to accound for super::State::Nothing
+    None,
+}
+
+impl<'frame> Pipelines<'frame> {
+    fn ui(&self) -> Option<&ui::UiPipeline> {
+        match self {
+            Pipelines::Interface(pipelines) => Some(&pipelines.ui),
+            Pipelines::All(pipelines) => Some(&pipelines.ui),
+            Pipelines::None => None,
+        }
+    }
+
+    fn blit(&self) -> Option<&blit::BlitPipeline> {
+        match self {
+            Pipelines::Interface(pipelines) => Some(&pipelines.blit),
+            Pipelines::All(pipelines) => Some(&pipelines.blit),
+            Pipelines::None => None,
+        }
+    }
+
+    fn all(&self) -> Option<&super::Pipelines> {
+        match self {
+            Pipelines::All(pipelines) => Some(pipelines),
+            Pipelines::Interface(_) | Pipelines::None => None,
+        }
+    }
+}
+
 // Borrow the fields we need from the renderer so that the GpuProfiler can be
 // dijointly borrowed mutably
 struct RendererBorrow<'frame> {
     queue: &'frame wgpu::Queue,
     device: &'frame wgpu::Device,
-    shadow: &'frame super::Shadow,
-    pipelines: &'frame super::Pipelines,
+    shadow: Option<&'frame super::Shadow>,
+    pipelines: Pipelines<'frame>,
     locals: &'frame super::locals::Locals,
     views: &'frame super::Views,
     mode: &'frame super::super::RenderMode,
@@ -57,11 +91,19 @@ impl<'frame> Drawer<'frame> {
             )
         });
 
+        let (pipelines, shadow) = match &renderer.state {
+            super::State::Interface { pipelines, .. } => (Pipelines::Interface(pipelines), None),
+            super::State::Complete {
+                pipelines, shadow, ..
+            } => (Pipelines::All(pipelines), Some(shadow)),
+            super::State::Nothing => (Pipelines::None, None),
+        };
+
         let borrow = RendererBorrow {
             queue: &renderer.queue,
             device: &renderer.device,
-            shadow: todo!(),    //&renderer.shadow,
-            pipelines: todo!(), //&renderer.pipelines,
+            shadow,
+            pipelines,
             locals: &renderer.locals,
             views: &renderer.views,
             mode: &renderer.mode,
@@ -84,8 +126,10 @@ impl<'frame> Drawer<'frame> {
     /// Get the render mode.
     pub fn render_mode(&self) -> &super::super::RenderMode { self.borrow.mode }
 
+    /// Returns None if the shadow renderer is not enabled or the pipelines are
+    /// not available yet
     pub fn shadow_pass(&mut self) -> Option<ShadowPassDrawer> {
-        if let ShadowMap::Enabled(ref shadow_renderer) = self.borrow.shadow.map {
+        if let ShadowMap::Enabled(ref shadow_renderer) = self.borrow.shadow?.map {
             let encoder = self.encoder.as_mut().unwrap();
             let device = self.borrow.device;
             let mut render_pass =
@@ -114,7 +158,13 @@ impl<'frame> Drawer<'frame> {
         }
     }
 
-    pub fn first_pass(&mut self) -> FirstPassDrawer {
+    /// Returns None if all the pipelines are not available
+    pub fn first_pass(&mut self) -> Option<FirstPassDrawer> {
+        let pipelines = self.borrow.pipelines.all()?;
+        // Note: this becomes Some once pipeline creation is complete even if shadows
+        // are not enabled
+        let shadow = self.borrow.shadow?;
+
         let encoder = self.encoder.as_mut().unwrap();
         let device = self.borrow.device;
         let mut render_pass =
@@ -139,16 +189,23 @@ impl<'frame> Drawer<'frame> {
             });
 
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
-        render_pass.set_bind_group(1, &self.borrow.shadow.bind.bind_group, &[]);
+        render_pass.set_bind_group(1, &shadow.bind.bind_group, &[]);
 
-        FirstPassDrawer {
+        Some(FirstPassDrawer {
             render_pass,
             borrow: &self.borrow,
+            pipelines,
             globals: self.globals,
-        }
+        })
     }
 
-    pub fn second_pass(&mut self) -> SecondPassDrawer {
+    /// Returns None if the clouds pipeline is not available
+    pub fn second_pass(&mut self) -> Option<SecondPassDrawer> {
+        let pipeline = &self.borrow.pipelines.all()?.clouds;
+        // Note: this becomes Some once pipeline creation is complete even if shadows
+        // are not enabled
+        let shadow = self.borrow.shadow?;
+
         let encoder = self.encoder.as_mut().unwrap();
         let device = self.borrow.device;
         let mut render_pass =
@@ -166,12 +223,14 @@ impl<'frame> Drawer<'frame> {
             });
 
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
-        render_pass.set_bind_group(1, &self.borrow.shadow.bind.bind_group, &[]);
+        // TODO: what are shadows used for here????
+        render_pass.set_bind_group(1, &shadow.bind.bind_group, &[]);
 
-        SecondPassDrawer {
+        Some(SecondPassDrawer {
             render_pass,
             borrow: &self.borrow,
-        }
+            pipeline,
+        })
     }
 
     pub fn third_pass(&mut self) -> ThirdPassDrawer {
@@ -204,13 +263,14 @@ impl<'frame> Drawer<'frame> {
         }
     }
 
+    /// Does nothing if the shadow pipelines are not available
     pub fn draw_point_shadows<'data: 'frame>(
         &mut self,
         matrices: &[shadow::PointLightMatrix; 126],
         chunks: impl Clone
         + Iterator<Item = (&'data Model<terrain::Vertex>, &'data terrain::BoundLocals)>,
     ) {
-        if let ShadowMap::Enabled(ref shadow_renderer) = self.borrow.shadow.map {
+        if let Some(ShadowMap::Enabled(ref shadow_renderer)) = self.borrow.shadow.map(|s| &s.map) {
             let device = self.borrow.device;
             let mut encoder = self
                 .encoder
@@ -280,8 +340,11 @@ impl<'frame> Drawer<'frame> {
     /// NOTE: could simply use the above passes except `draw_point_shadows`
     /// requires an array of matrices that could be a pain to construct
     /// simply for clearing
+    ///
+    /// Does nothing if the shadow pipelines are not available (although they
+    /// aren't used here they are needed for the ShadowMap to exist)
     pub fn clear_shadows(&mut self) {
-        if let ShadowMap::Enabled(ref shadow_renderer) = self.borrow.shadow.map {
+        if let Some(ShadowMap::Enabled(ref shadow_renderer)) = self.borrow.shadow.map(|s| &s.map) {
             let device = self.borrow.device;
             let encoder = self.encoder.as_mut().unwrap();
             let _ = encoder.scoped_render_pass(
@@ -342,8 +405,14 @@ impl<'frame> Drop for Drawer<'frame> {
         // maybe we should submit each render pass to the queue as they are produced?
         let mut encoder = self.encoder.take().unwrap();
 
-        // If taking a screenshot
-        if let Some(screenshot) = self.taking_screenshot.take() {
+        // If taking a screenshota and the blit pipeline is available
+        // NOTE: blit pipeline should always be available for now so we don't report an
+        // error if it isn't
+        if let Some((screenshot, blit)) = self
+            .taking_screenshot
+            .take()
+            .zip(self.borrow.pipelines.blit())
+        {
             // Image needs to be copied from the screenshot texture to the swapchain texture
             let mut render_pass = encoder.scoped_render_pass(
                 "screenshot blit",
@@ -361,7 +430,7 @@ impl<'frame> Drop for Drawer<'frame> {
                     depth_stencil_attachment: None,
                 },
             );
-            render_pass.set_pipeline(&self.borrow.pipelines.blit.pipeline);
+            render_pass.set_pipeline(&blit.pipeline);
             render_pass.set_bind_group(0, &screenshot.bind_group(), &[]);
             render_pass.draw(0..3, 0..1);
             drop(render_pass);
@@ -450,6 +519,7 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainShadowDrawer<'pass_ref, 'pass> {
 pub struct FirstPassDrawer<'pass> {
     pub(super) render_pass: OwningScope<'pass, wgpu::RenderPass<'pass>>,
     borrow: &'pass RendererBorrow<'pass>,
+    pipelines: &'pass super::Pipelines,
     globals: &'pass GlobalsBindGroup,
 }
 
@@ -457,7 +527,7 @@ impl<'pass> FirstPassDrawer<'pass> {
     pub fn draw_skybox<'data: 'pass>(&mut self, model: &'data Model<skybox::Vertex>) {
         let mut render_pass = self.render_pass.scope("skybox", self.borrow.device);
 
-        render_pass.set_pipeline(&self.borrow.pipelines.skybox.pipeline);
+        render_pass.set_pipeline(&self.pipelines.skybox.pipeline);
         set_quad_index_buffer::<skybox::Vertex>(&mut render_pass, &self.borrow);
         render_pass.set_vertex_buffer(0, model.buf().slice(..));
         render_pass.draw(0..model.len() as u32, 0..1);
@@ -466,7 +536,7 @@ impl<'pass> FirstPassDrawer<'pass> {
     pub fn draw_lod_terrain<'data: 'pass>(&mut self, model: &'data Model<lod_terrain::Vertex>) {
         let mut render_pass = self.render_pass.scope("lod_terrain", self.borrow.device);
 
-        render_pass.set_pipeline(&self.borrow.pipelines.lod_terrain.pipeline);
+        render_pass.set_pipeline(&self.pipelines.lod_terrain.pipeline);
         set_quad_index_buffer::<lod_terrain::Vertex>(&mut render_pass, &self.borrow);
         render_pass.set_vertex_buffer(0, model.buf().slice(..));
         render_pass.draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..1);
@@ -475,7 +545,7 @@ impl<'pass> FirstPassDrawer<'pass> {
     pub fn draw_figures(&mut self) -> FigureDrawer<'_, 'pass> {
         let mut render_pass = self.render_pass.scope("figures", self.borrow.device);
 
-        render_pass.set_pipeline(&self.borrow.pipelines.figure.pipeline);
+        render_pass.set_pipeline(&self.pipelines.figure.pipeline);
         set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, &self.borrow);
 
         FigureDrawer { render_pass }
@@ -484,7 +554,7 @@ impl<'pass> FirstPassDrawer<'pass> {
     pub fn draw_terrain<'data: 'pass>(&mut self) -> TerrainDrawer<'_, 'pass> {
         let mut render_pass = self.render_pass.scope("terrain", self.borrow.device);
 
-        render_pass.set_pipeline(&self.borrow.pipelines.terrain.pipeline);
+        render_pass.set_pipeline(&self.pipelines.terrain.pipeline);
         set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, &self.borrow);
 
         TerrainDrawer {
@@ -496,7 +566,7 @@ impl<'pass> FirstPassDrawer<'pass> {
     pub fn draw_particles(&mut self) -> ParticleDrawer<'_, 'pass> {
         let mut render_pass = self.render_pass.scope("particles", self.borrow.device);
 
-        render_pass.set_pipeline(&self.borrow.pipelines.particle.pipeline);
+        render_pass.set_pipeline(&self.pipelines.particle.pipeline);
         set_quad_index_buffer::<particle::Vertex>(&mut render_pass, &self.borrow);
 
         ParticleDrawer { render_pass }
@@ -509,7 +579,7 @@ impl<'pass> FirstPassDrawer<'pass> {
     ) -> SpriteDrawer<'_, 'pass> {
         let mut render_pass = self.render_pass.scope("sprites", self.borrow.device);
 
-        render_pass.set_pipeline(&self.borrow.pipelines.sprite.pipeline);
+        render_pass.set_pipeline(&self.pipelines.sprite.pipeline);
         set_quad_index_buffer::<particle::Vertex>(&mut render_pass, &self.borrow);
         render_pass.set_bind_group(0, &globals.bind_group, &[]);
         render_pass.set_bind_group(3, &col_lights.bind_group, &[]);
@@ -526,7 +596,7 @@ impl<'pass> FirstPassDrawer<'pass> {
     ) -> FluidDrawer<'_, 'pass> {
         let mut render_pass = self.render_pass.scope("fluid", self.borrow.device);
 
-        render_pass.set_pipeline(&self.borrow.pipelines.fluid.pipeline);
+        render_pass.set_pipeline(&self.pipelines.fluid.pipeline);
         set_quad_index_buffer::<fluid::Vertex>(&mut render_pass, &self.borrow);
         render_pass.set_bind_group(2, &waves.bind_group, &[]);
 
@@ -666,38 +736,48 @@ impl<'pass_ref, 'pass: 'pass_ref> FluidDrawer<'pass_ref, 'pass> {
 pub struct SecondPassDrawer<'pass> {
     render_pass: OwningScope<'pass, wgpu::RenderPass<'pass>>,
     borrow: &'pass RendererBorrow<'pass>,
+    pipeline: &'pass clouds::CloudsPipeline,
 }
 
 impl<'pass> SecondPassDrawer<'pass> {
     pub fn draw_clouds(&mut self) {
-        self.render_pass
-            .set_pipeline(&self.borrow.pipelines.clouds.pipeline);
+        self.render_pass.set_pipeline(&self.pipeline.pipeline);
         self.render_pass
             .set_bind_group(2, &self.borrow.locals.clouds_bind.bind_group, &[]);
         self.render_pass.draw(0..3, 0..1);
     }
 }
 
-// Third pass: postprocess + ui
+/// Third pass: postprocess + ui
 pub struct ThirdPassDrawer<'pass> {
     render_pass: OwningScope<'pass, wgpu::RenderPass<'pass>>,
     borrow: &'pass RendererBorrow<'pass>,
 }
 
 impl<'pass> ThirdPassDrawer<'pass> {
-    pub fn draw_post_process(&mut self) {
+    /// Does nothing if the postprocess pipeline is not available
+    pub fn draw_postprocess(&mut self) {
+        let postprocess = match self.borrow.pipelines.all() {
+            Some(p) => &p.postprocess,
+            None => return,
+        };
+
         let mut render_pass = self.render_pass.scope("postprocess", self.borrow.device);
-        render_pass.set_pipeline(&self.borrow.pipelines.postprocess.pipeline);
+        render_pass.set_pipeline(&postprocess.pipeline);
         render_pass.set_bind_group(1, &self.borrow.locals.postprocess_bind.bind_group, &[]);
         render_pass.draw(0..3, 0..1);
     }
 
-    pub fn draw_ui(&mut self) -> UiDrawer<'_, 'pass> {
+    /// Returns None if the UI pipeline is not available (note: this should
+    /// never be the case for now)
+    pub fn draw_ui(&mut self) -> Option<UiDrawer<'_, 'pass>> {
+        let ui = self.borrow.pipelines.ui()?;
+
         let mut render_pass = self.render_pass.scope("ui", self.borrow.device);
-        render_pass.set_pipeline(&self.borrow.pipelines.ui.pipeline);
+        render_pass.set_pipeline(&ui.pipeline);
         set_quad_index_buffer::<ui::Vertex>(&mut render_pass, &self.borrow);
 
-        UiDrawer { render_pass }
+        Some(UiDrawer { render_pass })
     }
 }
 

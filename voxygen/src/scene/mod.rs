@@ -1074,41 +1074,41 @@ impl Scene {
             )
         }
 
-        let mut first_pass = drawer.first_pass();
+        if let Some(mut first_pass) = drawer.first_pass() {
+            self.figure_mgr.render_player(
+                &mut first_pass.draw_figures(),
+                state,
+                player_entity,
+                tick,
+                camera_data,
+            );
 
-        self.figure_mgr.render_player(
-            &mut first_pass.draw_figures(),
-            state,
-            player_entity,
-            tick,
-            camera_data,
-        );
+            self.terrain.render(&mut first_pass, focus_pos);
 
-        self.terrain.render(&mut first_pass, focus_pos);
+            self.figure_mgr.render(
+                &mut first_pass.draw_figures(),
+                state,
+                player_entity,
+                tick,
+                camera_data,
+            );
 
-        self.figure_mgr.render(
-            &mut first_pass.draw_figures(),
-            state,
-            player_entity,
-            tick,
-            camera_data,
-        );
+            self.lod.render(&mut first_pass);
 
-        self.lod.render(&mut first_pass);
+            // Render the skybox.
+            first_pass.draw_skybox(&self.skybox.model);
 
-        // Render the skybox.
-        first_pass.draw_skybox(&self.skybox.model);
+            // Draws translucent terrain and sprites
+            self.terrain.render_translucent(
+                &mut first_pass,
+                focus_pos,
+                cam_pos,
+                scene_data.sprite_render_distance,
+            );
 
-        // Draws translucent terrain and sprites
-        self.terrain.render_translucent(
-            &mut first_pass,
-            focus_pos,
-            cam_pos,
-            scene_data.sprite_render_distance,
-        );
-
-        // Render particle effects.
-        self.particle_mgr
-            .render(&mut first_pass.draw_particles(), scene_data);
+            // Render particle effects.
+            self.particle_mgr
+                .render(&mut first_pass.draw_particles(), scene_data);
+        }
     }
 }
