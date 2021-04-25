@@ -418,6 +418,15 @@ impl PlayState for SessionState {
                                     );
                                 }
                             },
+                            GameInput::Block => {
+                                let mut client = self.client.borrow_mut();
+                                client.handle_input(
+                                    InputKind::Block,
+                                    state,
+                                    select_pos,
+                                    target_entity.map(|t| t.0),
+                                );
+                            },
                             GameInput::Roll => {
                                 let mut client = self.client.borrow_mut();
                                 if can_build {

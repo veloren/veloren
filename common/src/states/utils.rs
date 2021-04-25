@@ -538,21 +538,17 @@ pub fn handle_jump(data: &JoinData, update: &mut StateUpdate, strength: f32) -> 
 }
 
 fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
-    let hands = |equip_slot| match data.inventory.equipped(equip_slot).map(|i| i.kind()) {
-        Some(ItemKind::Tool(tool)) => Some(tool.hands),
-        _ => None,
-    };
+    let hands = get_hands(data);
 
     // Mouse1 and Skill1 always use the MainHand slot
     let always_main_hand = matches!(input, InputKind::Primary | InputKind::Ability(0));
-    let no_main_hand = hands(EquipSlot::Mainhand).is_none();
+    let no_main_hand = hands.0.is_none();
     // skill_index used to select ability for the AbilityKey::Skill2 input
     let (equip_slot, skill_index) = if no_main_hand {
         (Some(EquipSlot::Offhand), 1)
     } else if always_main_hand {
         (Some(EquipSlot::Mainhand), 0)
     } else {
-        let hands = (hands(EquipSlot::Mainhand), hands(EquipSlot::Offhand));
         match hands {
             (Some(Hands::Two), _) => (Some(EquipSlot::Mainhand), 1),
             (_, Some(Hands::One)) => (Some(EquipSlot::Offhand), 0),
@@ -579,7 +575,7 @@ fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
                     .get(skill_index)
                     .cloned()
                     .and_then(unlocked),
-                InputKind::Roll | InputKind::Jump | InputKind::Fly => None,
+                InputKind::Roll | InputKind::Jump | InputKind::Fly | InputKind::Block => None,
             })
             .map(|a| {
                 let tool = unwrap_tool_data(data, equip_slot).map(|t| t.kind);
@@ -615,6 +611,7 @@ pub fn handle_input(data: &JoinData, update: &mut StateUpdate, input: InputKind)
         InputKind::Jump => {
             handle_jump(data, update, 1.0);
         },
+        InputKind::Block => handle_block_input(data, update),
         InputKind::Fly => {},
     }
 }
@@ -623,6 +620,24 @@ pub fn attempt_input(data: &JoinData, update: &mut StateUpdate) {
     // TODO: look into using first() when it becomes stable
     if let Some(input) = data.controller.queued_inputs.keys().next() {
         handle_input(data, update, *input);
+    }
+}
+
+/// Checks that player can block, then attempts to block
+pub fn handle_block_input(data: &JoinData, update: &mut StateUpdate) {
+    let can_block =
+        |equip_slot| matches!(unwrap_tool_data(data, equip_slot), Some(tool) if tool.can_block());
+    let hands = get_hands(data);
+    if input_is_pressed(data, InputKind::Block)
+        && (can_block(EquipSlot::Mainhand) || (hands.0.is_none() && can_block(EquipSlot::Offhand)))
+    {
+        let ability = CharacterAbility::default_block();
+        if ability.requirements_paid(data, update) {
+            update.character = CharacterState::from((
+                &ability,
+                AbilityInfo::from_input(data, false, InputKind::Roll),
+            ));
+        }
     }
 }
 
@@ -660,6 +675,17 @@ pub fn unwrap_tool_data<'a>(data: &'a JoinData, equip_slot: EquipSlot) -> Option
     } else {
         None
     }
+}
+
+pub fn get_hands(data: &JoinData) -> (Option<Hands>, Option<Hands>) {
+    let hand = |slot| {
+        if let Some(ItemKind::Tool(tool)) = data.inventory.equipped(slot).map(|i| i.kind()) {
+            Some(tool.hands)
+        } else {
+            None
+        }
+    };
+    (hand(EquipSlot::Mainhand), hand(EquipSlot::Offhand))
 }
 
 pub fn get_crit_data(data: &JoinData, ai: AbilityInfo) -> (f32, f32) {

@@ -1,5 +1,5 @@
 use common::{
-    combat::{AttackerInfo, TargetInfo},
+    combat::{AttackSource, AttackerInfo, TargetInfo},
     comp::{
         Body, CharacterState, Combo, Energy, Group, Health, Inventory, Melee, Ori, Pos, Scale,
         Stats,
@@ -87,11 +87,12 @@ impl<'a> System<'a> for Sys {
             }
 
             // Go through all other entities
-            for (target, pos_b, health_b, body_b) in (
+            for (target, pos_b, health_b, body_b, uid_b) in (
                 &read_data.entities,
                 &read_data.positions,
                 &read_data.healths,
                 &read_data.bodies,
+                &read_data.uids,
             )
                 .join()
             {
@@ -143,10 +144,13 @@ impl<'a> System<'a> for Sys {
 
                     let target_info = TargetInfo {
                         entity: target,
+                        uid: *uid_b,
                         inventory: read_data.inventories.get(target),
                         stats: read_data.stats.get(target),
                         health: read_data.healths.get(target),
-                        pos: pos.0,
+                        pos: pos_b.0,
+                        ori: read_data.orientations.get(target),
+                        char_state: read_data.char_states.get(target),
                     };
 
                     melee_attack.attack.apply_attack(
@@ -156,6 +160,7 @@ impl<'a> System<'a> for Sys {
                         dir,
                         is_dodge,
                         1.0,
+                        AttackSource::Melee,
                         |e| server_emitter.emit(e),
                         |o| outcomes.push(o),
                     );

@@ -407,9 +407,6 @@ impl SfxMgr {
                 let file_ref = "voxygen.audio.sfx.footsteps.stone_step_1";
                 audio.play_sfx(file_ref, pos.map(|e| e as f32 + 0.5), Some(3.0));
             },
-            Outcome::ExpChange { .. }
-            | Outcome::ComboChange { .. }
-            | Outcome::SummonedCreature { .. } => {},
             Outcome::Damage { pos, .. } => {
                 let file_ref = vec![
                     "voxygen.audio.sfx.character.hit_1",
@@ -419,6 +416,27 @@ impl SfxMgr {
                 ][rand::thread_rng().gen_range(1..4)];
                 audio.play_sfx(file_ref, *pos, None);
             },
+            Outcome::Block { pos, parry, .. } => {
+                let block_sfx = vec![
+                    "voxygen.audio.sfx.character.block_1",
+                    "voxygen.audio.sfx.character.block_2",
+                    "voxygen.audio.sfx.character.block_3",
+                ];
+                let parry_sfx = vec![
+                    "voxygen.audio.sfx.character.parry_1",
+                    "voxygen.audio.sfx.character.parry_2",
+                ];
+                if *parry {
+                    let file_ref = parry_sfx[rand::thread_rng().gen_range(1..parry_sfx.len())];
+                    audio.play_sfx(file_ref, *pos, Some(2.0));
+                } else {
+                    let file_ref = block_sfx[rand::thread_rng().gen_range(1..block_sfx.len())];
+                    audio.play_sfx(file_ref, *pos, Some(2.0));
+                }
+            },
+            Outcome::ExpChange { .. }
+            | Outcome::ComboChange { .. }
+            | Outcome::SummonedCreature { .. } => {},
         }
     }
 

@@ -291,10 +291,10 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 _ => (-7.0, 7.0, 2.0, -0.1, 0.0, 0.0),
             },
             hhl: match (body.species, body.body_type) {
-                _ => (-0.5, -1.0, 10.0, 4.71, 0.0, 0.0),
+                _ => (0.1, 0.0, 11.0, 4.71, 0.0, PI),
             },
             hhr: match (body.species, body.body_type) {
-                _ => (0.0, 0.0, 0.0, 4.71, 0.0, 0.0),
+                _ => (0.0, 0.0, 0.0, 4.71, 0.0, PI),
             },
             hc: match (body.species, body.body_type) {
                 _ => (6.0, 7.0, 1.0, -0.3, -1.57, 3.64),

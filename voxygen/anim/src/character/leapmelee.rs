@@ -119,9 +119,11 @@ impl Animation for LeapAnimation {
                 match ability_info.and_then(|a| a.tool) {
                     Some(ToolKind::Hammer) => {
                         next.hand_l.position = Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2);
-                        next.hand_l.orientation = Quaternion::rotation_x(s_a.hhl.3);
+                        next.hand_l.orientation =
+                            Quaternion::rotation_x(s_a.hhl.3) * Quaternion::rotation_z(s_a.hhl.5);
                         next.hand_r.position = Vec3::new(s_a.hhr.0, s_a.hhr.1, s_a.hhr.2);
-                        next.hand_r.orientation = Quaternion::rotation_x(s_a.hhr.3);
+                        next.hand_r.orientation =
+                            Quaternion::rotation_x(s_a.hhr.3) * Quaternion::rotation_z(s_a.hhr.5);
                         next.main.position = Vec3::new(0.0, 0.0, 0.0);
                         next.main.orientation =
                             Quaternion::rotation_y(0.0) * Quaternion::rotation_z(0.0);

@@ -326,6 +326,17 @@ impl Tool {
             Default::default()
         }
     }
+
+    pub fn can_block(&self) -> bool {
+        matches!(
+            self.kind,
+            ToolKind::Sword
+                | ToolKind::Axe
+                | ToolKind::Hammer
+                | ToolKind::Shield
+                | ToolKind::Dagger
+        )
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

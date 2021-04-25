@@ -329,6 +329,11 @@ pub struct ComboFloater {
     pub timer: f64,
 }
 
+pub struct BlockFloater {
+    pub owner: Uid,
+    pub timer: f32,
+}
+
 pub struct DebugInfo {
     pub tps: f64,
     pub frame_time: Duration,
@@ -739,6 +744,13 @@ impl PromptDialogSettings {
     }
 }
 
+pub struct Floaters {
+    pub exp_floaters: Vec<ExpFloater>,
+    pub skill_point_displays: Vec<SkillPointGain>,
+    pub combo_floaters: VecDeque<ComboFloater>,
+    pub block_floaters: Vec<BlockFloater>,
+}
+
 pub struct Hud {
     ui: Ui,
     ids: Ids,
@@ -765,9 +777,7 @@ pub struct Hud {
     hotbar: hotbar::State,
     events: Vec<Event>,
     crosshair_opacity: f32,
-    exp_floaters: Vec<ExpFloater>,
-    skill_point_displays: Vec<SkillPointGain>,
-    combo_floaters: VecDeque<ComboFloater>,
+    floaters: Floaters,
 }
 
 impl Hud {
@@ -878,9 +888,12 @@ impl Hud {
             hotbar: hotbar_state,
             events: Vec::new(),
             crosshair_opacity: 0.0,
-            exp_floaters: Vec::new(),
-            skill_point_displays: Vec::new(),
-            combo_floaters: VecDeque::new(),
+            floaters: Floaters {
+                exp_floaters: Vec::new(),
+                skill_point_displays: Vec::new(),
+                combo_floaters: VecDeque::new(),
+                block_floaters: Vec::new(),
+            },
         }
     }
 
@@ -1174,9 +1187,18 @@ impl Hud {
                     }
                 }
                 // EXP Numbers
-                self.exp_floaters.retain(|f| f.timer > 0_f32);
+                self.floaters
+                    .exp_floaters
+                    .iter_mut()
+                    .for_each(|f| f.timer -= dt.as_secs_f32());
+                self.floaters.exp_floaters.retain(|f| f.timer > 0_f32);
                 if let Some(uid) = uids.get(me) {
-                    for floater in self.exp_floaters.iter_mut().filter(|f| f.owner == *uid) {
+                    for floater in self
+                        .floaters
+                        .exp_floaters
+                        .iter_mut()
+                        .filter(|f| f.owner == *uid)
+                    {
                         let number_speed = 50.0; // Number Speed for Single EXP
                         let player_sct_bg_id = player_sct_bg_id_walker.next(
                             &mut self.ids.player_sct_bgs,
@@ -1221,13 +1243,19 @@ impl Hud {
                                 )
                                 .set(player_sct_id, ui_widgets);
                         }
-                        floater.timer -= dt.as_secs_f32();
                     }
                 }
                 // Skill points
-                self.skill_point_displays.retain(|d| d.timer > 0_f32);
+                self.floaters
+                    .skill_point_displays
+                    .iter_mut()
+                    .for_each(|f| f.timer -= dt.as_secs_f32());
+                self.floaters
+                    .skill_point_displays
+                    .retain(|d| d.timer > 0_f32);
                 if let Some(uid) = uids.get(me) {
                     if let Some(display) = self
+                        .floaters
                         .skill_point_displays
                         .iter_mut()
                         .find(|d| d.owner == *uid)
@@ -1311,8 +1339,54 @@ impl Hud {
                         .left_from(self.ids.player_rank_up_txt_1_bg, 5.0)
                         .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
                         .set(self.ids.player_rank_up_icon, ui_widgets);
+                    }
+                }
+                // Scrolling Combat Text for Parrying an attack
+                self.floaters
+                    .block_floaters
+                    .iter_mut()
+                    .for_each(|f| f.timer -= dt.as_secs_f32());
+                self.floaters.block_floaters.retain(|f| f.timer > 0_f32);
+                if let Some(uid) = uids.get(me) {
+                    for floater in self
+                        .floaters
+                        .block_floaters
+                        .iter_mut()
+                        .filter(|f| f.owner == *uid)
+                    {
+                        let number_speed = 50.0;
+                        let player_sct_bg_id = player_sct_bg_id_walker.next(
+                            &mut self.ids.player_sct_bgs,
+                            &mut ui_widgets.widget_id_generator(),
+                        );
+                        let player_sct_id = player_sct_id_walker.next(
+                            &mut self.ids.player_scts,
+                            &mut ui_widgets.widget_id_generator(),
+                        );
+                        let font_size = 30;
+                        let y = floater.timer as f64 * number_speed; // Timer sets the widget offset
+                        // text transparency
+                        let fade = if floater.timer < 0.25 {
+                            floater.timer as f32 / 0.25
+                        } else {
+                            1.0
+                        };
 
-                        display.timer -= dt.as_secs_f32();
+                        Text::new(&i18n.get("hud.sct.block"))
+                            .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                            .x_y(
+                                ui_widgets.win_w * (0.0),
+                                ui_widgets.win_h * (-0.3) + y - 3.0,
+                            )
+                            .set(player_sct_bg_id, ui_widgets);
+                        Text::new(&i18n.get("hud.sct.block"))
+                            .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(Color::Rgba(0.69, 0.82, 0.88, fade))
+                            .x_y(ui_widgets.win_w * 0.0, ui_widgets.win_h * -0.3 + y)
+                            .set(player_sct_id, ui_widgets);
                     }
                 }
             }
@@ -2273,12 +2347,14 @@ impl Hud {
         let ability_map = ecs.fetch::<comp::item::tool::AbilityMap>();
         let bodies = ecs.read_storage::<comp::Body>();
         // Combo floater stuffs
-        for combo_floater in self.combo_floaters.iter_mut() {
-            combo_floater.timer -= dt.as_secs_f64();
-        }
-        self.combo_floaters.retain(|f| f.timer > 0_f64);
+        self.floaters
+            .combo_floaters
+            .iter_mut()
+            .for_each(|f| f.timer -= dt.as_secs_f64());
+        self.floaters.combo_floaters.retain(|f| f.timer > 0_f64);
         let combo = if let Some(uid) = ecs.read_storage::<Uid>().get(entity) {
-            self.combo_floaters
+            self.floaters
+                .combo_floaters
                 .iter()
                 .find(|c| c.owner == *uid)
                 .copied()
@@ -3425,7 +3501,7 @@ impl Hud {
 
     pub fn handle_outcome(&mut self, outcome: &Outcome) {
         match outcome {
-            Outcome::ExpChange { uid, exp } => self.exp_floaters.push(ExpFloater {
+            Outcome::ExpChange { uid, exp } => self.floaters.exp_floaters.push(ExpFloater {
                 owner: *uid,
                 exp_change: *exp,
                 timer: 4.0,
@@ -3436,17 +3512,25 @@ impl Hud {
                 skill_tree,
                 total_points,
                 ..
-            } => self.skill_point_displays.push(SkillPointGain {
+            } => self.floaters.skill_point_displays.push(SkillPointGain {
                 owner: *uid,
                 skill_tree: *skill_tree,
                 total_points: *total_points,
                 timer: 5.0,
             }),
-            Outcome::ComboChange { uid, combo } => self.combo_floaters.push_front(ComboFloater {
-                owner: *uid,
-                combo: *combo,
-                timer: comp::combo::COMBO_DECAY_START,
-            }),
+            Outcome::ComboChange { uid, combo } => {
+                self.floaters.combo_floaters.push_front(ComboFloater {
+                    owner: *uid,
+                    combo: *combo,
+                    timer: comp::combo::COMBO_DECAY_START,
+                })
+            },
+            Outcome::Block { uid, parry, .. } if *parry => {
+                self.floaters.block_floaters.push(BlockFloater {
+                    owner: *uid,
+                    timer: 1.0,
+                })
+            },
             _ => {},
         }
     }
@@ -3568,8 +3652,8 @@ pub fn get_buff_desc(buff: BuffKind, localized_strings: &Localization) -> &str {
 
 pub fn get_buff_time(buff: BuffInfo) -> String {
     if let Some(dur) = buff.dur {
-        format!("Remaining: {:.0}s", dur.as_secs_f32())
+        format!("{:.0}s", dur.as_secs_f32())
     } else {
-        "Permanent".to_string()
+        "".to_string()
     }
 }

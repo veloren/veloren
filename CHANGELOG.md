@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Missing translations can be displayed in English.
 - New large birds npcs
 - Day period dependant wildlife spawns
+- You can now block and parry with melee weapons
 
 ### Changed
 

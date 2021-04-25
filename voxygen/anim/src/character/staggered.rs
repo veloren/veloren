@@ -106,10 +106,12 @@ impl Animation for StaggeredAnimation {
                         Some(ToolKind::Hammer | ToolKind::Pick) => {
                             next.hand_l.position = Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2);
                             next.hand_l.orientation = Quaternion::rotation_x(s_a.hhl.3)
-                                * Quaternion::rotation_y(s_a.hhl.4);
+                                * Quaternion::rotation_y(s_a.hhl.4)
+                                * Quaternion::rotation_z(s_a.hhl.5);
                             next.hand_r.position = Vec3::new(s_a.hhr.0, s_a.hhr.1, s_a.hhr.2);
                             next.hand_r.orientation = Quaternion::rotation_x(s_a.hhr.3)
-                                * Quaternion::rotation_y(s_a.hhr.4);
+                                * Quaternion::rotation_y(s_a.hhr.4)
+                                * Quaternion::rotation_z(s_a.hhr.5);
 
                             next.control.position = Vec3::new(s_a.hc.0, s_a.hc.1, s_a.hc.2);
                             next.control.orientation = Quaternion::rotation_x(s_a.hc.3)

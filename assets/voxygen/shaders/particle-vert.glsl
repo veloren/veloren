@@ -202,7 +202,7 @@ void main() {
         attr = Attr(
             linear_motion(
                 normalize(vec3(rand0, rand1, rand3)) * 0.3,
-                normalize(vec3(rand4, rand5, rand6)) * 2.0 + grav_vel(earth_gravity)
+                normalize(vec3(rand4, rand5, rand6)) * 4.0 + grav_vel(earth_gravity)
             ),
             vec3(1.0),
             vec4(3.5, 3 + rand7, 0, 1),

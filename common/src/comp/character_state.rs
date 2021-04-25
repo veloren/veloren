@@ -55,7 +55,7 @@ pub enum CharacterState {
     /// A stunned state
     Stunned(stunned::Data),
     /// A basic blocking state
-    BasicBlock,
+    BasicBlock(basic_block::Data),
     /// Player is busy equipping or unequipping weapons
     Equipping(equipping::Data),
     /// Player is holding a weapon and can perform other actions
@@ -110,7 +110,7 @@ impl CharacterState {
                 | CharacterState::BasicRanged(_)
                 | CharacterState::DashMelee(_)
                 | CharacterState::ComboMelee(_)
-                | CharacterState::BasicBlock
+                | CharacterState::BasicBlock(_)
                 | CharacterState::LeapMelee(_)
                 | CharacterState::SpinMelee(_)
                 | CharacterState::ChargedMelee(_)
@@ -153,7 +153,7 @@ impl CharacterState {
                 | CharacterState::BasicRanged(_)
                 | CharacterState::DashMelee(_)
                 | CharacterState::ComboMelee(_)
-                | CharacterState::BasicBlock
+                | CharacterState::BasicBlock(_)
                 | CharacterState::LeapMelee(_)
                 | CharacterState::ChargedMelee(_)
                 | CharacterState::ChargedRanged(_)
@@ -180,7 +180,7 @@ impl CharacterState {
         )
     }
 
-    pub fn is_block(&self) -> bool { matches!(self, CharacterState::BasicBlock) }
+    pub fn is_block(&self) -> bool { matches!(self, CharacterState::BasicBlock(_)) }
 
     pub fn is_dodge(&self) -> bool { matches!(self, CharacterState::Roll(_)) }
 

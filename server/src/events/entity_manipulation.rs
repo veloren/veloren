@@ -672,16 +672,33 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
             RadiusEffect::Attack(attack) => {
                 let energies = &ecs.read_storage::<comp::Energy>();
                 let combos = &ecs.read_storage::<comp::Combo>();
-                for (entity_b, pos_b, health_b, inventory_b_maybe, stats_b_maybe, body_b_maybe) in (
+                for (
+                    entity_b,
+                    pos_b,
+                    health_b,
+                    (
+                        body_b_maybe,
+                        inventory_b_maybe,
+                        stats_b_maybe,
+                        ori_b_maybe,
+                        char_state_b_maybe,
+                        uid_b,
+                    ),
+                ) in (
                     &ecs.entities(),
                     &ecs.read_storage::<comp::Pos>(),
                     &ecs.read_storage::<comp::Health>(),
-                    ecs.read_storage::<comp::Inventory>().maybe(),
-                    ecs.read_storage::<comp::Stats>().maybe(),
-                    ecs.read_storage::<comp::Body>().maybe(),
+                    (
+                        ecs.read_storage::<comp::Body>().maybe(),
+                        ecs.read_storage::<comp::Inventory>().maybe(),
+                        ecs.read_storage::<comp::Stats>().maybe(),
+                        ecs.read_storage::<comp::Ori>().maybe(),
+                        ecs.read_storage::<comp::CharacterState>().maybe(),
+                        &ecs.read_storage::<Uid>(),
+                    ),
                 )
                     .join()
-                    .filter(|(_, _, h, _, _, _)| !h.is_dead)
+                    .filter(|(_, _, h, _)| !h.is_dead)
                 {
                     // Check if it is a hit
                     let strength = if let Some(body) = body_b_maybe {
@@ -721,10 +738,13 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
 
                         let target_info = combat::TargetInfo {
                             entity: entity_b,
+                            uid: *uid_b,
                             inventory: inventory_b_maybe,
                             stats: stats_b_maybe,
                             health: Some(health_b),
-                            pos,
+                            pos: pos_b.0,
+                            ori: ori_b_maybe,
+                            char_state: char_state_b_maybe,
                         };
 
                         let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
@@ -736,6 +756,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             dir,
                             false,
                             strength,
+                            combat::AttackSource::Explosion,
                             |e| server_eventbus.emit_now(e),
                             |o| outcomes.push(o),
                         );

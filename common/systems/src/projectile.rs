@@ -1,8 +1,8 @@
 use common::{
-    combat::{AttackerInfo, TargetInfo},
+    combat::{AttackSource, AttackerInfo, TargetInfo},
     comp::{
-        projectile, Body, Combo, Energy, Group, Health, HealthSource, Inventory, Ori, PhysicsState,
-        Pos, Projectile, Stats, Vel,
+        projectile, Body, CharacterState, Combo, Energy, Group, Health, HealthSource, Inventory,
+        Ori, PhysicsState, Pos, Projectile, Stats, Vel,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
@@ -36,6 +36,7 @@ pub struct ReadData<'a> {
     combos: ReadStorage<'a, Combo>,
     healths: ReadStorage<'a, Health>,
     bodies: ReadStorage<'a, Body>,
+    character_states: ReadStorage<'a, CharacterState>,
 }
 
 /// This system is responsible for handling projectile effect triggers
@@ -60,11 +61,11 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = read_data.server_bus.emitter();
 
         // Attacks
-        'projectile_loop: for (entity, pos, physics, ori, mut projectile) in (
+        'projectile_loop: for (entity, pos, physics, vel, mut projectile) in (
             &read_data.entities,
             &read_data.positions,
             &read_data.physics_states,
-            &mut orientations,
+            &read_data.velocities,
             &mut projectiles,
         )
             .join()
@@ -110,51 +111,60 @@ impl<'a> System<'a> for Sys {
                                 .uid_allocator
                                 .retrieve_entity_internal(other.into())
                             {
-                                let owner_entity = projectile.owner.and_then(|u| {
-                                    read_data.uid_allocator.retrieve_entity_internal(u.into())
-                                });
-
-                                let attacker_info =
-                                    owner_entity.zip(projectile.owner).map(|(entity, uid)| {
-                                        AttackerInfo {
-                                            entity,
-                                            uid,
-                                            energy: read_data.energies.get(entity),
-                                            combo: read_data.combos.get(entity),
-                                        }
+                                if let (Some(pos), Some(dir)) = (
+                                    read_data.positions.get(target),
+                                    Dir::from_unnormalized(vel.0),
+                                ) {
+                                    let owner_entity = projectile.owner.and_then(|u| {
+                                        read_data.uid_allocator.retrieve_entity_internal(u.into())
                                     });
 
-                                let target_info = TargetInfo {
-                                    entity: target,
-                                    inventory: read_data.inventories.get(target),
-                                    stats: read_data.stats.get(target),
-                                    health: read_data.healths.get(target),
-                                    pos: pos.0,
-                                };
+                                    let attacker_info =
+                                        owner_entity.zip(projectile.owner).map(|(entity, uid)| {
+                                            AttackerInfo {
+                                                entity,
+                                                uid,
+                                                energy: read_data.energies.get(entity),
+                                                combo: read_data.combos.get(entity),
+                                            }
+                                        });
 
-                                if let Some(&body) = read_data.bodies.get(entity) {
-                                    outcomes.push(Outcome::ProjectileHit {
+                                    let target_info = TargetInfo {
+                                        entity: target,
+                                        uid: other,
+                                        inventory: read_data.inventories.get(target),
+                                        stats: read_data.stats.get(target),
+                                        health: read_data.healths.get(target),
                                         pos: pos.0,
-                                        body,
-                                        vel: read_data
-                                            .velocities
-                                            .get(entity)
-                                            .map_or(Vec3::zero(), |v| v.0),
-                                        source: projectile.owner,
-                                        target: read_data.uids.get(target).copied(),
-                                    });
-                                }
+                                        ori: orientations.get(target),
+                                        char_state: read_data.character_states.get(target),
+                                    };
 
-                                attack.apply_attack(
-                                    target_group,
-                                    attacker_info,
-                                    target_info,
-                                    ori.look_dir(),
-                                    false,
-                                    1.0,
-                                    |e| server_emitter.emit(e),
-                                    |o| outcomes.push(o),
-                                );
+                                    if let Some(&body) = read_data.bodies.get(entity) {
+                                        outcomes.push(Outcome::ProjectileHit {
+                                            pos: pos.0,
+                                            body,
+                                            vel: read_data
+                                                .velocities
+                                                .get(entity)
+                                                .map_or(Vec3::zero(), |v| v.0),
+                                            source: projectile.owner,
+                                            target: read_data.uids.get(target).copied(),
+                                        });
+                                    }
+
+                                    attack.apply_attack(
+                                        target_group,
+                                        attacker_info,
+                                        target_info,
+                                        dir,
+                                        false,
+                                        1.0,
+                                        AttackSource::Projectile,
+                                        |e| server_emitter.emit(e),
+                                        |o| outcomes.push(o),
+                                    );
+                                }
                             }
                         },
                         projectile::Effect::Explode(e) => {
@@ -213,12 +223,10 @@ impl<'a> System<'a> for Sys {
                 if projectile_vanished {
                     continue 'projectile_loop;
                 }
-            } else if let Some(dir) = read_data
-                .velocities
-                .get(entity)
-                .and_then(|vel| Dir::from_unnormalized(vel.0))
-            {
-                *ori = dir.into();
+            } else if let Some(ori) = orientations.get_mut(entity) {
+                if let Some(dir) = Dir::from_unnormalized(vel.0) {
+                    *ori = dir.into();
+                }
             }
 
             if projectile.time_left == Duration::default() {
