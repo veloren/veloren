@@ -215,7 +215,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
         cdist = step_to_dist(trunc(dist_to_step(cdist - 0.25, quality)), quality);
 
         vec3 emission;
-        vec4 sample = cloud_at(origin + (dir + dir_diff / ldist) * ldist * splay, cdist, emission);
+        vec4 sample = cloud_at(origin + (dir + dir_diff / ldist) * ldist * splay, ldist, emission);
 
         vec2 density_integrals = max(sample.zw, vec2(0)) * (ldist - cdist);
 
