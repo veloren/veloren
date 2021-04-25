@@ -82,26 +82,6 @@ impl Pipelines {
     }
 }
 
-// TODO: remove
-/// For abstraction over types containing the pipelines necessary to render the
-/// UI
-/*pub trait HasInterfacePipelines {
-    fn ui(&self) -> &ui::Pipeline;
-    fn blit(&self) -> &blit::Pipeline;
-}
-
-impl HasInterfacePipelines for InterfacePipelines {
-    fn ui(&self) -> &ui::Pipeline { &self.ui }
-
-    fn blit(&self) -> &blit::Pipeline { &self.blit }
-}
-
-impl HasInterfacePipelines for Pipelines {
-    fn ui(&self) -> &ui::Pipeline { &self.ui }
-
-    fn blit(&self) -> &blit::Pipeline { &self.blit }
-}*/
-
 /// Processed shaders ready for use in pipeline creation
 struct ShaderModules {
     skybox_vert: wgpu::ShaderModule,
@@ -468,8 +448,8 @@ fn create_ingame_and_shadow_pipelines(
             || {
                 sprite::SpritePipeline::new(
                     device,
-                    &shaders.sprite_frag,
                     &shaders.sprite_vert,
+                    &shaders.sprite_frag,
                     &layouts.global,
                     &layouts.sprite,
                     &layouts.terrain,
@@ -808,7 +788,7 @@ struct Task<'a> {
 
 /// Represents in-progress task, drop when complete
 struct StartedTask<'a> {
-    span: common_base::ProfSpan,
+    _span: common_base::ProfSpan,
     task: Task<'a>,
 }
 
@@ -839,7 +819,7 @@ impl<'a> Task<'a> {
     /// The name is used for profiling.
     fn start(self, name: &str) -> StartedTask<'a> {
         StartedTask {
-            span: {
+            _span: {
                 prof_span!(guard, name);
                 guard
             },
@@ -883,7 +863,7 @@ impl<T> PipelineCreation<T> {
         use crossbeam::channel::TryRecvError;
         match self.recv.try_recv() {
             // Yay!
-            Ok(T) => Ok(T),
+            Ok(t) => Ok(t),
             // Normal error, we have not gotten anything yet
             Err(TryRecvError::Empty) => Err(self),
             // How rude!
