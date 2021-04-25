@@ -37,8 +37,8 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
         mist_min_alt = (texture(t_noise, pos.xy / 50000.0).x - 0.5) * 1.5 + 0.5;
     #endif
     mist_min_alt = view_distance.z * 1.5 * (1.0 + mist_min_alt * 0.5) + alt * 0.5 + 250;
-    const float MIST_FADE_HEIGHT = 750;
-    float mist = 0.01 * pow(clamp(1.0 - (pos.z - mist_min_alt) / MIST_FADE_HEIGHT, 0.0, 1), 10.0);
+    const float MIST_FADE_HEIGHT = 1000;
+    float mist = 0.01 * pow(clamp(1.0 - (pos.z - mist_min_alt) / MIST_FADE_HEIGHT, 0.0, 1), 10.0) * flat_earth_hack;
 
     vec3 wind_pos = vec3(pos.xy + wind_offset, pos.z + noise_2d(pos.xy / 20000) * 500);
 
