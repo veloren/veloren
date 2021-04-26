@@ -584,15 +584,11 @@ impl<'pass> FirstPassDrawer<'pass> {
         }
     }
 
-    pub fn draw_fluid<'data: 'pass>(
-        &mut self,
-        waves: &'data fluid::BindGroup,
-    ) -> FluidDrawer<'_, 'pass> {
+    pub fn draw_fluid<'data: 'pass>(&mut self) -> FluidDrawer<'_, 'pass> {
         let mut render_pass = self.render_pass.scope("fluid", self.borrow.device);
 
         render_pass.set_pipeline(&self.pipelines.fluid.pipeline);
         set_quad_index_buffer::<fluid::Vertex>(&mut render_pass, &self.borrow);
-        render_pass.set_bind_group(2, &waves.bind_group, &[]);
 
         FluidDrawer { render_pass }
     }
@@ -717,7 +713,7 @@ impl<'pass_ref, 'pass: 'pass_ref> FluidDrawer<'pass_ref, 'pass> {
         locals: &'data terrain::BoundLocals,
     ) {
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
-        self.render_pass.set_bind_group(3, &locals.bind_group, &[]);
+        self.render_pass.set_bind_group(2, &locals.bind_group, &[]);
         self.render_pass
             .draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..1);
     }

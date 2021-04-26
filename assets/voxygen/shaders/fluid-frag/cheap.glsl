@@ -37,17 +37,12 @@ layout(location = 1) flat in uint f_pos_norm;
 //     ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
 // };
 
-layout(std140, set = 3, binding = 0)
+layout(std140, set = 2, binding = 0)
 uniform u_locals {
     vec3 model_offs;
     float load_time;
     ivec4 atlas_offs;
 };
-
-layout(set = 2, binding = 0)
-uniform texture2D t_waves;
-layout(set = 2, binding = 1)
-uniform sampler s_waves;
 
 layout(location = 0) out vec4 tgt_color;
 

@@ -2,7 +2,7 @@ use super::{
     super::{
         buffer::Buffer,
         pipelines::{
-            figure, fluid, lod_terrain, shadow, sprite, terrain, ui, ColLights, GlobalModel,
+            figure, lod_terrain, shadow, sprite, terrain, ui, ColLights, GlobalModel,
             GlobalsBindGroup,
         },
         texture::Texture,
@@ -86,9 +86,5 @@ impl Renderer {
 
     pub fn sprite_bind_col_light(&self, col_light: Texture) -> ColLights<sprite::Locals> {
         self.layouts.global.bind_col_light(&self.device, col_light)
-    }
-
-    pub fn fluid_bind_waves(&self, texture: Texture) -> fluid::BindGroup {
-        self.layouts.fluid.bind(&self.device, texture)
     }
 }

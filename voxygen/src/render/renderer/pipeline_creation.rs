@@ -439,7 +439,6 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.fluid_vert,
                     &shaders.fluid_frag,
                     &layouts.global,
-                    &layouts.fluid,
                     &layouts.terrain,
                     mode.aa,
                 )

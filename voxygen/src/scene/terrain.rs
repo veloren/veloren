@@ -11,9 +11,9 @@ use crate::{
     render::{
         create_sprite_verts_buffer,
         pipelines::{self, ColLights},
-        Buffer, ColLightInfo, FirstPassDrawer, FluidVertex, FluidWaves, GlobalModel, Instances,
-        LodData, Mesh, Model, RenderError, Renderer, SpriteGlobalsBindGroup, SpriteInstance,
-        SpriteVertex, TerrainLocals, TerrainShadowDrawer, TerrainVertex, SPRITE_VERT_PAGE_SIZE,
+        Buffer, ColLightInfo, FirstPassDrawer, FluidVertex, GlobalModel, Instances, LodData, Mesh,
+        Model, RenderError, Renderer, SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex,
+        TerrainLocals, TerrainShadowDrawer, TerrainVertex, SPRITE_VERT_PAGE_SIZE,
     },
 };
 
@@ -360,7 +360,6 @@ pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
     /// for any particular chunk; look at the `texture` field in
     /// `TerrainChunkData` for that.
     col_lights: Arc<ColLights<pipelines::terrain::Locals>>,
-    waves: FluidWaves,
 
     phantom: PhantomData<V>,
 }
@@ -590,24 +589,6 @@ impl<V: RectRasterableVol> Terrain<V> {
                 &sprite_render_context.sprite_verts_buffer,
             ),
             col_lights: Arc::new(col_lights),
-            waves: {
-                let waves_tex = renderer
-                    .create_texture(
-                        // TODO: actually this is unused, remove?
-                        // TODO: re-add alpha channel?
-                        &image::DynamicImage::ImageRgba8(
-                            assets::Image::load_expect("voxygen.texture.waves")
-                                .read()
-                                .0
-                                .to_rgba8(),
-                        ),
-                        Some(wgpu::FilterMode::Linear),
-                        Some(wgpu::AddressMode::Repeat),
-                    )
-                    .expect("Failed to create wave texture");
-
-                renderer.fluid_bind_waves(waves_tex)
-            },
             phantom: PhantomData,
         }
     }
@@ -1599,7 +1580,7 @@ impl<V: RectRasterableVol> Terrain<V> {
 
         // Translucent
         span!(guard, "Fluid chunks");
-        let mut fluid_drawer = drawer.draw_fluid(&self.waves);
+        let mut fluid_drawer = drawer.draw_fluid();
         chunk_iter
             .filter(|(_, chunk)| chunk.visible.is_visible())
             .filter_map(|(_, chunk)| {

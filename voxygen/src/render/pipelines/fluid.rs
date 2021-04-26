@@ -1,4 +1,4 @@
-use super::super::{AaMode, GlobalsLayouts, TerrainLayout, Texture, Vertex as VertexTrait};
+use super::super::{AaMode, GlobalsLayouts, TerrainLayout, Vertex as VertexTrait};
 use bytemuck::{Pod, Zeroable};
 use std::mem;
 use vek::*;
@@ -47,65 +47,6 @@ impl VertexTrait for Vertex {
     const STRIDE: wgpu::BufferAddress = mem::size_of::<Self>() as wgpu::BufferAddress;
 }
 
-pub struct BindGroup {
-    pub(in super::super) bind_group: wgpu::BindGroup,
-    waves: Texture,
-}
-
-pub struct FluidLayout {
-    pub waves: wgpu::BindGroupLayout,
-}
-
-impl FluidLayout {
-    pub fn new(device: &wgpu::Device) -> Self {
-        Self {
-            waves: device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                label: None,
-                entries: &[
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 0,
-                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Texture {
-                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                            view_dimension: wgpu::TextureViewDimension::D2,
-                            multisampled: false,
-                        },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 1,
-                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler {
-                            filtering: true,
-                            comparison: false,
-                        },
-                        count: None,
-                    },
-                ],
-            }),
-        }
-    }
-
-    pub fn bind(&self, device: &wgpu::Device, waves: Texture) -> BindGroup {
-        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: None,
-            layout: &self.waves,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&waves.view),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&waves.sampler),
-                },
-            ],
-        });
-
-        BindGroup { bind_group, waves }
-    }
-}
-
 pub struct FluidPipeline {
     pub pipeline: wgpu::RenderPipeline,
 }
@@ -116,7 +57,6 @@ impl FluidPipeline {
         vs_module: &wgpu::ShaderModule,
         fs_module: &wgpu::ShaderModule,
         global_layout: &GlobalsLayouts,
-        layout: &FluidLayout,
         terrain_layout: &TerrainLayout,
         aa_mode: AaMode,
     ) -> Self {
@@ -128,7 +68,6 @@ impl FluidPipeline {
                 bind_group_layouts: &[
                     &global_layout.globals,
                     &global_layout.shadow_textures,
-                    &layout.waves,
                     &terrain_layout.locals,
                 ],
             });
