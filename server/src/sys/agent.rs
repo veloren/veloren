@@ -2611,6 +2611,7 @@ impl<'a> AgentData<'a> {
                     // If random chance and can see target
                     if thread_rng().gen_bool(0.05)
                         && can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd)
+                        && angle < 15.0
                     {
                         // Fireball
                         controller
@@ -2669,7 +2670,10 @@ impl<'a> AgentData<'a> {
                         move_dir.xy().try_normalized().unwrap_or_else(Vec2::zero) * 2.0;
                     controller.inputs.move_z = move_dir.z - 0.5;
                     // If further than 4 blocks and random chance
-                    if thread_rng().gen_bool(0.05) && dist_sqrd > (4.0 * min_attack_dist).powi(2) {
+                    if thread_rng().gen_bool(0.05)
+                        && dist_sqrd > (4.0 * min_attack_dist).powi(2)
+                        && angle < 15.0
+                    {
                         // Fireball
                         controller
                             .actions
@@ -2677,7 +2681,9 @@ impl<'a> AgentData<'a> {
                     }
                 }
                 // If further than 4 blocks and random chance
-                else if thread_rng().gen_bool(0.05) && dist_sqrd > (4.0 * min_attack_dist).powi(2)
+                else if thread_rng().gen_bool(0.05)
+                    && dist_sqrd > (4.0 * min_attack_dist).powi(2)
+                    && angle < 15.0
                 {
                     // Fireball
                     controller
@@ -2724,7 +2730,7 @@ impl<'a> AgentData<'a> {
                     controller
                         .actions
                         .push(ControlAction::basic_input(InputKind::Ability(0)));
-                } else {
+                } else if angle < 45.0 {
                     // Triple strike
                     controller
                         .actions
@@ -2740,6 +2746,7 @@ impl<'a> AgentData<'a> {
                 if dist_sqrd > 30.0_f32.powi(2) {
                     if thread_rng().gen_bool(0.05)
                         && can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd)
+                        && angle < 15.0
                     {
                         controller
                             .actions
@@ -2788,12 +2795,17 @@ impl<'a> AgentData<'a> {
                     controller.inputs.move_dir =
                         move_dir.xy().try_normalized().unwrap_or_else(Vec2::zero) * 2.0;
                     controller.inputs.move_z = move_dir.z - 0.5;
-                    if thread_rng().gen_bool(0.05) && dist_sqrd > (4.0 * min_attack_dist).powi(2) {
+                    if thread_rng().gen_bool(0.05)
+                        && dist_sqrd > (4.0 * min_attack_dist).powi(2)
+                        && angle < 15.0
+                    {
                         controller
                             .actions
                             .push(ControlAction::basic_input(InputKind::Primary));
                     }
-                } else if thread_rng().gen_bool(0.05) && dist_sqrd > (4.0 * min_attack_dist).powi(2)
+                } else if thread_rng().gen_bool(0.05)
+                    && dist_sqrd > (4.0 * min_attack_dist).powi(2)
+                    && angle < 15.0
                 {
                     controller
                         .actions
@@ -2825,12 +2837,12 @@ impl<'a> AgentData<'a> {
                         self.jump_if(controller, bearing.z > 1.5);
                         controller.inputs.move_z = bearing.z;
                     }
-                } else if self.energy.current() > 600 && agent.action_timer < 3.0 {
+                } else if self.energy.current() > 600 && agent.action_timer < 3.0 && angle < 15.0 {
                     controller
                         .actions
                         .push(ControlAction::basic_input(InputKind::Ability(0)));
                     agent.action_timer += dt.0;
-                } else if agent.action_timer < 6.0 {
+                } else if agent.action_timer < 6.0 && angle < 45.0 {
                     controller
                         .actions
                         .push(ControlAction::basic_input(InputKind::Secondary));
