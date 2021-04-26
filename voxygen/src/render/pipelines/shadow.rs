@@ -79,7 +79,7 @@ pub fn create_col_lights(
     renderer: &mut Renderer,
     (col_lights, col_lights_size): &ColLightInfo,
 ) -> Texture {
-    let mut texture_info = wgpu::TextureDescriptor {
+    let texture_info = wgpu::TextureDescriptor {
         label: None,
         size: wgpu::Extent3d {
             width: col_lights_size.x,

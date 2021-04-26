@@ -1,12 +1,11 @@
 use super::{
     super::{
         buffer::Buffer,
-        consts::Consts,
         instances::Instances,
         model::{DynamicModel, Model, SubModel},
         pipelines::{
-            blit, clouds, figure, fluid, lod_terrain, particle, postprocess, shadow, skybox,
-            sprite, terrain, ui, ColLights, GlobalsBindGroup, Light, Shadow,
+            blit, clouds, figure, fluid, lod_terrain, particle, shadow, skybox, sprite, terrain,
+            ui, ColLights, GlobalsBindGroup,
         },
     },
     Renderer, ShadowMap, ShadowMapRenderer,
@@ -111,7 +110,7 @@ impl<'frame> Drawer<'frame> {
             quad_index_buffer_u32: &renderer.quad_index_buffer_u32,
         };
 
-        let mut encoder =
+        let encoder =
             ManualOwningScope::start("frame", &mut renderer.profiler, encoder, borrow.device);
 
         Self {
@@ -632,18 +631,15 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainDrawer<'pass_ref, 'pass> {
         col_lights: &'data Arc<ColLights<terrain::Locals>>,
         locals: &'data terrain::BoundLocals,
     ) {
-        let col_lights = if let Some(col_lights) = self
-            .col_lights
+        if self.col_lights
             // Check if we are still using the same atlas texture as the previous drawn
             // chunk
             .filter(|current_col_lights| Arc::ptr_eq(current_col_lights, col_lights))
+            .is_none()
         {
-            col_lights
-        } else {
             self.render_pass
                 .set_bind_group(3, &col_lights.bind_group, &[]); // TODO: put this in slot 2
             self.col_lights = Some(col_lights);
-            col_lights
         };
 
         self.render_pass.set_bind_group(2, &locals.bind_group, &[]); // TODO: put this in slot 3

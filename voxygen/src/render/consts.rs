@@ -18,14 +18,8 @@ impl<T: Copy + Pod> Consts<T> {
     }
 
     /// Update the GPU-side value represented by this constant handle.
-    pub fn update(
-        &mut self,
-        device: &wgpu::Device,
-        queue: &wgpu::Queue,
-        vals: &[T],
-        offset: usize,
-    ) {
-        self.buf.update(device, queue, vals, offset)
+    pub fn update(&mut self, queue: &wgpu::Queue, vals: &[T], offset: usize) {
+        self.buf.update(queue, vals, offset)
     }
 
     pub fn buf(&self) -> &wgpu::Buffer { &self.buf.buf }

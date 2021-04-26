@@ -11,10 +11,9 @@ use crate::{
     render::{
         create_sprite_verts_buffer,
         pipelines::{self, ColLights},
-        Buffer, ColLightInfo, Consts, Drawer, FirstPassDrawer, FluidVertex, FluidWaves,
-        GlobalModel, Instances, LodData, Mesh, Model, RenderError, Renderer,
-        SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex, TerrainLocals, TerrainShadowDrawer,
-        TerrainVertex, Texture, SPRITE_VERT_PAGE_SIZE,
+        Buffer, ColLightInfo, FirstPassDrawer, FluidVertex, FluidWaves, GlobalModel, Instances,
+        LodData, Mesh, Model, RenderError, Renderer, SpriteGlobalsBindGroup, SpriteInstance,
+        SpriteVertex, TerrainLocals, TerrainShadowDrawer, TerrainVertex, SPRITE_VERT_PAGE_SIZE,
     },
 };
 
@@ -261,7 +260,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
                                     .scaled_3d(SPRITE_SCALE)
                                     .rotated_z(f32::consts::PI * 0.25 * ori as f32)
                                     .translated_3d(
-                                        (rel_pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0))
+                                        rel_pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)
                                     );
                                 // Add an instance for each page in the sprite model
                                 for page in sprite_data.vert_pages.clone() {
@@ -294,12 +293,6 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
         blocks_of_interest,
         started_tick,
     }
-}
-
-// TODO: may be unecessary
-struct ChunkSpriteData {
-    // Instances
-    model: Instances<SpriteInstance>,
 }
 
 struct SpriteData {
@@ -413,7 +406,7 @@ impl SpriteRenderContext {
             let sprite_data: HashMap<(SpriteKind, usize), _> = SpriteKind::into_enum_iter()
                 .filter_map(|kind| Some((kind, kind.elim_case_pure(&sprite_config_.0).as_ref()?)))
                 .flat_map(|(kind, sprite_config)| {
-                    let wind_sway = sprite_config.wind_sway;
+                    // let wind_sway = sprite_config.wind_sway;
                     sprite_config.variations.iter().enumerate().map(
                         move |(
                             variation,
@@ -512,7 +505,7 @@ impl SpriteRenderContext {
                         },
                     )
                 })
-                .map(|mut f| f(&mut greedy, &mut sprite_mesh))
+                .map(|f| f(&mut greedy, &mut sprite_mesh))
                 .collect();
 
             let sprite_col_lights = greedy.finalize();

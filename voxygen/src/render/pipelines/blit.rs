@@ -1,10 +1,3 @@
-use super::{
-    super::{AaMode, Consts},
-    GlobalsLayouts,
-};
-use bytemuck::{Pod, Zeroable};
-use vek::*;
-
 pub struct BindGroup {
     pub(in super::super) bind_group: wgpu::BindGroup,
 }

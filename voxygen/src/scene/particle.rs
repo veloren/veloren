@@ -2,8 +2,8 @@ use super::{terrain::BlocksOfInterest, SceneData, Terrain};
 use crate::{
     mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_particle},
     render::{
-        pipelines::particle::ParticleMode, GlobalModel, Instances, Light, LodData, Model,
-        ParticleDrawer, ParticleInstance, ParticleVertex, Renderer,
+        pipelines::particle::ParticleMode, Instances, Light, Model, ParticleDrawer,
+        ParticleInstance, ParticleVertex, Renderer,
     },
 };
 use common::{

@@ -494,7 +494,7 @@ fn upload_image(renderer: &mut Renderer, aabr: Aabr<u16>, tex: &Texture, image: 
 fn create_image(
     renderer: &mut Renderer,
     image: RgbaImage,
-    border_color: Rgba<f32>,
+    _border_color: Rgba<f32>, // See TODO below
 ) -> (Texture, UiTextureBindGroup) {
     let tex = renderer
         .create_texture(

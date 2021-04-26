@@ -59,9 +59,6 @@ impl Texture {
             usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
         });
 
-        let command_encoder =
-            device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
-
         queue.write_texture(
             wgpu::ImageCopyTexture {
                 texture: &tex,
@@ -158,7 +155,7 @@ impl Texture {
         };
 
         let texture = Self::new_raw(device, &tex_info, &view_info, &sampler_info);
-        texture.clear(device, queue); // Needs to be fully initialized for partial writes to work on Dx12 AMD
+        texture.clear(queue); // Needs to be fully initialized for partial writes to work on Dx12 AMD
         texture
     }
 
@@ -183,7 +180,7 @@ impl Texture {
     }
 
     /// Clears the texture data to 0
-    pub fn clear(&self, device: &wgpu::Device, queue: &wgpu::Queue) {
+    pub fn clear(&self, queue: &wgpu::Queue) {
         let size = self.size;
         let byte_len = size.width as usize
             * size.height as usize
@@ -191,19 +188,12 @@ impl Texture {
             * self.format.describe().block_size as usize;
         let zeros = vec![0; byte_len];
 
-        self.update(device, queue, [0, 0], [size.width, size.height], &zeros);
+        self.update(queue, [0, 0], [size.width, size.height], &zeros);
     }
 
     /// Update a texture with the given data (used for updating the glyph cache
     /// texture).
-    pub fn update(
-        &self,
-        device: &wgpu::Device,
-        queue: &wgpu::Queue,
-        offset: [u32; 2],
-        size: [u32; 2],
-        data: &[u8],
-    ) {
+    pub fn update(&self, queue: &wgpu::Queue, offset: [u32; 2], size: [u32; 2], data: &[u8]) {
         let bytes_per_pixel = self.format.describe().block_size as u32;
 
         debug_assert_eq!(

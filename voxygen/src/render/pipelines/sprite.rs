@@ -1,12 +1,11 @@
 use super::{
     super::{
-        buffer::Buffer, AaMode, Bound, Consts, GlobalsLayouts, Mesh, Renderer, TerrainLayout,
-        Texture, Vertex as VertexTrait,
+        buffer::Buffer, AaMode, GlobalsLayouts, Mesh, Renderer, TerrainLayout, Texture,
+        Vertex as VertexTrait,
     },
     lod_terrain, GlobalModel,
 };
 use bytemuck::{Pod, Zeroable};
-use core::fmt;
 use std::mem;
 use vek::*;
 
@@ -88,9 +87,9 @@ impl VertexTrait for Vertex {
     const STRIDE: wgpu::BufferAddress = mem::size_of::<Self>() as wgpu::BufferAddress;
 }
 
-pub fn create_verts_buffer(renderer: &mut Renderer, mut mesh: Mesh<Vertex>) -> Buffer<Vertex> {
+pub fn create_verts_buffer(renderer: &mut Renderer, mesh: Mesh<Vertex>) -> Buffer<Vertex> {
     renderer.ensure_sufficient_index_length::<Vertex>(VERT_PAGE_SIZE as usize);
-    // TODO: type buffer by Usage
+    // TODO: type Buffer by Usage
     Buffer::new(
         &renderer.device,
         wgpu::BufferUsage::STORAGE,

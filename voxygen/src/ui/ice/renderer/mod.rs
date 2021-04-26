@@ -15,8 +15,8 @@ use super::{
 };
 use crate::{
     render::{
-        create_ui_quad, create_ui_quad_vert_gradient, Consts, DynamicModel, Mesh, Renderer,
-        UiBoundLocals, UiDrawer, UiLocals, UiMode, UiVertex,
+        create_ui_quad, create_ui_quad_vert_gradient, DynamicModel, Mesh, Renderer, UiBoundLocals,
+        UiDrawer, UiLocals, UiMode, UiVertex,
     },
     Error,
 };

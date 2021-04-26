@@ -21,12 +21,11 @@ use super::{
     mesh::Mesh,
     model::{DynamicModel, Model},
     pipelines::{
-        blit, clouds, figure, fluid, lod_terrain, particle, postprocess, shadow, skybox, sprite,
-        terrain, ui, GlobalsBindGroup, GlobalsLayouts, ShadowTexturesBindGroup,
+        blit, clouds, figure, fluid, postprocess, shadow, sprite, terrain, ui, GlobalsBindGroup,
+        GlobalsLayouts, ShadowTexturesBindGroup,
     },
     texture::Texture,
-    AaMode, AddressMode, CloudMode, FilterMode, FluidMode, LightingMode, RenderError, RenderMode,
-    ShadowMapMode, ShadowMode, Vertex,
+    AaMode, AddressMode, FilterMode, RenderError, RenderMode, ShadowMapMode, ShadowMode, Vertex,
 };
 use common::assets::{self, AssetExt, AssetHandle};
 use common_base::span;
@@ -61,8 +60,8 @@ struct Layouts {
 
 /// Render target views
 struct Views {
-    // NOTE: unused for now
-    win_depth: wgpu::TextureView,
+    // NOTE: unused for now, maybe... we will want it for something
+    _win_depth: wgpu::TextureView,
 
     tgt_color: wgpu::TextureView,
     tgt_depth: wgpu::TextureView,
@@ -503,7 +502,6 @@ impl Renderer {
                 &self.depth_sampler,
             );
 
-            let mode = &self.mode;
             // Get mutable reference to shadow views out of the current state
             let shadow_views = match &mut self.state {
                 State::Interface { shadow_views, .. } => {
@@ -644,7 +642,7 @@ impl Renderer {
             usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
         });
         // TODO: Consider no depth buffer for the final draw to the window?
-        let win_depth_view = tgt_depth_tex.create_view(&wgpu::TextureViewDescriptor {
+        let win_depth_view = win_depth_tex.create_view(&wgpu::TextureViewDescriptor {
             label: None,
             format: Some(wgpu::TextureFormat::Depth32Float),
             dimension: Some(wgpu::TextureViewDimension::D2),
@@ -659,7 +657,7 @@ impl Renderer {
             tgt_color: tgt_color_view,
             tgt_depth: tgt_depth_view,
             tgt_color_pp: tgt_color_pp_view,
-            win_depth: win_depth_view,
+            _win_depth: win_depth_view,
         })
     }
 
@@ -701,6 +699,7 @@ impl Renderer {
     // 1.0);     }
     // }
 
+    // TODO: @Sharp what should this look like with wgpu?
     /// NOTE: Supported by Vulkan (by default), DirectX 10+ (it seems--it's hard
     /// to find proof of this, but Direct3D 10 apparently does it by
     /// default, and 11 definitely does, so I assume it's natively supported
@@ -708,24 +707,24 @@ impl Renderer {
     /// there may be some GPUs that don't quite support it correctly, the
     /// impact is relatively small, so there is no reason not to enable it where
     /// available.
-    fn enable_seamless_cube_maps() {
-        todo!()
-        // unsafe {
-        //     // NOTE: Currently just fail silently rather than complain if the
-        // computer is on     // a version lower than 3.2, where
-        // seamless cubemaps were introduced.     if !device.get_info().
-        // is_version_supported(3, 2) {         return;
-        //     }
+    //fn enable_seamless_cube_maps() {
+    //todo!()
+    // unsafe {
+    //     // NOTE: Currently just fail silently rather than complain if the
+    // computer is on     // a version lower than 3.2, where
+    // seamless cubemaps were introduced.     if !device.get_info().
+    // is_version_supported(3, 2) {         return;
+    //     }
 
-        //     // NOTE: Safe because GL_TEXTURE_CUBE_MAP_SEAMLESS is supported
-        // by OpenGL 3.2+     // (see https://www.khronos.org/opengl/wiki/Cubemap_Texture#Seamless_cubemap);
-        //     // enabling seamless cube maps should always be safe regardless
-        // of the state of     // the OpenGL context, so no further
-        // checks are needed.     device.with_gl(|gl| {
-        //         gl.Enable(gfx_gl::TEXTURE_CUBE_MAP_SEAMLESS);
-        //     });
-        // }
-    }
+    //     // NOTE: Safe because GL_TEXTURE_CUBE_MAP_SEAMLESS is supported
+    // by OpenGL 3.2+     // (see https://www.khronos.org/opengl/wiki/Cubemap_Texture#Seamless_cubemap);
+    //     // enabling seamless cube maps should always be safe regardless
+    // of the state of     // the OpenGL context, so no further
+    // checks are needed.     device.with_gl(|gl| {
+    //         gl.Enable(gfx_gl::TEXTURE_CUBE_MAP_SEAMLESS);
+    //     });
+    // }
+    //}
 
     /// Start recording the frame
     /// When the returned `Drawer` is dropped the recorded draw calls will be
@@ -930,25 +929,21 @@ impl Renderer {
         vals: &[T],
     ) -> Consts<T> {
         let mut consts = Consts::new(device, vals.len());
-        consts.update(device, queue, vals, 0);
+        consts.update(queue, vals, 0);
         consts
     }
 
     /// Update a set of constants with the provided values.
     pub fn update_consts<T: Copy + bytemuck::Pod>(&self, consts: &mut Consts<T>, vals: &[T]) {
-        consts.update(&self.device, &self.queue, vals, 0)
+        consts.update(&self.queue, vals, 0)
     }
 
     pub fn update_clouds_locals(&mut self, new_val: clouds::Locals) {
-        self.locals
-            .clouds
-            .update(&self.device, &self.queue, &[new_val], 0)
+        self.locals.clouds.update(&self.queue, &[new_val], 0)
     }
 
     pub fn update_postprocess_locals(&mut self, new_val: postprocess::Locals) {
-        self.locals
-            .postprocess
-            .update(&self.device, &self.queue, &[new_val], 0)
+        self.locals.postprocess.update(&self.queue, &[new_val], 0)
     }
 
     /// Create a new set of instances with the provided values.
@@ -957,7 +952,7 @@ impl Renderer {
         vals: &[T],
     ) -> Result<Instances<T>, RenderError> {
         let mut instances = Instances::new(&self.device, vals.len());
-        instances.update(&self.device, &self.queue, vals, 0);
+        instances.update(&self.queue, vals, 0);
         Ok(instances)
     }
 
@@ -1015,7 +1010,7 @@ impl Renderer {
 
     /// Update a dynamic model with a mesh and a offset.
     pub fn update_model<V: Vertex>(&self, model: &DynamicModel<V>, mesh: &Mesh<V>, offset: usize) {
-        model.update(&self.device, &self.queue, mesh, offset)
+        model.update(&self.queue, mesh, offset)
     }
 
     /// Return the maximum supported texture size.
@@ -1055,7 +1050,6 @@ impl Renderer {
         );
 
         tex.update(
-            &self.device,
             &self.queue,
             [0; 2],
             [texture_info.size.width, texture_info.size.height],
@@ -1073,7 +1067,7 @@ impl Renderer {
         sampler_info: &wgpu::SamplerDescriptor,
     ) -> Texture {
         let texture = Texture::new_raw(&self.device, texture_info, view_info, sampler_info);
-        texture.clear(&self.device, &self.queue); // Needs to be fully initialized for partial writes to work on Dx12 AMD
+        texture.clear(&self.queue); // Needs to be fully initialized for partial writes to work on Dx12 AMD
         texture
     }
 
@@ -1114,13 +1108,7 @@ impl Renderer {
         // TODO: generic over pixel type
         data: &[[u8; 4]],
     ) {
-        texture.update(
-            &self.device,
-            &self.queue,
-            offset,
-            size,
-            bytemuck::cast_slice(data),
-        )
+        texture.update(&self.queue, offset, size, bytemuck::cast_slice(data))
     }
 
     /// Queue to obtain a screenshot on the next frame render
@@ -1144,7 +1132,7 @@ impl Renderer {
                 std::path::Path::new(&file_name),
                 &self.profile_times,
             ) {
-                error!("Failed to save GPU timing snapshot");
+                error!(?err, "Failed to save GPU timing snapshot");
             } else {
                 info!("Saved GPU timing snapshot as: {}", file_name);
             }

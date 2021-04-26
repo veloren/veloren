@@ -41,11 +41,10 @@ pub struct LodData {
 impl LodData {
     pub fn dummy(renderer: &mut Renderer) -> Self {
         let map_size = Vec2::new(1, 1);
-        let map_border = [0.0, 0.0, 0.0, 0.0];
+        //let map_border = [0.0, 0.0, 0.0, 0.0];
         let map_image = [0];
         let alt_image = [0];
         let horizon_image = [0x_00_01_00_01];
-        //let map_border = [0.0, 0.0, 0.0, 0.0];
 
         Self::new(
             renderer,

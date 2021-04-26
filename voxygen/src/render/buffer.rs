@@ -44,7 +44,7 @@ impl<T: Copy + Pod> DynamicBuffer<T> {
         Self(buffer)
     }
 
-    pub fn update(&self, device: &wgpu::Device, queue: &wgpu::Queue, vals: &[T], offset: usize) {
+    pub fn update(&self, queue: &wgpu::Queue, vals: &[T], offset: usize) {
         if !vals.is_empty() {
             queue.write_buffer(
                 &self.buf,

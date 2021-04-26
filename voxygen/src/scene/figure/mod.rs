@@ -9,8 +9,7 @@ use crate::{
     render::{
         pipelines::{self, ColLights},
         ColLightInfo, FigureBoneData, FigureDrawer, FigureLocals, FigureModel, FigureShadowDrawer,
-        FirstPassDrawer, GlobalModel, LodData, Mesh, RenderError, Renderer, SubModel,
-        TerrainVertex,
+        Mesh, RenderError, Renderer, SubModel, TerrainVertex,
     },
     scene::{
         camera::{Camera, CameraMode, Dependents},

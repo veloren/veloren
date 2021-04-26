@@ -1,7 +1,7 @@
 use crate::{
     render::{
         pipelines::lod_terrain::{LodData, Vertex},
-        FirstPassDrawer, GlobalModel, LodTerrainVertex, Mesh, Model, Quad, Renderer,
+        FirstPassDrawer, LodTerrainVertex, Mesh, Model, Quad, Renderer,
     },
     settings::Settings,
 };

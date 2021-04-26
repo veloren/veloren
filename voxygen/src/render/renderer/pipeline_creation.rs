@@ -204,7 +204,12 @@ impl ShaderModules {
                     "lod.glsl" => lod.0.to_owned(),
                     "anti-aliasing.glsl" => anti_alias.0.to_owned(),
                     "cloud.glsl" => cloud.0.to_owned(),
-                    other => return Err(format!("Include {} is not defined", other)),
+                    other => {
+                        return Err(format!(
+                            "Include {} in {} is not defined",
+                            other, shader_name
+                        ));
+                    },
                 },
             })
         });
@@ -787,9 +792,10 @@ struct Task<'a> {
 }
 
 /// Represents in-progress task, drop when complete
+// NOTE: fields are unused because they are only used for their Drop impls
 struct StartedTask<'a> {
     _span: common_base::ProfSpan,
-    task: Task<'a>,
+    _task: Task<'a>,
 }
 
 #[derive(Default)]
@@ -817,13 +823,14 @@ impl Progress {
 impl<'a> Task<'a> {
     /// Start a task.
     /// The name is used for profiling.
-    fn start(self, name: &str) -> StartedTask<'a> {
+    fn start(self, _name: &str) -> StartedTask<'a> {
+        // _name only used when tracy feature is activated
         StartedTask {
             _span: {
-                prof_span!(guard, name);
+                prof_span!(guard, _name);
                 guard
             },
-            task: self,
+            _task: self,
         }
     }
 

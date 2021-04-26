@@ -16,9 +16,9 @@ pub use self::{
 use crate::{
     audio::{ambient::AmbientMgr, music::MusicMgr, sfx::SfxMgr, AudioFrontend},
     render::{
-        create_skybox_mesh, CloudsLocals, Consts, Drawer, FirstPassDrawer, GlobalModel, Globals,
-        GlobalsBindGroup, Light, Model, PointLightMatrix, PostProcessLocals, Renderer, Shadow,
-        ShadowLocals, SkyboxVertex,
+        create_skybox_mesh, CloudsLocals, Consts, Drawer, GlobalModel, Globals, GlobalsBindGroup,
+        Light, Model, PointLightMatrix, PostProcessLocals, Renderer, Shadow, ShadowLocals,
+        SkyboxVertex,
     },
     settings::Settings,
     window::{AnalogGameInput, Event},
@@ -1000,7 +1000,7 @@ impl Scene {
             shadow_mats.extend(lights.iter().flat_map(|light| {
                 // Now, construct the full projection matrix by making the light look at each
                 // cube face.
-                let mut eye = Vec3::new(light.pos[0], light.pos[1], light.pos[2]) - focus_off;
+                let eye = Vec3::new(light.pos[0], light.pos[1], light.pos[2]) - focus_off;
                 orientations.iter().map(move |&(forward, up)| {
                     // NOTE: We don't currently try to linearize point lights or need a separate
                     // transform for them.

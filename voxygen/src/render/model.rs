@@ -61,14 +61,8 @@ impl<V: Vertex> DynamicModel<V> {
         }
     }
 
-    pub fn update(
-        &self,
-        device: &wgpu::Device,
-        queue: &wgpu::Queue,
-        mesh: &Mesh<V>,
-        offset: usize,
-    ) {
-        self.vbuf.update(device, queue, mesh.vertices(), offset)
+    pub fn update(&self, queue: &wgpu::Queue, mesh: &Mesh<V>, offset: usize) {
+        self.vbuf.update(queue, mesh.vertices(), offset)
     }
 
     /// Create a model with a slice of a portion of this model to send to the

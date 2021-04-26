@@ -55,7 +55,7 @@ use crate::{
     ecs::{comp as vcomp, comp::HpFloaterList},
     hud::{img_ids::ImgsRot, prompt_dialog::DialogOutcomeEvent},
     i18n::Localization,
-    render::{Consts, Globals, UiDrawer},
+    render::UiDrawer,
     scene::camera::{self, Camera},
     session::{
         settings_change::{Chat as ChatChange, Interface as InterfaceChange, SettingsChange},

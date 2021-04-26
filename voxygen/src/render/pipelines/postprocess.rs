@@ -1,4 +1,4 @@
-use super::super::{AaMode, Consts, GlobalsLayouts};
+use super::super::{Consts, GlobalsLayouts};
 use bytemuck::{Pod, Zeroable};
 use vek::*;
 
