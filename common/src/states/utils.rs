@@ -270,8 +270,6 @@ pub fn handle_forced_movement(
     movement: ForcedMovement,
     efficiency: f32,
 ) {
-    handle_orientation(data, update, efficiency);
-
     match movement {
         ForcedMovement::Forward { strength } => {
             if let Some(accel) = data.physics.on_ground.then_some(data.body.base_accel()) {
@@ -330,8 +328,6 @@ pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, efficiency:
 /// Updates components to move player as if theyre swimming
 fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, submersion: f32) -> bool {
     if let Some(force) = data.body.swim_thrust() {
-        handle_orientation(data, update, efficiency * 0.2);
-
         let force = efficiency * force;
         let mut water_accel = force / data.mass.0;
 
@@ -372,8 +368,6 @@ pub fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) -> b
         let thrust = efficiency * force;
 
         let accel = thrust / data.mass.0;
-
-        handle_orientation(data, update, efficiency);
 
         // Elevation control
         match data.body {
