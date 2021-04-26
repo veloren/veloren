@@ -22,19 +22,19 @@
 #include <srgb.glsl>
 #include <cloud.glsl>
 
-layout(set = 2, binding = 0)
+layout(set = 1, binding = 0)
 uniform texture2D t_src_color;
-layout(set = 2, binding = 1)
+layout(set = 1, binding = 1)
 uniform sampler s_src_color;
 
-layout(set = 2, binding = 2)
+layout(set = 1, binding = 2)
 uniform texture2D t_src_depth;
-layout(set = 2, binding = 3)
+layout(set = 1, binding = 3)
 uniform sampler s_src_depth;
 
 layout(location = 0) in vec2 uv;
 
-layout (std140, set = 2, binding = 4)
+layout (std140, set = 1, binding = 4)
 uniform u_locals {
     mat4 proj_mat_inv;
     mat4 view_mat_inv;

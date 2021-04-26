@@ -202,9 +202,6 @@ impl<'frame> Drawer<'frame> {
     /// Returns None if the clouds pipeline is not available
     pub fn second_pass(&mut self) -> Option<SecondPassDrawer> {
         let pipeline = &self.borrow.pipelines.all()?.clouds;
-        // Note: this becomes Some once pipeline creation is complete even if shadows
-        // are not enabled
-        let shadow = self.borrow.shadow?;
 
         let encoder = self.encoder.as_mut().unwrap();
         let device = self.borrow.device;
@@ -223,8 +220,6 @@ impl<'frame> Drawer<'frame> {
             });
 
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
-        // TODO: what are shadows used for here????
-        render_pass.set_bind_group(1, &shadow.bind.bind_group, &[]);
 
         Some(SecondPassDrawer {
             render_pass,
@@ -743,7 +738,7 @@ impl<'pass> SecondPassDrawer<'pass> {
     pub fn draw_clouds(&mut self) {
         self.render_pass.set_pipeline(&self.pipeline.pipeline);
         self.render_pass
-            .set_bind_group(2, &self.borrow.locals.clouds_bind.bind_group, &[]);
+            .set_bind_group(1, &self.borrow.locals.clouds_bind.bind_group, &[]);
         self.render_pass.draw(0..3, 0..1);
     }
 }
