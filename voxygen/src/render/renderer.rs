@@ -388,6 +388,28 @@ impl Renderer {
         })
     }
 
+    /// Check the status of the intial pipeline creation
+    /// Returns `None` if complete
+    /// Returns `Some((total, complete))` if in progress
+    pub fn pipeline_creation_status(&self) -> Option<(usize, usize)> {
+        if let State::Interface { creating, .. } = &self.state {
+            Some(creating.status())
+        } else {
+            None
+        }
+    }
+
+    /// Check the status the pipeline recreation
+    /// Returns `None` if pipelines are currently not being recreated
+    /// Returns `Some((total, complete))` if in progress
+    pub fn pipeline_recreation_status(&self) -> Option<(usize, usize)> {
+        if let State::Complete { recreating, .. } = &self.state {
+            recreating.as_ref().map(|r| r.status())
+        } else {
+            None
+        }
+    }
+
     /// Change the render mode.
     pub fn set_render_mode(&mut self, mode: RenderMode) -> Result<(), RenderError> {
         // TODO: are there actually any issues with the current mode not matching the

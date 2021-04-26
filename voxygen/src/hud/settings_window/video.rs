@@ -35,6 +35,7 @@ widget_ids! {
         window_scrollbar,
         reset_graphics_button,
         fps_counter,
+        pipeline_recreation_text,
         vd_slider,
         vd_text,
         vd_value,
@@ -210,6 +211,24 @@ impl<'a> Widget for Video<'a> {
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(18))
             .set(state.ids.fps_counter, ui);
+
+        // Pipeline recreation status
+        if let Some((total, complete)) = self
+            .global_state
+            .window
+            .renderer()
+            .pipeline_recreation_status()
+        {
+            Text::new(&format!("Rebuilding pipelines: ({}/{})", complete, total))
+                .down_from(state.ids.fps_counter, 10.0)
+                .align_right_of(state.ids.fps_counter)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                // TODO: make color pulse or something
+                .color(TEXT_COLOR)
+                .set(state.ids.pipeline_recreation_text, ui);
+        }
+
         // View Distance
         Text::new(&self.localized_strings.get("hud.settings.view_distance"))
             .top_left_with_margins_on(state.ids.window, 10.0, 10.0)
