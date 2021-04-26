@@ -68,6 +68,7 @@ impl CharacterBehavior for Data {
             },
         }
 
+        handle_orientation(data, &mut update, 0.6);
         handle_move(data, &mut update, 0.4);
         handle_jump(data, &mut update, 1.0);
 
