@@ -206,8 +206,7 @@ impl Renderer {
                 },
                 std::env::var_os("WGPU_TRACE_DIR")
                     .as_ref()
-                    .map(|v| std::path::Path::new(v))
-                    .or(Some("./wgpu-trace".as_ref())),
+                    .map(|v| std::path::Path::new(v)),
             ),
         )?;
 
