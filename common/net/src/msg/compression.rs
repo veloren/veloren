@@ -182,7 +182,7 @@ impl VoxelImageEncoding for PngEncoding {
         let mut buf = Vec::new();
         let png = image::codecs::png::PngEncoder::new_with_quality(
             &mut buf,
-            CompressionType::Fast,
+            CompressionType::Rle,
             FilterType::Up,
         );
         png.encode(
@@ -281,7 +281,7 @@ impl VoxelImageEncoding for MixedEncoding {
         let mut f = |x: &ImageBuffer<_, Vec<u8>>, i| {
             let png = image::codecs::png::PngEncoder::new_with_quality(
                 &mut buf,
-                CompressionType::Fast,
+                CompressionType::Rle,
                 FilterType::Up,
             );
             png.encode(&*x.as_raw(), x.width(), x.height(), image::ColorType::L8)
@@ -398,7 +398,7 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
         let mut f = |x: &ImageBuffer<_, Vec<u8>>, i| {
             let png = image::codecs::png::PngEncoder::new_with_quality(
                 &mut buf,
-                CompressionType::Fast,
+                CompressionType::Rle,
                 FilterType::Up,
             );
             png.encode(&*x.as_raw(), x.width(), x.height(), image::ColorType::L8)
@@ -413,7 +413,7 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
         {
             let png = image::codecs::png::PngEncoder::new_with_quality(
                 &mut buf,
-                CompressionType::Fast,
+                CompressionType::Rle,
                 FilterType::Paeth,
             );
             png.encode(
@@ -624,7 +624,7 @@ impl VoxelImageEncoding for TriPngEncoding {
         let mut f = |x: &ImageBuffer<_, Vec<u8>>, i| {
             let png = image::codecs::png::PngEncoder::new_with_quality(
                 &mut buf,
-                CompressionType::Fast,
+                CompressionType::Rle,
                 FilterType::Up,
             );
             png.encode(&*x.as_raw(), x.width(), x.height(), image::ColorType::L8)

@@ -14,6 +14,7 @@ use common_net::msg::compression::{
 use hashbrown::HashMap;
 use image::ImageBuffer;
 use std::{
+    collections::BTreeMap,
     io::{Read, Write},
     sync::Arc,
     time::Instant,
@@ -47,19 +48,29 @@ fn unlz4_with_dictionary(data: &[u8], dictionary: &[u8]) -> Option<Vec<u8>> {
 }
 
 #[allow(dead_code)]
-fn do_deflate(data: &[u8]) -> Vec<u8> {
-    use deflate::{write::DeflateEncoder, Compression};
+fn do_deflate_rle(data: &[u8]) -> Vec<u8> {
+    use deflate::{write::DeflateEncoder, CompressionOptions};
 
-    let mut encoder = DeflateEncoder::new(Vec::new(), Compression::Fast);
+    let mut encoder = DeflateEncoder::new(Vec::new(), CompressionOptions::rle());
     encoder.write_all(data).expect("Write error!");
     let compressed_data = encoder.finish().expect("Failed to finish compression!");
     compressed_data
 }
 
-fn do_deflate_flate2(data: &[u8]) -> Vec<u8> {
+// Separate function so that it shows up differently on the flamegraph
+fn do_deflate_flate2_zero(data: &[u8]) -> Vec<u8> {
     use flate2::{write::DeflateEncoder, Compression};
 
-    let mut encoder = DeflateEncoder::new(Vec::new(), Compression::new(5));
+    let mut encoder = DeflateEncoder::new(Vec::new(), Compression::new(0));
+    encoder.write_all(data).expect("Write error!");
+    let compressed_data = encoder.finish().expect("Failed to finish compression!");
+    compressed_data
+}
+
+fn do_deflate_flate2<const LEVEL: u32>(data: &[u8]) -> Vec<u8> {
+    use flate2::{write::DeflateEncoder, Compression};
+
+    let mut encoder = DeflateEncoder::new(Vec::new(), Compression::new(LEVEL));
     encoder.write_all(data).expect("Write error!");
     let compressed_data = encoder.finish().expect("Failed to finish compression!");
     compressed_data
@@ -327,19 +338,32 @@ fn main() {
             .unwrap(),
     ));
 
+    const SKIP_DEFLATE_2_5: bool = true;
+    const SKIP_DYNA: bool = true;
+    const SKIP_IMAGECHONK: bool = true;
+    const SKIP_MIXED: bool = true;
+    const SKIP_VOLGRID: bool = true;
+    const RADIUS: i32 = 7;
+    //const RADIUS: i32 = 12;
+    //const ITERS: usize = 50;
+    const ITERS: usize = 0;
+
+    let mut emit_graphs = std::fs::File::create("emit_compression_graphs.py").unwrap();
     for (sitename, sitepos) in sites.iter() {
-        let mut totals = [0.0; 16];
-        let mut total_timings = [0.0; 13];
+        let mut z_buckets: BTreeMap<&str, BTreeMap<i32, (usize, f32)>> = BTreeMap::new();
+        let mut totals: BTreeMap<&str, f32> = BTreeMap::new();
+        let mut total_timings: BTreeMap<&str, f32> = BTreeMap::new();
         let mut count = 0;
         let mut volgrid = VolGrid2d::new().unwrap();
         for (i, spiralpos) in Spiral2d::new()
-            .radius(7)
+            .radius(RADIUS)
             .map(|v| v + sitepos.as_())
             .enumerate()
         {
             let chunk = world.generate_chunk(index.as_index_ref(), spiralpos, || false);
             if let Ok((chunk, _)) = chunk {
                 let uncompressed = bincode::serialize(&chunk).unwrap();
+                let n = uncompressed.len();
                 if HISTOGRAMS {
                     for w in uncompressed.windows(k) {
                         *histogram.entry(w.to_vec()).or_default() += 1;
@@ -353,71 +377,214 @@ fn main() {
                 let lz4chonk_post = Instant::now();
                 //let lz4_dict_chonk = SerializedTerrainChunk::from_chunk(&chunk,
                 // &*dictionary);
+                for _ in 0..ITERS {
+                    let _deflate0_chonk =
+                        do_deflate_flate2_zero(&bincode::serialize(&chunk).unwrap());
 
-                let deflatechonk_pre = Instant::now();
-                let deflate_chonk = do_deflate_flate2(&bincode::serialize(&chunk).unwrap());
-                let deflatechonk_post = Instant::now();
-
-                let dyna: Dyna<_, _, ColumnAccess> = chonk_to_dyna(&chunk, Block::empty());
-                let ser_dyna = bincode::serialize(&dyna).unwrap();
-                if HISTOGRAMS {
-                    for w in ser_dyna.windows(k) {
-                        *histogram2.entry(w.to_vec()).or_default() += 1;
-                    }
-                    if i % 128 == 0 {
-                        histogram_to_dictionary(&histogram2, &mut dictionary2);
-                    }
+                    let _deflate1_chonk =
+                        do_deflate_flate2::<1>(&bincode::serialize(&chunk).unwrap());
                 }
-                let lz4_dyna = lz4_with_dictionary(&*ser_dyna, &[]);
-                //let lz4_dict_dyna = lz4_with_dictionary(&*ser_dyna, &dictionary2);
-                let deflate_dyna = do_deflate(&*ser_dyna);
-                let deflate_channeled_dyna =
-                    do_deflate_flate2(&bincode::serialize(&channelize_dyna(&dyna)).unwrap());
+                let rlechonk_pre = Instant::now();
+                let rle_chonk = do_deflate_rle(&bincode::serialize(&chunk).unwrap());
+                let rlechonk_post = Instant::now();
 
-                let jpegchonkgrid_pre = Instant::now();
-                let jpegchonkgrid =
-                    image_terrain_chonk(JpegEncoding, GridLtrPacking, &chunk).unwrap();
-                let jpegchonkgrid_post = Instant::now();
+                let deflate0chonk_pre = Instant::now();
+                let deflate0_chonk = do_deflate_flate2_zero(&bincode::serialize(&chunk).unwrap());
+                let deflate0chonk_post = Instant::now();
 
-                if false {
-                    use std::fs::File;
-                    let mut f = File::create(&format!(
-                        "chonkjpegs/tmp_{}_{}.jpg",
-                        spiralpos.x, spiralpos.y
-                    ))
+                let deflate1chonk_pre = Instant::now();
+                let deflate1_chonk = do_deflate_flate2::<1>(&bincode::serialize(&chunk).unwrap());
+                let deflate1chonk_post = Instant::now();
+                let mut sizes = vec![
+                    ("lz4_chonk", lz4_chonk.len() as f32 / n as f32),
+                    ("rle_chonk", rle_chonk.len() as f32 / n as f32),
+                    ("deflate0_chonk", deflate0_chonk.len() as f32 / n as f32),
+                    ("deflate1_chonk", deflate1_chonk.len() as f32 / n as f32),
+                ];
+                #[rustfmt::skip]
+                let mut timings = vec![
+                    ("lz4chonk", (lz4chonk_post - lz4chonk_pre).subsec_nanos()),
+                    ("rlechonk", (rlechonk_post - rlechonk_pre).subsec_nanos()),
+                    ("deflate0chonk", (deflate0chonk_post - deflate0chonk_pre).subsec_nanos()),
+                    ("deflate1chonk", (deflate1chonk_post - deflate1chonk_pre).subsec_nanos()),
+                ];
+                {
+                    let bucket = z_buckets
+                        .entry("lz4")
+                        .or_default()
+                        .entry(chunk.get_max_z() - chunk.get_min_z())
+                        .or_insert((0, 0.0));
+                    bucket.0 += 1;
+                    bucket.1 += (lz4chonk_post - lz4chonk_pre).subsec_nanos() as f32;
+                }
+                {
+                    let bucket = z_buckets
+                        .entry("rle")
+                        .or_default()
+                        .entry(chunk.get_max_z() - chunk.get_min_z())
+                        .or_insert((0, 0.0));
+                    bucket.0 += 1;
+                    bucket.1 += (rlechonk_post - rlechonk_pre).subsec_nanos() as f32;
+                }
+                {
+                    let bucket = z_buckets
+                        .entry("deflate0")
+                        .or_default()
+                        .entry(chunk.get_max_z() - chunk.get_min_z())
+                        .or_insert((0, 0.0));
+                    bucket.0 += 1;
+                    bucket.1 += (deflate0chonk_post - deflate0chonk_pre).subsec_nanos() as f32;
+                }
+                {
+                    let bucket = z_buckets
+                        .entry("deflate1")
+                        .or_default()
+                        .entry(chunk.get_max_z() - chunk.get_min_z())
+                        .or_insert((0, 0.0));
+                    bucket.0 += 1;
+                    bucket.1 += (deflate1chonk_post - deflate1chonk_pre).subsec_nanos() as f32;
+                }
+
+                if !SKIP_DEFLATE_2_5 {
+                    let deflate2chonk_pre = Instant::now();
+                    let deflate2_chonk =
+                        do_deflate_flate2::<2>(&bincode::serialize(&chunk).unwrap());
+                    let deflate2chonk_post = Instant::now();
+
+                    let deflate3chonk_pre = Instant::now();
+                    let deflate3_chonk =
+                        do_deflate_flate2::<3>(&bincode::serialize(&chunk).unwrap());
+                    let deflate3chonk_post = Instant::now();
+
+                    let deflate4chonk_pre = Instant::now();
+                    let deflate4_chonk =
+                        do_deflate_flate2::<4>(&bincode::serialize(&chunk).unwrap());
+                    let deflate4chonk_post = Instant::now();
+
+                    let deflate5chonk_pre = Instant::now();
+                    let deflate5_chonk =
+                        do_deflate_flate2::<5>(&bincode::serialize(&chunk).unwrap());
+                    let deflate5chonk_post = Instant::now();
+                    sizes.extend_from_slice(&[
+                        ("deflate2_chonk", deflate2_chonk.len() as f32 / n as f32),
+                        ("deflate3_chonk", deflate3_chonk.len() as f32 / n as f32),
+                        ("deflate4_chonk", deflate4_chonk.len() as f32 / n as f32),
+                        ("deflate5_chonk", deflate5_chonk.len() as f32 / n as f32),
+                    ]);
+                    #[rustfmt::skip]
+                    timings.extend_from_slice(&[
+                        ("deflate2chonk", (deflate2chonk_post - deflate2chonk_pre).subsec_nanos()),
+                        ("deflate3chonk", (deflate3chonk_post - deflate3chonk_pre).subsec_nanos()),
+                        ("deflate4chonk", (deflate4chonk_post - deflate4chonk_pre).subsec_nanos()),
+                        ("deflate5chonk", (deflate5chonk_post - deflate5chonk_pre).subsec_nanos()),
+                    ]);
+                }
+
+                if !SKIP_DYNA {
+                    let dyna: Dyna<_, _, ColumnAccess> = chonk_to_dyna(&chunk, Block::empty());
+                    let ser_dyna = bincode::serialize(&dyna).unwrap();
+                    if HISTOGRAMS {
+                        for w in ser_dyna.windows(k) {
+                            *histogram2.entry(w.to_vec()).or_default() += 1;
+                        }
+                        if i % 128 == 0 {
+                            histogram_to_dictionary(&histogram2, &mut dictionary2);
+                        }
+                    }
+                    let lz4_dyna = lz4_with_dictionary(&*ser_dyna, &[]);
+                    //let lz4_dict_dyna = lz4_with_dictionary(&*ser_dyna, &dictionary2);
+                    let deflate_dyna = do_deflate_flate2::<5>(&*ser_dyna);
+                    let deflate_channeled_dyna = do_deflate_flate2::<5>(
+                        &bincode::serialize(&channelize_dyna(&dyna)).unwrap(),
+                    );
+
+                    sizes.extend_from_slice(&[
+                        ("lz4_dyna", lz4_dyna.len() as f32 / n as f32),
+                        ("deflate_dyna", deflate_dyna.len() as f32 / n as f32),
+                        (
+                            "deflate_channeled_dyna",
+                            deflate_channeled_dyna.len() as f32 / n as f32,
+                        ),
+                    ]);
+                }
+
+                if !SKIP_IMAGECHONK {
+                    let jpegchonkgrid_pre = Instant::now();
+                    let jpegchonkgrid =
+                        image_terrain_chonk(JpegEncoding, GridLtrPacking, &chunk).unwrap();
+                    let jpegchonkgrid_post = Instant::now();
+
+                    if false {
+                        use std::fs::File;
+                        let mut f = File::create(&format!(
+                            "chonkjpegs/tmp_{}_{}.jpg",
+                            spiralpos.x, spiralpos.y
+                        ))
+                        .unwrap();
+                        f.write_all(&*jpegchonkgrid).unwrap();
+                    }
+
+                    let jpegchonktall_pre = Instant::now();
+                    let jpegchonktall =
+                        image_terrain_chonk(JpegEncoding, TallPacking { flip_y: false }, &chunk)
+                            .unwrap();
+                    let jpegchonktall_post = Instant::now();
+
+                    let jpegchonkflip_pre = Instant::now();
+                    let jpegchonkflip =
+                        image_terrain_chonk(JpegEncoding, TallPacking { flip_y: true }, &chunk)
+                            .unwrap();
+                    let jpegchonkflip_post = Instant::now();
+
+                    let pngchonk_pre = Instant::now();
+                    let pngchonk =
+                        image_terrain_chonk(PngEncoding, GridLtrPacking, &chunk).unwrap();
+                    let pngchonk_post = Instant::now();
+
+                    sizes.extend_from_slice(&[
+                        ("jpegchonkgrid", jpegchonkgrid.len() as f32 / n as f32),
+                        ("jpegchonktall", jpegchonktall.len() as f32 / n as f32),
+                        ("jpegchonkflip", jpegchonkflip.len() as f32 / n as f32),
+                        ("pngchonk", pngchonk.len() as f32 / n as f32),
+                    ]);
+                    #[rustfmt::skip]
+                    timings.extend_from_slice(&[
+                        ("jpegchonkgrid", (jpegchonkgrid_post - jpegchonkgrid_pre).subsec_nanos()),
+                        ("jpegchonktall", (jpegchonktall_post - jpegchonktall_pre).subsec_nanos()),
+                        ("jpegchonkflip", (jpegchonkflip_post - jpegchonkflip_pre).subsec_nanos()),
+                        ("pngchonk", (pngchonk_post - pngchonk_pre).subsec_nanos()),
+                    ]);
+                }
+                if !SKIP_MIXED {
+                    let mixedchonk_pre = Instant::now();
+                    let mixedchonk =
+                        image_terrain_chonk(MixedEncoding, TallPacking { flip_y: true }, &chunk)
+                            .unwrap();
+                    let mixedchonk_post = Instant::now();
+
+                    let mixeddeflate = CompressedData::compress(&mixedchonk, 1);
+                    let mixeddeflate_post = Instant::now();
+
+                    let mixeddense_pre = Instant::now();
+                    let mixeddense = image_terrain_chonk(
+                        MixedEncodingDenseSprites,
+                        TallPacking { flip_y: true },
+                        &chunk,
+                    )
                     .unwrap();
-                    f.write_all(&*jpegchonkgrid).unwrap();
+                    let mixeddense_post = Instant::now();
+                    sizes.extend_from_slice(&[
+                        ("mixedchonk", mixedchonk.0.len() as f32 / n as f32),
+                        ("mixeddeflate", mixeddeflate.data.len() as f32 / n as f32),
+                        ("mixeddenese", mixeddense.0.len() as f32 / n as f32),
+                    ]);
+                    #[rustfmt::skip]
+                    timings.extend_from_slice(&[
+                        ("mixedchonk", (mixedchonk_post - mixedchonk_pre).subsec_nanos()),
+                        ("mixeddeflate", (mixeddeflate_post - mixedchonk_pre).subsec_nanos()),
+                        ("mixeddense", (mixeddense_post - mixeddense_pre).subsec_nanos()),
+                    ]);
                 }
-
-                let jpegchonktall_pre = Instant::now();
-                let jpegchonktall =
-                    image_terrain_chonk(JpegEncoding, TallPacking { flip_y: false }, &chunk)
-                        .unwrap();
-                let jpegchonktall_post = Instant::now();
-
-                let jpegchonkflip_pre = Instant::now();
-                let jpegchonkflip =
-                    image_terrain_chonk(JpegEncoding, TallPacking { flip_y: true }, &chunk)
-                        .unwrap();
-                let jpegchonkflip_post = Instant::now();
-
-                let mixedchonk_pre = Instant::now();
-                let mixedchonk =
-                    image_terrain_chonk(MixedEncoding, TallPacking { flip_y: true }, &chunk)
-                        .unwrap();
-                let mixedchonk_post = Instant::now();
-
-                let mixeddeflate = CompressedData::compress(&mixedchonk, 1);
-                let mixeddeflate_post = Instant::now();
-
-                let mixeddense_pre = Instant::now();
-                let mixeddense = image_terrain_chonk(
-                    MixedEncodingDenseSprites,
-                    TallPacking { flip_y: true },
-                    &chunk,
-                )
-                .unwrap();
-                let mixeddense_post = Instant::now();
 
                 let quadpngfull_pre = Instant::now();
                 let quadpngfull = image_terrain_chonk(
@@ -451,34 +618,16 @@ fn main() {
                     image_terrain_chonk(TriPngEncoding, TallPacking { flip_y: true }, &chunk)
                         .unwrap();
                 let tripng_post = Instant::now();
-
-                let pngchonk_pre = Instant::now();
-                let pngchonk = image_terrain_chonk(PngEncoding, GridLtrPacking, &chunk).unwrap();
-                let pngchonk_post = Instant::now();
-
-                let n = uncompressed.len();
-                let sizes = [
-                    lz4_chonk.len() as f32 / n as f32,
-                    deflate_chonk.len() as f32 / n as f32,
-                    lz4_dyna.len() as f32 / n as f32,
-                    deflate_dyna.len() as f32 / n as f32,
-                    deflate_channeled_dyna.len() as f32 / n as f32,
-                    jpegchonkgrid.len() as f32 / n as f32,
-                    jpegchonktall.len() as f32 / n as f32,
-                    jpegchonkflip.len() as f32 / n as f32,
-                    mixedchonk.0.len() as f32 / n as f32,
-                    mixeddeflate.data.len() as f32 / n as f32,
-                    mixeddense.0.len() as f32 / n as f32,
-                    quadpngfull.data.len() as f32 / n as f32,
-                    quadpnghalf.data.len() as f32 / n as f32,
-                    quadpngquart.data.len() as f32 / n as f32,
-                    tripng.data.len() as f32 / n as f32,
-                    pngchonk.len() as f32 / n as f32,
-                ];
+                sizes.extend_from_slice(&[
+                    ("quadpngfull", quadpngfull.data.len() as f32 / n as f32),
+                    ("quadpnghalf", quadpnghalf.data.len() as f32 / n as f32),
+                    ("quadpngquart", quadpngquart.data.len() as f32 / n as f32),
+                    ("tripng", tripng.data.len() as f32 / n as f32),
+                ]);
                 let best_idx = sizes
                     .iter()
                     .enumerate()
-                    .fold((1.0, 0), |(best, i), (j, ratio)| {
+                    .fold((1.0, 0), |(best, i), (j, (_, ratio))| {
                         if ratio < &best {
                             (*ratio, j)
                         } else {
@@ -486,21 +635,31 @@ fn main() {
                         }
                     })
                     .1;
-                let timings = [
-                    (lz4chonk_post - lz4chonk_pre).subsec_nanos(),
-                    (deflatechonk_post - deflatechonk_pre).subsec_nanos(),
-                    (jpegchonkgrid_post - jpegchonkgrid_pre).subsec_nanos(),
-                    (jpegchonktall_post - jpegchonktall_pre).subsec_nanos(),
-                    (jpegchonkflip_post - jpegchonkflip_pre).subsec_nanos(),
-                    (mixedchonk_post - mixedchonk_pre).subsec_nanos(),
-                    (mixeddeflate_post - mixedchonk_pre).subsec_nanos(),
-                    (mixeddense_post - mixeddense_pre).subsec_nanos(),
-                    (quadpngfull_post - quadpngfull_pre).subsec_nanos(),
-                    (quadpnghalf_post - quadpnghalf_pre).subsec_nanos(),
-                    (quadpngquart_post - quadpngquart_pre).subsec_nanos(),
-                    (tripng_post - tripng_pre).subsec_nanos(),
-                    (pngchonk_post - pngchonk_pre).subsec_nanos(),
-                ];
+                #[rustfmt::skip]
+                timings.extend_from_slice(&[
+                    ("quadpngfull", (quadpngfull_post - quadpngfull_pre).subsec_nanos()),
+                    ("quadpnghalf", (quadpnghalf_post - quadpnghalf_pre).subsec_nanos()),
+                    ("quadpngquart", (quadpngquart_post - quadpngquart_pre).subsec_nanos()),
+                    ("tripng", (tripng_post - tripng_pre).subsec_nanos()),
+                ]);
+                {
+                    let bucket = z_buckets
+                        .entry("quadpngquart")
+                        .or_default()
+                        .entry(chunk.get_max_z() - chunk.get_min_z())
+                        .or_insert((0, 0.0));
+                    bucket.0 += 1;
+                    bucket.1 += (quadpngquart_post - quadpngquart_pre).subsec_nanos() as f32;
+                }
+                {
+                    let bucket = z_buckets
+                        .entry("tripng")
+                        .or_default()
+                        .entry(chunk.get_max_z() - chunk.get_min_z())
+                        .or_insert((0, 0.0));
+                    bucket.0 += 1;
+                    bucket.1 += (tripng_post - tripng_pre).subsec_nanos() as f32;
+                }
                 trace!(
                     "{} {}: uncompressed: {}, {:?} {} {:?}",
                     spiralpos.x,
@@ -510,128 +669,97 @@ fn main() {
                     best_idx,
                     timings
                 );
-                for j in 0..totals.len() {
-                    totals[j] += sizes[j];
+                for (name, size) in sizes.iter() {
+                    *totals.entry(name).or_default() += size;
                 }
-                for j in 0..total_timings.len() {
-                    total_timings[j] += timings[j] as f32;
+                for (name, time) in timings.iter() {
+                    *total_timings.entry(name).or_default() += *time as f32;
                 }
                 count += 1;
-                let _ = volgrid.insert(spiralpos, Arc::new(chunk));
+                if !SKIP_VOLGRID {
+                    let _ = volgrid.insert(spiralpos, Arc::new(chunk));
 
-                if (1usize..20)
-                    .into_iter()
-                    .any(|i| (2 * i + 1) * (2 * i + 1) == count)
-                {
-                    use std::fs::File;
-                    let mut f =
-                        File::create(&format!("chonkjpegs/{}_{}.jpg", sitename, count)).unwrap();
-                    let jpeg_volgrid =
-                        image_terrain_volgrid(JpegEncoding, GridLtrPacking, &volgrid).unwrap();
-                    f.write_all(&*jpeg_volgrid).unwrap();
+                    if (1usize..20)
+                        .into_iter()
+                        .any(|i| (2 * i + 1) * (2 * i + 1) == count)
+                    {
+                        use std::fs::File;
+                        let mut f = File::create(&format!("chonkjpegs/{}_{}.jpg", sitename, count))
+                            .unwrap();
+                        let jpeg_volgrid =
+                            image_terrain_volgrid(JpegEncoding, GridLtrPacking, &volgrid).unwrap();
+                        f.write_all(&*jpeg_volgrid).unwrap();
 
-                    let mixedgrid_pre = Instant::now();
-                    let (mixed_volgrid, indices) =
-                        image_terrain_volgrid(MixedEncoding, GridLtrPacking, &volgrid).unwrap();
-                    let mixedgrid_post = Instant::now();
-                    let seconds = (mixedgrid_post - mixedgrid_pre).as_secs_f64();
-                    println!(
-                        "Generated mixed_volgrid in {} seconds for {} chunks ({} avg)",
-                        seconds,
-                        count,
-                        seconds / count as f64,
-                    );
-                    for i in 0..4 {
-                        const FMT: [&str; 4] = ["png", "png", "png", "jpg"];
-                        let ranges: [_; 4] = [
-                            0..indices[0],
-                            indices[0]..indices[1],
-                            indices[1]..indices[2],
-                            indices[2]..mixed_volgrid.len(),
-                        ];
-                        let mut f = File::create(&format!(
-                            "chonkmixed/{}_{}_{}.{}",
-                            sitename, count, i, FMT[i]
-                        ))
-                        .unwrap();
-                        f.write_all(&mixed_volgrid[ranges[i].clone()]).unwrap();
+                        let mixedgrid_pre = Instant::now();
+                        let (mixed_volgrid, indices) =
+                            image_terrain_volgrid(MixedEncoding, GridLtrPacking, &volgrid).unwrap();
+                        let mixedgrid_post = Instant::now();
+                        let seconds = (mixedgrid_post - mixedgrid_pre).as_secs_f64();
+                        println!(
+                            "Generated mixed_volgrid in {} seconds for {} chunks ({} avg)",
+                            seconds,
+                            count,
+                            seconds / count as f64,
+                        );
+                        for i in 0..4 {
+                            const FMT: [&str; 4] = ["png", "png", "png", "jpg"];
+                            let ranges: [_; 4] = [
+                                0..indices[0],
+                                indices[0]..indices[1],
+                                indices[1]..indices[2],
+                                indices[2]..mixed_volgrid.len(),
+                            ];
+                            let mut f = File::create(&format!(
+                                "chonkmixed/{}_{}_{}.{}",
+                                sitename, count, i, FMT[i]
+                            ))
+                            .unwrap();
+                            f.write_all(&mixed_volgrid[ranges[i].clone()]).unwrap();
+                        }
                     }
                 }
             }
             if count % 64 == 0 {
                 println!("Chunks processed ({}): {}\n", sitename, count);
-                println!("Average lz4_chonk: {}", totals[0] / count as f32);
-                println!("Average deflate_chonk: {}", totals[1] / count as f32);
-                println!("Average lz4_dyna: {}", totals[2] / count as f32);
-                println!("Average deflate_dyna: {}", totals[3] / count as f32);
-                println!(
-                    "Average deflate_channeled_dyna: {}",
-                    totals[4] / count as f32
-                );
-                println!("Average jpeggridchonk: {}", totals[5] / count as f32);
-                println!("Average jpegtallchonk: {}", totals[6] / count as f32);
-                println!("Average jpegflipchonk: {}", totals[7] / count as f32);
-                println!("Average mixedchonk: {}", totals[8] / count as f32);
-                println!("Average mixeddeflate: {}", totals[9] / count as f32);
-                println!("Average mixeddense: {}", totals[10] / count as f32);
-                println!("Average quadpngfull: {}", totals[11] / count as f32);
-                println!("Average quadpnghalf: {}", totals[12] / count as f32);
-                println!("Average quadpngquart: {}", totals[13] / count as f32);
-                println!("Average tripng: {}", totals[14] / count as f32);
-                println!("Average pngchonk: {}", totals[15] / count as f32);
+                for (name, value) in totals.iter() {
+                    println!("Average {}: {}", name, *value / count as f32);
+                }
                 println!("");
-                println!(
-                    "Average lz4_chonk nanos    : {:02}",
-                    total_timings[0] / count as f32
-                );
-                println!(
-                    "Average deflate_chonk nanos: {:02}",
-                    total_timings[1] / count as f32
-                );
-                println!(
-                    "Average jpeggridchonk nanos: {:02}",
-                    total_timings[2] / count as f32
-                );
-                println!(
-                    "Average jpegtallchonk nanos: {:02}",
-                    total_timings[3] / count as f32
-                );
-                println!(
-                    "Average jpegflipchonk nanos: {:02}",
-                    total_timings[4] / count as f32
-                );
-                println!(
-                    "Average mixedchonk nanos: {:02}",
-                    total_timings[5] / count as f32
-                );
-                println!(
-                    "Average mixeddeflate nanos: {:02}",
-                    total_timings[6] / count as f32
-                );
-                println!(
-                    "Average mixeddense nanos: {:02}",
-                    total_timings[7] / count as f32
-                );
-                println!(
-                    "Average quadpngfull nanos: {:02}",
-                    total_timings[8] / count as f32
-                );
-                println!(
-                    "Average quadpnghalf nanos: {:02}",
-                    total_timings[9] / count as f32
-                );
-                println!(
-                    "Average quadpngquart nanos: {:02}",
-                    total_timings[10] / count as f32
-                );
-                println!(
-                    "Average tripng nanos: {:02}",
-                    total_timings[11] / count as f32
-                );
-                println!(
-                    "Average pngchonk nanos: {:02}",
-                    total_timings[12] / count as f32
-                );
+                for (name, time) in total_timings.iter() {
+                    println!("Average {} nanos: {:02}", name, *time / count as f32);
+                }
+                (|| -> std::io::Result<()> {
+                    writeln!(emit_graphs, "import matplotlib.pyplot as plt")?;
+
+                    writeln!(emit_graphs, "plt.figure(clear=True)")?;
+                    for (name, bucket) in z_buckets.iter() {
+                        writeln!(emit_graphs, "{} = []", name)?;
+                        for (k, (i, v)) in bucket.iter() {
+                            writeln!(
+                                emit_graphs,
+                                "{}.append(({}, {:02}))",
+                                name,
+                                k,
+                                v / *i as f32
+                            )?;
+                        }
+                        writeln!(
+                            emit_graphs,
+                            "plt.plot([x for (x, _) in {}], [y for (_, y) in {}], label='{}')",
+                            name, name, name
+                        )?;
+                    }
+                    writeln!(emit_graphs, "plt.xlabel('Chunk depth (voxels)')")?;
+                    writeln!(emit_graphs, "plt.ylabel('Time (nanoseconds)')")?;
+                    writeln!(emit_graphs, "plt.legend()")?;
+                    writeln!(
+                        emit_graphs,
+                        "plt.savefig('compression_speeds_{}_{}.png')",
+                        sitename, count
+                    )?;
+                    Ok(())
+                })()
+                .unwrap();
                 println!("-----");
             }
             if i % 256 == 0 {
