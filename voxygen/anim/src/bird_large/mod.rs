@@ -165,7 +165,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Phoenix, _) => (2.5, 16.0),
                 (Cockatrice, _) => (2.5, 16.0),
                 (Roc, _) => (2.5, 27.5),
-                (FlameWyvern, _) => (2.5, 23.0),
+                (FlameWyvern, _) => (2.5, 20.5),
             },
             neck: match (body.species, body.body_type) {
                 (Phoenix, _) => (2.5, -5.5),
@@ -213,7 +213,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Phoenix, _) => (7.0, 2.0, 1.5),
                 (Cockatrice, _) => (4.0, -1.0, 1.0),
                 (Roc, _) => (10.0, -2.0, 0.0),
-                (FlameWyvern, _) => (1.0, 1.0, 0.0),
+                (FlameWyvern, _) => (16.0, -3.0, 0.0),
             },
             leg: match (body.species, body.body_type) {
                 (Phoenix, _) => (4.0, 1.5, 12.0),

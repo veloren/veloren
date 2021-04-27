@@ -98,8 +98,8 @@ impl Animation for FlyAnimation {
 
             next.wing_out_l.position = Vec3::new(-s_a.wing_out.0, s_a.wing_out.1, s_a.wing_out.2);
             next.wing_out_r.position = Vec3::new(s_a.wing_out.0, s_a.wing_out.1, s_a.wing_out.2);
-            next.wing_out_l.orientation = Quaternion::rotation_y(-flap3 * 0.6 - 0.3) * Quaternion::rotation_x(-flap2 * 1.4);
-            next.wing_out_r.orientation = Quaternion::rotation_y(flap3 * 0.6 + 0.3) * Quaternion::rotation_x(-flap2 * 1.4);
+            next.wing_out_l.orientation = Quaternion::rotation_y(-flap3 * 0.6 - 0.3);
+            next.wing_out_r.orientation = Quaternion::rotation_y(flap3 * 0.6 + 0.3);
 
             next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
             next.tail_front.orientation =
