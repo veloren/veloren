@@ -29,10 +29,15 @@ pub struct Model<V: Vertex> {
 }
 
 impl<V: Vertex> Model<V> {
-    pub fn new(device: &wgpu::Device, mesh: &Mesh<V>) -> Self {
-        Self {
-            vbuf: Buffer::new(device, wgpu::BufferUsage::VERTEX, mesh.vertices()),
+    /// Returns None if the provided mesh is empty
+    pub fn new(device: &wgpu::Device, mesh: &Mesh<V>) -> Option<Self> {
+        if mesh.vertices().is_empty() {
+            return None;
         }
+
+        Some(Self {
+            vbuf: Buffer::new(device, wgpu::BufferUsage::VERTEX, mesh.vertices()),
+        })
     }
 
     /// Create a model with a slice of a portion of this model to send to the

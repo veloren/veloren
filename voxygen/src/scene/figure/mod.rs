@@ -5200,13 +5200,15 @@ impl FigureColLights {
     /// NOTE: Panics if the vertex range bounds are not in range of the opaque
     /// model stored in the BoneMeshes parameter.  This is part of the
     /// function contract.
+    ///
+    /// NOTE: Panics if the provided mesh is empty. FIXME: do something else
     pub fn create_figure<const N: usize>(
         &mut self,
         renderer: &mut Renderer,
         (tex, tex_size): ColLightInfo,
         (opaque, bounds): (Mesh<TerrainVertex>, math::Aabb<f32>),
         vertex_ranges: [Range<u32>; N],
-    ) -> Result<FigureModelEntry<N>, RenderError> {
+    ) -> FigureModelEntry<N> {
         span!(_guard, "create_figure", "FigureColLights::create_figure");
         let atlas = &mut self.atlas;
         let allocation = atlas
@@ -5216,7 +5218,9 @@ impl FigureColLights {
         let col_lights = renderer.figure_bind_col_light(col_lights);
         let model_len = u32::try_from(opaque.vertices().len())
             .expect("The model size for this figure does not fit in a u32!");
-        let model = renderer.create_model(&opaque)?;
+        let model = renderer
+            .create_model(&opaque)
+            .expect("The model contains no vertices!");
 
         vertex_ranges.iter().for_each(|range| {
             assert!(
@@ -5228,13 +5232,13 @@ impl FigureColLights {
             );
         });
 
-        Ok(FigureModelEntry {
+        FigureModelEntry {
             _bounds: bounds,
             allocation,
             col_lights,
             lod_vertex_ranges: vertex_ranges,
             model: FigureModel { opaque: model },
-        })
+        }
     }
 
     #[allow(clippy::unnecessary_wraps)]

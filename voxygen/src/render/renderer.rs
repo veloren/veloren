@@ -980,9 +980,10 @@ impl Renderer {
     }
 
     /// Create a new model from the provided mesh.
-    pub fn create_model<V: Vertex>(&mut self, mesh: &Mesh<V>) -> Result<Model<V>, RenderError> {
+    /// If the provided mesh is empty this returns None
+    pub fn create_model<V: Vertex>(&mut self, mesh: &Mesh<V>) -> Option<Model<V>> {
         self.ensure_sufficient_index_length::<V>(mesh.vertices().len());
-        Ok(Model::new(&self.device, mesh))
+        Model::new(&self.device, mesh)
     }
 
     /// Create a new dynamic model with the specified size.

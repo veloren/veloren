@@ -72,7 +72,7 @@ type LightMapFn = Arc<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>;
 pub struct TerrainChunkData {
     // GPU data
     load_time: f32,
-    opaque_model: Model<TerrainVertex>,
+    opaque_model: Option<Model<TerrainVertex>>,
     fluid_model: Option<Model<FluidVertex>>,
     /// If this is `None`, this texture is not allocated in the current atlas,
     /// and therefore there is no need to free its allocation.
@@ -1146,18 +1146,8 @@ impl<V: RectRasterableVol> Terrain<V> {
 
                         self.insert_chunk(response.pos, TerrainChunkData {
                             load_time,
-                            opaque_model: renderer
-                                .create_model(&mesh.opaque_mesh)
-                                .expect("Failed to upload chunk mesh to the GPU!"),
-                            fluid_model: if mesh.fluid_mesh.vertices().len() > 0 {
-                                Some(
-                                    renderer
-                                        .create_model(&mesh.fluid_mesh)
-                                        .expect("Failed to upload chunk mesh to the GPU!"),
-                                )
-                            } else {
-                                None
-                            },
+                            opaque_model: renderer.create_model(&mesh.opaque_mesh),
+                            fluid_model: renderer.create_model(&mesh.fluid_mesh),
                             col_lights_alloc: Some(allocation.id),
                             col_lights: Arc::clone(&self.col_lights),
                             light_map: mesh.light_map,
@@ -1422,7 +1412,13 @@ impl<V: RectRasterableVol> Terrain<V> {
         chunk_iter
             .filter(|chunk| chunk.can_shadow_sun())
             .chain(self.shadow_chunks.iter().map(|(_, chunk)| chunk))
-            .for_each(|chunk| drawer.draw(&chunk.opaque_model, &chunk.locals));
+            .filter_map(|chunk| {
+                chunk
+                    .opaque_model
+                    .as_ref()
+                    .map(|model| (model, &chunk.locals))
+            })
+            .for_each(|(model, locals)| drawer.draw(model, locals));
     }
 
     pub fn chunks_for_point_shadows(
@@ -1452,7 +1448,12 @@ impl<V: RectRasterableVol> Terrain<V> {
         // don't use `shadow_chunks` here.
         chunk_iter
             .filter(|chunk| chunk.can_shadow_point)
-            .map(|chunk| (&chunk.opaque_model, &chunk.locals))
+            .filter_map(|chunk| {
+                chunk
+                    .opaque_model
+                    .as_ref()
+                    .map(|model| (model, &chunk.locals))
+            })
     }
 
     pub fn render<'a>(&'a self, drawer: &mut FirstPassDrawer<'a>, focus_pos: Vec3<f32>) {
@@ -1470,7 +1471,13 @@ impl<V: RectRasterableVol> Terrain<V> {
             })
             .take(self.chunks.len())
             .filter(|chunk| chunk.visible.is_visible())
-            .for_each(|chunk| drawer.draw(&chunk.opaque_model, &chunk.col_lights, &chunk.locals));
+            .filter_map(|chunk| {
+                chunk
+                    .opaque_model
+                    .as_ref()
+                    .map(|model| (model, &chunk.col_lights, &chunk.locals))
+            })
+            .for_each(|(model, col_lights, locals)| drawer.draw(model, col_lights, locals));
     }
 
     pub fn render_translucent<'a>(

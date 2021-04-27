@@ -370,16 +370,12 @@ where
                                 vertex_range,
                             }) = Arc::get_mut(recv).take().and_then(|cell| cell.take())
                             {
-                                // FIXME: We really need to stop hard failing on failure to upload
-                                // to the GPU.
-                                let model_entry = col_lights
-                                    .create_figure(
-                                        renderer,
-                                        col_light,
-                                        (opaque, bounds),
-                                        vertex_range,
-                                    )
-                                    .expect("Failed to upload figure data to the GPU!");
+                                let model_entry = col_lights.create_figure(
+                                    renderer,
+                                    col_light,
+                                    (opaque, bounds),
+                                    vertex_range,
+                                );
                                 *model = FigureModelEntryFuture::Done(model_entry);
                                 // NOTE: Borrow checker isn't smart enough to figure this out.
                                 if let FigureModelEntryFuture::Done(model) = model {

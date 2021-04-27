@@ -140,9 +140,9 @@ impl Scene {
                 // total size is bounded by 2^24 * 3 * 1.5 which is bounded by
                 // 2^27, which fits in a u32.
                 let range = 0..opaque_mesh.vertices().len() as u32;
-                let model = col_lights
-                    .create_figure(renderer, greedy.finalize(), (opaque_mesh, bounds), [range])
-                    .unwrap();
+                let model =
+                    col_lights
+                        .create_figure(renderer, greedy.finalize(), (opaque_mesh, bounds), [range]);
                 let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
                 state.update(
                     renderer,
