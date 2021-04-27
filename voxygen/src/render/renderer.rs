@@ -213,9 +213,10 @@ impl Renderer {
         // This is better for use than their default because it includes the error in
         // the panic message
         device.on_uncaptured_error(|error| {
+            error!("{}", &error);
             panic!(
                 "wgpu error (handling all wgpu errors as fatal): {:?}",
-                error
+                &error,
             )
         });
 

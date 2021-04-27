@@ -283,8 +283,9 @@ fn create_shader_module(
         .compile_into_spirv(source, kind, file_name, "main", Some(options))
         .map_err(|e| (file_name, e))?;
 
+    let label = [file_name, "\n\n", source].concat();
     Ok(device.create_shader_module(&wgpu::ShaderModuleDescriptor {
-        label: Some(source),
+        label: Some(&label),
         source: wgpu::ShaderSource::SpirV(Cow::Borrowed(spv.as_binary())),
         flags: wgpu::ShaderFlags::empty(), // TODO: renable wgpu::ShaderFlags::VALIDATION,
     }))
