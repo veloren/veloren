@@ -22,6 +22,7 @@
         "char_selection.eyeshape": "Detale oczu",
         "char_selection.accessories": "Akcesoria",
         "char_selection.create_info_name": "Twoja postać musi posiadać imię!",
+        "char_selection.version_mismatch": "UWAGA! Ten serwer używa innej (prawdopodobnie niekompatybilnej) wersji gry. Zaktualizuj grę."
     },
 
     vector_map: {

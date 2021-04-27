@@ -6,6 +6,23 @@
         "hud.crafting.ingredients": "Składniki:",
         "hud.crafting.craft": "Stwórz",
         "hud.crafting.tool_cata": "Wymaga:",
+        // Crafting Stations
+        "hud.crafting.req_crafting_station": "Wymaga użycia:",
+        "hud.crafting.anvil": "Kowadło",
+        "hud.crafting.cauldron": "Kocioł",
+        "hud.crafting.cooking_pot": "Garnek",
+        "hud.crafting.crafting_bench": "Warsztat",
+        // Tabs
+        "hud.crafting.tabs.all": "Wszystko",
+        "hud.crafting.tabs.armor": "Pancerz",
+        "hud.crafting.tabs.dismantle": "Recykling",
+        "hud.crafting.tabs.food": "Żywność",
+        "hud.crafting.tabs.glider": "Lotnie",
+        "hud.crafting.tabs.potion": "Mikstury",
+        "hud.crafting.tabs.tool": "Narzędzia",
+        "hud.crafting.tabs.utility": "Użytkowe",
+        "hud.crafting.tabs.weapon": "Broń",
+        "hud.crafting.tabs.bag": "Torby",
     },
 
 

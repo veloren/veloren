@@ -22,6 +22,8 @@
         "buff.desc.bleed": "Zadaje regularne obrażenia.",
         "buff.title.cursed": "Klątwa",
         "buff.desc.cursed": "Jesteś przeklęty.",
+        "buff.title.burn": "Płoniesz",
+        "buff.desc.burn": "Palisz się żywcem",
         // Buffs stats
         "buff.stat.health": "Odnawia {str_total} Zdrowia",
         "buff.stat.increase_max_stamina": "Podnosi Maksymalną Wytrzymałość o {strength}",
