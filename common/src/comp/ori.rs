@@ -148,8 +148,26 @@ impl Ori {
         self.to_quat() * local
     }
 
-    pub fn to_horizontal(self) -> Option<Self> {
-        Dir::from_unnormalized(self.look_dir().xy().into()).map(|ori| ori.into())
+    pub fn to_horizontal(self) -> Self {
+        let fw = self.look_dir();
+        Dir::from_unnormalized(fw.xy().into())
+            .or_else(|| {
+                // if look_dir is straight down, pitch up, or if straight up, pitch down
+                Dir::from_unnormalized(
+                    if fw.dot(Vec3::unit_z()) < 0.0 {
+                        self.up()
+                    } else {
+                        self.down()
+                    }
+                    .xy()
+                    .into(),
+                )
+            })
+            .map(|dir| dir.into())
+            .expect(
+                "If the horizontal component of a Dir can not be normalized, the horizontal \
+                 component of a Dir perpendicular to it must be",
+            )
     }
 
     pub fn pitched_up(self, angle_radians: f32) -> Self {

@@ -3,7 +3,7 @@ use crate::audio::sfx::SfxEvent;
 use common::{
     comp::{
         bird_large, humanoid, quadruped_medium, quadruped_small, Body, CharacterState, InputKind,
-        PhysicsState,
+        Ori, PhysicsState,
     },
     states,
     terrain::BlockKind,
@@ -236,7 +236,7 @@ fn maps_land_on_ground_to_run() {
 #[test]
 fn maps_glider_open() {
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Glide {},
+        &CharacterState::Glide(states::glide::Data::new(10.0, 1.0, Ori::default())),
         &Default::default(),
         &PreviousEntityState {
             event: SfxEvent::Jump,
@@ -255,7 +255,7 @@ fn maps_glider_open() {
 #[test]
 fn maps_glide() {
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Glide {},
+        &CharacterState::Glide(states::glide::Data::new(10.0, 1.0, Ori::default())),
         &Default::default(),
         &PreviousEntityState {
             event: SfxEvent::Glide,

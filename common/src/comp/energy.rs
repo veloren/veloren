@@ -17,7 +17,6 @@ pub struct Energy {
 pub enum EnergySource {
     Ability,
     Climb,
-    Glide,
     LevelUp,
     HitEnemy,
     Regen,

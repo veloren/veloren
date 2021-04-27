@@ -45,6 +45,7 @@ fn integrate_forces(
     body: &Body,
     density: &Density,
     mass: &Mass,
+    character_state: Option<&CharacterState>,
     fluid: &Fluid,
     gravity: f32,
 ) -> Vel {
@@ -58,7 +59,7 @@ fn integrate_forces(
     // Aerodynamic/hydrodynamic forces
     if !rel_flow.0.is_approx_zero() {
         debug_assert!(!rel_flow.0.map(|a| a.is_nan()).reduce_or());
-        let impulse = dt.0 * body.aerodynamic_forces(&rel_flow, fluid_density.0);
+        let impulse = dt.0 * body.aerodynamic_forces(&rel_flow, fluid_density.0, character_state);
         debug_assert!(!impulse.map(|a| a.is_nan()).reduce_or());
         if !impulse.is_approx_zero() {
             let new_v = vel.0 + impulse / mass.0;
@@ -564,6 +565,7 @@ impl<'a> PhysicsData<'a> {
             velocities,
             read.stickies.maybe(),
             &read.bodies,
+            read.character_states.maybe(),
             &write.physics_states,
             &read.masses,
             &read.densities,
@@ -575,7 +577,18 @@ impl<'a> PhysicsData<'a> {
                     prof_span!(guard, "velocity update rayon job");
                     guard
                 },
-                |_guard, (pos, vel, sticky, body, physics_state, mass, density, _)| {
+                |_guard,
+                 (
+                    pos,
+                    vel,
+                    sticky,
+                    body,
+                    character_state,
+                    physics_state,
+                    mass,
+                    density,
+                    _,
+                )| {
                     let in_loaded_chunk = read
                         .terrain
                         .get_key(read.terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
@@ -597,7 +610,14 @@ impl<'a> PhysicsData<'a> {
                             },
                             Some(fluid) => {
                                 vel.0 = integrate_forces(
-                                    &dt, *vel, body, density, mass, &fluid, GRAVITY,
+                                    &dt,
+                                    *vel,
+                                    body,
+                                    density,
+                                    mass,
+                                    character_state,
+                                    &fluid,
+                                    GRAVITY,
                                 )
                                 .0
                             },
@@ -688,7 +708,8 @@ impl<'a> PhysicsData<'a> {
                     let mut tgt_pos = pos.0 + pos_delta;
 
                     let was_on_ground = physics_state.on_ground;
-                    let block_snap = body.map_or(false, |b| !matches!(b, Body::Ship(_)));
+                    let block_snap =
+                        body.map_or(false, |b| !matches!(b, Body::Object(_) | Body::Ship(_)));
                     let climbing =
                         character_state.map_or(false, |cs| matches!(cs, CharacterState::Climb(_)));
 
@@ -841,11 +862,12 @@ impl<'a> PhysicsData<'a> {
                                     depth,
                                     vel: Vel::zero(),
                                 })
-                                .or_else(|| {
-                                    Some(Fluid::Air {
+                                .or_else(|| match physics_state.in_fluid {
+                                    Some(Fluid::Water { .. }) | None => Some(Fluid::Air {
                                         elevation: pos.0.z,
-                                        vel: Vel::zero(),
-                                    })
+                                        vel: Vel::default(),
+                                    }),
+                                    fluid => fluid,
                                 });
 
                             tgt_pos = pos.0;
@@ -1517,11 +1539,12 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             depth,
             vel: Vel::zero(),
         })
-        .or_else(|| {
-            Some(Fluid::Air {
+        .or_else(|| match physics_state.in_fluid {
+            Some(Fluid::Water { .. }) | None => Some(Fluid::Air {
                 elevation: pos.0.z,
-                vel: Vel::zero(),
-            })
+                vel: Vel::default(),
+            }),
+            fluid => fluid,
         });
 }
 

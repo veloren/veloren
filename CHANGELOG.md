@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New large birds npcs
 - Day period dependant wildlife spawns
 - You can now block and parry with melee weapons
+- Lift is now calculated for gliders based on dimensions (currently same for all)
 
 ### Changed
 
@@ -81,12 +82,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Projectiles now generally have a different arc because they no longer have their own gravity modifier
 - Increased agent system target search efficiency speeding up the server
 - Added more parallelization to terrain serialization and removed extra cloning speeding up the server
+- Energy now recharges while gliding
 
 ### Removed
 
 - Removed command: "debug", use "/kit debug" instead
 - Gravity component has been removed
 - In-air movement has been removed
+- Energy cost of deploying the glider has been removed
 
 ### Fixed
 

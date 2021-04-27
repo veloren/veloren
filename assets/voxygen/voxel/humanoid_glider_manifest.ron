@@ -5,51 +5,51 @@
     ),
     map: {
         "Starter": (
-            vox_spec: ("glider.glider_starter", (-15.0, -5.0, -5.0)),
+            vox_spec: ("glider.glider_starter", (-15.0, -5.0, 0.0)),
             color: None
         ),   
         "PlainCloth": (
-            vox_spec: ("glider.glider_basic_white", (-25.0, -20.0, -5.0)),
+            vox_spec: ("glider.glider_basic_white", (-25.0, -20.0, 0.0)),
             color: None
         ),   
         "RedCloth": (
-            vox_spec: ("glider.glider_basic_red", (-25.0, -20.0, -5.0)),
+            vox_spec: ("glider.glider_basic_red", (-25.0, -20.0, 0.0)),
             color: None
         ),   
         "Blue0": (
-            vox_spec: ("glider.glider_blue", (-26.0, -26.0, -5.0)),
+            vox_spec: ("glider.glider_blue", (-26.0, -26.0, 0.0)),
             color: None
         ),
         "ButterflyMorpho": (
-            vox_spec: ("glider.glider_butterfly1", (-26.0, -13.0, -5.0)),
+            vox_spec: ("glider.glider_butterfly1", (-26.0, -13.0, 0.0)),
             color: None
         ),
         "ButterflyMonarch": (
-            vox_spec: ("glider.glider_butterfly2", (-26.0, -13.0, -5.0)),
+            vox_spec: ("glider.glider_butterfly2", (-26.0, -13.0, 0.0)),
             color: None
         ),        
         "MothLuna": (
-            vox_spec: ("glider.glider_moth", (-26.0, -22.0, -5.0)),
+            vox_spec: ("glider.glider_moth", (-26.0, -22.0, 0.0)),
             color: None
         ),        
         "SandRaptor": (
-            vox_spec: ("glider.glider_sandraptor", (-26.0, -25.0, -5.0)),
+            vox_spec: ("glider.glider_sandraptor", (-26.0, -25.0, 0.0)),
             color: None    
         ),   
         "SnowRaptor": (
-            vox_spec: ("glider.glider_snowraptor", (-26.0, -25.0, -5.0)),
+            vox_spec: ("glider.glider_snowraptor", (-26.0, -25.0, 0.0)),
             color: None    
         ),     
         "WoodRaptor": (
-            vox_spec: ("glider.glider_woodraptor", (-26.0, -25.0, -5.0)),
+            vox_spec: ("glider.glider_woodraptor", (-26.0, -25.0, 0.0)),
             color: None    
         ),   
         "Purple0": (
-            vox_spec: ("glider.glider_cultists", (-26.0, -16.0, -5.0)),
+            vox_spec: ("glider.glider_cultists", (-26.0, -26.0, 0.0)),
             color: None
         ),
         "Leaves": (
-            vox_spec: ("glider.glider_leaves", (-26.0, -26.0, -5.0)),
+            vox_spec: ("glider.glider_leaves", (-26.0, -26.0, 0.0)),
             color: None
         ),
     },

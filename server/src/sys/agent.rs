@@ -223,7 +223,7 @@ impl<'a> System<'a> for Sys {
                         });
                     let is_gliding = matches!(
                         read_data.char_states.get(entity),
-                        Some(CharacterState::GlideWield) | Some(CharacterState::Glide)
+                        Some(CharacterState::GlideWield) | Some(CharacterState::Glide(_))
                     ) && !physics_state.on_ground;
 
                     // This controls how picky NPCs are about their pathfinding. Giants are larger

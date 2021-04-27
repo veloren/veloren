@@ -1,64 +1,178 @@
 use super::utils::handle_climb;
 use crate::{
-    comp::{inventory::slot::EquipSlot, CharacterState, Ori, StateUpdate},
+    comp::{
+        fluid_dynamics::angle_of_attack, inventory::slot::EquipSlot, CharacterState, Ori,
+        StateUpdate, Vel,
+    },
     states::behavior::{CharacterBehavior, JoinData},
-    util::Dir,
+    util::{Dir, Plane, Projection},
 };
 use serde::{Deserialize, Serialize};
-use vek::Vec2;
-
-const GLIDE_ANTIGRAV: f32 = crate::consts::GRAVITY * 0.90;
-const GLIDE_ACCEL: f32 = 5.0;
-const GLIDE_MAX_SPEED: f32 = 30.0;
+use std::f32::consts::PI;
+use vek::*;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Data;
+pub struct Data {
+    /// The aspect ratio is the ratio of the span squared to actual planform
+    /// area
+    pub aspect_ratio: f32,
+    pub planform_area: f32,
+    pub ori: Ori,
+    last_vel: Vel,
+}
+
+impl Data {
+    /// A glider is modelled as an elliptical wing and has a span length
+    /// (distance from wing tip to wing tip) and a chord length (distance from
+    /// leading edge to trailing edge through its centre) measured in block
+    /// units.
+    ///
+    ///  https://en.wikipedia.org/wiki/Elliptical_wing
+    pub fn new(span_length: f32, chord_length: f32, ori: Ori) -> Self {
+        let planform_area = PI * chord_length * span_length * 0.25;
+        let aspect_ratio = span_length.powi(2) / planform_area;
+        Self {
+            aspect_ratio,
+            planform_area,
+            ori,
+            last_vel: Vel::zero(),
+        }
+    }
+}
+
+fn tgt_dir(data: &JoinData) -> Dir {
+    let look_ori = Ori::from(data.inputs.look_dir);
+    look_ori
+        .yawed_right(PI / 3.0 * look_ori.right().xy().dot(data.inputs.move_dir))
+        .pitched_up(PI * 0.05)
+        .pitched_down(
+            data.inputs
+                .look_dir
+                .xy()
+                .try_normalized()
+                .map_or(0.0, |ld| PI * 0.1 * ld.dot(data.inputs.move_dir)),
+        )
+        .look_dir()
+}
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         // If player is on ground, end glide
-        if data.physics.on_ground {
+        if data.physics.on_ground
+            && (data.vel.0 - data.physics.ground_vel).magnitude_squared() < 2_f32.powi(2)
+        {
             update.character = CharacterState::GlideWield;
-            return update;
-        }
-        if data
-            .physics
-            .in_liquid()
-            .map(|depth| depth > 0.5)
-            .unwrap_or(false)
+            update.ori = update.ori.to_horizontal();
+        } else if data.physics.in_liquid().is_some()
+            || data.inventory.equipped(EquipSlot::Glider).is_none()
         {
             update.character = CharacterState::Idle;
+            update.ori = update.ori.to_horizontal();
+        } else if !handle_climb(&data, &mut update) {
+            let air_flow = data
+                .physics
+                .in_fluid
+                .map(|fluid| fluid.relative_flow(data.vel))
+                .unwrap_or_default();
+
+            let ori = {
+                let slerp_s = {
+                    let angle = self.ori.look_dir().angle_between(*data.inputs.look_dir);
+                    let rate = 0.4 * PI / angle;
+                    (data.dt.0 * rate).min(0.1)
+                };
+
+                Dir::from_unnormalized(air_flow.0)
+                    .map(|flow_dir| {
+                        let tgt_dir = tgt_dir(data);
+                        let tgt_dir_ori = Ori::from(tgt_dir);
+                        let tgt_dir_up = tgt_dir_ori.up();
+                        // The desired up vector of our glider.
+                        // We begin by projecting the flow dir on the plane with the normal of
+                        // our tgt_dir to get an idea of how it will hit the glider
+                        let tgt_up = flow_dir
+                            .projected(&Plane::from(tgt_dir))
+                            .map(|d| {
+                                let d = if d.dot(*tgt_dir_up).is_sign_negative() {
+                                    // when the final direction of flow is downward we don't roll
+                                    // upside down but instead mirror the target up vector
+                                    Quaternion::rotation_3d(PI, *tgt_dir_ori.right()) * d
+                                } else {
+                                    d
+                                };
+                                // slerp from untilted up towards the direction by a factor of
+                                // lateral wind to prevent overly reactive adjustments
+                                let lateral_wind_speed =
+                                    air_flow.0.projected(&self.ori.right()).magnitude();
+                                tgt_dir_up.slerped_to(d, lateral_wind_speed / 15.0)
+                            })
+                            .unwrap_or_else(Dir::up);
+                        let global_roll = tgt_dir_up.rotation_between(tgt_up);
+                        let global_pitch = angle_of_attack(&tgt_dir_ori, &flow_dir);
+
+                        self.ori.slerped_towards(
+                            tgt_dir_ori.prerotated(global_roll).pitched_up(global_pitch),
+                            slerp_s,
+                        )
+                    })
+                    .unwrap_or_else(|| self.ori.slerped_towards(self.ori.uprighted(), slerp_s))
+            };
+
+            update.ori = {
+                let slerp_s = {
+                    let angle = data.ori.look_dir().angle_between(*data.inputs.look_dir);
+                    let rate = data.body.base_ori_rate() * PI / angle;
+                    (data.dt.0 * rate).min(0.1)
+                };
+
+                let rot_from_drag = {
+                    let speed_factor =
+                        air_flow.0.magnitude_squared().min(40_f32.powi(2)) / 40_f32.powi(2);
+
+                    Quaternion::rotation_3d(
+                        -PI / 2.0 * speed_factor,
+                        ori.up()
+                            .cross(air_flow.0)
+                            .try_normalized()
+                            .unwrap_or_else(|| *data.ori.right()),
+                    )
+                };
+
+                let rot_from_accel = {
+                    let accel = data.vel.0 - self.last_vel.0;
+                    let accel_factor = accel.magnitude_squared().min(1.0) / 1.0;
+
+                    Quaternion::rotation_3d(
+                        PI / 2.0 * accel_factor,
+                        ori.up()
+                            .cross(accel)
+                            .try_normalized()
+                            .unwrap_or_else(|| *data.ori.right()),
+                    )
+                };
+
+                update.ori.slerped_towards(
+                    ori.to_horizontal()
+                        .prerotated(rot_from_drag * rot_from_accel),
+                    slerp_s,
+                )
+            };
+            update.pos.0 = {
+                // offset character pos such that it's the center of rotation is not around the
+                // character
+                let center_off = data.body.height() * 0.7;
+                update.pos.0 + *data.ori.up() * center_off - *update.ori.up() * center_off
+            };
+            update.character = CharacterState::Glide(Self {
+                ori,
+                last_vel: *data.vel,
+                ..*self
+            });
+        } else {
+            update.ori = update.ori.to_horizontal();
         }
-        if data.inventory.equipped(EquipSlot::Glider).is_none() {
-            update.character = CharacterState::Idle
-        };
-
-        let horiz_vel = Vec2::<f32>::from(update.vel.0);
-        let horiz_speed_sq = horiz_vel.magnitude_squared();
-
-        // Move player according to movement direction vector
-        if horiz_speed_sq < GLIDE_MAX_SPEED.powi(2) {
-            update.vel.0 += Vec2::broadcast(data.dt.0) * data.inputs.move_dir * GLIDE_ACCEL;
-        }
-
-        // Determine orientation vector from movement direction vector
-        if let Some(dir) = Dir::from_unnormalized(update.vel.0) {
-            update.ori = update.ori.slerped_towards(Ori::from(dir), 2.0 * data.dt.0);
-        };
-
-        // Apply Glide antigrav lift
-        if update.vel.0.z < 0.0 {
-            let lift = (GLIDE_ANTIGRAV + update.vel.0.z.powi(2) * 0.15)
-                * (horiz_speed_sq * f32::powf(0.075, 2.0)).clamp(0.2, 1.0);
-
-            update.vel.0.z += lift * data.dt.0;
-        }
-
-        // If there is a wall in front of character and they are trying to climb go to
-        // climb
-        handle_climb(&data, &mut update);
 
         update
     }
@@ -66,6 +180,7 @@ impl CharacterBehavior for Data {
     fn unwield(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         update.character = CharacterState::Idle;
+        update.ori = update.ori.to_horizontal();
         update
     }
 }
