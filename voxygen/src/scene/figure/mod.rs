@@ -1474,18 +1474,10 @@ impl FigureMgr {
                                 )
                             }
                         },
-                        CharacterState::Glide { .. } => {
+                        CharacterState::Glide(data) => {
                             anim::character::GlidingAnimation::update_skeleton(
                                 &target_base,
-                                (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    rel_vel,
-                                    // TODO: Update to use the quaternion.
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                ),
+                                (rel_vel, ori, data.ori.into(), time, state.acc_vel),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1519,15 +1511,7 @@ impl FigureMgr {
                         CharacterState::GlideWield { .. } => {
                             anim::character::GlideWieldAnimation::update_skeleton(
                                 &target_base,
-                                (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    rel_vel,
-                                    // TODO: Update to use the quaternion.
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                ),
+                                (),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,

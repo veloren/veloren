@@ -50,7 +50,7 @@ pub enum CharacterState {
     Dance,
     Talk,
     Sneak,
-    Glide,
+    Glide(glide::Data),
     GlideWield,
     /// A stunned state
     Stunned(stunned::Data),
@@ -173,7 +173,7 @@ impl CharacterState {
             CharacterState::Climb(_)
                 | CharacterState::Equipping(_)
                 | CharacterState::Dance
-                | CharacterState::Glide
+                | CharacterState::Glide(_)
                 | CharacterState::GlideWield
                 | CharacterState::Talk
                 | CharacterState::Roll(_),

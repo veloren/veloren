@@ -363,15 +363,24 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, submers
 
 /// Updates components to move entity as if it's flying
 pub fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) -> bool {
-    if let Some(force) = data.body.fly_thrust() {
+    let glider = match data.character {
+        CharacterState::Glide(data) => Some(data),
+        _ => None,
+    };
+    if let Some(force) = data
+        .body
+        .fly_thrust()
+        .or_else(|| glider.is_some().then_some(0.0))
+    {
         let thrust = efficiency * force;
-
         let accel = thrust / data.mass.0;
+
+        handle_orientation(data, update, efficiency);
 
         // Elevation control
         match data.body {
             // flappy flappy
-            Body::Dragon(_) | Body::BirdMedium(_) | Body::BirdLarge(_) => {
+            Body::Dragon(_) | Body::BirdLarge(_) | Body::BirdMedium(_) => {
                 let anti_grav = GRAVITY * (1.0 + data.inputs.move_z.min(0.0));
                 update.vel.0.z += data.dt.0 * (anti_grav + accel * data.inputs.move_z.max(0.0));
             },
@@ -468,7 +477,7 @@ pub fn attempt_sneak(data: &JoinData, update: &mut StateUpdate) {
 }
 
 /// Checks that player can `Climb` and updates `CharacterState` if so
-pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
+pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) -> bool {
     if data.inputs.climb.is_some()
         && data.physics.on_wall.is_some()
         && !data.physics.on_ground
@@ -482,6 +491,9 @@ pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
         && update.energy.current() > 100
     {
         update.character = CharacterState::Climb(climb::Data::create_adjusted_by_skills(data));
+        true
+    } else {
+        false
     }
 }
 

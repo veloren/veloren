@@ -190,6 +190,7 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::Sit { .. }
                 | CharacterState::Dance { .. }
                 | CharacterState::Sneak { .. }
+                | CharacterState::Glide { .. }
                 | CharacterState::GlideWield { .. }
                 | CharacterState::Wielding { .. }
                 | CharacterState::Equipping { .. }
@@ -232,9 +233,8 @@ impl<'a> System<'a> for Sys {
                         poise.regen_rate = (poise.regen_rate + POISE_REGEN_ACCEL * dt).min(10.0);
                     }
                 },
-                // Ability and glider use does not regen and sets the rate back to zero.
-                CharacterState::Glide { .. }
-                | CharacterState::BasicMelee { .. }
+                // Ability use does not regen and sets the rate back to zero.
+                CharacterState::BasicMelee { .. }
                 | CharacterState::DashMelee { .. }
                 | CharacterState::LeapMelee { .. }
                 | CharacterState::SpinMelee { .. }
