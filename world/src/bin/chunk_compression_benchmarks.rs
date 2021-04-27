@@ -10,6 +10,7 @@ use common::{
 use common_net::msg::compression::{
     image_terrain_chonk, image_terrain_volgrid, CompressedData, GridLtrPacking, JpegEncoding,
     MixedEncoding, PngEncoding, QuadPngEncoding, TallPacking, TriPngEncoding, VoxelImageEncoding,
+    WidePacking,
 };
 use hashbrown::HashMap;
 use image::ImageBuffer;
@@ -417,7 +418,7 @@ fn main() {
                     bucket.0 += 1;
                     bucket.1 += (lz4chonk_post - lz4chonk_pre).subsec_nanos() as f32;
                 }
-                {
+                if false {
                     let bucket = z_buckets
                         .entry("rle")
                         .or_default()
@@ -426,7 +427,7 @@ fn main() {
                     bucket.0 += 1;
                     bucket.1 += (rlechonk_post - rlechonk_pre).subsec_nanos() as f32;
                 }
-                {
+                if false {
                     let bucket = z_buckets
                         .entry("deflate0")
                         .or_default()
@@ -604,24 +605,32 @@ fn main() {
                 .unwrap();
                 let quadpnghalf_post = Instant::now();
 
-                let quadpngquart_pre = Instant::now();
-                let quadpngquart = image_terrain_chonk(
+                let quadpngquarttall_pre = Instant::now();
+                let quadpngquarttall = image_terrain_chonk(
                     QuadPngEncoding::<4>(),
                     TallPacking { flip_y: true },
                     &chunk,
                 )
                 .unwrap();
-                let quadpngquart_post = Instant::now();
+                let quadpngquarttall_post = Instant::now();
+
+                let quadpngquartwide_pre = Instant::now();
+                let quadpngquartwide =
+                    image_terrain_chonk(QuadPngEncoding::<4>(), WidePacking::<true>(), &chunk)
+                        .unwrap();
+                let quadpngquartwide_post = Instant::now();
 
                 let tripng_pre = Instant::now();
                 let tripng =
                     image_terrain_chonk(TriPngEncoding, TallPacking { flip_y: true }, &chunk)
                         .unwrap();
                 let tripng_post = Instant::now();
+                #[rustfmt::skip]
                 sizes.extend_from_slice(&[
                     ("quadpngfull", quadpngfull.data.len() as f32 / n as f32),
                     ("quadpnghalf", quadpnghalf.data.len() as f32 / n as f32),
-                    ("quadpngquart", quadpngquart.data.len() as f32 / n as f32),
+                    ("quadpngquarttall", quadpngquarttall.data.len() as f32 / n as f32),
+                    ("quadpngquartwide", quadpngquartwide.data.len() as f32 / n as f32),
                     ("tripng", tripng.data.len() as f32 / n as f32),
                 ]);
                 let best_idx = sizes
@@ -639,19 +648,31 @@ fn main() {
                 timings.extend_from_slice(&[
                     ("quadpngfull", (quadpngfull_post - quadpngfull_pre).subsec_nanos()),
                     ("quadpnghalf", (quadpnghalf_post - quadpnghalf_pre).subsec_nanos()),
-                    ("quadpngquart", (quadpngquart_post - quadpngquart_pre).subsec_nanos()),
+                    ("quadpngquarttall", (quadpngquarttall_post - quadpngquarttall_pre).subsec_nanos()),
+                    ("quadpngquartwide", (quadpngquartwide_post - quadpngquartwide_pre).subsec_nanos()),
                     ("tripng", (tripng_post - tripng_pre).subsec_nanos()),
                 ]);
                 {
                     let bucket = z_buckets
-                        .entry("quadpngquart")
+                        .entry("quadpngquarttall")
                         .or_default()
                         .entry(chunk.get_max_z() - chunk.get_min_z())
                         .or_insert((0, 0.0));
                     bucket.0 += 1;
-                    bucket.1 += (quadpngquart_post - quadpngquart_pre).subsec_nanos() as f32;
+                    bucket.1 +=
+                        (quadpngquarttall_post - quadpngquarttall_pre).subsec_nanos() as f32;
                 }
                 {
+                    let bucket = z_buckets
+                        .entry("quadpngquartwide")
+                        .or_default()
+                        .entry(chunk.get_max_z() - chunk.get_min_z())
+                        .or_insert((0, 0.0));
+                    bucket.0 += 1;
+                    bucket.1 +=
+                        (quadpngquartwide_post - quadpngquartwide_pre).subsec_nanos() as f32;
+                }
+                if false {
                     let bucket = z_buckets
                         .entry("tripng")
                         .or_default()

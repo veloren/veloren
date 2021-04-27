@@ -89,9 +89,11 @@ pub struct TallPacking {
 }
 
 impl PackingFormula for TallPacking {
+    #[inline(always)]
     fn dimensions(&self, dims: Vec3<u32>) -> (u32, u32) { (dims.x, dims.y * dims.z) }
 
     #[allow(clippy::many_single_char_names)]
+    #[inline(always)]
     fn index(&self, dims: Vec3<u32>, x: u32, y: u32, z: u32) -> (u32, u32) {
         let i = x;
         let j0 = if self.flip_y {
@@ -104,6 +106,27 @@ impl PackingFormula for TallPacking {
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct WidePacking<const FLIP_X: bool>();
+
+impl<const FLIP_X: bool> PackingFormula for WidePacking<FLIP_X> {
+    #[inline(always)]
+    fn dimensions(&self, dims: Vec3<u32>) -> (u32, u32) { (dims.x * dims.z, dims.y) }
+
+    #[allow(clippy::many_single_char_names)]
+    #[inline(always)]
+    fn index(&self, dims: Vec3<u32>, x: u32, y: u32, z: u32) -> (u32, u32) {
+        let i0 = if FLIP_X {
+            if z % 2 == 0 { x } else { dims.x - x - 1 }
+        } else {
+            x
+        };
+        let i = z * dims.x + i0;
+        let j = y;
+        (i, j)
+    }
+}
+
 /// A grid of the z levels, left to right, top to bottom, like English prose.
 /// Convenient for visualizing terrain, but wastes space if the number of z
 /// levels isn't a perfect square.
@@ -111,12 +134,14 @@ impl PackingFormula for TallPacking {
 pub struct GridLtrPacking;
 
 impl PackingFormula for GridLtrPacking {
+    #[inline(always)]
     fn dimensions(&self, dims: Vec3<u32>) -> (u32, u32) {
         let rootz = (dims.z as f64).sqrt().ceil() as u32;
         (dims.x * rootz, dims.y * rootz)
     }
 
     #[allow(clippy::many_single_char_names)]
+    #[inline(always)]
     fn index(&self, dims: Vec3<u32>, x: u32, y: u32, z: u32) -> (u32, u32) {
         let rootz = (dims.z as f64).sqrt().ceil() as u32;
         let i = x + (z % rootz) * dims.x;
@@ -371,13 +396,15 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
         )
     }
 
+    #[inline(always)]
     fn put_solid(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
-        ws.1.put_pixel(x, y, image::Luma([0]));
-        ws.2.put_pixel(x, y, image::Luma([0]));
+        //ws.1.put_pixel(x, y, image::Luma([0]));
+        //ws.2.put_pixel(x, y, image::Luma([0]));
         ws.3.put_pixel(x / N, y / N, image::Rgb([rgb.r, rgb.g, rgb.b]));
     }
 
+    #[inline(always)]
     fn put_sprite(
         ws: &mut Self::Workspace,
         x: u32,
@@ -414,7 +441,7 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
             let png = image::codecs::png::PngEncoder::new_with_quality(
                 &mut buf,
                 CompressionType::Rle,
-                FilterType::Paeth,
+                FilterType::Sub,
             );
             png.encode(
                 &*ws.3.as_raw(),

@@ -38,7 +38,7 @@ impl<'a> System<'a> for Sys {
                         lazy_msg = Some(client.prepare(ServerGeneral::TerrainChunkUpdate {
                             key: *chunk_key,
                             chunk: Ok(match terrain.get_key(*chunk_key) {
-                                Some(chunk) => SerializedTerrainChunk::image(&chunk),
+                                Some(chunk) => SerializedTerrainChunk::via_heuristic(&chunk),
                                 None => break 'chunk,
                             }),
                         }));

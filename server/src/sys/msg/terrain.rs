@@ -79,7 +79,9 @@ impl<'a> System<'a> for Sys {
                                         network_metrics.chunks_served_from_memory.inc();
                                         client.send(ServerGeneral::TerrainChunkUpdate {
                                             key,
-                                            chunk: Ok(SerializedTerrainChunk::image(&chunk)),
+                                            chunk: Ok(SerializedTerrainChunk::via_heuristic(
+                                                &chunk,
+                                            )),
                                         })?
                                     },
                                     None => {

@@ -1,6 +1,6 @@
 use super::{
-    world_msg::EconomyInfo, ClientType, CompressedData, EcsCompPacket, MixedEncoding, PingMsg,
-    QuadPngEncoding, TallPacking, TriPngEncoding, WireChonk,
+    world_msg::EconomyInfo, ClientType, CompressedData, EcsCompPacket, PingMsg, QuadPngEncoding,
+    TriPngEncoding, WidePacking, WireChonk,
 };
 use crate::sync;
 use common::{
@@ -69,39 +69,25 @@ pub type ServerRegisterAnswer = Result<(), RegisterError>;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SerializedTerrainChunk {
     DeflatedChonk(CompressedData<TerrainChunk>),
-    PngPngPngJpeg(WireChonk<MixedEncoding, TallPacking, TerrainChunkMeta, TerrainChunkSize>),
-    QuadPng(WireChonk<QuadPngEncoding<4>, TallPacking, TerrainChunkMeta, TerrainChunkSize>),
-    TriPng(WireChonk<TriPngEncoding, TallPacking, TerrainChunkMeta, TerrainChunkSize>),
+    QuadPng(WireChonk<QuadPngEncoding<4>, WidePacking<true>, TerrainChunkMeta, TerrainChunkSize>),
+    TriPng(WireChonk<TriPngEncoding, WidePacking<true>, TerrainChunkMeta, TerrainChunkSize>),
 }
 
 impl SerializedTerrainChunk {
-    pub fn image(chunk: &TerrainChunk) -> Self {
-        match 2 {
-            0 => Self::deflate(chunk),
-            1 => Self::jpeg(chunk),
-            2 => Self::quadpng(chunk),
-            _ => Self::tripng(chunk),
-        }
-    }
-
-    pub fn deflate(chunk: &TerrainChunk) -> Self {
-        Self::DeflatedChonk(CompressedData::compress(chunk, 5))
-    }
-
-    pub fn jpeg(chunk: &TerrainChunk) -> Self {
-        if let Some(wc) = WireChonk::from_chonk(MixedEncoding, TallPacking { flip_y: true }, chunk)
-        {
-            Self::PngPngPngJpeg(wc)
+    pub fn via_heuristic(chunk: &TerrainChunk) -> Self {
+        if chunk.get_max_z() - chunk.get_min_z() < 128 {
+            Self::quadpng(chunk)
         } else {
-            warn!("Image encoding failure occurred, falling back to deflate");
             Self::deflate(chunk)
         }
     }
 
+    pub fn deflate(chunk: &TerrainChunk) -> Self {
+        Self::DeflatedChonk(CompressedData::compress(chunk, 1))
+    }
+
     pub fn quadpng(chunk: &TerrainChunk) -> Self {
-        if let Some(wc) =
-            WireChonk::from_chonk(QuadPngEncoding(), TallPacking { flip_y: true }, chunk)
-        {
+        if let Some(wc) = WireChonk::from_chonk(QuadPngEncoding(), WidePacking(), chunk) {
             Self::QuadPng(wc)
         } else {
             warn!("Image encoding failure occurred, falling back to deflate");
@@ -110,8 +96,7 @@ impl SerializedTerrainChunk {
     }
 
     pub fn tripng(chunk: &TerrainChunk) -> Self {
-        if let Some(wc) = WireChonk::from_chonk(TriPngEncoding, TallPacking { flip_y: true }, chunk)
-        {
+        if let Some(wc) = WireChonk::from_chonk(TriPngEncoding, WidePacking(), chunk) {
             Self::TriPng(wc)
         } else {
             warn!("Image encoding failure occurred, falling back to deflate");
@@ -122,7 +107,6 @@ impl SerializedTerrainChunk {
     pub fn to_chunk(&self) -> Option<TerrainChunk> {
         match self {
             Self::DeflatedChonk(chonk) => chonk.decompress(),
-            Self::PngPngPngJpeg(wc) => wc.to_chonk(),
             Self::QuadPng(wc) => wc.to_chonk(),
             Self::TriPng(wc) => wc.to_chonk(),
         }
