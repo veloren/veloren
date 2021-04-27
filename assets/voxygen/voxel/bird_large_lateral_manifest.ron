@@ -251,4 +251,88 @@
             lateral: ("npc.roc.male.foot_r"),
         )
     ),
+    (FlameWyvern, Male): (
+        wing_in_l: (
+            offset: (-24.0, -9.0, -4.0),
+            lateral: ("npc.wyvern_flame.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (0.0,  -9.0, -4.0),
+            lateral: ("npc.wyvern_flame.male.wing_in_r"),
+        ),
+        wing_mid_l: (
+            offset: (-17.0, -27.0, -2.0),
+            lateral: ("npc.wyvern_flame.male.wing_mid_r"),
+        ),
+        wing_mid_r: (
+            offset: (0.0, -27.0, -2.0),
+            lateral: ("npc.wyvern_flame.male.wing_mid_r"),
+        ),
+        wing_out_l: (
+            offset: (-33.0, -31.0, -2.0),
+            lateral: ("npc.wyvern_flame.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -31.0, -2.0),
+            lateral: ("npc.wyvern_flame.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-3.0, -4.5, -5.5),
+            lateral: ("npc.wyvern_flame.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-3.0, -4.5, -5.5),
+            lateral: ("npc.wyvern_flame.male.leg_r"),
+        ),
+        foot_l: (
+            offset: (-3.5, -6.5, -13.0),
+            lateral: ("npc.wyvern_flame.male.foot_r"),
+        ),
+        foot_r: (
+            offset: (-3.5, -6.5, -13.0),
+            lateral: ("npc.wyvern_flame.male.foot_r"),
+        )
+    ),
+    (FlameWyvern, Female): (
+        wing_in_l: (
+            offset: (-24.0, -9.0, -4.0),
+            lateral: ("npc.wyvern_flame.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (0.0,  -9.0, -4.0),
+            lateral: ("npc.wyvern_flame.male.wing_in_r"),
+        ),
+        wing_mid_l: (
+            offset: (-17.0, -27.0, -2.0),
+            lateral: ("npc.wyvern_flame.male.wing_mid_r"),
+        ),
+        wing_mid_r: (
+            offset: (0.0, -27.0, -2.0),
+            lateral: ("npc.wyvern_flame.male.wing_mid_r"),
+        ),
+        wing_out_l: (
+            offset: (-33.0, -31.0, -2.0),
+            lateral: ("npc.wyvern_flame.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -31.0, -2.0),
+            lateral: ("npc.wyvern_flame.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-3.0, -4.5, -5.5),
+            lateral: ("npc.wyvern_flame.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-3.0, -4.5, -5.5),
+            lateral: ("npc.wyvern_flame.male.leg_r"),
+        ),
+        foot_l: (
+            offset: (-3.5, -6.5, -13.0),
+            lateral: ("npc.wyvern_flame.male.foot_r"),
+        ),
+        foot_r: (
+            offset: (-3.5, -6.5, -13.0),
+            lateral: ("npc.wyvern_flame.male.foot_r"),
+        )
+    ),
 })

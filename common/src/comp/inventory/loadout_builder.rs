@@ -447,6 +447,28 @@ impl LoadoutBuilder {
                 quadruped_low::Species::Tortoise => {
                     Some("common.items.npc_armor.quadruped_low.shell")
                 },
+                Body::BirdLarge(bird_large) => match (bird_large.species, bird_large.body_type) {
+                    (bird_large::Species::Cockatrice, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.birdlargebreathe",
+                        ));
+                    },
+                    (bird_large::Species::Phoenix, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.birdlargefire",
+                        ));
+                    },
+                    (bird_large::Species::Roc, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.birdlargebasic",
+                        ));
+                    },
+                    (bird_large::Species::FlameWyvern, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.birdlargebreathe",
+                        ));
+                    },
+                },
                 _ => None,
             },
             Body::Theropod(body) => match body.species {

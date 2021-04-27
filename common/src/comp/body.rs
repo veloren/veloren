@@ -492,6 +492,7 @@ impl Body {
                 bird_large::Species::Cockatrice => 4000,
                 bird_large::Species::Phoenix => 6000,
                 bird_large::Species::Roc => 5000,
+                bird_large::Species::FlameWyvern => 6000,
             },
             Body::Humanoid(_) => 750,
             _ => 1000,
@@ -746,7 +747,9 @@ impl Body {
                 Body::QuadrupedLow(q) => matches!(q.species, quadruped_low::Species::Lavadrake),
                 Body::BirdLarge(b) => matches!(
                     b.species,
-                    bird_large::Species::Phoenix | bird_large::Species::Cockatrice
+                    bird_large::Species::Phoenix
+                        | bird_large::Species::Cockatrice
+                        | bird_large::Species::FlameWyvern
                 ),
                 _ => false,
             },
