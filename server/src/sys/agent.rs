@@ -2114,11 +2114,25 @@ impl<'a> AgentData<'a> {
                     && dist_sqrd > (radius as f32 * min_attack_dist).powi(2)
                 {
                     if agent.action_timer < circle_time as f32 {
-                        controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
+                        let move_dir = (tgt_pos.0 - self.pos.0)
                             .xy()
                             .rotated_z(0.47 * PI)
                             .try_normalized()
                             .unwrap_or_else(Vec2::unit_y);
+                        let obstacle_left = read_data
+                            .terrain
+                            .ray(
+                                self.pos.0 + Vec3::unit_z(),
+                                self.pos.0 + move_dir.with_z(0.0) * 2.0 + Vec3::unit_z(),
+                            )
+                            .until(Block::is_solid)
+                            .cast()
+                            .1
+                            .map_or(true, |b| b.is_some());
+                        if obstacle_left {
+                            agent.action_timer = circle_time as f32;
+                        }
+                        controller.inputs.move_dir = move_dir;
                         agent.action_timer += dt.0;
                     } else if agent.action_timer < circle_time as f32 + 0.5 && angle < 45.0 {
                         controller
@@ -2126,13 +2140,30 @@ impl<'a> AgentData<'a> {
                             .push(ControlAction::basic_input(InputKind::Secondary));
                         agent.action_timer += dt.0;
                     } else if agent.action_timer < 2.0 * circle_time as f32 + 0.5 {
-                        controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
+                        let move_dir = (tgt_pos.0 - self.pos.0)
                             .xy()
                             .rotated_z(-0.47 * PI)
                             .try_normalized()
                             .unwrap_or_else(Vec2::unit_y);
+                        let obstacle_right = read_data
+                            .terrain
+                            .ray(
+                                self.pos.0 + Vec3::unit_z(),
+                                self.pos.0 + move_dir.with_z(0.0) * 2.0 + Vec3::unit_z(),
+                            )
+                            .until(Block::is_solid)
+                            .cast()
+                            .1
+                            .map_or(true, |b| b.is_some());
+                        if obstacle_right {
+                            agent.action_timer = 2.0 * circle_time as f32 + 0.5;
+                        }
+                        controller.inputs.move_dir = move_dir;
                         agent.action_timer += dt.0;
                     } else if agent.action_timer < 2.0 * circle_time as f32 + 1.0 && angle < 45.0 {
+                        if agent.action_timer < 2.0 * circle_time as f32 {
+                            agent.action_timer = 2.0 * circle_time as f32;
+                        }
                         controller
                             .actions
                             .push(ControlAction::basic_input(InputKind::Secondary));
