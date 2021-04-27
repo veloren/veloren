@@ -37,9 +37,11 @@ impl assets::Asset for OggSound {
 
 /// Wrapper for decoded audio data
 impl OggSound {
-    pub fn decoder(self) -> rodio::Decoder<io::Cursor<OggSound>> {
+    pub fn decoder(
+        self,
+    ) -> Result<rodio::Decoder<io::Cursor<OggSound>>, rodio::decoder::DecoderError> {
         let cursor = io::Cursor::new(self);
-        rodio::Decoder::new(cursor).unwrap()
+        rodio::Decoder::new(cursor)
     }
 
     pub fn empty() -> OggSound {

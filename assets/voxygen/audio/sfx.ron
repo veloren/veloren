@@ -710,17 +710,87 @@
             ],
             threshold: 0.3,
         ),
-        //Explosion: (
-        //    files: [
-        //        // in code
-        //    ],
-        //    threshold: 0.2,
-        //),
-        //ProjectileShot: (
-        //    files: [
-        //        // in code
-        //    ],
-        //    threshold: 0.5,
-        //),
+        Explosion: (
+            files: [
+                "voxygen.audio.sfx.abilities.explosion",
+            ],
+            threshold: 0.2,
+        ),
+	ArrowShot: (
+            files: [
+		"voxygen.audio.sfx.abilities.arrow_shot_1",
+		"voxygen.audio.sfx.abilities.arrow_shot_2",
+		"voxygen.audio.sfx.abilities.arrow_shot_3",
+		"voxygen.audio.sfx.abilities.arrow_shot_4",
+            ],
+            threshold: 0.2,
+	),
+	FireShot: (
+            files: [
+                "voxygen.audio.sfx.abilities.fire_shot_1",
+                "voxygen.audio.sfx.abilities.fire_shot_2",
+            ],
+            threshold: 0.2,
+	),
+	ArrowMiss: (
+	    files: [
+                "voxygen.audio.sfx.character.arrow_miss",
+	    ],
+	    threshold: 0.2,
+	),
+	ArrowHit: (
+	    files: [
+                "voxygen.audio.sfx.character.arrow_hit",
+	    ],
+	    threshold: 0.2,
+	),
+	SkillPointGain: (
+	    files: [
+                "voxygen.audio.sfx.character.level_up_sound_-_shorter_wind_up",
+            ],
+	    threshold: 0.2,
+	),
+	HealingBeam: (
+	    files: [
+                "voxygen.audio.sfx.abilities.sceptre_channeling",
+            ],
+	    threshold: 0.2,
+	),
+	FlameThrower: (
+	    files: [
+                "voxygen.audio.sfx.abilities.flame_thrower",
+            ],
+	    threshold: 0.2,
+	),
+	BreakBlock: (
+	    files: [
+                "voxygen.audio.sfx.footsteps.stone_step_1",
+            ],
+	    threshold: 0.2,
+	),
+	Damage: (
+	    files: [
+                "voxygen.audio.sfx.character.hit_1",
+                "voxygen.audio.sfx.character.hit_2",
+                "voxygen.audio.sfx.character.hit_3",
+                "voxygen.audio.sfx.character.hit_4",
+            ],
+	    threshold: 0.2,
+	),
+	Block: (
+	    files: [
+                "voxygen.audio.sfx.character.block_1",
+                "voxygen.audio.sfx.character.block_2",
+                "voxygen.audio.sfx.character.block_3",
+            ],
+	    threshold: 0.2,
+	),
+	Parry: (
+	    files: [
+                "voxygen.audio.sfx.character.parry_1",
+                "voxygen.audio.sfx.character.parry_2",
+            ],
+	    threshold: 0.2,
+	),
     }
 )

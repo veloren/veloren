@@ -92,7 +92,7 @@ use common::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
         beam,
-        item::{ItemKind, Reagent, ToolKind},
+        item::{ItemKind, ToolKind},
         object, Body, CharacterAbilityType, InventoryUpdateEvent,
     },
     outcome::Outcome,
@@ -167,8 +167,17 @@ pub enum SfxEvent {
     Unwield(ToolKind),
     Inventory(SfxInventoryEvent),
     Explosion,
-    ProjectileShot,
     Damage,
+    Parry,
+    Block,
+    BreakBlock,
+    HealingBeam,
+    SkillPointGain,
+    ArrowHit,
+    ArrowMiss,
+    ArrowShot,
+    FireShot,
+    FlameThrower,
     // Poise(StunState),
 }
 
@@ -301,30 +310,20 @@ impl SfxMgr {
         if !audio.sfx_enabled() {
             return;
         }
+        let triggers = self.triggers.read();
 
+        // TODO handle underwater
         match outcome {
-            Outcome::Explosion {
-                pos,
-                power,
-                is_attack,
-                reagent,
-                ..
-            } => {
-                let file_ref = if *is_attack && matches!(reagent, Some(Reagent::Green)) {
-                    "voxygen.audio.sfx.abilities.heal_bomb"
-                } else {
-                    "voxygen.audio.sfx.abilities.explosion"
-                };
-
-                audio.play_sfx(
-                    // TODO: from sfx config?
-                    file_ref,
+            Outcome::Explosion { pos, power, .. } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Explosion);
+                audio.emit_sfx(
+                    sfx_trigger_item,
                     *pos,
                     Some((power.abs() / 2.5).min(1.5)),
+                    false,
                 );
             },
             Outcome::ProjectileShot { pos, body, .. } => {
-                // TODO: from sfx config?
                 match body {
                     Body::Object(
                         object::Body::Arrow
@@ -332,26 +331,16 @@ impl SfxMgr {
                         | object::Body::ArrowSnake
                         | object::Body::ArrowTurret,
                     ) => {
-                        let file_ref = vec![
-                            "voxygen.audio.sfx.abilities.arrow_shot_1",
-                            "voxygen.audio.sfx.abilities.arrow_shot_2",
-                            "voxygen.audio.sfx.abilities.arrow_shot_3",
-                            "voxygen.audio.sfx.abilities.arrow_shot_4",
-                        ][rand::thread_rng().gen_range(1..4)];
-
-                        audio.play_sfx(file_ref, *pos, None);
+                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::ArrowShot);
+                        audio.emit_sfx(sfx_trigger_item, *pos, None, false);
                     },
                     Body::Object(
                         object::Body::BoltFire
                         | object::Body::BoltFireBig
                         | object::Body::BoltNature,
                     ) => {
-                        let file_ref = vec![
-                            "voxygen.audio.sfx.abilities.fire_shot_1",
-                            "voxygen.audio.sfx.abilities.fire_shot_2",
-                        ][rand::thread_rng().gen_range(1..2)];
-
-                        audio.play_sfx(file_ref, *pos, None);
+                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FireShot);
+                        audio.emit_sfx(sfx_trigger_item, *pos, None, false);
                     },
                     _ => {
                         // not mapped to sfx file
@@ -372,66 +361,61 @@ impl SfxMgr {
                     | object::Body::ArrowTurret,
                 ) => {
                     if target.is_none() {
-                        audio.play_sfx("voxygen.audio.sfx.character.arrow_miss", *pos, Some(2.0));
+                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::ArrowMiss);
+                        audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), false);
                     } else if *source == client.uid() {
-                        audio.play_sfx(
-                            "voxygen.audio.sfx.character.arrow_hit",
+                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::ArrowHit);
+                        audio.emit_sfx(
+                            sfx_trigger_item,
                             client.position().unwrap_or(*pos),
                             Some(2.0),
+                            false,
                         );
                     } else {
-                        audio.play_sfx("voxygen.audio.sfx.character.arrow_hit", *pos, Some(2.0));
+                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::ArrowHit);
+                        audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), false);
                     }
                 },
                 _ => {},
             },
             Outcome::SkillPointGain { pos, .. } => {
-                let file_ref = "voxygen.audio.sfx.character.level_up_sound_-_shorter_wind_up";
-                audio.play_sfx(file_ref, *pos, None);
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::SkillPointGain);
+                audio.emit_sfx(sfx_trigger_item, *pos, None, false);
             },
             Outcome::Beam { pos, specifier } => match specifier {
                 beam::FrontendSpecifier::LifestealBeam | beam::FrontendSpecifier::HealingBeam => {
-                    let file_ref = "voxygen.audio.sfx.abilities.sceptre_channeling";
                     if thread_rng().gen_bool(0.5) {
-                        audio.play_sfx(file_ref, *pos, None);
+                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::HealingBeam);
+                        audio.emit_sfx(sfx_trigger_item, *pos, None, false);
                     };
                 },
                 beam::FrontendSpecifier::Flamethrower | beam::FrontendSpecifier::Cultist => {
-                    let file_ref = "voxygen.audio.sfx.abilities.flame_thrower";
                     if thread_rng().gen_bool(0.5) {
-                        audio.play_sfx(file_ref, *pos, None);
+                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FlameThrower);
+                        audio.emit_sfx(sfx_trigger_item, *pos, None, false);
                     }
                 },
             },
             Outcome::BreakBlock { pos, .. } => {
-                let file_ref = "voxygen.audio.sfx.footsteps.stone_step_1";
-                audio.play_sfx(file_ref, pos.map(|e| e as f32 + 0.5), Some(3.0));
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::BreakBlock);
+                audio.emit_sfx(
+                    sfx_trigger_item,
+                    pos.map(|e| e as f32 + 0.5),
+                    Some(3.0),
+                    false,
+                );
             },
             Outcome::Damage { pos, .. } => {
-                let file_ref = vec![
-                    "voxygen.audio.sfx.character.hit_1",
-                    "voxygen.audio.sfx.character.hit_2",
-                    "voxygen.audio.sfx.character.hit_3",
-                    "voxygen.audio.sfx.character.hit_4",
-                ][rand::thread_rng().gen_range(1..4)];
-                audio.play_sfx(file_ref, *pos, None);
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Damage);
+                audio.emit_sfx(sfx_trigger_item, *pos, None, false);
             },
             Outcome::Block { pos, parry, .. } => {
-                let block_sfx = vec![
-                    "voxygen.audio.sfx.character.block_1",
-                    "voxygen.audio.sfx.character.block_2",
-                    "voxygen.audio.sfx.character.block_3",
-                ];
-                let parry_sfx = vec![
-                    "voxygen.audio.sfx.character.parry_1",
-                    "voxygen.audio.sfx.character.parry_2",
-                ];
                 if *parry {
-                    let file_ref = parry_sfx[rand::thread_rng().gen_range(1..parry_sfx.len())];
-                    audio.play_sfx(file_ref, *pos, Some(2.0));
+                    let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Parry);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), false);
                 } else {
-                    let file_ref = block_sfx[rand::thread_rng().gen_range(1..block_sfx.len())];
-                    audio.play_sfx(file_ref, *pos, Some(2.0));
+                    let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Block);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), false);
                 }
             },
             Outcome::ExpChange { .. }

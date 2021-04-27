@@ -13,7 +13,7 @@ use music::MusicTransitionManifest;
 use sfx::{SfxEvent, SfxTriggerItem};
 use soundcache::OggSound;
 use std::time::Duration;
-use tracing::{debug, error};
+use tracing::{debug, error, warn};
 
 use common::assets::{AssetExt, AssetHandle};
 use rodio::{source::Source, OutputStream, OutputStreamHandle, StreamError};
@@ -206,7 +206,11 @@ impl AudioFrontend {
                 },
             };
 
-            self.play_sfx(sfx_file, self.listener.pos, None);
+            // TODO: Should this take `underwater` into consideration?
+            match self.play_sfx(sfx_file, self.listener.pos, None, false) {
+                Ok(_) => {},
+                Err(e) => warn!("Failed to play sfx. {}", e),
+            }
         } else {
             debug!("Missing sfx trigger config for external sfx event.",);
         }
@@ -238,10 +242,9 @@ impl AudioFrontend {
                 },
             };
 
-            if underwater {
-                self.play_underwater_sfx(sfx_file, position, volume);
-            } else {
-                self.play_sfx(sfx_file, position, volume);
+            match self.play_sfx(sfx_file, position, volume, underwater) {
+                Ok(_) => {},
+                Err(e) => warn!("Failed to play sfx. {}", e),
             }
         } else {
             debug!(
@@ -251,40 +254,33 @@ impl AudioFrontend {
         }
     }
 
-    /// Play (once) an sfx file by file path at the give position and volume
-    pub fn play_sfx(&mut self, sound: &str, pos: Vec3<f32>, vol: Option<f32>) {
+    /// Play (once) an sfx file by file path at the given position and volume.
+    /// If `underwater` is true, the sound is played with a low pass filter
+    pub fn play_sfx(
+        &mut self,
+        sound: &str,
+        pos: Vec3<f32>,
+        vol: Option<f32>,
+        underwater: bool,
+    ) -> Result<(), rodio::decoder::DecoderError> {
         if self.audio_stream.is_some() {
             let sound = OggSound::load_expect(sound)
                 .cloned()
-                .decoder()
+                .decoder()?
                 .amplify(vol.unwrap_or(1.0));
 
             let listener = self.listener.clone();
             if let Some(channel) = self.get_sfx_channel() {
                 channel.set_pos(pos);
                 channel.update(&listener);
-                channel.play(sound);
+                if underwater {
+                    channel.play_with_low_pass_filter(sound.convert_samples());
+                } else {
+                    channel.play(sound);
+                }
             }
         }
-    }
-
-    /// Play (once) an sfx file by file path at the give position and volume
-    /// but with the sound passed through a low pass filter to simulate
-    /// being underwater
-    pub fn play_underwater_sfx(&mut self, sound: &str, pos: Vec3<f32>, vol: Option<f32>) {
-        if self.audio_stream.is_some() {
-            let sound = OggSound::load_expect(sound)
-                .cloned()
-                .decoder()
-                .amplify(vol.unwrap_or(1.0));
-
-            let listener = self.listener.clone();
-            if let Some(channel) = self.get_sfx_channel() {
-                channel.set_pos(pos);
-                channel.update(&listener);
-                channel.play_with_low_pass_filter(sound.convert_samples());
-            }
-        }
+        Ok(())
     }
 
     fn play_ambient(
@@ -295,8 +291,9 @@ impl AudioFrontend {
     ) {
         if self.audio_stream.is_some() {
             if let Some(channel) = self.get_ambient_channel(channel_tag, volume_multiplier) {
-                let sound = OggSound::load_expect(sound).cloned().decoder();
-                channel.play(sound);
+                if let Ok(sound) = OggSound::load_expect(sound).cloned().decoder() {
+                    channel.play(sound);
+                }
             }
         }
     }
@@ -352,8 +349,9 @@ impl AudioFrontend {
     fn play_music(&mut self, sound: &str, channel_tag: MusicChannelTag) {
         if self.music_enabled() {
             if let Some(channel) = self.get_music_channel(channel_tag) {
-                let sound = OggSound::load_expect(sound).cloned().decoder();
-                channel.play(sound, channel_tag);
+                if let Ok(sound) = OggSound::load_expect(sound).cloned().decoder() {
+                    channel.play(sound, channel_tag);
+                }
             }
         }
     }
