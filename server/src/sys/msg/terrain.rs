@@ -6,7 +6,9 @@ use common::{
     vol::RectVolSize,
 };
 use common_ecs::{Job, Origin, ParMode, Phase, System};
-use common_net::msg::{ClientGeneral, SerializedTerrainChunk, ServerGeneral};
+use common_net::msg::{
+    ClientGeneral, SerializedTerrainChunk, ServerGeneral, TERRAIN_LOW_BANDWIDTH,
+};
 use rayon::iter::ParallelIterator;
 use specs::{Entities, Join, ParJoin, Read, ReadExpect, ReadStorage};
 use tracing::{debug, trace};
@@ -77,12 +79,17 @@ impl<'a> System<'a> for Sys {
                                 match terrain.get_key_arc(key) {
                                     Some(chunk) => {
                                         network_metrics.chunks_served_from_memory.inc();
-                                        client.send(ServerGeneral::TerrainChunkUpdate {
-                                            key,
-                                            chunk: Ok(SerializedTerrainChunk::via_heuristic(
-                                                &chunk,
-                                            )),
-                                        })?
+                                        if let Some(participant) = &client.participant {
+                                            let low_bandwidth =
+                                                participant.bandwidth() < TERRAIN_LOW_BANDWIDTH;
+                                            client.send(ServerGeneral::TerrainChunkUpdate {
+                                                key,
+                                                chunk: Ok(SerializedTerrainChunk::via_heuristic(
+                                                    &chunk,
+                                                    low_bandwidth,
+                                                )),
+                                            })?
+                                        }
                                     },
                                     None => {
                                         network_metrics.chunks_generation_triggered.inc();

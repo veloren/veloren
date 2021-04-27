@@ -70,12 +70,16 @@ pub type ServerRegisterAnswer = Result<(), RegisterError>;
 pub enum SerializedTerrainChunk {
     DeflatedChonk(CompressedData<TerrainChunk>),
     QuadPng(WireChonk<QuadPngEncoding<4>, WidePacking<true>, TerrainChunkMeta, TerrainChunkSize>),
-    TriPng(WireChonk<TriPngEncoding, WidePacking<true>, TerrainChunkMeta, TerrainChunkSize>),
+    TriPng(WireChonk<TriPngEncoding<false>, WidePacking<true>, TerrainChunkMeta, TerrainChunkSize>),
 }
 
+/// If someone has less than this number of bytes per second of bandwidth, spend
+/// more CPU generating a smaller encoding of terrain data.
+pub const TERRAIN_LOW_BANDWIDTH: f32 = 5_000_000.0;
+
 impl SerializedTerrainChunk {
-    pub fn via_heuristic(chunk: &TerrainChunk) -> Self {
-        if chunk.get_max_z() - chunk.get_min_z() < 128 {
+    pub fn via_heuristic(chunk: &TerrainChunk, low_bandwidth: bool) -> Self {
+        if low_bandwidth && (chunk.get_max_z() - chunk.get_min_z() <= 128) {
             Self::quadpng(chunk)
         } else {
             Self::deflate(chunk)
@@ -96,7 +100,7 @@ impl SerializedTerrainChunk {
     }
 
     pub fn tripng(chunk: &TerrainChunk) -> Self {
-        if let Some(wc) = WireChonk::from_chonk(TriPngEncoding, WidePacking(), chunk) {
+        if let Some(wc) = WireChonk::from_chonk(TriPngEncoding(), WidePacking(), chunk) {
             Self::TriPng(wc)
         } else {
             warn!("Image encoding failure occurred, falling back to deflate");

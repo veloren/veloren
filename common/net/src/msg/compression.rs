@@ -12,7 +12,7 @@ use std::{
     io::{Read, Write},
     marker::PhantomData,
 };
-use tracing::{trace, warn};
+use tracing::warn;
 use vek::*;
 
 /// Wrapper for compressed, serialized data (for stuff that doesn't use the
@@ -37,12 +37,6 @@ impl<T: Serialize> CompressedData<T> {
             let mut encoder = DeflateEncoder::new(Vec::new(), Compression::new(level));
             encoder.write_all(&*uncompressed).expect(EXPECT_MSG);
             let compressed = encoder.finish().expect(EXPECT_MSG);
-            trace!(
-                "compressed {}, uncompressed {}, ratio {}",
-                compressed.len(),
-                uncompressed.len(),
-                compressed.len() as f32 / uncompressed.len() as f32
-            );
             CompressedData {
                 data: compressed,
                 compressed: true,
@@ -106,6 +100,10 @@ impl PackingFormula for TallPacking {
     }
 }
 
+/// A wide, short image. Shares the advantage of not wasting space with
+/// TallPacking, but faster to compress and smaller since PNG compresses each
+/// row indepedently, so a wide image has fewer calls to the compressor. FLIP_X
+/// has the same spatial locality preserving behavior as with TallPacking.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct WidePacking<const FLIP_X: bool>();
 
@@ -602,9 +600,9 @@ impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct TriPngEncoding;
+pub struct TriPngEncoding<const AVERAGE_PALETTE: bool>();
 
-impl VoxelImageEncoding for TriPngEncoding {
+impl<const AVERAGE_PALETTE: bool> VoxelImageEncoding for TriPngEncoding<AVERAGE_PALETTE> {
     #[allow(clippy::type_complexity)]
     type Output = CompressedData<(Vec<u8>, Vec<Rgb<u8>>, [usize; 3])>;
     #[allow(clippy::type_complexity)]
@@ -628,7 +626,9 @@ impl VoxelImageEncoding for TriPngEncoding {
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
         ws.1.put_pixel(x, y, image::Luma([0]));
         ws.2.put_pixel(x, y, image::Luma([0]));
-        *ws.3.entry(kind).or_default().entry(rgb).or_insert(0) += 1;
+        if AVERAGE_PALETTE {
+            *ws.3.entry(kind).or_default().entry(rgb).or_insert(0) += 1;
+        }
     }
 
     fn put_sprite(
@@ -663,29 +663,34 @@ impl VoxelImageEncoding for TriPngEncoding {
         f(&ws.1, 1)?;
         f(&ws.2, 2)?;
 
-        let mut palette = vec![Rgb { r: 0, g: 0, b: 0 }; 256];
-        for (block, hist) in ws.3.iter() {
-            let (mut r, mut g, mut b) = (0.0, 0.0, 0.0);
-            let mut total = 0;
-            for (color, count) in hist.iter() {
-                r += color.r as f64 * *count as f64;
-                g += color.g as f64 * *count as f64;
-                b += color.b as f64 * *count as f64;
-                total += *count;
+        let palette = if AVERAGE_PALETTE {
+            let mut palette = vec![Rgb { r: 0, g: 0, b: 0 }; 256];
+            for (block, hist) in ws.3.iter() {
+                let (mut r, mut g, mut b) = (0.0, 0.0, 0.0);
+                let mut total = 0;
+                for (color, count) in hist.iter() {
+                    r += color.r as f64 * *count as f64;
+                    g += color.g as f64 * *count as f64;
+                    b += color.b as f64 * *count as f64;
+                    total += *count;
+                }
+                r /= total as f64;
+                g /= total as f64;
+                b /= total as f64;
+                palette[*block as u8 as usize].r = r as u8;
+                palette[*block as u8 as usize].g = g as u8;
+                palette[*block as u8 as usize].b = b as u8;
             }
-            r /= total as f64;
-            g /= total as f64;
-            b /= total as f64;
-            palette[*block as u8 as usize].r = r as u8;
-            palette[*block as u8 as usize].g = g as u8;
-            palette[*block as u8 as usize].b = b as u8;
-        }
+            palette
+        } else {
+            Vec::new()
+        };
 
         Some(CompressedData::compress(&(buf, palette, indices), 4))
     }
 }
 
-impl VoxelImageDecoding for TriPngEncoding {
+impl<const AVERAGE_PALETTE: bool> VoxelImageDecoding for TriPngEncoding<AVERAGE_PALETTE> {
     fn start(data: &Self::Output) -> Option<Self::Workspace> {
         use image::codecs::png::PngDecoder;
         let (quad, palette, indices) = data.decompress()?;
@@ -698,12 +703,14 @@ impl VoxelImageDecoding for TriPngEncoding {
         let b = image_from_bytes(PngDecoder::new(&quad[ranges[1].clone()]).ok()?)?;
         let c = image_from_bytes(PngDecoder::new(&quad[ranges[2].clone()]).ok()?)?;
         let mut d: HashMap<_, HashMap<_, _>> = HashMap::new();
-        for i in 0..=255 {
-            if let Some(block) = BlockKind::from_u8(i) {
-                d.entry(block)
-                    .or_default()
-                    .entry(palette[i as usize])
-                    .insert(1);
+        if AVERAGE_PALETTE {
+            for i in 0..=255 {
+                if let Some(block) = BlockKind::from_u8(i) {
+                    d.entry(block)
+                        .or_default()
+                        .entry(palette[i as usize])
+                        .insert(1);
+                }
             }
         }
 
@@ -713,11 +720,62 @@ impl VoxelImageDecoding for TriPngEncoding {
     fn get_block(ws: &Self::Workspace, x: u32, y: u32, _: bool) -> Block {
         if let Some(kind) = BlockKind::from_u8(ws.0.get_pixel(x, y).0[0]) {
             if kind.is_filled() {
-                let rgb = *ws
-                    .3
-                    .get(&kind)
-                    .and_then(|h| h.keys().next())
-                    .unwrap_or(&Rgb::default());
+                let rgb = if AVERAGE_PALETTE {
+                    *ws.3
+                        .get(&kind)
+                        .and_then(|h| h.keys().next())
+                        .unwrap_or(&Rgb::default())
+                } else {
+                    use BlockKind::*;
+                    match kind {
+                        Air | Water => Rgb { r: 0, g: 0, b: 0 },
+                        Rock => Rgb {
+                            r: 93,
+                            g: 110,
+                            b: 145,
+                        },
+                        WeakRock => Rgb {
+                            r: 93,
+                            g: 132,
+                            b: 145,
+                        },
+                        Grass => Rgb {
+                            r: 51,
+                            g: 160,
+                            b: 94,
+                        },
+                        Snow => Rgb {
+                            r: 192,
+                            g: 255,
+                            b: 255,
+                        },
+                        Earth => Rgb {
+                            r: 200,
+                            g: 140,
+                            b: 93,
+                        },
+                        Sand => Rgb {
+                            r: 241,
+                            g: 177,
+                            b: 128,
+                        },
+                        Wood => Rgb {
+                            r: 128,
+                            g: 77,
+                            b: 51,
+                        },
+                        Leaves => Rgb {
+                            r: 93,
+                            g: 206,
+                            b: 64,
+                        },
+                        Misc => Rgb {
+                            r: 255,
+                            g: 0,
+                            b: 255,
+                        },
+                    }
+                };
                 Block::new(kind, rgb)
             } else {
                 let mut block = Block::new(kind, Rgb { r: 0, g: 0, b: 0 });

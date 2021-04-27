@@ -21,7 +21,6 @@ num-traits = "0.2"
 sum_type = "0.2.0"
 vek = { version = "=0.14.1", features = ["serde"] }
 tracing = { version = "0.1", default-features = false }
-inline_tweak = "1.0.2"
 
 # Data structures
 hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }

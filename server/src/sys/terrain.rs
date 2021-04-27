@@ -14,7 +14,7 @@ use common::{
     LoadoutBuilder, SkillSetBuilder,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use common_net::msg::{SerializedTerrainChunk, ServerGeneral};
+use common_net::msg::{SerializedTerrainChunk, ServerGeneral, TERRAIN_LOW_BANDWIDTH};
 use common_state::TerrainChanges;
 use comp::Behavior;
 use specs::{Join, Read, ReadStorage, Write, WriteExpect};
@@ -222,11 +222,8 @@ impl<'a> System<'a> for Sys {
         // Send the chunk to all nearby players.
         use rayon::iter::{IntoParallelIterator, ParallelIterator};
         new_chunks.into_par_iter().for_each(|(key, chunk)| {
-            let mut msg = Some(ServerGeneral::TerrainChunkUpdate {
-                key,
-                chunk: Ok(SerializedTerrainChunk::via_heuristic(&*chunk)),
-            });
-            let mut lazy_msg = None;
+            let mut lazy_msg_lo = None;
+            let mut lazy_msg_hi = None;
 
             (&presences, &positions, &clients)
                 .join()
@@ -240,11 +237,26 @@ impl<'a> System<'a> for Sys {
                         .magnitude_squared();
 
                     if adjusted_dist_sqr <= presence.view_distance.pow(2) {
-                        if let Some(msg) = msg.take() {
-                            lazy_msg = Some(client.prepare(msg));
-                        };
+                        if let Some(participant) = &client.participant {
+                            let low_bandwidth = participant.bandwidth() < TERRAIN_LOW_BANDWIDTH;
+                            let lazy_msg = if low_bandwidth {
+                                &mut lazy_msg_lo
+                            } else {
+                                &mut lazy_msg_hi
+                            };
+                            if lazy_msg.is_none() {
+                                *lazy_msg =
+                                    Some(client.prepare(ServerGeneral::TerrainChunkUpdate {
+                                        key,
+                                        chunk: Ok(SerializedTerrainChunk::via_heuristic(
+                                            &*chunk,
+                                            low_bandwidth,
+                                        )),
+                                    }));
+                            };
 
-                        lazy_msg.as_ref().map(|msg| client.send_prepared(msg));
+                            lazy_msg.as_ref().map(|msg| client.send_prepared(msg));
+                        }
                     }
                 });
         });

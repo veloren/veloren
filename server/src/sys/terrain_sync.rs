@@ -1,7 +1,9 @@
 use crate::{client::Client, presence::Presence};
 use common::{comp::Pos, terrain::TerrainGrid};
 use common_ecs::{Job, Origin, Phase, System};
-use common_net::msg::{CompressedData, SerializedTerrainChunk, ServerGeneral};
+use common_net::msg::{
+    CompressedData, SerializedTerrainChunk, ServerGeneral, TERRAIN_LOW_BANDWIDTH,
+};
 use common_state::TerrainChanges;
 use specs::{Join, Read, ReadExpect, ReadStorage};
 
@@ -29,21 +31,36 @@ impl<'a> System<'a> for Sys {
     ) {
         // Sync changed chunks
         'chunk: for chunk_key in &terrain_changes.modified_chunks {
-            let mut lazy_msg = None;
+            let mut lazy_msg_hi = None;
+            let mut lazy_msg_lo = None;
 
             for (presence, pos, client) in (&presences, &positions, &clients).join() {
-                if super::terrain::chunk_in_vd(pos.0, *chunk_key, &terrain, presence.view_distance)
-                {
-                    if lazy_msg.is_none() {
-                        lazy_msg = Some(client.prepare(ServerGeneral::TerrainChunkUpdate {
-                            key: *chunk_key,
-                            chunk: Ok(match terrain.get_key(*chunk_key) {
-                                Some(chunk) => SerializedTerrainChunk::via_heuristic(&chunk),
-                                None => break 'chunk,
-                            }),
-                        }));
+                if let Some(participant) = &client.participant {
+                    let low_bandwidth = participant.bandwidth() < TERRAIN_LOW_BANDWIDTH;
+                    let lazy_msg = if low_bandwidth {
+                        &mut lazy_msg_lo
+                    } else {
+                        &mut lazy_msg_hi
+                    };
+                    if super::terrain::chunk_in_vd(
+                        pos.0,
+                        *chunk_key,
+                        &terrain,
+                        presence.view_distance,
+                    ) {
+                        if lazy_msg.is_none() {
+                            *lazy_msg = Some(client.prepare(ServerGeneral::TerrainChunkUpdate {
+                                key: *chunk_key,
+                                chunk: Ok(match terrain.get_key(*chunk_key) {
+                                    Some(chunk) => {
+                                        SerializedTerrainChunk::via_heuristic(&chunk, low_bandwidth)
+                                    },
+                                    None => break 'chunk,
+                                }),
+                            }));
+                        }
+                        lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));
                     }
-                    lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));
                 }
             }
         }

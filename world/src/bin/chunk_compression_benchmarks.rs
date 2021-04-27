@@ -620,18 +620,26 @@ fn main() {
                         .unwrap();
                 let quadpngquartwide_post = Instant::now();
 
-                let tripng_pre = Instant::now();
-                let tripng =
-                    image_terrain_chonk(TriPngEncoding, TallPacking { flip_y: true }, &chunk)
+                let tripngaverage_pre = Instant::now();
+                let tripngaverage =
+                    image_terrain_chonk(TriPngEncoding::<true>(), WidePacking::<true>(), &chunk)
                         .unwrap();
-                let tripng_post = Instant::now();
+                let tripngaverage_post = Instant::now();
+
+                let tripngconst_pre = Instant::now();
+                let tripngconst =
+                    image_terrain_chonk(TriPngEncoding::<false>(), WidePacking::<true>(), &chunk)
+                        .unwrap();
+                let tripngconst_post = Instant::now();
+
                 #[rustfmt::skip]
                 sizes.extend_from_slice(&[
                     ("quadpngfull", quadpngfull.data.len() as f32 / n as f32),
                     ("quadpnghalf", quadpnghalf.data.len() as f32 / n as f32),
                     ("quadpngquarttall", quadpngquarttall.data.len() as f32 / n as f32),
                     ("quadpngquartwide", quadpngquartwide.data.len() as f32 / n as f32),
-                    ("tripng", tripng.data.len() as f32 / n as f32),
+                    ("tripngaverage", tripngaverage.data.len() as f32 / n as f32),
+                    ("tripngconst", tripngconst.data.len() as f32 / n as f32),
                 ]);
                 let best_idx = sizes
                     .iter()
@@ -650,7 +658,8 @@ fn main() {
                     ("quadpnghalf", (quadpnghalf_post - quadpnghalf_pre).subsec_nanos()),
                     ("quadpngquarttall", (quadpngquarttall_post - quadpngquarttall_pre).subsec_nanos()),
                     ("quadpngquartwide", (quadpngquartwide_post - quadpngquartwide_pre).subsec_nanos()),
-                    ("tripng", (tripng_post - tripng_pre).subsec_nanos()),
+                    ("tripngaverage", (tripngaverage_post - tripngaverage_pre).subsec_nanos()),
+                    ("tripngconst", (tripngconst_post - tripngconst_pre).subsec_nanos()),
                 ]);
                 {
                     let bucket = z_buckets
@@ -672,14 +681,23 @@ fn main() {
                     bucket.1 +=
                         (quadpngquartwide_post - quadpngquartwide_pre).subsec_nanos() as f32;
                 }
-                if false {
+                if true {
                     let bucket = z_buckets
-                        .entry("tripng")
+                        .entry("tripngaverage")
                         .or_default()
                         .entry(chunk.get_max_z() - chunk.get_min_z())
                         .or_insert((0, 0.0));
                     bucket.0 += 1;
-                    bucket.1 += (tripng_post - tripng_pre).subsec_nanos() as f32;
+                    bucket.1 += (tripngaverage_post - tripngaverage_pre).subsec_nanos() as f32;
+                }
+                if true {
+                    let bucket = z_buckets
+                        .entry("tripngconst")
+                        .or_default()
+                        .entry(chunk.get_max_z() - chunk.get_min_z())
+                        .or_insert((0, 0.0));
+                    bucket.0 += 1;
+                    bucket.1 += (tripngconst_post - tripngconst_pre).subsec_nanos() as f32;
                 }
                 trace!(
                     "{} {}: uncompressed: {}, {:?} {} {:?}",
