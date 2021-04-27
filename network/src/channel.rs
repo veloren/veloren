@@ -1,21 +1,34 @@
 use crate::api::NetworkConnectError;
 use async_trait::async_trait;
 use bytes::BytesMut;
+use futures_util::FutureExt;
+#[cfg(feature = "quic")]
+use futures_util::StreamExt;
 use network_protocol::{
     Bandwidth, Cid, InitProtocolError, MpscMsg, MpscRecvProtocol, MpscSendProtocol, Pid,
-    ProtocolError, ProtocolEvent, ProtocolMetricCache, ProtocolMetrics, QuicDataFormat,
-    QuicDataFormatStream, QuicRecvProtocol, QuicSendProtocol, Sid, TcpRecvProtocol,
+    ProtocolError, ProtocolEvent, ProtocolMetricCache, ProtocolMetrics, Sid, TcpRecvProtocol,
     TcpSendProtocol, UnreliableDrain, UnreliableSink,
 };
-use std::{sync::Arc, time::Duration};
+#[cfg(feature = "quic")]
+use network_protocol::{QuicDataFormat, QuicDataFormatStream, QuicRecvProtocol, QuicSendProtocol};
+use std::{
+    collections::HashMap,
+    io,
+    net::SocketAddr,
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc,
+    },
+    time::Duration,
+};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net,
     net::tcp::{OwnedReadHalf, OwnedWriteHalf},
-    sync::{mpsc, oneshot},
+    select,
+    sync::{mpsc, oneshot, Mutex},
 };
-use tokio_stream::StreamExt;
-use tracing::{info, trace};
+use tracing::{error, info, trace, warn};
 
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
@@ -42,32 +55,67 @@ pub(crate) enum RecvProtocols {
     Quic(QuicRecvProtocol<QuicSink>),
 }
 
+lazy_static::lazy_static! {
+    pub(crate) static ref MPSC_POOL: Mutex<HashMap<u64, mpsc::UnboundedSender<C2cMpscConnect>>> = {
+        Mutex::new(HashMap::new())
+    };
+}
+
+pub(crate) type C2cMpscConnect = (
+    mpsc::Sender<MpscMsg>,
+    oneshot::Sender<mpsc::Sender<MpscMsg>>,
+);
+
 impl Protocols {
     const MPSC_CHANNEL_BOUND: usize = 1000;
 
     pub(crate) async fn with_tcp_connect(
-        addr: std::net::SocketAddr,
-        cid: Cid,
-        metrics: Arc<ProtocolMetrics>,
+        addr: SocketAddr,
+        metrics: ProtocolMetricCache,
     ) -> Result<Self, NetworkConnectError> {
-        let stream = match net::TcpStream::connect(addr).await {
-            Ok(stream) => stream,
-            Err(e) => {
-                return Err(crate::api::NetworkConnectError::Io(e));
-            },
-        };
-        info!("Connecting Tcp to: {}", stream.peer_addr().unwrap());
-        Ok(Protocols::new_tcp(stream, cid, metrics))
+        let stream = net::TcpStream::connect(addr)
+            .await
+            .map_err(NetworkConnectError::Io)?;
+        info!(
+            "Connecting Tcp to: {}",
+            stream.peer_addr().map_err(NetworkConnectError::Io)?
+        );
+        Ok(Self::new_tcp(stream, metrics))
     }
 
-    pub(crate) fn new_tcp(
-        stream: tokio::net::TcpStream,
-        cid: Cid,
+    pub(crate) async fn with_tcp_listen(
+        addr: SocketAddr,
+        cids: Arc<AtomicU64>,
         metrics: Arc<ProtocolMetrics>,
-    ) -> Self {
-        let (r, w) = stream.into_split();
-        let metrics = ProtocolMetricCache::new(&cid.to_string(), metrics);
+        s2s_stop_listening_r: oneshot::Receiver<()>,
+        c2s_protocol_s: mpsc::UnboundedSender<(Self, Cid)>,
+    ) -> std::io::Result<()> {
+        let listener = net::TcpListener::bind(addr).await?;
+        trace!(?addr, "Tcp Listener bound");
+        let mut end_receiver = s2s_stop_listening_r.fuse();
+        tokio::spawn(async move {
+            while let Some(data) = select! {
+                    next = listener.accept().fuse() => Some(next),
+                    _ = &mut end_receiver => None,
+            } {
+                let (stream, remote_addr) = match data {
+                    Ok((s, p)) => (s, p),
+                    Err(e) => {
+                        trace!(?e, "TcpStream Error, ignoring connection attempt");
+                        continue;
+                    },
+                };
+                let cid = cids.fetch_add(1, Ordering::Relaxed);
+                info!(?remote_addr, ?cid, "Accepting Tcp from");
+                let metrics = ProtocolMetricCache::new(&cid.to_string(), Arc::clone(&metrics));
+                let _ = c2s_protocol_s.send((Self::new_tcp(stream, metrics.clone()), cid));
+            }
+        });
+        Ok(())
+    }
 
+    pub(crate) fn new_tcp(stream: tokio::net::TcpStream, metrics: ProtocolMetricCache) -> Self {
+        let (r, w) = stream.into_split();
         let sp = TcpSendProtocol::new(TcpDrain { half: w }, metrics.clone());
         let rp = TcpRecvProtocol::new(
             TcpSink {
@@ -81,70 +129,104 @@ impl Protocols {
 
     pub(crate) async fn with_mpsc_connect(
         addr: u64,
-        cid: Cid,
-        metrics: Arc<ProtocolMetrics>,
+        metrics: ProtocolMetricCache,
     ) -> Result<Self, NetworkConnectError> {
-        let mpsc_s = match crate::scheduler::MPSC_POOL.lock().await.get(&addr) {
-            Some(s) => s.clone(),
-            None => {
-                return Err(NetworkConnectError::Io(std::io::Error::new(
-                    std::io::ErrorKind::NotConnected,
+        let mpsc_s = MPSC_POOL
+            .lock()
+            .await
+            .get(&addr)
+            .ok_or_else(|| {
+                NetworkConnectError::Io(io::Error::new(
+                    io::ErrorKind::NotConnected,
                     "no mpsc listen on this addr",
-                )));
-            },
-        };
+                ))
+            })?
+            .clone();
         let (remote_to_local_s, remote_to_local_r) = mpsc::channel(Self::MPSC_CHANNEL_BOUND);
         let (local_to_remote_oneshot_s, local_to_remote_oneshot_r) = oneshot::channel();
-        if mpsc_s
+        mpsc_s
             .send((remote_to_local_s, local_to_remote_oneshot_s))
-            .is_err()
-        {
-            return Err(NetworkConnectError::Io(std::io::Error::new(
-                std::io::ErrorKind::BrokenPipe,
-                "mpsc pipe broke during connect",
-            )));
-        }
-        let local_to_remote_s = match local_to_remote_oneshot_r.await {
-            Ok(s) => s,
-            Err(e) => {
-                return Err(NetworkConnectError::Io(std::io::Error::new(
-                    std::io::ErrorKind::BrokenPipe,
-                    e,
-                )));
-            },
-        };
+            .map_err(|_| {
+                NetworkConnectError::Io(io::Error::new(
+                    io::ErrorKind::BrokenPipe,
+                    "mpsc pipe broke during connect",
+                ))
+            })?;
+        let local_to_remote_s = local_to_remote_oneshot_r
+            .await
+            .map_err(|e| NetworkConnectError::Io(io::Error::new(io::ErrorKind::BrokenPipe, e)))?;
         info!(?addr, "Connecting Mpsc");
         Ok(Self::new_mpsc(
             local_to_remote_s,
             remote_to_local_r,
-            cid,
             metrics,
         ))
+    }
+
+    pub(crate) async fn with_mpsc_listen(
+        addr: u64,
+        cids: Arc<AtomicU64>,
+        metrics: Arc<ProtocolMetrics>,
+        s2s_stop_listening_r: oneshot::Receiver<()>,
+        c2s_protocol_s: mpsc::UnboundedSender<(Self, Cid)>,
+    ) -> std::io::Result<()> {
+        let (mpsc_s, mut mpsc_r) = mpsc::unbounded_channel();
+        MPSC_POOL.lock().await.insert(addr, mpsc_s);
+        trace!(?addr, "Mpsc Listener bound");
+        let mut end_receiver = s2s_stop_listening_r.fuse();
+        tokio::spawn(async move {
+            while let Some((local_to_remote_s, local_remote_to_local_s)) = select! {
+                    next = mpsc_r.recv().fuse() => next,
+                    _ = &mut end_receiver => None,
+            } {
+                let (remote_to_local_s, remote_to_local_r) =
+                    mpsc::channel(Self::MPSC_CHANNEL_BOUND);
+                if let Err(e) = local_remote_to_local_s.send(remote_to_local_s) {
+                    error!(?e, "mpsc listen aborted");
+                }
+
+                let cid = cids.fetch_add(1, Ordering::Relaxed);
+                info!(?addr, ?cid, "Accepting Mpsc from");
+                let metrics = ProtocolMetricCache::new(&cid.to_string(), Arc::clone(&metrics));
+                let _ = c2s_protocol_s.send((
+                    Self::new_mpsc(local_to_remote_s, remote_to_local_r, metrics.clone()),
+                    cid,
+                ));
+            }
+            warn!("MpscStream Failed, stopping");
+        });
+        Ok(())
     }
 
     pub(crate) fn new_mpsc(
         sender: mpsc::Sender<MpscMsg>,
         receiver: mpsc::Receiver<MpscMsg>,
-        cid: Cid,
-        metrics: Arc<ProtocolMetrics>,
+        metrics: ProtocolMetricCache,
     ) -> Self {
-        let metrics = ProtocolMetricCache::new(&cid.to_string(), metrics);
-
         let sp = MpscSendProtocol::new(MpscDrain { sender }, metrics.clone());
         let rp = MpscRecvProtocol::new(MpscSink { receiver }, metrics);
         Protocols::Mpsc((sp, rp))
     }
 
+    #[cfg(feature = "quic")]
     pub(crate) async fn with_quic_connect(
-        addr: std::net::SocketAddr,
+        addr: SocketAddr,
         config: quinn::ClientConfig,
         name: String,
-        cid: Cid,
-        metrics: Arc<ProtocolMetrics>,
+        metrics: ProtocolMetricCache,
     ) -> Result<Self, NetworkConnectError> {
         let config = config.clone();
         let endpoint = quinn::Endpoint::builder();
-        let (endpoint, _) = match endpoint.bind(&"[::]:0".parse().unwrap()) {
+
+        use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+
+        let bindsock = match addr {
+            SocketAddr::V4(_) => SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 0),
+            SocketAddr::V6(_) => {
+                SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0)), 0)
+            },
+        };
+        let (endpoint, _) = match endpoint.bind(&bindsock) {
             Ok(e) => e,
             Err(quinn::EndpointError::Socket(e)) => return Err(NetworkConnectError::Io(e)),
         };
@@ -164,7 +246,7 @@ impl Protocols {
                 e,
             ))
         })?;
-        Protocols::new_quic(connection, false, cid, metrics)
+        Self::new_quic(connection, false, metrics)
             .await
             .map_err(|e| {
                 trace!(?e, "error with quic");
@@ -176,14 +258,59 @@ impl Protocols {
     }
 
     #[cfg(feature = "quic")]
+    pub(crate) async fn with_quic_listen(
+        addr: SocketAddr,
+        server_config: quinn::ServerConfig,
+        cids: Arc<AtomicU64>,
+        metrics: Arc<ProtocolMetrics>,
+        s2s_stop_listening_r: oneshot::Receiver<()>,
+        c2s_protocol_s: mpsc::UnboundedSender<(Self, Cid)>,
+    ) -> std::io::Result<()> {
+        let mut endpoint = quinn::Endpoint::builder();
+        endpoint.listen(server_config);
+        let (_endpoint, mut listener) = match endpoint.bind(&addr) {
+            Ok(v) => v,
+            Err(quinn::EndpointError::Socket(e)) => return Err(e),
+        };
+        trace!(?addr, "Quic Listener bound");
+        let mut end_receiver = s2s_stop_listening_r.fuse();
+        tokio::spawn(async move {
+            while let Some(Some(connecting)) = select! {
+                next = listener.next().fuse() => Some(next),
+                _ = &mut end_receiver => None,
+            } {
+                let remote_addr = connecting.remote_address();
+                let connection = match connecting.await {
+                    Ok(c) => c,
+                    Err(e) => {
+                        tracing::debug!(?e, ?remote_addr, "skipping connection attempt");
+                        continue;
+                    },
+                };
+
+                let cid = cids.fetch_add(1, Ordering::Relaxed);
+                info!(?remote_addr, ?cid, "Accepting Quic from");
+                let metrics = ProtocolMetricCache::new(&cid.to_string(), Arc::clone(&metrics));
+                match Protocols::new_quic(connection, true, metrics).await {
+                    Ok(quic) => {
+                        let _ = c2s_protocol_s.send((quic, cid));
+                    },
+                    Err(e) => {
+                        trace!(?e, "failed to start quic");
+                        continue;
+                    },
+                }
+            }
+        });
+        Ok(())
+    }
+
+    #[cfg(feature = "quic")]
     pub(crate) async fn new_quic(
         mut connection: quinn::NewConnection,
         listen: bool,
-        cid: Cid,
-        metrics: Arc<ProtocolMetrics>,
+        metrics: ProtocolMetricCache,
     ) -> Result<Self, quinn::ConnectionError> {
-        let metrics = ProtocolMetricCache::new(&cid.to_string(), metrics);
-
         let (sendstream, recvstream) = if listen {
             connection.connection.open_bi().await?
         } else {
@@ -191,7 +318,7 @@ impl Protocols {
                 .bi_streams
                 .next()
                 .await
-                .ok_or_else(|| quinn::ConnectionError::LocallyClosed)??
+                .ok_or(quinn::ConnectionError::LocallyClosed)??
         };
         let (recvstreams_s, recvstreams_r) = mpsc::unbounded_channel();
         let streams_s_clone = recvstreams_s.clone();
@@ -521,7 +648,8 @@ impl UnreliableSink for QuicSink {
 mod tests {
     use super::*;
     use bytes::Bytes;
-    use network_protocol::{Promises, RecvProtocol, SendProtocol};
+    use network_protocol::{Promises, ProtocolMetrics, RecvProtocol, SendProtocol};
+    use std::sync::Arc;
     use tokio::net::{TcpListener, TcpStream};
 
     #[tokio::test]
@@ -533,9 +661,9 @@ mod tests {
         });
         let client = TcpStream::connect("127.0.0.1:5000").await.unwrap();
         let (_listener, server) = r1.await.unwrap();
-        let metrics = Arc::new(ProtocolMetrics::new().unwrap());
-        let client = Protocols::new_tcp(client, 0, Arc::clone(&metrics));
-        let server = Protocols::new_tcp(server, 0, Arc::clone(&metrics));
+        let metrics = ProtocolMetricCache::new("0", Arc::new(ProtocolMetrics::new().unwrap()));
+        let client = Protocols::new_tcp(client, metrics.clone());
+        let server = Protocols::new_tcp(server, metrics);
         let (mut s, _) = client.split();
         let (_, mut r) = server.split();
         let event = ProtocolEvent::OpenStream {
@@ -582,9 +710,9 @@ mod tests {
         });
         let client = TcpStream::connect("127.0.0.1:5001").await.unwrap();
         let (_listener, server) = r1.await.unwrap();
-        let metrics = Arc::new(ProtocolMetrics::new().unwrap());
-        let client = Protocols::new_tcp(client, 0, Arc::clone(&metrics));
-        let server = Protocols::new_tcp(server, 0, Arc::clone(&metrics));
+        let metrics = ProtocolMetricCache::new("0", Arc::new(ProtocolMetrics::new().unwrap()));
+        let client = Protocols::new_tcp(client, metrics.clone());
+        let server = Protocols::new_tcp(server, metrics);
         let (s, _) = client.split();
         let (_, mut r) = server.split();
         let e = tokio::spawn(async move { r.recv().await });

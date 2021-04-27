@@ -85,7 +85,7 @@ fn stream_simple_quic() {
 
 #[test]
 fn stream_simple_quic_3msg() {
-    let (_, _) = helper::setup(true, 0);
+    let (_, _) = helper::setup(false, 0);
     let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(quic());
 
     s1_a.send("Hello World").unwrap();

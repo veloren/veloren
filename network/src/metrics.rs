@@ -251,6 +251,7 @@ fn protocolconnect_name(protocol: &ConnectAddr) -> &str {
         ConnectAddr::Tcp(_) => "tcp",
         ConnectAddr::Udp(_) => "udp",
         ConnectAddr::Mpsc(_) => "mpsc",
+        #[cfg(feature = "quic")]
         ConnectAddr::Quic(_, _, _) => "quic",
     }
 }
@@ -261,6 +262,7 @@ fn protocollisten_name(protocol: &ListenAddr) -> &str {
         ListenAddr::Tcp(_) => "tcp",
         ListenAddr::Udp(_) => "udp",
         ListenAddr::Mpsc(_) => "mpsc",
+        #[cfg(feature = "quic")]
         ListenAddr::Quic(_, _) => "quic",
     }
 }

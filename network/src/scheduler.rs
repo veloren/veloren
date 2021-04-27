@@ -4,8 +4,8 @@ use crate::{
     metrics::{NetworkMetrics, ProtocolInfo},
     participant::{B2sPrioStatistic, BParticipant, S2bCreateChannel, S2bShutdownBparticipant},
 };
-use futures_util::{FutureExt, StreamExt};
-use network_protocol::{Cid, MpscMsg, Pid, ProtocolMetrics};
+use futures_util::StreamExt;
+use network_protocol::{Cid, Pid, ProtocolMetricCache, ProtocolMetrics};
 #[cfg(feature = "metrics")]
 use prometheus::Registry;
 use rand::Rng;
@@ -18,7 +18,7 @@ use std::{
     time::Duration,
 };
 use tokio::{
-    io, net, select,
+    io,
     sync::{mpsc, oneshot, Mutex},
 };
 use tokio_stream::wrappers::UnboundedReceiverStream;
@@ -33,12 +33,6 @@ use tracing::*;
 //  - w: wire
 //  - c: channel/handshake
 
-lazy_static::lazy_static! {
-    pub(crate) static ref MPSC_POOL: Mutex<HashMap<u64, mpsc::UnboundedSender<S2sMpscConnect>>> = {
-        Mutex::new(HashMap::new())
-    };
-}
-
 #[derive(Debug)]
 struct ParticipantInfo {
     secret: u128,
@@ -52,10 +46,6 @@ pub(crate) type A2sConnect = (
     oneshot::Sender<Result<Participant, NetworkConnectError>>,
 );
 type A2sDisconnect = (Pid, S2bShutdownBparticipant);
-type S2sMpscConnect = (
-    mpsc::Sender<MpscMsg>,
-    oneshot::Sender<mpsc::Sender<MpscMsg>>,
-);
 
 #[derive(Debug)]
 struct ControlChannels {
@@ -88,8 +78,6 @@ pub struct Scheduler {
 }
 
 impl Scheduler {
-    const MPSC_CHANNEL_BOUND: usize = 1000;
-
     pub fn new(
         local_pid: Pid,
         #[cfg(feature = "metrics")] registry: Option<&Registry>,
@@ -157,7 +145,10 @@ impl Scheduler {
     }
 
     pub async fn run(mut self) {
-        let run_channels = self.run_channels.take().unwrap();
+        let run_channels = self
+            .run_channels
+            .take()
+            .expect("run() can only be called once");
 
         tokio::join!(
             self.listen_mgr(run_channels.a2s_listen_r),
@@ -174,17 +165,66 @@ impl Scheduler {
         a2s_listen_r
             .for_each_concurrent(None, |(address, s2a_listen_result_s)| {
                 let address = address;
+                let cids = Arc::clone(&self.channel_ids);
+
+                #[cfg(feature = "metrics")]
+                let mcache = self.metrics.connect_requests_cache(&address);
+
+                debug!(?address, "Got request to open a channel_creator");
+                self.metrics.listen_request(&address);
+                let (s2s_stop_listening_s, s2s_stop_listening_r) = oneshot::channel::<()>();
+                let (c2s_protocol_s, mut c2s_protocol_r) = mpsc::unbounded_channel();
+                let metrics = Arc::clone(&self.protocol_metrics);
 
                 async move {
-                    debug!(?address, "Got request to open a channel_creator");
-                    self.metrics.listen_request(&address);
-                    let (end_sender, end_receiver) = oneshot::channel::<()>();
                     self.channel_listener
                         .lock()
                         .await
-                        .insert(address.clone().into(), end_sender);
-                    self.channel_creator(address, end_receiver, s2a_listen_result_s)
-                        .await;
+                        .insert(address.clone().into(), s2s_stop_listening_s);
+
+                    #[cfg(feature = "metrics")]
+                    mcache.inc();
+
+                    let res = match address {
+                        ListenAddr::Tcp(addr) => {
+                            Protocols::with_tcp_listen(
+                                addr,
+                                cids,
+                                metrics,
+                                s2s_stop_listening_r,
+                                c2s_protocol_s,
+                            )
+                            .await
+                        },
+                        #[cfg(feature = "quic")]
+                        ListenAddr::Quic(addr, ref server_config) => {
+                            Protocols::with_quic_listen(
+                                addr,
+                                server_config.clone(),
+                                cids,
+                                metrics,
+                                s2s_stop_listening_r,
+                                c2s_protocol_s,
+                            )
+                            .await
+                        },
+                        ListenAddr::Mpsc(addr) => {
+                            Protocols::with_mpsc_listen(
+                                addr,
+                                cids,
+                                metrics,
+                                s2s_stop_listening_r,
+                                c2s_protocol_s,
+                            )
+                            .await
+                        },
+                        _ => unimplemented!(),
+                    };
+                    let _ = s2a_listen_result_s.send(res);
+
+                    while let Some((prot, cid)) = c2s_protocol_r.recv().await {
+                        self.init_protocol(prot, cid, None, true).await;
+                    }
                 }
             })
             .await;
@@ -195,15 +235,16 @@ impl Scheduler {
         trace!("Start connect_mgr");
         while let Some((addr, pid_sender)) = a2s_connect_r.recv().await {
             let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
-            let metrics = Arc::clone(&self.protocol_metrics);
+            let metrics =
+                ProtocolMetricCache::new(&cid.to_string(), Arc::clone(&self.protocol_metrics));
             self.metrics.connect_request(&addr);
             let protocol = match addr {
-                ConnectAddr::Tcp(addr) => Protocols::with_tcp_connect(addr, cid, metrics).await,
+                ConnectAddr::Tcp(addr) => Protocols::with_tcp_connect(addr, metrics).await,
                 #[cfg(feature = "quic")]
                 ConnectAddr::Quic(addr, ref config, name) => {
-                    Protocols::with_quic_connect(addr, config.clone(), name, cid, metrics).await
+                    Protocols::with_quic_connect(addr, config.clone(), name, metrics).await
                 },
-                ConnectAddr::Mpsc(addr) => Protocols::with_mpsc_connect(addr, cid, metrics).await,
+                ConnectAddr::Mpsc(addr) => Protocols::with_mpsc_connect(addr, metrics).await,
                 _ => unimplemented!(),
             };
             let protocol = match protocol {
@@ -325,204 +366,6 @@ impl Scheduler {
         self.participant_channels.lock().await.take();
 
         trace!("Stop scheduler_shutdown_mgr");
-    }
-
-    async fn channel_creator(
-        &self,
-        addr: ListenAddr,
-        s2s_stop_listening_r: oneshot::Receiver<()>,
-        s2a_listen_result_s: oneshot::Sender<io::Result<()>>,
-    ) {
-        trace!(?addr, "Start up channel creator");
-        #[cfg(feature = "metrics")]
-        let mcache = self.metrics.connect_requests_cache(&addr);
-        match addr {
-            ListenAddr::Tcp(addr) => {
-                let listener = match net::TcpListener::bind(addr).await {
-                    Ok(listener) => {
-                        s2a_listen_result_s.send(Ok(())).unwrap();
-                        listener
-                    },
-                    Err(e) => {
-                        info!(
-                            ?addr,
-                            ?e,
-                            "Tcp bind error during listener startup"
-                        );
-                        s2a_listen_result_s.send(Err(e)).unwrap();
-                        return;
-                    },
-                };
-                trace!(?addr, "Listener bound");
-                let mut end_receiver = s2s_stop_listening_r.fuse();
-                while let Some(data) = select! {
-                    next = listener.accept().fuse() => Some(next),
-                    _ = &mut end_receiver => None,
-                } {
-                    let (stream, remote_addr) = match data {
-                        Ok((s, p)) => (s, p),
-                        Err(e) => {
-                            warn!(?e, "TcpStream Error, ignoring connection attempt");
-                            continue;
-                        },
-                    };
-                    #[cfg(feature = "metrics")]
-                    mcache.inc();
-                    let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
-                    info!(?remote_addr, ?cid, "Accepting Tcp from");
-                    self.init_protocol(Protocols::new_tcp(stream, cid, Arc::clone(&self.protocol_metrics)), cid, None, true)
-                        .await;
-                }
-            },
-            #[cfg(feature = "quic")]
-            ListenAddr::Quic(addr, ref server_config) => {
-                let mut endpoint = quinn::Endpoint::builder();
-                endpoint.listen(server_config.clone());
-                let (_endpoint, mut listener) = match endpoint.bind(&addr) {
-                    Ok((endpoint, listener)) => {
-                        s2a_listen_result_s.send(Ok(())).unwrap();
-                        (endpoint, listener)
-                    },
-                    Err(quinn::EndpointError::Socket(e)) => {
-                        info!(
-                            ?addr,
-                            ?e,
-                            "Quic bind error during listener startup"
-                        );
-                        s2a_listen_result_s.send(Err(e)).unwrap();
-                        return;
-                    }
-                };
-                trace!(?addr, "Listener bound");
-                let mut end_receiver = s2s_stop_listening_r.fuse();
-                while let Some(Some(connecting)) = select! {
-                    next = listener.next().fuse() => Some(next),
-                    _ = &mut end_receiver => None,
-                } {
-                    let remote_addr = connecting.remote_address();
-                    let connection = match connecting.await {
-                        Ok(c) => c,
-                        Err(e) => {
-                            debug!(?e, ?remote_addr, "skipping connection attempt");
-                            continue;
-                        },
-                    };
-                    #[cfg(feature = "metrics")]
-                    mcache.inc();
-                    let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
-                    info!(?remote_addr, ?cid, "Accepting Quic from");
-                    let quic = match Protocols::new_quic(connection, true, cid, Arc::clone(&self.protocol_metrics)).await {
-                        Ok(quic) => quic,
-                        Err(e) => {
-                            trace!(?e, "failed to start quic");
-                            continue;
-                        }
-                    };
-                    self.init_protocol(quic, cid, None, true)
-                        .await;
-                }
-            },
-            ListenAddr::Mpsc(addr) => {
-                let (mpsc_s, mut mpsc_r) = mpsc::unbounded_channel();
-                MPSC_POOL.lock().await.insert(addr, mpsc_s);
-                s2a_listen_result_s.send(Ok(())).unwrap();
-                trace!(?addr, "Listener bound");
-
-                let mut end_receiver = s2s_stop_listening_r.fuse();
-                while let Some((local_to_remote_s, local_remote_to_local_s)) = select! {
-                    next = mpsc_r.recv().fuse() => next,
-                    _ = &mut end_receiver => None,
-                } {
-                    let (remote_to_local_s, remote_to_local_r) = mpsc::channel(Self::MPSC_CHANNEL_BOUND);
-                    local_remote_to_local_s.send(remote_to_local_s).unwrap();
-                    #[cfg(feature = "metrics")]
-                    mcache.inc();
-                    let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
-                    info!(?addr, ?cid, "Accepting Mpsc from");
-                    self.init_protocol(Protocols::new_mpsc(local_to_remote_s, remote_to_local_r, cid, Arc::clone(&self.protocol_metrics)), cid, None, true)
-                        .await;
-                }
-                warn!("MpscStream Failed, stopping");
-            },/*
-            ProtocolListenAddr::Udp(addr) => {
-                let socket = match net::UdpSocket::bind(addr).await {
-                    Ok(socket) => {
-                        s2a_listen_result_s.send(Ok(())).unwrap();
-                        Arc::new(socket)
-                    },
-                    Err(e) => {
-                        info!(
-                            ?addr,
-                            ?e,
-                            "Listener couldn't be started due to error on udp bind"
-                        );
-                        s2a_listen_result_s.send(Err(e)).unwrap();
-                        return;
-                    },
-                };
-                trace!(?addr, "Listener bound");
-                // receiving is done from here and will be piped to protocol as UDP does not
-                // have any state
-                let mut listeners = HashMap::new();
-                let mut end_receiver = s2s_stop_listening_r.fuse();
-                const UDP_MAXIMUM_SINGLE_PACKET_SIZE_EVER: usize = 9216;
-                let mut data = [0u8; UDP_MAXIMUM_SINGLE_PACKET_SIZE_EVER];
-                while let Ok((size, remote_addr)) = select! {
-                    next = socket.recv_from(&mut data).fuse() => next,
-                    _ = &mut end_receiver => Err(std::io::Error::new(std::io::ErrorKind::Other, "")),
-                } {
-                    let mut datavec = Vec::with_capacity(size);
-                    datavec.extend_from_slice(&data[0..size]);
-                    //Due to the async nature i cannot make of .entry() as it would lead to a still
-                    // borrowed in another branch situation
-                    #[allow(clippy::map_entry)]
-                    if !listeners.contains_key(&remote_addr) {
-                        info!("Accepting Udp from: {}", &remote_addr);
-                        let (udp_data_sender, udp_data_receiver) =
-                            mpsc::unbounded_channel::<Vec<u8>>();
-                        listeners.insert(remote_addr, udp_data_sender);
-                        let protocol = UdpProtocol::new(
-                            Arc::clone(&socket),
-                            remote_addr,
-                            #[cfg(feature = "metrics")]
-                            Arc::clone(&self.metrics),
-                            udp_data_receiver,
-                        );
-                        self.init_protocol(Protocols::Udp(protocol), None, false)
-                            .await;
-                    }
-                    let udp_data_sender = listeners.get_mut(&remote_addr).unwrap();
-                    udp_data_sender.send(datavec).unwrap();
-                }
-            },*/
-            _ => unimplemented!(),
-        }
-        trace!(?addr, "Ending channel creator");
-    }
-
-    #[allow(dead_code)]
-    async fn udp_single_channel_connect(
-        socket: Arc<net::UdpSocket>,
-        w2p_udp_package_s: mpsc::UnboundedSender<Vec<u8>>,
-    ) {
-        let addr = socket.local_addr();
-        trace!(?addr, "Start udp_single_channel_connect");
-        //TODO: implement real closing
-        let (_end_sender, end_receiver) = oneshot::channel::<()>();
-
-        // receiving is done from here and will be piped to protocol as UDP does not
-        // have any state
-        let mut end_receiver = end_receiver.fuse();
-        let mut data = [0u8; 9216];
-        while let Ok(size) = select! {
-            next = socket.recv(&mut data).fuse() => next,
-            _ = &mut end_receiver => Err(std::io::Error::new(std::io::ErrorKind::Other, "")),
-        } {
-            let mut datavec = Vec::with_capacity(size);
-            datavec.extend_from_slice(&data[0..size]);
-            w2p_udp_package_s.send(datavec).unwrap();
-        }
-        trace!(?addr, "Stop udp_single_channel_connect");
     }
 
     async fn init_protocol(

@@ -756,7 +756,7 @@ impl BParticipant {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use network_protocol::ProtocolMetrics;
+    use network_protocol::{ProtocolMetricCache, ProtocolMetrics};
     use tokio::{
         runtime::Runtime,
         sync::{mpsc, oneshot},
@@ -816,14 +816,16 @@ mod tests {
     ) -> Protocols {
         let (s1, r1) = mpsc::channel(100);
         let (s2, r2) = mpsc::channel(100);
-        let metrics = Arc::new(ProtocolMetrics::new().unwrap());
-        let p1 = Protocols::new_mpsc(s1, r2, cid, Arc::clone(&metrics));
+        let met = Arc::new(ProtocolMetrics::new().unwrap());
+        let metrics = ProtocolMetricCache::new(&cid.to_string(), Arc::clone(&met));
+        let p1 = Protocols::new_mpsc(s1, r2, metrics);
         let (complete_s, complete_r) = oneshot::channel();
         create_channel
             .send((cid, Sid::new(0), p1, complete_s))
             .unwrap();
         complete_r.await.unwrap();
-        Protocols::new_mpsc(s2, r1, cid, Arc::clone(&metrics))
+        let metrics = ProtocolMetricCache::new(&cid.to_string(), met);
+        Protocols::new_mpsc(s2, r1, metrics)
     }
 
     #[test]

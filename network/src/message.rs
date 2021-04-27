@@ -30,7 +30,7 @@ impl Message {
     /// # Example
     /// for example coding, see [`send_raw`]
     ///
-    /// [`send_raw`]: Stream::send_raw
+    /// [`send_raw`]: crate::api::Stream::send_raw
     /// [`Participants`]: crate::api::Participant
     /// [`compress`]: lz_fear::raw::compress2
     /// [`Message::serialize`]: crate::message::Message::serialize

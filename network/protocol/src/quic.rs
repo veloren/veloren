@@ -451,7 +451,10 @@ where
                                     m.data.extend_from_slice(&data);
                                     if m.data.len() == m.length as usize {
                                         // finished, yay
-                                        let m = self.incoming.remove(&mid).unwrap();
+                                        let m = self
+                                            .incoming
+                                            .remove(&mid)
+                                            .ok_or(ProtocolError::Violated)?;
                                         self.metrics.rmsg_ob(
                                             m.sid,
                                             RemoveReason::Finished,

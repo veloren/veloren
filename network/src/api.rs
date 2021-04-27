@@ -145,8 +145,8 @@ pub struct StreamParams {
 /// [`Arc`](std::sync::Arc) as all commands have internal mutability.
 ///
 /// The `Network` has methods to [`connect`] to other [`Participants`] actively
-/// via their [`ProtocolConnectAddr`], or [`listen`] passively for [`connected`]
-/// [`Participants`] via [`ProtocolListenAddr`].
+/// via their [`ConnectAddr`], or [`listen`] passively for [`connected`]
+/// [`Participants`] via [`ListenAddr`].
 ///
 /// Too guarantee a clean shutdown, the [`Runtime`] MUST NOT be droped before
 /// the Network.
@@ -178,6 +178,8 @@ pub struct StreamParams {
 /// [`connect`]: Network::connect
 /// [`listen`]: Network::listen
 /// [`connected`]: Network::connected
+/// [`ConnectAddr`]: crate::api::ConnectAddr
+/// [`ListenAddr`]: crate::api::ListenAddr
 pub struct Network {
     local_pid: Pid,
     participant_disconnect_sender: Arc<Mutex<HashMap<Pid, A2sDisconnect>>>,
@@ -293,7 +295,7 @@ impl Network {
         }
     }
 
-    /// starts listening on an [`ProtocolListenAddr`].
+    /// starts listening on an [`ListenAddr`].
     /// When the method returns the `Network` is ready to listen for incoming
     /// connections OR has returned a [`NetworkError`] (e.g. port already used).
     /// You can call [`connected`] to asynchrony wait for a [`Participant`] to
@@ -303,7 +305,7 @@ impl Network {
     /// # Examples
     /// ```ignore
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, Pid, ProtocolListenAddr};
+    /// use veloren_network::{Network, Pid, ListenAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2000` TCP on all NICs and `2001` UDP locally
@@ -311,10 +313,10 @@ impl Network {
     /// let network = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     network
-    ///         .listen(ProtocolListenAddr::Tcp("127.0.0.1:2000".parse().unwrap()))
+    ///         .listen(ListenAddr::Tcp("127.0.0.1:2000".parse().unwrap()))
     ///         .await?;
     ///     network
-    ///         .listen(ProtocolListenAddr::Udp("127.0.0.1:2001".parse().unwrap()))
+    ///         .listen(ListenAddr::Udp("127.0.0.1:2001".parse().unwrap()))
     ///         .await?;
     ///     drop(network);
     ///     # Ok(())
@@ -323,6 +325,7 @@ impl Network {
     /// ```
     ///
     /// [`connected`]: Network::connected
+    /// [`ListenAddr`]: crate::api::ListenAddr
     #[instrument(name="network", skip(self, address), fields(p = %self.local_pid))]
     pub async fn listen(&self, address: ListenAddr) -> Result<(), NetworkError> {
         let (s2a_result_s, s2a_result_r) = oneshot::channel::<tokio::io::Result<()>>();
@@ -339,13 +342,13 @@ impl Network {
         }
     }
 
-    /// starts connection to an [`ProtocolConnectAddr`].
+    /// starts connection to an [`ConnectAddr`].
     /// When the method returns the Network either returns a [`Participant`]
     /// ready to open [`Streams`] on OR has returned a [`NetworkError`] (e.g.
     /// can't connect, or invalid Handshake) # Examples
     /// ```ignore
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, Pid, ProtocolListenAddr, ProtocolConnectAddr};
+    /// use veloren_network::{Network, Pid, ListenAddr, ConnectAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port `2010` TCP and `2011` UDP like listening above
@@ -353,16 +356,16 @@ impl Network {
     /// let network = Network::new(Pid::new(), &runtime);
     /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
-    ///     # remote.listen(ProtocolListenAddr::Tcp("127.0.0.1:2010".parse().unwrap())).await?;
-    ///     # remote.listen(ProtocolListenAddr::Udp("127.0.0.1:2011".parse().unwrap())).await?;
+    ///     # remote.listen(ListenAddr::Tcp("127.0.0.1:2010".parse().unwrap())).await?;
+    ///     # remote.listen(ListenAddr::Udp("127.0.0.1:2011".parse().unwrap())).await?;
     ///     let p1 = network
-    ///         .connect(ProtocolConnectAddr::Tcp("127.0.0.1:2010".parse().unwrap()))
+    ///         .connect(ConnectAddr::Tcp("127.0.0.1:2010".parse().unwrap()))
     ///         .await?;
     ///     # //this doesn't work yet, so skip the test
     ///     # //TODO fixme!
     ///     # return Ok(());
     ///     let p2 = network
-    ///         .connect(ProtocolConnectAddr::Udp("127.0.0.1:2011".parse().unwrap()))
+    ///         .connect(ConnectAddr::Udp("127.0.0.1:2011".parse().unwrap()))
     ///         .await?;
     ///     assert_eq!(&p1, &p2);
     ///     # Ok(())
@@ -374,13 +377,13 @@ impl Network {
     /// ```
     /// Usually the `Network` guarantees that a operation on a [`Participant`]
     /// succeeds, e.g. by automatic retrying unless it fails completely e.g. by
-    /// disconnecting from the remote. If 2 [`ProtocolConnectAddres`] you
+    /// disconnecting from the remote. If 2 [`ConnectAddr] you
     /// `connect` to belongs to the same [`Participant`], you get the same
     /// [`Participant`] as a result. This is useful e.g. by connecting to
     /// the same [`Participant`] via multiple Protocols.
     ///
     /// [`Streams`]: crate::api::Stream
-    /// [`ProtocolConnectAddres`]: crate::api::ProtocolConnectAddr
+    /// [`ConnectAddr`]: crate::api::ConnectAddr
     #[instrument(name="network", skip(self, address), fields(p = %self.local_pid))]
     pub async fn connect(&self, address: ConnectAddr) -> Result<Participant, NetworkError> {
         let (pid_sender, pid_receiver) =
@@ -403,7 +406,7 @@ impl Network {
         Ok(participant)
     }
 
-    /// returns a [`Participant`] created from a [`ProtocolListenAddr`] you
+    /// returns a [`Participant`] created from a [`ListenAddr`] you
     /// called [`listen`] on before. This function will either return a
     /// working [`Participant`] ready to open [`Streams`] on OR has returned
     /// a [`NetworkError`] (e.g. Network got closed)
@@ -437,6 +440,7 @@ impl Network {
     ///
     /// [`Streams`]: crate::api::Stream
     /// [`listen`]: crate::api::Network::listen
+    /// [`ListenAddr`]: crate::api::ListenAddr
     #[instrument(name="network", skip(self), fields(p = %self.local_pid))]
     pub async fn connected(&self) -> Result<Participant, NetworkError> {
         let participant = self.connected_receiver.lock().await.recv().await?;
