@@ -630,6 +630,7 @@ fn create_ingame_and_shadow_pipelines(
             terrain,
             // player_shadow_pipeline,
         },
+        // TODO: skip creating these if the shadow map setting is not enabled
         shadow: ShadowPipelines {
             point: Some(point_shadow),
             directed: Some(terrain_directed_shadow),

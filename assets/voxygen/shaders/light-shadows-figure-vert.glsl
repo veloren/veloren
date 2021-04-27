@@ -70,7 +70,6 @@ uniform u_bones {
 // out vec4 shadowMapCoord;
 
 void main() {
-#if (SHADOW_MODE == SHADOW_MODE_MAP)
     uint bone_idx = (v_pos_norm >> 27) & 0xFu;
     vec3 pos = (vec3((uvec3(v_pos_norm) >> uvec3(0, 9, 18)) & uvec3(0x1FFu)) - 256.0) / 2.0;
 
@@ -80,5 +79,4 @@ void main() {
     ).xyz + (model_pos - focus_off.xyz/* + vec3(0.0, 0.0, 0.0001)*/);
 
     gl_Position = shadowMatrices * vec4(f_pos, 1.0);
-#endif
 }

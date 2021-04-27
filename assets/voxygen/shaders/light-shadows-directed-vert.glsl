@@ -54,7 +54,6 @@ uniform u_locals {
 const int EXTRA_NEG_Z = 32768;
 
 void main() {
-#if (SHADOW_MODE == SHADOW_MODE_MAP)
     vec3 f_chunk_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0xFFFFu)) - ivec3(0, 0, EXTRA_NEG_Z));
     vec3 f_pos = f_chunk_pos + (model_offs - focus_off.xyz);
     // f_pos = v_pos;
@@ -66,5 +65,4 @@ void main() {
     // gl_Position.z = clamp(gl_Position.z, -abs(gl_Position.w), abs(gl_Position.w));
     // shadowMapCoord = lights[gl_InstanceID].light_pos * gl_Vertex;
     // vec4(v_pos, 0.0, 1.0);
-#endif
 }

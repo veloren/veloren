@@ -124,9 +124,13 @@ impl<'frame> Drawer<'frame> {
     /// Get the render mode.
     pub fn render_mode(&self) -> &super::super::RenderMode { self.borrow.mode }
 
-    /// Returns None if the shadow renderer is not enabled or the pipelines are
-    /// not available yet
+    /// Returns None if the shadow renderer is not enabled at some level or the
+    /// pipelines are not available yet
     pub fn shadow_pass(&mut self) -> Option<ShadowPassDrawer> {
+        if !self.borrow.mode.shadow.is_map() {
+            return None;
+        }
+
         if let ShadowMap::Enabled(ref shadow_renderer) = self.borrow.shadow?.map {
             let encoder = self.encoder.as_mut().unwrap();
             let device = self.borrow.device;
@@ -256,13 +260,18 @@ impl<'frame> Drawer<'frame> {
         }
     }
 
-    /// Does nothing if the shadow pipelines are not available
+    /// Does nothing if the shadow pipelines are not available or shadow map
+    /// rendering is disabled
     pub fn draw_point_shadows<'data: 'frame>(
         &mut self,
         matrices: &[shadow::PointLightMatrix; 126],
         chunks: impl Clone
         + Iterator<Item = (&'data Model<terrain::Vertex>, &'data terrain::BoundLocals)>,
     ) {
+        if !self.borrow.mode.shadow.is_map() {
+            return;
+        }
+
         if let Some(ShadowMap::Enabled(ref shadow_renderer)) = self.borrow.shadow.map(|s| &s.map) {
             let device = self.borrow.device;
             let mut encoder = self
