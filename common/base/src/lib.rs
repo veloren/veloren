@@ -59,7 +59,7 @@ macro_rules! span {
 }
 
 #[cfg(feature = "tracy")]
-pub struct ProfSpan(tracy_client::Span);
+pub struct ProfSpan(pub tracy_client::Span);
 #[cfg(not(feature = "tracy"))]
 pub struct ProfSpan;
 
