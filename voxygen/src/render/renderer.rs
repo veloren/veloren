@@ -77,6 +77,7 @@ struct Shadow {
 /// Represent two states of the renderer:
 /// 1. Only interface pipelines created
 /// 2. All of the pipelines have been created
+#[allow(clippy::large_enum_variant)] // They are both pretty large
 enum State {
     // NOTE: this is used as a transient placeholder for moving things out of State temporarily
     Nothing,
@@ -487,7 +488,7 @@ impl Renderer {
             self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
 
             // Resize other render targets
-            self.views = Self::create_rt_views(&mut self.device, (dims.x, dims.y), &self.mode)?;
+            self.views = Self::create_rt_views(&self.device, (dims.x, dims.y), &self.mode)?;
             // Rebind views to clouds/postprocess bind groups
             self.locals.rebind(
                 &self.device,
@@ -519,7 +520,7 @@ impl Renderer {
             if let (Some((point_depth, directed_depth)), ShadowMode::Map(mode)) =
                 (shadow_views, self.mode.shadow)
             {
-                match ShadowMap::create_shadow_views(&mut self.device, (dims.x, dims.y), &mode) {
+                match ShadowMap::create_shadow_views(&self.device, (dims.x, dims.y), &mode) {
                     Ok((new_point_depth, new_directed_depth)) => {
                         *point_depth = new_point_depth;
                         *directed_depth = new_directed_depth;

@@ -6,7 +6,7 @@ use treeculler::Frustum;
 use vek::*;
 
 pub const NEAR_PLANE: f32 = 0.0625;
-pub const FAR_PLANE: f32 = 524288.0625;
+pub const FAR_PLANE: f32 = 524288.06; // excessive precision: 524288.0625 
 
 const FIRST_PERSON_INTERP_TIME: f32 = 0.1;
 const THIRD_PERSON_INTERP_TIME: f32 = 0.1;

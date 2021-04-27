@@ -54,9 +54,9 @@ impl<V: Vertex> Mesh<V> {
             self.verts.push(quad.d);
         } else {
             // Tri 1
-            self.verts.push(quad.a.clone());
+            self.verts.push(quad.a);
             self.verts.push(quad.b);
-            self.verts.push(quad.c.clone());
+            self.verts.push(quad.c);
 
             // Tri 2
             self.verts.push(quad.c);
@@ -78,9 +78,9 @@ impl<V: Vertex> Mesh<V> {
             debug_assert!(index % 3 == 0);
             assert!(index + 5 < self.verts.len());
             // Tri 1
-            self.verts[index] = quad.a.clone();
+            self.verts[index] = quad.a;
             self.verts[index + 1] = quad.b;
-            self.verts[index + 2] = quad.c.clone();
+            self.verts[index + 2] = quad.c;
 
             // Tri 2
             self.verts[index + 3] = quad.c;
@@ -99,7 +99,7 @@ impl<V: Vertex> Mesh<V> {
         self.verts.reserve(other.vertices().len());
 
         for vert in other.vertices() {
-            self.verts.push(f(vert.clone()));
+            self.verts.push(f(*vert));
         }
     }
 
@@ -162,10 +162,10 @@ impl<V: Vertex> Quad<V> {
         let verts = [self.a, self.b, self.c, self.d];
 
         Self {
-            a: verts[n % 4].clone(),
-            b: verts[(1 + n) % 4].clone(),
-            c: verts[(2 + n) % 4].clone(),
-            d: verts[(3 + n) % 4].clone(),
+            a: verts[n % 4],
+            b: verts[(1 + n) % 4],
+            c: verts[(2 + n) % 4],
+            d: verts[(3 + n) % 4],
         }
     }
 }

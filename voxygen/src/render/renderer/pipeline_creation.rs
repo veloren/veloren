@@ -618,15 +618,15 @@ fn create_ingame_and_shadow_pipelines(
 
     IngameAndShadowPipelines {
         ingame: IngamePipelines {
-            skybox,
             figure,
-            terrain,
             fluid,
-            sprite,
-            particle,
             lod_terrain,
+            particle,
             clouds,
             postprocess,
+            skybox,
+            sprite,
+            terrain,
             // player_shadow_pipeline,
         },
         shadow: ShadowPipelines {

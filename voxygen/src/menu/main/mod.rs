@@ -30,7 +30,7 @@ enum InitState {
     // Waiting on the client initialization
     Client(ClientInit),
     // Client initialized but still waiting on Renderer pipeline creation
-    Pipeline(Client),
+    Pipeline(Box<Client>),
 }
 
 impl InitState {
@@ -131,7 +131,7 @@ impl PlayState for MainMenuState {
             Some(InitMsg::Done(Ok(mut client))) => {
                 // Register voxygen components / resources
                 crate::ecs::init(client.state_mut().ecs_mut());
-                self.init = InitState::Pipeline(client);
+                self.init = InitState::Pipeline(Box::new(client));
             },
             Some(InitMsg::Done(Err(e))) => {
                 self.init = InitState::None;
@@ -211,7 +211,7 @@ impl PlayState for MainMenuState {
                     self.main_menu_ui.connected();
                     return PlayStateResult::Push(Box::new(CharSelectionState::new(
                         global_state,
-                        std::rc::Rc::new(std::cell::RefCell::new(client)),
+                        std::rc::Rc::new(std::cell::RefCell::new(*client)),
                     )));
                 }
             }

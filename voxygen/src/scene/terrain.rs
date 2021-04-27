@@ -219,7 +219,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
         // Extract sprite locations from volume
         sprite_instances: {
             span!(_guard, "extract sprite_instances");
-            let mut instances = [Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new()];
+            let mut instances = [(); SPRITE_LOD_LEVELS].map(|()| Vec::new());
 
             for x in 0..V::RECT_SIZE.x as i32 {
                 for y in 0..V::RECT_SIZE.y as i32 {
@@ -250,8 +250,9 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
                             let light = light_map(wpos);
                             let glow = glow_map(wpos);
 
-                            for lod_level in 0..SPRITE_LOD_LEVELS {
-                                let sprite_data = &sprite_data[&key][lod_level];
+                            for (lod_level, sprite_data) in
+                                instances.iter_mut().zip(&sprite_data[&key])
+                            {
                                 let mat = Mat4::identity()
                                     // Scaling for different LOD resolutions
                                     .scaled_3d(sprite_data.scale)
@@ -276,7 +277,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
                                         glow,
                                         page,
                                     );
-                                    instances[lod_level].push(instance);
+                                    lod_level.push(instance);
                                 }
                             }
 

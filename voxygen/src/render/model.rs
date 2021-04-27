@@ -19,6 +19,7 @@ impl<'a, V: Vertex> SubModel<'a, V> {
         self.buf.slice(start..end)
     }
 
+    #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> u32 { self.vertex_range.end - self.vertex_range.start }
 }
 
@@ -46,6 +47,7 @@ impl<V: Vertex> Model<V> {
 
     pub(super) fn buf(&self) -> &wgpu::Buffer { &self.vbuf.buf }
 
+    #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> usize { self.vbuf.len() }
 }
 
@@ -77,5 +79,6 @@ impl<V: Vertex> DynamicModel<V> {
 
     pub fn buf(&self) -> &wgpu::Buffer { &self.vbuf.buf }
 
+    #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> usize { self.vbuf.len() }
 }

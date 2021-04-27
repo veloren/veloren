@@ -545,7 +545,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         FigureDrawer { render_pass }
     }
 
-    pub fn draw_terrain<'data: 'pass>(&mut self) -> TerrainDrawer<'_, 'pass> {
+    pub fn draw_terrain(&mut self) -> TerrainDrawer<'_, 'pass> {
         let mut render_pass = self.render_pass.scope("terrain", self.borrow.device);
 
         render_pass.set_pipeline(&self.pipelines.terrain.pipeline);
@@ -584,7 +584,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         }
     }
 
-    pub fn draw_fluid<'data: 'pass>(&mut self) -> FluidDrawer<'_, 'pass> {
+    pub fn draw_fluid(&mut self) -> FluidDrawer<'_, 'pass> {
         let mut render_pass = self.render_pass.scope("fluid", self.borrow.device);
 
         render_pass.set_pipeline(&self.pipelines.fluid.pipeline);
@@ -816,7 +816,7 @@ impl<'pass_ref, 'pass: 'pass_ref> PreparedUiDrawer<'pass_ref, 'pass> {
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..))
     }
 
-    pub fn set_scissor<'data: 'pass>(&mut self, scissor: Aabr<u16>) {
+    pub fn set_scissor(&mut self, scissor: Aabr<u16>) {
         let Aabr { min, max } = scissor;
         // TODO: Got an invalid scissor panic from wgpu,
         // use this if you can reproduce
@@ -840,15 +840,12 @@ fn set_quad_index_buffer<'a, V: super::super::Vertex>(
     pass: &mut wgpu::RenderPass<'a>,
     borrow: &RendererBorrow<'a>,
 ) {
-    match V::QUADS_INDEX {
-        Some(format) => {
-            let slice = match format {
-                wgpu::IndexFormat::Uint16 => borrow.quad_index_buffer_u16.buf.slice(..),
-                wgpu::IndexFormat::Uint32 => borrow.quad_index_buffer_u32.buf.slice(..),
-            };
+    if let Some(format) = V::QUADS_INDEX {
+        let slice = match format {
+            wgpu::IndexFormat::Uint16 => borrow.quad_index_buffer_u16.buf.slice(..),
+            wgpu::IndexFormat::Uint32 => borrow.quad_index_buffer_u32.buf.slice(..),
+        };
 
-            pass.set_index_buffer(slice, format);
-        },
-        None => {},
+        pass.set_index_buffer(slice, format);
     }
 }
