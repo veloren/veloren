@@ -280,9 +280,6 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
                                     lod_level.push(instance);
                                 }
                             }
-
-                            //instances.entry(key).or_insert(Vec::new()).
-                            // push(instance);
                         }
                     }
                 }
@@ -399,14 +396,12 @@ impl SpriteRenderContext {
 
             let max_size = guillotiere::Size::new(max_texture_size as i32, max_texture_size as i32);
             let mut greedy = GreedyMesh::new(max_size);
-            // let mut locals_buffer = [SpriteLocals::default(); 8];
             let mut sprite_mesh = Mesh::new();
             let sprite_config_ = &sprite_config;
             // NOTE: Tracks the start vertex of the next model to be meshed.
             let sprite_data: HashMap<(SpriteKind, usize), _> = SpriteKind::into_enum_iter()
                 .filter_map(|kind| Some((kind, kind.elim_case_pure(&sprite_config_.0).as_ref()?)))
                 .flat_map(|(kind, sprite_config)| {
-                    // let wind_sway = sprite_config.wind_sway;
                     sprite_config.variations.iter().enumerate().map(
                         move |(
                             variation,
@@ -443,8 +438,6 @@ impl SpriteRenderContext {
                                         scale
                                     }
                                 });
-                            //let sprite_mat: Mat4<f32> =
-                            //    Mat4::translation_3d(offset).scaled_3d(SPRITE_SCALE);
                             move |greedy: &mut GreedyMesh, sprite_mesh: &mut Mesh<SpriteVertex>| {
                                 let lod_sprite_data = scaled.map(|lod_scale_orig| {
                                     let lod_scale = model_scale
@@ -476,27 +469,11 @@ impl SpriteRenderContext {
                                     );
 
                                     let sprite_scale = Vec3::one() / lod_scale;
-                                    //let sprite_mat: Mat4<f32> =
-                                    //    sprite_mat * Mat4::scaling_3d(sprite_scale);
-                                    /*locals_buffer.iter_mut().enumerate().for_each(
-                                        |(ori, locals)| {
-                                            let sprite_mat = sprite_mat.rotated_z(
-                                                f32::consts::PI * 0.25 * ori as f32,
-                                            );
-                                            *locals = SpriteLocals::new(
-                                                sprite_mat,
-                                                sprite_scale,
-                                                offset,
-                                                wind_sway,
-                                            );
-                                        },
-                                    );*/
 
                                     SpriteData {
                                         vert_pages: start_page_num as u32..end_page_num as u32,
                                         scale: sprite_scale,
                                         offset,
-                                        //locals: locals_buffer,
                                     }
                                 });
 
@@ -547,7 +524,7 @@ impl SpriteRenderContext {
             let sprite_verts_buffer = create_sprite_verts_buffer(renderer, sprite_mesh);
 
             Self {
-                // TODO: this are all Arcs, would it makes sense to factor out the Arc?
+                // TODO: these are all Arcs, would it makes sense to factor out the Arc?
                 sprite_config: Arc::clone(&sprite_config),
                 sprite_data: Arc::new(sprite_data),
                 sprite_col_lights: Arc::new(sprite_col_lights),
@@ -1553,6 +1530,8 @@ impl<V: RectRasterableVol> Terrain<V> {
                             chunk_center + chunk_size.x * 0.5 - chunk_size.y * 0.5,
                         ));
                 if focus_dist_sqrd < sprite_render_distance.powi(2) {
+                    // TODO: do we really need this configurement by wind-sway, if not remove
+                    // commented code, if so store the max wind sway of sprites in each chunk
                     let lod_level = /*let SpriteData { model, locals, .. } = if kind
                         .0
                         .elim_case_pure(&self.sprite_config.0)

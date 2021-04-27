@@ -30,8 +30,6 @@ layout(location = 7) in float inst_glow;
 layout(location = 8) in float model_wind_sway; // NOTE: this only varies per model
 layout(location = 9) in float model_z_scale; // NOTE: this only varies per model
 
-//layout(set = 0, binding = 12) uniform utexture2D t_sprite_verts;
-//layout(set = 0, binding = 13) uniform sampler s_sprite_verts;
 layout(set = 0, binding = 12) restrict readonly buffer sprite_verts {
     uvec2 verts[];
 };
@@ -71,11 +69,7 @@ void main() {
     f_inst_light = vec2(inst_light, inst_glow);
 
     // Index of the vertex data in the 1D vertex texture
-    // TODO: dx12 warning to switch to uint for modulus here (test if it got speedup?)
     int vertex_index = int(uint(gl_VertexIndex) % VERT_PAGE_SIZE + inst_vert_page * VERT_PAGE_SIZE);
-    //const int WIDTH = 8192; // TODO: temp
-    //ivec2 tex_coords = ivec2(vertex_index % WIDTH, vertex_index / WIDTH);
-    //uvec2 pos_atlas_pos_norm_ao = texelFetch(usampler2D(t_sprite_verts, s_sprite_verts), tex_coords, 0).xy;
     uvec2 pos_atlas_pos_norm_ao = verts[vertex_index];
     uint v_pos_norm = pos_atlas_pos_norm_ao.x;
     uint v_atlas_pos = pos_atlas_pos_norm_ao.y;

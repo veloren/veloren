@@ -673,15 +673,11 @@ impl<'pass_ref, 'pass: 'pass_ref> SpriteDrawer<'pass_ref, 'pass> {
     pub fn draw<'data: 'pass>(
         &mut self,
         terrain_locals: &'data terrain::BoundLocals,
-        //model: &'data Model<sprite::Vertex>,
-        //locals: &'data sprite::BoundLocals,
         instances: &'data Instances<sprite::Instance>,
     ) {
         self.render_pass
             .set_bind_group(2, &terrain_locals.bind_group, &[]);
-        //self.render_pass.set_bind_group(3, &locals.bind_group, &[]);
 
-        //self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
         self.render_pass
             .set_vertex_buffer(0, instances.buf().slice(..));
         self.render_pass.draw_indexed(

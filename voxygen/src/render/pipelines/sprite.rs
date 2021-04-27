@@ -66,16 +66,6 @@ impl Vertex {
             atlas_pos: ((atlas_pos.x as u32) & 0xFFFF) | ((atlas_pos.y as u32) & 0xFFFF) << 16,
         }
     }
-
-    /*fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        const ATTRIBUTES: [wgpu::VertexAttribute; 3] =
-            wgpu::vertex_attr_array![0 => Float32x3, 1 => Uint32, 2 => Uint32];
-        wgpu::VertexBufferLayout {
-            array_stride: Self::STRIDE,
-            step_mode: wgpu::InputStepMode::Vertex,
-            attributes: &ATTRIBUTES,
-        }
-    }*/
 }
 
 impl Default for Vertex {
@@ -95,57 +85,6 @@ pub fn create_verts_buffer(renderer: &mut Renderer, mesh: Mesh<Vertex>) -> Buffe
         wgpu::BufferUsage::STORAGE,
         mesh.vertices(),
     )
-    //let mut verts = mesh.vertices_mut_vec();
-    //let format = wgpu::TextureFormat::Rg32Uint;
-
-    // TODO: temp
-    //const WIDTH: u32 = 8192;
-    //let height = verts.len() as u32 / WIDTH;
-    // Fill in verts to full texture size
-    //verts.resize_with(height as usize * WIDTH as usize, Vertex::default);
-
-    /*let texture_info = wgpu::TextureDescriptor {
-        label: Some("Sprite verts"),
-        size: wgpu::Extent3d {
-            width: WIDTH,
-            height,
-            depth_or_array_layers: 1,
-        },
-        mip_level_count: 1,
-        sample_count: 1,
-        dimension: wgpu::TextureDimension::D2,
-        format,
-        usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
-    };
-
-    let sampler_info = wgpu::SamplerDescriptor {
-        label: None,
-        address_mode_u: wgpu::AddressMode::Repeat,
-        address_mode_v: wgpu::AddressMode::Repeat,
-        address_mode_w: wgpu::AddressMode::Repeat,
-        mag_filter: wgpu::FilterMode::Nearest,
-        min_filter: wgpu::FilterMode::Nearest,
-        mipmap_filter: wgpu::FilterMode::Nearest,
-        ..Default::default()
-    };
-
-    let view_info = wgpu::TextureViewDescriptor {
-        label: None,
-        format: Some(format),
-        dimension: Some(wgpu::TextureViewDimension::D2),
-        aspect: wgpu::TextureAspect::All,
-        base_mip_level: 0,
-        mip_level_count: None,
-        base_array_layer: 0,
-        array_layer_count: None,
-    };
-
-    renderer.create_texture_with_data_raw::<8>(
-        &texture_info,
-        &view_info,
-        &sampler_info,
-        bytemuck::cast_slice(verts),
-    )*/
 }
 
 #[repr(C)]
@@ -221,40 +160,13 @@ impl Default for Instance {
 
 // TODO: ColLightsWrapper instead?
 pub struct Locals;
-/*#[repr(C)]
-#[derive(Copy, Clone, Debug, Zeroable, Pod)]
-pub struct Locals {
-    // Each matrix performs rotatation, translation, and scaling, relative to the sprite
-    // origin, for all sprite instances.  The matrix will be in an array indexed by the
-    // sprite instance's orientation (0 through 7).
-    mat: [[f32; 4]; 4],
-    wind_sway: [f32; 4],
-    offs: [f32; 4],
-}
-
-impl Default for Locals {
-    fn default() -> Self { Self::new(Mat4::identity(), Vec3::one(), Vec3::zero(), 0.0) }
-}
-
-impl Locals {
-    pub fn new(mat: Mat4<f32>, scale: Vec3<f32>, offs: Vec3<f32>, wind_sway: f32) -> Self {
-        Self {
-            mat: mat.into_col_arrays(),
-            wind_sway: [scale.x, scale.y, scale.z, wind_sway],
-            offs: [offs.x, offs.y, offs.z, 0.0],
-        }
-    }
-}*/
 
 pub struct SpriteGlobalsBindGroup {
     pub(in super::super) bind_group: wgpu::BindGroup,
 }
 
-//pub type BoundLocals = Bound<Consts<Locals>>;
-
 pub struct SpriteLayout {
     pub globals: wgpu::BindGroupLayout,
-    //pub locals: wgpu::BindGroupLayout,
 }
 
 impl SpriteLayout {
@@ -275,26 +187,6 @@ impl SpriteLayout {
                 },
                 count: None,
             },
-            /* sprite verts (t_sprite_verts) */
-            /*wgpu::BindGroupLayoutEntry {
-                binding: 12,
-                visibility: wgpu::ShaderStage::VERTEX,
-                ty: wgpu::BindingType::Texture {
-                    sample_type: wgpu::TextureSampleType::Uint,
-                    view_dimension: wgpu::TextureViewDimension::D2,
-                    multisampled: false,
-                },
-                count: None,
-            },
-            wgpu::BindGroupLayoutEntry {
-                binding: 13,
-                visibility: wgpu::ShaderStage::VERTEX,
-                ty: wgpu::BindingType::Sampler {
-                    filtering: false,
-                    comparison: false,
-                },
-                count: None,
-            },*/
         ]);
 
         Self {
@@ -302,30 +194,6 @@ impl SpriteLayout {
                 label: None,
                 entries: &entries,
             }),
-            /*locals: device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                label: None,
-                entries: &[
-                    // locals
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 0,
-                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Buffer {
-                            ty: wgpu::BufferBindingType::Uniform,
-                            has_dynamic_offset: false,
-                            min_binding_size: None,
-                        },
-                        count: None,
-                    },
-                    // instance buffer
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 1,
-                        visibility: wgpu::ShaderStage::Vertex,
-                        ty: wgpu::BufferBindingType::Buffer {
-                            ty: wgpu::BufferBindingType::
-                        }
-                    },
-                ],
-            }),*/
         }
     }
 
@@ -346,15 +214,6 @@ impl SpriteLayout {
                 binding: 12,
                 resource: sprite_verts.buf.as_entire_binding(),
             },
-            /* sprite verts (t_sprite_verts) */
-            /*wgpu::BindGroupEntry {
-                binding: 12,
-                resource: wgpu::BindingResource::TextureView(&sprite_verts.view),
-            },
-            wgpu::BindGroupEntry {
-                binding: 13,
-                resource: wgpu::BindingResource::Sampler(&sprite_verts.sampler),
-            },*/
         ]);
 
         device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -370,7 +229,6 @@ impl SpriteLayout {
         global_model: &GlobalModel,
         lod_data: &lod_terrain::LodData,
         noise: &Texture,
-        //sprite_verts: &Texture,
         sprite_verts: &Buffer<Vertex>,
     ) -> SpriteGlobalsBindGroup {
         let bind_group =
@@ -378,22 +236,6 @@ impl SpriteLayout {
 
         SpriteGlobalsBindGroup { bind_group }
     }
-
-    /*pub fn bind_locals(&self, device: &wgpu::Device, locals: Consts<Locals>) -> BoundLocals {
-        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: None,
-            layout: &self.locals,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: locals.buf().as_entire_binding(),
-            }],
-        });
-
-        BoundLocals {
-            bind_group,
-            with: locals,
-        }
-    }*/
 }
 
 pub struct SpritePipeline {
@@ -419,7 +261,6 @@ impl SpritePipeline {
                     &layout.globals,
                     &global_layout.shadow_textures,
                     &terrain_layout.locals,
-                    //&layout.locals,
                     // Note: mergable with globals
                     &global_layout.col_light,
                 ],

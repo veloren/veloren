@@ -25,7 +25,6 @@ impl Renderer {
         &self,
         global_model: &GlobalModel,
         lod_data: &lod_terrain::LodData,
-        //sprite_verts: &Texture,
         sprite_verts: &Buffer<sprite::Vertex>,
     ) -> sprite::SpriteGlobalsBindGroup {
         self.layouts.sprite.bind_globals(
@@ -70,11 +69,6 @@ impl Renderer {
         let locals = self.create_consts(locals);
         self.layouts.shadow.bind_locals(&self.device, locals)
     }
-
-    //pub fn create_sprite_bound_locals(&mut self, locals: &[sprite::Locals]) ->
-    // sprite::BoundLocals {    let locals = self.create_consts(locals);
-    //    self.layouts.sprite.bind_locals(&self.device, locals)
-    //}
 
     pub fn figure_bind_col_light(&self, col_light: Texture) -> ColLights<figure::Locals> {
         self.layouts.global.bind_col_light(&self.device, col_light)
