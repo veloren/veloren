@@ -2,7 +2,8 @@
 (
     string_map: {
         "gameinput.primary": "Prosty atak",
-        "gameinput.secondary": "Atak alternatywny/Blok/Celowanie",
+        "gameinput.secondary": "Atak alternatywny",
+        "gameinput.block": "Blok",
         "gameinput.slot1": "Skrót 1",
         "gameinput.slot2": "Skrót 2",
         "gameinput.slot3": "Skrót 3",
@@ -60,6 +61,8 @@
         "gameinput.sneak": "Skradanie",
         "gameinput.swimdown": "Nurkuj",
         "gameinput.swimup": "Wynurz",
+        "gameinput.mapzoomin": "Przybliż mapę",
+        "gameinput.mapzoomout": "Oddal mapę",
     },
 
     vector_map: {

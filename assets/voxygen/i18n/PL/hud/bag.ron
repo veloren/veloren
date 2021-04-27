@@ -29,6 +29,12 @@
         "hud.bag.protection": "Ochrona",
         "hud.bag.combat_rating_desc": "Liczone na postawie Twojego\nekwipunku i zdrowia.",
         "hud.bag.protection_desc": "Redukcja obrażeń dzięki pancerzowi",
+
+        "hud.bag.stun_res": "Odporność na ogłuszenie",
+        "hud.bag.stun_res_desc": "Odporność na ogłuszenie spowodowane przyjmowaniem wielu ciosów.\nRegeneruje się jak energia.",
+        "hud.bag.sort_by_name": "Sortuj nazwami",
+        "hud.bag.sort_by_quality": "Sortuj jakościami",
+        "hud.bag.sort_by_category": "Sortuj kategoriami",
     },
 
 

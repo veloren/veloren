@@ -90,6 +90,8 @@
         "hud.settings.save_window_size": "Zapisz wymiary okna",
         "hud.settings.reset_graphics": "Zresetuj ustawienia",
 
+        "hud.settings.master_volume": "Głośność ogólna",
+        "hud.settings.inactive_master_volume": "Głośność ogólna (nieaktywne okno)",
         "hud.settings.music_volume": "Głośność muzyki",
         "hud.settings.sound_effect_volume": "Głośność efektów dźwiękowych",
         "hud.settings.audio_device": "Urządzenie dźwiękowe",
@@ -98,6 +100,9 @@
         "hud.settings.awaitingkey": "Naciśnij klawisz...",
         "hud.settings.unbound": "Brak",
         "hud.settings.reset_keybinds": "Zresetuj ustawienia",
+
+        "hud.settings.player_physics_behavior": "Fizyka gracza (eksperymentalne)",
+        "hud.settings.english_fallback": "Wyświetl angielskie napisy dla brakujących tłumaczeń"
     },
 
 
