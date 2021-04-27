@@ -18,6 +18,8 @@ It is inspired by games such as Cube World, Legend of Zelda: Breath of the Wild,
 
 This package includes the official client, Voxygen.
 """
+runtimeLibs = ["libGL", "xorg.libX11", "xorg.libXcursor", "xorg.libXrandr", "xorg.libXi"]
+buildInputs = ["xorg.libxcb"]
 
 [features]
 gl = ["gfx_device_gl", "gfx_gl"]

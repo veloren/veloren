@@ -1,12 +1,29 @@
 {
   "nodes": {
+    "crate2nix": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1619462726,
+        "narHash": "sha256-bQuUBOGzPnL3S+aweK/P9WRfNGk/tuoLDPfzIiX7XXY=",
+        "owner": "yusdacra",
+        "repo": "crate2nix",
+        "rev": "e10f71834d1464cd4b07d1bf7965c65abbff3fab",
+        "type": "github"
+      },
+      "original": {
+        "owner": "yusdacra",
+        "ref": "feat/builtinfetchgit",
+        "repo": "crate2nix",
+        "type": "github"
+      }
+    },
     "devshell": {
       "locked": {
-        "lastModified": 1618213758,
-        "narHash": "sha256-qkuen2xlT7gVfX+99OeM4lsKXGjT5EDjytWAeAWX0Fw=",
+        "lastModified": 1618523768,
+        "narHash": "sha256-Gev9da35pHUey3kGz/zrJFc/9ICs++vPCho7qB1mqd8=",
         "owner": "numtide",
         "repo": "devshell",
-        "rev": "eac56f015b0975be3b725721503626e926b285e8",
+        "rev": "709fe4d04a9101c9d224ad83f73416dce71baf21",
         "type": "github"
       },
       "original": {
@@ -32,11 +49,11 @@
     },
     "flakeUtils": {
       "locked": {
-        "lastModified": 1618217525,
-        "narHash": "sha256-WGrhVczjXTiswQaoxQ+0PTfbLNeOQM6M36zvLn78AYg=",
+        "lastModified": 1619345332,
+        "narHash": "sha256-qHnQkEp1uklKTpx3MvKtY6xzgcqXDsz5nLilbbuL+3A=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "c6169a2772643c4a93a0b5ac1c61e296cba68544",
+        "rev": "2ebf2558e5bf978c7fb8ea927dfaed8fefab2e28",
         "type": "github"
       },
       "original": {
@@ -52,38 +69,37 @@
         ]
       },
       "locked": {
-        "lastModified": 1618579991,
-        "narHash": "sha256-aIWvSjn/rjfOBUdL5uM4iDVVLM7ioRz9zs3e94lT9Ac=",
+        "lastModified": 1619312121,
+        "narHash": "sha256-Zx1rTlonsp54lVlnIg38HV3bYx6GdIoKS1SgDnV+YBY=",
         "owner": "yusdacra",
         "repo": "naersk",
-        "rev": "dc8868af09c8a0f0d47df0927161cb14675c5534",
+        "rev": "07d0b56bdbd353a705f26b799e3a125c7be0f8c3",
         "type": "github"
       },
       "original": {
         "owner": "yusdacra",
-        "ref": "veloren",
+        "ref": "feat/cargolock-git-deps",
         "repo": "naersk",
         "type": "github"
       }
     },
     "nixCargoIntegration": {
       "inputs": {
+        "crate2nix": "crate2nix",
         "devshell": "devshell",
         "flakeUtils": "flakeUtils",
-        "naersk": [
-          "naersk"
-        ],
+        "naersk": "naersk",
         "nixpkgs": [
           "nixpkgs"
         ],
         "rustOverlay": "rustOverlay"
       },
       "locked": {
-        "lastModified": 1618597947,
-        "narHash": "sha256-wiwHpQPzgkuOEZXFpet7bmv6Z8dusxyp6DQbpYCXJDk=",
+        "lastModified": 1619489852,
+        "narHash": "sha256-ZiWHvTrMHcTAyPyT0HiqvTXjh3cFO4tHWSV/2v2g5YI=",
         "owner": "yusdacra",
         "repo": "nix-cargo-integration",
-        "rev": "fc26a4e1d807e8b9722d67097be4dfb8be5ea862",
+        "rev": "ab95ec5f81cce07b3c76609f4681772fe20bcfa1",
         "type": "github"
       },
       "original": {
@@ -94,11 +110,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1618530127,
-        "narHash": "sha256-jQPk7XpabppYa+GIO5LVTtUFhHq/VqHhPggwIKhTCnQ=",
+        "lastModified": 1619446560,
+        "narHash": "sha256-R9iG5d1ORvho5UlyEUsX8Nu1cnCV+YtWEHlWlqftaQo=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "294d1925af6462e55c76b49624b983036f0093b9",
+        "rev": "32f7980afb5e33f1e078a51e715b9f102f396a69",
         "type": "github"
       },
       "original": {
@@ -110,7 +126,6 @@
     },
     "root": {
       "inputs": {
-        "naersk": "naersk",
         "nixCargoIntegration": "nixCargoIntegration",
         "nixpkgs": "nixpkgs"
       }
@@ -123,11 +138,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1618366946,
-        "narHash": "sha256-5zevIklODemySoUY8xtIemD/WO7ftaXeltz9rraEVAc=",
+        "lastModified": 1619404147,
+        "narHash": "sha256-qJafGirQc8LfELiU6cJU7e/CS8PuZpyxjNkXd8KXR08=",
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "rev": "82b13c9048b345cf6345dd326478ad5ec059e6c6",
+        "rev": "c9c3bd19e542dc3532d58297fbbc1762fdc8497a",
         "type": "github"
       },
       "original": {
