@@ -7,8 +7,6 @@ use vek::*;
 /// A type that holds shadow map data.  Since shadow mapping may not be
 /// supported on all platforms, we try to keep it separate.
 pub struct ShadowMapRenderer {
-    // directed_encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
-    // point_encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
     pub directed_depth: Texture,
 
     pub point_depth: Texture,
@@ -48,8 +46,6 @@ impl ShadowMap {
             let layout = shadow::ShadowLayout::new(&device);
 
             Self::Enabled(ShadowMapRenderer {
-                // point_encoder: factory.create_command_buffer().into(),
-                // directed_encoder: factory.create_command_buffer().into(),
                 directed_depth,
                 point_depth,
 

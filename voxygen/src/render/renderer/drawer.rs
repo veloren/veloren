@@ -16,7 +16,6 @@ use vek::Aabr;
 use wgpu_profiler::scope::{ManualOwningScope, OwningScope, Scope};
 
 // Currently available pipelines
-// #[derive(Clone, Copy)]
 enum Pipelines<'frame> {
     Interface(&'frame super::InterfacePipelines),
     All(&'frame super::Pipelines),
@@ -395,8 +394,6 @@ impl<'frame> Drawer<'frame> {
 
 impl<'frame> Drop for Drawer<'frame> {
     fn drop(&mut self) {
-        // TODO: submitting things to the queue can let the gpu start on them sooner
-        // maybe we should submit each render pass to the queue as they are produced?
         let mut encoder = self.encoder.take().unwrap();
 
         // If taking a screenshota and the blit pipeline is available
@@ -436,6 +433,7 @@ impl<'frame> Drop for Drawer<'frame> {
         let (mut encoder, profiler) = encoder.end_scope();
         profiler.resolve_queries(&mut encoder);
 
+        // It is recommended to only do one submit per frame
         self.borrow.queue.submit(std::iter::once(encoder.finish()));
 
         profiler
@@ -783,7 +781,6 @@ impl<'pass_ref, 'pass: 'pass_ref> UiDrawer<'pass_ref, 'pass> {
     pub fn prepare<'data: 'pass>(
         &mut self,
         locals: &'data ui::BoundLocals,
-        //texture: &'data ui::TextureBindGroup,
         buf: &'data DynamicModel<ui::Vertex>,
         scissor: Aabr<u16>,
     ) -> PreparedUiDrawer<'_, 'pass> {
@@ -794,7 +791,6 @@ impl<'pass_ref, 'pass: 'pass_ref> UiDrawer<'pass_ref, 'pass> {
         };
         // Prepare
         prepared.set_locals(locals);
-        //prepared.set_texture(texture);
         prepared.set_model(buf);
         prepared.set_scissor(scissor);
 
@@ -806,11 +802,6 @@ impl<'pass_ref, 'pass: 'pass_ref> PreparedUiDrawer<'pass_ref, 'pass> {
     pub fn set_locals<'data: 'pass>(&mut self, locals: &'data ui::BoundLocals) {
         self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
     }
-
-    //pub fn set_texture<'data: 'pass>(&mut self, texture: &'data
-    // ui::TextureBindGroup) {    self.render_pass.set_bind_group(1,
-    // &texture.bind_group, &[]);
-    //}
 
     pub fn set_model<'data: 'pass>(&mut self, model: &'data DynamicModel<ui::Vertex>) {
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..))
