@@ -1,6 +1,6 @@
 ItemDef(
     name: "Seashells",
-    description: "Shells from a sea creture.",
+    description: "Shells from a sea creature.",
     kind: Ingredient(
         kind: "Seashells",
     ),
