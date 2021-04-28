@@ -289,7 +289,7 @@ impl Buff {
                 vec![
                     BuffEffect::MovementSpeed(1.0 + data.strength),
                     BuffEffect::HealthChangeOverTime {
-                        rate: data.strength * 100.0,
+                        rate: data.strength * 500.0,
                         accumulated: 0.0,
                         kind: ModifierKind::Additive,
                     },

@@ -53,5 +53,6 @@
         ("common.items.weapons.bow.frostwood-0", 1),
         ("common.items.weapons.staff.frostwood_torch", 1),
         ("common.items.weapons.sceptre.fork0", 1),
+        ("common.items.consumable.potion_med", 100),
     ],
 })
