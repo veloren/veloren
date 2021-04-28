@@ -45,6 +45,7 @@ pub use index::{IndexOwned, IndexRef};
 use crate::{
     column::ColumnGen,
     index::Index,
+    site::SiteKind,
     util::{Grid, Sampler},
 };
 use common::{
@@ -281,6 +282,14 @@ impl World {
             sim_chunk.cave.1.alt != 0.0,
             sim_chunk.river.is_river(),
             sim_chunk.temp,
+            sim_chunk
+                .sites
+                .iter()
+                .any(|site| matches!(index.sites[*site].kind, SiteKind::Settlement(_))),
+            sim_chunk
+                .sites
+                .iter()
+                .any(|site| matches!(index.sites[*site].kind, SiteKind::Dungeon(_))),
         );
 
         let mut chunk = TerrainChunk::new(base_z, stone, air, meta);

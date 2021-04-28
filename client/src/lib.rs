@@ -1306,14 +1306,20 @@ impl Client {
         }
         let mut contains_cave = false;
         let mut terrain_alt = 0.0;
+        let mut contains_dungeon = false;
+        let mut contains_settlement = false;
         if let Some(chunk) = self.current_chunk() {
             terrain_alt = chunk.meta().alt();
             contains_cave = chunk.meta().contains_cave();
+            contains_dungeon = chunk.meta().contains_dungeon();
+            contains_settlement = chunk.meta().contains_settlement();
         }
         if player_alt < (terrain_alt - 25.0) && contains_cave {
             SitesKind::Cave
-        } else if player_alt < (terrain_alt - 25.0) {
+        } else if player_alt < (terrain_alt - 25.0) && contains_dungeon {
             SitesKind::Dungeon
+        } else if contains_settlement {
+            SitesKind::Settlement
         } else {
             SitesKind::Void
         }

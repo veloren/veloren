@@ -87,8 +87,11 @@ pub struct TerrainChunkMeta {
     contains_cave: bool,
     contains_river: bool,
     temp: f32,
+    contains_settlement: bool,
+    contains_dungeon: bool,
 }
 
+#[allow(clippy::clippy::too_many_arguments)]
 impl TerrainChunkMeta {
     pub fn new(
         name: Option<String>,
@@ -98,6 +101,8 @@ impl TerrainChunkMeta {
         contains_cave: bool,
         contains_river: bool,
         temp: f32,
+        contains_settlement: bool,
+        contains_dungeon: bool,
     ) -> Self {
         Self {
             name,
@@ -107,6 +112,8 @@ impl TerrainChunkMeta {
             contains_cave,
             contains_river,
             temp,
+            contains_settlement,
+            contains_dungeon,
         }
     }
 
@@ -119,6 +126,8 @@ impl TerrainChunkMeta {
             contains_cave: false,
             contains_river: false,
             temp: 0.0,
+            contains_settlement: false,
+            contains_dungeon: false,
         }
     }
 
@@ -133,6 +142,10 @@ impl TerrainChunkMeta {
     pub fn contains_cave(&self) -> bool { self.contains_cave }
 
     pub fn contains_river(&self) -> bool { self.contains_river }
+
+    pub fn contains_settlement(&self) -> bool { self.contains_settlement }
+
+    pub fn contains_dungeon(&self) -> bool { self.contains_dungeon }
 
     pub fn temp(&self) -> f32 { self.temp }
 }
