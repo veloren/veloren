@@ -221,6 +221,8 @@ impl MusicMgr {
         //println!("alt: {}", current_chunk.meta().alt());
         //println!("tree_density: {}",
         // current_chunk.meta().tree_density());
+        // let current_site = client.current_site();
+        // println!("{:?}", current_site);
         //if let Some(position) = client.current::<comp::Pos>() {
         //    player_alt = position.0.z;
         //}
