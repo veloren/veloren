@@ -215,6 +215,16 @@ impl ParticleMgr {
                     });
                 }
             },
+            Outcome::Bonk { pos, .. } => {
+                self.particles.resize_with(self.particles.len() + 100, || {
+                    Particle::new(
+                        Duration::from_millis(1000),
+                        time,
+                        ParticleMode::BigShrapnel,
+                        *pos,
+                    )
+                });
+            },
             Outcome::ProjectileShot { .. }
             | Outcome::Beam { .. }
             | Outcome::ExpChange { .. }
@@ -643,6 +653,36 @@ impl ParticleMgr {
                         },
                     );
                 },
+                CharacterState::SelfBuff(c) => {
+                    use buff::BuffKind;
+                    if let BuffKind::Frenzied = c.static_data.buff_kind {
+                        if matches!(c.stage_section, StageSection::Cast) {
+                            self.particles.resize_with(
+                                self.particles.len()
+                                    + usize::from(
+                                        self.scheduler.heartbeats(Duration::from_millis(5)),
+                                    ),
+                                || {
+                                    let start_pos = pos.0
+                                        + Vec3::new(
+                                            body.radius(),
+                                            body.radius(),
+                                            body.height() / 2.0,
+                                        )
+                                        .map(|d| d * rng.gen_range(-1.0..1.0));
+                                    let end_pos = pos.0 + (start_pos - pos.0) * 6.0;
+                                    Particle::new_directed(
+                                        Duration::from_secs(1),
+                                        time,
+                                        ParticleMode::Enraged,
+                                        start_pos,
+                                        end_pos,
+                                    )
+                                },
+                            );
+                        }
+                    }
+                },
                 _ => {},
             }
         }
@@ -818,9 +858,9 @@ impl ParticleMgr {
             .join()
         {
             for (buff_kind, _) in buffs.kinds.iter() {
-                #[allow(clippy::single_match)]
+                use buff::BuffKind;
                 match buff_kind {
-                    buff::BuffKind::Cursed | buff::BuffKind::Burning => {
+                    BuffKind::Cursed | BuffKind::Burning => {
                         self.particles.resize_with(
                             self.particles.len()
                                 + usize::from(self.scheduler.heartbeats(Duration::from_millis(15))),
@@ -844,6 +884,29 @@ impl ParticleMgr {
                                     } else {
                                         ParticleMode::FlameThrower
                                     },
+                                    start_pos,
+                                    end_pos,
+                                )
+                            },
+                        );
+                    },
+                    BuffKind::Frenzied => {
+                        self.particles.resize_with(
+                            self.particles.len()
+                                + usize::from(self.scheduler.heartbeats(Duration::from_millis(15))),
+                            || {
+                                let start_pos = pos.0
+                                    + Vec3::new(body.radius(), body.radius(), body.height() / 2.0)
+                                        .map(|d| d * rng.gen_range(-1.0..1.0));
+                                let end_pos = start_pos
+                                    + Vec3::unit_z() * body.height()
+                                    + Vec3::<f32>::zero()
+                                        .map(|_| rng.gen_range(-1.0..1.0))
+                                        .normalized();
+                                Particle::new_directed(
+                                    Duration::from_secs(1),
+                                    time,
+                                    ParticleMode::Enraged,
                                     start_pos,
                                     end_pos,
                                 )

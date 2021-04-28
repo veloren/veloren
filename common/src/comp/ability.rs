@@ -191,6 +191,7 @@ pub enum CharacterAbility {
         swing_duration: f32,
         hit_timing: f32,
         recover_duration: f32,
+        specifier: Option<charged_melee::FrontendSpecifier>,
     },
     ChargedRanged {
         energy_cost: f32,
@@ -1452,6 +1453,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 recover_duration,
                 range,
                 max_angle,
+                specifier,
             } => CharacterState::ChargedMelee(charged_melee::Data {
                 static_data: charged_melee::StaticData {
                     energy_cost: *energy_cost,
@@ -1470,6 +1472,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     hit_timing: *hit_timing,
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     ability_info,
+                    specifier: *specifier,
                 },
                 stage_section: StageSection::Charge,
                 timer: Duration::default(),

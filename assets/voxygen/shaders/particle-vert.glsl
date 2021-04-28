@@ -64,6 +64,8 @@ const int LIFESTEAL_BEAM = 22;
 const int CULTIST_FLAME = 23;
 const int STATIC_SMOKE = 24;
 const int BLOOD = 25;
+const int ENRAGED = 26;
+const int BIG_SHRAPNEL = 27;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -216,6 +218,17 @@ void main() {
             ),
             vec3(1),
             vec4(vec3(0.25), 1),
+            spin_in_axis(vec3(1,0,0),0)
+        );
+    } else if (inst_mode == BIG_SHRAPNEL) {
+        float brown_color = 0.05 + 0.1 * rand1;
+        attr = Attr(
+            linear_motion(
+                vec3(0),
+                normalize(vec3(rand4, rand5, rand6)) * 15.0 + grav_vel(earth_gravity)
+            ),
+            vec3(5 * (1 - percent())),
+            vec4(vec3(brown_color, brown_color / 2, 0), 1),
             spin_in_axis(vec3(1,0,0),0)
         );
     } else if (inst_mode == FIREWORK_BLUE) {
@@ -420,6 +433,15 @@ void main() {
             vec3((2.0 * (1 - slow_start(0.8)))),
             vec4(1, 0, 0, 1),
             spin_in_axis(vec3(1,0,0),0)
+        );
+    } else if (inst_mode == ENRAGED) {
+        f_reflect = 0.0;
+        float red_color = 1.2 + 0.3 * rand3;
+        attr = Attr(
+            (inst_dir * slow_end(1.5)) + vec3(rand0, rand1, rand2) * (percent() + 2) * 0.1,
+            vec3((3.5 * (1 - slow_start(0.2)))),
+            vec4(red_color, 0.0, 0.0, 1),
+            spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
         );
     } else {
         attr = Attr(

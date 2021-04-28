@@ -1,6 +1,8 @@
 use crate::{
     combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
     comp::{tool::ToolKind, CharacterState, EnergyChange, EnergySource, Melee, StateUpdate},
+    event::LocalEvent,
+    outcome::Outcome,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::{StageSection, *},
@@ -45,6 +47,8 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
+    /// Used to specify the melee attack to the frontend
+    pub specifier: Option<FrontendSpecifier>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -199,6 +203,15 @@ impl CharacterBehavior for Data {
                             })
                             .filter(|(_, tool)| tool == &Some(ToolKind::Pick)),
                     });
+
+                    // Send local event used for frontend shenanigans
+                    update
+                        .local_events
+                        .push_front(LocalEvent::CreateOutcome(Outcome::Bonk {
+                            pos: data.pos.0
+                                + *data.ori.look_dir()
+                                    * (data.body.radius() + self.static_data.range),
+                        }));
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings
                     update.character = CharacterState::ChargedMelee(Data {
@@ -249,4 +262,9 @@ impl CharacterBehavior for Data {
 
         update
     }
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub enum FrontendSpecifier {
+    GroundCleave,
 }

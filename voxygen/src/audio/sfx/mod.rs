@@ -325,6 +325,10 @@ impl SfxMgr {
                     false,
                 );
             },
+            Outcome::Bonk { pos, .. } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Explosion);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(1.0), false);
+            },
             Outcome::ProjectileShot { pos, body, .. } => {
                 match body {
                     Body::Object(

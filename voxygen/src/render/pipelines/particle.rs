@@ -122,6 +122,8 @@ pub enum ParticleMode {
     CultistFlame = 23,
     StaticSmoke = 24,
     Blood = 25,
+    Enraged = 26,
+    BigShrapnel = 27,
 }
 
 impl ParticleMode {
