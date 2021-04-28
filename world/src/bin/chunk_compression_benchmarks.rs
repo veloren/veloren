@@ -8,12 +8,14 @@ use common::{
     },
 };
 use common_net::msg::compression::{
-    image_terrain_chonk, image_terrain_volgrid, CompressedData, GridLtrPacking, JpegEncoding,
-    MixedEncoding, PngEncoding, QuadPngEncoding, TallPacking, TriPngEncoding, VoxelImageEncoding,
+    image_from_bytes, image_terrain_chonk, image_terrain_volgrid, CompressedData, GridLtrPacking,
+    PackingFormula, QuadPngEncoding, TriPngEncoding, VoxelImageDecoding, VoxelImageEncoding,
     WidePacking,
 };
 use hashbrown::HashMap;
 use image::ImageBuffer;
+use num_traits::cast::FromPrimitive;
+use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
     io::{Read, Write},
@@ -130,6 +132,228 @@ fn channelize_dyna<M: Clone, A: Access>(
         }
     }
     (blocks, r, g, b, sprites)
+}
+
+/// A tall, thin image, with no wasted space, but which most image viewers don't
+/// handle well. Z levels increase from top to bottom, xy-slices are stacked
+/// vertically.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct TallPacking {
+    /// Making the borders go back and forth based on z-parity preserves spatial
+    /// locality better, but is more confusing to look at
+    pub flip_y: bool,
+}
+
+impl PackingFormula for TallPacking {
+    #[inline(always)]
+    fn dimensions(&self, dims: Vec3<u32>) -> (u32, u32) { (dims.x, dims.y * dims.z) }
+
+    #[allow(clippy::many_single_char_names)]
+    #[inline(always)]
+    fn index(&self, dims: Vec3<u32>, x: u32, y: u32, z: u32) -> (u32, u32) {
+        let i = x;
+        let j0 = if self.flip_y {
+            if z % 2 == 0 { y } else { dims.y - y - 1 }
+        } else {
+            y
+        };
+        let j = z * dims.y + j0;
+        (i, j)
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct PngEncoding;
+
+impl VoxelImageEncoding for PngEncoding {
+    type Output = Vec<u8>;
+    type Workspace = ImageBuffer<image::Rgba<u8>, Vec<u8>>;
+
+    fn create(width: u32, height: u32) -> Self::Workspace {
+        use image::Rgba;
+        ImageBuffer::<Rgba<u8>, Vec<u8>>::new(width, height)
+    }
+
+    fn put_solid(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
+        ws.put_pixel(x, y, image::Rgba([rgb.r, rgb.g, rgb.b, 255 - kind as u8]));
+    }
+
+    fn put_sprite(
+        ws: &mut Self::Workspace,
+        x: u32,
+        y: u32,
+        kind: BlockKind,
+        sprite: SpriteKind,
+        ori: Option<u8>,
+    ) {
+        ws.put_pixel(
+            x,
+            y,
+            image::Rgba([kind as u8, sprite as u8, ori.unwrap_or(0), 255]),
+        );
+    }
+
+    fn finish(ws: &Self::Workspace) -> Option<Self::Output> {
+        use image::codecs::png::{CompressionType, FilterType};
+        let mut buf = Vec::new();
+        let png = image::codecs::png::PngEncoder::new_with_quality(
+            &mut buf,
+            CompressionType::Rle,
+            FilterType::Up,
+        );
+        png.encode(
+            &*ws.as_raw(),
+            ws.width(),
+            ws.height(),
+            image::ColorType::Rgba8,
+        )
+        .ok()?;
+        Some(buf)
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct JpegEncoding;
+
+impl VoxelImageEncoding for JpegEncoding {
+    type Output = Vec<u8>;
+    type Workspace = ImageBuffer<image::Rgba<u8>, Vec<u8>>;
+
+    fn create(width: u32, height: u32) -> Self::Workspace {
+        use image::Rgba;
+        ImageBuffer::<Rgba<u8>, Vec<u8>>::new(width, height)
+    }
+
+    fn put_solid(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
+        ws.put_pixel(x, y, image::Rgba([rgb.r, rgb.g, rgb.b, 255 - kind as u8]));
+    }
+
+    fn put_sprite(
+        ws: &mut Self::Workspace,
+        x: u32,
+        y: u32,
+        kind: BlockKind,
+        sprite: SpriteKind,
+        _: Option<u8>,
+    ) {
+        ws.put_pixel(x, y, image::Rgba([kind as u8, sprite as u8, 255, 255]));
+    }
+
+    fn finish(ws: &Self::Workspace) -> Option<Self::Output> {
+        let mut buf = Vec::new();
+        let mut jpeg = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut buf, 1);
+        jpeg.encode_image(ws).ok()?;
+        Some(buf)
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct MixedEncoding;
+
+impl VoxelImageEncoding for MixedEncoding {
+    type Output = (Vec<u8>, [usize; 3]);
+    #[allow(clippy::type_complexity)]
+    type Workspace = (
+        ImageBuffer<image::Luma<u8>, Vec<u8>>,
+        ImageBuffer<image::Luma<u8>, Vec<u8>>,
+        ImageBuffer<image::Luma<u8>, Vec<u8>>,
+        ImageBuffer<image::Rgb<u8>, Vec<u8>>,
+    );
+
+    fn create(width: u32, height: u32) -> Self::Workspace {
+        (
+            ImageBuffer::new(width, height),
+            ImageBuffer::new(width, height),
+            ImageBuffer::new(width, height),
+            ImageBuffer::new(width, height),
+        )
+    }
+
+    fn put_solid(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
+        ws.0.put_pixel(x, y, image::Luma([kind as u8]));
+        ws.1.put_pixel(x, y, image::Luma([0]));
+        ws.2.put_pixel(x, y, image::Luma([0]));
+        ws.3.put_pixel(x, y, image::Rgb([rgb.r, rgb.g, rgb.b]));
+    }
+
+    fn put_sprite(
+        ws: &mut Self::Workspace,
+        x: u32,
+        y: u32,
+        kind: BlockKind,
+        sprite: SpriteKind,
+        ori: Option<u8>,
+    ) {
+        ws.0.put_pixel(x, y, image::Luma([kind as u8]));
+        ws.1.put_pixel(x, y, image::Luma([sprite as u8]));
+        ws.2.put_pixel(x, y, image::Luma([ori.unwrap_or(0)]));
+        ws.3.put_pixel(x, y, image::Rgb([0; 3]));
+    }
+
+    fn finish(ws: &Self::Workspace) -> Option<Self::Output> {
+        let mut buf = Vec::new();
+        use image::codecs::png::{CompressionType, FilterType};
+        let mut indices = [0; 3];
+        let mut f = |x: &ImageBuffer<_, Vec<u8>>, i| {
+            let png = image::codecs::png::PngEncoder::new_with_quality(
+                &mut buf,
+                CompressionType::Rle,
+                FilterType::Up,
+            );
+            png.encode(&*x.as_raw(), x.width(), x.height(), image::ColorType::L8)
+                .ok()?;
+            indices[i] = buf.len();
+            Some(())
+        };
+        f(&ws.0, 0)?;
+        f(&ws.1, 1)?;
+        f(&ws.2, 2)?;
+
+        let mut jpeg = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut buf, 10);
+        jpeg.encode_image(&ws.3).ok()?;
+        Some((buf, indices))
+    }
+}
+
+impl VoxelImageDecoding for MixedEncoding {
+    fn start((quad, indices): &Self::Output) -> Option<Self::Workspace> {
+        use image::codecs::{jpeg::JpegDecoder, png::PngDecoder};
+        let ranges: [_; 4] = [
+            0..indices[0],
+            indices[0]..indices[1],
+            indices[1]..indices[2],
+            indices[2]..quad.len(),
+        ];
+        let a = image_from_bytes(PngDecoder::new(&quad[ranges[0].clone()]).ok()?)?;
+        let b = image_from_bytes(PngDecoder::new(&quad[ranges[1].clone()]).ok()?)?;
+        let c = image_from_bytes(PngDecoder::new(&quad[ranges[2].clone()]).ok()?)?;
+        let d = image_from_bytes(JpegDecoder::new(&quad[ranges[3].clone()]).ok()?)?;
+        Some((a, b, c, d))
+    }
+
+    fn get_block(ws: &Self::Workspace, x: u32, y: u32, _: bool) -> Block {
+        if let Some(kind) = BlockKind::from_u8(ws.0.get_pixel(x, y).0[0]) {
+            if kind.is_filled() {
+                let rgb = ws.3.get_pixel(x, y);
+                Block::new(kind, Rgb {
+                    r: rgb[0],
+                    g: rgb[1],
+                    b: rgb[2],
+                })
+            } else {
+                let mut block = Block::new(kind, Rgb { r: 0, g: 0, b: 0 });
+                if let Some(spritekind) = SpriteKind::from_u8(ws.1.get_pixel(x, y).0[0]) {
+                    block = block.with_sprite(spritekind);
+                }
+                if let Some(oriblock) = block.with_ori(ws.2.get_pixel(x, y).0[0]) {
+                    block = oriblock;
+                }
+                block
+            }
+        } else {
+            Block::empty()
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -506,7 +730,7 @@ fn main() {
                     ]);
                     if HISTOGRAMS {
                         let lz4_dict_dyna = lz4_with_dictionary(&*ser_dyna, &dictionary2);
-                        sizes.push(("lz4_dict_dyna", lz4_dyna.len() as f32 / n as f32));
+                        sizes.push(("lz4_dict_dyna", lz4_dict_dyna.len() as f32 / n as f32));
                     }
                 }
 

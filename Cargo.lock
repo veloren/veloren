@@ -5810,6 +5810,7 @@ dependencies = [
  "minifb",
  "noise",
  "num 0.4.0",
+ "num-traits",
  "ordered-float 2.1.1",
  "packed_simd_2",
  "rand 0.8.3",

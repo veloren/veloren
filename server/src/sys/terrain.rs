@@ -21,21 +21,25 @@ use specs::{Join, Read, ReadExpect, ReadStorage, Write, WriteExpect};
 use std::sync::Arc;
 use vek::*;
 
-pub struct LazyTerrainMessage {
+pub(crate) struct LazyTerrainMessage {
     lazy_msg_lo: Option<crate::client::PreparedMsg>,
     lazy_msg_hi: Option<crate::client::PreparedMsg>,
 }
 
 impl LazyTerrainMessage {
     #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             lazy_msg_lo: None,
             lazy_msg_hi: None,
         }
     }
 
-    pub fn prepare_and_send<'a, A, F: FnOnce() -> Result<&'a common::terrain::TerrainChunk, A>>(
+    pub(crate) fn prepare_and_send<
+        'a,
+        A,
+        F: FnOnce() -> Result<&'a common::terrain::TerrainChunk, A>,
+    >(
         &mut self,
         network_metrics: &NetworkRequestMetrics,
         client: &Client,

@@ -7,7 +7,7 @@ edition = "2018"
 [features]
 tracy = ["common/tracy", "common-net/tracy"]
 simd = ["vek/platform_intrinsics"]
-bin_compression = ["lz-fear", "deflate", "flate2", "common-frontend", "image/jpeg"]
+bin_compression = ["lz-fear", "deflate", "flate2", "common-frontend", "image/jpeg", "num-traits"]
 
 default = ["simd"]
 
@@ -42,6 +42,7 @@ assets_manager = {version = "0.4.3", features = ["ron"]}
 lz-fear = { version = "0.1.1", optional = true }
 deflate = { version = "0.9.1", optional = true }
 flate2 = { version = "1.0.20", optional = true }
+num-traits = { version = "0.2", optional = true }
 common-frontend = { package = "veloren-common-frontend", path = "../common/frontend", optional = true }
 
 
