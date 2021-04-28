@@ -76,6 +76,7 @@ impl CharacterBehavior for Data {
         match self.stage_section {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
+                    handle_orientation(data, &mut update, 1.0);
                     // Build up
                     update.character = CharacterState::DashMelee(Data {
                         timer: self
@@ -105,6 +106,7 @@ impl CharacterBehavior for Data {
                         / self.static_data.charge_duration.as_secs_f32())
                     .min(1.0);
 
+                    handle_orientation(data, &mut update, 0.6);
                     handle_forced_movement(
                         data,
                         &mut update,

@@ -40,6 +40,7 @@ pub enum Tactic {
     Mindflayer,
     BirdLargeBreathe,
     BirdLargeFire,
+    Minotaur,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]

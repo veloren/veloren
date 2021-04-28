@@ -1542,6 +1542,7 @@ impl<'a> AgentData<'a> {
                             "Bird Large Breathe" => Tactic::BirdLargeBreathe,
                             "Bird Large Fire" => Tactic::BirdLargeFire,
                             "Mindflayer" => Tactic::Mindflayer,
+                            "Minotaur" => Tactic::Minotaur,
                             _ => Tactic::Melee,
                         },
                         AbilitySpec::Tool(tool_kind) => tool_tactic(*tool_kind),
@@ -2569,11 +2570,11 @@ impl<'a> AgentData<'a> {
                 const MINDFLAYER_ATTACK_DIST: f32 = 16.0;
                 const MINION_SUMMON_THRESHOLD: f32 = 0.20;
                 let health_fraction = self.health.map_or(0.5, |h| h.fraction());
-                // Extreme hack to set action_timer at start of combat
+                // Sets action_float at start of combat
                 if agent.action_state.action_float < MINION_SUMMON_THRESHOLD
                     && health_fraction > MINION_SUMMON_THRESHOLD
                 {
-                    agent.action_state.action_float = 0.8;
+                    agent.action_state.action_float = 1.0 - MINION_SUMMON_THRESHOLD;
                 }
                 let mindflayer_is_far = dist_sqrd > MINDFLAYER_ATTACK_DIST.powi(2);
                 if agent.action_state.action_float > health_fraction {
@@ -2611,7 +2612,7 @@ impl<'a> AgentData<'a> {
                         controller
                             .actions
                             .push(ControlAction::basic_input(InputKind::Secondary));
-                    } else if thread_rng().gen_bool(health_fraction.into()) && angle < 30.0 {
+                    } else if thread_rng().gen_bool(health_fraction.into()) {
                         // Else if at high health, use primary
                         controller
                             .actions
@@ -2887,6 +2888,77 @@ impl<'a> AgentData<'a> {
                     agent.action_state.action_timer += dt.0;
                 } else {
                     agent.action_state.action_timer = 0.0;
+                }
+            },
+            Tactic::Minotaur => {
+                const MINOTAUR_FRENZY_THRESHOLD: f32 = 0.5;
+                const MINOTAUR_ATTACK_RANGE: f32 = 5.0;
+                const MINOTAUR_CHARGE_DISTANCE: f32 = 15.0;
+                let minotaur_attack_distance =
+                    self.body.map_or(0.0, |b| b.radius()) + MINOTAUR_ATTACK_RANGE;
+                let health_fraction = self.health.map_or(1.0, |h| h.fraction());
+                // Sets action float at start of combat
+                if agent.action_state.action_float < MINOTAUR_FRENZY_THRESHOLD
+                    && health_fraction > MINOTAUR_FRENZY_THRESHOLD
+                {
+                    agent.action_state.action_float = MINOTAUR_FRENZY_THRESHOLD;
+                }
+                if health_fraction < agent.action_state.action_float {
+                    // Makes minotaur buff itself with frenzy
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Ability(1)));
+                    if matches!(self.char_state, CharacterState::SelfBuff(c) if matches!(c.stage_section, StageSection::Recover))
+                    {
+                        agent.action_state.action_float = 0.0;
+                    }
+                } else if matches!(self.char_state, CharacterState::DashMelee(c) if !matches!(c.stage_section, StageSection::Recover))
+                {
+                    // If already charging, keep charging if not in recover
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Ability(0)));
+                } else if matches!(self.char_state, CharacterState::ChargedMelee(c) if matches!(c.stage_section, StageSection::Charge) && c.timer < c.static_data.charge_duration)
+                {
+                    // If already charging a melee attack, keep charging it if charging
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Primary));
+                } else if dist_sqrd > MINOTAUR_CHARGE_DISTANCE.powi(2) {
+                    // Charges at target if they are far enough away
+                    if angle < 60.0 {
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Ability(0)));
+                    }
+                } else if dist_sqrd < minotaur_attack_distance.powi(2) {
+                    if agent.action_state.action_bool && !self.char_state.is_attack() {
+                        // Cripple target if not just used cripple
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Secondary));
+                        agent.action_state.action_bool = false;
+                    } else if !self.char_state.is_attack() {
+                        // Cleave target if not just used cleave
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Primary));
+                        agent.action_state.action_bool = true;
+                    }
+                }
+                // Make minotaur move towards target
+                if let Some((bearing, speed)) = agent.chaser.chase(
+                    &*terrain,
+                    self.pos.0,
+                    self.vel.0,
+                    tgt_pos.0,
+                    TraversalConfig {
+                        min_tgt_dist: 1.25,
+                        ..self.traversal_config
+                    },
+                ) {
+                    controller.inputs.move_dir =
+                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
                 }
             },
         }
