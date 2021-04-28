@@ -34,7 +34,7 @@ use common::{
     grid::Grid,
     outcome::Outcome,
     recipe::RecipeBook,
-    resources::{DeltaTime, PlayerEntity, TimeOfDay},
+    resources::{PlayerEntity, TimeOfDay},
     terrain::{
         block::Block, map::MapConfig, neighbors, BiomeKind, SitesKind, SpriteKind, TerrainChunk,
         TerrainChunkSize,
@@ -190,6 +190,7 @@ pub struct Client {
     loaded_distance: f32,
 
     pending_chunks: HashMap<Vec2<i32>, Instant>,
+    target_time_of_day: Option<TimeOfDay>,
 }
 
 /// Holds data related to the current players characters, as well as some
@@ -693,6 +694,7 @@ impl Client {
             loaded_distance: 0.0,
 
             pending_chunks: HashMap::new(),
+            target_time_of_day: None,
         })
     }
 
@@ -1449,6 +1451,16 @@ impl Client {
             self.invite = None;
         }
 
+        // Lerp towards the target time of day - this ensures a smooth transition for
+        // large jumps in TimeOfDay such as when using /time
+        if let Some(target_tod) = self.target_time_of_day {
+            let mut tod = self.state.ecs_mut().write_resource::<TimeOfDay>();
+            tod.0 = Lerp::lerp(tod.0, target_tod.0, dt.as_secs_f64());
+            if tod.0 >= target_tod.0 {
+                self.target_time_of_day = None;
+            }
+        }
+
         // 4) Tick the client's LocalState
         self.state.tick(
             dt,
@@ -1716,9 +1728,7 @@ impl Client {
                 }
             },
             ServerGeneral::TimeOfDay(time_of_day) => {
-                let dt = self.state.ecs().read_resource::<DeltaTime>().0;
-                let mut tod = self.state.ecs_mut().write_resource::<TimeOfDay>();
-                tod.0 = Lerp::lerp(tod.0, time_of_day.0, dt as f64);
+                self.target_time_of_day = Some(time_of_day);
             },
             ServerGeneral::EntitySync(entity_sync_package) => {
                 self.state
