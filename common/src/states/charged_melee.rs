@@ -204,14 +204,16 @@ impl CharacterBehavior for Data {
                             .filter(|(_, tool)| tool == &Some(ToolKind::Pick)),
                     });
 
-                    // Send local event used for frontend shenanigans
-                    update
-                        .local_events
-                        .push_front(LocalEvent::CreateOutcome(Outcome::Bonk {
-                            pos: data.pos.0
-                                + *data.ori.look_dir()
-                                    * (data.body.radius() + self.static_data.range),
-                        }));
+                    if let Some(FrontendSpecifier::GroundCleave) = self.static_data.specifier {
+                        // Send local event used for frontend shenanigans
+                        update
+                            .local_events
+                            .push_front(LocalEvent::CreateOutcome(Outcome::Bonk {
+                                pos: data.pos.0
+                                    + *data.ori.look_dir()
+                                        * (data.body.radius() + self.static_data.range),
+                            }));
+                    }
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings
                     update.character = CharacterState::ChargedMelee(Data {

@@ -79,6 +79,7 @@ fn maps_basic_melee() {
                 range: 1.0,
                 max_angle: 1.0,
                 ability_info: empty_ability_info(),
+                damage_effect: None,
             },
             timer: Duration::default(),
             stage_section: states::utils::StageSection::Buildup,
