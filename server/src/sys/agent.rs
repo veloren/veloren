@@ -242,18 +242,6 @@ impl<'a> System<'a> for Sys {
                         can_fly: body.map(|b| b.fly_thrust().is_some()).unwrap_or(false),
                     };
 
-                    if traversal_config.can_fly {
-                        // hack (kinda): Never turn off flight for entities that can fly at all,
-                        // since it results in stuttering and falling back to the ground.
-
-                        // If we need to be able to have entities (dragons maybe?) both fly and
-                        // run/jump, we probably need to refactor to avoid resetting the controller
-                        // every frame.
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Fly));
-                    }
-
                     let flees = alignment
                         .map(|a| !matches!(a, Alignment::Enemy | Alignment::Owned(_)))
                         .unwrap_or(true);
@@ -262,6 +250,14 @@ impl<'a> System<'a> for Sys {
                         .rtsim_entities
                         .get(entity)
                         .and_then(|rtsim_ent| rtsim.get_entity(rtsim_ent.0));
+
+                    if traversal_config.can_fly && rtsim_entity.is_some() {
+                        // hack (kinda): Never turn off flight for rtsim entities that can fly
+                        // at all, since it results in stuttering and falling back to the ground.
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Fly));
+                    }
 
                     // Package all this agent's data into a convenient struct
                     let data = AgentData {
@@ -2049,7 +2045,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::StoneGolemBoss => {
-                if dist_sqrd < min_attack_dist.powi(2) && angle < 45.0 {
+                if dist_sqrd < min_attack_dist.powi(2) && angle < 90.0 {
                     // 2.0 is temporary correction factor to allow them to melee with their
                     // large hitbox
                     controller.inputs.move_dir = Vec2::zero();
@@ -2073,7 +2069,7 @@ impl<'a> AgentData<'a> {
                             ..self.traversal_config
                         },
                     ) {
-                        if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) && angle < 45.0 {
+                        if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) && angle < 90.0 {
                             controller.inputs.move_dir =
                                 bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
                             if agent.action_timer > 5.0 {
@@ -2099,8 +2095,7 @@ impl<'a> AgentData<'a> {
                 radius,
                 circle_time,
             } => {
-                if dist_sqrd < min_attack_dist.powi(2) && thread_rng().gen_bool(0.5) && angle < 45.0
-                {
+                if dist_sqrd < min_attack_dist.powi(2) && thread_rng().gen_bool(0.5) {
                     controller.inputs.move_dir = Vec2::zero();
                     controller
                         .actions
@@ -2134,7 +2129,7 @@ impl<'a> AgentData<'a> {
                         }
                         controller.inputs.move_dir = move_dir;
                         agent.action_timer += dt.0;
-                    } else if agent.action_timer < circle_time as f32 + 0.5 && angle < 45.0 {
+                    } else if agent.action_timer < circle_time as f32 + 0.5 {
                         controller
                             .actions
                             .push(ControlAction::basic_input(InputKind::Secondary));
@@ -2160,7 +2155,7 @@ impl<'a> AgentData<'a> {
                         }
                         controller.inputs.move_dir = move_dir;
                         agent.action_timer += dt.0;
-                    } else if agent.action_timer < 2.0 * circle_time as f32 + 1.0 && angle < 45.0 {
+                    } else if agent.action_timer < 2.0 * circle_time as f32 + 1.0 {
                         if agent.action_timer < 2.0 * circle_time as f32 {
                             agent.action_timer = 2.0 * circle_time as f32;
                         }
@@ -2192,7 +2187,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::QuadLowRanged => {
-                if dist_sqrd < (3.0 * min_attack_dist).powi(2) && angle < 45.0 {
+                if dist_sqrd < (3.0 * min_attack_dist).powi(2) && angle < 90.0 {
                     controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
                         .xy()
                         .try_normalized()
@@ -2250,7 +2245,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::TailSlap => {
-                if dist_sqrd < (1.5 * min_attack_dist).powi(2) && angle < 45.0 {
+                if dist_sqrd < (1.5 * min_attack_dist).powi(2) && angle < 90.0 {
                     if agent.action_timer > 4.0 {
                         controller
                             .actions
@@ -2293,14 +2288,14 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::QuadLowQuick => {
-                if dist_sqrd < (1.5 * min_attack_dist).powi(2) && angle < 45.0 {
+                if dist_sqrd < (1.5 * min_attack_dist).powi(2) && angle < 90.0 {
                     controller.inputs.move_dir = Vec2::zero();
                     controller
                         .actions
                         .push(ControlAction::basic_input(InputKind::Secondary));
                 } else if dist_sqrd < (3.0 * min_attack_dist).powi(2)
                     && dist_sqrd > (2.0 * min_attack_dist).powi(2)
-                    && angle < 45.0
+                    && angle < 90.0
                 {
                     controller
                         .actions
@@ -2335,12 +2330,12 @@ impl<'a> AgentData<'a> {
                     controller.inputs.move_dir = Vec2::zero();
                     if agent.action_timer > 5.0 {
                         agent.action_timer = 0.0;
-                    } else if agent.action_timer > 2.0 && angle < 45.0 {
+                    } else if agent.action_timer > 2.0 && angle < 90.0 {
                         controller
                             .actions
                             .push(ControlAction::basic_input(InputKind::Secondary));
                         agent.action_timer += dt.0;
-                    } else if angle < 45.0 {
+                    } else if angle < 90.0 {
                         controller
                             .actions
                             .push(ControlAction::basic_input(InputKind::Primary));
@@ -2367,7 +2362,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::QuadMedJump => {
-                if dist_sqrd < (1.5 * min_attack_dist).powi(2) && angle < 45.0 {
+                if dist_sqrd < (1.5 * min_attack_dist).powi(2) && angle < 90.0 {
                     controller.inputs.move_dir = Vec2::zero();
                     controller
                         .actions
@@ -2405,7 +2400,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::QuadMedBasic => {
-                if dist_sqrd < min_attack_dist.powi(2) && angle < 45.0 {
+                if dist_sqrd < min_attack_dist.powi(2) && angle < 90.0 {
                     controller.inputs.move_dir = Vec2::zero();
                     if agent.action_timer < 2.0 {
                         controller
@@ -2441,7 +2436,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::Lavadrake | Tactic::QuadLowBeam => {
-                if dist_sqrd < (2.5 * min_attack_dist).powi(2) && angle < 45.0 {
+                if dist_sqrd < (2.5 * min_attack_dist).powi(2) && angle < 90.0 {
                     controller.inputs.move_dir = Vec2::zero();
                     controller
                         .actions
@@ -2496,7 +2491,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::Theropod => {
-                if dist_sqrd < (2.0 * min_attack_dist).powi(2) && angle < 45.0 {
+                if dist_sqrd < (2.0 * min_attack_dist).powi(2) && angle < 90.0 {
                     controller.inputs.move_dir = Vec2::zero();
                     controller
                         .actions
@@ -2633,11 +2628,6 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::BirdLargeFire => {
-                // Set fly to false
-                controller
-                    .actions
-                    .push(ControlAction::CancelInput(InputKind::Fly));
-                // If further than 30 blocks
                 if dist_sqrd > 30.0_f32.powi(2) {
                     // If random chance and can see target
                     if thread_rng().gen_bool(0.05)
@@ -2761,7 +2751,7 @@ impl<'a> AgentData<'a> {
                     controller
                         .actions
                         .push(ControlAction::basic_input(InputKind::Ability(0)));
-                } else if angle < 45.0 {
+                } else if angle < 90.0 {
                     // Triple strike
                     controller
                         .actions
@@ -2873,7 +2863,7 @@ impl<'a> AgentData<'a> {
                         .actions
                         .push(ControlAction::basic_input(InputKind::Ability(0)));
                     agent.action_timer += dt.0;
-                } else if agent.action_timer < 6.0 && angle < 45.0 {
+                } else if agent.action_timer < 6.0 && angle < 90.0 {
                     controller
                         .actions
                         .push(ControlAction::basic_input(InputKind::Secondary));
