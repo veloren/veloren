@@ -208,7 +208,7 @@ impl CharacterBehavior for Data {
                         // Send local event used for frontend shenanigans
                         update
                             .local_events
-                            .push_front(LocalEvent::CreateOutcome(Outcome::Bonk {
+                            .push_front(LocalEvent::CreateOutcome(Outcome::GroundSlam {
                                 pos: data.pos.0
                                     + *data.ori.look_dir()
                                         * (data.body.radius() + self.static_data.range),
@@ -266,6 +266,7 @@ impl CharacterBehavior for Data {
     }
 }
 
+/// Used to specify a particular effect for frontend purposes
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum FrontendSpecifier {
     GroundCleave,

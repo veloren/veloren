@@ -215,7 +215,7 @@ impl ParticleMgr {
                     });
                 }
             },
-            Outcome::Bonk { pos, .. } => {
+            Outcome::GroundSlam { pos, .. } => {
                 self.particles.resize_with(self.particles.len() + 100, || {
                     Particle::new(
                         Duration::from_millis(1000),

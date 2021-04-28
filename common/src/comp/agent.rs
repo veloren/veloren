@@ -306,9 +306,9 @@ pub struct Agent {
 
 #[derive(Clone, Debug, Default)]
 pub struct ActionState {
-    pub action_timer: f32,
-    pub action_float: f32,
-    pub action_bool: bool,
+    pub timer: f32,
+    pub counter: f32,
+    pub condition: bool,
 }
 
 impl Agent {

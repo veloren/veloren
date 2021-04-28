@@ -7,7 +7,7 @@ BasicMelee(
     base_poise_damage: 60.0,
     knockback: 15.0,
     range: 5.0,
-    max_angle: 90.0,
+    max_angle: 60.0,
     damage_effect: Some(Buff((
         kind: Crippled,
         dur_secs: 15.0,

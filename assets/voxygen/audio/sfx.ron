@@ -824,5 +824,12 @@
             ],
             threshold: 1.25,
         ),
+        GroundSlam: (
+            files: [
+                    "voxygen.audio.sfx.abilities.minotaur_smash_1",
+                    "voxygen.audio.sfx.abilities.minotaur_smash_2",
+                ],
+            threshold: 0.2,
+        ),
     }
 )

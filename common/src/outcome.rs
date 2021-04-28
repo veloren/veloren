@@ -68,7 +68,7 @@ pub enum Outcome {
         pos: Vec3<f32>,
         state: PoiseState,
     },
-    Bonk {
+    GroundSlam {
         pos: Vec3<f32>,
     },
 }
@@ -85,7 +85,7 @@ impl Outcome {
             | Outcome::Damage { pos, .. }
             | Outcome::Block { pos, .. }
             | Outcome::PoiseChange { pos, .. }
-            | Outcome::Bonk { pos } => Some(*pos),
+            | Outcome::GroundSlam { pos } => Some(*pos),
             Outcome::BreakBlock { pos, .. } => Some(pos.map(|e| e as f32 + 0.5)),
             Outcome::ExpChange { .. } | Outcome::ComboChange { .. } => None,
         }
