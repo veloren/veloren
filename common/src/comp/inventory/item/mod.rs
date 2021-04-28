@@ -24,10 +24,10 @@ use core::{
     ops::Deref,
 };
 use crossbeam_utils::atomic::AtomicCell;
-use serde::{Deserialize, Serialize};
+use serde::{de, Deserialize, Serialize, Serializer};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
-use std::sync::Arc;
+use std::{fmt, sync::Arc};
 use vek::Rgb;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -205,6 +205,10 @@ pub struct Item {
     /// item_def is hidden because changing the item definition for an item
     /// could change invariants like whether it was stackable (invalidating
     /// the amount).
+    #[serde(
+        serialize_with = "serialize_item_def",
+        deserialize_with = "deserialize_item_def"
+    )]
     item_def: Arc<ItemDef>,
     /// components is hidden to maintain the following invariants:
     /// - It should only contain modular components (and enhancements, once they
@@ -222,6 +226,42 @@ pub struct Item {
     /// The slots for items that this item has
     slots: Vec<InvSlot>,
     item_config: Option<Box<ItemConfig>>,
+}
+
+// Custom serialization for ItemDef, we only want to send the item_definition_id
+// over the network, the client will use deserialize_item_def to fetch the
+// ItemDef from assets.
+fn serialize_item_def<S: Serializer>(field: &Arc<ItemDef>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    serializer.serialize_str(&field.item_definition_id)
+}
+
+// Custom de-serialization for ItemDef to retrieve the ItemDef from assets using
+// its asset specifier (item_definition_id)
+fn deserialize_item_def<'de, D>(deserializer: D) -> Result<Arc<ItemDef>, D::Error>
+where
+    D: de::Deserializer<'de>,
+{
+    struct ItemDefStringVisitor;
+
+    impl<'de> de::Visitor<'de> for ItemDefStringVisitor {
+        type Value = Arc<ItemDef>;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("item def string")
+        }
+
+        fn visit_str<E>(self, item_definition_id: &str) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(Arc::<ItemDef>::load_expect_cloned(item_definition_id))
+        }
+    }
+
+    deserializer.deserialize_str(ItemDefStringVisitor)
 }
 
 #[derive(Debug, Serialize, Deserialize)]
