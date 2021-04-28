@@ -92,6 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Debug Kit is split to "admin_cosmetics" and "debug"
 - Potion Kit is renamed to "consumables" and gives potions and mushroom curry
 - Cultist Kit gives cape, rings and necklace in addition to armour and weapons.
+- Reworked minotaur to have unique attacks.
 
 ### Removed
 
