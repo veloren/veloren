@@ -66,7 +66,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
     }
 }
 
-pub const ALL_SPECIES: [Species; 3] = [
+pub const ALL_SPECIES: [Species; 4] = [
     Species::Phoenix,
     Species::Cockatrice,
     Species::Roc,

@@ -52,7 +52,7 @@ impl Animation for IdleAnimation {
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation = Quaternion::rotation_z(duck_head_look.x)
-            * Quaternion::rotation_x(0.4 -duck_head_look.y.abs() + wave_slow_cos * 0.01);
+            * Quaternion::rotation_x(0.4 - duck_head_look.y.abs() + wave_slow_cos * 0.01);
 
         next.beak.position = Vec3::new(0.0, s_a.beak.0, s_a.beak.1);
         next.beak.orientation = Quaternion::rotation_x(wave_slow_cos * -0.02 - 0.02);
@@ -72,13 +72,21 @@ impl Animation for IdleAnimation {
 
         next.wing_mid_l.position = Vec3::new(-s_a.wing_mid.0, s_a.wing_mid.1, s_a.wing_mid.2);
         next.wing_mid_r.position = Vec3::new(s_a.wing_mid.0, s_a.wing_mid.1, s_a.wing_mid.2);
-        next.wing_mid_l.orientation = Quaternion::rotation_x(0.1)*Quaternion::rotation_y(-0.1) * Quaternion::rotation_z(0.7);
-        next.wing_mid_r.orientation = Quaternion::rotation_x(0.1)*Quaternion::rotation_y(0.1) * Quaternion::rotation_z(-0.7);
+        next.wing_mid_l.orientation = Quaternion::rotation_x(0.1)
+            * Quaternion::rotation_y(-0.1)
+            * Quaternion::rotation_z(0.7);
+        next.wing_mid_r.orientation = Quaternion::rotation_x(0.1)
+            * Quaternion::rotation_y(0.1)
+            * Quaternion::rotation_z(-0.7);
 
         next.wing_out_l.position = Vec3::new(-s_a.wing_out.0, s_a.wing_out.1, s_a.wing_out.2);
         next.wing_out_r.position = Vec3::new(s_a.wing_out.0, s_a.wing_out.1, s_a.wing_out.2);
-        next.wing_out_l.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.1) * Quaternion::rotation_z(0.55);
-        next.wing_out_r.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(-0.1) * Quaternion::rotation_z(-0.55);
+        next.wing_out_l.orientation = Quaternion::rotation_x(0.0)
+            * Quaternion::rotation_y(0.1)
+            * Quaternion::rotation_z(0.55);
+        next.wing_out_r.orientation = Quaternion::rotation_x(0.0)
+            * Quaternion::rotation_y(-0.1)
+            * Quaternion::rotation_z(-0.55);
 
         next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2);
         next.leg_l.orientation = Quaternion::rotation_x(0.0);
