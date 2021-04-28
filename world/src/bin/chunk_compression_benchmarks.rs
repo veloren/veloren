@@ -361,7 +361,7 @@ fn main() {
             .map(|v| v + sitepos.as_())
             .enumerate()
         {
-            let chunk = world.generate_chunk(index.as_index_ref(), spiralpos, || false);
+            let chunk = world.generate_chunk(index.as_index_ref(), spiralpos, || false, None);
             if let Ok((chunk, _)) = chunk {
                 let uncompressed = bincode::serialize(&chunk).unwrap();
                 let n = uncompressed.len();
@@ -376,8 +376,6 @@ fn main() {
                 let lz4chonk_pre = Instant::now();
                 let lz4_chonk = lz4_with_dictionary(&bincode::serialize(&chunk).unwrap(), &[]);
                 let lz4chonk_post = Instant::now();
-                //let lz4_dict_chonk = SerializedTerrainChunk::from_chunk(&chunk,
-                // &*dictionary);
                 for _ in 0..ITERS {
                     let _deflate0_chonk =
                         do_deflate_flate2_zero(&bincode::serialize(&chunk).unwrap());
@@ -493,7 +491,6 @@ fn main() {
                         }
                     }
                     let lz4_dyna = lz4_with_dictionary(&*ser_dyna, &[]);
-                    //let lz4_dict_dyna = lz4_with_dictionary(&*ser_dyna, &dictionary2);
                     let deflate_dyna = do_deflate_flate2::<5>(&*ser_dyna);
                     let deflate_channeled_dyna = do_deflate_flate2::<5>(
                         &bincode::serialize(&channelize_dyna(&dyna)).unwrap(),
@@ -507,6 +504,10 @@ fn main() {
                             deflate_channeled_dyna.len() as f32 / n as f32,
                         ),
                     ]);
+                    if HISTOGRAMS {
+                        let lz4_dict_dyna = lz4_with_dictionary(&*ser_dyna, &dictionary2);
+                        sizes.push(("lz4_dict_dyna", lz4_dyna.len() as f32 / n as f32));
+                    }
                 }
 
                 if !SKIP_IMAGECHONK {

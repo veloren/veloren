@@ -75,7 +75,7 @@ pub enum SerializedTerrainChunk {
 
 /// If someone has less than this number of bytes per second of bandwidth, spend
 /// more CPU generating a smaller encoding of terrain data.
-pub const TERRAIN_LOW_BANDWIDTH: f32 = 5_000_000.0;
+pub const TERRAIN_LOW_BANDWIDTH: f32 = 500_000.0;
 
 impl SerializedTerrainChunk {
     pub fn via_heuristic(chunk: &TerrainChunk, low_bandwidth: bool) -> Self {

@@ -88,7 +88,12 @@ impl<'a> System<'a> for Sys {
                                                     &chunk,
                                                     low_bandwidth,
                                                 )),
-                                            })?
+                                            })?;
+                                            if low_bandwidth {
+                                                network_metrics.chunks_served_lo_bandwidth.inc();
+                                            } else {
+                                                network_metrics.chunks_served_hi_bandwidth.inc();
+                                            }
                                         }
                                     },
                                     None => {

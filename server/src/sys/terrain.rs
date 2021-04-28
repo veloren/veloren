@@ -1,6 +1,6 @@
 use crate::{
-    chunk_generator::ChunkGenerator, client::Client, presence::Presence, rtsim::RtSim,
-    settings::Settings, SpawnPoint, Tick,
+    chunk_generator::ChunkGenerator, client::Client, metrics::NetworkRequestMetrics,
+    presence::Presence, rtsim::RtSim, settings::Settings, SpawnPoint, Tick,
 };
 use common::{
     comp::{
@@ -17,9 +17,59 @@ use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{SerializedTerrainChunk, ServerGeneral, TERRAIN_LOW_BANDWIDTH};
 use common_state::TerrainChanges;
 use comp::Behavior;
-use specs::{Join, Read, ReadStorage, Write, WriteExpect};
+use specs::{Join, Read, ReadExpect, ReadStorage, Write, WriteExpect};
 use std::sync::Arc;
 use vek::*;
+
+pub struct LazyTerrainMessage {
+    lazy_msg_lo: Option<crate::client::PreparedMsg>,
+    lazy_msg_hi: Option<crate::client::PreparedMsg>,
+}
+
+impl LazyTerrainMessage {
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        Self {
+            lazy_msg_lo: None,
+            lazy_msg_hi: None,
+        }
+    }
+
+    pub fn prepare_and_send<'a, A, F: FnOnce() -> Result<&'a common::terrain::TerrainChunk, A>>(
+        &mut self,
+        network_metrics: &NetworkRequestMetrics,
+        client: &Client,
+        chunk_key: &vek::Vec2<i32>,
+        generate_chunk: F,
+    ) -> Result<(), A> {
+        if let Some(participant) = &client.participant {
+            let low_bandwidth = participant.bandwidth() < TERRAIN_LOW_BANDWIDTH;
+            let lazy_msg = if low_bandwidth {
+                &mut self.lazy_msg_lo
+            } else {
+                &mut self.lazy_msg_hi
+            };
+            if lazy_msg.is_none() {
+                *lazy_msg = Some(client.prepare(ServerGeneral::TerrainChunkUpdate {
+                    key: *chunk_key,
+                    chunk: Ok(match generate_chunk() {
+                        Ok(chunk) => SerializedTerrainChunk::via_heuristic(&chunk, low_bandwidth),
+                        Err(e) => return Err(e),
+                    }),
+                }));
+            }
+            lazy_msg.as_ref().map(|ref msg| {
+                let _ = client.send_prepared(&msg);
+                if low_bandwidth {
+                    network_metrics.chunks_served_lo_bandwidth.inc();
+                } else {
+                    network_metrics.chunks_served_hi_bandwidth.inc();
+                }
+            });
+        }
+        Ok(())
+    }
+}
 
 /// This system will handle loading generated chunks and unloading
 /// unneeded chunks.
@@ -36,6 +86,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, Tick>,
         Read<'a, SpawnPoint>,
         Read<'a, Settings>,
+        ReadExpect<'a, NetworkRequestMetrics>,
         WriteExpect<'a, ChunkGenerator>,
         WriteExpect<'a, TerrainGrid>,
         Write<'a, TerrainChanges>,
@@ -56,6 +107,7 @@ impl<'a> System<'a> for Sys {
             tick,
             spawn_point,
             server_settings,
+            network_metrics,
             mut chunk_generator,
             mut terrain,
             mut terrain_changes,
@@ -222,8 +274,7 @@ impl<'a> System<'a> for Sys {
         // Send the chunk to all nearby players.
         use rayon::iter::{IntoParallelIterator, ParallelIterator};
         new_chunks.into_par_iter().for_each(|(key, chunk)| {
-            let mut lazy_msg_lo = None;
-            let mut lazy_msg_hi = None;
+            let mut lazy_msg = LazyTerrainMessage::new();
 
             (&presences, &positions, &clients)
                 .join()
@@ -237,26 +288,11 @@ impl<'a> System<'a> for Sys {
                         .magnitude_squared();
 
                     if adjusted_dist_sqr <= presence.view_distance.pow(2) {
-                        if let Some(participant) = &client.participant {
-                            let low_bandwidth = participant.bandwidth() < TERRAIN_LOW_BANDWIDTH;
-                            let lazy_msg = if low_bandwidth {
-                                &mut lazy_msg_lo
-                            } else {
-                                &mut lazy_msg_hi
-                            };
-                            if lazy_msg.is_none() {
-                                *lazy_msg =
-                                    Some(client.prepare(ServerGeneral::TerrainChunkUpdate {
-                                        key,
-                                        chunk: Ok(SerializedTerrainChunk::via_heuristic(
-                                            &*chunk,
-                                            low_bandwidth,
-                                        )),
-                                    }));
-                            };
-
-                            lazy_msg.as_ref().map(|msg| client.send_prepared(msg));
-                        }
+                        lazy_msg
+                            .prepare_and_send::<!, _>(&network_metrics, &client, &key, || {
+                                Ok(&*chunk)
+                            })
+                            .into_ok();
                     }
                 });
         });

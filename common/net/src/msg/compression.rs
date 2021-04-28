@@ -397,8 +397,6 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
     #[inline(always)]
     fn put_solid(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
-        //ws.1.put_pixel(x, y, image::Luma([0]));
-        //ws.2.put_pixel(x, y, image::Luma([0]));
         ws.3.put_pixel(x / N, y / N, image::Rgb([rgb.r, rgb.g, rgb.b]));
     }
 
@@ -558,15 +556,21 @@ impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
                                         - (N - 1) as f64 / 2.0;
                                     let d = (y.wrapping_add(dy as u32) % N) as f64
                                         - (N - 1) as f64 / 2.0;
-                                    let _euclid = Vec2::new(c, d).magnitude();
+                                    let euclid = Vec2::new(c, d).magnitude();
                                     let _manhattan = c.abs() + d.abs();
-                                    //println!("{:?}, {:?}, {:?}: {} {}", (x, y), (i, j), (c, d),
-                                    // euclid, manhattan);
-                                    // rgb += lanczos(a * euclid, b) * pix;
-                                    //rgb += lanczos(a * c, b) * lanczos(a * d, b) * pix;
-                                    rgb += lanczos(a * (i as f64 - (x / N) as f64), b)
-                                        * lanczos(a * (j as f64 - (y / N) as f64), b)
-                                        * pix;
+                                    match 2 {
+                                        0 => {
+                                            rgb += lanczos(a * euclid, b) * pix;
+                                        },
+                                        1 => {
+                                            rgb += lanczos(a * c, b) * lanczos(a * d, b) * pix;
+                                        },
+                                        _ => {
+                                            rgb += lanczos(a * (i as f64 - (x / N) as f64), b)
+                                                * lanczos(a * (j as f64 - (y / N) as f64), b)
+                                                * pix;
+                                        },
+                                    }
                                 }
                             }
                         }

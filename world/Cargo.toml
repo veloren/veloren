@@ -7,7 +7,7 @@ edition = "2018"
 [features]
 tracy = ["common/tracy", "common-net/tracy"]
 simd = ["vek/platform_intrinsics"]
-bin_compression = ["lz-fear", "deflate", "flate2", "common-frontend"]
+bin_compression = ["lz-fear", "deflate", "flate2", "common-frontend", "image/jpeg"]
 
 default = ["simd"]
 
@@ -19,7 +19,7 @@ bincode = "1.3.1"
 bitvec = "0.22"
 enum-iterator = "0.6"
 fxhash = "0.2.1"
-image = { version = "0.23.12", default-features = false, features = ["png", "jpeg"] }
+image = { version = "0.23.12", default-features = false, features = ["png"] }
 itertools = "0.10"
 vek = { version = "0.14.1", features = ["serde"] }
 noise = { version = "0.7", default-features = false }
