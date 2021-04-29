@@ -1505,6 +1505,24 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::Mount { .. } => {
+                            anim::character::MountAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    time,
+                                    rel_vel,
+                                    rel_avg_vel,
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                ),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         CharacterState::GlideWield { .. } => {
                             anim::character::GlideWieldAnimation::update_skeleton(
                                 &target_base,

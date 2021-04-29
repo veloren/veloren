@@ -193,6 +193,7 @@ impl<'a> System<'a> for Sys {
                 CharacterState::Idle { .. }
                 | CharacterState::Talk { .. }
                 | CharacterState::Sit { .. }
+                | CharacterState::Mount { .. }
                 | CharacterState::Dance { .. }
                 | CharacterState::Sneak { .. }
                 | CharacterState::Glide { .. }
