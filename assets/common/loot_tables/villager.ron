@@ -12,7 +12,8 @@
     (0.25, LootTable("common.loot_tables.food.prepared")),
     // Weapons
     (0.5, LootTable("common.loot_tables.weapons.sword.wood")),
-    (0.5, LootTable("common.loot_tables.weapons.hammer.stone")),
+    (0.5, LootTable("common.loot_tables.weapons.axe.wood")),
+    (0.5, LootTable("common.loot_tables.weapons.hammer.wood")),
     (0.5, LootTable("common.loot_tables.weapons.bow.rawwood")),
     (0.5, LootTable("common.loot_tables.weapons.starter")),
 ]

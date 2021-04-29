@@ -474,26 +474,6 @@
         "voxel.weapon.axe.2haxe_orc-0",
         (1.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.13,
     ),
-    Tool("common.items.weapons.axe.worn_iron_axe-0"): VoxTrans(
-        "voxel.weapon.axe.2haxe_worn_iron-0",
-        (1.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.axe.worn_iron_axe-1"): VoxTrans(
-        "voxel.weapon.axe.2haxe_worn_iron-1",
-        (1.0, 0.5, 0.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.axe.worn_iron_axe-2"): VoxTrans(
-        "voxel.weapon.axe.2haxe_worn_iron-2",
-        (1.0, 0.8, 0.0), (-135.0, 90.0, 0.0), 1.15,
-    ),
-    Tool("common.items.weapons.axe.worn_iron_axe-3"): VoxTrans(
-        "voxel.weapon.axe.2haxe_worn_iron-3",
-        (1.0, 0.5, 0.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.axe.worn_iron_axe-4"): VoxTrans(
-        "voxel.weapon.axe.2haxe_worn_iron-4",
-        (1.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
     Tool("common.items.weapons.axe.bronze_axe-0"): VoxTrans(
         "voxel.weapon.axe.2haxe_bronze-0",
         (1.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
@@ -706,22 +686,6 @@
     ),
     Tool("common.items.weapons.hammer.stone_hammer-3"): VoxTrans(
         "voxel.weapon.hammer.2hhammer_stone-3",
-        (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.worn_iron_hammer-0"): VoxTrans(
-        "voxel.weapon.hammer.2hhammer_worn_iron-0",
-        (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.worn_iron_hammer-1"): VoxTrans(
-        "voxel.weapon.hammer.2hhammer_worn_iron-1",
-        (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.worn_iron_hammer-2"): VoxTrans(
-        "voxel.weapon.hammer.2hhammer_worn_iron-2",
-        (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.worn_iron_hammer-3"): VoxTrans(
-        "voxel.weapon.hammer.2hhammer_worn_iron-3",
         (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     Tool("common.items.weapons.hammer.bronze_hammer-0"): VoxTrans(
