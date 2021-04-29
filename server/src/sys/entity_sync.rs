@@ -356,14 +356,17 @@ impl<'a> System<'a> for Sys {
         // Sync resources
         // TODO: doesn't really belong in this system (rename system or create another
         // system?)
-        let mut tof_lazymsg = None;
-        for client in (&clients).join() {
-            let msg = tof_lazymsg
-                .unwrap_or_else(|| client.prepare(ServerGeneral::TimeOfDay(*time_of_day)));
-            // We don't care much about stream errors here since they could just represent
-            // network disconnection, which is handled elsewhere.
-            let _ = client.send_prepared(&msg);
-            tof_lazymsg = Some(msg);
+        const TOD_SYNC_FREQ: u64 = 100;
+        if tick % TOD_SYNC_FREQ == 0 {
+            let mut tod_lazymsg = None;
+            for client in (&clients).join() {
+                let msg = tod_lazymsg
+                    .unwrap_or_else(|| client.prepare(ServerGeneral::TimeOfDay(*time_of_day)));
+                // We don't care much about stream errors here since they could just represent
+                // network disconnection, which is handled elsewhere.
+                let _ = client.send_prepared(&msg);
+                tod_lazymsg = Some(msg);
+            }
         }
     }
 }

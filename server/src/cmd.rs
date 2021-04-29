@@ -714,6 +714,17 @@ fn handle_time(
 
     server.state.mut_resource::<TimeOfDay>().0 = new_time;
 
+    // Update all clients with the new TimeOfDay (without this they would have to
+    // wait for the next 100th tick to receive the update).
+    let mut tod_lazymsg = None;
+    let clients = server.state.ecs().read_storage::<Client>();
+    for client in (&clients).join() {
+        let msg = tod_lazymsg
+            .unwrap_or_else(|| client.prepare(ServerGeneral::TimeOfDay(TimeOfDay(new_time))));
+        let _ = client.send_prepared(&msg);
+        tod_lazymsg = Some(msg);
+    }
+
     if let Some(new_time) =
         NaiveTime::from_num_seconds_from_midnight_opt(((new_time as u64) % 86400) as u32, 0)
     {
