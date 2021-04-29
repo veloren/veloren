@@ -22,6 +22,7 @@ pub struct ReadData<'a> {
     dt: Read<'a, DeltaTime>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
     uid_allocator: Read<'a, UidAllocator>,
+    cached_spatial_grid: Read<'a, common::CachedSpatialGrid>,
     positions: ReadStorage<'a, Pos>,
     char_states: ReadStorage<'a, CharacterState>,
     healths: ReadStorage<'a, Health>,
@@ -81,15 +82,25 @@ impl<'a> System<'a> for Sys {
                         expired_auras.push(key);
                     }
                 }
-                for (target, target_pos, mut target_buffs, health, target_uid) in (
-                    &read_data.entities,
-                    &read_data.positions,
-                    &mut buffs,
-                    &read_data.healths,
-                    &read_data.uids,
-                )
-                    .join()
-                {
+                let target_iter = read_data
+                    .cached_spatial_grid
+                    .0
+                    .in_circle_aabr(pos.0.xy(), aura.radius)
+                    .filter_map(|target| {
+                        read_data
+                            .positions
+                            .get(target)
+                            .and_then(|l| read_data.healths.get(target).map(|r| (l, r)))
+                            .and_then(|l| read_data.uids.get(target).map(|r| (l, r)))
+                            .map(|((target_pos, health), target_uid)| {
+                                (target, target_pos, health, target_uid)
+                            })
+                    });
+                target_iter.for_each(|(target, target_pos, health, target_uid)| {
+                    let mut target_buffs = match buffs.get_mut(target) {
+                        Some(buff) => buff,
+                        None => return,
+                    };
                     // Ensure entity is within the aura radius
                     if target_pos.0.distance_squared(pos.0) < aura.radius.powi(2) {
                         if let AuraTarget::GroupOf(uid) = aura.target {
@@ -103,7 +114,7 @@ impl<'a> System<'a> for Sys {
                                 || *target_uid == uid;
 
                             if !same_group {
-                                continue;
+                                return;
                             }
                         }
 
@@ -127,8 +138,9 @@ impl<'a> System<'a> for Sys {
                                     _ => true,
                                 };
                                 if apply_buff {
-                                    // Checks that target is not already receiving a buff from an
-                                    // aura, where the buff is of the same kind, and is of at least
+                                    // Checks that target is not already receiving a buff from
+                                    // an aura, where
+                                    // the buff is of the same kind, and is of at least
                                     // the same strength and of at least the same duration
                                     // If no such buff is present, adds the buff
                                     let emit_buff = !target_buffs.buffs.iter().any(|(_, buff)| {
@@ -152,7 +164,8 @@ impl<'a> System<'a> for Sys {
                                             )),
                                         });
                                     }
-                                    // Finds all buffs on target that are from an aura, are of the
+                                    // Finds all buffs on target that are from an aura, are of
+                                    // the
                                     // same buff kind, and are of at most the same strength
                                     // For any such buffs, marks it as recently applied
                                     for (_, buff) in
@@ -175,7 +188,7 @@ impl<'a> System<'a> for Sys {
                             },
                         }
                     }
-                }
+                });
             }
             if !expired_auras.is_empty() {
                 server_emitter.emit(ServerEvent::Aura {

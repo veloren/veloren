@@ -29,6 +29,7 @@ pub struct ReadData<'a> {
     dt: Read<'a, DeltaTime>,
     terrain: ReadExpect<'a, TerrainGrid>,
     uid_allocator: Read<'a, UidAllocator>,
+    cached_spatial_grid: Read<'a, common::CachedSpatialGrid>,
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
     orientations: ReadStorage<'a, Ori>,
@@ -122,19 +123,26 @@ impl<'a> System<'a> for Sys {
                 return (server_events, add_hit_entities, outcomes);
             };
 
-            // Go through all other effectable entities
-            for (target, uid_b, pos_b, health_b, body_b) in (
-                &read_data.entities,
-                &read_data.uids,
-                &read_data.positions,
-                &read_data.healths,
-                &read_data.bodies,
-            )
-                .join()
-            {
+            // Go through all affectable entities by querying the spatial grid
+            let target_iter = read_data
+                .cached_spatial_grid
+                .0
+                .in_circle_aabr(pos.0.xy(), frame_end_dist - frame_start_dist)
+                .filter_map(|target|{
+                    read_data
+                        .positions
+                        .get(target)
+                        .and_then(|l| read_data.healths.get(target).map(|r| (l,r)))
+                        .and_then(|l| read_data.uids.get(target).map(|r| (l,r)))
+                        .and_then(|l| read_data.bodies.get(target).map(|r| (l,r)))
+                        .map(|(((pos_b, health_b), uid_b), body_b)| {
+                            (target, uid_b, pos_b, health_b, body_b)
+                        })
+                });
+            target_iter.for_each(|(target, uid_b, pos_b, health_b, body_b)| {
                 // Check to see if entity has already been hit recently
                 if hit_entities.iter().any(|&uid| uid == *uid_b) {
-                    continue;
+                    return;
                 }
 
                 // Scales
@@ -170,7 +178,7 @@ impl<'a> System<'a> for Sys {
 
                     // If owner, shouldn't heal or damage
                     if Some(*uid_b) == beam_segment.owner {
-                        continue;
+                        return;
                     }
 
                     let attacker_info =
@@ -208,7 +216,7 @@ impl<'a> System<'a> for Sys {
 
                     add_hit_entities.push((beam_owner, *uid_b));
                 }
-            }
+            });
             (server_events, add_hit_entities, outcomes)
         }).reduce(|| (Vec::new(), Vec::new(), Vec::new()),
             |(mut events_a, mut hit_entities_a, mut outcomes_a),
