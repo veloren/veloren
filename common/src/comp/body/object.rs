@@ -250,7 +250,7 @@ impl Body {
     pub fn density(&self) -> Density {
         let density = match self {
             Body::Anvil | Body::Cauldron => IRON_DENSITY,
-            Body::Arrow | Body::MultiArrow => 500.0,
+            Body::Arrow | Body::ArrowSnake | Body::ArrowTurret | Body::MultiArrow => 500.0,
             Body::Bomb => 2000.0, // I have no idea what it's supposed to be
             Body::Crate => 300.0, // let's say it's a lot of wood and maybe some contents
             Body::Scarecrow => 900.0,
@@ -265,14 +265,61 @@ impl Body {
     pub fn mass(&self) -> Mass {
         let m = match self {
             // I think MultiArrow is one of several arrows, not several arrows combined?
-            Body::Arrow | Body::MultiArrow => 0.003,
+            Body::Anvil => 100.0,
+            Body::Arrow | Body::ArrowSnake | Body::ArrowTurret | Body::MultiArrow => 0.003,
+            Body::BedBlue => 50.0,
+            Body::Bedroll => 3.0,
+            Body::Bench => 100.0,
+            Body::BoltFire | Body::BoltFireBig | Body::BoltNature => 1.0,
             Body::Bomb => {
                 0.5 * IRON_DENSITY * std::f32::consts::PI / 6.0 * self.dimensions().x.powi(3)
             },
-            Body::Scarecrow => 50.0,
+            Body::Campfire | Body::CampfireLit => 300.0,
+            Body::Carpet
+            | Body::CarpetHumanRound
+            | Body::CarpetHumanSquare
+            | Body::CarpetHumanSquare2
+            | Body::CarpetHumanSquircle => 10.0,
             Body::Cauldron => 5.0,
+            Body::Chair | Body::Chair2 | Body::Chair3 => 10.0,
+            Body::Chest
+            | Body::ChestDark
+            | Body::ChestDemon
+            | Body::ChestGold
+            | Body::ChestLight
+            | Body::ChestOpen
+            | Body::ChestSkull
+            | Body::ChestVines => 100.0,
+            Body::Coins => 1.0,
+            Body::CraftingBench => 100.0,
+            Body::Crate => 50.0,
+            Body::Crossbow => 200.0,
+            Body::DoorSpooky => 20.0,
+            Body::Drawer => 50.0,
+            Body::FireworkBlue
+            | Body::FireworkGreen
+            | Body::FireworkPurple
+            | Body::FireworkRed
+            | Body::FireworkWhite
+            | Body::FireworkYellow => 1.0,
+            Body::Gravestone => 100.0,
+            Body::Gravestone2 => 100.0,
+            Body::LanternGround
+            | Body::LanternGroundOpen
+            | Body::LanternStanding
+            | Body::LanternStanding2 => 3.0,
+            Body::MeatDrop => 5.0,
+            Body::PotionBlue | Body::PotionGreen | Body::PotionRed => 5.0,
+            Body::Pouch => 1.0,
+            Body::Pumpkin | Body::Pumpkin2 | Body::Pumpkin3 | Body::Pumpkin4 | Body::Pumpkin5 => {
+                10.0
+            },
+            Body::Scarecrow => 50.0,
+            Body::Steak => 2.0,
+            Body::Table | Body::Table2 | Body::Table3 => 50.0,
+            Body::Tent => 50.0,
             Body::TrainingDummy => 60.0,
-            _ => 1.0,
+            Body::WindowSpooky => 10.0,
         };
 
         Mass(m)
