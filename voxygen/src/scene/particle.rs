@@ -219,8 +219,9 @@ impl ParticleMgr {
             | Outcome::Beam { .. }
             | Outcome::ExpChange { .. }
             | Outcome::SkillPointGain { .. }
-            | Outcome::ComboChange { .. } => {},
-            Outcome::Damage { .. } => {},
+            | Outcome::ComboChange { .. }
+            | Outcome::Damage { .. }
+            | Outcome::PoiseChange { .. } => {},
         }
     }
 

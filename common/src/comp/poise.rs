@@ -90,7 +90,7 @@ impl Default for Poise {
 }
 
 /// States to define effects of a poise change
-#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
 pub enum PoiseState {
     /// No effect applied
     Normal,

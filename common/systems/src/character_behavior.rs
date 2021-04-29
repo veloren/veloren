@@ -1,5 +1,5 @@
 use specs::{
-    shred::ResourceId, Entities, Join, LazyUpdate, Read, ReadStorage, SystemData, World,
+    shred::ResourceId, Entities, Join, LazyUpdate, Read, ReadStorage, SystemData, World, Write,
     WriteStorage,
 };
 
@@ -15,6 +15,7 @@ use common::{
         Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
+    outcome::Outcome,
     resources::DeltaTime,
     states::{
         self,
@@ -101,6 +102,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Inventory>,
         WriteStorage<'a, Controller>,
         WriteStorage<'a, Poise>,
+        Write<'a, Vec<Outcome>>,
     );
 
     const NAME: &'static str = "character_behavior";
@@ -121,6 +123,7 @@ impl<'a> System<'a> for Sys {
             mut inventories,
             mut controllers,
             mut poises,
+            mut outcomes,
         ): Self::SystemData,
     ) {
         let mut server_emitter = read_data.server_bus.emitter();
@@ -173,6 +176,7 @@ impl<'a> System<'a> for Sys {
             if let Some(mut poise) = poises.get_mut(entity) {
                 let was_wielded = char_state.get_unchecked().is_wield();
                 let poise_state = poise.poise_state();
+                let pos = pos.0;
                 match poise_state {
                     PoiseState::Normal => {},
                     PoiseState::Interrupted => {
@@ -189,6 +193,10 @@ impl<'a> System<'a> for Sys {
                                 stage_section: common::states::utils::StageSection::Buildup,
                                 was_wielded,
                             });
+                        outcomes.push(Outcome::PoiseChange {
+                            pos,
+                            state: PoiseState::Interrupted,
+                        });
                     },
                     PoiseState::Stunned => {
                         poise.reset();
@@ -204,6 +212,10 @@ impl<'a> System<'a> for Sys {
                                 stage_section: common::states::utils::StageSection::Buildup,
                                 was_wielded,
                             });
+                        outcomes.push(Outcome::PoiseChange {
+                            pos,
+                            state: PoiseState::Stunned,
+                        });
                         server_emitter.emit(ServerEvent::Knockback {
                             entity,
                             impulse: 5.0 * poise.knockback(),
@@ -223,6 +235,10 @@ impl<'a> System<'a> for Sys {
                                 stage_section: common::states::utils::StageSection::Buildup,
                                 was_wielded,
                             });
+                        outcomes.push(Outcome::PoiseChange {
+                            pos,
+                            state: PoiseState::Dazed,
+                        });
                         server_emitter.emit(ServerEvent::Knockback {
                             entity,
                             impulse: 10.0 * poise.knockback(),
@@ -242,6 +258,10 @@ impl<'a> System<'a> for Sys {
                                 stage_section: common::states::utils::StageSection::Buildup,
                                 was_wielded,
                             });
+                        outcomes.push(Outcome::PoiseChange {
+                            pos,
+                            state: PoiseState::KnockedDown,
+                        });
                         server_emitter.emit(ServerEvent::Knockback {
                             entity,
                             impulse: 10.0 * poise.knockback(),

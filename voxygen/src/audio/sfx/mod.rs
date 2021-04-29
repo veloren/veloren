@@ -93,7 +93,9 @@ use common::{
     comp::{
         beam,
         item::{ItemKind, ToolKind},
-        object, Body, CharacterAbilityType, InventoryUpdateEvent,
+        object,
+        poise::PoiseState,
+        Body, CharacterAbilityType, InventoryUpdateEvent,
     },
     outcome::Outcome,
     terrain::{BlockKind, TerrainChunk},
@@ -178,7 +180,7 @@ pub enum SfxEvent {
     ArrowShot,
     FireShot,
     FlameThrower,
-    // Poise(StunState),
+    PoiseChange(PoiseState),
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -417,6 +419,29 @@ impl SfxMgr {
                     let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Block);
                     audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), false);
                 }
+            },
+            Outcome::PoiseChange { pos, state, .. } => match state {
+                PoiseState::Normal => {},
+                PoiseState::Interrupted => {
+                    let sfx_trigger_item =
+                        triggers.get_key_value(&SfxEvent::PoiseChange(PoiseState::Interrupted));
+                    audio.emit_sfx(sfx_trigger_item, *pos, None, false);
+                },
+                PoiseState::Stunned => {
+                    let sfx_trigger_item =
+                        triggers.get_key_value(&SfxEvent::PoiseChange(PoiseState::Stunned));
+                    audio.emit_sfx(sfx_trigger_item, *pos, None, false);
+                },
+                PoiseState::Dazed => {
+                    let sfx_trigger_item =
+                        triggers.get_key_value(&SfxEvent::PoiseChange(PoiseState::Dazed));
+                    audio.emit_sfx(sfx_trigger_item, *pos, None, false);
+                },
+                PoiseState::KnockedDown => {
+                    let sfx_trigger_item =
+                        triggers.get_key_value(&SfxEvent::PoiseChange(PoiseState::KnockedDown));
+                    audio.emit_sfx(sfx_trigger_item, *pos, None, false);
+                },
             },
             Outcome::ExpChange { .. }
             | Outcome::ComboChange { .. }
