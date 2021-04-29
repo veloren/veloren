@@ -5670,6 +5670,7 @@ dependencies = [
  "bitflags",
  "bytes",
  "criterion",
+ "hashbrown",
  "prometheus",
  "rand 0.8.3",
  "tokio",

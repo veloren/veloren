@@ -11,10 +11,8 @@ use crate::{
 };
 use async_trait::async_trait;
 use bytes::BytesMut;
-use std::{
-    collections::HashMap,
-    time::{Duration, Instant},
-};
+use hashbrown::HashMap;
+use std::time::{Duration, Instant};
 use tracing::info;
 #[cfg(feature = "trace_pedantic")]
 use tracing::trace;
