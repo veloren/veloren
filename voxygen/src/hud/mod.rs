@@ -2345,7 +2345,6 @@ impl Hud {
         let skillsets = ecs.read_storage::<comp::SkillSet>();
         let character_states = ecs.read_storage::<comp::CharacterState>();
         let controllers = ecs.read_storage::<comp::Controller>();
-        let ability_map = ecs.fetch::<comp::item::tool::AbilityMap>();
         let bodies = ecs.read_storage::<comp::Body>();
         // Combo floater stuffs
         self.floaters
@@ -2397,7 +2396,6 @@ impl Hud {
                 item_tooltip_manager,
                 &mut self.slot_manager,
                 i18n,
-                &ability_map,
                 &msm,
                 combo,
             )

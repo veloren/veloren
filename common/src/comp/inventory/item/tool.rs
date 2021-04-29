@@ -11,7 +11,6 @@ use std::{
     ops::{AddAssign, DivAssign, MulAssign, Sub},
     time::Duration,
 };
-use tracing::error;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ToolKind {
@@ -167,6 +166,7 @@ impl Asset for MaterialStatManifest {
 
 impl Default for MaterialStatManifest {
     fn default() -> MaterialStatManifest {
+        // TODO: Don't do this, loading a default should have no ability to panic
         MaterialStatManifest::load_expect_cloned("common.material_stats_manifest")
     }
 }
@@ -310,23 +310,6 @@ impl Tool {
         Duration::from_secs_f32(self.stats.resolve_stats(msm, components).equip_time_secs)
     }
 
-    pub fn get_abilities(
-        &self,
-        msm: &MaterialStatManifest,
-        components: &[Item],
-        map: &AbilityMap,
-    ) -> AbilitySet<CharacterAbility> {
-        if let Some(set) = map.0.get(&self.kind).cloned() {
-            set.modified_by_tool(&self, msm, components)
-        } else {
-            error!(
-                "ToolKind: {:?} has no AbilitySet in the ability map falling back to default",
-                &self.kind
-            );
-            Default::default()
-        }
-    }
-
     pub fn can_block(&self) -> bool {
         matches!(
             self.kind,
@@ -386,15 +369,30 @@ impl Default for AbilitySet<CharacterAbility> {
     }
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub enum AbilitySpec {
+    Tool(ToolKind),
+    Custom(String),
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct AbilityMap<T = CharacterAbility>(HashMap<ToolKind, AbilitySet<T>>);
+pub struct AbilityMap<T = CharacterAbility>(HashMap<AbilitySpec, AbilitySet<T>>);
 
 impl Default for AbilityMap {
     fn default() -> Self {
-        let mut map = HashMap::new();
-        map.insert(ToolKind::Empty, AbilitySet::default());
-        AbilityMap(map)
+        // TODO: Revert to old default
+        if let Ok(map) = Self::load_cloned("common.abilities.ability_set_manifest") {
+            map
+        } else {
+            let mut map = HashMap::new();
+            map.insert(AbilitySpec::Tool(ToolKind::Empty), AbilitySet::default());
+            AbilityMap(map)
+        }
     }
+}
+
+impl<T> AbilityMap<T> {
+    pub fn get_ability_set(&self, key: &AbilitySpec) -> Option<&AbilitySet<T>> { self.0.get(key) }
 }
 
 impl Asset for AbilityMap<String> {
@@ -416,7 +414,7 @@ impl assets::Compound for AbilityMap {
                 .iter()
                 .map(|(kind, set)| {
                     (
-                        *kind,
+                        kind.clone(),
                         // expect cannot fail because CharacterAbility always
                         // provides a default value in case of failure
                         set.map_ref(|s| cache.load_expect(&s).cloned()),
@@ -451,7 +449,6 @@ pub enum UniqueKind {
     TheropodCharge,
     ObjectTurret,
     WoodenSpear,
-    MindflayerStaff,
     BirdLargeBreathe,
     BirdLargeFire,
 }

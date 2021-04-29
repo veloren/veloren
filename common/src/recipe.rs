@@ -1,7 +1,7 @@
 use crate::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
-        item::{modular, ItemDef, ItemTag, MaterialStatManifest},
+        item::{modular, tool::AbilityMap, ItemDef, ItemTag, MaterialStatManifest},
         Inventory, Item,
     },
     terrain::SpriteKind,
@@ -29,6 +29,7 @@ impl Recipe {
     pub fn perform(
         &self,
         inv: &mut Inventory,
+        ability_map: &AbilityMap,
         msm: &MaterialStatManifest,
     ) -> Result<Option<(Item, u32)>, Vec<(&RecipeInput, u32)>> {
         // Get ingredient cells from inventory,
@@ -39,7 +40,7 @@ impl Recipe {
             .for_each(|(pos, n)| {
                 (0..n).for_each(|_| {
                     let component = inv
-                        .take(pos, msm)
+                        .take(pos, ability_map, msm)
                         .expect("Expected item to exist in inventory");
                     components.push(component);
                 })
@@ -47,7 +48,7 @@ impl Recipe {
 
         for i in 0..self.output.1 {
             let crafted_item =
-                Item::new_from_item_def(Arc::clone(&self.output.0), &components, msm);
+                Item::new_from_item_def(Arc::clone(&self.output.0), &components, ability_map, msm);
             if let Err(item) = inv.push(crafted_item) {
                 return Ok(Some((item, self.output.1 - i)));
             }

@@ -2,10 +2,7 @@ use super::{
     super::{vek::*, Animation},
     BipedLargeSkeleton, SkeletonAttr,
 };
-use common::{
-    comp::item::{ToolKind, UniqueKind},
-    states::utils::StageSection,
-};
+use common::{comp::item::ToolKind, states::utils::StageSection};
 use std::f32::consts::PI;
 
 pub struct SummonAnimation;
@@ -85,7 +82,7 @@ impl Animation for SummonAnimation {
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
 
         match active_tool_kind {
-            Some(ToolKind::StaffSimple) | Some(ToolKind::Unique(UniqueKind::MindflayerStaff)) => {
+            Some(ToolKind::StaffSimple) | Some(ToolKind::Staff) => {
                 next.head.orientation = Quaternion::rotation_x(0.0);
                 next.control_l.position = Vec3::new(-1.0, 3.0, 12.0);
                 next.control_r.position = Vec3::new(

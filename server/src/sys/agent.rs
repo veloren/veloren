@@ -1536,7 +1536,8 @@ impl<'a> AgentData<'a> {
             Some(ToolKind::Unique(UniqueKind::TheropodBasic)) => Tactic::Theropod,
             Some(ToolKind::Unique(UniqueKind::TheropodBird)) => Tactic::Theropod,
             Some(ToolKind::Unique(UniqueKind::ObjectTurret)) => Tactic::Turret,
-            Some(ToolKind::Unique(UniqueKind::MindflayerStaff)) => Tactic::Mindflayer,
+            // TODO: Figure this out
+            // Some(ToolKind::Unique(UniqueKind::MindflayerStaff)) => Tactic::Mindflayer,
             Some(ToolKind::Unique(UniqueKind::BirdLargeBreathe)) => Tactic::BirdLargeBreathe,
             Some(ToolKind::Unique(UniqueKind::BirdLargeFire)) => Tactic::BirdLargeFire,
             _ => Tactic::Melee,

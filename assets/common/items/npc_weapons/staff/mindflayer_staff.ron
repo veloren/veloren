@@ -2,7 +2,7 @@ ItemDef(
     name: "Mindflayer Staff",
     description: "Placeholder",
     kind: Tool((
-        kind: Unique(MindflayerStaff),
+        kind: Staff,
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.01,
