@@ -1,0 +1,5 @@
+[
+    //1h
+    (1.0, Item("common.items.weapons.axe_1h.wood-0")),
+    (1.0, Item("common.items.weapons.axe_1h.wood-1")),
+]

@@ -1,0 +1,8 @@
+[
+    //2h
+    (1.0, Item("common.items.weapons.hammer.wood_hammer-0")),
+    //1h
+    (1.0, Item("common.items.weapons.hammer_1h.wood-0")),
+    (1.0, Item("common.items.weapons.hammer_1h.wood-1")),
+]
+]
