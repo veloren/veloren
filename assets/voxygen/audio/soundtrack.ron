@@ -18,16 +18,6 @@
             artist: "badbbad",
         )),
         Individual((
-            title: "Library Theme",
-            path: "voxygen.audio.soundtrack.town.library_theme",
-            length: 65.0,
-            timing: Some(Day),
-            biomes: [],
-            site: Some(Settlement),
-            music_state: Activity(Explore),
-            artist: "Aeronic",
-        )),
-        Individual((
             title: "Onwards!",
             path: "voxygen.audio.soundtrack.town.onwards",
             length: 151.0,

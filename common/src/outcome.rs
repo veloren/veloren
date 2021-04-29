@@ -1,5 +1,5 @@
 use crate::{comp, uid::Uid};
-use comp::{beam, item::Reagent};
+use comp::{beam, item::Reagent, poise::PoiseState};
 use serde::{Deserialize, Serialize};
 use vek::*;
 
@@ -64,6 +64,10 @@ pub enum Outcome {
         parry: bool,
         uid: Uid,
     },
+    PoiseChange {
+        pos: Vec3<f32>,
+        state: PoiseState,
+    },
 }
 
 impl Outcome {
@@ -76,7 +80,8 @@ impl Outcome {
             | Outcome::SkillPointGain { pos, .. }
             | Outcome::SummonedCreature { pos, .. }
             | Outcome::Damage { pos, .. }
-            | Outcome::Block { pos, .. } => Some(*pos),
+            | Outcome::Block { pos, .. }
+            | Outcome::PoiseChange { pos, .. } => Some(*pos),
             Outcome::BreakBlock { pos, .. } => Some(pos.map(|e| e as f32 + 0.5)),
             Outcome::ExpChange { .. } | Outcome::ComboChange { .. } => None,
         }

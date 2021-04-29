@@ -139,7 +139,7 @@ impl assets::Asset for AmbientCollection {
 
     fn default_value(_: &str, error: assets::Error) -> Result<Self, assets::Error> {
         warn!(
-            "Error reading music config file, music will not be available: {:#?}",
+            "Error reading ambience config file, ambience will not be available: {:#?}",
             error
         );
 
