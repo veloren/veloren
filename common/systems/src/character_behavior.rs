@@ -352,11 +352,10 @@ impl<'a> System<'a> for Sys {
 
             // Mounted occurs after control actions have been handled
             // If mounted, character state is controlled by mount
-            // TODO: Make mounting a state
             if let Some(Mounting(_)) = read_data.mountings.get(entity) {
-                let sit_state = CharacterState::Sit {};
-                if join_struct.char_state.get_unchecked() != &sit_state {
-                    *join_struct.char_state.get_mut_unchecked() = sit_state;
+                let idle_state = CharacterState::Idle {};
+                if join_struct.char_state.get_unchecked() != &idle_state {
+                    *join_struct.char_state.get_mut_unchecked() = idle_state;
                 }
                 continue;
             }

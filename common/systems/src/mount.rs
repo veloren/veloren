@@ -68,7 +68,14 @@ impl<'a> System<'a> for Sys {
                         if let (Some(pos), Some(ori), Some(vel)) = (pos, ori, vel) {
                             let mounting_offset =
                                 body.map_or(Vec3::unit_z(), Body::mounting_offset);
-                            let _ = positions.insert(mounter, Pos(pos.0 + mounting_offset));
+                            let _ = positions.insert(
+                                mounter,
+                                Pos(Vec3 {
+                                    x: pos.0.x + ori.look_dir().x * mounting_offset.x,
+                                    y: pos.0.y + ori.look_dir().y * mounting_offset.y,
+                                    z: pos.0.z + mounting_offset.z,
+                                }),
+                            );
                             let _ = orientations.insert(mounter, ori);
                             let _ = velocities.insert(mounter, vel);
                         }

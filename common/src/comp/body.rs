@@ -764,12 +764,60 @@ impl Body {
         )
     }
 
+    // Physical offset relative to the mountee
     pub fn mounting_offset(&self) -> Vec3<f32> {
         match self {
-            Body::Ship(ship::Body::DefaultAirship) => Vec3::from([0.0, 0.0, 10.0]),
-            Body::Ship(ship::Body::AirBalloon) => Vec3::from([0.0, 0.0, 5.0]),
-            _ => Vec3::unit_z(),
+            Body::QuadrupedMedium(quadruped_medium) => {
+                match (quadruped_medium.species, quadruped_medium.body_type) {
+                    (quadruped_medium::Species::Grolgar, _) => [0.5, 0.5, 1.8],
+                    (quadruped_medium::Species::Saber, _) => [0.3, 0.3, 1.3],
+                    (quadruped_medium::Species::Tiger, _) => [0.2, 0.2, 1.4],
+                    (quadruped_medium::Species::Tuskram, _) => [-0.5, -0.5, 1.5],
+                    (quadruped_medium::Species::Lion, _) => [0.3, 0.3, 1.5],
+                    (quadruped_medium::Species::Tarasque, _) => [0.6, 0.6, 2.0],
+                    (quadruped_medium::Species::Wolf, _) => [0.5, 0.5, 1.3],
+                    (quadruped_medium::Species::Frostfang, _) => [0.5, 0.5, 1.2],
+                    (quadruped_medium::Species::Mouflon, _) => [0.3, 0.3, 1.2],
+                    (quadruped_medium::Species::Catoblepas, _) => [0.0, 0.0, 2.0],
+                    (quadruped_medium::Species::Bonerattler, _) => [0.5, 0.5, 1.2],
+                    (quadruped_medium::Species::Deer, _) => [0.2, 0.2, 1.3],
+                    (quadruped_medium::Species::Hirdrasil, _) => [0.0, 0.0, 1.4],
+                    (quadruped_medium::Species::Roshwalr, _) => [0.5, 0.5, 1.8],
+                    (quadruped_medium::Species::Donkey, _) => [0.5, 0.5, 1.5],
+                    (quadruped_medium::Species::Camel, _) => [-0.1, -0.1, 2.8],
+                    (quadruped_medium::Species::Zebra, _) => [0.5, 0.5, 1.8],
+                    (quadruped_medium::Species::Antelope, _) => [0.3, 0.3, 1.4],
+                    (quadruped_medium::Species::Kelpie, _) => [0.5, 0.5, 1.9],
+                    (quadruped_medium::Species::Horse, _) => [0.0, 0.0, 2.0],
+                    (quadruped_medium::Species::Barghest, _) => [0.5, 0.5, 2.2],
+                    (quadruped_medium::Species::Cattle, quadruped_medium::BodyType::Male) => {
+                        [0.5, 0.5, 2.6]
+                    },
+                    (quadruped_medium::Species::Cattle, quadruped_medium::BodyType::Female) => {
+                        [0.7, 0.7, 2.2]
+                    },
+                    (quadruped_medium::Species::Darkhound, _) => [0.5, 0.5, 1.4],
+                    (quadruped_medium::Species::Highland, _) => [0.5, 0.5, 2.3],
+                    (quadruped_medium::Species::Yak, _) => [0.0, 0.0, 3.0],
+                    (quadruped_medium::Species::Panda, _) => [-0.2, -0.2, 1.4],
+                    (quadruped_medium::Species::Bear, _) => [-0.4, -0.4, 2.5],
+                    (quadruped_medium::Species::Dreadhorn, _) => [0.2, 0.2, 3.5],
+                    (quadruped_medium::Species::Moose, _) => [-0.6, -0.6, 2.1],
+                    (quadruped_medium::Species::Snowleopard, _) => [-0.5, -0.5, 1.4],
+                    // TODO: Fill in these values
+                    (quadruped_medium::Species::Mammoth, _) => [0.0, 0.0, 0.0],
+                    (quadruped_medium::Species::Ngoubou, _) => [0.0, 0.0, 0.0],
+                    (quadruped_medium::Species::Llama, _) => [0.0, 0.0, 0.0],
+                    (quadruped_medium::Species::Alpaca, _) => [0.0, 0.0, 0.0],
+                }
+            },
+            Body::Ship(ship) => match ship {
+                ship::Body::DefaultAirship => [0.0, 0.0, 10.0],
+                ship::Body::AirBalloon => [0.0, 0.0, 5.0],
+            },
+            _ => [0.0, 0.0, 0.0],
         }
+        .into()
     }
 }
 

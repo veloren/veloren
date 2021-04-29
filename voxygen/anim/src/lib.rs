@@ -98,6 +98,12 @@ lazy_static! {
 #[cfg(feature = "use-dyn-lib")]
 pub fn init() { lazy_static::initialize(&LIB); }
 
+// Offsets that will be returned after computing the skeleton matrices
+pub struct Offsets {
+    pub lantern: Vec3<f32>,
+    pub mount_bone: Transform<f32, f32, f32>,
+}
+
 pub trait Skeleton: Send + Sync + 'static {
     type Attr;
     type Body;
@@ -111,14 +117,14 @@ pub trait Skeleton: Send + Sync + 'static {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; MAX_BONE_COUNT],
-    ) -> Vec3<f32>;
+    ) -> Offsets;
 }
 
 pub fn compute_matrices<S: Skeleton>(
     skeleton: &S,
     base_mat: Mat4<f32>,
     buf: &mut [FigureBoneData; MAX_BONE_COUNT],
-) -> Vec3<f32> {
+) -> Offsets {
     #[cfg(not(feature = "use-dyn-lib"))]
     {
         S::compute_matrices_inner(skeleton, base_mat, buf)
@@ -130,7 +136,7 @@ pub fn compute_matrices<S: Skeleton>(
 
         #[allow(clippy::type_complexity)]
         let compute_fn: voxygen_dynlib::Symbol<
-            fn(&S, Mat4<f32>, &mut [FigureBoneData; MAX_BONE_COUNT]) -> Vec3<f32>,
+            fn(&S, Mat4<f32>, &mut [FigureBoneData; MAX_BONE_COUNT]) -> Offsets,
         > = unsafe { lib.get(S::COMPUTE_FN) }.unwrap_or_else(|e| {
             panic!(
                 "Trying to use: {} but had error: {:?}",
