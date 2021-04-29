@@ -310,11 +310,7 @@ pub fn lift_coefficient(aspect_ratio: f32, planform_area: f32, aoa: f32) -> f32 
 
 /// The zero-lift profile drag coefficient is the parasite drag on the wings
 /// at the angle of attack which generates no lift
-pub fn zero_lift_drag_coefficient(planform_area: f32) -> f32 {
-    // TODO: verify that it's correct to multiply by planform
-    // avg value for Harris' hawk (Parabuteo unicinctus) [1]
-    planform_area * 0.02
-}
+pub fn zero_lift_drag_coefficient(planform_area: f32) -> f32 { planform_area * 0.004 }
 
 /// The change in lift over change in angle of attack¹. Multiplying by angle
 /// of attack gives the lift coefficient (for a finite wing, not aerofoil).
