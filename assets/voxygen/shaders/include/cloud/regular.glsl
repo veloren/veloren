@@ -146,7 +146,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
         #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
             emission_alt += (noise_3d(vec3(wind_pos.xy * 0.0005 + cloud_tendency * 0.2, emission_alt * 0.0001 + time_of_day.x * 0.001)) - 0.5) * 1000;
         #endif
-        float tail = (textureLod(sampler2D(t_noise, s_noise), wind_pos.xy * 0.00005, 0).x - 0.5, 0) * 4 + (pos.z - emission_alt) * 0.0001;
+        float tail = (textureLod(sampler2D(t_noise, s_noise), wind_pos.xy * 0.00005, 0).x - 0.5) * 4 + (pos.z - emission_alt) * 0.0001;
         vec3 emission_col = vec3(0.8 + tail * 1.5, 0.5 - tail * 0.2, 0.3 + tail * 0.2);
         float emission_nz = max(pow(textureLod(sampler2D(t_noise, s_noise), wind_pos.xy * 0.000015, 0).x, 8), 0.01) * 0.25 / (10.0 + abs(pos.z - emission_alt) / 80);
         emission = emission_col * emission_nz * emission_strength * max(sun_dir.z, 0) * 500000 / (1000.0 + abs(pos.z - emission_alt) * 0.1);
