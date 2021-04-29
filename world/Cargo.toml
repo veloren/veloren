@@ -57,6 +57,6 @@ structopt = "0.3"
 harness = false
 name = "tree"
 
-[[bin]]
+[[example]]
 name = "chunk_compression_benchmarks"
 required-features = ["bin_compression"]
