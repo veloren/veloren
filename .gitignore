@@ -3,6 +3,7 @@ target
 
 # Vim
 
+**/.nvimrc
 **/*.vi
 **/*.swp
 **/*tags
