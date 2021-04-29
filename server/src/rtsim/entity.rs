@@ -94,7 +94,7 @@ impl Entity {
                 "common.items.armor.agile.back",
             )),
             1 => Some(comp::Item::new_from_asset_expect(
-                "common.items.npc_armor.back.backpack",
+                "common.items.armor.misc.back.backpack",
             )),
             2 => Some(comp::Item::new_from_asset_expect(
                 "common.items.npc_armor.back.backpack_blue",
