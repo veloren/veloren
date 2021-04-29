@@ -1,7 +1,8 @@
 use crate::{client::Client, presence::Presence, Settings};
 use common::{
     comp::{
-        CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Player, Pos, SkillSet, Vel,
+        Admin, CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Player, Pos, SkillSet,
+        Vel,
     },
     event::{EventBus, ServerEvent},
     resources::PlayerPhysicsSettings,
@@ -35,6 +36,7 @@ impl Sys {
         build_areas: &Read<'_, BuildAreas>,
         player_physics_settings: &mut Write<'_, PlayerPhysicsSettings>,
         maybe_player: &Option<&Player>,
+        maybe_admin: &Option<&Admin>,
         msg: ClientGeneral,
     ) -> Result<(), crate::error::Error> {
         let presence = match maybe_presence {
@@ -104,7 +106,9 @@ impl Sys {
                         .entry(p.uuid())
                         .or_default()
                 });
+
                 if matches!(presence.kind, PresenceKind::Character(_))
+                    && maybe_admin.is_none() // Admins are exempt from physics restrictions
                     && force_updates.get(entity).is_none()
                     && healths.get(entity).map_or(true, |h| !h.is_dead)
                     && player_physics_setting
@@ -115,7 +119,7 @@ impl Sys {
                     if let Some(mut setting) = player_physics_setting {
                         // If we detect any thresholds being exceeded, force server-authoritative
                         // physics for that player. This doesn't detect subtle hacks, but it
-                        // prevents blatent ones and forces people to not debug physics hacks on the
+                        // prevents blatant ones and forces people to not debug physics hacks on the
                         // live server (and also mitigates some floating-point overflow crashes)
                         if let Some(prev_pos) = positions.get(entity) {
                             let value_squared = prev_pos.0.distance_squared(pos.0);
@@ -254,6 +258,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, BuildAreas>,
         Write<'a, PlayerPhysicsSettings>,
         ReadStorage<'a, Player>,
+        ReadStorage<'a, Admin>,
     );
 
     const NAME: &'static str = "msg::in_game";
@@ -281,15 +286,17 @@ impl<'a> System<'a> for Sys {
             build_areas,
             mut player_physics_settings,
             players,
+            admins,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_event_bus.emitter();
 
-        for (entity, client, mut maybe_presence, player) in (
+        for (entity, client, mut maybe_presence, player, maybe_admin) in (
             &entities,
             &mut clients,
             (&mut presences).maybe(),
             players.maybe(),
+            admins.maybe(),
         )
             .join()
         {
@@ -313,6 +320,7 @@ impl<'a> System<'a> for Sys {
                     &build_areas,
                     &mut player_physics_settings,
                     &player,
+                    &maybe_admin,
                     msg,
                 )
             });
