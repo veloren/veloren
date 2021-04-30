@@ -8,7 +8,7 @@ use std::f32::consts::PI;
 pub struct SpinMeleeAnimation;
 
 impl Animation for SpinMeleeAnimation {
-    type Dependency = (
+    type Dependency<'a> = (
         Option<ToolKind>,
         Option<ToolKind>,
         Vec3<f32>,
@@ -23,9 +23,9 @@ impl Animation for SpinMeleeAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_spinmelee")]
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, velocity, _global_time, stage_section, acc_vel): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, velocity, _global_time, stage_section, acc_vel): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

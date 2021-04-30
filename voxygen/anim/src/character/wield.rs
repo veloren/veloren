@@ -21,7 +21,7 @@ type WieldAnimationDependency = (
     f32,
 );
 impl Animation for WieldAnimation {
-    type Dependency = WieldAnimationDependency;
+    type Dependency<'a> = WieldAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -29,7 +29,7 @@ impl Animation for WieldAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_wield")]
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (
             active_tool_kind,
@@ -40,7 +40,7 @@ impl Animation for WieldAnimation {
             look_dir,
             velocity,
             global_time,
-        ): Self::Dependency,
+        ): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

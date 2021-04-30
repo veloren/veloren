@@ -8,7 +8,7 @@ use std::{f32::consts::PI, ops::Mul};
 pub struct ClimbAnimation;
 
 impl Animation for ClimbAnimation {
-    type Dependency = (
+    type Dependency<'a> = (
         Option<ToolKind>,
         Option<ToolKind>,
         Vec3<f32>,
@@ -21,9 +21,9 @@ impl Animation for ClimbAnimation {
     const UPDATE_FN: &'static [u8] = b"character_climb\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_climb")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (_active_tool_kind, _second_tool_kind, velocity, _orientation, global_time): Self::Dependency,
+        (_active_tool_kind, _second_tool_kind, velocity, _orientation, global_time): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

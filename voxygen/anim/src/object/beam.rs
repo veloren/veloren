@@ -15,7 +15,7 @@ type BeamAnimationDependency = (
     Body,
 );
 impl Animation for BeamAnimation {
-    type Dependency = BeamAnimationDependency;
+    type Dependency<'a> = BeamAnimationDependency;
     type Skeleton = ObjectSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -23,9 +23,9 @@ impl Animation for BeamAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "object_beam")]
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (_active_tool_kind, _second_tool_kind, _stage_section, _body): Self::Dependency,
+        (_active_tool_kind, _second_tool_kind, _stage_section, _body): Self::Dependency<'a>,
         _anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

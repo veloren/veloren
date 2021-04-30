@@ -7,16 +7,16 @@ use std::f32::consts::PI;
 pub struct RunAnimation;
 
 impl Animation for RunAnimation {
-    type Dependency = (f32, Vec3<f32>, Vec3<f32>, f32, Vec3<f32>, f32);
+    type Dependency<'a> = (f32, Vec3<f32>, Vec3<f32>, f32, Vec3<f32>, f32);
     type Skeleton = QuadrupedSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"quadruped_small_run\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_small_run")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel): Self::Dependency,
+        (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

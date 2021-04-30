@@ -8,7 +8,7 @@ use std::f32::consts::PI;
 pub struct BeamAnimation;
 
 impl Animation for BeamAnimation {
-    type Dependency = (
+    type Dependency<'a> = (
         Option<ToolKind>,
         Option<ToolKind>,
         f32,
@@ -23,9 +23,9 @@ impl Animation for BeamAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_beam")]
     #[allow(clippy::single_match)] // TODO: Pending review in #587
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, _global_time, velocity, stage_section, acc_vel): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, _global_time, velocity, stage_section, acc_vel): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

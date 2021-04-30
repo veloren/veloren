@@ -18,7 +18,7 @@ type SpinMeleeAnimationDependency = (
     Option<AbilityInfo>,
 );
 impl Animation for SpinMeleeAnimation {
-    type Dependency = SpinMeleeAnimationDependency;
+    type Dependency<'a> = SpinMeleeAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -26,9 +26,9 @@ impl Animation for SpinMeleeAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_spinmelee")]
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (hands, _velocity, _global_time, stage_section, ability_info): Self::Dependency,
+        (hands, _velocity, _global_time, stage_section, ability_info): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

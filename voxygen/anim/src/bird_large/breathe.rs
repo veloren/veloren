@@ -17,16 +17,16 @@ type BreatheAnimationDependency = (
 );
 
 impl Animation for BreatheAnimation {
-    type Dependency = BreatheAnimationDependency;
+    type Dependency<'a> = BreatheAnimationDependency;
     type Skeleton = BirdLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"bird_large_breathe\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_breathe")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (global_time, orientation, last_ori, stage_section, timer, look_dir, on_ground): Self::Dependency,
+        (global_time, orientation, last_ori, stage_section, timer, look_dir, on_ground): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

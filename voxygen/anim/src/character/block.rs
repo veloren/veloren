@@ -19,16 +19,16 @@ type BlockAnimationDependency = (
     Option<StageSection>,
 );
 impl Animation for BlockAnimation {
-    type Dependency = BlockAnimationDependency;
+    type Dependency<'a> = BlockAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"character_block\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_block")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (hands, active_tool_kind, second_tool_kind,velocity, _global_time, stage_section): Self::Dependency,
+        (hands, active_tool_kind, second_tool_kind,velocity, _global_time, stage_section): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

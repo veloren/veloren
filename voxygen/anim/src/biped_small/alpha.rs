@@ -20,7 +20,7 @@ type AlphaAnimationDependency = (
 );
 
 impl Animation for AlphaAnimation {
-    type Dependency = AlphaAnimationDependency;
+    type Dependency<'a> = AlphaAnimationDependency;
     type Skeleton = BipedSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -28,7 +28,7 @@ impl Animation for AlphaAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_small_alpha")]
 
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (
             active_tool_kind,
@@ -40,7 +40,7 @@ impl Animation for AlphaAnimation {
             _acc_vel,
             stage_section,
             timer,
-        ): Self::Dependency,
+        ): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

@@ -8,7 +8,7 @@ use std::f32::consts::PI;
 pub struct SpinMeleeAnimation;
 
 impl Animation for SpinMeleeAnimation {
-    type Dependency = Option<StageSection>;
+    type Dependency<'a> = Option<StageSection>;
     type Skeleton = GolemSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,9 +16,9 @@ impl Animation for SpinMeleeAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "golem_spinmelee")]
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        stage_section: Self::Dependency,
+        stage_section: Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

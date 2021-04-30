@@ -8,16 +8,16 @@ use common::states::utils::StageSection;
 pub struct StunnedAnimation;
 
 impl Animation for StunnedAnimation {
-    type Dependency = (f32, f32, Option<StageSection>, f32);
+    type Dependency<'a> = (f32, f32, Option<StageSection>, f32);
     type Skeleton = QuadrupedSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"quadruped_small_stunned\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_small_stunned")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (_velocity, global_time, stage_section, timer): Self::Dependency,
+        (_velocity, global_time, stage_section, timer): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

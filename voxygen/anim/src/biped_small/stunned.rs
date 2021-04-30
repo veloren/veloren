@@ -21,7 +21,7 @@ type StunnedAnimationDependency = (
 );
 
 impl Animation for StunnedAnimation {
-    type Dependency = StunnedAnimationDependency;
+    type Dependency<'a> = StunnedAnimationDependency;
     type Skeleton = BipedSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -29,7 +29,7 @@ impl Animation for StunnedAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_small_stunned")]
 
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (
             active_tool_kind,
@@ -42,7 +42,7 @@ impl Animation for StunnedAnimation {
             wield_status,
             stage_section,
             timer,
-        ): Self::Dependency,
+        ): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

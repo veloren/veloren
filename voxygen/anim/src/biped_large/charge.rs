@@ -7,7 +7,7 @@ use common::comp::item::ToolKind;
 pub struct ChargeAnimation;
 
 impl Animation for ChargeAnimation {
-    type Dependency = (
+    type Dependency<'a> = (
         Option<ToolKind>,
         Option<ToolKind>,
         f32,
@@ -21,9 +21,9 @@ impl Animation for ChargeAnimation {
     const UPDATE_FN: &'static [u8] = b"biped_large_charge\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_charge")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, velocity, orientation, last_ori, _global_time): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, velocity, orientation, last_ori, _global_time): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

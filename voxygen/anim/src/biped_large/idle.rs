@@ -8,16 +8,16 @@ use std::{f32::consts::PI, ops::Mul};
 pub struct IdleAnimation;
 
 impl Animation for IdleAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, f32);
+    type Dependency<'a> = (Option<ToolKind>, Option<ToolKind>, f32);
     type Skeleton = BipedLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"biped_large_idle\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_idle")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, global_time): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, global_time): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

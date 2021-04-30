@@ -11,9 +11,9 @@ use std::f32::consts::PI;
 pub struct BetaAnimation;
 
 impl Animation for BetaAnimation {
-    type Dependency = (
-        (Option<ToolKind>, Option<AbilitySpec>),
-        (Option<ToolKind>, Option<AbilitySpec>),
+    type Dependency<'a> = (
+        (Option<ToolKind>, Option<&'a AbilitySpec>),
+        (Option<ToolKind>, Option<&'a AbilitySpec>),
         Vec3<f32>,
         f32,
         Option<StageSection>,
@@ -25,7 +25,7 @@ impl Animation for BetaAnimation {
     const UPDATE_FN: &'static [u8] = b"biped_large_beta\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_beta")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (
             (active_tool_kind, active_tool_spec),
@@ -34,7 +34,7 @@ impl Animation for BetaAnimation {
             _global_time,
             stage_section,
             acc_vel,
-        ): Self::Dependency,
+        ): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

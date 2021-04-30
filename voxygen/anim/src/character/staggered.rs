@@ -20,7 +20,7 @@ type StaggeredAnimationDependency = (
     bool,
 );
 impl Animation for StaggeredAnimation {
-    type Dependency = StaggeredAnimationDependency;
+    type Dependency<'a> = StaggeredAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -28,7 +28,7 @@ impl Animation for StaggeredAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_staggered")]
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (
             active_tool_kind,
@@ -39,7 +39,7 @@ impl Animation for StaggeredAnimation {
             stage_section,
             timer,
             wield_status,
-        ): Self::Dependency,
+        ): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

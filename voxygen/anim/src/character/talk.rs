@@ -8,7 +8,7 @@ use std::f32::consts::PI;
 pub struct TalkAnimation;
 
 impl Animation for TalkAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, f32, f32, Dir);
+    type Dependency<'a> = (Option<ToolKind>, Option<ToolKind>, f32, f32, Dir);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,9 +16,9 @@ impl Animation for TalkAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_talk")]
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (_active_tool_kind, _second_tool_kind, _velocity, _global_time, look_dir): Self::Dependency,
+        (_active_tool_kind, _second_tool_kind, _velocity, _global_time, look_dir): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

@@ -8,9 +8,9 @@ use std::{f32::consts::PI, ops::Mul};
 pub struct WieldAnimation;
 
 impl Animation for WieldAnimation {
-    type Dependency = (
-        (Option<ToolKind>, Option<AbilitySpec>),
-        (Option<ToolKind>, Option<AbilitySpec>),
+    type Dependency<'a> = (
+        (Option<ToolKind>, Option<&'a AbilitySpec>),
+        (Option<ToolKind>, Option<&'a AbilitySpec>),
         Vec3<f32>,
         f32,
         f32,
@@ -21,9 +21,9 @@ impl Animation for WieldAnimation {
     const UPDATE_FN: &'static [u8] = b"biped_large_wield\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_wield")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        ((active_tool_kind, active_tool_spec), _second_tool, velocity, global_time, acc_vel): Self::Dependency,
+        ((active_tool_kind, active_tool_spec), _second_tool, velocity, global_time, acc_vel): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

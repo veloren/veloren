@@ -7,16 +7,16 @@ use common::states::utils::StageSection;
 pub struct AlphaAnimation;
 
 impl Animation for AlphaAnimation {
-    type Dependency = (Option<StageSection>, Vec3<f32>, Vec3<f32>, bool);
+    type Dependency<'a> = (Option<StageSection>, Vec3<f32>, Vec3<f32>, bool);
     type Skeleton = BirdLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"bird_large_alpha\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_alpha")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (stage_section, orientation, last_ori, on_ground): Self::Dependency,
+        (stage_section, orientation, last_ori, on_ground): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

@@ -18,16 +18,16 @@ type SpinAnimationDependency = (
     Option<AbilityInfo>,
 );
 impl Animation for SpinAnimation {
-    type Dependency = SpinAnimationDependency;
+    type Dependency<'a> = SpinAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"character_spin\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_spin")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (hands, _velocity, _global_time, stage_section, ability_info): Self::Dependency,
+        (hands, _velocity, _global_time, stage_section, ability_info): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

@@ -6,16 +6,16 @@ use std::ops::Mul;
 pub struct IdleAnimation;
 
 impl Animation for IdleAnimation {
-    type Dependency = f32;
+    type Dependency<'a> = f32;
     type Skeleton = TheropodSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"theropod_idle\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "theropod_idle")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        global_time: Self::Dependency,
+        global_time: Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

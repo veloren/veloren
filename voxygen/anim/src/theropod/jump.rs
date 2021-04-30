@@ -5,16 +5,16 @@ use super::super::vek::*;
 pub struct JumpAnimation;
 
 impl Animation for JumpAnimation {
-    type Dependency = (f32, Vec3<f32>, Vec3<f32>, f32, Vec3<f32>);
+    type Dependency<'a> = (f32, Vec3<f32>, Vec3<f32>, f32, Vec3<f32>);
     type Skeleton = TheropodSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"theropod_jump\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "theropod_jump")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (_velocity, _orientation, _last_ori, _global_time, _avg_vel): Self::Dependency,
+        (_velocity, _orientation, _last_ori, _global_time, _avg_vel): Self::Dependency<'a>,
         _anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

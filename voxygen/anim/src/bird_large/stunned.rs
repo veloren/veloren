@@ -7,16 +7,16 @@ use common::states::utils::StageSection;
 pub struct StunnedAnimation;
 
 impl Animation for StunnedAnimation {
-    type Dependency = (f32, Option<StageSection>, f32);
+    type Dependency<'a> = (f32, Option<StageSection>, f32);
     type Skeleton = BirdLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"bird_large_stunned\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_stunned")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (global_time, stage_section, timer): Self::Dependency,
+        (global_time, stage_section, timer): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

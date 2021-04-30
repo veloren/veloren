@@ -7,16 +7,16 @@ use std::f32::consts::PI;
 pub struct RunAnimation;
 
 impl Animation for RunAnimation {
-    type Dependency = (f32, f32);
+    type Dependency<'a> = (f32, f32);
     type Skeleton = BirdMediumSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"bird_medium_run\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_medium_run")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (_velocity, _global_time): Self::Dependency,
+        (_velocity, _global_time): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

@@ -18,7 +18,7 @@ type WieldAnimationDependency = (
 );
 
 impl Animation for WieldAnimation {
-    type Dependency = WieldAnimationDependency;
+    type Dependency<'a> = WieldAnimationDependency;
     type Skeleton = BipedSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -26,9 +26,9 @@ impl Animation for WieldAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_small_wield")]
 
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, velocity, _orientation, _last_ori, _global_time, _avg_vel, acc_vel): Self::Dependency,
+        (active_tool_kind, velocity, _orientation, _last_ori, _global_time, _avg_vel, acc_vel): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

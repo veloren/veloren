@@ -8,7 +8,7 @@ use std::{f32::consts::PI, ops::Mul};
 pub struct SneakAnimation;
 
 impl Animation for SneakAnimation {
-    type Dependency = (Option<ToolKind>, Vec3<f32>, Vec3<f32>, Vec3<f32>, f32);
+    type Dependency<'a> = (Option<ToolKind>, Vec3<f32>, Vec3<f32>, Vec3<f32>, f32);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,9 +16,9 @@ impl Animation for SneakAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_sneak")]
 
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (_active_tool_kind, velocity, orientation, last_ori, global_time): Self::Dependency,
+        (_active_tool_kind, velocity, orientation, last_ori, global_time): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

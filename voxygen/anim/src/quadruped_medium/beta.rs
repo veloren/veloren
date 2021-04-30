@@ -7,16 +7,16 @@ use common::states::utils::StageSection;
 pub struct BetaAnimation;
 
 impl Animation for BetaAnimation {
-    type Dependency = (f32, f32, Option<StageSection>, f32);
+    type Dependency<'a> = (f32, f32, Option<StageSection>, f32);
     type Skeleton = QuadrupedMediumSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"quadruped_medium_beta\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_medium_beta")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (velocity, global_time, stage_section, timer): Self::Dependency,
+        (velocity, global_time, stage_section, timer): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

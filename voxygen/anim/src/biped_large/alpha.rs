@@ -11,9 +11,9 @@ use std::f32::consts::PI;
 pub struct AlphaAnimation;
 
 impl Animation for AlphaAnimation {
-    type Dependency = (
-        (Option<ToolKind>, Option<AbilitySpec>),
-        (Option<ToolKind>, Option<AbilitySpec>),
+    type Dependency<'a> = (
+        (Option<ToolKind>, Option<&'a AbilitySpec>),
+        (Option<ToolKind>, Option<&'a AbilitySpec>),
         Vec3<f32>,
         f32,
         Option<StageSection>,
@@ -26,7 +26,7 @@ impl Animation for AlphaAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_alpha")]
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (
             (active_tool_kind, active_tool_spec),
@@ -35,7 +35,7 @@ impl Animation for AlphaAnimation {
             _global_time,
             stage_section,
             acc_vel,
-        ): Self::Dependency,
+        ): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

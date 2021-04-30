@@ -7,16 +7,16 @@ use common::states::utils::StageSection;
 pub struct ShootAnimation;
 
 impl Animation for ShootAnimation {
-    type Dependency = (f32, f32, Option<StageSection>);
+    type Dependency<'a> = (f32, f32, Option<StageSection>);
     type Skeleton = QuadrupedLowSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"quadruped_low_shoot\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_low_shoot")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (velocity, _global_time, stage_section): Self::Dependency,
+        (velocity, _global_time, stage_section): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

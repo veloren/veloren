@@ -9,7 +9,7 @@ pub struct StandAnimation;
 
 impl Animation for StandAnimation {
     #[allow(clippy::type_complexity)]
-    type Dependency = (
+    type Dependency<'a> = (
         Option<ToolKind>,
         Option<ToolKind>,
         (Option<Hands>, Option<Hands>),
@@ -22,9 +22,9 @@ impl Animation for StandAnimation {
     const UPDATE_FN: &'static [u8] = b"character_stand\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_stand")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, hands, global_time, avg_vel): Self::Dependency,
+        (active_tool_kind, second_tool_kind, hands, global_time, avg_vel): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

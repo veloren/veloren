@@ -20,7 +20,7 @@ type RunAnimationDependency = (
 );
 
 impl Animation for RunAnimation {
-    type Dependency = RunAnimationDependency;
+    type Dependency<'a> = RunAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -28,7 +28,7 @@ impl Animation for RunAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_run")]
 
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (
             active_tool_kind,
@@ -40,7 +40,7 @@ impl Animation for RunAnimation {
             global_time,
             avg_vel,
             acc_vel,
-        ): Self::Dependency,
+        ): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

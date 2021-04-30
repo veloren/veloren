@@ -15,7 +15,7 @@ type ShootAnimationDependency = (
     Body,
 );
 impl Animation for ShootAnimation {
-    type Dependency = ShootAnimationDependency;
+    type Dependency<'a> = ShootAnimationDependency;
     type Skeleton = ObjectSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -23,9 +23,9 @@ impl Animation for ShootAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "object_shoot")]
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (_active_tool_kind, _second_tool_kind, stage_section, body): Self::Dependency,
+        (_active_tool_kind, _second_tool_kind, stage_section, body): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
