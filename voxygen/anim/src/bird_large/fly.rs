@@ -26,7 +26,7 @@ impl Animation for FlyAnimation {
         let fast = (anim_time * 4.0).sin();
 
         // Harmonic series hack to get a sine/saw mix
-        let freq = 8.0;
+        let freq = if s_a.wyvern {6.0} else {8.0};
         let off1 = 0.0;
         let off2 = -1.7;
         let off3 = -2.0;
@@ -58,12 +58,15 @@ impl Animation for FlyAnimation {
             0.0
         } * 1.3;
 
-        next.head.scale = Vec3::one() * 0.98;
-        next.neck.scale = Vec3::one() * 1.02;
-        next.leg_l.scale = Vec3::one() * 0.98;
-        next.leg_r.scale = Vec3::one() * 0.98;
-        next.foot_l.scale = Vec3::one() * 1.02;
-        next.foot_r.scale = Vec3::one() * 1.02;
+        next.head.scale = Vec3::one() * 0.99;
+        next.neck.scale = Vec3::one() * 1.01;
+        next.leg_l.scale = Vec3::one() / 8.0;
+        next.leg_r.scale = Vec3::one() / 8.0;
+        next.foot_l.scale = Vec3::one() * 1.01;
+        next.foot_r.scale = Vec3::one() * 1.01;
+        next.chest.scale = Vec3::one() * s_a.scaler  * 0.99;
+        next.tail_front.scale = Vec3::one() * 1.01;
+        next.tail_rear.scale = Vec3::one() * 0.99;
 
         next.neck.position = Vec3::new(0.0, s_a.neck.0, s_a.neck.1);
         next.neck.orientation =
@@ -98,15 +101,21 @@ impl Animation for FlyAnimation {
 
             next.wing_out_l.position = Vec3::new(-s_a.wing_out.0, s_a.wing_out.1, s_a.wing_out.2);
             next.wing_out_r.position = Vec3::new(s_a.wing_out.0, s_a.wing_out.1, s_a.wing_out.2);
-            next.wing_out_l.orientation = Quaternion::rotation_y(-flap3 * 0.6 - 0.3);
-            next.wing_out_r.orientation = Quaternion::rotation_y(flap3 * 0.6 + 0.3);
+
+            if s_a.wyvern {
+                next.wing_out_l.orientation = Quaternion::rotation_y(-flap3 * 0.6 - 0.3);
+                next.wing_out_r.orientation = Quaternion::rotation_y(flap3 * 0.6 + 0.3);
+            } else {
+                next.wing_out_l.orientation = Quaternion::rotation_y(-flap3 * 1.2 - 0.3);
+                next.wing_out_r.orientation = Quaternion::rotation_y(flap3 * 1.2 + 0.3);
+            }
 
             next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
             next.tail_front.orientation =
-                Quaternion::rotation_x(-flap2 * 0.2 + 0.1) * Quaternion::rotation_z(-tilt * 1.0);
+                Quaternion::rotation_x(-flap2 * 0.2 + 0.1) * Quaternion::rotation_z(tilt * 1.0);
             next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
             next.tail_rear.orientation =
-                Quaternion::rotation_x(-flap3 * 0.3 + 0.15) * Quaternion::rotation_z(-tilt * 0.8);
+                Quaternion::rotation_x(-flap3 * 0.3 + 0.15) * Quaternion::rotation_z(tilt * 0.8);
 
             next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2 - flap4 * 1.5);
             next.leg_l.orientation = Quaternion::rotation_x(
@@ -151,10 +160,10 @@ impl Animation for FlyAnimation {
 
             next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
             next.tail_front.orientation =
-                Quaternion::rotation_x(0.04 - slow * 0.04) * Quaternion::rotation_z(-tilt * 1.0);
+                Quaternion::rotation_x(0.04 - slow * 0.04) * Quaternion::rotation_z(tilt * 1.0);
             next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
             next.tail_rear.orientation =
-                Quaternion::rotation_x(slow * 0.08) * Quaternion::rotation_z(-tilt * 0.8);
+                Quaternion::rotation_x(slow * 0.08) * Quaternion::rotation_z(tilt * 0.8);
 
             next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2 + slow * 0.05);
             next.leg_l.orientation = Quaternion::rotation_x(-1.2 + slow * -0.05)

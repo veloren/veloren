@@ -124,6 +124,7 @@ pub struct SkeletonAttr {
     foot: (f32, f32, f32),
     scaler: f32,
     feed: f32,
+    wyvern: bool,
 }
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -153,6 +154,7 @@ impl Default for SkeletonAttr {
             foot: (0.0, 0.0, 0.0),
             scaler: 0.0,
             feed: 0.0,
+            wyvern: false,
         }
     }
 }
@@ -238,6 +240,10 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Cockatrice, _) => (-0.5),
                 (Roc, _) => (-0.4),
                 (FlameWyvern, _) => (-0.65),
+            },
+            wyvern: match (body.species, body.body_type) {
+                (FlameWyvern, _) => true,
+                _ => false,
             },
         }
     }

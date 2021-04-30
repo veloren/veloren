@@ -51,12 +51,15 @@ impl Animation for BreatheAnimation {
 
         let wave_slow_cos = (anim_time * 4.5).cos();
 
-        next.head.scale = Vec3::one() * 0.98;
-        next.neck.scale = Vec3::one() * 1.02;
-        next.leg_l.scale = Vec3::one() * 0.98;
-        next.leg_r.scale = Vec3::one() * 0.98;
-        next.foot_l.scale = Vec3::one() * 1.02;
-        next.foot_r.scale = Vec3::one() * 1.02;
+        next.head.scale = Vec3::one() * 0.99;
+        next.neck.scale = Vec3::one() * 1.01;
+        next.leg_l.scale = Vec3::one() / 8.0;
+        next.leg_r.scale = Vec3::one() / 8.0;
+        next.foot_l.scale = Vec3::one() * 1.01;
+        next.foot_r.scale = Vec3::one() * 1.01;
+        next.chest.scale = Vec3::one() * s_a.scaler * 0.99;
+        next.tail_front.scale = Vec3::one() * 1.01;
+        next.tail_rear.scale = Vec3::one() * 0.99;
 
         next.chest.position = Vec3::new(
             0.0,
