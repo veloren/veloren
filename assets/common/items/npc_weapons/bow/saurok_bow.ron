@@ -15,5 +15,5 @@ ItemDef(
     )),
     quality: Low,
     tags: [],
-    ability_set: Custom("Bow Simple"),
+    ability_set: Some(Custom("Bow Simple")),
 )

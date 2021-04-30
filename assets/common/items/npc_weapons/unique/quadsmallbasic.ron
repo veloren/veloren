@@ -15,5 +15,5 @@ ItemDef(
     )),
     quality: Low,
     tags: [],
-    ability_set: Custom("Quad Small Basic"),
+    ability_set: Some(Custom("Quad Small Basic")),
 )
