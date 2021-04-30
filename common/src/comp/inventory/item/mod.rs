@@ -4,7 +4,7 @@ pub mod tool;
 
 // Reexports
 pub use modular::{ModularComponent, ModularComponentKind, ModularComponentTag};
-pub use tool::{AbilitySet, AbilitySpec, Hands, MaterialStatManifest, Tool, ToolKind, UniqueKind};
+pub use tool::{AbilitySet, AbilitySpec, Hands, MaterialStatManifest, Tool, ToolKind};
 
 use crate::{
     assets::{self, AssetExt, Error},
@@ -278,7 +278,7 @@ pub struct ItemDef {
     pub slots: u16,
     /// Used to specify a custom ability set for a weapon. Leave None (or don't
     /// include field in ItemDef) to use default ability set for weapon kind.
-    pub ability_set: Option<String>,
+    pub ability_set: Option<AbilitySpec>,
 }
 
 impl PartialEq for ItemDef {
@@ -304,21 +304,27 @@ impl TryFrom<(&Item, &AbilityMap, &MaterialStatManifest)> for ItemConfig {
     ) -> Result<Self, Self::Error> {
         if let ItemKind::Tool(tool) = &item.kind {
             // If no custom ability set is specified, fall back to abilityset of tool kind.
-            let ability_set_key = item
-                .item_def
-                .ability_set
-                .as_ref()
-                .map_or(AbilitySpec::Tool(tool.kind), |set| {
-                    AbilitySpec::Custom(set.to_string())
-                });
-
-            let abilities = if let Some(set) = ability_map.get_ability_set(&ability_set_key) {
-                set.clone().modified_by_tool(&tool, msm, &item.components)
+            let tool_default = ability_map
+                .get_ability_set(&AbilitySpec::Tool(tool.kind))
+                .cloned();
+            let abilities = if let Some(set_key) = item.ability_set() {
+                if let Some(set) = ability_map.get_ability_set(set_key) {
+                    set.clone().modified_by_tool(&tool, msm, &item.components)
+                } else {
+                    error!(
+                        "Custom ability set: {:?} references non-existent set, falling back to \
+                         default ability set.",
+                        set_key
+                    );
+                    tool_default.unwrap_or_default()
+                }
+            } else if let Some(set) = tool_default {
+                    set.modified_by_tool(&tool, msm, &item.components)
             } else {
                 error!(
-                    "No AbilitySet in the ability map for specification: {:?} falling back to \
-                     default",
-                    ability_set_key
+                    "No ability set defined for tool: {:?}, falling back to default ability \
+                        set.",
+                    tool.kind
                 );
                 Default::default()
             };
@@ -452,7 +458,7 @@ struct RawItemDef {
     tags: Vec<ItemTag>,
     #[serde(default)]
     slots: u16,
-    ability_set: Option<String>,
+    ability_set: Option<AbilitySpec>,
 }
 
 impl assets::Asset for RawItemDef {
@@ -760,6 +766,8 @@ impl Item {
             _ => return None,
         }))
     }
+
+    pub fn ability_set(&self) -> Option<&AbilitySpec> { self.item_def.ability_set.as_ref() }
 }
 
 /// Provides common methods providing details about an item definition

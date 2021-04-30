@@ -55,7 +55,7 @@ impl Animation for BetaAnimation {
             (Some(Hands::Two), _) | (None, Some(Hands::Two)) => match ability_info
                 .and_then(|a| a.tool)
             {
-                Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
+                Some(ToolKind::Sword) => {
                     next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                     next.hand_l.orientation =
                         Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
@@ -81,7 +81,7 @@ impl Animation for BetaAnimation {
 
         match hands {
             (Some(Hands::One), _) => match ability_info.and_then(|a| a.tool) {
-                Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
+                Some(ToolKind::Sword) => {
                     next.control_l.position = Vec3::new(-12.0, 8.0, 2.0);
                     next.control_l.orientation = Quaternion::rotation_x(1.7)
                         * Quaternion::rotation_y(-3.7 + move1 * -0.75 + move2 * 1.0)
@@ -97,7 +97,7 @@ impl Animation for BetaAnimation {
         match hands {
             (None | Some(Hands::One), Some(Hands::One)) => {
                 match ability_info.and_then(|a| a.tool) {
-                    Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
+                    Some(ToolKind::Sword) => {
                         next.control_r.position = Vec3::new(0.0 + move1 * -8.0, 13.0, 2.0);
                         next.control_r.orientation = Quaternion::rotation_x(1.7)
                             * Quaternion::rotation_y(-2.3 + move1 * -2.3 + move2 * 1.0)

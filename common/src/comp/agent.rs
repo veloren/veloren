@@ -23,7 +23,7 @@ pub enum Tactic {
     Sword,
     Bow,
     Staff,
-    StoneGolemBoss,
+    StoneGolem,
     CircleCharge { radius: u32, circle_time: u32 },
     QuadLowRanged,
     TailSlap,

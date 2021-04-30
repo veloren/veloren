@@ -88,19 +88,19 @@ impl Animation for IdleAnimation {
             Quaternion::rotation_z(0.0 + slow * 0.2) * Quaternion::rotation_x(0.0);
 
         match active_tool_kind {
-            Some(ToolKind::BowSimple) => {
+            Some(ToolKind::Bow) => {
                 next.main.position = Vec3::new(-2.0, -5.0, -6.0);
                 next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },
-            Some(ToolKind::StaffSimple) | Some(ToolKind::Sceptre) => {
+            Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                 next.main.position = Vec3::new(-6.0, -5.0, -12.0);
                 next.main.orientation = Quaternion::rotation_y(0.6) * Quaternion::rotation_z(1.57);
             },
-            Some(ToolKind::SwordSimple) => {
+            Some(ToolKind::Sword) => {
                 next.main.position = Vec3::new(-10.0, -8.0, 12.0);
                 next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },
-            Some(ToolKind::HammerSimple) | Some(ToolKind::AxeSimple) => {
+            Some(ToolKind::Hammer) | Some(ToolKind::Axe) => {
                 next.main.position = Vec3::new(-10.0, -8.0, 12.0);
                 next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },

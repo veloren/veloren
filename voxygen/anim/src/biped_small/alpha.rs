@@ -2,10 +2,7 @@ use super::{
     super::{vek::*, Animation},
     BipedSmallSkeleton, SkeletonAttr,
 };
-use common::{
-    comp::item::{ToolKind, UniqueKind},
-    states::utils::StageSection,
-};
+use common::{comp::item::ToolKind, states::utils::StageSection};
 use std::f32::consts::PI;
 
 pub struct AlphaAnimation;
@@ -119,7 +116,7 @@ impl Animation for AlphaAnimation {
                 next.tail.orientation = Quaternion::rotation_x(0.05 * fastalt * speednormcancel)
                     * Quaternion::rotation_z(fast * 0.15 * speednormcancel);
             },
-            Some(ToolKind::Unique(UniqueKind::Husk)) => {
+            Some(ToolKind::Natural) => {
                 next.hand_l.position = Vec3::new(
                     -s_a.hand.0,
                     s_a.hand.1 + move1abs * 3.0 + move2abs * 3.0,

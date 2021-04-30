@@ -59,7 +59,7 @@ impl Animation for BeamAnimation {
         next.hand_l.orientation = Quaternion::rotation_x(0.0);
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
         match active_tool_kind {
-            Some(ToolKind::StaffSimple) | Some(ToolKind::Sceptre) | Some(ToolKind::Staff) => {
+            Some(ToolKind::Sceptre) | Some(ToolKind::Staff) => {
                 let (move1base, move2shake, _move2base, move3) = match stage_section {
                     Some(StageSection::Buildup) => (
                         (anim_time.powf(0.25)).min(1.0),

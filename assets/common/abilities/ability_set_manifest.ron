@@ -29,9 +29,9 @@
             (Some(Bow(UnlockRepeater)), "common.abilities.bow.repeater"),
         ],
     ),
-    Tool(Unique(Husk)): (
-        primary: "common.abilities.unique.husk.singlestrike",
-        secondary: "common.abilities.unique.husk.triplestrike",
+    Custom("Husk"): (
+        primary: "common.abilities.custom.husk.singlestrike",
+        secondary: "common.abilities.custom.husk.triplestrike",
         abilities: [],
     ),
     Tool(Spear): (
@@ -40,28 +40,28 @@
         abilities: [],
 
     ),
-    Tool(HammerSimple): (
+    Custom("Hammer Simple"): (
         primary: "common.abilities.hammersimple.doublestrike",
         secondary: "common.abilities.hammersimple.doublestrike",
         abilities: [],
     ),
-    Tool(AxeSimple): (
+    Custom("Axe Simple"): (
         primary: "common.abilities.axesimple.doublestrike",
         secondary: "common.abilities.axesimple.dash",
         abilities: [],
     ),
-    Tool(SwordSimple): (
+    Custom("Sword Simple"): (
         primary: "common.abilities.swordsimple.doublestrike",
         secondary: "common.abilities.swordsimple.dash",
         abilities: [
         ],
     ),
-    Tool(StaffSimple): (
+    Custom("Staff Simple"): (
         primary: "common.abilities.staffsimple.firebomb",
         secondary: "common.abilities.staffsimple.flamethrower",
         abilities: [],
     ),
-    Tool(BowSimple): (
+    Custom("Bow Simple"): (
         primary: "common.abilities.bowsimple.basic",
         secondary: "common.abilities.bowsimple.basic",
         abilities: [
@@ -91,134 +91,134 @@
         secondary: "common.abilities.shield.block",
         abilities: [],
     ),
-    Tool(Unique(StoneGolemFist)): (
-        primary: "common.abilities.unique.stonegolemfist.singlestrike",
-        secondary: "common.abilities.unique.stonegolemfist.shockwave",
+    Custom("Stone Golem"): (
+        primary: "common.abilities.custom.stonegolemfist.singlestrike",
+        secondary: "common.abilities.custom.stonegolemfist.shockwave",
         abilities: [
-            (None, "common.abilities.unique.stonegolemfist.spin"),
+            (None, "common.abilities.custom.stonegolemfist.spin"),
         ],
     ),
-    Tool(Unique(BeastClaws)): (
-        primary: "common.abilities.unique.beastclaws.basic",
-        secondary: "common.abilities.unique.beastclaws.basic",
+    Custom("Beast Claws"): (
+        primary: "common.abilities.custom.beastclaws.basic",
+        secondary: "common.abilities.custom.beastclaws.basic",
         abilities: [],
     ),
-    Tool(Unique(WendigoMagic)): (
-        primary: "common.abilities.unique.wendigomagic.frostbomb",
-        secondary: "common.abilities.unique.wendigomagic.singlestrike",
+    Custom("Wendigo Magic"): (
+        primary: "common.abilities.custom.wendigomagic.frostbomb",
+        secondary: "common.abilities.custom.wendigomagic.singlestrike",
         abilities: [],
     ),
-    Tool(Unique(TidalClaws)): (
+    Custom("Tidal Claws"): (
         primary: "common.abilities.staff.flamethrower",
-        secondary: "common.abilities.unique.wendigomagic.singlestrike",
+        secondary: "common.abilities.custom.wendigomagic.singlestrike",
         abilities: [],
     ),
-    Tool(Unique(QuadMedQuick)): (
-        primary: "common.abilities.unique.quadmedquick.triplestrike",
-        secondary: "common.abilities.unique.quadmedquick.dash",
+    Custom("Quad Med Quick"): (
+        primary: "common.abilities.custom.quadmedquick.triplestrike",
+        secondary: "common.abilities.custom.quadmedquick.dash",
         abilities: [],
     ),
-    Tool(Unique(QuadMedJump)): (
-        primary: "common.abilities.unique.quadmedjump.leap",
-        secondary: "common.abilities.unique.quadmedjump.doublestrike",
+    Custom("Quad Med Jump"): (
+        primary: "common.abilities.custom.quadmedjump.leap",
+        secondary: "common.abilities.custom.quadmedjump.doublestrike",
         abilities: [
-            (None, "common.abilities.unique.quadmedjump.quickleap"),
+            (None, "common.abilities.custom.quadmedjump.quickleap"),
         ],
     ),
-    Tool(Unique(QuadMedCharge)): (
-        primary: "common.abilities.unique.quadmedcharge.doublestrike",
-        secondary: "common.abilities.unique.quadmedcharge.dash",
+    Custom("Quad Med Charge"): (
+        primary: "common.abilities.custom.quadmedcharge.doublestrike",
+        secondary: "common.abilities.custom.quadmedcharge.dash",
         abilities: [],
     ),
-    Tool(Unique(QuadMedHoof)): (
-        primary: "common.abilities.unique.quadmedhoof.basic",
-        secondary: "common.abilities.unique.quadmedhoof.basic",
+    Custom("Quad Med Hoof"): (
+        primary: "common.abilities.custom.quadmedhoof.basic",
+        secondary: "common.abilities.custom.quadmedhoof.basic",
         abilities: [],
     ),
-    Tool(Unique(QuadMedBasic)): (
-        primary: "common.abilities.unique.quadmedbasic.singlestrike",
-        secondary: "common.abilities.unique.quadmedbasic.triplestrike",
+    Custom("Quad Med Basic"): (
+        primary: "common.abilities.custom.quadmedbasic.singlestrike",
+        secondary: "common.abilities.custom.quadmedbasic.triplestrike",
         abilities: [],
     ),
-    Tool(Unique(QuadLowRanged)): (
-        primary: "common.abilities.unique.quadlowranged.singlestrike",
-        secondary: "common.abilities.unique.quadlowranged.firebomb",
+    Custom("Quad Low Ranged"): (
+        primary: "common.abilities.custom.quadlowranged.singlestrike",
+        secondary: "common.abilities.custom.quadlowranged.firebomb",
         abilities: [],
     ),
-    Tool(Unique(QuadLowBreathe)): (
-        primary: "common.abilities.unique.quadlowbreathe.flamethrower",
-        secondary: "common.abilities.unique.quadlowbreathe.triplestrike",
+    Custom("Quad Low Breathe"): (
+        primary: "common.abilities.custom.quadlowbreathe.flamethrower",
+        secondary: "common.abilities.custom.quadlowbreathe.triplestrike",
         abilities: [
-            (None, "common.abilities.unique.quadlowbreathe.dash"),
+            (None, "common.abilities.custom.quadlowbreathe.dash"),
         ],
     ),
-    Tool(Unique(QuadLowTail)): (
-        primary: "common.abilities.unique.quadlowtail.charged",
-        secondary: "common.abilities.unique.quadlowtail.triplestrike",
+    Custom("Quad Low Tail"): (
+        primary: "common.abilities.custom.quadlowtail.charged",
+        secondary: "common.abilities.custom.quadlowtail.triplestrike",
         abilities: [],
     ),
-    Tool(Unique(QuadLowQuick)): (
-        primary: "common.abilities.unique.quadlowquick.dash",
-        secondary: "common.abilities.unique.quadlowquick.quadstrike",
+    Custom("Quad Low Quick"): (
+        primary: "common.abilities.custom.quadlowquick.dash",
+        secondary: "common.abilities.custom.quadlowquick.quadstrike",
         abilities: [],
     ),
-    Tool(Unique(QuadLowBasic)): (
-        primary: "common.abilities.unique.quadlowbasic.triplestrike",
-        secondary: "common.abilities.unique.quadlowbasic.singlestrike",
+    Custom("Quad Low Basic"): (
+        primary: "common.abilities.custom.quadlowbasic.triplestrike",
+        secondary: "common.abilities.custom.quadlowbasic.singlestrike",
         abilities: [],
     ),
-    Tool(Unique(QuadLowBeam)): (
-        primary: "common.abilities.unique.quadlowbeam.healingbeam",
-        secondary: "common.abilities.unique.quadlowbreathe.triplestrike",
+    Custom("Quad Low Beam"): (
+        primary: "common.abilities.custom.quadlowbeam.healingbeam",
+        secondary: "common.abilities.custom.quadlowbreathe.triplestrike",
         abilities: [
-            (None, "common.abilities.unique.quadlowbreathe.dash"),
+            (None, "common.abilities.custom.quadlowbreathe.dash"),
         ],
     ),
-    Tool(Unique(QuadSmallBasic)): (
-        primary: "common.abilities.unique.quadsmallbasic.singlestrike",
-        secondary: "common.abilities.unique.quadsmallbasic.singlestrike",
+    Custom("Quad Small Basic"): (
+        primary: "common.abilities.custom.quadsmallbasic.singlestrike",
+        secondary: "common.abilities.custom.quadsmallbasic.singlestrike",
         abilities: [],
     ),
-    Tool(Unique(TheropodBasic)): (
-        primary: "common.abilities.unique.theropodbasic.triplestrike",
-        secondary: "common.abilities.unique.theropodbasic.triplestrike",
+    Custom("Theropod Basic"): (
+        primary: "common.abilities.custom.theropodbasic.triplestrike",
+        secondary: "common.abilities.custom.theropodbasic.triplestrike",
         abilities: [],
     ),
-    Tool(Unique(TheropodBird)): (
-        primary: "common.abilities.unique.theropodbird.triplestrike",
-        secondary: "common.abilities.unique.theropodbird.triplestrike",
+    Custom("Theropod Bird"): (
+        primary: "common.abilities.custom.theropodbird.triplestrike",
+        secondary: "common.abilities.custom.theropodbird.triplestrike",
         abilities: [],
     ),
-    Tool(Unique(TheropodCharge)): (
-        primary: "common.abilities.unique.theropodbird.triplestrike",
-        secondary: "common.abilities.unique.theropodbasic.dash",
+    Custom("Theropod Charge"): (
+        primary: "common.abilities.custom.theropodbird.triplestrike",
+        secondary: "common.abilities.custom.theropodbasic.dash",
         abilities: [],
     ),
-    Tool(Unique(ObjectTurret)): (
-        primary: "common.abilities.unique.turret.arrows",
-        secondary: "common.abilities.unique.turret.arrows",
+    Custom("Turret"): (
+        primary: "common.abilities.custom.turret.arrows",
+        secondary: "common.abilities.custom.turret.arrows",
         abilities: [],
     ),
-    // Tool(Unique(MindflayerStaff)): (
-    //     primary: "common.abilities.unique.mindflayer.cursedflames",
-    //     secondary: "common.abilities.unique.mindflayer.necroticvortex",
-    //     abilities: [
-    //         (None, "common.abilities.unique.mindflayer.dimensionaldoor"),
-    //         (None, "common.abilities.unique.mindflayer.summonminions"),
-    //     ],
-    // ),
-    Tool(Unique(BirdLargeBreathe)): (
-        primary: "common.abilities.unique.birdlargebreathe.firebomb",
-        secondary: "common.abilities.unique.birdlargebreathe.triplestrike",
+    Custom("Mindflayer"): (
+        primary: "common.abilities.custom.mindflayer.cursedflames",
+        secondary: "common.abilities.custom.mindflayer.necroticvortex",
         abilities: [
-            (None, "common.abilities.unique.birdlargebreathe.flamethrower"),
+            (None, "common.abilities.custom.mindflayer.dimensionaldoor"),
+            (None, "common.abilities.custom.mindflayer.summonminions"),
         ],
     ),
-    Tool(Unique(BirdLargeFire)): (
-        primary: "common.abilities.unique.birdlargefire.firebomb",
-        secondary: "common.abilities.unique.birdlargefire.triplestrike",
+    Custom("Bird Large Breathe"): (
+        primary: "common.abilities.custom.birdlargebreathe.firebomb",
+        secondary: "common.abilities.custom.birdlargebreathe.triplestrike",
         abilities: [
-            (None, "common.abilities.unique.birdlargefire.fireshockwave"),
+            (None, "common.abilities.custom.birdlargebreathe.flamethrower"),
+        ],
+    ),
+    Custom("Bird Large Fire"): (
+        primary: "common.abilities.custom.birdlargefire.firebomb",
+        secondary: "common.abilities.custom.birdlargefire.triplestrike",
+        abilities: [
+            (None, "common.abilities.custom.birdlargefire.fireshockwave"),
         ],
     ),
     Tool(Debug): (

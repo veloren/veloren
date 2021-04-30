@@ -2,7 +2,7 @@ ItemDef(
     name: "Wendigo Magic",
     description: "spook.",
     kind: Tool((
-        kind: Unique(WendigoMagic),
+        kind: Natural,
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.5,
@@ -15,4 +15,5 @@ ItemDef(
     )),
     quality: Low,
     tags: [],
+    ability_set: Custom("Wendigo Magic"),
 )

@@ -2,7 +2,7 @@ ItemDef(
     name: "Stone Golem's Fist",
     description: "Was attached to a mighty stone golem.",
     kind: Tool((
-        kind: Unique(StoneGolemFist),
+        kind: Natural,
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.001,
@@ -15,4 +15,5 @@ ItemDef(
     )),
     quality: Low,
     tags: [],
+    ability_set: Custom("Stone Golem"),
 )

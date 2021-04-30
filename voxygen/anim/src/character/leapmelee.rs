@@ -172,7 +172,7 @@ impl Animation for LeapAnimation {
                     next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
                     next.hand_l.orientation = Quaternion::rotation_x(1.57)
                 },
-                Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) | Some(ToolKind::Pick) => {
+                Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {
                     next.control_l.position = Vec3::new(
                         -7.0,
                         8.0 + move2 * -5.0 + move3 * 9.0,
@@ -202,9 +202,7 @@ impl Animation for LeapAnimation {
                         next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
                         next.hand_r.orientation = Quaternion::rotation_x(1.57)
                     },
-                    Some(ToolKind::Hammer)
-                    | Some(ToolKind::HammerSimple)
-                    | Some(ToolKind::Pick) => {
+                    Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {
                         next.control_r.position = Vec3::new(
                             7.0 + move2 * 3.0 + move3 * -3.0,
                             8.0 + move2 * -9.0 + move3 * 15.0,

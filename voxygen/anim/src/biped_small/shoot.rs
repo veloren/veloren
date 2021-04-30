@@ -111,7 +111,7 @@ impl Animation for ShootAnimation {
                 next.control.orientation = Quaternion::rotation_x(-0.3 + move1abs * 0.4)
                     * Quaternion::rotation_y(0.5 * speednorm);
             },
-            Some(ToolKind::Staff) | Some(ToolKind::StaffSimple) => {
+            Some(ToolKind::Staff) => {
                 let (move1base, _move2base, move3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
                     Some(StageSection::Swing) => (1.0, anim_time.powf(0.25), 0.0),

@@ -84,7 +84,7 @@ impl Animation for ChargeswingAnimation {
             (Some(Hands::Two), _) | (None, Some(Hands::Two)) => match ability_info
                 .and_then(|a| a.tool)
             {
-                Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) => {
+                Some(ToolKind::Hammer) => {
                     next.hand_l.position =
                         Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2 + (move2 * -8.0));
                     next.hand_l.orientation = Quaternion::rotation_x(s_a.hhl.3)
@@ -114,7 +114,7 @@ impl Animation for ChargeswingAnimation {
 
         match hands {
             (Some(Hands::One), _) => match ability_info.and_then(|a| a.tool) {
-                Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) => {
+                Some(ToolKind::Hammer) => {
                     next.control_l.position = Vec3::new(
                         -7.0 + move1 * 4.0,
                         8.0 + move1 * 2.0 + move2 * 4.0,
@@ -135,7 +135,7 @@ impl Animation for ChargeswingAnimation {
         match hands {
             (None | Some(Hands::One), Some(Hands::One)) => {
                 match ability_info.and_then(|a| a.tool) {
-                    Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) => {
+                    Some(ToolKind::Hammer) => {
                         next.control_r.position = Vec3::new(
                             7.0 + move1 * 1.0 + move2 * -20.0,
                             8.0 + move1 * 1.0 + move2 * 4.0,

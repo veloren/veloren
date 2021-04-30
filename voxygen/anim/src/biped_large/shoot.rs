@@ -3,7 +3,7 @@ use super::{
     BipedLargeSkeleton, SkeletonAttr,
 };
 use common::{
-    comp::item::{ToolKind, UniqueKind},
+    comp::item::tool::{AbilitySpec, ToolKind},
     states::utils::StageSection,
 };
 use std::f32::consts::PI;
@@ -11,8 +11,8 @@ use std::f32::consts::PI;
 pub struct ShootAnimation;
 
 type ShootAnimationDependency = (
-    Option<ToolKind>,
-    Option<ToolKind>,
+    (Option<ToolKind>, Option<AbilitySpec>),
+    (Option<ToolKind>, Option<AbilitySpec>),
     Vec3<f32>,
     Vec3<f32>,
     Vec3<f32>,
@@ -31,8 +31,8 @@ impl Animation for ShootAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (
-            active_tool_kind,
-            _second_tool_kind,
+            (active_tool_kind, active_tool_spec),
+            _second_tool,
             velocity,
             _orientation,
             _last_ori,
@@ -87,8 +87,9 @@ impl Animation for ShootAnimation {
 
         next.hand_l.orientation = Quaternion::rotation_x(0.0);
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
+
         match active_tool_kind {
-            Some(ToolKind::StaffSimple) | Some(ToolKind::Sceptre) => {
+            Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                 let (move1base, move1shake, move2base, move3) = match stage_section {
                     Some(StageSection::Buildup) => {
                         (anim_time, (anim_time * 10.0 + PI).sin(), 0.0, 0.0)
@@ -139,7 +140,7 @@ impl Animation for ShootAnimation {
                 next.shoulder_r.orientation =
                     Quaternion::rotation_x(move1 * 0.8 + 0.6 * speednorm + (footrotl * -0.2));
             },
-            Some(ToolKind::BowSimple) => {
+            Some(ToolKind::Bow) => {
                 let (move1base, move2base, move3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
                     Some(StageSection::Swing) => (1.0, anim_time, 0.0),
@@ -184,27 +185,42 @@ impl Animation for ShootAnimation {
                 next.shoulder_r.orientation =
                     Quaternion::rotation_x(move1 * 0.8 + 1.2 * speednorm + (footrotl * -0.2));
             },
-            Some(ToolKind::Unique(UniqueKind::WendigoMagic)) => {
-                let (move1base, _move2base, move3) = match stage_section {
-                    Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                    Some(StageSection::Swing) => (1.0, anim_time, 0.0),
-                    Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
-                    _ => (0.0, 0.0, 0.0),
-                };
-                let pullback = 1.0 - move3;
-                let move1 = move1base * pullback;
-                next.control_l.position =
-                    Vec3::new(-9.0 + move1 * 6.0, 19.0 + move1 * 6.0, -13.0 + move1 * 10.5);
-                next.control_r.position =
-                    Vec3::new(9.0 + move1 * -6.0, 19.0 + move1 * 6.0, -13.0 + move1 * 14.5);
+            Some(ToolKind::Natural) => {
+                if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
+                    match spec.as_str() {
+                        "Wendigo Magic" => {
+                            let (move1base, _move2base, move3) = match stage_section {
+                                Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                                Some(StageSection::Swing) => (1.0, anim_time, 0.0),
+                                Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
+                                _ => (0.0, 0.0, 0.0),
+                            };
+                            let pullback = 1.0 - move3;
+                            let move1 = move1base * pullback;
+                            next.control_l.position = Vec3::new(
+                                -9.0 + move1 * 6.0,
+                                19.0 + move1 * 6.0,
+                                -13.0 + move1 * 10.5,
+                            );
+                            next.control_r.position = Vec3::new(
+                                9.0 + move1 * -6.0,
+                                19.0 + move1 * 6.0,
+                                -13.0 + move1 * 14.5,
+                            );
 
-                next.control_l.orientation = Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
-                    * Quaternion::rotation_y(-0.15)
-                    * Quaternion::rotation_z(move1 * 0.5);
-                next.control_r.orientation = Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
-                    * Quaternion::rotation_y(0.15)
-                    * Quaternion::rotation_z(move1 * -0.5);
-                next.head.orientation = Quaternion::rotation_x(move1 * -0.3);
+                            next.control_l.orientation =
+                                Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
+                                    * Quaternion::rotation_y(-0.15)
+                                    * Quaternion::rotation_z(move1 * 0.5);
+                            next.control_r.orientation =
+                                Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
+                                    * Quaternion::rotation_y(0.15)
+                                    * Quaternion::rotation_z(move1 * -0.5);
+                            next.head.orientation = Quaternion::rotation_x(move1 * -0.3);
+                        },
+                        _ => {},
+                    }
+                }
             },
             _ => {},
         }

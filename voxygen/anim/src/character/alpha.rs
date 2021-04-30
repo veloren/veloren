@@ -49,7 +49,7 @@ impl Animation for AlphaAnimation {
         next.torso.orientation = Quaternion::rotation_z(0.0);
 
         match ability_info.and_then(|a| a.tool) {
-            Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
+            Some(ToolKind::Sword) => {
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
 
@@ -77,7 +77,7 @@ impl Animation for AlphaAnimation {
                     Quaternion::rotation_z(0.0 + move1 * -1.5 + move2 * 2.5 + move3 * -1.0);
             },
 
-            Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) | Some(ToolKind::Pick) => {
+            Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {
                 let (move1, move2, move3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
                     Some(StageSection::Swing) => (1.0, anim_time.powf(0.25), 0.0),
@@ -109,7 +109,7 @@ impl Animation for AlphaAnimation {
             (Some(Hands::Two), _) | (None, Some(Hands::Two)) => match ability_info
                 .and_then(|a| a.tool)
             {
-                Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
+                Some(ToolKind::Sword) => {
                     next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                     next.hand_l.orientation =
                         Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
@@ -154,7 +154,7 @@ impl Animation for AlphaAnimation {
                                 s_a.ac.5 + move1 * -2.0 + move2 * -1.0 + move3 * 2.5,
                             )
                 },
-                Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) | Some(ToolKind::Pick) => {
+                Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {
                     let (move1, move2, move3) = match stage_section {
                         Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
                         Some(StageSection::Swing) => (1.0, anim_time, 0.0),
@@ -191,7 +191,7 @@ impl Animation for AlphaAnimation {
 
         match hands {
             (Some(Hands::One), _) => match ability_info.and_then(|a| a.tool) {
-                Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
+                Some(ToolKind::Sword) => {
                     next.control_l.position = Vec3::new(-7.0, 8.0, 2.0);
                     next.control_l.orientation = Quaternion::rotation_x(-0.3 + move2 * 2.0)
                         * Quaternion::rotation_y(move1 * -1.2 + move2 * -1.5)
@@ -211,7 +211,7 @@ impl Animation for AlphaAnimation {
                     next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
                     next.hand_l.orientation = Quaternion::rotation_x(1.57)
                 },
-                Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) | Some(ToolKind::Pick) => {
+                Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {
                     next.control_l.position = Vec3::new(
                         -7.0,
                         8.0 + move1 * -4.0 + move2 * 4.0,
@@ -232,7 +232,7 @@ impl Animation for AlphaAnimation {
         match hands {
             (None | Some(Hands::One), Some(Hands::One)) => {
                 match ability_info.and_then(|a| a.tool) {
-                    Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
+                    Some(ToolKind::Sword) => {
                         next.control_r.position = Vec3::new(7.0 + move2 * 8.0, 8.0, 2.0);
                         next.control_r.orientation = Quaternion::rotation_x(-0.3 + move2 * 2.0)
                             * Quaternion::rotation_y(move1 * -1.8 + move2 * -1.5)
@@ -252,9 +252,7 @@ impl Animation for AlphaAnimation {
                         next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
                         next.hand_r.orientation = Quaternion::rotation_x(1.57)
                     },
-                    Some(ToolKind::Hammer)
-                    | Some(ToolKind::HammerSimple)
-                    | Some(ToolKind::Pick) => {
+                    Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {
                         next.control_r.position = Vec3::new(
                             7.0,
                             8.0 + move1 * -4.0 + move2h * 4.0,

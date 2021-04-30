@@ -81,7 +81,7 @@ impl Animation for DashAnimation {
             Quaternion::rotation_x(0.6 * speednorm + (footrotl * -0.2) * speednorm);
         next.torso.orientation = Quaternion::rotation_z(0.0);
         match active_tool_kind {
-            Some(ToolKind::SwordSimple) => {
+            Some(ToolKind::Sword) => {
                 next.control_l.position = Vec3::new(-1.0, 1.0, 1.0);
                 next.control_r.position = Vec3::new(0.0, 2.0, -3.0);
                 next.head.orientation = Quaternion::rotation_x(move1 * -0.25)
@@ -108,7 +108,7 @@ impl Animation for DashAnimation {
                         * Quaternion::rotation_y(-0.1 + move1 * -0.5 + move2 * 1.5 + move3 * -1.0)
                         * Quaternion::rotation_z(-move3 * -1.5);
             },
-            Some(ToolKind::AxeSimple) => {
+            Some(ToolKind::Axe) => {
                 next.control_l.position = Vec3::new(-1.0, 2.0, 12.0 + move3 * 3.0);
                 next.control_r.position = Vec3::new(1.0, 2.0, -2.0);
 

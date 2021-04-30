@@ -2,7 +2,7 @@ ItemDef(
     name: "Quad Med Basic",
     description: "testing123",
     kind: Tool((
-        kind: Unique(QuadMedBasic),
+        kind: Natural,
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.01,
@@ -15,4 +15,5 @@ ItemDef(
     )),
     quality: Low,
     tags: [],
+    ability_set: Custom("Quad Med Basic"),
 )

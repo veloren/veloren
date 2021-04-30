@@ -125,7 +125,7 @@ impl Animation for SpinAnimation {
         match hands {
             (Some(Hands::Two), _) | (None, Some(Hands::Two)) => {
                 match ability_info.and_then(|a| a.tool) {
-                    Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
+                    Some(ToolKind::Sword) => {
                         next.main.position = Vec3::new(0.0, 0.0, 0.0);
                         next.main.orientation = Quaternion::rotation_x(0.0);
 
@@ -177,7 +177,7 @@ impl Animation for SpinAnimation {
 
         match hands {
             (Some(Hands::One), _) => match ability_info.and_then(|a| a.tool) {
-                Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
+                Some(ToolKind::Sword) => {
                     next.control_l.position = Vec3::new(-7.0 + movement2base * -5.0, 8.0, 2.0);
                     next.control_l.orientation = Quaternion::rotation_x(1.7)
                         * Quaternion::rotation_y(-2.7 + movement1base * -1.0 + movement2base * 2.0)
@@ -205,7 +205,7 @@ impl Animation for SpinAnimation {
         match hands {
             (None | Some(Hands::One), Some(Hands::One)) => {
                 match ability_info.and_then(|a| a.tool) {
-                    Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
+                    Some(ToolKind::Sword) => {
                         next.control_r.position =
                             Vec3::new(15.0 + move2 * -15.0, 8.0 + move2 * 5.0, 2.0);
                         next.control_r.orientation = Quaternion::rotation_x(1.7)

@@ -2,7 +2,7 @@ ItemDef(
     name: "Yeti Hammer",
     description: "Placeholder",
     kind: Tool((
-        kind: HammerSimple,
+        kind: Hammer,
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.0,
@@ -15,4 +15,5 @@ ItemDef(
     )),
     quality: Low,
     tags: [],
+    ability_set: Custom("Hammer Simple"),
 )
