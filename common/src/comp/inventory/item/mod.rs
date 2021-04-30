@@ -374,7 +374,6 @@ impl ItemDef {
         quality: Quality,
         tags: Vec<ItemTag>,
         slots: u16,
-        ability_map: AbilityMap,
     ) -> Self {
         Self {
             item_definition_id,
@@ -384,7 +383,7 @@ impl ItemDef {
             quality,
             tags,
             slots,
-            ability_map,
+            ability_set: None,
         }
     }
 }
