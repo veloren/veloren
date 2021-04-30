@@ -14,6 +14,7 @@ use common_net::msg::{ClientGeneral, PresenceKind, ServerGeneral};
 use common_state::{BlockChange, BuildAreas};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
 use tracing::{debug, trace, warn};
+use vek::*;
 
 impl Sys {
     #[allow(clippy::too_many_arguments)]
@@ -108,56 +109,80 @@ impl Sys {
                 });
 
                 if matches!(presence.kind, PresenceKind::Character(_))
-                    && maybe_admin.is_none() // Admins are exempt from physics restrictions
                     && force_updates.get(entity).is_none()
                     && healths.get(entity).map_or(true, |h| !h.is_dead)
                     && player_physics_setting
                         .as_ref()
                         .map_or(true, |s| s.client_authoritative())
                 {
-                    let mut reject_update = false;
-                    if let Some(mut setting) = player_physics_setting {
+                    enum Rejection {
+                        TooFar { old: Vec3<f32>, new: Vec3<f32> },
+                        TooFast { vel: Vec3<f32> },
+                    }
+
+                    let rejection = if maybe_admin.is_some() {
+                        None
+                    } else if let Some(mut setting) = player_physics_setting {
                         // If we detect any thresholds being exceeded, force server-authoritative
                         // physics for that player. This doesn't detect subtle hacks, but it
                         // prevents blatant ones and forces people to not debug physics hacks on the
                         // live server (and also mitigates some floating-point overflow crashes)
-                        if let Some(prev_pos) = positions.get(entity) {
-                            let value_squared = prev_pos.0.distance_squared(pos.0);
-                            if value_squared > (500.0f32).powf(2.0) {
-                                // for position, this gets triggered too often by legitimate
-                                // teleports (since the client has the old location for a few
-                                // frames) so only reject the individual updates, don't force
-                                // server-authoritative physics for them
-                                reject_update = true;
-                                warn!(
-                                    "PlayerPhysics position exceeded {:?} {:?} {:?}",
-                                    prev_pos,
-                                    pos,
-                                    value_squared.sqrt()
-                                );
-                            }
+                        let rejection = None
+                            // Check position
+                            .or_else(|| {
+                                if let Some(prev_pos) = positions.get(entity) {
+                                    if prev_pos.0.distance_squared(pos.0) > (500.0f32).powf(2.0) {
+                                        Some(Rejection::TooFar { old: prev_pos.0, new: pos.0 })
+                                    } else {
+                                        None
+                                    }
+                                } else {
+                                    None
+                                }
+                            })
+                            // Check velocity
+                            .or_else(|| {
+                                if vel.0.magnitude_squared() > (500.0f32).powf(2.0) {
+                                    Some(Rejection::TooFast { vel: vel.0 })
+                                } else {
+                                    None
+                                }
+                            });
+
+                        // Force a client-side physics update if rejectable physics data is
+                        // received.
+                        if rejection.is_some() {
+                            // We skip this for `TooFar` because false positives can occur when
+                            // using server-side teleportation commands
+                            // that the client doesn't know about (leading to the client sending
+                            // physics state that disagree with the server). In the future,
+                            // client-authoritative physics will be gone
+                            // and this will no longer be necessary.
+                            setting.server_force =
+                                !matches!(rejection, Some(Rejection::TooFar { .. })); // true;
                         }
 
-                        if vel.0.magnitude_squared() > (500.0f32).powf(2.0) {
-                            setting.server_force = true;
-                            reject_update = true;
-                            warn!(
-                                "PlayerPhysics velocity exceeded {:?} {:?}",
-                                pos,
-                                vel.0.magnitude()
-                            );
-                        }
-                    }
-
-                    if reject_update {
-                        warn!(
-                            "Rejected PlayerPhysics update {:?} {:?} {:?} {:?}",
-                            pos, vel, ori, maybe_player
-                        );
+                        rejection
                     } else {
-                        let _ = positions.insert(entity, pos);
-                        let _ = velocities.insert(entity, vel);
-                        let _ = orientations.insert(entity, ori);
+                        None
+                    };
+
+                    match rejection {
+                        Some(Rejection::TooFar { old, new }) => warn!(
+                            "Rejected player physics update (new position {:?} is too far from \
+                             old position {:?})",
+                            new, old
+                        ),
+                        Some(Rejection::TooFast { vel }) => warn!(
+                            "Rejected player physics update (new velocity {:?} is too fast)",
+                            vel
+                        ),
+                        None => {
+                            // Don't insert unless the component already exists
+                            let _ = positions.get_mut(entity).map(|p| *p = pos);
+                            let _ = velocities.get_mut(entity).map(|v| *v = vel);
+                            let _ = orientations.get_mut(entity).map(|o| *o = ori);
+                        },
                     }
                 }
             },
