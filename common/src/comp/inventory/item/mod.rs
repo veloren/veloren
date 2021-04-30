@@ -319,11 +319,10 @@ impl TryFrom<(&Item, &AbilityMap, &MaterialStatManifest)> for ItemConfig {
                     tool_default.unwrap_or_default()
                 }
             } else if let Some(set) = tool_default {
-                    set.modified_by_tool(&tool, msm, &item.components)
+                set.modified_by_tool(&tool, msm, &item.components)
             } else {
                 error!(
-                    "No ability set defined for tool: {:?}, falling back to default ability \
-                        set.",
+                    "No ability set defined for tool: {:?}, falling back to default ability set.",
                     tool.kind
                 );
                 Default::default()

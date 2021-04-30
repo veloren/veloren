@@ -51,6 +51,7 @@ impl Animation for BetaAnimation {
                 * Quaternion::rotation_z((0.4 + move1 * 1.5 + move2 * -2.5) * pullback);
             next.head.orientation = Quaternion::rotation_z(-0.4 + move1 * -1.0 + move2 * 1.5);
         }
+        #[allow(clippy::single_match)]
         match hands {
             (Some(Hands::Two), _) | (None, Some(Hands::Two)) => match ability_info
                 .and_then(|a| a.tool)
@@ -80,6 +81,7 @@ impl Animation for BetaAnimation {
         };
 
         match hands {
+            #[allow(clippy::single_match)]
             (Some(Hands::One), _) => match ability_info.and_then(|a| a.tool) {
                 Some(ToolKind::Sword) => {
                     next.control_l.position = Vec3::new(-12.0, 8.0, 2.0);
@@ -95,6 +97,7 @@ impl Animation for BetaAnimation {
             (_, _) => {},
         };
         match hands {
+            #[allow(clippy::single_match)]
             (None | Some(Hands::One), Some(Hands::One)) => {
                 match ability_info.and_then(|a| a.tool) {
                     Some(ToolKind::Sword) => {

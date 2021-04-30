@@ -18,7 +18,9 @@ impl Animation for TalkAnimation {
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (_active_tool_kind, _second_tool_kind, _velocity, _global_time, look_dir): Self::Dependency<'a>,
+        (_active_tool_kind, _second_tool_kind, _velocity, _global_time, look_dir): Self::Dependency<
+            'a,
+        >,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

@@ -81,6 +81,7 @@ impl Animation for ChargeswingAnimation {
         }
 
         match hands {
+            #[allow(clippy::single_match)]
             (Some(Hands::Two), _) | (None, Some(Hands::Two)) => match ability_info
                 .and_then(|a| a.tool)
             {
@@ -113,6 +114,7 @@ impl Animation for ChargeswingAnimation {
         };
 
         match hands {
+            #[allow(clippy::single_match)]
             (Some(Hands::One), _) => match ability_info.and_then(|a| a.tool) {
                 Some(ToolKind::Hammer) => {
                     next.control_l.position = Vec3::new(
@@ -133,6 +135,7 @@ impl Animation for ChargeswingAnimation {
         };
 
         match hands {
+            #[allow(clippy::single_match)]
             (None | Some(Hands::One), Some(Hands::One)) => {
                 match ability_info.and_then(|a| a.tool) {
                     Some(ToolKind::Hammer) => {

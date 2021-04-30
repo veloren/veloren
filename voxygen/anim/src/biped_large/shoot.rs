@@ -187,6 +187,7 @@ impl Animation for ShootAnimation {
             },
             Some(ToolKind::Natural) => {
                 if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
+                    #[allow(clippy::single_match)]
                     match spec.as_str() {
                         "Wendigo Magic" => {
                             let (move1base, _move2base, move3) = match stage_section {

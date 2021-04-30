@@ -11,6 +11,7 @@ use std::f32::consts::PI;
 pub struct StunnedAnimation;
 
 impl Animation for StunnedAnimation {
+    #[allow(clippy::type_complexity)]
     type Dependency<'a> = (
         (Option<ToolKind>, Option<&'a AbilitySpec>),
         Vec3<f32>,
@@ -25,7 +26,9 @@ impl Animation for StunnedAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_stunned")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        ((active_tool_kind, active_tool_spec), velocity, acc_vel, stage_section): Self::Dependency<'a>,
+        ((active_tool_kind, active_tool_spec), velocity, acc_vel, stage_section): Self::Dependency<
+            'a,
+        >,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
