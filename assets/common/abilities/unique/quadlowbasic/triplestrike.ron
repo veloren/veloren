@@ -50,4 +50,5 @@ ComboMelee(
     max_speed_increase: 0.0,
     scales_from_combo: 0,
     is_interruptible: false,
+    ori_modifier: 1.0,
 )
