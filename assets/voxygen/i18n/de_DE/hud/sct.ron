@@ -1,0 +1,14 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for germany German
+(
+    string_map: {
+        // SCT outputs
+        "hud.sct.experience": "{amount} Exp",
+        "hud.sct.block": "BLOCKIERT",       
+        },
+
+
+    vector_map: {
+    }
+)

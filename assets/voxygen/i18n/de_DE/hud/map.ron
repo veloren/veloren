@@ -1,0 +1,30 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for germany German
+(
+    string_map: {
+        // Map and Questlog
+        "hud.map.map_title": "Karte",
+        "hud.map.qlog_title": "Aufgaben",
+        "hud.map.topo_map": "Topographie",
+        "hud.map.difficulty": "Schwierigkeitsgrad",
+        "hud.map.towns": "Städte",
+        "hud.map.castles": "Burgen",
+        "hud.map.dungeons": "Katakomben",
+        "hud.map.caves": "Höhlen",
+        "hud.map.cave": "Höhle",
+        "hud.map.trees": "Mammutbäume",
+        "hud.map.tree": "Mammutbaum",
+        "hud.map.town": "Stadt",
+        "hud.map.castle": "Burg",
+        "hud.map.dungeon": "Verlies",
+        "hud.map.difficulty_dungeon": "Verlies\n\nSchwierigkeitsgrad: {difficulty}",
+        "hud.map.drag": "Ziehen",
+        "hud.map.zoom": "Zoom",
+        "hud.map.recenter": "Zentrieren",
+    },
+
+
+    vector_map: {
+    }
+)

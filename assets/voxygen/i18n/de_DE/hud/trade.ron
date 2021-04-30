@@ -1,0 +1,30 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for germany German
+(
+    string_map: {
+    "hud.trade.trade_window": "Handelsfenster",
+	"hud.trade.phase1_description": "Ziehe die Items die du handeln möchtest\n in das dafür vorgesehene Feld.",
+	"hud.trade.phase2_description": "Der Handel ist jetzt gesperrt, damit du\n Zeit hast noch einmal drüber zu schauen.",
+	/// Phase3 should only be visible for a few milliseconds if everything is working properly, but is included for completeness
+	"hud.trade.phase3_description": "Handel wird bearbeitet.",
+	"hud.trade.persons_offer": "{playername}'s Angebot",
+	"hud.trade.has_accepted": "{playername}\nhat akzeptiert",
+	"hud.trade.accept": "Akzeptieren",
+	"hud.trade.decline": "Ablehenen",
+	"hud.trade.invite_sent": "Handelsanfrage an {playername} gesendet.",
+	"hud.trade.result.completed": "Handel erfolgreich abgeschlossen.",
+	"hud.trade.result.declined": "Handel abgelehnt.",
+	"hud.trade.result.nospace": "Nicht genügend Platz um den Handel abzuschließen.",
+	"hud.trade.buy_price": "Kaufpreis",
+	"hud.trade.sell_price": "Verkaufspreis",
+	"hud.trade.coin": "Coin(s)",
+	"hud.trade.tooltip_hint_1": "<Shift-Klick zum hinzufügen/entfernen der Waren.>",
+	"hud.trade.tooltip_hint_2": "<Strg-Klick zum Auto-ausgleich des Handels.>",
+    },
+
+
+    vector_map: {
+    }
+)
+

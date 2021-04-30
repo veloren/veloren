@@ -1,0 +1,39 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for germany German
+(
+    string_map: {
+        // Chat outputs
+        "hud.chat.online_msg": "[{name}] ist nun online",
+        "hud.chat.offline_msg": "[{name}] ging offline",
+
+        "hud.chat.default_death_msg": "[{name}] Starb",
+        "hud.chat.environmental_kill_msg": "[{name}] starb in {environment}",
+        "hud.chat.fall_kill_msg": "[{name}] starb durch Fallschaden",
+        "hud.chat.suicide_msg": "[{name}] began Selbstmord",
+
+        "hud.chat.pvp_buff_kill_msg": "[{victim}] starb an {buff} von [{attacker}]",
+        "hud.chat.pvp_melee_kill_msg": "[{attacker}] vernichtete [{victim}]",
+        "hud.chat.pvp_ranged_kill_msg": "[{attacker}] erschoss [{victim}]",
+        "hud.chat.pvp_explosion_kill_msg": "[{attacker}] sprengte [{victim}] aus dem Leben",
+        "hud.chat.pvp_energy_kill_msg": "[{attacker}] tötete [{victim}] mit Magie",
+
+        "hud.chat.nonexistent_buff_kill_msg": "[{victim}] starb an {buff}",
+
+        "hud.chat.npc_buff_kill_msg": "[{victim}] starb an {buff} verursacht durch {attacker}",
+        "hud.chat.npc_melee_kill_msg": "{attacker} tötete [{victim}]",
+        "hud.chat.npc_ranged_kill_msg": "{attacker} erschoss [{victim}]",
+        "hud.chat.npc_explosion_kill_msg": "{attacker} sprengte [{victim}] aus dem Leben",
+        "hud.chat.npc_energy_kill_msg": "{attacker} tötete [{victim}] mit Magie",
+        "hud.chat.npc_other_kill_msg": "{attacker} tötete [{victim}]",
+
+        "hud.chat.loot_msg": "Du hast [{item}] aufgehoben",
+        "hud.chat.loot_fail": "Dein Inventar ist voll!",
+        "hud.chat.goodbye": "Auf Wiedersehen!",
+        "hud.chat.connection_lost": "Verbindungsabbruch. Du wirst in {time} Sekunden gekickt.",
+    },
+
+
+    vector_map: {
+    }
+)
