@@ -1,0 +1,28 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for germany German
+(
+    string_map: {
+        "hud.crafting": "Herstellen",
+        "hud.crafting.recipes": "Rezepte",
+        "hud.crafting.ingredients": "Zutaten:",
+        "hud.crafting.craft": "Handwerk",
+        "hud.crafting.tool_cata": "Benötigt:",
+
+        // Tabs
+        "hud.crafting.tabs.all": "Alle",
+        "hud.crafting.tabs.armor": "Rüstung",
+        "hud.crafting.tabs.dismantle": "Recycling",
+        "hud.crafting.tabs.food": "Nahrung",
+        "hud.crafting.tabs.glider": "Gleiter",
+        "hud.crafting.tabs.potion": "Tränke",
+        "hud.crafting.tabs.tool": "Werkzeug",
+        "hud.crafting.tabs.utility": "Hilfsmittel",
+        "hud.crafting.tabs.weapon": "Waffen",
+        "hud.crafting.tabs.bag": "Taschen",
+    },
+
+
+    vector_map: {
+    }
+)

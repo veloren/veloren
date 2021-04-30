@@ -1,0 +1,40 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for germany German
+(
+    string_map: {
+        // Buffs
+        "buff.remove": "Klicke zum Entfernen",
+        "buff.title.missing": "Fehlender Titel",
+        "buff.desc.missing": "Fehlende Beschreibung",
+        "buff.title.heal": "Heilung",
+        "buff.desc.heal": "Heilung über Zeit.",
+        "buff.title.potion": "Trank",
+        "buff.desc.potion": "Trinke...",
+        "buff.title.saturation": "Sättigung",
+        "buff.desc.saturation": "Erhalte mit der Zeit Lebenspunkte durch Konsumgüter.",
+        "buff.title.campfire_heal": "Heilung durch Lagerfeuer",
+        "buff.desc.campfire_heal": "Das sitzen am Lagerfeuer heilt 1% der Lebensenergie pro Sekunde.",
+        "buff.title.invulnerability": "Unverwundbarkeit",
+        "buff.desc.invulnerability": "Du bist immung gegen jeglichen Schaden.",
+        "buff.title.protectingward": "Schutzaura",
+        "buff.desc.protectingward": "Du bist einigermaßen vor Angriffen geschützt.",
+        // Debuffs
+        "buff.title.bleed": "Bluten",
+        "buff.desc.bleed": "Fügt regelmäßigen Schaden zu.",
+        "buff.title.cursed": "Verflucht",
+        "buff.desc.cursed": "Du bist verflucht.",
+        // Buffs stats
+        "buff.stat.health": "Stellt {str_total} Leben wiederher",
+        "buff.stat.increase_max_stamina": "Erhöt die maximale Ausdauer um {strength}",
+        "buff.stat.increase_max_health": "Erhöht die maximale Lebensenergie um {strength}",
+        "buff.stat.invulnerability": "Gewährt Unverwundbarkeit",
+        // Text
+        "buff.text.over_seconds": "über {dur_secs} Sekunden",
+        "buff.text.for_seconds": "für {dur_secs} Sekunden",
+    },
+
+
+    vector_map: {
+    }
+)

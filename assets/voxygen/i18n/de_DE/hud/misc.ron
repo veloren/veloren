@@ -1,0 +1,53 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for germany German
+(
+    string_map: {
+        "hud.do_not_show_on_startup": "Beim Start nicht mehr anzeigen",
+        "hud.show_tips": "Tipps anzeigen",
+        "hud.quests": "Aufgaben",
+        "hud.you_died": "Du bist gestorben",
+        "hud.waypoint_saved": "Wegpunkt gespeichert",
+        "hud.sp_arrow_txt": "SP",
+
+        "hud.press_key_to_show_keybindings_fmt": "[{key}] Kurzwahltasten",
+        "hud.press_key_to_toggle_lantern_fmt": "[{key}] Laterne",
+        "hud.press_key_to_show_debug_info_fmt": "Drücke {key}, um die debug info anzuzeigen",
+        "hud.press_key_to_toggle_keybindings_fmt": "Drücke {key}, um die Kurzwahltasten umzuschalten",
+        "hud.press_key_to_toggle_debug_info_fmt": "Drücke {key}, um die debug info umzuschalten",
+
+        // Respawn message
+        "hud.press_key_to_respawn": r#"Drücke {key}, um am letzten Lagerfeuer wieder einzusteigen."#,
+
+        // Tutorial Button
+        "hud.tutorial_btn": r#"Einführung"#,
+        "hud.tutorial_click_here": r#"Drücke [ {key} ], um den Mauszeiger frei zu bewegen und klicke auf diese Schaltfläche!"#,
+        "hud.tutorial_elements": r#"Crafting"#,
+
+"hud.temp_quest_headline": r#"Sei gegrüßt Reisender!"#,
+"hud.temp_quest_text": r#"Um deine Reise zu beginnen, könntest du im Dorf nach nützlichen Gegenständen suchen. 
+
+Dir steht es frei, mitzunehmen, was auch immer du auf deiner Reise findest!
+
+An der unteren rechten Ecke des Bildschirms, findest du verschiedene dinge, wie deinen Beutel, das Herstellungsmenü und die Karte.
+
+Im Herstellungsmenü kannst du dir eine Rüstung, verschiedene Waffen, Nahrung und noch vieles mehr herstellen!
+
+Für den Anfang stellen die wilden Tiere rund um das Dorf eine verlässliche Quelle für Lederstreifen dar, mit denen du dir eine Leichte Rüstung, gegen die Gefahren dieser Welt herstellen kannst.
+
+Sobald du dich bereit dafür fühlst, kannst du Versuchen, dich den zahlreichen auf der Karte markierten Herausvorderungen, zu stellen, um immer bessere Ausrüstungsgegenstände zu erhalten!
+"#,
+
+        "hud.spell": "Zaubersprüche",
+        // Diary
+        "hud.diary": "Tagebuch",
+
+        "hud.free_look_indicator": "Freie Sicht aktiv. Drücke {key} zum deaktivieren.",
+        "hud.camera_clamp_indicator": "Vertikale Kamerafixierung aktib. Drücke {key} zum deaktivieren.",
+        "hud.auto_walk_indicator": "Auto gehen/gleiten aktiv",
+    },
+
+
+    vector_map: {
+    }
+)

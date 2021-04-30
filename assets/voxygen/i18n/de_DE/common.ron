@@ -1,0 +1,106 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for germany German
+(
+    string_map: {
+        // Texts used in multiple locations with the same formatting
+        "common.username": "Benutzername",
+        "common.singleplayer": "Einzelspieler",
+        "common.multiplayer": "Mehrspieler",
+        "common.servers": "Server",
+        "common.quit": "Beenden",
+        "common.settings": "Einstellungen",
+        "common.languages": "Sprache",
+        "common.interface": "Interface",
+        "common.gameplay": "Spiel",
+        "common.controls": "Tastenbelegung",
+        "common.video": "Grafik",
+        "common.sound": "Audio",
+        "common.resume": "Fortfahren",
+        "common.characters": "Charaktere",
+        "common.close": "Schließen",
+        "common.yes": "Ja",
+        "common.no": "Nein",
+        "common.back": "Nein",
+        "common.create": "Erstellen",
+        "common.okay": "Okay",
+        "common.add": "Hinzufügen",
+        "common.accept": "Annehmen",
+        "common.decline": "Ablehnen",
+        "common.disclaimer": "Disclaimer",
+        "common.cancel": "Abbrechen",
+        "common.none": "Kein",
+        "common.error": "Fehler",
+        "common.fatal_error": "Schwerer Fehler",
+        "common.you": "Ihr",
+        "common.automatic": "Auto",
+        "common.random": "Zufällig",
+        "common.empty": "Leer",
+        
+        // Settings Window title
+        "common.interface_settings": "Interface Einstellungen",
+        "common.gameplay_settings": "Spiel Einstellungen",
+        "common.controls_settings": "Steuerung",
+        "common.video_settings": "Grafik Einstellungen",
+        "common.sound_settings": "Audio Einstellungen",
+        "common.language_settings": "Sprache",
+
+        // Message when connection to the server is lost
+        "common.connection_lost": r#"Verbindungsabbruch!
+Wurde der Server neu gestartet?
+Ist das Spiel auf dem neusten Stand?"#,
+
+
+        "common.species.orc": "Ork",
+        "common.species.human": "Mensch",
+        "common.species.dwarf": "Zwerg",
+        "common.species.elf": "Elf",
+        "common.species.undead": "Untoter",
+        "common.species.danari": "Danari",
+
+        "common.weapons.axe": "Axt",
+        "common.weapons.sword": "Schwert",
+        "common.weapons.staff": "Stab",
+        "common.weapons.bow": "Bogen",
+        "common.weapons.hammer": "Hammer",
+        "common.weapons.general": "Kampf",
+        "common.weapons.sceptre": "Zepter",
+        "common.weapons.shield": "Schild",
+        "common.weapons.spear": "Speer",
+        "common.weapons.hammer_simple": "Einfacher Hammer",
+        "common.weapons.sword_simple": "Einfaches Schwert",
+        "common.weapons.staff_simple": "Einfacher Stab",
+        "common.weapons.axe_simple": "Einfache Axt",
+        "common.weapons.bow_simple": "Einfacher Bogen",
+        "common.weapons.unique": "Einzigartig",
+        "common.tool.debug": "Debug",
+        "common.tool.faming": "Ernte Werkzeug",
+        "common.tool.pick": "Spitzhacke",
+        "common.kind.modular_component": "Modulares Bauteil",
+        "common.kind.glider": "Gleiter",
+        "common.kind.consumable": "Verbrauchsgegenstand",
+        "common.kind.throwable": "Kann geworfen werden",
+        "common.kind.utility": "Hilfsmittel",
+        "common.kind.ingredient": "Zutat",
+        "common.kind.lantern": "Laterne",
+        "common.hands.one": "Einhändig",
+        "common.hands.two": "Zweihändig",
+
+        "common.rand_appearance": "Zufälliges Aussehen",
+        "common.rand_name": "Zufälliger Name",
+
+        "common.stats.combat_rating": "CR",
+        "common.stats.power": "Stärke",
+        "common.stats.speed": "Schnelligkeit",
+        "common.stats.poise": "Haltung",
+        "common.stats.crit_chance": "Krit. Trefferchance",
+        "common.stats.crit_mult": "Krit. Multiplikator",
+        "common.stats.armor": "Rüstung",
+        "common.stats.poise_res":"Betäubungsresistenz",
+        "common.stats.slots": "Plätze",
+    },
+
+
+    vector_map: {
+    }
+)

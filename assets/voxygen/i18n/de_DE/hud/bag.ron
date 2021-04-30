@@ -1,0 +1,41 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for germany German
+(
+    string_map: {
+        // Inventory
+        "hud.bag.inventory": "{playername}'s Inventar",
+        "hud.bag.stats_title": "{playername}'s Statistiken",
+        "hud.bag.exp": "Exp",
+        "hud.bag.armor": "Rüstung",
+        "hud.bag.stats": "Statistiken",
+        "hud.bag.head": "Kopf",
+        "hud.bag.neck": "Nacken",
+        "hud.bag.tabard": "Wappenrock",
+        "hud.bag.shoulders": "Schultern",
+        "hud.bag.chest": "Brust",
+        "hud.bag.hands": "Hände",
+        "hud.bag.lantern": "Laterne",
+        "hud.bag.glider": "Gleiter",
+        "hud.bag.belt": "Gürtel",
+        "hud.bag.ring": "Ring",
+        "hud.bag.back": "Rücken",
+        "hud.bag.legs": "Beine",
+        "hud.bag.feet": "Füße",
+        "hud.bag.mainhand": "Haupthand",
+        "hud.bag.offhand": "Nebenhand",
+        "hud.bag.bag": "Beutel",
+        "hud.bag.health": "Leben",
+        "hud.bag.stamina": "Ausdauer",
+        "hud.bag.combat_rating": "Kampfwertung",
+        "hud.bag.protection": "Schutz",
+        "hud.bag.stun_res": "Betäubungsresistenz",
+        "hud.bag.combat_rating_desc": "Berechnet aus deiner \nAusrüstung und Gesundheit.",
+        "hud.bag.protection_desc": "Schadensreduzierung durch Rüstung",
+        "hud.bag.stun_res_desc": "Widerstandsfähigkeit gegen Betäubung durch aufeinanderfolgende Treffer.\nRegeneriert wie Ausdauer.",
+    },
+
+
+    vector_map: {
+    }
+)

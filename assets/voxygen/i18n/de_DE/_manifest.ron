@@ -1,16 +1,6 @@
-/// Translation document instructions
-///
-/// In order to keep localization documents readible please follow the following
-/// rules:
-/// - separate the string map sections using a commentary describing the purpose
-///   of the next section
-/// - prepend multi-line strings with a commentary
-/// - append one blank lines after a multi-line strings and two after sections
-///
-/// To add a new language in Veloren, just write an additional `.ron` file in
-/// `assets/voxygen/i18n` and that's it!
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Lokalisation für Deutsch/Deutschland
+/// Localization for Germany German
 (
     metadata: (
         language_name: "Deutsch",
@@ -39,528 +29,207 @@
             scale_ratio: 1.0,
         ),
     },
-    sub_directories: [],
+    sub_directories: [
+        "hud"
+    ],
+
     string_map: {
-        /// Start Common section
-        /// Texts used in multiple locations with the same formatting
-        "common.username": "Benutzername",
-        "common.singleplayer": "Einzelspieler",
-        "common.multiplayer": "Mehrspieler",
-        "common.servers": "Server",
-        "common.quit": "Beenden",
-        "common.settings": "Einstellungen",
-        "common.languages": "Sprache",
-        "common.interface": "Interface",
-        "common.gameplay": "Spiel",
-        "common.controls": "Tastenbelegung",
-        "common.video": "Grafik",
-        "common.sound": "Audio",
-        "common.resume": "Zurück",
-        "common.characters": "Charaktere",
-        "common.close": "Schließen",
-        "common.yes": "Ja",
-        "common.no": "Nein",
-        "common.back": "Zurück",
-        "common.create": "Erstellen",
-        "common.okay": "Okay",
-        "common.accept": "Annehmen",
-        "common.disclaimer": "Disclaimer",
-        "common.cancel": "Abbrechen",
-        "common.none": "Kein",
-        "common.error": "Fehler",
-        "common.fatal_error": "Fataler Fehler",
-        "common.decline": "Ablehnen",
-        "common.you": "Ihr",
-        "common.automatic": "Auto",
-        "common.rand_appearance": "Zufälliges Aussehen und Name",
-        "common.random": "Zufällig",
-        // Settings Window title
-        "common.interface_settings": "Interface Einstellungen",
-        "common.gameplay_settings": "Spiel Einstellungen",
-        "common.controls_settings": "Steuerung",
-        "common.video_settings": "Grafik Einstellungen",
-        "common.sound_settings": "Audio Einstellungen",
-        "common.language_settings": "Sprache",
-        /// End Common section
 
-         // Message when connection to the server is lost
-        "common.connection_lost": r#"Verbindung unterbrochen."#,
-
-
-        "common.species.orc": "Ork",
-        "common.species.human": "Mensch",
-        "common.species.dwarf": "Zwerg",
-        "common.species.elf": "Elf",
-        "common.species.undead": "Untoter",
-        "common.species.danari": "Danari",
-
-        "common.weapons.axe": "Axt",
-        "common.weapons.sword": "Schwert",
-        "common.weapons.staff": "Stab",
-        "common.weapons.bow": "Bogen",
-        "common.weapons.hammer": "Hammer",
-        "common.weapons.sceptre": "Druiden Szepter",
-        "common.weapons.general": "Kampf",
-        /// End Common section
-
-
-
-
-        /// Start Main screen section
-        "main.username": "Benutzername",
-        "main.server": "Server",
-        "main.password": "Passwort",
-        "main.connecting": "Verbinde ",
-        "main.creating_world": "Erschaffe Welt ",
-        "main.tip": "Tipp:",
-
-        /// Welcome notice that appears the first time Veloren is started
-        "main.notice": r#"Willkommen zur Veloren Alpha!
-
-Bevor es losgeht noch einige Infos:
-
-Dies ist eine frühe Alpha. Ihr werdet auf Bugs, unfertiges Gameplay und Mechaniken, sowie fehlende Features stoßen.
-
-Für konstruktives Feedback und Bug-Reports könnt Ihr uns via Reddit, Gitlab oder unseren Discord Server kontaktieren.
-
-Veloren hat die GPL 3 Open-Source Lizenz. Das heißt Ihr könnt es kostenlos spielen,
-aber auch modifizieren (solange die Mods auch die selbe Lizenz tragen) und das Spiel an andere weiterschicken.
-
-Veloren ist ein Non-Profit Community Projekt und jeder Mitarbeiter entwickelt es als Hobby in seiner Freizeit.
-
-Wenn Euch die Idee gefällt, dann schließt Euch doch einfach unserem Dev- oder Art-Team an!
-
-Danke, dass Ihr Euch die Zeit genommen habt diese Zeilen zu lesen und wir hoffen, dass Euch Veloren gefällt!
-
-~ Die Entwickler"#,
-
-        /// Login process description
-        "main.login_process": r#"Information zum Login:
-
-Erstellt euch hier einen Account zum Spielen:
-
-https://veloren.net/account/.
-
-"#,
-"main.login.server_not_found": "Server nicht gefunden.",
-        "main.login.authentication_error": "Authentifizierung fehlgeschlagen",
-        "main.login.server_full": "Server ist voll",
-        "main.login.untrusted_auth_server": "Dem Auth. Server wird nicht vertraut",
-        "main.login.outdated_client_or_server": "Inkompatible Version",
-        "main.login.timeout": "Zeitüberschreitung",
-        "main.login.server_shut_down": "Server heruntergefahren",
-        "main.login.network_error": "Netzwerkfehler",
-        "main.login.failed_sending_request": "Authentifizierung fehlgeschlagen",
-        "main.login.invalid_character": "Ungültiger Charakter",
-        "main.login.client_crashed": "Client abgestürzt",
-        "main.login.not_on_whitelist": "Ihr braucht einen Whitelist Eintrag durch den Server Admin",
-        "main.login.banned": "Ihr wurdet aus folgendem Grund gebannt",
-        "main.login.kicked": "Ihr wurdet aus folgendem Grund gekickt",
-        "main.login.select_language": "Wählt eine Sprache",
-
-        "main.servers.select_server": "Wählt einen Server",
-
-        /// End Main screen section
-
-
-        /// Start HUD Section
-        "hud.do_not_show_on_startup": "Nicht wieder anzeigen.",
-        "hud.show_tips": "Tipps zeigen.",
-        "hud.quests": "Quests",
-        "hud.you_died": "Ihr seid gestorben.",
-        "hud.waypoint_saved": "Wegpunkt gesichert",
-
-        "hud.press_key_to_show_keybindings_fmt": "[{key}] Tastenbelegung",
-        "hud.press_key_to_toggle_lantern_fmt": "[{key}] Laterne",
-        "hud.press_key_to_show_debug_info_fmt": "Drückt {key} um die Debug-Info zu zeigen",
-        "hud.press_key_to_toggle_keybindings_fmt": "Drückt {key} um die Tastenbelegung zu zeigen",
-        "hud.press_key_to_toggle_debug_info_fmt": "Drückt {key} um die Debug-Info zu zeigen",
-
-        // Chat outputs
-        "hud.chat.online_msg": "[{name}] ist jetzt online.",
-        "hud.chat.offline_msg": "[{name}] ist jetzt offline.",
-        "hud.chat.loot_msg": "Ihr erhaltet [{item}]",
-        "hud.chat.loot_fail": "Euer Inventar ist voll!",
-        "hud.chat.goodbye": "Verbindung getrennt.",
-        "hud.chat.connection_lost": "Verbindung unterbrochen. Trenne Verbindung in {time} Sekunden.",
-
-        "hud.chat.default_death_msg": "[{name}] ist gestorben",
-        "hud.chat.environmental_kill_msg": "[{name}] starb durch {environment}",
-        "hud.chat.fall_kill_msg": "[{name}] starb durch Fallschaden",
-        "hud.chat.suicide_msg": "[{name}] hat sich selbst getötet",
-
-        "hud.chat.pvp_melee_kill_msg": "[{attacker}] hat [{victim}] besiegt",
-        "hud.chat.pvp_ranged_kill_msg": "[{attacker}] hat [{victim}] aus der Ferne getötet",
-        "hud.chat.pvp_explosion_kill_msg": "[{attacker}] hat [{victim}] hochgejagt",
-        "hud.chat.pvp_energy_kill_msg": "[{attacker}] hat [{victim}] mit Magie erledigt",
-        "hud.chat.pvp_other_kill_msg" : "[{attacker}] hat [{victim}] mit Magie erledigt",
-
-
-        "hud.chat.npc_melee_kill_msg": "{attacker} tötete [{victim}]",
-        "hud.chat.npc_ranged_kill_msg": "{attacker} tötete [{victim}]",
-        "hud.chat.npc_explosion_kill_msg": "{attacker} hat [{victim}] hochgejagt",
-        "hud.chat.npc_energy_kill_msg": "{attacker} hat [{victim}] mit Magie erledigt",
-        "hud.chat.npc_other_kill_msg": "{attacker} tötete [{victim}]",
-
-        // SCT outputs
-        "hud.sct.experience": "{amount} Erf",
-        "hud.sct.block": "GEBLOCKT",        
-        "hud.rank_up": "Neuer Rang",
-
-        /// Respawn message
-        "hud.press_key_to_respawn": r#"Drückt {key} um am letzten Lagerfeuer wiederbelebt zu werden."#,
-
-        /// Welcome message
-        "hud.welcome": r#"Willkommen zur Veloren Alpha.
-
-
-Einige Tipps bevor Ihr beginnt:
-
-
-Drückt F1, um die Tastenbelegungen zu sehen.
-
-Um Chat-Kommandos zu sehen gebt /help in den Chat ein.
-
-
-Überall in der Welt erscheinen Kisten und andere Gegenstände.
-
-Sammelt diese mit Rechts-Klick auf.
-
-Um diese zu nutzen öffnet Euer Inventar mit 'B'.
-
-Doppelklickt den Gegenstand in Eurer Tasche, um diesen zu nutzen.
-
-Um Items wegzuwerfen klickt sie einmal im Inventar an
-
-und klickt dann außerhalb der Tasche.
-
-
-Die Nächte in Veloren können sehr dunkel werden.
-
-Drückt 'G' um Eure Laterne einzuschalten.
-
-
-Ihr wollt endlich spielen und dafür Euren Cursor befreien,
-
-um dieses Fenster zu schließen? Drückt 'TAB'!
-
-
-Viel Spaß in der Welt von Veloren, Abenteurer!"#,
-
-"hud.temp_quest_headline": r#"Bitte helft uns, Reisender!"#,
-"hud.temp_quest_text": r#"Höhlen voller böser Kultisten sind überall
-um unsere Dörfer herum aufgetaucht!
-
-
-Versammelt einige Kämpfer, sucht etwas
-Nahrung und besiegt ihre abscheulichen
-Anführer und Akolyten.
-
-Vielleicht könnt Ihr sogar einen ihrer
-magischen Gegenstände ergattern?"#,
-
-        // Inventory
-        "hud.bag.inventory": "{playername}s Inventar",
-        "hud.bag.stats_title": "{playername}s Werte",
-        "hud.bag.exp": "Erf",
-        "hud.bag.armor": "Rüstung",
-        "hud.bag.stats": "Werte",
-        "hud.bag.head": "Kopf",
-        "hud.bag.neck": "Hals",
-        "hud.bag.tabard": "Wappenrock",
-        "hud.bag.glider": "Gleiter",
-        "hud.bag.shoulders": "Schultern",
-        "hud.bag.chest": "Brust",
-        "hud.bag.hands": "Hände",
-        "hud.bag.lantern": "Laterne",
-        "hud.bag.belt": "Gürtel",
-        "hud.bag.ring": "Ring",
-        "hud.bag.back": "Rücken",
-        "hud.bag.legs": "Beine",
-        "hud.bag.feet": "Füße",
-        "hud.bag.mainhand": "Haupthand",
-        "hud.bag.offhand": "Nebenhand",
-
-        // Map and Questlog
-        "hud.map.map_title": "Karte",
-        "hud.map.qlog_title": "Aufgaben",
-
-        // Settings
-        "hud.settings.general": "Allgemein",
-        "hud.settings.none": "Keine",
-        "hud.settings.press_behavior.toggle": "Umschalten",
-        "hud.settings.press_behavior.hold": "Halten",
-        "hud.settings.help_window": "Hilfe",
-        "hud.settings.debug_info": "Debug-Info",
-        "hud.settings.tips_on_startup": "Tipps",
-        "hud.settings.ui_scale": "UI-Skalierung",
-        "hud.settings.relative_scaling": "Relative Skalierung",
-        "hud.settings.custom_scaling": "Freie Skalierung",
-        "hud.settings.crosshair": "Fadenkreuz",
-        "hud.settings.transparency": "Transparenz",
-        "hud.settings.hotbar": "Hotbar",
-        "hud.settings.toggle_shortcuts": "Tastenbelegung",
-        "hud.settings.toggle_bar_experience": "Erfahrungsleiste",
-        "hud.settings.scrolling_combat_text": "Aufsteigende Kampfwerte",
-        "hud.settings.single_damage_number": "Einzelne Schadenszahlen",
-        "hud.settings.cumulated_damage": "Addierter Schaden",
-        "hud.settings.incoming_damage": "Erlittener Schaden",
-        "hud.settings.cumulated_incoming_damage": "Addierter erlittener Schaden",
-        "hud.settings.speech_bubble": "Sprechblase",
-        "hud.settings.speech_bubble_dark_mode": "Dunkle Sprechblasen",
-        "hud.settings.speech_bubble_icon": "Sprechblasen-Symbole",
-        "hud.settings.energybar_numbers": "Zahlen auf Ressourcenanzeige",
-        "hud.settings.values": "Werte",
-        "hud.settings.percentages": "Prozent",
-        "hud.settings.chat": "Chat",
-        "hud.settings.background_transparency": "Hintergrund-Kontrast",
-        "hud.settings.chat_character_name": "Characternamen im Chat",
-        "hud.settings.buffs_mmap": "Zeige Buffs an der Mini-Map",
-        "hud.settings.buffs_skillbar": "Zeige Buffs an der Fähigkeiten Leiste",
-        "hud.settings.cloud_rendering_mode.low": "Niedrig",
-        "hud.settings.cloud_rendering_mode.medium": "Mittel",
-        "hud.settings.cloud_rendering_mode.minimal": "Minimal",
-        "hud.settings.cloud_rendering_mode.high": "Hoch",
-        "hud.settings.cloud_rendering_mode.ultra": "Ultra",
-        "hud.settings.loading_tips": "Ladebildschirm-Tipps",
-        "hud.settings.exposure": "Belichtung",
-        "hud.settings.ambiance": "Umgebungs Beleuchtung",
-        "hud.settings.upscale_factor": "Skalierungsfaktor",
-
-        "hud.settings.pan_sensitivity": "Schwenk-Sensibilität",
-        "hud.settings.zoom_sensitivity": "Zoom-Sensibilität",
-        "hud.settings.invert_scroll_zoom": "Scroll-Zoom invertieren",
-        "hud.settings.invert_mouse_y_axis": "Maus Y-Achse invertieren",
-        "hud.settings.enable_mouse_smoothing": "Kamera-Glättung",
-        "hud.settings.free_look_behavior": "Freies Umsehen",
-        "hud.settings.auto_walk_behavior": "Automatisches Laufen",
-        "hud.settings.stop_auto_walk_on_input": "Auto-Laufen bei Tastendruck stoppen",
-
-        "hud.settings.view_distance": "Gelände-Sichtweite",
-        "hud.settings.sprites_view_distance": "Objekt-Sichtweite",
-        "hud.settings.figures_view_distance": "Einheiten-Sichtweite",
-        "hud.settings.maximum_fps": "Maximale FPS",
-        "hud.settings.fov": "Sichtfeld (Grad)",
-        "hud.settings.gamma": "Gamma",
-        "hud.settings.antialiasing_mode": "Anti-Alias Modus",
-        "hud.settings.cloud_rendering_mode": "Wolkendetail",
-        "hud.settings.fluid_rendering_mode": "Flüssigkeitsdetail",
-        "hud.settings.fluid_rendering_mode.cheap": "Niedrig",
-        "hud.settings.fluid_rendering_mode.shiny": "Hoch",
-        "hud.settings.cloud_rendering_mode.regular": "Realistisch",
-        "hud.settings.particles": "Partikel",
-        "hud.settings.resolution": "Auflösung",
-        "hud.settings.bit_depth": "Bittiefe",
-        "hud.settings.refresh_rate": "Bildwiederholrate",
-        "hud.settings.fullscreen": "Vollbild",
-        "hud.settings.fullscreen_mode": "Vollbild-Modus",
-        "hud.settings.fullscreen_mode.exclusive": "Exklusiv",
-        "hud.settings.fullscreen_mode.borderless": "Rahmenlos",
-        "hud.settings.lighting_rendering_mode": "Beleuchtung",
-        "hud.settings.lighting_rendering_mode.ashikhmin": "Typ A",
-        "hud.settings.lighting_rendering_mode.blinnphong": "Typ B",
-        "hud.settings.lighting_rendering_mode.lambertian": "Typ L",
-        "hud.settings.shadow_rendering_mode": "Schatten",
-        "hud.settings.shadow_rendering_mode.none": "Keine Schatten",
-        "hud.settings.shadow_rendering_mode.cheap": "Gering",
-        "hud.settings.shadow_rendering_mode.map": "Voll",
-        "hud.settings.lod_detail": "LoD Detail",
-        "hud.settings.save_window_size": "Größe speichern",
-        "hud.settings.shadow_rendering_mode.map.resolution": "Auflösung",
-
-        "hud.settings.music_volume": "Musiklautstärke",
-        "hud.settings.sound_effect_volume": "Geräuschlautstärke",
-        "hud.settings.audio_device": "Ausgabegerät",
-
-        "hud.settings.awaitingkey": "Drückt eine Taste...",
-        "hud.settings.unbound": "-",
-        "hud.settings.reset_keybinds": "Auf Standard zurücksetzen",
-
-        "hud.social": "Andere Spieler",
-        "hud.social.online": "Online",
-        "hud.social.friends": "Freunde",
-        "hud.social.not_yet_available": "Noch nicht verfügbar",
-        "hud.social.faction": "Fraktion",
-        "hud.social.play_online_fmt": "{nb_player} Spieler online",
-        "hud.social.account": "Account",
-
-        "hud.spell": "Zauber",
-
-        "hud.social.name" : "Name",
-        "hud.social.level" : "Lvl",
-        "hud.social.zone" : "Gebiet",
-
-        "hud.group": "Gruppe",
-        "hud.group.invite_to_join": "[{name}] lädt euch in seine Gruppe ein!",
-        "hud.group.invite": "Einladen",
-        "hud.group.kick": "Kicken",
-        "hud.group.assign_leader": "Anführer",
-        "hud.group.leave": "Gruppe verlassen",
-        "hud.group.dead" : "Tot",
-        "hud.group.out_of_range": "Außer Reichweite",
-        "hud.group.add_friend": "Freund hinzufügen",
-        "hud.group.link_group": "Gruppen verbinden",
-        "hud.group.in_menu": "In Menü",
-        "hud.group.members": "Gruppen-Mitglieder",
-
-        "hud.crafting": "Herstellen",
-        "hud.crafting.recipes": "Rezepte",
-        "hud.crafting.ingredients": "Zutaten:",
-        "hud.crafting.craft": "Herstellen",
-        "hud.crafting.tool_cata": "Benötigt:",
-
-        "hud.free_look_indicator": "Freie Sicht aktiv",
-        "hud.auto_walk_indicator": "Automatisches Laufen aktiv",
-        "hud.map.difficulty": "Schwierigkeit",
-        "hud.map.towns": "Dörfer",
-        "hud.map.castles": "Festungen",
-        "hud.map.dungeons": "Dungeons",
-        "hud.map.town": "Dorf",
-        "hud.map.castle": "Festung",
-        "hud.map.dungeon": "Dungeon",
-        "hud.map.difficulty_dungeon": "Dungeon\n\nSchwierigkeit: {difficulty}",
-        "hud.map.drag": "Ziehen",
-        "hud.map.zoom": "Zoomen",
-        "hud.map.recenter": "Zurücksetzen",
-        /// End HUD section
-        /// Start GameInput section
-
-        "gameinput.primary": "Linker mittlerer Slot",
-        "gameinput.secondary": "Rechter mittlerer Slot",
-        "gameinput.slot1": "Hotbar Slot 1",
-        "gameinput.slot2": "Hotbar Slot 2",
-        "gameinput.slot3": "Hotbar Slot 3",
-        "gameinput.slot4": "Hotbar Slot 4",
-        "gameinput.slot5": "Hotbar Slot 5",
-        "gameinput.slot6": "Hotbar Slot 6",
-        "gameinput.slot7": "Hotbar Slot 7",
-        "gameinput.slot8": "Hotbar Slot 8",
-        "gameinput.slot9": "Hotbar Slot 9",
-        "gameinput.slot10": "Hotbar Slot 10",
-        "gameinput.swaploadout": "Waffe wechseln",
-        "gameinput.togglecursor": "Mauszeiger zeigen/verstecken",
-        "gameinput.help": "Hilfe anzeigen",
-        "gameinput.toggleinterface": "Interface verstecken/zeigen",
-        "gameinput.toggledebug": "FPS und Debug Informationen",
-        "gameinput.screenshot": "Bildschirmaufnahme",
-        "gameinput.toggleingameui": "Namensplaketten zeigen",
-        "gameinput.fullscreen": "Vollbildschirm",
-        "gameinput.moveforward": "Vorwärts bewegen",
-        "gameinput.moveleft": "Nach Links bewegen",
-        "gameinput.moveright": "Nach Rechts bewegen",
-        "gameinput.moveback": "Rückwärts bewegen",
-        "gameinput.jump": "Springen",
-        "gameinput.glide": "Gleiter",
-        "gameinput.roll": "Rollen",
-        "gameinput.climb": "Klettern",
-        "gameinput.climbdown": "Runter klettern",
-        "gameinput.wallleap": "Wandsprung",
-        "gameinput.togglelantern": "Laterne ein-/ausschalten",
-        "gameinput.mount": "Aufsteigen",
-        "gameinput.chat": "Chat",
-        "gameinput.command": "Befehl",
-        "gameinput.escape": "Escape",
-        "gameinput.map": "Karte",
-        "gameinput.bag": "Inventar",
-        "gameinput.social": "Sozial",
-        "gameinput.sit": "Sitzen",
-        "gameinput.spellbook": "Zauber",
-        "gameinput.settings": "Einstellungen",
-        "gameinput.respawn": "Wiederbeleben",
-        "gameinput.charge": "Anstürmen",
-        "gameinput.togglewield": "Waffe ziehen/wegstecken",
-        "gameinput.interact": "Interagieren",
-        "gameinput.freelook": "Freie Sicht",
-        "gameinput.autowalk": "Automatisch Laufen",
-        "gameinput.dance": "Tanzen",
-        "gameinput.declinegroupinvite": "Ablehnen",
-        "gameinput.acceptgroupinvite": "Annehmen",
-        "gameinput.select": "Auswählen",
-        "gameinput.crafting": "Crafting",
-        "gameinput.sneak": "Schleichen",
-        "gameinput.swimdown": "Abwärts Tauchen",
-        "gameinput.swimup": "Aufwärts Schwimmen",
-
-        /// End GameInput section
-
-        /// Start chracter selection section
-        "char_selection.loading_characters": "Lade Charaktere...",
-        "char_selection.delete_permanently": "Diesen Charakter unwiderruflich löschen?",
-        "char_selection.deleting_character": "Lösche Charakter...",
-        "char_selection.change_server": "Server wechseln.",
-        "char_selection.enter_world": "Betreten",
-        "char_selection.logout": "Ausloggen",
-        "char_selection.create_character": "Charakter erstellen",
-        "char_selection.create_new_character": "Neuen Charakter erstellen",
-        "char_selection.creating_character": "Erstelle Charakter...",
-        "char_selection.character_creation": "Charaktererstellung",
-
-       "char_selection.human_default": "Human Default",
-        "char_selection.level_fmt": "Level {level_nb}",
-        "char_selection.uncanny_valley": "Wildnis",
-        "char_selection.plains_of_uncertainty": "Wildnis",
-        "char_selection.beard": "Bart",
-        "char_selection.hair_style": "Frisur",
-        "char_selection.hair_color": "Haarfarbe",
-        "char_selection.chest_color": "Brustrüstung",
-        "char_selection.eye_color": "Augenfarbe",
-        "char_selection.skin": "Hautton",
-        "char_selection.eyeshape": "Augendetails",
-        "char_selection.accessories": "Accessoires",
-        "char_selection.create_info_name": "Euer Charakter braucht einen Namen!",
-        /// End chracter selection section
-        /// Start character window section
-        "character_window.character_name": "Charakter",
-        // Character stats
-        "character_window.character_stats": r#"Ausdauer
-
-Beweglichkeit
-
-Willenskraft
-"#,
-
-
-        /// Start character window section
-
-
-        /// Start Escape Menu Section
-        "esc_menu.logout": "Ausloggen",
-        "esc_menu.quit_game": "Desktop",
-        /// End Escape Menu Section
-
-         /// Buffs and Debuffs
-        "buff.remove": "Klicken zum Entfernen",
-        "buff.title.missing": "Fehlender Titel",
-        "buff.desc.missing": "Fehlende Beschreibung",
-        // Buffs
-        "buff.title.heal": "HoT Buff Test",
-        "buff.desc.heal": "HoT Buff Test",
-        // Debuffs
-        "buff.title.bleed": "Blutung",
-        "buff.desc.bleed": "Fügt regelmäßig Schaden zu.",
     },
 
     vector_map: {
         "loading.tips": [
-            "Drückt 'G', um Eure Laterne anzuzünden.",
-            "Drückt 'F1', um die Standard-Tastenbelegung anzuzeigen.",
-            "Ihr könnt /say oder /s verwenden, um den Spielern in Eurer Nähe zu schreiben.",
-            "Verwendet /region oder /r, um mit Spielern in Eurem Gebiet zu schreiben.",
-            "Mit /tell könnt ihr einem Mitspieler direkte Nachrichten schicken.",
-            "NPCs mit demselben Level können unterschiedlich schwierig zu besiegen sein.",
-            "Behaltet den Boden um euch im Blick! Dort gibt es Nahrung, Kisten und Anderes zu finden.",
-            "Ist Euer Inventar voll mit Nahrung? Wertet es einfach durch Crafting auf!",
-            "Ihr sucht nach einem Abenteuer? Dungeons sind mit Markierungen auf der Karte vermerkt!",
-            "Vergesst nicht Eure Grafikeinstellungen anzupassen! Mit 'N' kommt ihr in die Einstellungen.",
-            "Zusammen kämpfen macht mehr Spaß! Drückt 'O' um Eure Mitspieler anzuzeigen.",
-            "Ein NPC mit einem Schädel unter seiner Lebensanzeige ist deutlich stärker als Ihr.",
-            "Drückt 'J' um zu tanzen. Yeah!",
-            "Verwendet 'L-Shift' um mit Eurem Gleiter den Himmel zu erobern!",
-            "Veloren befindet sich noch in der Pre-Alpha Phase. Wir tun unser Bestes, um das Spielgefühl jeden Tag zu verbessern!",
-            "Ihr wünscht, Euch mit uns auszutauschen oder wollt unserem Entwickler-Team beitreten? Kommt doch einfach auf unseren Discord-Server!",
+            "Mit 'G' aktivierst du deine Laterne.",
+            "Mit 'F1' kannst du die standart Tastenbelegung einsehen.",
+            "Mit /say oder /s kannst du mit Spieler in deiner unmittelbaren Umgebung chatten.",
+            "Mit /region oder /r kannst du mit Spielern chatten, die sich ein paar hundert Meter um dich herum befinden.",
+            "Als Admin kannst du mit /build den Baumodus nutzen.",
+            "Mit /group oder /g können deine Nachrichten nur von Mitgliedern deiner Gruppe gelesen werden.",
+            "Um private Nachrichten zu verschicken, kannst du /tell gefolgt vom Namen des Spielers der die Nachricht erhalten soll nutzen.",            
+            "Halte Ausschau nach Essen, Kisten oder anderen Schätzen über all auf der Welt!",
+            "Deine Taschen sind voll mit Essen? Versuche besseres Essen damit herzustellen!",
+            "Du weißt nicht was du tun sollst? Versuche dich doch mal an den Katakomben, die auf der Karte eingezeichnet sind!",
+            "Vergiss nicht die Grafikeinstellungen an deine Hardware anzupassen. Mit 'N' öffnest du die Grafikeinstellungen.",
+            "Mit andere zusammen zu spielen macht noch viel mehr Spaß! Mit 'O' kannst du sehen wer gerade online ist.",
+            "Mit 'J' kannst du das Tanzbein schwingen. Party!",
+            "Mit 'L-Shift' kannst du den Gleiter öffnen und hohe Lüfte erobern.",
+            "Veloren ist immernoch in der Pre-Alpha. Wir tun unser bestes um es jeden Tag ein stück besser zu machen!",
+            "Du möchtest aktiv an der Entwicklung mitwirken, oder einfach nur chatten? Dann komm auf unseren Discord server.",
+            "Die Art wie dir deine Lebensenergie angezeigt wird, kannst du in den Einstellungen ändern.",            
+            "Setze dich neben ein Lagerfeuer (drücke dafür'K') um dich langsam von deinen Verletzungen zu erholen.",
+            "Du brauchst einen größeren Beutel oder bessere Rüstung? Dann drücke 'C' um das Crafting Menü zu öffnen!",
+        ],
+        "npc.speech.villager": [
+            "Ist das nicht ein wunderbarer Tag?",
+            "Wie geht's dir heute?",
+            "Einen schönen guten Morgen wünsche ich dir!",
+            "Ich frage mich, was der Catoblepas denk wenn er Gras isst.",
+            "Was hälst du vom Wetter?",
+            "Wenn ich an die Katakomben denke bekomme ich Angst. Ich hoffe jemand befreit sie vom Unheil.",
+            "Ich würde gerne in eine der Höhlen gehen wenn ich größer und stärker bin.",
+            "Hast du meine Katze gesehen?",
+            "Hast du schonmal etwas von den gefährlichen Landhaien gehört? Ich habe gehört sie leben in der Wüste.",
+            "Man sagt es gebe Juwelen aller Art in den Höhlen der Gegend.",
+            "Ich bin einfach verrückt nach Käse!",
+            "Möchtest du nicht rein kommen? Bei uns gibt es gleich himmlischen Käse!",
+            "Man sagt Pilze seien gut für die Gesundheit. Ich selber habe noch nie welche gegessen.",
+            "Vergiss dein Feuerwerk nicht!",
+            "Ich liebe Zwegenkäse einfach. Ich wünschte ich könnte selber welchen herstellen.",
+            "Ich frage mich, was sich auf der anderen Seite der Berge verbirgt.",
+            "Ich wünschte, ich könnte mir eines Tages meinen eigenen Gleiter bauen.",
+            "Möchtest du dir mal meinen Garten ansehen? Okay, vielleicht beim nächsten Mal.",
+            "Ein perfekter tag um in den Wald zu gehen!",
+            "Sein, oder nicht sein? Ich glaube ich werde Landwirt.",
+            "Findest du nicht auch, dass unser Dorf das schönste ist?",
+            "Was glaubst du, was Glühende Überreste zum Glühen bringt?",
+            "Ich glaube es ist an der Zeit für ein zweites Frühstück!",
+            "Hast du jemals ein Glühwürmchen gefangen?",
+            "Ich verstehe einfach nicht wo die ganzen Sauroks herkommen.",
+            "Ich wünschte, jemand könnte die ganzen Wölfe vom Dorf fernhalten.",
+            "Ich hatte letzte Nacht einern wunderbaren Traum über Käse. Was könnte das bedeuten?",
+            "Ich habe meinem Bruder ein wenig Käse dagelassen. Nun weiß ich nicht, ob er ihn schon aß oder nicht. Ich nenne es Schrödinger's Käse.",
+            "Ich habe meiner Schwester ein wenig Käse dagelassen. Nun weiß ich nicht, ob sie ihn schon aß oder nicht. Ich nenne es Schrödinger's Käse.",
+            "Jemand sollte etwas gegen diese Kultisten unternehmen. Vorzugsweise nicht ich.",
+            "Ich hoffe es regnet bald wieder. Der Ernte würde es gut tun.",
+            "Ich liebe Honig! Und hasse Bienen.",
+            "Eines Tages möchte ich die Welt bereisen. Es muss doch mehr im Leben geben als dieses Dorf.",
+        ],
+        "npc.speech.villager_decline_trade": [
+            "Tut mir leid, ich habe nicht, was ich mit dir handeln könnte.",
+            "Du möchtest Handeln? Als ob ich etwas hätte, das dich interessieren könnte.",
+            "Mein Haus gehört mir, ich würde es für nichts auf der Welt hergeben.",
+        ],
+        "npc.speech.merchant_advertisement": [
+            "Darf ich dir einen Handel vorschlagen?",
+            "Möchtest du mit mir Handeln??",
+            "Ich habe viele Waren. Möchtest du die dir mal ansehen?"
+        ],
+        "npc.speech.merchant_busy": [
+            "Hey, warte bis du an der Reihe bist.",
+            "Einen Moment bitte, ich kann mich nicht zerteilen.",
+            "Siehst du nich, dass jemand vor dir steht?",
+            "Einen Moment bitte, ich bin gleich bei dir.",
+            "Nicht vordrängeln bitte.",
+            "Ich bin gerade beschäftigt, komm doch später wieder."
+        ],
+        "npc.speech.merchant_trade_successful": [
+            "Vielen Dank für das Geschäft!",
+            "Vielen Dank!",
+        ],
+        "npc.speech.merchant_trade_declined": [
+            "Vielleicht beim nächsten Mal, einen schönen Tag noch!",
+            "Zu schade, vielleicht beim nächsten mal, bis dann!"
+        ],
+        "npc.speech.villager_cultist_alarm": [
+            "Achtung! Ein Kultist schleicht hier herum!",
+            "Zu den Waffen! Die Kultisten attackieren uns!",
+            "Wie können die Kultisten es wagen, unser Dorf zu attackieren!",
+            "Tod den Kultisten!",
+            "Kultisten werden hier nicht toleriert!",
+            "Mörderrischer Kultist!",
+            "Eine Kostprobe meines Schwertes gefällig? Du reudiger Kultist!",
+            "Nichts kann das Blut von deinen Händen Waschen, Kultist!",
+            "Ja brat' mir doch einer 'nen Storch! Ein Kultist weilt unter uns!",
+            "Die Schreckensherschaft der Kultisten wird bald vorrüber sein!",
+            "Der Kultist gehört mir!",
+            "Bereite dich darauf vorm deinem Schöpfer gegenüberzutreten, du mieser Kultist!",
+            "Ich sehe einen Kultisten! Ergreift ihn!",
+            "Ich sehe einen Kultisten!",
+            "Ich sehe einen Kultisten! Lasst ihn nicht entkommen!",
+            "Ist der ehrenwerte Kultist an ein wenig TOD interessiert?!",
+            "Wir vergeben nicht! wir vergessen nicht! Kultist, büße!",
+            "Stirb, Kultistt!",
+            "Deine Schreckensherschaft wird enden!",
+            "Nimm das! Für alles, was du getan hast!",
+            "Wir wollen Abschaum wie euch hier nicht!",
+            "Du hättest unter der Erde bleiben sollen! Da wo du hingehörst!",
         ],
         "npc.speech.villager_under_attack": [
-            "Hilfe, ich werde angegriffen!",
+            "Hilfe, Ich werde angegriffen!",
+            "Hilfe, Ich werde angegriffen!",
+            "Autsch! Ich werde angegriffen!",
+            "Autsch! Ich werde angegriffen! Hilfe!",
+            "Helft mir! Ich werde angegriffen!",
+            "Ich werde angegriffen! Hilfe!",
+            "Ich werde angegriffen! Helft mir!",
+            "Hilfe!",
+            "Hilfe! Hilfe!",
+            "Hilfe! Hilfe! Hilfe!",
+            "Ich werde angegriffen!",
+            "AAAHHH! Ich werde angegriffen!",
+            "AAAHHH! Ich werde angegriffen! So helft mir doch!",
+            "Hilfe! Wir werden angegriffen!",
+            "Hilfe! Mörder!",
+            "Hilfe! Ein Mörder läuft frei herum!",
+            "Hilfe! Man versucht mich zu töten!",
+            "Wachen, Ich werde angegriffen!",
+            "Wachen! Ich werde angegriffen!",
+            "Ich werde angegriffen! Wachen!",
+            "Hilfe! Wachen! Ich werde angegriffen!",
+            "Wachen! Kommt schnell!",
+            "Wachen! Wachen!",
+            "Wachen! Ein Schurke attackiert mich!",
+            "Wachen, erschlagt diesen üblen Schurken!",
+            "Wachen! Ein Mörder!",
+            "Wachen! Helft mir!",
+            "Damit wirst du nicht davonkommen! Wachen!",
+            "Du Unmensch!",
+            "Helft mir!",
+            "Helft mir! Bitte!",
+            "Autsch! Wachen! Hilfe!",
+            "Sie kommen, um mich zu holen!",
+            "Hilfe! Hilfe! Ich werde angefeindet!",
+            "Ah, jetzt sehen wir die Gewalt, die dem System innewohnt.",
+            "Ach nur'n Kratzer!",
+            "Hört auf!",
+            "Was habe ich euch angetan?!",
+            "Bitte, hört auf mich anzugreifen!",
+            "Hey! Pass auf wo du mit dem Ding hinziehlst!",
+            "Abscheulicher Schuft, hinfort mit dir!",
+            "Halt! Verzieh dich!",
+            "Du bringst mich noch zur Weißglut!",
+            "Oi! Was denkst du wer du bist?!",
+            "Dafür reiße ich dir den Kopf ab!",
+            "Stopp, bitte! Ich habe nichts wertvolles bei mir!",
+            "Ich setze meinen Bruder auf dich an, er ist größer als ich!",
+            "Neiiiin, das erzähle ich meiner Mutter!",
+            "Verflucht seist du!",
+            "Bitte, tu's nicht.",
+            "Das war nicht sehr nett von dir!",
+            "Deine Waffe erfüllt ihren Zweck, du kannst die jetzt wegstecken!",
+            "Verschone mich!",
+            "Bitte, ich habe Familie!",
+            "Ich bin zu jung zum sterben!",
+            "Können wir darüber reden?",
+            "Gewalt ist keine Lösung!",
+            "Der heutige Tag entwickelt sich zu einem sehr schlechten Tag...",
+            "Hey, das tat weh!",
+            "AAAAHHH!",
+            "Wie rüpelhaft!",
+            "Stopp, ich flehe dich an!",
+            "Ein Fluch soll dich heimsuchen!",
+            "Das ist nicht lustig.",
+            "Wie könnt Ihr es wagen?!",
+            "Dafür wirst du bezahlen!",
+            "Mach weiter so und es wird dir leid tun!",
+            "Zwing mich nicht, dir weh zu tun!",
+            "Das muss ein Missverständnis sein!",
+            "Du musst das nicht tun!",
+            "Fort mit dir, Schurke!",
+            "Das hat echt wehgetan!",
+            "Warum tust du das?",
+            "Bei den Göttern, hört auf!",
+            "Du musst mich mit jemand anderen verwechseln!",
+            "Ich verdiene das nicht!",
+            "Bitte, tu das nicht nochmal.",
+            "Wachen, in den Kerker mit diesem Schuft!",
+            "Ich werde meinen tarasque auf dich hetzen!",
+            "Warum iiiich?",
         ],
+        "npc.speech.villager_enemy_killed": [
+            "Ich habe den Feind vernichtet!",
+            "Endlich Frieden!",
+            "... also, wo war ich stehengeblieben?",
+        ]
     }
 )
