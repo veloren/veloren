@@ -114,7 +114,19 @@ nativeBuildInputs = ["pkg-config"]
 winit = { git = "https://gitlab.com/veloren/winit.git", branch = "macos-test-spiffed" }
 vek = { git = "https://gitlab.com/veloren/vek.git", branch = "fix_intrinsics2" }
 # patch wgpu so we can use wgpu-profiler crate
-wgpu = { git = "https://github.com/gfx-rs/wgpu-rs.git", rev = "ef2fa77536855e0b7ebdfb0df0eb879d9b7d3a1b" }
+# also points to 0.8 branch so we can use/and patch 0.8 naga/gfx (since a new tag isn't out yet)
+wgpu = { git = "https://github.com/gfx-rs/wgpu-rs.git", rev = "2b0149e5bd36fc70c1687afd4b196fd902c85e77" }
+
+# use the latest fixes in naga (remove when updates trickle down to wgpu-rs)
+naga = { git = "https://github.com/gfx-rs/naga.git", rev = "3a0f0144112ff621dd7f731bf455adf6cab19164" }
+# use the latest fixes in gfx (remove when updates trickle down to wgpu-rs)
+gfx-hal = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
+gfx-backend-empty = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
+gfx-backend-vulkan = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
+gfx-backend-gl = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
+gfx-backend-dx12 = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
+gfx-backend-dx11 = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
+gfx-backend-metal = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
 
 # # Uncomment this to use a local fork of wgpu (for testing purposes)
 # [patch.'https://github.com/gfx-rs/wgpu']

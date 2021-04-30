@@ -25,7 +25,7 @@ buildInputs = ["xorg.libxcb"]
 hot-anim = ["anim/use-dyn-lib"]
 singleplayer = ["server"]
 simd = ["vek/platform_intrinsics"]
-tracy = ["common/tracy", "common-ecs/tracy", "common-frontend/tracy", "common-net/tracy", "common-systems/tracy", "common-state/tracy", "client/tracy"]
+tracy = ["profiling", "profiling/profile-with-tracy", "common/tracy", "common-ecs/tracy", "common-frontend/tracy", "common-net/tracy", "common-systems/tracy", "common-state/tracy", "client/tracy"]
 plugins = ["client/plugins"]
 
 default = ["singleplayer", "native-dialog", "plugins", "simd"]
@@ -45,7 +45,7 @@ i18n = {package = "veloren-i18n", path = "i18n"}
 
 # Graphics
 winit = {version = "0.24.0", features = ["serde"]}
-wgpu = "0.8.0"
+wgpu = "0.8.1"
 wgpu-profiler = { git = "https://github.com/Imberflur/wgpu-profiler", tag = "wgpu-0.8" }
 bytemuck = { version="1.4", features=["derive"] }
 shaderc = "0.6.2"
@@ -109,6 +109,7 @@ itertools = "0.10.0"
 
 # Tracy
 tracing = "0.1"
+profiling = { version = "1.0.1", default-features = false, optional = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 dispatch = "0.1.4"
