@@ -44,7 +44,7 @@ fn tgt_dir(data: &JoinData) -> Dir {
     let look_ori = Ori::from(data.inputs.look_dir);
     look_ori
         .yawed_right(PI / 3.0 * look_ori.right().xy().dot(data.inputs.move_dir))
-        .pitched_up(PI * 0.05)
+        .pitched_up(PI * 0.04)
         .pitched_down(
             data.inputs
                 .look_dir
@@ -81,7 +81,7 @@ impl CharacterBehavior for Data {
                 let slerp_s = {
                     let angle = self.ori.look_dir().angle_between(*data.inputs.look_dir);
                     let rate = 0.4 * PI / angle;
-                    (data.dt.0 * rate).min(0.1)
+                    (data.dt.0 * rate).min(1.0)
                 };
 
                 Dir::from_unnormalized(air_flow.0)
@@ -123,8 +123,8 @@ impl CharacterBehavior for Data {
             update.ori = {
                 let slerp_s = {
                     let angle = data.ori.look_dir().angle_between(*data.inputs.look_dir);
-                    let rate = data.body.base_ori_rate() * PI / angle;
-                    (data.dt.0 * rate).min(0.1)
+                    let rate = 0.2 * data.body.base_ori_rate() * PI / angle;
+                    (data.dt.0 * rate).min(1.0)
                 };
 
                 let rot_from_drag = {

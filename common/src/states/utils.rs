@@ -320,7 +320,7 @@ pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, efficiency:
         };
         update.ori = update
             .ori
-            .slerped_towards(dir.into(), (data.dt.0 * rate).min(0.1));
+            .slerped_towards(dir.into(), (data.dt.0 * rate).min(1.0));
     };
 }
 
