@@ -15,5 +15,5 @@ ItemDef(
     )),
     quality: Low,
     tags: [],
-    ability_set: Some(Custom("Bird Large Breathe")),
+    ability_spec: Some(Custom("Bird Large Breathe")),
 )

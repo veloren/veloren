@@ -15,5 +15,5 @@ ItemDef(
     )),
     quality: Legendary,
     tags: [],
-    ability_set: Some(Custom("Mindflayer")),
+    ability_spec: Some(Custom("Mindflayer")),
 )

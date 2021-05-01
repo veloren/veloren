@@ -15,5 +15,5 @@ ItemDef(
     )),
     quality: Low,
     tags: [],
-    ability_set: Some(Custom("Axe Simple")),
+    ability_spec: Some(Custom("Axe Simple")),
 )

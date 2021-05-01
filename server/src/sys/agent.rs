@@ -1507,8 +1507,8 @@ impl<'a> AgentData<'a> {
             .equipped(EquipSlot::Mainhand)
             .as_ref()
             .map(|item| {
-                if let Some(ability_set) = item.ability_set() {
-                    match ability_set {
+                if let Some(ability_spec) = item.ability_spec() {
+                    match ability_spec {
                         AbilitySpec::Custom(spec) => match spec.as_str() {
                             "Axe Simple" | "Sword Simple" => Tactic::Sword,
                             "Staff Simple" => Tactic::Staff,

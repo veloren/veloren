@@ -278,7 +278,7 @@ pub struct ItemDef {
     pub slots: u16,
     /// Used to specify a custom ability set for a weapon. Leave None (or don't
     /// include field in ItemDef) to use default ability set for weapon kind.
-    pub ability_set: Option<AbilitySpec>,
+    pub ability_spec: Option<AbilitySpec>,
 }
 
 impl PartialEq for ItemDef {
@@ -307,7 +307,7 @@ impl TryFrom<(&Item, &AbilityMap, &MaterialStatManifest)> for ItemConfig {
             let tool_default = ability_map
                 .get_ability_set(&AbilitySpec::Tool(tool.kind))
                 .cloned();
-            let abilities = if let Some(set_key) = item.ability_set() {
+            let abilities = if let Some(set_key) = item.ability_spec() {
                 if let Some(set) = ability_map.get_ability_set(set_key) {
                     set.clone().modified_by_tool(&tool, msm, &item.components)
                 } else {
@@ -383,7 +383,7 @@ impl ItemDef {
             quality,
             tags,
             slots,
-            ability_set: None,
+            ability_spec: None,
         }
     }
 }
@@ -424,7 +424,7 @@ impl assets::Compound for ItemDef {
             quality,
             tags,
             slots,
-            ability_set,
+            ability_spec,
         } = raw;
 
         // Some commands like /give_item provide the asset specifier separated with \
@@ -441,7 +441,7 @@ impl assets::Compound for ItemDef {
             quality,
             tags,
             slots,
-            ability_set,
+            ability_spec,
         })
     }
 }
@@ -456,7 +456,7 @@ struct RawItemDef {
     tags: Vec<ItemTag>,
     #[serde(default)]
     slots: u16,
-    ability_set: Option<AbilitySpec>,
+    ability_spec: Option<AbilitySpec>,
 }
 
 impl assets::Asset for RawItemDef {
@@ -765,7 +765,7 @@ impl Item {
         }))
     }
 
-    pub fn ability_set(&self) -> Option<&AbilitySpec> { self.item_def.ability_set.as_ref() }
+    pub fn ability_spec(&self) -> Option<&AbilitySpec> { self.item_def.ability_spec.as_ref() }
 }
 
 /// Provides common methods providing details about an item definition

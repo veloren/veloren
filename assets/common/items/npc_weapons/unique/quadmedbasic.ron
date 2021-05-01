@@ -15,5 +15,5 @@ ItemDef(
     )),
     quality: Low,
     tags: [],
-    ability_set: Some(Custom("Quad Med Basic")),
+    ability_spec: Some(Custom("Quad Med Basic")),
 )

@@ -731,7 +731,7 @@ impl FigureMgr {
                     .and_then(|i| i.equipped(equip_slot))
                     .map(|i| {
                         if let ItemKind::Tool(tool) = i.kind() {
-                            (Some(tool.kind), Some(tool.hands), i.ability_set())
+                            (Some(tool.kind), Some(tool.hands), i.ability_spec())
                         } else {
                             (None, None, None)
                         }

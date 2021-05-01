@@ -192,7 +192,7 @@ fn make_component_def(
         quality,
         tags: vec![ItemTag::ModularComponent(tag)],
         slots: 0,
-        ability_set: None,
+        ability_spec: None,
     };
     (identifier, item)
 }
@@ -215,7 +215,7 @@ fn make_weapon_def(toolkind: ToolKind) -> (String, RawItemDef) {
         quality,
         tags: Vec::new(),
         slots: 0,
-        ability_set: None,
+        ability_spec: None,
     };
     (identifier, item)
 }
@@ -268,7 +268,7 @@ fn make_tagexample_def(
         quality,
         tags: vec![ItemTag::ModularComponent(tag)],
         slots: 0,
-        ability_set: None,
+        ability_spec: None,
     };
     (identifier, item)
 }
