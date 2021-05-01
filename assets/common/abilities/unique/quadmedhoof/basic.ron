@@ -6,6 +6,6 @@ BasicMelee(
     base_damage: 100,
     base_poise_damage: 28,
     knockback: 25.0,
-    range: 3.0,
-    max_angle: 120.0,
+    range: 1.2,
+    max_angle: 50.0,
 )
