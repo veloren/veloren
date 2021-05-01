@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - You can now block and parry with melee weapons
 - Lift is now calculated for gliders based on dimensions (currently same for all)
 - Specific music tracks can now play exclusively in towns.
+- Custom map markers can be placed now
 
 ### Changed
 

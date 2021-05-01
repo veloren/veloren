@@ -308,6 +308,7 @@ image_ids! {
         m2_ico: "voxygen.element.ui.generic.icons.m2",
         m_scroll_ico: "voxygen.element.ui.generic.icons.m_scroll",
         m_move_ico: "voxygen.element.ui.generic.icons.m_move",
+        m_click_ico: "voxygen.element.ui.generic.icons.m_click",
         skillbar_slot: "voxygen.element.ui.skillbar.slot",
 
         // Other Icons/Art
@@ -337,6 +338,7 @@ image_ids! {
         indicator_group: "voxygen.element.ui.map.buttons.group_indicator",
         indicator_group_up: "voxygen.element.ui.map.buttons.group_indicator_arrow_up",
         indicator_group_down: "voxygen.element.ui.map.buttons.group_indicator_arrow_down",
+        location_marker: "voxygen.element.ui.map.buttons.location_marker",
         map_mode_overlay: "voxygen.element.ui.map.buttons.map_modes",
 
         // MiniMap

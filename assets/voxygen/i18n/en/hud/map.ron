@@ -21,7 +21,10 @@
         "hud.map.difficulty_dungeon": "Dungeon\n\nDifficulty: {difficulty}",
         "hud.map.drag": "Drag",
         "hud.map.zoom": "Zoom",
+        "hud.map.mid_click": "Set Waypoint",
         "hud.map.recenter": "Recenter",
+        "hud.map.marked_location": "Marked Location",
+        "hud.map.marked_location_remove": "Click to remove",      
     },
 
 

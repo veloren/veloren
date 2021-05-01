@@ -104,6 +104,7 @@ use std::{
 use vek::*;
 
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+const TEXT_VELORITE: Color = Color::Rgba(0.0, 0.66, 0.66, 1.0);
 const TEXT_GRAY_COLOR: Color = Color::Rgba(0.5, 0.5, 0.5, 1.0);
 const TEXT_DULL_RED_COLOR: Color = Color::Rgba(0.56, 0.2, 0.2, 1.0);
 const TEXT_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
@@ -511,6 +512,8 @@ pub struct Show {
     auto_walk: bool,
     camera_clamp: bool,
     prompt_dialog: Option<PromptDialogSettings>,
+    location_marker: Option<Vec2<f32>>,
+    map_marker: bool,
 }
 impl Show {
     fn bag(&mut self, open: bool) {
@@ -876,6 +879,8 @@ impl Hud {
                 auto_walk: false,
                 camera_clamp: false,
                 prompt_dialog: None,
+                location_marker: None,
+                map_marker: false,
             },
             to_focus: None,
             //never_show: false,
@@ -2289,6 +2294,7 @@ impl Hud {
 
         // MiniMap
         for event in MiniMap::new(
+            &self.show,
             client,
             &self.imgs,
             &self.rot_imgs,
@@ -2296,6 +2302,7 @@ impl Hud {
             &self.fonts,
             camera.get_orientation(),
             &global_state,
+            self.show.location_marker,
         )
         .set(self.ids.minimap, ui_widgets)
         {
@@ -2725,6 +2732,7 @@ impl Hud {
         // Map
         if self.show.map {
             for event in Map::new(
+                &self.show,
                 client,
                 &self.imgs,
                 &self.rot_imgs,
@@ -2734,6 +2742,7 @@ impl Hud {
                 i18n,
                 &global_state,
                 tooltip_manager,
+                self.show.location_marker,
             )
             .set(self.ids.map, ui_widgets)
             {
@@ -2748,6 +2757,12 @@ impl Hud {
                     },
                     map::Event::RequestSiteInfo(id) => {
                         events.push(Event::RequestSiteInfo(id));
+                    },
+                    map::Event::SetLocationMarker(pos) => {
+                        self.show.location_marker = Some(pos);
+                    },
+                    map::Event::ToggleMarker => {
+                        self.show.map_marker = !self.show.map_marker;
                     },
                 }
             }
