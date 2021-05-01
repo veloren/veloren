@@ -73,13 +73,9 @@ pub enum SerializedTerrainChunk {
     TriPng(WireChonk<TriPngEncoding<false>, WidePacking<true>, TerrainChunkMeta, TerrainChunkSize>),
 }
 
-/// If someone has less than this number of bytes per second of bandwidth, spend
-/// more CPU generating a smaller encoding of terrain data.
-pub const TERRAIN_LOW_BANDWIDTH: f32 = 500_000.0;
-
 impl SerializedTerrainChunk {
-    pub fn via_heuristic(chunk: &TerrainChunk, low_bandwidth: bool) -> Self {
-        if low_bandwidth && (chunk.get_max_z() - chunk.get_min_z() <= 128) {
+    pub fn via_heuristic(chunk: &TerrainChunk, lossy_compression: bool) -> Self {
+        if lossy_compression && (chunk.get_max_z() - chunk.get_min_z() <= 128) {
             Self::quadpng(chunk)
         } else {
             Self::deflate(chunk)

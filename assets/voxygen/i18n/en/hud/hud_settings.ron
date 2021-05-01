@@ -77,6 +77,7 @@
         "hud.settings.fullscreen_mode.exclusive": "Exclusive",
         "hud.settings.fullscreen_mode.borderless": "Borderless",
         "hud.settings.particles": "Particles",
+        "hud.settings.lossy_terrain_compression": "Lossy terrain compression",
         "hud.settings.resolution": "Resolution",
         "hud.settings.bit_depth": "Bit Depth",
         "hud.settings.refresh_rate": "Refresh Rate",

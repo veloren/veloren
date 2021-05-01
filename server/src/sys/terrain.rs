@@ -14,7 +14,7 @@ use common::{
     LoadoutBuilder, SkillSetBuilder,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use common_net::msg::{SerializedTerrainChunk, ServerGeneral, TERRAIN_LOW_BANDWIDTH};
+use common_net::msg::{SerializedTerrainChunk, ServerGeneral};
 use common_state::TerrainChanges;
 use comp::Behavior;
 use specs::{Join, Read, ReadExpect, ReadStorage, Write, WriteExpect};
@@ -43,34 +43,35 @@ impl LazyTerrainMessage {
         &mut self,
         network_metrics: &NetworkRequestMetrics,
         client: &Client,
+        presence: &Presence,
         chunk_key: &vek::Vec2<i32>,
         generate_chunk: F,
     ) -> Result<(), A> {
-        if let Some(participant) = &client.participant {
-            let low_bandwidth = participant.bandwidth() < TERRAIN_LOW_BANDWIDTH;
-            let lazy_msg = if low_bandwidth {
-                &mut self.lazy_msg_lo
-            } else {
-                &mut self.lazy_msg_hi
-            };
-            if lazy_msg.is_none() {
-                *lazy_msg = Some(client.prepare(ServerGeneral::TerrainChunkUpdate {
-                    key: *chunk_key,
-                    chunk: Ok(match generate_chunk() {
-                        Ok(chunk) => SerializedTerrainChunk::via_heuristic(&chunk, low_bandwidth),
-                        Err(e) => return Err(e),
-                    }),
-                }));
-            }
-            lazy_msg.as_ref().map(|ref msg| {
-                let _ = client.send_prepared(&msg);
-                if low_bandwidth {
-                    network_metrics.chunks_served_lo_bandwidth.inc();
-                } else {
-                    network_metrics.chunks_served_hi_bandwidth.inc();
-                }
-            });
+        let lazy_msg = if presence.lossy_terrain_compression {
+            &mut self.lazy_msg_lo
+        } else {
+            &mut self.lazy_msg_hi
+        };
+        if lazy_msg.is_none() {
+            *lazy_msg = Some(client.prepare(ServerGeneral::TerrainChunkUpdate {
+                key: *chunk_key,
+                chunk: Ok(match generate_chunk() {
+                    Ok(chunk) => SerializedTerrainChunk::via_heuristic(
+                        &chunk,
+                        presence.lossy_terrain_compression,
+                    ),
+                    Err(e) => return Err(e),
+                }),
+            }));
         }
+        lazy_msg.as_ref().map(|ref msg| {
+            let _ = client.send_prepared(&msg);
+            if presence.lossy_terrain_compression {
+                network_metrics.chunks_served_lossy.inc();
+            } else {
+                network_metrics.chunks_served_lossless.inc();
+            }
+        });
         Ok(())
     }
 }
@@ -293,9 +294,13 @@ impl<'a> System<'a> for Sys {
 
                     if adjusted_dist_sqr <= presence.view_distance.pow(2) {
                         lazy_msg
-                            .prepare_and_send::<!, _>(&network_metrics, &client, &key, || {
-                                Ok(&*chunk)
-                            })
+                            .prepare_and_send::<!, _>(
+                                &network_metrics,
+                                &client,
+                                &presence,
+                                &key,
+                                || Ok(&*chunk),
+                            )
                             .into_ok();
                     }
                 });

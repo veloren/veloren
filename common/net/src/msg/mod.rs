@@ -15,7 +15,7 @@ pub use self::{
     server::{
         CharacterInfo, DisconnectReason, InviteAnswer, Notification, PlayerInfo, PlayerListUpdate,
         RegisterError, SerializedTerrainChunk, ServerGeneral, ServerInfo, ServerInit, ServerMsg,
-        ServerRegisterAnswer, TERRAIN_LOW_BANDWIDTH,
+        ServerRegisterAnswer,
     },
     world_msg::WorldMapMsg,
 };

@@ -800,7 +800,10 @@ impl Client {
                     | ClientGeneral::RefundSkill(_)
                     | ClientGeneral::RequestSiteInfo(_)
                     | ClientGeneral::UnlockSkillGroup(_)
-                    | ClientGeneral::RequestPlayerPhysics { .. } => &mut self.in_game_stream,
+                    | ClientGeneral::RequestPlayerPhysics { .. }
+                    | ClientGeneral::RequestLossyTerrainCompression { .. } => {
+                        &mut self.in_game_stream
+                    },
                     //Only in game, terrain
                     ClientGeneral::TerrainChunkRequest { .. } => &mut self.terrain_stream,
                     //Always possible
@@ -817,6 +820,12 @@ impl Client {
     pub fn request_player_physics(&mut self, server_authoritative: bool) {
         self.send_msg(ClientGeneral::RequestPlayerPhysics {
             server_authoritative,
+        })
+    }
+
+    pub fn request_lossy_terrain_compression(&mut self, lossy_terrain_compression: bool) {
+        self.send_msg(ClientGeneral::RequestLossyTerrainCompression {
+            lossy_terrain_compression,
         })
     }
 

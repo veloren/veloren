@@ -563,7 +563,7 @@ fn main() {
             .unwrap(),
     ));
 
-    const SKIP_DEFLATE_2_5: bool = true;
+    const SKIP_DEFLATE_2_5: bool = false;
     const SKIP_DYNA: bool = true;
     const SKIP_IMAGECHONK: bool = true;
     const SKIP_MIXED: bool = true;
@@ -701,6 +701,42 @@ fn main() {
                         ("deflate4chonk", (deflate4chonk_post - deflate4chonk_pre).subsec_nanos()),
                         ("deflate5chonk", (deflate5chonk_post - deflate5chonk_pre).subsec_nanos()),
                     ]);
+                    {
+                        let bucket = z_buckets
+                            .entry("deflate2")
+                            .or_default()
+                            .entry(chunk.get_max_z() - chunk.get_min_z())
+                            .or_insert((0, 0.0));
+                        bucket.0 += 1;
+                        bucket.1 += (deflate2chonk_post - deflate2chonk_pre).subsec_nanos() as f32;
+                    }
+                    {
+                        let bucket = z_buckets
+                            .entry("deflate3")
+                            .or_default()
+                            .entry(chunk.get_max_z() - chunk.get_min_z())
+                            .or_insert((0, 0.0));
+                        bucket.0 += 1;
+                        bucket.1 += (deflate3chonk_post - deflate3chonk_pre).subsec_nanos() as f32;
+                    }
+                    {
+                        let bucket = z_buckets
+                            .entry("deflate4")
+                            .or_default()
+                            .entry(chunk.get_max_z() - chunk.get_min_z())
+                            .or_insert((0, 0.0));
+                        bucket.0 += 1;
+                        bucket.1 += (deflate4chonk_post - deflate4chonk_pre).subsec_nanos() as f32;
+                    }
+                    {
+                        let bucket = z_buckets
+                            .entry("deflate5")
+                            .or_default()
+                            .entry(chunk.get_max_z() - chunk.get_min_z())
+                            .or_insert((0, 0.0));
+                        bucket.0 += 1;
+                        bucket.1 += (deflate5chonk_post - deflate5chonk_pre).subsec_nanos() as f32;
+                    }
                 }
 
                 if !SKIP_DYNA {
@@ -886,7 +922,7 @@ fn main() {
                     ("tripngaverage", (tripngaverage_post - tripngaverage_pre).subsec_nanos()),
                     ("tripngconst", (tripngconst_post - tripngconst_pre).subsec_nanos()),
                 ]);
-                {
+                if false {
                     let bucket = z_buckets
                         .entry("quadpngquarttall")
                         .or_default()
@@ -906,7 +942,7 @@ fn main() {
                     bucket.1 +=
                         (quadpngquartwide_post - quadpngquartwide_pre).subsec_nanos() as f32;
                 }
-                if true {
+                if false {
                     let bucket = z_buckets
                         .entry("tripngaverage")
                         .or_default()

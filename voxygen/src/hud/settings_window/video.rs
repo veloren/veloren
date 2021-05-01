@@ -82,6 +82,8 @@ widget_ids! {
         //
         particles_button,
         particles_label,
+        lossy_terrain_compression_button,
+        lossy_terrain_compression_label,
         //
         fullscreen_button,
         fullscreen_label,
@@ -872,6 +874,42 @@ impl<'a> Widget for Video<'a> {
 
         if self.global_state.settings.graphics.particles_enabled != particles_enabled {
             events.push(ToggleParticlesEnabled(particles_enabled));
+        }
+
+        // Lossy terrain compression
+        Text::new(
+            &self
+                .localized_strings
+                .get("hud.settings.lossy_terrain_compression"),
+        )
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .right_from(state.ids.particles_label, 64.0)
+        .color(TEXT_COLOR)
+        .set(state.ids.lossy_terrain_compression_label, ui);
+
+        let lossy_terrain_compression = ToggleButton::new(
+            self.global_state
+                .settings
+                .graphics
+                .lossy_terrain_compression,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .right_from(state.ids.lossy_terrain_compression_label, 10.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.lossy_terrain_compression_button, ui);
+
+        if self
+            .global_state
+            .settings
+            .graphics
+            .lossy_terrain_compression
+            != lossy_terrain_compression
+        {
+            events.push(ToggleLossyTerrainCompression(lossy_terrain_compression));
         }
 
         // Resolution

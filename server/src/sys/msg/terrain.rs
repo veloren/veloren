@@ -6,9 +6,7 @@ use common::{
     vol::RectVolSize,
 };
 use common_ecs::{Job, Origin, ParMode, Phase, System};
-use common_net::msg::{
-    ClientGeneral, SerializedTerrainChunk, ServerGeneral, TERRAIN_LOW_BANDWIDTH,
-};
+use common_net::msg::{ClientGeneral, SerializedTerrainChunk, ServerGeneral};
 use rayon::iter::ParallelIterator;
 use specs::{Entities, Join, ParJoin, Read, ReadExpect, ReadStorage};
 use tracing::{debug, trace};
@@ -79,21 +77,17 @@ impl<'a> System<'a> for Sys {
                                 match terrain.get_key_arc(key) {
                                     Some(chunk) => {
                                         network_metrics.chunks_served_from_memory.inc();
-                                        if let Some(participant) = &client.participant {
-                                            let low_bandwidth =
-                                                participant.bandwidth() < TERRAIN_LOW_BANDWIDTH;
-                                            client.send(ServerGeneral::TerrainChunkUpdate {
-                                                key,
-                                                chunk: Ok(SerializedTerrainChunk::via_heuristic(
-                                                    &chunk,
-                                                    low_bandwidth,
-                                                )),
-                                            })?;
-                                            if low_bandwidth {
-                                                network_metrics.chunks_served_lo_bandwidth.inc();
-                                            } else {
-                                                network_metrics.chunks_served_hi_bandwidth.inc();
-                                            }
+                                        client.send(ServerGeneral::TerrainChunkUpdate {
+                                            key,
+                                            chunk: Ok(SerializedTerrainChunk::via_heuristic(
+                                                &chunk,
+                                                presence.lossy_terrain_compression,
+                                            )),
+                                        })?;
+                                        if presence.lossy_terrain_compression {
+                                            network_metrics.chunks_served_lossy.inc();
+                                        } else {
+                                            network_metrics.chunks_served_lossless.inc();
                                         }
                                     },
                                     None => {

@@ -34,8 +34,8 @@ pub struct NetworkRequestMetrics {
     pub chunks_request_dropped: IntCounter,
     pub chunks_served_from_memory: IntCounter,
     pub chunks_generation_triggered: IntCounter,
-    pub chunks_served_lo_bandwidth: IntCounter,
-    pub chunks_served_hi_bandwidth: IntCounter,
+    pub chunks_served_lossy: IntCounter,
+    pub chunks_served_lossless: IntCounter,
 }
 
 pub struct ChunkGenMetrics {
@@ -189,29 +189,27 @@ impl NetworkRequestMetrics {
             "chunks_generation_triggered",
             "number of all chunks that were requested and needs to be generated",
         ))?;
-        let chunks_served_lo_bandwidth = IntCounter::with_opts(Opts::new(
-            "chunks_served_lo_bandwidth",
-            "number of chunks that were sent with compression setting by the low bandwidth \
-             heuristic",
+        let chunks_served_lossy = IntCounter::with_opts(Opts::new(
+            "chunks_served_lossy",
+            "number of chunks that were sent with lossy compression requested",
         ))?;
-        let chunks_served_hi_bandwidth = IntCounter::with_opts(Opts::new(
-            "chunks_served_hi_bandwidth",
-            "number of chunks that were sent with compression setting by the high bandwidth \
-             heuristic",
+        let chunks_served_lossless = IntCounter::with_opts(Opts::new(
+            "chunks_served_lossless",
+            "number of chunks that were sent with lossless compression requested",
         ))?;
 
         registry.register(Box::new(chunks_request_dropped.clone()))?;
         registry.register(Box::new(chunks_served_from_memory.clone()))?;
         registry.register(Box::new(chunks_generation_triggered.clone()))?;
-        registry.register(Box::new(chunks_served_lo_bandwidth.clone()))?;
-        registry.register(Box::new(chunks_served_hi_bandwidth.clone()))?;
+        registry.register(Box::new(chunks_served_lossy.clone()))?;
+        registry.register(Box::new(chunks_served_lossless.clone()))?;
 
         Ok(Self {
             chunks_request_dropped,
             chunks_served_from_memory,
             chunks_generation_triggered,
-            chunks_served_lo_bandwidth,
-            chunks_served_hi_bandwidth,
+            chunks_served_lossy,
+            chunks_served_lossless,
         })
     }
 }

@@ -253,6 +253,11 @@ impl Sys {
                     setting.client_optin = server_authoritative;
                 }
             },
+            ClientGeneral::RequestLossyTerrainCompression {
+                lossy_terrain_compression,
+            } => {
+                presence.lossy_terrain_compression = lossy_terrain_compression;
+            },
             _ => tracing::error!("not a client_in_game msg"),
         }
         Ok(())

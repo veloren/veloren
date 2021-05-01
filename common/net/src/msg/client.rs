@@ -84,6 +84,9 @@ pub enum ClientGeneral {
     RequestPlayerPhysics {
         server_authoritative: bool,
     },
+    RequestLossyTerrainCompression {
+        lossy_terrain_compression: bool,
+    },
 }
 
 impl ClientMsg {
@@ -121,7 +124,8 @@ impl ClientMsg {
                         | ClientGeneral::RefundSkill(_)
                         | ClientGeneral::RequestSiteInfo(_)
                         | ClientGeneral::UnlockSkillGroup(_)
-                        | ClientGeneral::RequestPlayerPhysics { .. } => {
+                        | ClientGeneral::RequestPlayerPhysics { .. }
+                        | ClientGeneral::RequestLossyTerrainCompression { .. } => {
                             c_type == ClientType::Game && presence.is_some()
                         },
                         //Always possible

@@ -35,11 +35,13 @@ impl<'a> System<'a> for Sys {
             for (presence, pos, client) in (&presences, &positions, &clients).join() {
                 if super::terrain::chunk_in_vd(pos.0, *chunk_key, &terrain, presence.view_distance)
                 {
-                    if let Err(()) =
-                        lazy_msg.prepare_and_send(&network_metrics, &client, chunk_key, || {
-                            terrain.get_key(*chunk_key).ok_or(())
-                        })
-                    {
+                    if let Err(()) = lazy_msg.prepare_and_send(
+                        &network_metrics,
+                        &client,
+                        &presence,
+                        chunk_key,
+                        || terrain.get_key(*chunk_key).ok_or(()),
+                    ) {
                         break 'chunk;
                     }
                 }
