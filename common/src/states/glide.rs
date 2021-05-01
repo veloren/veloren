@@ -11,6 +11,8 @@ use serde::{Deserialize, Serialize};
 use std::f32::consts::PI;
 use vek::*;
 
+const PITCH_SLOW_TIME: f32 = 0.5;
+
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     /// The aspect ratio is the ratio of the span squared to actual planform
@@ -19,6 +21,7 @@ pub struct Data {
     pub planform_area: f32,
     pub ori: Ori,
     last_vel: Vel,
+    timer: f32,
 }
 
 impl Data {
@@ -36,23 +39,27 @@ impl Data {
             planform_area,
             ori,
             last_vel: Vel::zero(),
+            timer: 0.0,
         }
     }
-}
 
-fn tgt_dir(data: &JoinData) -> Dir {
-    let look_ori = Ori::from(data.inputs.look_dir);
-    look_ori
-        .yawed_right(PI / 3.0 * look_ori.right().xy().dot(data.inputs.move_dir))
-        .pitched_up(PI * 0.04)
-        .pitched_down(
-            data.inputs
-                .look_dir
-                .xy()
-                .try_normalized()
-                .map_or(0.0, |ld| PI * 0.1 * ld.dot(data.inputs.move_dir)),
-        )
-        .look_dir()
+    fn tgt_dir(&self, data: &JoinData) -> Dir {
+        let look_ori = Ori::from(data.inputs.look_dir);
+        look_ori
+            .yawed_right(PI / 3.0 * look_ori.right().xy().dot(data.inputs.move_dir))
+            .pitched_up(PI * 0.04)
+            .pitched_down(
+                data.inputs
+                    .look_dir
+                    .xy()
+                    .try_normalized()
+                    .map_or(0.0, |ld| {
+                        PI * 0.1 * ld.dot(data.inputs.move_dir) * self.timer.min(PITCH_SLOW_TIME)
+                            / PITCH_SLOW_TIME
+                    }),
+            )
+            .look_dir()
+    }
 }
 
 impl CharacterBehavior for Data {
@@ -86,7 +93,7 @@ impl CharacterBehavior for Data {
 
                 Dir::from_unnormalized(air_flow.0)
                     .map(|flow_dir| {
-                        let tgt_dir = tgt_dir(data);
+                        let tgt_dir = self.tgt_dir(data);
                         let tgt_dir_ori = Ori::from(tgt_dir);
                         let tgt_dir_up = tgt_dir_ori.up();
                         // The desired up vector of our glider.
@@ -110,7 +117,9 @@ impl CharacterBehavior for Data {
                             })
                             .unwrap_or_else(Dir::up);
                         let global_roll = tgt_dir_up.rotation_between(tgt_up);
-                        let global_pitch = angle_of_attack(&tgt_dir_ori, &flow_dir);
+                        let global_pitch = angle_of_attack(&tgt_dir_ori, &flow_dir)
+                            * self.timer.min(PITCH_SLOW_TIME)
+                            / PITCH_SLOW_TIME;
 
                         self.ori.slerped_towards(
                             tgt_dir_ori.prerotated(global_roll).pitched_up(global_pitch),
@@ -145,7 +154,7 @@ impl CharacterBehavior for Data {
                     let accel_factor = accel.magnitude_squared().min(1.0) / 1.0;
 
                     Quaternion::rotation_3d(
-                        PI / 2.0 * accel_factor,
+                        PI / 2.0 * accel_factor * if data.physics.on_ground { -1.0 } else { 1.0 },
                         ori.up()
                             .cross(accel)
                             .try_normalized()
@@ -168,6 +177,7 @@ impl CharacterBehavior for Data {
             update.character = CharacterState::Glide(Self {
                 ori,
                 last_vel: *data.vel,
+                timer: self.timer + data.dt.0,
                 ..*self
             });
         } else {
