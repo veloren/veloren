@@ -1,8 +1,8 @@
 ChargedMelee(
     energy_cost: 0,
     energy_drain: 0,
-    initial_damage: 160,
-    scaled_damage: 40,
+    initial_damage: 40,
+    scaled_damage: 200,
     initial_poise_damage: 30,
     scaled_poise_damage: 80,
     initial_knockback: 10.0,

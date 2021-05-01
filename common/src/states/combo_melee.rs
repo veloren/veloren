@@ -136,7 +136,7 @@ impl CharacterBehavior for Data {
         match self.stage_section {
             StageSection::Buildup => {
                 if self.timer < self.static_data.stage_data[stage_index].base_buildup_duration {
-                    handle_orientation(data, &mut update, 0.35*self.static_data.ori_modifier);
+                    handle_orientation(data, &mut update, 0.4*self.static_data.ori_modifier);
 
                     // Build up
                     update.character = CharacterState::ComboMelee(Data {
@@ -231,7 +231,7 @@ impl CharacterBehavior for Data {
             },
             StageSection::Swing => {
                 if self.timer < self.static_data.stage_data[stage_index].base_swing_duration {
-                    handle_orientation(data, &mut update, 0.35*self.static_data.ori_modifier);
+                    handle_orientation(data, &mut update, 0.4*self.static_data.ori_modifier);
 
                     // Forward movement
                     handle_forced_movement(
@@ -264,7 +264,7 @@ impl CharacterBehavior for Data {
             },
             StageSection::Recover => {
                 if self.timer < self.static_data.stage_data[stage_index].base_recover_duration {
-                    handle_orientation(data, &mut update, 0.60*self.static_data.ori_modifier);
+                    handle_orientation(data, &mut update, 0.8*self.static_data.ori_modifier);
                     // Recovers
                     update.character = CharacterState::ComboMelee(Data {
                         static_data: self.static_data.clone(),

@@ -129,7 +129,7 @@ impl Body {
     /// The turn rate in 180°/s (or (rotations per second)/2)
     pub fn base_ori_rate(&self) -> f32 {
         match self {
-            Body::Humanoid(_) => 4.0,
+            Body::Humanoid(_) => 800.0,
             Body::QuadrupedSmall(_) => 3.0,
             Body::QuadrupedMedium(_) => 1.6,
             Body::BirdMedium(_) => 6.0,
