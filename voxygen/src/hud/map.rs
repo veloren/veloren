@@ -1,7 +1,7 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    QUALITY_COMMON, QUALITY_DEBUG, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW, QUALITY_MODERATE,
-    TEXT_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+    Show, QUALITY_COMMON, QUALITY_DEBUG, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW, QUALITY_MODERATE,
+    TEXT_COLOR, TEXT_GRAY_COLOR, TEXT_VELORITE, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
     i18n::Localization,
@@ -40,6 +40,7 @@ widget_ids! {
         site_difs[],
         member_indicators[],
         member_height_indicators[],
+        location_marker,
         map_settings_align,
         show_towns_img,
         show_towns_box,
@@ -64,6 +65,8 @@ widget_ids! {
         drag_ico,
         zoom_txt,
         zoom_ico,
+        waypoint_ico,
+        waypoint_txt,
         map_mode_btn,
         map_mode_overlay,
     }
@@ -73,6 +76,7 @@ const SHOW_ECONOMY: bool = false; // turn this display off (for 0.9) until we ha
 
 #[derive(WidgetCommon)]
 pub struct Map<'a> {
+    show: &'a Show,
     client: &'a Client,
     world_map: &'a (Vec<img_ids::Rotations>, Vec2<u32>),
     imgs: &'a Imgs,
@@ -84,10 +88,12 @@ pub struct Map<'a> {
     global_state: &'a GlobalState,
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
+    location_marker: Option<Vec2<f32>>,
 }
 impl<'a> Map<'a> {
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new(
+        show: &'a Show,
         client: &'a Client,
         imgs: &'a Imgs,
         rot_imgs: &'a ImgsRot,
@@ -97,8 +103,10 @@ impl<'a> Map<'a> {
         localized_strings: &'a Localization,
         global_state: &'a GlobalState,
         tooltip_manager: &'a mut TooltipManager,
+        location_marker: Option<Vec2<f32>>,
     ) -> Self {
         Self {
+            show,
             imgs,
             rot_imgs,
             world_map,
@@ -109,6 +117,7 @@ impl<'a> Map<'a> {
             localized_strings,
             global_state,
             tooltip_manager,
+            location_marker,
         }
     }
 }
@@ -121,6 +130,8 @@ pub enum Event {
     SettingsChange(InterfaceChange),
     Close,
     RequestSiteInfo(SiteId),
+    SetLocationMarker(Vec2<f32>),
+    ToggleMarker,
 }
 
 fn get_site_economy(site_rich: &SiteInfoRich) -> String {
@@ -273,12 +284,6 @@ impl<'a> Widget for Map<'a> {
             });
         }
 
-        Image::new(self.imgs.map_frame_art)
-            .mid_top_with_margin_on(state.ids.map_align, 5.0)
-            .w_h(765.0, 765.0)
-            .parent(state.ids.bg)
-            .set(state.ids.map_layers[0], ui);
-
         // Map Size
         let worldsize = self.world_map.1;
 
@@ -298,6 +303,7 @@ impl<'a> Widget for Map<'a> {
 
         let w_src = max_zoom / zoom;
         let h_src = max_zoom / zoom;
+
         // Handle dragging
         let drag = self.global_state.settings.interface.map_drag;
         let dragged: Vec2<f64> = ui
@@ -318,6 +324,20 @@ impl<'a> Widget for Map<'a> {
             ],
             [w_src, h_src],
         );
+        // Handle Location Marking
+        if let Some(click) = ui
+            .widget_input(state.ids.map_layers[0])
+            .clicks()
+            .middle()
+            .next()
+        {
+            events.push(Event::SetLocationMarker(
+                (Vec2::<f64>::from(click.xy) / map_size / zoom * max_zoom - drag)
+                    .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as f32 * sz as f32)
+                    + player_pos,
+            ));
+            events.push(Event::ToggleMarker);
+        }
         // X-Button
         if Button::image(self.imgs.close_button)
             .w_h(24.0, 25.0)
@@ -333,14 +353,14 @@ impl<'a> Widget for Map<'a> {
         // Map Layer Images
         for (index, layer) in self.world_map.0.iter().enumerate() {
             if index == 0 {
-                Image::new(layer.none)
+                Button::image(layer.none)
                     .mid_top_with_margin_on(state.ids.map_align, 10.0)
                     .w_h(map_size.x, map_size.y)
                     .parent(state.ids.bg)
                     .source_rectangle(rect_src)
                     .set(state.ids.map_layers[index], ui);
             } else if show_topo_map {
-                Image::new(layer.none)
+                Button::image(layer.none)
                     .mid_top_with_margin_on(state.ids.map_align, 10.0)
                     .w_h(map_size.x, map_size.y)
                     .parent(state.ids.bg)
@@ -587,10 +607,10 @@ impl<'a> Widget for Map<'a> {
                     .resize(self.client.sites().len(), &mut ui.widget_id_generator())
             });
         }
-        for (i, site_rich) in self.client.sites().values().enumerate() {
-            let site = &site_rich.site;
+
+        let wpos_to_rpos = |wpos: Vec2<f32>| {
             // Site pos in world coordinates relative to the player
-            let rwpos = site.wpos.map(|e| e as f32) - player_pos;
+            let rwpos = wpos - player_pos;
             // Convert to chunk coordinates
             let rcpos = rwpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32)
                 // Add map dragging
@@ -600,14 +620,27 @@ impl<'a> Widget for Map<'a> {
             // Convert to relative pixel coordinates from the center of the map
             // Accounting for zooming
             let rpos = rfpos.map2(map_size, |e, sz| e * sz as f32 * zoom as f32);
-            let rside = zoom * 6.0;
 
             if rpos
                 .map2(map_size, |e, sz| e.abs() > sz as f32 / 2.0)
                 .reduce_or()
             {
-                continue;
+                None
+            } else {
+                Some(rpos)
             }
+        };
+
+        for (i, site_rich) in self.client.sites().values().enumerate() {
+            let site = &site_rich.site;
+
+            let rpos = match wpos_to_rpos(site.wpos.map(|e| e as f32)) {
+                Some(rpos) => rpos,
+                None => continue,
+            };
+
+            let rside = zoom * 6.0;
+
             let title = site.name.as_deref().unwrap_or_else(|| match &site.kind {
                 SiteKind::Town => i18n.get("hud.map.town"),
                 SiteKind::Dungeon { .. } => i18n.get("hud.map.dungeon"),
@@ -783,24 +816,11 @@ impl<'a> Widget for Map<'a> {
             };
 
             if let Some(member_pos) = member_pos {
-                // Site pos in world coordinates relative to the player
-                let rwpos = member_pos.0.xy().map(|e| e as f32) - player_pos;
-                // Convert to chunk coordinates
-                let rcpos = rwpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32)
-                // Add map dragging
-                + drag.map(|e| e as f32);
-                // Convert to fractional coordinates relative to the worldsize
-                let rfpos = rcpos / max_zoom as f32;
-                // Convert to relative pixel coordinates from the center of the map
-                // Accounting for zooming
-                let rpos = rfpos.map2(map_size, |e, sz| e * sz as f32 * zoom as f32);
+                let rpos = match wpos_to_rpos(member_pos.0.xy().map(|e| e as f32)) {
+                    Some(rpos) => rpos,
+                    None => continue,
+                };
 
-                if rpos
-                    .map2(map_size, |e, sz| e.abs() > sz as f32 / 2.0)
-                    .reduce_or()
-                {
-                    continue;
-                }
                 let factor = 1.2;
                 let z_comparison = (member_pos.0.z - player_pos.z) as i32;
 
@@ -820,6 +840,43 @@ impl<'a> Widget for Map<'a> {
                 .set(state.ids.member_indicators[i], ui);
             }
         }
+
+        // Location marker
+        if self.show.map_marker {
+            if let Some((lm, rpos)) = self
+                .location_marker
+                .and_then(|lm| Some(lm).zip(wpos_to_rpos(lm)))
+            {
+                let factor = 1.4;
+
+                if Button::image(self.imgs.location_marker)
+                    .x_y_position_relative_to(
+                        state.ids.map_layers[0],
+                        position::Relative::Scalar(rpos.x as f64),
+                        position::Relative::Scalar(rpos.y as f64 + 10.0 * factor),
+                    )
+                    .w_h(20.0 * factor, 20.0 * factor)
+                    .floating(true)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        i18n.get("hud.map.marked_location"),
+                        &format!(
+                            "X: {}, Y: {}\n\n{}",
+                            lm.x as i32,
+                            lm.y as i32,
+                            i18n.get("hud.map.marked_location_remove")
+                        ),
+                        &site_tooltip,
+                        TEXT_VELORITE,
+                    )
+                    .set(state.ids.location_marker, ui)
+                    .was_clicked()
+                {
+                    events.push(Event::ToggleMarker);
+                }
+            }
+        }
+
         // Cursor pos relative to playerpos and widget size
         // Cursor stops moving on an axis as soon as it's position exceeds the maximum
         // // size of the widget
@@ -918,6 +975,18 @@ impl<'a> Widget for Map<'a> {
             .graphics_for(state.ids.map_layers[0])
             .color(TEXT_COLOR)
             .set(state.ids.zoom_txt, ui);
+        Image::new(self.imgs.m_click_ico)
+            .right_from(state.ids.zoom_txt, 5.0)
+            .w_h(icon_size.x, icon_size.y)
+            .color(Some(UI_HIGHLIGHT_0))
+            .set(state.ids.waypoint_ico, ui);
+        Text::new(i18n.get("hud.map.mid_click"))
+            .right_from(state.ids.waypoint_ico, 5.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.map_layers[0])
+            .color(TEXT_COLOR)
+            .set(state.ids.waypoint_txt, ui);
 
         // Show topographic map
         if Button::image(self.imgs.button)

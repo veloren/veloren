@@ -1,6 +1,6 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    QUALITY_COMMON, QUALITY_DEBUG, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW, QUALITY_MODERATE,
+    Show, QUALITY_COMMON, QUALITY_DEBUG, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW, QUALITY_MODERATE,
     TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
@@ -39,13 +39,14 @@ widget_ids! {
         mmap_site_icons_bgs[],
         mmap_site_icons[],
         member_indicators[],
+        location_marker,
     }
 }
 
 #[derive(WidgetCommon)]
 pub struct MiniMap<'a> {
+    show: &'a Show,
     client: &'a Client,
-
     imgs: &'a Imgs,
     rot_imgs: &'a ImgsRot,
     world_map: &'a (Vec<img_ids::Rotations>, Vec2<u32>),
@@ -54,10 +55,12 @@ pub struct MiniMap<'a> {
     common: widget::CommonBuilder,
     ori: Vec3<f32>,
     global_state: &'a GlobalState,
+    location_marker: Option<Vec2<f32>>,
 }
 
 impl<'a> MiniMap<'a> {
     pub fn new(
+        show: &'a Show,
         client: &'a Client,
         imgs: &'a Imgs,
         rot_imgs: &'a ImgsRot,
@@ -65,8 +68,10 @@ impl<'a> MiniMap<'a> {
         fonts: &'a Fonts,
         ori: Vec3<f32>,
         global_state: &'a GlobalState,
+        location_marker: Option<Vec2<f32>>,
     ) -> Self {
         Self {
+            show,
             client,
             imgs,
             rot_imgs,
@@ -75,6 +80,7 @@ impl<'a> MiniMap<'a> {
             common: widget::CommonBuilder::default(),
             ori,
             global_state,
+            location_marker,
         }
     }
 }
@@ -289,10 +295,10 @@ impl<'a> Widget for MiniMap<'a> {
                         .resize(self.client.sites().len(), &mut ui.widget_id_generator())
                 });
             }
-            for (i, site_rich) in self.client.sites().values().enumerate() {
-                let site = &site_rich.site;
+
+            let wpos_to_rpos = |wpos: Vec2<f32>, limit: bool| {
                 // Site pos in world coordinates relative to the player
-                let rwpos = site.wpos.map(|e| e as f32) - player_pos;
+                let rwpos = wpos - player_pos;
                 // Convert to chunk coordinates
                 let rcpos = rwpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32);
                 // Convert to fractional coordinates relative to the worldsize
@@ -308,8 +314,22 @@ impl<'a> Widget for MiniMap<'a> {
                     .map2(map_size, |e, sz| e.abs() > sz as f32 / 2.0)
                     .reduce_or()
                 {
-                    continue;
+                    limit.then(|| {
+                        let clamped = rpos / rpos.map(|e| e.abs()).reduce_partial_max();
+                        clamped * map_size.map(|e| e as f32) / 2.0
+                    })
+                } else {
+                    Some(rpos)
                 }
+            };
+
+            for (i, site_rich) in self.client.sites().values().enumerate() {
+                let site = &site_rich.site;
+
+                let rpos = match wpos_to_rpos(site.wpos.map(|e| e as f32), false) {
+                    Some(rpos) => rpos,
+                    None => continue,
+                };
 
                 Image::new(match &site.kind {
                     SiteKind::Town => self.imgs.mmap_site_town_bg,
@@ -382,25 +402,11 @@ impl<'a> Widget for MiniMap<'a> {
                 let member_pos = entity.and_then(|entity| member_pos.get(entity));
 
                 if let Some(member_pos) = member_pos {
-                    // Site pos in world coordinates relative to the player
-                    let rwpos = member_pos.0.xy().map(|e| e as f32) - player_pos;
-                    // Convert to chunk coordinates
-                    let rcpos = rwpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32);
-                    // Convert to fractional coordinates relative to the worldsize
-                    let rfpos = rcpos / max_zoom as f32;
-                    // Convert to unrotated pixel coordinates from the player location on the map
-                    // (the center)
-                    // Accounting for zooming
-                    let rpixpos = rfpos.map2(map_size, |e, sz| e * sz as f32 * zoom as f32);
-                    let rpos = Vec2::unit_x().rotated_z(orientation.x) * rpixpos.x
-                        + Vec2::unit_y().rotated_z(orientation.x) * rpixpos.y;
+                    let rpos = match wpos_to_rpos(member_pos.0.xy().map(|e| e as f32), false) {
+                        Some(rpos) => rpos,
+                        None => continue,
+                    };
 
-                    if rpos
-                        .map2(map_size, |e, sz| e.abs() > sz as f32 / 2.0)
-                        .reduce_or()
-                    {
-                        continue;
-                    }
                     let factor = 1.2;
                     let z_comparison = (member_pos.0.z - player_pos.z) as i32;
                     Button::image(match z_comparison {
@@ -419,6 +425,23 @@ impl<'a> Widget for MiniMap<'a> {
                 }
             }
 
+            // Location marker
+            if self.show.map_marker {
+                if let Some(rpos) = self.location_marker.and_then(|lm| wpos_to_rpos(lm, true)) {
+                    let factor = 1.2;
+
+                    Button::image(self.imgs.location_marker)
+                    .x_y_position_relative_to(
+                        state.ids.map_layers[0],
+                        position::Relative::Scalar(rpos.x as f64),
+                        position::Relative::Scalar(rpos.y as f64 + 8.0 * factor),
+                    )
+                    .w_h(16.0 * factor, 16.0 * factor)
+                    //.image_color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                    .floating(true)
+                    .set(state.ids.location_marker, ui);
+                }
+            }
             // Indicator
             let ind_scale = 0.4;
             let ind_rotation = if is_facing_north {
