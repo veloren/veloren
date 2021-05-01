@@ -603,8 +603,7 @@ impl<'a> AgentData<'a> {
                         event_emitter
                             .emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
                         agent.action_state.timer = 0.01;
-                    } else if agent.action_state.timer < FLEE_DURATION
-                        || dist_sqrd < MAX_FLEE_DIST
+                    } else if agent.action_state.timer < FLEE_DURATION || dist_sqrd < MAX_FLEE_DIST
                     {
                         self.flee(
                             agent,
@@ -1896,8 +1895,7 @@ impl<'a> AgentData<'a> {
                                     .actions
                                     .push(ControlAction::CancelInput(InputKind::Secondary));
                                 agent.action_state.timer = 0.0;
-                            } else if agent.action_state.timer > 2.0
-                                && self.energy.current() > 300
+                            } else if agent.action_state.timer > 2.0 && self.energy.current() > 300
                             {
                                 controller
                                     .actions

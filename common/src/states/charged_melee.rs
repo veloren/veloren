@@ -206,13 +206,13 @@ impl CharacterBehavior for Data {
 
                     if let Some(FrontendSpecifier::GroundCleave) = self.static_data.specifier {
                         // Send local event used for frontend shenanigans
-                        update
-                            .local_events
-                            .push_front(LocalEvent::CreateOutcome(Outcome::GroundSlam {
+                        update.local_events.push_front(LocalEvent::CreateOutcome(
+                            Outcome::GroundSlam {
                                 pos: data.pos.0
                                     + *data.ori.look_dir()
                                         * (data.body.radius() + self.static_data.range),
-                            }));
+                            },
+                        ));
                     }
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings

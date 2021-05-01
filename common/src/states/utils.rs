@@ -71,7 +71,7 @@ impl Body {
                 biped_large::Species::Occultsaurok => 100.0,
                 biped_large::Species::Mightysaurok => 100.0,
                 biped_large::Species::Mindflayer => 90.0,
-                biped_large::Species::Minotaur => 70.0,
+                biped_large::Species::Minotaur => 60.0,
                 _ => 80.0,
             },
             Body::BirdMedium(_) => 80.0,
