@@ -1,6 +1,6 @@
 use crate::{
     client::Client, persistence::PersistedComponents, presence::Presence, settings::Settings,
-    sys::sentinel::DeletedEntities, SpawnPoint,
+    sys::sentinel::DeletedEntities, wiring, SpawnPoint,
 };
 use common::{
     character::CharacterId,
@@ -76,6 +76,12 @@ pub trait StateExt {
     ) -> EcsEntityBuilder;
     /// Creates a safezone
     fn create_safezone(&mut self, range: Option<f32>, pos: comp::Pos) -> EcsEntityBuilder;
+    fn create_wiring(
+        &mut self,
+        pos: comp::Pos,
+        object: comp::object::Body,
+        wiring_element: wiring::WiringElement,
+    ) -> EcsEntityBuilder;
     // NOTE: currently only used for testing
     /// Queues chunk generation in the view distance of the persister, this
     /// entity must be built before those chunks are received (the builder
@@ -345,6 +351,34 @@ impl StateExt for State {
                 None,
                 AuraTarget::All,
             )]))
+    }
+
+    fn create_wiring(
+        &mut self,
+        pos: comp::Pos,
+        object: comp::object::Body,
+        wiring_element: wiring::WiringElement,
+    ) -> EcsEntityBuilder {
+        self.ecs_mut()
+            .create_entity_synced()
+            .with(pos)
+            .with(comp::Vel(Vec3::zero()))
+            .with(comp::Ori::default())
+            .with(comp::Collider::Box {
+                radius: comp::Body::Object(object).radius(),
+                z_min: 0.0,
+                z_max: comp::Body::Object(object).height()
+            })
+            .with(comp::Body::Object(object))
+            .with(comp::Mass(10.0))
+            // .with(comp::Sticky)
+            .with(wiring_element)
+            .with(comp::LightEmitter {
+                col: Rgb::new(0.0, 0.0, 0.0),
+                strength: 2.0,
+                flicker: 1.0,
+                animated: true,
+            })
     }
 
     // NOTE: currently only used for testing

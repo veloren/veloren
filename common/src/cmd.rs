@@ -94,6 +94,7 @@ pub enum ChatCommand {
     Unban,
     Version,
     Waypoint,
+    Wiring,
     Whitelist,
     World,
 }
@@ -157,6 +158,7 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Unban,
     ChatCommand::Version,
     ChatCommand::Waypoint,
+    ChatCommand::Wiring,
     ChatCommand::Whitelist,
     ChatCommand::World,
 ];
@@ -529,6 +531,7 @@ impl ChatCommand {
             ChatCommand::Waypoint => {
                 cmd(vec![], "Set your waypoint to your current position", Admin)
             },
+            ChatCommand::Wiring => cmd(vec![], "Create wiring element", Admin),
             ChatCommand::Whitelist => cmd(
                 vec![Any("add/remove", Required), Any("username", Required)],
                 "Adds/removes username to whitelist",
@@ -602,6 +605,7 @@ impl ChatCommand {
             ChatCommand::Unban => "unban",
             ChatCommand::Version => "version",
             ChatCommand::Waypoint => "waypoint",
+            ChatCommand::Wiring => "wiring",
             ChatCommand::Whitelist => "whitelist",
             ChatCommand::World => "world",
         }

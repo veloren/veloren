@@ -39,11 +39,13 @@ use core::{convert::TryFrom, ops::Not, time::Duration};
 use hashbrown::HashSet;
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
+use wiring::{Circuit, Wire, WiringAction, WiringActionEffect, WiringElement};
 
+use hashbrown::HashMap;
 use vek::*;
 use world::util::Sampler;
 
-use crate::{client::Client, login_provider::LoginProvider};
+use crate::{client::Client, login_provider::LoginProvider, wiring};
 use scan_fmt::{scan_fmt, scan_fmt_some};
 use tracing::{error, info, warn};
 
@@ -149,6 +151,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Unban => handle_unban,
         ChatCommand::Version => handle_version,
         ChatCommand::Waypoint => handle_waypoint,
+        ChatCommand::Wiring => handle_spawn_wiring,
         ChatCommand::Whitelist => handle_whitelist,
         ChatCommand::World => handle_world,
     }
@@ -1698,6 +1701,102 @@ fn handle_waypoint(
     server.notify_client(
         target,
         ServerGeneral::Notification(Notification::WaypointSaved),
+    );
+    Ok(())
+}
+
+fn handle_spawn_wiring(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    _args: String,
+    _action: &ChatCommand,
+) -> CmdResult<()> {
+    // Obviously it is a WIP - use it for debug
+
+    let mut pos = position(server, target, "target")?;
+    pos.0.z += 1.0;
+    pos.0.x += 3.0;
+
+    let mut outputs1 = HashMap::new();
+    outputs1.insert(String::from("color"), wiring::OutputFormula::OnCollide {
+        value: 1.0,
+    });
+
+    let builder1 = server
+        .state
+        .create_wiring(pos, comp::object::Body::Coins, WiringElement {
+            actions: vec![WiringAction {
+                formula: wiring::OutputFormula::Constant { value: 1.0 },
+                threshold: 1.0,
+                effects: vec![WiringActionEffect::SetLight {
+                    r: wiring::OutputFormula::Input {
+                        name: String::from("color"),
+                    },
+                    g: wiring::OutputFormula::Input {
+                        name: String::from("color"),
+                    },
+                    b: wiring::OutputFormula::Input {
+                        name: String::from("color"),
+                    },
+                }],
+            }],
+            inputs: HashMap::new(),
+            outputs: outputs1,
+        });
+    let ent1 = builder1.build();
+
+    pos.0.x += 3.0;
+    let builder2 = server
+        .state
+        .create_wiring(pos, comp::object::Body::Coins, WiringElement {
+            actions: vec![WiringAction {
+                formula: wiring::OutputFormula::Input {
+                    name: String::from("color"),
+                },
+                threshold: 1.0,
+                effects: vec![
+                    // Another demo:
+                    // WiringActionEffect::SetLight {
+                    //     r: wiring::OutputFormula::Input { name: String::from("color") },
+                    //     g: wiring::OutputFormula::Input { name: String::from("color") },
+                    //     b: wiring::OutputFormula::Input { name: String::from("color") }
+                    // },
+                    WiringActionEffect::SpawnProjectile {
+                        constr: comp::ProjectileConstructor::Arrow {
+                            damage: 1.0,
+                            energy_regen: 0.0,
+                            knockback: 0.0,
+                        },
+                    },
+                ],
+            }],
+            inputs: HashMap::new(),
+            outputs: HashMap::new(),
+        });
+    let ent2 = builder2.build();
+
+    pos.0.x += 3.0;
+    let builder3 = server
+        .state
+        .create_wiring(pos, comp::object::Body::TrainingDummy, WiringElement {
+            actions: vec![],
+            inputs: HashMap::new(),
+            outputs: HashMap::new(),
+        })
+        .with(Circuit {
+            wires: vec![Wire {
+                input_entity: ent1,
+                input_field: String::from("color"),
+                output_entity: ent2,
+                output_field: String::from("color"),
+            }],
+        });
+    builder3.build();
+
+    server.notify_client(
+        client,
+        ServerGeneral::server_msg(ChatType::CommandInfo, "Wire"),
     );
     Ok(())
 }
