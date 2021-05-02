@@ -1,10 +1,12 @@
 ({
     "debug": [
-        ("common.items.debug.admin_back",1),
         ("common.items.debug.admin_black_hole",1),
         ("common.items.debug.admin_stick",1),
         ("common.items.debug.admin_sword",1),
+        ("common.items.debug.velorite_bow_debug", 1),
         ("common.items.debug.admin",1),
+    ],
+    "admin_cosmetics": [
         ("common.items.debug.cultist_belt",1),
         ("common.items.debug.cultist_boots",1),
         ("common.items.debug.cultist_chest_blue",1),
@@ -12,6 +14,7 @@
         ("common.items.debug.cultist_legs_blue",1),
         ("common.items.debug.cultist_shoulder_blue",1),
         ("common.items.debug.dungeon_purple",1),
+        ("common.items.debug.admin_back",1),
     ],
     "cultist": [
         ("common.items.armor.cultist.chest",1),
@@ -20,6 +23,10 @@
         ("common.items.armor.cultist.foot",1),
         ("common.items.armor.cultist.shoulder",1),
         ("common.items.armor.cultist.belt",1),
+        ("common.items.armor.misc.neck.plain_1",1),
+        ("common.items.armor.misc.ring.skull",1),
+        ("common.items.armor.misc.ring.skull",1),
+        ("common.items.armor.misc.back.dungeon_purple",1),
         ("common.items.weapons.hammer.cultist_purp_2h-0",1),
         ("common.items.weapons.staff.cultist_staff",1),
         ("common.items.weapons.sword.cultist",1),
@@ -27,9 +34,10 @@
         ("common.items.weapons.axe.malachite_axe-0",1),
         ("common.items.weapons.sceptre.sceptre_velorite_0",1),
     ],
-    "potions": [
+    "consumables": [
         ("common.items.consumable.potion_minor", 100),
         ("common.items.consumable.potion_med", 100),
         ("common.items.consumable.potion_big", 100),
+        ("common.items.food.apple_mushroom_curry", 100),
     ]
 })
