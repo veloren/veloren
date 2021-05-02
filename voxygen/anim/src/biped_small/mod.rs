@@ -47,7 +47,7 @@ impl Skeleton for BipedSmallSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> Vec3<f32> {
+    ) -> [Vec3<f32>; 2] {
         let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
         let pants_mat = chest_mat * Mat4::<f32>::from(self.pants);
         let control_mat = chest_mat * Mat4::<f32>::from(self.control);
@@ -64,7 +64,7 @@ impl Skeleton for BipedSmallSkeleton {
             make_bone(base_mat * Mat4::<f32>::from(self.foot_l)),
             make_bone(base_mat * Mat4::<f32>::from(self.foot_r)),
         ];
-        Vec3::default()
+        [Vec3::default(), Vec3::default()]
     }
 }
 

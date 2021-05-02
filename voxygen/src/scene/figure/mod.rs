@@ -30,11 +30,12 @@ use common::{
         inventory::slot::EquipSlot,
         item::{Hands, ItemKind, ToolKind},
         Body, CharacterState, Controller, Health, Inventory, Item, Last, LightAnimation,
-        LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
+        LightEmitter, Mounting, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
     },
     resources::DeltaTime,
     states::utils::StageSection,
     terrain::TerrainChunk,
+    uid::UidAllocator,
     util::Dir,
     vol::RectRasterableVol,
 };
@@ -48,7 +49,7 @@ use core::{
 };
 use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
-use specs::{Entity as EcsEntity, Join, LazyUpdate, WorldExt};
+use specs::{saveload::MarkerAllocator, Entity as EcsEntity, Join, LazyUpdate, WorldExt};
 use treeculler::{BVol, BoundingSphere};
 use vek::*;
 
@@ -448,7 +449,7 @@ impl FigureMgr {
                     (vek::Rgb::zero(), 0.0, 0.0, true)
                 };
             if let Some(state) = body.and_then(|body| self.states.get_mut(body, &entity)) {
-                light_anim.offset = vek::Vec3::from(state.lantern_offset);
+                light_anim.offset = vek::Vec3::from(state.lantern_offset[0]);
             }
             if !light_anim.strength.is_normal() {
                 light_anim.strength = 0.0;
@@ -585,6 +586,7 @@ impl FigureMgr {
                 inventory,
                 item,
                 light_emitter,
+                mountings,
             ),
         ) in (
             &ecs.entities(),
@@ -601,6 +603,7 @@ impl FigureMgr {
             ecs.read_storage::<Inventory>().maybe(),
             ecs.read_storage::<Item>().maybe(),
             ecs.read_storage::<LightEmitter>().maybe(),
+            ecs.read_storage::<Mounting>().maybe(),
         )
             .join()
             .enumerate()
@@ -685,7 +688,7 @@ impl FigureMgr {
             // shadow correctly until their next update.  For now, we treat this
             // as an acceptable tradeoff.
             let radius = scale.unwrap_or(&Scale(1.0)).0 * 2.0;
-            let (in_frustum, lpindex) = if let Some(mut meta) = state {
+            let (in_frustum, lpindex) = if let Some(ref mut meta) = state {
                 let (in_frustum, lpindex) = BoundingSphere::new(pos.0.into_array(), radius)
                     .coherent_test_against_frustum(frustum, meta.lpindex);
                 let in_frustum = in_frustum || matches!(body, Body::Ship(_));
@@ -745,6 +748,25 @@ impl FigureMgr {
                 tool_info(EquipSlot::Offhand);
 
             let hands = (active_tool_hand, second_tool_hand);
+
+            //let mut state_mountee = self.states.get_mut(entity.get(body), &entity);
+
+            let mut mountee_offsets = vek::Vec3::new(0.0, 0.0, 0.0);
+            if let Some(Mounting(entity)) = mountings {
+                let mountee_entity = ecs
+                    .read_resource::<UidAllocator>()
+                    .retrieve_entity_internal((*entity).into());
+                dbg!(mountee_entity);
+                if let Some(entity) = mountee_entity {
+                    if let Some(body) = ecs.read_storage::<Body>().get(entity) {
+                        let mountee_state = self.states.get_mut(body, &entity);
+                        if let Some(meta) = mountee_state {
+                            mountee_offsets = vek::Vec3::from(meta.lantern_offset[1]);
+                            dbg!(mountee_offsets);
+                        }
+                    }
+                }
+            }
 
             match body {
                 Body::Humanoid(body) => {
@@ -1517,6 +1539,7 @@ impl FigureMgr {
                                     // TODO: Update to use the quaternion.
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
                                     state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    mountee_offsets.into(),
                                 ),
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -5321,7 +5344,7 @@ impl FigureColLights {
 pub struct FigureStateMeta {
     bone_consts: Consts<FigureBoneData>,
     locals: Consts<FigureLocals>,
-    lantern_offset: anim::vek::Vec3<f32>,
+    lantern_offset: [anim::vek::Vec3<f32>; 2],
     state_time: f32,
     last_ori: anim::vek::Quaternion<f32>,
     lpindex: u8,

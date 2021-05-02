@@ -30,7 +30,7 @@ impl Skeleton for FishSmallSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> Vec3<f32> {
+    ) -> [Vec3<f32>; 2] {
         let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
@@ -39,7 +39,7 @@ impl Skeleton for FishSmallSkeleton {
             make_bone(chest_mat * Mat4::<f32>::from(self.fin_l)),
             make_bone(chest_mat * Mat4::<f32>::from(self.fin_r)),
         ];
-        Vec3::default()
+        [Vec3::default(), Vec3::default()]
     }
 }
 

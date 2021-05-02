@@ -53,7 +53,7 @@ impl Skeleton for QuadrupedMediumSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> Vec3<f32> {
+    ) -> [Vec3<f32>; 2] {
         let torso_front_mat = base_mat * Mat4::<f32>::from(self.torso_front);
         let torso_back_mat = torso_front_mat * Mat4::<f32>::from(self.torso_back);
         let neck_mat = torso_front_mat * Mat4::<f32>::from(self.neck);
@@ -80,7 +80,7 @@ impl Skeleton for QuadrupedMediumSkeleton {
             make_bone(leg_bl_mat * Mat4::<f32>::from(self.foot_bl)),
             make_bone(leg_br_mat * Mat4::<f32>::from(self.foot_br)),
         ];
-        Vec3::default()
+        [Vec3::default(), (torso_front_mat * Vec4::one()).xyz()]
     }
 }
 

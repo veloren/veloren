@@ -17,6 +17,7 @@ impl Animation for MountAnimation {
         Vec3<f32>,
         Vec3<f32>,
         Vec3<f32>,
+        Vec3<f32>,
     );
     type Skeleton = CharacterSkeleton;
 
@@ -34,6 +35,7 @@ impl Animation for MountAnimation {
             avg_vel,
             orientation,
             last_ori,
+            mount_offset,
         ): Self::Dependency,
         anim_time: f32,
         _rate: &mut f32,
@@ -43,7 +45,6 @@ impl Animation for MountAnimation {
 
         let slow = (anim_time * 1.0).sin();
         let slowa = (anim_time * 1.0 + PI / 2.0).sin();
-        let fast = (anim_time * 12.0).sin();
         let stop = (anim_time * 3.0).min(PI / 2.0).sin();
 
         let head_look = Vec2::new(
@@ -80,14 +81,7 @@ impl Animation for MountAnimation {
         next.head.orientation = Quaternion::rotation_z(head_look.x + slow * 0.2 - slow * 0.1)
             * Quaternion::rotation_x((0.4 + slowa * -0.1 + slow * 0.1 + head_look.y).abs());
 
-        next.chest.position = Vec3::new(
-            0.0,
-            s_a.chest.0 + stop * -0.4,
-            s_a.chest.1
-                + slow * 0.1
-                + stop * -0.8
-                + fast * (velocity.xy().magnitude() / 10.0).min(1.7),
-        );
+        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + mount_offset.z * 14.0);
         next.chest.orientation =
             Quaternion::rotation_x(-0.6 + stop * 0.15 + x_tilt * (canceler * 6.0).min(2.0))
                 * Quaternion::rotation_y(tilt * 3.1);
@@ -116,11 +110,21 @@ impl Animation for MountAnimation {
         next.hand_r.orientation =
             Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_z(PI / 2.0);
 
-        next.foot_l.position = Vec3::new(-s_a.foot.0 - 2.0, 4.0 + s_a.foot.1, s_a.foot.2);
-        next.foot_l.orientation = Quaternion::rotation_x(slow * 0.1 + stop * 0.4 + slow * 0.1);
+        next.foot_l.position = Vec3::new(
+            -s_a.foot.0 - 2.0,
+            4.0 + s_a.foot.1,
+            s_a.foot.2 + mount_offset.z * 14.0,
+        );
+        next.foot_l.orientation = Quaternion::rotation_x(slow * 0.1 + stop * 0.4 + slow * 0.1)
+            * Quaternion::rotation_y(0.5);
 
-        next.foot_r.position = Vec3::new(s_a.foot.0 + 2.0, 4.0 + s_a.foot.1, s_a.foot.2);
-        next.foot_r.orientation = Quaternion::rotation_x(slowa * 0.1 + stop * 0.4 + slowa * 0.1);
+        next.foot_r.position = Vec3::new(
+            s_a.foot.0 + 2.0,
+            4.0 + s_a.foot.1,
+            s_a.foot.2 + mount_offset.z * 14.0,
+        );
+        next.foot_r.orientation = Quaternion::rotation_x(slowa * 0.1 + stop * 0.4 + slowa * 0.1)
+            * Quaternion::rotation_y(-0.5);
 
         next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_l.orientation = Quaternion::rotation_x(0.0);

@@ -55,7 +55,7 @@ impl Skeleton for BirdLargeSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> Vec3<f32> {
+    ) -> [Vec3<f32>; 2] {
         let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
         let neck_mat = chest_mat * Mat4::<f32>::from(self.neck);
         let head_mat = neck_mat * Mat4::<f32>::from(self.head);
@@ -91,7 +91,7 @@ impl Skeleton for BirdLargeSkeleton {
             make_bone(foot_l_mat),
             make_bone(foot_r_mat),
         ];
-        Vec3::default()
+        [Vec3::default(), (chest_mat * Vec4::one()).xyz()]
     }
 }
 

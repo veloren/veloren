@@ -97,7 +97,7 @@ impl Skeleton for CharacterSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> Vec3<f32> {
+    ) -> [Vec3<f32>; 2] {
         let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
         let chest_mat = torso_mat * Mat4::<f32>::from(self.chest);
         let head_mat = chest_mat * Mat4::<f32>::from(self.head);
@@ -133,7 +133,10 @@ impl Skeleton for CharacterSkeleton {
             // FIXME: Should this be control_l_mat?
             make_bone(control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
         ];
-        (lantern_mat * Vec4::new(0.0, 0.0, -4.0, 1.0)).xyz()
+        [
+            (lantern_mat * Vec4::new(0.0, 0.0, -4.0, 1.0)).xyz(),
+            (chest_mat * Vec4::zero()).xyz(),
+        ]
     }
 }
 

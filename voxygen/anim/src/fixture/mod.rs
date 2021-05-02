@@ -31,9 +31,9 @@ impl Skeleton for FixtureSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> Vec3<f32> {
+    ) -> [Vec3<f32>; 2] {
         buf[0] = make_bone(base_mat);
-        Vec3::default()
+        [Vec3::default(), Vec3::default()]
     }
 }
 
