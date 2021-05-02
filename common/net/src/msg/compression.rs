@@ -233,16 +233,56 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
     }
 }
 
+/// AldanTanneo's sin approximation (since std's sin implementation isn't const
+/// yet)
+const fn sin(x: f64) -> f64 {
+    use std::f64::consts::PI;
+    let mut x = (x - PI * 0.5) % (PI * 2.0);
+    x = if x < 0.0 { -x } else { x } - PI;
+    x = if x < 0.0 { -x } else { x } - PI * 0.5;
+
+    let x2 = x * x;
+    let x3 = x * x2 / 6.0;
+    let x5 = x3 * x2 / 20.0;
+    let x7 = x5 * x2 / 42.0;
+    let x9 = x7 * x2 / 72.0;
+    let x11 = x9 * x2 / 110.0;
+    x - x3 + x5 - x7 + x9 - x11
+}
+
 /// https://en.wikipedia.org/wiki/Lanczos_resampling#Lanczos_kernel
-fn lanczos(x: f64, a: f64) -> f64 {
+const fn lanczos(x: f64, a: f64) -> f64 {
     use std::f64::consts::PI;
     if x < f64::EPSILON {
         1.0
     } else if -a <= x && x <= a {
-        (a * (PI * x).sin() * (PI * x / a).sin()) / (PI.powi(2) * x.powi(2))
+        (a * sin(PI * x) * sin(PI * x / a)) / (PI * PI * x * x)
     } else {
         0.0
     }
+}
+
+/// Needs to be a separate function since `const fn`s can appear in the output
+/// of a const-generic function, but raw arithmetic expressions can't be
+const fn lanczos_lookup_array_size(n: u32, r: u32) -> usize { (2 * n * (r + 1) - 1) as usize }
+
+const fn gen_lanczos_lookup<const N: u32, const R: u32>(
+    a: f64,
+) -> [f64; lanczos_lookup_array_size(N, R)] {
+    let quadpng_n = N as f64;
+    let sample_radius = R as f64;
+
+    let step = 1.0 / (2.0 * quadpng_n);
+    let max = (quadpng_n - 1.0) / (2.0 * quadpng_n) + sample_radius;
+    // after doing some maths with the above:
+    let mut array = [0.0; lanczos_lookup_array_size(N, R)];
+
+    let mut i = 0;
+    while i < array.len() {
+        array[i] = lanczos(step * i as f64 - max, a);
+        i += 1;
+    }
+    array
 }
 
 impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
@@ -267,7 +307,7 @@ impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
         if let Some(kind) = BlockKind::from_u8(ws.0.get_pixel(x, y).0[0]) {
             if kind.is_filled() {
                 let (w, h) = ws.3.dimensions();
-                let mut rgb = match 1 {
+                let mut rgb = match 0 {
                     // Weighted-average interpolation
                     0 => {
                         const SAMPLE_RADIUS: i32 = 2i32; // sample_size = SAMPLE_RADIUS * 2 + 1
@@ -281,16 +321,58 @@ impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
                                 );
                                 if i < w && j < h {
                                     let r = 5.0 - (dx.abs() + dy.abs()) as f64;
-                                    rgb += r * Vec3::<u8>::from(ws.3.get_pixel(i, j).0).as_();
-                                    total += r;
+                                    let pix = Vec3::<u8>::from(ws.3.get_pixel(i, j).0);
+                                    if pix != Vec3::zero() {
+                                        rgb += r * pix.as_();
+                                        total += r;
+                                    }
                                 }
                             }
                         }
                         rgb /= total;
                         rgb
                     },
+                    // Mckol's Lanczos interpolation with AldanTanneo's Lanczos LUT
+                    1 if N == 4 => {
+                        const LANCZOS_A: f64 = 2.0; // See https://www.desmos.com/calculator/xxejcymyua
+                        const SAMPLE_RADIUS: i32 = 2i32; // sample_size = SAMPLE_RADIUS * 2 + 1
+                        // rustc currently doesn't support supplying N and SAMPLE_RADIUS, even with
+                        // a few workarounds, so hack around it by using the dynamic check above
+                        const LANCZOS_LUT: [f64; lanczos_lookup_array_size(4, 2)] =
+                            gen_lanczos_lookup::<4, 2>(LANCZOS_A);
+
+                        // As a reminder: x, y are destination pixel coordinates (not downscaled).
+                        let mut rgb: Vec3<f64> = Vec3::zero();
+                        for dx in -SAMPLE_RADIUS..=SAMPLE_RADIUS {
+                            for dy in -SAMPLE_RADIUS..=SAMPLE_RADIUS {
+                                // Source pixel coordinates (downscaled):
+                                let (src_x, src_y) = (
+                                    (x.wrapping_add(dx as u32) / N),
+                                    (y.wrapping_add(dy as u32) / N),
+                                );
+                                if src_x < w && src_y < h {
+                                    let pix: Vec3<f64> =
+                                        Vec3::<u8>::from(ws.3.get_pixel(src_x, src_y).0).as_();
+                                    // Relative coordinates where 1 unit is the size of one source
+                                    // pixel and 0 is the center of the source pixel:
+                                    let x_rel = ((x % N) as f64 - (N - 1) as f64 / 2.0) / N as f64;
+                                    let y_rel = ((y % N) as f64 - (N - 1) as f64 / 2.0) / N as f64;
+                                    // Distance from the currently processed target pixel's center
+                                    // to the currently processed source pixel's center:
+                                    rgb += LANCZOS_LUT
+                                        .get((dx as f64 - x_rel).abs() as usize)
+                                        .unwrap_or(&0.0)
+                                        * LANCZOS_LUT
+                                            .get((dy as f64 - y_rel).abs() as usize)
+                                            .unwrap_or(&0.0)
+                                        * pix;
+                                }
+                            }
+                        }
+                        rgb
+                    },
                     // Mckol's Lanczos interpolation
-                    1 => {
+                    1 | 2 => {
                         const LANCZOS_A: f64 = 2.0; // See https://www.desmos.com/calculator/xxejcymyua
                         const SAMPLE_RADIUS: i32 = 2i32; // sample_size = SAMPLE_RADIUS * 2 + 1
                         // As a reminder: x, y are destination pixel coordinates (not downscaled).
@@ -314,44 +396,6 @@ impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
                                     rgb += lanczos((dx as f64 - x_rel).abs(), LANCZOS_A)
                                         * lanczos((dy as f64 - y_rel).abs(), LANCZOS_A)
                                         * pix;
-                                }
-                            }
-                        }
-                        rgb
-                    },
-                    // Aweinstock's Lanczos interpolation
-                    2 => {
-                        let a = 2.0 / 3.0;
-                        let b = 2.0;
-                        let mut rgb: Vec3<f64> = Vec3::zero();
-                        for dx in -1i32..=1 {
-                            for dy in -1i32..=1 {
-                                let (i, j) = (
-                                    (x.wrapping_add(dx as u32) / N),
-                                    (y.wrapping_add(dy as u32) / N),
-                                );
-                                if i < w && j < h {
-                                    let pix: Vec3<f64> =
-                                        Vec3::<u8>::from(ws.3.get_pixel(i, j).0).as_();
-                                    let c = (x.wrapping_add(dx as u32) % N) as f64
-                                        - (N - 1) as f64 / 2.0;
-                                    let d = (y.wrapping_add(dy as u32) % N) as f64
-                                        - (N - 1) as f64 / 2.0;
-                                    let euclid = Vec2::new(c, d).magnitude();
-                                    let _manhattan = c.abs() + d.abs();
-                                    match 2 {
-                                        0 => {
-                                            rgb += lanczos(a * euclid, b) * pix;
-                                        },
-                                        1 => {
-                                            rgb += lanczos(a * c, b) * lanczos(a * d, b) * pix;
-                                        },
-                                        _ => {
-                                            rgb += lanczos(a * (i as f64 - (x / N) as f64), b)
-                                                * lanczos(a * (j as f64 - (y / N) as f64), b)
-                                                * pix;
-                                        },
-                                    }
                                 }
                             }
                         }
