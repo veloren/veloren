@@ -1,13 +1,13 @@
 use crate::persistence::{
-    character::{create_character, delete_character, load_character_data, load_character_list},
+    character::{load_character_data, load_character_list},
     error::PersistenceError,
-    establish_connection, DatabaseSettings, PersistedComponents,
+    establish_connection, ConnectionMode, DatabaseSettings, PersistedComponents,
 };
 use common::character::{CharacterId, CharacterItem};
 use crossbeam_channel::{self, TryIter};
-use rusqlite::Transaction;
+use rusqlite::Connection;
 use std::sync::{Arc, RwLock};
-use tracing::{error, trace};
+use tracing::error;
 
 pub(crate) type CharacterListResult = Result<Vec<CharacterItem>, PersistenceError>;
 pub(crate) type CharacterCreationResult =
@@ -17,15 +17,6 @@ type CharacterLoaderRequest = (specs::Entity, CharacterLoaderRequestKind);
 
 /// Available database operations when modifying a player's character list
 enum CharacterLoaderRequestKind {
-    CreateCharacter {
-        player_uuid: String,
-        character_alias: String,
-        persisted_components: PersistedComponents,
-    },
-    DeleteCharacter {
-        player_uuid: String,
-        character_id: CharacterId,
-    },
     LoadCharacterList {
         player_uuid: String,
     },
@@ -89,38 +80,18 @@ impl CharacterLoader {
             .spawn(move || {
                 // Unwrap here is safe as there is no code that can panic when the write lock is
                 // taken that could cause the RwLock to become poisoned.
-                let mut conn = establish_connection(&*settings.read().unwrap());
+                //
+                // This connection -must- remain read-only to avoid lock contention with the
+                // CharacterUpdater thread.
+                let mut conn =
+                    establish_connection(&*settings.read().unwrap(), ConnectionMode::ReadOnly);
 
                 for request in internal_rx {
                     conn.update_log_mode(&settings);
 
-                    match conn.connection.transaction() {
-                        Ok(mut transaction) => {
-                            let response =
-                                CharacterLoader::process_request(request, &mut transaction);
-                            if !response.is_err() {
-                                match transaction.commit() {
-                                    Ok(()) => {
-                                        trace!("Commit for character loader completed");
-                                    },
-                                    Err(e) => error!(
-                                        "Failed to commit transaction for character loader, \
-                                         error: {:?}",
-                                        e
-                                    ),
-                                };
-                            };
-
-                            if let Err(e) = internal_tx.send(response) {
-                                error!(?e, "Could not send character loader response");
-                            }
-                        },
-                        Err(e) => {
-                            error!(
-                                "Failed to start transaction for character loader, error: {:?}",
-                                e
-                            )
-                        },
+                    let response = CharacterLoader::process_request(request, &conn);
+                    if let Err(e) = internal_tx.send(response) {
+                        error!(?e, "Could not send character loader response");
                     }
                 }
             })
@@ -137,41 +108,23 @@ impl CharacterLoader {
     // CharacterLoaderResponse::is_err()
     fn process_request(
         request: CharacterLoaderRequest,
-        mut transaction: &mut Transaction,
+        connection: &Connection,
     ) -> CharacterLoaderResponse {
         let (entity, kind) = request;
         CharacterLoaderResponse {
             entity,
             result: match kind {
-                CharacterLoaderRequestKind::CreateCharacter {
-                    player_uuid,
-                    character_alias,
-                    persisted_components,
-                } => CharacterLoaderResponseKind::CharacterCreation(create_character(
-                    &player_uuid,
-                    &character_alias,
-                    persisted_components,
-                    &mut transaction,
-                )),
-                CharacterLoaderRequestKind::DeleteCharacter {
-                    player_uuid,
-                    character_id,
-                } => CharacterLoaderResponseKind::CharacterList(delete_character(
-                    &player_uuid,
-                    character_id,
-                    &mut transaction,
-                )),
                 CharacterLoaderRequestKind::LoadCharacterList { player_uuid } => {
                     CharacterLoaderResponseKind::CharacterList(load_character_list(
                         &player_uuid,
-                        &mut transaction,
+                        connection,
                     ))
                 },
                 CharacterLoaderRequestKind::LoadCharacterData {
                     player_uuid,
                     character_id,
                 } => {
-                    let result = load_character_data(player_uuid, character_id, &mut transaction);
+                    let result = load_character_data(player_uuid, character_id, connection);
                     if result.is_err() {
                         error!(
                             ?result,
@@ -181,45 +134,6 @@ impl CharacterLoader {
                     CharacterLoaderResponseKind::CharacterData(Box::new(result))
                 },
             },
-        }
-    }
-
-    /// Create a new character belonging to the player identified by
-    /// `player_uuid`
-    pub fn create_character(
-        &self,
-        entity: specs::Entity,
-        player_uuid: String,
-        character_alias: String,
-        persisted_components: PersistedComponents,
-    ) {
-        if let Err(e) = self
-            .update_tx
-            .send((entity, CharacterLoaderRequestKind::CreateCharacter {
-                player_uuid,
-                character_alias,
-                persisted_components,
-            }))
-        {
-            error!(?e, "Could not send character creation request");
-        }
-    }
-
-    /// Delete a character by `id` and `player_uuid`
-    pub fn delete_character(
-        &self,
-        entity: specs::Entity,
-        player_uuid: String,
-        character_id: CharacterId,
-    ) {
-        if let Err(e) = self
-            .update_tx
-            .send((entity, CharacterLoaderRequestKind::DeleteCharacter {
-                player_uuid,
-                character_id,
-            }))
-        {
-            error!(?e, "Could not send character deletion request");
         }
     }
 

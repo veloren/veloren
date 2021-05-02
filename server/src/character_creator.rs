@@ -1,8 +1,8 @@
-use crate::persistence::character_loader::CharacterLoader;
+use crate::persistence::character_updater::CharacterUpdater;
 use common::comp::{
     inventory::loadout_builder::LoadoutBuilder, Body, Inventory, Item, SkillSet, Stats,
 };
-use specs::{Entity, ReadExpect};
+use specs::{Entity, WriteExpect};
 
 const VALID_STARTER_ITEMS: [&str; 6] = [
     "common.items.weapons.hammer.starter_hammer",
@@ -19,7 +19,7 @@ pub fn create_character(
     character_alias: String,
     character_tool: Option<String>,
     body: Body,
-    character_loader: &ReadExpect<'_, CharacterLoader>,
+    character_updater: &mut WriteExpect<'_, CharacterUpdater>,
 ) {
     // quick fix whitelist validation for now; eventually replace the
     // `Option<String>` with an index into a server-provided list of starter
@@ -55,7 +55,7 @@ pub fn create_character(
 
     let waypoint = None;
 
-    character_loader.create_character(
+    character_updater.create_character(
         entity,
         player_uuid,
         character_alias,
