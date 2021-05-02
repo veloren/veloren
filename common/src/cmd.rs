@@ -40,6 +40,7 @@ pub enum ChatCommand {
     Adminify,
     Airship,
     Alias,
+    ApplyBuff,
     Ban,
     Build,
     BuildAreaAdd,
@@ -104,6 +105,7 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Adminify,
     ChatCommand::Airship,
     ChatCommand::Alias,
+    ChatCommand::ApplyBuff,
     ChatCommand::Ban,
     ChatCommand::Build,
     ChatCommand::BuildAreaAdd,
@@ -208,6 +210,22 @@ lazy_static! {
     .map(|s| s.to_string())
     .collect();
 
+    static ref BUFFS: Vec<String> = vec![
+        // Debuffs
+        "burning", "bleeding", "curse",
+        // Heal
+        "regeneration", "saturation", "potion", "campfire_heal",
+        // Outmaxing stats
+        "increase_max_energy", "increase_max_health",
+        // Defensive buffs
+        "invulnerability", "protecting_ward",
+        // One command to rule them all
+        "all",
+    ]
+    .iter()
+    .map(|b| b.to_string())
+    .collect();
+
     static ref BLOCK_KINDS: Vec<String> = terrain::block::BLOCK_KINDS
         .keys()
         .cloned()
@@ -268,6 +286,15 @@ impl ChatCommand {
                 Admin,
             ),
             ChatCommand::Alias => cmd(vec![Any("name", Required)], "Change your alias", NoAdmin),
+            ChatCommand::ApplyBuff => cmd(
+                vec![
+                    Enum("buff", BUFFS.clone(), Required),
+                    Float("strength", 0.01, Optional),
+                    Float("duration", 10.0, Optional),
+                ],
+                "Cast a buff on player",
+                Admin,
+            ),
             ChatCommand::Ban => cmd(
                 vec![Any("username", Required), Message(Optional)],
                 "Ban a player with a given username",
@@ -551,6 +578,7 @@ impl ChatCommand {
             ChatCommand::Adminify => "adminify",
             ChatCommand::Airship => "airship",
             ChatCommand::Alias => "alias",
+            ChatCommand::ApplyBuff => "buff",
             ChatCommand::Ban => "ban",
             ChatCommand::Build => "build",
             ChatCommand::BuildAreaAdd => "build_area_add",
