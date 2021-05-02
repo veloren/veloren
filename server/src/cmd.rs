@@ -2616,6 +2616,22 @@ fn handle_apply_buff(
     args: String,
     action: &ChatCommand,
 ) -> CmdResult<()> {
+    const BUFF_PACK: &[&str] = &[
+        // Debuffs
+        "burning",
+        "bleeding",
+        "curse",
+        // Healing
+        "regeneration",
+        "saturation",
+        "potion",
+        "campfire_heal",
+        // Outmaxing stats
+        "increase_max_energy",
+        "increase_max_health",
+        // Defensive buffs (invulnerability is skipped because it ruins all debuffs)
+        "protecting_ward",
+    ];
     if let (Some(buff), strength, duration) =
         scan_fmt_some!(&args, &action.arg_fmt(), String, f32, f64)
     {
@@ -2625,7 +2641,9 @@ fn handle_apply_buff(
         if buff != "all" {
             cast_buff(&buff, buffdata, server, target)
         } else {
-            //TODO: implement Demon's Hangover
+            for kind in BUFF_PACK {
+                cast_buff(kind, buffdata, server, target)?;
+            }
             Ok(())
         }
     } else {
@@ -2633,12 +2651,7 @@ fn handle_apply_buff(
     }
 }
 
-fn cast_buff(
-    kind: &str,
-    data: BuffData,
-    server: &mut Server,
-    target: EcsEntity,
-) -> Result<(), String> {
+fn cast_buff(kind: &str, data: BuffData, server: &mut Server, target: EcsEntity) -> CmdResult<()> {
     if let Some(buffkind) = parse_buffkind(kind) {
         let ecs = &server.state.ecs();
         let mut buffs_all = ecs.write_storage::<comp::Buffs>();
