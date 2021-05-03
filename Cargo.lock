@@ -5648,6 +5648,7 @@ name = "veloren-i18n-check"
 version = "0.9.0"
 dependencies = [
  "git2",
+ "hashbrown",
  "ron",
  "serde",
  "tracing",

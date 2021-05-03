@@ -13,3 +13,4 @@ serde = { version = "1.0", features = ["derive"] }
 tracing = "0.1"
 ron = "0.6"
 git2 = "0.13"
+hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }

@@ -5,7 +5,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use std::collections::{HashMap, HashSet};
+use hashbrown::{HashMap, HashSet};
 
 /// The reference language, aka the more up-to-date localization data.  Also the
 /// default language at first startup.
