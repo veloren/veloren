@@ -18,9 +18,10 @@ members = [
     "voxygen",
     "voxygen/anim",
     "voxygen/anim/dyn",
+    "voxygen/i18n-check",
     "world",
     "network",
-    "network/protocol"
+    "network/protocol",
 ]
 
 # default profile for devs, fast to compile, okay enough to run, no debug information

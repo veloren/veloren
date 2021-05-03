@@ -5644,6 +5644,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "veloren-i18n-check"
+version = "0.9.0"
+dependencies = [
+ "git2",
+ "ron",
+ "serde",
+ "tracing",
+]
+
+[[package]]
 name = "veloren-network"
 version = "0.3.0"
 dependencies = [
@@ -5843,6 +5853,7 @@ dependencies = [
  "veloren-common-net",
  "veloren-common-state",
  "veloren-common-systems",
+ "veloren-i18n-check",
  "veloren-server",
  "veloren-voxygen-anim",
  "veloren-world",
