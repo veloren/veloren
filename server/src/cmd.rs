@@ -15,7 +15,7 @@ use common::{
     comp::{
         self,
         aura::{Aura, AuraKind, AuraTarget},
-        buff::{BuffCategory, BuffData, BuffKind, BuffSource},
+        buff::{Buff, BuffCategory, BuffData, BuffKind, BuffSource},
         inventory::item::{tool::AbilityMap, MaterialStatManifest},
         invite::InviteKind,
         ChatType, Inventory, Item, LightEmitter, WaypointArea,
@@ -97,6 +97,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Adminify => handle_adminify,
         ChatCommand::Airship => handle_spawn_airship,
         ChatCommand::Alias => handle_alias,
+        ChatCommand::ApplyBuff => handle_apply_buff,
         ChatCommand::Ban => handle_ban,
         ChatCommand::Build => handle_build,
         ChatCommand::BuildAreaAdd => handle_build_area_add,
@@ -2604,5 +2605,77 @@ fn handle_server_physics(
         Ok(())
     } else {
         Err(action.help_string())
+    }
+}
+
+fn handle_apply_buff(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) -> CmdResult<()> {
+    const BUFF_PACK: &[&str] = &[
+        // Debuffs
+        "burning",
+        "bleeding",
+        "curse",
+        // Healing
+        "regeneration",
+        "saturation",
+        "potion",
+        "campfire_heal",
+        // Outmaxing stats
+        "increase_max_energy",
+        "increase_max_health",
+        // Defensive buffs (invulnerability is skipped because it ruins all debuffs)
+        "protecting_ward",
+    ];
+    if let (Some(buff), strength, duration) =
+        scan_fmt_some!(&args, &action.arg_fmt(), String, f32, f64)
+    {
+        let strength = strength.unwrap_or(0.01);
+        let duration = Duration::from_secs_f64(duration.unwrap_or(1.0));
+        let buffdata = BuffData::new(strength, Some(duration));
+        if buff != "all" {
+            cast_buff(&buff, buffdata, server, target)
+        } else {
+            for kind in BUFF_PACK {
+                cast_buff(kind, buffdata, server, target)?;
+            }
+            Ok(())
+        }
+    } else {
+        Err(action.help_string())
+    }
+}
+
+fn cast_buff(kind: &str, data: BuffData, server: &mut Server, target: EcsEntity) -> CmdResult<()> {
+    if let Some(buffkind) = parse_buffkind(kind) {
+        let ecs = &server.state.ecs();
+        let mut buffs_all = ecs.write_storage::<comp::Buffs>();
+        if let Some(mut buffs) = buffs_all.get_mut(target) {
+            buffs.insert(Buff::new(buffkind, data, vec![], BuffSource::Command));
+        }
+        Ok(())
+    } else {
+        Err(format!("unknown buff: {}", kind))
+    }
+}
+
+fn parse_buffkind(buff: &str) -> Option<BuffKind> {
+    match buff {
+        "burning" => Some(BuffKind::Burning),
+        "regeneration" => Some(BuffKind::Regeneration),
+        "saturation" => Some(BuffKind::Saturation),
+        "bleeding" => Some(BuffKind::Bleeding),
+        "curse" => Some(BuffKind::Cursed),
+        "potion" => Some(BuffKind::Potion),
+        "campfire_heal" => Some(BuffKind::CampfireHeal),
+        "increase_max_energy" => Some(BuffKind::IncreaseMaxEnergy),
+        "increase_max_health" => Some(BuffKind::IncreaseMaxHealth),
+        "invulnerability" => Some(BuffKind::Invulnerability),
+        "protecting_ward" => Some(BuffKind::ProtectingWard),
+        _ => None,
     }
 }
