@@ -37,7 +37,7 @@ This will be needed to play on auth-enabled servers, including the official serv
 We provide 64-bit builds for Linux, Mac, and Windows, which can be downloaded on the official website:
 [https://www.veloren.net](https://veloren.net/welcome)
 
-Due to rapid developement stable versions become outdated fast and might be **incompatible with the public server**.
+Due to rapid development stable versions become outdated fast and might be **incompatible with the public server**.
 
 If you want to compile Veloren yourself, follow the instructions in our [Book](https://book.veloren.net/contributors/introduction.html).
 
