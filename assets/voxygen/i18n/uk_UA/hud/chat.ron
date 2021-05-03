@@ -3,6 +3,10 @@
 /// Localization for Ukrainian
 (
     string_map: {
+        // Outcomes
+        "hud.outcome.bleeding": "померли від обескровлення",
+        "hud.outcome.burning": "згоріли живцем",
+        "hud.outcome.curse": "померли від прокльону",
         // Chat outputs
         "hud.chat.online_msg": "[{name}] зайшли на сервер",
         "hud.chat.offline_msg": "[{name}] вийшли з серверу",
@@ -12,15 +16,15 @@
         "hud.chat.fall_kill_msg": "[{name}] померли від падіння",
         "hud.chat.suicide_msg": "[{name}] померли від самозаподіяних ран",
 
-        "hud.chat.pvp_buff_kill_msg": "[{attacker}] вбили [{victim}]",
+        "hud.chat.died_of_pvp_buff_msg": "[{victim}] {died_of_buff} через [{attacker}]",
         "hud.chat.pvp_melee_kill_msg": "[{attacker}] перемогли [{victim}]",
         "hud.chat.pvp_ranged_kill_msg": "[{attacker}] застрелили [{victim}]",
         "hud.chat.pvp_explosion_kill_msg": "[{attacker}] підірвали [{victim}]",
         "hud.chat.pvp_energy_kill_msg": "[{attacker}] вбили [{victim}] магією",
 
-        "hud.chat.nonexistent_buff_kill_msg": "[{victim}] померли від: {buff}",
+        "hud.chat.died_of_buff_nonexistent_msg": "[{victim}] {died_of_buff}",
 
-        "hud.chat.npc_buff_kill_msg": "[{victim}] померли від: {buff} через: {attacker}",
+        "hud.chat.died_of_npc_buff_msg": "[{victim}] {died_of_buff} через {attacker}",
         "hud.chat.npc_melee_kill_msg": "{attacker} вбили [{victim}]",
         "hud.chat.npc_ranged_kill_msg": "{attacker} застрелили [{victim}]",
         "hud.chat.npc_explosion_kill_msg": "{attacker} підірвали [{victim}]",
