@@ -15,7 +15,7 @@ fn main() {
             "--lang" => {
                 let code = cli[i + 1].clone();
                 analysis::test_specific_localization(code, root, asset_path);
-            }
+            },
             _ => continue,
         }
     }

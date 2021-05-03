@@ -178,11 +178,13 @@ fn read_file_from_path<'a>(
         .peel_to_tree()
         .expect("Impossible to peel HEAD to a tree object");
     tree.get_path(path)
-        .expect(&format!(
-            "Impossible to find the file {:?} in reference {:?}",
-            path,
-            reference.name()
-        ))
+        .unwrap_or_else(|_| {
+            panic!(
+                "Impossible to find the file {:?} in reference {:?}",
+                path,
+                reference.name()
+            )
+        })
         .to_object(&repo)
         .unwrap()
         .peel_to_blob()
@@ -256,7 +258,7 @@ fn generate_key_version<'a>(
                             error_check_set.push(key.clone());
                         }
                         continue;
-                    }
+                    },
                 };
 
                 if line + 1 >= e.final_start_line()
@@ -273,7 +275,7 @@ fn generate_key_version<'a>(
                                 Ok(false) => Some(existing_commit),
                                 Err(err) => panic!("{}", err),
                             }
-                        }
+                        },
                         None => Some(e.final_commit_id()),
                     };
                 }
@@ -291,7 +293,7 @@ fn complete_key_versions<'a>(
     asset_path: &Path,
 ) {
     //TODO: review unwraps in this file
-    
+
     // For each file (if it's not a directory) in directory
     for i18n_file in root_dir.join(&asset_path).read_dir().unwrap().flatten() {
         if let Ok(file_type) = i18n_file.file_type() {
@@ -310,7 +312,7 @@ fn complete_key_versions<'a>(
                             e
                         );
                         continue;
-                    }
+                    },
                 };
                 i18n_key_versions.extend(generate_key_version(&repo, &i18n, &path, &i18n_blob));
             }
@@ -339,7 +341,7 @@ fn verify_localization_directory(root_dir: &Path, directory_path: &Path) {
                             full_path.to_string_lossy(),
                             e
                         );
-                    }
+                    },
                 };
             }
         }
@@ -385,7 +387,7 @@ pub fn verify_all_localizations(root_dir: &Path, asset_path: &Path) {
                     i18n_directory.to_string_lossy(),
                     e
                 );
-            }
+            },
         };
         // Walk through each files and try to load them
         verify_localization_directory(root_dir, &i18n_directory);
@@ -397,9 +399,8 @@ pub fn verify_all_localizations(root_dir: &Path, asset_path: &Path) {
     }
 }
 
-
-///  `asset_path` - path to localization directory. Relative from root of the repo.
-///  `root_dir` - absolute path to repo
+///  `asset_path` - path to localization directory. Relative from root of the
+/// repo.  `root_dir` - absolute path to repo
 ///  `ref_i18n_path` - path to reference manifest
 ///  `i18n_references` - keys from reference language
 ///  `repo` - git object for main repo
@@ -407,13 +408,13 @@ pub fn verify_all_localizations(root_dir: &Path, asset_path: &Path) {
 fn test_localization_directory(
     asset_path: &Path,
     root_dir: &Path,
-    ref_i18n_path: &PathBuf,
+    ref_i18n_path: &Path,
     i18n_references: &HashMap<String, LocalizationEntryState>,
     repo: &git2::Repository,
     head_ref: &git2::Reference,
 ) -> Option<FindLocalization> {
     let relfile = asset_path.join(&(LANG_MANIFEST_FILE.to_string() + ".ron"));
-    if relfile == ref_i18n_path.clone() {
+    if relfile == ref_i18n_path {
         return None;
     }
     println!("\n-----------------------------------");
@@ -431,7 +432,7 @@ fn test_localization_directory(
                 e
             );
             return None;
-        }
+        },
     };
     let mut current_i18n = generate_key_version(
         &repo,
@@ -459,7 +460,7 @@ fn test_localization_directory(
                             relfile.to_string_lossy()
                         );
                         continue;
-                    }
+                    },
                 };
                 let ref_commit_id = match ref_state.commit_id {
                     Some(c) => c,
@@ -469,7 +470,7 @@ fn test_localization_directory(
                             ref_key
                         );
                         continue;
-                    }
+                    },
                 };
                 if commit_id != ref_commit_id
                     && !repo
@@ -480,18 +481,15 @@ fn test_localization_directory(
                 } else {
                     state.state = LocalizationState::UpToDate;
                 }
-            }
+            },
             None => {
-                current_i18n.insert(
-                    ref_key.to_owned(),
-                    LocalizationEntryState {
-                        key_line: None,
-                        chuck_line_range: None,
-                        commit_id: None,
-                        state: LocalizationState::NotFound,
-                    },
-                );
-            }
+                current_i18n.insert(ref_key.to_owned(), LocalizationEntryState {
+                    key_line: None,
+                    chuck_line_range: None,
+                    commit_id: None,
+                    state: LocalizationState::NotFound,
+                });
+            },
         }
     }
 
@@ -546,7 +544,7 @@ fn test_localization_directory(
     );
 
     for (state, mut lines) in state_map {
-        if lines.len() == 0 {
+        if lines.is_empty() {
             continue;
         }
         println!("\n\t[{:?}]", state);
@@ -597,18 +595,16 @@ fn test_localization_directory(
     Some(result)
 }
 
-// `asset_path` - relative path to asset directory (should be "assets/voxygen/i18n/")
-// `root_dir` - absolute path to main repo
+// `asset_path` - relative path to asset directory (should be
+// "assets/voxygen/i18n/") `root_dir` - absolute path to main repo
 pub fn test_specific_localization(code: String, root_dir: &Path, asset_path: &Path) {
     // Relative paths from root of repo to assets
     let ref_lang_dir = asset_path.join(REFERENCE_LANG);
     let ref_manifest = ref_lang_dir.join(LANG_MANIFEST_FILE.to_string() + ".ron");
 
     // Initialize Git objects
-    let repo = git2::Repository::discover(&root_dir).expect(&format!(
-        "Failed to open the Git repository at {:?}",
-        &root_dir
-    ));
+    let repo = git2::Repository::discover(&root_dir)
+        .unwrap_or_else(|_| panic!("Failed to open the Git repository at {:?}", &root_dir));
     let head_ref = repo.head().expect("Impossible to get the HEAD reference");
 
     // Read HEAD for the reference language manifest
@@ -632,7 +628,13 @@ pub fn test_specific_localization(code: String, root_dir: &Path, asset_path: &Pa
     );
     for sub_directory in loc.sub_directories.iter() {
         let subdir_path = &ref_lang_dir.join(sub_directory);
-        complete_key_versions(&repo, &head_ref, &mut i18n_references, root_dir, &subdir_path);
+        complete_key_versions(
+            &repo,
+            &head_ref,
+            &mut i18n_references,
+            root_dir,
+            &subdir_path,
+        );
     }
 
     // Testing how specific language is localized
@@ -646,7 +648,6 @@ pub fn test_specific_localization(code: String, root_dir: &Path, asset_path: &Pa
         &head_ref,
     );
 }
-
 
 pub fn test_all_localizations(root_dir: &Path, asset_path: &Path) {
     let ref_i18n_dir_path = asset_path.join(REFERENCE_LANG);
@@ -663,10 +664,8 @@ pub fn test_all_localizations(root_dir: &Path, asset_path: &Path) {
     }
 
     // Initialize Git objects
-    let repo = git2::Repository::discover(&root_dir).expect(&format!(
-        "Failed to open the Git repository at {:?}",
-        &root_dir
-    ));
+    let repo = git2::Repository::discover(&root_dir)
+        .unwrap_or_else(|_| panic!("Failed to open the Git repository at {:?}", &root_dir));
     let head_ref = repo.head().expect("Impossible to get the HEAD reference");
 
     // Read HEAD for the reference language file
@@ -681,11 +680,23 @@ pub fn test_all_localizations(root_dir: &Path, asset_path: &Path) {
     );
 
     // Gathering info about keys from reference language
-    complete_key_versions(&repo, &head_ref, &mut i18n_references, root_dir, &ref_i18n_dir_path);
+    complete_key_versions(
+        &repo,
+        &head_ref,
+        &mut i18n_references,
+        root_dir,
+        &ref_i18n_dir_path,
+    );
     // read HEAD for the subfolders
     for sub_directory in loc.sub_directories.iter() {
         let subdir_path = &ref_i18n_dir_path.join(sub_directory);
-        complete_key_versions(&repo, &head_ref, &mut i18n_references, root_dir, &subdir_path);
+        complete_key_versions(
+            &repo,
+            &head_ref,
+            &mut i18n_references,
+            root_dir,
+            &subdir_path,
+        );
     }
 
     // Compare to other reference files
