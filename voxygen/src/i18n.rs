@@ -390,52 +390,8 @@ pub fn i18n_asset_key(language_id: &str) -> String { ["voxygen.i18n.", language_
 
 #[cfg(test)]
 mod tests {
-    use super::{LocalizationFragment, RawLocalization, LANG_MANIFEST_FILE, REFERENCE_LANG};
-    use ron::de::from_reader;
-    use std::{
-        fs,
-        path::{Path, PathBuf},
-    };
-
-    /// List localization directories as a PathBuf vector
-    fn i18n_directories(i18n_dir: &Path) -> Vec<PathBuf> {
-        fs::read_dir(i18n_dir)
-            .unwrap()
-            .map(|res| res.map(|e| e.path()).unwrap())
-            .filter(|e| e.is_dir())
-            .collect()
-    }
-
-    fn verify_localization_directory(directory_path: &Path) {
-        let root_dir = std::env::current_dir()
-            .map(|p| p.parent().expect("").to_owned())
-            .unwrap();
-        // Walk through each file in the directory
-        for i18n_file in root_dir.join(&directory_path).read_dir().unwrap().flatten() {
-            if let Ok(file_type) = i18n_file.file_type() {
-                // Skip folders and the manifest file (which does not contain the same struct we
-                // want to load)
-                if file_type.is_file()
-                    && i18n_file.file_name().to_string_lossy()
-                        != (LANG_MANIFEST_FILE.to_string() + ".ron")
-                {
-                    let full_path = i18n_file.path();
-                    println!("-> {:?}", full_path.strip_prefix(&root_dir).unwrap());
-                    let f = fs::File::open(&full_path).expect("Failed opening file");
-                    let _: LocalizationFragment = match from_reader(f) {
-                        Ok(v) => v,
-                        Err(e) => {
-                            panic!(
-                                "Could not parse {} RON file, error: {}",
-                                full_path.to_string_lossy(),
-                                e
-                            );
-                        },
-                    };
-                }
-            }
-        }
-    }
+    use i18n_check::analysis;
+    use std::path::Path;
 
     // Test to verify all languages that they are VALID and loadable, without
     // need of git just on the local assets folder
@@ -443,63 +399,15 @@ mod tests {
     fn verify_all_localizations() {
         // Generate paths
         let i18n_asset_path = Path::new("assets/voxygen/i18n/");
-        let ref_i18n_dir_path = i18n_asset_path.join(REFERENCE_LANG);
-        let ref_i18n_path = ref_i18n_dir_path.join(LANG_MANIFEST_FILE.to_string() + ".ron");
-        let root_dir = std::env::current_dir()
-            .map(|p| p.parent().expect("").to_owned())
-            .unwrap();
-        assert!(
-            root_dir.join(&ref_i18n_dir_path).is_dir(),
-            "Reference language folder doesn't exist, something is wrong!"
-        );
-        assert!(
-            root_dir.join(&ref_i18n_path).is_file(),
-            "Reference language manifest file doesn't exist, something is wrong!"
-        );
-        let i18n_directories = i18n_directories(&root_dir.join(i18n_asset_path));
-        // This simple check  ONLY guarantees that an arbitrary minimum of translation
-        // files exists. It's just to notice unintentional deletion of all
-        // files, or modifying the paths. In case you want to delete all
-        // language you have to adjust this number:
-        assert!(
-            i18n_directories.len() > 5,
-            "have less than 5 translation folders, arbitrary minimum check failed. Maybe the i18n \
-             folder is empty?"
-        );
-        for i18n_directory in i18n_directories {
-            // Attempt to load the manifest file
-            let manifest_path = i18n_directory.join(LANG_MANIFEST_FILE.to_string() + ".ron");
-            println!(
-                "verifying {:?}",
-                manifest_path.strip_prefix(&root_dir).unwrap()
-            );
-            let f = fs::File::open(&manifest_path).expect("Failed opening file");
-            let raw_localization: RawLocalization = match from_reader(f) {
-                Ok(v) => v,
-                Err(e) => {
-                    panic!(
-                        "Could not parse {} RON file, error: {}",
-                        i18n_directory.to_string_lossy(),
-                        e
-                    );
-                },
-            };
-            // Walk through each files and try to load them
-            verify_localization_directory(&i18n_directory);
-            // Walk through each subdirectories and try to load files in them
-            for sub_directory in raw_localization.sub_directories.iter() {
-                let subdir_path = &i18n_directory.join(sub_directory);
-                verify_localization_directory(&subdir_path);
-            }
-        }
+        let curr_dir = std::env::current_dir().unwrap();
+        let root = curr_dir.parent().unwrap();
+        analysis::verify_all_localizations(&root, &i18n_asset_path);
     }
 
     // Test to verify all languages and print missing and faulty localisation
     #[test]
     #[ignore]
-    #[allow(clippy::expect_fun_call)]
     fn test_all_localizations() {
-        use i18n_check::analysis;
         // Generate paths
         let i18n_asset_path = Path::new("assets/voxygen/i18n/");
         let curr_dir = std::env::current_dir().unwrap();
