@@ -348,8 +348,11 @@ fn verify_localization_directory(root_dir: &Path, directory_path: &Path) {
     }
 }
 
-// Test to verify all languages that they are VALID and loadable, without
-// need of git just on the local assets folder
+/// Test to verify all languages that they are VALID and loadable, without
+/// need of git just on the local assets folder
+/// `root_dir` - absolute path to main repo
+/// `asset_path` - relative path to asset directory (right now it is
+/// 'assets/voxygen/i18n')
 pub fn verify_all_localizations(root_dir: &Path, asset_path: &Path) {
     let ref_i18n_dir_path = asset_path.join(REFERENCE_LANG);
     let ref_i18n_path = ref_i18n_dir_path.join(LANG_MANIFEST_FILE.to_string() + ".ron");
@@ -399,12 +402,14 @@ pub fn verify_all_localizations(root_dir: &Path, asset_path: &Path) {
     }
 }
 
-///  `asset_path` - path to localization directory. Relative from root of the
-/// repo.  `root_dir` - absolute path to repo
-///  `ref_i18n_path` - path to reference manifest
-///  `i18n_references` - keys from reference language
-///  `repo` - git object for main repo
-///  `head_ref` - HEAD
+// Helper function to test localization directory
+//  `asset_path` - path to localization directory. Relative from root of the
+// repo.
+//  `root_dir` - absolute path to repo
+//  `ref_i18n_path` - path to reference manifest
+//  `i18n_references` - keys from reference language
+//  `repo` - git object for main repo
+//  `head_ref` - HEAD
 fn test_localization_directory(
     asset_path: &Path,
     root_dir: &Path,
@@ -595,8 +600,11 @@ fn test_localization_directory(
     Some(result)
 }
 
-// `asset_path` - relative path to asset directory (should be
-// "assets/voxygen/i18n/") `root_dir` - absolute path to main repo
+/// Test one language
+/// `code` - name of the directory in assets (de_DE for example)
+/// `root_dir` - absolute path to main repo
+/// `asset_path` - relative path to asset directory (right now it is
+/// 'assets/voxygen/i18n')
 pub fn test_specific_localization(code: String, root_dir: &Path, asset_path: &Path) {
     // Relative paths from root of repo to assets
     let ref_lang_dir = asset_path.join(REFERENCE_LANG);
@@ -649,6 +657,10 @@ pub fn test_specific_localization(code: String, root_dir: &Path, asset_path: &Pa
     );
 }
 
+/// Test all localizations
+/// `root_dir` - absolute path to main repo
+/// `asset_path` - relative path to asset directory (right now it is
+/// 'assets/voxygen/i18n')
 pub fn test_all_localizations(root_dir: &Path, asset_path: &Path) {
     let ref_i18n_dir_path = asset_path.join(REFERENCE_LANG);
     let ref_i18n_path = ref_i18n_dir_path.join(LANG_MANIFEST_FILE.to_string() + ".ron");
