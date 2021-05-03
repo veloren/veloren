@@ -138,6 +138,7 @@ pub enum CharacterAbility {
         max_speed_increase: f32,
         scales_from_combo: u32,
         is_interruptible: bool,
+        ori_modifier: f32,
     },
     LeapMelee {
         energy_cost: f32,
@@ -1309,6 +1310,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 max_speed_increase,
                 scales_from_combo,
                 is_interruptible,
+                ori_modifier,
             } => CharacterState::ComboMelee(combo_melee::Data {
                 static_data: combo_melee::StaticData {
                     num_stages: stage_data.len() as u32,
@@ -1320,6 +1322,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     max_speed_increase: *max_speed_increase,
                     scales_from_combo: *scales_from_combo,
                     is_interruptible: *is_interruptible,
+                    ori_modifier: *ori_modifier as f32,
                     ability_info,
                 },
                 stage: 1,

@@ -97,6 +97,8 @@ pub struct StaticData {
     pub scales_from_combo: u32,
     /// Whether the state can be interrupted by other abilities
     pub is_interruptible: bool,
+    /// Adjusts turning rate during the attack
+    pub ori_modifier: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -119,8 +121,7 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_move(data, &mut update, 0.6);
-        handle_orientation(data, &mut update, 0.2);
+        handle_move(data, &mut update, 0.4);
 
         let stage_index = (self.stage - 1) as usize;
 
@@ -135,6 +136,8 @@ impl CharacterBehavior for Data {
         match self.stage_section {
             StageSection::Buildup => {
                 if self.timer < self.static_data.stage_data[stage_index].base_buildup_duration {
+                    handle_orientation(data, &mut update, 0.4 * self.static_data.ori_modifier);
+
                     // Build up
                     update.character = CharacterState::ComboMelee(Data {
                         static_data: self.static_data.clone(),
@@ -228,6 +231,8 @@ impl CharacterBehavior for Data {
             },
             StageSection::Swing => {
                 if self.timer < self.static_data.stage_data[stage_index].base_swing_duration {
+                    handle_orientation(data, &mut update, 0.4 * self.static_data.ori_modifier);
+
                     // Forward movement
                     handle_forced_movement(
                         data,
@@ -259,6 +264,7 @@ impl CharacterBehavior for Data {
             },
             StageSection::Recover => {
                 if self.timer < self.static_data.stage_data[stage_index].base_recover_duration {
+                    handle_orientation(data, &mut update, 0.8 * self.static_data.ori_modifier);
                     // Recovers
                     update.character = CharacterState::ComboMelee(Data {
                         static_data: self.static_data.clone(),

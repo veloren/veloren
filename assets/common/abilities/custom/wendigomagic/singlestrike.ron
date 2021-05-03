@@ -2,14 +2,14 @@ ComboMelee(
     stage_data: [
         (
             stage: 1,
-            base_damage: 100,
+            base_damage: 120,
             damage_increase: 0,
             base_poise_damage: 40,
             poise_damage_increase: 0,
             knockback: 3.0,
             range: 3.5,
             angle: 30.0,
-            base_buildup_duration: 0.5,
+            base_buildup_duration: 0.6,
             base_swing_duration: 0.2,
             base_recover_duration: 0.4,
             forward_movement: 5.0,
@@ -22,4 +22,5 @@ ComboMelee(
     max_speed_increase: 0.0,
     scales_from_combo: 0,
     is_interruptible: false,
+    ori_modifier: 0.7,
 )

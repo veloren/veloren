@@ -47,7 +47,7 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         // Smooth orientation
-        handle_orientation(data, &mut update, 1.3);
+        handle_orientation(data, &mut update, 2.5);
 
         match self.stage_section {
             StageSection::Buildup => {
