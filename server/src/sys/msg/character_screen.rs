@@ -126,7 +126,7 @@ impl Sys {
                         alias,
                         tool,
                         body,
-                        character_loader,
+                        character_updater,
                     );
                 }
             },

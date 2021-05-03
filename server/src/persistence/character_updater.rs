@@ -4,7 +4,7 @@ use common::character::CharacterId;
 use crate::persistence::{
     character_loader::{CharacterLoaderResponse, CharacterLoaderResponseKind},
     error::PersistenceError,
-    establish_connection, DatabaseSettings, VelorenConnection,
+    establish_connection, ConnectionMode, DatabaseSettings, PersistedComponents, VelorenConnection,
 };
 use crossbeam_channel::TryIter;
 use rusqlite::DropBehavior;
@@ -20,8 +20,15 @@ use tracing::{debug, error, info, trace, warn};
 
 pub type CharacterUpdateData = (comp::SkillSet, comp::Inventory, Option<comp::Waypoint>);
 
+#[allow(clippy::large_enum_variant)]
 pub enum CharacterUpdaterEvent {
     BatchUpdate(Vec<(CharacterId, CharacterUpdateData)>),
+    CreateCharacter {
+        entity: Entity,
+        player_uuid: String,
+        character_alias: String,
+        persisted_components: PersistedComponents,
+    },
     DeleteCharacter {
         entity: Entity,
         requesting_player_uuid: String,
@@ -58,7 +65,8 @@ impl CharacterUpdater {
             .spawn(move || {
                 // Unwrap here is safe as there is no code that can panic when the write lock is
                 // taken that could cause the RwLock to become poisoned.
-                let mut conn = establish_connection(&*settings.read().unwrap());
+                let mut conn =
+                    establish_connection(&*settings.read().unwrap(), ConnectionMode::ReadWrite);
                 while let Ok(updates) = update_rx.recv() {
                     match updates {
                         CharacterUpdaterEvent::BatchUpdate(updates) => {
@@ -79,6 +87,35 @@ impl CharacterUpdater {
                                 disconnect_all_clients_requested_clone
                                     .store(true, Ordering::Relaxed);
                             };
+                        },
+                        CharacterUpdaterEvent::CreateCharacter {
+                            entity,
+                            character_alias,
+                            player_uuid,
+                            persisted_components,
+                        } => {
+                            match execute_character_create(
+                                entity,
+                                character_alias,
+                                &player_uuid,
+                                persisted_components,
+                                &mut conn,
+                            ) {
+                                Ok(response) => {
+                                    if let Err(e) = response_tx.send(response) {
+                                        error!(?e, "Could not send character creation response");
+                                    } else {
+                                        debug!(
+                                            "Processed character create for player {}",
+                                            player_uuid
+                                        );
+                                    }
+                                },
+                                Err(e) => error!(
+                                    "Error creating character for player {}, error: {:?}",
+                                    player_uuid, e
+                                ),
+                            }
                         },
                         CharacterUpdaterEvent::DeleteCharacter {
                             entity,
@@ -165,6 +202,28 @@ impl CharacterUpdater {
             .load(Ordering::Relaxed)
     }
 
+    pub fn create_character(
+        &mut self,
+        entity: Entity,
+        requesting_player_uuid: String,
+        alias: String,
+        persisted_components: PersistedComponents,
+    ) {
+        if let Err(e) =
+            self.update_tx
+                .as_ref()
+                .unwrap()
+                .send(CharacterUpdaterEvent::CreateCharacter {
+                    entity,
+                    player_uuid: requesting_player_uuid,
+                    character_alias: alias,
+                    persisted_components,
+                })
+        {
+            error!(?e, "Could not send character creation request");
+        }
+    }
+
     pub fn delete_character(
         &mut self,
         entity: Entity,
@@ -223,22 +282,6 @@ impl CharacterUpdater {
         }
     }
 
-    /// Updates a single character based on their id and components
-    pub fn update(
-        &mut self,
-        character_id: CharacterId,
-        skill_set: &comp::SkillSet,
-        inventory: &comp::Inventory,
-        waypoint: Option<&comp::Waypoint>,
-    ) {
-        self.batch_update(std::iter::once((
-            character_id,
-            skill_set,
-            inventory,
-            waypoint,
-        )));
-    }
-
     /// Indicates to the batch update thread that a requested disconnection of
     /// all clients has been processed
     pub fn disconnected_success(&mut self) {
@@ -272,6 +315,32 @@ fn execute_batch_update(
 
     trace!("Commit for character batch update completed");
     Ok(())
+}
+
+fn execute_character_create(
+    entity: Entity,
+    alias: String,
+    requesting_player_uuid: &str,
+    persisted_components: PersistedComponents,
+    connection: &mut VelorenConnection,
+) -> Result<CharacterLoaderResponse, PersistenceError> {
+    let mut transaction = connection.connection.transaction()?;
+
+    let response = CharacterLoaderResponse {
+        entity,
+        result: CharacterLoaderResponseKind::CharacterCreation(super::character::create_character(
+            requesting_player_uuid,
+            &alias,
+            persisted_components,
+            &mut transaction,
+        )),
+    };
+
+    if !response.is_err() {
+        transaction.commit()?;
+    };
+
+    Ok(response)
 }
 
 fn execute_character_delete(

@@ -13,6 +13,7 @@ use refinery::Report;
 use rusqlite::{Connection, OpenFlags};
 use std::{
     fs,
+    ops::Deref,
     path::PathBuf,
     sync::{Arc, RwLock},
     time::Duration,
@@ -69,6 +70,12 @@ impl VelorenConnection {
     }
 }
 
+impl Deref for VelorenConnection {
+    type Target = Connection;
+
+    fn deref(&self) -> &Connection { &self.connection }
+}
+
 fn set_log_mode(connection: &mut Connection, sql_log_mode: SqlLogMode) {
     // Rusqlite's trace and profile logging are mutually exclusive and cannot be
     // used together
@@ -92,6 +99,12 @@ pub struct DatabaseSettings {
     pub sql_log_mode: SqlLogMode,
 }
 
+#[derive(Clone, Copy, PartialEq)]
+pub enum ConnectionMode {
+    ReadOnly,
+    ReadWrite,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum SqlLogMode {
     /// Logging is disabled
@@ -104,7 +117,7 @@ pub enum SqlLogMode {
 
 /// Runs any pending database migrations. This is executed during server startup
 pub fn run_migrations(settings: &DatabaseSettings) {
-    let mut conn = establish_connection(settings);
+    let mut conn = establish_connection(settings, ConnectionMode::ReadWrite);
 
     diesel_to_rusqlite::migrate_from_diesel(&mut conn)
         .expect("One-time migration from Diesel to Refinery failed");
@@ -131,22 +144,32 @@ fn rusqlite_profile_callback(log_message: &str, dur: Duration) {
     info!("{} Duration: {:?}", log_message, dur);
 }
 
-pub(crate) fn establish_connection(settings: &DatabaseSettings) -> VelorenConnection {
+pub(crate) fn establish_connection(
+    settings: &DatabaseSettings,
+    connection_mode: ConnectionMode,
+) -> VelorenConnection {
     fs::create_dir_all(&settings.db_dir).expect(&*format!(
         "Failed to create saves directory: {:?}",
         &settings.db_dir
     ));
-    let connection = Connection::open_with_flags(
-        &settings.db_dir.join("db.sqlite"),
-        OpenFlags::SQLITE_OPEN_PRIVATE_CACHE | OpenFlags::default(),
-    )
-    .unwrap_or_else(|err| {
-        panic!(
-            "Error connecting to {}, Error: {:?}",
-            settings.db_dir.join("db.sqlite").display(),
-            err
-        )
-    });
+
+    let open_flags = OpenFlags::SQLITE_OPEN_PRIVATE_CACHE
+        | OpenFlags::SQLITE_OPEN_NO_MUTEX
+        | match connection_mode {
+            ConnectionMode::ReadWrite => {
+                OpenFlags::SQLITE_OPEN_CREATE | OpenFlags::SQLITE_OPEN_READ_WRITE
+            },
+            ConnectionMode::ReadOnly => OpenFlags::SQLITE_OPEN_READ_ONLY,
+        };
+
+    let connection = Connection::open_with_flags(&settings.db_dir.join("db.sqlite"), open_flags)
+        .unwrap_or_else(|err| {
+            panic!(
+                "Error connecting to {}, Error: {:?}",
+                settings.db_dir.join("db.sqlite").display(),
+                err
+            )
+        });
 
     let mut veloren_connection = VelorenConnection::new(connection);
 

@@ -26,7 +26,7 @@ use crate::{
 };
 use common::character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER};
 use core::ops::Range;
-use rusqlite::{types::Value, ToSql, Transaction, NO_PARAMS};
+use rusqlite::{types::Value, Connection, ToSql, Transaction, NO_PARAMS};
 use std::{collections::VecDeque, rc::Rc};
 use tracing::{error, trace, warn};
 
@@ -53,10 +53,7 @@ struct CharacterContainers {
 /// BFS the inventory/loadout to ensure that each is topologically sorted in the
 /// sense required by convert_inventory_from_database_items to support recursive
 /// items
-pub fn load_items_bfs(
-    connection: &mut Transaction,
-    root: i64,
-) -> Result<Vec<Item>, PersistenceError> {
+pub fn load_items_bfs(connection: &Connection, root: i64) -> Result<Vec<Item>, PersistenceError> {
     let mut items = Vec::new();
     let mut queue = VecDeque::new();
     queue.push_front(root);
@@ -100,7 +97,7 @@ pub fn load_items_bfs(
 pub fn load_character_data(
     requesting_player_uuid: String,
     char_id: CharacterId,
-    connection: &mut Transaction,
+    connection: &Connection,
 ) -> CharacterDataResult {
     let character_containers = get_pseudo_containers(connection, char_id)?;
     let inventory_items = load_items_bfs(connection, character_containers.inventory_container_id)?;
@@ -216,10 +213,7 @@ pub fn load_character_data(
 /// In the event that a join fails, for a character (i.e. they lack an entry for
 /// stats, body, etc...) the character is skipped, and no entry will be
 /// returned.
-pub fn load_character_list(
-    player_uuid_: &str,
-    connection: &mut Transaction,
-) -> CharacterListResult {
+pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> CharacterListResult {
     let characters;
     {
         #[rustfmt::skip]
@@ -619,7 +613,7 @@ fn get_new_entity_ids(
 
 /// Fetches the pseudo_container IDs for a character
 fn get_pseudo_containers(
-    connection: &mut Transaction,
+    connection: &Connection,
     character_id: CharacterId,
 ) -> Result<CharacterContainers, PersistenceError> {
     let character_containers = CharacterContainers {
@@ -639,7 +633,7 @@ fn get_pseudo_containers(
 }
 
 fn get_pseudo_container_id(
-    connection: &mut Transaction,
+    connection: &Connection,
     character_id: CharacterId,
     pseudo_container_position: &str,
 ) -> Result<EntityId, PersistenceError> {
