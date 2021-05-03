@@ -11,7 +11,7 @@ use common::{
     character::CharacterId,
     comp::{
         inventory::{
-            item::MaterialStatManifest,
+            item::{tool::AbilityMap, MaterialStatManifest},
             loadout::{Loadout, LoadoutError},
             loadout_builder::LoadoutBuilder,
             slot::InvSlotId,
@@ -37,6 +37,7 @@ pub struct ItemModelPair {
 // server
 lazy_static! {
     pub static ref MATERIAL_STATS_MANIFEST: MaterialStatManifest = MaterialStatManifest::default();
+    pub static ref ABILITY_MAP: AbilityMap = AbilityMap::default();
 }
 
 /// Returns a vector that contains all item rows to upsert; parent is
@@ -317,7 +318,7 @@ pub fn convert_inventory_from_database_items(
             }
         } else if let Some(&j) = item_indices.get(&db_item.parent_container_item_id) {
             if let Some(Some(parent)) = inventory.slot_mut(slot(&inventory_items[j].position)?) {
-                parent.add_component(item, &MATERIAL_STATS_MANIFEST);
+                parent.add_component(item, &ABILITY_MAP, &MATERIAL_STATS_MANIFEST);
             } else {
                 return Err(PersistenceError::ConversionError(format!(
                     "Parent slot {} for component {} was empty even though it occurred earlier in \
@@ -373,7 +374,7 @@ pub fn convert_loadout_from_database_items(
         } else if let Some(&j) = item_indices.get(&db_item.parent_container_item_id) {
             loadout
                 .update_item_at_slot_using_persistence_key(&database_items[j].position, |parent| {
-                    parent.add_component(item, &MATERIAL_STATS_MANIFEST);
+                    parent.add_component(item, &ABILITY_MAP, &MATERIAL_STATS_MANIFEST);
                 })
                 .map_err(convert_error)?;
         } else {

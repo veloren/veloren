@@ -16,7 +16,7 @@ use common::{
         self,
         aura::{Aura, AuraKind, AuraTarget},
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
-        inventory::item::MaterialStatManifest,
+        inventory::item::{tool::AbilityMap, MaterialStatManifest},
         invite::InviteKind,
         ChatType, Inventory, Item, LightEmitter, WaypointArea,
     },
@@ -335,6 +335,7 @@ fn handle_give_item(
                         }
                     });
             } else {
+                let ability_map = server.state.ecs().read_resource::<AbilityMap>();
                 let msm = server.state.ecs().read_resource::<MaterialStatManifest>();
                 // This item can't stack. Give each item in a loop.
                 server
@@ -345,7 +346,7 @@ fn handle_give_item(
                     .map(|mut inv| {
                         for i in 0..give_amount {
                             // NOTE: Deliberately ignores items that couldn't be pushed.
-                            if inv.push(item.duplicate(&msm)).is_err() {
+                            if inv.push(item.duplicate(&ability_map, &msm)).is_err() {
                                 res = Err(format!(
                                     "Player inventory full. Gave {} of {} items.",
                                     i, give_amount

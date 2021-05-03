@@ -14,7 +14,7 @@ pub struct ShockwaveAnimation;
 
 impl Animation for ShockwaveAnimation {
     #[allow(clippy::type_complexity)]
-    type Dependency = (
+    type Dependency<'a> = (
         Option<AbilityInfo>,
         (Option<Hands>, Option<Hands>),
         f32,
@@ -28,9 +28,9 @@ impl Animation for ShockwaveAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_shockwave")]
     #[allow(clippy::single_match)] // TODO: Pending review in #587
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (_ability_info, hands, _global_time, velocity, stage_section): Self::Dependency,
+        (_ability_info, hands, _global_time, velocity, stage_section): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

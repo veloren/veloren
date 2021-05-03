@@ -8,16 +8,16 @@ pub struct ShockwaveAnimation;
 
 impl Animation for ShockwaveAnimation {
     #[allow(clippy::type_complexity)]
-    type Dependency = (Option<StageSection>, bool);
+    type Dependency<'a> = (Option<StageSection>, bool);
     type Skeleton = BirdLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"bird_large_shockwave\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_shockwave")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (stage_section, on_ground): Self::Dependency,
+        (stage_section, on_ground): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

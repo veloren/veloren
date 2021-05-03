@@ -10,7 +10,7 @@ use common::{
         inventory::{item::ItemTag, slot::EquipSlot},
         invite::{InviteKind, InviteResponse},
         item::{
-            tool::{ToolKind, UniqueKind},
+            tool::{AbilitySpec, ToolKind},
             Item, ItemDesc, ItemKind,
         },
         skills::{AxeSkill, BowSkill, HammerSkill, Skill, StaffSkill, SwordSkill},
@@ -1492,55 +1492,63 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
     ) {
         let min_attack_dist = self.body.map_or(3.0, |b| b.radius() * self.scale + 2.0);
-        let tactic = match self
+
+        let tool_tactic = |tool_kind| match tool_kind {
+            ToolKind::Bow => Tactic::Bow,
+            ToolKind::Staff => Tactic::Staff,
+            ToolKind::Hammer => Tactic::Hammer,
+            ToolKind::Sword | ToolKind::Spear => Tactic::Sword,
+            ToolKind::Axe => Tactic::Axe,
+            _ => Tactic::Melee,
+        };
+
+        let tactic = self
             .inventory
             .equipped(EquipSlot::Mainhand)
             .as_ref()
-            .and_then(|item| {
-                if let ItemKind::Tool(tool) = &item.kind() {
-                    Some(&tool.kind)
+            .map(|item| {
+                if let Some(ability_spec) = item.ability_spec() {
+                    match ability_spec {
+                        AbilitySpec::Custom(spec) => match spec.as_str() {
+                            "Axe Simple" | "Sword Simple" => Tactic::Sword,
+                            "Staff Simple" => Tactic::Staff,
+                            "Bow Simple" => Tactic::Bow,
+                            "Stone Golem" => Tactic::StoneGolem,
+                            "Quad Med Quick" => Tactic::CircleCharge {
+                                radius: 3,
+                                circle_time: 2,
+                            },
+                            "Quad Med Jump" => Tactic::QuadMedJump,
+                            "Quad Med Charge" => Tactic::CircleCharge {
+                                radius: 12,
+                                circle_time: 1,
+                            },
+                            "Quad Med Basic" => Tactic::QuadMedBasic,
+                            "Quad Low Ranged" => Tactic::QuadLowRanged,
+                            "Quad Low Breathe" | "Quad Low Beam" => Tactic::Lavadrake,
+                            "Quad Low Tail" => Tactic::TailSlap,
+                            "Quad Low Quick" => Tactic::QuadLowQuick,
+                            "Quad Low Basic" => Tactic::QuadLowBasic,
+                            "Theropod Basic" | "Theropod Bird" => Tactic::Theropod,
+                            "Theropod Charge" => Tactic::CircleCharge {
+                                radius: 6,
+                                circle_time: 1,
+                            },
+                            "Turret" => Tactic::Turret,
+                            "Bird Large Breathe" => Tactic::BirdLargeBreathe,
+                            "Bird Large Fire" => Tactic::BirdLargeFire,
+                            "Mindflayer" => Tactic::Mindflayer,
+                            _ => Tactic::Melee,
+                        },
+                        AbilitySpec::Tool(tool_kind) => tool_tactic(*tool_kind),
+                    }
+                } else if let ItemKind::Tool(tool) = &item.kind() {
+                    tool_tactic(tool.kind)
                 } else {
-                    None
+                    Tactic::Melee
                 }
-            }) {
-            Some(ToolKind::Bow) | Some(ToolKind::BowSimple) => Tactic::Bow,
-            Some(ToolKind::Staff) | Some(ToolKind::StaffSimple) => Tactic::Staff,
-            Some(ToolKind::Hammer) => Tactic::Hammer,
-            Some(ToolKind::Sword)
-            | Some(ToolKind::Spear)
-            | Some(ToolKind::SwordSimple)
-            | Some(ToolKind::AxeSimple) => Tactic::Sword,
-            Some(ToolKind::Axe) => Tactic::Axe,
-            Some(ToolKind::Unique(UniqueKind::StoneGolemFist)) => Tactic::StoneGolemBoss,
-            Some(ToolKind::Unique(UniqueKind::QuadMedQuick)) => Tactic::CircleCharge {
-                radius: 3,
-                circle_time: 2,
-            },
-            Some(ToolKind::Unique(UniqueKind::QuadMedCharge)) => Tactic::CircleCharge {
-                radius: 12,
-                circle_time: 1,
-            },
-            Some(ToolKind::Unique(UniqueKind::TheropodCharge)) => Tactic::CircleCharge {
-                radius: 6,
-                circle_time: 1,
-            },
-
-            Some(ToolKind::Unique(UniqueKind::QuadMedJump)) => Tactic::QuadMedJump,
-            Some(ToolKind::Unique(UniqueKind::QuadMedBasic)) => Tactic::QuadMedBasic,
-            Some(ToolKind::Unique(UniqueKind::QuadLowRanged)) => Tactic::QuadLowRanged,
-            Some(ToolKind::Unique(UniqueKind::QuadLowTail)) => Tactic::TailSlap,
-            Some(ToolKind::Unique(UniqueKind::QuadLowQuick)) => Tactic::QuadLowQuick,
-            Some(ToolKind::Unique(UniqueKind::QuadLowBasic)) => Tactic::QuadLowBasic,
-            Some(ToolKind::Unique(UniqueKind::QuadLowBreathe))
-            | Some(ToolKind::Unique(UniqueKind::QuadLowBeam)) => Tactic::Lavadrake,
-            Some(ToolKind::Unique(UniqueKind::TheropodBasic)) => Tactic::Theropod,
-            Some(ToolKind::Unique(UniqueKind::TheropodBird)) => Tactic::Theropod,
-            Some(ToolKind::Unique(UniqueKind::ObjectTurret)) => Tactic::Turret,
-            Some(ToolKind::Unique(UniqueKind::MindflayerStaff)) => Tactic::Mindflayer,
-            Some(ToolKind::Unique(UniqueKind::BirdLargeBreathe)) => Tactic::BirdLargeBreathe,
-            Some(ToolKind::Unique(UniqueKind::BirdLargeFire)) => Tactic::BirdLargeFire,
-            _ => Tactic::Melee,
-        };
+            })
+            .unwrap_or(Tactic::Melee);
 
         // Wield the weapon as running towards the target
         controller.actions.push(ControlAction::Wield);
@@ -2044,7 +2052,7 @@ impl<'a> AgentData<'a> {
                     agent.target = None;
                 }
             },
-            Tactic::StoneGolemBoss => {
+            Tactic::StoneGolem => {
                 if dist_sqrd < min_attack_dist.powi(2) && angle < 90.0 {
                     // 2.0 is temporary correction factor to allow them to melee with their
                     // large hitbox

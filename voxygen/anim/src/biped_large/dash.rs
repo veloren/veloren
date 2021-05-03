@@ -8,7 +8,7 @@ use std::f32::consts::PI;
 pub struct DashAnimation;
 
 impl Animation for DashAnimation {
-    type Dependency = (
+    type Dependency<'a> = (
         Option<ToolKind>,
         Option<ToolKind>,
         Vec3<f32>,
@@ -23,9 +23,9 @@ impl Animation for DashAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_dash")]
     #[allow(clippy::single_match)] // TODO: Pending review in #587
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, velocity, _global_time, stage_section, acc_vel): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, velocity, _global_time, stage_section, acc_vel): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -81,7 +81,7 @@ impl Animation for DashAnimation {
             Quaternion::rotation_x(0.6 * speednorm + (footrotl * -0.2) * speednorm);
         next.torso.orientation = Quaternion::rotation_z(0.0);
         match active_tool_kind {
-            Some(ToolKind::SwordSimple) => {
+            Some(ToolKind::Sword) => {
                 next.control_l.position = Vec3::new(-1.0, 1.0, 1.0);
                 next.control_r.position = Vec3::new(0.0, 2.0, -3.0);
                 next.head.orientation = Quaternion::rotation_x(move1 * -0.25)
@@ -108,7 +108,7 @@ impl Animation for DashAnimation {
                         * Quaternion::rotation_y(-0.1 + move1 * -0.5 + move2 * 1.5 + move3 * -1.0)
                         * Quaternion::rotation_z(-move3 * -1.5);
             },
-            Some(ToolKind::AxeSimple) => {
+            Some(ToolKind::Axe) => {
                 next.control_l.position = Vec3::new(-1.0, 2.0, 12.0 + move3 * 3.0);
                 next.control_r.position = Vec3::new(1.0, 2.0, -2.0);
 

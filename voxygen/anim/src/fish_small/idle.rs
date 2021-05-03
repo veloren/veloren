@@ -9,7 +9,7 @@ pub struct IdleAnimation;
 type IdleAnimationDependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f32, Vec3<f32>);
 
 impl Animation for IdleAnimation {
-    type Dependency = IdleAnimationDependency;
+    type Dependency<'a> = IdleAnimationDependency;
     type Skeleton = FishSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,9 +17,9 @@ impl Animation for IdleAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "fish_small_idle")]
 
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (_velocity, _orientation, _last_ori, _global_time, _avg_vel): Self::Dependency,
+        (_velocity, _orientation, _last_ori, _global_time, _avg_vel): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

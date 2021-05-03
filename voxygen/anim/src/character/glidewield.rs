@@ -6,7 +6,7 @@ use super::{
 pub struct GlideWieldAnimation;
 
 impl Animation for GlideWieldAnimation {
-    type Dependency = ();
+    type Dependency<'a> = ();
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -14,9 +14,9 @@ impl Animation for GlideWieldAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_glidewield")]
 
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        _: Self::Dependency,
+        _: Self::Dependency<'a>,
         _anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

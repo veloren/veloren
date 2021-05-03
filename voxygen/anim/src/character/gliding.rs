@@ -9,7 +9,7 @@ pub struct GlidingAnimation;
 type GlidingAnimationDependency = (Vec3<f32>, Quaternion<f32>, Quaternion<f32>, f32, f32);
 
 impl Animation for GlidingAnimation {
-    type Dependency = GlidingAnimationDependency;
+    type Dependency<'a> = GlidingAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,9 +17,9 @@ impl Animation for GlidingAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_gliding")]
 
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, glider_orientation, global_time, acc_vel): Self::Dependency,
+        (velocity, orientation, glider_orientation, global_time, acc_vel): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

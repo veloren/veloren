@@ -2,16 +2,13 @@ use super::{
     super::{vek::*, Animation},
     BipedLargeSkeleton, SkeletonAttr,
 };
-use common::{
-    comp::item::{ToolKind, UniqueKind},
-    states::utils::StageSection,
-};
+use common::{comp::item::ToolKind, states::utils::StageSection};
 use std::f32::consts::PI;
 
 pub struct BeamAnimation;
 
 impl Animation for BeamAnimation {
-    type Dependency = (
+    type Dependency<'a> = (
         Option<ToolKind>,
         Option<ToolKind>,
         f32,
@@ -26,9 +23,9 @@ impl Animation for BeamAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_beam")]
     #[allow(clippy::single_match)] // TODO: Pending review in #587
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, _global_time, velocity, stage_section, acc_vel): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, _global_time, velocity, stage_section, acc_vel): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -62,9 +59,7 @@ impl Animation for BeamAnimation {
         next.hand_l.orientation = Quaternion::rotation_x(0.0);
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
         match active_tool_kind {
-            Some(ToolKind::StaffSimple)
-            | Some(ToolKind::Sceptre)
-            | Some(ToolKind::Unique(UniqueKind::MindflayerStaff)) => {
+            Some(ToolKind::Sceptre) | Some(ToolKind::Staff) => {
                 let (move1base, move2shake, _move2base, move3) = match stage_section {
                     Some(StageSection::Buildup) => (
                         (anim_time.powf(0.25)).min(1.0),

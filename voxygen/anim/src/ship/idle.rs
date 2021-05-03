@@ -7,7 +7,7 @@ use common::comp::item::ToolKind;
 pub struct IdleAnimation;
 
 impl Animation for IdleAnimation {
-    type Dependency = (
+    type Dependency<'a> = (
         Option<ToolKind>,
         Option<ToolKind>,
         f32,
@@ -22,9 +22,9 @@ impl Animation for IdleAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "ship_idle")]
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (_active_tool_kind, _second_tool_kind, _global_time, acc_vel, orientation, last_ori): Self::Dependency,
+        (_active_tool_kind, _second_tool_kind, _global_time, acc_vel, orientation, last_ori): Self::Dependency<'a>,
         _anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

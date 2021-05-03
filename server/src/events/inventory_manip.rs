@@ -6,7 +6,7 @@ use vek::{Rgb, Vec3};
 use common::{
     comp::{
         self,
-        item::{self, MaterialStatManifest},
+        item::{self, tool::AbilityMap, MaterialStatManifest},
         slot::{self, Slot},
     },
     consts::MAX_PICKUP_RANGE,
@@ -138,7 +138,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             };
 
             // NOTE: We dup the item for message purposes.
-            let item_msg = item.duplicate(&state.ecs().read_resource::<MaterialStatManifest>());
+            let item_msg = item.duplicate(
+                &state.ecs().read_resource::<AbilityMap>(),
+                &state.ecs().read_resource::<MaterialStatManifest>(),
+            );
 
             // Next, we try to equip the picked up item
             let event = match inventory.try_equip(item).or_else(|returned_item| {
@@ -198,8 +201,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
                     if let Some(item) = comp::Item::try_reclaim_from_block(block) {
                         // NOTE: We dup the item for message purposes.
-                        let item_msg =
-                            item.duplicate(&state.ecs().read_resource::<MaterialStatManifest>());
+                        let item_msg = item.duplicate(
+                            &state.ecs().read_resource::<AbilityMap>(),
+                            &state.ecs().read_resource::<MaterialStatManifest>(),
+                        );
                         let (event, item_was_added) = match inventory.push(item) {
                             Ok(_) => (
                                 Some(comp::InventoryUpdate::new(
@@ -276,6 +281,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         Some(comp::InventoryUpdateEvent::Used)
                     } else if let Some(item) = inventory.take(
                         slot,
+                        &state.ecs().read_resource::<AbilityMap>(),
                         &state.ecs().read_resource::<item::MaterialStatManifest>(),
                     ) {
                         match item.kind() {
@@ -476,6 +482,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 .expect("We know entity exists since we got its inventory.");
         },
         comp::InventoryManip::SplitSwap(slot, target) => {
+            let ability_map = state.ecs().read_resource::<AbilityMap>();
             let msm = state.ecs().read_resource::<MaterialStatManifest>();
 
             // If both slots have items and we're attemping to split from one stack
@@ -495,7 +502,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             }
 
             let item = match slot {
-                Slot::Inventory(slot) => inventory.take_half(slot, &msm),
+                Slot::Inventory(slot) => inventory.take_half(slot, &ability_map, &msm),
                 Slot::Equip(_) => None,
             };
 
@@ -546,9 +553,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             drop(inventories);
         },
         comp::InventoryManip::SplitDrop(slot) => {
+            let ability_map = &state.ecs().read_resource::<AbilityMap>();
             let msm = state.ecs().read_resource::<MaterialStatManifest>();
             let item = match slot {
-                Slot::Inventory(slot) => inventory.take_half(slot, &msm),
+                Slot::Inventory(slot) => inventory.take_half(slot, &ability_map, &msm),
                 Slot::Equip(_) => None,
             };
 
@@ -615,6 +623,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 .and_then(|r| {
                     r.perform(
                         &mut inventory,
+                        &state.ecs().read_resource::<AbilityMap>(),
                         &state.ecs().read_resource::<item::MaterialStatManifest>(),
                     )
                     .ok()
@@ -631,6 +640,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
             // Drop the item if there wasn't enough space
             if let Some(Some((item, amount))) = craft_result {
+                let ability_map = &state.ecs().read_resource::<AbilityMap>();
                 let msm = state.ecs().read_resource::<MaterialStatManifest>();
                 for _ in 0..amount {
                     dropped_items.push((
@@ -640,7 +650,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         state
                             .read_component_copied::<comp::Ori>(entity)
                             .unwrap_or_default(),
-                        item.duplicate(&msm),
+                        item.duplicate(ability_map, &msm),
                     ));
                 }
             }

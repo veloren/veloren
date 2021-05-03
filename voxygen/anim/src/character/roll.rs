@@ -17,7 +17,7 @@ type RollAnimationDependency = (
 );
 
 impl Animation for RollAnimation {
-    type Dependency = RollAnimationDependency;
+    type Dependency<'a> = RollAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -25,9 +25,9 @@ impl Animation for RollAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_roll")]
 
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (_active_tool_kind, _second_tool_kind, orientation, last_ori, _global_time, stage_section): Self::Dependency,
+        (_active_tool_kind, _second_tool_kind, orientation, last_ori, _global_time, stage_section): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

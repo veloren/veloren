@@ -144,16 +144,11 @@ pub fn skill_to_db_string(skill: comp::skills::Skill) -> String {
         UnlockGroup(SkillGroupKind::Weapon(ToolKind::Dagger))
         | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Shield))
         | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Spear))
-        | UnlockGroup(SkillGroupKind::Weapon(ToolKind::HammerSimple))
-        | UnlockGroup(SkillGroupKind::Weapon(ToolKind::StaffSimple))
-        | UnlockGroup(SkillGroupKind::Weapon(ToolKind::BowSimple))
-        | UnlockGroup(SkillGroupKind::Weapon(ToolKind::AxeSimple))
-        | UnlockGroup(SkillGroupKind::Weapon(ToolKind::SwordSimple))
         | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Debug))
         | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Farming))
         | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Pick))
         | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Empty))
-        | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Unique(_)))
+        | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Natural))
         | UnlockGroup(SkillGroupKind::General) => {
             panic!("Tried to add unsupported skill to database: {:?}", skill)
         },
@@ -288,16 +283,11 @@ pub fn skill_group_to_db_string(skill_group: comp::skills::SkillGroupKind) -> St
         Weapon(ToolKind::Dagger)
         | Weapon(ToolKind::Shield)
         | Weapon(ToolKind::Spear)
-        | Weapon(ToolKind::HammerSimple)
-        | Weapon(ToolKind::StaffSimple)
-        | Weapon(ToolKind::BowSimple)
-        | Weapon(ToolKind::AxeSimple)
-        | Weapon(ToolKind::SwordSimple)
         | Weapon(ToolKind::Debug)
         | Weapon(ToolKind::Farming)
         | Weapon(ToolKind::Pick)
         | Weapon(ToolKind::Empty)
-        | Weapon(ToolKind::Unique(_)) => panic!(
+        | Weapon(ToolKind::Natural) => panic!(
             "Tried to add unsupported skill group to database: {:?}",
             skill_group
         ),

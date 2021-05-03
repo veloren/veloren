@@ -2,10 +2,7 @@ use super::{
     super::{vek::*, Animation},
     BipedSmallSkeleton, SkeletonAttr,
 };
-use common::{
-    comp::item::{ToolKind, UniqueKind},
-    states::utils::StageSection,
-};
+use common::{comp::item::ToolKind, states::utils::StageSection};
 use std::f32::consts::PI;
 
 pub struct AlphaAnimation;
@@ -23,7 +20,7 @@ type AlphaAnimationDependency = (
 );
 
 impl Animation for AlphaAnimation {
-    type Dependency = AlphaAnimationDependency;
+    type Dependency<'a> = AlphaAnimationDependency;
     type Skeleton = BipedSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -31,7 +28,7 @@ impl Animation for AlphaAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_small_alpha")]
 
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (
             active_tool_kind,
@@ -43,7 +40,7 @@ impl Animation for AlphaAnimation {
             _acc_vel,
             stage_section,
             timer,
-        ): Self::Dependency,
+        ): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -119,7 +116,7 @@ impl Animation for AlphaAnimation {
                 next.tail.orientation = Quaternion::rotation_x(0.05 * fastalt * speednormcancel)
                     * Quaternion::rotation_z(fast * 0.15 * speednormcancel);
             },
-            Some(ToolKind::Unique(UniqueKind::Husk)) => {
+            Some(ToolKind::Natural) => {
                 next.hand_l.position = Vec3::new(
                     -s_a.hand.0,
                     s_a.hand.1 + move1abs * 3.0 + move2abs * 3.0,

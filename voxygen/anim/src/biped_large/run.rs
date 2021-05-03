@@ -18,14 +18,14 @@ type RunAnimationDependency = (
     f32,
 );
 impl Animation for RunAnimation {
-    type Dependency = RunAnimationDependency;
+    type Dependency<'a> = RunAnimationDependency;
     type Skeleton = BipedLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"biped_large_run\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_run")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (
             active_tool_kind,
@@ -36,7 +36,7 @@ impl Animation for RunAnimation {
             global_time,
             avg_vel,
             acc_vel,
-        ): Self::Dependency,
+        ): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -292,22 +292,22 @@ impl Animation for RunAnimation {
                 * Quaternion::rotation_z(0.0);
 
             match active_tool_kind {
-                Some(ToolKind::BowSimple) => {
+                Some(ToolKind::Bow) => {
                     next.main.position = Vec3::new(-2.0, -5.0, -6.0);
                     next.main.orientation =
                         Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
                 },
-                Some(ToolKind::StaffSimple) | Some(ToolKind::Sceptre) => {
+                Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                     next.main.position = Vec3::new(-6.0, -5.0, -12.0);
                     next.main.orientation =
                         Quaternion::rotation_y(0.6) * Quaternion::rotation_z(1.57);
                 },
-                Some(ToolKind::SwordSimple) => {
+                Some(ToolKind::Sword) => {
                     next.main.position = Vec3::new(-10.0, -8.0, 12.0);
                     next.main.orientation =
                         Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
                 },
-                Some(ToolKind::HammerSimple) | Some(ToolKind::AxeSimple) => {
+                Some(ToolKind::Hammer) | Some(ToolKind::Axe) => {
                     next.main.position = Vec3::new(-10.0, -8.0, 12.0);
                     next.main.orientation =
                         Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);

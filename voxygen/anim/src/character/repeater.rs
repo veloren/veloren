@@ -10,7 +10,7 @@ pub struct RepeaterAnimation;
 
 impl Animation for RepeaterAnimation {
     #[allow(clippy::type_complexity)]
-    type Dependency = (
+    type Dependency<'a> = (
         Option<AbilityInfo>,
         (Option<Hands>, Option<Hands>),
         Vec3<f32>,
@@ -24,9 +24,9 @@ impl Animation for RepeaterAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_repeater")]
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (ability_info, hands, _velocity, _global_time, stage_section): Self::Dependency,
+        (ability_info, hands, _velocity, _global_time, stage_section): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

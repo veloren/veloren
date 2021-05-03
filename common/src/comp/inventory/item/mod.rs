@@ -4,7 +4,7 @@ pub mod tool;
 
 // Reexports
 pub use modular::{ModularComponent, ModularComponentKind, ModularComponentTag};
-pub use tool::{AbilitySet, Hands, MaterialStatManifest, Tool, ToolKind, UniqueKind};
+pub use tool::{AbilitySet, AbilitySpec, Hands, MaterialStatManifest, Tool, ToolKind};
 
 use crate::{
     assets::{self, AssetExt, Error},
@@ -28,6 +28,7 @@ use serde::{de, Deserialize, Serialize, Serializer};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{fmt, sync::Arc};
+use tracing::error;
 use vek::Rgb;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -275,17 +276,19 @@ pub struct ItemDef {
     pub tags: Vec<ItemTag>,
     #[serde(default)]
     pub slots: u16,
-    ability_map: AbilityMap,
+    /// Used to specify a custom ability set for a weapon. Leave None (or don't
+    /// include field in ItemDef) to use default ability set for weapon kind.
+    pub ability_spec: Option<AbilitySpec>,
 }
 
 impl PartialEq for ItemDef {
     fn eq(&self, other: &Self) -> bool { self.item_definition_id == other.item_definition_id }
 }
 
+// TODO: Look into removing ItemConfig and just using AbilitySet
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ItemConfig {
     pub abilities: AbilitySet<CharacterAbility>,
-    pub block_ability: Option<CharacterAbility>,
 }
 
 #[derive(Debug)]
@@ -293,19 +296,39 @@ pub enum ItemConfigError {
     BadItemKind,
 }
 
-impl TryFrom<(&ItemKind, &[Item], &AbilityMap, &MaterialStatManifest)> for ItemConfig {
+impl TryFrom<(&Item, &AbilityMap, &MaterialStatManifest)> for ItemConfig {
     type Error = ItemConfigError;
 
     fn try_from(
-        (item_kind, components, map, msm): (&ItemKind, &[Item], &AbilityMap, &MaterialStatManifest),
+        (item, ability_map, msm): (&Item, &AbilityMap, &MaterialStatManifest),
     ) -> Result<Self, Self::Error> {
-        if let ItemKind::Tool(tool) = item_kind {
-            let abilities = tool.get_abilities(msm, components, map);
+        if let ItemKind::Tool(tool) = &item.kind {
+            // If no custom ability set is specified, fall back to abilityset of tool kind.
+            let tool_default = ability_map
+                .get_ability_set(&AbilitySpec::Tool(tool.kind))
+                .cloned();
+            let abilities = if let Some(set_key) = item.ability_spec() {
+                if let Some(set) = ability_map.get_ability_set(set_key) {
+                    set.clone().modified_by_tool(&tool, msm, &item.components)
+                } else {
+                    error!(
+                        "Custom ability set: {:?} references non-existent set, falling back to \
+                         default ability set.",
+                        set_key
+                    );
+                    tool_default.unwrap_or_default()
+                }
+            } else if let Some(set) = tool_default {
+                set.modified_by_tool(&tool, msm, &item.components)
+            } else {
+                error!(
+                    "No ability set defined for tool: {:?}, falling back to default ability set.",
+                    tool.kind
+                );
+                Default::default()
+            };
 
-            Ok(ItemConfig {
-                abilities,
-                block_ability: None,
-            })
+            Ok(ItemConfig { abilities })
         } else {
             Err(ItemConfigError::BadItemKind)
         }
@@ -351,7 +374,6 @@ impl ItemDef {
         quality: Quality,
         tags: Vec<ItemTag>,
         slots: u16,
-        ability_map: AbilityMap,
     ) -> Self {
         Self {
             item_definition_id,
@@ -361,7 +383,7 @@ impl ItemDef {
             quality,
             tags,
             slots,
-            ability_map,
+            ability_spec: None,
         }
     }
 }
@@ -395,10 +417,6 @@ impl assets::Compound for ItemDef {
             .load_owned::<RawItemDef>(specifier)
             .or_else(|e| modular::synthesize_modular_asset(specifier).ok_or(e))?;
 
-        let ability_map_handle =
-            cache.load::<AbilityMap>("common.abilities.weapon_ability_manifest")?;
-        let ability_map = ability_map_handle.read().clone();
-
         let RawItemDef {
             name,
             description,
@@ -406,6 +424,7 @@ impl assets::Compound for ItemDef {
             quality,
             tags,
             slots,
+            ability_spec,
         } = raw;
 
         // Some commands like /give_item provide the asset specifier separated with \
@@ -422,7 +441,7 @@ impl assets::Compound for ItemDef {
             quality,
             tags,
             slots,
-            ability_map,
+            ability_spec,
         })
     }
 }
@@ -437,6 +456,7 @@ struct RawItemDef {
     tags: Vec<ItemTag>,
     #[serde(default)]
     slots: u16,
+    ability_spec: Option<AbilitySpec>,
 }
 
 impl assets::Asset for RawItemDef {
@@ -474,13 +494,18 @@ impl Item {
     pub fn new_from_item_def(
         inner_item: Arc<ItemDef>,
         input_components: &[Item],
+        ability_map: &AbilityMap,
         msm: &MaterialStatManifest,
     ) -> Self {
         let mut components = Vec::new();
         if inner_item.is_modular() {
             // recipe ensures that types match (i.e. no axe heads on a sword hilt, or double
             // sword blades)
-            components.extend(input_components.iter().map(|comp| comp.duplicate(msm)));
+            components.extend(
+                input_components
+                    .iter()
+                    .map(|comp| comp.duplicate(ability_map, msm)),
+            );
         }
 
         let mut item = Item {
@@ -491,7 +516,7 @@ impl Item {
             item_def: inner_item,
             item_config: None,
         };
-        item.update_item_config(msm);
+        item.update_item_config(ability_map, msm);
         item
     }
 
@@ -499,8 +524,10 @@ impl Item {
     /// Panics if the asset does not exist.
     pub fn new_from_asset_expect(asset_specifier: &str) -> Self {
         let inner_item = Arc::<ItemDef>::load_expect_cloned(asset_specifier);
+        // TODO: Figure out better way to get msm and ability_map
         let msm = MaterialStatManifest::default();
-        Item::new_from_item_def(inner_item, &[], &msm)
+        let ability_map = AbilityMap::default();
+        Item::new_from_item_def(inner_item, &[], &ability_map, &msm)
     }
 
     /// Creates a Vec containing one of each item that matches the provided
@@ -513,14 +540,20 @@ impl Item {
     /// it exists
     pub fn new_from_asset(asset: &str) -> Result<Self, Error> {
         let inner_item = Arc::<ItemDef>::load_cloned(asset)?;
+        // TODO: Get msm and ability_map less hackily
         let msm = MaterialStatManifest::default();
-        Ok(Item::new_from_item_def(inner_item, &[], &msm))
+        let ability_map = AbilityMap::default();
+        Ok(Item::new_from_item_def(inner_item, &[], &ability_map, &msm))
     }
 
     /// Duplicates an item, creating an exact copy but with a new item ID
-    pub fn duplicate(&self, msm: &MaterialStatManifest) -> Self {
-        let mut new_item =
-            Item::new_from_item_def(Arc::clone(&self.item_def), &self.components, msm);
+    pub fn duplicate(&self, ability_map: &AbilityMap, msm: &MaterialStatManifest) -> Self {
+        let mut new_item = Item::new_from_item_def(
+            Arc::clone(&self.item_def),
+            &self.components,
+            ability_map,
+            msm,
+        );
         new_item.set_amount(self.amount()).expect(
             "`new_item` has the same `item_def` and as an invariant, \
              self.set_amount(self.amount()) should always succeed.",
@@ -529,7 +562,7 @@ impl Item {
             |(new_item_slot, old_item_slot)| {
                 *new_item_slot = old_item_slot
                     .as_ref()
-                    .map(|old_item| old_item.duplicate(msm));
+                    .map(|old_item| old_item.duplicate(ability_map, msm));
             },
         );
         new_item
@@ -596,22 +629,22 @@ impl Item {
         }
     }
 
-    pub fn add_component(&mut self, component: Item, msm: &MaterialStatManifest) {
+    pub fn add_component(
+        &mut self,
+        component: Item,
+        ability_map: &AbilityMap,
+        msm: &MaterialStatManifest,
+    ) {
         // TODO: hook for typechecking (not needed atm if this is only used by DB
         // persistence, but will definitely be needed once enhancement slots are
         // added to prevent putting a sword into another sword)
         self.components.push(component);
         // adding a component changes the stats, so recalculate the ItemConfig
-        self.update_item_config(msm);
+        self.update_item_config(ability_map, msm);
     }
 
-    fn update_item_config(&mut self, msm: &MaterialStatManifest) {
-        if let Ok(item_config) = ItemConfig::try_from((
-            self.kind(),
-            self.components(),
-            &self.item_def.ability_map,
-            msm,
-        )) {
+    fn update_item_config(&mut self, ability_map: &AbilityMap, msm: &MaterialStatManifest) {
+        if let Ok(item_config) = ItemConfig::try_from((&*self, ability_map, msm)) {
             self.item_config = Some(Box::new(item_config));
         }
     }
@@ -731,6 +764,8 @@ impl Item {
             _ => return None,
         }))
     }
+
+    pub fn ability_spec(&self) -> Option<&AbilitySpec> { self.item_def.ability_spec.as_ref() }
 }
 
 /// Provides common methods providing details about an item definition

@@ -20,8 +20,12 @@ pub(super) fn get_test_bag(slots: u16) -> Item {
         Quality::Common,
         Vec::new(),
         slots,
-        AbilityMap::default(),
     );
 
-    Item::new_from_item_def(Arc::new(item_def), &[], &MaterialStatManifest::default())
+    Item::new_from_item_def(
+        Arc::new(item_def),
+        &[],
+        &AbilityMap::default(),
+        &MaterialStatManifest::default(),
+    )
 }

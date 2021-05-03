@@ -726,26 +726,23 @@ impl FigureMgr {
 
             let mut state_animation_rate = 1.0;
 
-            let active_item_kind = inventory
-                .and_then(|i| i.equipped(EquipSlot::Mainhand))
-                .map(|i| i.kind());
-            let (active_tool_kind, active_tool_hand) =
-                if let Some(ItemKind::Tool(tool)) = active_item_kind {
-                    (Some(tool.kind), Some(tool.hands))
-                } else {
-                    (None, None)
-                };
+            let tool_info = |equip_slot| {
+                inventory
+                    .and_then(|i| i.equipped(equip_slot))
+                    .map(|i| {
+                        if let ItemKind::Tool(tool) = i.kind() {
+                            (Some(tool.kind), Some(tool.hands), i.ability_spec())
+                        } else {
+                            (None, None, None)
+                        }
+                    })
+                    .unwrap_or((None, None, None))
+            };
 
-            let second_item_kind = inventory
-                .and_then(|i| i.equipped(EquipSlot::Offhand))
-                .map(|i| i.kind());
-
-            let (second_tool_kind, second_tool_hand) =
-                if let Some(ItemKind::Tool(tool)) = second_item_kind {
-                    (Some(tool.kind), Some(tool.hands))
-                } else {
-                    (None, None)
-                };
+            let (active_tool_kind, active_tool_hand, active_tool_spec) =
+                tool_info(EquipSlot::Mainhand);
+            let (second_tool_kind, second_tool_hand, second_tool_spec) =
+                tool_info(EquipSlot::Offhand);
 
             let hands = (active_tool_hand, second_tool_hand);
 
@@ -3705,8 +3702,8 @@ impl FigureMgr {
                             anim::biped_large::WieldAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
+                                    (active_tool_kind, active_tool_spec),
+                                    (second_tool_kind, second_tool_spec),
                                     rel_vel,
                                     time,
                                     state.acc_vel,
@@ -3720,8 +3717,8 @@ impl FigureMgr {
                             anim::biped_large::AlphaAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
+                                    (active_tool_kind, active_tool_spec),
+                                    (second_tool_kind, second_tool_spec),
                                     rel_vel,
                                     time,
                                     None,
@@ -3749,8 +3746,8 @@ impl FigureMgr {
                             anim::biped_large::ShootAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
+                                    (active_tool_kind, active_tool_spec),
+                                    (second_tool_kind, second_tool_spec),
                                     rel_vel,
                                     // TODO: Update to use the quaternion.
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
@@ -3784,7 +3781,7 @@ impl FigureMgr {
                                     anim::biped_large::StunnedAnimation::update_skeleton(
                                         &target_base,
                                         (
-                                            active_tool_kind,
+                                            (active_tool_kind, active_tool_spec),
                                             rel_vel,
                                             state.acc_vel,
                                             Some(s.stage_section),
@@ -3843,8 +3840,8 @@ impl FigureMgr {
                             anim::biped_large::ShootAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
+                                    (active_tool_kind, active_tool_spec),
+                                    (second_tool_kind, second_tool_spec),
                                     rel_vel,
                                     // TODO: Update to use the quaternion.
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
@@ -3918,8 +3915,8 @@ impl FigureMgr {
                                 1 => anim::biped_large::AlphaAnimation::update_skeleton(
                                     &target_base,
                                     (
-                                        active_tool_kind,
-                                        second_tool_kind,
+                                        (active_tool_kind, active_tool_spec),
+                                        (second_tool_kind, second_tool_spec),
                                         rel_vel,
                                         time,
                                         Some(s.stage_section),
@@ -3932,8 +3929,8 @@ impl FigureMgr {
                                 2 => anim::biped_large::BetaAnimation::update_skeleton(
                                     &target_base,
                                     (
-                                        active_tool_kind,
-                                        second_tool_kind,
+                                        (active_tool_kind, active_tool_spec),
+                                        (second_tool_kind, second_tool_spec),
                                         rel_vel,
                                         time,
                                         Some(s.stage_section),
@@ -3946,8 +3943,8 @@ impl FigureMgr {
                                 _ => anim::biped_large::BetaAnimation::update_skeleton(
                                     &target_base,
                                     (
-                                        active_tool_kind,
-                                        second_tool_kind,
+                                        (active_tool_kind, active_tool_spec),
+                                        (second_tool_kind, second_tool_spec),
                                         rel_vel,
                                         time,
                                         Some(s.stage_section),

@@ -8,7 +8,7 @@ use std::f32::consts::PI;
 pub struct EquipAnimation;
 
 impl Animation for EquipAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, f32, f32);
+    type Dependency<'a> = (Option<ToolKind>, Option<ToolKind>, f32, f32);
     type Skeleton = BipedLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,9 +16,9 @@ impl Animation for EquipAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_equip")]
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, _velocity, _global_time): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, _velocity, _global_time): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         _s_a: &SkeletonAttr,

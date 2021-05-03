@@ -36,34 +36,34 @@ impl TagExampleInfo for ModularComponentTag {
     fn name(&self) -> &'static str {
         match self.modkind {
             ModularComponentKind::Damage => match self.toolkind {
-                ToolKind::Sword | ToolKind::SwordSimple => "sword blade",
-                ToolKind::Axe | ToolKind::AxeSimple => "axe head",
-                ToolKind::Hammer | ToolKind::HammerSimple => "hammer head",
-                ToolKind::Bow | ToolKind::BowSimple => "bow limbs",
+                ToolKind::Sword => "sword blade",
+                ToolKind::Axe => "axe head",
+                ToolKind::Hammer => "hammer head",
+                ToolKind::Bow => "bow limbs",
                 ToolKind::Dagger => "dagger blade",
-                ToolKind::Staff | ToolKind::StaffSimple => "staff head",
+                ToolKind::Staff => "staff head",
                 ToolKind::Sceptre => "sceptre head",
                 // TODO: naming
                 ToolKind::Spear => "spear damage component",
                 ToolKind::Shield => "shield damage component",
-                ToolKind::Unique(_) => "unique damage component",
                 ToolKind::Debug => "debug damage component",
                 ToolKind::Farming => "farming damage component",
                 ToolKind::Pick => "pickaxe head",
+                ToolKind::Natural => "natural damage component",
                 ToolKind::Empty => "empty damage component",
             },
             ModularComponentKind::Held => match self.toolkind {
-                ToolKind::Sword | ToolKind::SwordSimple => "sword hilt",
-                ToolKind::Axe | ToolKind::AxeSimple => "axe shaft",
-                ToolKind::Hammer | ToolKind::HammerSimple => "hammer shaft",
-                ToolKind::Bow | ToolKind::BowSimple => "bow riser",
+                ToolKind::Sword => "sword hilt",
+                ToolKind::Axe => "axe shaft",
+                ToolKind::Hammer => "hammer shaft",
+                ToolKind::Bow => "bow riser",
                 ToolKind::Dagger => "dagger grip",
-                ToolKind::Staff | ToolKind::StaffSimple => "staff shaft",
+                ToolKind::Staff => "staff shaft",
                 ToolKind::Sceptre => "sceptre shaft",
                 // TODO: naming
                 ToolKind::Spear => "spear held component",
                 ToolKind::Shield => "shield held component",
-                ToolKind::Unique(_) => "unique held component",
+                ToolKind::Natural => "natural held component",
                 ToolKind::Debug => "debug held component",
                 ToolKind::Farming => "farming held component",
                 ToolKind::Pick => "pickaxe handle",
@@ -75,48 +75,32 @@ impl TagExampleInfo for ModularComponentTag {
     fn exemplar_identifier(&self) -> &'static str {
         match self.modkind {
             ModularComponentKind::Damage => match self.toolkind {
-                ToolKind::Sword | ToolKind::SwordSimple => {
-                    "common.items.tag_examples.modular.damage.sword"
-                },
-                ToolKind::Axe | ToolKind::AxeSimple => {
-                    "common.items.tag_examples.modular.damage.axe"
-                },
-                ToolKind::Hammer | ToolKind::HammerSimple => {
-                    "common.items.tag_examples.modular.damage.hammer"
-                },
-                ToolKind::Bow | ToolKind::BowSimple => {
-                    "common.items.tag_examples.modular.damage.bow"
-                },
+                ToolKind::Sword => "common.items.tag_examples.modular.damage.sword",
+                ToolKind::Axe => "common.items.tag_examples.modular.damage.axe",
+                ToolKind::Hammer => "common.items.tag_examples.modular.damage.hammer",
+                ToolKind::Bow => "common.items.tag_examples.modular.damage.bow",
                 ToolKind::Dagger => "common.items.tag_examples.modular.damage.dagger",
-                ToolKind::Staff | ToolKind::StaffSimple => {
-                    "common.items.tag_examples.modular.damage.staff"
-                },
+                ToolKind::Staff => "common.items.tag_examples.modular.damage.staff",
                 ToolKind::Sceptre => "common.items.tag_examples.modular.damage.sceptre",
                 ToolKind::Shield => "common.items.tag_examples.modular.damage.shield",
                 ToolKind::Spear => "common.items.tag_examples.modular.damage.spear",
-                ToolKind::Unique(_) => "common.items.tag_examples.modular.damage.unique",
+                ToolKind::Natural => "common.items.tag_examples.modular.damage.natural",
                 ToolKind::Debug => "common.items.tag_examples.modular.damage.debug",
                 ToolKind::Farming => "common.items.tag_examples.modular.damage.farming",
                 ToolKind::Pick => "common.items.tag_examples.modular.damage.pick",
                 ToolKind::Empty => "common.items.tag_examples.modular.damage.empty",
             },
             ModularComponentKind::Held => match self.toolkind {
-                ToolKind::Sword | ToolKind::SwordSimple => {
-                    "common.items.tag_examples.modular.held.sword"
-                },
-                ToolKind::Axe | ToolKind::AxeSimple => "common.items.tag_examples.modular.held.axe",
-                ToolKind::Hammer | ToolKind::HammerSimple => {
-                    "common.items.tag_examples.modular.held.hammer"
-                },
-                ToolKind::Bow | ToolKind::BowSimple => "common.items.tag_examples.modular.held.bow",
+                ToolKind::Sword => "common.items.tag_examples.modular.held.sword",
+                ToolKind::Axe => "common.items.tag_examples.modular.held.axe",
+                ToolKind::Hammer => "common.items.tag_examples.modular.held.hammer",
+                ToolKind::Bow => "common.items.tag_examples.modular.held.bow",
                 ToolKind::Dagger => "common.items.tag_examples.modular.held.dagger",
-                ToolKind::Staff | ToolKind::StaffSimple => {
-                    "common.items.tag_examples.modular.held.staff"
-                },
+                ToolKind::Staff => "common.items.tag_examples.modular.held.staff",
                 ToolKind::Sceptre => "common.items.tag_examples.modular.held.sceptre",
                 ToolKind::Shield => "common.items.tag_examples.modular.held.shield",
                 ToolKind::Spear => "common.items.tag_examples.modular.held.spear",
-                ToolKind::Unique(_) => "common.items.tag_examples.modular.held.unique",
+                ToolKind::Natural => "common.items.tag_examples.modular.held.natural",
                 ToolKind::Debug => "common.items.tag_examples.modular.held.debug",
                 ToolKind::Farming => "common.items.tag_examples.modular.held.farming",
                 ToolKind::Pick => "common.items.tag_examples.modular.held.pick",
@@ -208,6 +192,7 @@ fn make_component_def(
         quality,
         tags: vec![ItemTag::ModularComponent(tag)],
         slots: 0,
+        ability_spec: None,
     };
     (identifier, item)
 }
@@ -230,6 +215,7 @@ fn make_weapon_def(toolkind: ToolKind) -> (String, RawItemDef) {
         quality,
         tags: Vec::new(),
         slots: 0,
+        ability_spec: None,
     };
     (identifier, item)
 }
@@ -282,6 +268,7 @@ fn make_tagexample_def(
         quality,
         tags: vec![ItemTag::ModularComponent(tag)],
         slots: 0,
+        ability_spec: None,
     };
     (identifier, item)
 }

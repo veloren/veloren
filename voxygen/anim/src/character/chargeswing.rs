@@ -17,7 +17,7 @@ type ChargeswingAnimationDependency = (
 );
 
 impl Animation for ChargeswingAnimation {
-    type Dependency = ChargeswingAnimationDependency;
+    type Dependency<'a> = ChargeswingAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -25,9 +25,9 @@ impl Animation for ChargeswingAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_chargeswing")]
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (hands, _velocity, _global_time, stage_section, ability_info): Self::Dependency,
+        (hands, _velocity, _global_time, stage_section, ability_info): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -81,10 +81,11 @@ impl Animation for ChargeswingAnimation {
         }
 
         match hands {
+            #[allow(clippy::single_match)]
             (Some(Hands::Two), _) | (None, Some(Hands::Two)) => match ability_info
                 .and_then(|a| a.tool)
             {
-                Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) => {
+                Some(ToolKind::Hammer) => {
                     next.hand_l.position =
                         Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2 + (move2 * -8.0));
                     next.hand_l.orientation = Quaternion::rotation_x(s_a.hhl.3)
@@ -113,8 +114,9 @@ impl Animation for ChargeswingAnimation {
         };
 
         match hands {
+            #[allow(clippy::single_match)]
             (Some(Hands::One), _) => match ability_info.and_then(|a| a.tool) {
-                Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) => {
+                Some(ToolKind::Hammer) => {
                     next.control_l.position = Vec3::new(
                         -7.0 + move1 * 4.0,
                         8.0 + move1 * 2.0 + move2 * 4.0,
@@ -133,9 +135,10 @@ impl Animation for ChargeswingAnimation {
         };
 
         match hands {
+            #[allow(clippy::single_match)]
             (None | Some(Hands::One), Some(Hands::One)) => {
                 match ability_info.and_then(|a| a.tool) {
-                    Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) => {
+                    Some(ToolKind::Hammer) => {
                         next.control_r.position = Vec3::new(
                             7.0 + move1 * 1.0 + move2 * -20.0,
                             8.0 + move1 * 1.0 + move2 * 4.0,

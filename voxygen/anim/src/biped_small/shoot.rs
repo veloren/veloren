@@ -20,7 +20,7 @@ type ShootAnimationDependency = (
 );
 
 impl Animation for ShootAnimation {
-    type Dependency = ShootAnimationDependency;
+    type Dependency<'a> = ShootAnimationDependency;
     type Skeleton = BipedSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -28,7 +28,7 @@ impl Animation for ShootAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_small_shoot")]
 
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (
             active_tool_kind,
@@ -40,7 +40,7 @@ impl Animation for ShootAnimation {
             _acc_vel,
             stage_section,
             _timer,
-        ): Self::Dependency,
+        ): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -111,7 +111,7 @@ impl Animation for ShootAnimation {
                 next.control.orientation = Quaternion::rotation_x(-0.3 + move1abs * 0.4)
                     * Quaternion::rotation_y(0.5 * speednorm);
             },
-            Some(ToolKind::Staff) | Some(ToolKind::StaffSimple) => {
+            Some(ToolKind::Staff) => {
                 let (move1base, _move2base, move3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
                     Some(StageSection::Swing) => (1.0, anim_time.powf(0.25), 0.0),

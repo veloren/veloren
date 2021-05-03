@@ -8,7 +8,7 @@ use std::f32::consts::PI;
 pub struct JumpAnimation;
 impl Animation for JumpAnimation {
     #[allow(clippy::type_complexity)]
-    type Dependency = (
+    type Dependency<'a> = (
         Option<ToolKind>,
         Option<ToolKind>,
         (Option<Hands>, Option<Hands>),
@@ -24,9 +24,9 @@ impl Animation for JumpAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_jump")]
 
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, hands, velocity, orientation, last_ori, global_time): Self::Dependency,
+        (active_tool_kind, second_tool_kind, hands, velocity, orientation, last_ori, global_time): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

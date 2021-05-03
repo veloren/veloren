@@ -18,16 +18,16 @@ type SpinAnimationDependency = (
     Option<AbilityInfo>,
 );
 impl Animation for SpinAnimation {
-    type Dependency = SpinAnimationDependency;
+    type Dependency<'a> = SpinAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"character_spin\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_spin")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (hands, _velocity, _global_time, stage_section, ability_info): Self::Dependency,
+        (hands, _velocity, _global_time, stage_section, ability_info): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -125,7 +125,7 @@ impl Animation for SpinAnimation {
         match hands {
             (Some(Hands::Two), _) | (None, Some(Hands::Two)) => {
                 match ability_info.and_then(|a| a.tool) {
-                    Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
+                    Some(ToolKind::Sword) => {
                         next.main.position = Vec3::new(0.0, 0.0, 0.0);
                         next.main.orientation = Quaternion::rotation_x(0.0);
 
@@ -177,7 +177,7 @@ impl Animation for SpinAnimation {
 
         match hands {
             (Some(Hands::One), _) => match ability_info.and_then(|a| a.tool) {
-                Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
+                Some(ToolKind::Sword) => {
                     next.control_l.position = Vec3::new(-7.0 + movement2base * -5.0, 8.0, 2.0);
                     next.control_l.orientation = Quaternion::rotation_x(1.7)
                         * Quaternion::rotation_y(-2.7 + movement1base * -1.0 + movement2base * 2.0)
@@ -205,7 +205,7 @@ impl Animation for SpinAnimation {
         match hands {
             (None | Some(Hands::One), Some(Hands::One)) => {
                 match ability_info.and_then(|a| a.tool) {
-                    Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
+                    Some(ToolKind::Sword) => {
                         next.control_r.position =
                             Vec3::new(15.0 + move2 * -15.0, 8.0 + move2 * 5.0, 2.0);
                         next.control_r.orientation = Quaternion::rotation_x(1.7)

@@ -9,7 +9,7 @@ pub struct RunAnimation;
 type RunAnimationDependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f32, Vec3<f32>, f32);
 
 impl Animation for RunAnimation {
-    type Dependency = RunAnimationDependency;
+    type Dependency<'a> = RunAnimationDependency;
     type Skeleton = BipedSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,9 +17,9 @@ impl Animation for RunAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_small_run")]
 
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, last_ori, global_time, _avg_vel, acc_vel): Self::Dependency,
+        (velocity, orientation, last_ori, global_time, _avg_vel, acc_vel): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

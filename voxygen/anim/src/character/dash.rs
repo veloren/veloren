@@ -17,7 +17,7 @@ type DashAnimationDependency = (
     Option<AbilityInfo>,
 );
 impl Animation for DashAnimation {
-    type Dependency = DashAnimationDependency;
+    type Dependency<'a> = DashAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -25,9 +25,9 @@ impl Animation for DashAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_dash")]
     #[allow(clippy::single_match)] // TODO: Pending review in #587
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (hands, _global_time, stage_section, ability_info): Self::Dependency,
+        (hands, _global_time, stage_section, ability_info): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -93,7 +93,7 @@ impl Animation for DashAnimation {
         match hands {
             (Some(Hands::Two), _) | (None, Some(Hands::Two)) => {
                 match ability_info.and_then(|a| a.tool) {
-                    Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
+                    Some(ToolKind::Sword) => {
                         next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                         next.hand_l.orientation =
                             Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
@@ -118,7 +118,7 @@ impl Animation for DashAnimation {
 
         match hands {
             (Some(Hands::One), _) => match ability_info.and_then(|a| a.tool) {
-                Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
+                Some(ToolKind::Sword) => {
                     next.control_l.position = Vec3::new(-7.0, 8.0 + move3 * 5.0, 2.0 + move1 * 4.0);
                     next.control_l.orientation =
                         Quaternion::rotation_x(-0.3 + move2 * 1.0 + move3 * 1.0)
@@ -135,7 +135,7 @@ impl Animation for DashAnimation {
         match hands {
             (None | Some(Hands::One), Some(Hands::One)) => {
                 match ability_info.and_then(|a| a.tool) {
-                    Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
+                    Some(ToolKind::Sword) => {
                         next.control_r.position = Vec3::new(
                             7.0 + move1 * 5.0 + move3 * -30.0,
                             8.0 + move3 * -5.0,

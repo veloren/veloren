@@ -9,7 +9,7 @@ pub struct SwimAnimation;
 type SwimAnimationDependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f32, Vec3<f32>, f32);
 
 impl Animation for SwimAnimation {
-    type Dependency = SwimAnimationDependency;
+    type Dependency<'a> = SwimAnimationDependency;
     type Skeleton = FishMediumSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,9 +17,9 @@ impl Animation for SwimAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "fish_medium_swim")]
 
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel): Self::Dependency,
+        (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel): Self::Dependency<'a>,
         _anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

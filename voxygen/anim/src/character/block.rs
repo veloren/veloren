@@ -19,16 +19,16 @@ type BlockAnimationDependency = (
     Option<StageSection>,
 );
 impl Animation for BlockAnimation {
-    type Dependency = BlockAnimationDependency;
+    type Dependency<'a> = BlockAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"character_block\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_block")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (hands, active_tool_kind, second_tool_kind,velocity, _global_time, stage_section): Self::Dependency,
+        (hands, active_tool_kind, second_tool_kind,velocity, _global_time, stage_section): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -76,7 +76,7 @@ impl Animation for BlockAnimation {
 
         match (hands, active_tool_kind, second_tool_kind) {
             ((Some(Hands::Two), _), tool, _) | ((None, Some(Hands::Two)), _, tool) => match tool {
-                Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
+                Some(ToolKind::Sword) => {
                     next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                     next.hand_l.orientation =
                         Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
@@ -116,7 +116,7 @@ impl Animation for BlockAnimation {
                         * Quaternion::rotation_y(s_a.ac.4 + move1 * -1.8)
                         * Quaternion::rotation_z(s_a.ac.5 + move1 * 4.0);
                 },
-                Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) | Some(ToolKind::Pick) => {
+                Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {
                     next.hand_l.position =
                         Vec3::new(s_a.hhl.0, s_a.hhl.1 + move1 * 6.0, s_a.hhl.2 + move1 * 6.0);
                     next.hand_l.orientation = Quaternion::rotation_x(s_a.hhl.3 + move1 * -0.5)

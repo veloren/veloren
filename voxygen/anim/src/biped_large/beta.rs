@@ -3,7 +3,7 @@ use super::{
     BipedLargeSkeleton, SkeletonAttr,
 };
 use common::{
-    comp::item::{ToolKind, UniqueKind},
+    comp::item::tool::{AbilitySpec, ToolKind},
     states::utils::StageSection,
 };
 use std::f32::consts::PI;
@@ -11,9 +11,10 @@ use std::f32::consts::PI;
 pub struct BetaAnimation;
 
 impl Animation for BetaAnimation {
-    type Dependency = (
-        Option<ToolKind>,
-        Option<ToolKind>,
+    #[allow(clippy::type_complexity)]
+    type Dependency<'a> = (
+        (Option<ToolKind>, Option<&'a AbilitySpec>),
+        (Option<ToolKind>, Option<&'a AbilitySpec>),
         Vec3<f32>,
         f32,
         Option<StageSection>,
@@ -25,9 +26,16 @@ impl Animation for BetaAnimation {
     const UPDATE_FN: &'static [u8] = b"biped_large_beta\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_beta")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, velocity, _global_time, stage_section, acc_vel): Self::Dependency,
+        (
+            (active_tool_kind, active_tool_spec),
+            _second_tool,
+            velocity,
+            _global_time,
+            stage_section,
+            acc_vel,
+        ): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -82,7 +90,7 @@ impl Animation for BetaAnimation {
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
 
         match active_tool_kind {
-            Some(ToolKind::SwordSimple) => {
+            Some(ToolKind::Sword) => {
                 next.control_l.position = Vec3::new(-1.0, 1.0, 1.0);
                 next.control_r.position = Vec3::new(0.0, 2.0, -3.0);
                 next.head.orientation = Quaternion::rotation_x(move1 * -0.25)
@@ -108,7 +116,7 @@ impl Animation for BetaAnimation {
                     Quaternion::rotation_x(-0.2 + move1 * 0.5 + move2 * -1.5)
                         * Quaternion::rotation_y(-0.1 + move1 * -0.5 + move2 * 1.0);
             },
-            Some(ToolKind::HammerSimple) => {
+            Some(ToolKind::Hammer) => {
                 next.control_l.position = Vec3::new(-1.0, 2.0, 12.0 + move2 * -10.0);
                 next.control_r.position = Vec3::new(1.0, 2.0, -2.0);
 
@@ -133,7 +141,7 @@ impl Animation for BetaAnimation {
                         * Quaternion::rotation_y(-1.8 + move1 * -0.8 + move2 * 3.0)
                         * Quaternion::rotation_z(move1 * -0.8 + move2 * -0.8);
             },
-            Some(ToolKind::AxeSimple) => {
+            Some(ToolKind::Axe) => {
                 next.control_l.position = Vec3::new(-1.0, 2.0, 12.0 + move2 * -10.0);
                 next.control_r.position = Vec3::new(1.0, 2.0, -2.0);
 
@@ -158,48 +166,75 @@ impl Animation for BetaAnimation {
                         * Quaternion::rotation_y(-1.8 + move1 * 3.0 + move2 * -0.9)
                         * Quaternion::rotation_z(move1 * -0.2 + move2 * -1.5);
             },
-            Some(ToolKind::Unique(UniqueKind::WendigoMagic)) => {
-                next.torso.position = Vec3::new(0.0, 0.0, move1 * -0.3);
-                next.upper_torso.orientation = Quaternion::rotation_x(move1 * -0.5 + move2 * -0.4);
-                next.lower_torso.orientation = Quaternion::rotation_x(move1 * 0.5 + move2 * 0.4);
+            Some(ToolKind::Natural) => {
+                if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
+                    match spec.as_str() {
+                        "Wendigo Magic" => {
+                            next.torso.position = Vec3::new(0.0, 0.0, move1 * -0.3);
+                            next.upper_torso.orientation =
+                                Quaternion::rotation_x(move1 * -0.5 + move2 * -0.4);
+                            next.lower_torso.orientation =
+                                Quaternion::rotation_x(move1 * 0.5 + move2 * 0.4);
 
-                next.control_l.position =
-                    Vec3::new(-9.0 + move2 * 6.0, 19.0 + move1 * 6.0, -13.0 + move1 * 10.5);
-                next.control_r.position =
-                    Vec3::new(9.0 + move2 * -6.0, 19.0 + move1 * 6.0, -13.0 + move1 * 14.5);
+                            next.control_l.position = Vec3::new(
+                                -9.0 + move2 * 6.0,
+                                19.0 + move1 * 6.0,
+                                -13.0 + move1 * 10.5,
+                            );
+                            next.control_r.position = Vec3::new(
+                                9.0 + move2 * -6.0,
+                                19.0 + move1 * 6.0,
+                                -13.0 + move1 * 14.5,
+                            );
 
-                next.control_l.orientation = Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
-                    * Quaternion::rotation_y(-0.15)
-                    * Quaternion::rotation_z(move1 * 0.5 + move2 * -0.6);
-                next.control_r.orientation = Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
-                    * Quaternion::rotation_y(0.15)
-                    * Quaternion::rotation_z(move1 * -0.5 + move2 * 0.6);
-                next.head.orientation = Quaternion::rotation_x(move1 * 0.3);
-            },
-            Some(ToolKind::Unique(UniqueKind::TidalClaws)) => {
-                next.torso.position = Vec3::new(0.0, 0.0, move1 * -0.3);
-                next.upper_torso.orientation = Quaternion::rotation_x(move1 * -0.5 + move2 * -0.4);
-                next.lower_torso.orientation = Quaternion::rotation_x(move1 * 0.5 + move2 * 0.4);
+                            next.control_l.orientation =
+                                Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
+                                    * Quaternion::rotation_y(-0.15)
+                                    * Quaternion::rotation_z(move1 * 0.5 + move2 * -0.6);
+                            next.control_r.orientation =
+                                Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
+                                    * Quaternion::rotation_y(0.15)
+                                    * Quaternion::rotation_z(move1 * -0.5 + move2 * 0.6);
+                            next.head.orientation = Quaternion::rotation_x(move1 * 0.3);
+                        },
+                        "Tidal Claws" => {
+                            next.torso.position = Vec3::new(0.0, 0.0, move1 * -0.3);
+                            next.upper_torso.orientation =
+                                Quaternion::rotation_x(move1 * -0.5 + move2 * -0.4);
+                            next.lower_torso.orientation =
+                                Quaternion::rotation_x(move1 * 0.5 + move2 * 0.4);
 
-                next.shoulder_l.orientation = Quaternion::rotation_x(
-                    move1 * 0.4 + 0.4 * speednorm + (footrotl * -0.2) * speednorm,
-                );
-                next.shoulder_r.orientation = Quaternion::rotation_x(
-                    move1 * 0.4 + 0.4 * speednorm + (footrotl * -0.2) * speednorm,
-                );
+                            next.shoulder_l.orientation = Quaternion::rotation_x(
+                                move1 * 0.4 + 0.4 * speednorm + (footrotl * -0.2) * speednorm,
+                            );
+                            next.shoulder_r.orientation = Quaternion::rotation_x(
+                                move1 * 0.4 + 0.4 * speednorm + (footrotl * -0.2) * speednorm,
+                            );
 
-                next.control_l.position =
-                    Vec3::new(-14.0 + move2 * 9.0, 12.0 + move1 * 6.0, -12.0 + move1 * 9.0);
-                next.control_r.position =
-                    Vec3::new(14.0 + move2 * -9.0, 12.0 + move1 * 6.0, -12.0 + move1 * 9.0);
+                            next.control_l.position = Vec3::new(
+                                -14.0 + move2 * 9.0,
+                                12.0 + move1 * 6.0,
+                                -12.0 + move1 * 9.0,
+                            );
+                            next.control_r.position = Vec3::new(
+                                14.0 + move2 * -9.0,
+                                12.0 + move1 * 6.0,
+                                -12.0 + move1 * 9.0,
+                            );
 
-                next.control_l.orientation = Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
-                    * Quaternion::rotation_y(-0.15)
-                    * Quaternion::rotation_z(move1 * 0.5 + move2 * -0.6);
-                next.control_r.orientation = Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
-                    * Quaternion::rotation_y(0.15)
-                    * Quaternion::rotation_z(move1 * -0.5 + move2 * 0.6);
-                next.head.orientation = Quaternion::rotation_x(move1 * 0.3);
+                            next.control_l.orientation =
+                                Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
+                                    * Quaternion::rotation_y(-0.15)
+                                    * Quaternion::rotation_z(move1 * 0.5 + move2 * -0.6);
+                            next.control_r.orientation =
+                                Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
+                                    * Quaternion::rotation_y(0.15)
+                                    * Quaternion::rotation_z(move1 * -0.5 + move2 * 0.6);
+                            next.head.orientation = Quaternion::rotation_x(move1 * 0.3);
+                        },
+                        _ => {},
+                    }
+                }
             },
             _ => {},
         }

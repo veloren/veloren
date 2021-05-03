@@ -9,16 +9,16 @@ pub struct ShootAnimation;
 type ShootAnimationDependency = (f32, Option<StageSection>, f32, Dir, bool);
 
 impl Animation for ShootAnimation {
-    type Dependency = ShootAnimationDependency;
+    type Dependency<'a> = ShootAnimationDependency;
     type Skeleton = BirdLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"bird_large_shoot\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_shoot")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (global_time, stage_section, timer, look_dir, on_ground): Self::Dependency,
+        (global_time, stage_section, timer, look_dir, on_ground): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

@@ -2,16 +2,13 @@ use super::{
     super::{vek::*, Animation},
     BipedLargeSkeleton, SkeletonAttr,
 };
-use common::{
-    comp::item::{ToolKind, UniqueKind},
-    states::utils::StageSection,
-};
+use common::{comp::item::ToolKind, states::utils::StageSection};
 use std::f32::consts::PI;
 
 pub struct SpinMeleeAnimation;
 
 impl Animation for SpinMeleeAnimation {
-    type Dependency = (
+    type Dependency<'a> = (
         Option<ToolKind>,
         Option<ToolKind>,
         Vec3<f32>,
@@ -26,9 +23,9 @@ impl Animation for SpinMeleeAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_spinmelee")]
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, velocity, _global_time, stage_section, acc_vel): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, velocity, _global_time, stage_section, acc_vel): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -83,8 +80,9 @@ impl Animation for SpinMeleeAnimation {
         next.hand_l.orientation = Quaternion::rotation_x(0.0);
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
 
+        #[allow(clippy::single_match)]
         match active_tool_kind {
-            Some(ToolKind::StaffSimple) | Some(ToolKind::Unique(UniqueKind::MindflayerStaff)) => {
+            Some(ToolKind::Staff) => {
                 next.head.orientation = Quaternion::rotation_x(move1 * -0.3 + move2 * 0.5);
                 next.control_l.position = Vec3::new(
                     -1.0 + move1 * -10.0 + move2 * -10.0,

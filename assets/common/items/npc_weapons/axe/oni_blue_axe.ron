@@ -2,7 +2,7 @@ ItemDef(
     name: "Blue Oni Axe",
     description: "Placeholder",
     kind: Tool((
-        kind: AxeSimple,
+        kind: Axe,
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.5,
@@ -15,4 +15,5 @@ ItemDef(
     )),
     quality: Low,
     tags: [],
+    ability_spec: Some(Custom("Axe Simple")),
 )

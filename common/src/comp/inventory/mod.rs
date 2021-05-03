@@ -8,7 +8,7 @@ use tracing::{debug, trace, warn};
 use crate::{
     comp::{
         inventory::{
-            item::{ItemDef, ItemKind, MaterialStatManifest, TagExampleInfo},
+            item::{tool::AbilityMap, ItemDef, ItemKind, MaterialStatManifest, TagExampleInfo},
             loadout::Loadout,
             slot::{EquipSlot, Slot, SlotError},
         },
@@ -377,9 +377,14 @@ impl Inventory {
     }
 
     /// Remove just one item from the slot
-    pub fn take(&mut self, inv_slot_id: InvSlotId, msm: &MaterialStatManifest) -> Option<Item> {
+    pub fn take(
+        &mut self,
+        inv_slot_id: InvSlotId,
+        ability_map: &AbilityMap,
+        msm: &MaterialStatManifest,
+    ) -> Option<Item> {
         if let Some(Some(item)) = self.slot_mut(inv_slot_id) {
-            let mut return_item = item.duplicate(msm);
+            let mut return_item = item.duplicate(ability_map, msm);
 
             if item.is_stackable() && item.amount() > 1 {
                 item.decrease_amount(1).ok()?;
@@ -399,11 +404,12 @@ impl Inventory {
     pub fn take_half(
         &mut self,
         inv_slot_id: InvSlotId,
+        ability_map: &AbilityMap,
         msm: &MaterialStatManifest,
     ) -> Option<Item> {
         if let Some(Some(item)) = self.slot_mut(inv_slot_id) {
             if item.is_stackable() && item.amount() > 1 {
-                let mut return_item = item.duplicate(msm);
+                let mut return_item = item.duplicate(ability_map, msm);
                 let returning_amount = item.amount() / 2;
                 item.decrease_amount(returning_amount).ok()?;
                 return_item.set_amount(returning_amount).expect(

@@ -225,7 +225,7 @@ impl Server {
         )?);
 
         let ability_map = comp::item::tool::AbilityMap::<CharacterAbility>::load_expect_cloned(
-            "common.abilities.weapon_ability_manifest",
+            "common.abilities.ability_set_manifest",
         );
         state.ecs_mut().insert(ability_map);
 

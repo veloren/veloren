@@ -1,9 +1,9 @@
 use common::{
     comp::{
-        item::MaterialStatManifest, Auras, BeamSegment, Body, Buffs, CanBuild, CharacterState,
-        Collider, Combo, Density, Energy, Group, Health, Inventory, Item, LightEmitter, Mass,
-        MountState, Mounting, Ori, Player, Poise, Pos, Scale, Shockwave, SkillSet, Stats, Sticky,
-        Vel,
+        item::{tool::AbilityMap, MaterialStatManifest},
+        Auras, BeamSegment, Body, Buffs, CanBuild, CharacterState, Collider, Combo, Density,
+        Energy, Group, Health, Inventory, Item, LightEmitter, Mass, MountState, Mounting, Ori,
+        Player, Poise, Pos, Scale, Shockwave, SkillSet, Stats, Sticky, Vel,
     },
     uid::Uid,
 };
@@ -65,6 +65,7 @@ pub struct TrackedComps<'a> {
     pub character_state: ReadStorage<'a, CharacterState>,
     pub shockwave: ReadStorage<'a, Shockwave>,
     pub beam_segment: ReadStorage<'a, BeamSegment>,
+    pub ability_map: ReadExpect<'a, AbilityMap>,
     pub msm: ReadExpect<'a, MaterialStatManifest>,
 }
 impl<'a> TrackedComps<'a> {
@@ -124,7 +125,7 @@ impl<'a> TrackedComps<'a> {
             .map(|c| comps.push(c.into()));
         self.item
             .get(entity)
-            .map(|item| item.duplicate(&self.msm))
+            .map(|item| item.duplicate(&self.ability_map, &self.msm))
             .map(|c| comps.push(c.into()));
         self.scale
             .get(entity)
