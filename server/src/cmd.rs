@@ -1716,7 +1716,6 @@ fn handle_spawn_wiring(
     // Obviously it is a WIP - use it for debug
 
     let mut pos = position(server, target, "target")?;
-    pos.0.z += 1.0;
     pos.0.x += 3.0;
 
     let mut outputs1 = HashMap::new();
@@ -1744,7 +1743,8 @@ fn handle_spawn_wiring(
             }],
             inputs: HashMap::new(),
             outputs: outputs1,
-        });
+        })
+        .with(comp::Sticky);
     let ent1 = builder1.build();
 
     pos.0.x += 3.0;
