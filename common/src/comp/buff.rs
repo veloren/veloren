@@ -14,22 +14,13 @@ use std::{cmp::Ordering, time::Duration};
 /// This is used to determine what effects a buff will have
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize, PartialOrd, Ord)]
 pub enum BuffKind {
-    /// Does damage to a creature over time
-    /// Strength should be 10x the DPS of the debuff
-    Burning,
+    // Buffs
     /// Restores health/time for some period
     /// Strength should be 10x the healing per second
     Regeneration,
     /// Restores health/time for some period for consumables
     /// Strength should be 10x the healing per second
     Saturation,
-    /// Lowers health over time for some duration
-    /// Strength should be 10x the DPS of the debuff
-    Bleeding,
-    /// Lower a creature's max health over time
-    /// Strength only affects the target max health, 0.5 targets 50% of base
-    /// max, 1.0 targets 100% of base max
-    Cursed,
     /// Applied when drinking a potion
     /// Strength should be 10x the healing per second
     Potion,
@@ -49,14 +40,25 @@ pub enum BuffKind {
     /// Strength scales the damage reduction non-linearly. 0.5 provides 50% DR,
     /// 1.0 provides 67% DR
     ProtectingWard,
-    /// Reduces movement speed and causes bleeding damage
-    /// Strength scales the movement speed debuff non-linearly. 0.5 is 50%
-    /// speed, 1.0 is 33% speed. Bleeding is at 10x the value of the strength.
-    Crippled,
     /// Increases movement speed and gives health regeneration
     /// Strength scales the movement speed linearly. 0.5 is 150% speed, 1.0 is
     /// 200% speed. Provides regeneration at 10x the value of the strength
     Frenzied,
+    // Debuffs
+    /// Does damage to a creature over time
+    /// Strength should be 10x the DPS of the debuff
+    Burning,
+    /// Lowers health over time for some duration
+    /// Strength should be 10x the DPS of the debuff
+    Bleeding,
+    /// Lower a creature's max health over time
+    /// Strength only affects the target max health, 0.5 targets 50% of base
+    /// max, 1.0 targets 100% of base max
+    Cursed,
+    /// Reduces movement speed and causes bleeding damage
+    /// Strength scales the movement speed debuff non-linearly. 0.5 is 50%
+    /// speed, 1.0 is 33% speed. Bleeding is at 10x the value of the strength.
+    Crippled,
 }
 
 #[cfg(not(target_arch = "wasm32"))]

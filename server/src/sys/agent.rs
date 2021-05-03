@@ -2569,10 +2569,9 @@ impl<'a> AgentData<'a> {
                 const MINION_SUMMON_THRESHOLD: f32 = 0.20;
                 let health_fraction = self.health.map_or(0.5, |h| h.fraction());
                 // Sets counter at start of combat
-                if agent.action_state.counter < MINION_SUMMON_THRESHOLD
-                    && health_fraction > MINION_SUMMON_THRESHOLD
-                {
+                if agent.action_state.condition {
                     agent.action_state.counter = 1.0 - MINION_SUMMON_THRESHOLD;
+                    agent.action_state.condition = true;
                 }
                 let mindflayer_is_far = dist_sqrd > MINDFLAYER_ATTACK_DIST.powi(2);
                 if agent.action_state.counter > health_fraction {

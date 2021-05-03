@@ -441,7 +441,7 @@ impl Body {
                 biped_large::Species::Wendigo => 2800,
                 biped_large::Species::Troll => 2400,
                 biped_large::Species::Dullahan => 3000,
-                biped_large::Species::Mindflayer => 8000,
+                biped_large::Species::Mindflayer => 25000,
                 biped_large::Species::Tidalwarrior => 2500,
                 biped_large::Species::Yeti => 4000,
                 biped_large::Species::Minotaur => 30000,
@@ -553,10 +553,11 @@ impl Body {
                 biped_large::Species::Wendigo => 80,
                 biped_large::Species::Troll => 60,
                 biped_large::Species::Dullahan => 120,
-                biped_large::Species::Mindflayer => 250,
                 biped_large::Species::Tidalwarrior => 90,
                 biped_large::Species::Yeti => 80,
                 biped_large::Species::Harvester => 80,
+                // Boss enemies have their health set, not adjusted by level.
+                biped_large::Species::Mindflayer => 0,
                 biped_large::Species::Minotaur => 0,
                 _ => 100,
             },
@@ -606,7 +607,11 @@ impl Body {
     pub fn combat_multiplier(&self) -> f32 {
         match self {
             Body::Object(_) | Body::Ship(_) => 0.0,
-            Body::BipedLarge(b) if matches!(b.species, biped_large::Species::Mindflayer) => 4.0,
+            Body::BipedLarge(b) => match b.species {
+                biped_large::Species::Mindflayer => 4.8,
+                biped_large::Species::Minotaur => 3.2,
+                _ => 1.0,
+            },
             _ => 1.0,
         }
     }
