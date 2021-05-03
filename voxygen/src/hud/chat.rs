@@ -6,7 +6,7 @@ use crate::{i18n::Localization, ui::fonts::Fonts, GlobalState};
 use client::{cmd, Client};
 use common::comp::{
     chat::{KillSource, KillType},
-    ChatMode, ChatMsg, ChatType,
+    BuffKind, ChatMode, ChatMsg, ChatType,
 };
 use common_net::msg::validate_chat_msg;
 use conrod_core::{
@@ -385,10 +385,11 @@ impl<'a> Widget for Chat<'a> {
                         .get("hud.chat.offline_msg")
                         .to_string(),
                     ChatType::Kill(kill_source, _) => match kill_source {
-                        KillSource::Player(_, KillType::Buff(_)) => self
-                            .localized_strings
-                            .get("hud.chat.pvp_buff_kill_msg")
-                            .to_string(),
+                        KillSource::Player(_, KillType::Buff(buffkind)) => insert_killing_buff(
+                            *buffkind,
+                            self.localized_strings,
+                            self.localized_strings.get("hud.chat.died_of_pvp_buff_msg"),
+                        ),
                         KillSource::Player(_, KillType::Melee) => self
                             .localized_strings
                             .get("hud.chat.pvp_melee_kill_msg")
@@ -409,14 +410,17 @@ impl<'a> Widget for Chat<'a> {
                             .localized_strings
                             .get("hud.chat.pvp_other_kill_msg")
                             .to_string(),
-                        KillSource::NonExistent(KillType::Buff(_)) => self
-                            .localized_strings
-                            .get("hud.chat.nonexistent_buff_kill_msg")
-                            .to_string(),
-                        KillSource::NonPlayer(_, KillType::Buff(_)) => self
-                            .localized_strings
-                            .get("hud.chat.npc_buff_kill_msg")
-                            .to_string(),
+                        KillSource::NonExistent(KillType::Buff(buffkind)) => insert_killing_buff(
+                            *buffkind,
+                            self.localized_strings,
+                            self.localized_strings
+                                .get("hud.chat.died_of_buff_nonexistent_msg"),
+                        ),
+                        KillSource::NonPlayer(_, KillType::Buff(buffkind)) => insert_killing_buff(
+                            *buffkind,
+                            self.localized_strings,
+                            self.localized_strings.get("hud.chat.died_of_npc_buff_msg"),
+                        ),
                         KillSource::NonPlayer(_, KillType::Melee) => self
                             .localized_strings
                             .get("hud.chat.npc_melee_kill_msg")
@@ -617,4 +621,25 @@ fn render_chat_line(chat_type: &ChatType<String>, imgs: &Imgs) -> (Color, conrod
         ChatType::NpcSay(_uid, _r) => (SAY_COLOR, imgs.chat_say_small),
         ChatType::Meta => (INFO_COLOR, imgs.chat_command_info_small),
     }
+}
+
+fn insert_killing_buff(buff: BuffKind, localized_strings: &Localization, template: &str) -> String {
+    let buff_outcome = match buff {
+        BuffKind::Burning => localized_strings.get("hud.outcome.burning"),
+        BuffKind::Bleeding => localized_strings.get("hud.outcome.bleeding"),
+        BuffKind::Cursed => localized_strings.get("hud.outcome.curse"),
+        BuffKind::Regeneration
+        | BuffKind::Saturation
+        | BuffKind::Potion
+        | BuffKind::CampfireHeal
+        | BuffKind::IncreaseMaxEnergy
+        | BuffKind::IncreaseMaxHealth
+        | BuffKind::Invulnerability
+        | BuffKind::ProtectingWard => {
+            tracing::error!("Player was killed by a positive buff!");
+            localized_strings.get("hud.outcome.mysterious")
+        },
+    };
+
+    template.replace("{died_of_buff}", buff_outcome)
 }

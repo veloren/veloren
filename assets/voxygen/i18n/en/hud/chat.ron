@@ -3,6 +3,11 @@
 /// Localization for "global" English
 (
     string_map: {
+        // Debuff outcomes
+        "hud.outcome.burning": "died of: burning",
+        "hud.outcome.curse": "died of: curse",
+        "hud.outcome.bleeding": "died of: bleeding",
+
         // Chat outputs
         "hud.chat.online_msg": "[{name}] is online now",
         "hud.chat.offline_msg": "[{name}] went offline",
@@ -12,15 +17,15 @@
         "hud.chat.fall_kill_msg": "[{name}] died from fall damage",
         "hud.chat.suicide_msg": "[{name}] died from self-inflicted wounds",
 
-        "hud.chat.pvp_buff_kill_msg": "[{victim}] died of {buff} caused by [{attacker}]",
+        "hud.chat.died_of_pvp_buff_msg": "[{victim}] {died_of_buff} caused by [{attacker}]",
         "hud.chat.pvp_melee_kill_msg": "[{attacker}] defeated [{victim}]",
         "hud.chat.pvp_ranged_kill_msg": "[{attacker}] shot [{victim}]",
         "hud.chat.pvp_explosion_kill_msg": "[{attacker}] blew up [{victim}]",
         "hud.chat.pvp_energy_kill_msg": "[{attacker}] killed [{victim}] with magic",
 
-        "hud.chat.nonexistent_buff_kill_msg": "[{victim}] died of {buff}",
+        "hud.chat.died_of_buff_nonexistent_msg": "[{victim}] {died_of_buff}",
 
-        "hud.chat.npc_buff_kill_msg": "[{victim}] died of {buff} caused by {attacker}",
+        "hud.chat.died_of_npc_buff_msg": "[{victim}] {died_of_buff} caused by {attacker}",
         "hud.chat.npc_melee_kill_msg": "{attacker} killed [{victim}]",
         "hud.chat.npc_ranged_kill_msg": "{attacker} shot [{victim}]",
         "hud.chat.npc_explosion_kill_msg": "{attacker} blew up [{victim}]",

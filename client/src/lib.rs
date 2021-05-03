@@ -2362,45 +2362,13 @@ impl Client {
                     }
                 } else {
                     match kill_source {
-                        KillSource::Player(attacker_uid, KillType::Buff(buff_kind)) => message
-                            .replace("{attacker}", &alias_of_uid(attacker_uid))
-                            .replace("{buff}", format!("{:?}", buff_kind).to_lowercase().as_str())
-                            .replace("{victim}", &alias_of_uid(victim)),
-                        KillSource::Player(attacker_uid, KillType::Melee) => message
+                        KillSource::Player(attacker_uid, _) => message
                             .replace("{attacker}", &alias_of_uid(attacker_uid))
                             .replace("{victim}", &alias_of_uid(victim)),
-                        KillSource::Player(attacker_uid, KillType::Projectile) => message
-                            .replace("{attacker}", &alias_of_uid(attacker_uid))
-                            .replace("{victim}", &alias_of_uid(victim)),
-                        KillSource::Player(attacker_uid, KillType::Explosion) => message
-                            .replace("{attacker}", &alias_of_uid(attacker_uid))
-                            .replace("{victim}", &alias_of_uid(victim)),
-                        KillSource::Player(attacker_uid, KillType::Energy) => message
-                            .replace("{attacker}", &alias_of_uid(attacker_uid))
-                            .replace("{victim}", &alias_of_uid(victim)),
-                        KillSource::Player(attacker_uid, KillType::Other) => message
-                            .replace("{attacker}", &alias_of_uid(attacker_uid))
-                            .replace("{victim}", &alias_of_uid(victim)),
-                        KillSource::NonExistent(KillType::Buff(buff_kind)) => message
-                            .replace("{buff}", format!("{:?}", buff_kind).to_lowercase().as_str())
-                            .replace("{victim}", &alias_of_uid(victim)),
-                        KillSource::NonPlayer(attacker_name, KillType::Buff(buff_kind)) => message
-                            .replace("{attacker}", attacker_name)
-                            .replace("{buff}", format!("{:?}", buff_kind).to_lowercase().as_str())
-                            .replace("{victim}", &alias_of_uid(victim)),
-                        KillSource::NonPlayer(attacker_name, KillType::Melee) => message
-                            .replace("{attacker}", attacker_name)
-                            .replace("{victim}", &alias_of_uid(victim)),
-                        KillSource::NonPlayer(attacker_name, KillType::Projectile) => message
-                            .replace("{attacker}", attacker_name)
-                            .replace("{victim}", &alias_of_uid(victim)),
-                        KillSource::NonPlayer(attacker_name, KillType::Explosion) => message
-                            .replace("{attacker}", attacker_name)
-                            .replace("{victim}", &alias_of_uid(victim)),
-                        KillSource::NonPlayer(attacker_name, KillType::Energy) => message
-                            .replace("{attacker}", attacker_name)
-                            .replace("{victim}", &alias_of_uid(victim)),
-                        KillSource::NonPlayer(attacker_name, KillType::Other) => message
+                        KillSource::NonExistent(KillType::Buff(_)) => {
+                            message.replace("{victim}", &alias_of_uid(victim))
+                        },
+                        KillSource::NonPlayer(attacker_name, _) => message
                             .replace("{attacker}", attacker_name)
                             .replace("{victim}", &alias_of_uid(victim)),
                         KillSource::Environment(environment) => message
