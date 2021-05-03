@@ -13,6 +13,7 @@
         "hud.map.dungeons": "Dungeons",
         "hud.map.caves": "Caves",
         "hud.map.cave": "Cave",
+	    "hud.map.peaks": "Mountains",
         "hud.map.trees": "Giant Trees",
         "hud.map.tree": "Giant Tree",
         "hud.map.town": "Town",

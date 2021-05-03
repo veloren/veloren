@@ -1,7 +1,7 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
     Show, QUALITY_COMMON, QUALITY_DEBUG, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW, QUALITY_MODERATE,
-    TEXT_COLOR, TEXT_GRAY_COLOR, TEXT_VELORITE, UI_HIGHLIGHT_0, UI_MAIN,
+    TEXT_BG, TEXT_BLUE_COLOR, TEXT_COLOR, TEXT_GRAY_COLOR, TEXT_VELORITE, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
     i18n::Localization,
@@ -11,7 +11,7 @@ use crate::{
 };
 use client::{self, Client, SiteInfoRich};
 use common::{comp, comp::group::Role, terrain::TerrainChunkSize, trade::Good, vol::RectVolSize};
-use common_net::msg::world_msg::{SiteId, SiteKind};
+use common_net::msg::world_msg::{PoiKind, SiteId, SiteKind};
 use conrod_core::{
     color, position,
     widget::{self, Button, Image, Rectangle, Text},
@@ -37,6 +37,11 @@ widget_ids! {
         qlog_title,
         zoom_slider,
         mmap_site_icons[],
+        mmap_poi_icons[],
+        mmap_poi_title_bgs[],
+        mmap_poi_titles[],
+        peaks_txt,
+        peaks_txt_bg,
         site_difs[],
         member_indicators[],
         member_height_indicators[],
@@ -57,6 +62,9 @@ widget_ids! {
         show_trees_img,
         show_trees_box,
         show_trees_text,
+        show_peaks_img,
+        show_peaks_box,
+        show_peaks_text,
         show_difficulty_img,
         show_difficulty_box,
         show_difficulty_text,
@@ -191,6 +199,7 @@ impl<'a> Widget for Map<'a> {
         let show_castles = self.global_state.settings.interface.map_show_castles;
         let show_caves = self.global_state.settings.interface.map_show_caves;
         let show_trees = self.global_state.settings.interface.map_show_trees;
+        let show_peaks = self.global_state.settings.interface.map_show_peaks;
         let show_topo_map = self.global_state.settings.interface.map_show_topo_map;
         let mut events = Vec::new();
         let i18n = &self.localized_strings;
@@ -371,6 +380,9 @@ impl<'a> Widget for Map<'a> {
         }
 
         // Handle zooming with the mousewheel
+
+        // TODO: Experiment with zooming around cursor position instead of map center
+        // (issue #1111)
         let scrolled: f64 = ui
             .widget_input(state.ids.map_layers[0])
             .scrolls()
@@ -590,7 +602,61 @@ impl<'a> Widget for Map<'a> {
             .graphics_for(state.ids.show_trees_box)
             .color(TEXT_COLOR)
             .set(state.ids.show_trees_text, ui);
+        // Peaks
+        Image::new(self.imgs.mmap_poi_peak)
+            .down_from(state.ids.show_trees_img, 10.0)
+            .w_h(20.0, 20.0)
+            .set(state.ids.show_peaks_img, ui);
+        if Button::image(if show_peaks {
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox
+        })
+        .w_h(18.0, 18.0)
+        .hover_image(if show_peaks {
+            self.imgs.checkbox_checked_mo
+        } else {
+            self.imgs.checkbox_mo
+        })
+        .press_image(if show_peaks {
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox_press
+        })
+        .right_from(state.ids.show_peaks_img, 10.0)
+        .set(state.ids.show_peaks_box, ui)
+        .was_clicked()
+        {
+            events.push(Event::SettingsChange(MapShowPeaks(!show_peaks)));
+        }
+        Text::new(i18n.get("hud.map.peaks"))
+            .right_from(state.ids.show_peaks_box, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.show_peaks_box)
+            .color(TEXT_COLOR)
+            .set(state.ids.show_peaks_text, ui);
         // Map icons
+        if state.ids.mmap_poi_icons.len() < self.client.pois().len() {
+            state.update(|state| {
+                state
+                    .ids
+                    .mmap_poi_icons
+                    .resize(self.client.pois().len(), &mut ui.widget_id_generator())
+            });
+            state.update(|state| {
+                state
+                    .ids
+                    .mmap_poi_titles
+                    .resize(self.client.pois().len(), &mut ui.widget_id_generator())
+            });
+            state.update(|state| {
+                state
+                    .ids
+                    .mmap_poi_title_bgs
+                    .resize(self.client.pois().len(), &mut ui.widget_id_generator())
+            });
+        }
         if state.ids.mmap_site_icons.len() < self.client.sites().len() {
             state.update(|state| {
                 state
@@ -778,6 +844,90 @@ impl<'a> Widget for Map<'a> {
                         }
                     },
                 }
+            }
+        }
+        for (i, poi) in self.client.pois().iter().enumerate() {
+            let rpos = match wpos_to_rpos(poi.wpos.map(|e| e as f32)) {
+                Some(rpos) => rpos,
+                None => continue,
+            };
+            let title = &poi.name;
+            match poi.kind {
+                PoiKind::Peak(alt) => {
+                    let height = format!("{} m", alt);
+                    if show_peaks && zoom > 3.0 {
+                        Text::new(title)
+                            .x_y_position_relative_to(
+                                state.ids.map_layers[0],
+                                position::Relative::Scalar(rpos.x as f64),
+                                position::Relative::Scalar(rpos.y as f64 + zoom * 3.0),
+                            )
+                            .font_size(self.fonts.cyri.scale((zoom * 2.0) as u32))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .graphics_for(state.ids.map_layers[0])
+                            .color(TEXT_BG)
+                            .set(state.ids.mmap_poi_title_bgs[i], ui);
+                        Text::new(title)
+                                .bottom_left_with_margins_on(state.ids.mmap_poi_title_bgs[i], 1.0, 1.0)
+                                .font_size(self.fonts.cyri.scale((zoom * 2.0) as u32))
+                                .font_id(self.fonts.cyri.conrod_id)
+                                //.graphics_for(state.ids.map_layers[0])
+                                .color(TEXT_COLOR)
+                                .set(state.ids.mmap_poi_titles[i], ui);
+                        // Show peak altitude
+                        if ui
+                            .widget_input(state.ids.mmap_poi_titles[i])
+                            .mouse()
+                            .map_or(false, |m| m.is_over())
+                        {
+                            Text::new(&height)
+                                .mid_bottom_with_margin_on(
+                                    state.ids.mmap_poi_title_bgs[i],
+                                    -zoom * 2.5,
+                                )
+                                .font_size(self.fonts.cyri.scale((zoom * 2.0) as u32))
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .graphics_for(state.ids.map_layers[0])
+                                .color(TEXT_BG)
+                                .set(state.ids.peaks_txt_bg, ui);
+                            Text::new(&height)
+                                .bottom_left_with_margins_on(state.ids.peaks_txt_bg, 1.0, 1.0)
+                                .font_size(self.fonts.cyri.scale((zoom * 2.0) as u32))
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .graphics_for(state.ids.map_layers[0])
+                                .color(TEXT_COLOR)
+                                .set(state.ids.peaks_txt, ui);
+                        }
+                    }
+                },
+                PoiKind::Lake(size) => {
+                    if zoom.powi(2) * size as f64 > 37.0 {
+                        let font_scale_factor = if size > 20 {
+                            size as f64 / 25.0
+                        } else if size > 10 {
+                            size as f64 / 10.0
+                        } else if size > 5 {
+                            size as f64 / 6.0
+                        } else {
+                            size as f64 / 2.5
+                        };
+                        Text::new(&format!("{}", title))
+                            .x_y_position_relative_to(
+                                state.ids.map_layers[0],
+                                position::Relative::Scalar(rpos.x as f64),
+                                position::Relative::Scalar(rpos.y as f64),
+                            )
+                            .font_size(
+                                self.fonts.cyri.scale(
+                                    (2.0 + font_scale_factor * zoom).min(18.0).max(10.0) as u32,
+                                ),
+                            )
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .graphics_for(state.ids.map_layers[0])
+                            .color(TEXT_BLUE_COLOR)
+                            .set(state.ids.mmap_poi_icons[i], ui);
+                    }
+                },
             }
         }
         // Group member indicators

@@ -105,6 +105,7 @@ use vek::*;
 
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const TEXT_VELORITE: Color = Color::Rgba(0.0, 0.66, 0.66, 1.0);
+const TEXT_BLUE_COLOR: Color = Color::Rgba(0.8, 0.9, 1.0, 1.0);
 const TEXT_GRAY_COLOR: Color = Color::Rgba(0.5, 0.5, 0.5, 1.0);
 const TEXT_DULL_RED_COLOR: Color = Color::Rgba(0.56, 0.2, 0.2, 1.0);
 const TEXT_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);

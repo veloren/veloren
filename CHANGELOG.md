@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Specific music tracks can now play exclusively in towns.
 - Custom map markers can be placed now
 - Fundamentals/prototype for wiring system
+- Mountain peak and lake markers on the map
 
 ### Changed
 
@@ -112,6 +113,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Skillbar buttons correctly account for skill points when checking if player has enough stamina for the ability.
 - Burning Debuff icon is now displayed correctly.
 - Villagers in safezones no longer spam messages upon seeing an enemy
+- Wolf AI will no longer circle into walls and will instead use the power of raycasts to stop early
 
 ## [0.9.0] - 2021-03-20
 

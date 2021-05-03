@@ -123,6 +123,7 @@ pub struct WorldMapMsg {
     /// (256 possible angles).
     pub horizons: [(Vec<u8>, Vec<u8>); 2],
     pub sites: Vec<SiteInfo>,
+    pub pois: Vec<PoiInfo>,
 }
 
 pub type SiteId = common::trade::SiteId;
@@ -155,4 +156,18 @@ pub struct EconomyInfo {
     pub labors: Vec<f32>,
     pub last_exports: HashMap<Good, f32>,
     pub resources: HashMap<Good, f32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PoiInfo {
+    pub kind: PoiKind,
+    pub wpos: Vec2<i32>,
+    pub name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[repr(u8)]
+pub enum PoiKind {
+    Peak(u32),
+    Lake(u32),
 }

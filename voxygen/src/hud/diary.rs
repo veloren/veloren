@@ -190,7 +190,6 @@ pub struct Diary<'a> {
     created_btns_top_r: usize,
     created_btns_bot_l: usize,
     created_btns_bot_r: usize,
-    hovering_exp_bar: bool,
 }
 
 impl<'a> Diary<'a> {
@@ -222,7 +221,6 @@ impl<'a> Diary<'a> {
             created_btns_top_r: 0,
             created_btns_bot_l: 0,
             created_btns_bot_r: 0,
-            hovering_exp_bar: false,
         }
     }
 }
@@ -454,11 +452,11 @@ impl<'a> Widget for Diary<'a> {
             .middle_of(state.exp_bar_bg)
             .set(state.exp_bar_frame, ui);
         // Show EXP bar text on hover
-        self.hovering_exp_bar = ui
+        if ui
             .widget_input(state.exp_bar_frame)
             .mouse()
-            .map_or(false, |m| m.is_over());
-        if self.hovering_exp_bar {
+            .map_or(false, |m| m.is_over())
+        {
             Text::new(&exp_txt)
                 .mid_top_with_margin_on(state.exp_bar_frame, 47.0)
                 .font_id(self.fonts.cyri.conrod_id)
