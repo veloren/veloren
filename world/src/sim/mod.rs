@@ -1514,6 +1514,7 @@ impl WorldSim {
             alt: Grid::from_raw(self.get_size().map(|e| e as i32), alts),
             horizons,
             sites: Vec::new(), // Will be substituted later
+            pois: Vec::new(),  // Will be substituted later
         }
     }
 

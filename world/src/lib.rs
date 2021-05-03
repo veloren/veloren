@@ -112,6 +112,16 @@ impl World {
         let num_sites = self.civs().sites().count() as u64;
         let num_caves = self.civs().caves.values().count() as u64;
         WorldMapMsg {
+            pois: self.civs().pois.iter().map(|(_, poi)| {
+                world_msg::PoiInfo {
+                    name: poi.name.clone(),
+                    kind: match &poi.kind {
+                        civ::PoiKind::Peak(alt) => world_msg::PoiKind::Peak(*alt),
+                        civ::PoiKind::Lake(size) => world_msg::PoiKind::Lake(*size),
+                    },
+                    wpos: poi.loc * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                }
+            }).collect(),
             sites: self
                 .civs()
                 .sites

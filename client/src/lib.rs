@@ -47,7 +47,7 @@ use common_base::span;
 use common_net::{
     msg::{
         self, validate_chat_msg,
-        world_msg::{EconomyInfo, SiteId, SiteInfo},
+        world_msg::{EconomyInfo, PoiInfo, SiteId, SiteInfo},
         ChatMsgValidationError, ClientGeneral, ClientMsg, ClientRegister, ClientType,
         DisconnectReason, InviteAnswer, Notification, PingMsg, PlayerInfo, PlayerListUpdate,
         PresenceKind, RegisterError, ServerGeneral, ServerInit, ServerRegisterAnswer,
@@ -152,6 +152,7 @@ pub struct Client {
     player_list: HashMap<Uid, PlayerInfo>,
     character_list: CharacterList,
     sites: HashMap<SiteId, SiteInfoRich>,
+    pois: Vec<PoiInfo>,
     pub chat_mode: ChatMode,
     recipe_book: RecipeBook,
     available_recipes: HashMap<String, Option<SpriteKind>>,
@@ -266,6 +267,7 @@ impl Client {
             lod_horizon,
             world_map,
             sites,
+            pois,
             recipe_book,
             max_group_size,
             client_timeout,
@@ -628,6 +630,7 @@ impl Client {
                     Grid::from_raw(map_size.map(|e| e as i32), lod_horizon),
                     (world_map_layers, map_size, map_bounds),
                     world_map.sites,
+                    world_map.pois,
                     recipe_book,
                     max_group_size,
                     client_timeout,
@@ -661,6 +664,7 @@ impl Client {
                     })
                 })
                 .collect(),
+            pois,
             recipe_book,
             available_recipes: HashMap::default(),
             chat_mode: ChatMode::default(),
@@ -1035,6 +1039,9 @@ impl Client {
 
     /// Unstable, likely to be removed in a future release
     pub fn sites(&self) -> &HashMap<SiteId, SiteInfoRich> { &self.sites }
+
+    /// Unstable, likely to be removed in a future release
+    pub fn pois(&self) -> &Vec<PoiInfo> { &self.pois }
 
     pub fn sites_mut(&mut self) -> &mut HashMap<SiteId, SiteInfoRich> { &mut self.sites }
 

@@ -4,10 +4,10 @@ mod econ;
 
 use crate::{
     config::CONFIG,
-    sim::WorldSim,
+    sim::{RiverKind, WorldSim},
     site::{namegen::NameGen, Castle, Dungeon, Settlement, Site as WorldSite, Tree},
     site2,
-    util::{attempt, seed_expan, NEIGHBORS},
+    util::{attempt, seed_expan, CARDINALS, NEIGHBORS},
     Index, Land,
 };
 use common::{
@@ -15,12 +15,12 @@ use common::{
     path::Path,
     spiral::Spiral2d,
     store::{Id, Store},
-    terrain::{uniform_idx_as_vec2, MapSizeLg, TerrainChunkSize},
+    terrain::{uniform_idx_as_vec2, vec2_as_uniform_idx, MapSizeLg, TerrainChunkSize},
     vol::RectVolSize,
 };
 use core::{fmt, hash::BuildHasherDefault, ops::Range};
 use fxhash::FxHasher64;
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use tracing::{debug, info, warn};
@@ -44,6 +44,7 @@ pub struct CaveInfo {
 pub struct Civs {
     pub civs: Store<Civ>,
     pub places: Store<Place>,
+    pub pois: Store<PointOfInterest>,
 
     pub tracks: Store<Track>,
     /// We use this hasher (FxHasher64) because
@@ -62,6 +63,7 @@ pub struct Civs {
 
 // Change this to get rid of particularly horrid seeds
 const SEED_SKIP: u8 = 5;
+const POI_THINNING_DIST_SQRD: i32 = 300;
 
 pub struct GenCtx<'a, R: Rng> {
     sim: &'a mut WorldSim,
@@ -85,6 +87,10 @@ impl Civs {
         let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
         let initial_civ_count = initial_civ_count(sim.map_size_lg());
         let mut ctx = GenCtx { sim, rng };
+        info!("starting peak naming");
+        this.name_peaks(&mut ctx);
+        info!("starting lake naming");
+        this.name_lakes(&mut ctx);
 
         for _ in 0..ctx.sim.get_size().product() / 10_000 {
             this.generate_cave(&mut ctx);
@@ -456,6 +462,191 @@ impl Civs {
         self.places.insert(Place { center: loc })
     }
 
+    /// Adds lake POIs and names them
+    fn name_lakes(&mut self, ctx: &mut GenCtx<impl Rng>) {
+        let map_size_lg = ctx.sim.map_size_lg();
+        let rng = &mut ctx.rng;
+        let sim_chunks = &ctx.sim.chunks;
+        let lakes = sim_chunks
+            .iter()
+            .enumerate()
+            .filter(|(posi, chunk)| {
+                let neighbor_alts_min = common::terrain::neighbors(map_size_lg, *posi)
+                    .map(|i| sim_chunks[i].alt as u32)
+                    .min();
+                chunk
+                    .river
+                    .river_kind
+                    .map_or(false, |r_kind| matches!(r_kind, RiverKind::Lake { .. }))
+                    && neighbor_alts_min.map_or(false, |n_alt| (chunk.alt as u32) < n_alt)
+            })
+            .map(|(posi, chunk)| {
+                (
+                    uniform_idx_as_vec2(map_size_lg, posi),
+                    chunk.alt as u32,
+                    chunk.water_alt as u32,
+                )
+            })
+            .collect::<Vec<(Vec2<i32>, u32, u32)>>();
+        let mut removals = vec![false; lakes.len()];
+        let mut lake_alts = HashSet::new();
+        for (i, (loc, alt, water_alt)) in lakes.iter().enumerate() {
+            for (k, (n_loc, n_alt, n_water_alt)) in lakes.iter().enumerate() {
+                // If the difference in position of this low point and another is
+                // below a threshold and this chunk's altitude is higher, remove the
+                // lake from the list. Also remove shallow ponds.
+                // If this lake water altitude is already accounted for and the lake bed
+                // altitude is lower than the neighboring lake bed altitude, remove this
+                // lake from the list. Otherwise, add this lake water altitude to the list
+                // of counted lake water altitudes.
+                if i != k
+                    && (*water_alt <= CONFIG.sea_level as u32
+                        || (!lake_alts.insert(water_alt)
+                            && water_alt == n_water_alt
+                            && alt > n_alt)
+                        || ((loc).distance_squared(*n_loc) < POI_THINNING_DIST_SQRD
+                            && alt >= n_alt))
+                {
+                    // This cannot panic as `removals` is the same length as `lakes`
+                    // i is the index in `lakes`
+                    removals[i] = true;
+                }
+            }
+        }
+        let mut num_lakes = 0;
+        for (_j, (loc, alt, water_alt)) in lakes.iter().enumerate().filter(|&(i, _)| !removals[i]) {
+            // Recenter the location of the lake POI
+            // Sample every few units to speed this up
+            let sample_step = 3;
+            let mut chords: [i32; 4] = [0, 0, 0, 0];
+            // only search up to 100 chunks in any direction
+            for (j, chord) in chords.iter_mut().enumerate() {
+                for i in 0..100 {
+                    let posi = vec2_as_uniform_idx(
+                        map_size_lg,
+                        Vec2::new(loc.x, loc.y) + CARDINALS[j] * sample_step * i,
+                    );
+                    if let Some(r_kind) = sim_chunks[posi].river.river_kind {
+                        if matches!(r_kind, RiverKind::Lake { .. }) {
+                            *chord += sample_step;
+                        } else {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+            }
+            let center_y = ((chords[0] + chords[1]) / 2) - chords[1] + loc.y;
+            let center_x = ((chords[2] + chords[3]) / 2) - chords[3] + loc.x;
+            let new_loc = Vec2::new(center_x, center_y);
+            let size_parameter = ((chords[2] + chords[3]) + (chords[0] + chords[1]) / 4) as u32;
+            let lake = PointOfInterest {
+                name: {
+                    let name = NameGen::location(rng).generate();
+                    if size_parameter > 30 {
+                        format!("{} Sea", name)
+                    } else if (water_alt - alt) < 30 {
+                        match rng.gen_range(0..5) {
+                            0 => format!("{} Shallows", name),
+                            1 => format!("{} Pool", name),
+                            2 => format!("{} Well", name),
+                            _ => format!("{} Pond", name),
+                        }
+                    } else {
+                        match rng.gen_range(0..6) {
+                            0 => format!("{} Lake", name),
+                            1 => format!("Loch {}", name),
+                            _ => format!("Lake {}", name),
+                        }
+                    }
+                },
+                // Size parameter is based on the east west chord length with a smaller factor from
+                // the north south chord length. This is used for text scaling on the map
+                kind: PoiKind::Lake(size_parameter),
+                loc: new_loc,
+            };
+            num_lakes += 1;
+            self.pois.insert(lake);
+        }
+        info!(?num_lakes, "all lakes named");
+    }
+
+    /// Adds mountain POIs and name them
+    fn name_peaks(&mut self, ctx: &mut GenCtx<impl Rng>) {
+        let map_size_lg = ctx.sim.map_size_lg();
+        const MIN_MOUNTAIN_ALT: f32 = 600.0;
+        const MIN_MOUNTAIN_CHAOS: f32 = 0.35;
+        let rng = &mut ctx.rng;
+        let sim_chunks = &ctx.sim.chunks;
+        let peaks = sim_chunks
+            .iter()
+            .enumerate()
+            .filter(|(posi, chunk)| {
+                let neighbor_alts_max = common::terrain::neighbors(map_size_lg, *posi)
+                    .map(|i| sim_chunks[i].alt as u32)
+                    .max();
+                chunk.alt > MIN_MOUNTAIN_ALT
+                    && chunk.chaos > MIN_MOUNTAIN_CHAOS
+                    && neighbor_alts_max.map_or(false, |n_alt| chunk.alt as u32 > n_alt)
+            })
+            .map(|(posi, chunk)| {
+                (
+                    posi,
+                    uniform_idx_as_vec2(map_size_lg, posi),
+                    (chunk.alt - CONFIG.sea_level) as u32,
+                )
+            })
+            .collect::<Vec<(usize, Vec2<i32>, u32)>>();
+        let mut num_peaks = 0;
+        let mut removals = vec![false; peaks.len()];
+        for (i, peak) in peaks.iter().enumerate() {
+            for (k, n_peak) in peaks.iter().enumerate() {
+                // If the difference in position of this peak and another is
+                // below a threshold and this peak's altitude is lower, remove the
+                // peak from the list
+                if i != k
+                    && (peak.1).distance_squared(n_peak.1) < POI_THINNING_DIST_SQRD
+                    && peak.2 <= n_peak.2
+                {
+                    // Remove this peak
+                    // This cannot panic as `removals` is the same length as `peaks`
+                    // i is the index in `peaks`
+                    removals[i] = true;
+                }
+            }
+        }
+        peaks
+            .iter()
+            .enumerate()
+            .filter(|&(i, _)| !removals[i])
+            .for_each(|(_, (_, loc, alt))| {
+                num_peaks += 1;
+                self.pois.insert(PointOfInterest {
+                    name: {
+                        let name = NameGen::location(rng).generate();
+                        if *alt < 1000 {
+                            match rng.gen_range(0..6) {
+                                0 => format!("{} Bluff", name),
+                                1 => format!("{} Crag", name),
+                                _ => format!("{} Hill", name),
+                            }
+                        } else {
+                            match rng.gen_range(0..8) {
+                                0 => format!("{}'s Peak", name),
+                                1 => format!("{} Peak", name),
+                                2 => format!("{} Summit", name),
+                                _ => format!("Mount {}", name),
+                            }
+                        }
+                    },
+                    kind: PoiKind::Peak(*alt),
+                    loc: *loc,
+                });
+            });
+        info!(?num_peaks, "all peaks named");
+    }
+
     fn establish_site(
         &mut self,
         ctx: &mut GenCtx<impl Rng>,
@@ -725,4 +916,19 @@ impl Site {
     pub fn is_settlement(&self) -> bool { matches!(self.kind, SiteKind::Settlement) }
 
     pub fn is_castle(&self) -> bool { matches!(self.kind, SiteKind::Castle) }
+}
+
+#[derive(PartialEq, Debug, Clone)]
+pub struct PointOfInterest {
+    pub name: String,
+    pub kind: PoiKind,
+    pub loc: Vec2<i32>,
+}
+
+#[derive(PartialEq, Debug, Clone)]
+pub enum PoiKind {
+    /// Peak stores the altitude
+    Peak(u32),
+    /// Lake stores a metric relating to size
+    Lake(u32),
 }

@@ -111,6 +111,7 @@ pub enum Interface {
     MapShowCastles(bool),
     MapShowCaves(bool),
     MapShowTrees(bool),
+    MapShowPeaks(bool),
 
     ResetInterfaceSettings,
 }
@@ -453,6 +454,9 @@ impl SettingsChange {
                     },
                     Interface::MapShowTrees(map_show_trees) => {
                         settings.interface.map_show_trees = map_show_trees;
+                    },
+                    Interface::MapShowPeaks(map_show_peaks) => {
+                        settings.interface.map_show_peaks = map_show_peaks;
                     },
                     Interface::ResetInterfaceSettings => {
                         // Reset Interface Settings
