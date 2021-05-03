@@ -17,7 +17,6 @@ use common::{
         aura::{Aura, AuraKind, AuraTarget},
         buff::{Buff, BuffCategory, BuffData, BuffKind, BuffSource},
         inventory::item::{tool::AbilityMap, MaterialStatManifest},
-
         invite::InviteKind,
         ChatType, Inventory, Item, LightEmitter, WaypointArea,
     },
