@@ -2381,6 +2381,7 @@ dependencies = [
  "bytemuck",
  "byteorder",
  "color_quant",
+ "jpeg-decoder",
  "num-iter",
  "num-rational 0.3.2",
  "num-traits",
@@ -2509,6 +2510,12 @@ checksum = "5c71313ebb9439f74b00d9d2dcec36440beaf57a6aa0623068441dd7cd81a7f2"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "jpeg-decoder"
+version = "0.1.22"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "229d53d58899083193af11e15917b5640cd40b29ff475a1fe4ef725deb02d0f2"
 
 [[package]]
 name = "js-sys"
@@ -5508,6 +5515,8 @@ dependencies = [
  "bincode",
  "flate2",
  "hashbrown",
+ "image",
+ "num-traits",
  "serde",
  "specs",
  "specs-idvs",
@@ -5801,6 +5810,7 @@ dependencies = [
  "minifb",
  "noise",
  "num 0.4.0",
+ "num-traits",
  "ordered-float 2.1.1",
  "packed_simd_2",
  "rand 0.8.3",

@@ -71,6 +71,7 @@ pub enum Graphics {
 
     ChangeFullscreenMode(FullScreenSettings),
     ToggleParticlesEnabled(bool),
+    ToggleLossyTerrainCompression(bool),
     AdjustWindowSize([u16; 2]),
 
     ResetGraphicsSettings,
@@ -328,6 +329,13 @@ impl SettingsChange {
                     },
                     Graphics::ToggleParticlesEnabled(particles_enabled) => {
                         settings.graphics.particles_enabled = particles_enabled;
+                    },
+                    Graphics::ToggleLossyTerrainCompression(lossy_terrain_compression) => {
+                        settings.graphics.lossy_terrain_compression = lossy_terrain_compression;
+                        session_state
+                            .client
+                            .borrow_mut()
+                            .request_lossy_terrain_compression(lossy_terrain_compression);
                     },
                     Graphics::AdjustWindowSize(new_size) => {
                         global_state.window.set_size(new_size.into());

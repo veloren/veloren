@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom map markers can be placed now
 - Fundamentals/prototype for wiring system
 - Mountain peak and lake markers on the map
+- There's now a checkbox in the graphics tab to opt-in to receiving lossily-compressed terrain colors.
 
 ### Changed
 

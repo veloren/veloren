@@ -1,4 +1,7 @@
-use super::{world_msg::EconomyInfo, ClientType, CompressedData, EcsCompPacket, PingMsg};
+use super::{
+    world_msg::EconomyInfo, ClientType, CompressedData, EcsCompPacket, PingMsg, QuadPngEncoding,
+    TriPngEncoding, WidePacking, WireChonk,
+};
 use crate::sync;
 use common::{
     character::{self, CharacterItem},
@@ -6,13 +9,14 @@ use common::{
     outcome::Outcome,
     recipe::RecipeBook,
     resources::TimeOfDay,
-    terrain::{Block, TerrainChunk},
+    terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     trade::{PendingTrade, SitePrices, TradeId, TradeResult},
     uid::Uid,
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
+use tracing::warn;
 use vek::*;
 
 ///This struct contains all messages the server might send (on different
@@ -62,6 +66,53 @@ pub enum ServerInit {
 
 pub type ServerRegisterAnswer = Result<(), RegisterError>;
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum SerializedTerrainChunk {
+    DeflatedChonk(CompressedData<TerrainChunk>),
+    QuadPng(WireChonk<QuadPngEncoding<4>, WidePacking<true>, TerrainChunkMeta, TerrainChunkSize>),
+    TriPng(WireChonk<TriPngEncoding<false>, WidePacking<true>, TerrainChunkMeta, TerrainChunkSize>),
+}
+
+impl SerializedTerrainChunk {
+    pub fn via_heuristic(chunk: &TerrainChunk, lossy_compression: bool) -> Self {
+        if lossy_compression && (chunk.get_max_z() - chunk.get_min_z() <= 128) {
+            Self::quadpng(chunk)
+        } else {
+            Self::deflate(chunk)
+        }
+    }
+
+    pub fn deflate(chunk: &TerrainChunk) -> Self {
+        Self::DeflatedChonk(CompressedData::compress(chunk, 1))
+    }
+
+    pub fn quadpng(chunk: &TerrainChunk) -> Self {
+        if let Some(wc) = WireChonk::from_chonk(QuadPngEncoding(), WidePacking(), chunk) {
+            Self::QuadPng(wc)
+        } else {
+            warn!("Image encoding failure occurred, falling back to deflate");
+            Self::deflate(chunk)
+        }
+    }
+
+    pub fn tripng(chunk: &TerrainChunk) -> Self {
+        if let Some(wc) = WireChonk::from_chonk(TriPngEncoding(), WidePacking(), chunk) {
+            Self::TriPng(wc)
+        } else {
+            warn!("Image encoding failure occurred, falling back to deflate");
+            Self::deflate(chunk)
+        }
+    }
+
+    pub fn to_chunk(&self) -> Option<TerrainChunk> {
+        match self {
+            Self::DeflatedChonk(chonk) => chonk.decompress(),
+            Self::QuadPng(wc) => wc.to_chonk(),
+            Self::TriPng(wc) => wc.to_chonk(),
+        }
+    }
+}
+
 /// Messages sent from the server to the client
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ServerGeneral {
@@ -106,7 +157,7 @@ pub enum ServerGeneral {
     // Ingame related AND terrain stream
     TerrainChunkUpdate {
         key: Vec2<i32>,
-        chunk: Result<CompressedData<TerrainChunk>, ()>,
+        chunk: Result<SerializedTerrainChunk, ()>,
     },
     TerrainBlockUpdates(CompressedData<HashMap<Vec3<i32>, Block>>),
     // Always possible

@@ -9,6 +9,7 @@ use vek::*;
 pub struct Presence {
     pub view_distance: u32,
     pub kind: PresenceKind,
+    pub lossy_terrain_compression: bool,
 }
 
 impl Presence {
@@ -16,6 +17,7 @@ impl Presence {
         Self {
             view_distance,
             kind,
+            lossy_terrain_compression: false,
         }
     }
 }

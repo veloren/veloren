@@ -1,4 +1,5 @@
-use crate::{client::Client, presence::Presence};
+use super::terrain::LazyTerrainMessage;
+use crate::{client::Client, metrics::NetworkRequestMetrics, presence::Presence};
 use common::{comp::Pos, terrain::TerrainGrid};
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{CompressedData, ServerGeneral};
@@ -17,6 +18,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Client>,
+        ReadExpect<'a, NetworkRequestMetrics>,
     );
 
     const NAME: &'static str = "terrain_sync";
@@ -25,25 +27,23 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (terrain, terrain_changes, positions, presences, clients): Self::SystemData,
+        (terrain, terrain_changes, positions, presences, clients, network_metrics): Self::SystemData,
     ) {
         // Sync changed chunks
         'chunk: for chunk_key in &terrain_changes.modified_chunks {
-            let mut lazy_msg = None;
-
+            let mut lazy_msg = LazyTerrainMessage::new();
             for (presence, pos, client) in (&presences, &positions, &clients).join() {
                 if super::terrain::chunk_in_vd(pos.0, *chunk_key, &terrain, presence.view_distance)
                 {
-                    if lazy_msg.is_none() {
-                        lazy_msg = Some(client.prepare(ServerGeneral::TerrainChunkUpdate {
-                            key: *chunk_key,
-                            chunk: Ok(match terrain.get_key(*chunk_key) {
-                                Some(chunk) => CompressedData::compress(&chunk, 1),
-                                None => break 'chunk,
-                            }),
-                        }));
+                    if let Err(()) = lazy_msg.prepare_and_send(
+                        &network_metrics,
+                        &client,
+                        &presence,
+                        chunk_key,
+                        || terrain.get_key(*chunk_key).ok_or(()),
+                    ) {
+                        break 'chunk;
                     }
-                    lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));
                 }
             }
         }
