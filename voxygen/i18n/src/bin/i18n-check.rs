@@ -1,5 +1,5 @@
 use std::{env::args, path::Path, vec::Vec};
-use veloren_i18n_check::analysis;
+use veloren_i18n::analysis;
 
 fn main() {
     let cli: Vec<String> = args().collect();

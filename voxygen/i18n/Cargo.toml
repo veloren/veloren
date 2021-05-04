@@ -1,0 +1,20 @@
+[package]
+authors = ["juliancoffee <lightdarkdaughter@gmail.com>"]
+edition = "2018"
+name = "veloren-i18n"
+description = "Crate for internalization and diagnostic of existing localizations."
+version = "0.9.0"
+
+[[bin]]
+name = "i18n-check"
+
+[dependencies]
+hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }
+lazy_static = "1.4.0"
+assets_manager = {version = "0.4.2", features = ["bincode", "ron", "json", "hot-reloading"]}
+deunicode = "1.0"
+ron = "0.6"
+serde = { version = "1.0", features = ["derive"] }
+tracing = "0.1"
+# Diagnostic
+git2 = "0.13"

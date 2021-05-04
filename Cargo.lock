@@ -5644,11 +5644,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "veloren-i18n-check"
+name = "veloren-i18n"
 version = "0.9.0"
 dependencies = [
+ "assets_manager",
+ "deunicode",
  "git2",
  "hashbrown",
+ "lazy_static",
  "ron",
  "serde",
  "tracing",
@@ -5854,7 +5857,7 @@ dependencies = [
  "veloren-common-net",
  "veloren-common-state",
  "veloren-common-systems",
- "veloren-i18n-check",
+ "veloren-i18n",
  "veloren-server",
  "veloren-voxygen-anim",
  "veloren-world",

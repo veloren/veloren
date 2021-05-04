@@ -42,7 +42,7 @@ common-systems = {package = "veloren-common-systems", path = "../common/systems"
 common-state = {package = "veloren-common-state", path = "../common/state"}
 
 anim = {package = "veloren-voxygen-anim", path = "anim"}
-i18n-check = {package = "veloren-i18n-check", path = "i18n-check"}
+i18n = {package = "veloren-i18n", path = "i18n"}
 
 # Graphics
 gfx = "0.18.2"

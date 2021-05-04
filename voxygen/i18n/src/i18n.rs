@@ -1,4 +1,4 @@
-use common::assets::{self, AssetExt, AssetGuard, AssetHandle};
+use crate::assets::{self, AssetExt, AssetGuard, AssetHandle};
 use deunicode::deunicode;
 use hashbrown::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
@@ -332,7 +332,7 @@ impl LocalizationHandle {
         }
     }
 
-    pub fn load(specifier: &str) -> Result<Self, common::assets::Error> {
+    pub fn load(specifier: &str) -> Result<Self, crate::assets::Error> {
         let default_key = i18n_asset_key(REFERENCE_LANG);
         let is_default = specifier == default_key;
         Ok(Self {
@@ -390,7 +390,7 @@ pub fn i18n_asset_key(language_id: &str) -> String { ["voxygen.i18n.", language_
 
 #[cfg(test)]
 mod tests {
-    use i18n_check::analysis;
+    use crate::analysis;
     use std::path::Path;
 
     // Test to verify all languages that they are VALID and loadable, without
@@ -400,8 +400,8 @@ mod tests {
         // Generate paths
         let i18n_asset_path = Path::new("assets/voxygen/i18n/");
         let curr_dir = std::env::current_dir().unwrap();
-        let root = curr_dir.parent().unwrap();
-        analysis::verify_all_localizations(&root, &i18n_asset_path);
+        let root_dir = curr_dir.parent().unwrap().parent().unwrap();
+        analysis::verify_all_localizations(&root_dir, &i18n_asset_path);
     }
 
     // Test to verify all languages and print missing and faulty localisation
@@ -411,7 +411,7 @@ mod tests {
         // Generate paths
         let i18n_asset_path = Path::new("assets/voxygen/i18n/");
         let curr_dir = std::env::current_dir().unwrap();
-        let root = curr_dir.parent().unwrap();
-        analysis::test_all_localizations(&root, &i18n_asset_path);
+        let root_dir = curr_dir.parent().unwrap().parent().unwrap();
+        analysis::test_all_localizations(&root_dir, &i18n_asset_path);
     }
 }
