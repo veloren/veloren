@@ -9,17 +9,20 @@ mod way;
 use self::erosion::Compute;
 pub use self::{
     diffusion::diffusion,
-    erosion::{
-        do_erosion, fill_sinks, get_drainage, get_lakes, get_multi_drainage, get_multi_rec,
-        get_rivers, mrec_downhill, Alt, RiverData, RiverKind,
-    },
     location::Location,
     map::{sample_pos, sample_wpos},
-    util::{
-        cdf_irwin_hall, downhill, get_horizon_map, get_oceans, local_cells, map_edge_factor,
-        uniform_noise, uphill, InverseCdf, ScaleBias,
-    },
+    util::get_horizon_map,
     way::{Cave, Path, Way},
+};
+pub(crate) use self::{
+    erosion::{
+        do_erosion, fill_sinks, get_lakes, get_multi_drainage, get_multi_rec, get_rivers, Alt,
+        RiverData, RiverKind,
+    },
+    util::{
+        cdf_irwin_hall, downhill, get_oceans, local_cells, map_edge_factor, uniform_noise, uphill,
+        InverseCdf,
+    },
 };
 
 use crate::{

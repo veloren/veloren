@@ -28,6 +28,7 @@ pub type Alt = f64;
 pub type Compute = f64;
 pub type Computex8 = [Compute; 8];
 
+/* code used by sharp in future
 /// Compute the water flux at all chunks, given a list of chunk indices sorted
 /// by increasing height.
 pub fn get_drainage(
@@ -56,6 +57,7 @@ pub fn get_drainage(
     });
     flux
 }
+*/
 
 /// Compute the water flux at all chunks for multiple receivers, given a list of
 /// chunk indices sorted by increasing height and weights for each receiver.
@@ -1723,7 +1725,7 @@ fn erode(
 /// http://horizon.documentation.ird.fr/exl-doc/pleins_textes/pleins_textes_7/sous_copyright/010031925.pdf
 ///
 /// See https://github.com/mewo2/terrain/blob/master/terrain.js
-pub fn fill_sinks<F: Float + Send + Sync>(
+pub(crate) fn fill_sinks<F: Float + Send + Sync>(
     map_size_lg: MapSizeLg,
     h: impl Fn(usize) -> F + Sync,
     is_ocean: impl Fn(usize) -> bool + Sync,

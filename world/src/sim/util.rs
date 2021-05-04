@@ -771,6 +771,7 @@ impl NoiseFn<[f64; 4]> for HybridMulti {
     }
 }
 
+/* code used by sharp in future
 /// Noise function that applies a scaling factor and a bias to the output value
 /// from the source function.
 ///
@@ -810,3 +811,4 @@ impl<'a, F: NoiseFn<T> + 'a, T> NoiseFn<T> for ScaleBias<'a, F> {
     #[cfg(target_os = "emscripten")]
     fn get(&self, point: T) -> f64 { (self.source.get(point) * self.scale) + self.bias }
 }
+ */
