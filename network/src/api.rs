@@ -28,11 +28,23 @@ use tracing::*;
 
 type A2sDisconnect = Arc<Mutex<Option<mpsc::UnboundedSender<(Pid, S2bShutdownBparticipant)>>>>;
 
-/// Represents a Tcp or Udp or Mpsc address
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub enum ProtocolAddr {
+/// Represents a Tcp, Quic, Udp or Mpsc connection address
+#[derive(Clone, Debug)]
+pub enum ConnectAddr {
     Tcp(SocketAddr),
     Udp(SocketAddr),
+    #[cfg(feature = "quic")]
+    Quic(SocketAddr, quinn::ClientConfig, String),
+    Mpsc(u64),
+}
+
+/// Represents a Tcp, Quic, Udp or Mpsc listen address
+#[derive(Clone, Debug)]
+pub enum ListenAddr {
+    Tcp(SocketAddr),
+    Udp(SocketAddr),
+    #[cfg(feature = "quic")]
+    Quic(SocketAddr, quinn::ServerConfig),
     Mpsc(u64),
 }
 
@@ -133,8 +145,8 @@ pub struct StreamParams {
 /// [`Arc`](std::sync::Arc) as all commands have internal mutability.
 ///
 /// The `Network` has methods to [`connect`] to other [`Participants`] actively
-/// via their [`ProtocolAddr`], or [`listen`] passively for [`connected`]
-/// [`Participants`].
+/// via their [`ConnectAddr`], or [`listen`] passively for [`connected`]
+/// [`Participants`] via [`ListenAddr`].
 ///
 /// Too guarantee a clean shutdown, the [`Runtime`] MUST NOT be droped before
 /// the Network.
@@ -142,7 +154,7 @@ pub struct StreamParams {
 /// # Examples
 /// ```rust
 /// use tokio::runtime::Runtime;
-/// use veloren_network::{Network, ProtocolAddr, Pid};
+/// use veloren_network::{Network, ConnectAddr, ListenAddr, Pid};
 ///
 /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
 /// // Create a Network, listen on port `2999` to accept connections and connect to port `8080` to connect to a (pseudo) database Application
@@ -151,9 +163,9 @@ pub struct StreamParams {
 /// runtime.block_on(async{
 ///     # //setup pseudo database!
 ///     # let database = Network::new(Pid::new(), &runtime);
-///     # database.listen(ProtocolAddr::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
-///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2999".parse().unwrap())).await?;
-///     let database = network.connect(ProtocolAddr::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
+///     # database.listen(ListenAddr::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
+///     network.listen(ListenAddr::Tcp("127.0.0.1:2999".parse().unwrap())).await?;
+///     let database = network.connect(ConnectAddr::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
 ///     drop(network);
 ///     # drop(database);
 ///     # Ok(())
@@ -166,10 +178,12 @@ pub struct StreamParams {
 /// [`connect`]: Network::connect
 /// [`listen`]: Network::listen
 /// [`connected`]: Network::connected
+/// [`ConnectAddr`]: crate::api::ConnectAddr
+/// [`ListenAddr`]: crate::api::ListenAddr
 pub struct Network {
     local_pid: Pid,
     participant_disconnect_sender: Arc<Mutex<HashMap<Pid, A2sDisconnect>>>,
-    listen_sender: Mutex<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<io::Result<()>>)>>,
+    listen_sender: Mutex<mpsc::UnboundedSender<(ListenAddr, oneshot::Sender<io::Result<()>>)>>,
     connect_sender: Mutex<mpsc::UnboundedSender<A2sConnect>>,
     connected_receiver: Mutex<mpsc::UnboundedReceiver<Participant>>,
     shutdown_network_s: Option<oneshot::Sender<oneshot::Sender<()>>>,
@@ -195,7 +209,7 @@ impl Network {
     /// # Examples
     /// ```rust
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, Pid, ProtocolAddr};
+    /// use veloren_network::{Network, Pid};
     ///
     /// let runtime = Runtime::new().unwrap();
     /// let network = Network::new(Pid::new(), &runtime);
@@ -228,7 +242,7 @@ impl Network {
     /// ```rust
     /// use prometheus::Registry;
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, Pid, ProtocolAddr};
+    /// use veloren_network::{Network, Pid};
     ///
     /// let runtime = Runtime::new().unwrap();
     /// let registry = Registry::new();
@@ -281,7 +295,7 @@ impl Network {
         }
     }
 
-    /// starts listening on an [`ProtocolAddr`].
+    /// starts listening on an [`ListenAddr`].
     /// When the method returns the `Network` is ready to listen for incoming
     /// connections OR has returned a [`NetworkError`] (e.g. port already used).
     /// You can call [`connected`] to asynchrony wait for a [`Participant`] to
@@ -291,7 +305,7 @@ impl Network {
     /// # Examples
     /// ```ignore
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, Pid, ProtocolAddr};
+    /// use veloren_network::{Network, Pid, ListenAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2000` TCP on all NICs and `2001` UDP locally
@@ -299,10 +313,10 @@ impl Network {
     /// let network = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     network
-    ///         .listen(ProtocolAddr::Tcp("127.0.0.1:2000".parse().unwrap()))
+    ///         .listen(ListenAddr::Tcp("127.0.0.1:2000".parse().unwrap()))
     ///         .await?;
     ///     network
-    ///         .listen(ProtocolAddr::Udp("127.0.0.1:2001".parse().unwrap()))
+    ///         .listen(ListenAddr::Udp("127.0.0.1:2001".parse().unwrap()))
     ///         .await?;
     ///     drop(network);
     ///     # Ok(())
@@ -311,8 +325,9 @@ impl Network {
     /// ```
     ///
     /// [`connected`]: Network::connected
+    /// [`ListenAddr`]: crate::api::ListenAddr
     #[instrument(name="network", skip(self, address), fields(p = %self.local_pid))]
-    pub async fn listen(&self, address: ProtocolAddr) -> Result<(), NetworkError> {
+    pub async fn listen(&self, address: ListenAddr) -> Result<(), NetworkError> {
         let (s2a_result_s, s2a_result_r) = oneshot::channel::<tokio::io::Result<()>>();
         debug!(?address, "listening on address");
         self.listen_sender
@@ -327,13 +342,13 @@ impl Network {
         }
     }
 
-    /// starts connection to an [`ProtocolAddr`].
+    /// starts connection to an [`ConnectAddr`].
     /// When the method returns the Network either returns a [`Participant`]
     /// ready to open [`Streams`] on OR has returned a [`NetworkError`] (e.g.
     /// can't connect, or invalid Handshake) # Examples
     /// ```ignore
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, Pid, ProtocolAddr};
+    /// use veloren_network::{Network, Pid, ListenAddr, ConnectAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port `2010` TCP and `2011` UDP like listening above
@@ -341,16 +356,16 @@ impl Network {
     /// let network = Network::new(Pid::new(), &runtime);
     /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
-    ///     # remote.listen(ProtocolAddr::Tcp("127.0.0.1:2010".parse().unwrap())).await?;
-    ///     # remote.listen(ProtocolAddr::Udp("127.0.0.1:2011".parse().unwrap())).await?;
+    ///     # remote.listen(ListenAddr::Tcp("127.0.0.1:2010".parse().unwrap())).await?;
+    ///     # remote.listen(ListenAddr::Udp("127.0.0.1:2011".parse().unwrap())).await?;
     ///     let p1 = network
-    ///         .connect(ProtocolAddr::Tcp("127.0.0.1:2010".parse().unwrap()))
+    ///         .connect(ConnectAddr::Tcp("127.0.0.1:2010".parse().unwrap()))
     ///         .await?;
     ///     # //this doesn't work yet, so skip the test
     ///     # //TODO fixme!
     ///     # return Ok(());
     ///     let p2 = network
-    ///         .connect(ProtocolAddr::Udp("127.0.0.1:2011".parse().unwrap()))
+    ///         .connect(ConnectAddr::Udp("127.0.0.1:2011".parse().unwrap()))
     ///         .await?;
     ///     assert_eq!(&p1, &p2);
     ///     # Ok(())
@@ -362,15 +377,15 @@ impl Network {
     /// ```
     /// Usually the `Network` guarantees that a operation on a [`Participant`]
     /// succeeds, e.g. by automatic retrying unless it fails completely e.g. by
-    /// disconnecting from the remote. If 2 [`ProtocolAddres`] you `connect` to
-    /// belongs to the same [`Participant`], you get the same [`Participant`] as
-    /// a result. This is useful e.g. by connecting to the same
-    /// [`Participant`] via multiple Protocols.
+    /// disconnecting from the remote. If 2 [`ConnectAddr] you
+    /// `connect` to belongs to the same [`Participant`], you get the same
+    /// [`Participant`] as a result. This is useful e.g. by connecting to
+    /// the same [`Participant`] via multiple Protocols.
     ///
     /// [`Streams`]: crate::api::Stream
-    /// [`ProtocolAddres`]: crate::api::ProtocolAddr
+    /// [`ConnectAddr`]: crate::api::ConnectAddr
     #[instrument(name="network", skip(self, address), fields(p = %self.local_pid))]
-    pub async fn connect(&self, address: ProtocolAddr) -> Result<Participant, NetworkError> {
+    pub async fn connect(&self, address: ConnectAddr) -> Result<Participant, NetworkError> {
         let (pid_sender, pid_receiver) =
             oneshot::channel::<Result<Participant, NetworkConnectError>>();
         debug!(?address, "Connect to address");
@@ -391,15 +406,15 @@ impl Network {
         Ok(participant)
     }
 
-    /// returns a [`Participant`] created from a [`ProtocolAddr`] you called
-    /// [`listen`] on before. This function will either return a working
-    /// [`Participant`] ready to open [`Streams`] on OR has returned a
-    /// [`NetworkError`] (e.g. Network got closed)
+    /// returns a [`Participant`] created from a [`ListenAddr`] you
+    /// called [`listen`] on before. This function will either return a
+    /// working [`Participant`] ready to open [`Streams`] on OR has returned
+    /// a [`NetworkError`] (e.g. Network got closed)
     ///
     /// # Examples
     /// ```rust
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, Pid, ProtocolAddr};
+    /// use veloren_network::{ConnectAddr, ListenAddr, Network, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2020` TCP and opens returns their Pid
@@ -408,9 +423,9 @@ impl Network {
     /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     network
-    ///         .listen(ProtocolAddr::Tcp("127.0.0.1:2020".parse().unwrap()))
+    ///         .listen(ListenAddr::Tcp("127.0.0.1:2020".parse().unwrap()))
     ///         .await?;
-    ///     # remote.connect(ProtocolAddr::Tcp("127.0.0.1:2020".parse().unwrap())).await?;
+    ///     # remote.connect(ConnectAddr::Tcp("127.0.0.1:2020".parse().unwrap())).await?;
     ///     while let Ok(participant) = network.connected().await {
     ///         println!("Participant connected: {}", participant.remote_pid());
     ///         # //skip test here as it would be a endless loop
@@ -425,6 +440,7 @@ impl Network {
     ///
     /// [`Streams`]: crate::api::Stream
     /// [`listen`]: crate::api::Network::listen
+    /// [`ListenAddr`]: crate::api::ListenAddr
     #[instrument(name="network", skip(self), fields(p = %self.local_pid))]
     pub async fn connected(&self) -> Result<Participant, NetworkError> {
         let participant = self.connected_receiver.lock().await.recv().await?;
@@ -528,7 +544,7 @@ impl Participant {
     /// # Examples
     /// ```rust
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, Pid, Promises, ProtocolAddr};
+    /// use veloren_network::{ConnectAddr, ListenAddr, Network, Pid, Promises};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2100 and open a stream
@@ -536,9 +552,9 @@ impl Participant {
     /// let network = Network::new(Pid::new(), &runtime);
     /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
-    ///     # remote.listen(ProtocolAddr::Tcp("127.0.0.1:2100".parse().unwrap())).await?;
+    ///     # remote.listen(ListenAddr::Tcp("127.0.0.1:2100".parse().unwrap())).await?;
     ///     let p1 = network
-    ///         .connect(ProtocolAddr::Tcp("127.0.0.1:2100".parse().unwrap()))
+    ///         .connect(ConnectAddr::Tcp("127.0.0.1:2100".parse().unwrap()))
     ///         .await?;
     ///     let _s1 = p1
     ///         .open(4, Promises::ORDERED | Promises::CONSISTENCY, 1000)
@@ -595,7 +611,7 @@ impl Participant {
     /// # Examples
     /// ```rust
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, Pid, ProtocolAddr, Promises};
+    /// use veloren_network::{Network, Pid, ListenAddr, ConnectAddr, Promises};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2110 and wait for the other side to open a stream
@@ -604,8 +620,8 @@ impl Participant {
     /// let network = Network::new(Pid::new(), &runtime);
     /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
-    ///     # remote.listen(ProtocolAddr::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
-    ///     let p1 = network.connect(ProtocolAddr::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
+    ///     # remote.listen(ListenAddr::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
+    ///     let p1 = network.connect(ConnectAddr::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
     ///     # let p2 = remote.connected().await?;
     ///     # p2.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
     ///     let _s1 = p1.opened().await?;
@@ -652,7 +668,7 @@ impl Participant {
     /// # Examples
     /// ```rust
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, Pid, ProtocolAddr};
+    /// use veloren_network::{Network, Pid, ListenAddr, ConnectAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2030` TCP and opens returns their Pid and close connection.
@@ -661,9 +677,9 @@ impl Participant {
     /// # let remote = Network::new(Pid::new(), &runtime);
     /// let err = runtime.block_on(async {
     ///     network
-    ///         .listen(ProtocolAddr::Tcp("127.0.0.1:2030".parse().unwrap()))
+    ///         .listen(ListenAddr::Tcp("127.0.0.1:2030".parse().unwrap()))
     ///         .await?;
-    ///     # let keep_alive = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2030".parse().unwrap())).await?;
+    ///     # let keep_alive = remote.connect(ConnectAddr::Tcp("127.0.0.1:2030".parse().unwrap())).await?;
     ///     while let Ok(participant) = network.connected().await {
     ///         println!("Participant connected: {}", participant.remote_pid());
     ///         participant.disconnect().await?;
@@ -788,7 +804,7 @@ impl Stream {
     /// ```
     /// # use veloren_network::Promises;
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, ProtocolAddr, Pid};
+    /// use veloren_network::{Network, ListenAddr, ConnectAddr, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2200` and wait for a Stream to be opened, then answer `Hello World`
@@ -796,8 +812,8 @@ impl Stream {
     /// let network = Network::new(Pid::new(), &runtime);
     /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
-    ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
-    ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
+    ///     network.listen(ListenAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
+    ///     # let remote_p = remote.connect(ConnectAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
     ///     # // keep it alive
     ///     # let _stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
     ///     let participant_a = network.connected().await?;
@@ -830,7 +846,7 @@ impl Stream {
     /// # use veloren_network::Promises;
     /// use tokio::runtime::Runtime;
     /// use bincode;
-    /// use veloren_network::{Network, ProtocolAddr, Pid, Message};
+    /// use veloren_network::{Network, ListenAddr, ConnectAddr, Pid, Message};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// let runtime = Runtime::new().unwrap();
@@ -838,9 +854,9 @@ impl Stream {
     /// # let remote1 = Network::new(Pid::new(), &runtime);
     /// # let remote2 = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
-    ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
-    ///     # let remote1_p = remote1.connect(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
-    ///     # let remote2_p = remote2.connect(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
+    ///     network.listen(ListenAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
+    ///     # let remote1_p = remote1.connect(ConnectAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
+    ///     # let remote2_p = remote2.connect(ConnectAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
     ///     # assert_eq!(remote1_p.remote_pid(), remote2_p.remote_pid());
     ///     # remote1_p.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
     ///     # remote2_p.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
@@ -889,7 +905,7 @@ impl Stream {
     /// ```
     /// # use veloren_network::Promises;
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, ProtocolAddr, Pid};
+    /// use veloren_network::{Network, ListenAddr, ConnectAddr, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2220` and wait for a Stream to be opened, then listen on it
@@ -897,8 +913,8 @@ impl Stream {
     /// let network = Network::new(Pid::new(), &runtime);
     /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
-    ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
-    ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
+    ///     network.listen(ListenAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
+    ///     # let remote_p = remote.connect(ConnectAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
     ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
     ///     # stream_p.send("Hello World");
     ///     let participant_a = network.connected().await?;
@@ -923,7 +939,7 @@ impl Stream {
     /// ```
     /// # use veloren_network::Promises;
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, ProtocolAddr, Pid};
+    /// use veloren_network::{Network, ListenAddr, ConnectAddr, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2230` and wait for a Stream to be opened, then listen on it
@@ -931,8 +947,8 @@ impl Stream {
     /// let network = Network::new(Pid::new(), &runtime);
     /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
-    ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2230".parse().unwrap())).await?;
-    ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2230".parse().unwrap())).await?;
+    ///     network.listen(ListenAddr::Tcp("127.0.0.1:2230".parse().unwrap())).await?;
+    ///     # let remote_p = remote.connect(ConnectAddr::Tcp("127.0.0.1:2230".parse().unwrap())).await?;
     ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
     ///     # stream_p.send("Hello World");
     ///     let participant_a = network.connected().await?;
@@ -979,7 +995,7 @@ impl Stream {
     /// ```
     /// # use veloren_network::Promises;
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, ProtocolAddr, Pid};
+    /// use veloren_network::{Network, ListenAddr, ConnectAddr, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2240` and wait for a Stream to be opened, then listen on it
@@ -987,8 +1003,8 @@ impl Stream {
     /// let network = Network::new(Pid::new(), &runtime);
     /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
-    ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2240".parse().unwrap())).await?;
-    ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2240".parse().unwrap())).await?;
+    ///     network.listen(ListenAddr::Tcp("127.0.0.1:2240".parse().unwrap())).await?;
+    ///     # let remote_p = remote.connect(ConnectAddr::Tcp("127.0.0.1:2240".parse().unwrap())).await?;
     ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
     ///     # stream_p.send("Hello World");
     ///     # std::thread::sleep(std::time::Duration::from_secs(1));

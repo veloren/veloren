@@ -6,8 +6,9 @@ use std::{sync::Arc, time::Duration};
 use tokio::runtime::Runtime;
 use veloren_network_protocol::{
     InitProtocol, MpscMsg, MpscRecvProtocol, MpscSendProtocol, Pid, Promises, ProtocolError,
-    ProtocolEvent, ProtocolMetricCache, ProtocolMetrics, RecvProtocol, SendProtocol, Sid,
-    TcpRecvProtocol, TcpSendProtocol, UnreliableDrain, UnreliableSink, _internal::OTFrame,
+    ProtocolEvent, ProtocolMetricCache, ProtocolMetrics, QuicDataFormat, QuicRecvProtocol,
+    QuicSendProtocol, RecvProtocol, SendProtocol, Sid, TcpRecvProtocol, TcpSendProtocol,
+    UnreliableDrain, UnreliableSink, _internal::OTFrame,
 };
 
 fn frame_serialize(frame: OTFrame, buffer: &mut BytesMut) { frame.write_bytes(buffer); }
@@ -145,7 +146,35 @@ fn criterion_tcp(c: &mut Criterion) {
     c.finish();
 }
 
-criterion_group!(benches, criterion_util, criterion_mpsc, criterion_tcp);
+fn criterion_quic(c: &mut Criterion) {
+    let mut c = c.benchmark_group("quic");
+    c.significance_level(0.1).sample_size(10);
+    c.throughput(Throughput::Bytes(1000000000))
+        .bench_function("1GB_in_10000_msg", |b| {
+            let buf = Bytes::from(&[155u8; 100_000][..]);
+            b.to_async(rt()).iter_with_setup(
+                || (buf.clone(), utils::quic_bound(10000, None)),
+                |(b, p)| send_and_recv_msg(p, b, 10_000),
+            )
+        });
+    c.throughput(Throughput::Elements(1000000))
+        .bench_function("1000000_tiny_msg", |b| {
+            let buf = Bytes::from(&[3u8; 5][..]);
+            b.to_async(rt()).iter_with_setup(
+                || (buf.clone(), utils::quic_bound(10000, None)),
+                |(b, p)| send_and_recv_msg(p, b, 1_000_000),
+            )
+        });
+    c.finish();
+}
+
+criterion_group!(
+    benches,
+    criterion_util,
+    criterion_mpsc,
+    criterion_tcp,
+    criterion_quic
+);
 criterion_main!(benches);
 
 mod utils {
@@ -210,6 +239,36 @@ mod utils {
         ]
     }
 
+    pub struct QuicDrain {
+        pub sender: Sender<QuicDataFormat>,
+    }
+
+    pub struct QuicSink {
+        pub receiver: Receiver<QuicDataFormat>,
+    }
+
+    /// emulate Quic protocol on Channels
+    pub fn quic_bound(
+        cap: usize,
+        metrics: Option<ProtocolMetricCache>,
+    ) -> [(QuicSendProtocol<QuicDrain>, QuicRecvProtocol<QuicSink>); 2] {
+        let (s1, r1) = async_channel::bounded(cap);
+        let (s2, r2) = async_channel::bounded(cap);
+        let m = metrics.unwrap_or_else(|| {
+            ProtocolMetricCache::new("quic", Arc::new(ProtocolMetrics::new().unwrap()))
+        });
+        [
+            (
+                QuicSendProtocol::new(QuicDrain { sender: s1 }, m.clone()),
+                QuicRecvProtocol::new(QuicSink { receiver: r2 }, m.clone()),
+            ),
+            (
+                QuicSendProtocol::new(QuicDrain { sender: s2 }, m.clone()),
+                QuicRecvProtocol::new(QuicSink { receiver: r1 }, m),
+            ),
+        ]
+    }
+
     #[async_trait]
     impl UnreliableDrain for ACDrain {
         type DataFormat = MpscMsg;
@@ -249,6 +308,30 @@ mod utils {
     #[async_trait]
     impl UnreliableSink for TcpSink {
         type DataFormat = BytesMut;
+
+        async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError> {
+            self.receiver
+                .recv()
+                .await
+                .map_err(|_| ProtocolError::Closed)
+        }
+    }
+
+    #[async_trait]
+    impl UnreliableDrain for QuicDrain {
+        type DataFormat = QuicDataFormat;
+
+        async fn send(&mut self, data: Self::DataFormat) -> Result<(), ProtocolError> {
+            self.sender
+                .send(data)
+                .await
+                .map_err(|_| ProtocolError::Closed)
+        }
+    }
+
+    #[async_trait]
+    impl UnreliableSink for QuicSink {
+        type DataFormat = QuicDataFormat;
 
         async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError> {
             self.receiver

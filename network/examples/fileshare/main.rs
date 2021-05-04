@@ -9,7 +9,7 @@ use std::{path::PathBuf, sync::Arc, thread, time::Duration};
 use tokio::{io, io::AsyncBufReadExt, runtime::Runtime, sync::mpsc};
 use tracing::*;
 use tracing_subscriber::EnvFilter;
-use veloren_network::ProtocolAddr;
+use veloren_network::{ConnectAddr, ListenAddr};
 mod commands;
 mod server;
 use commands::{FileInfo, LocalCommand};
@@ -50,7 +50,7 @@ fn main() {
         .init();
 
     let port: u16 = matches.value_of("port").unwrap().parse().unwrap();
-    let address = ProtocolAddr::Tcp(format!("{}:{}", "127.0.0.1", port).parse().unwrap());
+    let address = ListenAddr::Tcp(format!("{}:{}", "127.0.0.1", port).parse().unwrap());
     let runtime = Arc::new(Runtime::new().unwrap());
 
     let (server, cmd_sender) = Server::new(Arc::clone(&runtime));
@@ -158,12 +158,12 @@ async fn client(cmd_sender: mpsc::UnboundedSender<LocalCommand>) {
                     .parse()
                     .unwrap();
                 cmd_sender
-                    .send(LocalCommand::Connect(ProtocolAddr::Tcp(socketaddr)))
+                    .send(LocalCommand::Connect(ConnectAddr::Tcp(socketaddr)))
                     .unwrap();
             },
             ("t", _) => {
                 cmd_sender
-                    .send(LocalCommand::Connect(ProtocolAddr::Tcp(
+                    .send(LocalCommand::Connect(ConnectAddr::Tcp(
                         "127.0.0.1:1231".parse().unwrap(),
                     )))
                     .unwrap();

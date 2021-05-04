@@ -9,8 +9,9 @@ edition = "2018"
 [features]
 metrics = ["prometheus", "network-protocol/metrics"]
 compression = ["lz-fear"]
+quic = ["quinn"]
 
-default = ["metrics","compression"]
+default = ["metrics","compression","quic"]
 
 [dependencies]
 
@@ -33,6 +34,8 @@ async-channel = "1.5.1" #use for .close() channels
 #mpsc channel registry
 lazy_static = { version = "1.4", default-features = false }
 rand = { version = "0.8" }
+#quic support
+quinn = { version = "0.7.2", optional = true }
 #stream flags
 bitflags = "1.2.1"
 lz-fear = { version = "0.1.1", optional = true }
@@ -49,6 +52,8 @@ shellexpand = "2.0.0"
 serde = { version = "1.0", features = ["derive"] }
 prometheus-hyper = "0.1.2"
 criterion = { version = "0.3.4", features = ["default", "async_tokio"] }
+#quic
+rcgen = { version = "0.8.10"}
 
 [[bench]]
 name = "speed"

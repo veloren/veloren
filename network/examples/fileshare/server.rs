@@ -8,7 +8,7 @@ use tokio::{
 };
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use tracing::*;
-use veloren_network::{Network, Participant, Pid, Promises, ProtocolAddr, Stream};
+use veloren_network::{ListenAddr, Network, Participant, Pid, Promises, Stream};
 
 #[derive(Debug)]
 struct ControlChannels {
@@ -42,7 +42,7 @@ impl Server {
         )
     }
 
-    pub async fn run(mut self, address: ProtocolAddr) {
+    pub async fn run(mut self, address: ListenAddr) {
         let run_channels = self.run_channels.take().unwrap();
 
         self.network.listen(address).await.unwrap();

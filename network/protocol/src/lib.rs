@@ -1,3 +1,4 @@
+#![feature(drain_filter)]
 //! Network Protocol
 //!
 //! a I/O-Free protocol for the veloren network crate.
@@ -13,9 +14,9 @@
 //! This crate currently defines:
 //!  - TCP
 //!  - MPSC
+//!  - QUIC
 //!
-//! a UDP implementation will quickly follow, and it's also possible to abstract
-//! over QUIC.
+//! eventually a pure UDP implementation will follow
 //!
 //! warning: don't mix protocol, using the TCP variant for actual UDP socket
 //! will result in dropped data  using UDP with a TCP socket will be a waste of
@@ -57,8 +58,10 @@ mod message;
 mod metrics;
 mod mpsc;
 mod prio;
+mod quic;
 mod tcp;
 mod types;
+mod util;
 
 pub use error::{InitProtocolError, ProtocolError};
 pub use event::ProtocolEvent;
@@ -66,12 +69,16 @@ pub use metrics::ProtocolMetricCache;
 #[cfg(feature = "metrics")]
 pub use metrics::ProtocolMetrics;
 pub use mpsc::{MpscMsg, MpscRecvProtocol, MpscSendProtocol};
+pub use quic::{QuicDataFormat, QuicDataFormatStream, QuicRecvProtocol, QuicSendProtocol};
 pub use tcp::{TcpRecvProtocol, TcpSendProtocol};
 pub use types::{Bandwidth, Cid, Pid, Prio, Promises, Sid, HIGHEST_PRIO, VELOREN_NETWORK_VERSION};
 
 ///use at own risk, might change any time, for internal benchmarks
 pub mod _internal {
-    pub use crate::frame::{ITFrame, OTFrame};
+    pub use crate::{
+        frame::{ITFrame, OTFrame},
+        util::SortedVec,
+    };
 }
 
 use async_trait::async_trait;

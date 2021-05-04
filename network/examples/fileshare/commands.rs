@@ -2,7 +2,7 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use tokio::fs;
-use veloren_network::{Participant, ProtocolAddr, Stream};
+use veloren_network::{ConnectAddr, Participant, Stream};
 
 use std::collections::HashMap;
 
@@ -10,7 +10,7 @@ use std::collections::HashMap;
 pub enum LocalCommand {
     Shutdown,
     Disconnect,
-    Connect(ProtocolAddr),
+    Connect(ConnectAddr),
     List,
     Serve(FileInfo),
     Get(u32, Option<String>),

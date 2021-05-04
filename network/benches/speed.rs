@@ -1,7 +1,9 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use std::{net::SocketAddr, sync::Arc};
 use tokio::{runtime::Runtime, sync::Mutex};
-use veloren_network::{Message, Network, Participant, Pid, Promises, ProtocolAddr, Stream};
+use veloren_network::{
+    ConnectAddr, ListenAddr, Message, Network, Participant, Pid, Promises, Stream,
+};
 
 fn serialize(data: &[u8], stream: &Stream) { let _ = Message::serialize(data, stream.params()); }
 
@@ -30,7 +32,7 @@ fn criterion_util(c: &mut Criterion) {
     c.significance_level(0.1).sample_size(100);
 
     let (r, _n_a, p_a, s1_a, _n_b, _p_b, _s1_b) =
-        network_participant_stream(ProtocolAddr::Mpsc(5000));
+        network_participant_stream((ListenAddr::Mpsc(5000), ConnectAddr::Mpsc(5000)));
     let s2_a = r.block_on(p_a.open(4, Promises::COMPRESSED, 0)).unwrap();
 
     c.throughput(Throughput::Bytes(1000))
@@ -50,7 +52,7 @@ fn criterion_mpsc(c: &mut Criterion) {
     c.significance_level(0.1).sample_size(10);
 
     let (_r, _n_a, _p_a, s1_a, _n_b, _p_b, s1_b) =
-        network_participant_stream(ProtocolAddr::Mpsc(5000));
+        network_participant_stream((ListenAddr::Mpsc(5000), ConnectAddr::Mpsc(5000)));
     let s1_a = Arc::new(Mutex::new(s1_a));
     let s1_b = Arc::new(Mutex::new(s1_b));
 
@@ -82,8 +84,9 @@ fn criterion_tcp(c: &mut Criterion) {
     let mut c = c.benchmark_group("net_tcp");
     c.significance_level(0.1).sample_size(10);
 
+    let socket_addr = SocketAddr::from(([127, 0, 0, 1], 5000));
     let (_r, _n_a, _p_a, s1_a, _n_b, _p_b, s1_b) =
-        network_participant_stream(ProtocolAddr::Tcp(SocketAddr::from(([127, 0, 0, 1], 5000))));
+        network_participant_stream((ListenAddr::Tcp(socket_addr), ConnectAddr::Tcp(socket_addr)));
     let s1_a = Arc::new(Mutex::new(s1_a));
     let s1_b = Arc::new(Mutex::new(s1_b));
 
@@ -115,7 +118,7 @@ criterion_group!(benches, criterion_util, criterion_mpsc, criterion_tcp);
 criterion_main!(benches);
 
 pub fn network_participant_stream(
-    addr: ProtocolAddr,
+    addr: (ListenAddr, ConnectAddr),
 ) -> (
     Runtime,
     Network,
@@ -130,8 +133,8 @@ pub fn network_participant_stream(
         let n_a = Network::new(Pid::fake(0), &runtime);
         let n_b = Network::new(Pid::fake(1), &runtime);
 
-        n_a.listen(addr.clone()).await.unwrap();
-        let p1_b = n_b.connect(addr).await.unwrap();
+        n_a.listen(addr.0).await.unwrap();
+        let p1_b = n_b.connect(addr.1).await.unwrap();
         let p1_a = n_a.connected().await.unwrap();
 
         let s1_a = p1_a.open(4, Promises::empty(), 0).await.unwrap();

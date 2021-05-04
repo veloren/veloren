@@ -2,9 +2,9 @@ use std::sync::Arc;
 use tokio::runtime::Runtime;
 use veloren_network::{NetworkError, StreamError};
 mod helper;
-use helper::{mpsc, network_participant_stream, tcp, udp};
+use helper::{mpsc, network_participant_stream, quic, tcp, udp};
 use std::io::ErrorKind;
-use veloren_network::{Network, Pid, Promises, ProtocolAddr};
+use veloren_network::{ConnectAddr, ListenAddr, Network, Pid, Promises};
 
 #[test]
 #[ignore]
@@ -74,6 +74,30 @@ fn stream_simple_mpsc_3msg() {
 }
 
 #[test]
+fn stream_simple_quic() {
+    let (_, _) = helper::setup(false, 0);
+    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(quic());
+
+    s1_a.send("Hello World").unwrap();
+    assert_eq!(r.block_on(s1_b.recv()), Ok("Hello World".to_string()));
+    drop((_n_a, _n_b, _p_a, _p_b)); //clean teardown
+}
+
+#[test]
+fn stream_simple_quic_3msg() {
+    let (_, _) = helper::setup(false, 0);
+    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(quic());
+
+    s1_a.send("Hello World").unwrap();
+    s1_a.send(1337).unwrap();
+    assert_eq!(r.block_on(s1_b.recv()), Ok("Hello World".to_string()));
+    assert_eq!(r.block_on(s1_b.recv()), Ok(1337));
+    s1_a.send("3rdMessage").unwrap();
+    assert_eq!(r.block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
+    drop((_n_a, _n_b, _p_a, _p_b)); //clean teardown
+}
+
+#[test]
 #[ignore]
 fn stream_simple_udp() {
     let (_, _) = helper::setup(false, 0);
@@ -110,16 +134,16 @@ fn tcp_and_udp_2_connections() -> std::result::Result<(), Box<dyn std::error::Er
         let network = network;
         let remote = remote;
         remote
-            .listen(ProtocolAddr::Tcp("127.0.0.1:2000".parse().unwrap()))
+            .listen(ListenAddr::Tcp("127.0.0.1:2000".parse().unwrap()))
             .await?;
         remote
-            .listen(ProtocolAddr::Udp("127.0.0.1:2001".parse().unwrap()))
+            .listen(ListenAddr::Udp("127.0.0.1:2001".parse().unwrap()))
             .await?;
         let p1 = network
-            .connect(ProtocolAddr::Tcp("127.0.0.1:2000".parse().unwrap()))
+            .connect(ConnectAddr::Tcp("127.0.0.1:2000".parse().unwrap()))
             .await?;
         let p2 = network
-            .connect(ProtocolAddr::Udp("127.0.0.1:2001".parse().unwrap()))
+            .connect(ConnectAddr::Udp("127.0.0.1:2001".parse().unwrap()))
             .await?;
         assert_eq!(&p1, &p2);
         Ok(())
@@ -134,13 +158,13 @@ fn failed_listen_on_used_ports() -> std::result::Result<(), Box<dyn std::error::
     let network = Network::new(Pid::new(), &r);
     let udp1 = udp();
     let tcp1 = tcp();
-    r.block_on(network.listen(udp1.clone()))?;
-    r.block_on(network.listen(tcp1.clone()))?;
+    r.block_on(network.listen(udp1.0.clone()))?;
+    r.block_on(network.listen(tcp1.0.clone()))?;
     std::thread::sleep(std::time::Duration::from_millis(200));
 
     let network2 = Network::new(Pid::new(), &r);
-    let e1 = r.block_on(network2.listen(udp1));
-    let e2 = r.block_on(network2.listen(tcp1));
+    let e1 = r.block_on(network2.listen(udp1.0));
+    let e2 = r.block_on(network2.listen(tcp1.0));
     match e1 {
         Err(NetworkError::ListenFailed(e)) if e.kind() == ErrorKind::AddrInUse => (),
         _ => panic!(),
@@ -170,10 +194,10 @@ fn api_stream_send_main() -> std::result::Result<(), Box<dyn std::error::Error>>
         let network = network;
         let remote = remote;
         network
-            .listen(ProtocolAddr::Tcp("127.0.0.1:1200".parse().unwrap()))
+            .listen(ListenAddr::Tcp("127.0.0.1:1200".parse().unwrap()))
             .await?;
         let remote_p = remote
-            .connect(ProtocolAddr::Tcp("127.0.0.1:1200".parse().unwrap()))
+            .connect(ConnectAddr::Tcp("127.0.0.1:1200".parse().unwrap()))
             .await?;
         // keep it alive
         let _stream_p = remote_p
@@ -199,10 +223,10 @@ fn api_stream_recv_main() -> std::result::Result<(), Box<dyn std::error::Error>>
         let network = network;
         let remote = remote;
         network
-            .listen(ProtocolAddr::Tcp("127.0.0.1:1220".parse().unwrap()))
+            .listen(ListenAddr::Tcp("127.0.0.1:1220".parse().unwrap()))
             .await?;
         let remote_p = remote
-            .connect(ProtocolAddr::Tcp("127.0.0.1:1220".parse().unwrap()))
+            .connect(ConnectAddr::Tcp("127.0.0.1:1220".parse().unwrap()))
             .await?;
         let mut stream_p = remote_p
             .open(4, Promises::ORDERED | Promises::CONSISTENCY, 0)
