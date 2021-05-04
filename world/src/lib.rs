@@ -87,16 +87,24 @@ impl assets::Asset for Colors {
 }
 
 impl World {
-    pub fn generate(seed: u32, opts: sim::WorldOpts) -> (Self, IndexOwned) {
+    pub fn generate(
+        seed: u32,
+        opts: sim::WorldOpts,
+        threadpool: &rayon::ThreadPool,
+    ) -> (Self, IndexOwned) {
         // NOTE: Generating index first in order to quickly fail if the color manifest
         // is broken.
-        let mut index = Index::new(seed);
-        let mut sim = sim::WorldSim::generate(seed, opts);
-        let civs = civ::Civs::generate(seed, &mut sim, &mut index);
+        threadpool.install(|| {
+            let mut index = Index::new(seed);
 
-        sim2::simulate(&mut index, &mut sim);
+            let mut sim = sim::WorldSim::generate(seed, opts, threadpool);
 
-        (Self { sim, civs }, IndexOwned::new(index))
+            let civs = civ::Civs::generate(seed, &mut sim, &mut index);
+
+            sim2::simulate(&mut index, &mut sim);
+
+            (Self { sim, civs }, IndexOwned::new(index))
+        })
     }
 
     pub fn sim(&self) -> &sim::WorldSim { &self.sim }
@@ -107,66 +115,68 @@ impl World {
         // TODO
     }
 
-    pub fn get_map_data(&self, index: IndexRef) -> WorldMapMsg {
-        // we need these numbers to create unique ids for cave ends
-        let num_sites = self.civs().sites().count() as u64;
-        let num_caves = self.civs().caves.values().count() as u64;
-        WorldMapMsg {
-            pois: self.civs().pois.iter().map(|(_, poi)| {
-                world_msg::PoiInfo {
-                    name: poi.name.clone(),
-                    kind: match &poi.kind {
-                        civ::PoiKind::Peak(alt) => world_msg::PoiKind::Peak(*alt),
-                        civ::PoiKind::Lake(size) => world_msg::PoiKind::Lake(*size),
-                    },
-                    wpos: poi.loc * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
-                }
-            }).collect(),
-            sites: self
-                .civs()
-                .sites
-                .iter()
-                .map(|(_, site)| {
-                    world_msg::SiteInfo {
-                        id: site.site_tmp.map(|i| i.id()).unwrap_or_default(),
-                        name: site.site_tmp.map(|id| index.sites[id].name().to_string()),
-                        // TODO: Probably unify these, at some point
-                        kind: match &site.kind {
-                            civ::SiteKind::Settlement => world_msg::SiteKind::Town,
-                            civ::SiteKind::Dungeon => world_msg::SiteKind::Dungeon {
-                                difficulty: match site.site_tmp.map(|id| &index.sites[id].kind) {
-                                    Some(site::SiteKind::Dungeon(d)) => d.difficulty(),
-                                    _ => 0,
-                                },
-                            },
-                            civ::SiteKind::Castle => world_msg::SiteKind::Castle,
-                            civ::SiteKind::Refactor => world_msg::SiteKind::Town,
-                            civ::SiteKind::Tree => world_msg::SiteKind::Tree,
+    pub fn get_map_data(&self, index: IndexRef, threadpool: &rayon::ThreadPool) -> WorldMapMsg {
+        threadpool.install(|| {
+            // we need these numbers to create unique ids for cave ends
+            let num_sites = self.civs().sites().count() as u64;
+            let num_caves = self.civs().caves.values().count() as u64;
+            WorldMapMsg {
+                pois: self.civs().pois.iter().map(|(_, poi)| {
+                    world_msg::PoiInfo {
+                        name: poi.name.clone(),
+                        kind: match &poi.kind {
+                            civ::PoiKind::Peak(alt) => world_msg::PoiKind::Peak(*alt),
+                            civ::PoiKind::Lake(size) => world_msg::PoiKind::Lake(*size),
                         },
-                        wpos: site.center * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                        wpos: poi.loc * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                     }
-                })
-                .chain(
-                    self.civs()
-                        .caves
-                        .iter()
-                        .map(|(id, info)| {
-                            // separate the two locations, combine with name
-                            std::iter::once((id.id()+num_sites, info.name.clone(), info.location.0))
-                            // unfortunately we have to introduce a fake id (as it gets stored in a map in the client)
-                                .chain(std::iter::once((id.id()+num_sites+num_caves, info.name.clone(), info.location.1)))
-                        })
-                        .flatten() // unwrap inner iteration
-                        .map(|(id, name, pos)| world_msg::SiteInfo {
-                            id,
-                            name: Some(name),
-                            kind: world_msg::SiteKind::Cave,
-                            wpos: pos,
-                        }),
-                )
-                .collect(),
-            ..self.sim.get_map(index)
-        }
+                }).collect(),
+                sites: self
+                    .civs()
+                    .sites
+                    .iter()
+                    .map(|(_, site)| {
+                        world_msg::SiteInfo {
+                            id: site.site_tmp.map(|i| i.id()).unwrap_or_default(),
+                            name: site.site_tmp.map(|id| index.sites[id].name().to_string()),
+                            // TODO: Probably unify these, at some point
+                            kind: match &site.kind {
+                                civ::SiteKind::Settlement => world_msg::SiteKind::Town,
+                                civ::SiteKind::Dungeon => world_msg::SiteKind::Dungeon {
+                                    difficulty: match site.site_tmp.map(|id| &index.sites[id].kind) {
+                                        Some(site::SiteKind::Dungeon(d)) => d.difficulty(),
+                                        _ => 0,
+                                    },
+                                },
+                                civ::SiteKind::Castle => world_msg::SiteKind::Castle,
+                                civ::SiteKind::Refactor => world_msg::SiteKind::Town,
+                                civ::SiteKind::Tree => world_msg::SiteKind::Tree,
+                            },
+                            wpos: site.center * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                        }
+                    })
+                    .chain(
+                        self.civs()
+                            .caves
+                            .iter()
+                            .map(|(id, info)| {
+                                // separate the two locations, combine with name
+                                std::iter::once((id.id() + num_sites, info.name.clone(), info.location.0))
+                                    // unfortunately we have to introduce a fake id (as it gets stored in a map in the client)
+                                    .chain(std::iter::once((id.id() + num_sites + num_caves, info.name.clone(), info.location.1)))
+                            })
+                            .flatten() // unwrap inner iteration
+                            .map(|(id, name, pos)| world_msg::SiteInfo {
+                                id,
+                                name: Some(name),
+                                kind: world_msg::SiteKind::Cave,
+                                wpos: pos,
+                            }),
+                    )
+                    .collect(),
+                ..self.sim.get_map(index)
+            }
+        })
     }
 
     pub fn sample_columns(

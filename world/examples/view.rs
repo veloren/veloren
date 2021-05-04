@@ -6,10 +6,15 @@ const W: usize = 640;
 const H: usize = 480;
 
 fn main() {
-    let (world, index) = World::generate(0, WorldOpts {
-        seed_elements: true,
-        ..WorldOpts::default()
-    });
+    let threadpool = rayon::ThreadPoolBuilder::new().build().unwrap();
+    let (world, index) = World::generate(
+        0,
+        WorldOpts {
+            seed_elements: true,
+            ..WorldOpts::default()
+        },
+        &threadpool,
+    );
 
     let index = index.as_index_ref();
 

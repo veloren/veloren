@@ -321,6 +321,8 @@ impl State {
     /// Get a mutable reference to the internal ECS world.
     pub fn ecs_mut(&mut self) -> &mut specs::World { &mut self.ecs }
 
+    pub fn thread_pool(&self) -> Arc<ThreadPool> { Arc::clone(&self.thread_pool) }
+
     /// Get a reference to the `TerrainChanges` structure of the state. This
     /// contains information about terrain state that has changed since the
     /// last game tick.

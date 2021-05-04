@@ -29,6 +29,7 @@ fn main() {
         .with_max_level(Level::ERROR)
         .with_env_filter(EnvFilter::from_default_env().add_directive(LevelFilter::INFO.into()))
         .init();
+    let threadpool = rayon::ThreadPoolBuilder::new().build().unwrap();
 
     // To load a map file of your choice, replace map_file with the name of your map
     // (stored locally in the map directory of your Veloren root), and swap the
@@ -42,13 +43,17 @@ fn main() {
     let mut _map_file = PathBuf::from("./maps");
     _map_file.push(map_file);
 
-    let (world, index) = World::generate(5284, WorldOpts {
-        seed_elements: false,
-        world_file: sim::FileOpts::LoadAsset(veloren_world::sim::DEFAULT_WORLD_MAP.into()),
-        // world_file: sim::FileOpts::Load(_map_file),
-        // world_file: sim::FileOpts::Save,
-        ..WorldOpts::default()
-    });
+    let (world, index) = World::generate(
+        5284,
+        WorldOpts {
+            seed_elements: false,
+            world_file: sim::FileOpts::LoadAsset(veloren_world::sim::DEFAULT_WORLD_MAP.into()),
+            // world_file: sim::FileOpts::Load(_map_file),
+            // world_file: sim::FileOpts::Save,
+            ..WorldOpts::default()
+        },
+        &threadpool,
+    );
     let index = index.as_index_ref();
     tracing::info!("Sampling data...");
     let sampler = world.sim();

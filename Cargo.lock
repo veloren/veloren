@@ -5821,6 +5821,7 @@ dependencies = [
  "old_school_gfx_glutin_ext",
  "ordered-float 2.1.1",
  "rand 0.8.3",
+ "rayon",
  "rodio",
  "ron",
  "serde",

@@ -710,6 +710,7 @@ fn erode(
     // scaling factors
     height_scale: impl Fn(f32) -> Alt + Sync,
     k_da_scale: impl Fn(f64) -> f64,
+    threadpool: &rayon::ThreadPool,
 ) {
     let compute_stats = true;
     debug!("Done draining...");
@@ -795,7 +796,7 @@ fn erode(
     let k_fs_mult_sed = 4.0;
     // Dimensionless multiplier for G when land becomes sediment.
     let g_fs_mult_sed = 1.0;
-    let ((dh, newh, maxh, mrec, mstack, mwrec, area), (mut max_slopes, h_t)) = rayon::join(
+    let ((dh, newh, maxh, mrec, mstack, mwrec, area), (mut max_slopes, h_t)) = threadpool.join(
         || {
             let mut dh = downhill(
                 map_size_lg,
@@ -817,6 +818,7 @@ fn erode(
                 dx as Compute,
                 dy as Compute,
                 maxh,
+                threadpool,
             );
             debug!("Got multiple receivers...");
             // TODO: Figure out how to switch between single-receiver and multi-receiver
@@ -827,7 +829,7 @@ fn erode(
             (dh, newh, maxh, mrec, mstack, mwrec, area)
         },
         || {
-            rayon::join(
+            threadpool.join(
                 || {
                     let max_slope = get_max_slope(map_size_lg, h, rock_strength_nz, |posi| {
                         height_scale(n_f(posi))
@@ -851,7 +853,7 @@ fn erode(
 
     // Precompute factors for Stream Power Law.
     let czero = <SimdType as Zero>::zero();
-    let (k_fs_fact, k_df_fact) = rayon::join(
+    let (k_fs_fact, k_df_fact) = threadpool.join(
         || {
             dh.par_iter()
                 .enumerate()
@@ -1081,7 +1083,7 @@ fn erode(
         // Keep track of how many iterations we've gone to test for convergence.
         n_gs_stream_power_law += 1;
 
-        rayon::join(
+        threadpool.join(
             || {
                 // guess/update the elevation at t+Δt (k)
                 (&mut *h_p, &*h_stack)
@@ -2339,6 +2341,7 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
     dx: Compute,
     dy: Compute,
     _maxh: F,
+    threadpool: &rayon::ThreadPool,
 ) -> (Box<[u8]>, Box<[u32]>, Box<[Computex8]>) {
     let nn = nx * ny;
     let dxdy = Vec2::new(dx, dy);
@@ -2437,7 +2440,7 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
         .unzip_into_vecs(&mut mrec, &mut don_vis);
 
     let czero = <Compute as Zero>::zero();
-    let (wrec, stack) = rayon::join(
+    let (wrec, stack) = threadpool.join(
         || {
             (0..nn)
                 .into_par_iter()
@@ -2541,6 +2544,7 @@ pub fn do_erosion(
     height_scale: impl Fn(f32) -> Alt + Sync,
     k_d_scale: f64,
     k_da_scale: impl Fn(f64) -> f64,
+    threadpool: &rayon::ThreadPool,
 ) -> (Box<[Alt]>, Box<[Alt]> /* , Box<[Alt]> */) {
     debug!("Initializing erosion arrays...");
     let oldh_ = (0..map_size_lg.chunks_len())
@@ -2663,6 +2667,7 @@ pub fn do_erosion(
             |posi| is_ocean(posi),
             height_scale,
             k_da_scale,
+            threadpool,
         );
     });
     (h, b)

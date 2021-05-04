@@ -13,16 +13,21 @@ const GEN_SIZE: i32 = 4;
 
 #[allow(clippy::needless_update)] // TODO: Pending review in #587
 pub fn criterion_benchmark(c: &mut Criterion) {
+    let pool = rayon::ThreadPoolBuilder::new().build().unwrap();
     // Generate chunks here to test
     let mut terrain = TerrainGrid::new().unwrap();
-    let (world, index) = World::generate(42, sim::WorldOpts {
-        // NOTE: If this gets too expensive, we can turn it off.
-        // TODO: Consider an option to turn off all erosion as well, or even provide altitude
-        // directly with a closure.
-        seed_elements: true,
-        world_file: sim::FileOpts::LoadAsset(sim::DEFAULT_WORLD_MAP.into()),
-        ..Default::default()
-    });
+    let (world, index) = World::generate(
+        42,
+        sim::WorldOpts {
+            // NOTE: If this gets too expensive, we can turn it off.
+            // TODO: Consider an option to turn off all erosion as well, or even provide altitude
+            // directly with a closure.
+            seed_elements: true,
+            world_file: sim::FileOpts::LoadAsset(sim::DEFAULT_WORLD_MAP.into()),
+            ..Default::default()
+        },
+        &pool,
+    );
     let index = index.as_index_ref();
     (0..GEN_SIZE)
         .flat_map(|x| (0..GEN_SIZE).map(move |y| Vec2::new(x, y)))

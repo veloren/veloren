@@ -1071,6 +1071,7 @@ mod tests {
     #[test]
     fn test_economy() {
         init();
+        let threadpool = rayon::ThreadPoolBuilder::new().build().unwrap();
         info!("init");
         let seed = 59686;
         let opts = sim::WorldOpts {
@@ -1080,7 +1081,7 @@ mod tests {
         };
         let mut index = crate::index::Index::new(seed);
         info!("Index created");
-        let mut sim = sim::WorldSim::generate(seed, opts);
+        let mut sim = sim::WorldSim::generate(seed, opts, &threadpool);
         info!("World loaded");
         let regenerate_input = false;
         if regenerate_input {
