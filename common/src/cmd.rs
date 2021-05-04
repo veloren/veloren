@@ -1,4 +1,8 @@
-use crate::{assets, comp, npc, terrain};
+use crate::{
+    assets,
+    comp::{self, buff::BuffKind},
+    npc, terrain,
+};
 use assets::AssetExt;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
@@ -8,6 +12,7 @@ use std::{
     path::Path,
     str::FromStr,
 };
+use strum::IntoEnumIterator;
 use tracing::warn;
 
 /// Struct representing a command that a user can run from server chat.
@@ -210,21 +215,40 @@ lazy_static! {
     .map(|s| s.to_string())
     .collect();
 
-    static ref BUFFS: Vec<String> = vec![
-        // Debuffs
-        "burning", "bleeding", "curse",
-        // Heal
-        "regeneration", "saturation", "potion", "campfire_heal",
-        // Outmaxing stats
-        "increase_max_energy", "increase_max_health",
-        // Defensive buffs
-        "invulnerability", "protecting_ward",
-        // One command to rule them all
-        "all",
-    ]
-    .iter()
-    .map(|b| b.to_string())
-    .collect();
+    pub static ref BUFF_PARSER: HashMap<String, BuffKind> = {
+        let string_from_buff = |kind| match kind {
+            BuffKind::Burning => "burning",
+            BuffKind::Regeneration => "regeration",
+            BuffKind::Saturation => "saturation",
+            BuffKind::Bleeding => "bleeding",
+            BuffKind::Cursed => "cursed",
+            BuffKind::Potion => "potion",
+            BuffKind::CampfireHeal => "campfire_heal",
+            BuffKind::IncreaseMaxEnergy => "increase_max_energy",
+            BuffKind::IncreaseMaxHealth => "increase_max_health",
+            BuffKind::Invulnerability => "invulnerability",
+            BuffKind::ProtectingWard => "protecting_ward",
+            BuffKind::Frenzied => "frenzied",
+            BuffKind::Crippled => "crippled",
+        };
+        let mut buff_parser = HashMap::new();
+        BuffKind::iter().for_each(|kind| {buff_parser.insert(string_from_buff(kind).to_string(), kind);});
+        buff_parser
+    };
+
+    pub static ref BUFF_PACK: Vec<String> = {
+        let mut buff_pack: Vec<_> = BUFF_PARSER.keys().cloned().collect();
+        // Remove invulnerability as it removes debuffs
+        buff_pack.retain(|kind| kind != "invulnerability");
+        buff_pack
+    };
+
+    static ref BUFFS: Vec<String> = {
+        let mut buff_pack: Vec<_> = BUFF_PARSER.keys().cloned().collect();
+        // Add all as valid command
+        buff_pack.push("all".to_string());
+        buff_pack
+    };
 
     static ref BLOCK_KINDS: Vec<String> = terrain::block::BLOCK_KINDS
         .keys()

@@ -11,7 +11,7 @@ use authc::Uuid;
 use chrono::{NaiveTime, Timelike};
 use common::{
     assets,
-    cmd::{ChatCommand, CHAT_COMMANDS, CHAT_SHORTCUTS},
+    cmd::{ChatCommand, BUFF_PACK, BUFF_PARSER, CHAT_COMMANDS, CHAT_SHORTCUTS},
     comp::{
         self,
         aura::{Aura, AuraKind, AuraTarget},
@@ -36,13 +36,11 @@ use common_net::{
 };
 use common_state::{BuildAreaError, BuildAreas};
 use core::{convert::TryFrom, ops::Not, time::Duration};
-use hashbrown::HashSet;
+use hashbrown::{HashMap, HashSet};
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
-use wiring::{Circuit, Wire, WiringAction, WiringActionEffect, WiringElement};
-
-use hashbrown::HashMap;
 use vek::*;
+use wiring::{Circuit, Wire, WiringAction, WiringActionEffect, WiringElement};
 use world::util::Sampler;
 
 use crate::{client::Client, login_provider::LoginProvider, wiring};
@@ -2615,22 +2613,6 @@ fn handle_apply_buff(
     args: String,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    const BUFF_PACK: &[&str] = &[
-        // Debuffs
-        "burning",
-        "bleeding",
-        "curse",
-        // Healing
-        "regeneration",
-        "saturation",
-        "potion",
-        "campfire_heal",
-        // Outmaxing stats
-        "increase_max_energy",
-        "increase_max_health",
-        // Defensive buffs (invulnerability is skipped because it ruins all debuffs)
-        "protecting_ward",
-    ];
     if let (Some(buff), strength, duration) =
         scan_fmt_some!(&args, &action.arg_fmt(), String, f32, f64)
     {
@@ -2640,7 +2622,7 @@ fn handle_apply_buff(
         if buff != "all" {
             cast_buff(&buff, buffdata, server, target)
         } else {
-            for kind in BUFF_PACK {
+            for kind in BUFF_PACK.iter() {
                 cast_buff(kind, buffdata, server, target)?;
             }
             Ok(())
@@ -2663,19 +2645,4 @@ fn cast_buff(kind: &str, data: BuffData, server: &mut Server, target: EcsEntity)
     }
 }
 
-fn parse_buffkind(buff: &str) -> Option<BuffKind> {
-    match buff {
-        "burning" => Some(BuffKind::Burning),
-        "regeneration" => Some(BuffKind::Regeneration),
-        "saturation" => Some(BuffKind::Saturation),
-        "bleeding" => Some(BuffKind::Bleeding),
-        "curse" => Some(BuffKind::Cursed),
-        "potion" => Some(BuffKind::Potion),
-        "campfire_heal" => Some(BuffKind::CampfireHeal),
-        "increase_max_energy" => Some(BuffKind::IncreaseMaxEnergy),
-        "increase_max_health" => Some(BuffKind::IncreaseMaxHealth),
-        "invulnerability" => Some(BuffKind::Invulnerability),
-        "protecting_ward" => Some(BuffKind::ProtectingWard),
-        _ => None,
-    }
-}
+fn parse_buffkind(buff: &str) -> Option<BuffKind> { BUFF_PARSER.get(buff).copied() }

@@ -9,10 +9,13 @@ use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 #[cfg(not(target_arch = "wasm32"))]
 use std::{cmp::Ordering, time::Duration};
+use strum_macros::EnumIter;
 
 /// De/buff Kind.
 /// This is used to determine what effects a buff will have
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(
+    Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize, PartialOrd, Ord, EnumIter,
+)]
 pub enum BuffKind {
     // Buffs
     /// Restores health/time for some period
