@@ -1,0 +1,22 @@
+ItemDef(
+    name: "Cooked Slab of Beef",
+    description: "Medium Rare.",
+    kind: Consumable(
+        kind: "BeefLargeCooked",
+        effect: [
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: 25.0,
+                    duration: Some((
+                            secs: 10,
+                            nanos: 0,
+                        )),
+                    ),
+                cat_ids: [Natural],
+            )),
+        ]
+    ),
+    quality: Common,
+    tags: [Food],
+)

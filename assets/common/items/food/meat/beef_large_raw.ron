@@ -1,15 +1,15 @@
 ItemDef(
-    name: "Fish",
-    description: "A fresh seafood steak, chopped from a fish.",
+    name: "Raw Beef Slab",
+    description: "Chunk of animal meat, best after cooking.",
     kind: Consumable(
-        kind: "Fish",
+        kind: "BeefLargeRaw",
         effect: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 5.0,
+                    strength: 15.0,
                     duration: Some((
-                            secs: 10,
+                            secs: 3,
                             nanos: 0,
                         )),
                     ),

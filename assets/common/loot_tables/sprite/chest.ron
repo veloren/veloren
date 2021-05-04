@@ -4,5 +4,4 @@
     (1.0, LootTable("common.loot_tables.armor.cloth")),
     (1.0, LootTable("common.loot_tables.armor.swift")),
     (0.1, LootTable("common.loot_tables.armor.plate")),
-    (1.0, LootTable("common.loot_tables.fallback")),
 ]

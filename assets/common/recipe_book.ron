@@ -143,6 +143,20 @@
         ],
         craft_sprite: Some(CookingPot),
     ),
+    "fish_cooked": (
+        output: ("common.items.food.meat.fish_cooked", 1),
+        inputs: [
+            (Item("common.items.food.meat.fish_raw"), 1),
+        ],
+        craft_sprite: Some(CookingPot),
+    ),
+    "Beef_small_cooked": (
+        output: ("common.items.food.meat.beef_small_cooked", 1),
+        inputs: [
+            (Item("common.items.food.meat.beef_small_raw"), 1),
+        ],
+        craft_sprite: Some(CookingPot),
+    ),
     "salad_plain": (
         output: ("common.items.food.plainsalad", 1),
         inputs: [

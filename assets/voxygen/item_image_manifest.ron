@@ -1885,9 +1885,29 @@
         "voxel.sprite.cabbage.cabbage",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    Consumable("Fish"): VoxTrans(
-        "voxel.sprite.food.meat_fish",
+    Consumable("FishRaw"): VoxTrans(
+        "voxel.sprite.food.meat.fish_raw",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Consumable("FishCooked"): VoxTrans(
+        "voxel.sprite.food.meat.fish_cooked",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Consumable("BeefSmallRaw"): VoxTrans(
+        "voxel.sprite.food.meat.beef_small_raw",
+        (0.0, 0.0, 0.0), (-50.0, 10.0, 0.0), 1.0,
+    ),
+    Consumable("BeefSmallCooked"): VoxTrans(
+        "voxel.sprite.food.meat.beef_small_cooked",
+        (0.0, 0.0, 0.0), (-50.0, 20.0, 0.0), 1.0,
+    ),
+    Consumable("BeefLargeRaw"): VoxTrans(
+        "voxel.sprite.food.meat.beef_large_raw",
+        (-1.0, 0.0, 0.0), (-80.0, 40.0, 0.0), 0.8,
+    ),
+    Consumable("BeefLargeCooked"): VoxTrans(
+        "voxel.sprite.food.meat.beef_large_cooked",
+        (-1.0, 0.0, 0.0), (-80.0, 40.0, 0.0), 0.8,
     ),
     Consumable("PlainSalad"): VoxTrans(
         "voxel.sprite.food.salad_plain",

@@ -1,5 +1,4 @@
 [
-    (1.0, LootTable("common.loot_tables.food.wild_ingredients")),
-    (1.0, Item("common.items.crafting_ing.leather_scraps")),
-    (1.0, LootTable("common.loot_tables.fallback")),
+    (1.0, Item("common.items.food.meat.fish_raw")),
+    (3.0, Item("common.items.crafting_ing.leather_scraps")),
 ]

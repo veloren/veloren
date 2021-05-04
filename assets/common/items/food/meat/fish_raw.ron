@@ -1,0 +1,22 @@
+ItemDef(
+    name: "Raw Fish",
+    description: "A steak chopped from a fish, best after cooking.",
+    kind: Consumable(
+        kind: "FishRaw",
+        effect: [
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: 15.0,
+                    duration: Some((
+                            secs: 3,
+                            nanos: 0,
+                        )),
+                    ),
+                cat_ids: [Natural],
+            )),
+        ]
+    ),
+    quality: Common,
+    tags: [Food],
+)
