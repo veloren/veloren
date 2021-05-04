@@ -1,7 +1,7 @@
 use crate::assets::{self, AssetExt, AssetGuard, AssetHandle};
 use deunicode::deunicode;
+use hashbrown::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
 use tracing::warn;
 
 /// The reference language, aka the more up-to-date localization data.

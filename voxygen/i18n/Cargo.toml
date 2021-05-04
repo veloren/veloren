@@ -10,6 +10,7 @@ name = "i18n-check"
 
 [dependencies]
 lazy_static = "1.4.0"
+hashbrown = { version = "0.9", features = ["serde", "nightly"] }
 assets_manager = {version = "0.4.2", features = ["bincode", "ron", "json", "hot-reloading"]}
 deunicode = "1.0"
 ron = "0.6"
