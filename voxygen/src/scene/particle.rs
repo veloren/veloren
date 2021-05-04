@@ -791,6 +791,7 @@ impl ParticleMgr {
                 beam::FrontendSpecifier::HealingBeam => {
                     // Emit a light when using healing
                     lights.push(Light::new(pos.0, Rgb::new(0.1, 1.0, 0.15), 1.0));
+                    self.particles.reserve(beam_tick_count as usize);
                     for i in 0..beam_tick_count {
                         self.particles.push(Particle::new_directed(
                             beam.properties.duration,
@@ -804,6 +805,7 @@ impl ParticleMgr {
                 beam::FrontendSpecifier::LifestealBeam => {
                     // Emit a light when using lifesteal beam
                     lights.push(Light::new(pos.0, Rgb::new(0.8, 1.0, 0.5), 1.0));
+                    self.particles.reserve(beam_tick_count as usize);
                     for i in 0..beam_tick_count {
                         self.particles.push(Particle::new_directed(
                             beam.properties.duration,
@@ -813,6 +815,17 @@ impl ParticleMgr {
                             pos.0 + *ori.look_dir() * range,
                         ));
                     }
+                },
+                beam::FrontendSpecifier::ClayGolem => {
+                    self.particles.resize_with(self.particles.len() + 2, || {
+                        Particle::new_directed(
+                            beam.properties.duration,
+                            time,
+                            ParticleMode::Laser,
+                            pos.0,
+                            pos.0 + *ori.look_dir() * range,
+                        )
+                    })
                 },
             }
         }
@@ -1110,11 +1123,13 @@ impl ParticleMgr {
                     let distance =
                         shockwave.properties.speed * (elapsed as f32 - sub_tick_interpolation);
 
-                    let new_particle_count = distance / scale as f32;
+                    let particle_count_factor = radians / (3.0 * scale);
+                    let new_particle_count = distance * particle_count_factor;
                     self.particles.reserve(new_particle_count as usize);
 
-                    for d in 0..((distance / scale) as i32) {
-                        let arc_position = theta - radians / 2.0 + dtheta * d as f32 * scale;
+                    for d in 0..(new_particle_count as i32) {
+                        let arc_position =
+                            theta - radians / 2.0 + dtheta * d as f32 / particle_count_factor;
 
                         let position = pos.0
                             + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);

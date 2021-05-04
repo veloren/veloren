@@ -288,7 +288,7 @@ impl Body {
             Body::Dragon(_) => Vec3::new(16.0, 10.0, 16.0),
             Body::FishMedium(_) => Vec3::new(0.5, 2.0, 0.8),
             Body::FishSmall(_) => Vec3::new(0.3, 1.2, 0.6),
-            Body::Golem(_) => Vec3::new(5.0, 5.0, 5.0),
+            Body::Golem(_) => Vec3::new(5.0, 5.0, 8.0),
             Body::Humanoid(humanoid) => {
                 let height = match (humanoid.species, humanoid.body_type) {
                     (humanoid::Species::Orc, humanoid::BodyType::Male) => 2.3,

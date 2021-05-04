@@ -66,6 +66,7 @@ const int STATIC_SMOKE = 24;
 const int BLOOD = 25;
 const int ENRAGED = 26;
 const int BIG_SHRAPNEL = 27;
+const int LASER = 28;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -442,6 +443,21 @@ void main() {
             vec3((3.5 * (1 - slow_start(0.2)))),
             vec4(red_color, 0.0, 0.0, 1),
             spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
+        );
+    } else if (inst_mode == LASER) {
+        f_reflect = 0.0;
+        vec3 perp_axis = normalize(cross(inst_dir, vec3(0.0, 0.0, 1.0)));
+        vec3 offset = vec3(0.0);
+        if (rand0 > 0.0) {
+            offset = perp_axis * 0.5;
+        } else {
+            offset = perp_axis * -0.5;
+        }
+        attr = Attr(
+            inst_dir * percent() + offset,
+            vec3(1.0, 1.0, 50.0),
+            vec4(vec3(2.0, 0.0, 0.0), 1),
+            spin_in_axis(perp_axis, asin(inst_dir.z / length(inst_dir)) + PI / 2.0)
         );
     } else {
         attr = Attr(

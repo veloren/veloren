@@ -124,6 +124,7 @@ pub enum ParticleMode {
     Blood = 25,
     Enraged = 26,
     BigShrapnel = 27,
+    Laser = 28,
 }
 
 impl ParticleMode {

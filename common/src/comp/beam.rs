@@ -52,4 +52,5 @@ pub enum FrontendSpecifier {
     LifestealBeam,
     HealingBeam,
     Cultist,
+    ClayGolem,
 }
