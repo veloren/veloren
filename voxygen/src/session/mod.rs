@@ -44,6 +44,7 @@ use crate::{
     window::{AnalogGameInput, Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
+use hashbrown::HashMap;
 use settings_change::Language::ChangeLanguage;
 
 /// The action to perform after a tick
@@ -73,7 +74,7 @@ pub struct SessionState {
     selected_entity: Option<(specs::Entity, std::time::Instant)>,
     interactable: Option<Interactable>,
     saved_zoom_dist: Option<f32>,
-    player_hitbox: DebugShapeId,
+    hitboxes: HashMap<specs::Entity, DebugShapeId>,
 }
 
 /// Represents an active game session (i.e., the one being played).
@@ -101,10 +102,6 @@ impl SessionState {
         let hud = Hud::new(global_state, &client.borrow());
         let walk_forward_dir = scene.camera().forward_xy();
         let walk_right_dir = scene.camera().right_xy();
-        let player_hitbox = scene.debug.add_shape(DebugShape::Cylinder {
-            radius: 0.4,
-            height: 1.75,
-        });
 
         Self {
             scene,
@@ -125,7 +122,7 @@ impl SessionState {
             selected_entity: None,
             interactable: None,
             saved_zoom_dist: None,
-            player_hitbox,
+            hitboxes: HashMap::new(),
         }
     }
 
@@ -145,16 +142,54 @@ impl SessionState {
         span!(_guard, "tick", "Session::tick");
 
         let mut client = self.client.borrow_mut();
-        if let Some(player_pos) = client
-            .state()
-            .ecs()
-            .read_component::<Pos>()
-            .get(client.entity())
         {
-            let pos = [player_pos.0.x, player_pos.0.y, player_pos.0.z, 0.0];
-            self.scene
-                .debug
-                .set_pos_and_color(self.player_hitbox, pos, [1.0, 0.0, 0.0, 0.5]);
+            let ecs = client.state().ecs();
+            let mut current_entities = hashbrown::HashSet::new();
+            let scene = &mut self.scene;
+            let hitboxes = &mut self.hitboxes;
+            if global_state.settings.interface.toggle_hitboxes {
+                let positions = ecs.read_component::<Pos>();
+                let colliders = ecs.read_component::<comp::Collider>();
+                let groups = ecs.read_component::<comp::Group>();
+                for (entity, pos, collider, group) in
+                    (&ecs.entities(), &positions, &colliders, groups.maybe()).join()
+                {
+                    if let comp::Collider::Box {
+                        radius,
+                        z_min,
+                        z_max,
+                    } = collider
+                    {
+                        current_entities.insert(entity);
+                        let shape_id = hitboxes.entry(entity).or_insert_with(|| {
+                            scene.debug.add_shape(DebugShape::Cylinder {
+                                radius: *radius,
+                                height: *z_max - *z_min,
+                            })
+                        });
+                        let hb_pos = [pos.0.x, pos.0.y, pos.0.z + *z_min, 0.0];
+                        let color = if group == Some(&comp::group::ENEMY) {
+                            [1.0, 0.0, 0.0, 0.5]
+                        } else if group == Some(&comp::group::NPC) {
+                            [0.0, 0.0, 1.0, 0.5]
+                        } else {
+                            [0.0, 1.0, 0.0, 0.5]
+                        };
+                        scene.debug.set_pos_and_color(*shape_id, hb_pos, color);
+                    }
+                }
+            }
+            let mut to_remove = Vec::new();
+            hitboxes.retain(|k, v| {
+                let keep = current_entities.contains(k);
+                if !keep {
+                    to_remove.push(*v);
+                }
+                keep
+            });
+            for shape_id in to_remove.into_iter() {
+                scene.debug.remove_shape(shape_id);
+            }
         }
         for event in client.tick(self.inputs.clone(), dt, crate::ecs::sys::add_local_systems)? {
             match event {

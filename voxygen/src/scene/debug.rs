@@ -1,6 +1,5 @@
 use crate::render::{
-    Bound, Consts, DebugLocals, DebugVertex, FirstPassDrawer, Mesh,
-    Model, Quad, Renderer, Tri,
+    Bound, Consts, DebugLocals, DebugVertex, FirstPassDrawer, Mesh, Model, Quad, Renderer, Tri,
 };
 use hashbrown::{HashMap, HashSet};
 use vek::*;

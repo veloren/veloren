@@ -10,6 +10,7 @@
         "hud.settings.press_behavior.hold": "Hold",
         "hud.settings.help_window": "Help Window",
         "hud.settings.debug_info": "Debug Info",
+        "hud.settings.show_hitboxes": "Show hitboxes",
         "hud.settings.tips_on_startup": "Tips-On-Startup",
         "hud.settings.ui_scale": "UI-Scale",
         "hud.settings.relative_scaling": "Relative Scaling",

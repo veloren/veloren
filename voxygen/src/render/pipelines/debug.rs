@@ -1,6 +1,4 @@
-use super::{
-    super::{AaMode, Bound, Consts, GlobalsLayouts, Vertex as VertexTrait},
-};
+use super::super::{AaMode, Bound, Consts, GlobalsLayouts, Vertex as VertexTrait};
 use bytemuck::{Pod, Zeroable};
 use std::mem;
 use vek::*;
