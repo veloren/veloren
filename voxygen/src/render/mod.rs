@@ -21,6 +21,7 @@ pub use self::{
     model::{DynamicModel, Model, SubModel},
     pipelines::{
         clouds::Locals as CloudsLocals,
+        debug::{DebugPipeline, Locals as DebugLocals, Vertex as DebugVertex},
         figure::{
             BoneData as FigureBoneData, BoneMeshes, FigureLayout, FigureModel,
             Locals as FigureLocals,

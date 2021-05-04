@@ -2,7 +2,7 @@ use super::{
     super::{
         buffer::Buffer,
         pipelines::{
-            figure, lod_terrain, shadow, sprite, terrain, ui, ColLights, GlobalModel,
+            debug, figure, lod_terrain, shadow, sprite, terrain, ui, ColLights, GlobalModel,
             GlobalsBindGroup,
         },
         texture::Texture,
@@ -34,6 +34,11 @@ impl Renderer {
             &self.noise_tex,
             sprite_verts,
         )
+    }
+
+    pub fn create_debug_bound_locals(&mut self, vals: &[debug::Locals]) -> debug::BoundLocals {
+        let locals = self.create_consts(vals);
+        self.layouts.debug.bind_locals(&self.device, locals)
     }
 
     pub fn create_ui_bound_locals(&mut self, vals: &[ui::Locals]) -> ui::BoundLocals {

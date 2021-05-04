@@ -1,5 +1,6 @@
 pub mod blit;
 pub mod clouds;
+pub mod debug;
 pub mod figure;
 pub mod fluid;
 pub mod lod_terrain;

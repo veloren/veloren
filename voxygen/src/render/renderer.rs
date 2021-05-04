@@ -21,7 +21,7 @@ use super::{
     mesh::Mesh,
     model::{DynamicModel, Model},
     pipelines::{
-        blit, clouds, figure, postprocess, shadow, sprite, terrain, ui, GlobalsBindGroup,
+        blit, clouds, debug, figure, postprocess, shadow, sprite, terrain, ui, GlobalsBindGroup,
         GlobalsLayouts, ShadowTexturesBindGroup,
     },
     texture::Texture,
@@ -48,6 +48,7 @@ struct Layouts {
     global: GlobalsLayouts,
 
     clouds: clouds::CloudsLayout,
+    debug: debug::DebugLayout,
     figure: figure::FigureLayout,
     postprocess: postprocess::PostProcessLayout,
     shadow: shadow::ShadowLayout,
@@ -266,6 +267,7 @@ impl Renderer {
             let global = GlobalsLayouts::new(&device);
 
             let clouds = clouds::CloudsLayout::new(&device);
+            let debug = debug::DebugLayout::new(&device);
             let figure = figure::FigureLayout::new(&device);
             let postprocess = postprocess::PostProcessLayout::new(&device);
             let shadow = shadow::ShadowLayout::new(&device);
@@ -278,6 +280,7 @@ impl Renderer {
                 global,
 
                 clouds,
+                debug,
                 figure,
                 postprocess,
                 shadow,

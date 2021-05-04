@@ -39,7 +39,7 @@ use crate::{
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
     render::Renderer,
-    scene::{camera, terrain::Interaction, CameraMode, Scene, SceneData},
+    scene::{camera, terrain::Interaction, CameraMode, DebugShape, DebugShapeId, Scene, SceneData},
     settings::Settings,
     window::{AnalogGameInput, Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
@@ -73,6 +73,7 @@ pub struct SessionState {
     selected_entity: Option<(specs::Entity, std::time::Instant)>,
     interactable: Option<Interactable>,
     saved_zoom_dist: Option<f32>,
+    player_hitbox: DebugShapeId,
 }
 
 /// Represents an active game session (i.e., the one being played).
@@ -100,6 +101,10 @@ impl SessionState {
         let hud = Hud::new(global_state, &client.borrow());
         let walk_forward_dir = scene.camera().forward_xy();
         let walk_right_dir = scene.camera().right_xy();
+        let player_hitbox = scene.debug.add_shape(DebugShape::Cylinder {
+            radius: 0.4,
+            height: 1.75,
+        });
 
         Self {
             scene,
@@ -120,6 +125,7 @@ impl SessionState {
             selected_entity: None,
             interactable: None,
             saved_zoom_dist: None,
+            player_hitbox,
         }
     }
 
@@ -139,6 +145,17 @@ impl SessionState {
         span!(_guard, "tick", "Session::tick");
 
         let mut client = self.client.borrow_mut();
+        if let Some(player_pos) = client
+            .state()
+            .ecs()
+            .read_component::<Pos>()
+            .get(client.entity())
+        {
+            let pos = [player_pos.0.x, player_pos.0.y, player_pos.0.z, 0.0];
+            self.scene
+                .debug
+                .set_pos_and_color(self.player_hitbox, pos, [1.0, 0.0, 0.0, 0.5]);
+        }
         for event in client.tick(self.inputs.clone(), dt, crate::ecs::sys::add_local_systems)? {
             match event {
                 client::Event::Chat(m) => {

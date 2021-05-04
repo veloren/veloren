@@ -1,4 +1,5 @@
 pub mod camera;
+pub mod debug;
 pub mod figure;
 pub mod lod;
 pub mod math;
@@ -8,6 +9,7 @@ pub mod terrain;
 
 pub use self::{
     camera::{Camera, CameraMode},
+    debug::{Debug, DebugShape, DebugShapeId},
     figure::FigureMgr,
     lod::Lod,
     particle::ParticleMgr,
@@ -79,6 +81,7 @@ pub struct Scene {
 
     skybox: Skybox,
     terrain: Terrain<TerrainChunk>,
+    pub debug: Debug,
     pub lod: Lod,
     loaded_distance: f32,
     /// x coordinate is sea level (minimum height for any land chunk), and y
@@ -289,6 +292,7 @@ impl Scene {
                 model: renderer.create_model(&create_skybox_mesh()).unwrap(),
             },
             terrain,
+            debug: Debug::new(),
             lod,
             loaded_distance: 0.0,
             map_bounds: Vec2::new(
@@ -652,6 +656,9 @@ impl Scene {
 
         // Maintain LoD.
         self.lod.maintain(renderer);
+
+        // Maintain debug shapes
+        self.debug.maintain(renderer);
 
         // Maintain the terrain.
         let (_visible_bounds, visible_light_volume, visible_psr_bounds) = self.terrain.maintain(
@@ -1109,6 +1116,9 @@ impl Scene {
             // Render particle effects.
             self.particle_mgr
                 .render(&mut first_pass.draw_particles(), scene_data);
+
+            // Render debug shapes
+            self.debug.render(&mut first_pass);
         }
     }
 }

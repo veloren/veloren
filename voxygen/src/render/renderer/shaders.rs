@@ -50,6 +50,8 @@ impl assets::Compound for Shaders {
             "point-light-shadows-vert",
             "skybox-vert",
             "skybox-frag",
+            "debug-vert",
+            "debug-frag",
             "figure-frag",
             "terrain-vert",
             "terrain-frag",

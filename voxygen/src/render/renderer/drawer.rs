@@ -4,8 +4,8 @@ use super::{
         instances::Instances,
         model::{DynamicModel, Model, SubModel},
         pipelines::{
-            blit, clouds, figure, fluid, lod_terrain, particle, shadow, skybox, sprite, terrain,
-            ui, ColLights, GlobalsBindGroup,
+            blit, clouds, debug, figure, fluid, lod_terrain, particle, shadow, skybox, sprite,
+            terrain, ui, ColLights, GlobalsBindGroup,
         },
     },
     Renderer, ShadowMap, ShadowMapRenderer,
@@ -534,6 +534,18 @@ impl<'pass> FirstPassDrawer<'pass> {
         render_pass.draw(0..model.len() as u32, 0..1);
     }
 
+    pub fn draw_debug(&mut self) -> DebugDrawer<'_, 'pass> {
+        let mut render_pass = self.render_pass.scope("debug", self.borrow.device);
+
+        render_pass.set_pipeline(&self.pipelines.debug.pipeline);
+        set_quad_index_buffer::<debug::Vertex>(&mut render_pass, &self.borrow);
+
+        DebugDrawer {
+            render_pass,
+            globals: self.globals,
+        }
+    }
+
     pub fn draw_lod_terrain<'data: 'pass>(&mut self, model: &'data Model<lod_terrain::Vertex>) {
         let mut render_pass = self.render_pass.scope("lod_terrain", self.borrow.device);
 
@@ -598,6 +610,25 @@ impl<'pass> FirstPassDrawer<'pass> {
         set_quad_index_buffer::<fluid::Vertex>(&mut render_pass, &self.borrow);
 
         FluidDrawer { render_pass }
+    }
+}
+
+pub struct DebugDrawer<'pass_ref, 'pass: 'pass_ref> {
+    render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
+    globals: &'pass GlobalsBindGroup,
+}
+
+impl<'pass_ref, 'pass: 'pass_ref> DebugDrawer<'pass_ref, 'pass> {
+    pub fn draw<'data: 'pass>(
+        &mut self,
+        model: &'data Model<debug::Vertex>,
+        locals: &'data debug::BoundLocals,
+    ) {
+        self.render_pass
+            .set_bind_group(0, &self.globals.bind_group, &[]);
+        self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
+        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
+        self.render_pass.draw(0..model.len() as u32, 0..1);
     }
 }
 
