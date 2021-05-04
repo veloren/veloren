@@ -5607,6 +5607,7 @@ version = "0.9.0"
 dependencies = [
  "bincode",
  "hashbrown",
+ "num_cpus",
  "rayon",
  "scopeguard",
  "serde",
@@ -5766,6 +5767,7 @@ dependencies = [
  "clap",
  "crossterm 0.19.0",
  "lazy_static",
+ "num_cpus",
  "ron",
  "serde",
  "signal-hook 0.3.8",

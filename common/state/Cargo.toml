@@ -18,6 +18,7 @@ common-ecs = { package = "veloren-common-ecs", path = "../ecs" }
 common-base = { package = "veloren-common-base", path = "../base" }
 
 rayon = "1.5"
+num_cpus = "1.0"
 tracing = { version = "0.1", default-features = false }
 vek = { version = "=0.14.1", features = ["serde"] }
 

@@ -117,9 +117,12 @@ fn main() -> io::Result<()> {
         path
     };
 
+    // We don't need that many threads in the async pool, at least 2 but generally
+    // 25% of all available will do
     let runtime = Arc::new(
         tokio::runtime::Builder::new_multi_thread()
             .enable_all()
+            .worker_threads((num_cpus::get() / 4).max(2))
             .thread_name_fn(|| {
                 static ATOMIC_ID: AtomicUsize = AtomicUsize::new(0);
                 let id = ATOMIC_ID.fetch_add(1, Ordering::SeqCst);

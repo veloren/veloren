@@ -103,6 +103,9 @@ impl State {
 
         let thread_pool = Arc::new(
             ThreadPoolBuilder::new()
+                .num_threads(
+                    num_cpus::get().max(2), /* Have AT LEAST 2 rayon threads */
+                )
                 .thread_name(move |i| format!("rayon-{}-{}", thread_name_infix, i))
                 .build()
                 .unwrap(),
@@ -208,7 +211,7 @@ impl State {
         ecs.insert(Vec::<common::outcome::Outcome>::new());
         ecs.insert(common::CachedSpatialGrid::default());
 
-        let slow_limit = thread_pool.current_num_threads().max(2) as u64;
+        let slow_limit = num_cpus::get().max(2) as u64;
         let slow_limit = slow_limit / 2 + slow_limit / 4;
         tracing::trace!(?slow_limit, "Slow Thread limit");
         ecs.insert(SlowJobPool::new(slow_limit, Arc::clone(&thread_pool)));

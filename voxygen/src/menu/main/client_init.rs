@@ -66,7 +66,7 @@ impl ClientInit {
             Arc::new(
                 runtime::Builder::new_multi_thread()
                     .enable_all()
-                    .worker_threads(if cores > 4 { cores - 1 } else { cores })
+                    .worker_threads((cores / 4).max(2))
                     .thread_name_fn(|| {
                         static ATOMIC_ID: AtomicUsize = AtomicUsize::new(0);
                         let id = ATOMIC_ID.fetch_add(1, Ordering::SeqCst);
