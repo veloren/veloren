@@ -3622,14 +3622,12 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::IncreaseMaxHealth { .. } => imgs.buff_healthplus_0,
         BuffKind::Invulnerability => imgs.buff_invincibility_0,
         BuffKind::ProtectingWard => imgs.buff_dmg_red_0,
-        // TODO: Get buff icon
-        BuffKind::Frenzied { .. } => imgs.buff_invincibility_0,
+        BuffKind::Frenzied { .. } => imgs.buff_frenzy_0,
         //  Debuffs
         BuffKind::Bleeding { .. } => imgs.debuff_bleed_0,
         BuffKind::Cursed { .. } => imgs.debuff_skull_0,
         BuffKind::Burning { .. } => imgs.debuff_burning_0,
-        // TODO: Get buff icon
-        BuffKind::Crippled { .. } => imgs.debuff_bleed_0,
+        BuffKind::Crippled { .. } => imgs.debuff_crippled_0,
     }
 }
 
