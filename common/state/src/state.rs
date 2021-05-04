@@ -103,9 +103,7 @@ impl State {
 
         let thread_pool = Arc::new(
             ThreadPoolBuilder::new()
-                .num_threads(
-                    num_cpus::get().max(2), /* Have AT LEAST 2 rayon threads */
-                )
+                .num_threads(num_cpus::get().max(common::consts::MIN_RECOMMENDED_RAYON_THREADS))
                 .thread_name(move |i| format!("rayon-{}-{}", thread_name_infix, i))
                 .build()
                 .unwrap(),
@@ -211,8 +209,8 @@ impl State {
         ecs.insert(Vec::<common::outcome::Outcome>::new());
         ecs.insert(common::CachedSpatialGrid::default());
 
-        let slow_limit = num_cpus::get().max(2) as u64;
-        let slow_limit = slow_limit / 2 + slow_limit / 4;
+        let num_cpu = num_cpus::get() as u64;
+        let slow_limit = (num_cpu / 2 + num_cpu / 4).max(1);
         tracing::trace!(?slow_limit, "Slow Thread limit");
         ecs.insert(SlowJobPool::new(slow_limit, Arc::clone(&thread_pool)));
 
@@ -324,7 +322,7 @@ impl State {
     /// Get a mutable reference to the internal ECS world.
     pub fn ecs_mut(&mut self) -> &mut specs::World { &mut self.ecs }
 
-    pub fn thread_pool(&self) -> Arc<ThreadPool> { Arc::clone(&self.thread_pool) }
+    pub fn thread_pool(&self) -> &Arc<ThreadPool> { &self.thread_pool }
 
     /// Get a reference to the `TerrainChanges` structure of the state. This
     /// contains information about terrain state that has changed since the
