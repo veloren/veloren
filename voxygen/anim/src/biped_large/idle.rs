@@ -101,8 +101,11 @@ impl Animation for IdleAnimation {
                 next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },
             Some(ToolKind::Hammer) | Some(ToolKind::Axe) => {
-                next.main.position = Vec3::new(-10.0, -8.0, 12.0);
+                next.main.position = Vec3::new(-6.0, -8.0, 8.0);
                 next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+                next.second.position = Vec3::new(6.0, -8.0, 8.0);
+                next.second.orientation =
+                    Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(1.57);
             },
             _ => {
                 next.main.position = Vec3::new(-2.0, -5.0, -6.0);

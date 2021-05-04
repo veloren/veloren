@@ -7,6 +7,7 @@
         "hud.outcome.burning": "died of: burning",
         "hud.outcome.curse": "died of: curse",
         "hud.outcome.bleeding": "died of: bleeding",
+        "hud.outcome.crippled": "died of: crippled",
 
         // Chat outputs
         "hud.chat.online_msg": "[{name}] is online now",

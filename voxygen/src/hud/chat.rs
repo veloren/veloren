@@ -628,6 +628,7 @@ fn insert_killing_buff(buff: BuffKind, localized_strings: &Localization, templat
         BuffKind::Burning => localized_strings.get("hud.outcome.burning"),
         BuffKind::Bleeding => localized_strings.get("hud.outcome.bleeding"),
         BuffKind::Cursed => localized_strings.get("hud.outcome.curse"),
+        BuffKind::Crippled => localized_strings.get("hud.outcome.crippled"),
         BuffKind::Regeneration
         | BuffKind::Saturation
         | BuffKind::Potion
@@ -635,7 +636,8 @@ fn insert_killing_buff(buff: BuffKind, localized_strings: &Localization, templat
         | BuffKind::IncreaseMaxEnergy
         | BuffKind::IncreaseMaxHealth
         | BuffKind::Invulnerability
-        | BuffKind::ProtectingWard => {
+        | BuffKind::ProtectingWard
+        | BuffKind::Frenzied => {
             tracing::error!("Player was killed by a positive buff!");
             localized_strings.get("hud.outcome.mysterious")
         },

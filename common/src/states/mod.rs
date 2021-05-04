@@ -21,6 +21,7 @@ pub mod idle;
 pub mod leap_melee;
 pub mod repeater_ranged;
 pub mod roll;
+pub mod self_buff;
 pub mod shockwave;
 pub mod sit;
 pub mod sneak;

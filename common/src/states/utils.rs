@@ -71,7 +71,7 @@ impl Body {
                 biped_large::Species::Occultsaurok => 100.0,
                 biped_large::Species::Mightysaurok => 100.0,
                 biped_large::Species::Mindflayer => 90.0,
-                biped_large::Species::Minotaur => 90.0,
+                biped_large::Species::Minotaur => 60.0,
                 _ => 80.0,
             },
             Body::BirdMedium(_) => 80.0,
@@ -243,6 +243,8 @@ pub fn handle_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
 /// Updates components to move player as if theyre on ground or in air
 #[allow(clippy::assign_op_pattern)] // TODO: Pending review in #587
 fn basic_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
+    let efficiency = efficiency * data.stats.move_speed_modifier;
+
     let accel = if data.physics.on_ground {
         data.body.base_accel()
     } else {
@@ -267,6 +269,8 @@ pub fn handle_forced_movement(
     movement: ForcedMovement,
     efficiency: f32,
 ) {
+    let efficiency = efficiency * data.stats.move_speed_modifier;
+
     match movement {
         ForcedMovement::Forward { strength } => {
             if let Some(accel) = data.physics.on_ground.then_some(data.body.base_accel()) {
@@ -324,6 +328,7 @@ pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, efficiency:
 
 /// Updates components to move player as if theyre swimming
 fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, submersion: f32) -> bool {
+    let efficiency = efficiency * data.stats.move_speed_modifier;
     if let Some(force) = data.body.swim_thrust() {
         let force = efficiency * force;
         let mut water_accel = force / data.mass.0;
@@ -361,6 +366,8 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, submers
 
 /// Updates components to move entity as if it's flying
 pub fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) -> bool {
+    let efficiency = efficiency * data.stats.move_speed_modifier;
+
     let glider = match data.character {
         CharacterState::Glide(data) => Some(data),
         _ => None,

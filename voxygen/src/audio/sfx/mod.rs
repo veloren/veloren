@@ -181,6 +181,7 @@ pub enum SfxEvent {
     FireShot,
     FlameThrower,
     PoiseChange(PoiseState),
+    GroundSlam,
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -324,6 +325,10 @@ impl SfxMgr {
                     Some((power.abs() / 2.5).min(1.5)),
                     false,
                 );
+            },
+            Outcome::GroundSlam { pos, .. } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::GroundSlam);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(1.0), false);
             },
             Outcome::ProjectileShot { pos, body, .. } => {
                 match body {

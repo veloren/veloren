@@ -189,6 +189,9 @@ impl<'a> System<'a> for Sys {
                                     stat.max_health_modifier *= current_fraction;
                                 }
                             },
+                            BuffEffect::MovementSpeed(ms) => {
+                                stat.move_speed_modifier *= *ms;
+                            },
                         };
                     }
                 }

@@ -5542,6 +5542,8 @@ dependencies = [
  "specs-idvs",
  "spin_sleep",
  "structopt",
+ "strum",
+ "strum_macros",
  "tracing",
  "tracing-subscriber",
  "uuid",

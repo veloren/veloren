@@ -3,12 +3,14 @@ pub mod beam;
 pub mod beta;
 pub mod blink;
 pub mod charge;
+pub mod chargemelee;
 pub mod dash;
 pub mod equip;
 pub mod idle;
 pub mod jump;
 pub mod leapmelee;
 pub mod run;
+pub mod selfbuff;
 pub mod shockwave;
 pub mod shoot;
 pub mod spin;
@@ -20,11 +22,11 @@ pub mod wield;
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, beam::BeamAnimation, beta::BetaAnimation, blink::BlinkAnimation,
-    charge::ChargeAnimation, dash::DashAnimation, equip::EquipAnimation, idle::IdleAnimation,
-    jump::JumpAnimation, leapmelee::LeapAnimation, run::RunAnimation,
-    shockwave::ShockwaveAnimation, shoot::ShootAnimation, spin::SpinAnimation,
-    spinmelee::SpinMeleeAnimation, stunned::StunnedAnimation, summon::SummonAnimation,
-    wield::WieldAnimation,
+    charge::ChargeAnimation, chargemelee::ChargeMeleeAnimation, dash::DashAnimation,
+    equip::EquipAnimation, idle::IdleAnimation, jump::JumpAnimation, leapmelee::LeapAnimation,
+    run::RunAnimation, selfbuff::SelfBuffAnimation, shockwave::ShockwaveAnimation,
+    shoot::ShootAnimation, spin::SpinAnimation, spinmelee::SpinMeleeAnimation,
+    stunned::StunnedAnimation, summon::SummonAnimation, wield::WieldAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
@@ -54,6 +56,8 @@ skeleton_impls!(struct BipedLargeSkeleton {
     control,
     control_l,
     control_r,
+    weapon_l,
+    weapon_r,
     leg_control_l,
     leg_control_r,
     arm_control_l,
@@ -78,8 +82,11 @@ impl Skeleton for BipedLargeSkeleton {
 
         let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
         let upper_torso_mat = torso_mat * upper_torso;
+        let control_mat = Mat4::<f32>::from(self.control);
         let control_l_mat = Mat4::<f32>::from(self.control_l);
         let control_r_mat = Mat4::<f32>::from(self.control_r);
+        let weapon_l_mat = control_mat * Mat4::<f32>::from(self.weapon_l);
+        let weapon_r_mat = control_mat * Mat4::<f32>::from(self.weapon_r);
         let lower_torso_mat = upper_torso_mat * Mat4::<f32>::from(self.lower_torso);
 
         let leg_l = Mat4::<f32>::from(self.leg_l);
@@ -92,8 +99,6 @@ impl Skeleton for BipedLargeSkeleton {
         let arm_control_r = upper_torso_mat * Mat4::<f32>::from(self.arm_control_r);
 
         let head_mat = upper_torso_mat * Mat4::<f32>::from(self.head);
-        let control_mat = Mat4::<f32>::from(self.control);
-
         let hand_l_mat = Mat4::<f32>::from(self.hand_l);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
@@ -102,12 +107,16 @@ impl Skeleton for BipedLargeSkeleton {
             make_bone(upper_torso_mat),
             make_bone(lower_torso_mat),
             make_bone(lower_torso_mat * Mat4::<f32>::from(self.tail)),
-            make_bone(upper_torso_mat * control_mat * Mat4::<f32>::from(self.main)),
-            make_bone(upper_torso_mat * control_mat * Mat4::<f32>::from(self.second)),
+            make_bone(upper_torso_mat * weapon_l_mat * Mat4::<f32>::from(self.main)),
+            make_bone(upper_torso_mat * weapon_r_mat * Mat4::<f32>::from(self.second)),
             make_bone(arm_control_l * Mat4::<f32>::from(self.shoulder_l)),
             make_bone(arm_control_r * Mat4::<f32>::from(self.shoulder_r)),
-            make_bone(arm_control_l * control_mat * control_l_mat * Mat4::<f32>::from(self.hand_l)),
-            make_bone(arm_control_r * control_mat * control_r_mat * Mat4::<f32>::from(self.hand_r)),
+            make_bone(
+                arm_control_l * weapon_l_mat * control_l_mat * Mat4::<f32>::from(self.hand_l),
+            ),
+            make_bone(
+                arm_control_r * weapon_r_mat * control_r_mat * Mat4::<f32>::from(self.hand_r),
+            ),
             make_bone(leg_control_l * leg_l),
             make_bone(leg_control_r * leg_r),
             make_bone(leg_control_l * Mat4::<f32>::from(self.foot_l)),

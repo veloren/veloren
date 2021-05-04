@@ -19,6 +19,8 @@
         "buff.desc.invulnerability": "You cannot be damaged by any attack.",
         "buff.title.protectingward": "Protecting Ward",
         "buff.desc.protectingward": "You are protected, somewhat, from attacks.",
+        "buff.title.frenzied": "Frenzied",
+        "buff.desc.frenzied": "You are imbued with unnatural speed and can ignore minor injuries.",
         // Debuffs
         "buff.title.bleed": "Bleeding",
         "buff.desc.bleed": "Inflicts regular damage.",
@@ -26,6 +28,8 @@
         "buff.desc.cursed": "You are cursed.",
         "buff.title.burn": "On Fire",
         "buff.desc.burn": "You are burning alive",
+        "buff.title.crippled": "Crippled",
+        "buff.desc.crippled": "Your movement is crippled as your legs are heavily injured.",
         // Buffs stats
         "buff.stat.health": "Restores {str_total} Health",
         "buff.stat.increase_max_stamina": "Raises Maximum Stamina by {strength}",

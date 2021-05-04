@@ -40,6 +40,7 @@ pub enum Tactic {
     Mindflayer,
     BirdLargeBreathe,
     BirdLargeFire,
+    Minotaur,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -299,8 +300,15 @@ pub struct Agent {
     pub behavior: Behavior,
     pub psyche: Psyche,
     pub inbox: VecDeque<AgentEvent>,
-    pub action_timer: f32,
+    pub action_state: ActionState,
     pub bearing: Vec2<f32>,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct ActionState {
+    pub timer: f32,
+    pub counter: f32,
+    pub condition: bool,
 }
 
 impl Agent {

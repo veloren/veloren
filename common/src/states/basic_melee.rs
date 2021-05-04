@@ -29,6 +29,8 @@ pub struct StaticData {
     pub range: f32,
     /// Max angle (45.0 will give you a 90.0 angle window)
     pub max_angle: f32,
+    /// Adds an effect onto the main damage of the attack
+    pub damage_effect: Option<CombatEffect>,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -50,6 +52,7 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
+        handle_orientation(data, &mut update, 1.0);
         handle_move(data, &mut update, 0.7);
         handle_jump(data, &mut update, 1.0);
         handle_orientation(data, &mut update, 0.35);
@@ -97,15 +100,20 @@ impl CharacterBehavior for Data {
                     .with_requirement(CombatRequirement::AnyDamage);
                     let energy = AttackEffect::new(None, CombatEffect::EnergyReward(50.0))
                         .with_requirement(CombatRequirement::AnyDamage);
-                    let buff = CombatEffect::Buff(CombatBuff::default_physical());
-                    let damage = AttackDamage::new(
+                    let mut damage = AttackDamage::new(
                         Damage {
                             source: DamageSource::Melee,
                             value: self.static_data.base_damage as f32,
                         },
                         Some(GroupTarget::OutOfGroup),
-                    )
-                    .with_effect(buff);
+                    );
+                    match self.static_data.damage_effect {
+                        Some(effect) => damage = damage.with_effect(effect),
+                        None => {
+                            let buff = CombatEffect::Buff(CombatBuff::default_physical());
+                            damage = damage.with_effect(buff);
+                        },
+                    }
                     let (crit_chance, crit_mult) =
                         get_crit_data(data, self.static_data.ability_info);
                     let attack = Attack::default()

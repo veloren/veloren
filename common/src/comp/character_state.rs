@@ -99,6 +99,8 @@ pub enum CharacterState {
     Blink(blink::Data),
     /// Summons creatures that fight for the caster
     BasicSummon(basic_summon::Data),
+    /// Inserts a buff on the caster
+    SelfBuff(self_buff::Data),
 }
 
 impl CharacterState {
@@ -120,6 +122,7 @@ impl CharacterState {
                 | CharacterState::BasicBeam(_)
                 | CharacterState::BasicAura(_)
                 | CharacterState::HealingBeam(_)
+                | CharacterState::SelfBuff(_)
         )
     }
 
@@ -143,6 +146,7 @@ impl CharacterState {
                 | CharacterState::BasicBeam(_)
                 | CharacterState::BasicAura(_)
                 | CharacterState::HealingBeam(_)
+                | CharacterState::SelfBuff(_)
         )
     }
 

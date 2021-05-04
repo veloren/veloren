@@ -175,7 +175,6 @@ impl CharacterBehavior for Data {
                             },
                             0.1,
                         );
-                        handle_orientation(data, &mut update, 1.0);
                     }
 
                     // Swings
