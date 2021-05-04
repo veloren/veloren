@@ -18,10 +18,10 @@
           build = common: prev: {
             runTests = !prev.release && prev.runTests;
           };
-          common = prev:
+          crateOverrides = common: prev:
             let
-              pkgs = prev.pkgs;
-              lib = pkgs.lib;
+              pkgs = common.pkgs;
+              lib = common.lib;
 
               gitLfsCheckFile = ./assets/voxygen/background/bg_main.png;
               utils = import ./nix/utils.nix { inherit pkgs; };
@@ -55,55 +55,43 @@
                 mkdir $out
                 ln -sf ${./assets} $out/assets
               '';
-
-              velorenOverride = common: oldAttr:
-                if common.cargoPkg.name == "veloren-voxygen"
-                then
-                  {
-                    VELOREN_USERDATA_STRATEGY = "system";
-                    postInstall = ''
-                      if [ -f $out/bin/veloren-voxygen ]; then
-                        wrapProgram $out/bin/veloren-voxygen \
-                          --set VELOREN_ASSETS ${veloren-assets} \
-                          --set LD_LIBRARY_PATH ${lib.makeLibraryPath common.runtimeLibs}
-                      fi
-                    '';
-                    patches = [
-                      (import ./nix/nullOggPatch.nix { nullOgg = ./assets/voxygen/audio/null.ogg; inherit pkgs; })
-                    ];
-                  }
-                else if common.cargoPkg.name == "veloren-server-cli"
-                then
-                  {
-                    VELOREN_USERDATA_STRATEGY = "system";
-                    postInstall = ''
-                      if [ -f $out/bin/veloren-server-cli ]; then
-                        wrapProgram $out/bin/veloren-server-cli --set VELOREN_ASSETS ${veloren-assets}
-                      fi
-                    '';
-                  }
-                else { };
             in
             {
-              crateOverrides = prev.crateOverrides // {
-                veloren-world = oldAttrs: {
-                  crateBin = lib.filter (bin: bin.name != "chunk_compression_benchmarks") oldAttrs.crateBin;
-                };
-                veloren-client = oldAttrs: {
-                  crateBin = lib.filter (bin: bin.name != "bot") oldAttrs.crateBin;
-                };
-                veloren-common = oldAttrs: {
-                  # Disable `git-lfs` check here since we check it ourselves
-                  # We have to include the command output here, otherwise Nix won't run it
-                  DISABLE_GIT_LFS_CHECK = utils.isGitLfsSetup gitLfsCheckFile;
-                  # Declare env values here so that `common/build.rs` sees them
-                  NIX_GIT_HASH = prettyRev;
-                  NIX_GIT_TAG = tag;
-                  crateBin = lib.filter (bin: bin.name != "csv_export" && bin.name != "csv_import") oldAttrs.crateBin;
-                };
+              # veloren-world = oldAttrs: {
+              #   crateBin = lib.filter (bin: bin.name != "chunk_compression_benchmarks") oldAttrs.crateBin;
+              # };
+              veloren-client = oldAttrs: {
+                crateBin = lib.filter (bin: bin.name != "bot") oldAttrs.crateBin;
               };
-              overrides = prev.overrides // {
-                mainBuild = velorenOverride;
+              veloren-common = oldAttrs: {
+                # Disable `git-lfs` check here since we check it ourselves
+                # We have to include the command output here, otherwise Nix won't run it
+                DISABLE_GIT_LFS_CHECK = utils.isGitLfsSetup gitLfsCheckFile;
+                # Declare env values here so that `common/build.rs` sees them
+                NIX_GIT_HASH = prettyRev;
+                NIX_GIT_TAG = tag;
+                crateBin = lib.filter (bin: bin.name != "csv_export" && bin.name != "csv_import") oldAttrs.crateBin;
+              };
+              veloren-voxygen = oldAttrs: {
+                VELOREN_USERDATA_STRATEGY = "system";
+                postInstall = ''
+                  if [ -f $out/bin/veloren-voxygen ]; then
+                    wrapProgram $out/bin/veloren-voxygen \
+                      --set VELOREN_ASSETS ${veloren-assets} \
+                      --set LD_LIBRARY_PATH ${lib.makeLibraryPath common.runtimeLibs}
+                  fi
+                '';
+                patches = [
+                  (import ./nix/nullOggPatch.nix { nullOgg = ./assets/voxygen/audio/null.ogg; inherit pkgs; })
+                ];
+              };
+              veloren-server-cli = oldAttrs: {
+                VELOREN_USERDATA_STRATEGY = "system";
+                postInstall = ''
+                  if [ -f $out/bin/veloren-server-cli ]; then
+                    wrapProgram $out/bin/veloren-server-cli --set VELOREN_ASSETS ${veloren-assets}
+                  fi
+                '';
               };
             };
         };
