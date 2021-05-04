@@ -271,6 +271,7 @@ impl<'a> PhysicsData<'a> {
         spatial_grid
     }
 
+    #[allow(clippy::nonminimal_bool)]
     fn apply_pushback(&mut self, job: &mut Job<Sys>, spatial_grid: &SpatialGrid) {
         span!(_guard, "Apply pushback");
         job.cpu_stats.measure(ParMode::Rayon);
@@ -295,10 +296,9 @@ impl<'a> PhysicsData<'a> {
             read.char_states.maybe(),
         )
             .par_join()
-            .filter(|(_, _, _, _, _, _, _, sticky, physics, _, _)| {
-                sticky.is_none() || (physics.on_wall.is_none() && !physics.on_ground)
+            .map(|(e, p, v, vd, m, c, _, sticky, ph, pr, c_s)| {
+                (e, p, v, vd, m, c, sticky, ph, pr, c_s)
             })
-            .map(|(e, p, v, vd, m, c, _, _, ph, pr, c_s)| (e, p, v, vd, m, c, ph, pr, c_s))
             .map_init(
                 || {
                     prof_span!(guard, "physics e<>e rayon job");
@@ -312,10 +312,13 @@ impl<'a> PhysicsData<'a> {
                     previous_cache,
                     mass,
                     collider,
+                    sticky,
                     physics,
                     projectile,
                     char_state_maybe,
                 )| {
+                    let is_sticky = sticky.is_some();
+                    let is_mid_air = physics.on_wall.is_none() && physics.on_ground;
                     let mut entity_entity_collision_checks = 0;
                     let mut entity_entity_collisions = 0;
 
@@ -427,7 +430,11 @@ impl<'a> PhysicsData<'a> {
                                         // with a terrain-like entity, or if we are a
                                         // terrain-like
                                         // entity
-                                        if diff.magnitude_squared() > 0.0
+                                        //
+                                        // Don't apply force when entity is a sticky which is on the
+                                        // ground (or on the wall)
+                                        if !(is_sticky && !is_mid_air)
+                                            && diff.magnitude_squared() > 0.0
                                             && !is_projectile
                                             && !matches!(
                                                 collider_other,
