@@ -4,6 +4,7 @@ use bytes::BytesMut;
 use futures_util::FutureExt;
 #[cfg(feature = "quic")]
 use futures_util::StreamExt;
+use hashbrown::HashMap;
 use network_protocol::{
     Bandwidth, Cid, InitProtocolError, MpscMsg, MpscRecvProtocol, MpscSendProtocol, Pid,
     ProtocolError, ProtocolEvent, ProtocolMetricCache, ProtocolMetrics, Sid, TcpRecvProtocol,
@@ -12,7 +13,6 @@ use network_protocol::{
 #[cfg(feature = "quic")]
 use network_protocol::{QuicDataFormat, QuicDataFormatStream, QuicRecvProtocol, QuicSendProtocol};
 use std::{
-    collections::HashMap,
     io,
     net::SocketAddr,
     sync::{
@@ -327,7 +327,7 @@ impl Protocols {
             QuicDrain {
                 con: connection.connection.clone(),
                 main: sendstream,
-                reliables: std::collections::HashMap::new(),
+                reliables: HashMap::new(),
                 recvstreams_s: streams_s_clone,
                 sendstreams_r,
             },
@@ -507,7 +507,7 @@ type QuicStream = (
 pub struct QuicDrain {
     con: quinn::Connection,
     main: quinn::SendStream,
-    reliables: std::collections::HashMap<Sid, quinn::SendStream>,
+    reliables: HashMap<Sid, quinn::SendStream>,
     recvstreams_s: mpsc::UnboundedSender<QuicStream>,
     sendstreams_r: mpsc::UnboundedReceiver<quinn::SendStream>,
 }
@@ -547,7 +547,7 @@ impl UnreliableDrain for QuicDrain {
             QuicDataFormatStream::Main => self.main.write_all(&data.data).await,
             QuicDataFormatStream::Unreliable => unimplemented!(),
             QuicDataFormatStream::Reliable(sid) => {
-                use std::collections::hash_map::Entry;
+                use hashbrown::hash_map::Entry;
                 tracing::trace!(?sid, "Reliable");
                 match self.reliables.entry(sid) {
                     Entry::Occupied(mut occupied) => occupied.get_mut().write_all(&data.data).await,

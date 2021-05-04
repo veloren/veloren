@@ -4,6 +4,7 @@ use crate::{
     scheduler::{A2sConnect, Scheduler},
 };
 use bytes::Bytes;
+use hashbrown::HashMap;
 #[cfg(feature = "compression")]
 use lz_fear::raw::DecodeError;
 use network_protocol::{Bandwidth, InitProtocolError, Pid, Prio, Promises, Sid};
@@ -11,7 +12,6 @@ use network_protocol::{Bandwidth, InitProtocolError, Pid, Prio, Promises, Sid};
 use prometheus::Registry;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
-    collections::HashMap,
     net::SocketAddr,
     sync::{
         atomic::{AtomicBool, Ordering},

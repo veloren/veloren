@@ -6,12 +6,12 @@ use crate::{
 };
 use bytes::Bytes;
 use futures_util::{FutureExt, StreamExt};
+use hashbrown::HashMap;
 use network_protocol::{
     Bandwidth, Cid, Pid, Prio, Promises, ProtocolEvent, RecvProtocol, SendProtocol, Sid,
     _internal::SortedVec,
 };
 use std::{
-    collections::HashMap,
     sync::{
         atomic::{AtomicBool, AtomicI32, Ordering},
         Arc,
@@ -355,7 +355,8 @@ impl BParticipant {
                 let diff = send_time.duration_since(last_instant);
                 last_instant = send_time;
                 let mut cnt = 0;
-                for (_, p) in sorted_send_protocols.data.iter_mut() {
+                for (c, p) in sorted_send_protocols.data.iter_mut() {
+                    cid = *c;
                     cnt += p.flush(1_000_000_000, diff).await?; //this actually blocks, so we cant set streams while it.
                 }
                 let flush_time = send_time.elapsed().as_secs_f32();

@@ -5,12 +5,12 @@ use crate::{
     participant::{B2sPrioStatistic, BParticipant, S2bCreateChannel, S2bShutdownBparticipant},
 };
 use futures_util::StreamExt;
+use hashbrown::HashMap;
 use network_protocol::{Cid, Pid, ProtocolMetricCache, ProtocolMetrics};
 #[cfg(feature = "metrics")]
 use prometheus::Registry;
 use rand::Rng;
 use std::{
-    collections::HashMap,
     sync::{
         atomic::{AtomicBool, AtomicU64, Ordering},
         Arc,
