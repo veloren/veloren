@@ -42,6 +42,8 @@ lz-fear = { version = "0.1.1", optional = true }
 # async traits
 async-trait = "0.1.42"
 bytes = "^1"
+# faster HashMaps
+hashbrown = { version = ">=0.9, <0.12" }
 
 [dev-dependencies]
 tracing-subscriber = { version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec"] }
