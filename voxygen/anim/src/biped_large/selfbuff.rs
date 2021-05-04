@@ -26,7 +26,6 @@ impl Animation for SelfBuffAnimation {
     const UPDATE_FN: &'static [u8] = b"biped_large_selfbuff\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_selfbuff")]
-    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (
@@ -101,6 +100,7 @@ impl Animation for SelfBuffAnimation {
         next.hand_l.orientation = Quaternion::rotation_x(0.0);
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
 
+        // TODO: Remove clippy allow when second species is added
         #[allow(clippy::single_match)]
         match active_tool_kind {
             Some(ToolKind::Natural) => {
