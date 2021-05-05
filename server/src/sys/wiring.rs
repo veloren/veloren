@@ -16,12 +16,15 @@ use dispatch_actions::dispatch_actions;
 
 #[derive(SystemData)]
 pub struct WiringData<'a> {
-    pub entities: Entities<'a>,
-    pub event_bus: Read<'a, EventBus<ServerEvent>>,
     pub circuits: ReadStorage<'a, Circuit>,
     pub wiring_elements: WriteStorage<'a, WiringElement>,
-    pub light_emitters: WriteStorage<'a, LightEmitter>,
-    pub physics_states: ReadStorage<'a, PhysicsState>,
+
+    pub entities: Entities<'a>,
+
+    pub light_emitters: WriteStorage<'a, LightEmitter>, // maybe
+    pub physics_states: ReadStorage<'a, PhysicsState>,  // maybe
+
+    pub event_bus: Read<'a, EventBus<ServerEvent>>,
 }
 
 /// This system is responsible for handling wiring (signals and wiring systems)
