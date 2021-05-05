@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Mindflayer Armor",
+    description: "Worn by mindflayer.",
+    kind: Armor((
+        kind: Chest("Mindflayer"),
+        stats: (
+            protection: Normal(60.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Legendary,
+    tags: [],
+)
