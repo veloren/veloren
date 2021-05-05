@@ -441,7 +441,7 @@ impl Body {
                 biped_large::Species::Wendigo => 2800,
                 biped_large::Species::Troll => 2400,
                 biped_large::Species::Dullahan => 3000,
-                biped_large::Species::Mindflayer => 25000,
+                biped_large::Species::Mindflayer => 12500,
                 biped_large::Species::Tidalwarrior => 2500,
                 biped_large::Species::Yeti => 4000,
                 biped_large::Species::Minotaur => 30000,

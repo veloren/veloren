@@ -970,7 +970,18 @@ impl LoadoutBuilder {
                     .build(),
             }
         } else {
-            LoadoutBuilder::new().active_item(active_item).build()
+            match body {
+                Body::BipedLarge(b) => match b.species {
+                    biped_large::Species::Mindflayer => LoadoutBuilder::new()
+                        .active_item(active_item)
+                        .chest(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.biped_large.mindflayer",
+                        )))
+                        .build(),
+                    _ => LoadoutBuilder::new().active_item(active_item).build(),
+                },
+                _ => LoadoutBuilder::new().active_item(active_item).build(),
+            }
         };
 
         Self(loadout)
