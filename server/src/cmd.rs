@@ -16,7 +16,7 @@ use common::{
         self,
         aura::{Aura, AuraKind, AuraTarget},
         buff::{Buff, BuffCategory, BuffData, BuffKind, BuffSource},
-        inventory::item::{tool::AbilityMap, MaterialStatManifest},
+        inventory::item::{tool::AbilityMap, MaterialStatManifest, Quality},
         invite::InviteKind,
         ChatType, Inventory, Item, LightEmitter, WaypointArea,
     },
@@ -284,7 +284,10 @@ fn handle_drop_all(
 
     let mut rng = rand::thread_rng();
 
-    for item in items {
+    let item_to_place = items
+        .into_iter()
+        .filter(|i| !matches!(i.quality(), Quality::Debug));
+    for item in item_to_place {
         let vel = Vec3::new(rng.gen_range(-0.1..0.1), rng.gen_range(-0.1..0.1), 0.5);
 
         server
