@@ -47,8 +47,9 @@ impl Skeleton for QuadrupedLowSkeleton {
     fn compute_matrices_inner(
         &self,
         base_mat: Mat4<f32>,
+        offsets: Option<Transform<f32, f32, f32>>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> [Vec3<f32>; 2] {
+    ) -> [Transform<f32, f32, f32>; 2] {
         let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
         let tail_front = chest_mat * Mat4::<f32>::from(self.tail_front);
         let head_lower_mat = chest_mat * Mat4::<f32>::from(self.head_lower);
@@ -66,7 +67,7 @@ impl Skeleton for QuadrupedLowSkeleton {
             make_bone(chest_mat * Mat4::<f32>::from(self.foot_bl)),
             make_bone(chest_mat * Mat4::<f32>::from(self.foot_br)),
         ];
-        [Vec3::default(), (chest_mat * Vec4::one()).xyz()]
+        [Transform::default(), self.chest]
     }
 }
 

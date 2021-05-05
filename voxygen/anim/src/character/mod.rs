@@ -72,12 +72,14 @@ skeleton_impls!(struct CharacterSkeleton {
     control_r,
     :: // Begin non-bone fields
     holding_lantern: bool,
+    offsets: Option<Transform<f32, f32, f32>>,
 });
 
 impl CharacterSkeleton {
-    pub fn new(holding_lantern: bool) -> Self {
+    pub fn new(holding_lantern: bool, offsets: Option<Transform<f32, f32, f32>>) -> Self {
         Self {
             holding_lantern,
+            offsets,
             ..Self::default()
         }
     }
@@ -96,9 +98,16 @@ impl Skeleton for CharacterSkeleton {
     fn compute_matrices_inner(
         &self,
         base_mat: Mat4<f32>,
+        offsets: Option<Transform<f32, f32, f32>>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> [Vec3<f32>; 2] {
-        let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
+    ) -> [Transform<f32, f32, f32>; 2] {
+        dbg!(self.torso);
+        let mut torso_mat = base_mat * Mat4::<f32>::from(self.torso);
+        if let Some(offset) = self.offsets {
+            dbg!(offset);
+            torso_mat = base_mat * Mat4::<f32>::from(Transform{position: offset.position, orientation: offset.orientation, scale: Vec3::<f32>::one()})
+            * Mat4::<f32>::from(self.torso);
+        }
         let chest_mat = torso_mat * Mat4::<f32>::from(self.chest);
         let head_mat = chest_mat * Mat4::<f32>::from(self.head);
         let shorts_mat = chest_mat * Mat4::<f32>::from(self.shorts);
@@ -134,8 +143,9 @@ impl Skeleton for CharacterSkeleton {
             make_bone(control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
         ];
         [
-            (lantern_mat * Vec4::new(0.0, 0.0, -4.0, 1.0)).xyz(),
-            (chest_mat * Vec4::zero()).xyz(),
+            //(lantern_mat * Vec4::new(0.0, 0.0, -4.0, 1.0)).xyz(),
+            Transform::default(),
+            self.chest
         ]
     }
 }

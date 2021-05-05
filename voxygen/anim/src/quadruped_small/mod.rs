@@ -39,8 +39,9 @@ impl Skeleton for QuadrupedSmallSkeleton {
     fn compute_matrices_inner(
         &self,
         base_mat: Mat4<f32>,
+        offsets: Option<Transform<f32, f32, f32>>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> [Vec3<f32>; 2] {
+    ) -> [Transform<f32, f32, f32>; 2] {
         let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
@@ -52,7 +53,7 @@ impl Skeleton for QuadrupedSmallSkeleton {
             make_bone(chest_mat * Mat4::<f32>::from(self.leg_br)),
             make_bone(chest_mat * Mat4::<f32>::from(self.tail)),
         ];
-        [Vec3::default(), (chest_mat * Vec4::one()).xyz()]
+        [Transform::default(), self.chest]
     }
 }
 

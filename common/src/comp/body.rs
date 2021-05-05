@@ -682,7 +682,7 @@ impl Body {
                     (quadruped_medium::Species::Zebra, _) => Vec3::from([0.5, 0.5, 0.0]),
                     (quadruped_medium::Species::Antelope, _) => Vec3::from([0.3, 0.3, 0.0]),
                     (quadruped_medium::Species::Kelpie, _) => Vec3::from([0.5, 0.5, 0.0]),
-                    (quadruped_medium::Species::Horse, _) => Vec3::from([0.1, 0.1, 0.0]),
+                    (quadruped_medium::Species::Horse, _) => Vec3::from([0.0, 0.0, 0.0]),
                     (quadruped_medium::Species::Barghest, _) => Vec3::from([0.5, 0.5, 0.0]),
                     (quadruped_medium::Species::Cattle, quadruped_medium::BodyType::Male) => {
                         Vec3::from([0.5, 0.5, 0.0])

@@ -163,10 +163,10 @@ impl Scene {
             map_bounds,
 
             figure_model_cache: FigureModelCache::new(),
-            figure_state: FigureState::new(renderer, CharacterSkeleton::default()),
+            figure_state: FigureState::new(renderer, CharacterSkeleton::default(), None),
 
             backdrop: backdrop.map(|specifier| {
-                let mut state = FigureState::new(renderer, FixtureSkeleton::default());
+                let mut state = FigureState::new(renderer, FixtureSkeleton::default(), None);
                 let mut greedy = FigureModel::make_greedy();
                 let mut opaque_mesh = Mesh::new();
                 let (segment, offset) = load_mesh(specifier, Vec3::new(-55.0, -49.5, -2.0));

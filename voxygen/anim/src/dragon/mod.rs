@@ -42,8 +42,9 @@ impl Skeleton for DragonSkeleton {
     fn compute_matrices_inner(
         &self,
         base_mat: Mat4<f32>,
+        offsets: Option<Transform<f32, f32, f32>>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> [Vec3<f32>; 2] {
+    ) -> [Transform<f32, f32, f32>; 2] {
         let chest_front_mat = base_mat * Mat4::<f32>::from(self.chest_front);
         let chest_rear_mat = chest_front_mat * Mat4::<f32>::from(self.chest_rear);
         let head_lower_mat = chest_front_mat * Mat4::<f32>::from(self.head_lower);
@@ -69,7 +70,7 @@ impl Skeleton for DragonSkeleton {
             make_bone(chest_rear_mat * Mat4::<f32>::from(self.foot_bl)),
             make_bone(chest_rear_mat * Mat4::<f32>::from(self.foot_br)),
         ];
-        [Vec3::default(), (chest_front_mat * Vec4::one()).xyz()]
+        [Transform::default(), self.chest_front]
     }
 }
 

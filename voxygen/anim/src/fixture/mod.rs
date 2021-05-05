@@ -30,10 +30,11 @@ impl Skeleton for FixtureSkeleton {
     fn compute_matrices_inner(
         &self,
         base_mat: Mat4<f32>,
+        offsets: Option<Transform<f32, f32, f32>>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> [Vec3<f32>; 2] {
+    ) -> [Transform<f32, f32, f32>; 2] {
         buf[0] = make_bone(base_mat);
-        [Vec3::default(), Vec3::default()]
+        [Transform::default(), Transform::default()]
     }
 }
 

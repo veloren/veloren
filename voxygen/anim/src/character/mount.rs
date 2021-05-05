@@ -17,7 +17,7 @@ impl Animation for MountAnimation {
         Vec3<f32>,
         Vec3<f32>,
         Vec3<f32>,
-        Vec3<f32>,
+        Transform<f32, f32, f32>,
     );
     type Skeleton = CharacterSkeleton;
 
@@ -81,10 +81,8 @@ impl Animation for MountAnimation {
         next.head.orientation = Quaternion::rotation_z(head_look.x + slow * 0.2 - slow * 0.1)
             * Quaternion::rotation_x((0.4 + slowa * -0.1 + slow * 0.1 + head_look.y).abs());
 
-        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + mount_offset.z * 14.0);
-        next.chest.orientation =
-            Quaternion::rotation_x(-0.6 + stop * 0.15 + x_tilt * (canceler * 6.0).min(2.0))
-                * Quaternion::rotation_y(tilt * 3.1);
+        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
+        next.chest.orientation = Quaternion::rotation_x(-0.6 + stop * 0.15);
 
         next.belt.position = Vec3::new(0.0, s_a.belt.0 + stop * 1.2, s_a.belt.1);
         next.belt.orientation = Quaternion::rotation_x(stop * 0.3);
@@ -110,19 +108,11 @@ impl Animation for MountAnimation {
         next.hand_r.orientation =
             Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_z(PI / 2.0);
 
-        next.foot_l.position = Vec3::new(
-            -s_a.foot.0 - 2.0,
-            4.0 + s_a.foot.1,
-            s_a.foot.2 + mount_offset.z * 14.0,
-        );
+        next.foot_l.position = Vec3::new(-s_a.foot.0 - 2.0, 4.0 + s_a.foot.1, s_a.foot.2);
         next.foot_l.orientation = Quaternion::rotation_x(slow * 0.1 + stop * 0.4 + slow * 0.1)
             * Quaternion::rotation_y(0.5);
 
-        next.foot_r.position = Vec3::new(
-            s_a.foot.0 + 2.0,
-            4.0 + s_a.foot.1,
-            s_a.foot.2 + mount_offset.z * 14.0,
-        );
+        next.foot_r.position = Vec3::new(s_a.foot.0 + 2.0, 4.0 + s_a.foot.1, s_a.foot.2);
         next.foot_r.orientation = Quaternion::rotation_x(slowa * 0.1 + stop * 0.4 + slowa * 0.1)
             * Quaternion::rotation_y(-0.5);
 

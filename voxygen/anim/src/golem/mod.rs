@@ -46,8 +46,9 @@ impl Skeleton for GolemSkeleton {
     fn compute_matrices_inner(
         &self,
         base_mat: Mat4<f32>,
+        offsets: Option<Transform<f32, f32, f32>>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> [Vec3<f32>; 2] {
+    ) -> [Transform<f32, f32, f32>; 2] {
         let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
         let upper_torso_mat = torso_mat * Mat4::<f32>::from(self.upper_torso);
         let lower_torso_mat = upper_torso_mat * Mat4::<f32>::from(self.lower_torso);
@@ -70,7 +71,7 @@ impl Skeleton for GolemSkeleton {
             make_bone(leg_l_mat * Mat4::<f32>::from(self.foot_l)),
             make_bone(leg_r_mat * Mat4::<f32>::from(self.foot_r)),
         ];
-        [Vec3::default(), (torso_mat * Vec4::one()).xyz()]
+        [Transform::default(), self.torso]
     }
 }
 

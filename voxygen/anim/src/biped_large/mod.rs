@@ -76,8 +76,9 @@ impl Skeleton for BipedLargeSkeleton {
     fn compute_matrices_inner(
         &self,
         base_mat: Mat4<f32>,
+        offsets: Option<Transform<f32, f32, f32>>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> [Vec3<f32>; 2] {
+    ) -> [Transform<f32, f32, f32>; 2] {
         let upper_torso = Mat4::<f32>::from(self.upper_torso);
 
         let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
@@ -124,7 +125,7 @@ impl Skeleton for BipedLargeSkeleton {
             // FIXME: Should this be control_l_mat?
             make_bone(upper_torso_mat * control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
         ];
-        [Vec3::default(), Vec3::default()]
+        [Transform::default(), Transform::default()]
     }
 }
 

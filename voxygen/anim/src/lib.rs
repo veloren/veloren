@@ -101,18 +101,20 @@ pub trait Skeleton: Send + Sync + 'static {
     fn compute_matrices_inner(
         &self,
         base_mat: Mat4<f32>,
+        offsets: Option<Transform<f32, f32, f32>>,
         buf: &mut [FigureBoneData; MAX_BONE_COUNT],
-    ) -> [Vec3<f32>; 2];
+    ) -> [Transform<f32, f32, f32>; 2];
 }
 
 pub fn compute_matrices<S: Skeleton>(
     skeleton: &S,
     base_mat: Mat4<f32>,
+    offsets: Option<Transform<f32, f32, f32>>,
     buf: &mut [FigureBoneData; MAX_BONE_COUNT],
-) -> [Vec3<f32>; 2] {
+) -> [Transform<f32, f32, f32>; 2] {
     #[cfg(not(feature = "use-dyn-lib"))]
     {
-        S::compute_matrices_inner(skeleton, base_mat, buf)
+        S::compute_matrices_inner(skeleton, base_mat, offsets, buf)
     }
     #[cfg(feature = "use-dyn-lib")]
     {
@@ -120,7 +122,7 @@ pub fn compute_matrices<S: Skeleton>(
         let lib = &lock.as_ref().unwrap().lib;
 
         let compute_fn: libloading::Symbol<
-            fn(&S, Mat4<f32>, &mut [FigureBoneData; MAX_BONE_COUNT]) -> [Vec3<f32>; 2],
+            fn(&S, Mat4<f32>, &mut [FigureBoneData; MAX_BONE_COUNT]) -> [Transform<f32, f32, f32>; 2],
         > = unsafe { lib.get(S::COMPUTE_FN) }.unwrap_or_else(|e| {
             panic!(
                 "Trying to use: {} but had error: {:?}",

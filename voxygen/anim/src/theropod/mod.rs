@@ -46,8 +46,10 @@ impl Skeleton for TheropodSkeleton {
     fn compute_matrices_inner(
         &self,
         base_mat: Mat4<f32>,
+        offsets: Option<Transform<f32, f32, f32>>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> [Vec3<f32>; 2] {
+    ) -> [Transform<f32, f32, f32>; 2] {
+        dbg!(self.chest_front);
         let chest_front_mat = base_mat * Mat4::<f32>::from(self.chest_front);
         let neck_mat = chest_front_mat * Mat4::<f32>::from(self.neck);
         let head_mat = neck_mat * Mat4::<f32>::from(self.head);
@@ -71,7 +73,7 @@ impl Skeleton for TheropodSkeleton {
             make_bone(leg_l_mat * Mat4::<f32>::from(self.foot_l)),
             make_bone(leg_r_mat * Mat4::<f32>::from(self.foot_r)),
         ];
-        [Vec3::default(), (chest_front_mat * Vec4::one()).xyz()]
+        [Transform::default(), self.chest_front]
     }
 }
 
