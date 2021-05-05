@@ -2,7 +2,7 @@ use super::WiringData;
 use crate::wiring::OutputFormula;
 use common::comp::PhysicsState;
 use hashbrown::HashMap;
-use specs::{join::Join, Entity, ReadStorage};
+use specs::{join::Join, Entity};
 use tracing::warn;
 
 pub fn compute_outputs(system_data: &WiringData) -> HashMap<Entity, HashMap<String, f32>> {
@@ -12,9 +12,9 @@ pub fn compute_outputs(system_data: &WiringData) -> HashMap<Entity, HashMap<Stri
         physics_states,
         ..
     } = system_data;
-    (&*entities, wiring_elements)
+    (&*entities, wiring_elements, physics_states.maybe())
         .join()
-        .map(|(entity, wiring_element)| {
+        .map(|(entity, wiring_element, physics_state)| {
             (
                 entity,
                 wiring_element
@@ -26,8 +26,7 @@ pub fn compute_outputs(system_data: &WiringData) -> HashMap<Entity, HashMap<Stri
                                 key,
                                 output_formula,
                                 &wiring_element.inputs,
-                                entity,
-                                physics_states,
+                                physics_state,
                             )
                         }, // (String, f32)
                     )
@@ -44,20 +43,18 @@ pub fn compute_output_with_key(
     key: &str,
     output_formula: &OutputFormula,
     inputs: &HashMap<String, f32>,
-    entity: Entity,
-    physics_states: &ReadStorage<PhysicsState>,
+    physics_state: Option<&PhysicsState>,
 ) -> (String, f32) {
     (
         key.to_string(),
-        compute_output(output_formula, inputs, entity, physics_states),
+        compute_output(output_formula, inputs, physics_state),
     )
 }
 
 pub fn compute_output(
     output_formula: &OutputFormula,
     inputs: &HashMap<String, f32>,
-    entity: Entity,
-    physics_states: &ReadStorage<PhysicsState>,
+    physics_state: Option<&PhysicsState>,
 ) -> f32 {
     match output_formula {
         OutputFormula::Constant { value } => *value,
@@ -70,9 +67,7 @@ pub fn compute_output(
             warn!("Not implemented OutputFormula::SineWave");
             0.0
         },
-        OutputFormula::OnCollide { value } => {
-            output_formula_on_collide(value, entity, physics_states)
-        },
+        OutputFormula::OnCollide { value } => output_formula_on_collide(value, physics_state),
         OutputFormula::OnInteract { .. } => {
             warn!("Not implemented OutputFormula::OnInteract");
             0.0
@@ -80,12 +75,8 @@ pub fn compute_output(
     }
 }
 
-fn output_formula_on_collide(
-    value: &f32,
-    entity: Entity,
-    physics_states: &ReadStorage<PhysicsState>,
-) -> f32 {
-    if let Some(ps) = physics_states.get(entity) {
+fn output_formula_on_collide(value: &f32, physics_state: Option<&PhysicsState>) -> f32 {
+    if let Some(ps) = physics_state {
         if !ps.touch_entities.is_empty() {
             return *value;
         }

@@ -1750,27 +1750,36 @@ fn handle_spawn_wiring(
     let builder2 = server
         .state
         .create_wiring(pos, comp::object::Body::Coins, WiringElement {
-            actions: vec![WiringAction {
-                formula: wiring::OutputFormula::Input {
-                    name: String::from("color"),
-                },
-                threshold: 1.0,
-                effects: vec![
-                    // Another demo:
-                    // WiringActionEffect::SetLight {
-                    //     r: wiring::OutputFormula::Input { name: String::from("color") },
-                    //     g: wiring::OutputFormula::Input { name: String::from("color") },
-                    //     b: wiring::OutputFormula::Input { name: String::from("color") }
-                    // },
-                    WiringActionEffect::SpawnProjectile {
+            actions: vec![
+                WiringAction {
+                    formula: wiring::OutputFormula::Input {
+                        name: String::from("color"),
+                    },
+                    threshold: 1.0,
+                    effects: vec![WiringActionEffect::SpawnProjectile {
                         constr: comp::ProjectileConstructor::Arrow {
                             damage: 1.0,
                             energy_regen: 0.0,
                             knockback: 0.0,
                         },
-                    },
-                ],
-            }],
+                    }],
+                },
+                WiringAction {
+                    formula: wiring::OutputFormula::Constant { value: 1.0 },
+                    threshold: 1.0,
+                    effects: vec![WiringActionEffect::SetLight {
+                        r: wiring::OutputFormula::Input {
+                            name: String::from("color"),
+                        },
+                        g: wiring::OutputFormula::Input {
+                            name: String::from("color"),
+                        },
+                        b: wiring::OutputFormula::Input {
+                            name: String::from("color"),
+                        },
+                    }],
+                },
+            ],
             inputs: HashMap::new(),
             outputs: HashMap::new(),
         });
