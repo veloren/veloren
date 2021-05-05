@@ -14,7 +14,7 @@ use crate::{
     cmd::Message, shutdown_coordinator::ShutdownCoordinator, tui_runner::Tui, tuilog::TuiLog,
 };
 use clap::{App, Arg, SubCommand};
-use common::clock::Clock;
+use common::{clock::Clock, consts::MIN_RECOMMENDED_TOKIO_THREADS};
 use common_base::span;
 use core::sync::atomic::{AtomicUsize, Ordering};
 use server::{
@@ -117,9 +117,13 @@ fn main() -> io::Result<()> {
         path
     };
 
+    // We don't need that many threads in the async pool, at least 2 but generally
+    // 25% of all available will do
+    // TODO: evaluate std::thread::available_concurrency as a num_cpus replacement
     let runtime = Arc::new(
         tokio::runtime::Builder::new_multi_thread()
             .enable_all()
+            .worker_threads((num_cpus::get() / 4).max(MIN_RECOMMENDED_TOKIO_THREADS))
             .thread_name_fn(|| {
                 static ATOMIC_ID: AtomicUsize = AtomicUsize::new(0);
                 let id = ATOMIC_ID.fetch_add(1, Ordering::SeqCst);

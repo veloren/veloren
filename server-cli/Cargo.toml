@@ -28,6 +28,7 @@ common-net = { package = "veloren-common-net", path = "../common/net" }
 common-frontend = { package = "veloren-common-frontend", path = "../common/frontend" }
 
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread"] }
+num_cpus = "1.0"
 ansi-parser = "0.7"
 clap = "2.33"
 crossterm = "0.19"

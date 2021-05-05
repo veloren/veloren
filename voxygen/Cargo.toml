@@ -123,6 +123,7 @@ winres = "0.1"
 criterion = "0.3"
 git2 = "0.13"
 world = {package = "veloren-world", path = "../world"}
+rayon = "1.5.0"
 
 [[bench]]
 harness = false

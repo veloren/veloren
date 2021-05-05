@@ -9,17 +9,20 @@ mod way;
 use self::erosion::Compute;
 pub use self::{
     diffusion::diffusion,
-    erosion::{
-        do_erosion, fill_sinks, get_drainage, get_lakes, get_multi_drainage, get_multi_rec,
-        get_rivers, mrec_downhill, Alt, RiverData, RiverKind,
-    },
     location::Location,
     map::{sample_pos, sample_wpos},
-    util::{
-        cdf_irwin_hall, downhill, get_horizon_map, get_oceans, local_cells, map_edge_factor,
-        uniform_noise, uphill, InverseCdf, ScaleBias,
-    },
+    util::get_horizon_map,
     way::{Cave, Path, Way},
+};
+pub(crate) use self::{
+    erosion::{
+        do_erosion, fill_sinks, get_lakes, get_multi_drainage, get_multi_rec, get_rivers, Alt,
+        RiverData, RiverKind,
+    },
+    util::{
+        cdf_irwin_hall, downhill, get_oceans, local_cells, map_edge_factor, uniform_noise, uphill,
+        InverseCdf,
+    },
 };
 
 use crate::{
@@ -368,7 +371,7 @@ pub struct WorldSim {
 impl WorldSim {
     #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
 
-    pub fn generate(seed: u32, opts: WorldOpts) -> Self {
+    pub fn generate(seed: u32, opts: WorldOpts, threadpool: &rayon::ThreadPool) -> Self {
         // Parse out the contents of various map formats into the values we need.
         let parsed_world_file = (|| {
             let map = match opts.world_file {
@@ -619,7 +622,7 @@ impl WorldSim {
 
         // No NaNs in these uniform vectors, since the original noise value always
         // returns Some.
-        let ((alt_base, _), (chaos, _)) = rayon::join(
+        let ((alt_base, _), (chaos, _)) = threadpool.join(
             || {
                 uniform_noise(map_size_lg, |_, wposf| {
                     // "Base" of the chunk, to be multiplied by CONFIG.mountain_scale (multiplied
@@ -1067,6 +1070,7 @@ impl WorldSim {
                 height_scale,
                 k_d_scale(n_approx),
                 k_da_scale,
+                threadpool,
             );
 
             // Quick "small scale" erosion cycle in order to lower extreme angles.
@@ -1090,6 +1094,7 @@ impl WorldSim {
                 height_scale,
                 k_d_scale(n_approx),
                 k_da_scale,
+                threadpool,
             )
         };
 
@@ -1168,6 +1173,7 @@ impl WorldSim {
                 height_scale,
                 k_d_scale(n_approx),
                 k_da_scale,
+                threadpool,
             )
         };
 
@@ -1190,6 +1196,7 @@ impl WorldSim {
                 TerrainChunkSize::RECT_SIZE.x as Compute,
                 TerrainChunkSize::RECT_SIZE.y as Compute,
                 maxh,
+                threadpool,
             )
         };
         let flux_old = get_multi_drainage(map_size_lg, &mstack, &mrec, &*mwrec, boundary_len);
@@ -1318,61 +1325,63 @@ impl WorldSim {
         };
 
         // NaNs in these uniform vectors wherever pure_water() returns true.
-        let (((alt_no_water, _), (pure_flux, _)), ((temp_base, _), (humid_base, _))) = rayon::join(
-            || {
-                rayon::join(
-                    || {
-                        uniform_noise(map_size_lg, |posi, _| {
-                            if pure_water(posi) {
-                                None
-                            } else {
-                                // A version of alt that is uniform over *non-water* (or
-                                // land-adjacent water) chunks.
-                                Some(alt[posi] as f32)
-                            }
-                        })
-                    },
-                    || {
-                        uniform_noise(map_size_lg, |posi, _| {
-                            if pure_water(posi) {
-                                None
-                            } else {
-                                Some(flux_old[posi])
-                            }
-                        })
-                    },
-                )
-            },
-            || {
-                rayon::join(
-                    || {
-                        uniform_noise(map_size_lg, |posi, wposf| {
-                            if pure_water(posi) {
-                                None
-                            } else {
-                                // -1 to 1.
-                                Some(gen_ctx.temp_nz.get((wposf).into_array()) as f32)
-                            }
-                        })
-                    },
-                    || {
-                        uniform_noise(map_size_lg, |posi, wposf| {
-                            // Check whether any tiles around this tile are water.
-                            if pure_water(posi) {
-                                None
-                            } else {
-                                // 0 to 1, hopefully.
-                                Some(
-                                    (gen_ctx.humid_nz.get(wposf.div(1024.0).into_array()) as f32)
-                                        .add(1.0)
-                                        .mul(0.5),
-                                )
-                            }
-                        })
-                    },
-                )
-            },
-        );
+        let (((alt_no_water, _), (pure_flux, _)), ((temp_base, _), (humid_base, _))) = threadpool
+            .join(
+                || {
+                    threadpool.join(
+                        || {
+                            uniform_noise(map_size_lg, |posi, _| {
+                                if pure_water(posi) {
+                                    None
+                                } else {
+                                    // A version of alt that is uniform over *non-water* (or
+                                    // land-adjacent water) chunks.
+                                    Some(alt[posi] as f32)
+                                }
+                            })
+                        },
+                        || {
+                            uniform_noise(map_size_lg, |posi, _| {
+                                if pure_water(posi) {
+                                    None
+                                } else {
+                                    Some(flux_old[posi])
+                                }
+                            })
+                        },
+                    )
+                },
+                || {
+                    threadpool.join(
+                        || {
+                            uniform_noise(map_size_lg, |posi, wposf| {
+                                if pure_water(posi) {
+                                    None
+                                } else {
+                                    // -1 to 1.
+                                    Some(gen_ctx.temp_nz.get((wposf).into_array()) as f32)
+                                }
+                            })
+                        },
+                        || {
+                            uniform_noise(map_size_lg, |posi, wposf| {
+                                // Check whether any tiles around this tile are water.
+                                if pure_water(posi) {
+                                    None
+                                } else {
+                                    // 0 to 1, hopefully.
+                                    Some(
+                                        (gen_ctx.humid_nz.get(wposf.div(1024.0).into_array())
+                                            as f32)
+                                            .add(1.0)
+                                            .mul(0.5),
+                                    )
+                                }
+                            })
+                        },
+                    )
+                },
+            );
 
         let gen_cdf = GenCdf {
             humid_base,

@@ -282,21 +282,26 @@ impl Server {
         state.ecs_mut().insert(AliasValidator::new(banned_words));
 
         #[cfg(feature = "worldgen")]
-        let (world, index) = World::generate(settings.world_seed, WorldOpts {
-            seed_elements: true,
-            world_file: if let Some(ref opts) = settings.map_file {
-                opts.clone()
-            } else {
-                // Load default map from assets.
-                FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into())
+        let (world, index) = World::generate(
+            settings.world_seed,
+            WorldOpts {
+                seed_elements: true,
+                world_file: if let Some(ref opts) = settings.map_file {
+                    opts.clone()
+                } else {
+                    // Load default map from assets.
+                    FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into())
+                },
+                ..WorldOpts::default()
             },
-            ..WorldOpts::default()
-        });
+            &state.thread_pool(),
+        );
+
         #[cfg(feature = "worldgen")]
-        let map = world.get_map_data(index.as_index_ref());
+        let map = world.get_map_data(index.as_index_ref(), &state.thread_pool());
 
         #[cfg(not(feature = "worldgen"))]
-        let (world, index) = World::generate(settings.world_seed);
+        let (world, index) = World::generate(settings.world_seed, &state.thread_pool());
         #[cfg(not(feature = "worldgen"))]
         let map = WorldMapMsg {
             dimensions_lg: Vec2::zero(),

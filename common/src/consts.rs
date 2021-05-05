@@ -16,3 +16,7 @@ pub const WATER_DENSITY: f32 = 999.1026;
 pub const IRON_DENSITY: f32 = 7870.0;
 // pub const HUMAN_DENSITY: f32 = 1010.0; // real value
 pub const HUMAN_DENSITY: f32 = 990.0; // value we use to make humanoids gently float
+// 1 thread might be used for long-running cpu intensive tasks, like chunk
+// generation. having at least 2 helps not blocking in the main tick here
+pub const MIN_RECOMMENDED_RAYON_THREADS: usize = 2;
+pub const MIN_RECOMMENDED_TOKIO_THREADS: usize = 2;

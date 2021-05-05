@@ -1,4 +1,4 @@
-use common::clock::Clock;
+use common::{clock::Clock, consts::MIN_RECOMMENDED_TOKIO_THREADS};
 use crossbeam::channel::{bounded, unbounded, Receiver, Sender, TryRecvError};
 use server::{
     persistence::{DatabaseSettings, SqlLogMode},
@@ -82,12 +82,13 @@ impl Singleplayer {
         let settings = server::Settings::singleplayer(&server_data_dir);
         let editable_settings = server::EditableSettings::singleplayer(&server_data_dir);
 
+        // TODO: evaluate std::thread::available_concurrency as a num_cpus replacement
         let cores = num_cpus::get();
         debug!("Creating a new runtime for server");
         let runtime = Arc::new(
             tokio::runtime::Builder::new_multi_thread()
                 .enable_all()
-                .worker_threads(if cores > 4 { cores - 1 } else { cores })
+                .worker_threads((cores / 4).max(MIN_RECOMMENDED_TOKIO_THREADS))
                 .thread_name_fn(|| {
                     static ATOMIC_ID: AtomicUsize = AtomicUsize::new(0);
                     let id = ATOMIC_ID.fetch_add(1, Ordering::SeqCst);
