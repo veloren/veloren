@@ -39,7 +39,7 @@ use crate::{
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
     render::Renderer,
-    scene::{camera, terrain::Interaction, CameraMode, DebugShape, DebugShapeId, Scene, SceneData},
+    scene::{camera, terrain::Interaction, CameraMode, DebugShapeId, Scene, SceneData},
     settings::Settings,
     window::{AnalogGameInput, Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
@@ -142,55 +142,8 @@ impl SessionState {
         span!(_guard, "tick", "Session::tick");
 
         let mut client = self.client.borrow_mut();
-        {
-            let ecs = client.state().ecs();
-            let mut current_entities = hashbrown::HashSet::new();
-            let scene = &mut self.scene;
-            let hitboxes = &mut self.hitboxes;
-            if global_state.settings.interface.toggle_hitboxes {
-                let positions = ecs.read_component::<Pos>();
-                let colliders = ecs.read_component::<comp::Collider>();
-                let groups = ecs.read_component::<comp::Group>();
-                for (entity, pos, collider, group) in
-                    (&ecs.entities(), &positions, &colliders, groups.maybe()).join()
-                {
-                    if let comp::Collider::Box {
-                        radius,
-                        z_min,
-                        z_max,
-                    } = collider
-                    {
-                        current_entities.insert(entity);
-                        let shape_id = hitboxes.entry(entity).or_insert_with(|| {
-                            scene.debug.add_shape(DebugShape::Cylinder {
-                                radius: *radius,
-                                height: *z_max - *z_min,
-                            })
-                        });
-                        let hb_pos = [pos.0.x, pos.0.y, pos.0.z + *z_min, 0.0];
-                        let color = if group == Some(&comp::group::ENEMY) {
-                            [1.0, 0.0, 0.0, 0.5]
-                        } else if group == Some(&comp::group::NPC) {
-                            [0.0, 0.0, 1.0, 0.5]
-                        } else {
-                            [0.0, 1.0, 0.0, 0.5]
-                        };
-                        scene.debug.set_pos_and_color(*shape_id, hb_pos, color);
-                    }
-                }
-            }
-            let mut to_remove = Vec::new();
-            hitboxes.retain(|k, v| {
-                let keep = current_entities.contains(k);
-                if !keep {
-                    to_remove.push(*v);
-                }
-                keep
-            });
-            for shape_id in to_remove.into_iter() {
-                scene.debug.remove_shape(shape_id);
-            }
-        }
+        self.scene
+            .maintain_debug_hitboxes(&client, &global_state.settings, &mut self.hitboxes);
         for event in client.tick(self.inputs.clone(), dt, crate::ecs::sys::add_local_systems)? {
             match event {
                 client::Event::Chat(m) => {

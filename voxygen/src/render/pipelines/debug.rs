@@ -24,8 +24,6 @@ impl Vertex {
 }
 
 impl VertexTrait for Vertex {
-    //const QUADS_INDEX: Option<wgpu::IndexFormat> =
-    // Some(wgpu::IndexFormat::Uint32);
     const QUADS_INDEX: Option<wgpu::IndexFormat> = None;
     const STRIDE: wgpu::BufferAddress = mem::size_of::<Self>() as wgpu::BufferAddress;
 }
@@ -41,30 +39,6 @@ pub struct Locals {
 }
 
 pub type BoundLocals = Bound<Consts<Locals>>;
-
-/*gfx_defines! {
-    vertex Vertex {
-        pos: [f32; 3] = "v_pos",
-    }
-
-    constant Locals {
-        // pos is [f32; 4] instead of [f32; 3] so that Locals's size is a multiple of 8 bytes
-        // (which is required by gfx), the last component is ignored by the shader
-        pos: [f32; 4] = "w_pos",
-        color: [f32; 4] = "w_color",
-    }
-
-    pipeline pipe {
-        vbuf: gfx::VertexBuffer<Vertex> = (),
-
-        locals: gfx::ConstantBuffer<Locals> = "u_locals",
-        globals: gfx::ConstantBuffer<Globals> = "u_globals",
-
-        tgt_color: gfx::BlendTarget<TgtColorFmt> = ("tgt_color", gfx::state::ColorMask::all(), gfx::preset::blend::ALPHA),
-        //tgt_depth: gfx::DepthTarget<TgtDepthStencilFmt> = gfx::preset::depth::LESS_EQUAL_TEST,
-        tgt_depth: gfx::DepthTarget<TgtDepthStencilFmt> = gfx::preset::depth::PASS_TEST,
-    }
-}*/
 
 impl From<Vec3<f32>> for Vertex {
     fn from(pos: Vec3<f32>) -> Vertex {

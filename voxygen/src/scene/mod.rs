@@ -36,6 +36,7 @@ use common::{
 use common_base::span;
 use common_state::State;
 use comp::item::Reagent;
+use hashbrown::HashMap;
 use num::traits::{Float, FloatConst};
 use specs::{Entity as EcsEntity, Join, WorldExt};
 use vek::*;
@@ -1118,7 +1119,56 @@ impl Scene {
                 .render(&mut first_pass.draw_particles(), scene_data);
 
             // Render debug shapes
-            self.debug.render(&mut first_pass);
+            self.debug.render(&mut first_pass.draw_debug());
         }
+    }
+
+    pub fn maintain_debug_hitboxes(
+        &mut self,
+        client: &Client,
+        settings: &Settings,
+        hitboxes: &mut HashMap<specs::Entity, DebugShapeId>,
+    ) {
+        let ecs = client.state().ecs();
+        let mut current_entities = hashbrown::HashSet::new();
+        if settings.interface.toggle_hitboxes {
+            let positions = ecs.read_component::<comp::Pos>();
+            let colliders = ecs.read_component::<comp::Collider>();
+            let groups = ecs.read_component::<comp::Group>();
+            for (entity, pos, collider, group) in
+                (&ecs.entities(), &positions, &colliders, groups.maybe()).join()
+            {
+                if let comp::Collider::Box {
+                    radius,
+                    z_min,
+                    z_max,
+                } = collider
+                {
+                    current_entities.insert(entity);
+                    let shape_id = hitboxes.entry(entity).or_insert_with(|| {
+                        self.debug.add_shape(DebugShape::Cylinder {
+                            radius: *radius,
+                            height: *z_max - *z_min,
+                        })
+                    });
+                    let hb_pos = [pos.0.x, pos.0.y, pos.0.z + *z_min, 0.0];
+                    let color = if group == Some(&comp::group::ENEMY) {
+                        [1.0, 0.0, 0.0, 0.5]
+                    } else if group == Some(&comp::group::NPC) {
+                        [0.0, 0.0, 1.0, 0.5]
+                    } else {
+                        [0.0, 1.0, 0.0, 0.5]
+                    };
+                    self.debug.set_pos_and_color(*shape_id, hb_pos, color);
+                }
+            }
+        }
+        hitboxes.retain(|k, v| {
+            let keep = current_entities.contains(k);
+            if !keep {
+                self.debug.remove_shape(*v);
+            }
+            keep
+        });
     }
 }

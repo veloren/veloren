@@ -48,7 +48,7 @@ pub use self::{
     },
     renderer::{
         drawer::{
-            Drawer, FigureDrawer, FigureShadowDrawer, FirstPassDrawer, ParticleDrawer,
+            DebugDrawer, Drawer, FigureDrawer, FigureShadowDrawer, FirstPassDrawer, ParticleDrawer,
             PreparedUiDrawer, SecondPassDrawer, ShadowPassDrawer, SpriteDrawer, TerrainDrawer,
             TerrainShadowDrawer, ThirdPassDrawer, UiDrawer,
         },

@@ -540,10 +540,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         render_pass.set_pipeline(&self.pipelines.debug.pipeline);
         set_quad_index_buffer::<debug::Vertex>(&mut render_pass, &self.borrow);
 
-        DebugDrawer {
-            render_pass,
-            globals: self.globals,
-        }
+        DebugDrawer { render_pass }
     }
 
     pub fn draw_lod_terrain<'data: 'pass>(&mut self, model: &'data Model<lod_terrain::Vertex>) {
@@ -615,7 +612,6 @@ impl<'pass> FirstPassDrawer<'pass> {
 
 pub struct DebugDrawer<'pass_ref, 'pass: 'pass_ref> {
     render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
-    globals: &'pass GlobalsBindGroup,
 }
 
 impl<'pass_ref, 'pass: 'pass_ref> DebugDrawer<'pass_ref, 'pass> {
@@ -624,8 +620,6 @@ impl<'pass_ref, 'pass: 'pass_ref> DebugDrawer<'pass_ref, 'pass> {
         model: &'data Model<debug::Vertex>,
         locals: &'data debug::BoundLocals,
     ) {
-        self.render_pass
-            .set_bind_group(0, &self.globals.bind_group, &[]);
         self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
         self.render_pass.draw(0..model.len() as u32, 0..1);

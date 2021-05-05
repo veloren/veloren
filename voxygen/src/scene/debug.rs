@@ -1,7 +1,9 @@
 use crate::render::{
-    Bound, Consts, DebugLocals, DebugVertex, FirstPassDrawer, Mesh, Model, Quad, Renderer, Tri,
+    Bound, Consts, DebugDrawer, DebugLocals, DebugVertex, Mesh, Model, Quad, Renderer, Tri,
 };
+use common::util::srgba_to_linear;
 use hashbrown::{HashMap, HashSet};
+use tracing::warn;
 use vek::*;
 
 #[derive(Debug)]
@@ -13,7 +15,6 @@ pub enum DebugShape {
 impl DebugShape {
     pub fn mesh(&self) -> Mesh<DebugVertex> {
         use core::f32::consts::PI;
-        use DebugShape::*;
         let mut mesh = Mesh::new();
         let tri = |x: Vec3<f32>, y: Vec3<f32>, z: Vec3<f32>| {
             Tri::<DebugVertex>::new(x.into(), y.into(), z.into())
@@ -22,11 +23,11 @@ impl DebugShape {
             Quad::<DebugVertex>::new(x.into(), y.into(), z.into(), w.into())
         };
         match self {
-            Line([a, b]) => {
+            DebugShape::Line([a, b]) => {
                 let h = Vec3::new(0.0, 1.0, 0.0);
                 mesh.push_quad(quad(*a, a + h, b + h, *b));
             },
-            Cylinder { radius, height } => {
+            DebugShape::Cylinder { radius, height } => {
                 const SUBDIVISIONS: usize = 16;
                 for i in 0..SUBDIVISIONS {
                     let angle = |j: usize| (j as f32 / SUBDIVISIONS as f32) * 2.0 * PI;
@@ -49,16 +50,14 @@ impl DebugShape {
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
-pub struct DebugShapeId(usize);
+pub struct DebugShapeId(u64);
 
 pub struct Debug {
     next_shape_id: DebugShapeId,
     pending_shapes: HashMap<DebugShapeId, DebugShape>,
     pending_locals: HashMap<DebugShapeId, ([f32; 4], [f32; 4])>,
     pending_deletes: HashSet<DebugShapeId>,
-    models: HashMap<DebugShapeId, Model<DebugVertex>>,
-    //locals: HashMap<DebugShapeId, Consts<DebugLocals>>,
-    locals: HashMap<DebugShapeId, Bound<Consts<DebugLocals>>>,
+    models: HashMap<DebugShapeId, (Model<DebugVertex>, Bound<Consts<DebugLocals>>)>,
 }
 
 impl Debug {
@@ -69,7 +68,6 @@ impl Debug {
             pending_locals: HashMap::new(),
             pending_deletes: HashSet::new(),
             models: HashMap::new(),
-            locals: HashMap::new(),
         }
     }
 
@@ -88,41 +86,42 @@ impl Debug {
 
     pub fn maintain(&mut self, renderer: &mut Renderer) {
         for (id, shape) in self.pending_shapes.drain() {
-            self.models
-                .insert(id, renderer.create_model(&shape.mesh()).unwrap());
-            /*self.locals.insert(
-                id,
-                renderer.create_consts(&[DebugLocals {
+            if let Some(model) = renderer.create_model(&shape.mesh()) {
+                let locals = renderer.create_debug_bound_locals(&[DebugLocals {
                     pos: [0.0; 4],
                     color: [1.0, 0.0, 0.0, 1.0],
-                }]),
-            );*/
+                }]);
+                self.models.insert(id, (model, locals));
+            } else {
+                warn!(
+                    "Failed to create model for debug shape {:?}: {:?}",
+                    id, shape
+                );
+            }
         }
         for (id, (pos, color)) in self.pending_locals.drain() {
-            // TODO: what are the efficiency ramifications of creating the constants each
-            // time instead of caching them and binding them? UI seems to
-            // recreate them each time they change?
-            /*if let Some(locals) = self.locals.get_mut(&id) {
-                let new_locals = [DebugLocals { pos, color }];
+            if let Some((_, locals)) = self.models.get_mut(&id) {
+                let lc = srgba_to_linear(color.into());
+                let new_locals = [DebugLocals {
+                    pos,
+                    color: [lc.r, lc.g, lc.b, lc.a],
+                }];
                 renderer.update_consts(locals, &new_locals);
-                renderer.create_debug_bound_locals(new_locals);
-            }*/
-            let new_locals = [DebugLocals { pos, color }];
-            self.locals
-                .insert(id, renderer.create_debug_bound_locals(&new_locals));
+            } else {
+                warn!(
+                    "Tried to update locals for nonexistent debug shape {:?}",
+                    id
+                );
+            }
         }
         for id in self.pending_deletes.drain() {
             self.models.remove(&id);
-            self.locals.remove(&id);
         }
     }
 
-    pub fn render<'a>(&'a self, drawer: &mut FirstPassDrawer<'a>) {
-        let mut debug_drawer = drawer.draw_debug();
-        for (id, model) in self.models.iter() {
-            if let Some(locals) = self.locals.get(id) {
-                debug_drawer.draw(model, locals);
-            }
+    pub fn render<'a>(&'a self, drawer: &mut DebugDrawer<'_, 'a>) {
+        for (model, locals) in self.models.values() {
+            drawer.draw(model, locals);
         }
     }
 }
