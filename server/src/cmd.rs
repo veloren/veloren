@@ -1718,8 +1718,9 @@ fn handle_spawn_wiring(
     pos.0.x += 3.0;
 
     let mut outputs1 = HashMap::new();
-    outputs1.insert(String::from("color"), wiring::OutputFormula::OnCollide {
+    outputs1.insert(String::from("color"), wiring::OutputFormula::OnDeath {
         value: 1.0,
+        radius: 30.0,
     });
 
     let builder1 = server

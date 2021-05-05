@@ -7,7 +7,7 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
-    resources::{DeltaTime, Time},
+    resources::{DeltaTime, EntitiesDiedLastTick, Time},
     uid::Uid,
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -45,6 +45,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Poise>,
         WriteStorage<'a, Energy>,
         WriteStorage<'a, Combo>,
+        Write<'a, EntitiesDiedLastTick>,
         Write<'a, Vec<Outcome>>,
     );
 
@@ -62,9 +63,11 @@ impl<'a> System<'a> for Sys {
             mut poises,
             mut energies,
             mut combos,
+            mut entities_died_last_tick,
             mut outcomes,
         ): Self::SystemData,
     ) {
+        entities_died_last_tick.0.clear();
         let mut server_event_emitter = read_data.server_bus.emitter();
         let dt = read_data.dt.0;
 
@@ -98,6 +101,8 @@ impl<'a> System<'a> for Sys {
 
             if set_dead {
                 let mut health = health.get_mut_unchecked();
+                let cloned_entity = (entity, *pos);
+                entities_died_last_tick.0.push(cloned_entity);
                 server_event_emitter.emit(ServerEvent::Destroy {
                     entity,
                     cause: health.last_change.1.cause,

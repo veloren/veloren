@@ -29,12 +29,14 @@ pub enum OutputFormula {
     SineWave { amplitude: f32, frequency: f32 },
     OnCollide { value: f32 },
     OnInteract { value: f32 },
+    OnDeath { value: f32, radius: f32 },
 }
 
 pub enum LogicKind {
     Min, // acts like And
     Max, // acts like Or
     Sub, // `|x| { 5.0 - x }` acts like Not, depending on reference voltages
+    Sum,
 }
 
 pub struct WiringAction {

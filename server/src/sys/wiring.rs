@@ -1,7 +1,8 @@
 use crate::wiring::{Circuit, WiringElement};
 use common::{
-    comp::{LightEmitter, PhysicsState},
+    comp::{LightEmitter, PhysicsState, Pos},
     event::{EventBus, ServerEvent},
+    resources::EntitiesDiedLastTick,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use hashbrown::HashMap;
@@ -23,8 +24,10 @@ pub struct WiringData<'a> {
 
     pub light_emitters: WriteStorage<'a, LightEmitter>, // maybe
     pub physics_states: ReadStorage<'a, PhysicsState>,  // maybe
+    pub pos: ReadStorage<'a, Pos>,
 
     pub event_bus: Read<'a, EventBus<ServerEvent>>,
+    pub entities_died_last_tick: Read<'a, EntitiesDiedLastTick>,
 }
 
 /// This system is responsible for handling wiring (signals and wiring systems)
