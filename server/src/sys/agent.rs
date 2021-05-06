@@ -1578,6 +1578,7 @@ impl<'a> AgentData<'a> {
                                 circle_time: 1,
                             },
                             "Turret" => Tactic::Turret,
+                            "Haniwa Sentry" => Tactic::RotatingTurret,
                             "Bird Large Breathe" => Tactic::BirdLargeBreathe,
                             "Bird Large Fire" => Tactic::BirdLargeFire,
                             "Mindflayer" => Tactic::Mindflayer,
@@ -2997,8 +2998,7 @@ impl<'a> AgentData<'a> {
             self.pos,
             tgt_data.pos,
             attack_data.dist_sqrd,
-        ) && attack_data.angle < 15.0
-        {
+        ) {
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Primary));

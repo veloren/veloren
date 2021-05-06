@@ -199,6 +199,11 @@
         secondary: "common.abilities.custom.turret.arrows",
         abilities: [],
     ),
+    Custom("Haniwa Sentry"): (
+        primary: "common.abilities.custom.turret.flamethrower",
+        secondary: "common.abilities.custom.turret.flamethrower",
+        abilities: [],
+    ),
     Custom("Mindflayer"): (
         primary: "common.abilities.custom.mindflayer.cursedflames",
         secondary: "common.abilities.custom.mindflayer.necroticvortex",

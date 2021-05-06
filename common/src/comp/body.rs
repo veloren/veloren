@@ -464,6 +464,7 @@ impl Body {
             Body::Object(object) => match object {
                 object::Body::TrainingDummy => 10000,
                 object::Body::Crossbow => 800,
+                object::Body::HaniwaSentry => 600,
                 _ => 10000,
             },
             Body::Golem(golem) => match golem.species {

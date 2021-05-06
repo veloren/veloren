@@ -310,10 +310,18 @@ impl LoadoutBuilder {
                         ));
                     },
                 },
-                Body::Object(object::Body::Crossbow) => {
-                    main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.unique.turret",
-                    ));
+                Body::Object(body) => match body {
+                    object::Body::Crossbow => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.turret",
+                        ));
+                    },
+                    object::Body::HaniwaSentry => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.haniwa_sentry",
+                        ));
+                    },
+                    _ => {},
                 },
                 Body::BipedSmall(biped_small) => match (biped_small.species, biped_small.body_type)
                 {
