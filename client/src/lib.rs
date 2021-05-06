@@ -168,7 +168,7 @@ pub struct Client {
     // The pending trade the client is involved in, and it's id
     pending_trade: Option<(TradeId, PendingTrade, Option<SitePrices>)>,
 
-    _network: Network,
+    network: Option<Network>,
     participant: Option<Participant>,
     general_stream: Stream,
     ping_stream: Stream,
@@ -676,7 +676,7 @@ impl Client {
             pending_invites: HashSet::new(),
             pending_trade: None,
 
-            _network: network,
+            network: Some(network),
             participant: Some(participant),
             general_stream: stream,
             ping_stream,
@@ -2421,12 +2421,16 @@ impl Drop for Client {
             trace!("no disconnect msg necessary as client wasn't registered")
         }
 
-        self.runtime.spawn(
-            self.participant
-                .take()
-                .expect("Only set to None in Drop")
-                .disconnect(),
-        );
+        tokio::task::block_in_place(|| {
+            if let Err(e) = self
+                .runtime
+                .block_on(self.participant.take().unwrap().disconnect())
+            {
+                warn!(?e, "error when disconnecting, couldn't send all data");
+            }
+        });
+        //explicitly drop the network here while the runtime is still existing
+        drop(self.network.take());
     }
 }
 

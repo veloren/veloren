@@ -681,7 +681,9 @@ impl BParticipant {
         trace!("wait again");
         wait_for_manager().await;
 
-        sender.send(Ok(())).unwrap();
+        if sender.send(Ok(())).is_err() {
+            trace!("couldn't notify sender that participant is dropped");
+        }
 
         #[cfg(feature = "metrics")]
         self.metrics.participants_disconnected_total.inc();

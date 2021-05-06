@@ -471,7 +471,7 @@ impl Network {
                     let (finished_sender, finished_receiver) = oneshot::channel();
                     finished_receiver_list.push((remote_pid, finished_receiver));
                     a2s_disconnect_s
-                        .send((remote_pid, (Duration::from_secs(120), finished_sender)))
+                        .send((remote_pid, (Duration::from_secs(10), finished_sender)))
                         .expect("Scheduler is closed, but nobody other should be able to close it");
                 },
                 None => trace!(?remote_pid, "Participant already disconnected gracefully"),
@@ -1087,7 +1087,7 @@ where
                 Err(TryRecvError::Empty) => {
                     trace!("activly sleeping");
                     cnt += 1;
-                    if cnt > 120 {
+                    if cnt > 10 {
                         error!("Timeout waiting for shutdown, dropping");
                         break;
                     }
@@ -1137,7 +1137,7 @@ impl Drop for Participant {
                     debug!("Disconnect from Scheduler");
                     let (finished_sender, finished_receiver) = oneshot::channel();
                     match a2s_disconnect_s
-                        .send((self.remote_pid, (Duration::from_secs(120), finished_sender)))
+                        .send((self.remote_pid, (Duration::from_secs(10), finished_sender)))
                     {
                         Err(e) => warn!(?e, SCHEDULER_ERR),
                         Ok(()) => {
