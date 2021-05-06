@@ -111,7 +111,7 @@ impl LoadoutBuilder {
                     },
                     golem::Species::ClayGolem => {
                         main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.stone_golems_fist",
+                            "common.items.npc_weapons.unique.clay_golem_fist",
                         ));
                     },
                     _ => {},

@@ -4,7 +4,7 @@ BasicBeam(
     beam_duration: 0.25,
     damage: 10,
     tick_rate: 10.0,
-    range: 25.0,
+    range: 40.0,
     max_angle: 1.0,
     damage_effect: None,
     energy_regen: 50,

@@ -466,7 +466,10 @@ impl Body {
                 object::Body::Crossbow => 800,
                 _ => 10000,
             },
-            Body::Golem(_) => 2740,
+            Body::Golem(golem) => match golem.species {
+                golem::Species::ClayGolem => 5000,
+                _ => 10000,
+            },
             Body::Theropod(theropod) => match theropod.species {
                 theropod::Species::Archaeos => 3500,
                 theropod::Species::Odonto => 3000,
