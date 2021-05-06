@@ -1,7 +1,7 @@
 BasicMelee(
     energy_cost: 0,
-    buildup_duration: 0.5,
-    swing_duration: 0.5,
+    buildup_duration: 0.8,
+    swing_duration: 0.2,
     recover_duration: 0.5,
     base_damage: 200,
     base_poise_damage: 50,
