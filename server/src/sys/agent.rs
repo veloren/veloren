@@ -2,7 +2,7 @@ use crate::rtsim::{Entity as RtSimData, RtSim};
 use common::{
     comp::{
         self,
-        agent::{AgentEvent, Tactic, Target, DEFAULT_INTERACTION_TIME, TRADE_INTERACTION_TIME},
+        agent::{AgentEvent, Target, DEFAULT_INTERACTION_TIME, TRADE_INTERACTION_TIME},
         buff::{BuffKind, Buffs},
         compass::{Direction, Distance},
         dialogue::{MoodContext, MoodState, Subject},
@@ -71,6 +71,45 @@ struct AgentData<'a> {
     cached_spatial_grid: &'a common::CachedSpatialGrid,
 }
 
+struct TargetData<'a> {
+    pos: &'a Pos,
+    body: Option<&'a Body>,
+    scale: Option<&'a Scale>,
+}
+
+struct AttackData {
+    min_attack_dist: f32,
+    dist_sqrd: f32,
+    angle: f32,
+}
+
+#[derive(Eq, PartialEq)]
+pub enum Tactic {
+    Melee,
+    Axe,
+    Hammer,
+    Sword,
+    Bow,
+    Staff,
+    StoneGolem,
+    CircleCharge { radius: u32, circle_time: u32 },
+    QuadLowRanged,
+    TailSlap,
+    QuadLowQuick,
+    QuadLowBasic,
+    QuadLowBeam,
+    QuadMedJump,
+    QuadMedBasic,
+    Theropod,
+    Turret,
+    FixedTurret,
+    RotatingTurret,
+    Mindflayer,
+    BirdLargeBreathe,
+    BirdLargeFire,
+    Minotaur,
+}
+
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     entities: Entities<'a>,
@@ -117,6 +156,7 @@ const SNEAK_COEFFICIENT: f32 = 0.25;
 const AVG_FOLLOW_DIST: f32 = 6.0;
 const RETARGETING_THRESHOLD_SECONDS: f64 = 10.0;
 const HEALING_ITEM_THRESHOLD: f32 = 0.5;
+const DEFAULT_ATTACK_RANGE: f32 = 2.0;
 
 /// This system will allow NPCs to modify their controller
 #[derive(Default)]
@@ -370,13 +410,19 @@ impl<'a> System<'a> for Sys {
                                                                 agent, controller, &read_data,
                                                             );
                                                         } else {
+                                                            let target_data = TargetData {
+                                                                pos: tgt_pos,
+                                                                body: read_data
+                                                                    .bodies
+                                                                    .get(attacker),
+                                                                scale: read_data
+                                                                    .scales
+                                                                    .get(attacker),
+                                                            };
                                                             data.attack(
                                                                 agent,
                                                                 controller,
-                                                                &read_data.terrain,
-                                                                tgt_pos,
-                                                                read_data.bodies.get(attacker),
-                                                                &read_data.dt,
+                                                                &target_data,
                                                                 &read_data,
                                                             );
                                                         }
@@ -451,13 +497,15 @@ impl<'a> System<'a> for Sys {
                                                     hostile: true,
                                                     selected_at: read_data.time.0,
                                                 });
+                                                let target_data = TargetData {
+                                                    pos: tgt_pos,
+                                                    body: read_data.bodies.get(attacker),
+                                                    scale: read_data.scales.get(attacker),
+                                                };
                                                 data.attack(
                                                     agent,
                                                     controller,
-                                                    &read_data.terrain,
-                                                    tgt_pos,
-                                                    read_data.bodies.get(attacker),
-                                                    &read_data.dt,
+                                                    &target_data,
                                                     &read_data,
                                                 );
                                                 // Remember this encounter if an RtSim entity
@@ -644,15 +692,12 @@ impl<'a> AgentData<'a> {
                     {
                         self.choose_target(agent, controller, &read_data, event_emitter);
                     } else if dist_sqrd < SIGHT_DIST.powi(2) {
-                        self.attack(
-                            agent,
-                            controller,
-                            &read_data.terrain,
-                            tgt_pos,
-                            read_data.bodies.get(target),
-                            &read_data.dt,
-                            &read_data,
-                        );
+                        let target_data = TargetData {
+                            pos: tgt_pos,
+                            body: read_data.bodies.get(target),
+                            scale: read_data.scales.get(target),
+                        };
+                        self.attack(agent, controller, &target_data, &read_data);
                     } else {
                         agent.target = None;
                         self.idle(agent, controller, &read_data);
@@ -1483,19 +1528,13 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    #[allow(clippy::too_many_arguments)]
     fn attack(
         &self,
         agent: &mut Agent,
         controller: &mut Controller,
-        terrain: &TerrainGrid,
-        tgt_pos: &Pos,
-        tgt_body: Option<&Body>,
-        dt: &DeltaTime,
+        tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        let min_attack_dist = self.body.map_or(3.0, |b| b.radius() * self.scale + 2.0);
-
         let tool_tactic = |tool_kind| match tool_kind {
             ToolKind::Bow => Tactic::Bow,
             ToolKind::Staff => Tactic::Staff,
@@ -1528,7 +1567,7 @@ impl<'a> AgentData<'a> {
                             },
                             "Quad Med Basic" => Tactic::QuadMedBasic,
                             "Quad Low Ranged" => Tactic::QuadLowRanged,
-                            "Quad Low Breathe" | "Quad Low Beam" => Tactic::Lavadrake,
+                            "Quad Low Breathe" | "Quad Low Beam" => Tactic::QuadLowBeam,
                             "Quad Low Tail" => Tactic::TailSlap,
                             "Quad Low Quick" => Tactic::QuadLowQuick,
                             "Quad Low Basic" => Tactic::QuadLowBasic,
@@ -1557,9 +1596,19 @@ impl<'a> AgentData<'a> {
         // Wield the weapon as running towards the target
         controller.actions.push(ControlAction::Wield);
 
+        let min_attack_dist = (self.body.map_or(0.5, |b| b.radius()) + DEFAULT_ATTACK_RANGE)
+            * self.scale
+            + tgt_data.body.map_or(0.5, |b| b.radius()) * tgt_data.scale.map_or(1.0, |s| s.0);
+        let dist_sqrd = self.pos.0.distance_squared(tgt_data.pos.0);
+        let angle = self
+            .ori
+            .look_vec()
+            .angle_between(tgt_data.pos.0 - self.pos.0)
+            .to_degrees();
+
         let eye_offset = self.body.map_or(0.0, |b| b.eye_height());
 
-        let tgt_eye_offset = tgt_body.map_or(0.0, |b| b.eye_height()) +
+        let tgt_eye_offset = tgt_data.body.map_or(0.0, |b| b.eye_height()) +
                    // Special case for jumping attacks to jump at the body
                    // of the target and not the ground around the target
                    // For the ranged it is to shoot at the feet and not
@@ -1571,13 +1620,6 @@ impl<'a> AgentData<'a> {
                    } else {
                        0.0
                    };
-
-        let dist_sqrd = self.pos.0.distance_squared(tgt_pos.0);
-        let angle = self
-            .ori
-            .look_vec()
-            .angle_between(tgt_pos.0 - self.pos.0)
-            .to_degrees();
 
         // FIXME: Retrieve actual projectile speed!
         // We have to assume projectiles are faster than base speed because there are
@@ -1596,1038 +1638,458 @@ impl<'a> AgentData<'a> {
                 aim_projectile(
                     90.0, // + self.vel.0.magnitude(),
                     Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
-                    Vec3::new(tgt_pos.0.x, tgt_pos.0.y, tgt_pos.0.z + tgt_eye_offset),
+                    Vec3::new(
+                        tgt_data.pos.0.x,
+                        tgt_data.pos.0.y,
+                        tgt_data.pos.0.z + tgt_eye_offset,
+                    ),
                 )
             }
             _ => Dir::from_unnormalized(
-                Vec3::new(tgt_pos.0.x, tgt_pos.0.y, tgt_pos.0.z + tgt_eye_offset)
-                    - Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+                Vec3::new(
+                    tgt_data.pos.0.x,
+                    tgt_data.pos.0.y,
+                    tgt_data.pos.0.z + tgt_eye_offset,
+                ) - Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
             ),
         } {
             controller.inputs.look_dir = dir;
         }
 
+        let attack_data = AttackData {
+            min_attack_dist,
+            dist_sqrd,
+            angle,
+        };
+
         // Match on tactic. Each tactic has different controls
         // depending on the distance from the agent to the target
         match tactic {
             Tactic::Melee => {
-                if dist_sqrd < min_attack_dist.powi(2) && angle < 45.0 {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Primary));
-                    controller.inputs.move_dir = Vec2::zero();
-                } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        controller.inputs.move_dir =
-                            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        self.jump_if(controller, bearing.z > 1.5);
-                        controller.inputs.move_z = bearing.z;
-                    }
-
-                    if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                        && dist_sqrd < 16.0f32.powi(2)
-                        && thread_rng().gen::<f32>() < 0.02
-                    {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Roll));
-                    }
-                } else {
-                    agent.target = None;
-                }
+                self.handle_melee_attack(agent, controller, &attack_data, &tgt_data, &read_data)
             },
             Tactic::Axe => {
-                if dist_sqrd < min_attack_dist.powi(2) && angle < 45.0 {
-                    controller.inputs.move_dir = Vec2::zero();
-                    if agent.action_state.timer > 6.0 {
-                        controller
-                            .actions
-                            .push(ControlAction::CancelInput(InputKind::Secondary));
-                        agent.action_state.timer = 0.0;
-                    } else if agent.action_state.timer > 4.0 && self.energy.current() > 10 {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Secondary));
-                        agent.action_state.timer += dt.0;
-                    } else if self.skill_set.has_skill(Skill::Axe(AxeSkill::UnlockLeap))
-                        && self.energy.current() > 800
-                        && thread_rng().gen_bool(0.5)
-                    {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Ability(0)));
-                        agent.action_state.timer += dt.0;
-                    } else {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Primary));
-                        agent.action_state.timer += dt.0;
-                    }
-                } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        controller.inputs.move_dir =
-                            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        self.jump_if(controller, bearing.z > 1.5);
-                        controller.inputs.move_z = bearing.z;
-                    }
-                    if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                        && dist_sqrd < 16.0f32.powi(2)
-                        && thread_rng().gen::<f32>() < 0.02
-                    {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Roll));
-                    }
-                } else {
-                    agent.target = None;
-                }
+                self.handle_axe_attack(agent, controller, &attack_data, &tgt_data, &read_data)
             },
             Tactic::Hammer => {
-                if dist_sqrd < min_attack_dist.powi(2) && angle < 45.0 {
-                    controller.inputs.move_dir = Vec2::zero();
-                    if agent.action_state.timer > 4.0 {
-                        controller
-                            .actions
-                            .push(ControlAction::CancelInput(InputKind::Secondary));
-                        agent.action_state.timer = 0.0;
-                    } else if agent.action_state.timer > 2.0 {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Secondary));
-                        agent.action_state.timer += dt.0;
-                    } else if self
-                        .skill_set
-                        .has_skill(Skill::Hammer(HammerSkill::UnlockLeap))
-                        && self.energy.current() > 700
-                        && thread_rng().gen_bool(0.9)
-                    {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Ability(0)));
-                        agent.action_state.timer += dt.0;
-                    } else {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Primary));
-                        agent.action_state.timer += dt.0;
-                    }
-                } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) && angle < 45.0 {
-                            controller.inputs.move_dir =
-                                bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                            if self
-                                .skill_set
-                                .has_skill(Skill::Hammer(HammerSkill::UnlockLeap))
-                                && agent.action_state.timer > 5.0
-                            {
-                                controller
-                                    .actions
-                                    .push(ControlAction::basic_input(InputKind::Ability(0)));
-                                agent.action_state.timer = 0.0;
-                            } else {
-                                agent.action_state.timer += dt.0;
-                            }
-                        } else {
-                            controller.inputs.move_dir =
-                                bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                            self.jump_if(controller, bearing.z > 1.5);
-                            controller.inputs.move_z = bearing.z;
-                        }
-                    }
-                    if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                        && dist_sqrd < 16.0f32.powi(2)
-                        && thread_rng().gen::<f32>() < 0.02
-                    {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Roll));
-                    }
-                } else {
-                    agent.target = None;
-                }
+                self.handle_hammer_attack(agent, controller, &attack_data, &tgt_data, &read_data)
             },
             Tactic::Sword => {
-                if dist_sqrd < min_attack_dist.powi(2) && angle < 45.0 {
-                    controller.inputs.move_dir = Vec2::zero();
-                    if self
-                        .skill_set
-                        .has_skill(Skill::Sword(SwordSkill::UnlockSpin))
-                        && agent.action_state.timer < 2.0
-                        && self.energy.current() > 600
-                    {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Ability(0)));
-                        agent.action_state.timer += dt.0;
-                    } else if agent.action_state.timer > 2.0 {
-                        agent.action_state.timer = 0.0;
-                    } else {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Primary));
-                        agent.action_state.timer += dt.0;
-                    }
-                } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) {
-                            controller.inputs.move_dir =
-                                bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                            if agent.action_state.timer > 4.0 && angle < 45.0 {
-                                controller
-                                    .actions
-                                    .push(ControlAction::basic_input(InputKind::Secondary));
-                                agent.action_state.timer = 0.0;
-                            } else {
-                                agent.action_state.timer += dt.0;
-                            }
-                        } else {
-                            controller.inputs.move_dir =
-                                bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                            self.jump_if(controller, bearing.z > 1.5);
-                            controller.inputs.move_z = bearing.z;
-                        }
-                    }
-                    if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                        && dist_sqrd < 16.0f32.powi(2)
-                        && thread_rng().gen::<f32>() < 0.02
-                    {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Roll));
-                    }
-                } else {
-                    agent.target = None;
-                }
+                self.handle_sword_attack(agent, controller, &attack_data, &tgt_data, &read_data)
             },
             Tactic::Bow => {
-                if dist_sqrd < (2.0 * min_attack_dist).powi(2) {
-                    if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                        && self.energy.current()
-                            > CharacterAbility::default_roll().get_energy_cost()
-                    {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Roll));
-                    } else {
-                        if let Some((bearing, speed)) = agent.chaser.chase(
-                            &*terrain,
-                            self.pos.0,
-                            self.vel.0,
-                            // Away from the target (ironically)
-                            self.pos.0
-                                + (self.pos.0 - tgt_pos.0)
-                                    .try_normalized()
-                                    .unwrap_or_else(Vec3::unit_y)
-                                    * 50.0,
-                            TraversalConfig {
-                                min_tgt_dist: 1.25,
-                                ..self.traversal_config
-                            },
-                        ) {
-                            controller.inputs.move_dir =
-                                bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                            self.jump_if(controller, bearing.z > 1.5);
-                            controller.inputs.move_z = bearing.z;
-                        }
-                        if angle < 15.0 {
-                            controller
-                                .actions
-                                .push(ControlAction::basic_input(InputKind::Primary));
-                        }
-                    }
-                } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) && angle < 45.0 {
-                            controller.inputs.move_dir = bearing
-                                .xy()
-                                .rotated_z(thread_rng().gen_range(0.5..1.57))
-                                .try_normalized()
-                                .unwrap_or_else(Vec2::zero)
-                                * speed;
-                            if agent.action_state.timer > 4.0 {
-                                controller
-                                    .actions
-                                    .push(ControlAction::CancelInput(InputKind::Secondary));
-                                agent.action_state.timer = 0.0;
-                            } else if agent.action_state.timer > 2.0 && self.energy.current() > 300
-                            {
-                                controller
-                                    .actions
-                                    .push(ControlAction::basic_input(InputKind::Secondary));
-                                agent.action_state.timer += dt.0;
-                            } else if self
-                                .skill_set
-                                .has_skill(Skill::Bow(BowSkill::UnlockRepeater))
-                                && self.energy.current() > 400
-                                && thread_rng().gen_bool(0.8)
-                            {
-                                controller
-                                    .actions
-                                    .push(ControlAction::CancelInput(InputKind::Secondary));
-                                controller
-                                    .actions
-                                    .push(ControlAction::basic_input(InputKind::Ability(0)));
-                                agent.action_state.timer += dt.0;
-                            } else {
-                                controller
-                                    .actions
-                                    .push(ControlAction::CancelInput(InputKind::Secondary));
-                                controller
-                                    .actions
-                                    .push(ControlAction::basic_input(InputKind::Primary));
-                                agent.action_state.timer += dt.0;
-                            }
-                        } else {
-                            controller.inputs.move_dir =
-                                bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                            self.jump_if(controller, bearing.z > 1.5);
-                            controller.inputs.move_z = bearing.z;
-                        }
-                    }
-                    if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                        && dist_sqrd < 16.0f32.powi(2)
-                        && thread_rng().gen::<f32>() < 0.02
-                    {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Roll));
-                    }
-                } else if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) {
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        controller.inputs.move_dir =
-                            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        self.jump_if(controller, bearing.z > 1.5);
-                        controller.inputs.move_z = bearing.z;
-                    }
-                } else {
-                    agent.target = None;
-                }
+                self.handle_bow_attack(agent, controller, &attack_data, &tgt_data, &read_data)
             },
             Tactic::Staff => {
-                if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                    && dist_sqrd < min_attack_dist.powi(2)
-                {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Roll));
-                } else if dist_sqrd < (5.0 * min_attack_dist).powi(2) && angle < 15.0 {
-                    if agent.action_state.timer < 1.5 {
-                        controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
-                            .xy()
-                            .rotated_z(0.47 * PI)
-                            .try_normalized()
-                            .unwrap_or_else(Vec2::unit_y);
-                        agent.action_state.timer += dt.0;
-                    } else if agent.action_state.timer < 3.0 {
-                        controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
-                            .xy()
-                            .rotated_z(-0.47 * PI)
-                            .try_normalized()
-                            .unwrap_or_else(Vec2::unit_y);
-                        agent.action_state.timer += dt.0;
-                    } else {
-                        agent.action_state.timer = 0.0;
-                    }
-                    if self
-                        .skill_set
-                        .has_skill(Skill::Staff(StaffSkill::UnlockShockwave))
-                        && self.energy.current() > 800
-                        && thread_rng().gen::<f32>() > 0.8
-                    {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Ability(0)));
-                    } else if self.energy.current() > 10 {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Secondary));
-                    } else {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Primary));
-                    }
-                } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) && angle < 15.0 {
-                            controller.inputs.move_dir = bearing
-                                .xy()
-                                .rotated_z(thread_rng().gen_range(-1.57..-0.5))
-                                .try_normalized()
-                                .unwrap_or_else(Vec2::zero)
-                                * speed;
-                            controller
-                                .actions
-                                .push(ControlAction::basic_input(InputKind::Primary));
-                        } else {
-                            controller.inputs.move_dir =
-                                bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                            self.jump_if(controller, bearing.z > 1.5);
-                            controller.inputs.move_z = bearing.z;
-                        }
-                    }
-                    if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                        && dist_sqrd < 16.0f32.powi(2)
-                        && thread_rng().gen::<f32>() < 0.02
-                    {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Roll));
-                    }
-                } else if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) {
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        controller.inputs.move_dir =
-                            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        self.jump_if(controller, bearing.z > 1.5);
-                        controller.inputs.move_z = bearing.z;
-                    }
-                } else {
-                    agent.target = None;
-                }
+                self.handle_staff_attack(agent, controller, &attack_data, &tgt_data, &read_data)
             },
-            Tactic::StoneGolem => {
-                if dist_sqrd < min_attack_dist.powi(2) && angle < 90.0 {
-                    // 2.0 is temporary correction factor to allow them to melee with their
-                    // large hitbox
-                    controller.inputs.move_dir = Vec2::zero();
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Primary));
-                    //controller.inputs.primary.set_state(true);
-                } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                    if self.vel.0.is_approx_zero() {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Ability(0)));
-                    }
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) && angle < 90.0 {
-                            controller.inputs.move_dir =
-                                bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                            if agent.action_state.timer > 5.0 {
-                                controller
-                                    .actions
-                                    .push(ControlAction::basic_input(InputKind::Secondary));
-                                agent.action_state.timer = 0.0;
-                            } else {
-                                agent.action_state.timer += dt.0;
-                            }
-                        } else {
-                            controller.inputs.move_dir =
-                                bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                            self.jump_if(controller, bearing.z > 1.5);
-                            controller.inputs.move_z = bearing.z;
-                        }
-                    }
-                } else {
-                    agent.target = None;
-                }
-            },
+            Tactic::StoneGolem => self.handle_stone_golem_attack(
+                agent,
+                controller,
+                &attack_data,
+                &tgt_data,
+                &read_data,
+            ),
             Tactic::CircleCharge {
                 radius,
                 circle_time,
-            } => {
-                if dist_sqrd < min_attack_dist.powi(2) && thread_rng().gen_bool(0.5) {
-                    controller.inputs.move_dir = Vec2::zero();
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Primary));
-                } else if dist_sqrd < (radius as f32 * min_attack_dist).powi(2) {
-                    controller.inputs.move_dir = (self.pos.0 - tgt_pos.0)
-                        .xy()
-                        .try_normalized()
-                        .unwrap_or_else(Vec2::unit_y);
-                } else if dist_sqrd < ((radius as f32 + 1.0) * min_attack_dist).powi(2)
-                    && dist_sqrd > (radius as f32 * min_attack_dist).powi(2)
-                {
-                    if agent.action_state.timer < circle_time as f32 {
-                        let move_dir = (tgt_pos.0 - self.pos.0)
-                            .xy()
-                            .rotated_z(0.47 * PI)
-                            .try_normalized()
-                            .unwrap_or_else(Vec2::unit_y);
-                        let obstacle_left = read_data
-                            .terrain
-                            .ray(
-                                self.pos.0 + Vec3::unit_z(),
-                                self.pos.0 + move_dir.with_z(0.0) * 2.0 + Vec3::unit_z(),
-                            )
-                            .until(Block::is_solid)
-                            .cast()
-                            .1
-                            .map_or(true, |b| b.is_some());
-                        if obstacle_left {
-                            agent.action_state.timer = circle_time as f32;
-                        }
-                        controller.inputs.move_dir = move_dir;
-                        agent.action_state.timer += dt.0;
-                    } else if agent.action_state.timer < circle_time as f32 + 0.5 {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Secondary));
-                        agent.action_state.timer += dt.0;
-                    } else if agent.action_state.timer < 2.0 * circle_time as f32 + 0.5 {
-                        let move_dir = (tgt_pos.0 - self.pos.0)
-                            .xy()
-                            .rotated_z(-0.47 * PI)
-                            .try_normalized()
-                            .unwrap_or_else(Vec2::unit_y);
-                        let obstacle_right = read_data
-                            .terrain
-                            .ray(
-                                self.pos.0 + Vec3::unit_z(),
-                                self.pos.0 + move_dir.with_z(0.0) * 2.0 + Vec3::unit_z(),
-                            )
-                            .until(Block::is_solid)
-                            .cast()
-                            .1
-                            .map_or(true, |b| b.is_some());
-                        if obstacle_right {
-                            agent.action_state.timer = 2.0 * circle_time as f32 + 0.5;
-                        }
-                        controller.inputs.move_dir = move_dir;
-                        agent.action_state.timer += dt.0;
-                    } else if agent.action_state.timer < 2.0 * circle_time as f32 + 1.0 {
-                        if agent.action_state.timer < 2.0 * circle_time as f32 {
-                            agent.action_state.timer = 2.0 * circle_time as f32;
-                        }
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Secondary));
-                        agent.action_state.timer += dt.0;
-                    } else {
-                        agent.action_state.timer = 0.0;
-                    }
-                } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        controller.inputs.move_dir =
-                            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        self.jump_if(controller, bearing.z > 1.5);
-                        controller.inputs.move_z = bearing.z;
-                    }
-                } else {
-                    agent.target = None;
-                }
-            },
-            Tactic::QuadLowRanged => {
-                if dist_sqrd < (3.0 * min_attack_dist).powi(2) && angle < 90.0 {
-                    controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
-                        .xy()
-                        .try_normalized()
-                        .unwrap_or_else(Vec2::unit_y);
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Primary));
-                } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) && angle < 15.0 {
-                            if agent.action_state.timer > 5.0 {
-                                agent.action_state.timer = 0.0;
-                            } else if agent.action_state.timer > 2.5 {
-                                controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
-                                    .xy()
-                                    .rotated_z(1.75 * PI)
-                                    .try_normalized()
-                                    .unwrap_or_else(Vec2::zero)
-                                    * speed;
-                                agent.action_state.timer += dt.0;
-                            } else {
-                                controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
-                                    .xy()
-                                    .rotated_z(0.25 * PI)
-                                    .try_normalized()
-                                    .unwrap_or_else(Vec2::zero)
-                                    * speed;
-                                agent.action_state.timer += dt.0;
-                            }
-                            controller
-                                .actions
-                                .push(ControlAction::basic_input(InputKind::Secondary));
-                            self.jump_if(controller, bearing.z > 1.5);
-                            controller.inputs.move_z = bearing.z;
-                        } else {
-                            controller.inputs.move_dir =
-                                bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                            self.jump_if(controller, bearing.z > 1.5);
-                            controller.inputs.move_z = bearing.z;
-                        }
-                    } else {
-                        agent.target = None;
-                    }
-                } else {
-                    agent.target = None;
-                }
-            },
+            } => self.handle_circle_charge_attack(
+                agent,
+                controller,
+                &attack_data,
+                &tgt_data,
+                &read_data,
+                radius,
+                circle_time,
+            ),
+            Tactic::QuadLowRanged => self.handle_quadlow_ranged_attack(
+                agent,
+                controller,
+                &attack_data,
+                &tgt_data,
+                &read_data,
+            ),
             Tactic::TailSlap => {
-                if dist_sqrd < (1.5 * min_attack_dist).powi(2) && angle < 90.0 {
-                    if agent.action_state.timer > 4.0 {
-                        controller
-                            .actions
-                            .push(ControlAction::CancelInput(InputKind::Primary));
-                        agent.action_state.timer = 0.0;
-                    } else if agent.action_state.timer > 1.0 {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Primary));
-                        agent.action_state.timer += dt.0;
-                    } else {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Secondary));
-                        agent.action_state.timer += dt.0;
-                    }
-                    controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
-                        .xy()
-                        .try_normalized()
-                        .unwrap_or_else(Vec2::unit_y)
-                        * 0.1;
-                } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        controller.inputs.move_dir =
-                            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        self.jump_if(controller, bearing.z > 1.5);
-                        controller.inputs.move_z = bearing.z;
-                    }
-                } else {
-                    agent.target = None;
-                }
+                self.handle_tail_slap_attack(agent, controller, &attack_data, &tgt_data, &read_data)
             },
-            Tactic::QuadLowQuick => {
-                if dist_sqrd < (1.5 * min_attack_dist).powi(2) && angle < 90.0 {
-                    controller.inputs.move_dir = Vec2::zero();
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Secondary));
-                } else if dist_sqrd < (3.0 * min_attack_dist).powi(2)
-                    && dist_sqrd > (2.0 * min_attack_dist).powi(2)
-                    && angle < 90.0
+            Tactic::QuadLowQuick => self.handle_quadlow_quick_attack(
+                agent,
+                controller,
+                &attack_data,
+                &tgt_data,
+                &read_data,
+            ),
+            Tactic::QuadLowBasic => self.handle_quadlow_basic_attack(
+                agent,
+                controller,
+                &attack_data,
+                &tgt_data,
+                &read_data,
+            ),
+            Tactic::QuadMedJump => self.handle_quadmed_jump_attack(
+                agent,
+                controller,
+                &attack_data,
+                &tgt_data,
+                &read_data,
+            ),
+            Tactic::QuadMedBasic => self.handle_quadmed_basic_attack(
+                agent,
+                controller,
+                &attack_data,
+                &tgt_data,
+                &read_data,
+            ),
+            Tactic::QuadLowBeam => self.handle_quadlow_beam_attack(
+                agent,
+                controller,
+                &attack_data,
+                &tgt_data,
+                &read_data,
+            ),
+            Tactic::Theropod => {
+                self.handle_theropod_attack(agent, controller, &attack_data, &tgt_data, &read_data)
+            },
+            Tactic::Turret => {
+                self.handle_turret_attack(agent, controller, &attack_data, &tgt_data, &read_data)
+            },
+            Tactic::FixedTurret => self.handle_fixed_turret_attack(
+                agent,
+                controller,
+                &attack_data,
+                &tgt_data,
+                &read_data,
+            ),
+            Tactic::RotatingTurret => self.handle_rotating_turret_attack(
+                agent,
+                controller,
+                &attack_data,
+                &tgt_data,
+                &read_data,
+            ),
+            Tactic::Mindflayer => self.handle_mindflayer_attack(
+                agent,
+                controller,
+                &attack_data,
+                &tgt_data,
+                &read_data,
+            ),
+            Tactic::BirdLargeFire => self.handle_birdlarge_fire_attack(
+                agent,
+                controller,
+                &attack_data,
+                &tgt_data,
+                &read_data,
+            ),
+            // Mostly identical to BirdLargeFire but tweaked for flamethrower instead of shockwave
+            Tactic::BirdLargeBreathe => self.handle_birdlarge_breathe_attack(
+                agent,
+                controller,
+                &attack_data,
+                &tgt_data,
+                &read_data,
+            ),
+            Tactic::Minotaur => {
+                self.handle_minotaur_attack(agent, controller, &attack_data, &tgt_data, &read_data)
+            },
+        }
+    }
+
+    fn handle_melee_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2) && attack_data.angle < 45.0 {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
+            controller.inputs.move_dir = Vec2::zero();
+        } else if attack_data.dist_sqrd < MAX_CHASE_DIST.powi(2) {
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                self.jump_if(controller, bearing.z > 1.5);
+                controller.inputs.move_z = bearing.z;
+            }
+
+            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+                && attack_data.dist_sqrd < 16.0f32.powi(2)
+                && thread_rng().gen::<f32>() < 0.02
+            {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Roll));
+            }
+        } else {
+            agent.target = None;
+        }
+    }
+
+    fn handle_axe_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2) && attack_data.angle < 45.0 {
+            controller.inputs.move_dir = Vec2::zero();
+            if agent.action_state.timer > 6.0 {
+                controller
+                    .actions
+                    .push(ControlAction::CancelInput(InputKind::Secondary));
+                agent.action_state.timer = 0.0;
+            } else if agent.action_state.timer > 4.0 && self.energy.current() > 10 {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+                agent.action_state.timer += read_data.dt.0;
+            } else if self.skill_set.has_skill(Skill::Axe(AxeSkill::UnlockLeap))
+                && self.energy.current() > 800
+                && thread_rng().gen_bool(0.5)
+            {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+                agent.action_state.timer += read_data.dt.0;
+            } else {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+                agent.action_state.timer += read_data.dt.0;
+            }
+        } else if attack_data.dist_sqrd < MAX_CHASE_DIST.powi(2) {
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                self.jump_if(controller, bearing.z > 1.5);
+                controller.inputs.move_z = bearing.z;
+            }
+            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+                && attack_data.dist_sqrd < 16.0f32.powi(2)
+                && thread_rng().gen::<f32>() < 0.02
+            {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Roll));
+            }
+        } else {
+            agent.target = None;
+        }
+    }
+
+    fn handle_hammer_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2) && attack_data.angle < 45.0 {
+            controller.inputs.move_dir = Vec2::zero();
+            if agent.action_state.timer > 4.0 {
+                controller
+                    .actions
+                    .push(ControlAction::CancelInput(InputKind::Secondary));
+                agent.action_state.timer = 0.0;
+            } else if agent.action_state.timer > 2.0 {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+                agent.action_state.timer += read_data.dt.0;
+            } else if self
+                .skill_set
+                .has_skill(Skill::Hammer(HammerSkill::UnlockLeap))
+                && self.energy.current() > 700
+                && thread_rng().gen_bool(0.9)
+            {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+                agent.action_state.timer += read_data.dt.0;
+            } else {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+                agent.action_state.timer += read_data.dt.0;
+            }
+        } else if attack_data.dist_sqrd < MAX_CHASE_DIST.powi(2) {
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                if can_see_tgt(
+                    &*read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                ) && attack_data.angle < 45.0
                 {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Primary));
-                    controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
-                        .xy()
-                        .rotated_z(-0.47 * PI)
-                        .try_normalized()
-                        .unwrap_or_else(Vec2::unit_y);
-                } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        controller.inputs.move_dir =
-                            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        self.jump_if(controller, bearing.z > 1.5);
-                        controller.inputs.move_z = bearing.z;
-                    }
-                } else {
-                    agent.target = None;
-                }
-            },
-            Tactic::QuadLowBasic => {
-                if dist_sqrd < (1.5 * min_attack_dist).powi(2) {
-                    controller.inputs.move_dir = Vec2::zero();
-                    if agent.action_state.timer > 5.0 {
-                        agent.action_state.timer = 0.0;
-                    } else if agent.action_state.timer > 2.0 && angle < 90.0 {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Secondary));
-                        agent.action_state.timer += dt.0;
-                    } else if angle < 90.0 {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Primary));
-                        agent.action_state.timer += dt.0;
-                    }
-                } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        controller.inputs.move_dir =
-                            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        self.jump_if(controller, bearing.z > 1.5);
-                        controller.inputs.move_z = bearing.z;
-                    }
-                } else {
-                    agent.target = None;
-                }
-            },
-            Tactic::QuadMedJump => {
-                if dist_sqrd < (1.5 * min_attack_dist).powi(2) && angle < 90.0 {
-                    controller.inputs.move_dir = Vec2::zero();
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Secondary));
-                } else if dist_sqrd < (5.0 * min_attack_dist).powi(2) && angle < 15.0 {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Ability(0)));
-                } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) && angle < 15.0 {
-                            controller
-                                .actions
-                                .push(ControlAction::basic_input(InputKind::Primary));
-                            controller.inputs.move_dir =
-                                bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        } else {
-                            controller.inputs.move_dir =
-                                bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                            self.jump_if(controller, bearing.z > 1.5);
-                            controller.inputs.move_z = bearing.z;
-                        }
-                    }
-                } else {
-                    agent.target = None;
-                }
-            },
-            Tactic::QuadMedBasic => {
-                if dist_sqrd < min_attack_dist.powi(2) && angle < 90.0 {
-                    controller.inputs.move_dir = Vec2::zero();
-                    if agent.action_state.timer < 2.0 {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Secondary));
-                        agent.action_state.timer += dt.0;
-                    } else if agent.action_state.timer < 3.0 {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Primary));
-                        agent.action_state.timer += dt.0;
-                    } else {
-                        agent.action_state.timer = 0.0;
-                    }
-                } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        controller.inputs.move_dir =
-                            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        self.jump_if(controller, bearing.z > 1.5);
-                        controller.inputs.move_z = bearing.z;
-                    }
-                } else {
-                    agent.target = None;
-                }
-            },
-            Tactic::Lavadrake | Tactic::QuadLowBeam => {
-                if dist_sqrd < (2.5 * min_attack_dist).powi(2) && angle < 90.0 {
-                    controller.inputs.move_dir = Vec2::zero();
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Secondary));
-                } else if dist_sqrd < (7.0 * min_attack_dist).powi(2) && angle < 15.0 {
-                    if agent.action_state.timer < 2.0 {
-                        controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
-                            .xy()
-                            .rotated_z(0.47 * PI)
-                            .try_normalized()
-                            .unwrap_or_else(Vec2::unit_y);
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Primary));
-                        agent.action_state.timer += dt.0;
-                    } else if agent.action_state.timer < 4.0 && angle < 15.0 {
-                        controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
-                            .xy()
-                            .rotated_z(-0.47 * PI)
-                            .try_normalized()
-                            .unwrap_or_else(Vec2::unit_y);
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Primary));
-                        agent.action_state.timer += dt.0;
-                    } else if agent.action_state.timer < 6.0 && angle < 15.0 {
+                    controller.inputs.move_dir =
+                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                    if self
+                        .skill_set
+                        .has_skill(Skill::Hammer(HammerSkill::UnlockLeap))
+                        && agent.action_state.timer > 5.0
+                    {
                         controller
                             .actions
                             .push(ControlAction::basic_input(InputKind::Ability(0)));
-                        agent.action_state.timer += dt.0;
-                    } else {
                         agent.action_state.timer = 0.0;
-                    }
-                } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        controller.inputs.move_dir =
-                            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        self.jump_if(controller, bearing.z > 1.5);
-                        controller.inputs.move_z = bearing.z;
-                    }
-                } else {
-                    agent.target = None;
-                }
-            },
-            Tactic::Theropod => {
-                if dist_sqrd < (2.0 * min_attack_dist).powi(2) && angle < 90.0 {
-                    controller.inputs.move_dir = Vec2::zero();
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Primary));
-                } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        controller.inputs.move_dir =
-                            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        self.jump_if(controller, bearing.z > 1.5);
-                        controller.inputs.move_z = bearing.z;
-                    }
-                } else {
-                    agent.target = None;
-                }
-            },
-            Tactic::Turret => {
-                if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) && angle < 15.0 {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Primary));
-                } else {
-                    agent.target = None;
-                }
-            },
-            Tactic::FixedTurret => {
-                controller.inputs.look_dir = self.ori.look_dir();
-                if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) && angle < 15.0 {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Primary));
-                } else {
-                    agent.target = None;
-                }
-            },
-            Tactic::RotatingTurret => {
-                controller.inputs.look_dir = Dir::new(
-                    Quaternion::from_xyzw(self.ori.look_dir().x, self.ori.look_dir().y, 0.0, 0.0)
-                        .rotated_z(6.0 * dt.0 as f32)
-                        .into_vec3()
-                        .try_normalized()
-                        .unwrap_or_default(),
-                );
-                if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) && angle < 15.0 {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Primary));
-                } else {
-                    agent.target = None;
-                }
-            },
-            Tactic::Mindflayer => {
-                const MINDFLAYER_ATTACK_DIST: f32 = 16.0;
-                const MINION_SUMMON_THRESHOLD: f32 = 0.20;
-                let health_fraction = self.health.map_or(0.5, |h| h.fraction());
-                // Sets counter at start of combat
-                if agent.action_state.condition {
-                    agent.action_state.counter = 1.0 - MINION_SUMMON_THRESHOLD;
-                    agent.action_state.condition = true;
-                }
-                let mindflayer_is_far = dist_sqrd > MINDFLAYER_ATTACK_DIST.powi(2);
-                if agent.action_state.counter > health_fraction {
-                    // Summon minions at particular thresholds of health
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Ability(1)));
-                    if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
-                    {
-                        agent.action_state.counter -= MINION_SUMMON_THRESHOLD;
-                    }
-                } else if mindflayer_is_far {
-                    // If too far from target, blink to them.
-                    controller.actions.push(ControlAction::StartInput {
-                        input: InputKind::Ability(0),
-                        target_entity: agent
-                            .target
-                            .as_ref()
-                            .and_then(|t| read_data.uids.get(t.target))
-                            .copied(),
-                        select_pos: None,
-                    });
-                } else {
-                    // If close to target, use either primary or secondary ability
-                    if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(10) && !matches!(c.stage_section, StageSection::Recover))
-                    {
-                        // If already using primary, keep using primary until 10 consecutive seconds
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Primary));
-                    } else if matches!(self.char_state, CharacterState::SpinMelee(c) if c.consecutive_spins < 50 && !matches!(c.stage_section, StageSection::Recover))
-                    {
-                        // If already using secondary, keep using secondary until 10 consecutive
-                        // seconds
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Secondary));
-                    } else if thread_rng().gen_bool(health_fraction.into()) {
-                        // Else if at high health, use primary
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Primary));
                     } else {
-                        // Else use secondary
+                        agent.action_state.timer += read_data.dt.0;
+                    }
+                } else {
+                    controller.inputs.move_dir =
+                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                    self.jump_if(controller, bearing.z > 1.5);
+                    controller.inputs.move_z = bearing.z;
+                }
+            }
+            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+                && attack_data.dist_sqrd < 16.0f32.powi(2)
+                && thread_rng().gen::<f32>() < 0.02
+            {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Roll));
+            }
+        } else {
+            agent.target = None;
+        }
+    }
+
+    fn handle_sword_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2) && attack_data.angle < 45.0 {
+            controller.inputs.move_dir = Vec2::zero();
+            if self
+                .skill_set
+                .has_skill(Skill::Sword(SwordSkill::UnlockSpin))
+                && agent.action_state.timer < 2.0
+                && self.energy.current() > 600
+            {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+                agent.action_state.timer += read_data.dt.0;
+            } else if agent.action_state.timer > 2.0 {
+                agent.action_state.timer = 0.0;
+            } else {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+                agent.action_state.timer += read_data.dt.0;
+            }
+        } else if attack_data.dist_sqrd < MAX_CHASE_DIST.powi(2) {
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                if can_see_tgt(
+                    &*read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                ) {
+                    controller.inputs.move_dir =
+                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                    if agent.action_state.timer > 4.0 && attack_data.angle < 45.0 {
                         controller
                             .actions
                             .push(ControlAction::basic_input(InputKind::Secondary));
+                        agent.action_state.timer = 0.0;
+                    } else {
+                        agent.action_state.timer += read_data.dt.0;
                     }
+                } else {
+                    controller.inputs.move_dir =
+                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                    self.jump_if(controller, bearing.z > 1.5);
+                    controller.inputs.move_z = bearing.z;
                 }
+            }
+            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+                && attack_data.dist_sqrd < 16.0f32.powi(2)
+                && thread_rng().gen::<f32>() < 0.02
+            {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Roll));
+            }
+        } else {
+            agent.target = None;
+        }
+    }
 
-                // Move towards target
+    fn handle_bow_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
+            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+                && self.energy.current() > CharacterAbility::default_roll().get_energy_cost()
+            {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Roll));
+            } else {
                 if let Some((bearing, speed)) = agent.chaser.chase(
-                    &*terrain,
+                    &*read_data.terrain,
                     self.pos.0,
                     self.vel.0,
-                    tgt_pos.0,
+                    // Away from the target (ironically)
+                    self.pos.0
+                        + (self.pos.0 - tgt_data.pos.0)
+                            .try_normalized()
+                            .unwrap_or_else(Vec3::unit_y)
+                            * 50.0,
                     TraversalConfig {
                         min_tgt_dist: 1.25,
                         ..self.traversal_config
@@ -2638,326 +2100,1324 @@ impl<'a> AgentData<'a> {
                     self.jump_if(controller, bearing.z > 1.5);
                     controller.inputs.move_z = bearing.z;
                 }
-            },
-            Tactic::BirdLargeFire => {
-                if dist_sqrd > 30.0_f32.powi(2) {
-                    // If random chance and can see target
-                    if thread_rng().gen_bool(0.05)
-                        && can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd)
-                        && angle < 15.0
-                    {
-                        // Fireball
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Primary));
-                    }
-                    // If some target
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        // Walk to target
-                        controller.inputs.move_dir =
-                            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        // If less than 20 blocks higher than target
-                        if (self.pos.0.z - tgt_pos.0.z) < 20.0 {
-                            // Fly upward
-                            controller
-                                .actions
-                                .push(ControlAction::basic_input(InputKind::Fly));
-                            controller
-                                .actions
-                                .push(ControlAction::basic_input(InputKind::Jump));
-                            controller.inputs.move_z = 1.0;
-                        } else {
-                            // Jump
-                            self.jump_if(controller, bearing.z > 1.5);
-                            controller.inputs.move_z = bearing.z;
-                        }
-                    }
-                }
-                // If higher than 2 blocks
-                else if !read_data
-                    .terrain
-                    .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * 2.0))
-                    .until(Block::is_solid)
-                    .cast()
-                    .1
-                    .map_or(true, |b| b.is_some())
-                {
-                    // Do not increment the timer during this movement
-                    // The next stage shouldn't trigger until the entity
-                    // is on the ground
-                    // Fly to target
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Fly));
-                    let move_dir = tgt_pos.0 - self.pos.0;
-                    controller.inputs.move_dir =
-                        move_dir.xy().try_normalized().unwrap_or_else(Vec2::zero) * 2.0;
-                    controller.inputs.move_z = move_dir.z - 0.5;
-                    // If further than 4 blocks and random chance
-                    if thread_rng().gen_bool(0.05)
-                        && dist_sqrd > (4.0 * min_attack_dist).powi(2)
-                        && angle < 15.0
-                    {
-                        // Fireball
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Primary));
-                    }
-                }
-                // If further than 4 blocks and random chance
-                else if thread_rng().gen_bool(0.05)
-                    && dist_sqrd > (4.0 * min_attack_dist).powi(2)
-                    && angle < 15.0
-                {
-                    // Fireball
+                if attack_data.angle < 15.0 {
                     controller
                         .actions
                         .push(ControlAction::basic_input(InputKind::Primary));
                 }
-                // If random chance and less than 20 blocks higher than target and further than 4
-                // blocks
-                else if thread_rng().gen_bool(0.5)
-                    && (self.pos.0.z - tgt_pos.0.z) < 15.0
-                    && dist_sqrd > (4.0 * min_attack_dist).powi(2)
+            }
+        } else if attack_data.dist_sqrd < MAX_CHASE_DIST.powi(2) {
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                if can_see_tgt(
+                    &*read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                ) && attack_data.angle < 45.0
                 {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Fly));
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Jump));
-                    controller.inputs.move_z = 1.0;
-                }
-                // If further than 2.5 blocks and random chance
-                else if dist_sqrd > (2.5 * min_attack_dist).powi(2) {
-                    // If some target
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        // Walk to target
-                        controller.inputs.move_dir =
-                            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        self.jump_if(controller, bearing.z > 1.5);
-                        controller.inputs.move_z = bearing.z;
-                    }
-                }
-                // If energy higher than 600 and random chance
-                else if self.energy.current() > 600 && thread_rng().gen_bool(0.4) {
-                    // Shockwave
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Ability(0)));
-                } else if angle < 90.0 {
-                    // Triple strike
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Secondary));
-                }
-            },
-            // Mostly identical to BirdLargeFire but tweaked for flamethrower instead of shockwave
-            Tactic::BirdLargeBreathe => {
-                // Set fly to false
-                controller
-                    .actions
-                    .push(ControlAction::CancelInput(InputKind::Fly));
-                if dist_sqrd > 30.0_f32.powi(2) {
-                    if thread_rng().gen_bool(0.05)
-                        && can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd)
-                        && angle < 15.0
-                    {
+                    controller.inputs.move_dir = bearing
+                        .xy()
+                        .rotated_z(thread_rng().gen_range(0.5..1.57))
+                        .try_normalized()
+                        .unwrap_or_else(Vec2::zero)
+                        * speed;
+                    if agent.action_state.timer > 4.0 {
                         controller
                             .actions
-                            .push(ControlAction::basic_input(InputKind::Primary));
-                    }
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        controller.inputs.move_dir =
-                            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        if (self.pos.0.z - tgt_pos.0.z) < 20.0 {
-                            controller
-                                .actions
-                                .push(ControlAction::basic_input(InputKind::Fly));
-                            controller
-                                .actions
-                                .push(ControlAction::basic_input(InputKind::Jump));
-                            controller.inputs.move_z = 1.0;
-                        } else {
-                            self.jump_if(controller, bearing.z > 1.5);
-                            controller.inputs.move_z = bearing.z;
-                        }
-                    }
-                } else if !read_data
-                    .terrain
-                    .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * 2.0))
-                    .until(Block::is_solid)
-                    .cast()
-                    .1
-                    .map_or(true, |b| b.is_some())
-                {
-                    // Do not increment the timer during this movement
-                    // The next stage shouldn't trigger until the entity
-                    // is on the ground
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Fly));
-                    let move_dir = tgt_pos.0 - self.pos.0;
-                    controller.inputs.move_dir =
-                        move_dir.xy().try_normalized().unwrap_or_else(Vec2::zero) * 2.0;
-                    controller.inputs.move_z = move_dir.z - 0.5;
-                    if thread_rng().gen_bool(0.05)
-                        && dist_sqrd > (4.0 * min_attack_dist).powi(2)
-                        && angle < 15.0
-                    {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Primary));
-                    }
-                } else if thread_rng().gen_bool(0.05)
-                    && dist_sqrd > (4.0 * min_attack_dist).powi(2)
-                    && angle < 15.0
-                {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Primary));
-                } else if thread_rng().gen_bool(0.5)
-                    && (self.pos.0.z - tgt_pos.0.z) < 15.0
-                    && dist_sqrd > (4.0 * min_attack_dist).powi(2)
-                {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Fly));
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Jump));
-                    controller.inputs.move_z = 1.0;
-                } else if dist_sqrd > (3.0 * min_attack_dist).powi(2) {
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: 1.25,
-                            ..self.traversal_config
-                        },
-                    ) {
-                        controller.inputs.move_dir =
-                            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        self.jump_if(controller, bearing.z > 1.5);
-                        controller.inputs.move_z = bearing.z;
-                    }
-                } else if self.energy.current() > 600
-                    && agent.action_state.timer < 3.0
-                    && angle < 15.0
-                {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Ability(0)));
-                    agent.action_state.timer += dt.0;
-                } else if agent.action_state.timer < 6.0 && angle < 90.0 {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Secondary));
-                    agent.action_state.timer += dt.0;
-                } else {
-                    agent.action_state.timer = 0.0;
-                }
-            },
-            Tactic::Minotaur => {
-                const MINOTAUR_FRENZY_THRESHOLD: f32 = 0.5;
-                const MINOTAUR_ATTACK_RANGE: f32 = 5.0;
-                const MINOTAUR_CHARGE_DISTANCE: f32 = 15.0;
-                let minotaur_attack_distance =
-                    self.body.map_or(0.0, |b| b.radius()) + MINOTAUR_ATTACK_RANGE;
-                let health_fraction = self.health.map_or(1.0, |h| h.fraction());
-                // Sets action float at start of combat
-                if agent.action_state.counter < MINOTAUR_FRENZY_THRESHOLD
-                    && health_fraction > MINOTAUR_FRENZY_THRESHOLD
-                {
-                    agent.action_state.counter = MINOTAUR_FRENZY_THRESHOLD;
-                }
-                if health_fraction < agent.action_state.counter {
-                    // Makes minotaur buff itself with frenzy
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Ability(1)));
-                    if matches!(self.char_state, CharacterState::SelfBuff(c) if matches!(c.stage_section, StageSection::Recover))
-                    {
-                        agent.action_state.counter = 0.0;
-                    }
-                } else if matches!(self.char_state, CharacterState::DashMelee(c) if !matches!(c.stage_section, StageSection::Recover))
-                {
-                    // If already charging, keep charging if not in recover
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Ability(0)));
-                } else if matches!(self.char_state, CharacterState::ChargedMelee(c) if matches!(c.stage_section, StageSection::Charge) && c.timer < c.static_data.charge_duration)
-                {
-                    // If already charging a melee attack, keep charging it if charging
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Primary));
-                } else if dist_sqrd > MINOTAUR_CHARGE_DISTANCE.powi(2) {
-                    // Charges at target if they are far enough away
-                    if angle < 60.0 {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Ability(0)));
-                    }
-                } else if dist_sqrd < minotaur_attack_distance.powi(2) {
-                    if agent.action_state.condition && !self.char_state.is_attack() {
-                        // Cripple target if not just used cripple
+                            .push(ControlAction::CancelInput(InputKind::Secondary));
+                        agent.action_state.timer = 0.0;
+                    } else if agent.action_state.timer > 2.0 && self.energy.current() > 300 {
                         controller
                             .actions
                             .push(ControlAction::basic_input(InputKind::Secondary));
-                        agent.action_state.condition = false;
-                    } else if !self.char_state.is_attack() {
-                        // Cleave target if not just used cleave
+                        agent.action_state.timer += read_data.dt.0;
+                    } else if self
+                        .skill_set
+                        .has_skill(Skill::Bow(BowSkill::UnlockRepeater))
+                        && self.energy.current() > 400
+                        && thread_rng().gen_bool(0.8)
+                    {
+                        controller
+                            .actions
+                            .push(ControlAction::CancelInput(InputKind::Secondary));
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Ability(0)));
+                        agent.action_state.timer += read_data.dt.0;
+                    } else {
+                        controller
+                            .actions
+                            .push(ControlAction::CancelInput(InputKind::Secondary));
                         controller
                             .actions
                             .push(ControlAction::basic_input(InputKind::Primary));
-                        agent.action_state.condition = true;
+                        agent.action_state.timer += read_data.dt.0;
                     }
-                }
-                // Make minotaur move towards target
-                if let Some((bearing, speed)) = agent.chaser.chase(
-                    &*terrain,
-                    self.pos.0,
-                    self.vel.0,
-                    tgt_pos.0,
-                    TraversalConfig {
-                        min_tgt_dist: 1.25,
-                        ..self.traversal_config
-                    },
-                ) {
+                } else {
                     controller.inputs.move_dir =
                         bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                    self.jump_if(controller, bearing.z > 1.5);
+                    controller.inputs.move_z = bearing.z;
                 }
+            }
+            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+                && attack_data.dist_sqrd < 16.0f32.powi(2)
+                && thread_rng().gen::<f32>() < 0.02
+            {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Roll));
+            }
+        } else if can_see_tgt(
+            &*read_data.terrain,
+            self.pos,
+            tgt_data.pos,
+            attack_data.dist_sqrd,
+        ) {
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                self.jump_if(controller, bearing.z > 1.5);
+                controller.inputs.move_z = bearing.z;
+            }
+        } else {
+            agent.target = None;
+        }
+    }
+
+    fn handle_staff_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+            && attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2)
+        {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Roll));
+        } else if attack_data.dist_sqrd < (5.0 * attack_data.min_attack_dist).powi(2)
+            && attack_data.angle < 15.0
+        {
+            if agent.action_state.timer < 1.5 {
+                controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                    .xy()
+                    .rotated_z(0.47 * PI)
+                    .try_normalized()
+                    .unwrap_or_else(Vec2::unit_y);
+                agent.action_state.timer += read_data.dt.0;
+            } else if agent.action_state.timer < 3.0 {
+                controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                    .xy()
+                    .rotated_z(-0.47 * PI)
+                    .try_normalized()
+                    .unwrap_or_else(Vec2::unit_y);
+                agent.action_state.timer += read_data.dt.0;
+            } else {
+                agent.action_state.timer = 0.0;
+            }
+            if self
+                .skill_set
+                .has_skill(Skill::Staff(StaffSkill::UnlockShockwave))
+                && self.energy.current() > 800
+                && thread_rng().gen::<f32>() > 0.8
+            {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+            } else if self.energy.current() > 10 {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+            } else {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+            }
+        } else if attack_data.dist_sqrd < MAX_CHASE_DIST.powi(2) {
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                if can_see_tgt(
+                    &*read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                ) && attack_data.angle < 15.0
+                {
+                    controller.inputs.move_dir = bearing
+                        .xy()
+                        .rotated_z(thread_rng().gen_range(-1.57..-0.5))
+                        .try_normalized()
+                        .unwrap_or_else(Vec2::zero)
+                        * speed;
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Primary));
+                } else {
+                    controller.inputs.move_dir =
+                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                    self.jump_if(controller, bearing.z > 1.5);
+                    controller.inputs.move_z = bearing.z;
+                }
+            }
+            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+                && attack_data.dist_sqrd < 16.0f32.powi(2)
+                && thread_rng().gen::<f32>() < 0.02
+            {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Roll));
+            }
+        } else if can_see_tgt(
+            &*read_data.terrain,
+            self.pos,
+            tgt_data.pos,
+            attack_data.dist_sqrd,
+        ) {
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                self.jump_if(controller, bearing.z > 1.5);
+                controller.inputs.move_z = bearing.z;
+            }
+        } else {
+            agent.target = None;
+        }
+    }
+
+    fn handle_stone_golem_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2) && attack_data.angle < 90.0 {
+            controller.inputs.move_dir = Vec2::zero();
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
+            //controller.inputs.primary.set_state(true);
+        } else if attack_data.dist_sqrd < MAX_CHASE_DIST.powi(2) {
+            if self.vel.0.is_approx_zero() {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+            }
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                if can_see_tgt(
+                    &*read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                ) && attack_data.angle < 90.0
+                {
+                    controller.inputs.move_dir =
+                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                    if agent.action_state.timer > 5.0 {
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Secondary));
+                        agent.action_state.timer = 0.0;
+                    } else {
+                        agent.action_state.timer += read_data.dt.0;
+                    }
+                } else {
+                    controller.inputs.move_dir =
+                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                    self.jump_if(controller, bearing.z > 1.5);
+                    controller.inputs.move_z = bearing.z;
+                }
+            }
+        } else {
+            agent.target = None;
+        }
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn handle_circle_charge_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        radius: u32,
+        circle_time: u32,
+    ) {
+        if attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2) && thread_rng().gen_bool(0.5)
+        {
+            controller.inputs.move_dir = Vec2::zero();
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
+        } else if attack_data.dist_sqrd < (radius as f32 * attack_data.min_attack_dist).powi(2) {
+            controller.inputs.move_dir = (self.pos.0 - tgt_data.pos.0)
+                .xy()
+                .try_normalized()
+                .unwrap_or_else(Vec2::unit_y);
+        } else if attack_data.dist_sqrd
+            < ((radius as f32 + 1.0) * attack_data.min_attack_dist).powi(2)
+            && attack_data.dist_sqrd > (radius as f32 * attack_data.min_attack_dist).powi(2)
+        {
+            if agent.action_state.timer < circle_time as f32 {
+                let move_dir = (tgt_data.pos.0 - self.pos.0)
+                    .xy()
+                    .rotated_z(0.47 * PI)
+                    .try_normalized()
+                    .unwrap_or_else(Vec2::unit_y);
+                let obstacle_left = read_data
+                    .terrain
+                    .ray(
+                        self.pos.0 + Vec3::unit_z(),
+                        self.pos.0 + move_dir.with_z(0.0) * 2.0 + Vec3::unit_z(),
+                    )
+                    .until(Block::is_solid)
+                    .cast()
+                    .1
+                    .map_or(true, |b| b.is_some());
+                if obstacle_left {
+                    agent.action_state.timer = circle_time as f32;
+                }
+                controller.inputs.move_dir = move_dir;
+                agent.action_state.timer += read_data.dt.0;
+            } else if agent.action_state.timer < circle_time as f32 + 0.5 {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+                agent.action_state.timer += read_data.dt.0;
+            } else if agent.action_state.timer < 2.0 * circle_time as f32 + 0.5 {
+                let move_dir = (tgt_data.pos.0 - self.pos.0)
+                    .xy()
+                    .rotated_z(-0.47 * PI)
+                    .try_normalized()
+                    .unwrap_or_else(Vec2::unit_y);
+                let obstacle_right = read_data
+                    .terrain
+                    .ray(
+                        self.pos.0 + Vec3::unit_z(),
+                        self.pos.0 + move_dir.with_z(0.0) * 2.0 + Vec3::unit_z(),
+                    )
+                    .until(Block::is_solid)
+                    .cast()
+                    .1
+                    .map_or(true, |b| b.is_some());
+                if obstacle_right {
+                    agent.action_state.timer = 2.0 * circle_time as f32 + 0.5;
+                }
+                controller.inputs.move_dir = move_dir;
+                agent.action_state.timer += read_data.dt.0;
+            } else if agent.action_state.timer < 2.0 * circle_time as f32 + 1.0 {
+                if agent.action_state.timer < 2.0 * circle_time as f32 {
+                    agent.action_state.timer = 2.0 * circle_time as f32;
+                }
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+                agent.action_state.timer += read_data.dt.0;
+            } else {
+                agent.action_state.timer = 0.0;
+            }
+        } else if attack_data.dist_sqrd < MAX_CHASE_DIST.powi(2) {
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                self.jump_if(controller, bearing.z > 1.5);
+                controller.inputs.move_z = bearing.z;
+            }
+        } else {
+            agent.target = None;
+        }
+    }
+
+    fn handle_quadlow_ranged_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if attack_data.dist_sqrd < (3.0 * attack_data.min_attack_dist).powi(2)
+            && attack_data.angle < 90.0
+        {
+            controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                .xy()
+                .try_normalized()
+                .unwrap_or_else(Vec2::unit_y);
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
+        } else if attack_data.dist_sqrd < MAX_CHASE_DIST.powi(2) {
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                if can_see_tgt(
+                    &*read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                ) && attack_data.angle < 15.0
+                {
+                    if agent.action_state.timer > 5.0 {
+                        agent.action_state.timer = 0.0;
+                    } else if agent.action_state.timer > 2.5 {
+                        controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                            .xy()
+                            .rotated_z(1.75 * PI)
+                            .try_normalized()
+                            .unwrap_or_else(Vec2::zero)
+                            * speed;
+                        agent.action_state.timer += read_data.dt.0;
+                    } else {
+                        controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                            .xy()
+                            .rotated_z(0.25 * PI)
+                            .try_normalized()
+                            .unwrap_or_else(Vec2::zero)
+                            * speed;
+                        agent.action_state.timer += read_data.dt.0;
+                    }
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Secondary));
+                    self.jump_if(controller, bearing.z > 1.5);
+                    controller.inputs.move_z = bearing.z;
+                } else {
+                    controller.inputs.move_dir =
+                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                    self.jump_if(controller, bearing.z > 1.5);
+                    controller.inputs.move_z = bearing.z;
+                }
+            } else {
+                agent.target = None;
+            }
+        } else {
+            agent.target = None;
+        }
+    }
+
+    fn handle_tail_slap_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
+            && attack_data.angle < 90.0
+        {
+            if agent.action_state.timer > 4.0 {
+                controller
+                    .actions
+                    .push(ControlAction::CancelInput(InputKind::Primary));
+                agent.action_state.timer = 0.0;
+            } else if agent.action_state.timer > 1.0 {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+                agent.action_state.timer += read_data.dt.0;
+            } else {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+                agent.action_state.timer += read_data.dt.0;
+            }
+            controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                .xy()
+                .try_normalized()
+                .unwrap_or_else(Vec2::unit_y)
+                * 0.1;
+        } else if attack_data.dist_sqrd < MAX_CHASE_DIST.powi(2) {
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                self.jump_if(controller, bearing.z > 1.5);
+                controller.inputs.move_z = bearing.z;
+            }
+        } else {
+            agent.target = None;
+        }
+    }
+
+    fn handle_quadlow_quick_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
+            && attack_data.angle < 90.0
+        {
+            controller.inputs.move_dir = Vec2::zero();
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Secondary));
+        } else if attack_data.dist_sqrd < (3.0 * attack_data.min_attack_dist).powi(2)
+            && attack_data.dist_sqrd > (2.0 * attack_data.min_attack_dist).powi(2)
+            && attack_data.angle < 90.0
+        {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
+            controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                .xy()
+                .rotated_z(-0.47 * PI)
+                .try_normalized()
+                .unwrap_or_else(Vec2::unit_y);
+        } else if attack_data.dist_sqrd < MAX_CHASE_DIST.powi(2) {
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                self.jump_if(controller, bearing.z > 1.5);
+                controller.inputs.move_z = bearing.z;
+            }
+        } else {
+            agent.target = None;
+        }
+    }
+
+    fn handle_quadlow_basic_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2) {
+            controller.inputs.move_dir = Vec2::zero();
+            if agent.action_state.timer > 5.0 {
+                agent.action_state.timer = 0.0;
+            } else if agent.action_state.timer > 2.0 && attack_data.angle < 90.0 {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+                agent.action_state.timer += read_data.dt.0;
+            } else if attack_data.angle < 90.0 {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+                agent.action_state.timer += read_data.dt.0;
+            }
+        } else if attack_data.dist_sqrd < MAX_CHASE_DIST.powi(2) {
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                self.jump_if(controller, bearing.z > 1.5);
+                controller.inputs.move_z = bearing.z;
+            }
+        } else {
+            agent.target = None;
+        }
+    }
+
+    fn handle_quadmed_jump_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
+            && attack_data.angle < 90.0
+        {
+            controller.inputs.move_dir = Vec2::zero();
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Secondary));
+        } else if attack_data.dist_sqrd < (5.0 * attack_data.min_attack_dist).powi(2)
+            && attack_data.angle < 15.0
+        {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Ability(0)));
+        } else if attack_data.dist_sqrd < MAX_CHASE_DIST.powi(2) {
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                if can_see_tgt(
+                    &*read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                ) && attack_data.angle < 15.0
+                {
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Primary));
+                    controller.inputs.move_dir =
+                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                } else {
+                    controller.inputs.move_dir =
+                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                    self.jump_if(controller, bearing.z > 1.5);
+                    controller.inputs.move_z = bearing.z;
+                }
+            }
+        } else {
+            agent.target = None;
+        }
+    }
+
+    fn handle_quadmed_basic_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2) && attack_data.angle < 90.0 {
+            controller.inputs.move_dir = Vec2::zero();
+            if agent.action_state.timer < 2.0 {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+                agent.action_state.timer += read_data.dt.0;
+            } else if agent.action_state.timer < 3.0 {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+                agent.action_state.timer += read_data.dt.0;
+            } else {
+                agent.action_state.timer = 0.0;
+            }
+        } else if attack_data.dist_sqrd < MAX_CHASE_DIST.powi(2) {
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                self.jump_if(controller, bearing.z > 1.5);
+                controller.inputs.move_z = bearing.z;
+            }
+        } else {
+            agent.target = None;
+        }
+    }
+
+    fn handle_quadlow_beam_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if attack_data.dist_sqrd < (2.5 * attack_data.min_attack_dist).powi(2)
+            && attack_data.angle < 90.0
+        {
+            controller.inputs.move_dir = Vec2::zero();
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Secondary));
+        } else if attack_data.dist_sqrd < (7.0 * attack_data.min_attack_dist).powi(2)
+            && attack_data.angle < 15.0
+        {
+            if agent.action_state.timer < 2.0 {
+                controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                    .xy()
+                    .rotated_z(0.47 * PI)
+                    .try_normalized()
+                    .unwrap_or_else(Vec2::unit_y);
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+                agent.action_state.timer += read_data.dt.0;
+            } else if agent.action_state.timer < 4.0 && attack_data.angle < 15.0 {
+                controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                    .xy()
+                    .rotated_z(-0.47 * PI)
+                    .try_normalized()
+                    .unwrap_or_else(Vec2::unit_y);
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+                agent.action_state.timer += read_data.dt.0;
+            } else if agent.action_state.timer < 6.0 && attack_data.angle < 15.0 {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+                agent.action_state.timer += read_data.dt.0;
+            } else {
+                agent.action_state.timer = 0.0;
+            }
+        } else if attack_data.dist_sqrd < MAX_CHASE_DIST.powi(2) {
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                self.jump_if(controller, bearing.z > 1.5);
+                controller.inputs.move_z = bearing.z;
+            }
+        } else {
+            agent.target = None;
+        }
+    }
+
+    fn handle_theropod_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2)
+            && attack_data.angle < 90.0
+        {
+            controller.inputs.move_dir = Vec2::zero();
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
+        } else if attack_data.dist_sqrd < MAX_CHASE_DIST.powi(2) {
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                self.jump_if(controller, bearing.z > 1.5);
+                controller.inputs.move_z = bearing.z;
+            }
+        } else {
+            agent.target = None;
+        }
+    }
+
+    fn handle_turret_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if can_see_tgt(
+            &*read_data.terrain,
+            self.pos,
+            tgt_data.pos,
+            attack_data.dist_sqrd,
+        ) && attack_data.angle < 15.0
+        {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
+        } else {
+            agent.target = None;
+        }
+    }
+
+    fn handle_fixed_turret_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        controller.inputs.look_dir = self.ori.look_dir();
+        if can_see_tgt(
+            &*read_data.terrain,
+            self.pos,
+            tgt_data.pos,
+            attack_data.dist_sqrd,
+        ) && attack_data.angle < 15.0
+        {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
+        } else {
+            agent.target = None;
+        }
+    }
+
+    fn handle_rotating_turret_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        controller.inputs.look_dir = Dir::new(
+            Quaternion::from_xyzw(self.ori.look_dir().x, self.ori.look_dir().y, 0.0, 0.0)
+                .rotated_z(6.0 * read_data.dt.0 as f32)
+                .into_vec3()
+                .try_normalized()
+                .unwrap_or_default(),
+        );
+        if can_see_tgt(
+            &*read_data.terrain,
+            self.pos,
+            tgt_data.pos,
+            attack_data.dist_sqrd,
+        ) && attack_data.angle < 15.0
+        {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
+        } else {
+            agent.target = None;
+        }
+    }
+
+    fn handle_mindflayer_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const MINDFLAYER_ATTACK_DIST: f32 = 16.0;
+        const MINION_SUMMON_THRESHOLD: f32 = 0.20;
+        let health_fraction = self.health.map_or(0.5, |h| h.fraction());
+        // Sets counter at start of combat
+        if agent.action_state.condition {
+            agent.action_state.counter = 1.0 - MINION_SUMMON_THRESHOLD;
+            agent.action_state.condition = true;
+        }
+        let mindflayer_is_far = attack_data.dist_sqrd > MINDFLAYER_ATTACK_DIST.powi(2);
+        if agent.action_state.counter > health_fraction {
+            // Summon minions at particular thresholds of health
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Ability(1)));
+            if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
+            {
+                agent.action_state.counter -= MINION_SUMMON_THRESHOLD;
+            }
+        } else if mindflayer_is_far {
+            // If too far from target, blink to them.
+            controller.actions.push(ControlAction::StartInput {
+                input: InputKind::Ability(0),
+                target_entity: agent
+                    .target
+                    .as_ref()
+                    .and_then(|t| read_data.uids.get(t.target))
+                    .copied(),
+                select_pos: None,
+            });
+        } else {
+            // If close to target, use either primary or secondary ability
+            if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(10) && !matches!(c.stage_section, StageSection::Recover))
+            {
+                // If already using primary, keep using primary until 10 consecutive seconds
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+            } else if matches!(self.char_state, CharacterState::SpinMelee(c) if c.consecutive_spins < 50 && !matches!(c.stage_section, StageSection::Recover))
+            {
+                // If already using secondary, keep using secondary until 10 consecutive
+                // seconds
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+            } else if thread_rng().gen_bool(health_fraction.into()) {
+                // Else if at high health, use primary
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+            } else {
+                // Else use secondary
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+            }
+        }
+
+        // Move towards target
+        if let Some((bearing, speed)) = agent.chaser.chase(
+            &*read_data.terrain,
+            self.pos.0,
+            self.vel.0,
+            tgt_data.pos.0,
+            TraversalConfig {
+                min_tgt_dist: 1.25,
+                ..self.traversal_config
             },
+        ) {
+            controller.inputs.move_dir =
+                bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+            self.jump_if(controller, bearing.z > 1.5);
+            controller.inputs.move_z = bearing.z;
+        }
+    }
+
+    fn handle_birdlarge_fire_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if attack_data.dist_sqrd > 30.0_f32.powi(2) {
+            // If random chance and can see target
+            if thread_rng().gen_bool(0.05)
+                && can_see_tgt(
+                    &*read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                )
+                && attack_data.angle < 15.0
+            {
+                // Fireball
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+            }
+            // If some target
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                // Walk to target
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                // If less than 20 blocks higher than target
+                if (self.pos.0.z - tgt_data.pos.0.z) < 20.0 {
+                    // Fly upward
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Fly));
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Jump));
+                    controller.inputs.move_z = 1.0;
+                } else {
+                    // Jump
+                    self.jump_if(controller, bearing.z > 1.5);
+                    controller.inputs.move_z = bearing.z;
+                }
+            }
+        }
+        // If higher than 2 blocks
+        else if !read_data
+            .terrain
+            .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * 2.0))
+            .until(Block::is_solid)
+            .cast()
+            .1
+            .map_or(true, |b| b.is_some())
+        {
+            // Do not increment the timer during this movement
+            // The next stage shouldn't trigger until the entity
+            // is on the ground
+            // Fly to target
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Fly));
+            let move_dir = tgt_data.pos.0 - self.pos.0;
+            controller.inputs.move_dir =
+                move_dir.xy().try_normalized().unwrap_or_else(Vec2::zero) * 2.0;
+            controller.inputs.move_z = move_dir.z - 0.5;
+            // If further than 4 blocks and random chance
+            if thread_rng().gen_bool(0.05)
+                && attack_data.dist_sqrd > (4.0 * attack_data.min_attack_dist).powi(2)
+                && attack_data.angle < 15.0
+            {
+                // Fireball
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+            }
+        }
+        // If further than 4 blocks and random chance
+        else if thread_rng().gen_bool(0.05)
+            && attack_data.dist_sqrd > (4.0 * attack_data.min_attack_dist).powi(2)
+            && attack_data.angle < 15.0
+        {
+            // Fireball
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
+        }
+        // If random chance and less than 20 blocks higher than target and further than 4
+        // blocks
+        else if thread_rng().gen_bool(0.5)
+            && (self.pos.0.z - tgt_data.pos.0.z) < 15.0
+            && attack_data.dist_sqrd > (4.0 * attack_data.min_attack_dist).powi(2)
+        {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Fly));
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Jump));
+            controller.inputs.move_z = 1.0;
+        }
+        // If further than 2.5 blocks and random chance
+        else if attack_data.dist_sqrd > (2.5 * attack_data.min_attack_dist).powi(2) {
+            // If some target
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                // Walk to target
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                self.jump_if(controller, bearing.z > 1.5);
+                controller.inputs.move_z = bearing.z;
+            }
+        }
+        // If energy higher than 600 and random chance
+        else if self.energy.current() > 600 && thread_rng().gen_bool(0.4) {
+            // Shockwave
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Ability(0)));
+        } else if attack_data.angle < 90.0 {
+            // Triple strike
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Secondary));
+        }
+    }
+
+    fn handle_birdlarge_breathe_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        // Set fly to false
+        controller
+            .actions
+            .push(ControlAction::CancelInput(InputKind::Fly));
+        if attack_data.dist_sqrd > 30.0_f32.powi(2) {
+            if thread_rng().gen_bool(0.05)
+                && can_see_tgt(
+                    &*read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                )
+                && attack_data.angle < 15.0
+            {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+            }
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                if (self.pos.0.z - tgt_data.pos.0.z) < 20.0 {
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Fly));
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Jump));
+                    controller.inputs.move_z = 1.0;
+                } else {
+                    self.jump_if(controller, bearing.z > 1.5);
+                    controller.inputs.move_z = bearing.z;
+                }
+            }
+        } else if !read_data
+            .terrain
+            .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * 2.0))
+            .until(Block::is_solid)
+            .cast()
+            .1
+            .map_or(true, |b| b.is_some())
+        {
+            // Do not increment the timer during this movement
+            // The next stage shouldn't trigger until the entity
+            // is on the ground
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Fly));
+            let move_dir = tgt_data.pos.0 - self.pos.0;
+            controller.inputs.move_dir =
+                move_dir.xy().try_normalized().unwrap_or_else(Vec2::zero) * 2.0;
+            controller.inputs.move_z = move_dir.z - 0.5;
+            if thread_rng().gen_bool(0.05)
+                && attack_data.dist_sqrd > (4.0 * attack_data.min_attack_dist).powi(2)
+                && attack_data.angle < 15.0
+            {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+            }
+        } else if thread_rng().gen_bool(0.05)
+            && attack_data.dist_sqrd > (4.0 * attack_data.min_attack_dist).powi(2)
+            && attack_data.angle < 15.0
+        {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
+        } else if thread_rng().gen_bool(0.5)
+            && (self.pos.0.z - tgt_data.pos.0.z) < 15.0
+            && attack_data.dist_sqrd > (4.0 * attack_data.min_attack_dist).powi(2)
+        {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Fly));
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Jump));
+            controller.inputs.move_z = 1.0;
+        } else if attack_data.dist_sqrd > (3.0 * attack_data.min_attack_dist).powi(2) {
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                self.jump_if(controller, bearing.z > 1.5);
+                controller.inputs.move_z = bearing.z;
+            }
+        } else if self.energy.current() > 600
+            && agent.action_state.timer < 3.0
+            && attack_data.angle < 15.0
+        {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Ability(0)));
+            agent.action_state.timer += read_data.dt.0;
+        } else if agent.action_state.timer < 6.0 && attack_data.angle < 90.0 {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Secondary));
+            agent.action_state.timer += read_data.dt.0;
+        } else {
+            agent.action_state.timer = 0.0;
+        }
+    }
+
+    fn handle_minotaur_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const MINOTAUR_FRENZY_THRESHOLD: f32 = 0.5;
+        const MINOTAUR_ATTACK_RANGE: f32 = 5.0;
+        const MINOTAUR_CHARGE_DISTANCE: f32 = 15.0;
+        let minotaur_attack_distance =
+            self.body.map_or(0.0, |b| b.radius()) + MINOTAUR_ATTACK_RANGE;
+        let health_fraction = self.health.map_or(1.0, |h| h.fraction());
+        // Sets action float at start of combat
+        if agent.action_state.counter < MINOTAUR_FRENZY_THRESHOLD
+            && health_fraction > MINOTAUR_FRENZY_THRESHOLD
+        {
+            agent.action_state.counter = MINOTAUR_FRENZY_THRESHOLD;
+        }
+        if health_fraction < agent.action_state.counter {
+            // Makes minotaur buff itself with frenzy
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Ability(1)));
+            if matches!(self.char_state, CharacterState::SelfBuff(c) if matches!(c.stage_section, StageSection::Recover))
+            {
+                agent.action_state.counter = 0.0;
+            }
+        } else if matches!(self.char_state, CharacterState::DashMelee(c) if !matches!(c.stage_section, StageSection::Recover))
+        {
+            // If already charging, keep charging if not in recover
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Ability(0)));
+        } else if matches!(self.char_state, CharacterState::ChargedMelee(c) if matches!(c.stage_section, StageSection::Charge) && c.timer < c.static_data.charge_duration)
+        {
+            // If already charging a melee attack, keep charging it if charging
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
+        } else if attack_data.dist_sqrd > MINOTAUR_CHARGE_DISTANCE.powi(2) {
+            // Charges at target if they are far enough away
+            if attack_data.angle < 60.0 {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+            }
+        } else if attack_data.dist_sqrd < minotaur_attack_distance.powi(2) {
+            if agent.action_state.condition && !self.char_state.is_attack() {
+                // Cripple target if not just used cripple
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+                agent.action_state.condition = false;
+            } else if !self.char_state.is_attack() {
+                // Cleave target if not just used cleave
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+                agent.action_state.condition = true;
+            }
+        }
+        // Make minotaur move towards target
+        if let Some((bearing, speed)) = agent.chaser.chase(
+            &*read_data.terrain,
+            self.pos.0,
+            self.vel.0,
+            tgt_data.pos.0,
+            TraversalConfig {
+                min_tgt_dist: 1.25,
+                ..self.traversal_config
+            },
+        ) {
+            controller.inputs.move_dir =
+                bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
         }
     }
 

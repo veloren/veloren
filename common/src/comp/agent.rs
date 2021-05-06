@@ -15,34 +15,6 @@ use super::dialogue::Subject;
 pub const DEFAULT_INTERACTION_TIME: f32 = 3.0;
 pub const TRADE_INTERACTION_TIME: f32 = 300.0;
 
-#[derive(Eq, PartialEq)]
-pub enum Tactic {
-    Melee,
-    Axe,
-    Hammer,
-    Sword,
-    Bow,
-    Staff,
-    StoneGolem,
-    CircleCharge { radius: u32, circle_time: u32 },
-    QuadLowRanged,
-    TailSlap,
-    QuadLowQuick,
-    QuadLowBasic,
-    QuadLowBeam,
-    QuadMedJump,
-    QuadMedBasic,
-    Lavadrake,
-    Theropod,
-    Turret,
-    FixedTurret,
-    RotatingTurret,
-    Mindflayer,
-    BirdLargeBreathe,
-    BirdLargeFire,
-    Minotaur,
-}
-
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Alignment {
     /// Wild animals and gentle giants
