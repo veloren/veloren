@@ -810,8 +810,6 @@ impl Floor {
                                     Lottery::<LootSpec>::load_expect("common.loot_tables.fallback")
                                 },
                             };
-                            let chosen = chosen.read();
-                            let chosen = chosen.choose();
                             let entity = match room.difficulty {
                                 0 => {
                                     vec![
@@ -823,7 +821,7 @@ impl Floor {
                                                 ),
                                             ))
                                             .with_name("Harvester".to_string())
-                                            .with_loot_drop(chosen.to_item()),
+                                            .with_loot_drop(chosen.read().choose().to_item()),
                                     ]
                                 },
                                 1 => {
@@ -836,7 +834,7 @@ impl Floor {
                                                 ),
                                             ))
                                             .with_name("Yeti".to_string())
-                                            .with_loot_drop(chosen.to_item()),
+                                            .with_loot_drop(chosen.read().choose().to_item()),
                                     ]
                                 },
                                 2 => {
@@ -849,11 +847,12 @@ impl Floor {
                                                 ),
                                             ))
                                             .with_name("Tidal Warrior".to_string())
-                                            .with_loot_drop(chosen.to_item()),
+                                            .with_loot_drop(chosen.read().choose().to_item()),
                                     ]
                                 },
                                 3 => {
-                                    vec![
+                                    let mut entities = Vec::new();
+                                    entities.resize_with(2, || {
                                         EntityInfo::at(tile_wcenter.map(|e| e as f32))
                                             .with_body(comp::Body::Golem(
                                                 comp::golem::Body::random_with(
@@ -862,8 +861,9 @@ impl Floor {
                                                 ),
                                             ))
                                             .with_name("Clay Golem".to_string())
-                                            .with_loot_drop(chosen.to_item()),
-                                    ]
+                                            .with_loot_drop(chosen.read().choose().to_item())
+                                    });
+                                    entities
                                 },
                                 4 => {
                                     vec![
@@ -875,7 +875,7 @@ impl Floor {
                                                 ),
                                             ))
                                             .with_name("Minotaur".to_string())
-                                            .with_loot_drop(chosen.to_item()),
+                                            .with_loot_drop(chosen.read().choose().to_item()),
                                     ]
                                 },
                                 5 => {
@@ -888,7 +888,7 @@ impl Floor {
                                                 ),
                                             ))
                                             .with_name("Mindflayer".to_string())
-                                            .with_loot_drop(chosen.to_item())
+                                            .with_loot_drop(chosen.read().choose().to_item())
                                             .with_skillset_config(
                                                 common::skillset_builder::SkillSetConfig::Mindflayer,
                                             ),

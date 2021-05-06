@@ -3489,6 +3489,12 @@ impl<'a> AgentData<'a> {
         } else if attack_data.dist_sqrd < GOLEM_LASER_RANGE.powi(2) {
             if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(10))
                 || target_speed_sqd < GOLEM_TARGET_SPEED.powi(2)
+                    && can_see_tgt(
+                        &*read_data.terrain,
+                        self.pos,
+                        tgt_data.pos,
+                        attack_data.dist_sqrd,
+                    )
             {
                 // If already lasering, keep lasering if target in range threshold and
                 // haven't been lasering for more than 10 seconds already
@@ -3503,7 +3509,14 @@ impl<'a> AgentData<'a> {
                     .push(ControlAction::basic_input(InputKind::Ability(0)));
             }
         } else if attack_data.dist_sqrd < GOLEM_LONG_RANGE.powi(2) {
-            if target_speed_sqd < GOLEM_TARGET_SPEED.powi(2) {
+            if target_speed_sqd < GOLEM_TARGET_SPEED.powi(2)
+                && can_see_tgt(
+                    &*read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                )
+            {
                 // If target is far-ish and moving slow-ish, rocket them
                 controller
                     .actions
