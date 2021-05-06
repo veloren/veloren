@@ -980,6 +980,15 @@ impl LoadoutBuilder {
                         .build(),
                     _ => LoadoutBuilder::new().active_item(active_item).build(),
                 },
+                Body::Golem(g) => match g.species {
+                    golem::Species::ClayGolem => LoadoutBuilder::new()
+                        .active_item(active_item)
+                        .chest(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.golem.claygolem",
+                        )))
+                        .build(),
+                    _ => LoadoutBuilder::new().active_item(active_item).build(),
+                },
                 _ => LoadoutBuilder::new().active_item(active_item).build(),
             }
         };

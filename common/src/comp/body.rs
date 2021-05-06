@@ -568,7 +568,7 @@ impl Body {
             },
             Body::BipedSmall(_) => 10,
             Body::Object(_) => 10,
-            Body::Golem(_) => 260,
+            Body::Golem(_) => 0,
             Body::Theropod(_) => 20,
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Crocodile => 20,
@@ -602,6 +602,7 @@ impl Body {
     pub fn immune_to(&self, buff: BuffKind) -> bool {
         match buff {
             BuffKind::Bleeding => matches!(self, Body::Object(_) | Body::Golem(_) | Body::Ship(_)),
+            BuffKind::Burning => matches!(self, Body::Golem(_)),
             _ => false,
         }
     }

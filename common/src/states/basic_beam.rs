@@ -139,7 +139,7 @@ impl CharacterBehavior for Data {
                         specifier: self.static_data.specifier,
                     };
                     let body_offsets_z = match data.body {
-                        Body::BirdLarge(_) | Body::Golem(_) => data.body.height() * 0.9,
+                        Body::BirdLarge(_) | Body::Golem(_) => data.body.height() * 0.8,
                         _ => data.body.height() * 0.5,
                     };
                     // Gets offsets

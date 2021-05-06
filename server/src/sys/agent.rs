@@ -1647,6 +1647,18 @@ impl<'a> AgentData<'a> {
                     ),
                 )
             }
+            Tactic::ClayGolem if matches!(self.char_state, CharacterState::BasicRanged(_)) => {
+                const ROCKET_SPEED: f32 = 20.0;
+                aim_projectile(
+                    ROCKET_SPEED,
+                    Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+                    Vec3::new(
+                        tgt_data.pos.0.x,
+                        tgt_data.pos.0.y,
+                        tgt_data.pos.0.z + tgt_eye_offset,
+                    ),
+                )
+            },
             _ => Dir::from_unnormalized(
                 Vec3::new(
                     tgt_data.pos.0.x,
@@ -3493,8 +3505,6 @@ impl<'a> AgentData<'a> {
         } else if attack_data.dist_sqrd < GOLEM_LONG_RANGE.powi(2) {
             if target_speed_sqd < GOLEM_TARGET_SPEED.powi(2) {
                 // If target is far-ish and moving slow-ish, rocket them
-                // TODO: Maybe some look_dir shenanigans? Also maybe use condition so they
-                // stop and aim a bit first?
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Ability(1)));
