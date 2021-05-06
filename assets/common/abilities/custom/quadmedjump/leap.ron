@@ -11,4 +11,5 @@ LeapMelee(
     max_angle: 180.0,
     forward_leap_strength: 40.0,
     vertical_leap_strength: 10.0,
+    damage_kind: Crushing,
 )

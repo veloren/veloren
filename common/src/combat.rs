@@ -122,9 +122,11 @@ impl Attack {
         target: &TargetInfo,
         source: AttackSource,
         dir: Dir,
+        kind: DamageKind,
         mut emit_outcome: impl FnMut(Outcome),
     ) -> f32 {
-        let damage_reduction = Damage::compute_damage_reduction(target.inventory, target.stats);
+        let damage_reduction =
+            Damage::compute_damage_reduction(target.inventory, target.stats, Some(kind));
         let block_reduction = match source {
             AttackSource::Melee => {
                 if let (Some(CharacterState::BasicBlock(data)), Some(ori)) =
@@ -177,8 +179,13 @@ impl Attack {
             .filter(|d| d.target.map_or(true, |t| t == target_group))
             .filter(|d| !(matches!(d.target, Some(GroupTarget::OutOfGroup)) && target_dodging))
         {
-            let damage_reduction =
-                Attack::compute_damage_reduction(&target, attack_source, dir, |o| emit_outcome(o));
+            let damage_reduction = Attack::compute_damage_reduction(
+                &target,
+                attack_source,
+                dir,
+                damage.damage.kind,
+                |o| emit_outcome(o),
+            );
             let change = damage.damage.calculate_health_change(
                 damage_reduction,
                 attacker.map(|a| a.uid),
@@ -497,17 +504,36 @@ pub enum DamageSource {
     Other,
 }
 
+/// DamageKind for the purpose of differentiating damage reduction
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+pub enum DamageKind {
+    /// Arrows/Sword dash
+    Piercing,
+    /// Swords/axes
+    Slashing,
+    /// Hammers
+    Crushing,
+    /// Staves/sceptres (TODO: differentiate further once there are more magic
+    /// weapons)
+    Energy,
+}
+
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Damage {
     pub source: DamageSource,
+    pub kind: DamageKind,
     pub value: f32,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
 impl Damage {
     /// Returns the total damage reduction provided by all equipped items
-    pub fn compute_damage_reduction(inventory: Option<&Inventory>, stats: Option<&Stats>) -> f32 {
+    pub fn compute_damage_reduction(
+        inventory: Option<&Inventory>,
+        stats: Option<&Stats>,
+        kind: Option<DamageKind>,
+    ) -> f32 {
         let inventory_dr = if let Some(inventory) = inventory {
             let protection = inventory
                 .equipped_items()
@@ -523,6 +549,13 @@ impl Damage {
                     Protection::Invincible => None,
                 })
                 .sum::<Option<f32>>();
+
+            let kind_modifier = if matches!(kind, Some(DamageKind::Piercing)) {
+                0.75
+            } else {
+                1.0
+            };
+            let protection = protection.map(|dr| dr * kind_modifier);
 
             const FIFTY_PERCENT_DR_THRESHOLD: f32 = 60.0;
 
@@ -842,7 +875,7 @@ pub fn combat_rating(
     // Assumes a "standard" max health of 100
     let health_rating = health.base_max() as f32
         / 100.0
-        / (1.0 - Damage::compute_damage_reduction(Some(inventory), None)).max(0.00001);
+        / (1.0 - Damage::compute_damage_reduction(Some(inventory), None, None)).max(0.00001);
 
     // Assumes a standard person has earned 20 skill points in the general skill
     // tree and 10 skill points for the weapon skill tree

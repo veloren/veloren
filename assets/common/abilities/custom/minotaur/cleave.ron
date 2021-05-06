@@ -15,4 +15,5 @@ ChargedMelee(
     hit_timing: 0.8,
     recover_duration: 0.5,
     specifier: Some(GroundCleave),
+    damage_kind: Slashing,
 )

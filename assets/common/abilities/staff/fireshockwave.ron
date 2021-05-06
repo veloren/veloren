@@ -12,4 +12,5 @@ Shockwave(
     shockwave_duration: 0.5,
     requires_ground: false,
     move_efficiency: 0.1,
+    damage_kind: Energy,
 )

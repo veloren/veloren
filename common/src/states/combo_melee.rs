@@ -5,7 +5,7 @@ use crate::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
-    Damage, DamageSource, GroupTarget, Knockback, KnockbackDir,
+    Damage, DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -37,6 +37,8 @@ pub struct Stage<T> {
     pub base_recover_duration: T,
     /// How much forward movement there is in the swing portion of the stage
     pub forward_movement: f32,
+    /// What kind of damage this stage of the attack does
+    pub damage_kind: DamageKind,
 }
 
 impl Stage<f32> {
@@ -54,6 +56,7 @@ impl Stage<f32> {
             base_swing_duration: Duration::from_secs_f32(self.base_swing_duration),
             base_recover_duration: Duration::from_secs_f32(self.base_recover_duration),
             forward_movement: self.forward_movement,
+            damage_kind: self.damage_kind,
         }
     }
 
@@ -195,6 +198,7 @@ impl CharacterBehavior for Data {
                     let damage = AttackDamage::new(
                         Damage {
                             source: DamageSource::Melee,
+                            kind: self.static_data.stage_data[stage_index].damage_kind,
                             value: damage as f32,
                         },
                         Some(GroupTarget::OutOfGroup),

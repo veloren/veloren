@@ -1,7 +1,7 @@
 use crate::{
     combat::{
         Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement, Damage,
-        DamageSource, GroupTarget, Knockback,
+        DamageKind, DamageSource, GroupTarget, Knockback,
     },
     comp::{tool::ToolKind, CharacterState, EnergyChange, EnergySource, Melee, StateUpdate},
     consts::GRAVITY,
@@ -51,6 +51,8 @@ pub struct StaticData {
     pub ability_info: AbilityInfo,
     /// Used to specify the melee attack to the frontend
     pub specifier: Option<FrontendSpecifier>,
+    /// What kind of damage the attack does
+    pub damage_kind: DamageKind,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -124,6 +126,7 @@ impl CharacterBehavior for Data {
                     let mut damage = AttackDamage::new(
                         Damage {
                             source: DamageSource::Melee,
+                            kind: self.static_data.damage_kind,
                             value: self.static_data.base_damage as f32,
                         },
                         self.static_data.target,

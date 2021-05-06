@@ -3,7 +3,7 @@ use common::{
     effect::Effect,
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
-    Damage, DamageSource, Explosion, RadiusEffect,
+    Damage, DamageKind, DamageSource, Explosion, RadiusEffect,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
@@ -56,6 +56,7 @@ impl<'a> System<'a> for Sys {
                                 effects: vec![
                                     RadiusEffect::Entity(Effect::Damage(Damage {
                                         source: DamageSource::Explosion,
+                                        kind: DamageKind::Energy,
                                         value: 400.0,
                                     })),
                                     RadiusEffect::Entity(Effect::PoiseChange(PoiseChange {
@@ -150,6 +151,7 @@ impl<'a> System<'a> for Sys {
                                 effects: vec![
                                     RadiusEffect::Entity(Effect::Damage(Damage {
                                         source: DamageSource::Explosion,
+                                        kind: DamageKind::Energy,
                                         value: 50.0,
                                     })),
                                     RadiusEffect::Entity(Effect::PoiseChange(PoiseChange {

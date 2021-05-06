@@ -13,6 +13,7 @@ ComboMelee(
             base_swing_duration: 0.1,
             base_recover_duration: 0.3,
             forward_movement: 1.0,
+            damage_kind: Crushing,
         ),
         (
             stage: 2,
@@ -27,6 +28,7 @@ ComboMelee(
             base_swing_duration: 0.1,
             base_recover_duration: 0.3,
             forward_movement: 1.5,
+            damage_kind: Crushing,
         ),
     ],
     initial_energy_gain: 0,

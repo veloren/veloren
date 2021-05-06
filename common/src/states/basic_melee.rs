@@ -5,7 +5,7 @@ use crate::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
-    Damage, DamageSource, GroupTarget, Knockback, KnockbackDir,
+    Damage, DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -33,6 +33,8 @@ pub struct StaticData {
     pub damage_effect: Option<CombatEffect>,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
+    /// Which kind of damage does this attack deal
+    pub damage_kind: DamageKind,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -103,6 +105,7 @@ impl CharacterBehavior for Data {
                     let mut damage = AttackDamage::new(
                         Damage {
                             source: DamageSource::Melee,
+                            kind: self.static_data.damage_kind,
                             value: self.static_data.base_damage as f32,
                         },
                         Some(GroupTarget::OutOfGroup),

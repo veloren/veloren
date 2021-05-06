@@ -1,7 +1,7 @@
 use crate::{
     combat::{
-        Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageSource,
-        GroupTarget,
+        Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageKind,
+        DamageSource, GroupTarget,
     },
     comp::{beam, Body, CharacterState, EnergyChange, EnergySource, Ori, Pos, StateUpdate},
     event::ServerEvent,
@@ -114,6 +114,7 @@ impl CharacterBehavior for Data {
                     let mut damage = AttackDamage::new(
                         Damage {
                             source: DamageSource::Energy,
+                            kind: DamageKind::Energy,
                             value: self.static_data.damage,
                         },
                         Some(GroupTarget::OutOfGroup),

@@ -125,6 +125,7 @@ impl StateExt for State {
                     combat::Damage::compute_damage_reduction(
                         inventories.get(entity),
                         stats.get(entity),
+                        Some(damage.kind),
                     ),
                     source,
                     false,

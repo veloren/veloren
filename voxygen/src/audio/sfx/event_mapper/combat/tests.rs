@@ -1,6 +1,7 @@
 use super::*;
 use crate::audio::sfx::SfxEvent;
 use common::{
+    combat::DamageKind,
     comp::{
         inventory::loadout_builder::LoadoutBuilder, item::tool::ToolKind, CharacterAbilityType,
         CharacterState, InputKind, Item,
@@ -80,6 +81,7 @@ fn maps_basic_melee() {
                 max_angle: 1.0,
                 ability_info: empty_ability_info(),
                 damage_effect: None,
+                damage_kind: DamageKind::Slashing,
             },
             timer: Duration::default(),
             stage_section: states::utils::StageSection::Buildup,
@@ -125,6 +127,7 @@ fn matches_ability_stage() {
                     base_swing_duration: Duration::from_millis(200),
                     base_recover_duration: Duration::from_millis(400),
                     forward_movement: 0.5,
+                    damage_kind: DamageKind::Slashing,
                 }],
                 initial_energy_gain: 0.0,
                 max_energy_gain: 100.0,
@@ -183,6 +186,7 @@ fn ignores_different_ability_stage() {
                     base_swing_duration: Duration::from_millis(200),
                     base_recover_duration: Duration::from_millis(400),
                     forward_movement: 0.5,
+                    damage_kind: DamageKind::Slashing,
                 }],
                 initial_energy_gain: 0.0,
                 max_energy_gain: 100.0,

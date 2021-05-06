@@ -1,7 +1,7 @@
 use crate::{
     combat::{
         Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement, Damage,
-        DamageSource, GroupTarget, Knockback, KnockbackDir,
+        DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
     },
     comp::item::Reagent,
     uid::Uid,
@@ -85,6 +85,7 @@ impl ProjectileConstructor {
                 let damage = AttackDamage::new(
                     Damage {
                         source: DamageSource::Projectile,
+                        kind: DamageKind::Piercing,
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),
@@ -115,6 +116,7 @@ impl ProjectileConstructor {
                 let damage = AttackDamage::new(
                     Damage {
                         source: DamageSource::Explosion,
+                        kind: DamageKind::Energy,
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),
@@ -144,6 +146,7 @@ impl ProjectileConstructor {
                 let damage = AttackDamage::new(
                     Damage {
                         source: DamageSource::Explosion,
+                        kind: DamageKind::Energy,
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),

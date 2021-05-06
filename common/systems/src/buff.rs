@@ -77,8 +77,11 @@ impl<'a> System<'a> for Sys {
                 }
             }
 
-            let damage_reduction =
-                Damage::compute_damage_reduction(read_data.inventories.get(entity), Some(&stat));
+            let damage_reduction = Damage::compute_damage_reduction(
+                read_data.inventories.get(entity),
+                Some(&stat),
+                None,
+            );
             if (damage_reduction - 1.0).abs() < f32::EPSILON {
                 for (id, buff) in buff_comp.buffs.iter() {
                     if !buff.kind.is_buff() {
