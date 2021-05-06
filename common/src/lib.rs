@@ -82,9 +82,9 @@ pub mod volumes;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub use cached_spatial_grid::CachedSpatialGrid;
-pub use combat::DamageSource;
 #[cfg(not(target_arch = "wasm32"))]
 pub use combat::{Damage, GroupTarget, Knockback, KnockbackDir};
+pub use combat::{DamageKind, DamageSource};
 #[cfg(not(target_arch = "wasm32"))]
 pub use comp::inventory::loadout_builder::LoadoutBuilder;
 #[cfg(not(target_arch = "wasm32"))]

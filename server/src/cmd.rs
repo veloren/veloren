@@ -29,7 +29,7 @@ use common::{
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     uid::Uid,
     vol::RectVolSize,
-    Damage, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
+    Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
 };
 use common_net::{
     msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
@@ -1671,6 +1671,7 @@ fn handle_explosion(
                 effects: vec![
                     RadiusEffect::Entity(Effect::Damage(Damage {
                         source: DamageSource::Explosion,
+                        kind: DamageKind::Energy,
                         value: 100.0 * power,
                     })),
                     RadiusEffect::TerrainDestruction(power),

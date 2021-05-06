@@ -1,6 +1,6 @@
 use crate::{
     assets::{self, Asset},
-    combat::{self, CombatEffect, Knockback},
+    combat::{self, CombatEffect, DamageKind, Knockback},
     comp::{
         aura, beam, buff, inventory::item::tool::ToolKind, projectile::ProjectileConstructor,
         skills, Body, CharacterState, EnergySource, LightEmitter, StateUpdate,
@@ -69,6 +69,7 @@ pub enum CharacterAbility {
         range: f32,
         max_angle: f32,
         damage_effect: Option<CombatEffect>,
+        damage_kind: DamageKind,
     },
     BasicRanged {
         energy_cost: f32,
@@ -116,6 +117,7 @@ pub enum CharacterAbility {
         recover_duration: f32,
         charge_through: bool,
         is_interruptible: bool,
+        damage_kind: DamageKind,
     },
     BasicBlock {
         buildup_duration: f32,
@@ -156,6 +158,7 @@ pub enum CharacterAbility {
         knockback: f32,
         forward_leap_strength: f32,
         vertical_leap_strength: f32,
+        damage_kind: DamageKind,
     },
     SpinMelee {
         buildup_duration: f32,
@@ -174,6 +177,7 @@ pub enum CharacterAbility {
         num_spins: u32,
         specifier: Option<spin_melee::FrontendSpecifier>,
         target: Option<combat::GroupTarget>,
+        damage_kind: DamageKind,
     },
     ChargedMelee {
         energy_cost: f32,
@@ -192,6 +196,7 @@ pub enum CharacterAbility {
         hit_timing: f32,
         recover_duration: f32,
         specifier: Option<charged_melee::FrontendSpecifier>,
+        damage_kind: DamageKind,
     },
     ChargedRanged {
         energy_cost: f32,
@@ -209,6 +214,7 @@ pub enum CharacterAbility {
         initial_projectile_speed: f32,
         scaled_projectile_speed: f32,
         move_speed: f32,
+        damage_kind: DamageKind,
     },
     Shockwave {
         energy_cost: f32,
@@ -224,6 +230,7 @@ pub enum CharacterAbility {
         shockwave_duration: f32,
         requires_ground: bool,
         move_efficiency: f32,
+        damage_kind: DamageKind,
     },
     BasicBeam {
         buildup_duration: f32,
@@ -296,6 +303,7 @@ impl Default for CharacterAbility {
             range: 3.5,
             max_angle: 15.0,
             damage_effect: None,
+            damage_kind: DamageKind::Crushing,
         }
     }
 }
@@ -1198,6 +1206,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 max_angle,
                 damage_effect,
                 energy_cost: _,
+                damage_kind,
             } => CharacterState::BasicMelee(basic_melee::Data {
                 static_data: basic_melee::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1210,6 +1219,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     max_angle: *max_angle,
                     damage_effect: *damage_effect,
                     ability_info,
+                    damage_kind: *damage_kind,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
@@ -1270,6 +1280,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 recover_duration,
                 charge_through,
                 is_interruptible,
+                damage_kind,
             } => CharacterState::DashMelee(dash_melee::Data {
                 static_data: dash_melee::StaticData {
                     base_damage: *base_damage,
@@ -1289,6 +1300,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     is_interruptible: *is_interruptible,
                     ability_info,
+                    damage_kind: *damage_kind,
                 },
                 auto_charge: false,
                 timer: Duration::default(),
@@ -1376,6 +1388,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 max_angle,
                 forward_leap_strength,
                 vertical_leap_strength,
+                damage_kind,
             } => CharacterState::LeapMelee(leap_melee::Data {
                 static_data: leap_melee::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1390,6 +1403,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     forward_leap_strength: *forward_leap_strength,
                     vertical_leap_strength: *vertical_leap_strength,
                     ability_info,
+                    damage_kind: *damage_kind,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
@@ -1412,6 +1426,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 num_spins,
                 specifier,
                 target,
+                damage_kind,
             } => CharacterState::SpinMelee(spin_melee::Data {
                 static_data: spin_melee::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1431,6 +1446,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     target: *target,
                     ability_info,
                     specifier: *specifier,
+                    damage_kind: *damage_kind,
                 },
                 timer: Duration::default(),
                 consecutive_spins: 1,
@@ -1454,6 +1470,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 range,
                 max_angle,
                 specifier,
+                damage_kind,
             } => CharacterState::ChargedMelee(charged_melee::Data {
                 static_data: charged_melee::StaticData {
                     energy_cost: *energy_cost,
@@ -1473,6 +1490,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     ability_info,
                     specifier: *specifier,
+                    damage_kind: *damage_kind,
                 },
                 stage_section: StageSection::Charge,
                 timer: Duration::default(),
@@ -1495,6 +1513,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 initial_projectile_speed,
                 scaled_projectile_speed,
                 move_speed,
+                damage_kind,
             } => CharacterState::ChargedRanged(charged_ranged::Data {
                 static_data: charged_ranged::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1512,6 +1531,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     scaled_projectile_speed: *scaled_projectile_speed,
                     move_speed: *move_speed,
                     ability_info,
+                    damage_kind: *damage_kind,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
@@ -1560,6 +1580,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 shockwave_duration,
                 requires_ground,
                 move_efficiency,
+                damage_kind,
             } => CharacterState::Shockwave(shockwave::Data {
                 static_data: shockwave::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1575,6 +1596,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     requires_ground: *requires_ground,
                     move_efficiency: *move_efficiency,
                     ability_info,
+                    damage_kind: *damage_kind,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,

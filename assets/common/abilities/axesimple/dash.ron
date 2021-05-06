@@ -16,4 +16,5 @@ DashMelee(
     recover_duration: 1.2,
     charge_through: true,
     is_interruptible: true,
+    damage_kind: Slashing,
 )

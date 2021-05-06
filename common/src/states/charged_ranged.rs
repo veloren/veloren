@@ -1,7 +1,7 @@
 use crate::{
     combat::{
         Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement, Damage,
-        DamageSource, GroupTarget, Knockback, KnockbackDir,
+        DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
     },
     comp::{
         projectile, Body, CharacterState, EnergyChange, EnergySource, LightEmitter, Projectile,
@@ -46,6 +46,8 @@ pub struct StaticData {
     pub move_speed: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
+    /// What kind of damage the attack does
+    pub damage_kind: DamageKind,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -107,6 +109,7 @@ impl CharacterBehavior for Data {
                     let damage = AttackDamage::new(
                         Damage {
                             source: DamageSource::Projectile,
+                            kind: self.static_data.damage_kind,
                             value: self.static_data.initial_damage as f32
                                 + charge_frac * self.static_data.scaled_damage as f32,
                         },

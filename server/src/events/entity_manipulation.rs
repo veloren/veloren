@@ -26,7 +26,7 @@ use common::{
     uid::{Uid, UidAllocator},
     util::Dir,
     vol::ReadVol,
-    Damage, DamageSource, Explosion, GroupTarget, RadiusEffect,
+    Damage, DamageKind, DamageSource, Explosion, GroupTarget, RadiusEffect,
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_state::BlockChange;
@@ -491,10 +491,14 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
         if let Some(mut health) = state.ecs().write_storage::<comp::Health>().get_mut(entity) {
             let damage = Damage {
                 source: DamageSource::Falling,
+                kind: DamageKind::Crushing,
                 value: falldmg,
             };
-            let damage_reduction =
-                Damage::compute_damage_reduction(inventories.get(entity), stats.get(entity));
+            let damage_reduction = Damage::compute_damage_reduction(
+                inventories.get(entity),
+                stats.get(entity),
+                Some(DamageKind::Crushing),
+            );
             let change = damage.calculate_health_change(damage_reduction, None, false, 0.0, 1.0);
             health.change_by(change);
         }

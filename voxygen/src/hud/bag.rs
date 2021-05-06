@@ -785,7 +785,8 @@ impl<'a> Widget for Bag<'a> {
                 });
                 let protection_txt = format!(
                     "{}%",
-                    (100.0 * Damage::compute_damage_reduction(Some(inventory), Some(self.stats)))
+                    (100.0
+                        * Damage::compute_damage_reduction(Some(inventory), Some(self.stats), None,))
                         as i32
                 );
                 let health_txt = format!("{}", (self.health.maximum() as f32 / 10.0) as usize);

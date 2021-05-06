@@ -15,4 +15,5 @@ SpinMelee(
     num_spins: 3,
     specifier: None,
     target: Some(OutOfGroup),
+    damage_kind: Slashing,
 )
