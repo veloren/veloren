@@ -3473,22 +3473,35 @@ impl<'a> AgentData<'a> {
         const GOLEM_MELEE_RANGE: f32 = 5.0;
         const GOLEM_LASER_RANGE: f32 = 30.0;
         const GOLEM_LONG_RANGE: f32 = 50.0;
-        const GOLEM_TARGET_SPEED: f32 = 7.5;
+        const GOLEM_TARGET_SPEED: f32 = 8.0;
         let golem_melee_range = self.body.map_or(0.0, |b| b.radius()) + GOLEM_MELEE_RANGE;
-        let target_speed_sqd = agent
+        // Magnitude squared of cross product of target velocity with golem orientation
+        let target_speed_cross_sqd = agent
             .target
             .as_ref()
             .map(|t| t.target)
             .and_then(|e| read_data.velocities.get(e))
-            .map_or(0.0, |v| v.0.magnitude_squared());
+            .map_or(0.0, |v| v.0.cross(self.ori.look_vec()).magnitude_squared());
         if attack_data.dist_sqrd < golem_melee_range.powi(2) {
-            // If target is close, whack them
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Primary));
+            if agent.action_state.counter < 15.0 {
+                // If target is close, whack them
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+                agent.action_state.counter += read_data.dt.0;
+            } else {
+                // If whacked for too long, nuke them
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Ability(1)));
+                if matches!(self.char_state, CharacterState::BasicRanged(c) if matches!(c.stage_section, StageSection::Recover))
+                {
+                    agent.action_state.counter = 0.0;
+                }
+            }
         } else if attack_data.dist_sqrd < GOLEM_LASER_RANGE.powi(2) {
             if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(10))
-                || target_speed_sqd < GOLEM_TARGET_SPEED.powi(2)
+                || target_speed_cross_sqd < GOLEM_TARGET_SPEED.powi(2)
                     && can_see_tgt(
                         &*read_data.terrain,
                         self.pos,
@@ -3496,9 +3509,8 @@ impl<'a> AgentData<'a> {
                         attack_data.dist_sqrd,
                     )
             {
-                // If already lasering, keep lasering if target in range threshold and
-                // haven't been lasering for more than 10 seconds already
-                // Of if target is moving slow-ish still, laser them anyways
+                // If target in range threshold and haven't been lasering for more than 10
+                // seconds already or if target is moving slow-ish, laser them
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Secondary));
@@ -3509,7 +3521,7 @@ impl<'a> AgentData<'a> {
                     .push(ControlAction::basic_input(InputKind::Ability(0)));
             }
         } else if attack_data.dist_sqrd < GOLEM_LONG_RANGE.powi(2) {
-            if target_speed_sqd < GOLEM_TARGET_SPEED.powi(2)
+            if target_speed_cross_sqd < GOLEM_TARGET_SPEED.powi(2)
                 && can_see_tgt(
                     &*read_data.terrain,
                     self.pos,
