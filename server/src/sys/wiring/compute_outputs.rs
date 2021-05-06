@@ -1,5 +1,5 @@
 use super::WiringData;
-use crate::wiring::OutputFormula;
+use crate::wiring::{Logic, LogicKind, OutputFormula};
 use common::{
     comp::{PhysicsState, Pos},
     resources::EntitiesDiedLastTick,
@@ -84,9 +84,8 @@ pub fn compute_output(
     match output_formula {
         OutputFormula::Constant { value } => *value,
         OutputFormula::Input { name } => *inputs.get(name).unwrap_or(&0.0),
-        OutputFormula::Logic(_logic) => {
-            warn!("Not implemented OutputFormula::Logic");
-            0.0
+        OutputFormula::Logic(logic) => {
+            output_formula_logic(logic, inputs, physics_state, entities_died_last_tick, pos)
         },
         OutputFormula::SineWave { .. } => {
             warn!("Not implemented OutputFormula::SineWave");
@@ -129,4 +128,35 @@ fn output_formula_on_death(
                 .unwrap_or(0.0);
     }
     0.0
+}
+
+#[allow(clippy::too_many_arguments)]
+fn output_formula_logic(
+    logic: &Logic,
+    inputs: &HashMap<String, f32>,
+    physics_state: Option<&PhysicsState>,
+    entities_died_last_tick: &Read<EntitiesDiedLastTick>,
+    pos: Option<&Pos>,
+) -> f32 {
+    let left = compute_output(
+        &logic.left,
+        inputs,
+        physics_state,
+        entities_died_last_tick,
+        pos,
+    );
+    let right = compute_output(
+        &logic.right,
+        inputs,
+        physics_state,
+        entities_died_last_tick,
+        pos,
+    );
+    match logic.kind {
+        LogicKind::Max => f32::max(left, right),
+        LogicKind::Min => f32::min(left, right),
+        LogicKind::Sub => left - right,
+        LogicKind::Sum => left + right,
+        LogicKind::Mul => left * right,
+    }
 }
