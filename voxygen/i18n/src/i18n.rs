@@ -32,7 +32,7 @@ pub struct Font {
     pub asset_key: String,
 
     /// Scale ratio to resize the UI text dynamicly
-    pub scale_ratio: f32,
+    scale_ratio: f32,
 }
 
 impl Font {
@@ -48,38 +48,38 @@ pub type Fonts = HashMap<String, Font>;
 /// See `Language` for more info on each attributes
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct RawLocalization {
-    pub sub_directories: Vec<String>,
-    pub string_map: HashMap<String, String>,
-    pub vector_map: HashMap<String, Vec<String>>,
-    pub convert_utf8_to_ascii: bool,
-    pub fonts: Fonts,
-    pub metadata: LanguageMetadata,
+    pub(crate) sub_directories: Vec<String>,
+    pub(crate) string_map: HashMap<String, String>,
+    pub(crate) vector_map: HashMap<String, Vec<String>>,
+    pub(crate) convert_utf8_to_ascii: bool,
+    pub(crate) fonts: Fonts,
+    pub(crate) metadata: LanguageMetadata,
 }
 
 /// Store internationalization data
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 struct Language {
     /// A list of subdirectories to lookup for localization files
-    pub sub_directories: Vec<String>,
+    pub(crate) sub_directories: Vec<String>,
 
     /// A map storing the localized texts
     ///
     /// Localized content can be accessed using a String key.
-    pub string_map: HashMap<String, String>,
+    pub(crate) string_map: HashMap<String, String>,
 
     /// A map for storing variations of localized texts, for example multiple
     /// ways of saying "Help, I'm under attack". Used primarily for npc
     /// dialogue.
-    pub vector_map: HashMap<String, Vec<String>>,
+    pub(crate) vector_map: HashMap<String, Vec<String>>,
 
     /// Whether to convert the input text encoded in UTF-8
     /// into a ASCII version by using the `deunicode` crate.
-    pub convert_utf8_to_ascii: bool,
+    pub(crate) convert_utf8_to_ascii: bool,
 
     /// Font configuration is stored here
-    pub fonts: Fonts,
+    pub(crate) fonts: Fonts,
 
-    pub metadata: LanguageMetadata,
+    pub(crate) metadata: LanguageMetadata,
 }
 
 /// Store internationalization maps
@@ -89,12 +89,12 @@ pub struct LocalizationFragment {
     /// A map storing the localized texts
     ///
     /// Localized content can be accessed using a String key.
-    pub string_map: HashMap<String, String>,
+    pub(crate) string_map: HashMap<String, String>,
 
     /// A map for storing variations of localized texts, for example multiple
     /// ways of saying "Help, I'm under attack". Used primarily for npc
     /// dialogue.
-    pub vector_map: HashMap<String, Vec<String>>,
+    pub(crate) vector_map: HashMap<String, Vec<String>>,
 }
 
 impl Language {
