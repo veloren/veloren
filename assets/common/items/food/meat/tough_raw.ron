@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Raw Beef Sliver",
-    description: "Small hunk of animal meat, best after cooking.",
+    name: "Raw Tough Meat",
+    description: "Peculiar bit of meat, best after cooking.",
     kind: Consumable(
-        kind: "BeefSmallRaw",
+        kind: "ToughRaw",
         effect: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 9.0,
+                    strength: 12.0,
                     duration: Some((
                             secs: 3,
                             nanos: 0,

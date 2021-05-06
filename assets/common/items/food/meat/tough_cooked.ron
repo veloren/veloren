@@ -1,15 +1,15 @@
 ItemDef(
-    name: "Raw Beef Slab",
-    description: "Chunk of animal meat, best after cooking.",
+    name: "Cooked Tough Meat",
+    description: "Tastes exotic.",
     kind: Consumable(
-        kind: "BeefLargeRaw",
+        kind: "ToughCooked",
         effect: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 15.0,
+                    strength: 20.0,
                     duration: Some((
-                            secs: 3,
+                            secs: 10,
                             nanos: 0,
                         )),
                     ),

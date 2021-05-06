@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Cooked Sliver of Beef",
+    name: "Cooked Meat Slab",
     description: "Medium Rare.",
     kind: Consumable(
-        kind: "BeefSmallCooked",
+        kind: "BeastLargeCooked",
         effect: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 15.0,
+                    strength: 25.0,
                     duration: Some((
                             secs: 10,
                             nanos: 0,

@@ -1893,20 +1893,28 @@
         "voxel.sprite.food.meat.fish_cooked",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Consumable("BeefSmallRaw"): VoxTrans(
-        "voxel.sprite.food.meat.beef_small_raw",
+    Consumable("BeastSmallRaw"): VoxTrans(
+        "voxel.sprite.food.meat.beast_small_raw",
         (0.0, 0.0, 0.0), (-50.0, 10.0, 0.0), 1.0,
     ),
-    Consumable("BeefSmallCooked"): VoxTrans(
-        "voxel.sprite.food.meat.beef_small_cooked",
+    Consumable("BeastSmallCooked"): VoxTrans(
+        "voxel.sprite.food.meat.beast_small_cooked",
         (0.0, 0.0, 0.0), (-50.0, 20.0, 0.0), 1.0,
     ),
-    Consumable("BeefLargeRaw"): VoxTrans(
-        "voxel.sprite.food.meat.beef_large_raw",
+    Consumable("ToughRaw"): VoxTrans(
+        "voxel.sprite.food.meat.tough_raw",
+        (0.0, 0.0, 0.0), (-50.0, 10.0, 0.0), 1.0,
+    ),
+    Consumable("ToughCooked"): VoxTrans(
+        "voxel.sprite.food.meat.tough_cooked",
+        (0.0, 0.0, 0.0), (-50.0, 20.0, 0.0), 1.0,
+    ),
+    Consumable("BeastLargeRaw"): VoxTrans(
+        "voxel.sprite.food.meat.beast_large_raw",
         (-1.0, 0.0, 0.0), (-80.0, 40.0, 0.0), 0.8,
     ),
-    Consumable("BeefLargeCooked"): VoxTrans(
-        "voxel.sprite.food.meat.beef_large_cooked",
+    Consumable("BeastLargeCooked"): VoxTrans(
+        "voxel.sprite.food.meat.beast_large_cooked",
         (-1.0, 0.0, 0.0), (-80.0, 40.0, 0.0), 0.8,
     ),
     Consumable("PlainSalad"): VoxTrans(
