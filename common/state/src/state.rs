@@ -9,7 +9,10 @@ use common::{
     event::{EventBus, LocalEvent, ServerEvent},
     outcome::Outcome,
     region::RegionMap,
-    resources::{DeltaTime, GameMode, PlayerEntity, PlayerPhysicsSettings, Time, TimeOfDay},
+    resources::{
+        DeltaTime, EntitiesDiedLastTick, GameMode, PlayerEntity, PlayerPhysicsSettings, Time,
+        TimeOfDay,
+    },
     slowjob::SlowJobPool,
     terrain::{Block, TerrainChunk, TerrainGrid},
     time::DayPeriod,
@@ -208,6 +211,7 @@ impl State {
         ecs.insert(game_mode);
         ecs.insert(Vec::<common::outcome::Outcome>::new());
         ecs.insert(common::CachedSpatialGrid::default());
+        ecs.insert(EntitiesDiedLastTick::default());
 
         let num_cpu = num_cpus::get() as u64;
         let slow_limit = (num_cpu / 2 + num_cpu / 4).max(1);

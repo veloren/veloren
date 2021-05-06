@@ -3,12 +3,13 @@ use std::ops::DerefMut;
 use super::{compute_outputs::compute_output, WiringData};
 use crate::wiring::{OutputFormula, WiringActionEffect};
 use common::{
-    comp::{object, Body, LightEmitter, PhysicsState, ProjectileConstructor},
+    comp::{object, Body, LightEmitter, PhysicsState, Pos, ProjectileConstructor},
     event::{Emitter, ServerEvent},
+    resources::EntitiesDiedLastTick,
     util::Dir,
 };
 use hashbrown::HashMap;
-use specs::{join::Join, Entity};
+use specs::{join::Join, Entity, Read};
 use tracing::warn;
 use vek::Rgb;
 
@@ -19,6 +20,8 @@ pub fn dispatch_actions(system_data: &mut WiringData) {
         wiring_elements,
         physics_states,
         light_emitters,
+        entities_died_last_tick,
+        pos,
         ..
     } = system_data;
     let mut server_emitter = event_bus.emitter();
@@ -28,10 +31,11 @@ pub fn dispatch_actions(system_data: &mut WiringData) {
         wiring_elements,
         physics_states.maybe(),
         light_emitters.maybe(),
+        pos.maybe(),
     )
         .join()
         .for_each(
-            |(entity, wiring_element, physics_state, mut light_emitter)| {
+            |(entity, wiring_element, physics_state, mut light_emitter, pos)| {
                 wiring_element
                     .actions
                     .iter()
@@ -40,6 +44,8 @@ pub fn dispatch_actions(system_data: &mut WiringData) {
                             &wiring_action.formula,
                             &wiring_element.inputs,
                             physics_state,
+                            entities_died_last_tick,
+                            pos,
                         ) >= wiring_action.threshold
                     })
                     .for_each(|wiring_action| {
@@ -50,12 +56,15 @@ pub fn dispatch_actions(system_data: &mut WiringData) {
                             &mut server_emitter,
                             &mut light_emitter,
                             physics_state,
+                            entities_died_last_tick,
+                            pos,
                         );
                     })
             },
         )
 }
 
+#[allow(clippy::too_many_arguments)]
 fn dispatch_action(
     entity: Entity,
     inputs: &HashMap<String, f32>,
@@ -65,6 +74,8 @@ fn dispatch_action(
 
     light_emitter: &mut Option<impl DerefMut<Target = LightEmitter>>,
     physics_state: Option<&PhysicsState>,
+    entities_died_last_tick: &Read<EntitiesDiedLastTick>,
+    pos: Option<&Pos>,
 ) {
     action_effects
         .iter()
@@ -82,6 +93,8 @@ fn dispatch_action(
                 b,
                 &mut light_emitter.as_deref_mut(),
                 physics_state,
+                entities_died_last_tick,
+                pos,
             ),
         });
 }
@@ -104,6 +117,7 @@ fn dispatch_action_spawn_projectile(
     });
 }
 
+#[allow(clippy::too_many_arguments)]
 fn dispatch_action_set_light(
     inputs: &HashMap<String, f32>,
     r: &OutputFormula,
@@ -113,13 +127,15 @@ fn dispatch_action_set_light(
     light_emitter: &mut Option<&mut LightEmitter>,
 
     physics_state: Option<&PhysicsState>,
+    entities_died_last_tick: &Read<EntitiesDiedLastTick>,
+    pos: Option<&Pos>,
 ) {
     if let Some(light_emitter) = light_emitter {
         // TODO: make compute_output accept multiple formulas
 
-        let computed_r = compute_output(r, inputs, physics_state);
-        let computed_g = compute_output(g, inputs, physics_state);
-        let computed_b = compute_output(b, inputs, physics_state);
+        let computed_r = compute_output(r, inputs, physics_state, entities_died_last_tick, pos);
+        let computed_g = compute_output(g, inputs, physics_state, entities_died_last_tick, pos);
+        let computed_b = compute_output(b, inputs, physics_state, entities_died_last_tick, pos);
 
         light_emitter.col = Rgb::new(computed_r, computed_g, computed_b);
     }

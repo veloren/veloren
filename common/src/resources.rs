@@ -1,3 +1,4 @@
+use crate::comp::Pos;
 use serde::{Deserialize, Serialize};
 use specs::Entity;
 
@@ -12,6 +13,9 @@ pub struct Time(pub f64);
 /// A resource that stores the time since the previous tick.
 #[derive(Default)]
 pub struct DeltaTime(pub f32);
+
+#[derive(Default)]
+pub struct EntitiesDiedLastTick(pub Vec<(Entity, Pos)>);
 
 /// A resource that indicates what mode the local game is being played in.
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
