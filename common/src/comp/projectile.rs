@@ -226,6 +226,7 @@ impl ProjectileConstructor {
                 let damage = AttackDamage::new(
                     Damage {
                         source: DamageSource::Explosion,
+                        kind: DamageKind::Energy,
                         value: damage,
                         kind: DamageKind::Energy,
                     },

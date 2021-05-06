@@ -9,4 +9,5 @@ BasicMelee(
     range: 5.0,
     max_angle: 60.0,
     damage_effect: None,
+    damage_kind: Crushing,
 )

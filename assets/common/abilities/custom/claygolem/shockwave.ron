@@ -12,4 +12,5 @@ Shockwave(
     shockwave_duration: 5.0,
     requires_ground: true,
     move_efficiency: 0.0,
+    damage_kind: Crushing,
 )
