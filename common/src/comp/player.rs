@@ -5,6 +5,15 @@ use uuid::Uuid;
 
 const MAX_ALIAS_LEN: usize = 32;
 
+#[derive(Debug)]
+pub enum DisconnectReason {
+    Kicked,
+    NewerLogin,
+    NetworkError,
+    Timeout,
+    ClientRequested,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Player {
     pub alias: String,

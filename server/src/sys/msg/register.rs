@@ -145,7 +145,10 @@ impl<'a> System<'a> for Sys {
                     .find(|(_, _, old_player)| old_player.uuid() == uuid)
                 {
                     // Remove old client
-                    server_event_bus.emit_now(ServerEvent::ClientDisconnect(old_entity));
+                    server_event_bus.emit_now(ServerEvent::ClientDisconnect(
+                        old_entity,
+                        common::comp::DisconnectReason::NewerLogin,
+                    ));
                     let _ = old_client.send(ServerGeneral::Disconnect(DisconnectReason::Kicked(
                         String::from("You have logged in from another location."),
                     )));

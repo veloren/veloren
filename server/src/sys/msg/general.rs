@@ -1,4 +1,4 @@
-use crate::{client::Client, metrics::PlayerMetrics};
+use crate::client::Client;
 use common::{
     comp::{ChatMode, Player},
     event::{EventBus, ServerEvent},
@@ -9,8 +9,7 @@ use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{
     validate_chat_msg, ChatMsgValidationError, ClientGeneral, MAX_BYTES_CHAT_MSG,
 };
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage};
-use std::sync::atomic::Ordering;
+use specs::{Entities, Join, Read, ReadStorage};
 use tracing::{debug, error, warn};
 
 impl Sys {
@@ -19,9 +18,8 @@ impl Sys {
     fn handle_general_msg(
         server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
         entity: specs::Entity,
-        client: &Client,
+        _client: &Client,
         player: Option<&Player>,
-        player_metrics: &ReadExpect<'_, PlayerMetrics>,
         uids: &ReadStorage<'_, Uid>,
         chat_modes: &ReadStorage<'_, ChatMode>,
         msg: ClientGeneral,
@@ -56,12 +54,10 @@ impl Sys {
             },
             ClientGeneral::Terminate => {
                 debug!(?entity, "Client send message to terminate session");
-                player_metrics
-                    .clients_disconnected
-                    .with_label_values(&["gracefully"])
-                    .inc();
-                client.terminate_msg_recv.store(true, Ordering::Relaxed);
-                server_emitter.emit(ServerEvent::ClientDisconnect(entity));
+                server_emitter.emit(ServerEvent::ClientDisconnect(
+                    entity,
+                    common::comp::DisconnectReason::ClientRequested,
+                ));
             },
             _ => unreachable!("not a client_general msg"),
         }
@@ -78,7 +74,6 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, Time>,
-        ReadExpect<'a, PlayerMetrics>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, ChatMode>,
         ReadStorage<'a, Player>,
@@ -91,16 +86,7 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (
-            entities,
-            server_event_bus,
-            time,
-            player_metrics,
-            uids,
-            chat_modes,
-            players,
-            clients,
-        ): Self::SystemData,
+        (entities, server_event_bus, time, uids, chat_modes, players, clients): Self::SystemData,
     ) {
         let mut server_emitter = server_event_bus.emitter();
 
@@ -111,7 +97,6 @@ impl<'a> System<'a> for Sys {
                     entity,
                     client,
                     player,
-                    &player_metrics,
                     &uids,
                     &chat_modes,
                     msg,

@@ -172,11 +172,16 @@ impl Server {
                     rtsim_entity,
                 } => handle_create_ship(self, pos, ship, mountable, agent, rtsim_entity),
                 ServerEvent::CreateWaypoint(pos) => handle_create_waypoint(self, pos),
-                ServerEvent::ClientDisconnect(entity) => {
-                    frontend_events.push(handle_client_disconnect(self, entity, false))
+                ServerEvent::ClientDisconnect(entity, reason) => {
+                    frontend_events.push(handle_client_disconnect(self, entity, reason, false))
                 },
                 ServerEvent::ClientDisconnectWithoutPersistence(entity) => {
-                    frontend_events.push(handle_client_disconnect(self, entity, true))
+                    frontend_events.push(handle_client_disconnect(
+                        self,
+                        entity,
+                        common::comp::DisconnectReason::Kicked,
+                        true,
+                    ))
                 },
 
                 ServerEvent::ChunkRequest(entity, key) => {

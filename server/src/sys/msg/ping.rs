@@ -1,12 +1,11 @@
-use crate::{client::Client, metrics::PlayerMetrics, Settings};
+use crate::{client::Client, Settings};
 use common::{
     event::{EventBus, ServerEvent},
     resources::Time,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::PingMsg;
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage};
-use std::sync::atomic::Ordering;
+use specs::{Entities, Join, Read, ReadStorage};
 use tracing::{debug, info};
 
 impl Sys {
@@ -28,7 +27,6 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, Time>,
-        ReadExpect<'a, PlayerMetrics>,
         ReadStorage<'a, Client>,
         Read<'a, Settings>,
     );
@@ -39,7 +37,7 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (entities, server_event_bus, time, player_metrics, clients, settings): Self::SystemData,
+        (entities, server_event_bus, time, clients, settings): Self::SystemData,
     ) {
         let mut server_emitter = server_event_bus.emitter();
 
@@ -48,14 +46,11 @@ impl<'a> System<'a> for Sys {
 
             match res {
                 Err(e) => {
-                    if !client.terminate_msg_recv.load(Ordering::Relaxed) {
-                        debug!(?entity, ?e, "network error with client, disconnecting");
-                        player_metrics
-                            .clients_disconnected
-                            .with_label_values(&["network_error"])
-                            .inc();
-                        server_emitter.emit(ServerEvent::ClientDisconnect(entity));
-                    }
+                    debug!(?entity, ?e, "network error with client, disconnecting");
+                    server_emitter.emit(ServerEvent::ClientDisconnect(
+                        entity,
+                        common::comp::DisconnectReason::NetworkError,
+                    ));
                 },
                 Ok(1_u64..=u64::MAX) => {
                     // Update client ping.
@@ -66,14 +61,11 @@ impl<'a> System<'a> for Sys {
                     if time.0 - last_ping > settings.client_timeout.as_secs() as f64
                     // Timeout
                     {
-                        if !client.terminate_msg_recv.load(Ordering::Relaxed) {
-                            info!(?entity, "timeout error with client, disconnecting");
-                            player_metrics
-                                .clients_disconnected
-                                .with_label_values(&["timeout"])
-                                .inc();
-                            server_emitter.emit(ServerEvent::ClientDisconnect(entity));
-                        }
+                        info!(?entity, "timeout error with client, disconnecting");
+                        server_emitter.emit(ServerEvent::ClientDisconnect(
+                            entity,
+                            common::comp::DisconnectReason::Timeout,
+                        ));
                     } else if time.0 - last_ping > settings.client_timeout.as_secs() as f64 * 0.5 {
                         // Try pinging the client if the timeout is nearing.
                         client.send_fallible(PingMsg::Ping);

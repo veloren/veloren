@@ -84,6 +84,7 @@ pub use self::{
         Collider, Density, ForceUpdate, Mass, PhysicsState, Pos, PosVelDefer, PreviousPhysCache,
         Scale, Sticky, Vel,
     },
+    player::DisconnectReason,
     player::Player,
     poise::{Poise, PoiseChange, PoiseSource, PoiseState},
     projectile::{Projectile, ProjectileConstructor},
