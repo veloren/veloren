@@ -671,34 +671,43 @@ impl Floor {
                                         },
                                     },
                                 )),
-                            3 => entity
-                                .with_body(comp::Body::BipedSmall(
-                                    comp::biped_small::Body::random_with(
-                                        dynamic_rng,
-                                        &comp::biped_small::Species::Haniwa,
-                                    ),
-                                ))
-                                .with_name("Haniwa")
-                                .with_loadout_config(loadout_builder::LoadoutConfig::Haniwa)
-                                .with_skillset_config(
-                                    common::skillset_builder::SkillSetConfig::Haniwa,
-                                )
-                                .with_loot_drop(chosen.read().choose().to_item())
-                                .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0..5) {
-                                        0 => {
-                                            "common.items.npc_weapons.biped_small.haniwa.adlet_bow"
+                            3 => match dynamic_rng.gen_range(0..4) {
+                                0 => entity
+                                    .with_body(comp::Body::Object(comp::object::Body::HaniwaSentry))
+                                    .with_name("Haniwa Sentry".to_string())
+                                    .with_loot_drop(comp::Item::new_from_asset_expect(
+                                        "common.items.crafting_ing.stones",
+                                    )),
+                                _ => entity
+                                    .with_body(comp::Body::BipedSmall(
+                                        comp::biped_small::Body::random_with(
+                                            dynamic_rng,
+                                            &comp::biped_small::Species::Haniwa,
+                                        ),
+                                    ))
+                                    .with_name("Haniwa")
+                                    .with_loadout_config(loadout_builder::LoadoutConfig::Haniwa)
+                                    .with_skillset_config(
+                                        common::skillset_builder::SkillSetConfig::Haniwa,
+                                    )
+                                    .with_loot_drop(chosen.read().choose().to_item())
+                                    .with_main_tool(comp::Item::new_from_asset_expect(
+                                        match dynamic_rng.gen_range(0..5) {
+                                            0 => {
+                                                "common.items.npc_weapons.biped_small.haniwa.\
+                                                 adlet_bow"
+                                            },
+                                            1 => {
+                                                "common.items.npc_weapons.biped_small.haniwa.\
+                                                 gnoll_staff"
+                                            },
+                                            _ => {
+                                                "common.items.npc_weapons.biped_small.haniwa.\
+                                                 wooden_spear"
+                                            },
                                         },
-                                        1 => {
-                                            "common.items.npc_weapons.biped_small.haniwa.\
-                                             gnoll_staff"
-                                        },
-                                        _ => {
-                                            "common.items.npc_weapons.biped_small.haniwa.\
-                                             wooden_spear"
-                                        },
-                                    },
-                                )),
+                                    )),
+                            },
                             4 => entity
                                 .with_body(comp::Body::BipedSmall(
                                     comp::biped_small::Body::random_with(

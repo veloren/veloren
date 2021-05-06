@@ -606,6 +606,7 @@ impl Body {
             BuffKind::Burning => match self {
                 Body::Golem(g) => matches!(g.species, golem::Species::ClayGolem),
                 Body::BipedSmall(b) => matches!(b.species, biped_small::Species::Haniwa),
+                Body::Object(object::Body::HaniwaSentry) => true,
                 _ => false,
             },
             _ => false,
