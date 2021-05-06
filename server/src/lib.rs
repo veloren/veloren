@@ -861,7 +861,7 @@ impl Server {
             for (_, entity) in (&clients, &entities).join() {
                 info!("Emitting client disconnect event for entity: {:?}", entity);
                 let event = if with_persistence {
-                    ServerEvent::ClientDisconnect(entity)
+                    ServerEvent::ClientDisconnect(entity, comp::DisconnectReason::Kicked)
                 } else {
                     ServerEvent::ClientDisconnectWithoutPersistence(entity)
                 };

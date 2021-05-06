@@ -2478,7 +2478,10 @@ fn kick_player(
     server
         .state
         .mut_resource::<EventBus<ServerEvent>>()
-        .emit_now(ServerEvent::ClientDisconnect(target_player));
+        .emit_now(ServerEvent::ClientDisconnect(
+            target_player,
+            common::comp::DisconnectReason::Kicked,
+        ));
     Ok(())
 }
 

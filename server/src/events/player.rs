@@ -1,7 +1,7 @@
 use super::Event;
 use crate::{
-    client::Client, persistence::character_updater::CharacterUpdater, presence::Presence,
-    state_ext::StateExt, Server,
+    client::Client, metrics::PlayerMetrics, persistence::character_updater::CharacterUpdater,
+    presence::Presence, state_ext::StateExt, Server,
 };
 use common::{
     comp,
@@ -96,9 +96,20 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     }
 }
 
+fn get_reason_str(reason: &comp::DisconnectReason) -> &str {
+    match reason {
+        comp::DisconnectReason::Timeout => "timeout",
+        comp::DisconnectReason::NetworkError => "network_error",
+        comp::DisconnectReason::NewerLogin => "newer_login",
+        comp::DisconnectReason::Kicked => "kicked",
+        comp::DisconnectReason::ClientRequested => "client_requested",
+    }
+}
+
 pub fn handle_client_disconnect(
     server: &mut Server,
     mut entity: EcsEntity,
+    reason: comp::DisconnectReason,
     skip_persistence: bool,
 ) -> Event {
     span!(_guard, "handle_client_disconnect");
@@ -112,6 +123,14 @@ pub fn handle_client_disconnect(
         // receiving multiple `ServerEvent::ClientDisconnect` messages in a tick
         // intended for the same player, so the `None` case here is *not* a bug
         // and we should not log it as a potential issue.
+        server
+            .state()
+            .ecs()
+            .read_resource::<PlayerMetrics>()
+            .clients_disconnected
+            .with_label_values(&[get_reason_str(&reason)])
+            .inc();
+
         if let Some(participant) = client.participant.take() {
             let pid = participant.remote_pid();
             server.runtime.spawn(
@@ -135,7 +154,8 @@ pub fn handle_client_disconnect(
                 .instrument(tracing::debug_span!(
                     "client_disconnect",
                     ?pid,
-                    ?entity
+                    ?entity,
+                    ?reason,
                 )),
             );
         }

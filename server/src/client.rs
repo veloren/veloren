@@ -16,7 +16,6 @@ pub struct Client {
     pub participant: Option<Participant>,
     pub last_ping: Mutex<f64>,
     pub login_msg_sent: AtomicBool,
-    pub terminate_msg_recv: AtomicBool,
 
     //TODO: improve network crate so that `send` is no longer `&mut self` and we can get rid of
     // this Mutex. This Mutex is just to please the compiler as we do not get into contention
@@ -68,7 +67,6 @@ impl Client {
             participant: Some(participant),
             last_ping: Mutex::new(last_ping),
             login_msg_sent: AtomicBool::new(false),
-            terminate_msg_recv: AtomicBool::new(false),
             general_stream: Mutex::new(general_stream),
             ping_stream: Mutex::new(ping_stream),
             register_stream: Mutex::new(register_stream),
