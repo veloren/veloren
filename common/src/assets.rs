@@ -98,8 +98,13 @@ impl Image {
 
 pub struct ImageLoader;
 impl Loader<Image> for ImageLoader {
-    fn load(content: Cow<[u8]>, _: &str) -> Result<Image, BoxedError> {
-        let image = image::load_from_memory(&content)?;
+    fn load(content: Cow<[u8]>, ext: &str) -> Result<Image, BoxedError> {
+        let format = match ext {
+            "png" => image::ImageFormat::Png,
+            "jpg" => image::ImageFormat::Jpeg,
+            _ => return Err("unknown image format".into()),
+        };
+        let image = image::load_from_memory_with_format(&content, format)?;
         Ok(Image(Arc::new(image)))
     }
 }
