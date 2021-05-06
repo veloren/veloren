@@ -37,6 +37,7 @@ pub enum LogicKind {
     Max, // acts like Or
     Sub, // `|x| { 5.0 - x }` acts like Not, depending on reference voltages
     Sum,
+    Mul,
 }
 
 pub struct WiringAction {

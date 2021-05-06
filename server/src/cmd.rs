@@ -4,6 +4,7 @@
 
 use crate::{
     settings::{BanRecord, EditableSetting},
+    wiring::{Logic, OutputFormula},
     Server, SpawnPoint, StateExt,
 };
 use assets::AssetExt;
@@ -1721,9 +1722,39 @@ fn handle_spawn_wiring(
     pos.0.x += 3.0;
 
     let mut outputs1 = HashMap::new();
-    outputs1.insert(String::from("color"), wiring::OutputFormula::OnDeath {
-        value: 1.0,
-        radius: 30.0,
+    outputs1.insert(
+        "deaths_last_tick".to_string(),
+        wiring::OutputFormula::OnDeath {
+            value: 1.0,
+            radius: 30.0,
+        },
+    );
+    outputs1.insert(
+        "deaths_accumulated".to_string(),
+        OutputFormula::Logic(Box::new(Logic {
+            kind: wiring::LogicKind::Sum,
+            left: OutputFormula::Logic(Box::new(Logic {
+                kind: wiring::LogicKind::Sub,
+                left: OutputFormula::Input {
+                    name: "deaths_accumulated".to_string(),
+                },
+                right: OutputFormula::Logic(Box::new(Logic {
+                    kind: wiring::LogicKind::Min,
+                    left: OutputFormula::Input {
+                        name: "pressed".to_string(),
+                    },
+                    right: OutputFormula::Input {
+                        name: "deaths_accumulated".to_string(),
+                    },
+                })),
+            })),
+            right: OutputFormula::Input {
+                name: "deaths_last_tick".to_string(),
+            },
+        })),
+    );
+    outputs1.insert("pressed".to_string(), OutputFormula::OnCollide {
+        value: f32::MAX,
     });
 
     let builder1 = server
@@ -1757,9 +1788,9 @@ fn handle_spawn_wiring(
             actions: vec![
                 WiringAction {
                     formula: wiring::OutputFormula::Input {
-                        name: String::from("color"),
+                        name: String::from("deaths_accumulated"),
                     },
-                    threshold: 1.0,
+                    threshold: 5.0,
                     effects: vec![WiringActionEffect::SpawnProjectile {
                         constr: comp::ProjectileConstructor::Arrow {
                             damage: 1.0,
@@ -1798,12 +1829,32 @@ fn handle_spawn_wiring(
             outputs: HashMap::new(),
         })
         .with(Circuit {
-            wires: vec![Wire {
-                input_entity: ent1,
-                input_field: String::from("color"),
-                output_entity: ent2,
-                output_field: String::from("color"),
-            }],
+            wires: vec![
+                Wire {
+                    input_entity: ent1,
+                    input_field: String::from("deaths_last_tick"),
+                    output_entity: ent1,
+                    output_field: String::from("deaths_last_tick"),
+                },
+                Wire {
+                    input_entity: ent1,
+                    input_field: String::from("deaths_accumulated"),
+                    output_entity: ent1,
+                    output_field: String::from("deaths_accumulated"),
+                },
+                Wire {
+                    input_entity: ent1,
+                    input_field: String::from("pressed"),
+                    output_entity: ent1,
+                    output_field: String::from("pressed"),
+                },
+                Wire {
+                    input_entity: ent1,
+                    input_field: String::from("deaths_accumulated"),
+                    output_entity: ent2,
+                    output_field: String::from("deaths_accumulated"),
+                },
+            ],
         });
     builder3.build();
 
