@@ -5,10 +5,8 @@ use std::path::PathBuf;
 
 pub use assets_manager::{
     asset::Ron,
-    loader::{
-        self, BincodeLoader, BytesLoader, JsonLoader, LoadFrom, Loader, RonLoader, StringLoader,
-    },
-    source, Asset, AssetCache, BoxedError, Compound, Error,
+    loader::{self, RonLoader},
+    source, Asset, AssetCache, Compound, Error,
 };
 
 lazy_static! {
