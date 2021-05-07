@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Ironwood Logs",
+    description: "A particularly sturdy wood.",
+    kind: Ingredient(
+        kind: "IronwoodLogs",
+    ),
+    quality: High,
+    tags: [],
+)

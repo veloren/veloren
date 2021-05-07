@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Rawhide",
+    description: "A hide that has not been exposed to tanning.",
+    kind: Ingredient(
+        kind: "Rawhide",
+    ),
+    quality: Low,
+    tags: [],
+)

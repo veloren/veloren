@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Bamboo",
+    description: "A giant woody grass.",
+    kind: Ingredient(
+        kind: "Bamboo",
+    ),
+    quality: Common,
+    tags: [],
+)

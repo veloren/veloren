@@ -79,6 +79,8 @@ make_case_elim!(
         Crossbow = 64,
         ArrowTurret = 65,
         Coins = 66,
+        GoldOre = 67,
+        SilverOre = 68,
     }
 );
 
@@ -89,7 +91,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 67] = [
+pub const ALL_OBJECTS: [Body; 69] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -157,6 +159,8 @@ pub const ALL_OBJECTS: [Body; 67] = [
     Body::Crossbow,
     Body::ArrowTurret,
     Body::Coins,
+    Body::SilverOre,
+    Body::GoldOre,
 ];
 
 impl From<Body> for super::Body {
@@ -233,6 +237,8 @@ impl Body {
             Body::Crossbow => "crossbow",
             Body::ArrowTurret => "arrow_turret",
             Body::Coins => "coins",
+            Body::SilverOre => "silver_ore",
+            Body::GoldOre => "gold_ore",
         }
     }
 
@@ -320,6 +326,8 @@ impl Body {
             Body::Tent => 50.0,
             Body::TrainingDummy => 60.0,
             Body::WindowSpooky => 10.0,
+            Body::SilverOre => 1000.0,
+            Body::GoldOre => 1000.0,
         };
 
         Mass(m)

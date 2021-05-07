@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Lifecloth",
+    description: "A fabric imbued with special properties.",
+    kind: Ingredient(
+        kind: "Lifecloth",
+    ),
+    quality: High,
+    tags: [],
+)

@@ -1954,6 +1954,42 @@
         "voxel.sprite.crafting_ing.claw",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
+    Ingredient("Plate"): VoxTrans(
+        "voxel.sprite.crafting_ing.plate",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 1.0,
+    ),
+    Ingredient("Leather"): VoxTrans(
+        "voxel.sprite.crafting_ing.leather",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("DragonScale"): VoxTrans(
+        "voxel.sprite.crafting_ing.dragon_scale",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("SilverIngot"): VoxTrans(
+        "voxel.sprite.crafting_ing.silver_ingot",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("GoldIngot"): VoxTrans(
+        "voxel.sprite.crafting_ing.gold_ingot",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("GoldOre"): VoxTrans(
+        "voxel.sprite.crafting_ing.gold_ore_drop",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("SilverOre"): VoxTrans(
+        "voxel.sprite.crafting_ing.silver_ore_drop",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.8,
+    ),
+    Ingredient("OrichalcumIngot"): VoxTrans(
+        "voxel.sprite.crafting_ing.orichalcum_ingot",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("Scale"): VoxTrans(
+        "voxel.sprite.crafting_ing.scale",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
     Ingredient("Honey"): Png(
         "element.items.item_honey",
     ),
