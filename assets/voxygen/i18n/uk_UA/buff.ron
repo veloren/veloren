@@ -19,6 +19,8 @@
         "buff.desc.invulnerability": "Ви невразливий, тільки тримайтесь подалі від омели.",
         "buff.title.protectingward": "Захисна Аура",
         "buff.desc.protectingward": "Ви захищені від атак, у якомусь сенсі.",
+        "buff.title.frenzied": "Манія",
+        "buff.desc.frenzied": "Ви наділені небувалою швидкістю і можете не зважати на неістотні пошкодження.",
         // Debuffs
         "buff.title.cursed": "Проклін",
         "buff.desc.cursed": "Вас прокляли.",
@@ -26,6 +28,8 @@
         "buff.desc.bleed": "Завдає регулярних пошкодженнь.",
         "buff.title.burn": "У Вогні",
         "buff.desc.burn": "Ви згораєте заживо.",
+        "buff.title.crippled": "Калічення",
+        "buff.desc.crippled": "Ваші рухи дуже скуті через отримані травми.",
         // Stats
         "buff.stat.health": "Відновлює {str_total} Здоров'я",
         "buff.stat.increase_max_health": "Піднімає Максимальне Здоров'я на {strength}",

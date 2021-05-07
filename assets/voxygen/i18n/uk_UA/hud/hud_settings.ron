@@ -76,6 +76,7 @@
         "hud.settings.fullscreen_mode.exclusive": "Ексклюзивний",
         "hud.settings.fullscreen_mode.borderless": "Вікно без рамок",
         "hud.settings.particles": "Частинки",
+        "hud.settings.lossy_terrain_compression": "Стискання з втратами даних про місцевість",
         "hud.settings.resolution": "Роздільна здатність",
         "hud.settings.bit_depth": "Глибина кольору",
         "hud.settings.refresh_rate": "Частота оновлення",
@@ -99,6 +100,9 @@
 
         "hud.settings.awaitingkey": "Натисніть клавішу...",
         "hud.settings.unbound": "Нічого",
+
+        "hud.settings.english_fallback": "Використовувати англійську для неперекладених рядків",
+
         "hud.settings.reset_keybinds": "Значення за\n замовчуванням",
         "hud.settings.reset_gameplay": "Значення за\n замовчуванням",
         "hud.settings.reset_graphics": "Значення за\n замовчуванням",

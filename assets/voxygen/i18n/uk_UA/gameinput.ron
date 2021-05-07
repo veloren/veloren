@@ -5,6 +5,7 @@
     string_map: {
         "gameinput.primary": "Базова атака",
         "gameinput.secondary": "Додаткова атака",
+        "gameinput.block": "Блок",
         "gameinput.slot1": "Слот швидкого доступу 1",
         "gameinput.slot2": "Слот швидкого доступу 2",
         "gameinput.slot3": "Слот швидкого доступу 3",

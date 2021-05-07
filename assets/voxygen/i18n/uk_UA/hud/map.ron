@@ -16,12 +16,16 @@
         "hud.map.difficulty_dungeon": "Складність\n\nПідземелля: {difficulty}",
         "hud.map.caves": "Печери",
         "hud.map.cave": "Печера",
+        "hud.map.peaks": "Гори",
         "hud.map.tree": "Гігантське дерево",
         "hud.map.trees": "Гігантські\nдерева",
         "hud.map.drag": "Область",
         "hud.map.zoom": "Масштаб",
         "hud.map.recenter": "Відцентрувати",
+        "hud.map.mid_click": "Додати вказівник",
         "hud.map.topo_map": "Топографічна\nмапа",
+        "hud.map.marked_location": "Вказівник",
+        "hud.map.marked_location_remove": "Натисніть, щоб видалити",
     },
 
 

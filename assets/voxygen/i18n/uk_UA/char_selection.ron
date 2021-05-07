@@ -24,6 +24,7 @@
         "char_selection.eyeshape": "Форма очей",
         "char_selection.accessories": "Аксесуари",
         "char_selection.create_info_name": "Назвіть вашого персонажа!",
+        "char_selection.version_mismatch": "УВАГА! Цей сервер використовує іншу (ймовірно несумісну) версію гри. Будь ласка, оновіть свою гру!"
     },
 
     vector_map: {
