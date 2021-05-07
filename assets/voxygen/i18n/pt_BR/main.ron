@@ -58,7 +58,8 @@ https://veloren.net/account/."#,
         "main.login.banned": "Você foi banido pelo seguinte motivo",
         "main.login.kicked": "Você foi expulso pelo seguinte motivo",
         "main.login.select_language": "Escolha um Idioma",
-
+        "main.login.client_version": "Versão do Cliente",
+        "main.login.server_version": "Versão do Servidor",
         "main.servers.select_server": "Escolha um servidor",
         /// Fim da seção Main
     },

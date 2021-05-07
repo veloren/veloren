@@ -19,6 +19,8 @@
         "buff.desc.invulnerability": "Você não receberá dano de nenhum ataque.",
         "buff.title.protectingward": "Guardião Protetor",
         "buff.desc.protectingward": "Você está protegido, de alguma forma, de ataques.",
+        "buff.title.frenzied": "Frenético",
+        "buff.desc.frenzied": "Você é imbuído de um deslocamento descomunal e ignora pequenas lesões.",
         // Debuffs
         "buff.title.bleed": "Sangramento",
         "buff.desc.bleed": "Inflige Dano contínuo.",
@@ -26,6 +28,8 @@
         "buff.desc.cursed": "Você está amaldiçoado.",
         "buff.title.burn": "Em Chamas",
         "buff.desc.burn": "Você está queimando vivo",
+        "buff.title.crippled": "Manco",
+        "buff.desc.crippled": "Seu movimento está reduzido pois suas pernas estão severamente feridas.",
         // Buffs stats
         "buff.stat.health": "Restaura {str_total} de Vida",
         "buff.stat.increase_max_stamina": "Aumenta a Stamina Máxima em {strength}",
