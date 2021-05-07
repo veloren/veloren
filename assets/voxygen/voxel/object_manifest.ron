@@ -673,7 +673,7 @@
         bone0: (
             offset: (-4.5, -5.0, 0.0),
             central: ("object.silver_ore"),
-        )
+        ),
         bone1: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
@@ -683,7 +683,7 @@
         bone0: (
             offset: (-4.5, -5.0, 0.0),
             central: ("object.gold_ore"),
-        )
+        ),
         bone1: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
