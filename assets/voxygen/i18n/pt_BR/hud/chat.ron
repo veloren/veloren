@@ -3,6 +3,12 @@
 /// Localization for Portuguese (Brazil)
 (
     string_map: {
+        // Debuff outcomes
+        "hud.outcome.burning": "morreu de: queimadura",
+        "hud.outcome.curse": "morreu de: maldição",
+        "hud.outcome.bleeding": "morreu de: sangramento",
+        "hud.outcome.crippled": "morreu de: aleijamento",
+
         // Chat outputs
         "hud.chat.online_msg": "[{name}] está online.",
         "hud.chat.offline_msg": "{name} está offline",

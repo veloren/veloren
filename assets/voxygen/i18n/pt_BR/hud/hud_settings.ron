@@ -77,6 +77,7 @@
         "hud.settings.fullscreen_mode.exclusive": "Dedicado",
         "hud.settings.fullscreen_mode.borderless": "Sem bordas",
         "hud.settings.particles": "Partículas",
+        "hud.settings.lossy_terrain_compression": "Compressão de terreno com perdas",
         "hud.settings.resolution": "Resolução",
         "hud.settings.bit_depth": "Profundidade de bit",
         "hud.settings.refresh_rate": "Taxa de Atualização",        
@@ -90,7 +91,7 @@
         "hud.settings.shadow_rendering_mode.map": "Mapa",
         "hud.settings.shadow_rendering_mode.map.resolution": "Resolução",
         "hud.settings.lod_detail": "Detalhes",
-        "hud.settings.save_window_size": "Salvar Dimensões da Janela",
+        "hud.settings.save_window_size": "Salvar Dim. da Janela",
         "hud.settings.reset_graphics": "Restaurar Padrões",
 
 
@@ -100,6 +101,8 @@
         "hud.settings.sound_effect_volume": "Volume dos Efeitos",
         "hud.settings.audio_device": "Dispositivo de Áudio",
         "hud.settings.reset_sound": "Restaurar Padrões",
+
+        "hud.settings.english_fallback": "Inglês será exibido na falta de traduções",
 
         "hud.settings.awaitingkey": "Pressione uma tecla...",
         "hud.settings.unbound": "Nenhum",

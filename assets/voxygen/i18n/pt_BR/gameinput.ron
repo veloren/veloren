@@ -5,6 +5,7 @@
     string_map: {
         "gameinput.primary": "Ataque Básico",
         "gameinput.secondary": "Ataque Secundário/Bloqueio/Mira",
+        "gameinput.block": "Bloquear",
         "gameinput.slot1": "Hotbar Slot 1",
         "gameinput.slot2": "Hotbar Slot 2",
         "gameinput.slot3": "Hotbar Slot 3",
