@@ -400,6 +400,7 @@ impl<'a> Trade<'a> {
                     .resize(2 * MAX_TRADE_SLOTS, &mut ui.widget_id_generator());
             });
         }
+        let mut total_quantity = 0;
         for i in 0..MAX_TRADE_SLOTS {
             let slot = tradeslots.get(i).cloned().unwrap_or(TradeSlot {
                 index: i,
@@ -408,6 +409,7 @@ impl<'a> Trade<'a> {
                 ours,
                 entity,
             });
+            total_quantity += slot.quantity;
             let itemname = slot
                 .invslot
                 .and_then(|i| inventory.get(i))
@@ -425,6 +427,19 @@ impl<'a> Trade<'a> {
                     if is_present { 1.0 } else { 0.0 },
                 ))
                 .set(state.ids.inv_textslots[i + who * MAX_TRADE_SLOTS], ui);
+        }
+        if total_quantity == 0 {
+            Text::new("Nothing!")
+                .top_left_with_margins_on(state.ids.inv_alignment[who], 10.0, 0.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(20))
+                .color(Color::Rgba(
+                    1.0,
+                    0.25 + 0.25 * (4.0 * self.pulse).sin(),
+                    0.0,
+                    1.0,
+                ))
+                .set(state.ids.inv_textslots[who * MAX_TRADE_SLOTS], ui);
         }
     }
 
