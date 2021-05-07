@@ -1007,36 +1007,15 @@ impl Floor {
                                 },
                                 3 => {
                                     let mut entities = Vec::new();
-                                    entities.push(
+                                    entities.resize_with(6, || {
                                         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                            .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
-                                            .with_name("Animal Trainer".to_string())
-                                            .with_loot_drop(chosen.read().choose().to_item())
-                                            .with_loadout_config(loadout_builder::LoadoutConfig::CultistAcolyte)
-                                            .with_skillset_config(
-                                                common::skillset_builder::SkillSetConfig::CultistAcolyte
-                                            )
-                                            .with_main_tool(comp::Item::new_from_asset_expect(
-                                                match dynamic_rng.gen_range(0..6) {
-                                                    0 => "common.items.weapons.axe.malachite_axe-0",
-                                                    1..=2 => "common.items.weapons.sword.cultist",
-                                                    3 => {
-                                                        "common.items.weapons.hammer.cultist_purp_2h-0"
-                                                    },
-                                                    4 => "common.items.weapons.staff.cultist_staff",
-                                                    _ => "common.items.weapons.bow.bone-1",
-                                                },
-                                            )),
-                                    );
-                                    entities.resize_with(entities.len() + 2, || {
-                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                            .with_body(comp::Body::QuadrupedMedium(
-                                                comp::quadruped_medium::Body::random_with(
+                                            .with_body(comp::Body::QuadrupedLow(
+                                                comp::quadruped_low::Body::random_with(
                                                     dynamic_rng,
-                                                    &comp::quadruped_medium::Species::Darkhound,
+                                                    &comp::quadruped_low::Species::Hakulaq,
                                                 ),
                                             ))
-                                            .with_name("Tamed Darkhound".to_string())
+                                            .with_name("Hakulaq".to_string())
                                             .with_loot_drop(chosen.read().choose().to_item())
                                     });
                                     entities
@@ -1056,20 +1035,60 @@ impl Floor {
                                 },
                                 5 => {
                                     let mut entities = Vec::new();
-                                    entities.resize_with(10, || {
-                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                            .with_body(comp::Body::BipedSmall(
-                                                comp::biped_small::Body::random_with(
-                                                    dynamic_rng,
-                                                    &comp::biped_small::Species::Husk,
-                                                ),
-                                            ))
-                                            .with_name("Cultist Husk".to_string())
-                                            .with_loot_drop(chosen.read().choose().to_item())
-                                            .with_loadout_config(
-                                                loadout_builder::LoadoutConfig::Husk,
-                                            )
-                                    });
+                                    match dynamic_rng.gen_range(0..2) {
+                                        0 => {
+                                            entities.push(
+                                                EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                                                    .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
+                                                    .with_name("Animal Trainer".to_string())
+                                                    .with_loot_drop(chosen.read().choose().to_item())
+                                                    .with_loadout_config(loadout_builder::LoadoutConfig::CultistAcolyte)
+                                                    .with_skillset_config(
+                                                        common::skillset_builder::SkillSetConfig::CultistAcolyte
+                                                    )
+                                                    .with_main_tool(comp::Item::new_from_asset_expect(
+                                                        match dynamic_rng.gen_range(0..6) {
+                                                            0 => "common.items.weapons.axe.malachite_axe-0",
+                                                            1..=2 => "common.items.weapons.sword.cultist",
+                                                            3 => {
+                                                                "common.items.weapons.hammer.cultist_purp_2h-0"
+                                                            },
+                                                            4 => "common.items.weapons.staff.cultist_staff",
+                                                            _ => "common.items.weapons.bow.bone-1",
+                                                        },
+                                                    )),
+                                            );
+                                            entities.resize_with(entities.len() + 2, || {
+                                                EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                                                    .with_body(comp::Body::QuadrupedMedium(
+                                                        comp::quadruped_medium::Body::random_with(
+                                                            dynamic_rng,
+                                                            &comp::quadruped_medium::Species::Darkhound,
+                                                        ),
+                                                    ))
+                                                    .with_name("Tamed Darkhound".to_string())
+                                                    .with_loot_drop(chosen.read().choose().to_item())
+                                            });
+                                        },
+                                        _ => {
+                                            entities.resize_with(10, || {
+                                                EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                                                    .with_body(comp::Body::BipedSmall(
+                                                        comp::biped_small::Body::random_with(
+                                                            dynamic_rng,
+                                                            &comp::biped_small::Species::Husk,
+                                                        ),
+                                                    ))
+                                                    .with_name("Cultist Husk".to_string())
+                                                    .with_loot_drop(
+                                                        chosen.read().choose().to_item(),
+                                                    )
+                                                    .with_loadout_config(
+                                                        loadout_builder::LoadoutConfig::Husk,
+                                                    )
+                                            });
+                                        },
+                                    }
                                     entities
                                 },
                                 _ => {
