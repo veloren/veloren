@@ -31,12 +31,6 @@ pub enum Msg {
     Done(Result<Client, Error>),
 }
 
-pub enum ClientConnArgs {
-    Host(String),
-    #[allow(dead_code)] //singleplayer
-    Resolved(ConnectionArgs),
-}
-
 pub struct AuthTrust(String, bool);
 
 // Used to asynchronously parse the server address, resolve host names,
@@ -51,7 +45,7 @@ impl ClientInit {
     #[allow(clippy::op_ref)] // TODO: Pending review in #587
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn new(
-        connection_args: ClientConnArgs,
+        connection_args: ConnectionArgs,
         username: String,
         view_distance: Option<u32>,
         password: String,
@@ -87,18 +81,6 @@ impl ClientInit {
                     .recv()
                     .map(|AuthTrust(server, trust)| trust && &server == auth_server)
                     .unwrap_or(false)
-            };
-
-            let connection_args = match connection_args {
-                ClientConnArgs::Host(host) => match ConnectionArgs::resolve(&host, false).await {
-                    Ok(r) => r,
-                    Err(_) => {
-                        let _ = tx.send(Msg::Done(Err(Error::NoAddress)));
-                        tokio::task::block_in_place(move || drop(runtime2));
-                        return;
-                    },
-                },
-                ClientConnArgs::Resolved(r) => r,
             };
 
             let mut last_err = None;

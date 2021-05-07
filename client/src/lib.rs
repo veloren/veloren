@@ -203,7 +203,6 @@ pub struct CharacterList {
 }
 
 impl Client {
-    /// Create a new `Client`.
     pub async fn new(
         addr: ConnectionArgs,
         view_distance: Option<u32>,
@@ -214,20 +213,23 @@ impl Client {
         let network = Network::new(Pid::new(), &runtime);
 
         let participant = match addr {
-            ConnectionArgs::IpAndPort(addrs) => {
-                // Try to connect to all IP's and return the first that works
-                let mut participant = None;
-                for addr in addrs {
-                    match network.connect(ConnectAddr::Tcp(addr)).await {
-                        Ok(p) => {
-                            participant = Some(Ok(p));
-                            break;
-                        },
-                        Err(e) => participant = Some(Err(Error::NetworkErr(e))),
-                    }
-                }
-                participant
-                    .unwrap_or_else(|| Err(Error::Other("No Ip Addr provided".to_string())))?
+            ConnectionArgs::Tcp {
+                hostname,
+                prefer_ipv6,
+            } => {
+                addr::try_connect(&network, &hostname, prefer_ipv6, |a| ConnectAddr::Tcp(a)).await?
+            },
+            ConnectionArgs::Quic {
+                hostname,
+                prefer_ipv6,
+            } => {
+                let mut config = quinn::ClientConfigBuilder::default();
+                config.protocols(&[b"VELOREN"]);
+                let config = config.build();
+                addr::try_connect(&network, &hostname, prefer_ipv6, |a| {
+                    ConnectAddr::Quic(a, config.clone(), hostname.clone())
+                })
+                .await?
             },
             ConnectionArgs::Mpsc(id) => network.connect(ConnectAddr::Mpsc(id)).await?,
         };

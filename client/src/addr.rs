@@ -4,47 +4,80 @@ use tracing::trace;
 
 #[derive(Clone, Debug)]
 pub enum ConnectionArgs {
-    IpAndPort(Vec<SocketAddr>),
+    ///hostname: (hostname|ip):[<port>]
+    Quic {
+        hostname: String,
+        prefer_ipv6: bool,
+    },
+    ///hostname: (hostname|ip):[<port>]
+    Tcp {
+        hostname: String,
+        prefer_ipv6: bool,
+    },
     Mpsc(u64),
 }
 
 impl ConnectionArgs {
     const DEFAULT_PORT: u16 = 14004;
+}
 
-    /// Parse ip address or resolves hostname.
-    /// Note: If you use an ipv6 address, the number after the last
-    /// colon will be used as the port unless you use [] around the address.
-    pub async fn resolve(
-        /* <hostname/ip>:[<port>] */ server_address: &str,
-        prefer_ipv6: bool,
-    ) -> Result<Self, std::io::Error> {
-        // `lookup_host` will internally try to parse it as a SocketAddr
-        // 1. Assume it's a hostname + port
-        match lookup_host(server_address).await {
-            Ok(s) => {
-                trace!("Host lookup succeeded");
-                Ok(Self::sort_ipv6(s, prefer_ipv6))
+/// Parse ip address or resolves hostname.
+/// Note: If you use an ipv6 address, the number after the last
+/// colon will be used as the port unless you use [] around the address.
+pub(crate) async fn resolve(
+    address: &str,
+    prefer_ipv6: bool,
+) -> Result<Vec<SocketAddr>, std::io::Error> {
+    // `lookup_host` will internally try to parse it as a SocketAddr
+    // 1. Assume it's a hostname + port
+    match lookup_host(address).await {
+        Ok(s) => {
+            trace!("Host lookup succeeded");
+            Ok(sort_ipv6(s, prefer_ipv6))
+        },
+        Err(e) => {
+            // 2. Assume its a hostname without port
+            match lookup_host((address, ConnectionArgs::DEFAULT_PORT)).await {
+                Ok(s) => {
+                    trace!("Host lookup without ports succeeded");
+                    Ok(sort_ipv6(s, prefer_ipv6))
+                },
+                Err(_) => Err(e), // Todo: evaluate returning both errors
+            }
+        },
+    }
+}
+
+pub(crate) async fn try_connect<F>(
+    network: &network::Network,
+    address: &str,
+    prefer_ipv6: bool,
+    f: F,
+) -> Result<network::Participant, crate::error::Error>
+where
+    F: Fn(std::net::SocketAddr) -> network::ConnectAddr,
+{
+    use crate::error::Error;
+    let mut participant = None;
+    for addr in resolve(&address, prefer_ipv6)
+        .await
+        .map_err(|e| Error::HostnameLookupFailed(e))?
+    {
+        match network.connect(f(addr)).await {
+            Ok(p) => {
+                participant = Some(Ok(p));
+                break;
             },
-            Err(e) => {
-                // 2. Assume its a hostname without port
-                match lookup_host((server_address, Self::DEFAULT_PORT)).await {
-                    Ok(s) => {
-                        trace!("Host lookup without ports succeeded");
-                        Ok(Self::sort_ipv6(s, prefer_ipv6))
-                    },
-                    Err(_) => Err(e), // Todo: evaluate returning both errors
-                }
-            },
+            Err(e) => participant = Some(Err(Error::NetworkErr(e))),
         }
     }
+    participant.unwrap_or_else(|| Err(Error::Other("No Ip Addr provided".to_string())))
+}
 
-    fn sort_ipv6(s: impl Iterator<Item = SocketAddr>, prefer_ipv6: bool) -> Self {
-        let (mut first_addrs, mut second_addrs) =
-            s.partition::<Vec<_>, _>(|a| a.is_ipv6() == prefer_ipv6);
-        let addr = std::iter::Iterator::chain(first_addrs.drain(..), second_addrs.drain(..))
-            .collect::<Vec<_>>();
-        ConnectionArgs::IpAndPort(addr)
-    }
+fn sort_ipv6(s: impl Iterator<Item = SocketAddr>, prefer_ipv6: bool) -> Vec<SocketAddr> {
+    let (mut first_addrs, mut second_addrs) =
+        s.partition::<Vec<_>, _>(|a| a.is_ipv6() == prefer_ipv6);
+    std::iter::Iterator::chain(first_addrs.drain(..), second_addrs.drain(..)).collect::<Vec<_>>()
 }
 
 #[cfg(test)]

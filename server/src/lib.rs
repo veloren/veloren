@@ -398,6 +398,38 @@ impl Server {
         });
         runtime.block_on(network.listen(ListenAddr::Tcp(settings.gameserver_address)))?;
         runtime.block_on(network.listen(ListenAddr::Mpsc(14004)))?;
+        if let Some(quic) = &settings.quic_files {
+            use std::fs;
+            match || -> Result<_, Box<dyn std::error::Error>> {
+                let mut server_config =
+                    quinn::ServerConfigBuilder::new(quinn::ServerConfig::default());
+                server_config.protocols(&[b"VELOREN"]);
+                let key = fs::read(&quic.key)?;
+                let key = if quic.key.extension().map_or(false, |x| x == "der") {
+                    quinn::PrivateKey::from_der(&key)?
+                } else {
+                    quinn::PrivateKey::from_pem(&key)?
+                };
+                let cert_chain = fs::read(&quic.cert)?;
+                let cert_chain = if quic.cert.extension().map_or(false, |x| x == "der") {
+                    quinn::CertificateChain::from_certs(Some(
+                        quinn::Certificate::from_der(&cert_chain).unwrap(),
+                    ))
+                } else {
+                    quinn::CertificateChain::from_pem(&cert_chain)?
+                };
+                server_config.certificate(cert_chain, key)?;
+                Ok(server_config.build())
+            }() {
+                Ok(server_config) => {
+                    runtime.block_on(
+                        network
+                            .listen(ListenAddr::Quic(settings.gameserver_address, server_config)),
+                    )?;
+                },
+                Err(e) => error!(?e, "Failed to load Quic Certificate, run without Quic"),
+            }
+        }
         let connection_handler = ConnectionHandler::new(network, &runtime);
 
         // Initiate real-time world simulation
