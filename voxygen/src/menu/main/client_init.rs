@@ -17,7 +17,6 @@ use tracing::{trace, warn};
 
 #[derive(Debug)]
 pub enum Error {
-    NoAddress,
     ClientError {
         error: ClientError,
         mismatched_server_info: Option<ServerInfo>,
@@ -128,8 +127,11 @@ impl ClientInit {
                 tokio::time::sleep(Duration::from_secs(5)).await;
             }
 
-            // Parsing/host name resolution successful but no connection succeeded.
-            let _ = tx.send(Msg::Done(Err(last_err.unwrap_or(Error::NoAddress))));
+            // Only possibility for no last_err is aborting
+            let _ = tx.send(Msg::Done(Err(last_err.unwrap_or(Error::ClientError {
+                error: ClientError::Other("Connection attempt aborted by user".to_owned()),
+                mismatched_server_info: None,
+            }))));
 
             // Safe drop runtime
             tokio::task::block_in_place(move || drop(runtime2));

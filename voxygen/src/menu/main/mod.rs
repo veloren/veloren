@@ -279,7 +279,6 @@ fn get_client_msg_error(e: client_init::Error, localized_strings: &LocalizationH
 
     use client::Error;
     match e {
-        InitError::NoAddress => localization.get("main.login.server_not_found").into(),
         InitError::ClientError {
             error,
             mismatched_server_info,
@@ -297,9 +296,6 @@ fn get_client_msg_error(e: client_init::Error, localized_strings: &LocalizationH
             Error::AuthServerNotTrusted => {
                 localization.get("main.login.untrusted_auth_server").into()
             },
-            Error::ServerWentMad => localization
-                .get("main.login.outdated_client_or_server")
-                .into(),
             Error::ServerTimeout => localization.get("main.login.timeout").into(),
             Error::ServerShutdown => localization.get("main.login.server_shut_down").into(),
             Error::NotOnWhitelist => localization.get("main.login.not_on_whitelist").into(),

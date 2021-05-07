@@ -9,7 +9,6 @@ pub enum Error {
     NetworkErr(NetworkError),
     ParticipantErr(ParticipantError),
     StreamErr(StreamError),
-    ServerWentMad,
     ServerTimeout,
     ServerShutdown,
     TooManyPlayers,
