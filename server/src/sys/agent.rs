@@ -3483,7 +3483,7 @@ impl<'a> AgentData<'a> {
             .and_then(|e| read_data.velocities.get(e))
             .map_or(0.0, |v| v.0.cross(self.ori.look_vec()).magnitude_squared());
         if attack_data.dist_sqrd < golem_melee_range.powi(2) {
-            if agent.action_state.counter < 15.0 {
+            if agent.action_state.counter < 7.5 {
                 // If target is close, whack them
                 controller
                     .actions
