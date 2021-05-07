@@ -172,7 +172,9 @@ impl assets::Compound for Language {
         asset_key: &str,
     ) -> Result<Self, assets::Error> {
         let raw = cache
-            .load::<RawLocalization>(&[asset_key, ".", LANG_MANIFEST_FILE].concat())?
+            .load::<RawLocalization>(
+                &["voxygen.i18n.", asset_key, ".", LANG_MANIFEST_FILE].concat(),
+            )?
             .cloned();
         let mut localization = Language::from(raw);
 
@@ -333,7 +335,7 @@ impl LocalizationHandle {
     }
 
     pub fn load(specifier: &str) -> Result<Self, crate::assets::Error> {
-        let default_key = i18n_asset_key(REFERENCE_LANG);
+        let default_key = REFERENCE_LANG;
         let is_default = specifier == default_key;
         Ok(Self {
             active: Language::load(specifier)?,
@@ -381,12 +383,10 @@ impl assets::Compound for LocalizationList {
 }
 
 /// Load all the available languages located in the voxygen asset directory
-pub fn list_localizations() -> Vec<LanguageMetadata> {
-    LocalizationList::load_expect_cloned("voxygen.i18n").0
-}
+pub fn list_localizations() -> Vec<LanguageMetadata> { LocalizationList::load_expect_cloned("").0 }
 
-/// Return the asset associated with the language_id
-pub fn i18n_asset_key(language_id: &str) -> String { ["voxygen.i18n.", language_id].concat() }
+/// Start hot reloading of i18n assets
+pub fn start_hot_reloading() { assets::start_hot_reloading(); }
 
 #[cfg(test)]
 mod tests {

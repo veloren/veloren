@@ -5,7 +5,7 @@
 
 use veloren_voxygen::{
     audio::AudioFrontend,
-    i18n::{self, i18n_asset_key, LocalizationHandle},
+    i18n::{self, LocalizationHandle},
     profile::Profile,
     run,
     scene::terrain::SpriteRenderContext,
@@ -144,6 +144,7 @@ fn main() {
     }));
 
     assets::start_hot_reloading();
+    i18n::start_hot_reloading();
 
     // Initialise watcher for animation hotreloading
     #[cfg(feature = "hot-anim")]
@@ -163,8 +164,8 @@ fn main() {
     // Load the profile.
     let profile = Profile::load();
 
-    let mut i18n = LocalizationHandle::load(&i18n_asset_key(&settings.language.selected_language))
-        .unwrap_or_else(|error| {
+    let mut i18n =
+        LocalizationHandle::load(&settings.language.selected_language).unwrap_or_else(|error| {
             let selected_language = &settings.language.selected_language;
             warn!(
                 ?error,
@@ -172,7 +173,7 @@ fn main() {
                 "Impossible to load language: change to the default language (English) instead.",
             );
             settings.language.selected_language = i18n::REFERENCE_LANG.to_owned();
-            LocalizationHandle::load_expect(&i18n_asset_key(&settings.language.selected_language))
+            LocalizationHandle::load_expect(&settings.language.selected_language)
         });
     i18n.read().log_missing_entries();
     i18n.set_english_fallback(settings.language.use_english_fallback);

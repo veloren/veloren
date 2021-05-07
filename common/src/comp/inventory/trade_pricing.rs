@@ -4,7 +4,7 @@ use crate::{
     recipe::{default_recipe_book, RecipeInput},
     trade::Good,
 };
-use assets_manager::AssetGuard;
+use assets::AssetGuard;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use serde::Deserialize;

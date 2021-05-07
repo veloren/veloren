@@ -1,5 +1,5 @@
 pub mod analysis;
-mod assets;
 mod i18n;
 
+use common_assets as assets;
 pub use i18n::*;

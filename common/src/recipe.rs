@@ -108,10 +108,10 @@ impl assets::Asset for RawRecipeBook {
 }
 
 impl assets::Compound for RecipeBook {
-    fn load<S: assets_manager::source::Source>(
-        cache: &assets_manager::AssetCache<S>,
+    fn load<S: assets::source::Source>(
+        cache: &assets::AssetCache<S>,
         specifier: &str,
-    ) -> Result<Self, assets_manager::Error> {
+    ) -> Result<Self, assets::Error> {
         #[inline]
         fn load_item_def(spec: &(String, u32)) -> Result<(Arc<ItemDef>, u32), assets::Error> {
             let def = Arc::<ItemDef>::load_cloned(&spec.0)?;

@@ -392,8 +392,8 @@ impl Asset for AbilityMap<String> {
 }
 
 impl assets::Compound for AbilityMap {
-    fn load<S: assets_manager::source::Source>(
-        cache: &assets_manager::AssetCache<S>,
+    fn load<S: assets::source::Source>(
+        cache: &assets::AssetCache<S>,
         specifier: &str,
     ) -> Result<Self, assets::Error> {
         let manifest = cache.load::<AbilityMap<String>>(specifier)?.read();

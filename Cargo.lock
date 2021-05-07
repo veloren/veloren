@@ -5514,7 +5514,6 @@ name = "veloren-common"
 version = "0.9.0"
 dependencies = [
  "approx 0.4.0",
- "assets_manager",
  "bitflags",
  "criterion",
  "crossbeam-channel",
@@ -5523,7 +5522,6 @@ dependencies = [
  "dot_vox",
  "enum-iterator",
  "hashbrown",
- "image",
  "indexmap",
  "lazy_static",
  "num-derive",
@@ -5531,10 +5529,8 @@ dependencies = [
  "ordered-float 2.1.1",
  "rand 0.8.3",
  "rayon",
- "ron",
  "roots",
  "serde",
- "serde_json",
  "serde_repr",
  "slab",
  "slotmap",
@@ -5548,7 +5544,20 @@ dependencies = [
  "tracing-subscriber",
  "uuid",
  "vek",
+ "veloren-common-assets",
  "veloren-common-base",
+]
+
+[[package]]
+name = "veloren-common-assets"
+version = "0.9.0"
+dependencies = [
+ "assets_manager",
+ "dot_vox",
+ "image",
+ "lazy_static",
+ "ron",
+ "tracing",
 ]
 
 [[package]]
@@ -5647,14 +5656,13 @@ dependencies = [
 name = "veloren-i18n"
 version = "0.9.0"
 dependencies = [
- "assets_manager",
  "deunicode",
  "git2",
  "hashbrown",
- "lazy_static",
  "ron",
  "serde",
  "tracing",
+ "veloren-common-assets",
 ]
 
 [[package]]

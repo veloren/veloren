@@ -60,8 +60,8 @@ impl std::ops::Deref for StructuresGroup {
 }
 
 impl assets::Compound for StructuresGroup {
-    fn load<S: assets_manager::source::Source>(
-        cache: &assets_manager::AssetCache<S>,
+    fn load<S: assets::source::Source>(
+        cache: &assets::AssetCache<S>,
         specifier: &str,
     ) -> Result<Self, Error> {
         let specs = cache.load::<StructuresGroupSpec>(specifier)?.read();
@@ -118,8 +118,8 @@ impl ReadVol for Structure {
 }
 
 impl assets::Compound for BaseStructure {
-    fn load<S: assets_manager::source::Source>(
-        cache: &assets_manager::AssetCache<S>,
+    fn load<S: assets::source::Source>(
+        cache: &assets::AssetCache<S>,
         specifier: &str,
     ) -> Result<Self, Error> {
         let dot_vox_data = cache.load::<DotVoxAsset>(specifier)?.read();

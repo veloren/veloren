@@ -5,7 +5,7 @@ use crate::{
         BarNumbers, BuffPosition, CrosshairType, Intro, PressBehavior, ScaleChange,
         ShortcutNumbers, XpBar,
     },
-    i18n::{i18n_asset_key, LanguageMetadata, LocalizationHandle},
+    i18n::{LanguageMetadata, LocalizationHandle},
     render::RenderMode,
     settings::{
         AudioSettings, ControlSettings, Fps, GamepadSettings, GameplaySettings, GraphicsSettings,
@@ -482,9 +482,8 @@ impl SettingsChange {
             SettingsChange::Language(language_change) => match language_change {
                 Language::ChangeLanguage(new_language) => {
                     settings.language.selected_language = new_language.language_identifier;
-                    global_state.i18n = LocalizationHandle::load_expect(&i18n_asset_key(
-                        &settings.language.selected_language,
-                    ));
+                    global_state.i18n =
+                        LocalizationHandle::load_expect(&settings.language.selected_language);
                     global_state.i18n.read().log_missing_entries();
                     global_state
                         .i18n
