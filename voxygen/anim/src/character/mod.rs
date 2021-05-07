@@ -73,13 +73,19 @@ skeleton_impls!(struct CharacterSkeleton {
     :: // Begin non-bone fields
     holding_lantern: bool,
     offsets: Option<Transform<f32, f32, f32>>,
+    hitbox_offsets: Option<vek::Vec3<f32>>,
 });
 
 impl CharacterSkeleton {
-    pub fn new(holding_lantern: bool, offsets: Option<Transform<f32, f32, f32>>) -> Self {
+    pub fn new(
+        holding_lantern: bool,
+        offsets: Option<Transform<f32, f32, f32>>,
+        hitbox_offsets: Option<vek::Vec3<f32>>,
+    ) -> Self {
         Self {
             holding_lantern,
             offsets,
+            hitbox_offsets,
             ..Self::default()
         }
     }
@@ -98,15 +104,19 @@ impl Skeleton for CharacterSkeleton {
     fn compute_matrices_inner(
         &self,
         base_mat: Mat4<f32>,
-        offsets: Option<Transform<f32, f32, f32>>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
     ) -> [Transform<f32, f32, f32>; 2] {
-        dbg!(self.torso);
         let mut torso_mat = base_mat * Mat4::<f32>::from(self.torso);
         if let Some(offset) = self.offsets {
-            dbg!(offset);
-            torso_mat = base_mat * Mat4::<f32>::from(Transform{position: offset.position, orientation: offset.orientation, scale: Vec3::<f32>::one()})
-            * Mat4::<f32>::from(self.torso);
+            let hitbox_offsets = self.hitbox_offsets.unwrap_or(vek::Vec3::<f32>::zero());
+            torso_mat = base_mat
+                * Mat4::<f32>::from(Transform {
+                    position: offset.position
+                        - Vec3::from([0.0, hitbox_offsets.y, hitbox_offsets.z]),
+                    orientation: offset.orientation,
+                    scale: Vec3::<f32>::one(),
+                })
+                * Mat4::<f32>::from(self.torso).translated_3d(Vec3::from([0.0, -0.8, 0.15])); //.translated_3d(Vec3::from([0.0, -0.8, 0.15])
         }
         let chest_mat = torso_mat * Mat4::<f32>::from(self.chest);
         let head_mat = chest_mat * Mat4::<f32>::from(self.head);

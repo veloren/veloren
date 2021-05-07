@@ -9,7 +9,7 @@ pub struct MountAnimation;
 
 impl Animation for MountAnimation {
     #[allow(clippy::type_complexity)]
-    type Dependency = (
+    type Dependency<'a> = (
         Option<ToolKind>,
         Option<ToolKind>,
         f32,
@@ -17,7 +17,7 @@ impl Animation for MountAnimation {
         Vec3<f32>,
         Vec3<f32>,
         Vec3<f32>,
-        Transform<f32, f32, f32>,
+        Option<Transform<f32, f32, f32>>,
     );
     type Skeleton = CharacterSkeleton;
 
@@ -25,7 +25,7 @@ impl Animation for MountAnimation {
     const UPDATE_FN: &'static [u8] = b"character_mount\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_mount")]
-    fn update_skeleton_inner(
+    fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (
             _active_tool_kind,
@@ -35,8 +35,8 @@ impl Animation for MountAnimation {
             avg_vel,
             orientation,
             last_ori,
-            mount_offset,
-        ): Self::Dependency,
+            _mount_offset,
+        ): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -64,8 +64,8 @@ impl Animation for MountAnimation {
         let last_ori = Vec2::from(last_ori);
         let speed = (Vec2::<f32>::from(velocity).magnitude()).min(24.0);
         let canceler = (speed / 24.0).powf(0.6);
-        let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude()) * canceler;
-        let tilt = if ::vek::Vec2::new(ori, last_ori)
+        let _x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude()) * canceler;
+        let _tilt = if ::vek::Vec2::new(ori, last_ori)
             .map(|o| o.magnitude_squared())
             .map(|m| m > 0.001 && m.is_finite())
             .reduce_and()
@@ -122,7 +122,7 @@ impl Animation for MountAnimation {
         next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_r.orientation = Quaternion::rotation_x(0.0);
 
-        next.torso.position = Vec3::new(0.0, -0.2, stop * -0.16) * s_a.scaler;
+        next.torso.position = Vec3::new(0.0, 0.0, stop * -0.16) * s_a.scaler;
 
         if skeleton.holding_lantern {
             next.hand_r.position = Vec3::new(

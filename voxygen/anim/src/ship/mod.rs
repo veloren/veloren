@@ -28,7 +28,6 @@ impl Skeleton for ShipSkeleton {
     fn compute_matrices_inner(
         &self,
         base_mat: Mat4<f32>,
-        offsets: Option<Transform<f32, f32, f32>>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
     ) -> [Transform<f32, f32, f32>; 2] {
         let bone0_mat = base_mat * Mat4::<f32>::from(self.bone0);
@@ -39,10 +38,7 @@ impl Skeleton for ShipSkeleton {
             make_bone(bone0_mat * Mat4::<f32>::from(self.bone2) * Mat4::scaling_3d(1.0 / 11.0)), /* Decorellated from ori */
             make_bone(bone0_mat * Mat4::<f32>::from(self.bone3) * Mat4::scaling_3d(1.0 / 11.0)), /* Decorellated from ori */
         ];
-        [
-            Transform::default(),
-            self.bone0,
-        ]
+        [Transform::default(), self.bone0]
     }
 }
 

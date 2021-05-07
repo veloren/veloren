@@ -449,8 +449,10 @@ impl FigureMgr {
                     (vek::Rgb::zero(), 0.0, 0.0, true)
                 };
             if let Some(state) = body.and_then(|body| self.states.get_mut(body, &entity)) {
-                light_anim.offset =
-                    (vek::Mat4::from_col_array(anim::vek::Mat4::<f32>::from(state.lantern_offset[0]).into_col_array()) * Vec4::one()).xyz();
+                light_anim.offset = (vek::Mat4::from_col_array(
+                    anim::vek::Mat4::<f32>::from(state.lantern_offset).into_col_array(),
+                ) * Vec4::one())
+                .xyz();
             }
             if !light_anim.strength.is_normal() {
                 light_anim.strength = 0.0;
@@ -752,20 +754,19 @@ impl FigureMgr {
 
             //let mut state_mountee = self.states.get_mut(entity.get(body), &entity);
 
-            let mut mountee_offsets = anim::vek::Transform::default(); //vek::Mat4::from_col_array(state.lantern_offset[0].into_col_array()
-            if let Some(Mounting(entity)) = mountings {
-                let mountee_entity = ecs
+            //vek::Mat4::from_col_array(state.lantern_offset[0].into_col_array()
+
+            let mut f = || -> Option<_> {
+                let Mounting(entity) = mountings?;
+                let entity = ecs
                     .read_resource::<UidAllocator>()
-                    .retrieve_entity_internal((*entity).into());
-                if let Some(entity) = mountee_entity {
-                    if let Some(body) = ecs.read_storage::<Body>().get(entity) {
-                        let mountee_state = self.states.get_mut(body, &entity);
-                        if let Some(meta) = mountee_state {
-                            mountee_offsets = meta.lantern_offset[1];
-                        }
-                    }
-                }
-            }
+                    .retrieve_entity_internal((*entity).into())?;
+                let bodies = ecs.read_storage::<Body>();
+                let body = bodies.get(entity)?;
+                let meta = self.states.get_mut(body, &entity)?;
+                Some((Some(meta.mountee_offset), Some(Body::mounting_offset(body))))
+            };
+            let (mountee_offsets, hitbox_offsets) = f().unwrap_or((None, None));
 
             match body {
                 Body::Humanoid(body) => {
@@ -796,8 +797,11 @@ impl FigureMgr {
                         .or_insert_with(|| {
                             FigureState::new(
                                 renderer,
-                                CharacterSkeleton::new(holding_lantern, Some(mountee_offsets)),
-                                Some(mountee_offsets),
+                                CharacterSkeleton::new(
+                                    holding_lantern,
+                                    mountee_offsets,
+                                    hitbox_offsets,
+                                ),
                             )
                         });
 
@@ -820,7 +824,11 @@ impl FigureMgr {
                     ) {
                         // Standing
                         (true, false, false) => anim::character::StandAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern, Some(mountee_offsets)),
+                            &CharacterSkeleton::new(
+                                holding_lantern,
+                                mountee_offsets,
+                                hitbox_offsets,
+                            ),
                             (active_tool_kind, second_tool_kind, hands, time, rel_avg_vel),
                             state.state_time,
                             &mut state_animation_rate,
@@ -828,7 +836,11 @@ impl FigureMgr {
                         ),
                         // Running
                         (true, true, false) => anim::character::RunAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern, Some(mountee_offsets)),
+                            &CharacterSkeleton::new(
+                                holding_lantern,
+                                mountee_offsets,
+                                hitbox_offsets,
+                            ),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -847,7 +859,11 @@ impl FigureMgr {
                         ),
                         // In air
                         (false, _, false) => anim::character::JumpAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern, Some(mountee_offsets)),
+                            &CharacterSkeleton::new(
+                                holding_lantern,
+                                mountee_offsets,
+                                hitbox_offsets,
+                            ),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -864,7 +880,11 @@ impl FigureMgr {
                         ),
                         // Swim
                         (_, _, true) => anim::character::SwimAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern, Some(mountee_offsets)),
+                            &CharacterSkeleton::new(
+                                holding_lantern,
+                                mountee_offsets,
+                                hitbox_offsets,
+                            ),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -1607,11 +1627,7 @@ impl FigureMgr {
                         .quadruped_small_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(
-                                renderer,
-                                QuadrupedSmallSkeleton::default(),
-                                Some(mountee_offsets),
-                            )
+                            FigureState::new(renderer, QuadrupedSmallSkeleton::default())
                         });
 
                     // Average velocity relative to the current ground
@@ -1813,11 +1829,7 @@ impl FigureMgr {
                         .quadruped_medium_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(
-                                renderer,
-                                QuadrupedMediumSkeleton::default(),
-                                Some(mountee_offsets),
-                            )
+                            FigureState::new(renderer, QuadrupedMediumSkeleton::default())
                         });
 
                     // Average velocity relative to the current ground
@@ -2144,11 +2156,7 @@ impl FigureMgr {
                         .quadruped_low_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(
-                                renderer,
-                                QuadrupedLowSkeleton::default(),
-                                Some(mountee_offsets),
-                            )
+                            FigureState::new(renderer, QuadrupedLowSkeleton::default())
                         });
 
                     // Average velocity relative to the current ground
@@ -2507,11 +2515,7 @@ impl FigureMgr {
                         .bird_medium_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(
-                                renderer,
-                                BirdMediumSkeleton::default(),
-                                Some(mountee_offsets),
-                            )
+                            FigureState::new(renderer, BirdMediumSkeleton::default())
                         });
 
                     // Average velocity relative to the current ground
@@ -2621,11 +2625,7 @@ impl FigureMgr {
                         .fish_medium_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(
-                                renderer,
-                                FishMediumSkeleton::default(),
-                                Some(mountee_offsets),
-                            )
+                            FigureState::new(renderer, FishMediumSkeleton::default())
                         });
 
                     // Average velocity relative to the current ground
@@ -2714,11 +2714,7 @@ impl FigureMgr {
                         .biped_small_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(
-                                renderer,
-                                BipedSmallSkeleton::default(),
-                                Some(mountee_offsets),
-                            )
+                            FigureState::new(renderer, BipedSmallSkeleton::default())
                         });
 
                     // Average velocity relative to the current ground
@@ -3061,9 +3057,10 @@ impl FigureMgr {
                         &slow_jobs,
                     );
 
-                    let state = self.states.dragon_states.entry(entity).or_insert_with(|| {
-                        FigureState::new(renderer, DragonSkeleton::default(), Some(mountee_offsets))
-                    });
+                    let state =
+                        self.states.dragon_states.entry(entity).or_insert_with(|| {
+                            FigureState::new(renderer, DragonSkeleton::default())
+                        });
 
                     // Average velocity relative to the current ground
                     let rel_avg_vel = state.avg_vel - physics.ground_vel;
@@ -3158,13 +3155,7 @@ impl FigureMgr {
                         .states
                         .theropod_states
                         .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(
-                                renderer,
-                                TheropodSkeleton::default(),
-                                Some(mountee_offsets),
-                            )
-                        });
+                        .or_insert_with(|| FigureState::new(renderer, TheropodSkeleton::default()));
 
                     // Average velocity relative to the current ground
                     let rel_avg_vel = state.avg_vel - physics.ground_vel;
@@ -3352,11 +3343,7 @@ impl FigureMgr {
                         .bird_large_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(
-                                renderer,
-                                BirdLargeSkeleton::default(),
-                                Some(mountee_offsets),
-                            )
+                            FigureState::new(renderer, BirdLargeSkeleton::default())
                         });
 
                     let (character, last_character) = match (character, last_character) {
@@ -3617,11 +3604,7 @@ impl FigureMgr {
                         .fish_small_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(
-                                renderer,
-                                FishSmallSkeleton::default(),
-                                Some(mountee_offsets),
-                            )
+                            FigureState::new(renderer, FishSmallSkeleton::default())
                         });
 
                     // Average velocity relative to the current ground
@@ -3710,11 +3693,7 @@ impl FigureMgr {
                         .biped_large_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(
-                                renderer,
-                                BipedLargeSkeleton::default(),
-                                Some(mountee_offsets),
-                            )
+                            FigureState::new(renderer, BipedLargeSkeleton::default())
                         });
 
                     // Average velocity relative to the current ground
@@ -4310,9 +4289,10 @@ impl FigureMgr {
                         &slow_jobs,
                     );
 
-                    let state = self.states.golem_states.entry(entity).or_insert_with(|| {
-                        FigureState::new(renderer, GolemSkeleton::default(), Some(mountee_offsets))
-                    });
+                    let state =
+                        self.states.golem_states.entry(entity).or_insert_with(|| {
+                            FigureState::new(renderer, GolemSkeleton::default())
+                        });
 
                     // Average velocity relative to the current ground
                     let _rel_avg_vel = state.avg_vel - physics.ground_vel;
@@ -4561,9 +4541,10 @@ impl FigureMgr {
                         &slow_jobs,
                     );
 
-                    let state = self.states.object_states.entry(entity).or_insert_with(|| {
-                        FigureState::new(renderer, ObjectSkeleton::default(), Some(mountee_offsets))
-                    });
+                    let state =
+                        self.states.object_states.entry(entity).or_insert_with(|| {
+                            FigureState::new(renderer, ObjectSkeleton::default())
+                        });
 
                     // Average velocity relative to the current ground
                     let _rel_avg_vel = state.avg_vel - physics.ground_vel;
@@ -4688,9 +4669,11 @@ impl FigureMgr {
                         &slow_jobs,
                     );
 
-                    let state = self.states.ship_states.entry(entity).or_insert_with(|| {
-                        FigureState::new(renderer, ShipSkeleton::default(), Some(mountee_offsets))
-                    });
+                    let state = self
+                        .states
+                        .ship_states
+                        .entry(entity)
+                        .or_insert_with(|| FigureState::new(renderer, ShipSkeleton::default()));
 
                     // Average velocity relative to the current ground
                     let _rel_avg_vel = state.avg_vel - physics.ground_vel;
@@ -5384,7 +5367,8 @@ impl FigureColLights {
 pub struct FigureStateMeta {
     bone_consts: Consts<FigureBoneData>,
     locals: Consts<FigureLocals>,
-    lantern_offset: [anim::vek::Transform<f32, f32, f32>; 2],
+    lantern_offset: anim::vek::Transform<f32, f32, f32>,
+    mountee_offset: anim::vek::Transform<f32, f32, f32>,
     state_time: f32,
     last_ori: anim::vek::Quaternion<f32>,
     lpindex: u8,
@@ -5422,16 +5406,16 @@ impl<S> DerefMut for FigureState<S> {
 }
 
 impl<S: Skeleton> FigureState<S> {
-    pub fn new(renderer: &mut Renderer, skeleton: S, offsets: Option<anim::vek::Transform::<f32, f32, f32>>) -> Self {
+    pub fn new(renderer: &mut Renderer, skeleton: S) -> Self {
         let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
-        let lantern_offset =
-            anim::compute_matrices(&skeleton, anim::vek::Mat4::identity(), None, &mut buf);
+        let body_offsets = anim::compute_matrices(&skeleton, anim::vek::Mat4::identity(), &mut buf);
         let bone_consts = figure_bone_data_from_anim(&buf);
         Self {
             meta: FigureStateMeta {
                 bone_consts: renderer.create_consts(bone_consts).unwrap(),
                 locals: renderer.create_consts(&[FigureLocals::default()]).unwrap(),
-                lantern_offset,
+                lantern_offset: body_offsets[0],
+                mountee_offset: body_offsets[1],
                 state_time: 0.0,
                 last_ori: Ori::default().into(),
                 lpindex: 0,
@@ -5555,7 +5539,7 @@ impl<S: Skeleton> FigureState<S> {
         );
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();
 
-        let lantern_offset = anim::compute_matrices(&self.skeleton, mat, None, buf);
+        let body_offsets = anim::compute_matrices(&self.skeleton, mat, buf);
 
         let new_bone_consts = figure_bone_data_from_anim(buf);
 
@@ -5565,7 +5549,8 @@ impl<S: Skeleton> FigureState<S> {
                 &new_bone_consts[0..S::BONE_COUNT],
             )
             .unwrap();
-        self.lantern_offset = lantern_offset;
+        self.lantern_offset = body_offsets[0];
+        self.mountee_offset = body_offsets[1];
 
         let smoothing = (5.0 * dt).min(1.0);
         if let Some(last_pos) = self.last_pos {

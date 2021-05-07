@@ -35,7 +35,6 @@ impl Skeleton for BirdMediumSkeleton {
     fn compute_matrices_inner(
         &self,
         base_mat: Mat4<f32>,
-        offsets: Option<Transform<f32, f32, f32>>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
     ) -> [Transform<f32, f32, f32>; 2] {
         let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
