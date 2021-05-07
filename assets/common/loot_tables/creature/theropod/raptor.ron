@@ -1,4 +1,4 @@
 [
-    (1.0, Item("common.items.crafting_ing.leather_scraps")),
+    (1.0, Item("common.items.crafting_ing.hide.tough_hide")),
     (1.0, Item("common.items.crafting_ing.raptor_feather")),
 ]

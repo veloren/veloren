@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Tough Hide",
+    description: "A pelt from something fierce. Becomes leather.",
+    kind: Ingredient(
+        kind: "ToughHide",
+    ),
+    quality: Common,
+    tags: [LeatherItem],
+)

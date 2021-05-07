@@ -2003,8 +2003,24 @@
         "voxel.sprite.twigs.twigs-0",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("AnimalPelt"): VoxTrans(
-        "voxel.sprite.crafting_ing.pelt",
+    Ingredient("AnimalHide"): VoxTrans(
+        "voxel.sprite.crafting_ing.hide.animal_hide",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("ToughHide"): VoxTrans(
+        "voxel.sprite.crafting_ing.hide.tough_hide",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("SimpleLeather"): VoxTrans(
+        "voxel.sprite.crafting_ing.leather.simple_leather",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("ThickLeather"): VoxTrans(
+        "voxel.sprite.crafting_ing.leather.thick_leather",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("LeatherStrips"): VoxTrans(
+        "voxel.sprite.crafting_ing.leather.leather_strips",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
     Ingredient("Claw"): VoxTrans(
@@ -2049,9 +2065,6 @@
     ),
     Ingredient("Honey"): Png(
         "element.items.item_honey",
-    ),
-    Ingredient("LeatherScraps"): Png(
-        "element.items.item_leather0",
     ),
     Ingredient("TrollLeather"): Png(
         "element.items.item_leather_green",

@@ -1,9 +1,9 @@
 ItemDef(
-    name: "Animal Pelt",
+    name: "Animal Hide",
     description: "A pelt from an animal. Becomes leather.",
     kind: Ingredient(
-        kind: "AnimalPelt",
+        kind: "AnimalHide",
     ),
     quality: Common,
-    tags: [],
+    tags: [LeatherItem],
 )
