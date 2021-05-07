@@ -61,7 +61,7 @@ where
     let mut participant = None;
     for addr in resolve(&address, prefer_ipv6)
         .await
-        .map_err(|e| Error::HostnameLookupFailed(e))?
+        .map_err(Error::HostnameLookupFailed)?
     {
         match network.connect(f(addr)).await {
             Ok(p) => {
@@ -87,85 +87,47 @@ mod tests {
 
     #[tokio::test]
     async fn resolve_localhost() {
-        let args = ConnectionArgs::resolve("localhost", false)
-            .await
-            .expect("resolve failed");
-        if let ConnectionArgs::IpAndPort(args) = args {
-            assert!(args.len() == 1 || args.len() == 2);
-            assert_eq!(args[0].ip(), IpAddr::V4(Ipv4Addr::LOCALHOST));
-            assert_eq!(args[0].port(), 14004);
-        } else {
-            panic!("wrong resolution");
-        }
+        let args = resolve("localhost", false).await.expect("resolve failed");
+        assert!(args.len() == 1 || args.len() == 2);
+        assert_eq!(args[0].ip(), IpAddr::V4(Ipv4Addr::LOCALHOST));
+        assert_eq!(args[0].port(), 14004);
 
-        let args = ConnectionArgs::resolve("localhost:666", false)
+        let args = resolve("localhost:666", false)
             .await
             .expect("resolve failed");
-        if let ConnectionArgs::IpAndPort(args) = args {
-            assert!(args.len() == 1 || args.len() == 2);
-            assert_eq!(args[0].port(), 666);
-        } else {
-            panic!("wrong resolution");
-        }
+        assert!(args.len() == 1 || args.len() == 2);
+        assert_eq!(args[0].port(), 666);
     }
 
     #[tokio::test]
     async fn resolve_ipv6() {
-        let args = ConnectionArgs::resolve("localhost", true)
-            .await
-            .expect("resolve failed");
-        if let ConnectionArgs::IpAndPort(args) = args {
-            assert!(args.len() == 1 || args.len() == 2);
-            assert_eq!(args[0].ip(), Ipv6Addr::LOCALHOST);
-            assert_eq!(args[0].port(), 14004);
-        } else {
-            panic!("wrong resolution");
-        }
+        let args = resolve("localhost", true).await.expect("resolve failed");
+        assert!(args.len() == 1 || args.len() == 2);
+        assert_eq!(args[0].ip(), Ipv6Addr::LOCALHOST);
+        assert_eq!(args[0].port(), 14004);
     }
 
     #[tokio::test]
-    async fn resolve() {
-        let args = ConnectionArgs::resolve("google.com", false)
-            .await
-            .expect("resolve failed");
-        if let ConnectionArgs::IpAndPort(args) = args {
-            assert!(args.len() == 1 || args.len() == 2);
-            assert_eq!(args[0].port(), 14004);
-        } else {
-            panic!("wrong resolution");
-        }
+    async fn tresolve() {
+        let args = resolve("google.com", false).await.expect("resolve failed");
+        assert!(args.len() == 1 || args.len() == 2);
+        assert_eq!(args[0].port(), 14004);
 
-        let args = ConnectionArgs::resolve("127.0.0.1", false)
-            .await
-            .expect("resolve failed");
-        if let ConnectionArgs::IpAndPort(args) = args {
-            assert_eq!(args.len(), 1);
-            assert_eq!(args[0].port(), 14004);
-            assert_eq!(args[0].ip(), IpAddr::V4(Ipv4Addr::LOCALHOST));
-        } else {
-            panic!("wrong resolution");
-        }
+        let args = resolve("127.0.0.1", false).await.expect("resolve failed");
+        assert_eq!(args.len(), 1);
+        assert_eq!(args[0].port(), 14004);
+        assert_eq!(args[0].ip(), IpAddr::V4(Ipv4Addr::LOCALHOST));
 
-        let args = ConnectionArgs::resolve("55.66.77.88", false)
-            .await
-            .expect("resolve failed");
-        if let ConnectionArgs::IpAndPort(args) = args {
-            assert_eq!(args.len(), 1);
-            assert_eq!(args[0].port(), 14004);
-            assert_eq!(args[0].ip(), IpAddr::V4(Ipv4Addr::new(55, 66, 77, 88)));
-        } else {
-            panic!("wrong resolution");
-        }
+        let args = resolve("55.66.77.88", false).await.expect("resolve failed");
+        assert_eq!(args.len(), 1);
+        assert_eq!(args[0].port(), 14004);
+        assert_eq!(args[0].ip(), IpAddr::V4(Ipv4Addr::new(55, 66, 77, 88)));
 
-        let args = ConnectionArgs::resolve("127.0.0.1:776", false)
+        let args = resolve("127.0.0.1:776", false)
             .await
             .expect("resolve failed");
-        if let ConnectionArgs::IpAndPort(args) = args {
-            assert_eq!(args.len(), 1);
-            assert_eq!(args[0].port(), 776);
-            assert_eq!(args[0].ip(), IpAddr::V4(Ipv4Addr::LOCALHOST));
-        } else {
-            panic!("wrong resolution");
-        }
+        assert_eq!(args.len(), 1);
+        assert_eq!(args[0].port(), 776);
+        assert_eq!(args[0].ip(), IpAddr::V4(Ipv4Addr::LOCALHOST));
     }
 }

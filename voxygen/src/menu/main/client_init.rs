@@ -46,7 +46,6 @@ impl ClientInit {
     pub fn new(
         connection_args: ConnectionArgs,
         username: String,
-        view_distance: Option<u32>,
         password: String,
         runtime: Option<Arc<runtime::Runtime>>,
     ) -> Self {
@@ -92,7 +91,6 @@ impl ClientInit {
                 let mut mismatched_server_info = None;
                 match Client::new(
                     connection_args.clone(),
-                    view_distance,
                     Arc::clone(&runtime2),
                     &mut mismatched_server_info,
                 )

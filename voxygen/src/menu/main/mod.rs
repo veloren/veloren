@@ -70,7 +70,6 @@ impl PlayState for MainMenuState {
                     Ok(Ok(runtime)) => {
                         // Attempt login after the server is finished initializing
                         attempt_login(
-                            &mut global_state.settings,
                             &mut global_state.info_message,
                             "singleplayer".to_owned(),
                             "".to_owned(),
@@ -177,7 +176,6 @@ impl PlayState for MainMenuState {
                         }
                     };
                     attempt_login(
-                        &mut global_state.settings,
                         &mut global_state.info_message,
                         username,
                         password,
@@ -352,7 +350,6 @@ fn get_client_msg_error(e: client_init::Error, localized_strings: &LocalizationH
 }
 
 fn attempt_login(
-    settings: &mut Settings,
     info_message: &mut Option<String>,
     username: String,
     password: String,
@@ -370,7 +367,6 @@ fn attempt_login(
         *client_init = Some(ClientInit::new(
             connection_args,
             username,
-            Some(settings.graphics.view_distance),
             password,
             runtime,
         ));
