@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Basalt",
+    description: "A dark volcanic rock.",
+    kind: Ingredient(
+        kind: "Basalt",
+    ),
+    quality: High,
+    tags: [],
+)

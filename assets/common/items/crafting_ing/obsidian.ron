@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Obsidian",
+    description: "An igneous rock that comes from melted rock.",
+    kind: Ingredient(
+        kind: "Obsidian",
+    ),
+    quality: Epic,
+    tags: [],
+)

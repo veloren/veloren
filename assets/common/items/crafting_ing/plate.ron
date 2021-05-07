@@ -1,9 +1,9 @@
 ItemDef(
-    name: "Durable Plate",
+    name: "Plate",
     description: "Durable plate from an armored animal.",
     kind: Ingredient(
         kind: "Plate",
     ),
-    quality: Common,
+    quality: Epic,
     tags: [],
 )
