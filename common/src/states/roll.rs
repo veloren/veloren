@@ -56,11 +56,6 @@ impl CharacterBehavior for Data {
         match self.stage_section {
             StageSection::Buildup => {
                 handle_move(data, &mut update, 1.0);
-                // Remove burning effect if active
-                update.server_events.push_front(ServerEvent::Buff {
-                    entity: data.entity,
-                    buff_change: BuffChange::RemoveByKind(BuffKind::Burning),
-                });
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
                     update.character = CharacterState::Roll(Data {
@@ -71,6 +66,11 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                 } else {
+                    // Remove burning effect if active
+                    update.server_events.push_front(ServerEvent::Buff {
+                        entity: data.entity,
+                        buff_change: BuffChange::RemoveByKind(BuffKind::Burning),
+                    });
                     // Transitions to movement section of stage
                     update.character = CharacterState::Roll(Data {
                         timer: Duration::default(),
