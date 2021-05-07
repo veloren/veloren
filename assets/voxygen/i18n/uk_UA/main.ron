@@ -59,6 +59,8 @@ https://veloren.net/account/."#,
         "main.login.select_language": "Оберіть мову",
 
         "main.servers.select_server": "Оберіть сервер",
+        "main.login.client_version": "Версія кліента",
+        "main.login.server_version": "Версія сервера",
     },
 
 

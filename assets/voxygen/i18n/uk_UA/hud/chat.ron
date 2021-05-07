@@ -4,9 +4,10 @@
 (
     string_map: {
         // Outcomes
-        "hud.outcome.bleeding": "померли від обескровлення",
+        "hud.outcome.bleeding": "померли від крововтрати",
         "hud.outcome.burning": "згоріли живцем",
         "hud.outcome.curse": "померли від прокльону",
+        "hud.outcome.crippled": "загинули від травм",
         // Chat outputs
         "hud.chat.online_msg": "[{name}] зайшли на сервер",
         "hud.chat.offline_msg": "[{name}] вийшли з серверу",
