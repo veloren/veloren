@@ -60,3 +60,7 @@ name = "tree"
 [[example]]
 name = "chunk_compression_benchmarks"
 required-features = ["bin_compression"]
+
+[[example]]
+name = "heightmap_visualization"
+required-features = ["bin_compression"]
