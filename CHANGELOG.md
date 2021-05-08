@@ -56,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - There's now a checkbox in the graphics tab to opt-in to receiving lossily-compressed terrain colors.
 - /buff command which allows you to cast a buff on player
 - Warn the user with an animated red text in the second phase of a trade in which a party is offering nothing.
+- /skill_preset command which allows you to apply skill presets
 
 ### Changed
 
