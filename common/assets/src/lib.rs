@@ -134,6 +134,7 @@ lazy_static! {
     /// 3. Download & hopefully extract zip (`assets` next to binary)
     /// 4. Running through cargo (`assets` in workspace root but not always in cwd incase you `cd voxygen && cargo r`)
     /// 5. Running executable in the target dir (`assets` in workspace)
+    /// 6. Running tests (`assets` in workspace root)
     pub static ref ASSETS_PATH: PathBuf = {
         let mut paths = Vec::new();
 
@@ -162,7 +163,23 @@ lazy_static! {
             paths.push(path);
         }
 
-        // 5. System paths
+        // 5. Root of the repository
+        if let Ok(path) = std::env::current_dir() {
+            // If we are in the root, push path
+            if path.join(".git").is_dir() {
+                paths.push(path);
+            } else {
+                // Search .git directory in parent directries
+                for ancestor in path.ancestors() {
+                    if ancestor.join(".git").is_dir() {
+                        paths.push(ancestor.to_path_buf());
+                        break;
+                    }
+                }
+            }
+        }
+
+        // 6. System paths
         #[cfg(all(unix, not(target_os = "macos"), not(target_os = "ios"), not(target_os = "android")))]
         {
             if let Ok(result) = std::env::var("XDG_DATA_HOME") {
