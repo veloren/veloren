@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Carapace Gauntlets",
+    description: "Shell that once shielded a beast.",
+    kind: Armor((
+        kind: Hand("Carapace"),
+        stats: (
+            protection: Normal(10.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

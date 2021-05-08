@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Dragonscale Chest",
+    description: "Power pulses through it.",
+    kind: Armor((
+        kind: Chest("Dragonscale"),
+        stats: (
+            protection: Normal(30.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Epic,
+    tags: [],
+)

@@ -170,5 +170,25 @@
           vox_spec: ("armor.warlock.chest", (-7.0, -3.5, 0.5)),
           color: None
         ),
+        "Scale": (
+          vox_spec: ("armor.scale.chest", (-7.0, -3.5, 2.0)),
+          color: None
+        ),
+        "Carapace": (
+          vox_spec: ("armor.carapace.chest", (-7.0, -3.5, 1.5)),
+          color: None
+        ),
+        "Platescale": (
+          vox_spec: ("armor.platescale.chest", (-7.0, -3.5, 0.5)),
+          color: None
+        ),
+        "Dragonscale": (
+          vox_spec: ("armor.dragonscale.chest", (-7.0, -3.5, 1.5)),
+          color: None
+        ),
+        "Savage": (
+          vox_spec: ("armor.savage.chest", (-7.0, -4.0, 1.0)),
+          color: None
+        ),
     },
 ))

@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Savage Gauntlets",
+    description: "Brings the fury of the barbarians.",
+    kind: Armor((
+        kind: Hand("Savage"),
+        stats: (
+            protection: Normal(10.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

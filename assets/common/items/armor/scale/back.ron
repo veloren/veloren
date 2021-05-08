@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Scale cape",
+    description: "Each embedded scale provides protection.",
+    kind: Armor((
+        kind: Back("Scale"),
+        stats: (
+            protection: Normal(4.0),
+            poise_resilience: Normal(0.2),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

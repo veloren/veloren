@@ -52,5 +52,25 @@
             vox_spec: ("armor.warlock.back", (-5.0, -1.5, -15.5)),
             color: None
         ),
+        "Scale": (
+            vox_spec: ("armor.scale.back", (-5.0, -2.0, -10.5)),
+            color: None
+        ),
+        "Carapace": (
+            vox_spec: ("armor.carapace.back", (-5.0, -1.5, -10.5)),
+            color: None
+        ),
+        "Platescale": (
+            vox_spec: ("armor.platescale.back", (-5.0, -4.5, -10.5)),
+            color: None
+        ),
+        "Dragonscale": (
+            vox_spec: ("armor.dragonscale.back", (-7.0, -2.5, -12.0)),
+            color: None
+        ),
+        "Savage": (
+            vox_spec: ("armor.savage.back", (-5.0, -2.5, -11.0)),
+            color: None
+        ),
     },
 ))

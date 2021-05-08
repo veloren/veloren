@@ -128,5 +128,25 @@
             vox_spec: ("armor.warlock.pants", (-5.0, -4.0, -2.0)),
             color: None
         ),
+        "Scale": (
+            vox_spec: ("armor.scale.pants", (-5.0, -4.0, 0.0)),
+            color: None
+        ),
+        "Carapace": (
+            vox_spec: ("armor.carapace.pants", (-6.0, -4.0, 0.5)),
+            color: None
+        ),
+        "Platescale": (
+            vox_spec: ("armor.platescale.pants", (-6.0, -4.0, 0.0)),
+            color: None
+        ),
+        "Dragonscale": (
+            vox_spec: ("armor.dragonscale.pants", (-5.0, -3.5, -1.5)),
+            color: None
+        ),
+        "Savage": (
+            vox_spec: ("armor.savage.pants", (-5.0, -4.0, 0.5)),
+            color: None
+        ),
     },
 ))

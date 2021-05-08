@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Savage Belt",
+    description: "Brings the fury of the barbarians.",
+    kind: Armor((
+        kind: Belt("Savage"),
+        stats: (
+            protection: Normal(4.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Dragonscale Gloves",
+    description: "Power pulses through it.",
+    kind: Armor((
+        kind: Hand("Dragonscale"),
+        stats: (
+            protection: Normal(12.0),
+            poise_resilience: Normal(8.0),
+        ),
+    )),
+    quality: Epic,
+    tags: [],
+)

@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Carapace Shoulder Pad",
+    description: "Shell that once shielded a beast.",
+    kind: Armor((
+        kind: Shoulder("Carapace"),
+        stats: (
+            protection: Normal(15.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

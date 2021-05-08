@@ -100,5 +100,25 @@
           vox_spec: ("armor.warlock.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
+        "Scale": (
+          vox_spec: ("armor.scale.foot", (-2.5, -3.5, -2.0)),
+          color: None
+        ),
+        "Carapace": (
+          vox_spec: ("armor.carapace.foot", (-2.5, -3.5, -2.0)),
+          color: None
+        ),
+        "Platescale": (
+          vox_spec: ("armor.platescale.foot", (-2.5, -3.5, -2.0)),
+          color: None
+        ),
+        "Dragonscale": (
+          vox_spec: ("armor.dragonscale.foot", (-2.5, -5.5, -2.0)),
+          color: None
+        ),
+        "Savage": (
+          vox_spec: ("armor.savage.foot", (-2.5, -3.5, -2.0)),
+          color: None
+        ),
     },
 ))

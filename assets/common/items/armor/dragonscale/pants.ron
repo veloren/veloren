@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Dragonscale Skirt",
+    description: "Power pulses through it.",
+    kind: Armor((
+        kind: Pants("Dragonscale"),
+        stats: (
+            protection: Normal(24.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Epic,
+    tags: [],
+)

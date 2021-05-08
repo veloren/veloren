@@ -400,6 +400,9 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         quadruped_low::Species::Maneater => {
                             "common.loot_tables.creature.quad_low.maneater"
                         },
+                        quadruped_low::Species::Lavadrake => {
+                            "common.loot_tables.creature.quad_low.lavadrake"
+                        },
                         _ => "common.loot_tables.creature.quad_low.default",
                     }
                 },

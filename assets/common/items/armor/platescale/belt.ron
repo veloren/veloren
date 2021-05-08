@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Platescale Belt",
+    description: "Smithed from hide tougher than steel.",
+    kind: Armor((
+        kind: Belt("Platescale"),
+        stats: (
+            protection: Normal(4.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

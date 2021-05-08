@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Scale Boots",
+    description: "Each embedded scale provides protection.",
+    kind: Armor((
+        kind: Foot("Scale"),
+        stats: (
+            protection: Normal(3.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

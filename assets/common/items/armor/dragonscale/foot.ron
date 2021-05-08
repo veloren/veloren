@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Dragonscale Boots",
+    description: "Power pulses through it.",
+    kind: Armor((
+        kind: Foot("Dragonscale"),
+        stats: (
+            protection: Normal(6.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Epic,
+    tags: [],
+)

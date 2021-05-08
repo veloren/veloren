@@ -301,5 +301,55 @@
                 color: None
             )
         ),
+        "Scale": (
+            left: (
+                vox_spec: ("armor.scale.shoulder", (-5.5, -4.0 , -0.5)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.scale.shoulder", (-0.5, -4.0, -0.5)),
+                color: None
+            )
+        ),
+        "Carapace": (
+            left: (
+                vox_spec: ("armor.carapace.shoulder", (-6.0, -4.0 , -2.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.carapace.shoulder", (-1.0, -4.0, -2.0)),
+                color: None
+            )
+        ),
+        "Platescale": (
+            left: (
+                vox_spec: ("armor.platescale.shoulder", (-6.0, -4.0 , -3.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.platescale.shoulder", (-1.0, -4.0, -3.0)),
+                color: None
+            )
+        ),
+        "Dragonscale": (
+            left: (
+                vox_spec: ("armor.dragonscale.shoulder", (-9.0, -3.5 , -1.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.dragonscale.shoulder", (0.0, -3.5, -1.0)),
+                color: None
+            )
+        ),
+        "Savage": (
+            left: (
+                vox_spec: ("armor.savage.shoulder", (-5.5, -4.0 , -2.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.savage.shoulder", (-0.5, -4.0, -2.0)),
+                color: None
+            )
+        ),
     },
 ))

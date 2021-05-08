@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Savage Cape",
+    description: "Brings the fury of the barbarians.",
+    kind: Armor((
+        kind: Back("Savage"),
+        stats: (
+            protection: Normal(4.0),
+            poise_resilience: Normal(0.2),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

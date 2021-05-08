@@ -220,5 +220,55 @@
                 color: None
             )
         ),
+        "Scale": (
+            left: (
+                vox_spec: ("armor.scale.hand", (-3.5, -1.5, -2.5)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.scale.hand", (-1.5, -1.5, -2.5)),
+                color: None
+            )
+        ),
+        "Carapace": (
+            left: (
+                vox_spec: ("armor.carapace.hand", (-3.5, -2.5, -3.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.carapace.hand", (-1.5, -2.5, -3.0)),
+                color: None
+            )
+        ),
+        "Platescale": (
+            left: (
+                vox_spec: ("armor.platescale.hand", (-3.5, -3.5, -4.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.platescale.hand", (-1.5, -3.5, -4.0)),
+                color: None
+            )
+        ),
+        "Dragonscale": (
+            left: (
+                vox_spec: ("armor.dragonscale.hand", (-5.0, -1.5, -3.5)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.dragonscale.hand", (-2.0, -1.5, -3.5)),
+                color: None
+            )
+        ),
+        "Savage": (
+            left: (
+                vox_spec: ("armor.savage.hand", (-2.5, -3.0, -4.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.savage.hand", (-1.5, -3.0, -4.0)),
+                color: None
+            )
+        ),
     },
 ))

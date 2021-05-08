@@ -100,5 +100,25 @@
             vox_spec: ("armor.warlock.belt", (-4.0, -3.0, 2.0)),
             color: None
         ),
+        "Scale":(
+            vox_spec: ("armor.scale.belt", (-4.0, -3.5, 2.0)),
+            color: None
+        ),
+        "Carapace":(
+            vox_spec: ("armor.carapace.belt", (-4.0, -4.0, 1.5)),
+            color: None
+        ),
+        "Platescale":(
+            vox_spec: ("armor.platescale.belt", (-4.0, -4.0, 1.0)),
+            color: None
+        ),
+        "Dragonscale":(
+            vox_spec: ("armor.dragonscale.belt", (-4.0, -3.5, 1.5)),
+            color: None
+        ),
+        "Savage":(
+            vox_spec: ("armor.savage.belt", (-4.0, -4.0, 1.0)),
+            color: None
+        ),
     },
 ))

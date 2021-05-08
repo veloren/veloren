@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Savage Boots",
+    description: "Brings the fury of the barbarians.",
+    kind: Armor((
+        kind: Foot("Savage"),
+        stats: (
+            protection: Normal(5.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: High,
+    tags: [],
+)

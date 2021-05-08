@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Dragonscale cape",
+    description: "Power pulses through it.",
+    kind: Armor((
+        kind: Back("Dragonscale"),
+        stats: (
+            protection: Normal(4.0),
+            poise_resilience: Normal(0.2),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

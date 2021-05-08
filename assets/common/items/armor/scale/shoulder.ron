@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Scale Shoulders",
+    description: "Each embedded scale provides protection.",
+    kind: Armor((
+        kind: Shoulder("Scale"),
+        stats: (
+            protection: Normal(9.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Common,
+    tags: [],
+)
