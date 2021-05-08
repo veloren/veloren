@@ -47,7 +47,7 @@ pub type Fonts = HashMap<String, Font>;
 /// However, metadata informations are correct
 /// See `Language` for more info on each attributes
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-pub struct RawLocalization {
+pub(crate) struct RawLocalization {
     pub(crate) sub_directories: Vec<String>,
     pub(crate) string_map: HashMap<String, String>,
     pub(crate) vector_map: HashMap<String, Vec<String>>,
@@ -85,7 +85,7 @@ struct Language {
 /// Store internationalization maps
 /// These structs are meant to be merged into a Language
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct LocalizationFragment {
+struct LocalizationFragment {
     /// A map storing the localized texts
     ///
     /// Localized content can be accessed using a String key.
@@ -172,9 +172,7 @@ impl assets::Compound for Language {
         asset_key: &str,
     ) -> Result<Self, assets::Error> {
         let raw = cache
-            .load::<RawLocalization>(
-                &["voxygen.i18n.", asset_key, ".", LANG_MANIFEST_FILE].concat(),
-            )?
+            .load::<RawLocalization>(&[asset_key, ".", LANG_MANIFEST_FILE].concat())?
             .cloned();
         let mut localization = Language::from(raw);
 
@@ -335,10 +333,11 @@ impl LocalizationHandle {
     }
 
     pub fn load(specifier: &str) -> Result<Self, crate::assets::Error> {
-        let default_key = REFERENCE_LANG;
-        let is_default = specifier == default_key;
+        let default_key = ["voxygen.i18n.", REFERENCE_LANG].concat();
+        let language_key = ["voxygen.i18n.", specifier].concat();
+        let is_default = language_key == default_key;
         Ok(Self {
-            active: Language::load(specifier)?,
+            active: Language::load(&language_key)?,
             fallback: if is_default {
                 None
             } else {
@@ -383,15 +382,29 @@ impl assets::Compound for LocalizationList {
 }
 
 /// Load all the available languages located in the voxygen asset directory
-pub fn list_localizations() -> Vec<LanguageMetadata> { LocalizationList::load_expect_cloned("").0 }
+pub fn list_localizations() -> Vec<LanguageMetadata> {
+    LocalizationList::load_expect_cloned("voxygen.i18n").0
+}
 
 /// Start hot reloading of i18n assets
 pub fn start_hot_reloading() { assets::start_hot_reloading(); }
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::analysis;
     use std::path::Path;
+
+    // Test that localization list is loaded (not empty)
+    #[test]
+    fn test_localization_list() {
+        let list = list_localizations();
+        assert!(!list.is_empty());
+    }
+
+    // Test that reference language can be loaded
+    #[test]
+    fn test_localization_handle() { let _ = LocalizationHandle::load_expect(REFERENCE_LANG); }
 
     // Test to verify all languages that they are VALID and loadable, without
     // need of git just on the local assets folder
