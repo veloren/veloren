@@ -20,7 +20,8 @@ pub use assets_manager::{
 
 lazy_static! {
     /// The HashMap where all loaded assets are stored in.
-    static ref ASSETS: AssetCache = AssetCache::new(&*ASSETS_PATH).unwrap();
+    static ref ASSETS: AssetCache =
+        AssetCache::new(&*ASSETS_PATH).unwrap();
 }
 
 pub fn start_hot_reloading() { ASSETS.enhance_hot_reloading(); }
@@ -35,9 +36,9 @@ pub trait AssetExt: Sized + Send + Sync + 'static {
     /// Function used to load assets from the filesystem or the cache.
     /// Example usage:
     /// ```no_run
-    /// use veloren_common::assets::{self, AssetExt};
+    /// use veloren_common_assets::{AssetExt, Image};
     ///
-    /// let my_image = assets::Image::load("core.ui.backgrounds.city").unwrap();
+    /// let my_image = Image::load("core.ui.backgrounds.city").unwrap();
     /// ```
     fn load(specifier: &str) -> Result<AssetHandle<Self>, Error>;
 
@@ -53,9 +54,9 @@ pub trait AssetExt: Sized + Send + Sync + 'static {
     /// Function used to load essential assets from the filesystem or the cache.
     /// It will panic if the asset is not found. Example usage:
     /// ```no_run
-    /// use veloren_common::assets::{self, AssetExt};
+    /// use veloren_common_assets::{AssetExt, Image};
     ///
-    /// let my_image = assets::Image::load_expect("core.ui.backgrounds.city");
+    /// let my_image = Image::load_expect("core.ui.backgrounds.city");
     /// ```
     #[track_caller]
     fn load_expect(specifier: &str) -> AssetHandle<Self> {
@@ -151,26 +152,14 @@ lazy_static! {
             paths.push(path);
         }
 
-        // 3. Working path
-        if let Ok(path) = std::env::current_dir() {
-            paths.push(path);
-        }
-
-        // 4. Cargo Workspace (e.g. local development)
-        // https://github.com/rust-lang/cargo/issues/3946#issuecomment-359619839
-        if let Ok(Ok(path)) = std::env::var("CARGO_MANIFEST_DIR").map(|s| s.parse::<PathBuf>()) {
-            paths.push(path.parent().unwrap().to_path_buf());
-            paths.push(path);
-        }
-
-        // 5. Root of the repository
+        // 3. Root of the repository
         if let Ok(path) = std::env::current_dir() {
             // If we are in the root, push path
             if path.join(".git").is_dir() {
                 paths.push(path);
             } else {
                 // Search .git directory in parent directries
-                for ancestor in path.ancestors() {
+                for ancestor in path.ancestors().take(10) {
                     if ancestor.join(".git").is_dir() {
                         paths.push(ancestor.to_path_buf());
                         break;
@@ -179,7 +168,7 @@ lazy_static! {
             }
         }
 
-        // 6. System paths
+        // 4. System paths
         #[cfg(all(unix, not(target_os = "macos"), not(target_os = "ios"), not(target_os = "android")))]
         {
             if let Ok(result) = std::env::var("XDG_DATA_HOME") {
