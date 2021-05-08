@@ -111,10 +111,11 @@ impl<'a> System<'a> for Sys {
                                 .uid_allocator
                                 .retrieve_entity_internal(other.into())
                             {
-                                if let (Some(pos), Some(dir)) = (
-                                    read_data.positions.get(target),
-                                    Dir::from_unnormalized(vel.0),
-                                ) {
+                                if let (Some(pos), Some(ori)) =
+                                    (read_data.positions.get(target), orientations.get(entity))
+                                {
+                                    let dir = ori.look_dir();
+
                                     let owner_entity = projectile.owner.and_then(|u| {
                                         read_data.uid_allocator.retrieve_entity_internal(u.into())
                                     });
