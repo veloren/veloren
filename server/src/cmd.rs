@@ -143,6 +143,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::SetMotd => handle_set_motd,
         ChatCommand::Site => handle_site,
         ChatCommand::SkillPoint => handle_skill_point,
+        ChatCommand::SkillPreset => handle_skill_preset,
         ChatCommand::Spawn => handle_spawn,
         ChatCommand::Sudo => handle_sudo,
         ChatCommand::Tell => handle_tell,
@@ -2714,3 +2715,61 @@ fn cast_buff(kind: &str, data: BuffData, server: &mut Server, target: EcsEntity)
 }
 
 fn parse_buffkind(buff: &str) -> Option<BuffKind> { BUFF_PARSER.get(buff).copied() }
+
+fn handle_skill_preset(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) -> CmdResult<()> {
+    if let Some(preset) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
+        if let Some(mut skill_set) = server
+            .state
+            .ecs_mut()
+            .write_storage::<comp::SkillSet>()
+            .get_mut(target)
+        {
+            match preset.as_str() {
+                "clear" => {
+                    clear_skillset(&mut skill_set);
+                    Ok(())
+                },
+                preset => set_skills(&mut skill_set, preset),
+            }
+        } else {
+            Err("Player has no stats!".into())
+        }
+    } else {
+        Err(action.help_string())
+    }
+}
+
+fn clear_skillset(skill_set: &mut comp::SkillSet) { *skill_set = comp::SkillSet::default(); }
+
+fn set_skills(skill_set: &mut comp::SkillSet, preset: &str) -> CmdResult<()> {
+    let presets =
+        if let Ok(presets) = common::cmd::SkillPresetManifest::load("server.manifests.presets") {
+            presets.read().0.clone()
+        } else {
+            return Err("Error while loading presets".to_owned());
+        };
+    if let Some(preset) = presets.get(preset) {
+        for (skill, level) in preset {
+            let group = if let Some(group) = skill.skill_group_kind() {
+                group
+            } else {
+                warn!("Skill in preset doesn't exist in any group");
+                return Err("Preset is broken".to_owned());
+            };
+            for _ in 0..*level {
+                let cost = skill_set.skill_cost(*skill);
+                skill_set.add_skill_points(group, cost);
+                skill_set.unlock_skill(*skill);
+            }
+        }
+        Ok(())
+    } else {
+        Err("Such preset doesn't exist".to_owned())
+    }
+}

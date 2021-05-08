@@ -1,6 +1,6 @@
 use crate::{
     assets,
-    comp::{self, buff::BuffKind},
+    comp::{self, buff::BuffKind, Skill},
     npc, terrain,
 };
 use assets::AssetExt;
@@ -92,6 +92,7 @@ pub enum ChatCommand {
     SetMotd,
     Site,
     SkillPoint,
+    SkillPreset,
     Spawn,
     Sudo,
     Tell,
@@ -100,8 +101,8 @@ pub enum ChatCommand {
     Unban,
     Version,
     Waypoint,
-    Wiring,
     Whitelist,
+    Wiring,
     World,
 }
 
@@ -157,6 +158,7 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::SetMotd,
     ChatCommand::Site,
     ChatCommand::SkillPoint,
+    ChatCommand::SkillPreset,
     ChatCommand::Spawn,
     ChatCommand::Sudo,
     ChatCommand::Tell,
@@ -165,14 +167,22 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Unban,
     ChatCommand::Version,
     ChatCommand::Waypoint,
-    ChatCommand::Wiring,
     ChatCommand::Whitelist,
+    ChatCommand::Wiring,
     ChatCommand::World,
 ];
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct KitManifest(pub HashMap<String, Vec<(String, u32)>>);
 impl assets::Asset for KitManifest {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct SkillPresetManifest(pub HashMap<String, Vec<(Skill, u8)>>);
+impl assets::Asset for SkillPresetManifest {
     type Loader = assets::RonLoader;
 
     const EXTENSION: &'static str = "ron";
@@ -289,6 +299,22 @@ lazy_static! {
         } else {
             Vec::new()
         }
+    };
+
+    static ref PRESETS: HashMap<String, Vec<(Skill, u8)>> = {
+        if let Ok(presets) = SkillPresetManifest::load("server.manifests.presets") {
+            presets.read().0.clone()
+        } else {
+            warn!("Error while loading presets");
+            HashMap::new()
+        }
+    };
+
+    static ref PRESET_LIST: Vec<String> = {
+        let mut preset_list: Vec<String> = PRESETS.keys().cloned().collect();
+        preset_list.push("clear".to_owned());
+
+        preset_list
     };
 }
 
@@ -543,6 +569,11 @@ impl ChatCommand {
                 "Give yourself skill points for a particular skill tree",
                 Admin,
             ),
+            ChatCommand::SkillPreset => cmd(
+                vec![Enum("preset_name", PRESET_LIST.to_vec(), Required)],
+                "Gives your character desired skills.",
+                Admin,
+            ),
             ChatCommand::Spawn => cmd(
                 vec![
                     Enum("alignment", ALIGNMENTS.clone(), Required),
@@ -649,6 +680,7 @@ impl ChatCommand {
             ChatCommand::SetMotd => "set_motd",
             ChatCommand::Site => "site",
             ChatCommand::SkillPoint => "skill_point",
+            ChatCommand::SkillPreset => "skill_preset",
             ChatCommand::Spawn => "spawn",
             ChatCommand::Sudo => "sudo",
             ChatCommand::Tell => "tell",
@@ -754,7 +786,7 @@ pub enum ArgumentSpec {
     /// * suggested tab-completion
     /// * whether it's optional
     Float(&'static str, f32, Requirement),
-    /// The argument is a float. The associated values are
+    /// The argument is an integer. The associated values are
     /// * label
     /// * suggested tab-completion
     /// * whether it's optional

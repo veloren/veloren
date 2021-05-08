@@ -1,0 +1,129 @@
+// NOTE: Order matters here
+// (you need to unlock skillgroup to be able to unlock skills in it
+({
+    "max": [
+        // General skills
+        (General(HealthIncrease), 10),
+        (General(EnergyIncrease), 5),
+        (Roll(Cost), 2),
+        (Roll(Strength), 2),
+        (Roll(Duration), 2),
+        (Climb(Cost), 2),
+        (Climb(Speed), 2),
+        (Swim(Speed), 2),
+
+        // Sword
+        (UnlockGroup(Weapon(Sword)), 1),
+
+        (Sword(InterruptingAttacks), 1),
+
+        (Sword(TsCombo), 1),
+        (Sword(TsDamage), 3),
+        (Sword(TsRegen), 2),
+        (Sword(TsSpeed), 3),
+
+        (Sword(DCost), 2),
+        (Sword(DDrain), 2),
+        (Sword(DDamage), 2),
+        (Sword(DScaling), 3),
+        (Sword(DSpeed), 1),
+        (Sword(DInfinite), 1),
+
+        (Sword(UnlockSpin), 1),
+        (Sword(SDamage), 2),
+        (Sword(SSpeed), 2),
+        (Sword(SCost), 2),
+        (Sword(SSpins), 2),
+        // Axe
+        (UnlockGroup(Weapon(Axe)), 1),
+
+        (Axe(DsCombo), 1),
+        (Axe(DsDamage), 3),
+        (Axe(DsRegen), 2),
+        (Axe(DsSpeed), 3),
+
+        (Axe(SInfinite), 1),
+        (Axe(SHelicopter), 1),
+        (Axe(SDamage), 3),
+        (Axe(SSpeed), 2),
+        (Axe(SCost), 2),
+
+        (Axe(UnlockLeap), 1),
+        (Axe(LDamage), 2),
+        (Axe(LKnockback), 2),
+        (Axe(LCost), 2),
+        (Axe(LDistance), 2),
+        // Hammer
+        (UnlockGroup(Weapon(Hammer)), 1),
+
+        (Hammer(SsKnockback), 2),
+        (Hammer(SsDamage), 3),
+        (Hammer(SsRegen), 2),
+        (Hammer(SsSpeed), 3),
+
+        (Hammer(CDamage), 3),
+        (Hammer(CKnockback), 3),
+        (Hammer(CDrain), 2),
+        (Hammer(CSpeed), 2),
+
+        (Hammer(UnlockLeap), 1),
+        (Hammer(LDamage), 2),
+        (Hammer(LCost), 2),
+        (Hammer(LDistance), 2),
+        (Hammer(LKnockback), 2),
+        (Hammer(LRange), 2),
+        // Bow
+        (UnlockGroup(Weapon(Bow)), 1),
+
+        (Bow(ProjSpeed), 2),
+        (Bow(BDamage), 3),
+        (Bow(BRegen), 2),
+
+        (Bow(CDamage), 3),
+        (Bow(CKnockback), 2),
+        (Bow(CProjSpeed), 2),
+        (Bow(CDrain), 2),
+        (Bow(CSpeed), 2),
+        (Bow(CMove), 2),
+
+        (Bow(UnlockRepeater), 1),
+        (Bow(RGlide), 1),
+        (Bow(RDamage), 2),
+        (Bow(RArrows), 2),
+        (Bow(RCost), 2),
+        // Staff
+        (UnlockGroup(Weapon(Staff)), 1),
+
+        (Staff(BDamage), 3),
+        (Staff(BRegen), 2),
+        (Staff(BRadius), 3),
+
+        (Staff(FRange), 2),
+        (Staff(FDamage), 3),
+        (Staff(FDrain), 2),
+        (Staff(FVelocity), 2),
+
+        (Staff(UnlockShockwave), 1),
+        (Staff(SDamage), 2),
+        (Staff(SKnockback), 2),
+        (Staff(SRange), 2),
+        (Staff(SCost), 2),
+        // Sceptre
+        (UnlockGroup(Weapon(Sceptre)), 1),
+
+        (Sceptre(LDamage), 3),
+        (Sceptre(LRange), 2),
+        (Sceptre(LLifesteal), 3),
+        (Sceptre(LRegen), 2),
+
+        (Sceptre(HHeal), 3),
+        (Sceptre(HCost), 2),
+        (Sceptre(HRange), 2),
+
+        (Sceptre(UnlockAura), 1),
+        (Sceptre(AStrength), 2),
+        (Sceptre(ADuration), 2),
+        (Sceptre(ARange), 2),
+        (Sceptre(ACost), 2),
+    ],
+})
