@@ -3,13 +3,15 @@
 //! `CHAT_COMMANDS` and provide a handler function.
 
 use crate::{
-    settings::{BanRecord, EditableSetting},
+    settings::{
+        Ban, BanAction, BanInfo, EditableSetting, SettingError, WhitelistInfo, WhitelistRecord,
+    },
     wiring::{Logic, OutputFormula},
     Server, SpawnPoint, StateExt,
 };
 use assets::AssetExt;
 use authc::Uuid;
-use chrono::{NaiveTime, Timelike};
+use chrono::{NaiveTime, Timelike, Utc};
 use common::{
     assets,
     cmd::{ChatCommand, BUFF_PACK, BUFF_PARSER, CHAT_COMMANDS, CHAT_SHORTCUTS},
@@ -19,7 +21,7 @@ use common::{
         buff::{Buff, BuffCategory, BuffData, BuffKind, BuffSource},
         inventory::item::{tool::AbilityMap, MaterialStatManifest, Quality},
         invite::InviteKind,
-        ChatType, Inventory, Item, LightEmitter, WaypointArea,
+        AdminRole, ChatType, Inventory, Item, LightEmitter, WaypointArea,
     },
     depot,
     effect::Effect,
@@ -36,10 +38,11 @@ use common_net::{
     sync::WorldSyncExt,
 };
 use common_state::{BuildAreaError, BuildAreas};
-use core::{convert::TryFrom, ops::Not, time::Duration};
+use core::{cmp::Ordering, convert::TryFrom, time::Duration};
 use hashbrown::{HashMap, HashSet};
+use humantime::Duration as HumanDuration;
 use rand::Rng;
-use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
+use specs::{storage::StorageEntry, Builder, Entity as EcsEntity, Join, WorldExt};
 use vek::*;
 use wiring::{Circuit, Wire, WiringAction, WiringActionEffect, WiringElement};
 use world::util::Sampler;
@@ -54,15 +57,7 @@ pub trait ChatCommandExt {
 impl ChatCommandExt for ChatCommand {
     #[allow(clippy::needless_return)] // TODO: Pending review in #587
     fn execute(&self, server: &mut Server, entity: EcsEntity, args: String) {
-        if self.needs_admin() && !server.entity_is_admin(entity) {
-            server.notify_client(
-                entity,
-                ServerGeneral::server_msg(
-                    ChatType::CommandError,
-                    format!("You don't have permission to use '/{}'.", self.keyword()),
-                ),
-            );
-        } else if let Err(err) = get_handler(self)(server, entity, entity, args, &self) {
+        if let Err(err) = do_command(server, entity, entity, args, self) {
             server.notify_client(
                 entity,
                 ServerGeneral::server_msg(ChatType::CommandError, err),
@@ -91,8 +86,22 @@ type CmdResult<T> = Result<T, String>;
 /// failed; on failure, the string is sent to the client who initiated the
 /// command.
 type CommandHandler = fn(&mut Server, EcsEntity, EcsEntity, String, &ChatCommand) -> CmdResult<()>;
-fn get_handler(cmd: &ChatCommand) -> CommandHandler {
-    match cmd {
+
+fn do_command(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: String,
+    cmd: &ChatCommand,
+) -> CmdResult<()> {
+    // Make sure your role is at least high enough to execute this command.
+    if cmd.needs_role() > server.entity_admin_role(client) {
+        return Err(format!(
+            "You don't have permission to use '/{}'.",
+            cmd.keyword()
+        ));
+    }
+    let handler: CommandHandler = match cmd {
         ChatCommand::Adminify => handle_adminify,
         ChatCommand::Airship => handle_spawn_airship,
         ChatCommand::Alias => handle_alias,
@@ -155,7 +164,9 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Wiring => handle_spawn_wiring,
         ChatCommand::Whitelist => handle_whitelist,
         ChatCommand::World => handle_world,
-    }
+    };
+
+    handler(server, client, target, args, cmd)
 }
 
 // Fallibly get position of entity with the given descriptor (used for error
@@ -198,6 +209,25 @@ fn insert_or_replace_component<C: specs::Component>(
         .map_err(|_| format!("Entity {:?} is dead!", descriptor))
 }
 
+fn uuid(server: &Server, entity: EcsEntity, descriptor: &str) -> CmdResult<Uuid> {
+    server
+        .state
+        .ecs()
+        .read_storage::<comp::Player>()
+        .get(entity)
+        .map(|player| player.uuid())
+        .ok_or_else(|| format!("Cannot get player information for {:?}", descriptor))
+}
+
+fn real_role(server: &Server, uuid: Uuid, descriptor: &str) -> CmdResult<comp::AdminRole> {
+    server
+        .editable_settings()
+        .admins
+        .get(&uuid)
+        .map(|record| record.role.into())
+        .ok_or_else(|| format!("Cannot get administrator roles for {:?} uuid", descriptor))
+}
+
 // Fallibly get uid of entity with the given descriptor (used for error
 // message).
 fn uid(server: &Server, target: EcsEntity, descriptor: &str) -> CmdResult<Uid> {
@@ -230,15 +260,46 @@ fn no_sudo(client: EcsEntity, target: EcsEntity) -> CmdResult<()> {
     }
 }
 
-// Prevent application to hardcoded administrators.
-fn verify_not_hardcoded_admin(server: &mut Server, uuid: Uuid, reason: &str) -> CmdResult<()> {
-    server
+/// Ensure that client role is above target role, for the purpose of performing
+/// some (often permanent) administrative action on the target.  Note that this
+/// function is *not* a replacement for actually verifying that the client
+/// should be able to execute the command at all, which still needs to be
+/// rechecked, nor does it guarantee that either the client or the target
+/// actually have an entry in the admin settings file.
+///
+/// For our purposes, there are *two* roles--temporary role, and permanent role.
+/// For the purpose of these checks, currently *any* permanent role overrides
+/// *any* temporary role (this may change if more roles are added that aren't
+/// moderator or administrator).  If the permanent roles match, the temporary
+/// roles are used as a tiebreaker.  /adminify should ensure that no one's
+/// temporary role can be different from their permanent role without someone
+/// with a higher role than their permanent role allowing it, and only permanent
+/// roles should be recorded in the settings files.
+fn verify_above_role(
+    server: &mut Server,
+    (client, client_uuid): (EcsEntity, Uuid),
+    (player, player_uuid): (EcsEntity, Uuid),
+    reason: &str,
+) -> CmdResult<()> {
+    let client_temp = server.entity_admin_role(client);
+    let client_perm = server
         .editable_settings()
         .admins
-        .contains(&uuid)
-        .not()
-        .then_some(())
-        .ok_or_else(|| reason.into())
+        .get(&client_uuid)
+        .map(|record| record.role);
+
+    let player_temp = server.entity_admin_role(player);
+    let player_perm = server
+        .editable_settings()
+        .admins
+        .get(&player_uuid)
+        .map(|record| record.role);
+
+    if client_perm > player_perm || client_perm == player_perm && client_temp > player_temp {
+        Ok(())
+    } else {
+        Err(reason.into())
+    }
 }
 
 fn find_alias(ecs: &specs::World, alias: &str) -> CmdResult<(EcsEntity, Uuid)> {
@@ -262,7 +323,72 @@ fn find_username(server: &mut Server, username: &str) -> CmdResult<Uuid> {
         .state
         .mut_resource::<LoginProvider>()
         .username_to_uuid(username)
-        .map_err(|_| format!("Unable to determine UUID for username \"{}\"", username))
+        .map_err(|_| format!("Unable to determine UUID for username {:?}", username))
+}
+
+/// NOTE: Intended to be run only on logged-in clients.
+fn uuid_to_username(
+    server: &mut Server,
+    fallback_entity: EcsEntity,
+    uuid: Uuid,
+) -> CmdResult<String> {
+    let make_err = || format!("Unable to determine username for UUID {:?}", uuid);
+    let player_storage = server.state.ecs().read_storage::<comp::Player>();
+
+    let fallback_alias = &player_storage
+        .get(fallback_entity)
+        .ok_or_else(make_err)?
+        .alias;
+
+    server
+        .state
+        .ecs()
+        .read_resource::<LoginProvider>()
+        .uuid_to_username(uuid, fallback_alias)
+        .map_err(|_| make_err())
+}
+
+fn edit_setting_feedback<S: EditableSetting>(
+    server: &mut Server,
+    client: EcsEntity,
+    result: Option<(String, Result<(), SettingError<S>>)>,
+    failure: impl FnOnce() -> String,
+) -> CmdResult<()> {
+    let (info, result) = result.ok_or_else(failure)?;
+    match result {
+        Ok(()) => {
+            server.notify_client(
+                client,
+                ServerGeneral::server_msg(ChatType::CommandInfo, info),
+            );
+            Ok(())
+        },
+        Err(SettingError::Io(err)) => {
+            warn!(
+                ?err,
+                "Failed to write settings file to disk, but succeeded in memory (success message: \
+                 {})",
+                info,
+            );
+            server.notify_client(
+                client,
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    format!(
+                        "Failed to write settings file to disk, but succeeded in memory.\n
+                            Error (storage): {:?}\n
+                            Success (memory): {}",
+                        err, info
+                    ),
+                ),
+            );
+            Ok(())
+        },
+        Err(SettingError::Integrity(err)) => Err(format!(
+            "Encountered an error while validating the request: {:?}",
+            err
+        )),
+    }
 }
 
 fn handle_drop_all(
@@ -451,35 +577,41 @@ fn handle_set_motd(
     action: &ChatCommand,
 ) -> CmdResult<()> {
     let data_dir = server.data_dir();
+    let client_uuid = uuid(server, client, "client")?;
+    // Ensure the person setting this has a real role in the settings file, since
+    // it's persistent.
+    let _client_real_role = real_role(server, client_uuid, "client")?;
     match scan_fmt!(&args, &action.arg_fmt(), String) {
         Ok(msg) => {
-            server
-                .editable_settings_mut()
-                .server_description
-                .edit(data_dir.as_ref(), |d| **d = msg.clone());
-            server.notify_client(
-                client,
-                ServerGeneral::server_msg(
-                    ChatType::CommandInfo,
-                    format!("Server description set to \"{}\"", msg),
-                ),
-            );
+            let edit =
+                server
+                    .editable_settings_mut()
+                    .server_description
+                    .edit(data_dir.as_ref(), |d| {
+                        let info = format!("Server description set to {:?}", msg);
+                        **d = msg;
+                        Some(info)
+                    });
+            drop(data_dir);
+            edit_setting_feedback(server, client, edit, || {
+                unreachable!("edit always returns Some")
+            })
         },
         Err(_) => {
-            server
-                .editable_settings_mut()
-                .server_description
-                .edit(data_dir.as_ref(), |d| d.clear());
-            server.notify_client(
-                client,
-                ServerGeneral::server_msg(
-                    ChatType::CommandInfo,
-                    "Removed server description".to_string(),
-                ),
-            );
+            let edit =
+                server
+                    .editable_settings_mut()
+                    .server_description
+                    .edit(data_dir.as_ref(), |d| {
+                        d.clear();
+                        Some("Removed server description".to_string())
+                    });
+            drop(data_dir);
+            edit_setting_feedback(server, client, edit, || {
+                unreachable!("edit always returns Some")
+            })
         },
     }
-    Ok(())
 }
 
 fn handle_jump(
@@ -1365,12 +1497,16 @@ fn handle_help(
         )
     } else {
         let mut message = String::new();
-        for cmd in CHAT_COMMANDS.iter() {
-            if !cmd.needs_admin() || server.entity_is_admin(client) {
+        let entity_role = server.entity_admin_role(client);
+
+        // Iterate through all commands you have permission to use.
+        CHAT_COMMANDS
+            .iter()
+            .filter(|cmd| cmd.needs_role() <= entity_role)
+            .for_each(|cmd| {
                 message += &cmd.help_string();
                 message += "\n";
-            }
-        }
+            });
         message += "Additionally, you can use the following shortcuts:";
         for (k, v) in CHAT_SHORTCUTS.iter() {
             message += &format!(" /{} => /{}", k, v.keyword());
@@ -1870,40 +2006,107 @@ fn handle_spawn_wiring(
 #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 fn handle_adminify(
     server: &mut Server,
-    _client: EcsEntity,
+    client: EcsEntity,
     _target: EcsEntity,
     args: String,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let Ok(alias) = scan_fmt!(&args, &action.arg_fmt(), String) {
-        let (player, uuid) = find_alias(server.state.ecs(), &alias)?;
-        let uid = uid(server, player, "player")?;
-        verify_not_hardcoded_admin(
-            server,
-            uuid,
-            "Admins specified in server configuration files cannot be de-adminified.",
-        )?;
-        let is_admin = if server
-            .state
-            .read_component_copied::<comp::Admin>(player)
-            .is_some()
-        {
-            server
-                .state
-                .ecs()
-                .write_storage::<comp::Admin>()
-                .remove(player);
-            false
+    if let (Some(alias), desired_role) = scan_fmt_some!(&args, &action.arg_fmt(), String, String) {
+        let desired_role = if let Some(mut desired_role) = desired_role {
+            desired_role.make_ascii_lowercase();
+            Some(match &*desired_role {
+                "admin" => AdminRole::Admin,
+                "moderator" => AdminRole::Moderator,
+                _ => {
+                    return Err(action.help_string());
+                },
+            })
         } else {
-            server
-                .state
-                .ecs()
-                .write_storage()
-                .insert(player, comp::Admin)
-                .is_ok()
+            None
         };
-        // Update player list so the player shows up as admin in client chat.
-        let msg = ServerGeneral::PlayerListUpdate(PlayerListUpdate::Admin(uid, is_admin));
+        let (player, player_uuid) = find_alias(server.state.ecs(), &alias)?;
+        let client_uuid = uuid(server, client, "client")?;
+        let uid = uid(server, player, "player")?;
+
+        // Your permanent role, not your temporary role, is what's used to determine
+        // what temporary roles you can grant.
+        let client_real_role = real_role(server, client_uuid, "client")?;
+
+        // This appears to prevent de-mod / de-admin for mods / admins with access to
+        // this command, but it does not in the case where the target is
+        // temporary, because `verify_above_role` always values permanent roles
+        // above temporary ones.
+        verify_above_role(
+            server,
+            (client, client_uuid),
+            (player, player_uuid),
+            "Cannot reassign a role for anyone with your role or higher.",
+        )?;
+
+        // Ensure that it's not possible to assign someone a higher role than your own
+        // (i.e. even if mods had the ability to create temporary mods, they
+        // wouldn't be able to create temporary admins).
+        //
+        // Also note that we perform no more permissions checks after this point based
+        // on the assignee's temporary role--even if the player's temporary role
+        // is higher than the client's, we still allow the role to be reduced to
+        // the selected role, as long as they would have permission to assign it
+        // in the first place.  This is consistent with our
+        // policy on bans--banning or lengthening a ban (decreasing player permissions)
+        // can be done even after an unban or ban shortening (increasing player
+        // permissions) by someone with a higher role than the person doing the
+        // ban.  So if we change how bans work, we should change how things work
+        // here, too, for consistency.
+        if desired_role > Some(client_real_role.into()) {
+            return Err(
+                "Cannot assign someone a temporary role higher than your own permanent one".into(),
+            );
+        }
+
+        let mut admin_storage = server.state.ecs().write_storage::<comp::Admin>();
+        let entry = admin_storage
+            .entry(player)
+            .map_err(|_| "Cannot find player entity!".to_string())?;
+        match (entry, desired_role) {
+            (StorageEntry::Vacant(_), None) => {
+                return Err("Player already has no role!".into());
+            },
+            (StorageEntry::Occupied(o), None) => {
+                let old_role = o.remove().0;
+                server.notify_client(
+                    client,
+                    ServerGeneral::server_msg(
+                        ChatType::CommandInfo,
+                        format!("Role removed from player {}: {:?}", alias, old_role),
+                    ),
+                );
+            },
+            (entry, Some(desired_role)) => {
+                let verb = match entry
+                    .replace(comp::Admin(desired_role))
+                    .map(|old_admin| old_admin.0.cmp(&desired_role))
+                {
+                    Some(Ordering::Equal) => {
+                        return Err("Player already has that role!".into());
+                    },
+                    Some(Ordering::Greater) => "downgraded",
+                    Some(Ordering::Less) | None => "upgraded",
+                };
+                server.notify_client(
+                    client,
+                    ServerGeneral::server_msg(
+                        ChatType::CommandInfo,
+                        format!("Role for player {} {} to {:?}", alias, verb, desired_role),
+                    ),
+                );
+            },
+        };
+        // Update player list so the player shows up as moderator in client chat.
+        //
+        // NOTE: We deliberately choose not to differentiate between moderators and
+        // administrators in the player list.
+        let is_moderator = desired_role.is_some();
+        let msg = ServerGeneral::PlayerListUpdate(PlayerListUpdate::Moderator(uid, is_moderator));
         server.state.notify_players(msg);
         Ok(())
     } else {
@@ -2299,6 +2502,10 @@ fn handle_disconnect_all_players(
     args: String,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
+    let client_uuid = uuid(server, client, "client")?;
+    // Make sure temporary mods/admins can't run this command.
+    let _role = real_role(server, client_uuid, "role")?;
+
     if args != *"confirm" {
         return Err(
             "Please run the command again with the second argument of \"confirm\" to confirm that \
@@ -2433,14 +2640,19 @@ fn handle_sudo(
     {
         let cmd_args = cmd_args.unwrap_or_else(|| String::from(""));
         if let Ok(action) = cmd.parse() {
-            let ecs = server.state.ecs();
-            let (entity, uuid) = find_alias(ecs, &player_alias)?;
-            verify_not_hardcoded_admin(
+            let (player, player_uuid) = find_alias(server.state.ecs(), &player_alias)?;
+            let client_uuid = uuid(server, client, "client")?;
+            verify_above_role(
                 server,
-                uuid,
-                "Cannot sudo admins specified in server configuration files.",
+                (client, client_uuid),
+                (player, player_uuid),
+                "Cannot sudo players with roles higher than your own.",
             )?;
-            get_handler(&action)(server, client, entity, cmd_args, &action)
+
+            // TODO: consider making this into a tail call or loop (to avoid the potential
+            // stack overflow, although it's less of a risk coming from only mods and
+            // admins).
+            do_command(server, client, player, cmd_args, &action)
         } else {
             Err(format!("Unknown command: /{}", cmd))
         }
@@ -2477,35 +2689,63 @@ fn handle_whitelist(
     args: String,
     action: &ChatCommand,
 ) -> CmdResult<()> {
+    let now = Utc::now();
+
     if let Ok((whitelist_action, username)) = scan_fmt!(&args, &action.arg_fmt(), String, String) {
+        let client_uuid = uuid(server, client, "client")?;
+        let client_username = uuid_to_username(server, client, client_uuid)?;
+        let client_role = real_role(server, client_uuid, "client")?;
+
         if whitelist_action.eq_ignore_ascii_case("add") {
             let uuid = find_username(server, &username)?;
-            server
-                .editable_settings_mut()
-                .whitelist
-                .edit(server.data_dir().as_ref(), |w| w.insert(uuid));
-            server.notify_client(
-                client,
-                ServerGeneral::server_msg(
-                    ChatType::CommandInfo,
-                    format!("\"{}\" added to whitelist", username),
-                ),
-            );
-            Ok(())
+
+            let record = WhitelistRecord {
+                date: now,
+                info: Some(WhitelistInfo {
+                    username_when_whitelisted: username.clone(),
+                    whitelisted_by: client_uuid,
+                    whitelisted_by_username: client_username,
+                    whitelisted_by_role: client_role.into(),
+                }),
+            };
+
+            let edit =
+                server
+                    .editable_settings_mut()
+                    .whitelist
+                    .edit(server.data_dir().as_ref(), |w| {
+                        if w.insert(uuid, record).is_some() {
+                            None
+                        } else {
+                            Some(format!("added to whitelist: {}", username))
+                        }
+                    });
+            edit_setting_feedback(server, client, edit, || {
+                format!("already in whitelist: {}!", username)
+            })
         } else if whitelist_action.eq_ignore_ascii_case("remove") {
+            let client_uuid = uuid(server, client, "client")?;
+            let client_role = real_role(server, client_uuid, "client")?;
+
             let uuid = find_username(server, &username)?;
-            server
-                .editable_settings_mut()
-                .whitelist
-                .edit(server.data_dir().as_ref(), |w| w.remove(&uuid));
-            server.notify_client(
-                client,
-                ServerGeneral::server_msg(
-                    ChatType::CommandInfo,
-                    format!("\"{}\" removed from whitelist", username),
-                ),
-            );
-            Ok(())
+            let mut err_info = "not part of whitelist: ";
+            let edit =
+                server
+                    .editable_settings_mut()
+                    .whitelist
+                    .edit(server.data_dir().as_ref(), |w| {
+                        w.remove(&uuid)
+                            .filter(|record| {
+                                if record.whitelisted_by_role() <= client_role.into() {
+                                    true
+                                } else {
+                                    err_info = "permission denied to remove user: ";
+                                    false
+                                }
+                            })
+                            .map(|_| format!("removed from whitelist: {}", username))
+                    });
+            edit_setting_feedback(server, client, edit, || format!("{}{}", err_info, username))
         } else {
             Err(action.help_string())
         }
@@ -2516,13 +2756,15 @@ fn handle_whitelist(
 
 fn kick_player(
     server: &mut Server,
-    (target_player, uuid): (EcsEntity, Uuid),
+    (client, client_uuid): (EcsEntity, Uuid),
+    (target_player, target_player_uuid): (EcsEntity, Uuid),
     reason: &str,
 ) -> CmdResult<()> {
-    verify_not_hardcoded_admin(
+    verify_above_role(
         server,
-        uuid,
-        "Cannot kick admins specified in server configuration files.",
+        (client, client_uuid),
+        (target_player, target_player_uuid),
+        "Cannot kick players with roles higher than your own.",
     )?;
     server.notify_client(
         target_player,
@@ -2548,11 +2790,12 @@ fn handle_kick(
     if let (Some(target_alias), reason_opt) =
         scan_fmt_some!(&args, &action.arg_fmt(), String, String)
     {
+        let client_uuid = uuid(server, client, "client")?;
         let reason = reason_opt.unwrap_or_default();
         let ecs = server.state.ecs();
         let target_player = find_alias(ecs, &target_alias)?;
 
-        kick_player(server, target_player, &reason)?;
+        kick_player(server, (client, client_uuid), target_player, &reason)?;
         server.notify_client(
             client,
             ServerGeneral::server_msg(
@@ -2576,39 +2819,77 @@ fn handle_ban(
     args: String,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(username), reason_opt) = scan_fmt_some!(&args, &action.arg_fmt(), String, String) {
+    if let (Some(username), overwrite, parse_duration, reason_opt) = scan_fmt_some!(
+        &args,
+        &action.arg_fmt(),
+        String,
+        bool,
+        HumanDuration,
+        String
+    ) {
         let reason = reason_opt.unwrap_or_default();
-        let uuid = find_username(server, &username)?;
+        let overwrite = overwrite.unwrap_or(false);
 
-        if server.editable_settings().banlist.contains_key(&uuid) {
-            Err(format!("{} is already on the banlist", username))
-        } else {
-            server
-                .editable_settings_mut()
-                .banlist
-                .edit(server.data_dir().as_ref(), |b| {
-                    b.insert(uuid, BanRecord {
-                        username_when_banned: username.clone(),
-                        reason: reason.clone(),
-                    });
-                });
-            server.notify_client(
-                client,
-                ServerGeneral::server_msg(
-                    ChatType::CommandInfo,
+        let player_uuid = find_username(server, &username)?;
+
+        let client_uuid = uuid(server, client, "client")?;
+        let client_username = uuid_to_username(server, client, client_uuid)?;
+        let client_role = real_role(server, client_uuid, "client")?;
+
+        let now = Utc::now();
+        let end_date = parse_duration
+            .map(|duration| chrono::Duration::from_std(duration.into()))
+            .transpose()
+            .map_err(|err| format!("Error converting to duration: {}", err))?
+            // On overflow (someone adding some ridiculous timespan), just make the ban infinite.
+            .and_then(|duration| now.checked_add_signed(duration));
+
+        let ban_info = BanInfo {
+            performed_by: client_uuid,
+            performed_by_username: client_username,
+            performed_by_role: client_role.into(),
+        };
+
+        let ban = Ban {
+            reason: reason.clone(),
+            info: Some(ban_info),
+            end_date,
+        };
+
+        let edit = server
+            .editable_settings_mut()
+            .banlist
+            .ban_action(
+                server.data_dir().as_ref(),
+                now,
+                player_uuid,
+                username.clone(),
+                BanAction::Ban(ban),
+                overwrite,
+            )
+            .map(|result| {
+                (
                     format!("Added {} to the banlist with reason: {}", username, reason),
-                ),
-            );
+                    result,
+                )
+            });
 
-            // If the player is online kick them (this may fail if the player is a hardcoded
-            // admin; we don't care about that case because hardcoded admins can log on even
-            // if they're on the ban list).
-            let ecs = server.state.ecs();
-            if let Ok(target_player) = find_uuid(ecs, uuid) {
-                let _ = kick_player(server, (target_player, uuid), &reason);
-            }
-            Ok(())
+        edit_setting_feedback(server, client, edit, || {
+            format!("{} is already on the banlist", username)
+        })?;
+        // If the player is online kick them (this may fail if the player is a hardcoded
+        // admin; we don't care about that case because hardcoded admins can log on even
+        // if they're on the ban list).
+        let ecs = server.state.ecs();
+        if let Ok(target_player) = find_uuid(ecs, player_uuid) {
+            let _ = kick_player(
+                server,
+                (client, client_uuid),
+                (target_player, player_uuid),
+                &reason,
+            );
         }
+        Ok(())
     } else {
         Err(action.help_string())
     }
@@ -2622,22 +2903,38 @@ fn handle_unban(
     action: &ChatCommand,
 ) -> CmdResult<()> {
     if let Ok(username) = scan_fmt!(&args, &action.arg_fmt(), String) {
-        let uuid = find_username(server, &username)?;
+        let player_uuid = find_username(server, &username)?;
 
-        server
+        let client_uuid = uuid(server, client, "client")?;
+        let client_username = uuid_to_username(server, client, client_uuid)?;
+        let client_role = real_role(server, client_uuid, "client")?;
+
+        let now = Utc::now();
+
+        let ban_info = BanInfo {
+            performed_by: client_uuid,
+            performed_by_username: client_username,
+            performed_by_role: client_role.into(),
+        };
+
+        let unban = BanAction::Unban(ban_info);
+
+        let edit = server
             .editable_settings_mut()
             .banlist
-            .edit(server.data_dir().as_ref(), |b| {
-                b.remove(&uuid);
-            });
-        server.notify_client(
-            client,
-            ServerGeneral::server_msg(
-                ChatType::CommandInfo,
-                format!("{} was successfully unbanned", username),
-            ),
-        );
-        Ok(())
+            .ban_action(
+                server.data_dir().as_ref(),
+                now,
+                player_uuid,
+                username.clone(),
+                unban,
+                false,
+            )
+            .map(|result| (format!("{} was successfully unbanned", username), result));
+
+        edit_setting_feedback(server, client, edit, || {
+            format!("{} was already unbanned", username)
+        })
     } else {
         Err(action.help_string())
     }

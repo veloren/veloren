@@ -64,6 +64,7 @@ where
                     .parse()
                     .unwrap(),
             )
+            .add_directive("veloren_server::settings=info".parse().unwrap())
             .add_directive(LevelFilter::INFO.into())
     };
 

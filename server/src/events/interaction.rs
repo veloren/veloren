@@ -173,7 +173,7 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid
                             common_net::msg::server::PlayerInfo {
                                 player_alias: possessor_player.alias.clone(),
                                 is_online: true,
-                                is_admin: admins.get(possessor).is_some(),
+                                is_moderator: admins.get(possessor).is_some(),
                                 character: ecs.read_storage::<comp::Stats>().get(possesse).map(
                                     |s| common_net::msg::CharacterInfo {
                                         name: s.name.clone(),

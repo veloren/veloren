@@ -1,17 +1,26 @@
+pub mod admin;
+pub mod banlist;
 mod editable;
+pub mod server_description;
+pub mod whitelist;
 
-pub use editable::EditableSetting;
+pub use editable::{EditableSetting, Error as SettingError};
 
-use authc::Uuid;
-use hashbrown::{HashMap, HashSet};
+pub use admin::{AdminRecord, Admins};
+pub use banlist::{
+    Ban, BanAction, BanEntry, BanError, BanErrorKind, BanInfo, BanKind, BanRecord, Banlist,
+};
+pub use server_description::ServerDescription;
+pub use whitelist::{Whitelist, WhitelistInfo, WhitelistRecord};
+
+use chrono::Utc;
+use core::time::Duration;
 use portpicker::pick_unused_port;
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
     net::SocketAddr,
-    ops::{Deref, DerefMut},
     path::{Path, PathBuf},
-    time::Duration,
 };
 use tracing::{error, warn};
 use world::sim::FileOpts;
@@ -159,30 +168,17 @@ fn with_config_dir(path: &Path) -> PathBuf {
     path
 }
 
-#[derive(Deserialize, Serialize)]
-pub struct BanRecord {
-    pub username_when_banned: String,
-    pub reason: String,
-}
-
-#[derive(Deserialize, Serialize, Default)]
-#[serde(transparent)]
-pub struct Whitelist(HashSet<Uuid>);
-
-#[derive(Deserialize, Serialize, Default)]
-#[serde(transparent)]
-pub struct Banlist(HashMap<Uuid, BanRecord>);
-
-#[derive(Deserialize, Serialize)]
-#[serde(transparent)]
-pub struct ServerDescription(String);
-impl Default for ServerDescription {
-    fn default() -> Self { Self("This is the best Veloren server".into()) }
-}
-
-#[derive(Deserialize, Serialize, Default)]
-#[serde(transparent)]
-pub struct Admins(HashSet<Uuid>);
+/// Our upgrade guarantee is that if validation succeeds
+/// for an old version, then migration to the next version must always succeed
+/// and produce a valid settings file for that version (if we need to change
+/// this in the future, it should require careful discussion).  Therefore, we
+/// would normally panic if the upgrade produced an invalid settings file, which
+/// we would perform by doing the following post-validation (example
+/// is given for a hypothetical upgrade from Whitelist_V1 to Whitelist_V2):
+///
+/// Ok(Whitelist_V2::try_into().expect())
+const MIGRATION_UPGRADE_GUARANTEE: &str = "Any valid file of an old verison should be able to \
+                                           successfully migrate to the latest version.";
 
 /// Combines all the editable settings into one struct that is stored in the ecs
 pub struct EditableSettings {
@@ -204,69 +200,25 @@ impl EditableSettings {
 
     pub fn singleplayer(data_dir: &Path) -> Self {
         let load = Self::load(data_dir);
+
+        let mut server_description = ServerDescription::default();
+        *server_description = "Who needs friends anyway?".into();
+
+        let mut admins = Admins::default();
+        // TODO: Let the player choose if they want to use admin commands or not
+        admins.insert(
+            crate::login_provider::derive_singleplayer_uuid(),
+            AdminRecord {
+                username_when_admined: Some("singleplayer".into()),
+                date: Utc::now(),
+                role: admin::Role::Admin,
+            },
+        );
+
         Self {
-            server_description: ServerDescription("Who needs friends anyway?".into()),
-            // TODO: Let the player choose if they want to use admin commands or not
-            admins: Admins(
-                std::iter::once(crate::login_provider::derive_singleplayer_uuid()).collect(),
-            ),
+            server_description,
+            admins,
             ..load
         }
     }
-}
-
-impl EditableSetting for Whitelist {
-    const FILENAME: &'static str = WHITELIST_FILENAME;
-}
-
-impl EditableSetting for Banlist {
-    const FILENAME: &'static str = BANLIST_FILENAME;
-}
-
-impl EditableSetting for ServerDescription {
-    const FILENAME: &'static str = SERVER_DESCRIPTION_FILENAME;
-}
-
-impl EditableSetting for Admins {
-    const FILENAME: &'static str = ADMINS_FILENAME;
-}
-
-impl Deref for Whitelist {
-    type Target = HashSet<Uuid>;
-
-    fn deref(&self) -> &Self::Target { &self.0 }
-}
-
-impl DerefMut for Whitelist {
-    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0 }
-}
-
-impl Deref for Banlist {
-    type Target = HashMap<Uuid, BanRecord>;
-
-    fn deref(&self) -> &Self::Target { &self.0 }
-}
-
-impl DerefMut for Banlist {
-    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0 }
-}
-
-impl Deref for ServerDescription {
-    type Target = String;
-
-    fn deref(&self) -> &Self::Target { &self.0 }
-}
-
-impl DerefMut for ServerDescription {
-    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0 }
-}
-
-impl Deref for Admins {
-    type Target = HashSet<Uuid>;
-
-    fn deref(&self) -> &Self::Target { &self.0 }
-}
-
-impl DerefMut for Admins {
-    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0 }
 }

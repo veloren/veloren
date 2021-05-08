@@ -45,7 +45,7 @@ pub mod visual;
 #[cfg(not(target_arch = "wasm32"))]
 pub use self::{
     ability::{CharacterAbility, CharacterAbilityType},
-    admin::Admin,
+    admin::{Admin, AdminRole},
     agent::{Agent, Alignment, Behavior, BehaviorCapability, BehaviorState},
     aura::{Aura, AuraChange, AuraKind, Auras},
     beam::{Beam, BeamSegment},

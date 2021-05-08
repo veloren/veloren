@@ -103,7 +103,7 @@ use std::{
 #[cfg(not(feature = "worldgen"))]
 use test_world::{IndexOwned, World};
 use tokio::{runtime::Runtime, sync::Notify};
-use tracing::{debug, error, info, trace};
+use tracing::{debug, error, info, trace, warn};
 use vek::*;
 
 use crate::{
@@ -1048,23 +1048,25 @@ impl Server {
         }
     }
 
-    fn entity_is_admin(&self, entity: EcsEntity) -> bool {
+    fn entity_admin_role(&self, entity: EcsEntity) -> Option<comp::AdminRole> {
         self.state
-            .read_storage::<comp::Admin>()
-            .get(entity)
-            .is_some()
+            .read_component_copied::<comp::Admin>(entity)
+            .map(|admin| admin.0)
     }
 
     pub fn number_of_players(&self) -> i64 {
         self.state.ecs().read_storage::<Client>().join().count() as i64
     }
 
-    pub fn add_admin(&self, username: &str) {
+    /// NOTE: Do *not* allow this to be called from any command that doesn't go
+    /// through the CLI!
+    pub fn add_admin(&mut self, username: &str, role: comp::AdminRole) {
         let mut editable_settings = self.editable_settings_mut();
         let login_provider = self.state.ecs().fetch::<LoginProvider>();
         let data_dir = self.data_dir();
         if let Some(entity) = add_admin(
             username,
+            role,
             &login_provider,
             &mut editable_settings,
             &data_dir.path,
@@ -1079,11 +1081,16 @@ impl Server {
                 .find(|(_, player)| player.uuid() == uuid)
                 .map(|(e, _)| e)
         }) {
-            // Add admin component if the player is ingame
-            let _ = self.state.ecs().write_storage().insert(entity, comp::Admin);
+            drop((data_dir, login_provider, editable_settings));
+            // Add admin component if the player is ingame; if they are not, we can ignore
+            // the write failure.
+            self.state
+                .write_component_ignore_entity_dead(entity, comp::Admin(role));
         };
     }
 
+    /// NOTE: Do *not* allow this to be called from any command that doesn't go
+    /// through the CLI!
     pub fn remove_admin(&self, username: &str) {
         let mut editable_settings = self.editable_settings_mut();
         let login_provider = self.state.ecs().fetch::<LoginProvider>();
@@ -1162,29 +1169,77 @@ impl Drop for Server {
     }
 }
 
+#[must_use]
+pub fn handle_edit<T, S: settings::EditableSetting>(
+    data: T,
+    result: Option<(String, Result<(), settings::SettingError<S>>)>,
+) -> Option<T> {
+    use crate::settings::SettingError;
+    let (info, result) = result?;
+    match result {
+        Ok(()) => {
+            info!("{}", info);
+            Some(data)
+        },
+        Err(SettingError::Io(err)) => {
+            warn!(
+                ?err,
+                "Failed to write settings file to disk, but succeeded in memory (success message: \
+                 {})",
+                info,
+            );
+            Some(data)
+        },
+        Err(SettingError::Integrity(err)) => {
+            error!(?err, "Encountered an error while validating the request",);
+            None
+        },
+    }
+}
+
 /// If successful returns the Some(uuid) of the added admin
+///
+/// NOTE: Do *not* allow this to be called from any command that doesn't go
+/// through the CLI!
+#[must_use]
 pub fn add_admin(
     username: &str,
+    role: comp::AdminRole,
     login_provider: &LoginProvider,
     editable_settings: &mut EditableSettings,
     data_dir: &std::path::Path,
 ) -> Option<common::uuid::Uuid> {
     use crate::settings::EditableSetting;
+    let role_ = role.into();
     match login_provider.username_to_uuid(username) {
-        Ok(uuid) => editable_settings.admins.edit(data_dir, |admins| {
-            if admins.insert(uuid) {
-                info!("Successfully added {} ({}) as an admin!", username, uuid);
-                Some(uuid)
-            } else {
-                info!("{} ({}) is already an admin!", username, uuid);
-                None
-            }
-        }),
+        Ok(uuid) => handle_edit(
+            uuid,
+            editable_settings.admins.edit(data_dir, |admins| {
+                match admins.insert(uuid, settings::AdminRecord {
+                    username_when_admined: Some(username.into()),
+                    date: chrono::Utc::now(),
+                    role: role_,
+                }) {
+                    None => Some(format!(
+                        "Successfully added {} ({}) as an admin!",
+                        username, uuid
+                    )),
+                    Some(old_admin) if old_admin.role == role_ => {
+                        info!("{} ({}) already has role: {:?}!", username, uuid, role);
+                        None
+                    },
+                    Some(old_admin) => Some(format!(
+                        "{} ({}) role changed from {:?} to {:?}!",
+                        username, uuid, old_admin.role, role
+                    )),
+                }
+            }),
+        ),
         Err(err) => {
             error!(
                 ?err,
-                "Could not find uuid for this name either the user does not exist or there was an \
-                 error communicating with the auth server."
+                "Could not find uuid for this name; either the user does not exist or there was \
+                 an error communicating with the auth server."
             );
             None
         },
@@ -1192,6 +1247,10 @@ pub fn add_admin(
 }
 
 /// If successful returns the Some(uuid) of the removed admin
+///
+/// NOTE: Do *not* allow this to be called from any command that doesn't go
+/// through the CLI!
+#[must_use]
 pub fn remove_admin(
     username: &str,
     login_provider: &LoginProvider,
@@ -1200,23 +1259,25 @@ pub fn remove_admin(
 ) -> Option<common::uuid::Uuid> {
     use crate::settings::EditableSetting;
     match login_provider.username_to_uuid(username) {
-        Ok(uuid) => editable_settings.admins.edit(data_dir, |admins| {
-            if admins.remove(&uuid) {
-                info!(
-                    "Successfully removed {} ({}) from the admins",
-                    username, uuid
-                );
-                Some(uuid)
-            } else {
-                info!("{} ({}) is not an admin!", username, uuid);
-                None
-            }
-        }),
+        Ok(uuid) => handle_edit(
+            uuid,
+            editable_settings.admins.edit(data_dir, |admins| {
+                if let Some(admin) = admins.remove(&uuid) {
+                    Some(format!(
+                        "Successfully removed {} ({}) with role {:?} from the admins list",
+                        username, uuid, admin.role,
+                    ))
+                } else {
+                    info!("{} ({}) is not an admin!", username, uuid);
+                    None
+                }
+            }),
+        ),
         Err(err) => {
             error!(
                 ?err,
-                "Could not find uuid for this name either the user does not exist or there was an \
-                 error communicating with the auth server."
+                "Could not find uuid for this name; either the user does not exist or there was \
+                 an error communicating with the auth server."
             );
             None
         },

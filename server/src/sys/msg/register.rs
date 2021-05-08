@@ -16,7 +16,9 @@ use common_net::msg::{
 };
 use hashbrown::HashMap;
 use plugin_api::Health;
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
+use specs::{
+    storage::StorageEntry, Entities, Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage,
+};
 use tracing::trace;
 
 #[cfg(feature = "plugins")]
@@ -81,7 +83,7 @@ impl<'a> System<'a> for Sys {
             .map(|(uid, player, stats, admin)| {
                 (*uid, PlayerInfo {
                     is_online: true,
-                    is_admin: admin.is_some(),
+                    is_moderator: admin.is_some(),
                     player_alias: player.alias.clone(),
                     character: stats.map(|stats| CharacterInfo {
                         name: stats.name.clone(),
@@ -131,6 +133,10 @@ impl<'a> System<'a> for Sys {
                         trace!(?r, "pending login returned");
                         match r {
                             Err(e) => {
+                                server_event_bus.emit_now(ServerEvent::ClientDisconnect(
+                                    entity,
+                                    common::comp::DisconnectReason::Kicked,
+                                ));
                                 client.send(ServerRegisterAnswer::Err(e))?;
                                 return Ok(());
                             },
@@ -164,7 +170,7 @@ impl<'a> System<'a> for Sys {
                 }
 
                 let player = Player::new(username, uuid);
-                let is_admin = editable_settings.admins.contains(&uuid);
+                let admin = editable_settings.admins.get(&uuid);
 
                 if !player.is_valid() {
                     // Invalid player
@@ -172,15 +178,17 @@ impl<'a> System<'a> for Sys {
                     return Ok(());
                 }
 
-                if !players.contains(entity) {
-                    // Add Player component to this client
-                    let _ = players.insert(entity, player);
+                if let Ok(StorageEntry::Vacant(v)) = players.entry(entity) {
+                    // Add Player component to this client, if the entity exists.
+                    v.insert(player);
                     player_metrics.players_connected.inc();
 
                     // Give the Admin component to the player if their name exists in
                     // admin list
-                    if is_admin {
-                        let _ = admins.insert(entity, Admin);
+                    if let Some(admin) = admin {
+                        admins
+                            .insert(entity, Admin(admin.role.into()))
+                            .expect("Inserting into players proves the entity exists.");
                     }
 
                     // Tell the client its request was successful.
@@ -218,7 +226,7 @@ impl<'a> System<'a> for Sys {
                             PlayerListUpdate::Add(*uid, PlayerInfo {
                                 player_alias: player.alias.clone(),
                                 is_online: true,
-                                is_admin: admins.get(entity).is_some(),
+                                is_moderator: admins.get(entity).is_some(),
                                 character: None, // new players will be on character select.
                             }),
                         )));

@@ -632,7 +632,7 @@ impl BParticipant {
             }
         };
 
-        let (timeout_time, sender) = s2b_shutdown_bparticipant_r.await.unwrap();
+        let awaited = s2b_shutdown_bparticipant_r.await.ok();
         debug!("participant_shutdown_mgr triggered. Closing all streams for send");
         {
             let lock = self.streams.read().await;
@@ -659,7 +659,12 @@ impl BParticipant {
         drop(lock);
 
         trace!("wait for other managers");
-        let timeout = tokio::time::sleep(timeout_time);
+        let timeout = tokio::time::sleep(
+            awaited
+                .as_ref()
+                .map(|(timeout_time, _)| *timeout_time)
+                .unwrap_or_default(),
+        );
         let timeout = tokio::select! {
             _ = wait_for_manager() => false,
             _ = timeout => true,
@@ -681,8 +686,10 @@ impl BParticipant {
         trace!("wait again");
         wait_for_manager().await;
 
-        if sender.send(Ok(())).is_err() {
-            trace!("couldn't notify sender that participant is dropped");
+        if let Some((_, sender)) = awaited {
+            // Don't care whether this send succeeded since if the other end is dropped
+            // there's nothing to synchronize on.
+            let _ = sender.send(Ok(()));
         }
 
         #[cfg(feature = "metrics")]

@@ -115,6 +115,38 @@ pub enum SqlLogMode {
     Trace,
 }
 
+impl SqlLogMode {
+    pub fn variants() -> [&'static str; 3] { ["disabled", "profile", "trace"] }
+}
+
+impl Default for SqlLogMode {
+    fn default() -> Self { Self::Disabled }
+}
+
+impl core::str::FromStr for SqlLogMode {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "disabled" => Ok(Self::Disabled),
+            "profile" => Ok(Self::Profile),
+            "trace" => Ok(Self::Trace),
+            _ => Err("Could not parse SqlLogMode"),
+        }
+    }
+}
+
+impl ToString for SqlLogMode {
+    fn to_string(&self) -> String {
+        match self {
+            SqlLogMode::Disabled => "disabled",
+            SqlLogMode::Profile => "profile",
+            SqlLogMode::Trace => "trace",
+        }
+        .into()
+    }
+}
+
 /// Runs any pending database migrations. This is executed during server startup
 pub fn run_migrations(settings: &DatabaseSettings) {
     let mut conn = establish_connection(settings, ConnectionMode::ReadWrite);

@@ -78,7 +78,7 @@ server = {package = "veloren-server", path = "../server", optional = true}
 # Utility
 backtrace = "0.3.40"
 bincode = "1.3.1"
-chrono = "0.4.9"
+chrono = { version = "0.4.9", features = ["serde"] }
 cpal = "0.13"
 copy_dir = "0.1.2"
 crossbeam = "0.8.0"

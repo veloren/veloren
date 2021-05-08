@@ -1,4 +1,4 @@
-use crate::{cmd, Message, LOG};
+use crate::{cli, Message, Shutdown, LOG};
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
     execute,
@@ -35,7 +35,11 @@ impl Tui {
             match event.code {
                 KeyCode::Char('c') => {
                     if event.modifiers.contains(KeyModifiers::CONTROL) {
-                        msg_s.send(Message::Quit).unwrap()
+                        msg_s
+                            .send(Message::Shutdown {
+                                command: Shutdown::Immediate,
+                            })
+                            .unwrap()
                     } else {
                         input.push('c');
                     }
@@ -46,7 +50,7 @@ impl Tui {
                 },
                 KeyCode::Enter => {
                     debug!(?input, "tui mode: command entered");
-                    cmd::parse_command(input, msg_s);
+                    cli::parse_command(input, msg_s);
 
                     *input = String::new();
                 },
@@ -96,7 +100,7 @@ impl Tui {
                 },
                 Ok(_) => {
                     debug!(?line, "basic mode: command entered");
-                    crate::cmd::parse_command(&line, &mut msg_s);
+                    crate::cli::parse_command(&line, &mut msg_s);
                 },
             }
         }

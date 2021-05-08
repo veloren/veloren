@@ -1,11 +1,13 @@
-use crate::settings::BanRecord;
+use crate::settings::{AdminRecord, BanEntry, WhitelistRecord};
 use authc::{AuthClient, AuthClientError, AuthToken, Uuid};
+use chrono::Utc;
+use common::comp::AdminRole;
 use common_net::msg::RegisterError;
 #[cfg(feature = "plugins")]
 use common_state::plugin::memory_manager::EcsWorld;
 #[cfg(feature = "plugins")]
 use common_state::plugin::PluginMgr;
-use hashbrown::{HashMap, HashSet};
+use hashbrown::HashMap;
 use plugin_api::event::{PlayerJoinEvent, PlayerJoinResult};
 use specs::Component;
 use specs_idvs::IdvStorage;
@@ -100,26 +102,39 @@ impl LoginProvider {
         pending: &mut PendingLogin,
         #[cfg(feature = "plugins")] world: &EcsWorld,
         #[cfg(feature = "plugins")] plugin_manager: &PluginMgr,
-        admins: &HashSet<Uuid>,
-        whitelist: &HashSet<Uuid>,
-        banlist: &HashMap<Uuid, BanRecord>,
+        admins: &HashMap<Uuid, AdminRecord>,
+        whitelist: &HashMap<Uuid, WhitelistRecord>,
+        banlist: &HashMap<Uuid, BanEntry>,
     ) -> Option<Result<(String, Uuid), RegisterError>> {
         match pending.pending_r.try_recv() {
             Ok(Err(e)) => Some(Err(e)),
             Ok(Ok((username, uuid))) => {
+                let now = Utc::now();
                 // Hardcoded admins can always log in.
-                let is_admin = admins.contains(&uuid);
-                if !is_admin {
-                    if let Some(ban_record) = banlist.get(&uuid) {
+                let admin = admins.get(&uuid);
+                if let Some(ban) = banlist
+                    .get(&uuid)
+                    .and_then(|ban_record| ban_record.current.action.ban())
+                {
+                    // Make sure the ban is active, and that we can't override it.
+                    //
+                    // If we are an admin and our role is at least as high as the role of the
+                    // person who banned us, we can override the ban; we negate this to find
+                    // people who cannot override it.
+                    let exceeds_ban_role = |admin: &AdminRecord| {
+                        Into::<AdminRole>::into(admin.role)
+                            >= Into::<AdminRole>::into(ban.performed_by_role())
+                    };
+                    if !ban.is_expired(now) && !admin.map_or(false, exceeds_ban_role) {
                         // Pull reason string out of ban record and send a copy of it
-                        return Some(Err(RegisterError::Banned(ban_record.reason.clone())));
+                        return Some(Err(RegisterError::Banned(ban.reason.clone())));
                     }
+                }
 
-                    // non-admins can only join if the whitelist is empty (everyone can join)
-                    // or his name is in the whitelist
-                    if !whitelist.is_empty() && !whitelist.contains(&uuid) {
-                        return Some(Err(RegisterError::NotOnWhitelist));
-                    }
+                // non-admins can only join if the whitelist is empty (everyone can join)
+                // or their name is in the whitelist.
+                if admin.is_none() && !whitelist.is_empty() && !whitelist.contains_key(&uuid) {
+                    return Some(Err(RegisterError::NotOnWhitelist));
                 }
 
                 #[cfg(feature = "plugins")]
@@ -131,7 +146,7 @@ impl LoginProvider {
                         player_id: *uuid.as_bytes(),
                     }) {
                         Ok(e) => {
-                            if !is_admin {
+                            if admin.is_none() {
                                 for i in e.into_iter() {
                                     if let PlayerJoinResult::Kick(a) = i {
                                         return Some(Err(RegisterError::Kicked(a)));
@@ -187,6 +202,20 @@ impl LoginProvider {
                 self.runtime.block_on(srv.username_to_uuid(&username))
             },
             None => Ok(derive_uuid(username)),
+        }
+    }
+
+    pub fn uuid_to_username(
+        &self,
+        uuid: Uuid,
+        fallback_alias: &str,
+    ) -> Result<String, AuthClientError> {
+        match &self.auth_server {
+            Some(srv) => {
+                //TODO: optimize
+                self.runtime.block_on(srv.uuid_to_username(uuid))
+            },
+            None => Ok(fallback_alias.into()),
         }
     }
 }

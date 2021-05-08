@@ -470,9 +470,10 @@ impl Network {
                     trace!(?remote_pid, "Participants will be closed");
                     let (finished_sender, finished_receiver) = oneshot::channel();
                     finished_receiver_list.push((remote_pid, finished_receiver));
-                    a2s_disconnect_s
-                        .send((remote_pid, (Duration::from_secs(10), finished_sender)))
-                        .expect("Scheduler is closed, but nobody other should be able to close it");
+                    // If the channel was already dropped, we can assume that the other side
+                    // already released its resources.
+                    let _ = a2s_disconnect_s
+                        .send((remote_pid, (Duration::from_secs(10), finished_sender)));
                 },
                 None => trace!(?remote_pid, "Participant already disconnected gracefully"),
             }
@@ -706,9 +707,11 @@ impl Participant {
                 let (finished_sender, finished_receiver) = oneshot::channel();
                 // Participant is connecting to Scheduler here, not as usual
                 // Participant<->BParticipant
-                a2s_disconnect_s
-                    .send((self.remote_pid, (Duration::from_secs(120), finished_sender)))
-                    .expect("Something is wrong in internal scheduler coding");
+
+                // If this is already dropped, we can assume the other side already freed its
+                // resources.
+                let _ = a2s_disconnect_s
+                    .send((self.remote_pid, (Duration::from_secs(120), finished_sender)));
                 match finished_receiver.await {
                     Ok(res) => {
                         match res {
