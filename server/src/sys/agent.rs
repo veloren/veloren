@@ -1568,7 +1568,7 @@ impl<'a> AgentData<'a> {
 
         let tactic = self
             .inventory
-            .equipped(EquipSlot::Mainhand)
+            .equipped(EquipSlot::ActiveMainhand)
             .as_ref()
             .map(|item| {
                 if let Some(ability_spec) = item.ability_spec() {

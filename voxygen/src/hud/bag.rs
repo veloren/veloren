@@ -1154,11 +1154,11 @@ impl<'a> Widget for Bag<'a> {
             }
             // Mainhand/Left-Slot
             let mainhand_item = inventory
-                .equipped(EquipSlot::Mainhand)
+                .equipped(EquipSlot::ActiveMainhand)
                 .map(|item| item.to_owned());
 
             let slot = slot_maker
-                .fabricate(EquipSlot::Mainhand, [85.0; 2])
+                .fabricate(EquipSlot::ActiveMainhand, [85.0; 2])
                 .bottom_right_with_margins_on(state.ids.back_slot, -95.0, 0.0)
                 .with_icon(self.imgs.mainhand_bg, Vec2::new(75.0, 75.0), Some(UI_MAIN))
                 .filled_slot(filled_slot);
@@ -1177,10 +1177,10 @@ impl<'a> Widget for Bag<'a> {
             }
             // Offhand/Right-Slot
             let offhand_item = inventory
-                .equipped(EquipSlot::Offhand)
+                .equipped(EquipSlot::ActiveOffhand)
                 .map(|item| item.to_owned());
             let slot = slot_maker
-                .fabricate(EquipSlot::Offhand, [85.0; 2])
+                .fabricate(EquipSlot::ActiveOffhand, [85.0; 2])
                 .bottom_left_with_margins_on(state.ids.feet_slot, -95.0, 0.0)
                 .with_icon(self.imgs.offhand_bg, Vec2::new(75.0, 75.0), Some(UI_MAIN))
                 .filled_slot(filled_slot);

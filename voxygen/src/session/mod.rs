@@ -329,7 +329,7 @@ impl PlayState for SessionState {
                 .borrow()
                 .inventories()
                 .get(player_entity)
-                .and_then(|inv| inv.equipped(EquipSlot::Mainhand))
+                .and_then(|inv| inv.equipped(EquipSlot::ActiveMainhand))
                 .and_then(|item| item.tool())
                 .map_or(false, |tool| tool.kind == ToolKind::Pick)
                 && self.client.borrow().is_wielding() == Some(true);

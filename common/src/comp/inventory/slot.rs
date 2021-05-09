@@ -81,8 +81,10 @@ impl From<InvSlotId> for SlotId {
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash, Serialize, Deserialize)]
 pub enum EquipSlot {
     Armor(ArmorSlot),
-    Mainhand,
-    Offhand,
+    ActiveMainhand,
+    ActiveOffhand,
+    InactiveMainhand,
+    InactiveOffhand,
     Lantern,
     Glider,
 }
@@ -120,8 +122,10 @@ impl EquipSlot {
     pub fn can_hold(self, item_kind: &item::ItemKind) -> bool {
         match (self, item_kind) {
             (Self::Armor(slot), ItemKind::Armor(armor::Armor { kind, .. })) => slot.can_hold(kind),
-            (Self::Mainhand, ItemKind::Tool(_)) => true,
-            (Self::Offhand, ItemKind::Tool(_)) => true,
+            (Self::ActiveMainhand, ItemKind::Tool(_)) => true,
+            (Self::ActiveOffhand, ItemKind::Tool(_)) => true,
+            (Self::InactiveMainhand, ItemKind::Tool(_)) => true,
+            (Self::InactiveOffhand, ItemKind::Tool(_)) => true,
             (Self::Lantern, ItemKind::Lantern(_)) => true,
             (Self::Glider, ItemKind::Glider(_)) => true,
             _ => false,

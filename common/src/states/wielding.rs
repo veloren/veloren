@@ -60,9 +60,12 @@ impl CharacterBehavior for Data {
     fn manipulate_loadout(&self, data: &JoinData, inv_action: InventoryAction) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         match inv_action {
-            InventoryAction::Drop(EquipSlot::Mainhand)
-            | InventoryAction::Swap(EquipSlot::Mainhand, _)
-            | InventoryAction::Swap(_, Slot::Equip(EquipSlot::Mainhand)) => {
+            InventoryAction::Drop(EquipSlot::ActiveMainhand | EquipSlot::ActiveOffhand)
+            | InventoryAction::Swap(EquipSlot::ActiveMainhand | EquipSlot::ActiveOffhand, _)
+            | InventoryAction::Swap(
+                _,
+                Slot::Equip(EquipSlot::ActiveMainhand | EquipSlot::ActiveOffhand),
+            ) => {
                 update.character = CharacterState::Idle;
             },
             _ => (),

@@ -805,8 +805,8 @@ fn equipped_item_and_tool(inv: &Inventory, slot: EquipSlot) -> Option<(&Item, &T
 #[cfg(not(target_arch = "wasm32"))]
 pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
     (
-        equipped_item_and_tool(inv, EquipSlot::Mainhand).map(|(_, tool)| tool.kind),
-        equipped_item_and_tool(inv, EquipSlot::Offhand).map(|(_, tool)| tool.kind),
+        equipped_item_and_tool(inv, EquipSlot::ActiveMainhand).map(|(_, tool)| tool.kind),
+        equipped_item_and_tool(inv, EquipSlot::ActiveOffhand).map(|(_, tool)| tool.kind),
     )
 }
 
@@ -845,14 +845,14 @@ fn weapon_skills(inventory: &Inventory, skill_set: &SkillSet) -> f32 {
 
 fn get_weapon_rating(inventory: &Inventory, msm: &MaterialStatManifest) -> f32 {
     let mainhand_rating =
-        if let Some((item, _)) = equipped_item_and_tool(inventory, EquipSlot::Mainhand) {
+        if let Some((item, _)) = equipped_item_and_tool(inventory, EquipSlot::ActiveMainhand) {
             weapon_rating(item, msm)
         } else {
             0.0
         };
 
     let offhand_rating =
-        if let Some((item, _)) = equipped_item_and_tool(inventory, EquipSlot::Offhand) {
+        if let Some((item, _)) = equipped_item_and_tool(inventory, EquipSlot::ActiveOffhand) {
             weapon_rating(item, msm)
         } else {
             0.0

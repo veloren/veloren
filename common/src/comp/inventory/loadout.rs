@@ -75,8 +75,10 @@ impl Loadout {
                 (EquipSlot::Armor(ArmorSlot::Bag2), "bag2".to_string()),
                 (EquipSlot::Armor(ArmorSlot::Bag3), "bag3".to_string()),
                 (EquipSlot::Armor(ArmorSlot::Bag4), "bag4".to_string()),
-                (EquipSlot::Mainhand, "active_item".to_string()),
-                (EquipSlot::Offhand, "second_item".to_string()),
+                (EquipSlot::ActiveMainhand, "active_mainhand".to_string()),
+                (EquipSlot::ActiveOffhand, "active_offhand".to_string()),
+                (EquipSlot::InactiveMainhand, "inactive_mainhand".to_string()),
+                (EquipSlot::InactiveOffhand, "inactive_offhand".to_string()),
             ]
             .into_iter()
             .map(|(equip_slot, persistence_key)| LoadoutSlot::new(equip_slot, persistence_key))

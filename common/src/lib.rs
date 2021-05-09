@@ -14,6 +14,7 @@
     option_expect_none,
     option_unwrap_none,
     option_zip,
+    or_patterns,
     trait_alias,
     type_alias_impl_trait
 )]

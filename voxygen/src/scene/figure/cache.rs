@@ -221,10 +221,10 @@ impl CharacterCacheKey {
                 };
                 Some(CharacterToolKey {
                     active: inventory
-                        .equipped(EquipSlot::Mainhand)
+                        .equipped(EquipSlot::ActiveMainhand)
                         .map(tool_key_from_item),
                     second: inventory
-                        .equipped(EquipSlot::Offhand)
+                        .equipped(EquipSlot::ActiveOffhand)
                         .map(tool_key_from_item),
                 })
             } else {

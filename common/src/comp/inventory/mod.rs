@@ -553,10 +553,11 @@ impl Inventory {
         self.get(inv_slot)
             .and_then(|item| self.loadout.get_slot_to_equip_into(item.kind()))
             .map(|equip_slot| {
-                // Special case when equipping into main hand - swap with offhand first
-                if equip_slot == EquipSlot::Mainhand {
+                // Special case when equipping into active main hand - swap with active offhand
+                // first
+                if equip_slot == EquipSlot::ActiveMainhand {
                     self.loadout
-                        .swap_slots(EquipSlot::Mainhand, EquipSlot::Offhand);
+                        .swap_slots(EquipSlot::ActiveMainhand, EquipSlot::InactiveMainhand);
                 }
 
                 self.swap_inventory_loadout(inv_slot, equip_slot)

@@ -740,9 +740,9 @@ impl FigureMgr {
             };
 
             let (active_tool_kind, active_tool_hand, active_tool_spec) =
-                tool_info(EquipSlot::Mainhand);
+                tool_info(EquipSlot::ActiveMainhand);
             let (second_tool_kind, second_tool_hand, second_tool_spec) =
-                tool_info(EquipSlot::Offhand);
+                tool_info(EquipSlot::ActiveOffhand);
 
             let hands = (active_tool_hand, second_tool_hand);
 

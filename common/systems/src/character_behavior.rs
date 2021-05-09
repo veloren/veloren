@@ -51,12 +51,22 @@ fn incorporate_update(join: &mut JoinStruct, mut state_update: StateUpdate) {
         assert!(
             inventory
                 .swap(
-                    Slot::Equip(EquipSlot::Mainhand),
-                    Slot::Equip(EquipSlot::Offhand),
+                    Slot::Equip(EquipSlot::ActiveMainhand),
+                    Slot::Equip(EquipSlot::InactiveMainhand),
                 )
                 .first()
                 .is_none(),
-            "Swapping main and offhand never results in leftover items",
+            "Swapping active and inactive mainhand never results in leftover items",
+        );
+        assert!(
+            inventory
+                .swap(
+                    Slot::Equip(EquipSlot::ActiveOffhand),
+                    Slot::Equip(EquipSlot::InactiveOffhand),
+                )
+                .first()
+                .is_none(),
+            "Swapping active and inactive offhand never results in leftover items",
         );
     }
 }
