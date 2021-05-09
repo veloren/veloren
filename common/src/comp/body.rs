@@ -65,6 +65,8 @@ pub struct BodyData<BodyMeta, SpeciesData> {
 /// stored for each species for each body.
 ///
 /// NOTE: Deliberately don't (yet?) implement serialize.
+/// NOTE: If you are adding new body kind and it should be spawned via /spawn
+/// please add it to `[ENTITIES](crate::cmd::ENTITIES)`
 #[derive(Clone, Debug, Deserialize)]
 pub struct AllBodies<BodyMeta, SpeciesMeta> {
     pub humanoid: BodyData<BodyMeta, humanoid::AllSpecies<SpeciesMeta>>,
