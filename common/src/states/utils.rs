@@ -577,33 +577,27 @@ fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
             .inventory
             .equipped(equip_slot)
             .map(|i| &i.item_config_expect().abilities)
-            .and_then(|abilities| {
-                tracing::info!("ability: {:?} {:?}", input, abilities);
-                match input {
-                    InputKind::Primary => Some(abilities.primary.clone()),
-                    InputKind::Secondary => Some(abilities.secondary.clone()),
-                    InputKind::Ability(0) => abilities.abilities.get(0).cloned().and_then(unlocked),
-                    InputKind::Ability(skill_index) => abilities
-                        .abilities
-                        .get(skill_index)
-                        .cloned()
-                        .and_then(unlocked),
-                    InputKind::Roll | InputKind::Jump | InputKind::Fly | InputKind::Block => None,
-                }
+            .and_then(|abilities| match input {
+                InputKind::Primary => Some(abilities.primary.clone()),
+                InputKind::Secondary => Some(abilities.secondary.clone()),
+                InputKind::Ability(0) => abilities.abilities.get(0).cloned().and_then(unlocked),
+                InputKind::Ability(i) => abilities
+                    .abilities
+                    .get(if i < 2 { skill_index } else { i })
+                    .cloned()
+                    .and_then(unlocked),
+                InputKind::Roll | InputKind::Jump | InputKind::Fly | InputKind::Block => None,
             })
             .map(|a| {
                 let tool = unwrap_tool_data(data, equip_slot).map(|t| t.kind);
-                tracing::info!("ability tool: {:?} {:?}", input, tool);
                 a.adjusted_by_skills(&data.skill_set, tool)
             })
             .filter(|ability| ability.requirements_paid(data, update))
         {
-            tracing::info!("ability before setting state: {:?} {:?}", input, ability);
             update.character = CharacterState::from((
                 &ability,
                 AbilityInfo::from_input(data, matches!(equip_slot, EquipSlot::Offhand), input),
             ));
-            tracing::info!("ability setting state: {:?} {:?}", input, update.character);
         }
     }
 }
@@ -807,14 +801,12 @@ impl AbilityInfo {
             tool_data.map(|t| HandInfo::from_main_tool(t, from_offhand)),
         );
 
-        let ret = Self {
+        Self {
             tool,
             hand,
             input,
             input_attr: data.controller.queued_inputs.get(&input).copied(),
-        };
-        tracing::info!("AbilityInfo::from_input: {:?} {:?}", input, ret);
-        ret
+        }
     }
 }
 

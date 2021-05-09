@@ -125,6 +125,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wolf AI will no longer circle into walls and will instead use the power of raycasts to stop early
 - Squirrels are no longer immune to arrows at some angles.
 - /spawn command's auto-complete now works for species names
+- Mindflayer AI now correctly summons husks at certain HP thresholds.
 
 ## [0.9.0] - 2021-03-20
 
