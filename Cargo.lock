@@ -2400,6 +2400,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "inline_tweak"
+version = "1.0.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7033e97b20277cc0d043226d1940fa7719ff08d2305d1fc7421e53066d00eb4b"
+dependencies = [
+ "lazy_static",
+]
+
+[[package]]
 name = "inotify"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5514,6 +5523,7 @@ name = "veloren-common"
 version = "0.9.0"
 dependencies = [
  "approx 0.4.0",
+ "assets_manager",
  "bitflags",
  "criterion",
  "crossbeam-channel",
@@ -5522,6 +5532,7 @@ dependencies = [
  "dot_vox",
  "enum-iterator",
  "hashbrown",
+ "image",
  "indexmap",
  "lazy_static",
  "num-derive",
@@ -5529,8 +5540,10 @@ dependencies = [
  "ordered-float 2.1.1",
  "rand 0.8.3",
  "rayon",
+ "ron",
  "roots",
  "serde",
+ "serde_json",
  "serde_repr",
  "slab",
  "slotmap",
@@ -5544,20 +5557,7 @@ dependencies = [
  "tracing-subscriber",
  "uuid",
  "vek",
- "veloren-common-assets",
  "veloren-common-base",
-]
-
-[[package]]
-name = "veloren-common-assets"
-version = "0.9.0"
-dependencies = [
- "assets_manager",
- "dot_vox",
- "image",
- "lazy_static",
- "ron",
- "tracing",
 ]
 
 [[package]]
@@ -5653,19 +5653,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "veloren-i18n"
-version = "0.9.0"
-dependencies = [
- "deunicode",
- "git2",
- "hashbrown",
- "ron",
- "serde",
- "tracing",
- "veloren-common-assets",
-]
-
-[[package]]
 name = "veloren-network"
 version = "0.3.0"
 dependencies = [
@@ -5749,6 +5736,7 @@ dependencies = [
  "crossbeam-channel",
  "futures-util",
  "hashbrown",
+ "inline_tweak",
  "itertools 0.10.0",
  "lazy_static",
  "num_cpus",
@@ -5817,6 +5805,7 @@ dependencies = [
  "cpal",
  "criterion",
  "crossbeam",
+ "deunicode",
  "directories-next",
  "dispatch 0.1.4",
  "dot_vox",
@@ -5826,6 +5815,7 @@ dependencies = [
  "gfx_device_gl",
  "gfx_gl",
  "gilrs",
+ "git2",
  "glsl-include",
  "glutin",
  "glyph_brush",
@@ -5863,7 +5853,6 @@ dependencies = [
  "veloren-common-net",
  "veloren-common-state",
  "veloren-common-systems",
- "veloren-i18n",
  "veloren-server",
  "veloren-voxygen-anim",
  "veloren-world",

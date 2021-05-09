@@ -280,7 +280,7 @@ pub struct Agent {
 pub struct ActionState {
     pub timer: f32,
     pub counter: f32,
-    pub condition: bool,
+    pub condition: u8,
 }
 
 impl Agent {

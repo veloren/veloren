@@ -2996,33 +2996,73 @@ impl<'a> AgentData<'a> {
     ) {
         const MINDFLAYER_ATTACK_DIST: f32 = 16.0;
         const MINION_SUMMON_THRESHOLD: f32 = 0.20;
+        // Bit index of action_state.condition for whether the mindflayer initialized
+        // minion summoning state
+        const MINDFLAYER_INITIALIZED_THRESHOLD: usize = 0;
+        // Bit index of action_state.condition for how many fireballs left to shoot
+        // before blinking (this is a 2 bit number, from 0-3)
+        const MINDFLAYER_NUM_FIREBALLS_LO: usize = 1;
+        const MINDFLAYER_NUM_FIREBALLS_MASK: usize = 0b110;
         let health_fraction = self.health.map_or(0.5, |h| h.fraction());
         // Sets counter at start of combat
-        if agent.action_state.condition {
+        if (agent.action_state.condition & (1 << MINDFLAYER_INITIALIZED_THRESHOLD)) == 0 {
             agent.action_state.counter = 1.0 - MINION_SUMMON_THRESHOLD;
-            agent.action_state.condition = true;
+            agent.action_state.condition |= 1 << MINDFLAYER_INITIALIZED_THRESHOLD;
+        }
+        agent.action_state.timer = (agent.action_state.timer - read_data.dt.0 as f32).max(0.0);
+        if agent.action_state.timer > 0.0 {
+            return;
         }
         let mindflayer_is_far = attack_data.dist_sqrd > MINDFLAYER_ATTACK_DIST.powi(2);
         if agent.action_state.counter > health_fraction {
             // Summon minions at particular thresholds of health
             controller
                 .actions
-                .push(ControlAction::basic_input(InputKind::Ability(1)));
+                .push(ControlAction::basic_input(InputKind::Ability(2)));
+
+            //tracing::info!("Pushing summon state: {:?}", agent);
             if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
                 agent.action_state.counter -= MINION_SUMMON_THRESHOLD;
             }
+        } else if matches!(
+            self.char_state,
+            CharacterState::BasicSummon(_) | CharacterState::Blink(_)
+        ) {
+            // Deliberately do nothing here to prevent overwriting summon/blink state with another
+            // input
         } else if mindflayer_is_far {
-            // If too far from target, blink to them.
-            controller.actions.push(ControlAction::StartInput {
-                input: InputKind::Ability(0),
-                target_entity: agent
-                    .target
-                    .as_ref()
-                    .and_then(|t| read_data.uids.get(t.target))
-                    .copied(),
-                select_pos: None,
-            });
+            // If too far from target, throw a random number of necrotic spheres at them and then
+            // blink to them.
+            let num_fireballs = (agent.action_state.condition & 0b110) >> 1;
+            if num_fireballs == 0 {
+                let new_num_fireballs = rand::random::<u8>() % 4;
+                agent.action_state.condition &= !0b110;
+                agent.action_state.condition |= new_num_fireballs << 1;
+                controller.actions.push(ControlAction::StartInput {
+                    input: InputKind::Ability(0),
+                    target_entity: agent
+                        .target
+                        .as_ref()
+                        .and_then(|t| read_data.uids.get(t.target))
+                        .copied(),
+                    select_pos: None,
+                });
+            } else {
+                let new_num_fireballs = num_fireballs - 1;
+                agent.action_state.condition &= !0b110;
+                agent.action_state.condition |= new_num_fireballs << 1;
+                controller.actions.push(ControlAction::StartInput {
+                    input: InputKind::Ability(1),
+                    target_entity: agent
+                        .target
+                        .as_ref()
+                        .and_then(|t| read_data.uids.get(t.target))
+                        .copied(),
+                    select_pos: None,
+                });
+            }
+            agent.action_state.timer = 0.1;
         } else {
             // If close to target, use either primary or secondary ability
             if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(10) && !matches!(c.stage_section, StageSection::Recover))
@@ -3353,6 +3393,9 @@ impl<'a> AgentData<'a> {
         const MINOTAUR_FRENZY_THRESHOLD: f32 = 0.5;
         const MINOTAUR_ATTACK_RANGE: f32 = 5.0;
         const MINOTAUR_CHARGE_DISTANCE: f32 = 15.0;
+        // Bit index of the action_state.condition if the minotaur should use secondary
+        // instead of primary
+        const MINOTAUR_STATE_SECONDARY: usize = 0;
         let minotaur_attack_distance =
             self.body.map_or(0.0, |b| b.radius()) + MINOTAUR_ATTACK_RANGE;
         let health_fraction = self.health.map_or(1.0, |h| h.fraction());
@@ -3391,18 +3434,20 @@ impl<'a> AgentData<'a> {
                     .push(ControlAction::basic_input(InputKind::Ability(0)));
             }
         } else if attack_data.dist_sqrd < minotaur_attack_distance.powi(2) {
-            if agent.action_state.condition && !self.char_state.is_attack() {
+            if (agent.action_state.condition & (1 << MINOTAUR_STATE_SECONDARY)) != 0
+                && !self.char_state.is_attack()
+            {
                 // Cripple target if not just used cripple
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Secondary));
-                agent.action_state.condition = false;
+                agent.action_state.condition &= !(1 << MINOTAUR_STATE_SECONDARY);
             } else if !self.char_state.is_attack() {
                 // Cleave target if not just used cleave
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Primary));
-                agent.action_state.condition = true;
+                agent.action_state.condition |= 1 << MINOTAUR_STATE_SECONDARY;
             }
         }
         // Make minotaur move towards target
