@@ -50,7 +50,7 @@
         "gameinput.togglewield": "Waffe ziehen/wegstecken",
         "gameinput.interact": "Interagieren",
         "gameinput.freelook": "Freie Sicht",
-        "gameinput.autowalk": "Automatisch Laufen/Gleiten",
+        "gameinput.autowalk": "Automatisch Laufen/Schwimmen",
         "gameinput.cameraclamp": "Kamera fixieren",
         "gameinput.dance": "Tanzen",
         "gameinput.select": "Einheit auswählen",

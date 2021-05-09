@@ -93,7 +93,7 @@
         "hud.settings.save_window_size": "Зберегти розмір вікна",
 
         "hud.settings.master_volume": "Гучність",
-        "hud.settings.inactive_master_volume": "Гучність (якщо вікно неактивне)",
+        "hud.settings.inactive_master_volume_perc": "Гучність (якщо вікно неактивне)",
         "hud.settings.music_volume": "Гучність Музики",
         "hud.settings.sound_effect_volume": "Гучність Звукових Eфектів",
         "hud.settings.audio_device": "Звуковий пристрій",

@@ -96,6 +96,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cultist Kit gives cape, rings and necklace in addition to armour and weapons.
 - Reworked minotaur to have unique attacks.
 - Wiring is now turing complete
+- Better active/inactive master sound slider logic
 
 ### Removed
 

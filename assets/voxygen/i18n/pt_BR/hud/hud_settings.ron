@@ -96,7 +96,7 @@
 
 
         "hud.settings.master_volume": "Volume Principal",
-        "hud.settings.inactive_master_volume": "Volume Principal (janela inativa)",
+        "hud.settings.inactive_master_volume_perc": "Volume Principal (janela inativa)",
         "hud.settings.music_volume": "Volume da Música",
         "hud.settings.sound_effect_volume": "Volume dos Efeitos",
         "hud.settings.audio_device": "Dispositivo de Áudio",

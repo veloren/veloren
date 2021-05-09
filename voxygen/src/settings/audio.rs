@@ -21,7 +21,8 @@ impl AudioOutput {
 #[serde(default)]
 pub struct AudioSettings {
     pub master_volume: f32,
-    pub inactive_master_volume: f32,
+    #[serde(rename = "inactive_master_volume")]
+    pub inactive_master_volume_perc: f32,
     pub music_volume: f32,
     pub sfx_volume: f32,
     pub max_sfx_channels: usize,
@@ -34,7 +35,7 @@ impl Default for AudioSettings {
     fn default() -> Self {
         Self {
             master_volume: 1.0,
-            inactive_master_volume: 0.5,
+            inactive_master_volume_perc: 0.5,
             music_volume: 0.4,
             sfx_volume: 0.6,
             max_sfx_channels: 30,
