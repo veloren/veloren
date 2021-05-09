@@ -32,11 +32,24 @@ impl<'a> Write for TuiLog<'a> {
 
         let mut spans = Vec::new();
         let mut span = Span::raw("");
+        let mut lines = Vec::new();
 
         for out in line.ansi_parse() {
             match out {
-                Output::TextBlock(text) => {
-                    span.content = format!("{}{}", span.content.to_owned(), text).into()
+                Output::TextBlock(mut text) => {
+                    // search for newlines (.lines() or .split doesn't work, as this block does not
+                    // need to contain one)
+                    while let Some(newline) = text.find('\n') {
+                        span.content.to_mut().push_str(&text[..newline]);
+                        if span.content.len() != 0 {
+                            spans.push(span);
+                            lines.push(spans);
+                            spans = Vec::new();
+                            span = Span::raw("");
+                        }
+                        text = &text[newline + 1..];
+                    }
+                    span.content.to_mut().push_str(text);
                 },
                 Output::Escape(seq) => {
                     if span.content.len() != 0 {
@@ -79,8 +92,12 @@ impl<'a> Write for TuiLog<'a> {
         if span.content.len() != 0 {
             spans.push(span);
         }
+        if !spans.is_empty() {
+            lines.push(spans);
+        }
 
-        self.inner.lock().unwrap().lines.push(Spans(spans));
+        let mut lines = lines.into_iter().map(Spans).collect::<Vec<_>>();
+        self.inner.lock().unwrap().lines.append(&mut lines);
 
         Ok(buf.len())
     }
