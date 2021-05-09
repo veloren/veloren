@@ -23,7 +23,7 @@ pub use uuid;
 
 // modules
 #[cfg(not(target_arch = "wasm32"))]
-pub use assets;
+pub use common_assets as assets;
 #[cfg(not(target_arch = "wasm32"))] pub mod astar;
 #[cfg(not(target_arch = "wasm32"))]
 mod cached_spatial_grid;

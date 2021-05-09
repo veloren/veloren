@@ -39,7 +39,7 @@ uuid = { version = "0.8.1", default-features = false, features = ["serde", "v4"]
 rand = "0.8"
 
 # Assets
-assets = {package = "veloren-common-assets", path = "assets"}
+common-assets = {package = "veloren-common-assets", path = "assets"}
 dot_vox = "4.0"
 
 # Assets
