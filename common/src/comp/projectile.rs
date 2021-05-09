@@ -228,7 +228,6 @@ impl ProjectileConstructor {
                         source: DamageSource::Explosion,
                         kind: DamageKind::Energy,
                         value: damage,
-                        kind: DamageKind::Energy,
                     },
                     Some(GroupTarget::OutOfGroup),
                 );

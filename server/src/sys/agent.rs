@@ -3470,7 +3470,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        const GOLEM_MELEE_RANGE: f32 = 5.0;
+        const GOLEM_MELEE_RANGE: f32 = 4.0;
         const GOLEM_LASER_RANGE: f32 = 30.0;
         const GOLEM_LONG_RANGE: f32 = 50.0;
         const GOLEM_TARGET_SPEED: f32 = 8.0;

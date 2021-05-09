@@ -243,7 +243,7 @@ pub enum CharacterAbility {
         damage_effect: Option<CombatEffect>,
         energy_regen: f32,
         energy_drain: f32,
-        orientation_behavior: basic_beam::MovementBehavior,
+        orientation_behavior: basic_beam::OrientationBehavior,
         specifier: beam::FrontendSpecifier,
     },
     BasicAura {
