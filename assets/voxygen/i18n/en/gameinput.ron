@@ -51,7 +51,7 @@
         "gameinput.togglewield": "Toggle Wield",
         "gameinput.interact": "Interact",
         "gameinput.freelook": "Free Look",
-        "gameinput.autowalk": "Auto Walk/Glide",
+        "gameinput.autowalk": "Auto Walk/Swim",
         "gameinput.cameraclamp": "Camera Clamp",
         "gameinput.dance": "Dance",
         "gameinput.select": "Select Entity",

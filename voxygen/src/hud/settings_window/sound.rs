@@ -26,8 +26,10 @@ widget_ids! {
         sfx_volume_text,
         master_volume_slider,
         master_volume_text,
+        master_volume_number,
         inactive_master_volume_slider,
         inactive_master_volume_text,
+        inactive_master_volume_number,
         audio_device_list,
         audio_device_text,
     }
@@ -98,6 +100,11 @@ impl<'a> Widget for Sound<'a> {
             .set(state.ids.window_scrollbar, ui);
 
         // Master Volume ----------------------------------------------------
+        let master_volume = self.global_state.settings.audio.master_volume;
+        let master_val = format!("{:2.0}", master_volume * 100.0);
+        let inactive_master_volume_perc =
+            self.global_state.settings.audio.inactive_master_volume_perc;
+        let inactive_val = format!("{:2.0}%", inactive_master_volume_perc * 100.0);
         Text::new(&self.localized_strings.get("hud.settings.master_volume"))
             .top_left_with_margins_on(state.ids.window, 10.0, 10.0)
             .font_size(self.fonts.cyri.scale(14))
@@ -121,12 +128,17 @@ impl<'a> Widget for Sound<'a> {
         {
             events.push(AdjustMasterVolume(new_val));
         }
-
+        Text::new(&master_val)
+            .right_from(state.ids.master_volume_slider, 8.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.master_volume_number, ui);
         // Master Volume (inactive window) ----------------------------------
         Text::new(
             &self
                 .localized_strings
-                .get("hud.settings.inactive_master_volume"),
+                .get("hud.settings.inactive_master_volume_perc"),
         )
         .down_from(state.ids.master_volume_slider, 10.0)
         .font_size(self.fonts.cyri.scale(14))
@@ -135,7 +147,7 @@ impl<'a> Widget for Sound<'a> {
         .set(state.ids.inactive_master_volume_text, ui);
 
         if let Some(new_val) = ImageSlider::continuous(
-            self.global_state.settings.audio.inactive_master_volume,
+            self.global_state.settings.audio.inactive_master_volume_perc,
             0.0,
             1.0,
             self.imgs.slider_indicator,
@@ -150,7 +162,12 @@ impl<'a> Widget for Sound<'a> {
         {
             events.push(AdjustInactiveMasterVolume(new_val));
         }
-
+        Text::new(&inactive_val)
+            .right_from(state.ids.inactive_master_volume_slider, 8.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.inactive_master_volume_number, ui);
         // Music Volume -----------------------------------------------------
         Text::new(&self.localized_strings.get("hud.settings.music_volume"))
             .down_from(state.ids.inactive_master_volume_slider, 10.0)

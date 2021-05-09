@@ -163,8 +163,8 @@ impl SettingsChange {
 
                         settings.audio.master_volume = master_volume;
                     },
-                    Audio::AdjustInactiveMasterVolume(inactive_master_volume) => {
-                        settings.audio.inactive_master_volume = inactive_master_volume;
+                    Audio::AdjustInactiveMasterVolume(inactive_master_volume_perc) => {
+                        settings.audio.inactive_master_volume_perc = inactive_master_volume_perc;
                     },
                     Audio::AdjustMusicVolume(music_volume) => {
                         global_state.audio.set_music_volume(music_volume);

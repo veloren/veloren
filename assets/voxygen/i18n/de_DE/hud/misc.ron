@@ -41,10 +41,9 @@ Sobald du dich bereit dafür fühlst, kannst du Versuchen, dich den zahlreichen 
         "hud.spell": "Zaubersprüche",
         // Diary
         "hud.diary": "Tagebuch",
-
         "hud.free_look_indicator": "Freie Sicht aktiv. Drücke {key} zum deaktivieren.",
-        "hud.camera_clamp_indicator": "Vertikale Kamerafixierung aktib. Drücke {key} zum deaktivieren.",
-        "hud.auto_walk_indicator": "Auto gehen/gleiten aktiv",
+        "hud.camera_clamp_indicator": "Vertikale Kamerafixierung aktiv. Drücke {key} zum deaktivieren.",
+        "hud.auto_walk_indicator": "Auto Laufen/Schwimmen aktiv",
     },
 
 

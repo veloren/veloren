@@ -91,7 +91,7 @@
         "hud.settings.reset_graphics": "Zresetuj ustawienia",
 
         "hud.settings.master_volume": "Głośność ogólna",
-        "hud.settings.inactive_master_volume": "Głośność ogólna (nieaktywne okno)",
+        "hud.settings.inactive_master_volume_perc": "Głośność ogólna (nieaktywne okno)",
         "hud.settings.music_volume": "Głośność muzyki",
         "hud.settings.sound_effect_volume": "Głośność efektów dźwiękowych",
         "hud.settings.audio_device": "Urządzenie dźwiękowe",

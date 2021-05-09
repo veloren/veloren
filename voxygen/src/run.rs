@@ -66,7 +66,8 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
                     global_state.audio.set_master_volume(if focused {
                         global_state.settings.audio.master_volume
                     } else {
-                        global_state.settings.audio.inactive_master_volume
+                        global_state.settings.audio.inactive_master_volume_perc
+                            * global_state.settings.audio.master_volume
                     });
                 }
 

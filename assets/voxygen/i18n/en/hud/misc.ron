@@ -44,7 +44,7 @@ Whenever you feel ready, try to get even better equipment from the many challeng
 
         "hud.free_look_indicator": "Free look active. Press {key} to disable.",
         "hud.camera_clamp_indicator": "Camera vertical clamp active. Press {key} to disable.",
-        "hud.auto_walk_indicator": "Auto walk/glide active",
+        "hud.auto_walk_indicator": "Auto walk/swim active",
     },
 
 
