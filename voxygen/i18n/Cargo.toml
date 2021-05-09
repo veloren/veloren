@@ -15,7 +15,7 @@ common-assets = {package = "veloren-common-assets", path = "../../common/assets"
 deunicode = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 # Diagnostic
-git2 = "0.13"
+git2 = "0.12"
 ron = "0.6"
 
 tracing = "0.1"
