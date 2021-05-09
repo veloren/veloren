@@ -1,6 +1,6 @@
 [
     (1.0, LootTable("common.loot_tables.food.prepared")),
-    (1.0, Item("common.items.crafting_ing.icy_fang")),
+    (1.0, Item("common.items.crafting_ing.animal_misc.icy_fang")),
     (1.0, LootTable("common.loot_tables.weapons.tier-2")),
     (4.0, LootTable("common.loot_tables.cave_large")),
 ]

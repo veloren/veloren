@@ -1,9 +1,0 @@
-ItemDef(
-    name: "Leather",
-    description: "A fabric made from animal hides or skins.",
-    kind: Ingredient(
-        kind: "Leather",
-    ),
-    quality: Common,
-    tags: [],
-)

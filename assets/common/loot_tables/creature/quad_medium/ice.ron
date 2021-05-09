@@ -1,4 +1,4 @@
 [
     (1.0, Item("common.items.crafting_ing.hide.tough_hide")),
-    (1.0, Item("common.items.crafting_ing.icy_fang")),
+    (1.0, Item("common.items.crafting_ing.animal_misc.icy_fang")),
 ]

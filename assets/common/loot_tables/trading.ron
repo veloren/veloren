@@ -1,5 +1,5 @@
 // Loot table that exists purely for price rationalisation
 [
     (1.0, Item("common.items.crafting_ing.honey")),
-    (0.5, Item("common.items.crafting_ing.icy_fang")),
+    (0.5, Item("common.items.crafting_ing.animal_misc.icy_fang")),
 ]

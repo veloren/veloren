@@ -1,8 +1,8 @@
 [
-    (3.0, Item("common.items.crafting_ing.topaz")),
-    (3.0, Item("common.items.crafting_ing.amethyst")),
-    (1.6, Item("common.items.crafting_ing.sapphire")),
-    (1.2, Item("common.items.crafting_ing.emerald")),
-    (0.8, Item("common.items.crafting_ing.ruby")),
-    (0.4, Item("common.items.crafting_ing.diamond")),
+    (3.0, Item("common.items.mineral.gem.topaz")),
+    (3.0, Item("common.items.mineral.gem.amethyst")),
+    (1.6, Item("common.items.mineral.gem.sapphire")),
+    (1.2, Item("common.items.mineral.gem.emerald")),
+    (0.8, Item("common.items.mineral.gem.ruby")),
+    (0.4, Item("common.items.mineral.gem.diamond")),
 ]
