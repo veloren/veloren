@@ -209,10 +209,40 @@ lazy_static! {
     /// TODO: Make this use hot-reloading
     static ref ENTITIES: Vec<String> = {
         let npc_names = &*npc::NPC_NAMES.read();
-        npc::ALL_NPCS
-            .iter()
-            .map(|&npc| npc_names[npc].keyword.clone())
-            .collect()
+        let mut souls = Vec::new();
+        macro_rules! push_souls {
+            ($species:tt) => {
+                for s in comp::$species::ALL_SPECIES.iter() {
+                    souls.push(npc_names.$species.species[s].keyword.clone())
+                }
+            };
+            ($base:tt, $($species:tt),+ $(,)?) => {
+                push_souls!($base);
+                push_souls!($($species),+);
+            }
+        }
+        for npc in npc::ALL_NPCS.iter() {
+            souls.push(npc_names[*npc].keyword.clone())
+        }
+
+        // See `[AllBodies](crate::comp::body::AllBodies)`
+        push_souls!(
+            humanoid,
+            quadruped_small,
+            quadruped_medium,
+            quadruped_low,
+            bird_medium,
+            bird_large,
+            fish_small,
+            fish_medium,
+            biped_small,
+            biped_large,
+            theropod,
+            dragon,
+            golem,
+        );
+
+        souls
     };
     static ref OBJECTS: Vec<String> = comp::object::ALL_OBJECTS
         .iter()
