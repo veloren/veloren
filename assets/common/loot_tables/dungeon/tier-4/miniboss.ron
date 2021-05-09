@@ -1,0 +1,10 @@
+[
+    // armor
+    (6.0, LootTable("common.loot_tables.armor.steel")),
+    // weapons
+    (3.0, LootTable("common.loot_tables.weapons.tier-4")),
+    // lantern
+    (0.05, Item("common.items.lantern.blue_0")),
+    // materials
+    (1.0, LootTable("common.loot_tables.materials.underground")),
+]
