@@ -20,7 +20,8 @@ pub use assets_manager::{
 
 lazy_static! {
     /// The HashMap where all loaded assets are stored in.
-    static ref ASSETS: AssetCache = AssetCache::new(&*ASSETS_PATH).unwrap();
+    static ref ASSETS: AssetCache =
+        AssetCache::new(&*ASSETS_PATH).unwrap();
 }
 
 pub fn start_hot_reloading() { ASSETS.enhance_hot_reloading(); }
@@ -35,9 +36,9 @@ pub trait AssetExt: Sized + Send + Sync + 'static {
     /// Function used to load assets from the filesystem or the cache.
     /// Example usage:
     /// ```no_run
-    /// use veloren_common::assets::{self, AssetExt};
+    /// use veloren_common_assets::{AssetExt, Image};
     ///
-    /// let my_image = assets::Image::load("core.ui.backgrounds.city").unwrap();
+    /// let my_image = Image::load("core.ui.backgrounds.city").unwrap();
     /// ```
     fn load(specifier: &str) -> Result<AssetHandle<Self>, Error>;
 
@@ -53,9 +54,9 @@ pub trait AssetExt: Sized + Send + Sync + 'static {
     /// Function used to load essential assets from the filesystem or the cache.
     /// It will panic if the asset is not found. Example usage:
     /// ```no_run
-    /// use veloren_common::assets::{self, AssetExt};
+    /// use veloren_common_assets::{AssetExt, Image};
     ///
-    /// let my_image = assets::Image::load_expect("core.ui.backgrounds.city");
+    /// let my_image = Image::load_expect("core.ui.backgrounds.city");
     /// ```
     #[track_caller]
     fn load_expect(specifier: &str) -> AssetHandle<Self> {
@@ -134,6 +135,7 @@ lazy_static! {
     /// 3. Download & hopefully extract zip (`assets` next to binary)
     /// 4. Running through cargo (`assets` in workspace root but not always in cwd incase you `cd voxygen && cargo r`)
     /// 5. Running executable in the target dir (`assets` in workspace)
+    /// 6. Running tests (`assets` in workspace root)
     pub static ref ASSETS_PATH: PathBuf = {
         let mut paths = Vec::new();
 
@@ -150,19 +152,23 @@ lazy_static! {
             paths.push(path);
         }
 
-        // 3. Working path
+        // 3. Root of the repository
         if let Ok(path) = std::env::current_dir() {
-            paths.push(path);
+            // If we are in the root, push path
+            if path.join(".git").is_dir() {
+                paths.push(path);
+            } else {
+                // Search .git directory in parent directries
+                for ancestor in path.ancestors().take(10) {
+                    if ancestor.join(".git").is_dir() {
+                        paths.push(ancestor.to_path_buf());
+                        break;
+                    }
+                }
+            }
         }
 
-        // 4. Cargo Workspace (e.g. local development)
-        // https://github.com/rust-lang/cargo/issues/3946#issuecomment-359619839
-        if let Ok(Ok(path)) = std::env::var("CARGO_MANIFEST_DIR").map(|s| s.parse::<PathBuf>()) {
-            paths.push(path.parent().unwrap().to_path_buf());
-            paths.push(path);
-        }
-
-        // 5. System paths
+        // 4. System paths
         #[cfg(all(unix, not(target_os = "macos"), not(target_os = "ios"), not(target_os = "android")))]
         {
             if let Ok(result) = std::env::var("XDG_DATA_HOME") {
@@ -245,114 +251,5 @@ impl Compound for Directory {
         get_dir_files(&mut files, &root, specifier)?;
 
         Ok(Directory(files))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test_assets_items() {
-        // TODO: Figure out how to get file name in error so only a single glob is
-        // needed
-
-        // Separated out into subsections so that error more descriptive
-        crate::comp::item::Item::new_from_asset_glob("common.items.armor.*")
-            .expect("Failed to iterate over armors.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.boss_drops.*")
-            .expect("Failed to iterate over boss drops.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.consumable.*")
-            .expect("Failed to iterate over consumables.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.crafting_ing.*")
-            .expect("Failed to iterate over crafting ingredients.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.crafting_tools.*")
-            .expect("Failed to iterate over crafting tools.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.debug.*")
-            .expect("Failed to iterate over debug items.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.flowers.*")
-            .expect("Failed to iterate over flower items.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.food.*")
-            .expect("Failed to iterate over food items.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.glider.*")
-            .expect("Failed to iterate over gliders.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.grasses.*")
-            .expect("Failed to iterate over grasses.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.lantern.*")
-            .expect("Failed to iterate over lanterns.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.npc_armor.*")
-            .expect("Failed to iterate over npc armors.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.npc_weapons.*")
-            .expect("Failed to iterate over npc weapons.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.ore.*")
-            .expect("Failed to iterate over ores.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.tag_examples.*")
-            .expect("Failed to iterate over tag examples.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.testing.*")
-            .expect("Failed to iterate over testing items.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.utility.*")
-            .expect("Failed to iterate over utility items.");
-
-        // Checks each weapon type to allow errors to be located more easily
-        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.axe.*")
-            .expect("Failed to iterate over axes.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.axe_1h.*")
-            .expect("Failed to iterate over 1h axes.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.bow.*")
-            .expect("Failed to iterate over bows.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.dagger.*")
-            .expect("Failed to iterate over daggers.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.empty.*")
-            .expect("Failed to iterate over empty.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.hammer.*")
-            .expect("Failed to iterate over hammers.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.hammer_1h.*")
-            .expect("Failed to iterate over 1h hammers.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.sceptre.*")
-            .expect("Failed to iterate over sceptres.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.shield.*")
-            .expect("Failed to iterate over shields.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.staff.*")
-            .expect("Failed to iterate over staffs.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.sword.*")
-            .expect("Failed to iterate over swords.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.sword_1h.*")
-            .expect("Failed to iterate over 1h swords.");
-
-        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.tool.*")
-            .expect("Failed to iterate over tools.");
-
-        // Checks all weapons should more weapons be added later
-        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.*")
-            .expect("Failed to iterate over weapons.");
-
-        // Final at the end to account for a new folder being added
-        crate::comp::item::Item::new_from_asset_glob("common.items.*")
-            .expect("Failed to iterate over item folders.");
     }
 }

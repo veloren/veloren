@@ -39,14 +39,10 @@ uuid = { version = "0.8.1", default-features = false, features = ["serde", "v4"]
 rand = "0.8"
 
 # Assets
+common-assets = {package = "veloren-common-assets", path = "assets"}
 dot_vox = "4.0"
-image = { version = "0.23.12", default-features = false, features = ["png"] }
 
 # Assets
-assets_manager = {version = "0.4.2", features = ["bincode", "ron", "json", "hot-reloading"]}
-# Serde
-ron = { version = "0.6", default-features = false }
-serde_json = "1.0.50"
 serde_repr = "0.1.6"
 
 # csv export

@@ -42,6 +42,7 @@ common-systems = {package = "veloren-common-systems", path = "../common/systems"
 common-state = {package = "veloren-common-state", path = "../common/state"}
 
 anim = {package = "veloren-voxygen-anim", path = "anim"}
+i18n = {package = "veloren-i18n", path = "i18n"}
 
 # Graphics
 gfx = "0.18.2"
@@ -81,7 +82,6 @@ chrono = "0.4.9"
 cpal = "0.13"
 copy_dir = "0.1.2"
 crossbeam = "0.8.0"
-deunicode = "1.0"
 # TODO: remove
 directories-next = "2.0"
 dot_vox = "4.0"
@@ -121,7 +121,6 @@ winres = "0.1"
 
 [dev-dependencies]
 criterion = "0.3"
-git2 = "0.13"
 world = {package = "veloren-world", path = "../world"}
 rayon = "1.5.0"
 

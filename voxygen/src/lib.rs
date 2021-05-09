@@ -19,7 +19,6 @@ pub mod controller;
 mod ecs;
 pub mod error;
 pub mod hud;
-pub mod i18n;
 pub mod key_state;
 pub mod menu;
 pub mod mesh;
@@ -35,12 +34,12 @@ pub mod window;
 
 // Reexports
 pub use crate::error::Error;
+pub use i18n;
 
 #[cfg(feature = "singleplayer")]
 use crate::singleplayer::Singleplayer;
 use crate::{
     audio::AudioFrontend,
-    i18n::LocalizationHandle,
     profile::Profile,
     render::Renderer,
     settings::Settings,
@@ -48,6 +47,7 @@ use crate::{
 };
 use common::clock::Clock;
 use common_base::span;
+use i18n::LocalizationHandle;
 
 /// A type used to store state that is shared between all play states.
 pub struct GlobalState {

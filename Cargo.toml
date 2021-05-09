@@ -3,6 +3,7 @@ cargo-features = ["named-profiles","profile-overrides"]
 [workspace]
 members = [
     "common",
+    "common/assets",
     "common/base",
     "common/ecs",
     "common/net",
@@ -18,9 +19,10 @@ members = [
     "voxygen",
     "voxygen/anim",
     "voxygen/anim/dyn",
+    "voxygen/i18n",
     "world",
     "network",
-    "network/protocol"
+    "network/protocol",
 ]
 
 # default profile for devs, fast to compile, okay enough to run, no debug information

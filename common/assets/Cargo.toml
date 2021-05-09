@@ -1,0 +1,14 @@
+[package]
+authors = ["juliancoffee <lightdarkdaughter@gmail.com>", "Marcel Märtens <marcel.cochem@googlemail.com>"]
+edition = "2018"
+name = "veloren-common-assets"
+description = "Crate for game loading assets for veloren."
+version = "0.9.0"
+
+[dependencies]
+lazy_static = "1.4.0"
+assets_manager = {version = "0.4.2", features = ["bincode", "ron", "json", "hot-reloading"]}
+ron = { version = "0.6", default-features = false }
+dot_vox = "4.0"
+image = { version = "0.23.12", default-features = false, features = ["png"] }
+tracing = "0.1"
