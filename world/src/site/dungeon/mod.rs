@@ -939,171 +939,17 @@ impl Floor {
                             miniboss_spawn_tile + if miniboss_tile_is_pillar { 1 } else { 0 };
 
                         if tile_pos == miniboss_spawn_tile && tile_wcenter.xy() == wpos2d {
-                            let chosen = match room.difficulty {
-                                0 => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.weapons.tier-0",
-                                ),
-                                1 => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.weapons.tier-1",
-                                ),
-                                2 => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.weapons.tier-2",
-                                ),
-                                3 => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.weapons.tier-3",
-                                ),
-                                4 => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.weapons.tier-4",
-                                ),
-                                5 => {
-                                    Lottery::<LootSpec>::load_expect("common.loot_tables.cultists")
-                                },
-                                _ => {
-                                    Lottery::<LootSpec>::load_expect("common.loot_tables.fallback")
-                                },
-                            };
-                            let entity = match room.difficulty {
-                                0 => {
-                                    vec![
-                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                            .with_body(comp::Body::QuadrupedMedium(
-                                                comp::quadruped_medium::Body::random_with(
-                                                    dynamic_rng,
-                                                    &comp::quadruped_medium::Species::Bonerattler,
-                                                ),
-                                            ))
-                                            .with_name("Bonerattler".to_string())
-                                            .with_loot_drop(chosen.read().choose().to_item()),
-                                    ]
-                                },
-                                1 => {
-                                    vec![
-                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                            .with_body(comp::Body::QuadrupedMedium(
-                                                comp::quadruped_medium::Body::random_with(
-                                                    dynamic_rng,
-                                                    &comp::quadruped_medium::Species::Bonerattler,
-                                                ),
-                                            ))
-                                            .with_name("Bonerattler".to_string())
-                                            .with_loot_drop(chosen.read().choose().to_item());
-                                        3
-                                    ]
-                                },
-                                2 => {
-                                    let mut entities = Vec::new();
-                                    entities.resize_with(6, || {
-                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                            .with_body(comp::Body::QuadrupedLow(
-                                                comp::quadruped_low::Body::random_with(
-                                                    dynamic_rng,
-                                                    &comp::quadruped_low::Species::Hakulaq,
-                                                ),
-                                            ))
-                                            .with_name("Hakulaq".to_string())
-                                            .with_loot_drop(chosen.read().choose().to_item())
-                                    });
-                                    entities
-                                },
-                                3 => {
-                                    let mut entities = Vec::new();
-                                    entities.resize_with(6, || {
-                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                            .with_body(comp::Body::QuadrupedLow(
-                                                comp::quadruped_low::Body::random_with(
-                                                    dynamic_rng,
-                                                    &comp::quadruped_low::Species::Hakulaq,
-                                                ),
-                                            ))
-                                            .with_name("Hakulaq".to_string())
-                                            .with_loot_drop(chosen.read().choose().to_item())
-                                    });
-                                    entities
-                                },
-                                4 => {
-                                    vec![
-                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                            .with_body(comp::Body::BipedLarge(
-                                                comp::biped_large::Body::random_with(
-                                                    dynamic_rng,
-                                                    &comp::biped_large::Species::Dullahan,
-                                                ),
-                                            ))
-                                            .with_name("Dullahan Guard".to_string())
-                                            .with_loot_drop(chosen.read().choose().to_item()),
-                                    ]
-                                },
-                                5 => {
-                                    let mut entities = Vec::new();
-                                    match dynamic_rng.gen_range(0..2) {
-                                        0 => {
-                                            entities.push(
-                                                EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                                    .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
-                                                    .with_name("Animal Trainer".to_string())
-                                                    .with_loot_drop(chosen.read().choose().to_item())
-                                                    .with_loadout_config(loadout_builder::LoadoutConfig::CultistAcolyte)
-                                                    .with_skillset_config(
-                                                        common::skillset_builder::SkillSetConfig::CultistAcolyte
-                                                    )
-                                                    .with_main_tool(comp::Item::new_from_asset_expect(
-                                                        match dynamic_rng.gen_range(0..6) {
-                                                            0 => "common.items.weapons.axe.malachite_axe-0",
-                                                            1..=2 => "common.items.weapons.sword.cultist",
-                                                            3 => {
-                                                                "common.items.weapons.hammer.cultist_purp_2h-0"
-                                                            },
-                                                            4 => "common.items.weapons.staff.cultist_staff",
-                                                            _ => "common.items.weapons.bow.bone-1",
-                                                        },
-                                                    )),
-                                            );
-                                            entities.resize_with(entities.len() + 2, || {
-                                                EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                                    .with_body(comp::Body::QuadrupedMedium(
-                                                        comp::quadruped_medium::Body::random_with(
-                                                            dynamic_rng,
-                                                            &comp::quadruped_medium::Species::Darkhound,
-                                                        ),
-                                                    ))
-                                                    .with_name("Tamed Darkhound".to_string())
-                                                    .with_loot_drop(chosen.read().choose().to_item())
-                                            });
-                                        },
-                                        _ => {
-                                            entities.resize_with(10, || {
-                                                EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                                    .with_body(comp::Body::BipedSmall(
-                                                        comp::biped_small::Body::random_with(
-                                                            dynamic_rng,
-                                                            &comp::biped_small::Species::Husk,
-                                                        ),
-                                                    ))
-                                                    .with_name("Cultist Husk".to_string())
-                                                    .with_loot_drop(
-                                                        chosen.read().choose().to_item(),
-                                                    )
-                                                    .with_loadout_config(
-                                                        loadout_builder::LoadoutConfig::Husk,
-                                                    )
-                                            });
-                                        },
-                                    }
-                                    entities
-                                },
-                                _ => {
-                                    vec![EntityInfo::at(tile_wcenter.map(|e| e as f32)).with_body(
-                                        comp::Body::QuadrupedSmall(
-                                            comp::quadruped_small::Body::random_with(
-                                                dynamic_rng,
-                                                &comp::quadruped_small::Species::Sheep,
-                                            ),
-                                        ),
-                                    )]
-                                },
+                            let entities = match room.difficulty {
+                                0 => mini_boss_0(dynamic_rng, tile_wcenter),
+                                1 => mini_boss_1(dynamic_rng, tile_wcenter),
+                                2 => mini_boss_2(dynamic_rng, tile_wcenter),
+                                3 => mini_boss_3(dynamic_rng, tile_wcenter),
+                                4 => mini_boss_4(dynamic_rng, tile_wcenter),
+                                5 => mini_boss_5(dynamic_rng, tile_wcenter),
+                                _ => mini_boss_fallback(dynamic_rng, tile_wcenter),
                             };
 
-                            for entity in entity {
+                            for entity in entities {
                                 supplement.add_entity(
                                     entity
                                         .with_level(
@@ -1365,5 +1211,171 @@ impl Floor {
             },
             None => BlockMask::nothing(),
         }
+    }
+}
+
+fn mini_boss_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.weapons.tier-0");
+    vec![
+        EntityInfo::at(tile_wcenter.map(|e| e as f32))
+            .with_body(comp::Body::QuadrupedMedium(
+                comp::quadruped_medium::Body::random_with(
+                    dynamic_rng,
+                    &comp::quadruped_medium::Species::Bonerattler,
+                ),
+            ))
+            .with_name("Bonerattler".to_string())
+            .with_loot_drop(chosen.read().choose().to_item()),
+    ]
+}
+
+fn mini_boss_1(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.weapons.tier-1");
+    vec![
+        EntityInfo::at(tile_wcenter.map(|e| e as f32))
+            .with_body(comp::Body::QuadrupedMedium(
+                comp::quadruped_medium::Body::random_with(
+                    dynamic_rng,
+                    &comp::quadruped_medium::Species::Bonerattler,
+                ),
+            ))
+            .with_name("Bonerattler".to_string())
+            .with_loot_drop(chosen.read().choose().to_item());
+        3
+    ]
+}
+
+fn mini_boss_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.weapons.tier-2");
+    let mut entities = Vec::new();
+    entities.resize_with(6, || {
+        EntityInfo::at(tile_wcenter.map(|e| e as f32))
+            .with_body(comp::Body::QuadrupedLow(
+                comp::quadruped_low::Body::random_with(
+                    dynamic_rng,
+                    &comp::quadruped_low::Species::Hakulaq,
+                ),
+            ))
+            .with_name("Hakulaq".to_string())
+            .with_loot_drop(chosen.read().choose().to_item())
+    });
+    entities
+}
+
+fn mini_boss_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.weapons.tier-3");
+    let mut entities = Vec::new();
+    entities.resize_with(6, || {
+        EntityInfo::at(tile_wcenter.map(|e| e as f32))
+            .with_body(comp::Body::QuadrupedLow(
+                comp::quadruped_low::Body::random_with(
+                    dynamic_rng,
+                    &comp::quadruped_low::Species::Hakulaq,
+                ),
+            ))
+            .with_name("Hakulaq".to_string())
+            .with_loot_drop(chosen.read().choose().to_item())
+    });
+    entities
+}
+
+fn mini_boss_4(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-4.miniboss");
+    vec![
+        EntityInfo::at(tile_wcenter.map(|e| e as f32))
+            .with_body(comp::Body::BipedLarge(
+                comp::biped_large::Body::random_with(
+                    dynamic_rng,
+                    &comp::biped_large::Species::Dullahan,
+                ),
+            ))
+            .with_name("Dullahan Guard".to_string())
+            .with_loot_drop(chosen.read().choose().to_item()),
+    ]
+}
+
+fn mini_boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    let mut entities = Vec::new();
+    match dynamic_rng.gen_range(0..2) {
+        0 => {
+            let trainer_loot =
+                Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-5.miniboss");
+            let hound_loot =
+                Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-5.minion");
+            entities.push(
+                EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                    .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
+                    .with_name("Animal Trainer".to_string())
+                    .with_loot_drop(trainer_loot.read().choose().to_item())
+                    .with_loadout_config(loadout_builder::LoadoutConfig::CultistAcolyte)
+                    .with_skillset_config(common::skillset_builder::SkillSetConfig::CultistAcolyte)
+                    .with_main_tool(comp::Item::new_from_asset_expect(
+                        match dynamic_rng.gen_range(0..6) {
+                            0 => "common.items.weapons.axe.malachite_axe-0",
+                            1..=2 => "common.items.weapons.sword.cultist",
+                            3 => "common.items.weapons.hammer.cultist_purp_2h-0",
+                            4 => "common.items.weapons.staff.cultist_staff",
+                            _ => "common.items.weapons.bow.velorite",
+                        },
+                    )),
+            );
+            entities.resize_with(entities.len() + 2, || {
+                EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                    .with_body(comp::Body::QuadrupedMedium(
+                        comp::quadruped_medium::Body::random_with(
+                            dynamic_rng,
+                            &comp::quadruped_medium::Species::Darkhound,
+                        ),
+                    ))
+                    .with_name("Tamed Darkhound".to_string())
+                    .with_loot_drop(hound_loot.read().choose().to_item())
+            });
+        },
+        _ => {
+            let chosen =
+                Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-5.minion");
+            entities.resize_with(10, || {
+                EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                    .with_body(comp::Body::BipedSmall(
+                        comp::biped_small::Body::random_with(
+                            dynamic_rng,
+                            &comp::biped_small::Species::Husk,
+                        ),
+                    ))
+                    .with_name("Cultist Husk".to_string())
+                    .with_loot_drop(chosen.read().choose().to_item())
+                    .with_loadout_config(loadout_builder::LoadoutConfig::Husk)
+            });
+        },
+    }
+    entities
+}
+
+fn mini_boss_fallback(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    vec![
+        EntityInfo::at(tile_wcenter.map(|e| e as f32)).with_body(comp::Body::QuadrupedSmall(
+            comp::quadruped_small::Body::random_with(
+                dynamic_rng,
+                &comp::quadruped_small::Species::Sheep,
+            ),
+        )),
+    ]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_creating_minibosses() {
+        let mut dynamic_rng = rand::thread_rng();
+        let tile_wcenter = Vec3::new(0, 0, 0);
+        mini_boss_0(&mut dynamic_rng, tile_wcenter);
+        mini_boss_1(&mut dynamic_rng, tile_wcenter);
+        mini_boss_2(&mut dynamic_rng, tile_wcenter);
+        mini_boss_3(&mut dynamic_rng, tile_wcenter);
+        mini_boss_4(&mut dynamic_rng, tile_wcenter);
+        mini_boss_5(&mut dynamic_rng, tile_wcenter);
+        mini_boss_fallback(&mut dynamic_rng, tile_wcenter);
     }
 }

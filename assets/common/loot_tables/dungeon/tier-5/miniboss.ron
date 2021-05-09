@@ -4,5 +4,6 @@
     (1.0, Item("common.items.armor.misc.back.dungeon_purple")),
     (1.0, Item("common.items.armor.misc.ring.skull")),
     // weapons
-    (3.0, LootTable("common.loot_tables.weapons.cultist")),
+    (1.5, LootTable("common.loot_tables.weapons.cultist")),
+    (1.5, LootTable("common.loot_tables.weapons.cave")),
 ]

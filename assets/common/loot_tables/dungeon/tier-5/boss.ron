@@ -1,4 +1,4 @@
 [
     (1.0, LootTable("common.loot_tables.creature.biped_large.mindflayer")),
-    (3.0, LootTable("common.loot_tables.miniboss")),
+    (3.0, LootTable("common.loot_tables.dungeon.tier-5.miniboss")),
 ]
