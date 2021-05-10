@@ -1,0 +1,12 @@
+BasicRanged(
+    energy_cost: 0,
+    buildup_duration: 0.75,
+    recover_duration: 0.4,
+    projectile: NecroticSphere(
+        damage: 300.0,
+        radius: 5.0,
+    ),
+    projectile_body: Object(FireworkPurple),
+    projectile_speed: 100.0,
+)
+

@@ -54,6 +54,10 @@ pub enum ProjectileConstructor {
         damage: f32,
         radius: f32,
     },
+    NecroticSphere {
+        damage: f32,
+        radius: f32,
+    },
     Possess,
 }
 
@@ -168,6 +172,32 @@ impl ProjectileConstructor {
                     ignore_group: true,
                 }
             },
+            NecroticSphere { damage, radius } => {
+                let damage = AttackDamage::new(
+                    Damage {
+                        source: DamageSource::Explosion,
+                        kind: DamageKind::Energy,
+                        value: damage,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                );
+                let attack = Attack::default()
+                    .with_damage(damage)
+                    .with_crit(crit_chance, crit_mult)
+                    .with_combo_increment();
+                let explosion = Explosion {
+                    effects: vec![RadiusEffect::Attack(attack)],
+                    radius,
+                    reagent: Some(Reagent::Purple),
+                };
+                Projectile {
+                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
+                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
+                    time_left: Duration::from_secs(10),
+                    owner,
+                    ignore_group: true,
+                }
+            },
             Possess => Projectile {
                 hit_solid: vec![Effect::Stick],
                 hit_entity: vec![Effect::Stick, Effect::Possess],
@@ -200,6 +230,14 @@ impl ProjectileConstructor {
                 *radius *= range;
             },
             Frostball {
+                ref mut damage,
+                ref mut radius,
+                ..
+            } => {
+                *damage *= power;
+                *radius *= range;
+            },
+            NecroticSphere {
                 ref mut damage,
                 ref mut radius,
                 ..

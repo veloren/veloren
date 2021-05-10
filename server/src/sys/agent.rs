@@ -2997,8 +2997,9 @@ impl<'a> AgentData<'a> {
         const MINDFLAYER_ATTACK_DIST: f32 = 16.0;
         const MINION_SUMMON_THRESHOLD: f32 = 0.20;
         let health_fraction = self.health.map_or(0.5, |h| h.fraction());
-        // Sets counter at start of combat
-        if agent.action_state.condition {
+        // Sets counter at start of combat, using `condition` to keep track of whether
+        // it was already intitialized
+        if !agent.action_state.condition {
             agent.action_state.counter = 1.0 - MINION_SUMMON_THRESHOLD;
             agent.action_state.condition = true;
         }
@@ -3007,22 +3008,41 @@ impl<'a> AgentData<'a> {
             // Summon minions at particular thresholds of health
             controller
                 .actions
-                .push(ControlAction::basic_input(InputKind::Ability(1)));
+                .push(ControlAction::basic_input(InputKind::Ability(2)));
+
             if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
                 agent.action_state.counter -= MINION_SUMMON_THRESHOLD;
             }
         } else if mindflayer_is_far {
-            // If too far from target, blink to them.
-            controller.actions.push(ControlAction::StartInput {
-                input: InputKind::Ability(0),
-                target_entity: agent
-                    .target
-                    .as_ref()
-                    .and_then(|t| read_data.uids.get(t.target))
-                    .copied(),
-                select_pos: None,
-            });
+            // If too far from target, throw a random number of necrotic spheres at them and
+            // then blink to them.
+            let num_fireballs = &mut agent.action_state.int_counter;
+            if *num_fireballs == 0 {
+                controller.actions.push(ControlAction::StartInput {
+                    input: InputKind::Ability(0),
+                    target_entity: agent
+                        .target
+                        .as_ref()
+                        .and_then(|t| read_data.uids.get(t.target))
+                        .copied(),
+                    select_pos: None,
+                });
+                if matches!(self.char_state, CharacterState::Blink(_)) {
+                    *num_fireballs = rand::random::<u8>() % 4;
+                }
+            } else if matches!(self.char_state, CharacterState::Wielding) {
+                *num_fireballs -= 1;
+                controller.actions.push(ControlAction::StartInput {
+                    input: InputKind::Ability(1),
+                    target_entity: agent
+                        .target
+                        .as_ref()
+                        .and_then(|t| read_data.uids.get(t.target))
+                        .copied(),
+                    select_pos: None,
+                });
+            }
         } else {
             // If close to target, use either primary or secondary ability
             if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(10) && !matches!(c.stage_section, StageSection::Recover))

@@ -204,6 +204,7 @@
         secondary: "common.abilities.custom.mindflayer.necroticvortex",
         abilities: [
             (None, "common.abilities.custom.mindflayer.dimensionaldoor"),
+            (None, "common.abilities.custom.mindflayer.necroticsphere"),
             (None, "common.abilities.custom.mindflayer.summonminions"),
         ],
     ),

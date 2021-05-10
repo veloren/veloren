@@ -581,9 +581,9 @@ fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
                 InputKind::Primary => Some(abilities.primary.clone()),
                 InputKind::Secondary => Some(abilities.secondary.clone()),
                 InputKind::Ability(0) => abilities.abilities.get(0).cloned().and_then(unlocked),
-                InputKind::Ability(_) => abilities
+                InputKind::Ability(i) => abilities
                     .abilities
-                    .get(skill_index)
+                    .get(if i < 2 { skill_index } else { i })
                     .cloned()
                     .and_then(unlocked),
                 InputKind::Roll | InputKind::Jump | InputKind::Fly | InputKind::Block => None,

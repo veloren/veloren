@@ -117,6 +117,23 @@ impl ParticleMgr {
                                 },
                             );
                         },
+                        Some(Reagent::Purple) => {
+                            self.particles.resize_with(
+                                self.particles.len() + (75.0 * power.abs()) as usize,
+                                || {
+                                    Particle::new_directed(
+                                        Duration::from_millis(500),
+                                        time,
+                                        ParticleMode::CultistFlame,
+                                        *pos,
+                                        *pos + Vec3::<f32>::zero()
+                                            .map(|_| rng.gen_range(-1.0..1.0))
+                                            .normalized()
+                                            * *radius,
+                                    )
+                                },
+                            );
+                        },
                         _ => {},
                     }
                 } else {

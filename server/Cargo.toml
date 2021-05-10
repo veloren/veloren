@@ -22,6 +22,8 @@ common-net = { package = "veloren-common-net", path = "../common/net" }
 world = { package = "veloren-world", path = "../world" }
 network = { package = "veloren-network", path = "../network", features = ["metrics", "compression"], default-features = false }
 
+# inline_tweak = "1.0.8"
+
 specs = { git = "https://github.com/amethyst/specs.git", features = ["shred-derive"], rev = "5a9b71035007be0e3574f35184acac1cd4530496" }
 specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "b65fb220e94f5d3c9bc30074a076149763795556" }
 
