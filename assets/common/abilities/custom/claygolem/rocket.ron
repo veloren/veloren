@@ -9,5 +9,5 @@ BasicRanged(
     ),
     projectile_body: Object(ClayRocket),
     projectile_light: None,
-    projectile_speed: 20.0,
+    projectile_speed: 30.0,
 )

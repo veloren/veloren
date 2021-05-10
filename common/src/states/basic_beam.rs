@@ -140,24 +140,26 @@ impl CharacterBehavior for Data {
                         owner: Some(*data.uid),
                         specifier: self.static_data.specifier,
                     };
+                    // Gets offsets
+                    let body_offsets_r = data.body.radius() + 1.0;
                     let body_offsets_z = match data.body {
-                        Body::BirdLarge(_) | Body::Golem(_) => data.body.height() * 0.8,
+                        Body::BirdLarge(_) => data.body.height() * 0.8,
+                        Body::Golem(_) => data.body.height() * 0.9 + data.inputs.look_dir.z * 3.0,
                         _ => data.body.height() * 0.5,
                     };
-                    // Gets offsets
                     let (body_offsets, ori) = match self.static_data.orientation_behavior {
                         OrientationBehavior::Normal | OrientationBehavior::Turret => (
                             Vec3::new(
-                                (data.body.radius() + 1.0) * data.inputs.look_dir.x,
-                                (data.body.radius() + 1.0) * data.inputs.look_dir.y,
+                                body_offsets_r * data.inputs.look_dir.x,
+                                body_offsets_r * data.inputs.look_dir.y,
                                 body_offsets_z,
                             ),
                             Ori::from(data.inputs.look_dir),
                         ),
                         OrientationBehavior::FromOri => (
                             Vec3::new(
-                                (data.body.radius() + 1.0) * update.ori.look_vec().x,
-                                (data.body.radius() + 1.0) * update.ori.look_vec().y,
+                                body_offsets_r * update.ori.look_vec().x,
+                                body_offsets_r * update.ori.look_vec().y,
                                 body_offsets_z,
                             ),
                             Ori::from(Vec3::new(

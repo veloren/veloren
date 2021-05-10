@@ -1649,7 +1649,7 @@ impl<'a> AgentData<'a> {
                 )
             }
             Tactic::ClayGolem if matches!(self.char_state, CharacterState::BasicRanged(_)) => {
-                const ROCKET_SPEED: f32 = 20.0;
+                const ROCKET_SPEED: f32 = 30.0;
                 aim_projectile(
                     ROCKET_SPEED,
                     Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
@@ -3508,6 +3508,7 @@ impl<'a> AgentData<'a> {
                         tgt_data.pos,
                         attack_data.dist_sqrd,
                     )
+                    && attack_data.angle < 45.0
             {
                 // If target in range threshold and haven't been lasering for more than 10
                 // seconds already or if target is moving slow-ish, laser them
