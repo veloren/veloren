@@ -5644,6 +5644,7 @@ dependencies = [
 name = "veloren-i18n"
 version = "0.9.0"
 dependencies = [
+ "clap",
  "deunicode",
  "git2",
  "hashbrown",
