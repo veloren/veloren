@@ -2,6 +2,10 @@ use crate::assets::{self, AssetExt, AssetGuard, AssetHandle};
 use deunicode::deunicode;
 use hashbrown::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 use tracing::warn;
 
 /// The reference language, aka the more up-to-date localization data.
@@ -49,11 +53,11 @@ pub type Fonts = HashMap<String, Font>;
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub(crate) struct RawLocalization {
     pub(crate) sub_directories: Vec<String>,
-    pub(crate) string_map: HashMap<String, String>,
-    pub(crate) vector_map: HashMap<String, Vec<String>>,
     pub(crate) convert_utf8_to_ascii: bool,
     pub(crate) fonts: Fonts,
     pub(crate) metadata: LanguageMetadata,
+    pub(crate) string_map: HashMap<String, String>,
+    pub(crate) vector_map: HashMap<String, Vec<String>>,
 }
 
 /// Store internationalization data
@@ -85,7 +89,7 @@ struct Language {
 /// Store internationalization maps
 /// These structs are meant to be merged into a Language
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-struct LocalizationFragment {
+pub(crate) struct LocalizationFragment {
     /// A map storing the localized texts
     ///
     /// Localized content can be accessed using a String key.
@@ -100,7 +104,7 @@ struct LocalizationFragment {
 impl Language {
     /// Get a localized text from the given key
     pub fn get<'a>(&'a self, key: &'a str) -> Option<&str> {
-        self.string_map.get(key).map(|s| s.as_str())
+        self.string_map.get(key).map(String::as_str)
     }
 
     /// Get a variation of localized text from the given key
@@ -110,16 +114,13 @@ impl Language {
     /// If the key is not present in the localization object
     /// then the key is returned.
     pub fn get_variation<'a>(&'a self, key: &'a str, index: u16) -> Option<&str> {
-        self.vector_map
-            .get(key)
-            .map(|v| {
-                if !v.is_empty() {
-                    Some(v[index as usize % v.len()].as_str())
-                } else {
-                    None
-                }
-            })
-            .flatten()
+        self.vector_map.get(key).and_then(|v| {
+            if v.is_empty() {
+                None
+            } else {
+                Some(v[index as usize % v.len()].as_str())
+            }
+        })
     }
 }
 
@@ -247,8 +248,7 @@ impl LocalizationGuard {
         self.active.get(key).unwrap_or_else(|| {
             self.fallback
                 .as_ref()
-                .map(|f| f.get(key))
-                .flatten()
+                .and_then(|f| f.get(key))
                 .unwrap_or(key)
         })
     }
@@ -263,8 +263,7 @@ impl LocalizationGuard {
         self.active.get_variation(key, index).unwrap_or_else(|| {
             self.fallback
                 .as_ref()
-                .map(|f| f.get_variation(key, index))
-                .flatten()
+                .and_then(|f| f.get_variation(key, index))
                 .unwrap_or(key)
         })
     }
@@ -389,42 +388,66 @@ pub fn list_localizations() -> Vec<LanguageMetadata> {
 /// Start hot reloading of i18n assets
 pub fn start_hot_reloading() { assets::start_hot_reloading(); }
 
+/// Return path to repository by searching 10 directories back
+pub fn find_root() -> Option<PathBuf> {
+    std::env::current_dir().map_or(None, |path| {
+        // If we are in the root, push path
+        if path.join(".git").is_dir() {
+            return Some(path);
+        }
+        // Search .git directory in parent directries
+        for ancestor in path.ancestors().take(10) {
+            if ancestor.join(".git").is_dir() {
+                return Some(ancestor.to_path_buf());
+            }
+        }
+        None
+    })
+}
+
+/// List localization directories as a `PathBuf` vector
+pub fn i18n_directories(i18n_dir: &Path) -> Vec<PathBuf> {
+    fs::read_dir(i18n_dir)
+        .unwrap()
+        .map(|res| res.map(|e| e.path()).unwrap())
+        .filter(|e| e.is_dir())
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::analysis;
-    use std::path::Path;
-
     // Test that localization list is loaded (not empty)
     #[test]
     fn test_localization_list() {
-        let list = list_localizations();
+        let list = super::list_localizations();
         assert!(!list.is_empty());
     }
 
     // Test that reference language can be loaded
     #[test]
-    fn test_localization_handle() { let _ = LocalizationHandle::load_expect(REFERENCE_LANG); }
+    fn test_localization_handle() {
+        let _ = super::LocalizationHandle::load_expect(super::REFERENCE_LANG);
+    }
 
     // Test to verify all languages that they are VALID and loadable, without
     // need of git just on the local assets folder
     #[test]
     fn verify_all_localizations() {
         // Generate paths
-        let i18n_asset_path = Path::new("assets/voxygen/i18n/");
-        let curr_dir = std::env::current_dir().unwrap();
-        let root_dir = curr_dir.parent().unwrap().parent().unwrap();
-        analysis::verify_all_localizations(&root_dir, &i18n_asset_path);
+        let i18n_asset_path = std::path::Path::new("assets/voxygen/i18n/");
+        let root_dir = super::find_root().expect("Failed to discover repository root");
+        crate::verification::verify_all_localizations(&root_dir, &i18n_asset_path);
     }
 
     // Test to verify all languages and print missing and faulty localisation
     #[test]
     #[ignore]
     fn test_all_localizations() {
+        // Options
+        let be_verbose = true;
         // Generate paths
-        let i18n_asset_path = Path::new("assets/voxygen/i18n/");
-        let curr_dir = std::env::current_dir().unwrap();
-        let root_dir = curr_dir.parent().unwrap().parent().unwrap();
-        analysis::test_all_localizations(&root_dir, &i18n_asset_path);
+        let i18n_asset_path = std::path::Path::new("assets/voxygen/i18n/");
+        let root_dir = super::find_root().expect("Failed to discover repository root");
+        crate::analysis::test_all_localizations(&root_dir, &i18n_asset_path, be_verbose);
     }
 }

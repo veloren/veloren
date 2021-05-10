@@ -7,6 +7,7 @@ version = "0.9.0"
 
 [[bin]]
 name = "i18n-check"
+required-features = ["bin"]
 
 [dependencies]
 # Assets
@@ -14,8 +15,16 @@ hashbrown = { version = "0.9", features = ["serde", "nightly"] }
 common-assets = {package = "veloren-common-assets", path = "../../common/assets"}
 deunicode = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-# Diagnostic
-git2 = { version = "0.12", default-features = false }
-ron = "0.6"
-
 tracing = "0.1"
+# Diagnostic
+ron = "0.6"
+git2 = { version = "0.12", default-features = false, optional = true }
+
+# Binary
+clap = { version = "2.33", features = ["suggestions"], default-features = false, optional = true }
+
+[dev-dependencies]
+git2 = { version = "0.12", default-features = false }
+
+[features]
+bin = ["git2", "clap"]

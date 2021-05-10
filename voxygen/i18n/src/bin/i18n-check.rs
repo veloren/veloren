@@ -1,22 +1,51 @@
-use std::{env::args, path::Path, vec::Vec};
-use veloren_i18n::analysis;
+use clap::{App, Arg};
+use std::path::Path;
+use veloren_i18n::{analysis, verification};
 
 fn main() {
-    let cli: Vec<String> = args().collect();
+    let matches = App::new("i18n-check")
+        .version("0.1.0")
+        .author("juliancoffee <lightdarkdaughter@gmail.com>")
+        .about("Test veloren localizations")
+        .arg(
+            Arg::with_name("CODE")
+                .required(false)
+                .help("Run diagnostic for specific language code (de_DE as example)"),
+        )
+        .arg(
+            Arg::with_name("verify")
+                .long("verify")
+                .help("verify all localizations"),
+        )
+        .arg(
+            Arg::with_name("test")
+                .long("test")
+                .help("test all localizations"),
+        )
+        .arg(
+            Arg::with_name("verbose")
+                .short("v")
+                .long("verbose")
+                .help("print additional information"),
+        )
+        .get_matches();
 
     // Generate paths
-    let curr_dir = std::env::current_dir().unwrap();
-    let root = curr_dir.parent().unwrap().parent().unwrap();
+    let root = veloren_i18n::find_root().expect("Failed to find root of repository");
     let asset_path = Path::new("assets/voxygen/i18n/");
-    for (i, arg) in cli.iter().enumerate() {
-        match arg.as_str() {
-            "--all" => analysis::test_all_localizations(root, asset_path),
-            "--verify" => analysis::verify_all_localizations(root, asset_path),
-            "--lang" => {
-                let code = cli[i + 1].clone();
-                analysis::test_specific_localization(code, root, asset_path);
-            },
-            _ => continue,
-        }
+
+    if let Some(code) = matches.value_of("CODE") {
+        analysis::test_specific_localization(
+            code,
+            &root,
+            &asset_path,
+            matches.is_present("verbose"),
+        );
+    }
+    if matches.is_present("test") {
+        analysis::test_all_localizations(&root, &asset_path, matches.is_present("verbose"));
+    }
+    if matches.is_present("verify") {
+        verification::verify_all_localizations(&root, &asset_path);
     }
 }
