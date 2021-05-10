@@ -57,6 +57,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - /buff command which allows you to cast a buff on player
 - Warn the user with an animated red text in the second phase of a trade in which a party is offering nothing.
 - /skill_preset command which allows you to apply skill presets
+- Added timed bans and ban history.
+- Added non-admin moderators with limit privileges and updated the security model to reflect this.
 
 ### Changed
 

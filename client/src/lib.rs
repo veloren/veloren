@@ -1659,9 +1659,9 @@ impl Client {
                     );
                 }
             },
-            ServerGeneral::PlayerListUpdate(PlayerListUpdate::Admin(uid, admin)) => {
+            ServerGeneral::PlayerListUpdate(PlayerListUpdate::Moderator(uid, moderator)) => {
                 if let Some(player_info) = self.player_list.get_mut(&uid) {
-                    player_info.is_admin = admin;
+                    player_info.is_moderator = moderator;
                 } else {
                     warn!(
                         "Received msg to update admin status of uid {}, but they were not in the \
@@ -2166,8 +2166,8 @@ impl Client {
             .collect()
     }
 
-    /// Return true if this client is an admin on the server
-    pub fn is_admin(&self) -> bool {
+    /// Return true if this client is a moderator on the server
+    pub fn is_moderator(&self) -> bool {
         let client_uid = self
             .state
             .read_component_copied::<Uid>(self.entity())
@@ -2175,7 +2175,7 @@ impl Client {
 
         self.player_list
             .get(&client_uid)
-            .map_or(false, |info| info.is_admin)
+            .map_or(false, |info| info.is_moderator)
     }
 
     /// Clean client ECS state
@@ -2220,9 +2220,9 @@ impl Client {
             self.player_list
                 .get(uid)
                 .map_or("<?>".to_string(), |player_info| {
-                    if player_info.is_admin {
+                    if player_info.is_moderator {
                         format!(
-                            "ADMIN - {}",
+                            "MOD - {}",
                             self.personalize_alias(*uid, player_info.player_alias.clone())
                         )
                     } else {

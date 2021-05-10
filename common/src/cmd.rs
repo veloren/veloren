@@ -1,6 +1,6 @@
 use crate::{
     assets,
-    comp::{self, buff::BuffKind, Skill},
+    comp::{self, buff::BuffKind, AdminRole as Role, Skill},
     npc, terrain,
 };
 use assets::AssetExt;
@@ -22,19 +22,19 @@ pub struct ChatCommandData {
     /// A one-line message that explains what the command does
     pub description: &'static str,
     /// Whether the command requires administrator permissions.
-    pub needs_admin: IsAdminOnly,
+    pub needs_role: Option<Role>,
 }
 
 impl ChatCommandData {
     pub fn new(
         args: Vec<ArgumentSpec>,
         description: &'static str,
-        needs_admin: IsAdminOnly,
+        needs_role: Option<Role>,
     ) -> Self {
         Self {
             args,
             description,
-            needs_admin,
+            needs_role,
         }
     }
 }
@@ -300,6 +300,8 @@ lazy_static! {
         .cloned()
         .collect();
 
+    static ref ROLES: Vec<String> = ["admin", "moderator"].iter().copied().map(Into::into).collect();
+
     /// List of item specifiers. Useful for tab completing
     static ref ITEM_SPECS: Vec<String> = {
         let path = assets::ASSETS_PATH.join("common").join("items");
@@ -351,21 +353,22 @@ lazy_static! {
 impl ChatCommand {
     pub fn data(&self) -> ChatCommandData {
         use ArgumentSpec::*;
-        use IsAdminOnly::*;
         use Requirement::*;
+        use Role::*;
         let cmd = ChatCommandData::new;
         match self {
             ChatCommand::Adminify => cmd(
-                vec![PlayerName(Required)],
-                "Temporarily gives a player admin permissions or removes them",
-                Admin,
+                vec![PlayerName(Required), Enum("role", ROLES.clone(), Optional)],
+                "Temporarily gives a player a restricted admin role or removes the current one \
+                 (if not given)",
+                Some(Admin),
             ),
             ChatCommand::Airship => cmd(
                 vec![Float("destination_degrees_ccw_of_east", 90.0, Optional)],
                 "Spawns an airship",
-                Admin,
+                Some(Admin),
             ),
-            ChatCommand::Alias => cmd(vec![Any("name", Required)], "Change your alias", NoAdmin),
+            ChatCommand::Alias => cmd(vec![Any("name", Required)], "Change your alias", None),
             ChatCommand::ApplyBuff => cmd(
                 vec![
                     Enum("buff", BUFFS.clone(), Required),
@@ -373,14 +376,20 @@ impl ChatCommand {
                     Float("duration", 10.0, Optional),
                 ],
                 "Cast a buff on player",
-                Admin,
+                Some(Admin),
             ),
             ChatCommand::Ban => cmd(
-                vec![Any("username", Required), Message(Optional)],
-                "Ban a player with a given username",
-                Admin,
+                vec![
+                    Any("username", Required),
+                    Boolean("overwrite", "true".to_string(), Optional),
+                    Any("ban duration", Optional),
+                    Message(Optional),
+                ],
+                "Ban a player with a given username, for a given duration (if provided).  Pass \
+                 true for overwrite to alter an existing ban..",
+                Some(Moderator),
             ),
-            ChatCommand::Build => cmd(vec![], "Toggles build mode on and off", NoAdmin),
+            ChatCommand::Build => cmd(vec![], "Toggles build mode on and off", None),
             ChatCommand::BuildAreaAdd => cmd(
                 vec![
                     Any("name", Required),
@@ -392,36 +401,40 @@ impl ChatCommand {
                     Integer("zhi", 10, Required),
                 ],
                 "Adds a new build area",
-                Admin,
+                Some(Admin),
             ),
-            ChatCommand::BuildAreaList => cmd(vec![], "List all build areas", Admin),
+            ChatCommand::BuildAreaList => cmd(vec![], "List all build areas", Some(Admin)),
             ChatCommand::BuildAreaRemove => cmd(
                 vec![Any("name", Required)],
                 "Removes specified build area",
-                Admin,
+                Some(Admin),
             ),
-            ChatCommand::Campfire => cmd(vec![], "Spawns a campfire", Admin),
+            ChatCommand::Campfire => cmd(vec![], "Spawns a campfire", Some(Admin)),
             ChatCommand::DebugColumn => cmd(
                 vec![Integer("x", 15000, Required), Integer("y", 15000, Required)],
                 "Prints some debug information about a column",
-                NoAdmin,
+                Some(Moderator),
             ),
             ChatCommand::DisconnectAllPlayers => cmd(
                 vec![Any("confirm", Required)],
                 "Disconnects all players from the server",
-                Admin,
+                Some(Admin),
             ),
-            ChatCommand::DropAll => cmd(vec![], "Drops all your items on the ground", Admin),
-            ChatCommand::Dummy => cmd(vec![], "Spawns a training dummy", Admin),
+            ChatCommand::DropAll => cmd(
+                vec![],
+                "Drops all your items on the ground",
+                Some(Moderator),
+            ),
+            ChatCommand::Dummy => cmd(vec![], "Spawns a training dummy", Some(Admin)),
             ChatCommand::Explosion => cmd(
                 vec![Float("radius", 5.0, Required)],
                 "Explodes the ground around you",
-                Admin,
+                Some(Admin),
             ),
             ChatCommand::Faction => cmd(
                 vec![Message(Optional)],
                 "Send messages to your faction",
-                NoAdmin,
+                None,
             ),
             ChatCommand::GiveItem => cmd(
                 vec![
@@ -429,7 +442,7 @@ impl ChatCommand {
                     Integer("num", 1, Optional),
                 ],
                 "Give yourself some items",
-                Admin,
+                Some(Admin),
             ),
             ChatCommand::Goto => cmd(
                 vec![
@@ -438,44 +451,40 @@ impl ChatCommand {
                     Float("z", 0.0, Required),
                 ],
                 "Teleport to a position",
-                Admin,
+                Some(Admin),
             ),
-            ChatCommand::Group => cmd(
-                vec![Message(Optional)],
-                "Send messages to your group",
-                NoAdmin,
-            ),
+            ChatCommand::Group => cmd(vec![Message(Optional)], "Send messages to your group", None),
             ChatCommand::GroupInvite => cmd(
                 vec![PlayerName(Required)],
                 "Invite a player to join a group",
-                NoAdmin,
+                None,
             ),
             ChatCommand::GroupKick => cmd(
                 vec![PlayerName(Required)],
                 "Remove a player from a group",
-                NoAdmin,
+                None,
             ),
-            ChatCommand::GroupLeave => cmd(vec![], "Leave the current group", NoAdmin),
+            ChatCommand::GroupLeave => cmd(vec![], "Leave the current group", None),
             ChatCommand::GroupPromote => cmd(
                 vec![PlayerName(Required)],
                 "Promote a player to group leader",
-                NoAdmin,
+                None,
             ),
             ChatCommand::Health => cmd(
                 vec![Integer("hp", 100, Required)],
                 "Set your current health",
-                Admin,
+                Some(Admin),
             ),
             ChatCommand::Help => ChatCommandData::new(
                 vec![Command(Optional)],
                 "Display information about commands",
-                NoAdmin,
+                None,
             ),
-            ChatCommand::Home => cmd(vec![], "Return to the home town", NoAdmin),
+            ChatCommand::Home => cmd(vec![], "Return to the home town", None),
             ChatCommand::JoinFaction => ChatCommandData::new(
                 vec![Any("faction", Optional)],
                 "Join/leave the specified faction",
-                NoAdmin,
+                None,
             ),
             ChatCommand::Jump => cmd(
                 vec![
@@ -484,19 +493,19 @@ impl ChatCommand {
                     Float("z", 0.0, Required),
                 ],
                 "Offset your current position",
-                Admin,
+                Some(Admin),
             ),
             ChatCommand::Kick => cmd(
                 vec![Any("username", Required), Message(Optional)],
                 "Kick a player with a given username",
-                Admin,
+                Some(Moderator),
             ),
-            ChatCommand::Kill => cmd(vec![], "Kill yourself", NoAdmin),
-            ChatCommand::KillNpcs => cmd(vec![], "Kill the NPCs", Admin),
+            ChatCommand::Kill => cmd(vec![], "Kill yourself", None),
+            ChatCommand::KillNpcs => cmd(vec![], "Kill the NPCs", Some(Admin)),
             ChatCommand::Kit => cmd(
                 vec![Enum("kit_name", KITS.to_vec(), Required)],
                 "Place a set of items into your inventory.",
-                Admin,
+                Some(Admin),
             ),
             ChatCommand::Lantern => cmd(
                 vec![
@@ -506,7 +515,7 @@ impl ChatCommand {
                     Float("b", 1.0, Optional),
                 ],
                 "Change your lantern's strength and color",
-                Admin,
+                Some(Admin),
             ),
             ChatCommand::Light => cmd(
                 vec![
@@ -519,63 +528,59 @@ impl ChatCommand {
                     Float("strength", 5.0, Optional),
                 ],
                 "Spawn entity with light",
-                Admin,
+                Some(Admin),
             ),
             ChatCommand::MakeBlock => cmd(
                 vec![Enum("block", BLOCK_KINDS.clone(), Required)],
                 "Make a block at your location",
-                Admin,
+                Some(Admin),
             ),
             ChatCommand::MakeSprite => cmd(
                 vec![Enum("sprite", SPRITE_KINDS.clone(), Required)],
                 "Make a sprite at your location",
-                Admin,
+                Some(Admin),
             ),
-            ChatCommand::Motd => cmd(
-                vec![Message(Optional)],
-                "View the server description",
-                NoAdmin,
-            ),
+            ChatCommand::Motd => cmd(vec![Message(Optional)], "View the server description", None),
             ChatCommand::Object => cmd(
                 vec![Enum("object", OBJECTS.clone(), Required)],
                 "Spawn an object",
-                Admin,
+                Some(Admin),
             ),
             ChatCommand::PermitBuild => cmd(
                 vec![Any("area_name", Required)],
                 "Grants player a bounded box they can build in",
-                Admin,
+                Some(Admin),
             ),
-            ChatCommand::Players => cmd(vec![], "Lists players currently online", NoAdmin),
+            ChatCommand::Players => cmd(vec![], "Lists players currently online", None),
             ChatCommand::RemoveLights => cmd(
                 vec![Float("radius", 20.0, Optional)],
                 "Removes all lights spawned by players",
-                Admin,
+                Some(Admin),
             ),
             ChatCommand::RevokeBuild => cmd(
                 vec![Any("area_name", Required)],
                 "Revokes build area permission for player",
-                Admin,
+                Some(Admin),
             ),
             ChatCommand::RevokeBuildAll => cmd(
                 vec![],
                 "Revokes all build area permissions for player",
-                Admin,
+                Some(Admin),
             ),
             ChatCommand::Region => cmd(
                 vec![Message(Optional)],
                 "Send messages to everyone in your region of the world",
-                NoAdmin,
+                None,
             ),
             ChatCommand::Safezone => cmd(
                 vec![Float("range", 100.0, Optional)],
                 "Creates a safezone",
-                Admin,
+                Some(Moderator),
             ),
             ChatCommand::Say => cmd(
                 vec![Message(Optional)],
                 "Send messages to everyone within shouting distance",
-                NoAdmin,
+                None,
             ),
             ChatCommand::ServerPhysics => cmd(
                 vec![
@@ -583,26 +588,32 @@ impl ChatCommand {
                     Boolean("enabled", "true".to_string(), Optional),
                 ],
                 "Set/unset server-authoritative physics for an account",
-                Admin,
+                Some(Moderator),
             ),
-            ChatCommand::SetMotd => {
-                cmd(vec![Message(Optional)], "Set the server description", Admin)
-            },
+            ChatCommand::SetMotd => cmd(
+                vec![Message(Optional)],
+                "Set the server description",
+                Some(Admin),
+            ),
             // Uses Message because site names can contain spaces, which would be assumed to be
             // separators otherwise
-            ChatCommand::Site => cmd(vec![Message(Required)], "Teleport to a site", Admin),
+            ChatCommand::Site => cmd(
+                vec![Message(Required)],
+                "Teleport to a site",
+                Some(Moderator),
+            ),
             ChatCommand::SkillPoint => cmd(
                 vec![
                     Enum("skill tree", SKILL_TREES.clone(), Required),
                     Integer("amount", 1, Optional),
                 ],
                 "Give yourself skill points for a particular skill tree",
-                Admin,
+                Some(Admin),
             ),
             ChatCommand::SkillPreset => cmd(
                 vec![Enum("preset_name", PRESET_LIST.to_vec(), Required)],
                 "Gives your character desired skills.",
-                Admin,
+                Some(Admin),
             ),
             ChatCommand::Spawn => cmd(
                 vec![
@@ -612,47 +623,49 @@ impl ChatCommand {
                     Boolean("ai", "true".to_string(), Optional),
                 ],
                 "Spawn a test entity",
-                Admin,
+                Some(Admin),
             ),
             ChatCommand::Sudo => cmd(
                 vec![PlayerName(Required), SubCommand],
                 "Run command as if you were another player",
-                Admin,
+                Some(Moderator),
             ),
             ChatCommand::Tell => cmd(
                 vec![PlayerName(Required), Message(Optional)],
                 "Send a message to another player",
-                NoAdmin,
+                None,
             ),
             ChatCommand::Time => cmd(
                 vec![Enum("time", TIMES.clone(), Optional)],
                 "Set the time of day",
-                Admin,
+                Some(Admin),
             ),
             ChatCommand::Tp => cmd(
                 vec![PlayerName(Optional)],
                 "Teleport to another player",
-                Admin,
+                Some(Moderator),
             ),
             ChatCommand::Unban => cmd(
                 vec![Any("username", Required)],
                 "Remove the ban for the given username",
-                Admin,
+                Some(Moderator),
             ),
-            ChatCommand::Version => cmd(vec![], "Prints server version", NoAdmin),
-            ChatCommand::Waypoint => {
-                cmd(vec![], "Set your waypoint to your current position", Admin)
-            },
-            ChatCommand::Wiring => cmd(vec![], "Create wiring element", Admin),
+            ChatCommand::Version => cmd(vec![], "Prints server version", None),
+            ChatCommand::Waypoint => cmd(
+                vec![],
+                "Set your waypoint to your current position",
+                Some(Admin),
+            ),
+            ChatCommand::Wiring => cmd(vec![], "Create wiring element", Some(Admin)),
             ChatCommand::Whitelist => cmd(
                 vec![Any("add/remove", Required), Any("username", Required)],
                 "Adds/removes username to whitelist",
-                Admin,
+                Some(Moderator),
             ),
             ChatCommand::World => cmd(
                 vec![Message(Optional)],
                 "Send messages to everyone on the server",
-                NoAdmin,
+                None,
             ),
         }
     }
@@ -737,7 +750,7 @@ impl ChatCommand {
 
     /// A boolean that is used to check whether the command requires
     /// administrator permissions or not.
-    pub fn needs_admin(&self) -> bool { IsAdminOnly::Admin == self.data().needs_admin }
+    pub fn needs_role(&self) -> Option<Role> { self.data().needs_role }
 
     /// Returns a format string for parsing arguments with scan_fmt
     pub fn arg_fmt(&self) -> String {
@@ -793,12 +806,6 @@ impl FromStr for ChatCommand {
         }
         Err(())
     }
-}
-
-#[derive(Eq, PartialEq, Debug)]
-pub enum IsAdminOnly {
-    Admin,
-    NoAdmin,
 }
 
 #[derive(Eq, PartialEq, Debug)]

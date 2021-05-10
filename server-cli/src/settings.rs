@@ -45,7 +45,7 @@ impl Settings {
         default_settings
     }
 
-    pub fn save_to_file_warn(&self) {
+    fn save_to_file_warn(&self) {
         if let Err(e) = self.save_to_file() {
             warn!(?e, "Failed to save settings");
         }

@@ -249,6 +249,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c9ff149ed9780025acfdb36862d35b28856bb693ceb451259a7164442f22fdc3"
 
 [[package]]
+name = "atomicwrites"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d4830ac690261d0b47f06e86d18c47eaa65d0184e576cf9b62c3a49b28cb876b"
+dependencies = [
+ "nix 0.20.0",
+ "tempfile",
+ "winapi 0.3.9",
+]
+
+[[package]]
 name = "atty"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -517,6 +528,7 @@ dependencies = [
  "libc",
  "num-integer",
  "num-traits",
+ "serde",
  "time",
  "winapi 0.3.9",
 ]
@@ -2248,6 +2260,12 @@ name = "httpdate"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "494b4d60369511e7dea41cf646832512a94e542f68bb9c49e54518e0f468eb47"
+
+[[package]]
+name = "humantime"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 
 [[package]]
 name = "hyper"
@@ -5484,6 +5502,7 @@ version = "0.9.0"
 dependencies = [
  "approx 0.4.0",
  "bitflags",
+ "clap",
  "criterion",
  "crossbeam-channel",
  "crossbeam-utils 0.8.3",
@@ -5713,11 +5732,13 @@ dependencies = [
 name = "veloren-server"
 version = "0.9.0"
 dependencies = [
+ "atomicwrites",
  "authc",
  "chrono",
  "crossbeam-channel",
  "futures-util",
  "hashbrown",
+ "humantime",
  "itertools 0.10.0",
  "lazy_static",
  "num_cpus",
@@ -5762,6 +5783,7 @@ dependencies = [
  "ron",
  "serde",
  "signal-hook 0.3.8",
+ "structopt",
  "tokio",
  "tracing",
  "tui",

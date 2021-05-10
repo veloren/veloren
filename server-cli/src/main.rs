@@ -2,30 +2,29 @@
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(bool_to_option)]
 
-mod admin;
 /// `server-cli` interface commands not to be confused with the commands sent
 /// from the client to the server
-mod cmd;
+mod cli;
 mod settings;
 mod shutdown_coordinator;
 mod tui_runner;
 mod tuilog;
 use crate::{
-    cmd::Message, shutdown_coordinator::ShutdownCoordinator, tui_runner::Tui, tuilog::TuiLog,
+    cli::{Admin, ArgvApp, ArgvCommand, Message, SharedCommand, Shutdown},
+    shutdown_coordinator::ShutdownCoordinator,
+    tui_runner::Tui,
+    tuilog::TuiLog,
 };
-use clap::{App, Arg, SubCommand};
 use common::{clock::Clock, consts::MIN_RECOMMENDED_TOKIO_THREADS};
 use common_base::span;
 use core::sync::atomic::{AtomicUsize, Ordering};
-use server::{
-    persistence::{DatabaseSettings, SqlLogMode},
-    Event, Input, Server,
-};
+use server::{persistence::DatabaseSettings, Event, Input, Server};
 use std::{
     io,
     sync::{atomic::AtomicBool, mpsc, Arc},
     time::Duration,
 };
+use structopt::StructOpt;
 use tracing::{info, trace};
 
 lazy_static::lazy_static! {
@@ -35,62 +34,12 @@ const TPS: u64 = 30;
 
 #[allow(clippy::unnecessary_wraps)]
 fn main() -> io::Result<()> {
-    let matches = App::new("Veloren server cli")
-        .version(common::util::DISPLAY_VERSION_LONG.as_str())
-        .author("The veloren devs <https://gitlab.com/veloren/veloren>")
-        .about("The veloren server cli provides an easy to use interface to start a veloren server")
-        .args(&[
-            Arg::with_name("basic")
-                .short("b")
-                .long("basic")
-                .help("Disables the tui"),
-            Arg::with_name("non-interactive")
-                .short("n")
-                .long("non-interactive")
-                .help("doesn't listen on STDIN. Useful if you want to send the server in background, and your kernels terminal driver will send SIGTTIN to it otherwise. (https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#Redirections). and you dont want to use `stty -tostop` or `nohub` or `tmux` or `screen` or `<<< \"\\004\"` to the programm. This implies `-b`"),
-            Arg::with_name("no-auth")
-                .long("no-auth")
-                .help("Runs without auth enabled"),
-            Arg::with_name("sql-log-mode")
-                .long("sql-log-mode")
-                .help("Enables SQL logging, valid values are \"trace\" and \"profile\"")
-                .possible_values(&["trace", "profile"])
-                .takes_value(true)
-        ])
-        .subcommand(
-            SubCommand::with_name("admin")
-                .about("Add or remove admins")
-                .subcommands(vec![
-                    SubCommand::with_name("add").about("Adds an admin").arg(
-                        Arg::with_name("username")
-                            .help("Name of the admin to add")
-                            .required(true),
-                    ),
-                    SubCommand::with_name("remove")
-                        .about("Removes an admin")
-                        .arg(
-                            Arg::with_name("username")
-                                .help("Name of the admin to remove")
-                                .required(true),
-                        ),
-                ]),
-        )
-        .get_matches();
+    let app = ArgvApp::from_args();
 
-    let basic = matches.is_present("basic")
-        // Default to basic with these subcommands
-        || matches
-            .subcommand_name()
-            .filter(|name| ["admin"].contains(name))
-            .is_some();
-    let noninteractive = matches.is_present("non-interactive");
-    let no_auth = matches.is_present("no-auth");
-
-    let sql_log_mode = match matches.value_of("sql-log-mode") {
-        Some("trace") => SqlLogMode::Trace,
-        Some("profile") => SqlLogMode::Profile,
-        _ => SqlLogMode::Disabled,
-    };
+    let basic = app.basic || app.command.is_some();
+    let noninteractive = app.non_interactive;
+    let no_auth = app.no_auth;
+    let sql_log_mode = app.sql_log_mode;
 
     // noninteractive implies basic
     let basic = basic || noninteractive;
@@ -145,19 +94,46 @@ fn main() -> io::Result<()> {
         sql_log_mode,
     };
 
-    #[allow(clippy::single_match)] // Note: remove this when there are more subcommands
-    match matches.subcommand() {
-        ("admin", Some(sub_m)) => {
-            admin::admin_subcommand(
-                runtime,
-                sub_m,
-                &server_settings,
-                &mut editable_settings,
-                &server_data_dir,
-            );
-            return Ok(());
-        },
-        _ => {},
+    if let Some(command) = app.command {
+        return match command {
+            ArgvCommand::Shared(SharedCommand::Admin { command }) => {
+                let login_provider = server::login_provider::LoginProvider::new(
+                    server_settings.auth_server_address,
+                    runtime,
+                );
+
+                match command {
+                    Admin::Add { username, role } => {
+                        // FIXME: Currently the UUID can get returned even if the file didn't
+                        // change, so this can't be relied on as an error
+                        // code; moreover, we do nothing with the UUID
+                        // returned in the success case.  Fix the underlying function to return
+                        // enough information that we can reliably return an error code.
+                        let _ = server::add_admin(
+                            &username,
+                            role,
+                            &login_provider,
+                            &mut editable_settings,
+                            &server_data_dir,
+                        );
+                    },
+                    Admin::Remove { username } => {
+                        // FIXME: Currently the UUID can get returned even if the file didn't
+                        // change, so this can't be relied on as an error
+                        // code; moreover, we do nothing with the UUID
+                        // returned in the success case.  Fix the underlying function to return
+                        // enough information that we can reliably return an error code.
+                        let _ = server::remove_admin(
+                            &username,
+                            &login_provider,
+                            &mut editable_settings,
+                            &server_data_dir,
+                        );
+                    },
+                }
+                Ok(())
+            },
+        };
     }
 
     // Panic hook to ensure that console mode is set back correctly if in non-basic
@@ -170,7 +146,7 @@ fn main() -> io::Result<()> {
         }));
     }
 
-    let tui = (!basic || !noninteractive).then(|| Tui::run(basic));
+    let tui = (!noninteractive).then(|| Tui::run(basic));
 
     info!("Starting server...");
 
@@ -233,30 +209,40 @@ fn main() -> io::Result<()> {
         if let Some(tui) = tui.as_ref() {
             match tui.msg_r.try_recv() {
                 Ok(msg) => match msg {
-                    Message::AbortShutdown => shutdown_coordinator.abort_shutdown(&mut server),
-                    Message::Shutdown { grace_period } => {
-                        // TODO: The TUI parser doesn't support quoted strings so it is not
-                        // currently possible to provide a shutdown reason
-                        // from the console.
-                        let message = "The server is shutting down".to_owned();
-                        shutdown_coordinator.initiate_shutdown(&mut server, grace_period, message);
+                    Message::Shutdown {
+                        command: Shutdown::Cancel,
+                    } => shutdown_coordinator.abort_shutdown(&mut server),
+                    Message::Shutdown {
+                        command: Shutdown::Graceful { seconds, reason },
+                    } => {
+                        shutdown_coordinator.initiate_shutdown(
+                            &mut server,
+                            Duration::from_secs(seconds),
+                            reason,
+                        );
                     },
-                    Message::Quit => {
+                    Message::Shutdown {
+                        command: Shutdown::Immediate,
+                    } => {
                         info!("Closing the server");
                         break;
                     },
-                    Message::AddAdmin(username) => {
-                        server.add_admin(&username);
+                    Message::Shared(SharedCommand::Admin {
+                        command: Admin::Add { username, role },
+                    }) => {
+                        server.add_admin(&username, role);
                     },
-                    Message::RemoveAdmin(username) => {
+                    Message::Shared(SharedCommand::Admin {
+                        command: Admin::Remove { username },
+                    }) => {
                         server.remove_admin(&username);
                     },
-                    Message::LoadArea(view_distance) => {
+                    Message::LoadArea { view_distance } => {
                         #[cfg(feature = "worldgen")]
                         server.create_centered_persister(view_distance);
                     },
-                    Message::SetSqlLogMode(sql_log_mode) => {
-                        server.set_sql_log_mode(sql_log_mode);
+                    Message::SqlLogMode { mode } => {
+                        server.set_sql_log_mode(mode);
                     },
                     Message::DisconnectAllClients => {
                         server.disconnect_all_clients();

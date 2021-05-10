@@ -201,14 +201,14 @@ pub enum PlayerListUpdate {
     Add(Uid, PlayerInfo),
     SelectedCharacter(Uid, CharacterInfo),
     LevelChange(Uid, u32),
-    Admin(Uid, bool),
+    Moderator(Uid, bool),
     Remove(Uid),
     Alias(Uid, String),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerInfo {
-    pub is_admin: bool,
+    pub is_moderator: bool,
     pub is_online: bool,
     pub player_alias: String,
     pub character: Option<CharacterInfo>,

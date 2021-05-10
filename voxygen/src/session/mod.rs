@@ -699,7 +699,7 @@ impl PlayState for SessionState {
                                 // The server should do its own filtering of which entities are sent
                                 // to clients to prevent abuse.
                                 let camera = self.scene.camera_mut();
-                                camera.next_mode(self.client.borrow().is_admin());
+                                camera.next_mode(self.client.borrow().is_moderator());
                             },
                             GameInput::Select => {
                                 if !state {

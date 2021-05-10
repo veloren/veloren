@@ -280,14 +280,17 @@ impl Scheduler {
                         trace!(?pid, "dropped participants lock");
                         let r = if let Some(mut pi) = pi {
                             let (finished_sender, finished_receiver) = oneshot::channel();
-                            pi.s2b_shutdown_bparticipant_s
+                            // NOTE: If there's nothing to synchronize on (because the send failed)
+                            // we can assume everything relevant was shut down.
+                            let _ = pi
+                                .s2b_shutdown_bparticipant_s
                                 .take()
                                 .unwrap()
-                                .send((timeout_time, finished_sender))
-                                .unwrap();
+                                .send((timeout_time, finished_sender));
                             drop(pi);
                             trace!(?pid, "dropped bparticipant, waiting for finish");
-                            let e = finished_receiver.await.unwrap();
+                            // If await fails, already shut down, so send Ok(()).
+                            let e = finished_receiver.await.unwrap_or(Ok(()));
                             trace!(?pid, "waiting completed");
                             // can fail as api.rs has a timeout
                             return_once_successful_shutdown.send(e)
