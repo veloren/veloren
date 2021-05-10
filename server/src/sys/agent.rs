@@ -3003,10 +3003,6 @@ impl<'a> AgentData<'a> {
             agent.action_state.counter = 1.0 - MINION_SUMMON_THRESHOLD;
             agent.action_state.condition = true;
         }
-        agent.action_state.timer = (agent.action_state.timer - read_data.dt.0 as f32).max(0.0);
-        if agent.action_state.timer > 0.0 {
-            return;
-        }
         let mindflayer_is_far = attack_data.dist_sqrd > MINDFLAYER_ATTACK_DIST.powi(2);
         if agent.action_state.counter > health_fraction {
             // Summon minions at particular thresholds of health
@@ -3018,18 +3014,11 @@ impl<'a> AgentData<'a> {
             {
                 agent.action_state.counter -= MINION_SUMMON_THRESHOLD;
             }
-        } else if matches!(
-            self.char_state,
-            CharacterState::BasicSummon(_) | CharacterState::Blink(_)
-        ) {
-            // Deliberately do nothing here to prevent overwriting summon/blink
-            // state with another input
         } else if mindflayer_is_far {
             // If too far from target, throw a random number of necrotic spheres at them and
             // then blink to them.
             let num_fireballs = &mut agent.action_state.int_counter;
             if *num_fireballs == 0 {
-                *num_fireballs = rand::random::<u8>() % 4;
                 controller.actions.push(ControlAction::StartInput {
                     input: InputKind::Ability(0),
                     target_entity: agent
@@ -3039,7 +3028,10 @@ impl<'a> AgentData<'a> {
                         .copied(),
                     select_pos: None,
                 });
-            } else {
+                if matches!(self.char_state, CharacterState::Blink(_)) {
+                    *num_fireballs = rand::random::<u8>() % 4;
+                }
+            } else if matches!(self.char_state, CharacterState::Wielding) {
                 *num_fireballs -= 1;
                 controller.actions.push(ControlAction::StartInput {
                     input: InputKind::Ability(1),
@@ -3051,7 +3043,6 @@ impl<'a> AgentData<'a> {
                     select_pos: None,
                 });
             }
-            agent.action_state.timer = 0.1;
         } else {
             // If close to target, use either primary or secondary ability
             if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(10) && !matches!(c.stage_section, StageSection::Recover))
