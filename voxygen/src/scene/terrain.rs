@@ -286,6 +286,7 @@ pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
     mesh_recv: channel::Receiver<MeshWorkerResponse>,
     mesh_todo: HashMap<Vec2<i32>, ChunkMeshState>,
     mesh_todos_active: Arc<AtomicU64>,
+    mesh_recv_overflow: f32,
 
     // GPU data
     sprite_data: Arc<HashMap<(SpriteKind, usize), Vec<SpriteData>>>,
@@ -525,6 +526,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             mesh_recv: recv,
             mesh_todo: HashMap::default(),
             mesh_todos_active: Arc::new(AtomicU64::new(0)),
+            mesh_recv_overflow: 0.0,
             sprite_data: sprite_render_context.sprite_data,
             sprite_col_lights: sprite_render_context.sprite_col_lights,
             waves: renderer
@@ -909,11 +911,18 @@ impl<V: RectRasterableVol> Terrain<V> {
         drop(guard);
 
         // Receive a chunk mesh from a worker thread and upload it to the GPU, then
-        // store it. Only pull out one chunk per frame to avoid an unacceptable
-        // amount of blocking lag due to the GPU upload. That still gives us a
-        // 60 chunks / second budget to play with.
+        // store it. Vary the rate at which we pull items out to correlate with the
+        // framerate, preventing tail latency.
         span!(guard, "Get/upload meshed chunk");
-        if let Ok(response) = self.mesh_recv.recv_timeout(Duration::new(0, 0)) {
+        const CHUNKS_PER_SECOND: f32 = 240.0;
+        let recv_count =
+            scene_data.state.get_delta_time() * CHUNKS_PER_SECOND + self.mesh_recv_overflow;
+        self.mesh_recv_overflow = recv_count.fract();
+        let incoming_chunks =
+            std::iter::from_fn(|| self.mesh_recv.recv_timeout(Duration::new(0, 0)).ok())
+                .take(recv_count.floor() as usize)
+                .collect::<Vec<_>>(); // Avoid ownership issue
+        for response in incoming_chunks {
             match self.mesh_todo.get(&response.pos) {
                 // It's the mesh we want, insert the newly finished model into the terrain model
                 // data structure (convert the mesh to a model first of course).
