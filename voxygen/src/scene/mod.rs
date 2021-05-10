@@ -776,11 +776,9 @@ impl Scene {
                 // NOTE: To transform a normal by M, we multiply by the transpose of the inverse
                 // of M. For the cases below, we are transforming by an
                 // already-inverted matrix, so the transpose of its inverse is
-                // just the transpose of the original matrix. normals as well as
-                // points, rather than taking the transpose of the matrix,
-                // is that our matrix is (for normals) a pure rotation matrix, which means it is
-                // d
+                // just the transpose of the original matrix.
                 let (z_0, z_1) = {
+                    let f_e = f64::from(-bounds1.min.z).max(n_e);
                     // view space, right-handed coordinates.
                     let p_z = bounds1.max.z;
                     // rotated light space, left-handed coordinates.
@@ -819,15 +817,15 @@ impl Scene {
                         view_plane.x,
                         view_plane.y,
                         view_plane.z,
-                        -view_plane.dot(view_point),
+                        0.0,
                         light_plane.x,
                         light_plane.y,
                         light_plane.z,
-                        -light_plane.dot(light_point),
+                        0.0,
                         shadow_plane.x,
                         shadow_plane.y,
                         shadow_plane.z,
-                        -shadow_plane.dot(shadow_point),
+                        0.0,
                         0.0,
                         0.0,
                         0.0,
@@ -835,7 +833,13 @@ impl Scene {
                     );
 
                     // in world-space (right-handed).
-                    let p0_world = solve_p0.inverted() * math::Vec4::unit_w();
+                    let plane_dist = math::Vec4::new(
+                        view_plane.dot(view_point),
+                        light_plane.dot(light_point),
+                        shadow_plane.dot(shadow_point),
+                        1.0,
+                    );
+                    let p0_world = solve_p0.inverted() * plane_dist;
                     // in rotated light-space (left-handed).
                     let p0 = light_all_mat * p0_world;
                     let mut p1 = p0;
@@ -854,8 +858,8 @@ impl Scene {
                     // NOTE: I don't think the w component should be anything but 1 here, but
                     // better safe than sorry.
                     (
-                        f64::from(z0.homogenized().dot(-math::Vec4::unit_z())),
-                        f64::from(z1.homogenized().dot(-math::Vec4::unit_z())),
+                        f64::from(z0.homogenized().dot(-math::Vec4::unit_z())).clamp(n_e, f_e),
+                        f64::from(z1.homogenized().dot(-math::Vec4::unit_z())).clamp(n_e, f_e),
                     )
                 };
 
