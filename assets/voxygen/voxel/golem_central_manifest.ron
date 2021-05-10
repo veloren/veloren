@@ -73,7 +73,7 @@
     ),
     (ClayGolem, Male): (
         head: (
-            offset: (-10.5, -6.0, -5.0),
+            offset: (-10.5, -3.0, -3.0),
             central: ("npc.claygolem.male.head"),
         ),
         jaw: (
@@ -91,7 +91,7 @@
     ),
     (ClayGolem, Female): (
         head: (
-            offset: (-10.5, -6.0, -5.0),
+            offset: (-10.5, -3.0, -3.0),
             central: ("npc.claygolem.male.head"),
         ),
         jaw: (
