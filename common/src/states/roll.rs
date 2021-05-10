@@ -1,5 +1,9 @@
 use crate::{
-    comp::{CharacterState, InputKind, StateUpdate},
+    comp::{
+        buff::{BuffChange, BuffKind},
+        CharacterState, InputKind, StateUpdate,
+    },
+    event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -62,6 +66,11 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                 } else {
+                    // Remove burning effect if active
+                    update.server_events.push_front(ServerEvent::Buff {
+                        entity: data.entity,
+                        buff_change: BuffChange::RemoveByKind(BuffKind::Burning),
+                    });
                     // Transitions to movement section of stage
                     update.character = CharacterState::Roll(Data {
                         timer: Duration::default(),
