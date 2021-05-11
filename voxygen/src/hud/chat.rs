@@ -619,6 +619,7 @@ fn render_chat_line(chat_type: &ChatType<String>, imgs: &Imgs) -> (Color, conrod
         ChatType::World(_uid) => (WORLD_COLOR, imgs.chat_world_small),
         ChatType::Npc(_uid, _r) => panic!("NPCs can't talk!"), // Should be filtered by hud/mod.rs
         ChatType::NpcSay(_uid, _r) => (SAY_COLOR, imgs.chat_say_small),
+        ChatType::NpcTell(_from, _to, _r) => (TELL_COLOR, imgs.chat_tell_small),
         ChatType::Meta => (INFO_COLOR, imgs.chat_command_info_small),
     }
 }

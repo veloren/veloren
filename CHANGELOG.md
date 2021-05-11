@@ -102,6 +102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cultist Husk no longer drops weapons and armor
 - Animal Trainers now spawn in tier-5 dungeon and not in tier-3
 - Reworked clay golem to have unique attacks.
+- Merchants now use `/tell` instead of `/say` to communicate prices
 
 ### Removed
 

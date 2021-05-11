@@ -654,6 +654,15 @@ impl StateExt for State {
                     }
                 }
             },
+            comp::ChatType::NpcTell(from, to, _r) => {
+                for (client, uid) in
+                    (&ecs.read_storage::<Client>(), &ecs.read_storage::<Uid>()).join()
+                {
+                    if uid == from || uid == to {
+                        client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                    }
+                }
+            },
             comp::ChatType::FactionMeta(s) | comp::ChatType::Faction(_, s) => {
                 for (client, faction) in (
                     &ecs.read_storage::<Client>(),
