@@ -30,9 +30,10 @@ use std::sync::Arc;
 use vek::*;
 
 pub struct VoxelMinimap {
-    chunk_minimaps: HashMap<Vec2<i32>, HashMap<i32, Grid<[u8; 4]>>>,
+    chunk_minimaps: HashMap<Vec2<i32>, (i32, Vec<Grid<[u8; 4]>>)>,
     composited: RgbaImage,
     image_id: img_ids::Rotations,
+    last_pos: Vec3<i32>,
 }
 
 const VOXEL_MINIMAP_SIDELENGTH: u32 = 512;
@@ -51,6 +52,7 @@ impl VoxelMinimap {
                 Some(Rgba::from([0.0, 0.0, 0.0, 0.0])),
             )),
             composited,
+            last_pos: Vec3::zero(),
         }
     }
 
@@ -58,7 +60,7 @@ impl VoxelMinimap {
         let terrain = client.state().terrain();
         for (key, chunk) in terrain.iter() {
             if !self.chunk_minimaps.contains_key(&key) {
-                let mut layers = HashMap::new();
+                let mut layers = Vec::new();
                 for z in chunk.get_min_z()..chunk.get_max_z() {
                     let grid = Grid::populate_from(Vec2::new(32, 32), |v| {
                         chunk
@@ -68,42 +70,64 @@ impl VoxelMinimap {
                             .map(|rgb| [rgb.r, rgb.g, rgb.b, 192])
                             .unwrap_or([0, 0, 0, 0])
                     });
-                    layers.insert(z, grid);
+                    layers.push(grid);
                 }
-                self.chunk_minimaps.insert(key, layers);
+                self.chunk_minimaps.insert(key, (chunk.get_min_z(), layers));
             }
         }
         let player = client.entity();
         if let Some(pos) = client.state().ecs().read_storage::<comp::Pos>().get(player) {
             let pos = pos.0;
-            for x in 0..VOXEL_MINIMAP_SIDELENGTH {
+            let vpos = pos.xy() - VOXEL_MINIMAP_SIDELENGTH as f32 / 2.0;
+            let cpos: Vec2<i32> = vpos.map(|i| (i as i32).div_euclid(32));
+            if cpos.distance_squared(self.last_pos.xy()) >= 1 || self.last_pos.z != pos.z as i32 {
+                self.last_pos = cpos.with_z(pos.z as i32);
                 for y in 0..VOXEL_MINIMAP_SIDELENGTH {
-                    let vpos = pos.xy() + Vec2::new(x as f32, y as f32)
-                        - VOXEL_MINIMAP_SIDELENGTH as f32 / 2.0;
-                    let cpos: Vec2<i32> = (vpos / 32.0).as_();
-                    let cmod: Vec2<i32> = (vpos % 32.0).as_();
-                    if let Some(grid) = self
-                        .chunk_minimaps
-                        .get(&cpos)
-                        .and_then(|l| l.get(&(pos.z as i32)))
-                    {
-                        self.composited.put_pixel(
-                            x,
-                            VOXEL_MINIMAP_SIDELENGTH - y - 1,
-                            grid.get(cmod)
-                                .map(|c| image::Rgba(*c))
-                                .unwrap_or(image::Rgba([0, 0, 0, 0])),
-                        );
+                    for x in 0..VOXEL_MINIMAP_SIDELENGTH {
+                        let voff = Vec2::new(x as f32, y as f32);
+                        let coff: Vec2<i32> = voff.map(|i| (i as i32).div_euclid(32));
+                        let cmod: Vec2<i32> = voff.map(|i| (i as i32).rem_euclid(32));
+                        let mut rgba = Vec4::<u16>::zero();
+                        let (weights, zoff) =
+                            if (x as i32 - VOXEL_MINIMAP_SIDELENGTH as i32 / 2).abs() < 96
+                                && (y as i32 - VOXEL_MINIMAP_SIDELENGTH as i32 / 2).abs() < 96
+                            {
+                                (&[2, 4, 1, 1, 1][..], -1)
+                            } else {
+                                (&[1][..], 0)
+                            };
+                        for z in 0..weights.len() {
+                            if let Some(grid) =
+                                self.chunk_minimaps
+                                    .get(&(cpos + coff))
+                                    .and_then(|(zlo, g)| {
+                                        g.get((pos.z as i32 + z as i32 - zlo + zoff) as usize)
+                                    })
+                            {
+                                let tmp: Vec4<u16> = grid
+                                    .get(cmod)
+                                    .map(|c| Vec4::<u8>::from(*c).as_())
+                                    .unwrap_or(Vec4::one());
+                                rgba += tmp.as_() * weights[z];
+                            }
+                        }
+                        let color = {
+                            let rgba: Vec4<u8> = (rgba / weights.iter().sum::<u16>()).as_();
+                            image::Rgba([rgba.x, rgba.y, rgba.z, rgba.w])
+                        };
+                        self.composited
+                            .put_pixel(x, VOXEL_MINIMAP_SIDELENGTH - y - 1, color);
                     }
                 }
+
+                ui.replace_graphic(
+                    self.image_id.none,
+                    Graphic::Image(
+                        Arc::new(DynamicImage::ImageRgba8(self.composited.clone())),
+                        Some(Rgba::from([0.0, 0.0, 0.0, 0.0])),
+                    ),
+                );
             }
-            ui.replace_graphic(
-                self.image_id.none,
-                Graphic::Image(
-                    Arc::new(DynamicImage::ImageRgba8(self.composited.clone())),
-                    Some(Rgba::from([0.0, 0.0, 0.0, 0.0])),
-                ),
-            );
         }
     }
 }
@@ -378,10 +402,11 @@ impl<'a> Widget for MiniMap<'a> {
                     self.voxel_minimap.image_id.source_north
                 };
                 let scaling = (VOXEL_MINIMAP_SIDELENGTH as f64 / 32.0) * max_zoom / zoom;
+                let cmod: Vec2<f64> = (player_pos.xy() % 32.0).as_();
                 let rect_src = position::Rect::from_xy_dim(
                     [
-                        VOXEL_MINIMAP_SIDELENGTH as f64 / 2.0,
-                        VOXEL_MINIMAP_SIDELENGTH as f64 / 2.0,
+                        cmod.x + VOXEL_MINIMAP_SIDELENGTH as f64 / 2.0,
+                        -cmod.y + VOXEL_MINIMAP_SIDELENGTH as f64 / 2.0,
                     ],
                     [scaling, scaling],
                 );
