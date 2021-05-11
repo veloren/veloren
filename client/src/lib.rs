@@ -2216,20 +2216,6 @@ impl Client {
         let comp::ChatMsg {
             chat_type, message, ..
         } = &msg;
-        let alias_of_uid = |uid| {
-            self.player_list
-                .get(uid)
-                .map_or("<?>".to_string(), |player_info| {
-                    if player_info.is_moderator {
-                        format!(
-                            "MOD - {}",
-                            self.personalize_alias(*uid, player_info.player_alias.clone())
-                        )
-                    } else {
-                        self.personalize_alias(*uid, player_info.player_alias.clone())
-                    }
-                })
-        };
         let name_of_uid = |uid| {
             let ecs = self.state.ecs();
             (
@@ -2239,6 +2225,21 @@ impl Client {
                 .join()
                 .find(|(_, u)| u == &uid)
                 .map(|(c, _)| c.name.clone())
+        };
+        let alias_of_uid = |uid| {
+            self.player_list.get(uid).map_or(
+                name_of_uid(uid).unwrap_or_else(|| "<?>".to_string()),
+                |player_info| {
+                    if player_info.is_moderator {
+                        format!(
+                            "MOD - {}",
+                            self.personalize_alias(*uid, player_info.player_alias.clone())
+                        )
+                    } else {
+                        self.personalize_alias(*uid, player_info.player_alias.clone())
+                    }
+                },
+            )
         };
         let message_format = |uid, message, group| {
             let alias = alias_of_uid(uid);
@@ -2401,6 +2402,15 @@ impl Client {
             // by server (due to not having a Pos) for chat-cli
             comp::ChatType::Npc(_uid, _r) => "".to_string(),
             comp::ChatType::NpcSay(uid, _r) => message_format(uid, message, None),
+            comp::ChatType::NpcTell(from, to, _r) => {
+                let from_alias = alias_of_uid(from);
+                let to_alias = alias_of_uid(to);
+                if Some(*from) == self.uid() {
+                    format!("To [{}]: {}", to_alias, message)
+                } else {
+                    format!("From [{}]: {}", from_alias, message)
+                }
+            },
             comp::ChatType::Meta => message.to_string(),
         }
     }

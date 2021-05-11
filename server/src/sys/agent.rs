@@ -1276,9 +1276,21 @@ impl<'a> AgentData<'a> {
                                 "That only covers {:.1}% of my costs!",
                                 balance0 / balance1 * 100.0
                             );
-                            event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(
-                                *self.uid, msg,
-                            )));
+                            if let Some(tgt_data) = &agent.target {
+                                if let Some(with) = read_data.uids.get(tgt_data.target) {
+                                    event_emitter.emit(ServerEvent::Chat(
+                                        UnresolvedChatMsg::npc_tell(*self.uid, *with, msg),
+                                    ));
+                                } else {
+                                    event_emitter.emit(ServerEvent::Chat(
+                                        UnresolvedChatMsg::npc_say(*self.uid, msg),
+                                    ));
+                                }
+                            } else {
+                                event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(
+                                    *self.uid, msg,
+                                )));
+                            }
                         }
                         if pending.phase != TradePhase::Mutate {
                             // we got into the review phase but without balanced goods, decline
@@ -1461,16 +1473,20 @@ impl<'a> AgentData<'a> {
                     && !invulnerability_is_in_buffs(read_data.buffs.get(*e))
                     && (try_owner_alignment(self.alignment, &read_data).and_then(|a| try_owner_alignment(*e_alignment, &read_data).map(|b| a.hostile_towards(*b))).unwrap_or(false) || (
                             if let Some(rtsim_entity) = &self.rtsim_entity {
-                                if rtsim_entity.brain.remembers_fight_with_character(&e_stats.name) {
-                                    agent.rtsim_controller.events.push(
-                                        RtSimEvent::AddMemory(Memory {
-                                            item: MemoryItem::CharacterFight { name: e_stats.name.clone() },
-                                            time_to_forget: read_data.time.0 + 300.0,
-                                        })
-                                    );
-                                    let msg = format!("{}! How dare you cross me again!", e_stats.name.clone());
-                                    event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
-                                    true
+                                if agent.behavior.can(BehaviorCapability::SPEAK) {
+                                    if rtsim_entity.brain.remembers_fight_with_character(&e_stats.name) {
+                                        agent.rtsim_controller.events.push(
+                                            RtSimEvent::AddMemory(Memory {
+                                                item: MemoryItem::CharacterFight { name: e_stats.name.clone() },
+                                                time_to_forget: read_data.time.0 + 300.0,
+                                            })
+                                        );
+                                        let msg = format!("{}! How dare you cross me again!", e_stats.name.clone());
+                                        event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
+                                        true
+                                    } else {
+                                        false
+                                    }
                                 } else {
                                     false
                                 }

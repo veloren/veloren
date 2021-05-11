@@ -108,6 +108,9 @@ pub enum ChatType<G> {
     Npc(Uid, u16),
     /// From NPCs but in the chat for clients in the near vicinity
     NpcSay(Uid, u16),
+    /// From NPCs but in the chat for a specific client. Shows a chat bubble.
+    /// (from, to, localization variant)
+    NpcTell(Uid, Uid, u16),
     /// Anything else
     Meta,
     // Looted items
@@ -152,6 +155,11 @@ impl<G> GenericChatMsg<G> {
         Self { chat_type, message }
     }
 
+    pub fn npc_tell(from: Uid, to: Uid, message: String) -> Self {
+        let chat_type = ChatType::NpcTell(from, to, rand::random());
+        Self { chat_type, message }
+    }
+
     pub fn map_group<T>(self, mut f: impl FnMut(G) -> T) -> GenericChatMsg<T> {
         let chat_type = match self.chat_type {
             ChatType::Online(a) => ChatType::Online(a),
@@ -170,6 +178,7 @@ impl<G> GenericChatMsg<G> {
             ChatType::World(a) => ChatType::World(a),
             ChatType::Npc(a, b) => ChatType::Npc(a, b),
             ChatType::NpcSay(a, b) => ChatType::NpcSay(a, b),
+            ChatType::NpcTell(a, b, c) => ChatType::NpcTell(a, b, c),
             ChatType::Meta => ChatType::Meta,
         };
 
@@ -189,7 +198,9 @@ impl<G> GenericChatMsg<G> {
 
     pub fn to_bubble(&self) -> Option<(SpeechBubble, Uid)> {
         let icon = self.icon();
-        if let ChatType::Npc(from, r) | ChatType::NpcSay(from, r) = self.chat_type {
+        if let ChatType::Npc(from, r) | ChatType::NpcSay(from, r) | ChatType::NpcTell(from, _, r) =
+            self.chat_type
+        {
             Some((SpeechBubble::npc_new(&self.message, r, icon), from))
         } else {
             self.uid()
@@ -215,6 +226,7 @@ impl<G> GenericChatMsg<G> {
             ChatType::World(_u) => SpeechBubbleType::World,
             ChatType::Npc(_u, _r) => SpeechBubbleType::None,
             ChatType::NpcSay(_u, _r) => SpeechBubbleType::Say,
+            ChatType::NpcTell(_f, _t, _) => SpeechBubbleType::Say,
             ChatType::Meta => SpeechBubbleType::None,
         }
     }
@@ -237,6 +249,7 @@ impl<G> GenericChatMsg<G> {
             ChatType::World(u) => Some(*u),
             ChatType::Npc(u, _r) => Some(*u),
             ChatType::NpcSay(u, _r) => Some(*u),
+            ChatType::NpcTell(u, _t, _r) => Some(*u),
             ChatType::Meta => None,
         }
     }
