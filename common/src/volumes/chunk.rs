@@ -271,15 +271,17 @@ impl<V, S: VolSize, M> Chunk<V, S, M> {
     }
 
     #[inline(always)]
-    fn set_unchecked(&mut self, pos: Vec3<i32>, vox: V)
+    fn set_unchecked(&mut self, pos: Vec3<i32>, vox: V) -> V
     where
         V: Clone + PartialEq,
     {
         if vox != self.default {
             let idx = self.force_idx_unchecked(pos);
-            self.vox[idx] = vox;
+            core::mem::replace(&mut self.vox[idx], vox)
         } else if let Some(idx) = self.idx_unchecked(pos) {
-            self.vox[idx] = vox;
+            core::mem::replace(&mut self.vox[idx], vox)
+        } else {
+            self.default.clone()
         }
     }
 }
@@ -310,7 +312,7 @@ impl<V, S: VolSize, M> ReadVol for Chunk<V, S, M> {
 impl<V: Clone + PartialEq, S: VolSize, M> WriteVol for Chunk<V, S, M> {
     #[inline(always)]
     #[allow(clippy::unit_arg)] // TODO: Pending review in #587
-    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), Self::Error> {
+    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<Self::Vox, Self::Error> {
         if !pos
             .map2(S::SIZE, |e, s| 0 <= e && e < s as i32)
             .reduce_and()

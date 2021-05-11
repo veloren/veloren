@@ -133,7 +133,7 @@ pub trait SampleVol<I>: BaseVol {
 pub trait WriteVol: BaseVol {
     /// Set the voxel at the provided position in the volume to the provided
     /// value.
-    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), Self::Error>;
+    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<Self::Vox, Self::Error>;
 
     /// Map a voxel to another using the provided function.
     // TODO: Is `map` the right name? Implies a change in type.
@@ -141,7 +141,7 @@ pub trait WriteVol: BaseVol {
         &mut self,
         pos: Vec3<i32>,
         f: F,
-    ) -> Result<(), Self::Error>
+    ) -> Result<Self::Vox, Self::Error>
     where
         Self: ReadVol,
         Self::Vox: Clone,

@@ -436,7 +436,17 @@ impl State {
     }
 
     // Apply terrain changes
-    pub fn apply_terrain_changes(&self) {
+    pub fn apply_terrain_changes(&self) { self.apply_terrain_changes_internal(false); }
+
+    /// `during_tick` is true if and only if this is called from within
+    /// [State::tick].
+    ///
+    /// This only happens if [State::tick] is asked to update terrain itself
+    /// (using `update_terrain_and_regions: true`).  [State::tick] is called
+    /// from within both the client and the server ticks, right after
+    /// handling terrain messages; currently, client sets it to true and
+    /// server to false.
+    fn apply_terrain_changes_internal(&self, during_tick: bool) {
         span!(
             _guard,
             "apply_terrain_changes",
@@ -447,7 +457,17 @@ impl State {
             std::mem::take(&mut self.ecs.write_resource::<BlockChange>().blocks);
         // Apply block modifications
         // Only include in `TerrainChanges` if successful
-        modified_blocks.retain(|pos, block| terrain.set(*pos, *block).is_ok());
+        modified_blocks.retain(|pos, block| {
+            let res = terrain.set(*pos, *block);
+            if let (&Ok(old_block), true) = (&res, during_tick) {
+                // NOTE: If the changes are applied during the tick, we push the *old* value as
+                // the modified block (since it otherwise can't be recovered after the tick).
+                // Otherwise, the changes will be applied after the tick, so we push the *new*
+                // value.
+                *block = old_block;
+            }
+            res.is_ok()
+        });
         self.ecs.write_resource::<TerrainChanges>().modified_blocks = modified_blocks;
     }
 
@@ -492,7 +512,7 @@ impl State {
         drop(guard);
 
         if update_terrain_and_regions {
-            self.apply_terrain_changes();
+            self.apply_terrain_changes_internal(true);
         }
 
         // Process local events

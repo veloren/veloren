@@ -13,7 +13,7 @@ use common::{
     volumes::vol_grid_2d::{CachedVolGrid2d, VolGrid2d},
 };
 use common_base::span;
-use std::{collections::VecDeque, fmt::Debug};
+use std::{collections::VecDeque, fmt::Debug, sync::Arc};
 use tracing::error;
 use vek::*;
 
@@ -233,8 +233,8 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>
     type Result = (
         Aabb<f32>,
         ColLightInfo,
-        Box<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
-        Box<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
+        Arc<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
+        Arc<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
     );
     type ShadowPipeline = ShadowPipeline;
     type Supplement = (Aabb<i32>, Vec2<u16>, &'a BlocksOfInterest);
@@ -457,8 +457,8 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>
             (
                 bounds,
                 (col_lights, col_lights_size),
-                Box::new(light),
-                Box::new(glow),
+                Arc::new(light),
+                Arc::new(glow),
             ),
         )
     }
