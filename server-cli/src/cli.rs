@@ -120,7 +120,7 @@ pub struct ArgvApp {
 }
 
 pub fn parse_command(input: &str, msg_s: &mut Sender<Message>) {
-    match TuiApp::from_iter_safe(input.split_whitespace()) {
+    match TuiApp::from_iter_safe(shell_words::split(input).unwrap_or_default()) {
         Ok(message) => {
             msg_s
                 .send(message.command)

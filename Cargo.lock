@@ -4596,6 +4596,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "shell-words"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b6fa3938c99da4914afedd13bf3d79bcb6c277d1b2c398d23257a304d9e1b074"
+
+[[package]]
 name = "shellexpand"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5783,6 +5789,7 @@ dependencies = [
  "num_cpus",
  "ron",
  "serde",
+ "shell-words",
  "signal-hook 0.3.8",
  "structopt",
  "tokio",
