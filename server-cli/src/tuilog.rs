@@ -36,20 +36,15 @@ impl<'a> Write for TuiLog<'a> {
 
         for out in line.ansi_parse() {
             match out {
-                Output::TextBlock(mut text) => {
-                    // search for newlines (.lines() or .split doesn't work, as this block does not
-                    // need to contain one)
-                    while let Some(newline) = text.find('\n') {
-                        span.content.to_mut().push_str(&text[..newline]);
-                        if span.content.len() != 0 {
-                            spans.push(span);
-                            lines.push(spans);
-                            spans = Vec::new();
-                            span = Span::raw("");
+                Output::TextBlock(text) => {
+                    // search for newlines
+                    for t in text.split_inclusive('\n') {
+                        span.content.to_mut().push_str(&t);
+                        if t.ends_with('\n') && span.content.len() != 0 {
+                            spans.push(std::mem::replace(&mut span, Span::raw("")));
+                            lines.push(std::mem::take(&mut spans));
                         }
-                        text = &text[newline + 1..];
                     }
-                    span.content.to_mut().push_str(text);
                 },
                 Output::Escape(seq) => {
                     if span.content.len() != 0 {
