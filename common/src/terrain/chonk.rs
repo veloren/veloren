@@ -167,13 +167,13 @@ impl<V, S: RectVolSize, M: Clone> ReadVol for Chonk<V, S, M> {
 
 impl<V: Clone + PartialEq, S: RectVolSize, M: Clone> WriteVol for Chonk<V, S, M> {
     #[inline(always)]
-    fn set(&mut self, pos: Vec3<i32>, block: Self::Vox) -> Result<(), Self::Error> {
+    fn set(&mut self, pos: Vec3<i32>, block: Self::Vox) -> Result<V, Self::Error> {
         let mut sub_chunk_idx = self.sub_chunk_idx(pos.z);
 
         if pos.z < self.get_min_z() {
             // Make sure we're not adding a redundant chunk.
             if block == self.below {
-                return Ok(());
+                return Ok(self.below.clone());
             }
             // Prepend exactly sufficiently many SubChunks via Vec::splice
             let c = Chunk::<V, SubChunkSize<S>, M>::filled(self.below.clone(), self.meta.clone());
@@ -184,7 +184,7 @@ impl<V: Clone + PartialEq, S: RectVolSize, M: Clone> WriteVol for Chonk<V, S, M>
         } else if pos.z >= self.get_max_z() {
             // Make sure we're not adding a redundant chunk.
             if block == self.above {
-                return Ok(());
+                return Ok(self.above.clone());
             }
             // Append exactly sufficiently many SubChunks via Vec::extend
             let c = Chunk::<V, SubChunkSize<S>, M>::filled(self.above.clone(), self.meta.clone());

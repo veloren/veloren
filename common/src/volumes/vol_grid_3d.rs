@@ -88,7 +88,7 @@ impl<I: Into<Aabb<i32>>, V: RasterableVol + ReadVol + Debug> SampleVol<I> for Vo
 
 impl<V: RasterableVol + WriteVol + Clone + Debug> WriteVol for VolGrid3d<V> {
     #[inline(always)]
-    fn set(&mut self, pos: Vec3<i32>, vox: V::Vox) -> Result<(), VolGrid3dError<V>> {
+    fn set(&mut self, pos: Vec3<i32>, vox: V::Vox) -> Result<V::Vox, VolGrid3dError<V>> {
         let ck = Self::chunk_key(pos);
         self.chunks
             .get_mut(&ck)

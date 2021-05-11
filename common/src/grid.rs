@@ -53,9 +53,9 @@ impl<T> Grid<T> {
         self.cells.get_mut(idx)
     }
 
-    pub fn set(&mut self, pos: Vec2<i32>, cell: T) -> Option<()> {
+    pub fn set(&mut self, pos: Vec2<i32>, cell: T) -> Option<T> {
         let idx = self.idx(pos)?;
-        self.cells.get_mut(idx).map(|c| *c = cell)
+        self.cells.get_mut(idx).map(|c| core::mem::replace(c, cell))
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (Vec2<i32>, &T)> + '_ {

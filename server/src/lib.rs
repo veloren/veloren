@@ -553,6 +553,8 @@ impl Server {
         // visible to client synchronization systems, minimizing the latency of
         // `ServerEvent` mediated effects
         self.state.update_region_map();
+        // NOTE: apply_terrain_changes sends the *new* value since it is not being
+        // synchronized during the tick.
         self.state.apply_terrain_changes();
 
         let before_sync = Instant::now();

@@ -93,10 +93,10 @@ impl<V, M, A: Access> ReadVol for Dyna<V, M, A> {
 
 impl<V, M, A: Access> WriteVol for Dyna<V, M, A> {
     #[inline(always)]
-    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), DynaError> {
+    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<Self::Vox, DynaError> {
         Self::idx_for(self.sz, pos)
             .and_then(|idx| self.vox.get_mut(idx))
-            .map(|old_vox| *old_vox = vox)
+            .map(|old_vox| core::mem::replace(old_vox, vox))
             .ok_or(DynaError::OutOfBounds)
     }
 }

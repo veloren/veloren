@@ -55,6 +55,9 @@ impl Visibility {
     }
 }
 
+/// Type of closure used for light mapping.
+type LightMapFn = Arc<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>;
+
 pub struct TerrainChunkData {
     // GPU data
     load_time: f32,
@@ -70,8 +73,8 @@ pub struct TerrainChunkData {
     /// making this an `Option`, but it probably isn't worth it since they
     /// shouldn't be that much more nonlocal than regular chunks).
     texture: Texture<ColLightFmt>,
-    light_map: Box<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
-    glow_map: Box<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
+    light_map: LightMapFn,
+    glow_map: LightMapFn,
     sprite_instances: HashMap<(SpriteKind, usize), Instances<SpriteInstance>>,
     locals: Consts<TerrainLocals>,
     pub blocks_of_interest: BlocksOfInterest,
@@ -88,19 +91,27 @@ struct ChunkMeshState {
     pos: Vec2<i32>,
     started_tick: u64,
     is_worker_active: bool,
+    // If this is set, we skip the actual meshing part of the update.
+    skip_remesh: bool,
+}
+
+/// Just the mesh part of a mesh worker response.
+pub struct MeshWorkerResponseMesh {
+    z_bounds: (f32, f32),
+    opaque_mesh: Mesh<TerrainPipeline>,
+    fluid_mesh: Mesh<FluidPipeline>,
+    col_lights_info: ColLightInfo,
+    light_map: LightMapFn,
+    glow_map: LightMapFn,
 }
 
 /// A type produced by mesh worker threads corresponding to the position and
 /// mesh of a chunk.
 struct MeshWorkerResponse {
     pos: Vec2<i32>,
-    z_bounds: (f32, f32),
-    opaque_mesh: Mesh<TerrainPipeline>,
-    fluid_mesh: Mesh<FluidPipeline>,
-    col_lights_info: ColLightInfo,
-    light_map: Box<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
-    glow_map: Box<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
     sprite_instances: HashMap<(SpriteKind, usize), Vec<SpriteInstance>>,
+    /// If None, this update was requested without meshing.
+    mesh: Option<MeshWorkerResponseMesh>,
     started_tick: u64,
     blocks_of_interest: BlocksOfInterest,
 }
@@ -147,9 +158,12 @@ impl assets::Asset for SpriteSpec {
 /// Function executed by worker threads dedicated to chunk meshing.
 #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
 
+/// skip_remesh is either None (do the full remesh, including recomputing the
+/// light map), or Some((light_map, glow_map)).
 fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + 'static>(
     pos: Vec2<i32>,
     z_bounds: (f32, f32),
+    skip_remesh: Option<(LightMapFn, LightMapFn)>,
     started_tick: u64,
     volume: <VolGrid2d<V> as SampleVol<Aabr<i32>>>::Sample,
     max_texture_size: u16,
@@ -160,18 +174,31 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
 ) -> MeshWorkerResponse {
     span!(_guard, "mesh_worker");
     let blocks_of_interest = BlocksOfInterest::from_chunk(&chunk);
-    let (opaque_mesh, fluid_mesh, _shadow_mesh, (bounds, col_lights_info, light_map, glow_map)) =
-        volume.generate_mesh((
-            range,
-            Vec2::new(max_texture_size, max_texture_size),
-            &blocks_of_interest,
-        ));
+    let mesh;
+    let (light_map, glow_map) = if let Some((light_map, glow_map)) = &skip_remesh {
+        mesh = None;
+        (&**light_map, &**glow_map)
+    } else {
+        let (opaque_mesh, fluid_mesh, _shadow_mesh, (bounds, col_lights_info, light_map, glow_map)) =
+            volume.generate_mesh((
+                range,
+                Vec2::new(max_texture_size, max_texture_size),
+                &blocks_of_interest,
+            ));
+        mesh = Some(MeshWorkerResponseMesh {
+            z_bounds: (bounds.min.z, bounds.max.z),
+            opaque_mesh,
+            fluid_mesh,
+            col_lights_info,
+            light_map,
+            glow_map,
+        });
+        // Pointer juggling so borrows work out.
+        let mesh = mesh.as_ref().unwrap();
+        (&*mesh.light_map, &*mesh.glow_map)
+    };
     MeshWorkerResponse {
         pos,
-        z_bounds: (bounds.min.z, bounds.max.z),
-        opaque_mesh,
-        fluid_mesh,
-        col_lights_info,
         // Extract sprite locations from volume
         sprite_instances: {
             span!(_guard, "extract sprite_instances");
@@ -227,8 +254,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
 
             instances
         },
-        light_map,
-        glow_map,
+        mesh,
         blocks_of_interest,
         started_tick,
     }
@@ -617,6 +643,17 @@ impl<V: RectRasterableVol> Terrain<V> {
             .unwrap_or(1.0)
     }
 
+    /// Determine whether a given block change actually require remeshing.
+    fn skip_remesh(old_block: Block, new_block: Block) -> bool {
+        // Both blocks are unfilled and of the same kind (this includes
+        // sprites within the same fluid, for example).
+        !new_block.is_filled() && !old_block.is_filled() && new_block.kind() == old_block.kind() &&
+        // Block glow and sunlight handling are the same (so we don't have to redo
+        // lighting).
+        new_block.get_glow() == old_block.get_glow() &&
+        new_block.get_max_sunlight() == old_block.get_max_sunlight()
+    }
+
     /// Find the glow level (light from lamps) at the given world position.
     pub fn glow_at_wpos(&self, wpos: Vec3<i32>) -> f32 {
         let chunk_pos = Vec2::from(wpos).map2(TerrainChunk::RECT_SIZE, |e: i32, sz| {
@@ -750,6 +787,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                                 pos,
                                 started_tick: current_tick,
                                 is_worker_active: false,
+                                skip_remesh: false,
                             });
                         }
                     }
@@ -762,7 +800,28 @@ impl<V: RectRasterableVol> Terrain<V> {
         // be meshed
         span!(guard, "Add chunks with modified blocks to mesh todo list");
         // TODO: would be useful if modified blocks were grouped by chunk
-        for (&pos, &_block) in scene_data.state.terrain_changes().modified_blocks.iter() {
+        for (&pos, &old_block) in scene_data.state.terrain_changes().modified_blocks.iter() {
+            // terrain_changes() are both set and applied during the same tick on the
+            // client, so the current state is the new state and modified_blocks
+            // stores the old state.
+            let new_block = scene_data.state.get_block(pos);
+
+            let skip_remesh = if let Some(new_block) = new_block {
+                Self::skip_remesh(old_block, new_block)
+            } else {
+                // The block coordinates of a modified block should be in bounds, since they are
+                // only retained if setting the block was successful during the state tick in
+                // client.  So this is definitely a bug, but we can recover safely by just
+                // conservatively doing a full remesh in this case, rather than crashing the
+                // game.
+                warn!(
+                    "Invariant violation: pos={:?} should be a valid block position.  This is a \
+                     bug; please contact the developers if you see this error message!",
+                    pos
+                );
+                false
+            };
+
             // TODO: Be cleverer about this to avoid remeshing all neighbours. There are a
             // few things that can create an 'effect at a distance'. These are
             // as follows:
@@ -789,6 +848,12 @@ impl<V: RectRasterableVol> Terrain<V> {
                     let neighbour_pos = pos + Vec3::new(x, y, 0) * block_effect_radius;
                     let neighbour_chunk_pos = scene_data.state.terrain().pos_key(neighbour_pos);
 
+                    if skip_remesh && !(x == 0 && y == 0) {
+                        // We don't need to remesh neighboring chunks if this block change doesn't
+                        // require remeshing.
+                        continue;
+                    }
+
                     // Only remesh if this chunk has all its neighbors
                     let mut neighbours = true;
                     for i in -1..2 {
@@ -801,11 +866,24 @@ impl<V: RectRasterableVol> Terrain<V> {
                         }
                     }
                     if neighbours {
-                        self.mesh_todo.insert(neighbour_chunk_pos, ChunkMeshState {
-                            pos: neighbour_chunk_pos,
-                            started_tick: current_tick,
-                            is_worker_active: false,
-                        });
+                        let todo =
+                            self.mesh_todo
+                                .entry(neighbour_chunk_pos)
+                                .or_insert(ChunkMeshState {
+                                    pos: neighbour_chunk_pos,
+                                    started_tick: current_tick,
+                                    is_worker_active: false,
+                                    skip_remesh,
+                                });
+
+                        // Make sure not to skip remeshing a chunk if it already had to be
+                        // fully meshed for other reasons.  The exception: if the mesh is currently
+                        // active, we can stll set skip_remesh, since we know that means it was
+                        // enqueued during an older tick and hence there was no intermediate update
+                        // to this block between the enqueue and now.
+                        todo.skip_remesh =
+                            !todo.is_worker_active && todo.skip_remesh || skip_remesh;
+                        todo.started_tick = current_tick;
                     }
                 }
             }
@@ -882,6 +960,13 @@ impl<V: RectRasterableVol> Terrain<V> {
             let send = self.mesh_send_tmp.clone();
             let pos = todo.pos;
 
+            let chunks = &self.chunks;
+            let skip_remesh = todo
+                .skip_remesh
+                .then_some(())
+                .and_then(|_| chunks.get(&pos))
+                .map(|chunk| (Arc::clone(&chunk.light_map), Arc::clone(&chunk.glow_map)));
+
             // Queue the worker thread.
             let started_tick = todo.started_tick;
             let sprite_data = Arc::clone(&self.sprite_data);
@@ -896,6 +981,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     let _ = send.send(mesh_worker(
                         pos,
                         (min_z as f32, max_z as f32),
+                        skip_remesh,
                         started_tick,
                         volume,
                         max_texture_size,
@@ -928,119 +1014,131 @@ impl<V: RectRasterableVol> Terrain<V> {
                 // data structure (convert the mesh to a model first of course).
                 Some(todo) if response.started_tick <= todo.started_tick => {
                     let started_tick = todo.started_tick;
-                    let load_time = self
-                        .chunks
-                        .get(&response.pos)
-                        .map(|chunk| chunk.load_time)
-                        .unwrap_or(current_time as f32);
-                    // TODO: Allocate new atlas on allocation failure.
-                    let (tex, tex_size) = response.col_lights_info;
-                    let atlas = &mut self.atlas;
-                    let chunks = &mut self.chunks;
-                    let col_lights = &mut self.col_lights;
-                    let allocation = atlas
-                        .allocate(guillotiere::Size::new(
-                            i32::from(tex_size.x),
-                            i32::from(tex_size.y),
-                        ))
-                        .unwrap_or_else(|| {
-                            // Atlas allocation failure: try allocating a new texture and atlas.
-                            let (new_atlas, new_col_lights) =
-                                Self::make_atlas(renderer).expect("Failed to create atlas texture");
-
-                            // We reset the atlas and clear allocations from existing chunks, even
-                            // though we haven't yet checked whether the new allocation can fit in
-                            // the texture.  This is reasonable because we don't have a fallback
-                            // if a single chunk can't fit in an empty atlas of maximum size.
-                            //
-                            // TODO: Consider attempting defragmentation first rather than just
-                            // always moving everything into the new chunk.
-                            chunks.iter_mut().for_each(|(_, chunk)| {
-                                chunk.col_lights = None;
-                            });
-                            *atlas = new_atlas;
-                            *col_lights = new_col_lights;
-
-                            atlas
-                                .allocate(guillotiere::Size::new(
-                                    i32::from(tex_size.x),
-                                    i32::from(tex_size.y),
-                                ))
-                                .expect("Chunk data does not fit in a texture of maximum size.")
-                        });
-
-                    // NOTE: Cast is safe since the origin was a u16.
-                    let atlas_offs = Vec2::new(
-                        allocation.rectangle.min.x as u16,
-                        allocation.rectangle.min.y as u16,
-                    );
-                    if let Err(err) = renderer.update_texture(
-                        col_lights,
-                        atlas_offs.into_array(),
-                        tex_size.into_array(),
-                        &tex,
-                    ) {
-                        warn!("Failed to update texture: {:?}", err);
-                    }
-
-                    self.insert_chunk(response.pos, TerrainChunkData {
-                        load_time,
-                        opaque_model: renderer
-                            .create_model(&response.opaque_mesh)
-                            .expect("Failed to upload chunk mesh to the GPU!"),
-                        fluid_model: if response.fluid_mesh.vertices().len() > 0 {
-                            Some(
+                    let sprite_instances = response
+                        .sprite_instances
+                        .into_iter()
+                        .map(|(kind, instances)| {
+                            (
+                                kind,
                                 renderer
-                                    .create_model(&response.fluid_mesh)
-                                    .expect("Failed to upload chunk mesh to the GPU!"),
+                                    .create_instances(&instances)
+                                    .expect("Failed to upload chunk sprite instances to the GPU!"),
                             )
-                        } else {
-                            None
-                        },
-                        col_lights: Some(allocation.id),
-                        texture: self.col_lights.clone(),
-                        light_map: response.light_map,
-                        glow_map: response.glow_map,
-                        sprite_instances: response
-                            .sprite_instances
-                            .into_iter()
-                            .map(|(kind, instances)| {
-                                (
-                                    kind,
-                                    renderer.create_instances(&instances).expect(
-                                        "Failed to upload chunk sprite instances to the GPU!",
-                                    ),
+                        })
+                        .collect();
+
+                    if let Some(mesh) = response.mesh {
+                        // Full update, insert the whole chunk.
+
+                        let load_time = self
+                            .chunks
+                            .get(&response.pos)
+                            .map(|chunk| chunk.load_time)
+                            .unwrap_or(current_time as f32);
+                        // TODO: Allocate new atlas on allocation failure.
+                        let (tex, tex_size) = mesh.col_lights_info;
+                        let atlas = &mut self.atlas;
+                        let chunks = &mut self.chunks;
+                        let col_lights = &mut self.col_lights;
+                        let allocation = atlas
+                            .allocate(guillotiere::Size::new(
+                                i32::from(tex_size.x),
+                                i32::from(tex_size.y),
+                            ))
+                            .unwrap_or_else(|| {
+                                // Atlas allocation failure: try allocating a new texture and atlas.
+                                let (new_atlas, new_col_lights) = Self::make_atlas(renderer)
+                                    .expect("Failed to create atlas texture");
+
+                                // We reset the atlas and clear allocations from existing chunks,
+                                // even though we haven't yet
+                                // checked whether the new allocation can fit in
+                                // the texture.  This is reasonable because we don't have a fallback
+                                // if a single chunk can't fit in an empty atlas of maximum size.
+                                //
+                                // TODO: Consider attempting defragmentation first rather than just
+                                // always moving everything into the new chunk.
+                                chunks.iter_mut().for_each(|(_, chunk)| {
+                                    chunk.col_lights = None;
+                                });
+                                *atlas = new_atlas;
+                                *col_lights = new_col_lights;
+
+                                atlas
+                                    .allocate(guillotiere::Size::new(
+                                        i32::from(tex_size.x),
+                                        i32::from(tex_size.y),
+                                    ))
+                                    .expect("Chunk data does not fit in a texture of maximum size.")
+                            });
+
+                        // NOTE: Cast is safe since the origin was a u16.
+                        let atlas_offs = Vec2::new(
+                            allocation.rectangle.min.x as u16,
+                            allocation.rectangle.min.y as u16,
+                        );
+                        if let Err(err) = renderer.update_texture(
+                            col_lights,
+                            atlas_offs.into_array(),
+                            tex_size.into_array(),
+                            &tex,
+                        ) {
+                            warn!("Failed to update texture: {:?}", err);
+                        }
+
+                        self.insert_chunk(response.pos, TerrainChunkData {
+                            load_time,
+                            opaque_model: renderer
+                                .create_model(&mesh.opaque_mesh)
+                                .expect("Failed to upload chunk mesh to the GPU!"),
+                            fluid_model: if mesh.fluid_mesh.vertices().len() > 0 {
+                                Some(
+                                    renderer
+                                        .create_model(&mesh.fluid_mesh)
+                                        .expect("Failed to upload chunk mesh to the GPU!"),
                                 )
-                            })
-                            .collect(),
-                        locals: renderer
-                            .create_consts(&[TerrainLocals {
-                                model_offs: Vec3::from(
-                                    response.pos.map2(VolGrid2d::<V>::chunk_size(), |e, sz| {
-                                        e as f32 * sz as f32
-                                    }),
-                                )
-                                .into_array(),
-                                atlas_offs: Vec4::new(
-                                    i32::from(atlas_offs.x),
-                                    i32::from(atlas_offs.y),
-                                    0,
-                                    0,
-                                )
-                                .into_array(),
-                                load_time,
-                            }])
-                            .expect("Failed to upload chunk locals to the GPU!"),
-                        visible: Visibility {
-                            in_range: false,
-                            in_frustum: false,
-                        },
-                        can_shadow_point: false,
-                        can_shadow_sun: false,
-                        blocks_of_interest: response.blocks_of_interest,
-                        z_bounds: response.z_bounds,
-                        frustum_last_plane_index: 0,
-                    });
+                            } else {
+                                None
+                            },
+                            col_lights: Some(allocation.id),
+                            texture: self.col_lights.clone(),
+                            light_map: mesh.light_map,
+                            glow_map: mesh.glow_map,
+                            sprite_instances,
+                            locals: renderer
+                                .create_consts(&[TerrainLocals {
+                                    model_offs: Vec3::from(
+                                        response.pos.map2(VolGrid2d::<V>::chunk_size(), |e, sz| {
+                                            e as f32 * sz as f32
+                                        }),
+                                    )
+                                    .into_array(),
+                                    atlas_offs: Vec4::new(
+                                        i32::from(atlas_offs.x),
+                                        i32::from(atlas_offs.y),
+                                        0,
+                                        0,
+                                    )
+                                    .into_array(),
+                                    load_time,
+                                }])
+                                .expect("Failed to upload chunk locals to the GPU!"),
+                            visible: Visibility {
+                                in_range: false,
+                                in_frustum: false,
+                            },
+                            can_shadow_point: false,
+                            can_shadow_sun: false,
+                            blocks_of_interest: response.blocks_of_interest,
+                            z_bounds: mesh.z_bounds,
+                            frustum_last_plane_index: 0,
+                        });
+                    } else if let Some(chunk) = self.chunks.get_mut(&response.pos) {
+                        // There was an update that didn't require a remesh (probably related to
+                        // non-glowing sprites) so we just update those.
+                        chunk.sprite_instances = sprite_instances;
+                        chunk.blocks_of_interest = response.blocks_of_interest;
+                    }
 
                     if response.started_tick == started_tick {
                         self.mesh_todo.remove(&response.pos);
