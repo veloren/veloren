@@ -4,6 +4,7 @@ services:
   game-server:
     image: registry.gitlab.com/veloren/veloren/server-cli:nightly
     stdin_open: true
+    tty: true
     container_name: veloren-game-server-master
     ports:
       - "14004:14004"
