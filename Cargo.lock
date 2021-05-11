@@ -2416,15 +2416,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "inline_tweak"
-version = "1.0.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7033e97b20277cc0d043226d1940fa7719ff08d2305d1fc7421e53066d00eb4b"
-dependencies = [
- "lazy_static",
-]
-
-[[package]]
 name = "inotify"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5659,6 +5650,7 @@ dependencies = [
 name = "veloren-i18n"
 version = "0.9.0"
 dependencies = [
+ "clap",
  "deunicode",
  "git2",
  "hashbrown",
@@ -5841,7 +5833,6 @@ dependencies = [
  "iced_native",
  "iced_winit",
  "image",
- "inline_tweak",
  "itertools 0.10.0",
  "keyboard-keynames",
  "lazy_static",

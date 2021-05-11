@@ -35,16 +35,13 @@ pub struct VoxelMinimap {
     image_id: img_ids::Rotations,
 }
 
+const VOXEL_MINIMAP_SIDELENGTH: u32 = 512;
 impl VoxelMinimap {
     pub fn new(ui: &mut Ui) -> Self {
-        let mut composited = RgbaImage::new(96, 96);
-        for x in 0..96 {
-            for y in 0..96 {
-                composited.put_pixel(
-                    x,
-                    y,
-                    image::Rgba([255 - 2 * x as u8, 255 - 2 * y as u8, 0, 64]),
-                );
+        let mut composited = RgbaImage::new(VOXEL_MINIMAP_SIDELENGTH, VOXEL_MINIMAP_SIDELENGTH);
+        for x in 0..VOXEL_MINIMAP_SIDELENGTH {
+            for y in 0..VOXEL_MINIMAP_SIDELENGTH {
+                composited.put_pixel(x, y, image::Rgba([0, 0, 0, 64]));
             }
         }
         Self {
@@ -68,7 +65,7 @@ impl VoxelMinimap {
                             .get(Vec3::new(v.x, v.y, z))
                             .ok()
                             .and_then(|block| block.get_color())
-                            .map(|rgb| [rgb.r, rgb.g, rgb.b, 128])
+                            .map(|rgb| [rgb.r, rgb.g, rgb.b, 192])
                             .unwrap_or([0, 0, 0, 0])
                     });
                     layers.insert(z, grid);
@@ -79,34 +76,34 @@ impl VoxelMinimap {
         let player = client.entity();
         if let Some(pos) = client.state().ecs().read_storage::<comp::Pos>().get(player) {
             let pos = pos.0;
-            let cpos: Vec2<i32> = (pos.xy() / 32.0).as_();
-            for i in -1..=1 {
-                for j in -1..=1 {
-                    let coff = Vec2::new(i, j);
+            for x in 0..VOXEL_MINIMAP_SIDELENGTH {
+                for y in 0..VOXEL_MINIMAP_SIDELENGTH {
+                    let vpos = pos.xy() + Vec2::new(x as f32, y as f32)
+                        - VOXEL_MINIMAP_SIDELENGTH as f32 / 2.0;
+                    let cpos: Vec2<i32> = (vpos / 32.0).as_();
+                    let cmod: Vec2<i32> = (vpos % 32.0).as_();
                     if let Some(grid) = self
                         .chunk_minimaps
-                        .get(&(cpos + coff))
+                        .get(&cpos)
                         .and_then(|l| l.get(&(pos.z as i32)))
                     {
-                        for x in 0..32 {
-                            for y in 0..32 {
-                                self.composited.put_pixel(
-                                    (i + 1) as u32 * 32 + x,
-                                    (j + 1) as u32 * 32 + y,
-                                    grid.get(Vec2::new(x, y).as_())
-                                        .map(|c| image::Rgba(*c))
-                                        .unwrap_or(image::Rgba([0, 0, 0, 0])),
-                                );
-                            }
-                        }
+                        self.composited.put_pixel(
+                            x,
+                            VOXEL_MINIMAP_SIDELENGTH - y - 1,
+                            grid.get(cmod)
+                                .map(|c| image::Rgba(*c))
+                                .unwrap_or(image::Rgba([0, 0, 0, 0])),
+                        );
                     }
                 }
             }
-            // TODO: don't leak memory, replace
-            self.image_id = ui.add_graphic_with_rotations(Graphic::Image(
-                Arc::new(DynamicImage::ImageRgba8(self.composited.clone())),
-                Some(Rgba::from([0.0, 0.0, 0.0, 0.0])),
-            ));
+            ui.replace_graphic(
+                self.image_id.none,
+                Graphic::Image(
+                    Arc::new(DynamicImage::ImageRgba8(self.composited.clone())),
+                    Some(Rgba::from([0.0, 0.0, 0.0, 0.0])),
+                ),
+            );
         }
     }
 }
@@ -380,25 +377,17 @@ impl<'a> Widget for MiniMap<'a> {
                 } else {
                     self.voxel_minimap.image_id.source_north
                 };
-                use inline_tweak::tweak;
-                /*let rect_src = position::Rect::from_xy_dim(
+                let scaling = (VOXEL_MINIMAP_SIDELENGTH as f64 / 32.0) * max_zoom / zoom;
+                let rect_src = position::Rect::from_xy_dim(
                     [
-                        player_pos.x as f64 / TerrainChunkSize::RECT_SIZE.x as f64 + tweak!(0.0),
-                        worldsize.y as f64 -
-                        (player_pos.y as f64 / TerrainChunkSize::RECT_SIZE.y as f64) + tweak!(0.0),
+                        VOXEL_MINIMAP_SIDELENGTH as f64 / 2.0,
+                        VOXEL_MINIMAP_SIDELENGTH as f64 / 2.0,
                     ],
-                    [w_src / tweak!(32768.0), h_src / tweak!(32768.0)],
-                );*/
-                let rect_src = position::Rect::from_xy_dim([tweak!(48.0), tweak!(48.0)], [
-                    tweak!(96.0),
-                    tweak!(96.0),
-                ]);
+                    [scaling, scaling],
+                );
                 Image::new(voxelmap_rotation)
                     .middle_of(state.ids.mmap_frame_bg)
-                    .w_h(
-                        map_size.x * 3.0 * (zoom / max_zoom),
-                        map_size.y * 3.0 * zoom / max_zoom,
-                    )
+                    .w_h(map_size.x, map_size.y)
                     .parent(state.ids.mmap_frame_bg)
                     .source_rectangle(rect_src)
                     .graphics_for(state.ids.map_layers[0])
