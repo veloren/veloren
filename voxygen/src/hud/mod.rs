@@ -42,7 +42,7 @@ use img_ids::Imgs;
 use item_imgs::ItemImgs;
 use loot_scroller::LootScroller;
 use map::Map;
-use minimap::MiniMap;
+use minimap::{MiniMap, VoxelMinimap};
 use popup::Popup;
 use prompt_dialog::PromptDialog;
 use serde::{Deserialize, Serialize};
@@ -810,6 +810,7 @@ pub struct Hud {
     events: Vec<Event>,
     crosshair_opacity: f32,
     floaters: Floaters,
+    voxel_minimap: VoxelMinimap,
 }
 
 impl Hud {
@@ -866,6 +867,7 @@ impl Hud {
         );
 
         Self {
+            voxel_minimap: VoxelMinimap::new(&mut ui),
             ui,
             imgs,
             world_map,
@@ -957,6 +959,7 @@ impl Hud {
     ) -> Vec<Event> {
         span!(_guard, "update_layout", "Hud::update_layout");
         let mut events = core::mem::take(&mut self.events);
+        self.voxel_minimap.maintain(&client, &mut self.ui);
         let (ref mut ui_widgets, ref mut item_tooltip_manager, ref mut tooltip_manager) =
             &mut self.ui.set_widgets();
         // self.ui.set_item_widgets(); pulse time for pulsating elements
@@ -2364,6 +2367,7 @@ impl Hud {
             camera.get_orientation(),
             &global_state,
             self.show.location_marker,
+            &self.voxel_minimap,
         )
         .set(self.ids.minimap, ui_widgets)
         {

@@ -4,21 +4,112 @@ use super::{
     TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
+    hud::{Graphic, Ui},
     session::settings_change::{Interface as InterfaceChange, Interface::*},
     ui::{fonts::Fonts, img_ids},
     GlobalState,
 };
 use client::{self, Client};
-use common::{comp, comp::group::Role, terrain::TerrainChunkSize, vol::RectVolSize};
+use common::{
+    comp,
+    comp::group::Role,
+    grid::Grid,
+    terrain::TerrainChunkSize,
+    vol::{ReadVol, RectVolSize},
+};
 use common_net::msg::world_msg::SiteKind;
 use conrod_core::{
     color, position,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-
+use hashbrown::HashMap;
+use image::{DynamicImage, RgbaImage};
 use specs::{saveload::MarkerAllocator, WorldExt};
+use std::sync::Arc;
 use vek::*;
+
+pub struct VoxelMinimap {
+    chunk_minimaps: HashMap<Vec2<i32>, HashMap<i32, Grid<[u8; 4]>>>,
+    composited: RgbaImage,
+    image_id: img_ids::Rotations,
+}
+
+impl VoxelMinimap {
+    pub fn new(ui: &mut Ui) -> Self {
+        let mut composited = RgbaImage::new(96, 96);
+        for x in 0..96 {
+            for y in 0..96 {
+                composited.put_pixel(
+                    x,
+                    y,
+                    image::Rgba([255 - 2 * x as u8, 255 - 2 * y as u8, 0, 64]),
+                );
+            }
+        }
+        Self {
+            chunk_minimaps: HashMap::new(),
+            image_id: ui.add_graphic_with_rotations(Graphic::Image(
+                Arc::new(DynamicImage::ImageRgba8(composited.clone())),
+                Some(Rgba::from([0.0, 0.0, 0.0, 0.0])),
+            )),
+            composited,
+        }
+    }
+
+    pub fn maintain(&mut self, client: &Client, ui: &mut Ui) {
+        let terrain = client.state().terrain();
+        for (key, chunk) in terrain.iter() {
+            if !self.chunk_minimaps.contains_key(&key) {
+                let mut layers = HashMap::new();
+                for z in chunk.get_min_z()..chunk.get_max_z() {
+                    let grid = Grid::populate_from(Vec2::new(32, 32), |v| {
+                        chunk
+                            .get(Vec3::new(v.x, v.y, z))
+                            .ok()
+                            .and_then(|block| block.get_color())
+                            .map(|rgb| [rgb.r, rgb.g, rgb.b, 128])
+                            .unwrap_or([0, 0, 0, 0])
+                    });
+                    layers.insert(z, grid);
+                }
+                self.chunk_minimaps.insert(key, layers);
+            }
+        }
+        let player = client.entity();
+        if let Some(pos) = client.state().ecs().read_storage::<comp::Pos>().get(player) {
+            let pos = pos.0;
+            let cpos: Vec2<i32> = (pos.xy() / 32.0).as_();
+            for i in -1..=1 {
+                for j in -1..=1 {
+                    let coff = Vec2::new(i, j);
+                    if let Some(grid) = self
+                        .chunk_minimaps
+                        .get(&(cpos + coff))
+                        .and_then(|l| l.get(&(pos.z as i32)))
+                    {
+                        for x in 0..32 {
+                            for y in 0..32 {
+                                self.composited.put_pixel(
+                                    (i + 1) as u32 * 32 + x,
+                                    (j + 1) as u32 * 32 + y,
+                                    grid.get(Vec2::new(x, y).as_())
+                                        .map(|c| image::Rgba(*c))
+                                        .unwrap_or(image::Rgba([0, 0, 0, 0])),
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+            // TODO: don't leak memory, replace
+            self.image_id = ui.add_graphic_with_rotations(Graphic::Image(
+                Arc::new(DynamicImage::ImageRgba8(self.composited.clone())),
+                Some(Rgba::from([0.0, 0.0, 0.0, 0.0])),
+            ));
+        }
+    }
+}
 
 widget_ids! {
     struct Ids {
@@ -40,6 +131,7 @@ widget_ids! {
         mmap_site_icons[],
         member_indicators[],
         location_marker,
+        voxel_minimap,
     }
 }
 
@@ -56,6 +148,7 @@ pub struct MiniMap<'a> {
     ori: Vec3<f32>,
     global_state: &'a GlobalState,
     location_marker: Option<Vec2<f32>>,
+    voxel_minimap: &'a VoxelMinimap,
 }
 
 impl<'a> MiniMap<'a> {
@@ -69,6 +162,7 @@ impl<'a> MiniMap<'a> {
         ori: Vec3<f32>,
         global_state: &'a GlobalState,
         location_marker: Option<Vec2<f32>>,
+        voxel_minimap: &'a VoxelMinimap,
     ) -> Self {
         Self {
             show,
@@ -81,6 +175,7 @@ impl<'a> MiniMap<'a> {
             ori,
             global_state,
             location_marker,
+            voxel_minimap,
         }
     }
 }
@@ -116,6 +211,8 @@ impl<'a> Widget for MiniMap<'a> {
         let show_minimap = self.global_state.settings.interface.minimap_show;
         let is_facing_north = self.global_state.settings.interface.minimap_face_north;
         let show_topo_map = self.global_state.settings.interface.map_show_topo_map;
+        //let show_voxel_map = self.global_state.settings.interface.map_show_voxel_map;
+        let show_voxel_map = true;
         let orientation = if is_facing_north {
             Vec3::new(0.0, 1.0, 0.0)
         } else {
@@ -276,6 +373,36 @@ impl<'a> Widget for MiniMap<'a> {
                         .graphics_for(state.ids.map_layers[0])
                         .set(state.ids.map_layers[index], ui);
                 }
+            }
+            if show_voxel_map {
+                let voxelmap_rotation = if is_facing_north {
+                    self.voxel_minimap.image_id.none
+                } else {
+                    self.voxel_minimap.image_id.source_north
+                };
+                use inline_tweak::tweak;
+                /*let rect_src = position::Rect::from_xy_dim(
+                    [
+                        player_pos.x as f64 / TerrainChunkSize::RECT_SIZE.x as f64 + tweak!(0.0),
+                        worldsize.y as f64 -
+                        (player_pos.y as f64 / TerrainChunkSize::RECT_SIZE.y as f64) + tweak!(0.0),
+                    ],
+                    [w_src / tweak!(32768.0), h_src / tweak!(32768.0)],
+                );*/
+                let rect_src = position::Rect::from_xy_dim([tweak!(48.0), tweak!(48.0)], [
+                    tweak!(96.0),
+                    tweak!(96.0),
+                ]);
+                Image::new(voxelmap_rotation)
+                    .middle_of(state.ids.mmap_frame_bg)
+                    .w_h(
+                        map_size.x * 3.0 * (zoom / max_zoom),
+                        map_size.y * 3.0 * zoom / max_zoom,
+                    )
+                    .parent(state.ids.mmap_frame_bg)
+                    .source_rectangle(rect_src)
+                    .graphics_for(state.ids.map_layers[0])
+                    .set(state.ids.voxel_minimap, ui);
             }
 
             // Map icons
