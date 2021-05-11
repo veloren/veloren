@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Emerald Staff",
+    name: "Emerald Sceptre",
     description: "Its stone is the closest thing from perfection",
     kind: Tool((
         kind: Sceptre,

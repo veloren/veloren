@@ -81,6 +81,8 @@ make_case_elim!(
         Coins = 66,
         GoldOre = 67,
         SilverOre = 68,
+        ClayRocket = 69,
+        HaniwaSentry = 70,
     }
 );
 
@@ -91,7 +93,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 69] = [
+pub const ALL_OBJECTS: [Body; 71] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -161,6 +163,8 @@ pub const ALL_OBJECTS: [Body; 69] = [
     Body::Coins,
     Body::SilverOre,
     Body::GoldOre,
+    Body::ClayRocket,
+    Body::HaniwaSentry,
 ];
 
 impl From<Body> for super::Body {
@@ -239,6 +243,8 @@ impl Body {
             Body::Coins => "coins",
             Body::SilverOre => "silver_ore",
             Body::GoldOre => "gold_ore",
+            Body::ClayRocket => "clay_rocket",
+            Body::HaniwaSentry => "haniwa_sentry",
         }
     }
 
@@ -328,6 +334,8 @@ impl Body {
             Body::WindowSpooky => 10.0,
             Body::SilverOre => 1000.0,
             Body::GoldOre => 1000.0,
+            Body::ClayRocket => 50.0,
+            Body::HaniwaSentry => 300.0,
         };
 
         Mass(m)
@@ -335,8 +343,12 @@ impl Body {
 
     pub fn dimensions(&self) -> Vec3<f32> {
         match self {
-            Body::Arrow | Body::ArrowSnake | Body::MultiArrow => Vec3::new(0.01, 0.8, 0.01),
+            Body::Arrow | Body::ArrowSnake | Body::MultiArrow | Body::ArrowTurret => {
+                Vec3::new(0.01, 0.8, 0.01)
+            },
             Body::BoltFire => Vec3::new(0.1, 0.1, 0.1),
+            Body::Crossbow => Vec3::new(3.0, 3.0, 1.5),
+            Body::HaniwaSentry => Vec3::new(0.8, 0.8, 1.4),
             _ => Vec3::broadcast(0.2),
         }
     }

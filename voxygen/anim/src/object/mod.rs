@@ -70,11 +70,13 @@ impl<'a> From<&'a Body> for SkeletonAttr {
         use comp::object::Body::*;
         Self {
             bone0: match body {
-                Crossbow => (0.0, 0.0, 14.0),
+                Crossbow => (0.0, 0.0, 11.0),
+                HaniwaSentry => (0.0, 0.0, 10.5),
                 _ => (0.0, 0.0, 0.0),
             },
             bone1: match body {
                 Crossbow => (0.0, 0.0, 8.0),
+                HaniwaSentry => (0.0, 0.0, 3.0),
                 _ => (0.0, 0.0, 0.0),
             },
         }

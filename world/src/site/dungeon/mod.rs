@@ -671,34 +671,43 @@ impl Floor {
                                         },
                                     },
                                 )),
-                            3 => entity
-                                .with_body(comp::Body::BipedSmall(
-                                    comp::biped_small::Body::random_with(
-                                        dynamic_rng,
-                                        &comp::biped_small::Species::Haniwa,
-                                    ),
-                                ))
-                                .with_name("Haniwa")
-                                .with_loadout_config(loadout_builder::LoadoutConfig::Haniwa)
-                                .with_skillset_config(
-                                    common::skillset_builder::SkillSetConfig::Haniwa,
-                                )
-                                .with_loot_drop(chosen.read().choose().to_item())
-                                .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0..5) {
-                                        0 => {
-                                            "common.items.npc_weapons.biped_small.haniwa.adlet_bow"
+                            3 => match dynamic_rng.gen_range(0..4) {
+                                0 => entity
+                                    .with_body(comp::Body::Object(comp::object::Body::HaniwaSentry))
+                                    .with_name("Haniwa Sentry".to_string())
+                                    .with_loot_drop(comp::Item::new_from_asset_expect(
+                                        "common.items.crafting_ing.stones",
+                                    )),
+                                _ => entity
+                                    .with_body(comp::Body::BipedSmall(
+                                        comp::biped_small::Body::random_with(
+                                            dynamic_rng,
+                                            &comp::biped_small::Species::Haniwa,
+                                        ),
+                                    ))
+                                    .with_name("Haniwa")
+                                    .with_loadout_config(loadout_builder::LoadoutConfig::Haniwa)
+                                    .with_skillset_config(
+                                        common::skillset_builder::SkillSetConfig::Haniwa,
+                                    )
+                                    .with_loot_drop(chosen.read().choose().to_item())
+                                    .with_main_tool(comp::Item::new_from_asset_expect(
+                                        match dynamic_rng.gen_range(0..5) {
+                                            0 => {
+                                                "common.items.npc_weapons.biped_small.haniwa.\
+                                                 adlet_bow"
+                                            },
+                                            1 => {
+                                                "common.items.npc_weapons.biped_small.haniwa.\
+                                                 gnoll_staff"
+                                            },
+                                            _ => {
+                                                "common.items.npc_weapons.biped_small.haniwa.\
+                                                 wooden_spear"
+                                            },
                                         },
-                                        1 => {
-                                            "common.items.npc_weapons.biped_small.haniwa.\
-                                             gnoll_staff"
-                                        },
-                                        _ => {
-                                            "common.items.npc_weapons.biped_small.haniwa.\
-                                             wooden_spear"
-                                        },
-                                    },
-                                )),
+                                    )),
+                            },
                             4 => entity
                                 .with_body(comp::Body::BipedSmall(
                                     comp::biped_small::Body::random_with(
@@ -810,8 +819,6 @@ impl Floor {
                                     Lottery::<LootSpec>::load_expect("common.loot_tables.fallback")
                                 },
                             };
-                            let chosen = chosen.read();
-                            let chosen = chosen.choose();
                             let entity = match room.difficulty {
                                 0 => {
                                     vec![
@@ -823,7 +830,7 @@ impl Floor {
                                                 ),
                                             ))
                                             .with_name("Harvester".to_string())
-                                            .with_loot_drop(chosen.to_item()),
+                                            .with_loot_drop(chosen.read().choose().to_item()),
                                     ]
                                 },
                                 1 => {
@@ -836,7 +843,7 @@ impl Floor {
                                                 ),
                                             ))
                                             .with_name("Yeti".to_string())
-                                            .with_loot_drop(chosen.to_item()),
+                                            .with_loot_drop(chosen.read().choose().to_item()),
                                     ]
                                 },
                                 2 => {
@@ -849,11 +856,12 @@ impl Floor {
                                                 ),
                                             ))
                                             .with_name("Tidal Warrior".to_string())
-                                            .with_loot_drop(chosen.to_item()),
+                                            .with_loot_drop(chosen.read().choose().to_item()),
                                     ]
                                 },
                                 3 => {
-                                    vec![
+                                    let mut entities = Vec::new();
+                                    entities.resize_with(2, || {
                                         EntityInfo::at(tile_wcenter.map(|e| e as f32))
                                             .with_body(comp::Body::Golem(
                                                 comp::golem::Body::random_with(
@@ -862,8 +870,9 @@ impl Floor {
                                                 ),
                                             ))
                                             .with_name("Clay Golem".to_string())
-                                            .with_loot_drop(chosen.to_item()),
-                                    ]
+                                            .with_loot_drop(chosen.read().choose().to_item())
+                                    });
+                                    entities
                                 },
                                 4 => {
                                     vec![
@@ -875,7 +884,7 @@ impl Floor {
                                                 ),
                                             ))
                                             .with_name("Minotaur".to_string())
-                                            .with_loot_drop(chosen.to_item()),
+                                            .with_loot_drop(chosen.read().choose().to_item()),
                                     ]
                                 },
                                 5 => {
@@ -888,7 +897,7 @@ impl Floor {
                                                 ),
                                             ))
                                             .with_name("Mindflayer".to_string())
-                                            .with_loot_drop(chosen.to_item())
+                                            .with_loot_drop(chosen.read().choose().to_item())
                                             .with_skillset_config(
                                                 common::skillset_builder::SkillSetConfig::Mindflayer,
                                             ),

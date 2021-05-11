@@ -288,7 +288,7 @@ impl Body {
             Body::Dragon(_) => Vec3::new(16.0, 10.0, 16.0),
             Body::FishMedium(_) => Vec3::new(0.5, 2.0, 0.8),
             Body::FishSmall(_) => Vec3::new(0.3, 1.2, 0.6),
-            Body::Golem(_) => Vec3::new(5.0, 5.0, 5.0),
+            Body::Golem(_) => Vec3::new(5.0, 5.0, 7.5),
             Body::Humanoid(humanoid) => {
                 let height = match (humanoid.species, humanoid.body_type) {
                     (humanoid::Species::Orc, humanoid::BodyType::Male) => 2.3,
@@ -464,9 +464,13 @@ impl Body {
             Body::Object(object) => match object {
                 object::Body::TrainingDummy => 10000,
                 object::Body::Crossbow => 800,
+                object::Body::HaniwaSentry => 600,
                 _ => 10000,
             },
-            Body::Golem(_) => 2740,
+            Body::Golem(golem) => match golem.species {
+                golem::Species::ClayGolem => 7500,
+                _ => 10000,
+            },
             Body::Theropod(theropod) => match theropod.species {
                 theropod::Species::Archaeos => 3500,
                 theropod::Species::Odonto => 3000,
@@ -565,7 +569,7 @@ impl Body {
             },
             Body::BipedSmall(_) => 10,
             Body::Object(_) => 10,
-            Body::Golem(_) => 260,
+            Body::Golem(_) => 0,
             Body::Theropod(_) => 20,
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Crocodile => 20,
@@ -599,6 +603,12 @@ impl Body {
     pub fn immune_to(&self, buff: BuffKind) -> bool {
         match buff {
             BuffKind::Bleeding => matches!(self, Body::Object(_) | Body::Golem(_) | Body::Ship(_)),
+            BuffKind::Burning => match self {
+                Body::Golem(g) => matches!(g.species, golem::Species::ClayGolem),
+                Body::BipedSmall(b) => matches!(b.species, biped_small::Species::Haniwa),
+                Body::Object(object::Body::HaniwaSentry) => true,
+                _ => false,
+            },
             _ => false,
         }
     }
@@ -612,6 +622,10 @@ impl Body {
             Body::BipedLarge(b) => match b.species {
                 biped_large::Species::Mindflayer => 4.8,
                 biped_large::Species::Minotaur => 3.2,
+                _ => 1.0,
+            },
+            Body::Golem(g) => match g.species {
+                golem::Species::ClayGolem => 1.2,
                 _ => 1.0,
             },
             _ => 1.0,

@@ -239,6 +239,16 @@ impl From<Dir> for Ori {
     }
 }
 
+impl From<Vec3<f32>> for Ori {
+    fn from(dir: Vec3<f32>) -> Self {
+        let dir = Dir::from_unnormalized(dir).unwrap_or_default();
+        let from = Dir::default();
+        let q = Quaternion::<f32>::rotation_from_to_3d(*from, *dir).normalized();
+
+        Self(q).uprighted()
+    }
+}
+
 impl From<Quaternion<f32>> for Ori {
     fn from(quat: Quaternion<f32>) -> Self { Self::new(quat) }
 }

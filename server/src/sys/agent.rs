@@ -108,6 +108,7 @@ pub enum Tactic {
     BirdLargeBreathe,
     BirdLargeFire,
     Minotaur,
+    ClayGolem,
 }
 
 #[derive(SystemData)]
@@ -1577,10 +1578,12 @@ impl<'a> AgentData<'a> {
                                 circle_time: 1,
                             },
                             "Turret" => Tactic::Turret,
+                            "Haniwa Sentry" => Tactic::RotatingTurret,
                             "Bird Large Breathe" => Tactic::BirdLargeBreathe,
                             "Bird Large Fire" => Tactic::BirdLargeFire,
                             "Mindflayer" => Tactic::Mindflayer,
                             "Minotaur" => Tactic::Minotaur,
+                            "Clay Golem" => Tactic::ClayGolem,
                             _ => Tactic::Melee,
                         },
                         AbilitySpec::Tool(tool_kind) => tool_tactic(*tool_kind),
@@ -1645,6 +1648,18 @@ impl<'a> AgentData<'a> {
                     ),
                 )
             }
+            Tactic::ClayGolem if matches!(self.char_state, CharacterState::BasicRanged(_)) => {
+                const ROCKET_SPEED: f32 = 30.0;
+                aim_projectile(
+                    ROCKET_SPEED,
+                    Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+                    Vec3::new(
+                        tgt_data.pos.0.x,
+                        tgt_data.pos.0.y,
+                        tgt_data.pos.0.z + tgt_eye_offset,
+                    ),
+                )
+            },
             _ => Dir::from_unnormalized(
                 Vec3::new(
                     tgt_data.pos.0.x,
@@ -1792,6 +1807,13 @@ impl<'a> AgentData<'a> {
             Tactic::Minotaur => {
                 self.handle_minotaur_attack(agent, controller, &attack_data, &tgt_data, &read_data)
             },
+            Tactic::ClayGolem => self.handle_clay_golem_attack(
+                agent,
+                controller,
+                &attack_data,
+                &tgt_data,
+                &read_data,
+            ),
         }
     }
 
@@ -2976,8 +2998,7 @@ impl<'a> AgentData<'a> {
             self.pos,
             tgt_data.pos,
             attack_data.dist_sqrd,
-        ) && attack_data.angle < 15.0
-        {
+        ) {
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Primary));
@@ -3376,7 +3397,7 @@ impl<'a> AgentData<'a> {
         let minotaur_attack_distance =
             self.body.map_or(0.0, |b| b.radius()) + MINOTAUR_ATTACK_RANGE;
         let health_fraction = self.health.map_or(1.0, |h| h.fraction());
-        // Sets action float at start of combat
+        // Sets action counter at start of combat
         if agent.action_state.counter < MINOTAUR_FRENZY_THRESHOLD
             && health_fraction > MINOTAUR_FRENZY_THRESHOLD
         {
@@ -3426,6 +3447,101 @@ impl<'a> AgentData<'a> {
             }
         }
         // Make minotaur move towards target
+        if let Some((bearing, speed)) = agent.chaser.chase(
+            &*read_data.terrain,
+            self.pos.0,
+            self.vel.0,
+            tgt_data.pos.0,
+            TraversalConfig {
+                min_tgt_dist: 1.25,
+                ..self.traversal_config
+            },
+        ) {
+            controller.inputs.move_dir =
+                bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+        }
+    }
+
+    fn handle_clay_golem_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const GOLEM_MELEE_RANGE: f32 = 4.0;
+        const GOLEM_LASER_RANGE: f32 = 30.0;
+        const GOLEM_LONG_RANGE: f32 = 50.0;
+        const GOLEM_TARGET_SPEED: f32 = 8.0;
+        let golem_melee_range = self.body.map_or(0.0, |b| b.radius()) + GOLEM_MELEE_RANGE;
+        // Magnitude squared of cross product of target velocity with golem orientation
+        let target_speed_cross_sqd = agent
+            .target
+            .as_ref()
+            .map(|t| t.target)
+            .and_then(|e| read_data.velocities.get(e))
+            .map_or(0.0, |v| v.0.cross(self.ori.look_vec()).magnitude_squared());
+        if attack_data.dist_sqrd < golem_melee_range.powi(2) {
+            if agent.action_state.counter < 7.5 {
+                // If target is close, whack them
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+                agent.action_state.counter += read_data.dt.0;
+            } else {
+                // If whacked for too long, nuke them
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Ability(1)));
+                if matches!(self.char_state, CharacterState::BasicRanged(c) if matches!(c.stage_section, StageSection::Recover))
+                {
+                    agent.action_state.counter = 0.0;
+                }
+            }
+        } else if attack_data.dist_sqrd < GOLEM_LASER_RANGE.powi(2) {
+            if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(10))
+                || target_speed_cross_sqd < GOLEM_TARGET_SPEED.powi(2)
+                    && can_see_tgt(
+                        &*read_data.terrain,
+                        self.pos,
+                        tgt_data.pos,
+                        attack_data.dist_sqrd,
+                    )
+                    && attack_data.angle < 45.0
+            {
+                // If target in range threshold and haven't been lasering for more than 10
+                // seconds already or if target is moving slow-ish, laser them
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+            } else {
+                // Else target moving too fast for laser, shockwave time
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+            }
+        } else if attack_data.dist_sqrd < GOLEM_LONG_RANGE.powi(2) {
+            if target_speed_cross_sqd < GOLEM_TARGET_SPEED.powi(2)
+                && can_see_tgt(
+                    &*read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                )
+            {
+                // If target is far-ish and moving slow-ish, rocket them
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Ability(1)));
+            } else {
+                // Else target moving too fast for laser, shockwave time
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+            }
+        }
+        // Make clay golem move towards target
         if let Some((bearing, speed)) = agent.chaser.chase(
             &*read_data.terrain,
             self.pos.0,

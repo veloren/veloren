@@ -59,6 +59,11 @@ pub enum ProjectileConstructor {
         radius: f32,
     },
     Possess,
+    ClayRocket {
+        damage: f32,
+        radius: f32,
+        knockback: f32,
+    },
 }
 
 impl ProjectileConstructor {
@@ -205,6 +210,47 @@ impl ProjectileConstructor {
                 owner,
                 ignore_group: false,
             },
+            ClayRocket {
+                damage,
+                radius,
+                knockback,
+            } => {
+                let knockback = AttackEffect::new(
+                    Some(GroupTarget::OutOfGroup),
+                    CombatEffect::Knockback(Knockback {
+                        strength: knockback,
+                        direction: KnockbackDir::Away,
+                    }),
+                )
+                .with_requirement(CombatRequirement::AnyDamage);
+                let damage = AttackDamage::new(
+                    Damage {
+                        source: DamageSource::Explosion,
+                        kind: DamageKind::Energy,
+                        value: damage,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                );
+                let attack = Attack::default()
+                    .with_damage(damage)
+                    .with_crit(crit_chance, crit_mult)
+                    .with_effect(knockback);
+                let explosion = Explosion {
+                    effects: vec![
+                        RadiusEffect::Attack(attack),
+                        RadiusEffect::TerrainDestruction(5.0),
+                    ],
+                    radius,
+                    reagent: Some(Reagent::Red),
+                };
+                Projectile {
+                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
+                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
+                    time_left: Duration::from_secs(10),
+                    owner,
+                    ignore_group: true,
+                }
+            },
         }
     }
 
@@ -246,6 +292,14 @@ impl ProjectileConstructor {
                 *radius *= range;
             },
             Possess => {},
+            ClayRocket {
+                ref mut damage,
+                ref mut radius,
+                ..
+            } => {
+                *damage *= power;
+                *radius *= range;
+            },
         }
         self
     }

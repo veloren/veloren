@@ -199,6 +199,11 @@
         secondary: "common.abilities.custom.turret.arrows",
         abilities: [],
     ),
+    Custom("Haniwa Sentry"): (
+        primary: "common.abilities.custom.turret.flamethrower",
+        secondary: "common.abilities.custom.turret.flamethrower",
+        abilities: [],
+    ),
     Custom("Mindflayer"): (
         primary: "common.abilities.custom.mindflayer.cursedflames",
         secondary: "common.abilities.custom.mindflayer.necroticvortex",
@@ -214,6 +219,14 @@
         abilities: [
             (None, "common.abilities.custom.minotaur.charge"),
             (None, "common.abilities.custom.minotaur.frenzy"),
+        ],
+    ),
+    Custom("Clay Golem"): (
+        primary: "common.abilities.custom.claygolem.strike",
+        secondary: "common.abilities.custom.claygolem.laser",
+        abilities: [
+            (None, "common.abilities.custom.claygolem.shockwave"),
+            (None, "common.abilities.custom.claygolem.rocket"),
         ],
     ),
     Custom("Bird Large Breathe"): (

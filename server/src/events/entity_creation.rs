@@ -187,11 +187,15 @@ pub fn handle_shoot(
         .write_resource::<Vec<Outcome>>()
         .push(Outcome::ProjectileShot { pos, body, vel });
 
-    let eye_height = state
-        .ecs()
-        .read_storage::<comp::Body>()
-        .get(entity)
-        .map_or(0.0, |b| b.eye_height());
+    let eye_height =
+        state
+            .ecs()
+            .read_storage::<comp::Body>()
+            .get(entity)
+            .map_or(0.0, |b| match b {
+                comp::Body::Golem(_) => b.height() * 0.45,
+                _ => b.eye_height(),
+            });
 
     pos.z += eye_height;
 

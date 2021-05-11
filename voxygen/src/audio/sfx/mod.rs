@@ -402,6 +402,7 @@ impl SfxMgr {
                         audio.emit_sfx(sfx_trigger_item, *pos, None, false);
                     }
                 },
+                beam::FrontendSpecifier::ClayGolem => {},
             },
             Outcome::BreakBlock { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::BreakBlock);

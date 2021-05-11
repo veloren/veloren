@@ -1,13 +1,15 @@
 pub mod alpha;
+pub mod beam;
 pub mod idle;
 pub mod run;
 pub mod shockwave;
+pub mod shoot;
 pub mod spinmelee;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, idle::IdleAnimation, run::RunAnimation, shockwave::ShockwaveAnimation,
-    spinmelee::SpinMeleeAnimation,
+    alpha::AlphaAnimation, beam::BeamAnimation, idle::IdleAnimation, run::RunAnimation,
+    shockwave::ShockwaveAnimation, shoot::ShootAnimation, spinmelee::SpinMeleeAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
@@ -120,7 +122,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             head: match (body.species, body.body_type) {
                 (StoneGolem, _) => (0.0, 2.0),
                 (Treant, _) => (18.0, -8.0),
-                (ClayGolem, _) => (2.0, 9.0),
+                (ClayGolem, _) => (-2.0, 7.0),
             },
             jaw: match (body.species, body.body_type) {
                 (StoneGolem, _) => (0.0, 0.0),
