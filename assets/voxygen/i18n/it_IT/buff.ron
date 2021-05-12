@@ -1,0 +1,46 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for italian
+(
+    string_map: {
+        // Buffs
+        "buff.remove": "Clicca per rimuovere",
+        "buff.title.missing": "Titolo Mancante",
+        "buff.desc.missing": "Descrizione Mancante",
+        "buff.title.heal": "Cura",
+        "buff.desc.heal": "Guadagna vita nel tempo.",
+        "buff.title.potion": "Pozione",
+        "buff.desc.potion": "Bevendo...",
+        "buff.title.saturation": "Saturazione",
+        "buff.desc.saturation": "Guadagna vita nel tempo dai consumabili.",
+        "buff.title.campfire_heal": "Cura del Falò",
+        "buff.desc.campfire_heal": "Riposarsi ad un falò cura di {rate}% al secondo.",
+        "buff.title.invulnerability": "Invulnerabilità",
+        "buff.desc.invulnerability": "Non puoi essere danneggiato da nessun attacco.",
+        "buff.title.protectingward": "Barriera Protettiva",
+        "buff.desc.protectingward": "Sei un po' protetto dagli attacchi.",
+        "buff.title.frenzied": "Frenetico",
+        "buff.desc.frenzied": "Sei imbevuto con velocità innaturale e puoi ignorare ferite minori.",
+        // Debuffs
+        "buff.title.bleed": "Sanguinante",
+        "buff.desc.bleed": "Infligge danno regolare.",
+        "buff.title.cursed": "Maledetto",
+        "buff.desc.cursed": "Sei maledetto.",
+        "buff.title.burn": "A Fuoco",
+        "buff.desc.burn": "Stai bruciando vivo",
+        "buff.title.crippled": "Storpio",
+        "buff.desc.crippled": "Il tuo movimento è storpio dal momento che le tue gambe sono gravemente ferite.",
+        // Buffs stats
+        "buff.stat.health": "Rigenera {str_total} di Salute",
+        "buff.stat.increase_max_stamina": "Aumenta la Stamina Massima di {strength}",
+        "buff.stat.increase_max_health": "Aumenta la Salute Massima di {strength}",
+        "buff.stat.invulnerability": "Dona invulnerabilità",
+        // Text
+        "buff.text.over_seconds": "nella durata di {dur_secs} second1",
+        "buff.text.for_seconds": "per {dur_secs} secondi",
+    },
+
+
+    vector_map: {
+    }
+)
