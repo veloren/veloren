@@ -97,18 +97,19 @@ impl Image {
     pub fn to_image(&self) -> Arc<DynamicImage> { Arc::clone(&self.0) }
 }
 
-pub struct ImageLoader;
-impl Loader<Image> for ImageLoader {
+pub struct PngLoader;
+impl Loader<Image> for PngLoader {
     fn load(content: Cow<[u8]>, _: &str) -> Result<Image, BoxedError> {
-        let image = image::load_from_memory(&content)?;
+        let format = image::ImageFormat::Png;
+        let image = image::load_from_memory_with_format(&content, format)?;
         Ok(Image(Arc::new(image)))
     }
 }
 
 impl Asset for Image {
-    type Loader = ImageLoader;
+    type Loader = PngLoader;
 
-    const EXTENSIONS: &'static [&'static str] = &["png", "jpg"];
+    const EXTENSION: &'static str = "png";
 }
 
 pub struct DotVoxAsset(pub DotVoxData);
