@@ -32,11 +32,19 @@ impl<'a> Write for TuiLog<'a> {
 
         let mut spans = Vec::new();
         let mut span = Span::raw("");
+        let mut lines = Vec::new();
 
         for out in line.ansi_parse() {
             match out {
                 Output::TextBlock(text) => {
-                    span.content = format!("{}{}", span.content.to_owned(), text).into()
+                    // search for newlines
+                    for t in text.split_inclusive('\n') {
+                        span.content.to_mut().push_str(&t);
+                        if t.ends_with('\n') && span.content.len() != 0 {
+                            spans.push(std::mem::replace(&mut span, Span::raw("")));
+                            lines.push(std::mem::take(&mut spans));
+                        }
+                    }
                 },
                 Output::Escape(seq) => {
                     if span.content.len() != 0 {
@@ -79,8 +87,12 @@ impl<'a> Write for TuiLog<'a> {
         if span.content.len() != 0 {
             spans.push(span);
         }
+        if !spans.is_empty() {
+            lines.push(spans);
+        }
 
-        self.inner.lock().unwrap().lines.push(Spans(spans));
+        let mut lines = lines.into_iter().map(Spans).collect::<Vec<_>>();
+        self.inner.lock().unwrap().lines.append(&mut lines);
 
         Ok(buf.len())
     }
