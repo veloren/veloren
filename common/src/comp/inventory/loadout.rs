@@ -1,6 +1,6 @@
 use crate::comp::{
     inventory::{
-        item::ItemKind,
+        item::{tool, ItemKind},
         slot::{ArmorSlot, EquipSlot},
         InvSlot,
     },
@@ -173,10 +173,10 @@ impl Loadout {
         // Check if items can go in the other slots
         if item_a
             .as_ref()
-            .map_or(true, |i| equip_slot_b.can_hold(&i.kind()))
+            .map_or(true, |i| self.slot_can_hold(equip_slot_b, &i.kind()))
             && item_b
                 .as_ref()
-                .map_or(true, |i| equip_slot_a.can_hold(&i.kind()))
+                .map_or(true, |i| self.slot_can_hold(equip_slot_a, &i.kind()))
         {
             // Swap
             self.swap(equip_slot_b, item_a).unwrap_none();
@@ -197,7 +197,7 @@ impl Loadout {
         let mut suitable_slots = self
             .slots
             .iter()
-            .filter(|s| s.equip_slot.can_hold(item_kind));
+            .filter(|s| self.slot_can_hold(s.equip_slot, item_kind));
 
         let first = suitable_slots.next();
 
@@ -217,7 +217,7 @@ impl Loadout {
     ) -> impl Iterator<Item = &Item> {
         self.slots
             .iter()
-            .filter(move |s| s.equip_slot.can_hold(&item_kind))
+            .filter(move |s| self.slot_can_hold(s.equip_slot, &item_kind))
             .filter_map(|s| s.slot.as_ref())
     }
 
@@ -296,12 +296,28 @@ impl Loadout {
     /// If no slot is available the item is returned.
     #[must_use = "Returned item will be lost if not used"]
     pub(super) fn try_equip(&mut self, item: Item) -> Result<(), Item> {
-        if let Some(loadout_slot) = self
+        /* if let Some(loadout_slot) = self
             .slots
             .iter_mut()
-            .find(|s| s.slot.is_none() && s.equip_slot.can_hold(item.kind()))
+            .find(|s| s.slot.is_none() && self.slot_can_hold(s.equip_slot, item.kind()))
         {
             loadout_slot.slot = Some(item);
+            Ok(())
+        } else {
+            Err(item)
+        } */
+        // TODO: Get XVar to see if there better way to handle mutability issues
+        let loadout_slot = self
+            .slots
+            .iter()
+            .find(|s| s.slot.is_none() && self.slot_can_hold(s.equip_slot, item.kind()))
+            .map(|s| s.equip_slot);
+        if let Some(slot) = self
+            .slots
+            .iter_mut()
+            .find(|s| Some(s.equip_slot) == loadout_slot)
+        {
+            slot.slot = Some(item);
             Ok(())
         } else {
             Err(item)
@@ -310,6 +326,42 @@ impl Loadout {
 
     pub(super) fn items(&self) -> impl Iterator<Item = &Item> {
         self.slots.iter().filter_map(|x| x.slot.as_ref())
+    }
+
+    /// Checks that a slot can hold a given item
+    pub(super) fn slot_can_hold(&self, equip_slot: EquipSlot, item_kind: &ItemKind) -> bool {
+        // Checks if item can be equipped in a mainhand slot
+        let mainhand_check = |offhand_slot| {
+            // Allows item to be equipped if itemkind is a tool and...
+            matches!(item_kind, ItemKind::Tool(mainhand) if {
+                if let Some(ItemKind::Tool(offhand)) = self.equipped(offhand_slot).map(|i| i.kind()) {
+                    // if offhand is 1 handed, only if mainhand is also 1 handed
+                    matches!(offhand.hands, tool::Hands::One) && matches!(mainhand.hands, tool::Hands::One)
+                } else {
+                    // else there is no tool equipped in offhand, so only if slot can normally hold this item
+                    equip_slot.can_hold(item_kind)
+                }
+            })
+        };
+
+        // Checks if item can be equipped in an offhand slot
+        let offhand_check = |mainhand_slot| {
+            // Allows item to be equipped if itemkind is a tool and...
+            matches!(item_kind, ItemKind::Tool(offhand) if {
+                // if offhand weapon is 1 handed...
+                matches!(offhand.hands, tool::Hands::One)
+                // and if mainhand has a 1 handed weapon...
+                && matches!(self.equipped(mainhand_slot).map(|i| i.kind()), Some(ItemKind::Tool(mainhand)) if matches!(mainhand.hands, tool::Hands::One))
+            })
+        };
+
+        match equip_slot {
+            EquipSlot::ActiveMainhand => mainhand_check(EquipSlot::ActiveOffhand),
+            EquipSlot::ActiveOffhand => offhand_check(EquipSlot::ActiveMainhand),
+            EquipSlot::InactiveMainhand => mainhand_check(EquipSlot::InactiveOffhand),
+            EquipSlot::InactiveOffhand => offhand_check(EquipSlot::InactiveMainhand),
+            _ => equip_slot.can_hold(item_kind),
+        }
     }
 }
 

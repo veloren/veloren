@@ -744,12 +744,12 @@ impl Inventory {
     /// account whether there will be free space in the inventory for the
     /// loadout item once any slots that were provided by it have been
     /// removed.
+    #[allow(clippy::blocks_in_if_conditions)]
     pub fn can_swap(&self, inv_slot_id: InvSlotId, equip_slot: EquipSlot) -> bool {
         // Check if loadout slot can hold item
-        if !self
-            .get(inv_slot_id)
-            .map_or(true, |item| equip_slot.can_hold(&item.kind()))
-        {
+        if !self.get(inv_slot_id).map_or(true, |item| {
+            self.loadout.slot_can_hold(equip_slot, &item.kind())
+        }) {
             trace!("can_swap = false, equip slot can't hold item");
             return false;
         }
