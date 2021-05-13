@@ -168,20 +168,9 @@ fn handle_main_events_cleared(
     if let Some(last) = states.last_mut() {
         span!(guard, "Render");
         let renderer = global_state.window.renderer_mut();
-        // // Clear the shadow maps.
-        // renderer.clear_shadows();
-        // // Clear the screen
-        // renderer.clear();
         // Render the screen using the global renderer
         last.render(renderer, &global_state.settings);
-        // Finish the frame.
-        // TODO: do this as part of dropping rendering thing
-        //global_state.window.renderer_mut().flush().unwrap();
-        // // Display the frame on the window.
-        // global_state
-        //     .window
-        //     .swap_buffers()
-        //     .expect("Failed to swap window buffers!");
+
         drop(guard);
     }
 

@@ -204,7 +204,6 @@ impl ShadowMap {
             usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
         };
 
-        //TODO: (0, levels - 1), ?? from master
         let point_shadow_view = wgpu::TextureViewDescriptor {
             label: None,
             format: Some(wgpu::TextureFormat::Depth24Plus),

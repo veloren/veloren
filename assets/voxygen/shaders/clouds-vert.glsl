@@ -27,6 +27,7 @@ void main() {
         float(gl_VertexIndex % 2) * 4.0 - 1.0
     );
 
+    // Flip y and transform into 0.0 to 1.0 range
     uv = (v_pos * vec2(1.0, -1.0) + 1.0) * 0.5;
 
     gl_Position = vec4(v_pos, 0.0, 1.0);

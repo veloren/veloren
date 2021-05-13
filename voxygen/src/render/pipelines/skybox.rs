@@ -50,7 +50,6 @@ impl SkyboxPipeline {
 
         let samples = match aa_mode {
             AaMode::None | AaMode::Fxaa => 1,
-            // TODO: Ensure sampling in the shader is exactly between the 4 texels
             AaMode::MsaaX4 => 4,
             AaMode::MsaaX8 => 8,
             AaMode::MsaaX16 => 16,
@@ -111,12 +110,11 @@ impl SkyboxPipeline {
     }
 }
 
-// TODO: generate mesh in vertex shader
+#[rustfmt::skip]
 pub fn create_mesh() -> Mesh<Vertex> {
     let mut mesh = Mesh::new();
 
     // -x
-    #[rustfmt::skip]
     mesh.push_quad(Quad::new(
         Vertex { pos: [-1.0, -1.0, -1.0] },
         Vertex { pos: [-1.0,  1.0, -1.0] },
@@ -124,7 +122,6 @@ pub fn create_mesh() -> Mesh<Vertex> {
         Vertex { pos: [-1.0, -1.0,  1.0] },
     ));
     // +x
-    #[rustfmt::skip]
     mesh.push_quad(Quad::new(
         Vertex { pos: [ 1.0, -1.0,  1.0] },
         Vertex { pos: [ 1.0,  1.0,  1.0] },
@@ -132,7 +129,6 @@ pub fn create_mesh() -> Mesh<Vertex> {
         Vertex { pos: [ 1.0, -1.0, -1.0] },
     ));
     // -y
-    #[rustfmt::skip]
     mesh.push_quad(Quad::new(
         Vertex { pos: [ 1.0, -1.0, -1.0] },
         Vertex { pos: [-1.0, -1.0, -1.0] },
@@ -140,7 +136,6 @@ pub fn create_mesh() -> Mesh<Vertex> {
         Vertex { pos: [ 1.0, -1.0,  1.0] },
     ));
     // +y
-    #[rustfmt::skip]
     mesh.push_quad(Quad::new(
         Vertex { pos: [ 1.0,  1.0,  1.0] },
         Vertex { pos: [-1.0,  1.0,  1.0] },
@@ -148,7 +143,6 @@ pub fn create_mesh() -> Mesh<Vertex> {
         Vertex { pos: [ 1.0,  1.0, -1.0] },
     ));
     // -z
-    #[rustfmt::skip]
     mesh.push_quad(Quad::new(
         Vertex { pos: [-1.0, -1.0, -1.0] },
         Vertex { pos: [ 1.0, -1.0, -1.0] },
@@ -156,7 +150,6 @@ pub fn create_mesh() -> Mesh<Vertex> {
         Vertex { pos: [-1.0,  1.0, -1.0] },
     ));
     // +z
-    #[rustfmt::skip]
     mesh.push_quad(Quad::new(
         Vertex { pos: [-1.0,  1.0,  1.0] },
         Vertex { pos: [ 1.0,  1.0,  1.0] },

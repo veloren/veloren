@@ -2200,7 +2200,7 @@ impl Hud {
             let gpu_timings = global_state.window.renderer().timings();
             if !gpu_timings.is_empty() {
                 let num_timings = gpu_timings.len();
-                // Make sure we have enoung ids
+                // Make sure we have enough ids
                 if self.ids.gpu_timings.len() < num_timings {
                     self.ids
                         .gpu_timings

@@ -49,7 +49,7 @@ impl<'frame> Pipelines<'frame> {
 }
 
 // Borrow the fields we need from the renderer so that the GpuProfiler can be
-// dijointly borrowed mutably
+// disjointly borrowed mutably
 struct RendererBorrow<'frame> {
     queue: &'frame wgpu::Queue,
     device: &'frame wgpu::Device,
@@ -405,7 +405,7 @@ impl<'frame> Drop for Drawer<'frame> {
     fn drop(&mut self) {
         let mut encoder = self.encoder.take().unwrap();
 
-        // If taking a screenshota and the blit pipeline is available
+        // If taking a screenshot and the blit pipeline is available
         // NOTE: blit pipeline should always be available for now so we don't report an
         // error if it isn't
         if let Some((screenshot, blit)) = self

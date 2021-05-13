@@ -5267,7 +5267,7 @@ impl FigureColLights {
             (0, 0),
             gfx::format::Swizzle::new(),
             gfx::texture::SamplerInfo::new(
-                gfx::texture::FilterMetho>:Bilinear,
+                gfx::texture::FilterMethod::Bilinear,
                 gfx::texture::WrapMode::Clamp,
             ),
         )?;

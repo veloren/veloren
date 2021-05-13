@@ -11,7 +11,6 @@ pub enum RenderError {
 }
 
 use std::fmt;
-// TODO: just impl and use Display?
 impl fmt::Debug for RenderError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {

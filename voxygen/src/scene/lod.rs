@@ -31,7 +31,8 @@ impl Lod {
                 client.world_data().lod_alt.raw(),
                 client.world_data().lod_horizon.raw(),
                 settings.graphics.lod_detail.max(100).min(2500),
-                // water_color().into_array().into(),
+                /* TODO: figure out how we want to do this without color borders?
+                 * water_color().into_array().into(), */
             ),
         }
     }

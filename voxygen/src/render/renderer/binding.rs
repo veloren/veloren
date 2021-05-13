@@ -1,6 +1,5 @@
 use super::{
     super::{
-        buffer::Buffer,
         pipelines::{
             debug, figure, lod_terrain, shadow, sprite, terrain, ui, ColLights, GlobalModel,
             GlobalsBindGroup,
@@ -25,7 +24,7 @@ impl Renderer {
         &self,
         global_model: &GlobalModel,
         lod_data: &lod_terrain::LodData,
-        sprite_verts: &Buffer<sprite::Vertex>,
+        sprite_verts: &sprite::SpriteVerts,
     ) -> sprite::SpriteGlobalsBindGroup {
         self.layouts.sprite.bind_globals(
             &self.device,

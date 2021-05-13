@@ -77,7 +77,7 @@ fn clamp_and_modulate(ori: Vec3<f32>) -> Vec3<f32> {
 /// The only requirements on n and f are: 1/n ≠ 1/f, and 0 ≤ 1/n * 1/f.
 ///
 /// This ensures that the near and far plane are not identical (or else your
-/// projection would not covver any distance), and that they have the same sign
+/// projection would not cover any distance), and that they have the same sign
 /// (or else we cannot rely on clipping to properly fix your scene).  This also
 /// ensures that at least one of 1/n and 1/f is not 0, and by construction it
 /// guarantees that neither n nor f are 0; these are required in order to make

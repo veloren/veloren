@@ -100,8 +100,7 @@ enum State {
 /// GPU, along with pipeline state objects (PSOs) needed to renderer different
 /// kinds of models to the screen.
 pub struct Renderer {
-    // TODO: remove pub(super)
-    pub(super) device: Arc<wgpu::Device>,
+    device: Arc<wgpu::Device>,
     queue: wgpu::Queue,
     surface: wgpu::Surface,
     swap_chain: wgpu::SwapChain,
@@ -165,7 +164,7 @@ impl Renderer {
                 _ => None,
             })
             .unwrap_or(
-                wgpu::BackendBit::PRIMARY, /* | wgpu::BackendBit::SECONDARY */
+                (wgpu::BackendBit::PRIMARY | wgpu::BackendBit::SECONDARY) & !wgpu::BackendBit::GL,
             );
 
         let instance = wgpu::Instance::new(backend_bit);
@@ -196,12 +195,9 @@ impl Renderer {
                     // TODO
                     label: None,
                     features: wgpu::Features::DEPTH_CLAMPING
-                    | wgpu::Features::ADDRESS_MODE_CLAMP_TO_BORDER
-                    | wgpu::Features::PUSH_CONSTANTS
-                    // TODO: make optional based on enabling profiling setting?
-                    // woould require recreating the device/queue if this setting changes
-                    // alternatively it could be a compile time feature toggle
-                    | (adapter.features() & wgpu_profiler::GpuProfiler::REQUIRED_WGPU_FEATURES),
+                        | wgpu::Features::ADDRESS_MODE_CLAMP_TO_BORDER
+                        | wgpu::Features::PUSH_CONSTANTS
+                        | (adapter.features() & wgpu_profiler::GpuProfiler::REQUIRED_WGPU_FEATURES),
                     limits,
                 },
                 std::env::var_os("WGPU_TRACE_DIR")
@@ -567,8 +563,6 @@ impl Renderer {
             .into_tuple();
         let (width, height, sample_count) = match mode.aa {
             AaMode::None | AaMode::Fxaa => (upscaled.0, upscaled.1, 1),
-            // TODO: Ensure sampling in the shader is exactly between the 4 texels
-            // TODO: Figure out how to do upscaling correctly with SSAA
             AaMode::MsaaX4 => (upscaled.0, upscaled.1, 4),
             AaMode::MsaaX8 => (upscaled.0, upscaled.1, 8),
             AaMode::MsaaX16 => (upscaled.0, upscaled.1, 16),
@@ -982,6 +976,11 @@ impl Renderer {
         }
     }
 
+    pub fn create_sprite_verts(&mut self, mesh: Mesh<sprite::Vertex>) -> sprite::SpriteVerts {
+        self.ensure_sufficient_index_length::<sprite::Vertex>(sprite::VERT_PAGE_SIZE as usize);
+        sprite::create_verts_buffer(&self.device, mesh)
+    }
+
     /// Create a new model from the provided mesh.
     /// If the provided mesh is empty this returns None
     pub fn create_model<V: Vertex>(&mut self, mesh: &Mesh<V>) -> Option<Model<V>> {
@@ -1125,6 +1124,8 @@ impl Renderer {
         }
     }
 
+    // Consider reenabling at some time
+    //
     // /// Queue the rendering of the player silhouette in the upcoming frame.
     // pub fn render_player_shadow(
     //     &mut self,

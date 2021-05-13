@@ -9,10 +9,9 @@ use crate::{
         terrain::{generate_mesh, SUNLIGHT},
     },
     render::{
-        create_sprite_verts_buffer,
         pipelines::{self, ColLights},
-        Buffer, ColLightInfo, FirstPassDrawer, FluidVertex, GlobalModel, Instances, LodData, Mesh,
-        Model, RenderError, Renderer, SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex,
+        ColLightInfo, FirstPassDrawer, FluidVertex, GlobalModel, Instances, LodData, Mesh, Model,
+        RenderError, Renderer, SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex, SpriteVerts,
         TerrainLocals, TerrainShadowDrawer, TerrainVertex, SPRITE_VERT_PAGE_SIZE,
     },
 };
@@ -372,7 +371,7 @@ pub struct SpriteRenderContext {
     // Maps sprite kind + variant to data detailing how to render it
     sprite_data: Arc<HashMap<(SpriteKind, usize), [SpriteData; SPRITE_LOD_LEVELS]>>,
     sprite_col_lights: Arc<ColLights<pipelines::sprite::Locals>>,
-    sprite_verts_buffer: Arc<Buffer<SpriteVertex>>,
+    sprite_verts_buffer: Arc<SpriteVerts>,
 }
 
 pub type SpriteRenderContextLazy = Box<dyn FnMut(&mut Renderer) -> SpriteRenderContext>;
@@ -521,7 +520,7 @@ impl SpriteRenderContext {
             let sprite_col_lights = renderer.sprite_bind_col_light(sprite_col_lights);
 
             // Write sprite model to a 1D texture
-            let sprite_verts_buffer = create_sprite_verts_buffer(renderer, sprite_mesh);
+            let sprite_verts_buffer = renderer.create_sprite_verts(sprite_mesh);
 
             Self {
                 // TODO: these are all Arcs, would it makes sense to factor out the Arc?
@@ -1069,20 +1068,12 @@ impl<V: RectRasterableVol> Terrain<V> {
                 // data structure (convert the mesh to a model first of course).
                 Some(todo) if response.started_tick <= todo.started_tick => {
                     let started_tick = todo.started_tick;
-                    let sprite_instances = {
-                        let mut iter = response.sprite_instances.iter().map(|instances| {
-                            renderer
-                                .create_instances(instances)
-                                .expect("Failed to upload chunk sprite instances to the GPU!")
-                        });
-                        [
-                            iter.next().unwrap(),
-                            iter.next().unwrap(),
-                            iter.next().unwrap(),
-                            iter.next().unwrap(),
-                            iter.next().unwrap(),
-                        ]
-                    };
+
+                    let sprite_instances = response.sprite_instances.map(|instances| {
+                        renderer
+                            .create_instances(&instances)
+                            .expect("Failed to upload chunk sprite instances to the GPU!")
+                    });
 
                     if let Some(mesh) = response.mesh {
                         // Full update, insert the whole chunk.

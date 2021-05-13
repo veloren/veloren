@@ -1,7 +1,6 @@
 use super::{
     super::{
-        buffer::Buffer, AaMode, GlobalsLayouts, Mesh, Renderer, TerrainLayout, Texture,
-        Vertex as VertexTrait,
+        buffer::Buffer, AaMode, GlobalsLayouts, Mesh, TerrainLayout, Texture, Vertex as VertexTrait,
     },
     lod_terrain, GlobalModel,
 };
@@ -77,14 +76,19 @@ impl VertexTrait for Vertex {
     const STRIDE: wgpu::BufferAddress = mem::size_of::<Self>() as wgpu::BufferAddress;
 }
 
-pub fn create_verts_buffer(renderer: &mut Renderer, mesh: Mesh<Vertex>) -> Buffer<Vertex> {
-    renderer.ensure_sufficient_index_length::<Vertex>(VERT_PAGE_SIZE as usize);
-    // TODO: type Buffer by Usage
-    Buffer::new(
-        &renderer.device,
+pub struct SpriteVerts(Buffer<Vertex>);
+//pub struct SpriteVerts(Texture);
+
+pub(in super::super) fn create_verts_buffer(
+    device: &wgpu::Device,
+    mesh: Mesh<Vertex>,
+) -> SpriteVerts {
+    // TODO: type Buffer by wgpu::BufferUsage
+    SpriteVerts(Buffer::new(
+        &device,
         wgpu::BufferUsage::STORAGE,
         mesh.vertices(),
-    )
+    ))
 }
 
 #[repr(C)]
@@ -203,8 +207,7 @@ impl SpriteLayout {
         global_model: &GlobalModel,
         lod_data: &lod_terrain::LodData,
         noise: &Texture,
-        //sprite_verts: &Texture,
-        sprite_verts: &Buffer<Vertex>,
+        sprite_verts: &SpriteVerts,
     ) -> wgpu::BindGroup {
         let mut entries = GlobalsLayouts::bind_base_globals(global_model, lod_data, noise);
 
@@ -212,7 +215,7 @@ impl SpriteLayout {
             // sprite_verts
             wgpu::BindGroupEntry {
                 binding: 12,
-                resource: sprite_verts.buf.as_entire_binding(),
+                resource: sprite_verts.0.buf.as_entire_binding(),
             },
         ]);
 
@@ -229,7 +232,7 @@ impl SpriteLayout {
         global_model: &GlobalModel,
         lod_data: &lod_terrain::LodData,
         noise: &Texture,
-        sprite_verts: &Buffer<Vertex>,
+        sprite_verts: &SpriteVerts,
     ) -> SpriteGlobalsBindGroup {
         let bind_group =
             self.bind_globals_inner(device, global_model, lod_data, noise, sprite_verts);
@@ -268,7 +271,6 @@ impl SpritePipeline {
 
         let samples = match aa_mode {
             AaMode::None | AaMode::Fxaa => 1,
-            // TODO: Ensure sampling in the shader is exactly between the 4 texels
             AaMode::MsaaX4 => 4,
             AaMode::MsaaX8 => 8,
             AaMode::MsaaX16 => 16,

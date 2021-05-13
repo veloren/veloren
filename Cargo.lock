@@ -184,6 +184,9 @@ name = "arrayvec"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "23b62fc65de8e4e7f52534fb52b0f3ed04746ae267519eef2a83941e8085068b"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "as-slice"
@@ -6640,6 +6643,7 @@ dependencies = [
  "naga",
  "parking_lot 0.11.1",
  "raw-window-handle",
+ "serde",
  "smallvec",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -6673,6 +6677,8 @@ dependencies = [
  "parking_lot 0.11.1",
  "profiling",
  "raw-window-handle",
+ "ron",
+ "serde",
  "smallvec",
  "thiserror",
  "wgpu-types",
@@ -6694,6 +6700,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aa248d90c8e6832269b8955bf800e8241f942c25e18a235b7752226804d21556"
 dependencies = [
  "bitflags",
+ "serde",
 ]
 
 [[package]]
