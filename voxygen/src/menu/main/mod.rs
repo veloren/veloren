@@ -320,7 +320,7 @@ impl PlayState for MainMenuState {
     fn render(&mut self, renderer: &mut Renderer, _: &Settings) {
         let mut drawer = match renderer
             .start_recording_frame(self.scene.global_bind_group())
-            .unwrap()
+            .expect("Unrecoverable render error when starting a new frame!")
         {
             Some(d) => d,
             // Couldn't get swap chain texture this frame

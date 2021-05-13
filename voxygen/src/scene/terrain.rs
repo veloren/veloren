@@ -1123,7 +1123,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                         renderer.update_texture(
                             &col_lights.texture,
                             atlas_offs.into_array(),
-                            tex_size.map(|e| u32::from(e)).into_array(),
+                            tex_size.map(u32::from).into_array(),
                             &tex,
                         );
 
