@@ -103,6 +103,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Animal Trainers now spawn in tier-5 dungeon and not in tier-3
 - Reworked clay golem to have unique attacks.
 - Merchants now use `/tell` instead of `/say` to communicate prices
+- Entities catch on fire if they stand too close to campfires
+- Water extinguishes entities on fire
 
 ### Removed
 
