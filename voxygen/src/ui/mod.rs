@@ -34,7 +34,7 @@ use crate::{
 #[rustfmt::skip]
 use ::image::GenericImageView;
 use cache::Cache;
-use common::util::srgba_to_linear;
+use common::{slowjob::SlowJobPool, util::srgba_to_linear};
 use common_base::span;
 use conrod_core::{
     event::Input,
@@ -48,8 +48,8 @@ use conrod_core::{
 };
 use core::{convert::TryInto, f32, f64, ops::Range};
 use graphic::TexId;
-use hashbrown::hash_map::Entry;
-use std::time::Duration;
+use hashbrown::{hash_map::Entry, HashMap};
+use std::{hash::Hash, time::Duration};
 use tracing::{error, warn};
 use vek::*;
 
@@ -306,7 +306,12 @@ impl Ui {
     pub fn widget_input(&self, id: widget::Id) -> Widget { self.ui.widget_input(id) }
 
     #[allow(clippy::float_cmp)] // TODO: Pending review in #587
-    pub fn maintain(&mut self, renderer: &mut Renderer, view_projection_mat: Option<Mat4<f32>>) {
+    pub fn maintain(
+        &mut self,
+        renderer: &mut Renderer,
+        pool: Option<&SlowJobPool>,
+        view_projection_mat: Option<Mat4<f32>>,
+    ) {
         span!(_guard, "maintain", "Ui::maintain");
         // Maintain tooltip manager
         self.tooltip_manager
@@ -353,16 +358,17 @@ impl Ui {
         }
 
         let mut retry = false;
-        self.maintain_internal(renderer, view_projection_mat, &mut retry);
+        self.maintain_internal(renderer, pool, view_projection_mat, &mut retry);
         if retry {
             // Update the glyph cache and try again.
-            self.maintain_internal(renderer, view_projection_mat, &mut retry);
+            self.maintain_internal(renderer, pool, view_projection_mat, &mut retry);
         }
     }
 
     fn maintain_internal(
         &mut self,
         renderer: &mut Renderer,
+        pool: Option<&SlowJobPool>,
         view_projection_mat: Option<Mat4<f32>>,
         retry: &mut bool,
     ) {
@@ -806,6 +812,7 @@ impl Ui {
                     // Cache graphic at particular resolution.
                     let (uv_aabr, tex_id) = match graphic_cache.cache_res(
                         renderer,
+                        pool,
                         *graphic_id,
                         resolution,
                         source_aabr,
@@ -1045,5 +1052,53 @@ fn default_scissor(renderer: &Renderer) -> Aabr<u16> {
             x: screen_w,
             y: screen_h,
         },
+    }
+}
+
+pub struct KeyedJobs<K, V> {
+    tx: crossbeam_channel::Sender<(K, V)>,
+    rx: crossbeam_channel::Receiver<(K, V)>,
+    buf: HashMap<K, V>,
+}
+
+impl<K: Hash + Eq + Send + Sync + 'static, V: Send + Sync + 'static> KeyedJobs<K, V> {
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        let (tx, rx) = crossbeam_channel::unbounded();
+        Self {
+            tx,
+            rx,
+            buf: HashMap::new(),
+        }
+    }
+
+    pub fn spawn(
+        &mut self,
+        pool: Option<&SlowJobPool>,
+        k: K,
+        f: impl FnOnce(&K) -> V + Send + Sync + 'static,
+    ) -> Option<(K, V)> {
+        if let Some(pool) = pool {
+            if let Some(v) = self.buf.remove(&k) {
+                Some((k, v))
+            } else {
+                while let Ok((k2, v)) = self.rx.try_recv() {
+                    if k == k2 {
+                        return Some((k, v));
+                    } else {
+                        self.buf.insert(k2, v);
+                    }
+                }
+                let tx = self.tx.clone();
+                pool.spawn("IMAGE_PROCESSING", move || {
+                    let v = f(&k);
+                    let _ = tx.send((k, v));
+                });
+                None
+            }
+        } else {
+            let v = f(&k);
+            Some((k, v))
+        }
     }
 }

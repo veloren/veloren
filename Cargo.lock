@@ -5825,6 +5825,7 @@ dependencies = [
  "cpal",
  "criterion",
  "crossbeam",
+ "crossbeam-channel",
  "directories-next",
  "dispatch 0.1.4",
  "dot_vox",

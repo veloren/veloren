@@ -81,6 +81,7 @@ use common::{
     },
     consts::MAX_PICKUP_RANGE,
     outcome::Outcome,
+    slowjob::SlowJobPool,
     terrain::{SpriteKind, TerrainChunk},
     trade::{ReducedInventory, TradeAction},
     uid::Uid,
@@ -3603,9 +3604,14 @@ impl Hud {
 
         // Check if item images need to be reloaded
         self.item_imgs.reload_if_changed(&mut self.ui);
-
+        // TODO: using a thread pool in the obvious way for speeding up map zoom results
+        // in flickering artifacts, figure out a better way to make use of the
+        // thread pool
+        let _pool = client.state().ecs().read_resource::<SlowJobPool>();
         self.ui.maintain(
             &mut global_state.window.renderer_mut(),
+            None,
+            //Some(&pool),
             Some(proj_mat * view_mat * Mat4::translation_3d(-focus_off)),
         );
 

@@ -6,7 +6,7 @@ use super::{
 use crate::{
     hud::{Graphic, Ui},
     session::settings_change::{Interface as InterfaceChange, Interface::*},
-    ui::{fonts::Fonts, img_ids},
+    ui::{fonts::Fonts, img_ids, KeyedJobs},
     GlobalState,
 };
 use client::{self, Client};
@@ -14,7 +14,8 @@ use common::{
     comp,
     comp::group::Role,
     grid::Grid,
-    terrain::{Block, TerrainChunk, TerrainChunkSize},
+    slowjob::SlowJobPool,
+    terrain::{Block, BlockKind, TerrainChunk, TerrainChunkSize},
     vol::{ReadVol, RectVolSize},
 };
 use common_net::msg::world_msg::SiteKind;
@@ -46,6 +47,9 @@ pub struct VoxelMinimap {
     image_id: img_ids::Rotations,
     last_pos: Vec3<i32>,
     last_ceiling: i32,
+    /// Maximum z of the top of the tallest loaded chunk (for ceiling pruning)
+    max_chunk_z: i32,
+    keyed_jobs: KeyedJobs<Vec2<i32>, MinimapColumn>,
 }
 
 const VOXEL_MINIMAP_SIDELENGTH: u32 = 512;
@@ -66,13 +70,22 @@ impl VoxelMinimap {
             composited,
             last_pos: Vec3::zero(),
             last_ceiling: 0,
+            max_chunk_z: 0,
+            keyed_jobs: KeyedJobs::new(),
         }
     }
 
     fn block_color(block: &Block) -> Option<Vec4<u8>> {
         block
             .get_color()
-            .map(|rgb| Vec4::new(rgb.r, rgb.g, rgb.b, 192))
+            .map(|rgb| Vec4::new(rgb.r, rgb.g, rgb.b, 255))
+            .or_else(|| {
+                if matches!(block.kind(), BlockKind::Water) {
+                    Some(Vec4::new(107, 165, 220, 255))
+                } else {
+                    None
+                }
+            })
     }
 
     /// Each layer is a slice of the terrain near that z-level
@@ -86,7 +99,7 @@ impl VoxelMinimap {
                         .get(Vec3::new(v.x, v.y, dz as i32 + z + zoff))
                         .ok()
                         .and_then(Self::block_color)
-                        .unwrap_or(Vec4::zero());
+                        .unwrap_or_else(Vec4::zero);
                     rgba += color.as_() * weights[dz as usize] as f32;
                 }
                 let rgba: Vec4<u8> = (rgba / weights.iter().map(|x| *x as f32).sum::<f32>()).as_();
@@ -111,9 +124,10 @@ impl VoxelMinimap {
                         .and_then(Self::block_color)
                     {
                         if seen_air > 0 {
-                            rgba = Some(color.map(|j| {
+                            /*rgba = Some(color.map(|j| {
                                 (j as u32).saturating_sub(if seen_air > 2 { 4 } else { 0 }) as u8
-                            }));
+                            }));*/
+                            rgba = Some(color);
                             break;
                         }
                         seen_solids += 1;
@@ -137,40 +151,47 @@ impl VoxelMinimap {
     }
 
     pub fn maintain(&mut self, client: &Client, ui: &mut Ui) {
+        let pool = client.state().ecs().read_resource::<SlowJobPool>();
         let terrain = client.state().terrain();
         let mut new_chunk = false;
         for (key, chunk) in terrain.iter() {
             if !self.chunk_minimaps.contains_key(&key) {
-                new_chunk = true;
-                let mut layers = Vec::new();
-                const MODE_OVERHEAD: bool = true;
-                if MODE_OVERHEAD {
-                    Self::composite_layer_overhead(chunk, &mut layers);
-                } else {
-                    Self::composite_layer_slice(chunk, &mut layers);
+                let arc_chunk = Arc::clone(chunk);
+                if let Some((_, column)) = self.keyed_jobs.spawn(Some(&pool), key, move |_| {
+                    let mut layers = Vec::new();
+                    const MODE_OVERHEAD: bool = true;
+                    if MODE_OVERHEAD {
+                        Self::composite_layer_overhead(&arc_chunk, &mut layers);
+                    } else {
+                        Self::composite_layer_slice(&arc_chunk, &mut layers);
+                    }
+                    let above = arc_chunk
+                        .get(Vec3::new(0, 0, arc_chunk.get_max_z() + 1))
+                        .ok()
+                        .cloned()
+                        .unwrap_or_else(Block::empty);
+                    let below = arc_chunk
+                        .get(Vec3::new(0, 0, arc_chunk.get_min_z() - 1))
+                        .ok()
+                        .cloned()
+                        .unwrap_or_else(Block::empty);
+                    MinimapColumn {
+                        zlo: arc_chunk.get_min_z(),
+                        layers,
+                        above: (
+                            Self::block_color(&above).unwrap_or_else(Vec4::zero),
+                            above.is_filled(),
+                        ),
+                        below: (
+                            Self::block_color(&below).unwrap_or_else(Vec4::zero),
+                            below.is_filled(),
+                        ),
+                    }
+                }) {
+                    self.chunk_minimaps.insert(key, column);
+                    new_chunk = true;
+                    self.max_chunk_z = self.max_chunk_z.max(chunk.get_max_z());
                 }
-                let above = chunk
-                    .get(Vec3::new(0, 0, chunk.get_max_z() + 1))
-                    .ok()
-                    .cloned()
-                    .unwrap_or_else(Block::empty);
-                let below = chunk
-                    .get(Vec3::new(0, 0, chunk.get_min_z() - 1))
-                    .ok()
-                    .cloned()
-                    .unwrap_or_else(Block::empty);
-                self.chunk_minimaps.insert(key, MinimapColumn {
-                    zlo: chunk.get_min_z(),
-                    layers,
-                    above: (
-                        Self::block_color(&above).unwrap_or_else(Vec4::zero),
-                        above.is_filled(),
-                    ),
-                    below: (
-                        Self::block_color(&below).unwrap_or_else(Vec4::zero),
-                        below.is_filled(),
-                    ),
-                });
             }
         }
         let player = client.entity();
@@ -208,7 +229,7 @@ impl VoxelMinimap {
                                     if above.1 {
                                         1
                                     } else {
-                                        layers.len() as i32 - pos.z as i32 + zlo
+                                        self.max_chunk_z - pos.z as i32
                                     }
                                 })
                         },
@@ -220,7 +241,6 @@ impl VoxelMinimap {
                 || self.last_ceiling != ceiling_offset
                 || new_chunk
             {
-                tracing::info!("{:?} {:?}", pos, ceiling_offset);
                 self.last_pos = cpos.with_z(pos.z as i32);
                 self.last_ceiling = ceiling_offset;
                 for y in 0..VOXEL_MINIMAP_SIDELENGTH {
@@ -241,7 +261,7 @@ impl VoxelMinimap {
                                     layers
                                         .get(
                                             ((pos.z as i32 - zlo + ceiling_offset) as usize)
-                                                .min(layers.len() - 1),
+                                                .min(layers.len().saturating_sub(1)),
                                         )
                                         .and_then(|grid| grid.get(cmod).map(|c| c.0.as_()))
                                         .or_else(|| {
@@ -253,7 +273,7 @@ impl VoxelMinimap {
                                         })
                                 },
                             )
-                            .unwrap_or(Vec4::zero());
+                            .unwrap_or_else(Vec4::zero);
                         self.composited.put_pixel(
                             x,
                             VOXEL_MINIMAP_SIDELENGTH - y - 1,

@@ -15,6 +15,7 @@ use super::{
     scale::{Scale, ScaleMode},
 };
 use crate::{render::Renderer, window::Window, Error};
+use common::slowjob::SlowJobPool;
 use common_base::span;
 use iced::{mouse, Cache, Size, UserInterface};
 use iced_winit::Clipboard;
@@ -142,6 +143,7 @@ impl IcedUi {
         &mut self,
         root: E,
         renderer: &mut Renderer,
+        pool: Option<&SlowJobPool>,
         clipboard: Option<&Clipboard>,
     ) -> (Vec<M>, mouse::Interaction) {
         span!(_guard, "maintain", "IcedUi::maintain");
@@ -207,7 +209,7 @@ impl IcedUi {
 
         self.cache = Some(user_interface.into_cache());
 
-        self.renderer.draw(primitive, renderer);
+        self.renderer.draw(primitive, renderer, pool);
 
         (messages, mouse_interaction)
     }

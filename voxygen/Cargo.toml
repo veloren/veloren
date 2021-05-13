@@ -106,6 +106,7 @@ num_cpus = "1.0"
 # vec_map = { version = "0.8.2" }
 inline_tweak = "1.0.2"
 itertools = "0.10.0"
+crossbeam-channel = "0.5"
 
 # Tracy
 tracing = "0.1"
