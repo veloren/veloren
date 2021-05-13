@@ -29,11 +29,23 @@ use specs::{saveload::MarkerAllocator, WorldExt};
 use std::sync::Arc;
 use vek::*;
 
+struct MinimapColumn {
+    /// Coordinate of lowest z-slice
+    zlo: i32,
+    /// Z-slices of colors and filled-ness
+    layers: Vec<Grid<(Vec4<u8>, bool)>>,
+    /// Color and filledness above the highest layer
+    above: (Vec4<u8>, bool),
+    /// Color and filledness below the lowest layer
+    below: (Vec4<u8>, bool),
+}
+
 pub struct VoxelMinimap {
-    chunk_minimaps: HashMap<Vec2<i32>, (i32, Vec<Grid<(Vec4<u8>, bool)>>)>,
+    chunk_minimaps: HashMap<Vec2<i32>, MinimapColumn>,
     composited: RgbaImage,
     image_id: img_ids::Rotations,
     last_pos: Vec3<i32>,
+    last_ceiling: i32,
 }
 
 const VOXEL_MINIMAP_SIDELENGTH: u32 = 512;
@@ -53,6 +65,7 @@ impl VoxelMinimap {
             )),
             composited,
             last_pos: Vec3::zero(),
+            last_ceiling: 0,
         }
     }
 
@@ -89,6 +102,7 @@ impl VoxelMinimap {
             let grid = Grid::populate_from(Vec2::new(32, 32), |v| {
                 let mut rgba = None;
 
+                let mut seen_solids: u32 = 0;
                 let mut seen_air: u32 = 0;
                 for dz in chunk.get_min_z()..=z {
                     if let Some(color) = chunk
@@ -102,8 +116,14 @@ impl VoxelMinimap {
                             }));
                             break;
                         }
+                        seen_solids += 1;
                     } else {
                         seen_air += 1;
+                    }
+                    // Don't penetrate too far into ground, only penetrate through shallow
+                    // ceilings
+                    if seen_solids > 12 {
+                        break;
                     }
                 }
                 let is_filled = chunk
@@ -118,8 +138,10 @@ impl VoxelMinimap {
 
     pub fn maintain(&mut self, client: &Client, ui: &mut Ui) {
         let terrain = client.state().terrain();
+        let mut new_chunk = false;
         for (key, chunk) in terrain.iter() {
             if !self.chunk_minimaps.contains_key(&key) {
+                new_chunk = true;
                 let mut layers = Vec::new();
                 const MODE_OVERHEAD: bool = true;
                 if MODE_OVERHEAD {
@@ -127,7 +149,28 @@ impl VoxelMinimap {
                 } else {
                     Self::composite_layer_slice(chunk, &mut layers);
                 }
-                self.chunk_minimaps.insert(key, (chunk.get_min_z(), layers));
+                let above = chunk
+                    .get(Vec3::new(0, 0, chunk.get_max_z() + 1))
+                    .ok()
+                    .cloned()
+                    .unwrap_or_else(Block::empty);
+                let below = chunk
+                    .get(Vec3::new(0, 0, chunk.get_min_z() - 1))
+                    .ok()
+                    .cloned()
+                    .unwrap_or_else(Block::empty);
+                self.chunk_minimaps.insert(key, MinimapColumn {
+                    zlo: chunk.get_min_z(),
+                    layers,
+                    above: (
+                        Self::block_color(&above).unwrap_or_else(Vec4::zero),
+                        above.is_filled(),
+                    ),
+                    below: (
+                        Self::block_color(&below).unwrap_or_else(Vec4::zero),
+                        below.is_filled(),
+                    ),
+                });
             }
         }
         let player = client.entity();
@@ -135,35 +178,81 @@ impl VoxelMinimap {
             let pos = pos.0;
             let vpos = pos.xy() - VOXEL_MINIMAP_SIDELENGTH as f32 / 2.0;
             let cpos: Vec2<i32> = vpos.map(|i| (i as i32).div_euclid(32));
-            if cpos.distance_squared(self.last_pos.xy()) >= 1 || self.last_pos.z != pos.z as i32 {
+            let ceiling_offset = {
+                let voff = Vec2::new(
+                    VOXEL_MINIMAP_SIDELENGTH as f32,
+                    VOXEL_MINIMAP_SIDELENGTH as f32,
+                ) / 2.0;
+                let coff: Vec2<i32> = voff.map(|i| (i as i32).div_euclid(32));
+                let cmod: Vec2<i32> = vpos.map(|i| (i as i32).rem_euclid(32));
+                let column = self.chunk_minimaps.get(&(cpos + coff));
+                column
+                    .map(
+                        |MinimapColumn {
+                             zlo, layers, above, ..
+                         }| {
+                            (0..layers.len() as i32)
+                                .filter_map(|dz| {
+                                    layers.get((pos.z as i32 - zlo + dz) as usize).and_then(
+                                        |grid| {
+                                            if grid.get(cmod).map_or(false, |(_, b)| *b) {
+                                                Some(dz)
+                                            } else {
+                                                None
+                                            }
+                                        },
+                                    )
+                                })
+                                .next()
+                                .unwrap_or_else(|| {
+                                    if above.1 {
+                                        1
+                                    } else {
+                                        layers.len() as i32 - pos.z as i32 + zlo
+                                    }
+                                })
+                        },
+                    )
+                    .unwrap_or(0)
+            };
+            if cpos.distance_squared(self.last_pos.xy()) >= 1
+                || self.last_pos.z != pos.z as i32
+                || self.last_ceiling != ceiling_offset
+                || new_chunk
+            {
+                tracing::info!("{:?} {:?}", pos, ceiling_offset);
                 self.last_pos = cpos.with_z(pos.z as i32);
+                self.last_ceiling = ceiling_offset;
                 for y in 0..VOXEL_MINIMAP_SIDELENGTH {
                     for x in 0..VOXEL_MINIMAP_SIDELENGTH {
                         let voff = Vec2::new(x as f32, y as f32);
                         let coff: Vec2<i32> = voff.map(|i| (i as i32).div_euclid(32));
                         let cmod: Vec2<i32> = voff.map(|i| (i as i32).rem_euclid(32));
                         let column = self.chunk_minimaps.get(&(cpos + coff));
-                        /*let ceiling_offset = column
-                            .and_then(|(zlo, g)| {
-                                (0..64)
-                                    .filter_map(|dz| {
-                                        g.get((pos.z as i32 - zlo + dz) as usize).and_then(|grid| {
-                                            if grid.get(cmod).map_or(false, |(_, b)| *b) {
-                                                Some(dz)
-                                            } else {
-                                                None
-                                            }
-                                        })
-                                    })
-                                    .next()
-                            })
-                            .unwrap_or(0);*/
-                        let ceiling_offset = 8;
+                        //let ceiling_offset = 8;
                         let color: Vec4<u8> = column
-                            .and_then(|(zlo, g)| {
-                                g.get((pos.z as i32 - zlo + ceiling_offset) as usize)
-                            })
-                            .and_then(|grid| grid.get(cmod).map(|c| c.0.as_()))
+                            .and_then(
+                                |MinimapColumn {
+                                     zlo,
+                                     layers,
+                                     above,
+                                     below,
+                                 }| {
+                                    layers
+                                        .get(
+                                            ((pos.z as i32 - zlo + ceiling_offset) as usize)
+                                                .min(layers.len() - 1),
+                                        )
+                                        .and_then(|grid| grid.get(cmod).map(|c| c.0.as_()))
+                                        .or_else(|| {
+                                            Some(if pos.z as i32 > *zlo {
+                                                above.0
+                                            } else {
+                                                below.0
+                                            })
+                                        })
+                                },
+                            )
                             .unwrap_or(Vec4::zero());
                         self.composited.put_pixel(
                             x,
