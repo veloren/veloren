@@ -242,16 +242,29 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
         })
         .with(WaypointArea::default())
         .with(comp::Mass(10_f32.powi(10)))
-        .with(comp::Auras::new(vec![Aura::new(
-            AuraKind::Buff {
-                kind: BuffKind::CampfireHeal,
-                data: BuffData::new(0.02, Some(Duration::from_secs(1))),
-                category: BuffCategory::Natural,
-                source: BuffSource::World,
-            },
-            5.0,
-            None,
-            AuraTarget::All,
-        )]))
+        .with(comp::Auras::new(vec![
+            Aura::new(
+                AuraKind::Buff {
+                    kind: BuffKind::CampfireHeal,
+                    data: BuffData::new(0.02, Some(Duration::from_secs(1))),
+                    category: BuffCategory::Natural,
+                    source: BuffSource::World,
+                },
+                5.0,
+                None,
+                AuraTarget::All,
+            ),
+            Aura::new(
+                AuraKind::Buff {
+                    kind: BuffKind::Burning,
+                    data: BuffData::new(20.0, Some(Duration::from_secs(10))),
+                    category: BuffCategory::Natural,
+                    source: BuffSource::World,
+                },
+                0.7,
+                None,
+                AuraTarget::All,
+            ),
+        ]))
         .build();
 }

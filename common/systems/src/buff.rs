@@ -1,7 +1,8 @@
 use common::{
     comp::{
-        Buff, BuffCategory, BuffChange, BuffEffect, BuffId, BuffSource, Buffs, Energy, Health,
-        HealthChange, HealthSource, Inventory, ModifierKind, Stats,
+        fluid_dynamics::Fluid, Buff, BuffCategory, BuffChange, BuffEffect, BuffId, BuffKind,
+        BuffSource, Buffs, Energy, Health, HealthChange, HealthSource, Inventory, ModifierKind,
+        PhysicsState, Stats,
     },
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
@@ -20,6 +21,7 @@ pub struct ReadData<'a> {
     server_bus: Read<'a, EventBus<ServerEvent>>,
     inventories: ReadStorage<'a, Inventory>,
     healths: ReadStorage<'a, Health>,
+    physics_states: ReadStorage<'a, PhysicsState>,
 }
 
 #[derive(Default)]
@@ -61,18 +63,28 @@ impl<'a> System<'a> for Sys {
             // duration of strongest buff of that kind, else it ticks durations of all buffs
             // of that kind. Any buffs whose durations expire are marked expired.
             for (kind, ids) in buff_comp_kinds.iter() {
+                // Only get the physics state component if the entity has the burning buff, as
+                // we don't need it for any other conditions yet
+                let in_fluid = if matches!(kind, BuffKind::Burning) {
+                    read_data
+                        .physics_states
+                        .get(entity)
+                        .and_then(|p| p.in_fluid)
+                } else {
+                    None
+                };
                 if kind.queues() {
                     if let Some((Some(buff), id)) =
                         ids.get(0).map(|id| (buff_comp_buffs.get_mut(id), id))
                     {
-                        tick_buff(*id, buff, dt, |id| expired_buffs.push(id));
+                        tick_buff(*id, buff, dt, in_fluid, |id| expired_buffs.push(id));
                     }
                 } else {
                     for (id, buff) in buff_comp_buffs
                         .iter_mut()
                         .filter(|(i, _)| ids.iter().any(|id| id == *i))
                     {
-                        tick_buff(*id, buff, dt, |id| expired_buffs.push(id));
+                        tick_buff(*id, buff, dt, in_fluid, |id| expired_buffs.push(id));
                     }
                 }
             }
@@ -227,7 +239,13 @@ impl<'a> System<'a> for Sys {
     }
 }
 
-fn tick_buff(id: u64, buff: &mut Buff, dt: f32, mut expire_buff: impl FnMut(u64)) {
+fn tick_buff(
+    id: u64,
+    buff: &mut Buff,
+    dt: f32,
+    in_fluid: Option<Fluid>,
+    mut expire_buff: impl FnMut(u64),
+) {
     // If a buff is recently applied from an aura, do not tick duration
     if buff
         .cat_ids
@@ -237,6 +255,11 @@ fn tick_buff(id: u64, buff: &mut Buff, dt: f32, mut expire_buff: impl FnMut(u64)
         return;
     }
     if let Some(remaining_time) = &mut buff.time {
+        // Extinguish Burning buff when in water
+        if matches!(buff.kind, BuffKind::Burning) && matches!(in_fluid, Some(Fluid::Water { .. })) {
+            *remaining_time = Duration::default();
+        }
+
         if let Some(new_duration) = remaining_time.checked_sub(Duration::from_secs_f32(dt)) {
             // The buff still continues.
             *remaining_time = new_duration;
