@@ -82,7 +82,7 @@ pub type SuspendedMesh<'a> = dyn for<'r> FnOnce(&'r mut ColLightInfo) + 'a;
 /// For an explanation of why we want this, see `SuspendedMesh`.
 pub struct GreedyMesh<'a> {
     atlas: guillotiere::SimpleAtlasAllocator,
-    col_lights_size: Vec2<u32>,
+    col_lights_size: Vec2<u16>,
     max_size: guillotiere::Size,
     suspended: Vec<Box<SuspendedMesh<'a>>>,
 }
@@ -190,7 +190,7 @@ impl<'a> GreedyMesh<'a> {
 
 fn greedy_mesh<'a, M: PartialEq, D: 'a, FL, FG, FO, FS, FP, FT>(
     atlas: &mut guillotiere::SimpleAtlasAllocator,
-    col_lights_size: &mut Vec2<u32>,
+    col_lights_size: &mut Vec2<u16>,
     max_size: guillotiere::Size,
     GreedyConfig {
         mut data,
@@ -428,7 +428,7 @@ fn add_to_atlas(
     norm: Vec3<i16>,
     faces_forward: bool,
     max_size: guillotiere::Size,
-    cur_size: &mut Vec2<u32>,
+    cur_size: &mut Vec2<u16>,
 ) -> guillotiere::Rectangle {
     // TODO: Check this conversion.
     let atlas_rect;
@@ -473,8 +473,8 @@ fn add_to_atlas(
     // a u16 and we never grew the atlas, meaning all valid coordinates within the
     // atlas also fit into a u16.
     *cur_size = Vec2::new(
-        cur_size.x.max(atlas_rect.max.x as u32),
-        cur_size.y.max(atlas_rect.max.y as u32),
+        cur_size.x.max(atlas_rect.max.x as u16),
+        cur_size.y.max(atlas_rect.max.y as u16),
     );
 
     // NOTE: pos can be converted safely from usize to i32 because all legal block

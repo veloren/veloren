@@ -38,7 +38,7 @@ use vek::*;
 /// A type representing data that can be converted to an immutable texture map
 /// of ColLight data (used for texture atlases created during greedy meshing).
 // TODO: revert to u16
-pub type ColLightInfo = (Vec<[u8; 4]>, Vec2<u32>);
+pub type ColLightInfo = (Vec<[u8; 4]>, Vec2<u16>);
 
 const QUAD_INDEX_BUFFER_U16_START_VERT_LEN: u16 = 3000;
 const QUAD_INDEX_BUFFER_U32_START_VERT_LEN: u32 = 3000;
@@ -678,7 +678,10 @@ impl Renderer {
         .unwrap_or_else(|| (Vec2::new(1, 1), Vec2::new(1, 1)))
     }
 
-    // TODO: @Sharp what should this look like with wgpu?
+    // TODO: Seamless is potentially the default with wgpu but we need further
+    // investigation into whether this is actually turned on for the OpenGL
+    // backend
+    //
     /// NOTE: Supported by Vulkan (by default), DirectX 10+ (it seems--it's hard
     /// to find proof of this, but Direct3D 10 apparently does it by
     /// default, and 11 definitely does, so I assume it's natively supported

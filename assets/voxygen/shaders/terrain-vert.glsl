@@ -32,6 +32,7 @@ layout (std140, set = 2, binding = 0)
 uniform u_locals {
     vec3 model_offs;
     float load_time;
+    // TODO: consider whether these need to be signed
     ivec4 atlas_offs;
 };
 

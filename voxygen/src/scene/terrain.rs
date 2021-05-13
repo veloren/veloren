@@ -1088,40 +1088,32 @@ impl<V: RectRasterableVol> Terrain<V> {
                         let atlas = &mut self.atlas;
                         let chunks = &mut self.chunks;
                         let col_lights = &mut self.col_lights;
-                        let allocation = atlas
-                            .allocate(guillotiere::Size::new(
-                                tex_size.x as i32, /* TODO: adjust ColLightInfo to avoid the
-                                                    * cast here? */
-                                tex_size.y as i32,
-                            ))
-                            .unwrap_or_else(|| {
-                                // Atlas allocation failure: try allocating a new texture and atlas.
-                                let (new_atlas, new_col_lights) = Self::make_atlas(renderer)
-                                    .expect("Failed to create atlas texture");
+                        let alloc_size =
+                            guillotiere::Size::new(i32::from(tex_size.x), i32::from(tex_size.y));
 
-                                // We reset the atlas and clear allocations from existing chunks,
-                                // even though we haven't yet
-                                // checked whether the new allocation can fit in
-                                // the texture.  This is reasonable because we don't have a fallback
-                                // if a single chunk can't fit in an empty atlas of maximum size.
-                                //
-                                // TODO: Consider attempting defragmentation first rather than just
-                                // always moving everything into the new chunk.
-                                chunks.iter_mut().for_each(|(_, chunk)| {
-                                    chunk.col_lights_alloc = None;
-                                });
-                                *atlas = new_atlas;
-                                *col_lights = Arc::new(new_col_lights);
+                        let allocation = atlas.allocate(alloc_size).unwrap_or_else(|| {
+                            // Atlas allocation failure: try allocating a new texture and atlas.
+                            let (new_atlas, new_col_lights) =
+                                Self::make_atlas(renderer).expect("Failed to create atlas texture");
 
-                                atlas
-                                    .allocate(guillotiere::Size::new(
-                                        tex_size.x as i32, /* TODO: adjust ColLightInfo to avoid
-                                                            * the
-                                                            * cast here? */
-                                        tex_size.y as i32,
-                                    ))
-                                    .expect("Chunk data does not fit in a texture of maximum size.")
+                            // We reset the atlas and clear allocations from existing chunks,
+                            // even though we haven't yet
+                            // checked whether the new allocation can fit in
+                            // the texture.  This is reasonable because we don't have a fallback
+                            // if a single chunk can't fit in an empty atlas of maximum size.
+                            //
+                            // TODO: Consider attempting defragmentation first rather than just
+                            // always moving everything into the new chunk.
+                            chunks.iter_mut().for_each(|(_, chunk)| {
+                                chunk.col_lights_alloc = None;
                             });
+                            *atlas = new_atlas;
+                            *col_lights = Arc::new(new_col_lights);
+
+                            atlas
+                                .allocate(alloc_size)
+                                .expect("Chunk data does not fit in a texture of maximum size.")
+                        });
 
                         // NOTE: Cast is safe since the origin was a u16.
                         let atlas_offs = Vec2::new(
@@ -1131,7 +1123,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                         renderer.update_texture(
                             &col_lights.texture,
                             atlas_offs.into_array(),
-                            tex_size.into_array(),
+                            tex_size.map(|e| u32::from(e)).into_array(),
                             &tex,
                         );
 
@@ -1144,22 +1136,15 @@ impl<V: RectRasterableVol> Terrain<V> {
                             light_map: mesh.light_map,
                             glow_map: mesh.glow_map,
                             sprite_instances,
-                            locals: renderer.create_terrain_bound_locals(&[TerrainLocals {
-                                model_offs: Vec3::from(
+                            locals: renderer.create_terrain_bound_locals(&[TerrainLocals::new(
+                                Vec3::from(
                                     response.pos.map2(VolGrid2d::<V>::chunk_size(), |e, sz| {
                                         e as f32 * sz as f32
                                     }),
-                                )
-                                .into_array(),
-                                atlas_offs: Vec4::new(
-                                    atlas_offs.x as i32,
-                                    atlas_offs.y as i32,
-                                    0,
-                                    0,
-                                )
-                                .into_array(),
+                                ),
+                                atlas_offs,
                                 load_time,
-                            }]),
+                            )]),
                             visible: Visibility {
                                 in_range: false,
                                 in_frustum: false,

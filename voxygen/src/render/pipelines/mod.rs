@@ -124,11 +124,11 @@ impl Globals {
                 shadow_planes.x,
                 shadow_planes.y,
             ],
+            // TODO: why do we accept values greater than the max?
             light_shadow_count: [
-                // TODO: why do we accept values greater than the max?
-                (light_count % (MAX_POINT_LIGHT_COUNT + 1)) as u32,
-                (shadow_count % (MAX_FIGURE_SHADOW_COUNT + 1)) as u32,
-                (directed_light_count % (MAX_DIRECTED_LIGHT_COUNT + 1)) as u32,
+                usize::min(light_count, MAX_POINT_LIGHT_COUNT) as u32,
+                usize::min(shadow_count, MAX_FIGURE_SHADOW_COUNT) as u32,
+                usize::min(directed_light_count, MAX_DIRECTED_LIGHT_COUNT) as u32,
                 0,
             ],
             shadow_proj_factors: [

@@ -141,12 +141,20 @@ impl VertexTrait for Vertex {
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
 // TODO: new function and private fields??
 pub struct Locals {
-    pub model_offs: [f32; 3],
-    pub load_time: f32,
-    pub atlas_offs: [i32; 4],
+    model_offs: [f32; 3],
+    load_time: f32,
+    atlas_offs: [i32; 4],
 }
 
 impl Locals {
+    pub fn new(model_offs: Vec3<f32>, atlas_offs: Vec2<u32>, load_time: f32) -> Self {
+        Self {
+            model_offs: model_offs.into_array(),
+            load_time,
+            atlas_offs: Vec4::new(atlas_offs.x as i32, atlas_offs.y as i32, 0, 0).into_array(),
+        }
+    }
+
     pub fn default() -> Self {
         Self {
             model_offs: [0.0; 3],

@@ -82,8 +82,8 @@ pub fn create_col_lights(
     let texture_info = wgpu::TextureDescriptor {
         label: None,
         size: wgpu::Extent3d {
-            width: col_lights_size.x,
-            height: col_lights_size.y,
+            width: u32::from(col_lights_size.x),
+            height: u32::from(col_lights_size.y),
             depth_or_array_layers: 1,
         },
         mip_level_count: 1,

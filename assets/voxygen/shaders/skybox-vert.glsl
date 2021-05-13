@@ -25,8 +25,16 @@ layout(location = 0) out vec3 f_pos;
 void main() {
     f_pos = v_pos;
 
-    // TODO: is this todo below still valid? is cam_pos jittery
     // TODO: Make this position-independent to avoid rounding error jittering
+    // NOTE: we may or may not want to use an infinite projection here
+    //
+    // Essentially: using any finite projection is likely wrong here if we want
+    // to project out to infinity, but since we want to perturb the skybox as we
+    // move and we have stars now, the "right" answer is heavily dependent on
+    // how we compute cloud position and stuff.
+    //
+    // Infinite projections of cubemaps are nice because they can be oriented
+    // but still extend infinitely far.
     gl_Position =
         all_mat *
         vec4(v_pos + cam_pos.xyz, 1);
