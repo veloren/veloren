@@ -12,7 +12,7 @@ pub use self::{
     shockwave::ShockwaveAnimation, shoot::ShootAnimation, spinmelee::SpinMeleeAnimation,
 };
 
-use super::{make_bone, vek::*, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
 use common::comp::{self};
 use core::convert::TryFrom;
 
@@ -47,7 +47,7 @@ impl Skeleton for GolemSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> [Transform<f32, f32, f32>; 2] {
+    ) -> Offsets {
         let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
         let upper_torso_mat = torso_mat * Mat4::<f32>::from(self.upper_torso);
         let lower_torso_mat = upper_torso_mat * Mat4::<f32>::from(self.lower_torso);
@@ -70,7 +70,10 @@ impl Skeleton for GolemSkeleton {
             make_bone(leg_l_mat * Mat4::<f32>::from(self.foot_l)),
             make_bone(leg_r_mat * Mat4::<f32>::from(self.foot_r)),
         ];
-        [Transform::default(), self.torso]
+        Offsets {
+            lantern: Vec3::default(),
+            mount_bone: self.torso,
+        }
     }
 }
 

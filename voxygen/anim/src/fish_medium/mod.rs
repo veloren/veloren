@@ -4,7 +4,7 @@ pub mod swim;
 // Reexports
 pub use self::{idle::IdleAnimation, swim::SwimAnimation};
 
-use super::{make_bone, vek::*, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
 use common::comp::{self};
 use core::convert::TryFrom;
 
@@ -33,7 +33,7 @@ impl Skeleton for FishMediumSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> [Transform<f32, f32, f32>; 2] {
+    ) -> Offsets {
         let chest_front_mat = base_mat * Mat4::<f32>::from(self.chest_front);
         let chest_back_mat = Mat4::<f32>::from(self.chest_back);
         let head_mat = Mat4::<f32>::from(self.head);
@@ -47,7 +47,10 @@ impl Skeleton for FishMediumSkeleton {
             make_bone(chest_front_mat * Mat4::<f32>::from(self.fin_l)),
             make_bone(chest_front_mat * Mat4::<f32>::from(self.fin_r)),
         ];
-        [Transform::default(), Transform::default()]
+        Offsets {
+            lantern: Vec3::default(),
+            mount_bone: self.chest_front,
+        }
     }
 }
 

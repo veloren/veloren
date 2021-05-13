@@ -5,7 +5,7 @@ pub mod run;
 // Reexports
 pub use self::{fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation};
 
-use super::{make_bone, vek::*, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
 use common::comp::{self};
 use core::convert::TryFrom;
 
@@ -43,7 +43,7 @@ impl Skeleton for DragonSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> [Transform<f32, f32, f32>; 2] {
+    ) -> Offsets {
         let chest_front_mat = base_mat * Mat4::<f32>::from(self.chest_front);
         let chest_rear_mat = chest_front_mat * Mat4::<f32>::from(self.chest_rear);
         let head_lower_mat = chest_front_mat * Mat4::<f32>::from(self.head_lower);
@@ -69,7 +69,10 @@ impl Skeleton for DragonSkeleton {
             make_bone(chest_rear_mat * Mat4::<f32>::from(self.foot_bl)),
             make_bone(chest_rear_mat * Mat4::<f32>::from(self.foot_br)),
         ];
-        [Transform::default(), self.chest_front]
+        Offsets {
+            lantern: Vec3::default(),
+            mount_bone: self.chest_front,
+        }
     }
 }
 

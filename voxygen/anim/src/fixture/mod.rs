@@ -1,4 +1,4 @@
-use super::{make_bone, vek::*, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
 
 pub type Body = ();
 
@@ -31,9 +31,12 @@ impl Skeleton for FixtureSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> [Transform<f32, f32, f32>; 2] {
+    ) -> Offsets {
         buf[0] = make_bone(base_mat);
-        [Transform::default(), Transform::default()]
+        Offsets {
+            lantern: Vec3::default(),
+            mount_bone: Transform::default(),
+        }
     }
 }
 

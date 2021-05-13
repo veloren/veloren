@@ -16,7 +16,7 @@ pub use self::{
     stunned::StunnedAnimation, tailwhip::TailwhipAnimation,
 };
 
-use super::{make_bone, vek::*, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
 use common::comp::{self};
 use core::convert::TryFrom;
 
@@ -48,7 +48,7 @@ impl Skeleton for QuadrupedLowSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> [Transform<f32, f32, f32>; 2] {
+    ) -> Offsets {
         let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
         let tail_front = chest_mat * Mat4::<f32>::from(self.tail_front);
         let head_lower_mat = chest_mat * Mat4::<f32>::from(self.head_lower);
@@ -66,7 +66,10 @@ impl Skeleton for QuadrupedLowSkeleton {
             make_bone(chest_mat * Mat4::<f32>::from(self.foot_bl)),
             make_bone(chest_mat * Mat4::<f32>::from(self.foot_br)),
         ];
-        [Transform::default(), self.chest]
+        Offsets {
+            lantern: Vec3::default(),
+            mount_bone: self.chest,
+        }
     }
 }
 

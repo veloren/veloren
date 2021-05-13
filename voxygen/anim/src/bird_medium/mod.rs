@@ -6,7 +6,7 @@ pub mod run;
 // Reexports
 pub use self::{feed::FeedAnimation, fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation};
 
-use super::{make_bone, vek::*, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
 use common::comp::{self};
 use core::convert::TryFrom;
 
@@ -36,7 +36,7 @@ impl Skeleton for BirdMediumSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> [Transform<f32, f32, f32>; 2] {
+    ) -> Offsets {
         let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
@@ -48,7 +48,10 @@ impl Skeleton for BirdMediumSkeleton {
             make_bone(base_mat * Mat4::<f32>::from(self.leg_l)),
             make_bone(base_mat * Mat4::<f32>::from(self.leg_r)),
         ];
-        [Transform::default(), self.torso]
+        Offsets {
+            lantern: Vec3::default(),
+            mount_bone: self.torso,
+        }
     }
 }
 

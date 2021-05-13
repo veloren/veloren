@@ -16,7 +16,7 @@ pub use self::{
     run::RunAnimation, stunned::StunnedAnimation,
 };
 
-use super::{make_bone, vek::*, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
 use common::comp::{self};
 use core::convert::TryFrom;
 
@@ -38,6 +38,7 @@ skeleton_impls!(struct QuadrupedMediumSkeleton {
     + foot_fr,
     + foot_bl,
     + foot_br,
+    mount,
 });
 
 impl Skeleton for QuadrupedMediumSkeleton {
@@ -53,7 +54,7 @@ impl Skeleton for QuadrupedMediumSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> [Transform<f32, f32, f32>; 2] {
+    ) -> Offsets {
         let torso_front_mat = base_mat * Mat4::<f32>::from(self.torso_front);
         let torso_back_mat = torso_front_mat * Mat4::<f32>::from(self.torso_back);
         let neck_mat = torso_front_mat * Mat4::<f32>::from(self.neck);
@@ -80,7 +81,10 @@ impl Skeleton for QuadrupedMediumSkeleton {
             make_bone(leg_bl_mat * Mat4::<f32>::from(self.foot_bl)),
             make_bone(leg_br_mat * Mat4::<f32>::from(self.foot_br)),
         ];
-        [Transform::default(), self.torso_front]
+        Offsets {
+            lantern: Vec3::default(),
+            mount_bone: self.torso_front,
+        }
     }
 }
 
@@ -152,7 +156,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Frostfang, _) => (1.0, -2.0),
                 (Mouflon, _) => (0.5, 1.5),
                 (Catoblepas, _) => (-1.0, -6.5),
-                (Bonerattler, _) => (1.0, 2.5),
+                (Bonerattler, _) => (0.0, 1.5),
                 (Deer, Male) => (1.5, 3.5),
                 (Deer, Female) => (1.5, 3.5),
                 (Hirdrasil, _) => (0.0, 5.0),
@@ -187,7 +191,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Frostfang, _) => (0.5, 1.5),
                 (Mouflon, _) => (-1.0, 1.0),
                 (Catoblepas, _) => (19.5, -2.0),
-                (Bonerattler, _) => (9.0, -0.5),
+                (Bonerattler, _) => (7.0, -0.5),
                 (Deer, _) => (-2.5, 1.0),
                 (Hirdrasil, _) => (-1.0, 0.5),
                 (Roshwalr, _) => (0.0, 1.0),
@@ -287,7 +291,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Frostfang, _) => (9.0, 11.5),
                 (Mouflon, _) => (11.0, 14.0),
                 (Catoblepas, _) => (7.5, 19.5),
-                (Bonerattler, _) => (6.0, 12.5),
+                (Bonerattler, _) => (6.0, 11.0),
                 (Deer, _) => (11.0, 13.5),
                 (Hirdrasil, _) => (11.0, 14.5),
                 (Roshwalr, _) => (6.0, 12.5),
@@ -387,7 +391,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Frostfang, _) => (5.5, -5.5, -2.0),
                 (Mouflon, _) => (4.0, -5.0, -4.0),
                 (Catoblepas, _) => (7.0, 2.0, -5.0),
-                (Bonerattler, _) => (5.5, 5.0, -4.0),
+                (Bonerattler, _) => (5.5, 5.0, -2.5),
                 (Deer, _) => (3.5, -4.5, -3.5),
                 (Hirdrasil, _) => (4.5, -5.0, -2.5),
                 (Roshwalr, _) => (8.0, -2.5, -2.5),
@@ -420,7 +424,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Frostfang, _) => (3.5, -4.5, -2.0),
                 (Mouflon, _) => (3.5, -8.0, -3.5),
                 (Catoblepas, _) => (6.0, -2.5, -2.5),
-                (Bonerattler, _) => (6.0, -8.0, -4.0),
+                (Bonerattler, _) => (6.0, -8.0, -2.5),
                 (Deer, _) => (3.0, -6.5, -3.5),
                 (Hirdrasil, _) => (4.0, -6.5, -3.0),
                 (Roshwalr, _) => (7.0, -7.0, -2.5),

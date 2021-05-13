@@ -449,10 +449,7 @@ impl FigureMgr {
                     (vek::Rgb::zero(), 0.0, 0.0, true)
                 };
             if let Some(state) = body.and_then(|body| self.states.get_mut(body, &entity)) {
-                light_anim.offset = (vek::Mat4::from_col_array(
-                    anim::vek::Mat4::<f32>::from(state.lantern_offset).into_col_array(),
-                ) * Vec4::one())
-                .xyz();
+                light_anim.offset = vek::Vec3::from(state.lantern_offset);
             }
             if !light_anim.strength.is_normal() {
                 light_anim.strength = 0.0;
@@ -752,21 +749,18 @@ impl FigureMgr {
 
             let hands = (active_tool_hand, second_tool_hand);
 
-            //let mut state_mountee = self.states.get_mut(entity.get(body), &entity);
-
-            //vek::Mat4::from_col_array(state.lantern_offset[0].into_col_array()
-
+            // If a mountee exists, get its physical mounting offsets and its body
             let mut f = || -> Option<_> {
                 let Mounting(entity) = mountings?;
                 let entity = ecs
                     .read_resource::<UidAllocator>()
                     .retrieve_entity_internal((*entity).into())?;
                 let bodies = ecs.read_storage::<Body>();
-                let body = bodies.get(entity)?;
-                let meta = self.states.get_mut(body, &entity)?;
-                Some((Some(meta.mountee_offset), Some(Body::mounting_offset(body))))
+                let body = *bodies.get(entity)?;
+                let meta = self.states.get_mut(&body, &entity)?;
+                Some((Some(meta.mountee_offset), Some(body)))
             };
-            let (mountee_offsets, hitbox_offsets) = f().unwrap_or((None, None));
+            let (mountee_offsets, mountee_body) = f().unwrap_or((None, None));
 
             match body {
                 Body::Humanoid(body) => {
@@ -800,7 +794,7 @@ impl FigureMgr {
                                 CharacterSkeleton::new(
                                     holding_lantern,
                                     mountee_offsets,
-                                    hitbox_offsets,
+                                    mountee_body,
                                 ),
                             )
                         });
@@ -824,11 +818,7 @@ impl FigureMgr {
                     ) {
                         // Standing
                         (true, false, false) => anim::character::StandAnimation::update_skeleton(
-                            &CharacterSkeleton::new(
-                                holding_lantern,
-                                mountee_offsets,
-                                hitbox_offsets,
-                            ),
+                            &CharacterSkeleton::new(holding_lantern, mountee_offsets, mountee_body),
                             (active_tool_kind, second_tool_kind, hands, time, rel_avg_vel),
                             state.state_time,
                             &mut state_animation_rate,
@@ -836,11 +826,7 @@ impl FigureMgr {
                         ),
                         // Running
                         (true, true, false) => anim::character::RunAnimation::update_skeleton(
-                            &CharacterSkeleton::new(
-                                holding_lantern,
-                                mountee_offsets,
-                                hitbox_offsets,
-                            ),
+                            &CharacterSkeleton::new(holding_lantern, mountee_offsets, mountee_body),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -859,11 +845,7 @@ impl FigureMgr {
                         ),
                         // In air
                         (false, _, false) => anim::character::JumpAnimation::update_skeleton(
-                            &CharacterSkeleton::new(
-                                holding_lantern,
-                                mountee_offsets,
-                                hitbox_offsets,
-                            ),
+                            &CharacterSkeleton::new(holding_lantern, mountee_offsets, mountee_body),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -880,11 +862,7 @@ impl FigureMgr {
                         ),
                         // Swim
                         (_, _, true) => anim::character::SwimAnimation::update_skeleton(
-                            &CharacterSkeleton::new(
-                                holding_lantern,
-                                mountee_offsets,
-                                hitbox_offsets,
-                            ),
+                            &CharacterSkeleton::new(holding_lantern, mountee_offsets, mountee_body),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -5367,7 +5345,7 @@ impl FigureColLights {
 pub struct FigureStateMeta {
     bone_consts: Consts<FigureBoneData>,
     locals: Consts<FigureLocals>,
-    lantern_offset: anim::vek::Transform<f32, f32, f32>,
+    lantern_offset: anim::vek::Vec3<f32>,
     mountee_offset: anim::vek::Transform<f32, f32, f32>,
     state_time: f32,
     last_ori: anim::vek::Quaternion<f32>,
@@ -5408,14 +5386,14 @@ impl<S> DerefMut for FigureState<S> {
 impl<S: Skeleton> FigureState<S> {
     pub fn new(renderer: &mut Renderer, skeleton: S) -> Self {
         let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
-        let body_offsets = anim::compute_matrices(&skeleton, anim::vek::Mat4::identity(), &mut buf);
+        let offsets = anim::compute_matrices(&skeleton, anim::vek::Mat4::identity(), &mut buf);
         let bone_consts = figure_bone_data_from_anim(&buf);
         Self {
             meta: FigureStateMeta {
                 bone_consts: renderer.create_consts(bone_consts).unwrap(),
                 locals: renderer.create_consts(&[FigureLocals::default()]).unwrap(),
-                lantern_offset: body_offsets[0],
-                mountee_offset: body_offsets[1],
+                lantern_offset: offsets.lantern,
+                mountee_offset: offsets.mount_bone,
                 state_time: 0.0,
                 last_ori: Ori::default().into(),
                 lpindex: 0,
@@ -5539,7 +5517,7 @@ impl<S: Skeleton> FigureState<S> {
         );
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();
 
-        let body_offsets = anim::compute_matrices(&self.skeleton, mat, buf);
+        let offsets = anim::compute_matrices(&self.skeleton, mat, buf);
 
         let new_bone_consts = figure_bone_data_from_anim(buf);
 
@@ -5549,8 +5527,8 @@ impl<S: Skeleton> FigureState<S> {
                 &new_bone_consts[0..S::BONE_COUNT],
             )
             .unwrap();
-        self.lantern_offset = body_offsets[0];
-        self.mountee_offset = body_offsets[1];
+        self.lantern_offset = offsets.lantern;
+        self.mountee_offset = offsets.mount_bone;
 
         let smoothing = (5.0 * dt).min(1.0);
         if let Some(last_pos) = self.last_pos {

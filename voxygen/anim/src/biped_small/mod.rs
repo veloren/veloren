@@ -12,7 +12,7 @@ pub use self::{
     shoot::ShootAnimation, stunned::StunnedAnimation, wield::WieldAnimation,
 };
 
-use super::{make_bone, vek::*, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
 use common::comp::{self};
 use core::convert::TryFrom;
 
@@ -47,7 +47,7 @@ impl Skeleton for BipedSmallSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> [Transform<f32, f32, f32>; 2] {
+    ) -> Offsets {
         let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
         let pants_mat = chest_mat * Mat4::<f32>::from(self.pants);
         let control_mat = chest_mat * Mat4::<f32>::from(self.control);
@@ -64,7 +64,10 @@ impl Skeleton for BipedSmallSkeleton {
             make_bone(base_mat * Mat4::<f32>::from(self.foot_l)),
             make_bone(base_mat * Mat4::<f32>::from(self.foot_r)),
         ];
-        [Transform::default(), Transform::default()]
+        Offsets {
+            lantern: Vec3::default(),
+            mount_bone: self.chest,
+        }
     }
 }
 

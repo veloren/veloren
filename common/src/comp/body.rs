@@ -659,6 +659,7 @@ impl Body {
         )
     }
 
+    // Physical offset relative to the mountee
     pub fn mounting_offset(&self) -> Vec3<f32> {
         match self {
             Body::QuadrupedMedium(quadruped_medium) => {
@@ -682,7 +683,7 @@ impl Body {
                     (quadruped_medium::Species::Zebra, _) => Vec3::from([0.5, 0.5, 1.8]),
                     (quadruped_medium::Species::Antelope, _) => Vec3::from([0.3, 0.3, 1.4]),
                     (quadruped_medium::Species::Kelpie, _) => Vec3::from([0.5, 0.5, 1.9]),
-                    (quadruped_medium::Species::Horse, _) => Vec3::from([0.1, 0.1, 2.0]),
+                    (quadruped_medium::Species::Horse, _) => Vec3::from([0.0, 0.0, 2.0]),
                     (quadruped_medium::Species::Barghest, _) => Vec3::from([0.5, 0.5, 2.2]),
                     (quadruped_medium::Species::Cattle, quadruped_medium::BodyType::Male) => {
                         Vec3::from([0.5, 0.5, 2.6])
