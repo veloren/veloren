@@ -14,7 +14,7 @@ use common::{
     comp,
     comp::group::Role,
     grid::Grid,
-    terrain::TerrainChunkSize,
+    terrain::{Block, TerrainChunk, TerrainChunkSize},
     vol::{ReadVol, RectVolSize},
 };
 use common_net::msg::world_msg::SiteKind;
@@ -30,7 +30,7 @@ use std::sync::Arc;
 use vek::*;
 
 pub struct VoxelMinimap {
-    chunk_minimaps: HashMap<Vec2<i32>, (i32, Vec<Grid<[u8; 4]>>)>,
+    chunk_minimaps: HashMap<Vec2<i32>, (i32, Vec<Grid<(Vec4<u8>, bool)>>)>,
     composited: RgbaImage,
     image_id: img_ids::Rotations,
     last_pos: Vec3<i32>,
@@ -56,21 +56,76 @@ impl VoxelMinimap {
         }
     }
 
+    fn block_color(block: &Block) -> Option<Vec4<u8>> {
+        block
+            .get_color()
+            .map(|rgb| Vec4::new(rgb.r, rgb.g, rgb.b, 192))
+    }
+
+    /// Each layer is a slice of the terrain near that z-level
+    fn composite_layer_slice(chunk: &TerrainChunk, layers: &mut Vec<Grid<(Vec4<u8>, bool)>>) {
+        for z in chunk.get_min_z()..chunk.get_max_z() {
+            let grid = Grid::populate_from(Vec2::new(32, 32), |v| {
+                let mut rgba = Vec4::<f32>::zero();
+                let (weights, zoff) = (&[1, 2, 4, 1, 1, 1][..], -2);
+                for dz in 0..weights.len() {
+                    let color = chunk
+                        .get(Vec3::new(v.x, v.y, dz as i32 + z + zoff))
+                        .ok()
+                        .and_then(Self::block_color)
+                        .unwrap_or(Vec4::zero());
+                    rgba += color.as_() * weights[dz as usize] as f32;
+                }
+                let rgba: Vec4<u8> = (rgba / weights.iter().map(|x| *x as f32).sum::<f32>()).as_();
+                (rgba, true)
+            });
+            layers.push(grid);
+        }
+    }
+
+    /// Each layer is the overhead as if its z-level were the ceiling
+    fn composite_layer_overhead(chunk: &TerrainChunk, layers: &mut Vec<Grid<(Vec4<u8>, bool)>>) {
+        for z in chunk.get_min_z()..chunk.get_max_z() {
+            let grid = Grid::populate_from(Vec2::new(32, 32), |v| {
+                let mut rgba = None;
+
+                let mut seen_air: u32 = 0;
+                for dz in chunk.get_min_z()..=z {
+                    if let Some(color) = chunk
+                        .get(Vec3::new(v.x, v.y, z - dz + chunk.get_min_z()))
+                        .ok()
+                        .and_then(Self::block_color)
+                    {
+                        if seen_air > 0 {
+                            rgba = Some(color.map(|j| {
+                                (j as u32).saturating_sub(if seen_air > 2 { 4 } else { 0 }) as u8
+                            }));
+                            break;
+                        }
+                    } else {
+                        seen_air += 1;
+                    }
+                }
+                let is_filled = chunk
+                    .get(Vec3::new(v.x, v.y, z))
+                    .ok()
+                    .map_or(true, |b| b.is_filled());
+                (rgba.unwrap_or_else(Vec4::zero), is_filled)
+            });
+            layers.push(grid);
+        }
+    }
+
     pub fn maintain(&mut self, client: &Client, ui: &mut Ui) {
         let terrain = client.state().terrain();
         for (key, chunk) in terrain.iter() {
             if !self.chunk_minimaps.contains_key(&key) {
                 let mut layers = Vec::new();
-                for z in chunk.get_min_z()..chunk.get_max_z() {
-                    let grid = Grid::populate_from(Vec2::new(32, 32), |v| {
-                        chunk
-                            .get(Vec3::new(v.x, v.y, z))
-                            .ok()
-                            .and_then(|block| block.get_color())
-                            .map(|rgb| [rgb.r, rgb.g, rgb.b, 192])
-                            .unwrap_or([0, 0, 0, 0])
-                    });
-                    layers.push(grid);
+                const MODE_OVERHEAD: bool = true;
+                if MODE_OVERHEAD {
+                    Self::composite_layer_overhead(chunk, &mut layers);
+                } else {
+                    Self::composite_layer_slice(chunk, &mut layers);
                 }
                 self.chunk_minimaps.insert(key, (chunk.get_min_z(), layers));
             }
@@ -87,36 +142,34 @@ impl VoxelMinimap {
                         let voff = Vec2::new(x as f32, y as f32);
                         let coff: Vec2<i32> = voff.map(|i| (i as i32).div_euclid(32));
                         let cmod: Vec2<i32> = voff.map(|i| (i as i32).rem_euclid(32));
-                        let mut rgba = Vec4::<u16>::zero();
-                        let (weights, zoff) =
-                            if (x as i32 - VOXEL_MINIMAP_SIDELENGTH as i32 / 2).abs() < 96
-                                && (y as i32 - VOXEL_MINIMAP_SIDELENGTH as i32 / 2).abs() < 96
-                            {
-                                (&[2, 4, 1, 1, 1][..], -1)
-                            } else {
-                                (&[1][..], 0)
-                            };
-                        for z in 0..weights.len() {
-                            if let Some(grid) =
-                                self.chunk_minimaps
-                                    .get(&(cpos + coff))
-                                    .and_then(|(zlo, g)| {
-                                        g.get((pos.z as i32 + z as i32 - zlo + zoff) as usize)
+                        let column = self.chunk_minimaps.get(&(cpos + coff));
+                        /*let ceiling_offset = column
+                            .and_then(|(zlo, g)| {
+                                (0..64)
+                                    .filter_map(|dz| {
+                                        g.get((pos.z as i32 - zlo + dz) as usize).and_then(|grid| {
+                                            if grid.get(cmod).map_or(false, |(_, b)| *b) {
+                                                Some(dz)
+                                            } else {
+                                                None
+                                            }
+                                        })
                                     })
-                            {
-                                let tmp: Vec4<u16> = grid
-                                    .get(cmod)
-                                    .map(|c| Vec4::<u8>::from(*c).as_())
-                                    .unwrap_or(Vec4::one());
-                                rgba += tmp.as_() * weights[z];
-                            }
-                        }
-                        let color = {
-                            let rgba: Vec4<u8> = (rgba / weights.iter().sum::<u16>()).as_();
-                            image::Rgba([rgba.x, rgba.y, rgba.z, rgba.w])
-                        };
-                        self.composited
-                            .put_pixel(x, VOXEL_MINIMAP_SIDELENGTH - y - 1, color);
+                                    .next()
+                            })
+                            .unwrap_or(0);*/
+                        let ceiling_offset = 8;
+                        let color: Vec4<u8> = column
+                            .and_then(|(zlo, g)| {
+                                g.get((pos.z as i32 - zlo + ceiling_offset) as usize)
+                            })
+                            .and_then(|grid| grid.get(cmod).map(|c| c.0.as_()))
+                            .unwrap_or(Vec4::zero());
+                        self.composited.put_pixel(
+                            x,
+                            VOXEL_MINIMAP_SIDELENGTH - y - 1,
+                            image::Rgba([color.x, color.y, color.z, color.w]),
+                        );
                     }
                 }
 
