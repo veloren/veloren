@@ -47,6 +47,7 @@ pub enum CharacterState {
     Idle,
     Climb(climb::Data),
     Sit,
+    Mount,
     Dance,
     Talk,
     Sneak,

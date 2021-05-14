@@ -30,11 +30,12 @@ use common::{
         inventory::slot::EquipSlot,
         item::{Hands, ItemKind, ToolKind},
         Body, CharacterState, Controller, Health, Inventory, Item, Last, LightAnimation,
-        LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
+        LightEmitter, Mounting, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
     },
     resources::DeltaTime,
     states::utils::StageSection,
     terrain::TerrainChunk,
+    uid::UidAllocator,
     util::Dir,
     vol::RectRasterableVol,
 };
@@ -48,7 +49,7 @@ use core::{
 };
 use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
-use specs::{Entity as EcsEntity, Join, LazyUpdate, WorldExt};
+use specs::{saveload::MarkerAllocator, Entity as EcsEntity, Join, LazyUpdate, WorldExt};
 use treeculler::{BVol, BoundingSphere};
 use vek::*;
 
@@ -585,6 +586,7 @@ impl FigureMgr {
                 inventory,
                 item,
                 light_emitter,
+                mountings,
             ),
         ) in (
             &ecs.entities(),
@@ -601,6 +603,7 @@ impl FigureMgr {
             ecs.read_storage::<Inventory>().maybe(),
             ecs.read_storage::<Item>().maybe(),
             ecs.read_storage::<LightEmitter>().maybe(),
+            ecs.read_storage::<Mounting>().maybe(),
         )
             .join()
             .enumerate()
@@ -685,7 +688,7 @@ impl FigureMgr {
             // shadow correctly until their next update.  For now, we treat this
             // as an acceptable tradeoff.
             let radius = scale.unwrap_or(&Scale(1.0)).0 * 2.0;
-            let (in_frustum, lpindex) = if let Some(mut meta) = state {
+            let (in_frustum, lpindex) = if let Some(ref mut meta) = state {
                 let (in_frustum, lpindex) = BoundingSphere::new(pos.0.into_array(), radius)
                     .coherent_test_against_frustum(frustum, meta.lpindex);
                 let in_frustum = in_frustum || matches!(body, Body::Ship(_));
@@ -746,6 +749,19 @@ impl FigureMgr {
 
             let hands = (active_tool_hand, second_tool_hand);
 
+            // If a mountee exists, get its physical mounting offsets and its body
+            let mut f = || -> Option<_> {
+                let Mounting(entity) = mountings?;
+                let entity = ecs
+                    .read_resource::<UidAllocator>()
+                    .retrieve_entity_internal((*entity).into())?;
+                let bodies = ecs.read_storage::<Body>();
+                let body = *bodies.get(entity)?;
+                let meta = self.states.get_mut(&body, &entity)?;
+                Some((Some(meta.mountee_offset), Some(body)))
+            };
+            let (mountee_offsets, mountee_body) = f().unwrap_or((None, None));
+
             match body {
                 Body::Humanoid(body) => {
                     let (model, skeleton_attr) = self.model_cache.get_or_create_model(
@@ -773,7 +789,14 @@ impl FigureMgr {
                         .character_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, CharacterSkeleton::new(holding_lantern))
+                            FigureState::new(
+                                renderer,
+                                CharacterSkeleton::new(
+                                    holding_lantern,
+                                    mountee_offsets,
+                                    mountee_body,
+                                ),
+                            )
                         });
 
                     // Average velocity relative to the current ground
@@ -795,7 +818,7 @@ impl FigureMgr {
                     ) {
                         // Standing
                         (true, false, false) => anim::character::StandAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern),
+                            &CharacterSkeleton::new(holding_lantern, mountee_offsets, mountee_body),
                             (active_tool_kind, second_tool_kind, hands, time, rel_avg_vel),
                             state.state_time,
                             &mut state_animation_rate,
@@ -803,7 +826,7 @@ impl FigureMgr {
                         ),
                         // Running
                         (true, true, false) => anim::character::RunAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern),
+                            &CharacterSkeleton::new(holding_lantern, mountee_offsets, mountee_body),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -822,7 +845,7 @@ impl FigureMgr {
                         ),
                         // In air
                         (false, _, false) => anim::character::JumpAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern),
+                            &CharacterSkeleton::new(holding_lantern, mountee_offsets, mountee_body),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -839,7 +862,7 @@ impl FigureMgr {
                         ),
                         // Swim
                         (_, _, true) => anim::character::SwimAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern),
+                            &CharacterSkeleton::new(holding_lantern, mountee_offsets, mountee_body),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -1500,6 +1523,25 @@ impl FigureMgr {
                             anim::character::SitAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, second_tool_kind, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::Mount { .. } => {
+                            anim::character::MountAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    time,
+                                    rel_vel,
+                                    rel_avg_vel,
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    mountee_offsets,
+                                ),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -5304,6 +5346,7 @@ pub struct FigureStateMeta {
     bone_consts: Consts<FigureBoneData>,
     locals: Consts<FigureLocals>,
     lantern_offset: anim::vek::Vec3<f32>,
+    mountee_offset: anim::vek::Transform<f32, f32, f32>,
     state_time: f32,
     last_ori: anim::vek::Quaternion<f32>,
     lpindex: u8,
@@ -5343,14 +5386,14 @@ impl<S> DerefMut for FigureState<S> {
 impl<S: Skeleton> FigureState<S> {
     pub fn new(renderer: &mut Renderer, skeleton: S) -> Self {
         let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
-        let lantern_offset =
-            anim::compute_matrices(&skeleton, anim::vek::Mat4::identity(), &mut buf);
+        let offsets = anim::compute_matrices(&skeleton, anim::vek::Mat4::identity(), &mut buf);
         let bone_consts = figure_bone_data_from_anim(&buf);
         Self {
             meta: FigureStateMeta {
                 bone_consts: renderer.create_consts(bone_consts).unwrap(),
                 locals: renderer.create_consts(&[FigureLocals::default()]).unwrap(),
-                lantern_offset,
+                lantern_offset: offsets.lantern,
+                mountee_offset: offsets.mount_bone,
                 state_time: 0.0,
                 last_ori: Ori::default().into(),
                 lpindex: 0,
@@ -5474,7 +5517,7 @@ impl<S: Skeleton> FigureState<S> {
         );
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();
 
-        let lantern_offset = anim::compute_matrices(&self.skeleton, mat, buf);
+        let offsets = anim::compute_matrices(&self.skeleton, mat, buf);
 
         let new_bone_consts = figure_bone_data_from_anim(buf);
 
@@ -5484,7 +5527,8 @@ impl<S: Skeleton> FigureState<S> {
                 &new_bone_consts[0..S::BONE_COUNT],
             )
             .unwrap();
-        self.lantern_offset = lantern_offset;
+        self.lantern_offset = offsets.lantern;
+        self.mountee_offset = offsets.mount_bone;
 
         let smoothing = (5.0 * dt).min(1.0);
         if let Some(last_pos) = self.last_pos {
