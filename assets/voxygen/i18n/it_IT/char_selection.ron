@@ -1,0 +1,32 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for italian
+(
+    string_map: {
+        "char_selection.loading_characters": "Caricamento Personaggi...",
+        "char_selection.delete_permanently": "Eliminare permanentemente questo Personaggio?",
+        "char_selection.deleting_character": "Eliminazione Personaggio...",
+        "char_selection.change_server": "Cambia Server",
+        "char_selection.enter_world": "Entra nel Mondo",
+        "char_selection.logout": "Disconnettiti",
+        "char_selection.create_new_character": "Crea Nuovo Personaggio",
+        "char_selection.creating_character": "Creazione Personaggio...",
+        "char_selection.character_creation": "Creazione Personaggio",
+        "char_selection.human_default": "Umano Default",
+        "char_selection.level_fmt": "Livello {level_nb}",
+        "char_selection.uncanny_valley": "Regiona Selvaggia",
+        "char_selection.plains_of_uncertainty": "Pianure della Incertezza",
+        "char_selection.beard": "Barba",
+        "char_selection.hair_style": "Stile Capelli",
+        "char_selection.hair_color": "Colore Capelli",
+        "char_selection.eye_color": "Colore Occhi",
+        "char_selection.skin": "Pelle",
+        "char_selection.eyeshape": "Dettagli Occhi",
+        "char_selection.accessories": "Accessori",
+        "char_selection.create_info_name": "Il tuo Personaggio ha bisogno di un nome!",
+        "char_selection.version_mismatch": "ATTENZIONE! Questo server sta usando una versione differente, possibilmente incompatibile, di gioco. Per favore aggiorna la tua versione."
+    },
+
+    vector_map: {
+    }
+)

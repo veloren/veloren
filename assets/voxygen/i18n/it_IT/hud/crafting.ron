@@ -1,0 +1,33 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for italian
+(
+    string_map: {
+        "hud.crafting": "Creazione",
+        "hud.crafting.recipes": "Ricette",
+        "hud.crafting.ingredients": "Ingredienti:",
+        "hud.crafting.craft": "Crea",
+        "hud.crafting.tool_cata": "Richiede:",
+        // Crafting Stations
+        "hud.crafting.req_crafting_station": "Richiede:",
+        "hud.crafting.anvil": "Incudine",
+        "hud.crafting.cauldron": "Calderone",
+        "hud.crafting.cooking_pot": "Pentola",
+        "hud.crafting.crafting_bench": "Tavolo di Creazione",
+        // Tabs
+        "hud.crafting.tabs.all": "Tutto",
+        "hud.crafting.tabs.armor": "Armatura",
+        "hud.crafting.tabs.dismantle": "Smantella",
+        "hud.crafting.tabs.food": "Cibo",
+        "hud.crafting.tabs.glider": "Alianti",
+        "hud.crafting.tabs.potion": "Pozioni",
+        "hud.crafting.tabs.tool": "Strumenti",
+        "hud.crafting.tabs.utility": "Utilità",
+        "hud.crafting.tabs.weapon": "Armi",
+        "hud.crafting.tabs.bag": "Borse",
+    },
+
+
+    vector_map: {
+    }
+)

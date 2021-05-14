@@ -1,0 +1,71 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for italian
+(
+    string_map: {
+        /// Start Main screen section
+        "main.username": "Nome Utente",
+        "main.server": "Server",
+        "main.password": "Password",
+        "main.connecting": "Connessione in corso",
+        "main.creating_world": "Creazione mondo",
+        "main.tip": "Consiglio:",
+
+        // Welcome notice that appears the first time Veloren is started
+        "main.notice": r#"Benvenuto nella versione Alpha di Veloren!
+
+Prima di tuffarti nel divertimento, ti preghiamo di tenere a mente che:
+
+- Questa è un’Alpha molto prematura. Aspettati errori, gameplay non completo, meccaniche non rifinite, e funzioni mancanti.
+
+- Se hai critiche costruttive o errori da segnalare, ci puoi contattare tramite Reddit, GitLab, o il server Discord della nostra community.
+
+- Veloren è concesso in licenza con la licenza open-source GPL 3. Il che vuol dire che sei libero di giocare, modificare, e ridistribuire il gioco come 
+tu desideri (purché il lavoro che ne derivi sia sempre sotto licenza GPL 3).
+
+- Veloren è un progetto comunitario no-profit, e chiunque ci lavori sopra è un volontario.
+Se ti piace ciò che vedi, sei il benvenuto ad unirti ai team di sviluppo e artistico!
+
+Grazie per aver dedicato del tempo a leggere questo avviso, speriamo che ti divertirai col gioco!
+
+~ Il team di sviluppo di Veloren"#,
+
+        // Login process description
+        "main.login_process": r#"Informazioni sul processo di Login:
+
+
+Notare che hai bisogno di un account
+per giocare su server con autenticazione abilitata.
+
+Puoi creare un account su
+
+https://veloren.net/account/."#,
+        "main.login.server_not_found": "Server non trovato",
+        "main.login.authentication_error": "Errore di autenticazione sul server",
+        "main.login.internal_error": "Errore interno al client (probabilmente, il personaggio è stato cancellato)",
+        "main.login.failed_auth_server_url_invalid": "Connessione al server di autenzicazione fallita",
+        "main.login.insecure_auth_scheme": "Lo schema di autenticazione HTTP non è supportato. Non è sicuro! Per motivi di sviluppo, l'HTTP è permesso per 'localhost' o build di debug",
+        "main.login.server_full": "Il server è pieno",
+        "main.login.untrusted_auth_server": "Il server di autenticazione non è affidabile",
+        "main.login.outdated_client_or_server": "ServerWentMad: Probabilmente le versioni sono incompatibili, controlla per degli aggiornamenti.",
+        "main.login.timeout": "Timeout: Il server non ha risposto in tempo. (Sovraccaricato o problemi di rete).",
+        "main.login.server_shut_down": "Il server è stato chiuso",
+        "main.login.network_error": "Errore di rete",
+        "main.login.network_wrong_version": "Versioni di server e client non corrispondenti, per favore aggiorna il tuo client.",
+        "main.login.failed_sending_request": "La richiesta al server di Autenticazione è fallita",
+        "main.login.invalid_character": "Il personaggio selezionato è invalido",
+        "main.login.client_crashed": "Si è verificato un errore che ha terminato il client",
+        "main.login.not_on_whitelist": "Hai bisogno di una registrazione alla Whitelist da parte di un Amministratore per unirti",
+        "main.login.banned": "Sei stato bannato per la seguente ragione",
+        "main.login.kicked": "Sei stato rimosso per la seguente ragione",
+        "main.login.select_language": "Seleziona una lingua",
+        "main.login.client_version": "Versione Client",
+        "main.login.server_version": "Versione Server",
+        "main.servers.select_server": "Seleziona un server",
+        /// End Main screen section
+    },
+
+
+    vector_map: {
+    }
+)
