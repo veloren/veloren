@@ -301,19 +301,23 @@ impl VoxelMinimap {
                                      above,
                                      below,
                                  }| {
-                                    layers
-                                        .get(
-                                            ((pos.z as i32 - zlo + ceiling_offset) as usize)
-                                                .min(layers.len().saturating_sub(1)),
-                                        )
-                                        .and_then(|grid| grid.get(cmod).map(|c| c.0.as_()))
-                                        .or_else(|| {
-                                            Some(if pos.z as i32 > *zlo {
-                                                above.0
-                                            } else {
-                                                below.0
+                                    if pos.z as i32 + ceiling_offset < *zlo {
+                                        Some(Vec3::zero().with_w(255))
+                                    } else {
+                                        layers
+                                            .get(
+                                                ((pos.z as i32 - zlo + ceiling_offset) as usize)
+                                                    .min(layers.len().saturating_sub(1)),
+                                            )
+                                            .and_then(|grid| grid.get(cmod).map(|c| c.0.as_()))
+                                            .or_else(|| {
+                                                Some(if pos.z as i32 > *zlo {
+                                                    above.0
+                                                } else {
+                                                    below.0
+                                                })
                                             })
-                                        })
+                                    }
                                 },
                             )
                             .unwrap_or_else(Vec4::zero);
