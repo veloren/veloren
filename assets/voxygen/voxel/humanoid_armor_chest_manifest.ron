@@ -138,10 +138,6 @@
             vox_spec: ("armor.cultist.chest", (-7.0, -3.5, 2.0)),
             color: Some((30, 0, 64))
         ),
-        "Steel": (
-            vox_spec: ("armor.steel.chest", (-8.0, -4.5, 2.0)),
-            color: None
-        ),
         "LeatherPlate": (
             vox_spec: ("armor.leather_plate.chest", (-8.0, -5.5, 2.0)),
             color: None
@@ -188,6 +184,54 @@
         ),
         "Savage": (
           vox_spec: ("armor.savage.chest", (-7.0, -4.0, 1.0)),
+          color: None
+        ),
+        "Linen": (
+          vox_spec: ("armor.linen.chest", (-7.0, -4.0, 2.0)),
+          color: None
+        ),
+        "Woolen": (
+          vox_spec: ("armor.woolen.chest", (-7.0, -4.0, 1.0)),
+          color: None
+        ),
+        "Silken": (
+          vox_spec: ("armor.silken.chest", (-7.0, -4.0, 1.0)),
+          color: None
+        ),
+        "Lifecloth": (
+          vox_spec: ("armor.lifecloth.chest", (-7.0, -4.0, 2.0)),
+          color: None
+        ),
+        "Moonweave": (
+          vox_spec: ("armor.moonweave.chest", (-7.0, -4.0, 1.0)),
+          color: None
+        ),
+        "Sunsilk": (
+          vox_spec: ("armor.sunsilk.chest", (-7.0, -4.0, 1.0)),
+          color: None
+        ),
+        "Bronze": (
+          vox_spec: ("armor.bronze.chest", (-7.0, -4.0, 2.0)),
+          color: None
+        ),
+        "Iron": (
+          vox_spec: ("armor.iron.chest", (-7.0, -4.0, 2.0)),
+          color: None
+        ),
+        "Steel": (
+          vox_spec: ("armor.steel.chest", (-8.0, -4.0, 1.0)),
+          color: None
+        ),
+        "Cobalt": (
+          vox_spec: ("armor.cobalt.chest", (-8.0, -4.0, 1.0)),
+          color: None
+        ),
+        "Bloodsteel": (
+          vox_spec: ("armor.bloodsteel.chest", (-7.5, -4.0, 1.0)),
+          color: None
+        ),
+        "Orichalcum": (
+          vox_spec: ("armor.orichalcum.chest", (-7.0, -4.0, 1.0)),
           color: None
         ),
     },

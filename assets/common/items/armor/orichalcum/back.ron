@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Orichalcum cape",
+    description: "An ancient alloy. Myths remain of heroes who wore this metal.",
+    kind: Armor((
+        kind: Back("Orichalcum"),
+        stats: (
+            protection: Normal(4.0),
+            poise_resilience: Normal(0.2),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

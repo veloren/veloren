@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Iron Shoulderpads",
+    description: "Sturdy and unyielding, across ages of war.",
+    kind: Armor((
+        kind: Shoulder("Iron"),
+        stats: (
+            protection: Normal(6.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Common,
+    tags: [],
+)

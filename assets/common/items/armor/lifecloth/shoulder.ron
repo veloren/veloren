@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Lifecloth Shoulder Pad",
+    description: "Incredibly light, with the essence of nature.",
+    kind: Armor((
+        kind: Shoulder("Lifecloth"),
+        stats: (
+            protection: Normal(15.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

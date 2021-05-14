@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Linen Belt",
+    description: "Roughly stitched, but it seems to hold.",
+    kind: Armor((
+        kind: Belt("Linen"),
+        stats: (
+            protection: Normal(1.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

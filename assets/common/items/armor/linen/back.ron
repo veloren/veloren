@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Linen Cape",
+    description: "Roughly stitched, but it seems to hold.",
+    kind: Armor((
+        kind: Back("Linen"),
+        stats: (
+            protection: Normal(0.2),
+            poise_resilience: Normal(0.1),
+        ),
+    )),
+    quality: Common,
+    tags: [],
+)

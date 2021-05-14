@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Bloodsteel cape",
+    description: "Forged to preserve life, at the cost of another.",
+    kind: Armor((
+        kind: Back("Bloodsteel"),
+        stats: (
+            protection: Normal(4.0),
+            poise_resilience: Normal(0.2),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

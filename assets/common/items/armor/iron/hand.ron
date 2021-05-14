@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Iron Gloves",
+    description: "Sturdy and unyielding, across ages of war.",
+    kind: Armor((
+        kind: Hand("Iron"),
+        stats: (
+            protection: Normal(4.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Common,
+    tags: [],
+)

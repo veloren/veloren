@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Moonweave Cape",
+    description: "The fabric dances silently, like moonlight.",
+    kind: Armor((
+        kind: Back("Moonweave"),
+        stats: (
+            protection: Normal(4.0),
+            poise_resilience: Normal(0.2),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

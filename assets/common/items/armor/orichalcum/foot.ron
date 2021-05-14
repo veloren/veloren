@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Orichalcum Boots",
+    description: "An ancient alloy. Myths remain of heroes who wore this metal.",
+    kind: Armor((
+        kind: Foot("Orichalcum"),
+        stats: (
+            protection: Normal(6.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Epic,
+    tags: [],
+)

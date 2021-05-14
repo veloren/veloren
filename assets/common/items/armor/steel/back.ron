@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Steel Cape",
+    description: "Metal alloy interlocking plates to improve protection.",
+    kind: Armor((
+        kind: Back("Steel"),
+        stats: (
+            protection: Normal(1.0),
+            poise_resilience: Normal(0.5),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

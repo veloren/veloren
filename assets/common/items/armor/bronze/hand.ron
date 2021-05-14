@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Bronze Gauntlets",
+    description: "\'Heavy and dull, but it can take a punch.\'",
+    kind: Armor((
+        kind: Hand("Bronze"),
+        stats: (
+            protection: Normal(4.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

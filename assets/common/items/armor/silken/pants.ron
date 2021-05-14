@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Silken Pants",
+    description: "Weaved with care by a skilled tailor.",
+    kind: Armor((
+        kind: Pants("Silken"),
+        stats: (
+            protection: Normal(12.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

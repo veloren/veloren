@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Bronze Kickers",
+    description: "\'Heavy and dull, but it can take a punch.",
+    kind: Armor((
+        kind: Foot("Agile"),
+        stats: (
+            protection: Normal(2.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

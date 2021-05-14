@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Silken Belt",
+    description: "Weaved with care by a skilled tailor.",
+    kind: Armor((
+        kind: Belt("Silken"),
+        stats: (
+            protection: Normal(2.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

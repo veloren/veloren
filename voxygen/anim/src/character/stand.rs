@@ -49,16 +49,16 @@ impl Animation for StandAnimation {
         next.shoulder_r.scale = Vec3::one() * 1.1;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + slow * 0.3);
-        next.head.orientation = Quaternion::rotation_z(head_look.x)
+        next.head.orientation = Quaternion::rotation_z(head_look.x*0.0)//remove later, either i'll remember or you're doing code review
             * Quaternion::rotation_x(impact * -0.02 + head_look.y.abs());
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + slow * 0.3 + impact * 0.2);
         next.chest.orientation =
-            Quaternion::rotation_z(head_look.x * 0.6) * Quaternion::rotation_x(impact * 0.04);
+            Quaternion::rotation_z(head_look.x * 0.6 * 0.0) * Quaternion::rotation_x(impact * 0.04);
 
         next.belt.position = Vec3::new(0.0, s_a.belt.0 + impact * 0.005, s_a.belt.1);
-        next.belt.orientation =
-            Quaternion::rotation_z(head_look.x * -0.1) * Quaternion::rotation_x(impact * -0.03);
+        next.belt.orientation = Quaternion::rotation_z(head_look.x * -0.1 * 0.0)
+            * Quaternion::rotation_x(impact * -0.03);
 
         next.back.position = Vec3::new(0.0, s_a.back.0, s_a.back.1);
 

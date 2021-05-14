@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Moonbell",
+    description: "It glistens brilliantly, but only under moonlight.",
+    kind: Ingredient(
+        kind: "Moonbell",
+    ),
+    quality: Common,
+    tags: [],
+)

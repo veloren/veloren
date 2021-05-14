@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Moonweave Shoulder Pad",
+    description: "The fabric dances silently, like moonlight.",
+    kind: Armor((
+        kind: Shoulder("Moonweave"),
+        stats: (
+            protection: Normal(15.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Bloodsteel Gauntlets",
+    description: "Forged to preserve life, at the cost of another.",
+    kind: Armor((
+        kind: Hand("Bloodsteel"),
+        stats: (
+            protection: Normal(10.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

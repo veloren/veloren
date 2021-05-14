@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Iron Belt",
+    description: "Sturdy and unyielding, across ages of war.",
+    kind: Armor((
+        kind: Belt("Iron"),
+        stats: (
+            protection: Normal(1.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Common,
+    tags: [],
+)

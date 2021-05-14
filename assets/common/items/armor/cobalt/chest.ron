@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Cobalt Cuirass",
+    description: "Ornamental and impenetrable, the metal will never dull.",
+    kind: Armor((
+        kind: Chest("Cobalt"),
+        stats: (
+            protection: Normal(25.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: High,
+    tags: [],
+)

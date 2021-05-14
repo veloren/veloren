@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Iron Chest",
+    description: "Sturdy and unyielding, across ages of war.",
+    kind: Armor((
+        kind: Chest("Iron"),
+        stats: (
+            protection: Normal(10.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Bloodsteel Cuirass",
+    description: "Forged to preserve life, at the cost of another.",
+    kind: Armor((
+        kind: Chest("Bloodsteel"),
+        stats: (
+            protection: Normal(25.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: High,
+    tags: [],
+)

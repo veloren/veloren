@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Sunsilk Boots",
+    description: "It radiates with the sun's power, and the grace to harness it.",
+    kind: Armor((
+        kind: Foot("Sunsilk"),
+        stats: (
+            protection: Normal(6.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Epic,
+    tags: [],
+)

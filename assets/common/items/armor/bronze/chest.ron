@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Bronze Chest",
+    description: "Heavy and dull, but it can take a punch.",
+    kind: Armor((
+        kind: Chest("Bronze"),
+        stats: (
+            protection: Normal(8.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

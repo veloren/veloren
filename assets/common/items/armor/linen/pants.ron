@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Linen Pantalons",
+    description: "Roughly stitched, but it seems to hold.",
+    kind: Armor((
+        kind: Pants("Linen"),
+        stats: (
+            protection: Normal(6.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

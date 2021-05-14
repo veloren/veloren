@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Bloodsteel Chausses",
+    description: "Forged to preserve life, at the cost of another.",
+    kind: Armor((
+        kind: Pants("Bloodsteel"),
+        stats: (
+            protection: Normal(20.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

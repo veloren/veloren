@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Woolen Chest",
+    description: "Thick and ready for the snow.",
+    kind: Armor((
+        kind: Chest("Woolen"),
+        stats: (
+            protection: Normal(10.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

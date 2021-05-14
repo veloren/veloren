@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Sunsilk cape",
+    description: "It radiates with the sun's power, and the grace to harness it.",
+    kind: Armor((
+        kind: Back("Sunsilk"),
+        stats: (
+            protection: Normal(4.0),
+            poise_resilience: Normal(0.2),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

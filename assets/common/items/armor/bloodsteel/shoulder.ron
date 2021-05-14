@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Bloodsteel Shoulder Pad",
+    description: "Forged to preserve life, at the cost of another.",
+    kind: Armor((
+        kind: Shoulder("Bloodsteel"),
+        stats: (
+            protection: Normal(15.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

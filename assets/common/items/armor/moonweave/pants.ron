@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Moonweave Chausses",
+    description: "The fabric dances silently, like moonlight.",
+    kind: Armor((
+        kind: Pants("Moonweave"),
+        stats: (
+            protection: Normal(20.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

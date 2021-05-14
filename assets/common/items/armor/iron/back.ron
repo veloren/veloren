@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Iron Cape",
+    description: "Sturdy and unyielding, across ages of war.",
+    kind: Armor((
+        kind: Back("Iron"),
+        stats: (
+            protection: Normal(0.2),
+            poise_resilience: Normal(0.1),
+        ),
+    )),
+    quality: Common,
+    tags: [],
+)

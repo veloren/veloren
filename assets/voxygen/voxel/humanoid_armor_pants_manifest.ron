@@ -76,10 +76,6 @@
             vox_spec: ("armor.cultist.pants", (-5.0, -3.5, 1.0)),
             color: Some((30, 0, 64))
         ),
-        "Steel": (
-            vox_spec: ("armor.steel.pants", (-6.0, -4.5, 1.0)),
-            color: None
-        ),
         "LeatherPlate": (
             vox_spec: ("armor.leather_plate.pants", (-5.0, -4.5, 1.0)),
             color: None
@@ -146,6 +142,54 @@
         ),
         "Savage": (
             vox_spec: ("armor.savage.pants", (-5.0, -4.0, 0.5)),
+            color: None
+        ),
+        "Linen": (
+            vox_spec: ("armor.linen.pants", (-5.0, -4.0, 0.5)),
+            color: None
+        ),
+        "Woolen": (
+            vox_spec: ("armor.woolen.pants", (-6.0, -5.0, 0.5)),
+            color: None
+        ),
+        "Silken": (
+            vox_spec: ("armor.silken.pants", (-5.0, -4.0, 0.5)),
+            color: None
+        ),
+        "Lifecloth": (
+            vox_spec: ("armor.lifecloth.pants", (-5.0, -4.0, 0.5)),
+            color: None
+        ),
+        "Moonweave": (
+            vox_spec: ("armor.moonweave.pants", (-6.0, -5.5, 0.5)),
+            color: None
+        ),
+        "Sunsilk": (
+            vox_spec: ("armor.sunsilk.pants", (-6.0, -5.0, 0.5)),
+            color: None
+        ),
+        "Bronze": (
+            vox_spec: ("armor.bronze.pants", (-5.0, -4.0, 1.0)),
+            color: None
+        ),
+        "Iron": (
+            vox_spec: ("armor.iron.pants", (-5.0, -4.0, 1.5)),
+            color: None
+        ),
+        "Steel": (
+            vox_spec: ("armor.steel.pants", (-6.0, -4.0, 0.0)),
+            color: None
+        ),
+        "Cobalt": (
+            vox_spec: ("armor.cobalt.pants", (-6.0, -5.0, 0.5)),
+            color: None
+        ),
+        "Bloodsteel": (
+            vox_spec: ("armor.bloodsteel.pants", (-6.5, -4.0, 0.5)),
+            color: None
+        ),
+        "Orichalcum": (
+            vox_spec: ("armor.orichalcum.pants", (-6.0, -4.0, 0.5)),
             color: None
         ),
     },

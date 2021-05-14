@@ -48,10 +48,6 @@
             vox_spec: ("armor.cultist.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "Steel": (
-            vox_spec: ("armor.steel.foot", (-2.5, -3.5, -2.0)),
-            color: None
-        ),
         "LeatherPlate": (
             vox_spec: ("armor.leather_plate.foot", (-2.5, -3.5, -2.0)),
             color: None
@@ -118,6 +114,54 @@
         ),
         "Savage": (
           vox_spec: ("armor.savage.foot", (-2.5, -3.5, -2.0)),
+          color: None
+        ),
+        "Linen": (
+          vox_spec: ("armor.linen.foot", (-2.5, -3.5, -2.0)),
+          color: None
+        ),
+        "Woolen": (
+          vox_spec: ("armor.woolen.foot", (-2.5, -3.5, -2.0)),
+          color: None
+        ),
+        "Silken": (
+          vox_spec: ("armor.silken.foot", (-2.5, -3.5, -2.0)),
+          color: None
+        ),
+        "Lifecloth": (
+          vox_spec: ("armor.lifecloth.foot", (-2.5, -3.5, -2.0)),
+          color: None
+        ),
+        "Moonweave": (
+          vox_spec: ("armor.moonweave.foot", (-2.5, -3.5, -2.0)),
+          color: None
+        ),
+        "Sunsilk": (
+          vox_spec: ("armor.sunsilk.foot", (-2.5, -3.5, -2.0)),
+          color: None
+        ),
+        "Bronze": (
+          vox_spec: ("armor.bronze.foot", (-2.5, -3.5, -2.0)),
+          color: None
+        ),
+        "Iron": (
+          vox_spec: ("armor.iron.foot", (-2.5, -3.5, -2.0)),
+          color: None
+        ),
+        "Steel": (
+          vox_spec: ("armor.steel.foot", (-2.5, -3.5, -2.0)),
+          color: None
+        ),
+        "Cobalt": (
+          vox_spec: ("armor.cobalt.foot", (-2.5, -3.5, -2.0)),
+          color: None
+        ),
+        "Bloodsteel": (
+          vox_spec: ("armor.bloodsteel.foot", (-2.5, -3.5, -2.0)),
+          color: None
+        ),
+        "Orichalcum": (
+          vox_spec: ("armor.orichalcum.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
     },
