@@ -349,20 +349,6 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                             .write_storage()
                                             .insert(tameable_entity, comp::Alignment::Owned(uid));
 
-                                        // Make entity mountable if its Body is QuadrupedMedium
-                                        // TODO: Make mounting better so that all entities can be
-                                        // mounted?
-                                        if let Some(comp::Body::QuadrupedMedium(_)) = state
-                                            .ecs()
-                                            .read_storage::<comp::Body>()
-                                            .get(tameable_entity)
-                                        {
-                                            let _ = state.ecs().write_storage().insert(
-                                                tameable_entity,
-                                                comp::MountState::Unmounted,
-                                            );
-                                        }
-
                                         // Add to group system
                                         let clients = state.ecs().read_storage::<Client>();
                                         let uids = state.ecs().read_storage::<Uid>();

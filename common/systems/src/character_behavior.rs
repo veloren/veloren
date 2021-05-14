@@ -315,9 +315,6 @@ impl<'a> System<'a> for Sys {
                     CharacterState::Sit => {
                         states::sit::Data::handle_event(&states::sit::Data, &j, action)
                     },
-                    CharacterState::Mount => {
-                        states::mount::Data::handle_event(&states::mount::Data, &j, action)
-                    },
                     CharacterState::Dance => {
                         states::dance::Data::handle_event(&states::dance::Data, &j, action)
                     },
@@ -355,9 +352,9 @@ impl<'a> System<'a> for Sys {
             // If mounted, character state is controlled by mount
             // TODO: Make mounting a state
             if let Some(Mounting(_)) = read_data.mountings.get(entity) {
-                let mount_state = CharacterState::Mount {};
-                if join_struct.char_state.get_unchecked() != &mount_state {
-                    *join_struct.char_state.get_mut_unchecked() = mount_state;
+                let sit_state = CharacterState::Sit {};
+                if join_struct.char_state.get_unchecked() != &sit_state {
+                    *join_struct.char_state.get_mut_unchecked() = sit_state;
                 }
                 continue;
             }
@@ -377,7 +374,6 @@ impl<'a> System<'a> for Sys {
                 CharacterState::GlideWield => states::glide_wield::Data.behavior(&j),
                 CharacterState::Stunned(data) => data.behavior(&j),
                 CharacterState::Sit => states::sit::Data::behavior(&states::sit::Data, &j),
-                CharacterState::Mount => states::mount::Data::behavior(&states::mount::Data, &j),
                 CharacterState::Dance => states::dance::Data::behavior(&states::dance::Data, &j),
                 CharacterState::Sneak => states::sneak::Data::behavior(&states::sneak::Data, &j),
                 CharacterState::BasicBlock(data) => data.behavior(&j),

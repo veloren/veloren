@@ -29,7 +29,7 @@ pub use self::{
     stunned::StunnedAnimation, summon::SummonAnimation, wield::WieldAnimation,
 };
 
-use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 use common::comp::{self};
 use core::convert::TryFrom;
 
@@ -77,7 +77,7 @@ impl Skeleton for BipedLargeSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> Offsets {
+    ) -> Vec3<f32> {
         let upper_torso = Mat4::<f32>::from(self.upper_torso);
 
         let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
@@ -124,10 +124,7 @@ impl Skeleton for BipedLargeSkeleton {
             // FIXME: Should this be control_l_mat?
             make_bone(upper_torso_mat * control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
         ];
-        Offsets {
-            lantern: Vec3::default(),
-            mount_bone: self.torso,
-        }
+        Vec3::default()
     }
 }
 

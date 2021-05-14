@@ -659,49 +659,8 @@ impl Body {
         )
     }
 
-    // Physical offset relative to the mountee
     pub fn mounting_offset(&self) -> Vec3<f32> {
         match self {
-            Body::QuadrupedMedium(quadruped_medium) => {
-                match (quadruped_medium.species, quadruped_medium.body_type) {
-                    (quadruped_medium::Species::Grolgar, _) => Vec3::from([0.5, 0.5, 1.8]),
-                    (quadruped_medium::Species::Saber, _) => Vec3::from([0.3, 0.3, 1.3]),
-                    (quadruped_medium::Species::Tiger, _) => Vec3::from([0.2, 0.2, 1.4]),
-                    (quadruped_medium::Species::Tuskram, _) => Vec3::from([-0.5, -0.5, 1.5]),
-                    (quadruped_medium::Species::Lion, _) => Vec3::from([0.3, 0.3, 1.5]),
-                    (quadruped_medium::Species::Tarasque, _) => Vec3::from([0.6, 0.6, 2.0]),
-                    (quadruped_medium::Species::Wolf, _) => Vec3::from([0.5, 0.5, 1.3]),
-                    (quadruped_medium::Species::Frostfang, _) => Vec3::from([0.5, 0.5, 1.2]),
-                    (quadruped_medium::Species::Mouflon, _) => Vec3::from([0.3, 0.3, 1.2]),
-                    (quadruped_medium::Species::Catoblepas, _) => Vec3::from([0.0, 0.0, 2.0]),
-                    (quadruped_medium::Species::Bonerattler, _) => Vec3::from([0.5, 0.5, 1.2]),
-                    (quadruped_medium::Species::Deer, _) => Vec3::from([0.2, 0.2, 1.3]),
-                    (quadruped_medium::Species::Hirdrasil, _) => Vec3::from([0.0, 0.0, 1.4]),
-                    (quadruped_medium::Species::Roshwalr, _) => Vec3::from([0.5, 0.5, 1.8]),
-                    (quadruped_medium::Species::Donkey, _) => Vec3::from([0.5, 0.5, 1.5]),
-                    (quadruped_medium::Species::Camel, _) => Vec3::from([-0.1, -0.1, 2.8]),
-                    (quadruped_medium::Species::Zebra, _) => Vec3::from([0.5, 0.5, 1.8]),
-                    (quadruped_medium::Species::Antelope, _) => Vec3::from([0.3, 0.3, 1.4]),
-                    (quadruped_medium::Species::Kelpie, _) => Vec3::from([0.5, 0.5, 1.9]),
-                    (quadruped_medium::Species::Horse, _) => Vec3::from([0.0, 0.0, 2.0]),
-                    (quadruped_medium::Species::Barghest, _) => Vec3::from([0.5, 0.5, 2.2]),
-                    (quadruped_medium::Species::Cattle, quadruped_medium::BodyType::Male) => {
-                        Vec3::from([0.5, 0.5, 2.6])
-                    },
-                    (quadruped_medium::Species::Cattle, quadruped_medium::BodyType::Female) => {
-                        Vec3::from([0.7, 0.7, 2.2])
-                    },
-                    (quadruped_medium::Species::Darkhound, _) => Vec3::from([0.5, 0.5, 1.4]),
-                    (quadruped_medium::Species::Highland, _) => Vec3::from([0.5, 0.5, 2.3]),
-                    (quadruped_medium::Species::Yak, _) => Vec3::from([0.0, 0.0, 3.0]),
-                    (quadruped_medium::Species::Panda, _) => Vec3::from([-0.2, -0.2, 1.4]),
-                    (quadruped_medium::Species::Bear, _) => Vec3::from([-0.4, -0.4, 2.5]),
-                    (quadruped_medium::Species::Dreadhorn, _) => Vec3::from([0.2, 0.2, 3.5]),
-                    (quadruped_medium::Species::Moose, _) => Vec3::from([-0.6, -0.6, 2.1]),
-                    (quadruped_medium::Species::Snowleopard, _) => Vec3::from([-0.5, -0.5, 1.4]),
-                }
-            },
-
             Body::Ship(ship::Body::DefaultAirship) => Vec3::from([0.0, 0.0, 10.0]),
             _ => Vec3::unit_z(),
         }
