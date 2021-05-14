@@ -2,14 +2,14 @@ use super::SessionState;
 use crate::{
     controller::ControllerSettings,
     hud::{
-        BarNumbers, BuffPosition, CrosshairType, Intro, PressBehavior, ScaleChange,
+        BarNumbers, BuffPosition, ChatTab, CrosshairType, Intro, PressBehavior, ScaleChange,
         ShortcutNumbers, XpBar,
     },
     i18n::{LanguageMetadata, LocalizationHandle},
     render::RenderMode,
     settings::{
-        AudioSettings, ControlSettings, Fps, GamepadSettings, GameplaySettings, GraphicsSettings,
-        InterfaceSettings,
+        AudioSettings, ChatSettings, ControlSettings, Fps, GamepadSettings, GameplaySettings,
+        GraphicsSettings, InterfaceSettings,
     },
     window::{FullScreenSettings, GameInput},
     GlobalState,
@@ -24,6 +24,17 @@ pub enum Audio {
     AdjustSfxVolume(f32),
     //ChangeAudioDevice(String),
     ResetAudioSettings,
+}
+#[derive(Clone)]
+pub enum Chat {
+    Transp(f32),
+    CharName(bool),
+    ChangeChatTab(Option<usize>),
+    ChatTabUpdate(usize, ChatTab),
+    ChatTabInsert(usize, ChatTab),
+    ChatTabMove(usize, usize), //(i, j) move item from position i, and insert into position j
+    ChatTabRemove(usize),
+    ResetChatSettings,
 }
 #[derive(Clone)]
 pub enum Control {
@@ -88,8 +99,6 @@ pub enum Interface {
     ToggleTips(bool),
 
     CrosshairTransp(f32),
-    ChatTransp(f32),
-    ChatCharName(bool),
     CrosshairType(CrosshairType),
     Intro(Intro),
     ToggleXpBar(XpBar),
@@ -127,6 +136,7 @@ pub enum Networking {}
 #[derive(Clone)]
 pub enum SettingsChange {
     Audio(Audio),
+    Chat(Chat),
     Control(Control),
     Gamepad(Gamepad),
     Gameplay(Gameplay),
@@ -144,6 +154,7 @@ macro_rules! settings_change_from {
     };
 }
 settings_change_from!(Audio);
+settings_change_from!(Chat);
 settings_change_from!(Control);
 settings_change_from!(Gamepad);
 settings_change_from!(Gameplay);
@@ -186,6 +197,46 @@ impl SettingsChange {
                         let audio = &settings.audio;
                         global_state.audio.set_music_volume(audio.music_volume);
                         global_state.audio.set_sfx_volume(audio.sfx_volume);
+                    },
+                }
+                settings.save_to_file_warn();
+            },
+            SettingsChange::Chat(chat_change) => {
+                let chat_tabs = &mut settings.chat.chat_tabs;
+                match chat_change {
+                    Chat::Transp(chat_transp) => {
+                        settings.chat.chat_transp = chat_transp;
+                    },
+                    Chat::CharName(chat_char_name) => {
+                        settings.chat.chat_character_name = chat_char_name;
+                    },
+                    Chat::ChangeChatTab(chat_tab_index) => {
+                        settings.chat.chat_tab_index =
+                            chat_tab_index.filter(|i| *i < chat_tabs.len());
+                    },
+                    Chat::ChatTabUpdate(i, chat_tab) => {
+                        if i < chat_tabs.len() {
+                            chat_tabs[i] = chat_tab;
+                        }
+                    },
+                    Chat::ChatTabInsert(i, chat_tab) => {
+                        if i <= chat_tabs.len() {
+                            settings.chat.chat_tabs.insert(i, chat_tab);
+                        }
+                    },
+                    Chat::ChatTabMove(i, j) => {
+                        if i < chat_tabs.len() && j < chat_tabs.len() {
+                            let chat_tab = settings.chat.chat_tabs.remove(i);
+                            settings.chat.chat_tabs.insert(j, chat_tab);
+                        }
+                    },
+                    Chat::ChatTabRemove(i) => {
+                        if i < chat_tabs.len() {
+                            settings.chat.chat_tabs.remove(i);
+                        }
+                    },
+                    Chat::ResetChatSettings => {
+                        settings.chat = ChatSettings::default();
                     },
                 }
                 settings.save_to_file_warn();
@@ -399,12 +450,6 @@ impl SettingsChange {
                     },
                     Interface::CrosshairTransp(crosshair_transp) => {
                         settings.interface.crosshair_transp = crosshair_transp;
-                    },
-                    Interface::ChatTransp(chat_transp) => {
-                        settings.interface.chat_transp = chat_transp;
-                    },
-                    Interface::ChatCharName(chat_char_name) => {
-                        settings.interface.chat_character_name = chat_char_name;
                     },
                     Interface::CrosshairType(crosshair_type) => {
                         settings.interface.crosshair_type = crosshair_type;

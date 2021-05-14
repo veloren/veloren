@@ -3,6 +3,9 @@
 /// Localization for "global" English
 (
     string_map: {
+        "hud.chat.all": "All",
+        "hud.chat.chat_tab_hover_tooltip": "Right click for settings",
+
         // Debuff outcomes
         "hud.outcome.burning": "died of: burning",
         "hud.outcome.curse": "died of: curse",

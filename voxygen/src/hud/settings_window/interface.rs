@@ -66,12 +66,6 @@ widget_ids! {
         buff_pos_map_button,
         buff_pos_map_text,
         //
-        chat_transp_title,
-        chat_transp_text,
-        chat_transp_slider,
-        chat_char_name_text,
-        chat_char_name_button,
-        //
         sct_title,
         sct_show_text,
         sct_show_radio,
@@ -164,7 +158,6 @@ impl<'a> Widget for Interface<'a> {
         let crosshair_transp = self.global_state.settings.interface.crosshair_transp;
         let crosshair_type = self.global_state.settings.interface.crosshair_type;
         let ui_scale = self.global_state.settings.interface.ui_scale;
-        let chat_transp = self.global_state.settings.interface.chat_transp;
 
         Text::new(&self.localized_strings.get("hud.settings.general"))
             .top_left_with_margins_on(state.ids.window, 5.0, 5.0)
@@ -941,70 +934,6 @@ impl<'a> Widget for Interface<'a> {
             .graphics_for(state.ids.show_bar_numbers_percentage_button)
             .color(TEXT_COLOR)
             .set(state.ids.show_bar_numbers_percentage_text, ui);
-
-        // Chat Transp
-        Text::new(&self.localized_strings.get("hud.settings.chat"))
-            .down_from(state.ids.show_bar_numbers_percentage_button, 20.0)
-            .font_size(self.fonts.cyri.scale(18))
-            .font_id(self.fonts.cyri.conrod_id)
-            .color(TEXT_COLOR)
-            .set(state.ids.chat_transp_title, ui);
-        Text::new(
-            &self
-                .localized_strings
-                .get("hud.settings.background_transparency"),
-        )
-        .right_from(state.ids.chat_transp_slider, 20.0)
-        .font_size(self.fonts.cyri.scale(14))
-        .font_id(self.fonts.cyri.conrod_id)
-        .color(TEXT_COLOR)
-        .set(state.ids.chat_transp_text, ui);
-
-        if let Some(new_val) = ImageSlider::continuous(
-            chat_transp,
-            0.0,
-            0.9,
-            self.imgs.slider_indicator,
-            self.imgs.slider,
-        )
-        .w_h(104.0, 22.0)
-        .down_from(state.ids.chat_transp_title, 8.0)
-        .track_breadth(12.0)
-        .slider_length(10.0)
-        .pad_track((5.0, 5.0))
-        .set(state.ids.chat_transp_slider, ui)
-        {
-            events.push(ChatTransp(new_val));
-        }
-
-        // "Show character names in chat" toggle button
-        let chat_char_name = ToggleButton::new(
-            self.global_state.settings.interface.chat_character_name,
-            self.imgs.checkbox,
-            self.imgs.checkbox_checked,
-        )
-        .w_h(18.0, 18.0)
-        .down_from(state.ids.chat_transp_slider, 20.0)
-        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
-        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
-        .set(state.ids.chat_char_name_button, ui);
-        if self.global_state.settings.interface.chat_character_name != chat_char_name {
-            events.push(ChatCharName(
-                !self.global_state.settings.interface.chat_character_name,
-            ));
-        }
-        Text::new(
-            &self
-                .localized_strings
-                .get("hud.settings.chat_character_name"),
-        )
-        .right_from(state.ids.chat_char_name_button, 20.0)
-        .font_size(self.fonts.cyri.scale(14))
-        .font_id(self.fonts.cyri.conrod_id)
-        .color(TEXT_COLOR)
-        .set(state.ids.chat_char_name_text, ui);
-
-        // TODO Show account name in chat
 
         // Reset the interface settings to the default settings
         if Button::image(self.imgs.button)

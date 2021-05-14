@@ -107,6 +107,23 @@
         "hud.settings.awaitingkey": "Press a key...",
         "hud.settings.unbound": "None",
         "hud.settings.reset_keybinds": "Reset to Defaults",
+
+        "hud.settings.chat_tabs": "Chat Tabs",
+        "hud.settings.label": "Label:",
+        "hud.settings.delete": "Delete",
+        "hud.settings.show_all": "Show all",
+        "hud.settings.messages": "Messages",
+        "hud.settings.activity": "Activity",
+        "hud.settings.death": "Death",
+        "hud.settings.group": "Group",
+        "hud.settings.faction": "Faction",
+        "hud.settings.world": "World",
+        "hud.settings.region": "Region",
+        "hud.settings.say": "Say",
+        "hud.settings.none": "None",
+        "hud.settings.all": "All",
+        "hud.settings.group_only": "Group only",
+        "hud.settings.reset_chat" : "Reset to Defaults",
     },
 
 

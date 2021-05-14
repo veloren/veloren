@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - /skill_preset command which allows you to apply skill presets
 - Added timed bans and ban history.
 - Added non-admin moderators with limit privileges and updated the security model to reflect this.
+- Chat tabs
 
 ### Changed
 
