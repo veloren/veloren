@@ -52,7 +52,7 @@ pub struct VoxelMinimap {
     keyed_jobs: KeyedJobs<Vec2<i32>, MinimapColumn>,
 }
 
-const VOXEL_MINIMAP_SIDELENGTH: u32 = 512;
+const VOXEL_MINIMAP_SIDELENGTH: u32 = 256;
 impl VoxelMinimap {
     pub fn new(ui: &mut Ui) -> Self {
         let mut composited = RgbaImage::new(VOXEL_MINIMAP_SIDELENGTH, VOXEL_MINIMAP_SIDELENGTH);
@@ -394,8 +394,7 @@ impl<'a> Widget for MiniMap<'a> {
         let show_minimap = self.global_state.settings.interface.minimap_show;
         let is_facing_north = self.global_state.settings.interface.minimap_face_north;
         let show_topo_map = self.global_state.settings.interface.map_show_topo_map;
-        //let show_voxel_map = self.global_state.settings.interface.map_show_voxel_map;
-        let show_voxel_map = true;
+        let show_voxel_map = self.global_state.settings.interface.map_show_voxel_map;
         let orientation = if is_facing_north {
             Vec3::new(0.0, 1.0, 0.0)
         } else {
@@ -563,7 +562,7 @@ impl<'a> Widget for MiniMap<'a> {
                 } else {
                     self.voxel_minimap.image_id.source_north
                 };
-                let scaling = (VOXEL_MINIMAP_SIDELENGTH as f64 / 32.0) * max_zoom / zoom;
+                let scaling = 32.0 * max_zoom / zoom;
                 let cmod: Vec2<f64> = (player_pos.xy() % 32.0).as_();
                 let rect_src = position::Rect::from_xy_dim(
                     [
