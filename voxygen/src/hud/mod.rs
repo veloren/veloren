@@ -960,7 +960,9 @@ impl Hud {
     ) -> Vec<Event> {
         span!(_guard, "update_layout", "Hud::update_layout");
         let mut events = core::mem::take(&mut self.events);
-        self.voxel_minimap.maintain(&client, &mut self.ui);
+        if global_state.settings.interface.map_show_voxel_map {
+            self.voxel_minimap.maintain(&client, &mut self.ui);
+        }
         let (ref mut ui_widgets, ref mut item_tooltip_manager, ref mut tooltip_manager) =
             &mut self.ui.set_widgets();
         // self.ui.set_item_widgets(); pulse time for pulsating elements
