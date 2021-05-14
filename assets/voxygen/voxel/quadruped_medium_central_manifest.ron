@@ -159,7 +159,7 @@
             central: ("npc.tuskram.male.neck"),
         ),
         jaw: (
-            offset: (-5.0, 0.0, -8.0),
+            offset: (-5.0, 0.0, -1.5),
             central: ("npc.tuskram.male.jaw"),
         ),
         torso_front: (

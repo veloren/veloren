@@ -11,7 +11,7 @@ pub use self::{
     jump::JumpAnimation, run::RunAnimation,
 };
 
-use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 use common::comp::{self};
 use core::convert::TryFrom;
 
@@ -47,7 +47,7 @@ impl Skeleton for TheropodSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> Offsets {
+    ) -> Vec3<f32> {
         let chest_front_mat = base_mat * Mat4::<f32>::from(self.chest_front);
         let neck_mat = chest_front_mat * Mat4::<f32>::from(self.neck);
         let head_mat = neck_mat * Mat4::<f32>::from(self.head);
@@ -71,10 +71,7 @@ impl Skeleton for TheropodSkeleton {
             make_bone(leg_l_mat * Mat4::<f32>::from(self.foot_l)),
             make_bone(leg_r_mat * Mat4::<f32>::from(self.foot_r)),
         ];
-        Offsets {
-            lantern: Vec3::default(),
-            mount_bone: self.chest_front,
-        }
+        Vec3::default()
     }
 }
 

@@ -12,7 +12,6 @@ pub mod gliding;
 pub mod idle;
 pub mod jump;
 pub mod leapmelee;
-pub mod mount;
 pub mod repeater;
 pub mod roll;
 pub mod run;
@@ -36,13 +35,13 @@ pub use self::{
     chargeswing::ChargeswingAnimation, climb::ClimbAnimation, dance::DanceAnimation,
     dash::DashAnimation, equip::EquipAnimation, glidewield::GlideWieldAnimation,
     gliding::GlidingAnimation, idle::IdleAnimation, jump::JumpAnimation, leapmelee::LeapAnimation,
-    mount::MountAnimation, repeater::RepeaterAnimation, roll::RollAnimation, run::RunAnimation,
+    repeater::RepeaterAnimation, roll::RollAnimation, run::RunAnimation,
     shockwave::ShockwaveAnimation, shoot::ShootAnimation, sit::SitAnimation, sneak::SneakAnimation,
     spin::SpinAnimation, spinmelee::SpinMeleeAnimation, staggered::StaggeredAnimation,
     stand::StandAnimation, stunned::StunnedAnimation, swim::SwimAnimation,
     swimwield::SwimWieldAnimation, talk::TalkAnimation, wield::WieldAnimation,
 };
-use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 use common::comp;
 use core::convert::TryFrom;
 use std::f32::consts::PI;
@@ -72,20 +71,12 @@ skeleton_impls!(struct CharacterSkeleton {
     control_r,
     :: // Begin non-bone fields
     holding_lantern: bool,
-    offsets: Option<Transform<f32, f32, f32>>,
-    mountee_body: Option<comp::Body>,
 });
 
 impl CharacterSkeleton {
-    pub fn new(
-        holding_lantern: bool,
-        offsets: Option<Transform<f32, f32, f32>>,
-        mountee_body: Option<comp::Body>,
-    ) -> Self {
+    pub fn new(holding_lantern: bool) -> Self {
         Self {
             holding_lantern,
-            offsets,
-            mountee_body,
             ..Self::default()
         }
     }
@@ -105,22 +96,8 @@ impl Skeleton for CharacterSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> Offsets {
-        let mut torso_mat = base_mat * Mat4::<f32>::from(self.torso);
-        if let Some(offset) = self.offsets {
-            if let Some(body) = self.mountee_body {
-                let hitbox_offsets = body.mounting_offset();
-                let visual_offset = mounting_offset(body);
-                torso_mat = base_mat
-                    * Mat4::<f32>::from(Transform {
-                        position: offset.position
-                            - Vec3::from([0.0, hitbox_offsets.y, hitbox_offsets.z]),
-                        orientation: offset.orientation,
-                        scale: Vec3::<f32>::one(),
-                    })
-                    * Mat4::<f32>::from(self.torso).translated_3d(visual_offset);
-            }
-        }
+    ) -> Vec3<f32> {
+        let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
         let chest_mat = torso_mat * Mat4::<f32>::from(self.chest);
         let head_mat = chest_mat * Mat4::<f32>::from(self.head);
         let shorts_mat = chest_mat * Mat4::<f32>::from(self.shorts);
@@ -155,10 +132,7 @@ impl Skeleton for CharacterSkeleton {
             // FIXME: Should this be control_l_mat?
             make_bone(control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
         ];
-        Offsets {
-            lantern: (lantern_mat * Vec4::new(0.0, 0.0, -4.0, 1.0)).xyz(),
-            mount_bone: self.chest,
-        }
+        (lantern_mat * Vec4::new(0.0, 0.0, -4.0, 1.0)).xyz()
     }
 }
 
@@ -353,55 +327,5 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 _ => (-5.0, 9.0, 1.0, 0.0, 1.2, -0.6),
             },
         }
-    }
-}
-
-pub fn mounting_offset(body: comp::Body) -> Vec3<f32> {
-    match body {
-        comp::Body::QuadrupedMedium(quadruped_medium) => {
-            match (quadruped_medium.species, quadruped_medium.body_type) {
-                (comp::quadruped_medium::Species::Grolgar, _) => Vec3::from([0.0, -0.6, 0.5]),
-                (comp::quadruped_medium::Species::Saber, _) => Vec3::from([0.0, -0.75, 0.23]),
-                (comp::quadruped_medium::Species::Tiger, _) => Vec3::from([0.0, -0.75, 0.23]),
-                (comp::quadruped_medium::Species::Tuskram, _) => Vec3::from([0.0, -0.75, 0.25]),
-                (comp::quadruped_medium::Species::Lion, _) => Vec3::from([0.0, -0.9, 0.25]),
-                (comp::quadruped_medium::Species::Tarasque, _) => Vec3::from([0.0, -1.1, 0.3]),
-                (comp::quadruped_medium::Species::Wolf, _) => Vec3::from([0.0, -0.7, 0.15]),
-                (comp::quadruped_medium::Species::Frostfang, _) => Vec3::from([0.0, -0.8, 0.1]),
-                (comp::quadruped_medium::Species::Mouflon, _) => Vec3::from([0.0, -0.8, 0.1]),
-                (comp::quadruped_medium::Species::Catoblepas, _) => Vec3::from([0.0, -0.4, 0.4]),
-                (comp::quadruped_medium::Species::Bonerattler, _) => Vec3::from([0.0, -0.3, 0.2]),
-                (comp::quadruped_medium::Species::Deer, _) => Vec3::from([0.0, -0.9, 0.1]),
-                (comp::quadruped_medium::Species::Hirdrasil, _) => Vec3::from([0.0, -1.0, 0.0]),
-                (comp::quadruped_medium::Species::Roshwalr, _) => Vec3::from([0.0, -0.2, 0.7]),
-                (comp::quadruped_medium::Species::Donkey, _) => Vec3::from([0.0, -0.5, 0.15]),
-                (comp::quadruped_medium::Species::Camel, _) => Vec3::from([0.0, -1.4, 0.3]),
-                (comp::quadruped_medium::Species::Zebra, _) => Vec3::from([0.0, -0.6, 0.1]),
-                (comp::quadruped_medium::Species::Antelope, _) => Vec3::from([0.0, -0.8, 0.1]),
-                (comp::quadruped_medium::Species::Kelpie, _) => Vec3::from([0.0, -0.8, 0.05]),
-                (comp::quadruped_medium::Species::Horse, _) => Vec3::from([0.0, -0.8, 0.1]),
-                (comp::quadruped_medium::Species::Barghest, _) => Vec3::from([0.0, -0.8, 0.6]),
-                (
-                    comp::quadruped_medium::Species::Cattle,
-                    comp::quadruped_medium::BodyType::Male,
-                ) => Vec3::from([0.0, -0.4, 0.7]),
-                (
-                    comp::quadruped_medium::Species::Cattle,
-                    comp::quadruped_medium::BodyType::Female,
-                ) => Vec3::from([0.0, -0.3, 0.5]),
-                (comp::quadruped_medium::Species::Darkhound, _) => Vec3::from([0.0, -0.5, 0.2]),
-                (comp::quadruped_medium::Species::Highland, _) => Vec3::from([0.0, -0.2, 0.8]),
-                (comp::quadruped_medium::Species::Yak, _) => Vec3::from([0.0, -0.2, 0.8]),
-                (comp::quadruped_medium::Species::Panda, _) => Vec3::from([0.0, -0.8, 0.2]),
-                (comp::quadruped_medium::Species::Bear, _) => Vec3::from([0.0, -1.5, 0.6]),
-                (comp::quadruped_medium::Species::Dreadhorn, _) => Vec3::from([0.0, -1.5, 1.6]),
-                (comp::quadruped_medium::Species::Moose, _) => Vec3::from([0.0, -0.9, 0.3]),
-                (comp::quadruped_medium::Species::Snowleopard, _) => Vec3::from([0.0, -0.9, 0.2]),
-            }
-        },
-
-        comp::Body::Ship(comp::ship::Body::DefaultAirship) => Vec3::from([0.0, 0.0, 10.0]),
-        comp::Body::Dragon(_) => Vec3::from([0.0, -0.7, 6.4]),
-        _ => Vec3::unit_z(),
     }
 }

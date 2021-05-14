@@ -19,7 +19,6 @@ pub mod glide_wield;
 pub mod healing_beam;
 pub mod idle;
 pub mod leap_melee;
-pub mod mount;
 pub mod repeater_ranged;
 pub mod roll;
 pub mod self_buff;
