@@ -3,16 +3,18 @@ use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf};
 use tracing::warn;
 
-mod audio;
-mod control;
-mod gamepad;
-mod gameplay;
-mod graphics;
-mod interface;
-mod language;
-mod networking;
+pub mod audio;
+pub mod chat;
+pub mod control;
+pub mod gamepad;
+pub mod gameplay;
+pub mod graphics;
+pub mod interface;
+pub mod language;
+pub mod networking;
 
 pub use audio::{AudioOutput, AudioSettings};
+pub use chat::ChatSettings;
 pub use control::ControlSettings;
 pub use gamepad::GamepadSettings;
 pub use gameplay::GameplaySettings;
@@ -60,6 +62,7 @@ impl Default for Log {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Settings {
+    pub chat: ChatSettings,
     pub controls: ControlSettings,
     pub interface: InterfaceSettings,
     pub gameplay: GameplaySettings,
@@ -96,6 +99,7 @@ impl Default for Settings {
             .expect("Couldn't choose a place to store the screenshots");
 
         Settings {
+            chat: ChatSettings::default(),
             controls: ControlSettings::default(),
             interface: InterfaceSettings::default(),
             gameplay: GameplaySettings::default(),

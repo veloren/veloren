@@ -55,9 +55,10 @@ use crate::{
     render::{Consts, Globals, Renderer},
     scene::camera::{self, Camera},
     session::{
-        settings_change::{Interface as InterfaceChange, SettingsChange},
+        settings_change::{Chat as ChatChange, Interface as InterfaceChange, SettingsChange},
         Interactable,
     },
+    settings::chat::ChatFilter,
     ui::{
         fonts::Fonts, img_ids::Rotations, slot, slot::SlotKey, Graphic, Ingameable, ScaleMode, Ui,
     },
@@ -466,6 +467,19 @@ pub enum PressBehavior {
     #[serde(other)]
     Toggle = 0,
 }
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct ChatTab {
+    pub label: String,
+    pub filter: ChatFilter,
+}
+impl Default for ChatTab {
+    fn default() -> Self {
+        Self {
+            label: String::from("Chat"),
+            filter: ChatFilter::default(),
+        }
+    }
+}
 
 impl PressBehavior {
     pub fn update(&self, keystate: bool, setting: &mut bool, f: impl FnOnce(bool)) {
@@ -503,6 +517,7 @@ pub struct Show {
     open_windows: Windows,
     map: bool,
     ingame: bool,
+    chat_tab_settings_index: Option<usize>,
     settings_tab: SettingsTab,
     skilltreetab: SelectedSkillTree,
     crafting_tab: CraftingTab,
@@ -869,6 +884,7 @@ impl Hud {
                 diary: false,
                 group: false,
                 group_menu: false,
+                chat_tab_settings_index: None,
                 settings_tab: SettingsTab::Interface,
                 skilltreetab: SelectedSkillTree::General,
                 crafting_tab: CraftingTab::All,
@@ -2585,10 +2601,11 @@ impl Hud {
             .retain(|m| !matches!(m.chat_type, comp::ChatType::Npc(_, _)));
 
         // Chat box
-        match Chat::new(
+        for event in Chat::new(
             &mut self.new_messages,
             &client,
             global_state,
+            self.pulse,
             &self.imgs,
             &self.fonts,
             i18n,
@@ -2600,16 +2617,25 @@ impl Hud {
         .and_then(self.force_chat_cursor.take(), |c, pos| c.cursor_pos(pos))
         .set(self.ids.chat, ui_widgets)
         {
-            Some(chat::Event::TabCompletionStart(input)) => {
-                self.tab_complete = Some(input);
-            },
-            Some(chat::Event::SendMessage(message)) => {
-                events.push(Event::SendMessage(message));
-            },
-            Some(chat::Event::Focus(focus_id)) => {
-                self.to_focus = Some(Some(focus_id));
-            },
-            None => {},
+            match event {
+                chat::Event::TabCompletionStart(input) => {
+                    self.tab_complete = Some(input);
+                },
+                chat::Event::SendMessage(message) => {
+                    events.push(Event::SendMessage(message));
+                },
+                chat::Event::Focus(focus_id) => {
+                    self.to_focus = Some(Some(focus_id));
+                },
+                chat::Event::ChangeChatTab(tab) => {
+                    events.push(Event::SettingsChange(ChatChange::ChangeChatTab(tab).into()));
+                },
+                chat::Event::ShowChatTabSettings(tab) => {
+                    self.show.chat_tab_settings_index = Some(tab);
+                    self.show.settings_tab = SettingsTab::Chat;
+                    self.show.settings(true);
+                },
+            }
         }
 
         self.new_messages = VecDeque::new();
@@ -2643,6 +2669,9 @@ impl Hud {
                         self.force_ungrab = false;
 
                         self.show.settings(false)
+                    },
+                    settings_window::Event::ChangeChatSettingsTab(tab) => {
+                        self.show.chat_tab_settings_index = tab;
                     },
                     settings_window::Event::SettingsChange(settings_change) => {
                         match &settings_change {

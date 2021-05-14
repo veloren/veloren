@@ -1,15 +1,18 @@
 use super::{
-    img_ids::Imgs, ERROR_COLOR, FACTION_COLOR, GROUP_COLOR, INFO_COLOR, KILL_COLOR, LOOT_COLOR,
-    OFFLINE_COLOR, ONLINE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, WORLD_COLOR,
+    img_ids::Imgs, ChatTab, ERROR_COLOR, FACTION_COLOR, GROUP_COLOR, INFO_COLOR, KILL_COLOR,
+    LOOT_COLOR, OFFLINE_COLOR, ONLINE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR,
+    WORLD_COLOR,
 };
-use crate::{i18n::Localization, ui::fonts::Fonts, GlobalState};
+use crate::{i18n::Localization, settings::chat::MAX_CHAT_TABS, ui::fonts::Fonts, GlobalState};
 use client::{cmd, Client};
 use common::comp::{
     chat::{KillSource, KillType},
+    group::Role,
     BuffKind, ChatMode, ChatMsg, ChatType,
 };
 use common_net::msg::validate_chat_msg;
 use conrod_core::{
+    color,
     input::Key,
     position::Dimension,
     text::{
@@ -17,9 +20,10 @@ use conrod_core::{
         cursor::{self, Index},
     },
     widget::{self, Button, Id, Image, List, Rectangle, Text, TextEdit},
-    widget_ids, Color, Colorable, Positionable, Sizeable, Ui, UiCell, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Ui, UiCell, Widget,
+    WidgetCommon,
 };
-use std::collections::VecDeque;
+use std::collections::{HashSet, VecDeque};
 
 widget_ids! {
     struct Ids {
@@ -29,7 +33,15 @@ widget_ids! {
         chat_input_bg,
         chat_input_icon,
         chat_arrow,
+        chat_icon_align,
         chat_icons[],
+
+        chat_tab_align,
+        chat_tab_all,
+        chat_tab_selected,
+        chat_tabs[],
+        chat_tab_tooltip_bg,
+        chat_tab_tooltip_text,
     }
 }
 /*#[const_tweaker::tweak(min = 0.0, max = 60.0, step = 1.0)]
@@ -41,10 +53,14 @@ const CHAT_ICON_WIDTH: f64 = 16.0;
 const CHAT_ICON_HEIGHT: f64 = 16.0;
 const CHAT_BOX_WIDTH: f64 = 470.0;
 const CHAT_BOX_INPUT_WIDTH: f64 = 460.0 - CHAT_ICON_WIDTH - 1.0;
-const CHAT_BOX_HEIGHT: f64 = 174.0;
+const CHAT_BOX_HEIGHT: f64 = 154.0;
+
+const CHAT_TAB_HEIGHT: f64 = 20.0;
+const CHAT_TAB_ALL_WIDTH: f64 = 40.0;
 
 #[derive(WidgetCommon)]
 pub struct Chat<'a> {
+    pulse: f32,
     new_messages: &'a mut VecDeque<ChatMsg>,
     client: &'a Client,
     force_input: Option<String>,
@@ -69,11 +85,13 @@ impl<'a> Chat<'a> {
         new_messages: &'a mut VecDeque<ChatMsg>,
         client: &'a Client,
         global_state: &'a GlobalState,
+        pulse: f32,
         imgs: &'a Imgs,
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
     ) -> Self {
         Self {
+            pulse,
             new_messages,
             client,
             force_input: None,
@@ -142,16 +160,22 @@ pub struct State {
     completions_index: Option<usize>,
     // At which character is tab completion happening
     completion_cursor: Option<usize>,
+    // last time mouse has been hovered
+    tabs_last_hover_pulse: Option<f32>,
+    // last chat_tab (used to see if chat tab has been changed)
+    prev_chat_tab: Option<ChatTab>,
 }
 
 pub enum Event {
     TabCompletionStart(String),
     SendMessage(String),
     Focus(Id),
+    ChangeChatTab(Option<usize>),
+    ShowChatTabSettings(usize),
 }
 
 impl<'a> Widget for Chat<'a> {
-    type Event = Option<Event>;
+    type Event = Vec<Event>;
     type State = State;
     type Style = ();
 
@@ -168,6 +192,8 @@ impl<'a> Widget for Chat<'a> {
             completions_index: None,
             completion_cursor: None,
             ids: Ids::new(id_gen),
+            tabs_last_hover_pulse: None,
+            prev_chat_tab: None,
         }
     }
 
@@ -178,10 +204,21 @@ impl<'a> Widget for Chat<'a> {
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { id, state, ui, .. } = args;
-        let transp = self.global_state.settings.interface.chat_transp;
+
+        let mut events = Vec::new();
+
+        let chat_settings = &self.global_state.settings.chat;
+
+        let chat_tabs = &chat_settings.chat_tabs;
+        let current_chat_tab = chat_settings.chat_tab_index.and_then(|i| chat_tabs.get(i));
+
         // Maintain scrolling.
         if !self.new_messages.is_empty() {
             state.update(|s| s.messages.extend(self.new_messages.drain(..)));
+            ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
+        }
+        if current_chat_tab != state.prev_chat_tab.as_ref() {
+            state.update(|s| s.prev_chat_tab = current_chat_tab.cloned());
             ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
         }
 
@@ -322,7 +359,7 @@ impl<'a> Widget for Chat<'a> {
                 _ => 0.0,
             };
             Rectangle::fill([CHAT_BOX_WIDTH, y])
-                .rgba(0.0, 0.0, 0.0, transp + 0.1)
+                .rgba(0.0, 0.0, 0.0, chat_settings.chat_transp + 0.1)
                 .bottom_left_with_margins_on(ui.window, 10.0, 10.0)
                 .w(CHAT_BOX_WIDTH)
                 .set(state.ids.chat_input_bg, ui);
@@ -341,7 +378,7 @@ impl<'a> Widget for Chat<'a> {
 
         // Message box
         Rectangle::fill([CHAT_BOX_WIDTH, CHAT_BOX_HEIGHT])
-            .rgba(0.0, 0.0, 0.0, transp)
+            .rgba(0.0, 0.0, 0.0, chat_settings.chat_transp)
             .and(|r| {
                 if input_focused {
                     r.up_from(state.ids.chat_input_bg, 0.0)
@@ -351,11 +388,6 @@ impl<'a> Widget for Chat<'a> {
             })
             .crop_kids()
             .set(state.ids.message_box_bg, ui);
-        let (mut items, _) = List::flow_down(state.messages.len() + 1)
-            .top_left_with_margins_on(state.ids.message_box_bg, 0.0, 16.0)
-            .w_h(CHAT_BOX_WIDTH - 16.0, CHAT_BOX_HEIGHT)
-            .scroll_kids_vertically()
-            .set(state.ids.message_box, ui);
         if state.ids.chat_icons.len() < state.messages.len() {
             state.update(|s| {
                 s.ids
@@ -363,105 +395,70 @@ impl<'a> Widget for Chat<'a> {
                     .resize(s.messages.len(), &mut ui.widget_id_generator())
             });
         }
+        let group_members = self
+            .client
+            .group_members()
+            .iter()
+            .filter_map(|(u, r)| match r {
+                Role::Member => Some(u),
+                Role::Pet => None,
+            })
+            .collect::<HashSet<_>>();
+        let show_char_name = chat_settings.chat_character_name;
+        let messages = &state
+            .messages
+            .iter()
+            .map(|m| {
+                let mut message = m.clone();
+                if let Some(template_key) = get_chat_template_key(&message.chat_type) {
+                    message.message = self.localized_strings.get(template_key).to_string();
+                    if let ChatType::Kill(kill_source, _) = &message.chat_type {
+                        match kill_source {
+                            KillSource::Player(_, KillType::Buff(buffkind))
+                            | KillSource::NonExistent(KillType::Buff(buffkind))
+                            | KillSource::NonPlayer(_, KillType::Buff(buffkind)) => {
+                                message.message = insert_killing_buff(
+                                    *buffkind,
+                                    self.localized_strings,
+                                    &message.message,
+                                );
+                            },
+                            _ => {},
+                        }
+                    }
+                }
+                message.message = self.client.format_message(&message, show_char_name);
+                message
+            })
+            .filter(|m| {
+                if let Some(chat_tab) = current_chat_tab {
+                    chat_tab.filter.satisfies(&m, &group_members)
+                } else {
+                    true
+                }
+            })
+            .collect::<Vec<_>>();
+        Rectangle::fill_with([CHAT_ICON_WIDTH, CHAT_BOX_HEIGHT], color::TRANSPARENT)
+            .top_left_with_margins_on(state.ids.message_box_bg, 0.0, 0.0)
+            .crop_kids()
+            .set(state.ids.chat_icon_align, ui);
+        let (mut items, _) = List::flow_down(messages.len() + 1)
+            .top_left_with_margins_on(state.ids.message_box_bg, 0.0, CHAT_ICON_WIDTH)
+            .w_h(CHAT_BOX_WIDTH - CHAT_ICON_WIDTH, CHAT_BOX_HEIGHT)
+            .scroll_kids_vertically()
+            .set(state.ids.message_box, ui);
 
-        let show_char_name = self.global_state.settings.interface.chat_character_name;
         while let Some(item) = items.next(ui) {
             // This would be easier if conrod used the v-metrics from rusttype.
-            if item.i < state.messages.len() {
-                let mut message = state.messages[item.i].clone();
+            if item.i < messages.len() {
+                let message = &messages[item.i];
                 let (color, icon) = render_chat_line(&message.chat_type, &self.imgs);
-                let ChatMsg { chat_type, .. } = &message;
                 // For each ChatType needing localization get/set matching pre-formatted
                 // localized string. This string will be formatted with the data
                 // provided in ChatType in the client/src/mod.rs
                 // fn format_message called below
-                message.message = match chat_type {
-                    ChatType::Online(_) => self
-                        .localized_strings
-                        .get("hud.chat.online_msg")
-                        .to_string(),
-                    ChatType::Offline(_) => self
-                        .localized_strings
-                        .get("hud.chat.offline_msg")
-                        .to_string(),
-                    ChatType::Kill(kill_source, _) => match kill_source {
-                        KillSource::Player(_, KillType::Buff(buffkind)) => insert_killing_buff(
-                            *buffkind,
-                            self.localized_strings,
-                            self.localized_strings.get("hud.chat.died_of_pvp_buff_msg"),
-                        ),
-                        KillSource::Player(_, KillType::Melee) => self
-                            .localized_strings
-                            .get("hud.chat.pvp_melee_kill_msg")
-                            .to_string(),
-                        KillSource::Player(_, KillType::Projectile) => self
-                            .localized_strings
-                            .get("hud.chat.pvp_ranged_kill_msg")
-                            .to_string(),
-                        KillSource::Player(_, KillType::Explosion) => self
-                            .localized_strings
-                            .get("hud.chat.pvp_explosion_kill_msg")
-                            .to_string(),
-                        KillSource::Player(_, KillType::Energy) => self
-                            .localized_strings
-                            .get("hud.chat.pvp_energy_kill_msg")
-                            .to_string(),
-                        KillSource::Player(_, KillType::Other) => self
-                            .localized_strings
-                            .get("hud.chat.pvp_other_kill_msg")
-                            .to_string(),
-                        KillSource::NonExistent(KillType::Buff(buffkind)) => insert_killing_buff(
-                            *buffkind,
-                            self.localized_strings,
-                            self.localized_strings
-                                .get("hud.chat.died_of_buff_nonexistent_msg"),
-                        ),
-                        KillSource::NonPlayer(_, KillType::Buff(buffkind)) => insert_killing_buff(
-                            *buffkind,
-                            self.localized_strings,
-                            self.localized_strings.get("hud.chat.died_of_npc_buff_msg"),
-                        ),
-                        KillSource::NonPlayer(_, KillType::Melee) => self
-                            .localized_strings
-                            .get("hud.chat.npc_melee_kill_msg")
-                            .to_string(),
-                        KillSource::NonPlayer(_, KillType::Projectile) => self
-                            .localized_strings
-                            .get("hud.chat.npc_ranged_kill_msg")
-                            .to_string(),
-                        KillSource::NonPlayer(_, KillType::Explosion) => self
-                            .localized_strings
-                            .get("hud.chat.npc_explosion_kill_msg")
-                            .to_string(),
-                        KillSource::NonPlayer(_, KillType::Energy) => self
-                            .localized_strings
-                            .get("hud.chat.npc_energy_kill_msg")
-                            .to_string(),
-                        KillSource::NonPlayer(_, KillType::Other) => self
-                            .localized_strings
-                            .get("hud.chat.npc_other_kill_msg")
-                            .to_string(),
-                        KillSource::Environment(_) => self
-                            .localized_strings
-                            .get("hud.chat.environmental_kill_msg")
-                            .to_string(),
-                        KillSource::FallDamage => self
-                            .localized_strings
-                            .get("hud.chat.fall_kill_msg")
-                            .to_string(),
-                        KillSource::Suicide => self
-                            .localized_strings
-                            .get("hud.chat.suicide_msg")
-                            .to_string(),
-                        KillSource::NonExistent(_) | KillSource::Other => self
-                            .localized_strings
-                            .get("hud.chat.default_death_msg")
-                            .to_string(),
-                    },
-                    _ => message.message,
-                };
-                let msg = self.client.format_message(&message, show_char_name);
-                let text = Text::new(&msg)
+
+                let text = Text::new(&message.message)
                     .font_size(self.fonts.opensans.scale(15))
                     .font_id(self.fonts.opensans.conrod_id)
                     .w(CHAT_BOX_WIDTH - 17.0)
@@ -477,7 +474,7 @@ impl<'a> Widget for Chat<'a> {
                 Image::new(icon)
                     .w_h(CHAT_ICON_WIDTH, CHAT_ICON_HEIGHT)
                     .top_left_with_margins_on(item.widget_id, 2.0, -CHAT_ICON_WIDTH)
-                    .parent(state.ids.message_box_bg)
+                    .parent(state.ids.chat_icon_align)
                     .set(icon_id, ui);
             } else {
                 // Spacer at bottom of the last message so that it is not cut off.
@@ -490,6 +487,125 @@ impl<'a> Widget for Chat<'a> {
                     ui,
                 );
             };
+        }
+
+        //Chat tabs
+        if ui
+            .rect_of(state.ids.message_box_bg)
+            .map_or(false, |r| r.is_over(ui.global_input().current.mouse.xy))
+        {
+            state.update(|s| s.tabs_last_hover_pulse = Some(self.pulse));
+        }
+
+        if let Some(time_since_hover) = state
+            .tabs_last_hover_pulse
+            .map(|t| self.pulse - t)
+            .filter(|t| t <= &1.5)
+        {
+            let alpha = 1.0 - (time_since_hover / 1.5).powi(4);
+            let shading = color::rgba(1.0, 1.0, 1.0, (chat_settings.chat_transp + 0.1) * alpha);
+
+            Rectangle::fill([CHAT_BOX_WIDTH, CHAT_TAB_HEIGHT])
+                .rgba(0.0, 0.0, 0.0, (chat_settings.chat_transp + 0.1) * alpha)
+                .up_from(state.ids.message_box_bg, 0.0)
+                .set(state.ids.chat_tab_align, ui);
+            if ui
+                .rect_of(state.ids.chat_tab_align)
+                .map_or(false, |r| r.is_over(ui.global_input().current.mouse.xy))
+            {
+                state.update(|s| s.tabs_last_hover_pulse = Some(self.pulse));
+            }
+
+            if Button::image(if chat_settings.chat_tab_index.is_none() {
+                self.imgs.selection
+            } else {
+                self.imgs.nothing
+            })
+            .top_left_with_margins_on(state.ids.chat_tab_align, 0.0, 0.0)
+            .w_h(CHAT_TAB_ALL_WIDTH, CHAT_TAB_HEIGHT)
+            .hover_image(self.imgs.selection_hover)
+            .hover_image(self.imgs.selection_press)
+            .image_color(shading)
+            .label(&self.localized_strings.get("hud.chat.all"))
+            .label_font_size(self.fonts.cyri.scale(14))
+            .label_font_id(self.fonts.cyri.conrod_id)
+            .label_color(TEXT_COLOR.alpha(alpha))
+            .set(state.ids.chat_tab_all, ui)
+            .was_clicked()
+            {
+                events.push(Event::ChangeChatTab(None));
+            }
+
+            let chat_tab_width = (CHAT_BOX_WIDTH - CHAT_TAB_ALL_WIDTH) / (MAX_CHAT_TABS as f64);
+
+            if state.ids.chat_tabs.len() < chat_tabs.len() {
+                state.update(|s| {
+                    s.ids
+                        .chat_tabs
+                        .resize(chat_tabs.len(), &mut ui.widget_id_generator())
+                });
+            }
+            for (i, chat_tab) in chat_tabs.iter().enumerate() {
+                if Button::image(if chat_settings.chat_tab_index == Some(i) {
+                    self.imgs.selection
+                } else {
+                    self.imgs.nothing
+                })
+                .w_h(chat_tab_width, CHAT_TAB_HEIGHT)
+                .hover_image(self.imgs.selection_hover)
+                .press_image(self.imgs.selection_press)
+                .image_color(shading)
+                .label(chat_tab.label.as_str())
+                .label_font_size(self.fonts.cyri.scale(14))
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .label_color(TEXT_COLOR.alpha(alpha))
+                .right_from(
+                    if i == 0 {
+                        state.ids.chat_tab_all
+                    } else {
+                        state.ids.chat_tabs[i - 1]
+                    },
+                    0.0,
+                )
+                .set(state.ids.chat_tabs[i], ui)
+                .was_clicked()
+                {
+                    events.push(Event::ChangeChatTab(Some(i)));
+                }
+
+                if ui
+                    .widget_input(state.ids.chat_tabs[i])
+                    .mouse()
+                    .map_or(false, |m| m.is_over())
+                {
+                    Rectangle::fill([120.0, 20.0])
+                        .rgba(0.0, 0.0, 0.0, 0.9)
+                        .top_left_with_margins_on(state.ids.chat_tabs[i], -20.0, 5.0)
+                        .parent(id)
+                        .set(state.ids.chat_tab_tooltip_bg, ui);
+
+                    Text::new(
+                        &self
+                            .localized_strings
+                            .get("hud.chat.chat_tab_hover_tooltip"),
+                    )
+                    .mid_top_with_margin_on(state.ids.chat_tab_tooltip_bg, 3.0)
+                    .font_size(self.fonts.cyri.scale(10))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.chat_tab_tooltip_text, ui);
+                }
+
+                if ui
+                    .widget_input(state.ids.chat_tabs[i])
+                    .clicks()
+                    .right()
+                    .next()
+                    .is_some()
+                {
+                    events.push(Event::ShowChatTabSettings(i));
+                }
+            }
         }
 
         // Chat Arrow
@@ -509,11 +625,11 @@ impl<'a> Widget for Chat<'a> {
 
         // We've started a new tab completion. Populate tab completion suggestions.
         if request_tab_completions {
-            Some(Event::TabCompletionStart(state.input.message.to_string()))
+            events.push(Event::TabCompletionStart(state.input.message.to_string()));
         // If the chat widget is focused, return a focus event to pass the focus
         // to the input box.
         } else if keyboard_capturer == Some(id) {
-            Some(Event::Focus(state.ids.chat_input))
+            events.push(Event::Focus(state.ids.chat_input));
         }
         // If enter is pressed and the input box is not empty, send the current message.
         else if ui.widget_input(state.ids.chat_input).presses().key().any(
@@ -530,10 +646,9 @@ impl<'a> Widget for Chat<'a> {
                     s.history.truncate(self.history_max);
                 }
             });
-            Some(Event::SendMessage(msg))
-        } else {
-            None
+            events.push(Event::SendMessage(msg));
         }
+        events
     }
 }
 
@@ -645,4 +760,31 @@ fn insert_killing_buff(buff: BuffKind, localized_strings: &Localization, templat
     };
 
     template.replace("{died_of_buff}", buff_outcome)
+}
+
+fn get_chat_template_key(chat_type: &ChatType<String>) -> Option<&str> {
+    Some(match chat_type {
+        ChatType::Online(_) => "hud.chat.online_msg",
+        ChatType::Offline(_) => "hud.chat.offline_msg",
+        ChatType::Kill(kill_source, _) => match kill_source {
+            KillSource::Player(_, KillType::Buff(_)) => "hud.chat.died_of_pvp_buff_msg",
+            KillSource::Player(_, KillType::Melee) => "hud.chat.pvp_melee_kill_msg",
+            KillSource::Player(_, KillType::Projectile) => "hud.chat.pvp_ranged_kill_msg",
+            KillSource::Player(_, KillType::Explosion) => "hud.chat.pvp_explosion_kill_msg",
+            KillSource::Player(_, KillType::Energy) => "hud.chat.pvp_energy_kill_msg",
+            KillSource::Player(_, KillType::Other) => "hud.chat.pvp_other_kill_msg",
+            KillSource::NonExistent(KillType::Buff(_)) => "hud.chat.died_of_buff_nonexistent_msg",
+            KillSource::NonPlayer(_, KillType::Buff(_)) => "hud.chat.died_of_npc_buff_msg",
+            KillSource::NonPlayer(_, KillType::Melee) => "hud.chat.npc_melee_kill_msg",
+            KillSource::NonPlayer(_, KillType::Projectile) => "hud.chat.npc_ranged_kill_msg",
+            KillSource::NonPlayer(_, KillType::Explosion) => "hud.chat.npc_explosion_kill_msg",
+            KillSource::NonPlayer(_, KillType::Energy) => "hud.chat.npc_energy_kill_msg",
+            KillSource::NonPlayer(_, KillType::Other) => "hud.chat.npc_other_kill_msg",
+            KillSource::Environment(_) => "hud.chat.environmental_kill_msg",
+            KillSource::FallDamage => "hud.chat.fall_kill_msg",
+            KillSource::Suicide => "hud.chat.suicide_msg",
+            KillSource::NonExistent(_) | KillSource::Other => "hud.chat.default_death_msg",
+        },
+        _ => return None,
+    })
 }

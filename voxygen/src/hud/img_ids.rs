@@ -122,6 +122,13 @@ image_ids! {
         settings_button_hover: "voxygen.element.ui.settings.buttons.settings_button_hover",
         settings_button_press: "voxygen.element.ui.settings.buttons.settings_button_press",
 
+        settings_plus: "voxygen.element.ui.settings.buttons.settings_button_plus",
+        settings_plus_hover: "voxygen.element.ui.settings.buttons.settings_button_plus_hover",
+        settings_plus_press: "voxygen.element.ui.settings.buttons.settings_button_plus_press",
+
+        chat_tab_settings_bg: "voxygen.element.ui.settings.chat_tab_settings_bg",
+        chat_tab_settings_frame: "voxygen.element.ui.settings.chat_tab_settings_frame",
+
         quest_bg: "voxygen.element.ui.quests.temp_quest_bg",
 
         // Slider

@@ -1,3 +1,4 @@
+mod chat;
 mod controls;
 mod gameplay;
 mod interface;
@@ -38,6 +39,7 @@ widget_ids! {
         video,
         sound,
         language,
+        chat,
     }
 }
 
@@ -47,6 +49,7 @@ const RESET_BUTTONS_WIDTH: f64 = 155.0;
 #[derive(Debug, EnumIter, PartialEq)]
 pub enum SettingsTab {
     Interface,
+    Chat,
     Video,
     Sound,
     Gameplay,
@@ -57,6 +60,7 @@ impl SettingsTab {
     fn name_key(&self) -> &str {
         match self {
             SettingsTab::Interface => "common.interface",
+            SettingsTab::Chat => "common.chat",
             SettingsTab::Gameplay => "common.gameplay",
             SettingsTab::Controls => "common.controls",
             SettingsTab::Video => "common.video",
@@ -68,6 +72,7 @@ impl SettingsTab {
     fn title_key(&self) -> &str {
         match self {
             SettingsTab::Interface => "common.interface_settings",
+            SettingsTab::Chat => "common.chat_settings",
             SettingsTab::Gameplay => "common.gameplay_settings",
             SettingsTab::Controls => "common.controls_settings",
             SettingsTab::Video => "common.video_settings",
@@ -118,6 +123,7 @@ pub enum Event {
     ChangeTab(SettingsTab),
     Close,
     SettingsChange(SettingsChange),
+    ChangeChatSettingsTab(Option<usize>),
 }
 
 #[derive(Clone)]
@@ -248,6 +254,23 @@ impl<'a> Widget for SettingsWindow<'a> {
                         .set(state.ids.interface, ui)
                 {
                     events.push(Event::SettingsChange(change.into()));
+                }
+            },
+            SettingsTab::Chat => {
+                for event in
+                    chat::Chat::new(global_state, self.show, imgs, fonts, localized_strings)
+                        .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
+                        .wh_of(state.ids.settings_content_align)
+                        .set(state.ids.chat, ui)
+                {
+                    match event {
+                        chat::Event::ChatChange(change) => {
+                            events.push(Event::SettingsChange(change.into()));
+                        },
+                        chat::Event::ChangeChatSettingsTab(index) => {
+                            events.push(Event::ChangeChatSettingsTab(index));
+                        },
+                    }
                 }
             },
             SettingsTab::Gameplay => {
