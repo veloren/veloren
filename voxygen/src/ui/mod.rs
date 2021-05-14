@@ -48,7 +48,7 @@ use conrod_core::{
 };
 use core::{convert::TryInto, f32, f64, ops::Range};
 use graphic::TexId;
-use hashbrown::{hash_map::Entry, HashMap};
+use hashbrown::{hash_map::Entry, HashMap, HashSet};
 use std::{hash::Hash, time::Duration};
 use tracing::{error, warn};
 use vek::*;
@@ -1058,17 +1058,19 @@ fn default_scissor(renderer: &Renderer) -> Aabr<u16> {
 pub struct KeyedJobs<K, V> {
     tx: crossbeam_channel::Sender<(K, V)>,
     rx: crossbeam_channel::Receiver<(K, V)>,
-    buf: HashMap<K, V>,
+    completed: HashMap<K, V>,
+    pending: HashSet<K>,
 }
 
-impl<K: Hash + Eq + Send + Sync + 'static, V: Send + Sync + 'static> KeyedJobs<K, V> {
+impl<K: Hash + Eq + Send + Sync + 'static + Clone, V: Send + Sync + 'static> KeyedJobs<K, V> {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         let (tx, rx) = crossbeam_channel::unbounded();
         Self {
             tx,
             rx,
-            buf: HashMap::new(),
+            completed: HashMap::new(),
+            pending: HashSet::new(),
         }
     }
 
@@ -1079,21 +1081,25 @@ impl<K: Hash + Eq + Send + Sync + 'static, V: Send + Sync + 'static> KeyedJobs<K
         f: impl FnOnce(&K) -> V + Send + Sync + 'static,
     ) -> Option<(K, V)> {
         if let Some(pool) = pool {
-            if let Some(v) = self.buf.remove(&k) {
+            if let Some(v) = self.completed.remove(&k) {
                 Some((k, v))
             } else {
                 while let Ok((k2, v)) = self.rx.try_recv() {
+                    self.pending.remove(&k2);
                     if k == k2 {
                         return Some((k, v));
                     } else {
-                        self.buf.insert(k2, v);
+                        self.completed.insert(k2, v);
                     }
                 }
-                let tx = self.tx.clone();
-                pool.spawn("IMAGE_PROCESSING", move || {
-                    let v = f(&k);
-                    let _ = tx.send((k, v));
-                });
+                if !self.pending.contains(&k) {
+                    self.pending.insert(k.clone());
+                    let tx = self.tx.clone();
+                    pool.spawn("IMAGE_PROCESSING", move || {
+                        let v = f(&k);
+                        let _ = tx.send((k, v));
+                    });
+                }
                 None
             }
         } else {

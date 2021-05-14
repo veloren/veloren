@@ -293,7 +293,6 @@ impl VoxelMinimap {
                             .map2(TerrainChunkSize::RECT_SIZE, |i, j| (i as u32).rem_euclid(j))
                             .as_();
                         let column = self.chunk_minimaps.get(&(cpos + coff));
-                        //let ceiling_offset = 8;
                         let color: Vec4<u8> = column
                             .and_then(
                                 |MinimapColumn {
