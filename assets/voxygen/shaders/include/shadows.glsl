@@ -205,41 +205,6 @@ float ShadowCalculationDirected(in vec3 fragPos)//in vec4 /*light_pos[2]*/sun_po
     // orig_pos.y = n: warp_pos.y = 2*(1-f/n)*n/(f-n) + 1 = 2*(n-f)/(f-n) + 1 = 2 * -1 + 1 = -1, sun_pos.y = (-1 - -1) / 2 = 0
     // orig_pos.y = f: warp_pos.y = 2*(1-f/f)*n/(f-n) + 1 = 2*(1-1)*n/(f-n) + 1 = 2 * 0 * n/(f-n) + 1 = 1, sun_pos.y = (1 - -1) / 2 = 1
     //
-    // 2*(1-64/(1/((0-1)*63/2-1/64)))*1/63+1
-    //
-    // 2*(1-f/x)*n/(f-n) + 1 = 0
-    // 2*(1-f/x)*n/(f-n) = -1
-    //
-    // (1-f/x) = -(f-n)/(2*n)
-    // 1 + (f-n)/(2*n) = f/x
-    // x = f/(1 + 0.5 * (f-n)/n)
-    //   = 2*f/(1 + f/n)
-    //   = 2*f*n/(f + n)
-    //   = 2/(1/n + 1/f)
-    //
-    // 2/(1/(64/1) + 1/64) = 64 (but has n = f = 64)
-    // 2/(1/(64/3) + 1/64) = 32
-    // 2/(1/(64/7) + 1/64) = 16
-    // 2/(1/(64/15) + 1/64) = 8
-    // 2/(1/(64/31) + 1/64) = 4
-    // 2/(1/(64/63) + 1/64) = 2
-    // 2/(1/(64/127) + 1/64) = 1 (but has f < n)
-    //
-    // 2*(1-64/(64/127))*64/127/(64-64/127)+1
-    //
-    //   (with normed n)
-    //   = 2/(1/n + 1/(1+n))
-    //   = 2*n*(1+n)/(1+2n)
-    //   = 1/((1 +2n)/(2n(1+n)))
-    //   = 1/(1/(2n(1+n)) + 1/(1+n))
-    //   = (1 + n)/(1 + 0.5/n)
-    // 2*64*1/(64+1)
-    //
-    // 2*(1-64/(64/(1 + 0.5 * 63/1)))*1/63+1
-    //
-    // sun_pos.xy = sun_pos.w - sun_pos.xy;
-    // sun_pos.xy = sun_pos.xy * 0.5 + 0.5;
-    // sun_pos.z -= sun_pos.w * bias;
     float visibility = textureProj(sampler2DShadow(t_directed_shadow_maps, s_directed_shadow_maps), sun_pos);
     /* float visibilityLeft = textureProj(t_directed_shadow_maps, sun_shadow.texture_mat * vec4(fragPos + vec3(0.0, -diskRadius, 0.0), 1.0));
     float visibilityRight = textureProj(t_directed_shadow_maps, sun_shadow.texture_mat * vec4(fragPos + vec3(0.0, diskRadius, 0.0), 1.0)); */

@@ -1480,7 +1480,6 @@ impl<V: RectRasterableVol> Terrain<V> {
         // TODO: move to separate functions
         span!(guard, "Terrain sprites");
         let chunk_size = V::RECT_SIZE.map(|e| e as f32);
-        let chunk_mag = (chunk_size * (f32::consts::SQRT_2 * 0.5)).magnitude_squared();
 
         let sprite_low_detail_distance = sprite_render_distance * 0.75;
         let sprite_mid_detail_distance = sprite_render_distance * 0.5;
@@ -1499,31 +1498,15 @@ impl<V: RectRasterableVol> Terrain<V> {
 
                 let chunk_center = pos.map2(chunk_size, |e, sz| (e as f32 + 0.5) * sz);
                 let focus_dist_sqrd = Vec2::from(focus_pos).distance_squared(chunk_center);
-                let dist_sqrd =
-                    Vec2::from(cam_pos)
-                        .distance_squared(chunk_center)
-                        .min(Vec2::from(cam_pos).distance_squared(chunk_center - chunk_size * 0.5))
-                        .min(Vec2::from(cam_pos).distance_squared(
-                            chunk_center - chunk_size.x * 0.5 + chunk_size.y * 0.5,
-                        ))
-                        .min(
-                            Vec2::from(cam_pos).distance_squared(chunk_center + chunk_size.x * 0.5),
-                        )
-                        .min(Vec2::from(cam_pos).distance_squared(
-                            chunk_center + chunk_size.x * 0.5 - chunk_size.y * 0.5,
-                        ));
+                let dist_sqrd = Aabr {
+                    min: chunk_center - chunk_size * 0.5,
+                    max: chunk_center + chunk_size * 0.5,
+                }
+                .projected_point(cam_pos.xy())
+                .distance_squared(cam_pos.xy());
+
                 if focus_dist_sqrd < sprite_render_distance.powi(2) {
-                    // TODO: do we really need this configurement by wind-sway, if not remove
-                    // commented code, if so store the max wind sway of sprites in each chunk
-                    let lod_level = /*let SpriteData { model, locals, .. } = if kind
-                        .0
-                        .elim_case_pure(&self.sprite_config.0)
-                        .as_ref()
-                        .map(|config| config.wind_sway >= 0.4)
-                        .unwrap_or(false)
-                        &&*/ if dist_sqrd <= chunk_mag
-                        || dist_sqrd < sprite_high_detail_distance.powi(2)
-                    {
+                    let lod_level = if dist_sqrd < sprite_high_detail_distance.powi(2) {
                         0
                     } else if dist_sqrd < sprite_hid_detail_distance.powi(2) {
                         1

@@ -294,7 +294,8 @@ fn create_shader_module(
     Ok(device.create_shader_module(&wgpu::ShaderModuleDescriptor {
         label: Some(&label),
         source: wgpu::ShaderSource::SpirV(Cow::Borrowed(spv.as_binary())),
-        flags: wgpu::ShaderFlags::empty(), // TODO: renable wgpu::ShaderFlags::VALIDATION,
+        flags: wgpu::ShaderFlags::empty(),
+        // TODO: renable // flags: wgpu::ShaderFlags::VALIDATION,
     }))
 }
 
