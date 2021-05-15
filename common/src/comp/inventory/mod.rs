@@ -552,16 +552,7 @@ impl Inventory {
     pub fn equip(&mut self, inv_slot: InvSlotId) -> Vec<Item> {
         self.get(inv_slot)
             .and_then(|item| self.loadout.get_slot_to_equip_into(item.kind()))
-            .map(|equip_slot| {
-                // Special case when equipping into active main hand - swap with active offhand
-                // first
-                if equip_slot == EquipSlot::ActiveMainhand {
-                    self.loadout
-                        .swap_slots(EquipSlot::ActiveMainhand, EquipSlot::InactiveMainhand);
-                }
-
-                self.swap_inventory_loadout(inv_slot, equip_slot)
-            })
+            .map(|equip_slot| self.swap_inventory_loadout(inv_slot, equip_slot))
             .unwrap_or_else(Vec::new)
     }
 
@@ -731,7 +722,8 @@ impl Inventory {
             })
             .unwrap_or_default();
 
-        // If 2 1h weapons are equipped, and mainhand weapon removed, move offhand into mainhand
+        // If 2 1h weapons are equipped, and mainhand weapon removed, move offhand into
+        // mainhand
         match equip_slot {
             EquipSlot::ActiveMainhand => {
                 if self.loadout.equipped(EquipSlot::ActiveMainhand).is_none()
