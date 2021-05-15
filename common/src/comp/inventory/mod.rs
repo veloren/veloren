@@ -778,6 +778,8 @@ impl Inventory {
     pub fn equipped_items_of_kind(&self, item_kind: ItemKind) -> impl Iterator<Item = &Item> {
         self.loadout.equipped_items_of_kind(item_kind)
     }
+
+    pub fn swap_equipped_weapons(&mut self) { self.loadout.swap_equipped_weapons() }
 }
 
 impl Component for Inventory {

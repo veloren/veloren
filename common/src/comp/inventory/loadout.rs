@@ -423,6 +423,36 @@ impl Loadout {
             _ => equip_slot.can_hold(item_kind),
         }
     }
+
+    pub(super) fn swap_equipped_weapons(&mut self) {
+        // Checks if a given slot can hold an item right now, defaults to true if
+        // nothing is equipped in slot
+        let valid_slot = |equip_slot| {
+            self.equipped(equip_slot)
+                .map_or(true, |i| self.slot_can_hold(equip_slot, i.kind()))
+        };
+
+        if valid_slot(EquipSlot::ActiveMainhand)
+            && valid_slot(EquipSlot::ActiveOffhand)
+            && valid_slot(EquipSlot::InactiveMainhand)
+            && valid_slot(EquipSlot::InactiveOffhand)
+        {
+            // Get weapons from each slot
+            let active_mainhand = self.swap(EquipSlot::ActiveMainhand, None);
+            let active_offhand = self.swap(EquipSlot::ActiveOffhand, None);
+            let inactive_mainhand = self.swap(EquipSlot::InactiveMainhand, None);
+            let inactive_offhand = self.swap(EquipSlot::InactiveOffhand, None);
+            // Equip weapons into new slots
+            self.swap(EquipSlot::ActiveMainhand, inactive_mainhand)
+                .unwrap_none();
+            self.swap(EquipSlot::ActiveOffhand, inactive_offhand)
+                .unwrap_none();
+            self.swap(EquipSlot::InactiveMainhand, active_mainhand)
+                .unwrap_none();
+            self.swap(EquipSlot::InactiveOffhand, active_offhand)
+                .unwrap_none();
+        }
+    }
 }
 
 #[cfg(test)]
