@@ -167,24 +167,84 @@ impl Loadout {
             return;
         }
 
+        enum MainhandHand {
+            MainhandA,
+            MainhandB,
+        }
+
+        let hands_swapping = match (equip_slot_a, equip_slot_b) {
+            (EquipSlot::ActiveMainhand, EquipSlot::ActiveOffhand) => Some(MainhandHand::MainhandA),
+            (EquipSlot::ActiveOffhand, EquipSlot::ActiveMainhand) => Some(MainhandHand::MainhandB),
+            (EquipSlot::InactiveMainhand, EquipSlot::InactiveOffhand) => {
+                Some(MainhandHand::MainhandA)
+            },
+            (EquipSlot::InactiveOffhand, EquipSlot::InactiveMainhand) => {
+                Some(MainhandHand::MainhandB)
+            },
+            _ => None,
+        };
+
         let item_a = self.swap(equip_slot_a, None);
         let item_b = self.swap(equip_slot_b, None);
 
-        // Check if items can go in the other slots
-        if item_a
-            .as_ref()
-            .map_or(true, |i| self.slot_can_hold(equip_slot_b, &i.kind()))
-            && item_b
-                .as_ref()
-                .map_or(true, |i| self.slot_can_hold(equip_slot_a, &i.kind()))
-        {
-            // Swap
-            self.swap(equip_slot_b, item_a).unwrap_none();
-            self.swap(equip_slot_a, item_b).unwrap_none();
+        if let Some(hands_swapping) = hands_swapping {
+            match hands_swapping {
+                MainhandHand::MainhandA => {
+                    if item_b
+                        .as_ref()
+                        .map_or(true, |i| self.slot_can_hold(equip_slot_a, &i.kind()))
+                        && item_a
+                            .as_ref()
+                            .map_or(true, |i| equip_slot_b.can_hold(&i.kind()))
+                    {
+                        // Checks that item b (from offhand) can go into equip slot a (mainhand
+                        // slot) and that item a (from mainhand) is a valid item to insert into
+                        // equip slot b (offhand slot) Swap
+                        self.swap(equip_slot_a, item_b).unwrap_none();
+                        self.swap(equip_slot_b, item_a).unwrap_none();
+                    } else {
+                        // Otherwise put the items back
+                        self.swap(equip_slot_a, item_a).unwrap_none();
+                        self.swap(equip_slot_b, item_b).unwrap_none();
+                    }
+                },
+                MainhandHand::MainhandB => {
+                    if item_a
+                        .as_ref()
+                        .map_or(true, |i| self.slot_can_hold(equip_slot_b, &i.kind()))
+                        && item_b
+                            .as_ref()
+                            .map_or(true, |i| equip_slot_b.can_hold(&i.kind()))
+                    {
+                        // Checks that item a (from offhand) can go into equip slot b (mainhand
+                        // slot) and that item b (from mainhand) is a valid item to insert into
+                        // equip slot a (offhand slot) Swap
+                        self.swap(equip_slot_b, item_a).unwrap_none();
+                        self.swap(equip_slot_a, item_b).unwrap_none();
+                    } else {
+                        // Otherwise put the items back
+                        self.swap(equip_slot_a, item_a).unwrap_none();
+                        self.swap(equip_slot_b, item_b).unwrap_none();
+                    }
+                },
+            }
         } else {
-            // Otherwise put the items back
-            self.swap(equip_slot_a, item_a).unwrap_none();
-            self.swap(equip_slot_b, item_b).unwrap_none();
+            // Check if items can go in the other slots
+            if item_a
+                .as_ref()
+                .map_or(true, |i| self.slot_can_hold(equip_slot_b, &i.kind()))
+                && item_b
+                    .as_ref()
+                    .map_or(true, |i| self.slot_can_hold(equip_slot_a, &i.kind()))
+            {
+                // Swap
+                self.swap(equip_slot_b, item_a).unwrap_none();
+                self.swap(equip_slot_a, item_b).unwrap_none();
+            } else {
+                // Otherwise put the items back
+                self.swap(equip_slot_a, item_a).unwrap_none();
+                self.swap(equip_slot_b, item_b).unwrap_none();
+            }
         }
     }
 

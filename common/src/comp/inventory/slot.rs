@@ -3,7 +3,7 @@ use std::{cmp::Ordering, convert::TryFrom};
 
 use crate::comp::{
     inventory::{
-        item::{armor, armor::ArmorKind, ItemKind},
+        item::{armor, armor::ArmorKind, tool, ItemKind},
         loadout::LoadoutSlotId,
     },
     item,
@@ -123,9 +123,9 @@ impl EquipSlot {
         match (self, item_kind) {
             (Self::Armor(slot), ItemKind::Armor(armor::Armor { kind, .. })) => slot.can_hold(kind),
             (Self::ActiveMainhand, ItemKind::Tool(_)) => true,
-            (Self::ActiveOffhand, ItemKind::Tool(_)) => true,
+            (Self::ActiveOffhand, ItemKind::Tool(tool)) => matches!(tool.hands, tool::Hands::One),
             (Self::InactiveMainhand, ItemKind::Tool(_)) => true,
-            (Self::InactiveOffhand, ItemKind::Tool(_)) => true,
+            (Self::InactiveOffhand, ItemKind::Tool(tool)) => matches!(tool.hands, tool::Hands::One),
             (Self::Lantern, ItemKind::Lantern(_)) => true,
             (Self::Glider, ItemKind::Glider(_)) => true,
             _ => false,
