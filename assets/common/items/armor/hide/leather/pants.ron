@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Leather Pants",
+    description: "Swift like the wind.",
+    kind: Armor((
+        kind: Pants("Leather"),
+        stats: (
+            protection: Normal(8.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Common,
+    tags: [LeatherItem],
+)

@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Druid Gauntlets",
+    description: "Incredibly light, with the essence of nature.",
+    kind: Armor((
+        kind: Hand("Druid"),
+        stats: (
+            protection: Normal(10.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

@@ -36,17 +36,9 @@
             vox_spec: ("armor.ferocious.pants", (-5.0, -3.5, 1.0)),
             color: None
         ),
-        "Plate": (
-            vox_spec: ("armor.plate.pants", (-5.0, -3.5, 1.0)),
-            color: None
-        ),
         "PlateRed": (
             vox_spec: ("armor.misc.pants.plate_grey", (-5.0, -3.5, 1.0)),
             color: Some((124, 38, 46))
-        ),
-        "Swift": (
-            vox_spec: ("armor.swift.pants", (-5.0, -3.5, 1.0)),
-            color: None
         ),
         "ClothPurple": (
             vox_spec: ("armor.cloth_purple.pants", (-5.0, -3.5, 0.0)),
@@ -78,14 +70,6 @@
         ),
         "LeatherPlate": (
             vox_spec: ("armor.leather_plate.pants", (-5.0, -4.5, 1.0)),
-            color: None
-        ),
-        "Agile": (
-            vox_spec: ("armor.agile.pants", (-5.0, -3.5, 1.0)),
-            color: None
-        ),
-        "Druid": (
-            vox_spec: ("armor.druid.pants", (-5.0, -3.5, -1.0)),
             color: None
         ),
         "Twigs": (
@@ -124,20 +108,28 @@
             vox_spec: ("armor.warlock.pants", (-5.0, -4.0, -2.0)),
             color: None
         ),
+        "Rawhide": (
+            vox_spec: ("armor.hide.rawhide.pants", (-5.0, -3.5, 1.0)),
+            color: None
+        ),
+        "Leather": (
+            vox_spec: ("armor.hide.leather.pants", (-5.0, -3.5, 1.0)),
+            color: None
+        ),
         "Scale": (
-            vox_spec: ("armor.scale.pants", (-5.0, -4.0, 0.0)),
+            vox_spec: ("armor.hide.scale.pants", (-5.0, -4.0, 0.0)),
             color: None
         ),
         "Carapace": (
-            vox_spec: ("armor.carapace.pants", (-6.0, -4.0, 0.5)),
+            vox_spec: ("armor.hide.carapace.pants", (-6.0, -4.0, 0.5)),
             color: None
         ),
-        "Platescale": (
-            vox_spec: ("armor.platescale.pants", (-6.0, -4.0, 0.0)),
+        "Primal": (
+            vox_spec: ("armor.hide.primal.pants", (-6.0, -4.0, 0.0)),
             color: None
         ),
         "Dragonscale": (
-            vox_spec: ("armor.dragonscale.pants", (-5.0, -3.5, -1.5)),
+            vox_spec: ("armor.hide.dragonscale.pants", (-5.0, -3.5, -1.5)),
             color: None
         ),
         "Savage": (
@@ -145,51 +137,51 @@
             color: None
         ),
         "Linen": (
-            vox_spec: ("armor.linen.pants", (-5.0, -4.0, 0.5)),
+            vox_spec: ("armor.cloth.linen.pants", (-5.0, -4.0, 0.5)),
             color: None
         ),
         "Woolen": (
-            vox_spec: ("armor.woolen.pants", (-6.0, -5.0, 0.5)),
+            vox_spec: ("armor.cloth.woolen.pants", (-6.0, -5.0, 0.5)),
             color: None
         ),
         "Silken": (
-            vox_spec: ("armor.silken.pants", (-5.0, -4.0, 0.5)),
+            vox_spec: ("armor.cloth.silken.pants", (-5.0, -4.0, 0.5)),
             color: None
         ),
-        "Lifecloth": (
-            vox_spec: ("armor.lifecloth.pants", (-5.0, -4.0, 0.5)),
+        "Druid": (
+            vox_spec: ("armor.cloth.druid.pants", (-5.0, -4.0, 0.5)),
             color: None
         ),
         "Moonweave": (
-            vox_spec: ("armor.moonweave.pants", (-6.0, -5.5, 0.5)),
+            vox_spec: ("armor.cloth.moonweave.pants", (-6.0, -5.5, 0.5)),
             color: None
         ),
         "Sunsilk": (
-            vox_spec: ("armor.sunsilk.pants", (-6.0, -5.0, 0.5)),
+            vox_spec: ("armor.cloth.sunsilk.pants", (-6.0, -5.0, 0.5)),
             color: None
         ),
         "Bronze": (
-            vox_spec: ("armor.bronze.pants", (-5.0, -4.0, 1.0)),
+            vox_spec: ("armor.mail.bronze.pants", (-5.0, -4.0, 1.0)),
             color: None
         ),
         "Iron": (
-            vox_spec: ("armor.iron.pants", (-5.0, -4.0, 1.5)),
+            vox_spec: ("armor.mail.iron.pants", (-5.0, -4.0, 1.5)),
             color: None
         ),
         "Steel": (
-            vox_spec: ("armor.steel.pants", (-6.0, -4.0, 0.0)),
+            vox_spec: ("armor.mail.steel.pants", (-6.0, -4.0, 0.0)),
             color: None
         ),
         "Cobalt": (
-            vox_spec: ("armor.cobalt.pants", (-6.0, -5.0, 0.5)),
+            vox_spec: ("armor.mail.cobalt.pants", (-6.0, -5.0, 0.5)),
             color: None
         ),
         "Bloodsteel": (
-            vox_spec: ("armor.bloodsteel.pants", (-6.5, -4.0, 0.5)),
+            vox_spec: ("armor.mail.bloodsteel.pants", (-6.5, -4.0, 0.5)),
             color: None
         ),
         "Orichalcum": (
-            vox_spec: ("armor.orichalcum.pants", (-6.0, -4.0, 0.5)),
+            vox_spec: ("armor.mail.orichalcum.pants", (-6.0, -4.0, 0.5)),
             color: None
         ),
     },

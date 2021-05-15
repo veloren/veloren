@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Rawhide Kickers",
+    description: "\'Tightly packed pieces of leather to endure all weather.",
+    kind: Armor((
+        kind: Foot("Rawhide"),
+        stats: (
+            protection: Normal(2.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [LeatherItem],
+)

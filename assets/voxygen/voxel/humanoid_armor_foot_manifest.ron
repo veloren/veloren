@@ -16,14 +16,6 @@
             vox_spec: ("armor.misc.foot.dark_jester_elf", (-2.5, -3.0, -2.0)),
             color: None
         ),
-        "Plate": (
-            vox_spec: ("armor.plate.foot", (-2.5, -3.5, -2.0)),
-            color: None
-        ),
-        "Swift": (
-            vox_spec: ("armor.swift.foot", (-2.5, -3.5, -2.0)),
-            color: None
-        ),
         "ClothPurple": (
             vox_spec: ("armor.cloth_purple.foot", (-2.5, -3.5, -2.0)),
             color: None
@@ -52,16 +44,8 @@
             vox_spec: ("armor.leather_plate.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "Agile": (
-            vox_spec: ("armor.agile.foot", (-2.5, -3.5, -2.0)),
-            color: None
-        ),
         "Jackalope": (
             vox_spec: ("armor.misc.foot.jackalope", (-2.5, -3.5, -2.0)),
-            color: None
-        ),
-        "Druid": (
-            vox_spec: ("armor.druid.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
         "Twigs": (
@@ -96,20 +80,28 @@
           vox_spec: ("armor.warlock.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
+        "Rawhide": (
+            vox_spec: ("armor.hide.rawhide.foot", (-2.5, -3.5, -2.0)),
+            color: None
+        ),
+        "Leather": (
+            vox_spec: ("armor.hide.leather.foot", (-2.5, -3.5, -2.0)),
+            color: None
+        ),
         "Scale": (
-          vox_spec: ("armor.scale.foot", (-2.5, -3.5, -2.0)),
+          vox_spec: ("armor.hide.scale.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
         "Carapace": (
-          vox_spec: ("armor.carapace.foot", (-2.5, -3.5, -2.0)),
+          vox_spec: ("armor.hide.carapace.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Platescale": (
-          vox_spec: ("armor.platescale.foot", (-2.5, -3.5, -2.0)),
+        "Primal": (
+          vox_spec: ("armor.hide.primal.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
         "Dragonscale": (
-          vox_spec: ("armor.dragonscale.foot", (-2.5, -5.5, -2.0)),
+          vox_spec: ("armor.hide.dragonscale.foot", (-2.5, -5.5, -2.0)),
           color: None
         ),
         "Savage": (
@@ -117,51 +109,51 @@
           color: None
         ),
         "Linen": (
-          vox_spec: ("armor.linen.foot", (-2.5, -3.5, -2.0)),
+          vox_spec: ("armor.cloth.linen.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
         "Woolen": (
-          vox_spec: ("armor.woolen.foot", (-2.5, -3.5, -2.0)),
+          vox_spec: ("armor.cloth.woolen.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
         "Silken": (
-          vox_spec: ("armor.silken.foot", (-2.5, -3.5, -2.0)),
+          vox_spec: ("armor.cloth.silken.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Lifecloth": (
-          vox_spec: ("armor.lifecloth.foot", (-2.5, -3.5, -2.0)),
+        "Druid": (
+          vox_spec: ("armor.cloth.druid.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
         "Moonweave": (
-          vox_spec: ("armor.moonweave.foot", (-2.5, -3.5, -2.0)),
+          vox_spec: ("armor.cloth.moonweave.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
         "Sunsilk": (
-          vox_spec: ("armor.sunsilk.foot", (-2.5, -3.5, -2.0)),
+          vox_spec: ("armor.cloth.sunsilk.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
         "Bronze": (
-          vox_spec: ("armor.bronze.foot", (-2.5, -3.5, -2.0)),
+          vox_spec: ("armor.mail.bronze.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
         "Iron": (
-          vox_spec: ("armor.iron.foot", (-2.5, -3.5, -2.0)),
+          vox_spec: ("armor.mail.iron.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
         "Steel": (
-          vox_spec: ("armor.steel.foot", (-2.5, -3.5, -2.0)),
+          vox_spec: ("armor.mail.steel.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
         "Cobalt": (
-          vox_spec: ("armor.cobalt.foot", (-2.5, -3.5, -2.0)),
+          vox_spec: ("armor.mail.cobalt.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
         "Bloodsteel": (
-          vox_spec: ("armor.bloodsteel.foot", (-2.5, -3.5, -2.0)),
+          vox_spec: ("armor.mail.bloodsteel.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
         "Orichalcum": (
-          vox_spec: ("armor.orichalcum.foot", (-2.5, -3.5, -2.0)),
+          vox_spec: ("armor.mail.orichalcum.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
     },

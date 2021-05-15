@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Druid Boots",
+    description: "Incredibly light, with the essence of nature.",
+    kind: Armor((
+        kind: Foot("Druid"),
+        stats: (
+            protection: Normal(5.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: High,
+    tags: [],
+)

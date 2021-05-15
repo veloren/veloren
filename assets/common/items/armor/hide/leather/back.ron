@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Leather Cape",
+    description: "Swift like the wind.",
+    kind: Armor((
+        kind: Back("Leather"),
+        stats: (
+            protection: Normal(0.2),
+            poise_resilience: Normal(0.1),
+        ),
+    )),
+    quality: Common,
+    tags: [LeatherItem],
+)

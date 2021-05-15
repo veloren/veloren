@@ -325,66 +325,123 @@
         ],
         craft_sprite: Some(Anvil),
     ),
-//ARMOR/LEATHER/ADVENTURER
-    "adventure back": (
-        output: ("common.items.armor.agile.back", 1),
+//ARMOR/HIDE/RAWHIDE
+    "rawhide back": (
+        output: ("common.items.armor.hide.rawhide.back", 1),
         inputs: [
             (Item("common.items.crafting_ing.leather.simple_leather"), 4),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
         ],        
         craft_sprite: Some(CraftingBench),
     ),
-    "adventure belt": (
-        output: ("common.items.armor.agile.belt", 1),
+    "rawhide belt": (
+        output: ("common.items.armor.hide.rawhide.belt", 1),
         inputs: [
             (Item("common.items.crafting_ing.leather.simple_leather"), 2),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
         ],            
         craft_sprite: Some(CraftingBench),
     ),
-    "adventure chest": (
-        output: ("common.items.armor.agile.chest", 1),
+    "rawhide chest": (
+        output: ("common.items.armor.hide.rawhide.chest", 1),
         inputs: [
             (Item("common.items.crafting_ing.leather.simple_leather"), 10),
             (Item("common.items.crafting_ing.leather.leather_strips"), 4),
         ],    
         craft_sprite: Some(CraftingBench),
     ),
-    "adventure feet": (
-        output: ("common.items.armor.agile.foot", 1),
+    "rawhide feet": (
+        output: ("common.items.armor.hide.rawhide.foot", 1),
         inputs: [
             (Item("common.items.crafting_ing.leather.simple_leather"), 4),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
         ],    
         craft_sprite: Some(CraftingBench),
     ),
-    "adventure hands": (
-        output: ("common.items.armor.agile.hand", 1),
+    "rawhide hands": (
+        output: ("common.items.armor.hide.rawhide.hand", 1),
         inputs: [
             (Item("common.items.crafting_ing.leather.simple_leather"), 4),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
         ],    
         craft_sprite: Some(CraftingBench),
     ),
-    "adventure pants": (
-        output: ("common.items.armor.agile.pants", 1),
+    "rawhide pants": (
+        output: ("common.items.armor.hide.rawhide.pants", 1),
         inputs: [
             (Item("common.items.crafting_ing.leather.simple_leather"), 8),
             (Item("common.items.crafting_ing.leather.leather_strips"), 4),
         ],    
         craft_sprite: Some(CraftingBench),
     ),
-    "adventure shoulder": (
-        output: ("common.items.armor.agile.shoulder", 1),
+    "rawhide shoulder": (
+        output: ("common.items.armor.hide.rawhide.shoulder", 1),
         inputs: [
             (Item("common.items.crafting_ing.leather.simple_leather"), 10),
             (Item("common.items.crafting_ing.leather.leather_strips"), 6),
         ],    
         craft_sprite: Some(CraftingBench),
     ),
-//ARMOR/LEATHER/SCALE
+//ARMOR/HIDE/LEATHER
+    "leather back": (
+        output: ("common.items.armor.hide.leather.back", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.leather.thick_leather"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],        
+        craft_sprite: Some(CraftingBench),
+    ),
+    "leather belt": (
+        output: ("common.items.armor.hide.leather.belt", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.leather.thick_leather"), 2),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],            
+        craft_sprite: Some(CraftingBench),
+    ),
+    "leather chest": (
+        output: ("common.items.armor.hide.leather.chest", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.leather.thick_leather"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "leather feet": (
+        output: ("common.items.armor.hide.leather.foot", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.leather.thick_leather"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "leather hands": (
+        output: ("common.items.armor.hide.leather.hand", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.leather.thick_leather"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "leather pants": (
+        output: ("common.items.armor.hide.leather.pants", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.leather.thick_leather"), 8),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "leather shoulder": (
+        output: ("common.items.armor.hide.leather.shoulder", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.leather.thick_leather"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 6),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+//ARMOR/HIDE/SCALE
     "scale back": (
-        output: ("common.items.armor.scale.back", 1),
+        output: ("common.items.armor.hide.scale.back", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.scales"), 4),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -392,7 +449,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     "scale belt": (
-        output: ("common.items.armor.scale.belt", 1),
+        output: ("common.items.armor.hide.scale.belt", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.scales"), 2),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -400,7 +457,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     "scale chest": (
-        output: ("common.items.armor.scale.chest", 1),
+        output: ("common.items.armor.hide.scale.chest", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.scales"), 10),
             (Item("common.items.crafting_ing.leather.leather_strips"), 4),
@@ -408,7 +465,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     "scale feet": (
-        output: ("common.items.armor.scale.foot", 1),
+        output: ("common.items.armor.hide.scale.foot", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.scales"), 4),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -416,7 +473,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     "scale hands": (
-        output: ("common.items.armor.scale.hand", 1),
+        output: ("common.items.armor.hide.scale.hand", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.scales"), 4),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -424,7 +481,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     "scale pants": (
-        output: ("common.items.armor.scale.pants", 1),
+        output: ("common.items.armor.hide.scale.pants", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.scales"), 8),
             (Item("common.items.crafting_ing.leather.leather_strips"), 4),
@@ -432,16 +489,16 @@
         craft_sprite: Some(CraftingBench),
     ),
     "scale shoulder": (
-        output: ("common.items.armor.scale.shoulder", 1),
+        output: ("common.items.armor.hide.scale.shoulder", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.scales"), 10),
             (Item("common.items.crafting_ing.leather.leather_strips"), 6),
         ],    
         craft_sprite: Some(CraftingBench),
     ),
-//ARMOR/LEATHER/CARAPACE
+//ARMOR/HIDE/CARAPACE
     "carapace back": (
-        output: ("common.items.armor.carapace.back", 1),
+        output: ("common.items.armor.hide.carapace.back", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.carapace"), 4),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -449,7 +506,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     "carapace belt": (
-        output: ("common.items.armor.carapace.belt", 1),
+        output: ("common.items.armor.hide.carapace.belt", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.carapace"), 2),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -457,7 +514,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     "carapace chest": (
-        output: ("common.items.armor.carapace.chest", 1),
+        output: ("common.items.armor.hide.carapace.chest", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.carapace"), 10),
             (Item("common.items.crafting_ing.leather.leather_strips"), 4),
@@ -465,7 +522,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     "carapace feet": (
-        output: ("common.items.armor.carapace.foot", 1),
+        output: ("common.items.armor.hide.carapace.foot", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.carapace"), 4),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -473,7 +530,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     "carapace hands": (
-        output: ("common.items.armor.carapace.hand", 1),
+        output: ("common.items.armor.hide.carapace.hand", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.carapace"), 4),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -481,7 +538,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     "carapace pants": (
-        output: ("common.items.armor.carapace.pants", 1),
+        output: ("common.items.armor.hide.carapace.pants", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.carapace"), 8),
             (Item("common.items.crafting_ing.leather.leather_strips"), 4),
@@ -489,73 +546,73 @@
         craft_sprite: Some(CraftingBench),
     ),
     "carapace shoulder": (
-        output: ("common.items.armor.carapace.shoulder", 1),
+        output: ("common.items.armor.hide.carapace.shoulder", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.carapace"), 10),
             (Item("common.items.crafting_ing.leather.leather_strips"), 6),
         ],    
         craft_sprite: Some(CraftingBench),
     ),
-//ARMOR/LEATHER/PLATESCALE
-    "platescale back": (
-        output: ("common.items.armor.platescale.back", 1),
+//ARMOR/HIDE/PRIMAL
+    "primal back": (
+        output: ("common.items.armor.hide.primal.back", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.plate"), 4),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
         ],        
         craft_sprite: Some(CraftingBench),
     ),
-    "platescale belt": (
-        output: ("common.items.armor.platescale.belt", 1),
+    "primal belt": (
+        output: ("common.items.armor.hide.primal.belt", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.plate"), 2),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
         ],            
         craft_sprite: Some(CraftingBench),
     ),
-    "platescale chest": (
-        output: ("common.items.armor.platescale.chest", 1),
+    "primal chest": (
+        output: ("common.items.armor.hide.primal.chest", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.plate"), 10),
             (Item("common.items.crafting_ing.leather.leather_strips"), 4),
         ],    
         craft_sprite: Some(CraftingBench),
     ),
-    "platescale feet": (
-        output: ("common.items.armor.platescale.foot", 1),
+    "primal feet": (
+        output: ("common.items.armor.hide.primal.foot", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.plate"), 4),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
         ],    
         craft_sprite: Some(CraftingBench),
     ),
-    "platescale hands": (
-        output: ("common.items.armor.platescale.hand", 1),
+    "primal hands": (
+        output: ("common.items.armor.hide.primal.hand", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.plate"), 4),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
         ],    
         craft_sprite: Some(CraftingBench),
     ),
-    "platescale pants": (
-        output: ("common.items.armor.platescale.pants", 1),
+    "primal pants": (
+        output: ("common.items.armor.hide.primal.pants", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.plate"), 8),
             (Item("common.items.crafting_ing.leather.leather_strips"), 4),
         ],    
         craft_sprite: Some(CraftingBench),
     ),
-    "platescale shoulder": (
-        output: ("common.items.armor.platescale.shoulder", 1),
+    "primal shoulder": (
+        output: ("common.items.armor.hide.primal.shoulder", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.plate"), 10),
             (Item("common.items.crafting_ing.leather.leather_strips"), 6),
         ],    
         craft_sprite: Some(CraftingBench),
     ),
-//ARMOR/LEATHER/DRAGONSCALE
+//ARMOR/HIDE/DRAGONSCALE
     "dragonscale back": (
-        output: ("common.items.armor.dragonscale.back", 1),
+        output: ("common.items.armor.hide.dragonscale.back", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.dragon_scale"), 4),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -563,7 +620,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     "dragonscale belt": (
-        output: ("common.items.armor.dragonscale.belt", 1),
+        output: ("common.items.armor.hide.dragonscale.belt", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.dragon_scale"), 2),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -571,7 +628,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     "dragonscale chest": (
-        output: ("common.items.armor.dragonscale.chest", 1),
+        output: ("common.items.armor.hide.dragonscale.chest", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.dragon_scale"), 10),
             (Item("common.items.crafting_ing.leather.leather_strips"), 4),
@@ -579,7 +636,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     "dragonscale feet": (
-        output: ("common.items.armor.dragonscale.foot", 1),
+        output: ("common.items.armor.hide.dragonscale.foot", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.dragon_scale"), 4),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -587,7 +644,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     "dragonscale hands": (
-        output: ("common.items.armor.dragonscale.hand", 1),
+        output: ("common.items.armor.hide.dragonscale.hand", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.dragon_scale"), 4),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -595,7 +652,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     "dragonscale pants": (
-        output: ("common.items.armor.dragonscale.pants", 1),
+        output: ("common.items.armor.hide.dragonscale.pants", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.dragon_scale"), 8),
             (Item("common.items.crafting_ing.leather.leather_strips"), 4),
@@ -603,9 +660,693 @@
         craft_sprite: Some(CraftingBench),
     ),
     "dragonscale shoulder": (
-        output: ("common.items.armor.dragonscale.shoulder", 1),
+        output: ("common.items.armor.hide.dragonscale.shoulder", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.dragon_scale"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 6),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+//ARMOR/CLOTH/LINEN
+    "linen back": (
+        output: ("common.items.armor.cloth.linen.back", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],        
+        craft_sprite: Some(CraftingBench),
+    ),
+    "linen belt": (
+        output: ("common.items.armor.cloth.linen.belt", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 2),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],            
+        craft_sprite: Some(CraftingBench),
+    ),
+    "linen chest": (
+        output: ("common.items.armor.cloth.linen.chest", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "linen feet": (
+        output: ("common.items.armor.cloth.linen.foot", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "linen hands": (
+        output: ("common.items.armor.cloth.linen.hand", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "linen pants": (
+        output: ("common.items.armor.cloth.linen.pants", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 8),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "linen shoulder": (
+        output: ("common.items.armor.cloth.linen.shoulder", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 6),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+//ARMOR/CLOTH/WOOLEN
+    "woolen back": (
+        output: ("common.items.armor.cloth.woolen.back", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.wool"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],        
+        craft_sprite: Some(CraftingBench),
+    ),
+    "woolen belt": (
+        output: ("common.items.armor.cloth.woolen.belt", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.wool"), 2),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],            
+        craft_sprite: Some(CraftingBench),
+    ),
+    "woolen chest": (
+        output: ("common.items.armor.cloth.woolen.chest", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.wool"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "woolen feet": (
+        output: ("common.items.armor.cloth.woolen.foot", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.wool"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "woolen hands": (
+        output: ("common.items.armor.cloth.woolen.hand", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.wool"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "woolen pants": (
+        output: ("common.items.armor.cloth.woolen.pants", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.wool"), 8),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "woolen shoulder": (
+        output: ("common.items.armor.cloth.woolen.shoulder", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.wool"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 6),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+//ARMOR/CLOTH/SILKEN
+    "silken back": (
+        output: ("common.items.armor.cloth.silken.back", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.silk"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],        
+        craft_sprite: Some(CraftingBench),
+    ),
+    "silken belt": (
+        output: ("common.items.armor.cloth.silken.belt", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.silk"), 2),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],            
+        craft_sprite: Some(CraftingBench),
+    ),
+    "silken chest": (
+        output: ("common.items.armor.cloth.silken.chest", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.silk"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "silken feet": (
+        output: ("common.items.armor.cloth.silken.foot", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.silk"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "silken hands": (
+        output: ("common.items.armor.cloth.silken.hand", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.silk"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "silken pants": (
+        output: ("common.items.armor.cloth.silken.pants", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.silk"), 8),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "silken shoulder": (
+        output: ("common.items.armor.cloth.silken.shoulder", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.silk"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 6),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+//ARMOR/CLOTH/DRUID
+    "druid back": (
+        output: ("common.items.armor.cloth.druid.back", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.lifecloth"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],        
+        craft_sprite: Some(CraftingBench),
+    ),
+    "druid belt": (
+        output: ("common.items.armor.cloth.druid.belt", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.lifecloth"), 2),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],            
+        craft_sprite: Some(CraftingBench),
+    ),
+    "druid chest": (
+        output: ("common.items.armor.cloth.druid.chest", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.lifecloth"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "druid feet": (
+        output: ("common.items.armor.cloth.druid.foot", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.lifecloth"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "druid hands": (
+        output: ("common.items.armor.cloth.druid.hand", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.lifecloth"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "druid pants": (
+        output: ("common.items.armor.cloth.druid.pants", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.lifecloth"), 8),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "druid shoulder": (
+        output: ("common.items.armor.cloth.druid.shoulder", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.lifecloth"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 6),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+//ARMOR/CLOTH/MOONWEAVE
+    "moonweave back": (
+        output: ("common.items.armor.cloth.moonweave.back", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.moonweave"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],        
+        craft_sprite: Some(CraftingBench),
+    ),
+    "moonweave belt": (
+        output: ("common.items.armor.cloth.moonweave.belt", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.moonweave"), 2),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],            
+        craft_sprite: Some(CraftingBench),
+    ),
+    "moonweave chest": (
+        output: ("common.items.armor.cloth.moonweave.chest", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.moonweave"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "moonweave feet": (
+        output: ("common.items.armor.cloth.moonweave.foot", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.moonweave"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "moonweave hands": (
+        output: ("common.items.armor.cloth.moonweave.hand", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.moonweave"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "moonweave pants": (
+        output: ("common.items.armor.cloth.moonweave.pants", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.moonweave"), 8),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "moonweave shoulder": (
+        output: ("common.items.armor.cloth.moonweave.shoulder", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.moonweave"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 6),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+//ARMOR/CLOTH/SUNSILK
+    "sunsilk back": (
+        output: ("common.items.armor.cloth.sunsilk.back", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.sunsilk"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],        
+        craft_sprite: Some(CraftingBench),
+    ),
+    "sunsilk belt": (
+        output: ("common.items.armor.cloth.sunsilk.belt", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.sunsilk"), 2),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],            
+        craft_sprite: Some(CraftingBench),
+    ),
+    "sunsilk chest": (
+        output: ("common.items.armor.cloth.sunsilk.chest", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.sunsilk"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "sunsilk feet": (
+        output: ("common.items.armor.cloth.sunsilk.foot", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.sunsilk"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "sunsilk hands": (
+        output: ("common.items.armor.cloth.sunsilk.hand", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.sunsilk"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "sunsilk pants": (
+        output: ("common.items.armor.cloth.sunsilk.pants", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.sunsilk"), 8),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "sunsilk shoulder": (
+        output: ("common.items.armor.cloth.sunsilk.shoulder", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.sunsilk"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 6),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+//ARMOR/MAIL/BRONZE
+    "bronze back": (
+        output: ("common.items.armor.mail.bronze.back", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.bronze"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],        
+        craft_sprite: Some(CraftingBench),
+    ),
+    "bronze belt": (
+        output: ("common.items.armor.mail.bronze.belt", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.bronze"), 2),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],            
+        craft_sprite: Some(CraftingBench),
+    ),
+    "bronze chest": (
+        output: ("common.items.armor.mail.bronze.chest", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.bronze"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "bronze feet": (
+        output: ("common.items.armor.mail.bronze.foot", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.bronze"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "bronze hands": (
+        output: ("common.items.armor.mail.bronze.hand", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.bronze"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "bronze pants": (
+        output: ("common.items.armor.mail.bronze.pants", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.bronze"), 8),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "bronze shoulder": (
+        output: ("common.items.armor.mail.bronze.shoulder", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.bronze"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 6),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    //ARMOR/MAIL/IRON
+    "iron back": (
+        output: ("common.items.armor.mail.iron.back", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.iron"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],        
+        craft_sprite: Some(CraftingBench),
+    ),
+    "iron belt": (
+        output: ("common.items.armor.mail.iron.belt", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.iron"), 2),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],            
+        craft_sprite: Some(CraftingBench),
+    ),
+    "iron chest": (
+        output: ("common.items.armor.mail.iron.chest", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.iron"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "iron feet": (
+        output: ("common.items.armor.mail.iron.foot", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.iron"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "iron hands": (
+        output: ("common.items.armor.mail.iron.hand", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.iron"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "iron pants": (
+        output: ("common.items.armor.mail.iron.pants", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.iron"), 8),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "iron shoulder": (
+        output: ("common.items.armor.mail.iron.shoulder", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.iron"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 6),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+//ARMOR/MAIL/STEEL
+    "steel back": (
+        output: ("common.items.armor.mail.steel.back", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.steel"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],        
+        craft_sprite: Some(CraftingBench),
+    ),
+    "steel belt": (
+        output: ("common.items.armor.mail.steel.belt", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.steel"), 2),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],            
+        craft_sprite: Some(CraftingBench),
+    ),
+    "steel chest": (
+        output: ("common.items.armor.mail.steel.chest", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.steel"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "steel feet": (
+        output: ("common.items.armor.mail.steel.foot", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.steel"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "steel hands": (
+        output: ("common.items.armor.mail.steel.hand", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.steel"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "steel pants": (
+        output: ("common.items.armor.mail.steel.pants", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.steel"), 8),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "steel shoulder": (
+        output: ("common.items.armor.mail.steel.shoulder", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.steel"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 6),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+//ARMOR/MAIL/COBALT
+    "cobalt back": (
+        output: ("common.items.armor.mail.cobalt.back", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.cobalt"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],        
+        craft_sprite: Some(CraftingBench),
+    ),
+    "cobalt belt": (
+        output: ("common.items.armor.mail.cobalt.belt", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.cobalt"), 2),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],            
+        craft_sprite: Some(CraftingBench),
+    ),
+    "cobalt chest": (
+        output: ("common.items.armor.mail.cobalt.chest", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.cobalt"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "cobalt feet": (
+        output: ("common.items.armor.mail.cobalt.foot", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.cobalt"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "cobalt hands": (
+        output: ("common.items.armor.mail.cobalt.hand", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.cobalt"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "cobalt pants": (
+        output: ("common.items.armor.mail.cobalt.pants", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.cobalt"), 8),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "cobalt shoulder": (
+        output: ("common.items.armor.mail.cobalt.shoulder", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.cobalt"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 6),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+//ARMOR/MAIL/BLOODSTEEL
+    "bloodsteel back": (
+        output: ("common.items.armor.mail.bloodsteel.back", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.bloodsteel"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],        
+        craft_sprite: Some(CraftingBench),
+    ),
+    "bloodsteel belt": (
+        output: ("common.items.armor.mail.bloodsteel.belt", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.bloodsteel"), 2),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],            
+        craft_sprite: Some(CraftingBench),
+    ),
+    "bloodsteel chest": (
+        output: ("common.items.armor.mail.bloodsteel.chest", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.bloodsteel"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "bloodsteel feet": (
+        output: ("common.items.armor.mail.bloodsteel.foot", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.bloodsteel"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "bloodsteel hands": (
+        output: ("common.items.armor.mail.brobloodsteelnze.hand", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.bloodsteel"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "bloodsteel pants": (
+        output: ("common.items.armor.mail.bloodsteel.pants", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.bloodsteel"), 8),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "bloodsteel shoulder": (
+        output: ("common.items.armor.mail.bloodsteel.shoulder", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.bloodsteel"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 6),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+//ARMOR/MAIL/ORICHALCUM
+    "orichalcum back": (
+        output: ("common.items.armor.mail.orichalcum.back", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.orichalcum"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],        
+        craft_sprite: Some(CraftingBench),
+    ),
+    "orichalcum belt": (
+        output: ("common.items.armor.mail.orichalcum.belt", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.orichalcum"), 2),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],            
+        craft_sprite: Some(CraftingBench),
+    ),
+    "orichalcum chest": (
+        output: ("common.items.armor.mail.orichalcum.chest", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.orichalcum"), 10),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "orichalcum feet": (
+        output: ("common.items.armor.mail.orichalcum.foot", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.orichalcum"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "orichalcum hands": (
+        output: ("common.items.armor.mail.orichalcum.hand", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.orichalcum"), 4),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "orichalcum pants": (
+        output: ("common.items.armor.mail.orichalcum.pants", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.orichalcum"), 8),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
+        ],    
+        craft_sprite: Some(CraftingBench),
+    ),
+    "orichalcum shoulder": (
+        output: ("common.items.armor.mail.orichalcum.shoulder", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.orichalcum"), 10),
             (Item("common.items.crafting_ing.leather.leather_strips"), 6),
         ],    
         craft_sprite: Some(CraftingBench),

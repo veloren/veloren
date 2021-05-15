@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Primal Gauntlets",
+    description: "Smithed from hide tougher than steel.",
+    kind: Armor((
+        kind: Hand("Primal"),
+        stats: (
+            protection: Normal(10.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

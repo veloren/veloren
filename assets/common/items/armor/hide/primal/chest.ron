@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Primal Cuirass",
+    description: "Smithed from hide tougher than steel.",
+    kind: Armor((
+        kind: Chest("Primal"),
+        stats: (
+            protection: Normal(25.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: High,
+    tags: [],
+)

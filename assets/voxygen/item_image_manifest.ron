@@ -1126,31 +1126,6 @@
         "voxel.armor.cultist.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
-    // Druid Set
-    Armor(Chest("Druid")): VoxTrans(
-        "voxel.armor.druid.chest",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
-    ),
-    Armor(Pants("Druid")): VoxTrans(
-        "voxel.armor.druid.pants",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
-    ),
-    Armor(Belt("Druid")): VoxTrans(
-        "voxel.armor.druid.belt",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
-    ),
-    Armor(Foot("Druid")): VoxTrans(
-        "voxel.armor.druid.foot",
-        (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
-    ),
-    Armor(Hand("Druid")): VoxTrans(
-        "voxel.armor.druid.hand",
-        (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
-    ),
-    Armor(Shoulder("Druid")): VoxTrans(
-        "voxel.armor.druid.shoulder",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
-    ),
     // Villager Clothing
     Armor(Pants("WorkerBlue")): VoxTrans(
         "voxel.armor.misc.pants.worker_blue",
@@ -1250,31 +1225,6 @@
         "voxel.armor.assassin.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
-    // Starting Armor - Plate
-    Armor(Chest("Plate")): VoxTrans(
-        "voxel.armor.plate.chest",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
-    ),
-    Armor(Pants("Plate")): VoxTrans(
-        "voxel.armor.plate.pants",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
-    ),
-    Armor(Belt("Plate")): VoxTrans(
-        "voxel.armor.plate.belt",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.8,
-    ),
-    Armor(Foot("Plate")): VoxTrans(
-        "voxel.armor.plate.foot",
-        (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
-    ),
-    Armor(Hand("Plate")): VoxTrans(
-        "voxel.armor.plate.hand",
-        (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
-    ),
-    Armor(Shoulder("Plate")): VoxTrans(
-        "voxel.armor.plate.shoulder",
-        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
-    ),
     //PlateLeather Armor
     Armor(Chest("LeatherPlate")): VoxTrans(
         "voxel.armor.leather_plate.chest",
@@ -1301,53 +1251,53 @@
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
     //Leather0 Armor
-    Armor(Chest("Swift")): VoxTrans(
-        "voxel.armor.swift.chest",
+    Armor(Chest("Leather")): VoxTrans(
+        "voxel.armor.hide.leather.chest",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
-    Armor(Pants("Swift")): VoxTrans(
-        "voxel.armor.swift.pants",
+    Armor(Pants("Leather")): VoxTrans(
+        "voxel.armor.hide.leather.pants",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
-    Armor(Belt("Swift")): VoxTrans(
-        "voxel.armor.swift.belt",
+    Armor(Belt("Leather")): VoxTrans(
+        "voxel.armor.hide.leather.belt",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.8,
     ),
-    Armor(Foot("Swift")): VoxTrans(
-        "voxel.armor.swift.foot",
+    Armor(Foot("Leather")): VoxTrans(
+        "voxel.armor.hide.leather.foot",
         (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
     ),
-    Armor(Hand("Swift")): VoxTrans(
-        "voxel.armor.swift.hand",
+    Armor(Hand("Leather")): VoxTrans(
+        "voxel.armor.hide.leather.hand",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
-    Armor(Shoulder("Swift")): VoxTrans(
-        "voxel.armor.swift.shoulder",
+    Armor(Shoulder("Leather")): VoxTrans(
+        "voxel.armor.hide.leather.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
-    //Agile Armor
-    Armor(Chest("Agile")): VoxTrans(
-        "voxel.armor.agile.chest",
+    //Rawhide Armor
+    Armor(Chest("Rawhide")): VoxTrans(
+        "voxel.armor.hide.rawhide.chest",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
-    Armor(Pants("Agile")): VoxTrans(
-        "voxel.armor.agile.pants",
+    Armor(Pants("Rawhide")): VoxTrans(
+        "voxel.armor.hide.rawhide.pants",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
-    Armor(Belt("Agile")): VoxTrans(
-        "voxel.armor.agile.belt",
+    Armor(Belt("Rawhide")): VoxTrans(
+        "voxel.armor.hide.rawhide.belt",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.8,
     ),
-    Armor(Foot("Agile")): VoxTrans(
-        "voxel.armor.agile.foot",
+    Armor(Foot("Rawhide")): VoxTrans(
+        "voxel.armor.hide.rawhide.foot",
         (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
     ),
-    Armor(Hand("Agile")): VoxTrans(
-        "voxel.armor.agile.hand",
+    Armor(Hand("Rawhide")): VoxTrans(
+        "voxel.armor.hide.rawhide.hand",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
-    Armor(Shoulder("Agile")): VoxTrans(
-        "voxel.armor.agile.shoulder",
+    Armor(Shoulder("Rawhide")): VoxTrans(
+        "voxel.armor.hide.rawhide.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
     //Ferocious Armor
@@ -1672,118 +1622,118 @@
     ),
     //Scale Set
     Armor(Chest("Scale")): VoxTrans(
-        "voxel.armor.scale.chest",
+        "voxel.armor.hide.scale.chest",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Pants("Scale")): VoxTrans(
-        "voxel.armor.scale.pants",
+        "voxel.armor.hide.scale.pants",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Belt("Scale")): VoxTrans(
-        "voxel.armor.scale.belt",
+        "voxel.armor.hide.scale.belt",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
     ),
     Armor(Foot("Scale")): VoxTrans(
-        "voxel.armor.scale.foot",
+        "voxel.armor.hide.scale.foot",
         (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
     ),
     Armor(Hand("Scale")): VoxTrans(
-        "voxel.armor.scale.hand",
+        "voxel.armor.hide.scale.hand",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
     Armor(Shoulder("Scale")): VoxTrans(
-        "voxel.armor.scale.shoulder",
+        "voxel.armor.hide.scale.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
     Armor(Back("Scale")): VoxTrans(
-        "voxel.armor.scale.back",
+        "voxel.armor.hide.scale.back",
         (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
     ),
     //Carapace Set
     Armor(Chest("Carapace")): VoxTrans(
-        "voxel.armor.carapace.chest",
+        "voxel.armor.hide.carapace.chest",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Pants("Carapace")): VoxTrans(
-        "voxel.armor.carapace.pants",
+        "voxel.armor.hide.carapace.pants",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Belt("Carapace")): VoxTrans(
-        "voxel.armor.carapace.belt",
+        "voxel.armor.hide.carapace.belt",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
     ),
     Armor(Foot("Carapace")): VoxTrans(
-        "voxel.armor.carapace.foot",
+        "voxel.armor.hide.carapace.foot",
         (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
     ),
     Armor(Hand("Carapace")): VoxTrans(
-        "voxel.armor.carapace.hand",
+        "voxel.armor.hide.carapace.hand",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
     Armor(Shoulder("Carapace")): VoxTrans(
-        "voxel.armor.carapace.shoulder",
+        "voxel.armor.hide.carapace.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
     Armor(Back("Carapace")): VoxTrans(
-        "voxel.armor.carapace.back",
+        "voxel.armor.hide.carapace.back",
         (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
     ),
-    //Platescale Set
-    Armor(Chest("Platescale")): VoxTrans(
-        "voxel.armor.platescale.chest",
+    //Primal Set
+    Armor(Chest("Primal")): VoxTrans(
+        "voxel.armor.hide.primal.chest",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
-    Armor(Pants("Platescale")): VoxTrans(
-        "voxel.armor.platescale.pants",
+    Armor(Pants("Primal")): VoxTrans(
+        "voxel.armor.hide.primal.pants",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
-    Armor(Belt("Platescale")): VoxTrans(
-        "voxel.armor.platescale.belt",
+    Armor(Belt("Primal")): VoxTrans(
+        "voxel.armor.hide.primal.belt",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
     ),
-    Armor(Foot("Platescale")): VoxTrans(
-        "voxel.armor.platescale.foot",
+    Armor(Foot("Primal")): VoxTrans(
+        "voxel.armor.hide.primal.foot",
         (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
     ),
-    Armor(Hand("Platescale")): VoxTrans(
-        "voxel.armor.platescale.hand",
+    Armor(Hand("Primal")): VoxTrans(
+        "voxel.armor.hide.primal.hand",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
-    Armor(Shoulder("Platescale")): VoxTrans(
-        "voxel.armor.platescale.shoulder",
+    Armor(Shoulder("Primal")): VoxTrans(
+        "voxel.armor.hide.primal.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
-    Armor(Back("Platescale")): VoxTrans(
-        "voxel.armor.platescale.back",
+    Armor(Back("Primal")): VoxTrans(
+        "voxel.armor.hide.primal.back",
         (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
     ),
     //Dragonscale Set
     Armor(Chest("Dragonscale")): VoxTrans(
-        "voxel.armor.dragonscale.chest",
+        "voxel.armor.hide.dragonscale.chest",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Pants("Dragonscale")): VoxTrans(
-        "voxel.armor.dragonscale.pants",
+        "voxel.armor.hide.dragonscale.pants",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Belt("Dragonscale")): VoxTrans(
-        "voxel.armor.dragonscale.belt",
+        "voxel.armor.hide.dragonscale.belt",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
     ),
     Armor(Foot("Dragonscale")): VoxTrans(
-        "voxel.armor.dragonscale.foot",
+        "voxel.armor.hide.dragonscale.foot",
         (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
     ),
     Armor(Hand("Dragonscale")): VoxTrans(
-        "voxel.armor.dragonscale.hand",
+        "voxel.armor.hide.dragonscale.hand",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
     Armor(Shoulder("Dragonscale")): VoxTrans(
-        "voxel.armor.dragonscale.shoulder",
+        "voxel.armor.hide.dragonscale.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
     Armor(Back("Dragonscale")): VoxTrans(
-        "voxel.armor.dragonscale.back",
+        "voxel.armor.hide.dragonscale.back",
         (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
     ),
     //Savage Set
@@ -1817,350 +1767,350 @@
     ),
     //Linen Set
     Armor(Chest("Linen")): VoxTrans(
-        "voxel.armor.linen.chest",
+        "voxel.armor.cloth.linen.chest",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Pants("Linen")): VoxTrans(
-        "voxel.armor.linen.pants",
+        "voxel.armor.cloth.linen.pants",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Belt("Linen")): VoxTrans(
-        "voxel.armor.linen.belt",
+        "voxel.armor.cloth.linen.belt",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
     ),
     Armor(Foot("Linen")): VoxTrans(
-        "voxel.armor.linen.foot",
+        "voxel.armor.cloth.linen.foot",
         (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
     ),
     Armor(Hand("Linen")): VoxTrans(
-        "voxel.armor.linen.hand",
+        "voxel.armor.cloth.linen.hand",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
     Armor(Shoulder("Linen")): VoxTrans(
-        "voxel.armor.linen.shoulder",
+        "voxel.armor.cloth.linen.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
     Armor(Back("Linen")): VoxTrans(
-        "voxel.armor.linen.back",
+        "voxel.armor.cloth.linen.back",
         (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
     ),
     //Woolen Set
     Armor(Chest("Woolen")): VoxTrans(
-        "voxel.armor.woolen.chest",
+        "voxel.armor.cloth.woolen.chest",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Pants("Woolen")): VoxTrans(
-        "voxel.armor.woolen.pants",
+        "voxel.armor.cloth.woolen.pants",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Belt("Woolen")): VoxTrans(
-        "voxel.armor.woolen.belt",
+        "voxel.armor.cloth.woolen.belt",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
     ),
     Armor(Foot("Woolen")): VoxTrans(
-        "voxel.armor.woolen.foot",
+        "voxel.armor.cloth.woolen.foot",
         (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
     ),
     Armor(Hand("Woolen")): VoxTrans(
-        "voxel.armor.woolen.hand",
+        "voxel.armor.cloth.woolen.hand",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
     Armor(Shoulder("Woolen")): VoxTrans(
-        "voxel.armor.woolen.shoulder",
+        "voxel.armor.cloth.woolen.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
     Armor(Back("Woolen")): VoxTrans(
-        "voxel.armor.woolen.back",
+        "voxel.armor.cloth.woolen.back",
         (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
     ),
     //Silken Set
     Armor(Chest("Silken")): VoxTrans(
-        "voxel.armor.silken.chest",
+        "voxel.armor.cloth.silken.chest",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Pants("Silken")): VoxTrans(
-        "voxel.armor.silken.pants",
+        "voxel.armor.cloth.silken.pants",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Belt("Silken")): VoxTrans(
-        "voxel.armor.silken.belt",
+        "voxel.armor.cloth.silken.belt",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
     ),
     Armor(Foot("Silken")): VoxTrans(
-        "voxel.armor.silken.foot",
+        "voxel.armor.cloth.silken.foot",
         (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
     ),
     Armor(Hand("Silken")): VoxTrans(
-        "voxel.armor.silken.hand",
+        "voxel.armor.cloth.silken.hand",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
     Armor(Shoulder("Silken")): VoxTrans(
-        "voxel.armor.silken.shoulder",
+        "voxel.armor.cloth.silken.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
     Armor(Back("Silken")): VoxTrans(
-        "voxel.armor.silken.back",
+        "voxel.armor.cloth.silken.back",
         (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
     ),
-    //Lifecloth Set
-    Armor(Chest("Lifecloth")): VoxTrans(
-        "voxel.armor.lifecloth.chest",
+    //Druid Set
+    Armor(Chest("Druid")): VoxTrans(
+        "voxel.armor.cloth.druid.chest",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
-    Armor(Pants("Lifecloth")): VoxTrans(
-        "voxel.armor.lifecloth.pants",
+    Armor(Pants("Druid")): VoxTrans(
+        "voxel.armor.cloth.druid.pants",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
-    Armor(Belt("Lifecloth")): VoxTrans(
-        "voxel.armor.lifecloth.belt",
+    Armor(Belt("Druid")): VoxTrans(
+        "voxel.armor.cloth.druid.belt",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
     ),
-    Armor(Foot("Lifecloth")): VoxTrans(
-        "voxel.armor.lifecloth.foot",
+    Armor(Foot("Druid")): VoxTrans(
+        "voxel.armor.cloth.druid.foot",
         (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
     ),
-    Armor(Hand("Lifecloth")): VoxTrans(
-        "voxel.armor.lifecloth.hand",
+    Armor(Hand("Druid")): VoxTrans(
+        "voxel.armor.cloth.druid.hand",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
-    Armor(Shoulder("Lifecloth")): VoxTrans(
-        "voxel.armor.lifecloth.shoulder",
+    Armor(Shoulder("Druid")): VoxTrans(
+        "voxel.armor.cloth.druid.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
-    Armor(Back("Lifecloth")): VoxTrans(
-        "voxel.armor.lifecloth.back",
+    Armor(Back("Druid")): VoxTrans(
+        "voxel.armor.cloth.druid.back",
         (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
     ),
     //Moonweave Set
     Armor(Chest("Moonweave")): VoxTrans(
-        "voxel.armor.moonweave.chest",
+        "voxel.armor.cloth.moonweave.chest",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Pants("Moonweave")): VoxTrans(
-        "voxel.armor.moonweave.pants",
+        "voxel.armor.cloth.moonweave.pants",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Belt("Moonweave")): VoxTrans(
-        "voxel.armor.moonweave.belt",
+        "voxel.armor.cloth.moonweave.belt",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
     ),
     Armor(Foot("Moonweave")): VoxTrans(
-        "voxel.armor.moonweave.foot",
+        "voxel.armor.cloth.moonweave.foot",
         (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
     ),
     Armor(Hand("Moonweave")): VoxTrans(
-        "voxel.armor.moonweave.hand",
+        "voxel.armor.cloth.moonweave.hand",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
     Armor(Shoulder("Moonweave")): VoxTrans(
-        "voxel.armor.moonweave.shoulder",
+        "voxel.armor.cloth.moonweave.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
     Armor(Back("Moonweave")): VoxTrans(
-        "voxel.armor.moonweave.back",
+        "voxel.armor.cloth.moonweave.back",
         (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
     ),
     //Sunsilk Set
     Armor(Chest("Sunsilk")): VoxTrans(
-        "voxel.armor.sunsilk.chest",
+        "voxel.armor.cloth.sunsilk.chest",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Pants("Sunsilk")): VoxTrans(
-        "voxel.armor.sunsilk.pants",
+        "voxel.armor.cloth.sunsilk.pants",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Belt("Sunsilk")): VoxTrans(
-        "voxel.armor.sunsilk.belt",
+        "voxel.armor.cloth.sunsilk.belt",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
     ),
     Armor(Foot("Sunsilk")): VoxTrans(
-        "voxel.armor.sunsilk.foot",
+        "voxel.armor.cloth.sunsilk.foot",
         (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
     ),
     Armor(Hand("Sunsilk")): VoxTrans(
-        "voxel.armor.sunsilk.hand",
+        "voxel.armor.cloth.sunsilk.hand",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
     Armor(Shoulder("Sunsilk")): VoxTrans(
-        "voxel.armor.sunsilk.shoulder",
+        "voxel.armor.cloth.sunsilk.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
     Armor(Back("Sunsilk")): VoxTrans(
-        "voxel.armor.sunsilk.back",
+        "voxel.armor.cloth.sunsilk.back",
         (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
     ),
     //Bronze Set
     Armor(Chest("Bronze")): VoxTrans(
-        "voxel.armor.bronze.chest",
+        "voxel.armor.mail.bronze.chest",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Pants("Bronze")): VoxTrans(
-        "voxel.armor.bronze.pants",
+        "voxel.armor.mail.bronze.pants",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Belt("Bronze")): VoxTrans(
-        "voxel.armor.bronze.belt",
+        "voxel.armor.mail.bronze.belt",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
     ),
     Armor(Foot("Bronze")): VoxTrans(
-        "voxel.armor.bronze.foot",
+        "voxel.armor.mail.bronze.foot",
         (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
     ),
     Armor(Hand("Bronze")): VoxTrans(
-        "voxel.armor.bronze.hand",
+        "voxel.armor.mail.bronze.hand",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
     Armor(Shoulder("Bronze")): VoxTrans(
-        "voxel.armor.bronze.shoulder",
+        "voxel.armor.mail.bronze.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
     Armor(Back("Bronze")): VoxTrans(
-        "voxel.armor.bronze.back",
+        "voxel.armor.mail.bronze.back",
         (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
     ),
     //Iron Set
     Armor(Chest("Iron")): VoxTrans(
-        "voxel.armor.iron.chest",
+        "voxel.armor.mail.iron.chest",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Pants("Iron")): VoxTrans(
-        "voxel.armor.iron.pants",
+        "voxel.armor.mail.iron.pants",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Belt("Iron")): VoxTrans(
-        "voxel.armor.iron.belt",
+        "voxel.armor.mail.iron.belt",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
     ),
     Armor(Foot("Iron")): VoxTrans(
-        "voxel.armor.iron.foot",
+        "voxel.armor.mail.iron.foot",
         (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
     ),
     Armor(Hand("Iron")): VoxTrans(
-        "voxel.armor.iron.hand",
+        "voxel.armor.mail.iron.hand",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
     Armor(Shoulder("Iron")): VoxTrans(
-        "voxel.armor.iron.shoulder",
+        "voxel.armor.mail.iron.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
     Armor(Back("Iron")): VoxTrans(
-        "voxel.armor.iron.back",
+        "voxel.armor.mail.iron.back",
         (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
     ),
     //Steel Set
     Armor(Chest("Steel")): VoxTrans(
-        "voxel.armor.steel.chest",
+        "voxel.armor.mail.steel.chest",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Pants("Steel")): VoxTrans(
-        "voxel.armor.steel.pants",
+        "voxel.armor.mail.steel.pants",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Belt("Steel")): VoxTrans(
-        "voxel.armor.steel.belt",
+        "voxel.armor.mail.steel.belt",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
     ),
     Armor(Foot("Steel")): VoxTrans(
-        "voxel.armor.steel.foot",
+        "voxel.armor.mail.steel.foot",
         (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
     ),
     Armor(Hand("Steel")): VoxTrans(
-        "voxel.armor.steel.hand",
+        "voxel.armor.mail.steel.hand",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
     Armor(Shoulder("Steel")): VoxTrans(
-        "voxel.armor.steel.shoulder",
+        "voxel.armor.mail.steel.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
     Armor(Back("Steel")): VoxTrans(
-        "voxel.armor.steel.back",
+        "voxel.armor.mail.steel.back",
         (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
     ),
     //Cobalt Set
     Armor(Chest("Cobalt")): VoxTrans(
-        "voxel.armor.cobalt.chest",
+        "voxel.armor.mail.cobalt.chest",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Pants("Cobalt")): VoxTrans(
-        "voxel.armor.cobalt.pants",
+        "voxel.armor.mail.cobalt.pants",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Belt("Cobalt")): VoxTrans(
-        "voxel.armor.cobalt.belt",
+        "voxel.armor.mail.cobalt.belt",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
     ),
     Armor(Foot("Cobalt")): VoxTrans(
-        "voxel.armor.cobalt.foot",
+        "voxel.armor.mail.cobalt.foot",
         (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
     ),
     Armor(Hand("Cobalt")): VoxTrans(
-        "voxel.armor.cobalt.hand",
+        "voxel.armor.mail.cobalt.hand",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
     Armor(Shoulder("Cobalt")): VoxTrans(
-        "voxel.armor.cobalt.shoulder",
+        "voxel.armor.mail.cobalt.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
     Armor(Back("Cobalt")): VoxTrans(
-        "voxel.armor.cobalt.back",
+        "voxel.armor.mail.cobalt.back",
         (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
     ),
     //Bloodsteel Set
     Armor(Chest("Bloodsteel")): VoxTrans(
-        "voxel.armor.bloodsteel.chest",
+        "voxel.armor.mail.bloodsteel.chest",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Pants("Bloodsteel")): VoxTrans(
-        "voxel.armor.bloodsteel.pants",
+        "voxel.armor.mail.bloodsteel.pants",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Belt("Bloodsteel")): VoxTrans(
-        "voxel.armor.bloodsteel.belt",
+        "voxel.armor.mail.bloodsteel.belt",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
     ),
     Armor(Foot("Bloodsteel")): VoxTrans(
-        "voxel.armor.bloodsteel.foot",
+        "voxel.armor.mail.bloodsteel.foot",
         (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
     ),
     Armor(Hand("Bloodsteel")): VoxTrans(
-        "voxel.armor.bloodsteel.hand",
+        "voxel.armor.mail.bloodsteel.hand",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
     Armor(Shoulder("Bloodsteel")): VoxTrans(
-        "voxel.armor.bloodsteel.shoulder",
+        "voxel.armor.mail.bloodsteel.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
     Armor(Back("Bloodsteel")): VoxTrans(
-        "voxel.armor.bloodsteel.back",
+        "voxel.armor.mail.bloodsteel.back",
         (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
     ),
     //Orichalcum Set
     Armor(Chest("Orichalcum")): VoxTrans(
-        "voxel.armor.orichalcum.chest",
+        "voxel.armor.mail.orichalcum.chest",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Pants("Orichalcum")): VoxTrans(
-        "voxel.armor.orichalcum.pants",
+        "voxel.armor.mail.orichalcum.pants",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Belt("Orichalcum")): VoxTrans(
-        "voxel.armor.orichalcum.belt",
+        "voxel.armor.mail.orichalcum.belt",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
     ),
     Armor(Foot("Orichalcum")): VoxTrans(
-        "voxel.armor.orichalcum.foot",
+        "voxel.armor.mail.orichalcum.foot",
         (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
     ),
     Armor(Hand("Orichalcum")): VoxTrans(
-        "voxel.armor.orichalcum.hand",
+        "voxel.armor.mail.orichalcum.hand",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
     Armor(Shoulder("Orichalcum")): VoxTrans(
-        "voxel.armor.orichalcum.shoulder",
+        "voxel.armor.mail.orichalcum.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
     Armor(Back("Orichalcum")): VoxTrans(
-        "voxel.armor.orichalcum.back",
+        "voxel.armor.mail.orichalcum.back",
         (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
     ),
     //misc
@@ -2185,8 +2135,8 @@
         "voxel.armor.misc.back.dungeon_purple",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
-    Armor(Back("Agile")): VoxTrans(
-        "voxel.armor.agile.back",
+    Armor(Back("Rawhide")): VoxTrans(
+        "voxel.armor.hide.rawhide.back",
         (0.0, -2.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
     Armor(Back("LeatherBlue")): VoxTrans(
@@ -2239,7 +2189,7 @@
         "element.items.tabard_admin",
     ),
     // Heads
-    Armor(Head("Swift")): VoxTrans(
+    Armor(Head("Leather")): VoxTrans(
         "voxel.armor.misc.head.leather-0",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),

@@ -2,6 +2,5 @@
     (1.0, LootTable("common.loot_tables.weapons.tier-0")),
     (1.0, LootTable("common.loot_tables.weapons.tier-1")),
     (1.0, LootTable("common.loot_tables.armor.cloth")),
-    (1.0, LootTable("common.loot_tables.armor.swift")),
-    (0.1, LootTable("common.loot_tables.armor.plate")),
+    (1.0, LootTable("common.loot_tables.armor.leather")),
 ]

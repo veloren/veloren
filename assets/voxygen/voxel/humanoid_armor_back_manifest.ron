@@ -20,10 +20,6 @@
             vox_spec: ("armor.misc.back.short-1", (-5.0, -1.0, -11.0)),
             color: None
         ),
-        "Agile": (
-            vox_spec: ("armor.agile.back", (-5.0, -1.0, -11.0)),
-            color: None
-        ),
         "Ferocious": (
             vox_spec: ("armor.ferocious.back", (-5.0, -1.5, -14.0)),
             color: None
@@ -52,20 +48,28 @@
             vox_spec: ("armor.warlock.back", (-5.0, -1.5, -15.5)),
             color: None
         ),
+        "Rawhide": (
+            vox_spec: ("armor.hide.rawhide.back", (-5.0, -1.0, -11.0)),
+            color: None
+        ),
+        "Leather": (
+            vox_spec: ("armor.hide.leather.back", (-5.0, -1.0, -11.0)),
+            color: None
+        ),
         "Scale": (
-            vox_spec: ("armor.scale.back", (-5.0, -2.0, -10.5)),
+            vox_spec: ("armor.hide.scale.back", (-5.0, -2.0, -10.5)),
             color: None
         ),
         "Carapace": (
-            vox_spec: ("armor.carapace.back", (-5.0, -1.5, -10.5)),
+            vox_spec: ("armor.hide.carapace.back", (-5.0, -1.5, -10.5)),
             color: None
         ),
-        "Platescale": (
-            vox_spec: ("armor.platescale.back", (-5.0, -4.5, -10.5)),
+        "Primal": (
+            vox_spec: ("armor.hide.primal.back", (-5.0, -4.5, -10.5)),
             color: None
         ),
         "Dragonscale": (
-            vox_spec: ("armor.dragonscale.back", (-7.0, -2.5, -12.0)),
+            vox_spec: ("armor.hide.dragonscale.back", (-7.0, -2.5, -12.0)),
             color: None
         ),
         "Savage": (
@@ -73,51 +77,51 @@
             color: None
         ),
         "Linen": (
-            vox_spec: ("armor.linen.back", (-4.0, -2.5, -8.5)),
+            vox_spec: ("armor.cloth.linen.back", (-4.0, -2.5, -8.5)),
             color: None
         ),
         "Woolen": (
-            vox_spec: ("armor.woolen.back", (-5.0, -2.5, -8.5)),
+            vox_spec: ("armor.cloth.woolen.back", (-5.0, -2.5, -8.5)),
             color: None
         ),
         "Silken": (
-            vox_spec: ("armor.silken.back", (-4.0, -2.5, -11.5)),
+            vox_spec: ("armor.cloth.silken.back", (-4.0, -2.5, -11.5)),
             color: None
         ),
-        "Lifecloth": (
-            vox_spec: ("armor.lifecloth.back", (-5.0, -2.5, -11.0)),
+        "Druid": (
+            vox_spec: ("armor.cloth.druid.back", (-5.0, -2.5, -11.0)),
             color: None
         ),
         "Moonweave": (
-            vox_spec: ("armor.moonweave.back", (-4.0, -2.0, -12.5)),
+            vox_spec: ("armor.cloth.moonweave.back", (-4.0, -2.0, -12.5)),
             color: None
         ),
         "Sunsilk": (
-            vox_spec: ("armor.sunsilk.back", (-5.0, -1.5, -12.5)),
+            vox_spec: ("armor.cloth.sunsilk.back", (-5.0, -1.5, -12.5)),
             color: None
         ),
         "Bronze": (
-            vox_spec: ("armor.bronze.back", (-4.0, -2.5, -7.0)),
+            vox_spec: ("armor.mail.bronze.back", (-4.0, -2.5, -7.0)),
             color: None
         ),
         "Iron": (
-            vox_spec: ("armor.iron.back", (-4.0, -2.5, -10.0)),
+            vox_spec: ("armor.mail.iron.back", (-4.0, -2.5, -10.0)),
             color: None
         ),
         "Steel": (
-            vox_spec: ("armor.steel.back", (-4.0, -2.5, -12.0)),
+            vox_spec: ("armor.mail.steel.back", (-4.0, -2.5, -12.0)),
             color: None
         ),
         "Cobalt": (
-            vox_spec: ("armor.cobalt.back", (-4.0, -2.5, -12.0)),
+            vox_spec: ("armor.mail.cobalt.back", (-4.0, -2.5, -12.0)),
             color: None
         ),
         "Bloodsteel": (
-            vox_spec: ("armor.bloodsteel.back", (-3.5, -2.5, -12.0)),
+            vox_spec: ("armor.mail.bloodsteel.back", (-3.5, -2.5, -12.0)),
             color: None
         ),
         "Orichalcum": (
-            vox_spec: ("armor.orichalcum.back", (-5.0, -4.5, -12.0)),
+            vox_spec: ("armor.mail.orichalcum.back", (-5.0, -4.5, -12.0)),
             color: None
         ),
     },

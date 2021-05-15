@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Primal Chausses",
+    description: "Smithed from hide tougher than steel.",
+    kind: Armor((
+        kind: Pants("Primal"),
+        stats: (
+            protection: Normal(20.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

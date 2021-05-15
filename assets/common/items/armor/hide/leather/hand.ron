@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Leather Gloves",
+    description: "Swift like the wind.",
+    kind: Armor((
+        kind: Hand("Leather"),
+        stats: (
+            protection: Normal(4.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Common,
+    tags: [LeatherItem],
+)

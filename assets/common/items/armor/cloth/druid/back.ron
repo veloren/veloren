@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Druid Cape",
+    description: "Incredibly light, with the essence of nature.",
+    kind: Armor((
+        kind: Back("Druid"),
+        stats: (
+            protection: Normal(4.0),
+            poise_resilience: Normal(0.2),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

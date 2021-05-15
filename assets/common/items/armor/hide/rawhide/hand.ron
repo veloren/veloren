@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Rawhide Gauntlets",
+    description: "\'Tightly packed pieces of leather to endure all weather.\'",
+    kind: Armor((
+        kind: Hand("Rawhide"),
+        stats: (
+            protection: Normal(4.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [LeatherItem],
+)

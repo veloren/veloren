@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Leather Shoulderpads",
+    description: "Swift like the wind.",
+    kind: Armor((
+        kind: Shoulder("Leather"),
+        stats: (
+            protection: Normal(6.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Common,
+    tags: [LeatherItem],
+)

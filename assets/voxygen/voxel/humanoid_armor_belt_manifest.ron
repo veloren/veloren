@@ -28,14 +28,6 @@
             vox_spec: ("armor.ferocious.belt", (-4.0, -3.5, -1.0)),
             color: None
         ),
-        "Plate": (
-            vox_spec: ("armor.plate.belt", (-5.0, -3.5, 2.0)),
-            color: None
-        ),
-        "Swift": (
-            vox_spec: ("armor.swift.belt", (-5.0, -3.5, 2.0)),
-            color: None
-        ),
         "ClothPurple": (
             vox_spec: ("armor.cloth_purple.belt", (-5.0, -3.5, 2.0)),
             color: None
@@ -52,16 +44,8 @@
             vox_spec: ("armor.cultist.belt", (-5.0, -3.5, 1.0)),
             color: None
         ),
-        "Agile": (
-            vox_spec: ("armor.agile.belt", (-5.0, -3.5, 2.0)),
-            color: None
-        ),
         "LeatherPlate": (
             vox_spec: ("armor.leather_plate.belt", (-4.0, -4.5, 2.0)),
-            color: None
-        ),
-        "Druid": (
-            vox_spec: ("armor.druid.belt", (-4.0, -3.5, -1.0)),
             color: None
         ),
         "Twigs": (
@@ -96,20 +80,28 @@
             vox_spec: ("armor.warlock.belt", (-4.0, -3.0, 2.0)),
             color: None
         ),
+        "Rawhide": (
+            vox_spec: ("armor.hide.rawhide.belt", (-5.0, -3.5, 2.0)),
+            color: None
+        ),
+        "Leather": (
+            vox_spec: ("armor.hide.leather.belt", (-5.0, -3.5, 2.0)),
+            color: None
+        ),
         "Scale":(
-            vox_spec: ("armor.scale.belt", (-4.0, -3.5, 2.0)),
+            vox_spec: ("armor.hide.scale.belt", (-4.0, -3.5, 2.0)),
             color: None
         ),
         "Carapace":(
-            vox_spec: ("armor.carapace.belt", (-4.0, -4.0, 1.5)),
+            vox_spec: ("armor.hide.carapace.belt", (-4.0, -4.0, 1.5)),
             color: None
         ),
-        "Platescale":(
-            vox_spec: ("armor.platescale.belt", (-4.0, -4.0, 1.0)),
+        "Primal":(
+            vox_spec: ("armor.hide.primal.belt", (-4.0, -4.0, 1.0)),
             color: None
         ),
         "Dragonscale":(
-            vox_spec: ("armor.dragonscale.belt", (-4.0, -3.5, 1.5)),
+            vox_spec: ("armor.hide.dragonscale.belt", (-4.0, -3.5, 1.5)),
             color: None
         ),
         "Savage":(
@@ -117,51 +109,51 @@
             color: None
         ),
         "Linen":(
-            vox_spec: ("armor.linen.belt", (-4.0, -4.0, 0.0)),
+            vox_spec: ("armor.cloth.linen.belt", (-4.0, -4.0, 0.0)),
             color: None
         ),
         "Woolen":(
-            vox_spec: ("armor.woolen.belt", (-4.0, -4.0, 1.0)),
+            vox_spec: ("armor.cloth.woolen.belt", (-4.0, -4.0, 1.0)),
             color: None
         ),
         "Silken":(
-            vox_spec: ("armor.silken.belt", (-4.0, -3.5, -3.0)),
+            vox_spec: ("armor.cloth.silken.belt", (-4.0, -3.5, -3.0)),
             color: None
         ),
-        "Lifecloth":(
-            vox_spec: ("armor.lifecloth.belt", (-4.0, -4.0, -0.5)),
+        "Druid":(
+            vox_spec: ("armor.cloth.druid.belt", (-4.0, -4.0, -0.5)),
             color: None
         ),
         "Moonweave":(
-            vox_spec: ("armor.moonweave.belt", (-4.0, -3.5, 1.0)),
+            vox_spec: ("armor.cloth.moonweave.belt", (-4.0, -3.5, 1.0)),
             color: None
         ),
         "Sunsilk":(
-            vox_spec: ("armor.sunsilk.belt", (-4.0, -3.5, -2.5)),
+            vox_spec: ("armor.cloth.sunsilk.belt", (-4.0, -3.5, -2.5)),
             color: None
         ),
         "Bronze":(
-            vox_spec: ("armor.bronze.belt", (-4.0, -4.0, 2.0)),
+            vox_spec: ("armor.mail.bronze.belt", (-4.0, -4.0, 2.0)),
             color: None
         ),
         "Iron":(
-            vox_spec: ("armor.iron.belt", (-4.0, -4.0, 2.0)),
+            vox_spec: ("armor.mail.iron.belt", (-4.0, -4.0, 2.0)),
             color: None
         ),
         "Steel":(
-            vox_spec: ("armor.steel.belt", (-5.0, -4.0, 1.0)),
+            vox_spec: ("armor.mail.steel.belt", (-5.0, -4.0, 1.0)),
             color: None
         ),
         "Cobalt":(
-            vox_spec: ("armor.cobalt.belt", (-5.0, -4.0, 1.0)),
+            vox_spec: ("armor.mail.cobalt.belt", (-5.0, -4.0, 1.0)),
             color: None
         ),
         "Bloodsteel":(
-            vox_spec: ("armor.bloodsteel.belt", (-4.5, -3.5, 1.0)),
+            vox_spec: ("armor.mail.bloodsteel.belt", (-4.5, -3.5, 1.0)),
             color: None
         ),
         "Orichalcum":(
-            vox_spec: ("armor.orichalcum.belt", (-4.0, -3.5, 1.0)),
+            vox_spec: ("armor.mail.orichalcum.belt", (-4.0, -3.5, 1.0)),
             color: None
         ),
     },

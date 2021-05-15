@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Rawhide Pantalons",
+    description: "\'Tightly packed pieces of leather to endure all weather.\'",
+    kind: Armor((
+        kind: Pants("Rawhide"),
+        stats: (
+            protection: Normal(6.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [LeatherItem],
+)
