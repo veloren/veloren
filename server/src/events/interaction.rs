@@ -113,8 +113,15 @@ pub fn handle_mount(server: &mut Server, mounter: EcsEntity, mountee: EcsEntity)
             state.ecs().read_storage::<comp::Pos>().get(mounter),
             state.ecs().read_storage::<comp::Pos>().get(mountee),
         );
+        let alive = |e| {
+            state
+                .ecs()
+                .read_storage::<comp::Health>()
+                .get(e)
+                .map_or(true, |h| !h.is_dead)
+        };
 
-        if not_mounting_yet && within_range {
+        if not_mounting_yet && within_range && alive(mounter) && alive(mountee) {
             if let (Some(mounter_uid), Some(mountee_uid)) = (
                 state.ecs().uid_from_entity(mounter),
                 state.ecs().uid_from_entity(mountee),
