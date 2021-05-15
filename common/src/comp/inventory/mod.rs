@@ -731,6 +731,31 @@ impl Inventory {
             })
             .unwrap_or_default();
 
+        // If 2 1h weapons are equipped, and mainhand weapon removed, move offhand into mainhand
+        match equip_slot {
+            EquipSlot::ActiveMainhand => {
+                if self.loadout.equipped(EquipSlot::ActiveMainhand).is_none()
+                    && self.loadout.equipped(EquipSlot::ActiveOffhand).is_some()
+                {
+                    let offhand = self.loadout.swap(EquipSlot::ActiveOffhand, None);
+                    self.loadout
+                        .swap(EquipSlot::ActiveMainhand, offhand)
+                        .unwrap_none();
+                }
+            },
+            EquipSlot::InactiveMainhand => {
+                if self.loadout.equipped(EquipSlot::InactiveMainhand).is_none()
+                    && self.loadout.equipped(EquipSlot::InactiveOffhand).is_some()
+                {
+                    let offhand = self.loadout.swap(EquipSlot::InactiveOffhand, None);
+                    self.loadout
+                        .swap(EquipSlot::InactiveMainhand, offhand)
+                        .unwrap_none();
+                }
+            },
+            _ => {},
+        }
+
         // Attempt to put any items unloaded from the unequipped item into empty
         // inventory slots and return any that don't fit to the caller where they
         // will be dropped on the ground
