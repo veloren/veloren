@@ -1,17 +1,19 @@
 use common::{
     combat::{AttackSource, AttackerInfo, TargetInfo},
     comp::{
+        agent::{Sound, SoundKind},
         projectile, Body, CharacterState, Combo, Energy, Group, Health, HealthSource, Inventory,
         Ori, PhysicsState, Pos, Projectile, Stats, Vel,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
-    resources::DeltaTime,
+    resources::{DeltaTime, Time},
     uid::{Uid, UidAllocator},
     util::Dir,
     GroupTarget,
 };
 use common_ecs::{Job, Origin, Phase, System};
+use rand::{thread_rng, Rng};
 use specs::{
     saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData,
     World, Write, WriteStorage,
@@ -21,6 +23,7 @@ use vek::*;
 
 #[derive(SystemData)]
 pub struct ReadData<'a> {
+    time: Read<'a, Time>,
     entities: Entities<'a>,
     dt: Read<'a, DeltaTime>,
     uid_allocator: Read<'a, UidAllocator>,
@@ -59,7 +62,6 @@ impl<'a> System<'a> for Sys {
         (read_data, mut orientations, mut projectiles, mut outcomes): Self::SystemData,
     ) {
         let mut server_emitter = read_data.server_bus.emitter();
-
         // Attacks
         'projectile_loop: for (entity, pos, physics, vel, mut projectile) in (
             &read_data.entities,
@@ -70,7 +72,15 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
+            let mut rng = thread_rng();
+            if physics.on_surface().is_none() && rng.gen_bool(0.05) {
+                server_emitter.emit(ServerEvent::Sound {
+                    sound: Sound::new(SoundKind::Projectile, pos.0, 2.0, read_data.time.0),
+                });
+            }
+
             let mut projectile_vanished: bool = false;
+
             // Hit entity
             for other in physics.touch_entities.iter().copied() {
                 let same_group = projectile
@@ -86,16 +96,14 @@ impl<'a> System<'a> for Sys {
                         .and_then(|e| read_data.groups.get(e))
                     );
 
+                // Skip if in the same group
                 let target_group = if same_group {
                     GroupTarget::InGroup
                 } else {
                     GroupTarget::OutOfGroup
                 };
 
-                if projectile.ignore_group
-                    // Skip if in the same group
-                    && same_group
-                {
+                if projectile.ignore_group && same_group {
                     continue;
                 }
 
@@ -173,7 +181,7 @@ impl<'a> System<'a> for Sys {
                                 pos: pos.0,
                                 explosion: e,
                                 owner: projectile.owner,
-                            })
+                            });
                         },
                         projectile::Effect::Vanish => {
                             server_emitter.emit(ServerEvent::Destroy {
@@ -198,8 +206,7 @@ impl<'a> System<'a> for Sys {
                 }
             }
 
-            // Hit something solid
-            if physics.on_wall.is_some() || physics.on_ground || physics.on_ceiling {
+            if physics.on_surface().is_some() {
                 let projectile = &mut *projectile;
                 for effect in projectile.hit_solid.drain(..) {
                     match effect {
@@ -208,7 +215,7 @@ impl<'a> System<'a> for Sys {
                                 pos: pos.0,
                                 explosion: e,
                                 owner: projectile.owner,
-                            })
+                            });
                         },
                         projectile::Effect::Vanish => {
                             server_emitter.emit(ServerEvent::Destroy {

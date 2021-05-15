@@ -14,7 +14,7 @@ use group_manip::handle_group;
 use information::handle_site_info;
 use interaction::{
     handle_lantern, handle_mine_block, handle_mount, handle_npc_interaction, handle_possess,
-    handle_unmount,
+    handle_sound, handle_unmount,
 };
 use inventory_manip::handle_inventory;
 use invite::{handle_invite, handle_invite_response};
@@ -110,7 +110,6 @@ impl Server {
                 },
                 ServerEvent::InitiateInvite(interactor, target, kind) => {
                     handle_invite(self, interactor, target, kind)
-                    //handle_initiate_trade(self, interactor, target)
                 },
                 ServerEvent::InviteResponse(entity, response) => {
                     handle_invite_response(self, entity, response)
@@ -217,10 +216,11 @@ impl Server {
                 ServerEvent::CreateSafezone { range, pos } => {
                     self.state.create_safezone(range, pos).build();
                 },
+                ServerEvent::Sound { sound } => handle_sound(self, &sound),
             }
         }
 
-        // Generate requested chunks.
+        // Generate requested chunks
         for (entity, key) in requested_chunks {
             self.generate_chunk(entity, key);
         }

@@ -14,6 +14,7 @@ use super::dialogue::Subject;
 
 pub const DEFAULT_INTERACTION_TIME: f32 = 3.0;
 pub const TRADE_INTERACTION_TIME: f32 = 300.0;
+pub const MAX_LISTEN_DIST: f32 = 100.0;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Alignment {
@@ -245,7 +246,7 @@ pub enum AgentEvent {
     TradeAccepted(Uid),
     FinishedTrade(TradeResult),
     UpdatePendingTrade(
-        // this data structure is large so box it to keep AgentEvent small
+        // This data structure is large so box it to keep AgentEvent small
         Box<(
             TradeId,
             PendingTrade,
@@ -253,7 +254,43 @@ pub enum AgentEvent {
             [Option<ReducedInventory>; 2],
         )>,
     ),
-    // Add others here
+    ServerSound(Sound),
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct Sound {
+    pub kind: SoundKind,
+    pub pos: Vec3<f32>,
+    pub vol: f32,
+    pub time: f64,
+}
+
+impl Sound {
+    pub fn new(kind: SoundKind, pos: Vec3<f32>, vol: f32, time: f64) -> Self {
+        Sound {
+            kind,
+            pos,
+            vol,
+            time,
+        }
+    }
+
+    pub fn with_new_vol(mut self, new_vol: f32) -> Self {
+        self.vol = new_vol;
+
+        self
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum SoundKind {
+    Unknown,
+    Movement,
+    Melee,
+    Projectile,
+    Explosion,
+    Beam,
+    Shockwave,
 }
 
 #[derive(Clone, Debug)]
@@ -274,6 +311,8 @@ pub struct Agent {
     pub inbox: VecDeque<AgentEvent>,
     pub action_state: ActionState,
     pub bearing: Vec2<f32>,
+    pub sounds_heard: Vec<Sound>,
+    pub awareness: f32,
 }
 
 #[derive(Clone, Debug, Default)]

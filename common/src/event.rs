@@ -2,6 +2,7 @@ use crate::{
     character::CharacterId,
     comp::{
         self,
+        agent::Sound,
         invite::{InviteKind, InviteResponse},
         item::Item,
         DisconnectReason, Ori, Pos,
@@ -174,6 +175,9 @@ pub enum ServerEvent {
     CreateSafezone {
         range: Option<f32>,
         pos: Pos,
+    },
+    Sound {
+        sound: Sound,
     },
 }
 

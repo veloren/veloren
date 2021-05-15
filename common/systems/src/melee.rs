@@ -1,11 +1,13 @@
 use common::{
     combat::{AttackSource, AttackerInfo, TargetInfo},
     comp::{
+        agent::{Sound, SoundKind},
         Body, CharacterState, Combo, Energy, Group, Health, Inventory, Melee, Ori, Pos, Scale,
         Stats,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
+    resources::Time,
     uid::Uid,
     util::Dir,
     GroupTarget,
@@ -18,6 +20,7 @@ use vek::*;
 
 #[derive(SystemData)]
 pub struct ReadData<'a> {
+    time: Read<'a, Time>,
     entities: Entities<'a>,
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
@@ -66,6 +69,9 @@ impl<'a> System<'a> for Sys {
             if melee_attack.applied {
                 continue;
             }
+            server_emitter.emit(ServerEvent::Sound {
+                sound: Sound::new(SoundKind::Melee, pos.0, 3.0, read_data.time.0),
+            });
             melee_attack.applied = true;
 
             // Scales

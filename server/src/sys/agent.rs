@@ -2,7 +2,9 @@ use crate::rtsim::{Entity as RtSimData, RtSim};
 use common::{
     comp::{
         self,
-        agent::{AgentEvent, Target, DEFAULT_INTERACTION_TIME, TRADE_INTERACTION_TIME},
+        agent::{
+            AgentEvent, Target, DEFAULT_INTERACTION_TIME, MAX_LISTEN_DIST, TRADE_INTERACTION_TIME,
+        },
         buff::{BuffKind, Buffs},
         compass::{Direction, Distance},
         dialogue::{MoodContext, MoodState, Subject},
@@ -150,7 +152,6 @@ const FLEE_DURATION: f32 = 3.0;
 const MAX_FOLLOW_DIST: f32 = 12.0;
 const MAX_CHASE_DIST: f32 = 250.0;
 const MAX_FLEE_DIST: f32 = 20.0;
-const LISTEN_DIST: f32 = 16.0;
 const SEARCH_DIST: f32 = 48.0;
 const SIGHT_DIST: f32 = 80.0;
 const SNEAK_COEFFICIENT: f32 = 0.25;
@@ -158,6 +159,9 @@ const AVG_FOLLOW_DIST: f32 = 6.0;
 const RETARGETING_THRESHOLD_SECONDS: f64 = 10.0;
 const HEALING_ITEM_THRESHOLD: f32 = 0.5;
 const DEFAULT_ATTACK_RANGE: f32 = 2.0;
+const AWARENESS_INVESTIGATE_THRESHOLD: f32 = 1.0;
+const AWARENESS_DECREMENT_CONSTANT: f32 = 0.07;
+const SECONDS_BEFORE_FORGET_SOUNDS: f64 = 180.0;
 
 /// This system will allow NPCs to modify their controller
 #[derive(Default)]
@@ -479,8 +483,7 @@ impl<'a> System<'a> for Sys {
                                     {
                                         if let Some(tgt_pos) = read_data.positions.get(attacker) {
                                             // If the target is dead or in a safezone, remove the
-                                            // target
-                                            // and idle.
+                                            // target and idle.
                                             if should_stop_attacking(
                                                 read_data.healths.get(attacker),
                                                 read_data.buffs.get(attacker),
@@ -585,6 +588,9 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         event_emitter: &mut Emitter<'_, ServerEvent>,
     ) {
+        decrement_awareness(agent);
+        forget_old_sounds(agent, read_data);
+
         // Set owner if no target
         if agent.target.is_none() && thread_rng().gen_bool(0.1) {
             if let Some(Alignment::Owned(owner)) = self.alignment {
@@ -599,7 +605,12 @@ impl<'a> AgentData<'a> {
         }
         // Interact if incoming messages
         if !agent.inbox.is_empty() {
-            agent.action_state.timer = 0.1;
+            if !matches!(agent.inbox.front(), Some(AgentEvent::ServerSound(_))) {
+                agent.action_state.timer = 0.1;
+            } else if let Some(AgentEvent::ServerSound(sound)) = agent.inbox.pop_front() {
+                agent.sounds_heard.push(sound);
+                agent.awareness += sound.vol;
+            }
         }
         if agent.action_state.timer > 0.0 {
             if agent.action_state.timer
@@ -618,6 +629,8 @@ impl<'a> AgentData<'a> {
             }
         } else if thread_rng().gen::<f32>() < 0.1 {
             self.choose_target(agent, controller, &read_data, event_emitter);
+        } else if agent.awareness > AWARENESS_INVESTIGATE_THRESHOLD {
+            self.handle_elevated_awareness(agent, controller, read_data);
         } else {
             self.idle(agent, controller, &read_data);
         }
@@ -654,13 +667,8 @@ impl<'a> AgentData<'a> {
                         agent.action_state.timer = 0.01;
                     } else if agent.action_state.timer < FLEE_DURATION || dist_sqrd < MAX_FLEE_DIST
                     {
-                        self.flee(
-                            agent,
-                            controller,
-                            &read_data.terrain,
-                            tgt_pos,
-                            &read_data.dt,
-                        );
+                        self.flee(agent, controller, &read_data.terrain, tgt_pos);
+                        agent.action_state.timer += read_data.dt.0;
                     } else {
                         agent.action_state.timer = 0.0;
                         agent.target = None;
@@ -680,12 +688,10 @@ impl<'a> AgentData<'a> {
                             event_emitter
                                 .emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
                         }
-
                         agent.target = None;
                     // Choose a new target every 10 seconds, but only for
                     // enemies
-                    // TODO: This should be more
-                    // principled. Consider factoring
+                    // TODO: This should be more principled. Consider factoring
                     // health, combat rating, wielded weapon, etc, into the
                     // decision to change target.
                     } else if read_data.time.0 - selected_at > RETARGETING_THRESHOLD_SECONDS
@@ -951,7 +957,8 @@ impl<'a> AgentData<'a> {
         //         .push(ControlEvent::InviteResponse(InviteResponse::Decline));
         // }
         agent.action_state.timer += read_data.dt.0;
-        let msg = agent.inbox.pop_back();
+
+        let msg = agent.inbox.pop_front();
         match msg {
             Some(AgentEvent::Talk(by, subject)) => {
                 if agent.behavior.can(BehaviorCapability::SPEAK) {
@@ -1304,9 +1311,9 @@ impl<'a> AgentData<'a> {
                     }
                 }
             },
-            None => {
+            _ => {
                 if agent.behavior.can(BehaviorCapability::SPEAK) {
-                    // no new events, continue looking towards the last interacting player for some
+                    // No new events, continue looking towards the last interacting player for some
                     // time
                     if let Some(Target { target, .. }) = &agent.target {
                         self.look_toward(controller, read_data, target);
@@ -1348,7 +1355,6 @@ impl<'a> AgentData<'a> {
         controller: &mut Controller,
         terrain: &TerrainGrid,
         tgt_pos: &Pos,
-        dt: &DeltaTime,
     ) {
         if let Some(body) = self.body {
             if body.can_strafe() && !self.is_gliding {
@@ -1375,7 +1381,6 @@ impl<'a> AgentData<'a> {
             self.jump_if(controller, bearing.z > 1.5);
             controller.inputs.move_z = bearing.z;
         }
-        agent.action_state.timer += dt.0;
     }
 
     /// Attempt to consume a healing item, and return whether any healing items
@@ -1457,7 +1462,7 @@ impl<'a> AgentData<'a> {
             })
             .filter(|(e, e_pos, e_health, e_stats, e_inventory, e_alignment, char_state)| {
                 let mut search_dist = SEARCH_DIST;
-                let mut listen_dist = LISTEN_DIST;
+                let mut listen_dist = MAX_LISTEN_DIST;
                 if char_state.map_or(false, |c_s| c_s.is_stealthy()) {
                     // TODO: make sneak more effective based on a stat like e_stats.fitness
                     search_dist *= SNEAK_COEFFICIENT;
@@ -3597,6 +3602,49 @@ impl<'a> AgentData<'a> {
             controller.inputs.move_z = bearing.z;
         }
     }
+
+    fn handle_elevated_awareness(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        read_data: &ReadData,
+    ) {
+        // Currently this means that we are in a safezone
+        if invulnerability_is_in_buffs(read_data.buffs.get(*self.entity)) {
+            self.idle(agent, controller, &read_data);
+            return;
+        }
+
+        let is_enemy = matches!(self.alignment, Some(Alignment::Enemy));
+
+        if let Some(sound) = agent.sounds_heard.last() {
+            let sound_pos = Pos(sound.pos);
+            let dist_sqrd = self.pos.0.distance_squared(sound_pos.0);
+
+            if is_enemy {
+                let far_enough = dist_sqrd > 10.0_f32.powi(2);
+
+                if far_enough {
+                    self.follow(agent, controller, &read_data.terrain, &sound_pos);
+                } else {
+                    // TODO: Change this to a search action instead of idle
+                    self.idle(agent, controller, &read_data);
+                }
+            } else if self.flees {
+                let aggro = agent.psyche.aggro;
+                let close_enough = dist_sqrd < 35.0_f32.powi(2);
+                let loud_sound = sound.vol >= 10.0;
+
+                if close_enough && (aggro <= 0.5 || (aggro <= 0.7 && loud_sound)) {
+                    self.flee(agent, controller, &read_data.terrain, &sound_pos);
+                } else {
+                    self.idle(agent, controller, &read_data);
+                }
+            } else {
+                self.idle(agent, controller, &read_data);
+            }
+        }
+    }
 }
 
 fn can_see_tgt(terrain: &TerrainGrid, pos: &Pos, tgt_pos: &Pos, dist_sqrd: f32) -> bool {
@@ -3614,6 +3662,8 @@ fn should_stop_attacking(health: Option<&Health>, buffs: Option<&Buffs>) -> bool
     health.map_or(true, |a| a.is_dead) || invulnerability_is_in_buffs(buffs)
 }
 
+// FIXME: The logic that is used in this function and throughout the code
+// shouldn't be used to mean that a character is in a safezone.
 fn invulnerability_is_in_buffs(buffs: Option<&Buffs>) -> bool {
     buffs.map_or(false, |b| b.kinds.contains_key(&BuffKind::Invulnerability))
 }
@@ -3647,4 +3697,41 @@ fn aim_projectile(speed: f32, pos: Vec3<f32>, tgt: Vec3<f32>) -> Option<Dir> {
         / GRAVITY;
 
     Dir::from_unnormalized(to_tgt)
+}
+
+fn forget_old_sounds(agent: &mut Agent, read_data: &ReadData) {
+    if !agent.sounds_heard.is_empty() {
+        // Keep (retain) only newer sounds
+        agent
+            .sounds_heard
+            .retain(|&sound| read_data.time.0 - sound.time <= SECONDS_BEFORE_FORGET_SOUNDS);
+    }
+}
+
+fn decrement_awareness(agent: &mut Agent) {
+    let mut decrement = AWARENESS_DECREMENT_CONSTANT;
+    let awareness = agent.awareness;
+
+    let too_high = awareness >= 100.0;
+    let high = awareness >= 50.0;
+    let medium = awareness >= 30.0;
+    let low = awareness > 15.0;
+    let positive = awareness >= 0.0;
+    let negative = awareness < 0.0;
+
+    if too_high {
+        decrement *= 3.0;
+    } else if high {
+        decrement *= 1.0;
+    } else if medium {
+        decrement *= 2.5;
+    } else if low {
+        decrement *= 0.70;
+    } else if positive {
+        decrement *= 0.5;
+    } else if negative {
+        return;
+    }
+
+    agent.awareness -= decrement;
 }

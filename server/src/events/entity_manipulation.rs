@@ -1,7 +1,9 @@
 use crate::{
     client::Client,
     comp::{
-        biped_large, quadruped_low, quadruped_medium, quadruped_small, skills::SkillGroupKind,
+        agent::{Sound, SoundKind},
+        biped_large, quadruped_low, quadruped_medium, quadruped_small,
+        skills::SkillGroupKind,
         theropod, PhysicsState,
     },
     rtsim::RtSim,
@@ -476,19 +478,22 @@ pub fn handle_delete(server: &mut Server, entity: EcsEntity) {
 }
 
 pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>) {
-    let state = &server.state;
+    let ecs = server.state.ecs();
+
     if vel.z <= -30.0 {
-        let mass = state
-            .ecs()
+        let mass = ecs
             .read_storage::<comp::Mass>()
             .get(entity)
             .copied()
             .unwrap_or_default();
-        let inventories = state.ecs().read_storage::<Inventory>();
-        let falldmg = mass.0 * vel.z.powi(2) / 200.0;
-        let stats = state.ecs().read_storage::<Stats>();
+        let impact_energy = mass.0 * vel.z.powi(2) / 2.0;
+        let falldmg = impact_energy / 100.0;
+
+        let inventories = ecs.read_storage::<Inventory>();
+        let stats = ecs.read_storage::<Stats>();
+
         // Handle health change
-        if let Some(mut health) = state.ecs().write_storage::<comp::Health>().get_mut(entity) {
+        if let Some(mut health) = ecs.write_storage::<comp::Health>().get_mut(entity) {
             let damage = Damage {
                 source: DamageSource::Falling,
                 kind: DamageKind::Crushing,
@@ -503,7 +508,7 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
             health.change_by(change);
         }
         // Handle poise change
-        if let Some(mut poise) = state.ecs().write_storage::<comp::Poise>().get_mut(entity) {
+        if let Some(mut poise) = ecs.write_storage::<comp::Poise>().get_mut(entity) {
             let poise_damage = PoiseChange {
                 amount: -(mass.0 * vel.magnitude_squared() / 1500.0) as i32,
                 source: PoiseSource::Falling,
@@ -557,6 +562,13 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
 pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, owner: Option<Uid>) {
     // Go through all other entities
     let ecs = &server.state.ecs();
+    let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
+    let time = ecs.read_resource::<Time>();
+
+    let explosion_volume = 2.5 * explosion.radius;
+    server_eventbus.emit_now(ServerEvent::Sound {
+        sound: Sound::new(SoundKind::Explosion, pos, explosion_volume, time.0),
+    });
 
     // Add an outcome
     // Uses radius as outcome power for now
@@ -750,8 +762,6 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             ori: ori_b_maybe,
                             char_state: char_state_b_maybe,
                         };
-
-                        let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
 
                         attack.apply_attack(
                             target_group,
