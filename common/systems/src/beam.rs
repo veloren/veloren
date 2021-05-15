@@ -1,6 +1,7 @@
 use common::{
     combat::{AttackSource, AttackerInfo, TargetInfo},
     comp::{
+        agent::{Sound, SoundKind},
         Beam, BeamSegment, Body, CharacterState, Combo, Energy, Group, Health, HealthSource,
         Inventory, Ori, Pos, Scale, Stats,
     },
@@ -13,6 +14,7 @@ use common::{
     GroupTarget,
 };
 use common_ecs::{Job, Origin, ParMode, Phase, System};
+use rand::{thread_rng, Rng};
 use rayon::iter::ParallelIterator;
 use specs::{
     saveload::MarkerAllocator, shred::ResourceId, Entities, Join, ParJoin, Read, ReadExpect,
@@ -88,6 +90,14 @@ impl<'a> System<'a> for Sys {
                 None => return (server_events, add_hit_entities, outcomes),
             };
             let end_time = creation_time + beam_segment.duration.as_secs_f64();
+
+            let mut rng = thread_rng();
+            if rng.gen_bool(0.005) {
+                server_events.push(ServerEvent::Sound {
+                    sound: Sound::new(SoundKind::Beam, pos.0, 7.0, time),
+                });
+            }
+
             // If beam segment is out of time emit destroy event but still continue since it
             // may have traveled and produced effects a bit before reaching its
             // end point
@@ -151,8 +161,7 @@ impl<'a> System<'a> for Sys {
                 let height_b = body_b.height() * scale_b;
 
                 // Check if it is a hit
-                let hit = entity != target
-                    && !health_b.is_dead
+                let hit = entity != target && !health_b.is_dead
                     // Collision shapes
                     && sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.look_dir(), beam_segment.angle, pos_b.0, rad_b, height_b);
 

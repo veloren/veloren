@@ -132,7 +132,7 @@ pub fn handle_invite(
     } else if let Some(agent) = agents.get_mut(invitee) {
         if send_invite() {
             if let Some(inviter) = uids.get(inviter) {
-                agent.inbox.push_front(AgentEvent::TradeInvite(*inviter));
+                agent.inbox.push_back(AgentEvent::TradeInvite(*inviter));
                 invite_sent = true;
             }
         }
@@ -221,7 +221,7 @@ pub fn handle_invite_accept(server: &mut Server, entity: specs::Entity) {
                     if let Some(agent) = agents.get_mut(inviter) {
                         agent
                             .inbox
-                            .push_front(AgentEvent::TradeAccepted(invitee_uid));
+                            .push_back(AgentEvent::TradeAccepted(invitee_uid));
                     }
                     #[cfg(feature = "worldgen")]
                     let pricing = agents

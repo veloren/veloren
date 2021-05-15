@@ -25,7 +25,7 @@ fn notify_agent_simple(
     event: AgentEvent,
 ) {
     if let Some(agent) = agents.get_mut(entity) {
-        agent.inbox.push_front(event);
+        agent.inbox.push_back(event);
     }
 }
 
@@ -42,7 +42,7 @@ fn notify_agent_prices(
             // Box<(tid, pend, _, inventories)>) = event {
             agent
                 .inbox
-                .push_front(AgentEvent::UpdatePendingTrade(Box::new((
+                .push_back(AgentEvent::UpdatePendingTrade(Box::new((
                     // Prefer using this Agent's price data, but use the counterparty's price
                     // data if we don't have price data
                     boxval.0,

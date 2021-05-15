@@ -1,6 +1,7 @@
 use common::{
     combat::{AttackSource, AttackerInfo, TargetInfo},
     comp::{
+        agent::{Sound, SoundKind},
         Body, CharacterState, Combo, Energy, Group, Health, HealthSource, Inventory, Ori,
         PhysicsState, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
     },
@@ -12,6 +13,7 @@ use common::{
     GroupTarget,
 };
 use common_ecs::{Job, Origin, Phase, System};
+use rand::{thread_rng, Rng};
 use specs::{
     saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData,
     World, Write, WriteStorage,
@@ -83,9 +85,15 @@ impl<'a> System<'a> for Sys {
 
             let end_time = creation_time + shockwave.duration.as_secs_f64();
 
+            let mut rng = thread_rng();
+            if rng.gen_bool(0.05) {
+                server_emitter.emit(ServerEvent::Sound {
+                    sound: Sound::new(SoundKind::Shockwave, pos.0, 16.0, time),
+                });
+            }
+
             // If shockwave is out of time emit destroy event but still continue since it
-            // may have traveled and produced effects a bit before reaching it's
-            // end point
+            // may have traveled and produced effects a bit before reaching it's end point
             if time > end_time {
                 server_emitter.emit(ServerEvent::Destroy {
                     entity,

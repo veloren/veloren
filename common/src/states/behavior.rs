@@ -69,7 +69,6 @@ pub trait CharacterBehavior {
             ControlAction::CancelInput(input) => self.cancel_input(data, input),
         }
     }
-    // fn init(data: &JoinData) -> CharacterState;
 }
 
 /// Read-Only Data sent from Character Behavior System to behavior fn's

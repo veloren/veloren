@@ -1,13 +1,19 @@
-use specs::{world::WorldExt, Builder, Entity as EcsEntity};
+use specs::{world::WorldExt, Builder, Entity as EcsEntity, Join};
 use tracing::error;
 use vek::*;
 
 use common::{
     comp::{
-        self, agent::AgentEvent, dialogue::Subject, inventory::slot::EquipSlot, item, slot::Slot,
-        tool::ToolKind, Inventory, Pos,
+        self,
+        agent::{AgentEvent, Sound, MAX_LISTEN_DIST},
+        dialogue::Subject,
+        inventory::slot::EquipSlot,
+        item,
+        slot::Slot,
+        tool::ToolKind,
+        Inventory, Pos,
     },
-    consts::MAX_MOUNT_RANGE,
+    consts::{MAX_MOUNT_RANGE, SOUND_TRAVEL_DIST_PER_VOLUME},
     outcome::Outcome,
     uid::Uid,
     vol::ReadVol,
@@ -72,7 +78,7 @@ pub fn handle_npc_interaction(server: &mut Server, interactor: EcsEntity, npc_en
         if let Some(interactor_uid) = state.ecs().uid_from_entity(interactor) {
             agent
                 .inbox
-                .push_front(AgentEvent::Talk(interactor_uid, Subject::Regular));
+                .push_back(AgentEvent::Talk(interactor_uid, Subject::Regular));
         }
     }
 }
@@ -103,8 +109,7 @@ pub fn handle_mount(server: &mut Server, mounter: EcsEntity, mountee: EcsEntity)
                 state.ecs().uid_from_entity(mountee),
             ) {
                 // We know the entities must exist to be able to look up their UIDs, so these
-                // are guaranteed to work; hence we can ignore possible errors
-                // here.
+                // are guaranteed to work; hence we can ignore possible errors here.
                 state.write_component_ignore_entity_dead(
                     mountee,
                     comp::MountState::MountedBy(mounter_uid),
@@ -298,6 +303,30 @@ pub fn handle_mine_block(server: &mut Server, pos: Vec3<i32>, tool: Option<ToolK
                     pos,
                     color: block.get_color(),
                 });
+        }
+    }
+}
+
+pub fn handle_sound(server: &mut Server, sound: &Sound) {
+    let ecs = &server.state.ecs();
+    let positions = &ecs.read_storage::<comp::Pos>();
+    let agents = &mut ecs.write_storage::<comp::Agent>();
+
+    for (agent, agent_pos) in (agents, positions).join() {
+        // TODO: Use pathfinding for more dropoff around obstacles
+        let agent_dist_sqrd = agent_pos.0.distance_squared(sound.pos);
+        let sound_travel_dist_sqrd = (sound.vol * SOUND_TRAVEL_DIST_PER_VOLUME).powi(2);
+
+        let vol_dropoff = agent_dist_sqrd / sound_travel_dist_sqrd * sound.vol;
+        let propagated_sound = sound.with_new_vol(sound.vol - vol_dropoff);
+
+        let can_hear_sound = propagated_sound.vol > 0.00;
+        let should_hear_sound = agent_dist_sqrd < MAX_LISTEN_DIST.powi(2);
+
+        if can_hear_sound && should_hear_sound {
+            agent
+                .inbox
+                .push_back(AgentEvent::ServerSound(propagated_sound));
         }
     }
 }
