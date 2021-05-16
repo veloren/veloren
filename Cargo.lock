@@ -5805,6 +5805,7 @@ dependencies = [
  "image",
  "lazy_static",
  "ron",
+ "serde",
  "tracing",
 ]
 

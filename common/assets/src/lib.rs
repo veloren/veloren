@@ -254,3 +254,158 @@ impl Compound for Directory {
         Ok(Directory(files))
     }
 }
+
+pub mod asset_tweak {
+    use super::{Asset, AssetExt, RonLoader};
+    use serde::{de::DeserializeOwned, Deserialize};
+
+    #[derive(Clone, Deserialize)]
+    struct AssetTweakWrapper<T>(T);
+
+    impl<T> Asset for AssetTweakWrapper<T>
+    where
+        T: Clone + Sized + Send + Sync + 'static + DeserializeOwned,
+    {
+        type Loader = RonLoader;
+
+        const EXTENSION: &'static str = "ron";
+    }
+
+    /// NOTE: Don't use it in code, it's debug only
+    pub fn tweak_expect<T>(path: &str) -> T
+    where
+        T: Clone + Sized + Send + Sync + 'static + DeserializeOwned,
+    {
+        tracing::warn!("AssetTweaker used in release build!");
+        let handle = <AssetTweakWrapper<T> as AssetExt>::load_expect(path);
+        let AssetTweakWrapper(value) = handle.read().clone();
+        value
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::asset_tweak::tweak;
+    use std::{
+        convert::AsRef,
+        fmt::Debug,
+        fs::{self, File},
+        io::Write,
+        path::{Path, PathBuf},
+    };
+
+    // Return path to repository by searching 10 directories back
+    fn find_root() -> Option<PathBuf> {
+        std::env::current_dir().map_or(None, |path| {
+            // If we are in the root, push path
+            if path.join(".git").is_dir() {
+                return Some(path);
+            }
+            // Search .git directory in parent directries
+            for ancestor in path.ancestors().take(10) {
+                if ancestor.join(".git").is_dir() {
+                    return Some(ancestor.to_path_buf());
+                }
+            }
+            None
+        })
+    }
+
+    struct DirectoryGuard<P>
+    where
+        P: AsRef<Path>,
+    {
+        dir: P,
+    }
+
+    impl<P> DirectoryGuard<P>
+    where
+        P: AsRef<Path>,
+    {
+        fn create(dir: P) -> Self {
+            fs::create_dir_all(&dir).expect("failed to create directory");
+            Self { dir }
+        }
+    }
+
+    impl<P> Drop for DirectoryGuard<P>
+    where
+        P: AsRef<Path>,
+    {
+        fn drop(&mut self) { fs::remove_dir(&self.dir).expect("failed to remove directory"); }
+    }
+
+    struct FileGuard<P>
+    where
+        P: AsRef<Path> + Debug,
+    {
+        file: P,
+    }
+
+    impl<P> FileGuard<P>
+    where
+        P: AsRef<Path> + Debug,
+    {
+        fn create(file: P) -> (Self, File) {
+            let f =
+                File::create(&file).unwrap_or_else(|_| panic!("failed to create file {:?}", &file));
+            (Self { file }, f)
+        }
+    }
+
+    impl<P> Drop for FileGuard<P>
+    where
+        P: AsRef<Path> + Debug,
+    {
+        fn drop(&mut self) {
+            fs::remove_file(&self.file)
+                .unwrap_or_else(|_| panic!("failed to create file {:?}", &self.file));
+        }
+    }
+
+    #[test]
+    fn test_tweaked_string() {
+        let root = find_root().expect("failed to discover repository_root");
+        let tweak_dir = root.join("assets/common/tweak/");
+        let _dir_guard = DirectoryGuard::create(tweak_dir.clone());
+
+        // define test files
+        let from_int = tweak_dir.clone().join("int_tweak.ron");
+        let from_string = tweak_dir.clone().join("string_tweak.ron");
+        let from_map = tweak_dir.clone().join("map_tweak.ron");
+
+        // setup fs guards
+        let (_file_guard1, mut file1) = FileGuard::create(from_int);
+        let (_file_guard2, mut file2) = FileGuard::create(from_string);
+        let (_file_guard3, mut file3) = FileGuard::create(from_map);
+
+        // write to file and check result
+        file1.write(b"(5)").expect("failed to write to the file");
+        let x = tweak::<i32>("common.tweak.int_tweak");
+        assert_eq!(x, 5);
+
+        // write to file and check result
+        file2
+            .write(br#"("Hello Zest")"#)
+            .expect("failed to write to the file");
+        let x = tweak::<String>("common.tweak.string_tweak");
+        assert_eq!(x, "Hello Zest".to_owned());
+
+        // write to file and check result
+        file3
+            .write(
+                br#"
+        ({
+            "wow": 4,
+            "such": 5,
+        })
+        "#,
+            )
+            .expect("failed to write to the file");
+        let x: std::collections::HashMap<String, i32> = tweak("common.tweak.map_tweak");
+        let mut map = std::collections::HashMap::new();
+        map.insert("wow".to_owned(), 4);
+        map.insert("such".to_owned(), 5);
+        assert_eq!(x, map);
+    }
+}
