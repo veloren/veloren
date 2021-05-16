@@ -1,3 +1,4 @@
+#![allow(clippy::branches_sharing_code)] // TODO: evaluate
 use common::{
     terrain::{
         map::{MapConfig, MapDebug, MapSample},

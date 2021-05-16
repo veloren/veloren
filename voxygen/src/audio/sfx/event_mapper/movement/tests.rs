@@ -15,7 +15,7 @@ fn no_item_config_no_emit() {
     let previous_state = PreviousEntityState::default();
     let result = MovementEventMapper::should_emit(&previous_state, None);
 
-    assert_eq!(result, false);
+    assert!(!result);
 }
 
 #[test]
@@ -39,7 +39,7 @@ fn config_but_played_since_threshold_no_emit() {
         Some((&SfxEvent::Run(BlockKind::Grass), &trigger_item)),
     );
 
-    assert_eq!(result, false);
+    assert!(!result);
 }
 
 #[test]
@@ -62,7 +62,7 @@ fn config_and_not_played_since_threshold_emits() {
         Some((&SfxEvent::Run(BlockKind::Grass), &trigger_item)),
     );
 
-    assert_eq!(result, true);
+    assert!(result);
 }
 
 #[test]
@@ -87,7 +87,7 @@ fn same_previous_event_elapsed_emits() {
         Some((&SfxEvent::Run(BlockKind::Grass), &trigger_item)),
     );
 
-    assert_eq!(result, true);
+    assert!(result);
 }
 
 #[test]

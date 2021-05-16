@@ -781,10 +781,9 @@ mod tests {
         let position = Pos(Vec3::zero());
         let item_position = Pos(Vec3::one());
 
-        assert_eq!(
-            within_pickup_range(test_cylinder(position), || test_cylinder(item_position),),
-            true
-        );
+        assert!(within_pickup_range(test_cylinder(position), || {
+            test_cylinder(item_position)
+        },),);
     }
 
     #[test]
@@ -792,9 +791,8 @@ mod tests {
         let position = Pos(Vec3::zero());
         let item_position = Pos(Vec3::one() * 500.0);
 
-        assert_eq!(
-            within_pickup_range(test_cylinder(position), || test_cylinder(item_position),),
-            false
-        );
+        assert!(!within_pickup_range(test_cylinder(position), || {
+            test_cylinder(item_position)
+        },),);
     }
 }

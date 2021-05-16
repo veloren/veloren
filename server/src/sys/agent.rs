@@ -1,3 +1,5 @@
+#![allow(clippy::branches_sharing_code)] // TODO: evaluate
+
 use crate::rtsim::{Entity as RtSimData, RtSim};
 use common::{
     comp::{

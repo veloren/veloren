@@ -44,6 +44,8 @@ opt-level = 2
 opt-level = 3
 [profile.dev.package."veloren-common"]
 opt-level = 2
+[profile.dev.package."veloren-common-systems"]
+incremental = false
 [profile.dev.package."veloren-client"]
 opt-level = 2
 [profile.dev.package."veloren-server"]

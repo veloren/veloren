@@ -194,8 +194,8 @@ where
 
     pub fn maintain(&mut self, ui: &mut conrod_core::UiCell) -> Vec<Event<S>> {
         // Clear
-        let slot_ids = std::mem::replace(&mut self.slot_ids, Vec::new());
-        let slots = std::mem::replace(&mut self.slots, Vec::new());
+        let slot_ids = core::mem::take(&mut self.slot_ids);
+        let slots = core::mem::take(&mut self.slots);
 
         // Detect drops by of selected item by clicking in empty space
         if let ManagerState::Selected(_, slot) = self.state {
@@ -295,7 +295,7 @@ where
             // }
         }
 
-        std::mem::replace(&mut self.events, Vec::new())
+        core::mem::take(&mut self.events)
     }
 
     fn update(
