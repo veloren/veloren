@@ -12,4 +12,5 @@ BasicRanged(
         ..Default::default()
     }),*/
     projectile_speed: 60.0,
+    num_projectiles: 1,
 )

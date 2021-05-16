@@ -23,10 +23,10 @@
         ],
     ),
     Tool(Bow): (
-        primary: "common.abilities.bow.basic",
-        secondary: "common.abilities.bow.charged",
+        primary: "common.abilities.bow.charged",
+        secondary: "common.abilities.bow.repeater",
         abilities: [
-            (Some(Bow(UnlockRepeater)), "common.abilities.bow.repeater"),
+            (Some(Bow(UnlockRepeater)), "common.abilities.bow.shotgun"),
         ],
     ),
     Custom("Husk"): (

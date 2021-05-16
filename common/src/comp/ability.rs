@@ -79,19 +79,19 @@ pub enum CharacterAbility {
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
         projectile_speed: f32,
+        num_projectiles: u32,
     },
     RepeaterRanged {
         energy_cost: f32,
-        movement_duration: f32,
         buildup_duration: f32,
         shoot_duration: f32,
         recover_duration: f32,
-        leap: Option<f32>,
+        max_speed: f32,
+        half_speed_at: u32,
         projectile: ProjectileConstructor,
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
         projectile_speed: f32,
-        reps_remaining: u32,
     },
     Boost {
         movement_duration: f32,
@@ -201,6 +201,8 @@ pub enum CharacterAbility {
     ChargedRanged {
         energy_cost: f32,
         energy_drain: f32,
+        initial_regen: f32,
+        scaled_regen: f32,
         initial_damage: f32,
         scaled_damage: f32,
         initial_knockback: f32,
@@ -214,7 +216,6 @@ pub enum CharacterAbility {
         initial_projectile_speed: f32,
         scaled_projectile_speed: f32,
         move_speed: f32,
-        damage_kind: DamageKind,
     },
     Shockwave {
         energy_cost: f32,
@@ -340,14 +341,9 @@ impl CharacterAbility {
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
-            CharacterAbility::RepeaterRanged {
-                energy_cost, leap, ..
-            } => {
-                (leap.is_none() || update.vel.0.z >= 0.0)
-                    && update
-                        .energy
-                        .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
-                        .is_ok()
+            // Consumes energy within state, so value only checked before entering state
+            CharacterAbility::RepeaterRanged { energy_cost, .. } => {
+                update.energy.current() as f32 >= *energy_cost
             },
             CharacterAbility::LeapMelee { energy_cost, .. } => {
                 update.vel.0.z >= 0.0
@@ -414,14 +410,12 @@ impl CharacterAbility {
                 *projectile = projectile.modified_projectile(power, 1_f32, 1_f32);
             },
             RepeaterRanged {
-                ref mut movement_duration,
                 ref mut buildup_duration,
                 ref mut shoot_duration,
                 ref mut recover_duration,
                 ref mut projectile,
                 ..
             } => {
-                *movement_duration /= speed;
                 *buildup_duration /= speed;
                 *shoot_duration /= speed;
                 *recover_duration /= speed;
@@ -1000,7 +994,6 @@ impl CharacterAbility {
                         ref mut energy_cost,
                         ref mut buildup_duration,
                         ref mut projectile,
-                        ref mut reps_remaining,
                         ref mut projectile_speed,
                         ..
                     } => {
@@ -1013,9 +1006,6 @@ impl CharacterAbility {
                         }
                         if !skillset.has_skill(Bow(RGlide)) {
                             *buildup_duration = 0.001;
-                        }
-                        if let Ok(Some(level)) = skillset.skill_level(Bow(RArrows)) {
-                            *reps_remaining += level as u32;
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(RCost)) {
                             *energy_cost *= 0.70_f32.powi(level.into());
@@ -1233,6 +1223,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 projectile_light,
                 projectile_speed,
                 energy_cost: _,
+                num_projectiles,
             } => CharacterState::BasicRanged(basic_ranged::Data {
                 static_data: basic_ranged::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1241,6 +1232,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     projectile_body: *projectile_body,
                     projectile_light: *projectile_light,
                     projectile_speed: *projectile_speed,
+                    num_projectiles: *num_projectiles,
                     ability_info,
                 },
                 timer: Duration::default(),
@@ -1500,6 +1492,8 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
             CharacterAbility::ChargedRanged {
                 energy_cost: _,
                 energy_drain,
+                initial_regen,
+                scaled_regen,
                 initial_damage,
                 scaled_damage,
                 initial_knockback,
@@ -1513,13 +1507,14 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 initial_projectile_speed,
                 scaled_projectile_speed,
                 move_speed,
-                damage_kind,
             } => CharacterState::ChargedRanged(charged_ranged::Data {
                 static_data: charged_ranged::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     charge_duration: Duration::from_secs_f32(*charge_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     energy_drain: *energy_drain,
+                    initial_regen: *initial_regen,
+                    scaled_regen: *scaled_regen,
                     initial_damage: *initial_damage,
                     scaled_damage: *scaled_damage,
                     speed: *speed,
@@ -1531,31 +1526,31 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     scaled_projectile_speed: *scaled_projectile_speed,
                     move_speed: *move_speed,
                     ability_info,
-                    damage_kind: *damage_kind,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
                 exhausted: false,
             }),
             CharacterAbility::RepeaterRanged {
-                energy_cost: _,
-                movement_duration,
+                energy_cost,
                 buildup_duration,
                 shoot_duration,
                 recover_duration,
-                leap,
+                max_speed,
+                half_speed_at,
                 projectile,
                 projectile_body,
                 projectile_light,
                 projectile_speed,
-                reps_remaining,
             } => CharacterState::RepeaterRanged(repeater_ranged::Data {
                 static_data: repeater_ranged::StaticData {
-                    movement_duration: Duration::from_secs_f32(*movement_duration),
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     shoot_duration: Duration::from_secs_f32(*shoot_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
-                    leap: *leap,
+                    energy_cost: *energy_cost,
+                    // 1.0 is subtracted as 1.0 is added in state file
+                    max_speed: *max_speed - 1.0,
+                    half_speed_at: *half_speed_at,
                     projectile: *projectile,
                     projectile_body: *projectile_body,
                     projectile_light: *projectile_light,
@@ -1563,8 +1558,9 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     ability_info,
                 },
                 timer: Duration::default(),
-                stage_section: StageSection::Movement,
-                reps_remaining: *reps_remaining,
+                stage_section: StageSection::Buildup,
+                projectiles_fired: 0,
+                speed: 1.0,
             }),
             CharacterAbility::Shockwave {
                 energy_cost: _,

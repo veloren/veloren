@@ -10,4 +10,5 @@ BasicRanged(
     projectile_body: Object(ArrowTurret),
     projectile_light: None,
     projectile_speed: 130.0,
+    num_projectiles: 1,
 )

@@ -1015,9 +1015,6 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Movement => {
-                                    stage_time / s.static_data.movement_duration.as_secs_f32()
-                                },
                                 StageSection::Shoot => {
                                     stage_time / s.static_data.shoot_duration.as_secs_f32()
                                 },

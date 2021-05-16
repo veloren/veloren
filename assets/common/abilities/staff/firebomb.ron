@@ -9,4 +9,5 @@ BasicRanged(
     ),
     projectile_body: Object(BoltFire),
     projectile_speed: 60.0,
+    num_projectiles: 1,
 )
