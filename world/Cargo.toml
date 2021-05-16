@@ -31,7 +31,7 @@ tracing = { version = "0.1", default-features = false }
 rand = "0.8"
 rand_chacha = "0.3"
 arr_macro = "0.1.2"
-packed_simd = { version = "0.3.4", package = "packed_simd_2" }
+packed_simd = { package = "packed_simd_2", version = "0.3.5" }
 rayon = "1.5"
 serde = { version = "1.0.110", features = ["derive"] }
 ron = { version = "0.6", default-features = false }

@@ -3562,9 +3562,9 @@ dependencies = [
 
 [[package]]
 name = "packed_simd_2"
-version = "0.3.4"
+version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3278e0492f961fd4ae70909f56b2723a7e8d01a228427294e19cdfdebda89a17"
+checksum = "0e64858a2d3733fdd61adfdd6da89aa202f7ff0e741d2fc7ed1e452ba9dc99d7"
 dependencies = [
  "cfg-if 0.1.10",
  "libm 0.1.4",

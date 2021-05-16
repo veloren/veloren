@@ -11,8 +11,6 @@
     fundamental,
     iter_map_while,
     label_break_value,
-    option_expect_none,
-    option_unwrap_none,
     option_zip,
     or_patterns,
     trait_alias,

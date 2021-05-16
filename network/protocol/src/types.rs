@@ -112,7 +112,7 @@ impl Pid {
     }
 
     #[inline]
-    pub(crate) fn to_bytes(&self, bytes: &mut BytesMut) { bytes.put_u128_le(self.internal) }
+    pub(crate) fn to_bytes(self, bytes: &mut BytesMut) { bytes.put_u128_le(self.internal) }
 }
 
 impl Sid {
@@ -128,7 +128,7 @@ impl Sid {
     }
 
     #[inline]
-    pub(crate) fn to_bytes(&self, bytes: &mut BytesMut) { bytes.put_u64_le(self.internal) }
+    pub(crate) fn to_bytes(self, bytes: &mut BytesMut) { bytes.put_u64_le(self.internal) }
 }
 
 impl std::fmt::Debug for Pid {

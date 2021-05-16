@@ -975,13 +975,14 @@ impl Window {
                 if let (true, Some(game_inputs)) =
                     // Mouse input not mapped to input if it is not grabbed
                     (
-                    self.cursor_grabbed,
-                    Window::map_input(
-                        KeyMouse::Mouse(button),
-                        controls,
-                        &mut self.remapping_keybindings,
-                    ),
-                ) {
+                        self.cursor_grabbed,
+                        Window::map_input(
+                            KeyMouse::Mouse(button),
+                            controls,
+                            &mut self.remapping_keybindings,
+                        ),
+                    )
+                {
                     for game_input in game_inputs {
                         self.events.push(Event::InputUpdate(
                             *game_input,

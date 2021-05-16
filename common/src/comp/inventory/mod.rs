@@ -607,6 +607,7 @@ impl Inventory {
     /// Unequip an item from slot and place into inventory. Will leave the item
     /// equipped if inventory has no slots available.
     #[must_use = "Returned items will be lost if not used"]
+    #[allow(clippy::needless_collect)] // This is a false positive, the collect is needed
     pub fn unequip(&mut self, equip_slot: EquipSlot) -> Result<Option<Vec<Item>>, SlotError> {
         // Ensure there is enough space in the inventory to place the unequipped item
         if self.free_slots_minus_equipped_item(equip_slot) == 0 {

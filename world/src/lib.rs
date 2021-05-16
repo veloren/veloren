@@ -12,7 +12,6 @@
     const_generics,
     const_panic,
     label_break_value,
-    or_patterns,
     array_map
 )]
 

@@ -12,7 +12,7 @@ use vek::*;
 /// streams though). It's used to verify the correctness of the state in
 /// debug_assertions
 #[derive(Debug, Clone)]
-#[allow(clippy::clippy::large_enum_variant)]
+#[allow(clippy::large_enum_variant)] // TODO: this is used for pings so we should probably look into lowering enum size (doesn't effect bandwidth but could effect CPU costs)
 pub enum ClientMsg {
     ///Send on the first connection ONCE to identify client intention for
     /// server

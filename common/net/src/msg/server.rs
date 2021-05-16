@@ -49,7 +49,7 @@ pub struct ServerInfo {
 
 /// Reponse To ClientType
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[allow(clippy::clippy::large_enum_variant)]
+#[allow(clippy::large_enum_variant)]
 pub enum ServerInit {
     TooManyPlayers,
     GameSync {

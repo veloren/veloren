@@ -34,8 +34,7 @@ panic = "abort"
 debug = false
 codegen-units = 8
 lto = false
-# TEMP false to avoid fingerprints bug
-incremental = false
+incremental = true
 # All dependencies (but not this crate itself)
 [profile.dev.package."*"]
 opt-level = 3
@@ -52,7 +51,6 @@ opt-level = 2
 [profile.dev.package."veloren-server-cli"]
 opt-level = 2
 [profile.dev.package."veloren-voxygen"]
-incremental = true
 opt-level = 2
 [profile.dev.package."veloren-world"]
 opt-level = 2

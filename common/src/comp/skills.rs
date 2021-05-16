@@ -670,7 +670,7 @@ mod tests {
 
         assert_eq!(skillset.skill_groups[1].available_sp, 0);
         assert_eq!(skillset.skills.len(), 1);
-        assert_eq!(skillset.has_skill(Skill::Axe(AxeSkill::UnlockLeap)), true);
+        assert!(skillset.has_skill(Skill::Axe(AxeSkill::UnlockLeap)));
 
         skillset.refund_skill(Skill::Axe(AxeSkill::UnlockLeap));
 
@@ -705,7 +705,7 @@ mod tests {
 
         assert_eq!(skillset.skill_groups[1].available_sp, 0);
         assert_eq!(skillset.skills.len(), 1);
-        assert_eq!(skillset.has_skill(Skill::Axe(AxeSkill::UnlockLeap)), true);
+        assert!(skillset.has_skill(Skill::Axe(AxeSkill::UnlockLeap)));
 
         // Try unlocking a skill without enough skill points
         skillset.unlock_skill(Skill::Axe(AxeSkill::DsCombo));

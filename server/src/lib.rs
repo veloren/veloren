@@ -7,7 +7,6 @@
     bool_to_option,
     drain_filter,
     never_type,
-    option_unwrap_none,
     option_zip,
     unwrap_infallible
 )]
