@@ -765,7 +765,7 @@ impl Inventory {
     pub fn can_swap(&self, inv_slot_id: InvSlotId, equip_slot: EquipSlot) -> bool {
         // Check if loadout slot can hold item
         if !self.get(inv_slot_id).map_or(true, |item| {
-            self.loadout.slot_can_hold(equip_slot, &item.kind())
+            self.loadout.slot_can_hold(equip_slot, Some(&item.kind()))
         }) {
             trace!("can_swap = false, equip slot can't hold item");
             return false;

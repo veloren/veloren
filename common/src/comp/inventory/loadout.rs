@@ -1,6 +1,6 @@
 use crate::comp::{
     inventory::{
-        item::{tool, ItemKind},
+        item::{Hands, ItemKind, Tool},
         slot::{ArmorSlot, EquipSlot},
         InvSlot,
     },
@@ -167,84 +167,18 @@ impl Loadout {
             return;
         }
 
-        enum MainhandHand {
-            MainhandA,
-            MainhandB,
-        }
-
-        let hands_swapping = match (equip_slot_a, equip_slot_b) {
-            (EquipSlot::ActiveMainhand, EquipSlot::ActiveOffhand) => Some(MainhandHand::MainhandA),
-            (EquipSlot::ActiveOffhand, EquipSlot::ActiveMainhand) => Some(MainhandHand::MainhandB),
-            (EquipSlot::InactiveMainhand, EquipSlot::InactiveOffhand) => {
-                Some(MainhandHand::MainhandA)
-            },
-            (EquipSlot::InactiveOffhand, EquipSlot::InactiveMainhand) => {
-                Some(MainhandHand::MainhandB)
-            },
-            _ => None,
-        };
-
         let item_a = self.swap(equip_slot_a, None);
-        let item_b = self.swap(equip_slot_b, None);
+        let item_b = self.swap(equip_slot_b, item_a);
+        assert_eq!(self.swap(equip_slot_a, item_b), None);
 
-        if let Some(hands_swapping) = hands_swapping {
-            match hands_swapping {
-                MainhandHand::MainhandA => {
-                    if item_b
-                        .as_ref()
-                        .map_or(true, |i| self.slot_can_hold(equip_slot_a, &i.kind()))
-                        && item_a
-                            .as_ref()
-                            .map_or(true, |i| equip_slot_b.can_hold(&i.kind()))
-                    {
-                        // Checks that item b (from offhand) can go into equip slot a (mainhand
-                        // slot) and that item a (from mainhand) is a valid item to insert into
-                        // equip slot b (offhand slot) Swap
-                        self.swap(equip_slot_a, item_b).unwrap_none();
-                        self.swap(equip_slot_b, item_a).unwrap_none();
-                    } else {
-                        // Otherwise put the items back
-                        self.swap(equip_slot_a, item_a).unwrap_none();
-                        self.swap(equip_slot_b, item_b).unwrap_none();
-                    }
-                },
-                MainhandHand::MainhandB => {
-                    if item_a
-                        .as_ref()
-                        .map_or(true, |i| self.slot_can_hold(equip_slot_b, &i.kind()))
-                        && item_b
-                            .as_ref()
-                            .map_or(true, |i| equip_slot_b.can_hold(&i.kind()))
-                    {
-                        // Checks that item a (from offhand) can go into equip slot b (mainhand
-                        // slot) and that item b (from mainhand) is a valid item to insert into
-                        // equip slot a (offhand slot) Swap
-                        self.swap(equip_slot_b, item_a).unwrap_none();
-                        self.swap(equip_slot_a, item_b).unwrap_none();
-                    } else {
-                        // Otherwise put the items back
-                        self.swap(equip_slot_a, item_a).unwrap_none();
-                        self.swap(equip_slot_b, item_b).unwrap_none();
-                    }
-                },
-            }
-        } else {
-            // Check if items can go in the other slots
-            if item_a
-                .as_ref()
-                .map_or(true, |i| self.slot_can_hold(equip_slot_b, &i.kind()))
-                && item_b
-                    .as_ref()
-                    .map_or(true, |i| self.slot_can_hold(equip_slot_a, &i.kind()))
-            {
-                // Swap
-                self.swap(equip_slot_b, item_a).unwrap_none();
-                self.swap(equip_slot_a, item_b).unwrap_none();
-            } else {
-                // Otherwise put the items back
-                self.swap(equip_slot_a, item_a).unwrap_none();
-                self.swap(equip_slot_b, item_b).unwrap_none();
-            }
+        // Check if items are valid in their new positions
+        if !self.slot_can_hold(equip_slot_a, self.equipped(equip_slot_b).map(|x| x.kind()))
+            || !self.slot_can_hold(equip_slot_b, self.equipped(equip_slot_a).map(|x| x.kind()))
+        {
+            // If not, revert the swap
+            let item_a = self.swap(equip_slot_a, None);
+            let item_b = self.swap(equip_slot_b, item_a);
+            assert_eq!(self.swap(equip_slot_a, item_b), None);
         }
     }
 
@@ -257,7 +191,7 @@ impl Loadout {
         let mut suitable_slots = self
             .slots
             .iter()
-            .filter(|s| self.slot_can_hold(s.equip_slot, item_kind));
+            .filter(|s| self.slot_can_hold(s.equip_slot, Some(item_kind)));
 
         let first = suitable_slots.next();
 
@@ -277,7 +211,7 @@ impl Loadout {
     ) -> impl Iterator<Item = &Item> {
         self.slots
             .iter()
-            .filter(move |s| self.slot_can_hold(s.equip_slot, &item_kind))
+            .filter(move |s| self.slot_can_hold(s.equip_slot, Some(&item_kind)))
             .filter_map(|s| s.slot.as_ref())
     }
 
@@ -370,7 +304,7 @@ impl Loadout {
         let loadout_slot = self
             .slots
             .iter()
-            .find(|s| s.slot.is_none() && self.slot_can_hold(s.equip_slot, item.kind()))
+            .find(|s| s.slot.is_none() && self.slot_can_hold(s.equip_slot, Some(item.kind())))
             .map(|s| s.equip_slot);
         if let Some(slot) = self
             .slots
@@ -389,39 +323,42 @@ impl Loadout {
     }
 
     /// Checks that a slot can hold a given item
-    pub(super) fn slot_can_hold(&self, equip_slot: EquipSlot, item_kind: &ItemKind) -> bool {
-        // Checks if item can be equipped in a mainhand slot
-        let mainhand_check = |offhand_slot| {
-            // Allows item to be equipped if itemkind is a tool and...
-            matches!(item_kind, ItemKind::Tool(mainhand) if {
-                if let Some(ItemKind::Tool(offhand)) = self.equipped(offhand_slot).map(|i| i.kind()) {
-                    // if offhand is 1 handed, only if mainhand is also 1 handed
-                    matches!(offhand.hands, tool::Hands::One) && matches!(mainhand.hands, tool::Hands::One)
-                } else {
-                    // else there is no tool equipped in offhand, so only if slot can normally hold this item
-                    equip_slot.can_hold(item_kind)
-                }
-            })
+    pub(super) fn slot_can_hold(
+        &self,
+        equip_slot: EquipSlot,
+        item_kind: Option<&ItemKind>,
+    ) -> bool {
+        let weapon_compare_slots = match equip_slot {
+            EquipSlot::ActiveMainhand | EquipSlot::ActiveOffhand => {
+                Some((EquipSlot::ActiveMainhand, EquipSlot::ActiveOffhand))
+            },
+            EquipSlot::InactiveMainhand | EquipSlot::InactiveOffhand => {
+                Some((EquipSlot::InactiveMainhand, EquipSlot::InactiveOffhand))
+            },
+            _ => None,
         };
 
-        // Checks if item can be equipped in an offhand slot
-        let offhand_check = |mainhand_slot| {
-            // Allows item to be equipped if itemkind is a tool and...
-            matches!(item_kind, ItemKind::Tool(offhand) if {
-                // if offhand weapon is 1 handed...
-                matches!(offhand.hands, tool::Hands::One)
-                // and if mainhand has a 1 handed weapon...
-                && matches!(self.equipped(mainhand_slot).map(|i| i.kind()), Some(ItemKind::Tool(mainhand)) if matches!(mainhand.hands, tool::Hands::One))
-            })
-        };
-
-        match equip_slot {
-            EquipSlot::ActiveMainhand => mainhand_check(EquipSlot::ActiveOffhand),
-            EquipSlot::ActiveOffhand => offhand_check(EquipSlot::ActiveMainhand),
-            EquipSlot::InactiveMainhand => mainhand_check(EquipSlot::InactiveOffhand),
-            EquipSlot::InactiveOffhand => offhand_check(EquipSlot::InactiveMainhand),
-            _ => equip_slot.can_hold(item_kind),
+        // Disallow equipping incompatible weapon pairs (i.e a two-handed weapon and a
+        // one-handed weapon)
+        if let Some(weapon_compare_slots) = weapon_compare_slots {
+            if !Loadout::is_valid_weapon_pair(
+                self.equipped(weapon_compare_slots.0).map(|x| &x.kind),
+                self.equipped(weapon_compare_slots.1).map(|x| &x.kind),
+            ) {
+                return false;
+            }
         }
+
+        item_kind.map_or(true, |item_kind| equip_slot.can_hold(item_kind))
+    }
+
+    #[rustfmt::skip]
+    fn is_valid_weapon_pair(main_hand: Option<&ItemKind>, off_hand: Option<&ItemKind>) -> bool {
+        matches!((main_hand, off_hand),
+            (Some(ItemKind::Tool(Tool { hands: Hands::One, .. })), None) |
+            (Some(ItemKind::Tool(Tool { hands: Hands::Two, .. })), None) |
+            (Some(ItemKind::Tool(Tool { hands: Hands::One, .. })), Some(ItemKind::Tool(Tool { hands: Hands::One, .. }))) |
+            (None, None))
     }
 
     pub(super) fn swap_equipped_weapons(&mut self) {
@@ -429,7 +366,7 @@ impl Loadout {
         // nothing is equipped in slot
         let valid_slot = |equip_slot| {
             self.equipped(equip_slot)
-                .map_or(true, |i| self.slot_can_hold(equip_slot, i.kind()))
+                .map_or(true, |i| self.slot_can_hold(equip_slot, Some(i.kind())))
         };
 
         if valid_slot(EquipSlot::ActiveMainhand)
