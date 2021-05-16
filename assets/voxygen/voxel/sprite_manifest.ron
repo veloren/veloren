@@ -2774,7 +2774,7 @@ Mud: Some((
 Amethyst: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.amethyst-0",
+            model: "voxygen.voxel.sprite.mineral.gem.amethyst-0",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2785,7 +2785,7 @@ Amethyst: Some((
 Ruby: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.ruby-0",
+            model: "voxygen.voxel.sprite.mineral.gem.ruby-0",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2796,7 +2796,7 @@ Ruby: Some((
 Diamond: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.diamond-0",
+            model: "voxygen.voxel.sprite.mineral.gem.diamond-0",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2807,7 +2807,7 @@ Diamond: Some((
 Sapphire: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.sapphire-0",
+            model: "voxygen.voxel.sprite.mineral.gem.sapphire-0",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2818,7 +2818,7 @@ Sapphire: Some((
 Emerald: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.emerald-0",
+            model: "voxygen.voxel.sprite.mineral.gem.emerald-0",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2829,7 +2829,7 @@ Emerald: Some((
 Topaz: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.topaz-0",
+            model: "voxygen.voxel.sprite.mineral.gem.topaz-0",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2840,7 +2840,7 @@ Topaz: Some((
 AmethystSmall: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.amethyst_S-0",
+            model: "voxygen.voxel.sprite.mineral.gem.amethyst_S-0",
             offset: (-3.5, -3.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2851,7 +2851,7 @@ AmethystSmall: Some((
 TopazSmall: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.topaz_S-0",
+            model: "voxygen.voxel.sprite.mineral.gem.topaz_S-0",
             offset: (-3.5, -3.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2862,7 +2862,7 @@ TopazSmall: Some((
 RubySmall: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.ruby_S-0",
+            model: "voxygen.voxel.sprite.mineral.gem.ruby_S-0",
             offset: (-3.5, -3.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2873,7 +2873,7 @@ RubySmall: Some((
 EmeraldSmall: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.emerald_S-0",
+            model: "voxygen.voxel.sprite.mineral.gem.emerald_S-0",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2884,7 +2884,7 @@ EmeraldSmall: Some((
 DiamondSmall: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.diamond_S-0",
+            model: "voxygen.voxel.sprite.mineral.gem.diamond_S-0",
             offset: (-3.5, -3.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2895,7 +2895,7 @@ DiamondSmall: Some((
 SapphireSmall: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.sapphire_S-0",
+            model: "voxygen.voxel.sprite.mineral.gem.sapphire_S-0",
             offset: (-3.5, -3.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),

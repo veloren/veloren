@@ -170,18 +170,129 @@
         ],
         craft_sprite: Some(CookingPot),
     ),
-    "simple_leather": (
+    "simple leather": (
         output: ("common.items.crafting_ing.leather.simple_leather", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.animal_hide"), 1),
         ],
         craft_sprite: Some(CraftingBench),
     ),
-    "thick_leather": (
+    "thick leather": (
         output: ("common.items.crafting_ing.leather.thick_leather", 1),
         inputs: [
             (Item("common.items.crafting_ing.hide.tough_hide"), 1),
         ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    "gold ingot": (
+        output: ("common.items.mineral.ingot.gold", 1),
+        inputs: [
+            (Item("common.items.mineral.ore.gold_ore"), 1),
+        ],	
+        craft_sprite: Some(CraftingBench),
+    ),
+    "silver ingot": (
+        output: ("common.items.mineral.ingot.silver", 1),
+        inputs: [
+            (Item("common.items.mineral.ore.silver_ore"), 1),
+        ],	
+        craft_sprite: Some(CraftingBench),
+    ),
+
+    "iron ingot": (
+        output: ("common.items.mineral.ingot.iron", 1),
+        inputs: [
+            (Item("common.items.mineral.ore.iron_ore"), 1),
+        ],	
+        craft_sprite: Some(CraftingBench),
+    ),
+    "cobalt ingot": (
+        output: ("common.items.mineral.ingot.cobalt", 1),
+        inputs: [
+            (Item("common.items.mineral.ore.cobalt_ore"), 1),
+        ],	
+        craft_sprite: Some(CraftingBench),
+    ),
+    "tin ingot": (
+        output: ("common.items.mineral.ingot.tin", 2),
+        inputs: [
+            (Item("common.items.mineral.ore.tin_ore"), 1),
+        ],		
+        craft_sprite: Some(CraftingBench),
+    ),
+    "orichalcum ingot": (
+        output: ("common.items.mineral.ingot.orichalcum", 2),
+        inputs: [
+            (Item("common.items.mineral.ore.gold_ore"), 1),
+            (Item("common.items.mineral.ore.silver_ore"), 1),
+        ],		
+        craft_sprite: Some(CraftingBench),
+    ),
+    "copper ingot": (
+        output: ("common.items.mineral.ingot.copper", 2),
+        inputs: [
+            (Item("common.items.mineral.ore.copper_ore"), 1),
+        ],		
+        craft_sprite: Some(CraftingBench),
+    ),
+    "bloodsteel ingot": (
+        output: ("common.items.mineral.ingot.bloodsteel", 2),
+        inputs: [
+            (Item("common.items.mineral.ore.bloodstone_ore"), 1),
+            (Item("common.items.mineral.ore.iron_ore"), 1),  
+            (Item("common.items.mineral.ore.coal"), 1),  
+      ],		
+        craft_sprite: Some(CraftingBench),
+    ),
+    "steel ingot": (
+        output: ("common.items.mineral.ingot.steel", 1),
+        inputs: [
+            (Item("common.items.mineral.ore.iron_ore"), 1),  
+            (Item("common.items.mineral.ore.coal"), 1),  
+      ],		
+        craft_sprite: Some(CraftingBench),
+    ),
+    "bronze ingot": (
+        output: ("common.items.mineral.ingot.bronze", 2),
+        inputs: [
+            (Item("common.items.mineral.ore.copper_ore"), 1),
+            (Item("common.items.mineral.ore.tin_ore"), 1),
+        ],	
+        craft_sprite: Some(CraftingBench),
+    ),
+    "linen": (
+        output: ("common.items.crafting_ing.cloth.linen", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.plant_fiber"), 1),
+        ],		
+        craft_sprite: Some(CraftingBench),
+    ),
+    "silk": (
+        output: ("common.items.crafting_ing.cloth.silk", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 1),
+        ],		
+        craft_sprite: Some(CraftingBench),
+    ),
+    "lifecloth": (
+        output: ("common.items.crafting_ing.cloth.lifecloth", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.lifecloth"), 1),
+        ],		
+        craft_sprite: Some(CraftingBench),
+    ),
+    "moonweave": (
+        output: ("common.items.crafting_ing.cloth.moonweave", 1),
+        inputs: [
+            (Item("common.items.flowers.moonbell"), 1),
+        ],		
+        craft_sprite: Some(CraftingBench),
+    ),
+    "sunsilk": (
+        output: ("common.items.crafting_ing.cloth.sunsilk", 1),
+        inputs: [
+            (Item("common.items.flowers.pyrebloom"), 1),
+        ],		
         craft_sprite: Some(CraftingBench),
     ),
     "salad_plain": (

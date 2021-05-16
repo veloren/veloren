@@ -1250,56 +1250,6 @@
         "voxel.armor.leather_plate.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
-    //Leather0 Armor
-    Armor(Chest("Leather")): VoxTrans(
-        "voxel.armor.hide.leather.chest",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
-    ),
-    Armor(Pants("Leather")): VoxTrans(
-        "voxel.armor.hide.leather.pants",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
-    ),
-    Armor(Belt("Leather")): VoxTrans(
-        "voxel.armor.hide.leather.belt",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.8,
-    ),
-    Armor(Foot("Leather")): VoxTrans(
-        "voxel.armor.hide.leather.foot",
-        (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
-    ),
-    Armor(Hand("Leather")): VoxTrans(
-        "voxel.armor.hide.leather.hand",
-        (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
-    ),
-    Armor(Shoulder("Leather")): VoxTrans(
-        "voxel.armor.hide.leather.shoulder",
-        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
-    ),
-    //Rawhide Armor
-    Armor(Chest("Rawhide")): VoxTrans(
-        "voxel.armor.hide.rawhide.chest",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
-    ),
-    Armor(Pants("Rawhide")): VoxTrans(
-        "voxel.armor.hide.rawhide.pants",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
-    ),
-    Armor(Belt("Rawhide")): VoxTrans(
-        "voxel.armor.hide.rawhide.belt",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.8,
-    ),
-    Armor(Foot("Rawhide")): VoxTrans(
-        "voxel.armor.hide.rawhide.foot",
-        (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
-    ),
-    Armor(Hand("Rawhide")): VoxTrans(
-        "voxel.armor.hide.rawhide.hand",
-        (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
-    ),
-    Armor(Shoulder("Rawhide")): VoxTrans(
-        "voxel.armor.hide.rawhide.shoulder",
-        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
-    ),
     //Ferocious Armor
     Armor(Chest("Ferocious")): VoxTrans(
         "voxel.armor.ferocious.chest",
@@ -1619,6 +1569,64 @@
     Armor(Shoulder("Warlock")): VoxTrans(
         "voxel.armor.warlock.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
+    ),
+    //Rawhide Set
+    Armor(Chest("Rawhide")): VoxTrans(
+        "voxel.armor.hide.rawhide.chest",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Pants("Rawhide")): VoxTrans(
+        "voxel.armor.hide.rawhide.pants",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Belt("Rawhide")): VoxTrans(
+        "voxel.armor.hide.rawhide.belt",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.8,
+    ),
+    Armor(Foot("Rawhide")): VoxTrans(
+        "voxel.armor.hide.rawhide.foot",
+        (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
+    ),
+    Armor(Hand("Rawhide")): VoxTrans(
+        "voxel.armor.hide.rawhide.hand",
+        (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
+    ),
+    Armor(Shoulder("Rawhide")): VoxTrans(
+        "voxel.armor.hide.rawhide.shoulder",
+        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
+    ),
+    Armor(Back("Rawhide")): VoxTrans(
+        "voxel.armor.hide.rawhide.back",
+        (0.0, -2.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    ),
+    //Leather set
+    Armor(Chest("Leather")): VoxTrans(
+        "voxel.armor.hide.leather.chest",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Pants("Leather")): VoxTrans(
+        "voxel.armor.hide.leather.pants",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Belt("Leather")): VoxTrans(
+        "voxel.armor.hide.leather.belt",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.8,
+    ),
+    Armor(Foot("Leather")): VoxTrans(
+        "voxel.armor.hide.leather.foot",
+        (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
+    ),
+    Armor(Hand("Leather")): VoxTrans(
+        "voxel.armor.hide.leather.hand",
+        (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
+    ),
+    Armor(Shoulder("Leather")): VoxTrans(
+        "voxel.armor.hide.leather.shoulder",
+        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
+    ),
+    Armor(Back("Leather")): VoxTrans(
+        "voxel.armor.hide.leather.back",
+        (0.0, -2.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
     //Scale Set
     Armor(Chest("Scale")): VoxTrans(
@@ -2135,10 +2143,6 @@
         "voxel.armor.misc.back.dungeon_purple",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
-    Armor(Back("Rawhide")): VoxTrans(
-        "voxel.armor.hide.rawhide.back",
-        (0.0, -2.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
-    ),
     Armor(Back("LeatherBlue")): VoxTrans(
         "voxel.armor.leather_blue.back",
         (0.0, -2.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
@@ -2441,45 +2445,129 @@
         "voxel.sprite.crafting_ing.leather.leather_strips",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
+    Ingredient("Plate"): VoxTrans(
+        "voxel.sprite.crafting_ing.hide.plate",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 1.0,
+    ),
+    Ingredient("Carapace"): VoxTrans(
+        "voxel.sprite.crafting_ing.hide.carapace",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("Scale"): VoxTrans(
+        "voxel.sprite.crafting_ing.hide.scale",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("DragonScale"): VoxTrans(
+        "voxel.sprite.crafting_ing.hide.dragon_scale",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
     Ingredient("Claw"): VoxTrans(
         "voxel.sprite.crafting_ing.claw",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("Plate"): VoxTrans(
-        "voxel.sprite.crafting_ing.plate",
-        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 1.0,
-    ),
-    Ingredient("Leather"): VoxTrans(
-        "voxel.sprite.crafting_ing.leather",
+    Ingredient("VenomSac"): VoxTrans(
+        "voxel.sprite.crafting_ing.venom_sac",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("DragonScale"): VoxTrans(
-        "voxel.sprite.crafting_ing.dragon_scale",
+    Ingredient("PlantFiber"): VoxTrans(
+        "voxel.sprite.crafting_ing.plant_fiber",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("Linen"): VoxTrans(
+        "voxel.sprite.crafting_ing.cloth.linen",
+        (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
+    ),
+    Ingredient("Wool"): VoxTrans(
+        "voxel.sprite.crafting_ing.cloth.wool",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("Silk"): VoxTrans(
+        "voxel.sprite.crafting_ing.cloth.silk",
+        (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
+    ),
+    Ingredient("Lifecloth"): VoxTrans(
+        "voxel.sprite.crafting_ing.cloth.lifecloth",
+        (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
+    ),
+    Ingredient("Moonweave"): VoxTrans(
+        "voxel.sprite.crafting_ing.cloth.moonweave",
+        (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
+    ),
+    Ingredient("Sunsilk"): VoxTrans(
+        "voxel.sprite.crafting_ing.cloth.sunsilk",
+        (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
     ),
     Ingredient("SilverIngot"): VoxTrans(
-        "voxel.sprite.crafting_ing.silver_ingot",
-        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+        "voxel.sprite.mineral.ingot.silver",
+        (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
     ),
     Ingredient("GoldIngot"): VoxTrans(
-        "voxel.sprite.crafting_ing.gold_ingot",
-        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Ingredient("GoldOre"): VoxTrans(
-        "voxel.sprite.crafting_ing.gold_ore_drop",
-        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Ingredient("SilverOre"): VoxTrans(
-        "voxel.sprite.crafting_ing.silver_ore_drop",
-        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.8,
+        "voxel.sprite.mineral.ingot.gold",
+        (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
     ),
     Ingredient("OrichalcumIngot"): VoxTrans(
-        "voxel.sprite.crafting_ing.orichalcum_ingot",
+        "voxel.sprite.mineral.ingot.orichalcum",
+        (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
+    ),
+    Ingredient("BloodsteelIngot"): VoxTrans(
+        "voxel.sprite.mineral.ingot.bloodsteel",
+        (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
+    ),
+    Ingredient("BronzeIngot"): VoxTrans(
+        "voxel.sprite.mineral.ingot.bronze",
+        (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
+    ),
+    Ingredient("CobaltIngot"): VoxTrans(
+        "voxel.sprite.mineral.ingot.cobalt",
+        (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
+    ),
+    Ingredient("CopperIngot"): VoxTrans(
+        "voxel.sprite.mineral.ingot.copper",
+        (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
+    ),
+    Ingredient("IronIngot"): VoxTrans(
+        "voxel.sprite.mineral.ingot.iron",
+        (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
+    ),
+    Ingredient("SteelIngot"): VoxTrans(
+        "voxel.sprite.mineral.ingot.steel",
+        (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
+    ),
+    Ingredient("TinIngot"): VoxTrans(
+        "voxel.sprite.mineral.ingot.tin",
+        (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
+    ),
+    Ingredient("GoldOre"): VoxTrans(
+        "voxel.sprite.mineral.ore.gold",
+        (0.0, 0.0, 0.0), (-60.0, 30.0, 20.0), 0.8,
+    ),
+    Ingredient("SilverOre"): VoxTrans(
+        "voxel.sprite.mineral.ore.silver",
+        (0.0, 0.0, 0.0), (-60.0, 30.0, 20.0), 0.8,
+    ),
+    Ingredient("OrichalcumIngot"): VoxTrans(
+        "voxel.sprite.mineral.ore.orichalcum",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("Scale"): VoxTrans(
-        "voxel.sprite.crafting_ing.scale",
-        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    Ingredient("BloodsteelOre"): VoxTrans(
+        "voxel.sprite.mineral.ore.bloodsteel",
+        (0.0, 0.0, 0.0), (-60.0, 30.0, 20.0), 0.8,
+    ),
+    Ingredient("CobaltOre"): VoxTrans(
+        "voxel.sprite.mineral.ore.cobalt",
+        (0.0, 0.0, 0.0), (-60.0, 30.0, 20.0), 0.8,
+    ),
+    Ingredient("CopperOre"): VoxTrans(
+        "voxel.sprite.mineral.ore.copper",
+        (0.0, 0.0, 0.0), (-60.0, 30.0, 20.0), 0.8,
+    ),
+    Ingredient("IronOre"): VoxTrans(
+        "voxel.sprite.mineral.ore.iron",
+        (0.0, 0.0, 0.0), (-60.0, 30.0, 20.0), 0.8,
+    ),
+    Ingredient("TinOre"): VoxTrans(
+        "voxel.sprite.mineral.ore.tin",
+        (0.0, 0.0, 0.0), (-60.0, 30.0, 20.0), 0.8,
     ),
     Ingredient("Honey"): Png(
         "element.items.item_honey",
@@ -2568,27 +2656,27 @@
     ),
     // Gems
     Ingredient("Amethyst"): VoxTrans(
-        "voxel.sprite.gem.amethystgem",
+        "voxel.sprite.mineral.gem.amethystgem",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
     ),
     Ingredient("Topaz"): VoxTrans(
-        "voxel.sprite.gem.topazgem",
+        "voxel.sprite.mineral.gem.topazgem",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
     ),
     Ingredient("Sapphire"): VoxTrans(
-        "voxel.sprite.gem.sapphiregem",
+        "voxel.sprite.mineral.gem.sapphiregem",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.6,
     ),
     Ingredient("Emerald"): VoxTrans(
-        "voxel.sprite.gem.emeraldgem",
+        "voxel.sprite.mineral.gem.emeraldgem",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
     ),
     Ingredient("Ruby"): VoxTrans(
-        "voxel.sprite.gem.rubygem",
+        "voxel.sprite.mineral.gem.rubygem",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
     ),
     Ingredient("Diamond"): VoxTrans(
-        "voxel.sprite.gem.diamondgem",
+        "voxel.sprite.mineral.gem.diamondgem",
         (0.0, 0.0, 0.0), (-55.0, 30.0, 20.0), 0.6,
     ),
     ModularComponent("common.items.crafting_ing.modular.damage.sword.tier5"): VoxTrans(
