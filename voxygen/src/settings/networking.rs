@@ -9,6 +9,7 @@ pub struct NetworkingSettings {
     pub servers: Vec<String>,
     pub default_server: String,
     pub trusted_auth_servers: HashSet<String>,
+    pub use_quic: bool,
 }
 
 impl Default for NetworkingSettings {
@@ -21,6 +22,7 @@ impl Default for NetworkingSettings {
                 .iter()
                 .map(|s| s.to_string())
                 .collect(),
+            use_quic: false,
         }
     }
 }

@@ -5,22 +5,18 @@ use super::char_selection::CharSelectionState;
 #[cfg(feature = "singleplayer")]
 use crate::singleplayer::Singleplayer;
 use crate::{
-    i18n::{Localization, LocalizationHandle},
-    render::Renderer,
-    settings::Settings,
-    window::Event,
-    Direction, GlobalState, PlayState, PlayStateResult,
+    i18n::LocalizationHandle, render::Renderer, settings::Settings, window::Event, Direction,
+    GlobalState, PlayState, PlayStateResult,
 };
-#[cfg(feature = "singleplayer")]
-use client::addr::ConnectionArgs;
 use client::{
+    addr::ConnectionArgs,
     error::{InitProtocolError, NetworkConnectError, NetworkError},
     ServerInfo,
 };
-use client_init::{ClientConnArgs, ClientInit, Error as InitError, Msg as InitMsg};
+use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
 use common::comp;
 use common_base::span;
-use std::{fmt::Debug, sync::Arc};
+use std::sync::Arc;
 use tokio::runtime;
 use tracing::error;
 use ui::{Event as MainMenuEvent, MainMenuUi};
@@ -74,11 +70,10 @@ impl PlayState for MainMenuState {
                     Ok(Ok(runtime)) => {
                         // Attempt login after the server is finished initializing
                         attempt_login(
-                            &mut global_state.settings,
                             &mut global_state.info_message,
                             "singleplayer".to_owned(),
                             "".to_owned(),
-                            ClientConnArgs::Resolved(ConnectionArgs::Mpsc(14004)),
+                            ConnectionArgs::Mpsc(14004),
                             &mut self.client_init,
                             Some(runtime),
                         );
@@ -120,117 +115,14 @@ impl PlayState for MainMenuState {
                     std::rc::Rc::new(std::cell::RefCell::new(client)),
                 )));
             },
-            Some(InitMsg::Done(Err(err))) => {
-                let localized_strings = global_state.i18n.read();
+            Some(InitMsg::Done(Err(e))) => {
                 self.client_init = None;
-                global_state.info_message = Some({
-                    let err = match err {
-                        InitError::NoAddress => {
-                            localized_strings.get("main.login.server_not_found").into()
-                        },
-                        InitError::ClientError {
-                            error,
-                            mismatched_server_info,
-                        } => match error {
-                            client::Error::SpecsErr(e) => format!(
-                                "{}: {}",
-                                localized_strings.get("main.login.internal_error"),
-                                e
-                            ),
-                            client::Error::AuthErr(e) => format!(
-                                "{}: {}",
-                                localized_strings.get("main.login.authentication_error"),
-                                e
-                            ),
-                            client::Error::Kicked(e) => e,
-                            client::Error::TooManyPlayers => {
-                                localized_strings.get("main.login.server_full").into()
-                            },
-                            client::Error::AuthServerNotTrusted => localized_strings
-                                .get("main.login.untrusted_auth_server")
-                                .into(),
-                            client::Error::ServerWentMad => localized_strings
-                                .get("main.login.outdated_client_or_server")
-                                .into(),
-                            client::Error::ServerTimeout => {
-                                localized_strings.get("main.login.timeout").into()
-                            },
-                            client::Error::ServerShutdown => {
-                                localized_strings.get("main.login.server_shut_down").into()
-                            },
-                            client::Error::NotOnWhitelist => {
-                                localized_strings.get("main.login.not_on_whitelist").into()
-                            },
-                            client::Error::Banned(reason) => format!(
-                                "{}: {}",
-                                localized_strings.get("main.login.banned"),
-                                reason
-                            ),
-                            client::Error::InvalidCharacter => {
-                                localized_strings.get("main.login.invalid_character").into()
-                            },
-                            client::Error::NetworkErr(NetworkError::ConnectFailed(
-                                NetworkConnectError::Handshake(InitProtocolError::WrongVersion(_)),
-                            )) => get_network_error_text(
-                                &localized_strings,
-                                localized_strings.get("main.login.network_wrong_version"),
-                                mismatched_server_info,
-                            ),
-                            client::Error::NetworkErr(e) => get_network_error_text(
-                                &localized_strings,
-                                e,
-                                mismatched_server_info,
-                            ),
-                            client::Error::ParticipantErr(e) => get_network_error_text(
-                                &localized_strings,
-                                e,
-                                mismatched_server_info,
-                            ),
-                            client::Error::StreamErr(e) => get_network_error_text(
-                                &localized_strings,
-                                e,
-                                mismatched_server_info,
-                            ),
-                            client::Error::Other(e) => {
-                                format!("{}: {}", localized_strings.get("common.error"), e)
-                            },
-                            client::Error::AuthClientError(e) => match e {
-                                // TODO: remove parentheses
-                                client::AuthClientError::RequestError(e) => format!(
-                                    "{}: {}",
-                                    localized_strings.get("main.login.failed_sending_request"),
-                                    e
-                                ),
-                                client::AuthClientError::JsonError(e) => format!(
-                                    "{}: {}",
-                                    localized_strings.get("main.login.failed_sending_request"),
-                                    e
-                                ),
-                                client::AuthClientError::InsecureSchema => localized_strings
-                                    .get("main.login.insecure_auth_scheme")
-                                    .into(),
-                                client::AuthClientError::ServerError(_, e) => {
-                                    String::from_utf8_lossy(&e).to_string()
-                                },
-                            },
-                            client::Error::AuthServerUrlInvalid(e) => {
-                                format!(
-                                    "{}: https://{}",
-                                    localized_strings
-                                        .get("main.login.failed_auth_server_url_invalid"),
-                                    e
-                                )
-                            },
-                        },
-                        InitError::ClientCrashed => {
-                            localized_strings.get("main.login.client_crashed").into()
-                        },
-                    };
-                    // Log error for possible additional use later or incase that the error
-                    // displayed is cut of.
-                    error!("{}", err);
-                    err
-                });
+                tracing::trace!(?e, "raw Client Init error");
+                let e = get_client_msg_error(e, &global_state.i18n);
+                // Log error for possible additional use later or incase that the error
+                // displayed is cut of.
+                error!(?e, "Client Init failed");
+                global_state.info_message = Some(e);
             },
             Some(InitMsg::IsAuthTrusted(auth_server)) => {
                 if global_state
@@ -264,6 +156,7 @@ impl PlayState for MainMenuState {
                     server_address,
                 } => {
                     let mut net_settings = &mut global_state.settings.networking;
+                    let use_quic = net_settings.use_quic;
                     net_settings.username = username.clone();
                     net_settings.default_server = server_address.clone();
                     if !net_settings.servers.contains(&server_address) {
@@ -271,12 +164,22 @@ impl PlayState for MainMenuState {
                     }
                     global_state.settings.save_to_file_warn();
 
+                    let connection_args = if use_quic {
+                        ConnectionArgs::Quic {
+                            hostname: server_address,
+                            prefer_ipv6: false,
+                        }
+                    } else {
+                        ConnectionArgs::Tcp {
+                            hostname: server_address,
+                            prefer_ipv6: false,
+                        }
+                    };
                     attempt_login(
-                        &mut global_state.settings,
                         &mut global_state.info_message,
                         username,
                         password,
-                        ClientConnArgs::Host(server_address),
+                        connection_args,
                         &mut self.client_init,
                         None,
                     );
@@ -347,37 +250,110 @@ impl PlayState for MainMenuState {
     }
 }
 
-/// When a network error is received and there is a mismatch between the client
-/// and server version it is almost definitely due to this mismatch rather than
-/// a true networking error.
-fn get_network_error_text(
-    localization: &Localization,
-    error: impl Debug,
-    mismatched_server_info: Option<ServerInfo>,
-) -> String {
-    if let Some(server_info) = mismatched_server_info {
-        format!(
-            "{} {}: {} {}: {}",
-            localization.get("main.login.network_wrong_version"),
-            localization.get("main.login.client_version"),
-            common::util::GIT_HASH.to_string(),
-            localization.get("main.login.server_version"),
-            server_info.git_hash
-        )
-    } else {
-        format!(
-            "{}: {:?}",
-            localization.get("main.login.network_error"),
-            error
-        )
+fn get_client_msg_error(e: client_init::Error, localized_strings: &LocalizationHandle) -> String {
+    let localization = localized_strings.read();
+
+    // When a network error is received and there is a mismatch between the client
+    // and server version it is almost definitely due to this mismatch rather than
+    // a true networking error.
+    let net_e = |error: String, mismatched_server_info: Option<ServerInfo>| -> String {
+        if let Some(server_info) = mismatched_server_info {
+            format!(
+                "{} {}: {} {}: {}",
+                localization.get("main.login.network_wrong_version"),
+                localization.get("main.login.client_version"),
+                common::util::GIT_HASH.to_string(),
+                localization.get("main.login.server_version"),
+                server_info.git_hash
+            )
+        } else {
+            format!(
+                "{}: {}",
+                localization.get("main.login.network_error"),
+                error
+            )
+        }
+    };
+
+    use client::Error;
+    match e {
+        InitError::ClientError {
+            error,
+            mismatched_server_info,
+        } => match error {
+            Error::SpecsErr(e) => {
+                format!("{}: {}", localization.get("main.login.internal_error"), e)
+            },
+            Error::AuthErr(e) => format!(
+                "{}: {}",
+                localization.get("main.login.authentication_error"),
+                e
+            ),
+            Error::Kicked(e) => e,
+            Error::TooManyPlayers => localization.get("main.login.server_full").into(),
+            Error::AuthServerNotTrusted => {
+                localization.get("main.login.untrusted_auth_server").into()
+            },
+            Error::ServerTimeout => localization.get("main.login.timeout").into(),
+            Error::ServerShutdown => localization.get("main.login.server_shut_down").into(),
+            Error::NotOnWhitelist => localization.get("main.login.not_on_whitelist").into(),
+            Error::Banned(reason) => {
+                format!("{}: {}", localization.get("main.login.banned"), reason)
+            },
+            Error::InvalidCharacter => localization.get("main.login.invalid_character").into(),
+            Error::NetworkErr(NetworkError::ConnectFailed(NetworkConnectError::Handshake(
+                InitProtocolError::WrongVersion(_),
+            ))) => net_e(
+                localization
+                    .get("main.login.network_wrong_version")
+                    .to_owned(),
+                mismatched_server_info,
+            ),
+            Error::NetworkErr(e) => net_e(e.to_string(), mismatched_server_info),
+            Error::ParticipantErr(e) => net_e(e.to_string(), mismatched_server_info),
+            Error::StreamErr(e) => net_e(e.to_string(), mismatched_server_info),
+            Error::HostnameLookupFailed(e) => {
+                format!("{}: {}", localization.get("main.login.server_not_found"), e)
+            },
+            Error::Other(e) => {
+                format!("{}: {}", localization.get("common.error"), e)
+            },
+            Error::AuthClientError(e) => match e {
+                // TODO: remove parentheses
+                client::AuthClientError::RequestError(e) => format!(
+                    "{}: {}",
+                    localization.get("main.login.failed_sending_request"),
+                    e
+                ),
+                client::AuthClientError::JsonError(e) => format!(
+                    "{}: {}",
+                    localization.get("main.login.failed_sending_request"),
+                    e
+                ),
+                client::AuthClientError::InsecureSchema => {
+                    localization.get("main.login.insecure_auth_scheme").into()
+                },
+                client::AuthClientError::ServerError(_, e) => {
+                    String::from_utf8_lossy(&e).to_string()
+                },
+            },
+            Error::AuthServerUrlInvalid(e) => {
+                format!(
+                    "{}: https://{}",
+                    localization.get("main.login.failed_auth_server_url_invalid"),
+                    e
+                )
+            },
+        },
+        InitError::ClientCrashed => localization.get("main.login.client_crashed").into(),
     }
 }
+
 fn attempt_login(
-    settings: &mut Settings,
     info_message: &mut Option<String>,
     username: String,
     password: String,
-    connection_args: ClientConnArgs,
+    connection_args: ConnectionArgs,
     client_init: &mut Option<ClientInit>,
     runtime: Option<Arc<runtime::Runtime>>,
 ) {
@@ -391,7 +367,6 @@ fn attempt_login(
         *client_init = Some(ClientInit::new(
             connection_args,
             username,
-            Some(settings.graphics.view_distance),
             password,
             runtime,
         ));

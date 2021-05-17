@@ -9,7 +9,6 @@ pub enum Error {
     NetworkErr(NetworkError),
     ParticipantErr(ParticipantError),
     StreamErr(StreamError),
-    ServerWentMad,
     ServerTimeout,
     ServerShutdown,
     TooManyPlayers,
@@ -18,6 +17,7 @@ pub enum Error {
     AuthClientError(AuthClientError),
     AuthServerUrlInvalid(String),
     AuthServerNotTrusted,
+    HostnameLookupFailed(std::io::Error),
     Banned(String),
     /// Persisted character data is invalid or missing
     InvalidCharacter,
