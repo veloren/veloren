@@ -452,7 +452,7 @@ pub fn attempt_wield(data: &JoinData, update: &mut StateUpdate) {
             .map(|(item, tool)| tool.equip_time(data.msm, item.components()))
     };
 
-    // Calcualtes time required to equip weapons, if weapon in mainhand and offhand,
+    // Calculates time required to equip weapons, if weapon in mainhand and offhand,
     // uses maximum duration
     let mainhand_equip_time = equip_time(EquipSlot::ActiveMainhand);
     let offhand_equip_time = equip_time(EquipSlot::ActiveOffhand);

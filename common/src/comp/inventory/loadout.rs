@@ -260,7 +260,7 @@ impl Loadout {
     pub(super) fn inv_slots_mut(&mut self) -> impl Iterator<Item = &mut InvSlot> {
         self.slots.iter_mut()
             .filter_map(|x| x.slot.as_mut().map(|item| item.slots_mut()))  // Discard loadout items that have no slots of their own
-            .flat_map(|loadout_slots| loadout_slots.iter_mut()) //Collapse iter of Vec<InvSlot> to iter of InvSlot 
+            .flat_map(|loadout_slots| loadout_slots.iter_mut()) //Collapse iter of Vec<InvSlot> to iter of InvSlot
     }
 
     /// Gets the range of loadout-provided inventory slot indexes that are
@@ -328,26 +328,47 @@ impl Loadout {
         equip_slot: EquipSlot,
         item_kind: Option<&ItemKind>,
     ) -> bool {
-        let weapon_compare_slots = match equip_slot {
-            EquipSlot::ActiveMainhand | EquipSlot::ActiveOffhand => {
-                Some((EquipSlot::ActiveMainhand, EquipSlot::ActiveOffhand))
-            },
-            EquipSlot::InactiveMainhand | EquipSlot::InactiveOffhand => {
-                Some((EquipSlot::InactiveMainhand, EquipSlot::InactiveOffhand))
-            },
-            _ => None,
-        };
+        // let weapon_compare_slots = match equip_slot {
+        //     EquipSlot::ActiveMainhand | EquipSlot::ActiveOffhand => {
+        //         Some((EquipSlot::ActiveMainhand, EquipSlot::ActiveOffhand))
+        //     },
+        //     EquipSlot::InactiveMainhand | EquipSlot::InactiveOffhand => {
+        //         Some((EquipSlot::InactiveMainhand, EquipSlot::InactiveOffhand))
+        //     },
+        //     _ => None,
+        // };
+        if !(match equip_slot {
+            EquipSlot::ActiveMainhand => Loadout::is_valid_weapon_pair(
+                item_kind,
+                self.equipped(EquipSlot::ActiveOffhand).map(|x| &x.kind),
+            ),
+            EquipSlot::ActiveOffhand => Loadout::is_valid_weapon_pair(
+                self.equipped(EquipSlot::ActiveMainhand).map(|x| &x.kind),
+                item_kind,
+            ),
+            EquipSlot::InactiveMainhand => Loadout::is_valid_weapon_pair(
+                item_kind,
+                self.equipped(EquipSlot::InactiveOffhand).map(|x| &x.kind),
+            ),
+            EquipSlot::InactiveOffhand => Loadout::is_valid_weapon_pair(
+                self.equipped(EquipSlot::InactiveMainhand).map(|x| &x.kind),
+                item_kind,
+            ),
+            _ => true,
+        }) {
+            return false;
+        }
 
         // Disallow equipping incompatible weapon pairs (i.e a two-handed weapon and a
         // one-handed weapon)
-        if let Some(weapon_compare_slots) = weapon_compare_slots {
-            if !Loadout::is_valid_weapon_pair(
-                self.equipped(weapon_compare_slots.0).map(|x| &x.kind),
-                self.equipped(weapon_compare_slots.1).map(|x| &x.kind),
-            ) {
-                return false;
-            }
-        }
+        // if let Some(weapon_compare_slots) = weapon_compare_slots {
+        //     if !Loadout::is_valid_weapon_pair(
+        //         self.equipped(weapon_compare_slots.0).map(|x| &x.kind),
+        //         self.equipped(weapon_compare_slots.1).map(|x| &x.kind),
+        //     ) {
+        //         return false;
+        //     }
+        // }
 
         item_kind.map_or(true, |item_kind| equip_slot.can_hold(item_kind))
     }
@@ -369,6 +390,10 @@ impl Loadout {
                 .map_or(true, |i| self.slot_can_hold(equip_slot, Some(i.kind())))
         };
 
+        // If every weapon is currently in a valid slot, after this change they will
+        // still be in a valid slot. This is because active mainhand and
+        // inactive mainhand, and active offhand and inactive offhand have the same
+        // requirements on what can be equipped.
         if valid_slot(EquipSlot::ActiveMainhand)
             && valid_slot(EquipSlot::ActiveOffhand)
             && valid_slot(EquipSlot::InactiveMainhand)
@@ -380,14 +405,22 @@ impl Loadout {
             let inactive_mainhand = self.swap(EquipSlot::InactiveMainhand, None);
             let inactive_offhand = self.swap(EquipSlot::InactiveOffhand, None);
             // Equip weapons into new slots
-            self.swap(EquipSlot::ActiveMainhand, inactive_mainhand)
-                .unwrap_none();
-            self.swap(EquipSlot::ActiveOffhand, inactive_offhand)
-                .unwrap_none();
-            self.swap(EquipSlot::InactiveMainhand, active_mainhand)
-                .unwrap_none();
-            self.swap(EquipSlot::InactiveOffhand, active_offhand)
-                .unwrap_none();
+            assert!(
+                self.swap(EquipSlot::ActiveMainhand, inactive_mainhand)
+                    .is_none()
+            );
+            assert!(
+                self.swap(EquipSlot::ActiveOffhand, inactive_offhand)
+                    .is_none()
+            );
+            assert!(
+                self.swap(EquipSlot::InactiveMainhand, active_mainhand)
+                    .is_none()
+            );
+            assert!(
+                self.swap(EquipSlot::InactiveOffhand, active_offhand)
+                    .is_none()
+            );
         }
     }
 }

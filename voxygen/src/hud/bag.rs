@@ -1004,10 +1004,10 @@ impl<'a> Widget for Bag<'a> {
             }
             // Ring
             let ring1_item = inventory
-                .equipped(EquipSlot::InactiveOffhand)
+                .equipped(EquipSlot::Armor(ArmorSlot::Ring1))
                 .map(|item| item.to_owned());
             let slot = slot_maker
-                .fabricate(EquipSlot::InactiveOffhand, [45.0; 2])
+                .fabricate(EquipSlot::Armor(ArmorSlot::Ring1), [45.0; 2])
                 .bottom_left_with_margins_on(state.ids.hands_slot, -55.0, 0.0)
                 .with_icon(self.imgs.ring_bg, Vec2::new(36.0, 40.0), Some(UI_MAIN))
                 .filled_slot(filled_slot);
@@ -1026,10 +1026,10 @@ impl<'a> Widget for Bag<'a> {
             }
             // Ring 2
             let ring2_item = inventory
-                .equipped(EquipSlot::InactiveMainhand)
+                .equipped(EquipSlot::Armor(ArmorSlot::Ring2))
                 .map(|item| item.to_owned());
             let slot = slot_maker
-                .fabricate(EquipSlot::InactiveMainhand, [45.0; 2])
+                .fabricate(EquipSlot::Armor(ArmorSlot::Ring2), [45.0; 2])
                 .bottom_right_with_margins_on(state.ids.shoulders_slot, -55.0, 0.0)
                 .with_icon(self.imgs.ring_bg, Vec2::new(36.0, 40.0), Some(UI_MAIN))
                 .filled_slot(filled_slot);

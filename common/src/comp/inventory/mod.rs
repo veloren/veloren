@@ -577,7 +577,7 @@ impl Inventory {
             + i32::try_from(slots_from_inv).expect("Inventory item with more than i32::MAX slots")
             - i32::try_from(self.populated_slots())
                 .expect("Inventory item with more than i32::MAX used slots")
-            + inv_slot_for_equipped // If there is no item already in the equip slot we gain 1 slot  
+            + inv_slot_for_equipped // If there is no item already in the equip slot we gain 1 slot
     }
 
     /// Handles picking up an item, unloading any items inside the item being
@@ -640,7 +640,7 @@ impl Inventory {
                 .expect("Equipped item with more than i32::MAX slots")
             - i32::try_from(self.populated_slots())
                 .expect("Inventory item with more than i32::MAX used slots")
-            - inv_slot_for_unequipped // If there is an item being unequipped we lose 1 slot 
+            - inv_slot_for_unequipped // If there is an item being unequipped we lose 1 slot
     }
 
     /// Swaps items from two slots, regardless of if either is inventory or
@@ -684,7 +684,7 @@ impl Inventory {
             - i32::try_from(self.populated_slots())
             .expect("inventory with more than i32::MAX used slots")
             - inv_slot_for_equipped // +1 inventory slot required if an item was unequipped
-            + inv_slot_for_inv_item // -1 inventory slot required if an item was equipped        
+            + inv_slot_for_inv_item // -1 inventory slot required if an item was equipped
     }
 
     /// Swap item in an inventory slot with one in a loadout slot.
@@ -730,9 +730,11 @@ impl Inventory {
                     && self.loadout.equipped(EquipSlot::ActiveOffhand).is_some()
                 {
                     let offhand = self.loadout.swap(EquipSlot::ActiveOffhand, None);
-                    self.loadout
-                        .swap(EquipSlot::ActiveMainhand, offhand)
-                        .unwrap_none();
+                    assert!(
+                        self.loadout
+                            .swap(EquipSlot::ActiveMainhand, offhand)
+                            .is_none()
+                    );
                 }
             },
             EquipSlot::InactiveMainhand => {
@@ -740,9 +742,11 @@ impl Inventory {
                     && self.loadout.equipped(EquipSlot::InactiveOffhand).is_some()
                 {
                     let offhand = self.loadout.swap(EquipSlot::InactiveOffhand, None);
-                    self.loadout
-                        .swap(EquipSlot::InactiveMainhand, offhand)
-                        .unwrap_none();
+                    assert!(
+                        self.loadout
+                            .swap(EquipSlot::InactiveMainhand, offhand)
+                            .is_none()
+                    );
                 }
             },
             _ => {},
