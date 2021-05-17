@@ -24,6 +24,8 @@
         "hud.bag.feet": "Feet",
         "hud.bag.mainhand": "Mainhand",
         "hud.bag.offhand": "Offhand",
+        "hud.bag.inactive_mainhand": "Inactive Mainhand",
+        "hud.bag.inactive_offhand": "Inactive Offhand",
         "hud.bag.bag": "Bag",
         "hud.bag.health": "Health",
         "hud.bag.stamina": "Stamina",

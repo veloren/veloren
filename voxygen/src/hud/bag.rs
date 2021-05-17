@@ -448,8 +448,11 @@ widget_ids! {
         back_slot,
         tabard_slot,
         glider_slot,
-        mainhand_slot,
-        offhand_slot,
+        active_mainhand_slot,
+        active_offhand_slot,
+        inactive_mainhand_slot,
+        inactive_offhand_slot,
+        swap_equipped_weapons_btn,
         bag1_slot,
         bag2_slot,
         bag3_slot,
@@ -543,6 +546,7 @@ pub enum Event {
     BagExpand,
     Close,
     SortInventory,
+    SwapEquippedWeapons,
 }
 
 impl<'a> Widget for Bag<'a> {
@@ -690,7 +694,7 @@ impl<'a> Widget for Bag<'a> {
         if inventory.slots().count() > 45 || self.show.bag_inv {
             let expand_btn_top = if self.show.bag_inv { 53.0 } else { 460.0 };
             if expand_btn
-                .top_left_with_margins_on(state.bg_ids.bg_frame, expand_btn_top, 211.5)
+                .top_right_with_margins_on(state.bg_ids.bg_frame, expand_btn_top, 30.0)
                 .with_tooltip(self.tooltip_manager, &txt, "", &bag_tooltip, TEXT_COLOR)
                 .set(state.ids.bag_expand_btn, ui)
                 .was_clicked()
@@ -1152,7 +1156,7 @@ impl<'a> Widget for Bag<'a> {
                 )
                 .set(state.ids.tabard_slot, ui)
             }
-            // Mainhand/Left-Slot
+            // Active Mainhand/Left-Slot
             let mainhand_item = inventory
                 .equipped(EquipSlot::ActiveMainhand)
                 .map(|item| item.to_owned());
@@ -1164,7 +1168,7 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot);
             if let Some(item) = mainhand_item {
                 slot.with_item_tooltip(self.item_tooltip_manager, &item, &None, &item_tooltip)
-                    .set(state.ids.mainhand_slot, ui)
+                    .set(state.ids.active_mainhand_slot, ui)
             } else {
                 slot.with_tooltip(
                     self.tooltip_manager,
@@ -1173,9 +1177,10 @@ impl<'a> Widget for Bag<'a> {
                     &tooltip,
                     color::WHITE,
                 )
-                .set(state.ids.mainhand_slot, ui)
+                .set(state.ids.active_mainhand_slot, ui)
             }
-            // Offhand/Right-Slot
+
+            // Active Offhand/Right-Slot
             let offhand_item = inventory
                 .equipped(EquipSlot::ActiveOffhand)
                 .map(|item| item.to_owned());
@@ -1186,7 +1191,7 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot);
             if let Some(item) = offhand_item {
                 slot.with_item_tooltip(self.item_tooltip_manager, &item, &None, &item_tooltip)
-                    .set(state.ids.offhand_slot, ui)
+                    .set(state.ids.active_offhand_slot, ui)
             } else {
                 slot.with_tooltip(
                     self.tooltip_manager,
@@ -1195,7 +1200,65 @@ impl<'a> Widget for Bag<'a> {
                     &tooltip,
                     color::WHITE,
                 )
-                .set(state.ids.offhand_slot, ui)
+                .set(state.ids.active_offhand_slot, ui)
+            }
+            // Inactive Mainhand/Left-Slot
+            let mainhand_item = inventory
+                .equipped(EquipSlot::InactiveMainhand)
+                .map(|item| item.to_owned());
+
+            let slot = slot_maker
+                .fabricate(EquipSlot::InactiveMainhand, [38.0; 2])
+                .bottom_right_with_margins_on(state.ids.active_mainhand_slot, 2.0, -44.0)
+                .with_icon(self.imgs.mainhand_bg, Vec2::new(33.5, 33.5), Some(UI_MAIN))
+                .filled_slot(filled_slot);
+            if let Some(item) = mainhand_item {
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, &None, &item_tooltip)
+                    .set(state.ids.inactive_mainhand_slot, ui)
+            } else {
+                slot.with_tooltip(
+                    self.tooltip_manager,
+                    i18n.get("hud.bag.inactive_mainhand"),
+                    "",
+                    &tooltip,
+                    color::WHITE,
+                )
+                .set(state.ids.inactive_mainhand_slot, ui)
+            }
+
+            // Inctive Offhand/Right-Slot
+            let offhand_item = inventory
+                .equipped(EquipSlot::InactiveOffhand)
+                .map(|item| item.to_owned());
+            let slot = slot_maker
+                .fabricate(EquipSlot::InactiveOffhand, [38.0; 2])
+                .bottom_left_with_margins_on(state.ids.active_offhand_slot, 2.0, -44.0)
+                .with_icon(self.imgs.offhand_bg, Vec2::new(33.5, 33.5), Some(UI_MAIN))
+                .filled_slot(filled_slot);
+            if let Some(item) = offhand_item {
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, &None, &item_tooltip)
+                    .set(state.ids.inactive_offhand_slot, ui)
+            } else {
+                slot.with_tooltip(
+                    self.tooltip_manager,
+                    i18n.get("hud.bag.inactive_offhand"),
+                    "",
+                    &tooltip,
+                    color::WHITE,
+                )
+                .set(state.ids.inactive_offhand_slot, ui)
+            }
+
+            if Button::image(self.imgs.swap_equipped_weapons_btn)
+                .hover_image(self.imgs.swap_equipped_weapons_btn_hover)
+                .press_image(self.imgs.swap_equipped_weapons_btn_press)
+                .w_h(12.0, 30.0)
+                .down_from(state.ids.legs_slot, 19.5)
+                .align_middle_x_of(state.ids.legs_slot)
+                .set(state.ids.swap_equipped_weapons_btn, ui)
+                .was_clicked()
+            {
+                event = Some(Event::SwapEquippedWeapons);
             }
         }
 

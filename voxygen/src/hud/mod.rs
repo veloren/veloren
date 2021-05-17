@@ -373,6 +373,7 @@ pub enum Event {
         slot: comp::slot::Slot,
         bypass_dialog: bool,
     },
+    SwapEquippedWeapons,
     SwapSlots {
         slot_a: comp::slot::Slot,
         slot_b: comp::slot::Slot,
@@ -2479,6 +2480,9 @@ impl Hud {
                         };
                     },
                     Some(bag::Event::SortInventory) => self.events.push(Event::SortInventory),
+                    Some(bag::Event::SwapEquippedWeapons) => {
+                        self.events.push(Event::SwapEquippedWeapons)
+                    },
                     None => {},
                 }
             }

@@ -1034,6 +1034,9 @@ impl PlayState for SessionState {
                             self.client.borrow_mut().use_slot(slot);
                         }
                     },
+                    HudEvent::SwapEquippedWeapons => {
+                        self.client.borrow_mut().swap_loadout();
+                    },
                     HudEvent::SwapSlots {
                         slot_a,
                         slot_b,
