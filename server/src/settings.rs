@@ -34,11 +34,18 @@ const SERVER_DESCRIPTION_FILENAME: &str = "description.ron";
 const ADMINS_FILENAME: &str = "admins.ron";
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct X509FilePair {
+    pub cert: PathBuf,
+    pub key: PathBuf,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Settings {
     pub gameserver_address: SocketAddr,
     pub metrics_address: SocketAddr,
     pub auth_server_address: Option<String>,
+    pub quic_files: Option<X509FilePair>,
     pub max_players: usize,
     pub world_seed: u32,
     //pub pvp_enabled: bool,
@@ -62,6 +69,7 @@ impl Default for Settings {
             gameserver_address: SocketAddr::from(([0; 4], 14004)),
             metrics_address: SocketAddr::from(([0; 4], 14005)),
             auth_server_address: Some("https://auth.veloren.net".into()),
+            quic_files: None,
             world_seed: DEFAULT_WORLD_SEED,
             server_name: "Veloren Alpha".into(),
             max_players: 100,
@@ -140,6 +148,7 @@ impl Settings {
                 pick_unused_port().expect("Failed to find unused port!"),
             )),
             auth_server_address: None,
+            quic_files: None,
             // If loading the default map file, make sure the seed is also default.
             world_seed: if load.map_file.is_some() {
                 load.world_seed
