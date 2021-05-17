@@ -2559,12 +2559,13 @@ impl<'a> AgentData<'a> {
                     ..self.traversal_config
                 },
             ) {
-                if can_see_tgt(
-                    &*read_data.terrain,
-                    self.pos,
-                    tgt_data.pos,
-                    attack_data.dist_sqrd,
-                ) && attack_data.angle < 15.0
+                if attack_data.angle < 15.0
+                    && can_see_tgt(
+                        &*read_data.terrain,
+                        self.pos,
+                        tgt_data.pos,
+                        attack_data.dist_sqrd,
+                    )
                 {
                     if agent.action_state.timer > 5.0 {
                         agent.action_state.timer = 0.0;
@@ -2612,8 +2613,8 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        if attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
-            && attack_data.angle < 90.0
+        if attack_data.angle < 90.0
+            && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
         {
             if agent.action_state.timer > 4.0 {
                 controller
@@ -2665,8 +2666,8 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        if attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
-            && attack_data.angle < 90.0
+        if attack_data.angle < 90.0
+            && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
         {
             controller.inputs.move_dir = Vec2::zero();
             controller
@@ -2713,16 +2714,18 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        if attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2) {
+        if attack_data.angle < 70.0
+            && attack_data.dist_sqrd < (1.3 * attack_data.min_attack_dist).powi(2)
+        {
             controller.inputs.move_dir = Vec2::zero();
             if agent.action_state.timer > 5.0 {
                 agent.action_state.timer = 0.0;
-            } else if agent.action_state.timer > 2.0 && attack_data.angle < 90.0 {
+            } else if agent.action_state.timer > 2.0 {
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Secondary));
                 agent.action_state.timer += read_data.dt.0;
-            } else if attack_data.angle < 90.0 {
+            } else {
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Primary));
@@ -2757,15 +2760,15 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        if attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
-            && attack_data.angle < 90.0
+        if attack_data.angle < 90.0
+            && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
         {
             controller.inputs.move_dir = Vec2::zero();
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Secondary));
-        } else if attack_data.dist_sqrd < (5.0 * attack_data.min_attack_dist).powi(2)
-            && attack_data.angle < 15.0
+        } else if attack_data.angle < 15.0
+            && attack_data.dist_sqrd < (5.0 * attack_data.min_attack_dist).powi(2)
         {
             controller
                 .actions
@@ -2781,24 +2784,22 @@ impl<'a> AgentData<'a> {
                     ..self.traversal_config
                 },
             ) {
-                if can_see_tgt(
-                    &*read_data.terrain,
-                    self.pos,
-                    tgt_data.pos,
-                    attack_data.dist_sqrd,
-                ) && attack_data.angle < 15.0
+                if attack_data.angle < 15.0
+                    && can_see_tgt(
+                        &*read_data.terrain,
+                        self.pos,
+                        tgt_data.pos,
+                        attack_data.dist_sqrd,
+                    )
                 {
                     controller
                         .actions
                         .push(ControlAction::basic_input(InputKind::Primary));
-                    controller.inputs.move_dir =
-                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                } else {
-                    controller.inputs.move_dir =
-                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                    self.jump_if(controller, bearing.z > 1.5);
-                    controller.inputs.move_z = bearing.z;
                 }
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                self.jump_if(controller, bearing.z > 1.5);
+                controller.inputs.move_z = bearing.z;
             }
         } else {
             agent.target = None;
@@ -2813,7 +2814,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        if attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2) && attack_data.angle < 90.0 {
+        if attack_data.angle < 90.0 && attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2) {
             controller.inputs.move_dir = Vec2::zero();
             if agent.action_state.timer < 2.0 {
                 controller
@@ -2857,8 +2858,8 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        if attack_data.dist_sqrd < (2.5 * attack_data.min_attack_dist).powi(2)
-            && attack_data.angle < 90.0
+        if attack_data.angle < 90.0
+            && attack_data.dist_sqrd < (2.5 * attack_data.min_attack_dist).powi(2)
         {
             controller.inputs.move_dir = Vec2::zero();
             controller
@@ -2924,8 +2925,8 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2)
-            && attack_data.angle < 90.0
+        if attack_data.angle < 90.0
+            && attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2)
         {
             controller.inputs.move_dir = Vec2::zero();
             controller
@@ -3272,6 +3273,24 @@ impl<'a> AgentData<'a> {
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Secondary));
+        } else {
+            // Target is behind us. Turn around and chase target
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                // Walk to target
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                self.jump_if(controller, bearing.z > 1.5);
+                controller.inputs.move_z = bearing.z;
+            }
         }
     }
 
@@ -3390,17 +3409,56 @@ impl<'a> AgentData<'a> {
             && agent.action_state.timer < 3.0
             && attack_data.angle < 15.0
         {
+            // Fire breath attack
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Ability(0)));
+            // Move towards the target slowly
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * 0.5 * speed;
+                self.jump_if(controller, bearing.z > 1.5);
+                controller.inputs.move_z = bearing.z;
+            }
             agent.action_state.timer += read_data.dt.0;
-        } else if agent.action_state.timer < 6.0 && attack_data.angle < 90.0 {
+        } else if agent.action_state.timer < 6.0
+            && attack_data.angle < 90.0
+            && attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2)
+        {
+            // Triplestrike
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Secondary));
             agent.action_state.timer += read_data.dt.0;
         } else {
+            // Reset timer
             agent.action_state.timer = 0.0;
+            // Target is behind us or the timer needs to be reset. Chase target
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                // Walk to target
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                self.jump_if(controller, bearing.z > 1.5);
+                controller.inputs.move_z = bearing.z;
+            }
         }
     }
 
