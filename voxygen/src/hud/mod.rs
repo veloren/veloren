@@ -2449,6 +2449,7 @@ impl Hud {
             ) {
                 match Bag::new(
                     client,
+                    global_state,
                     &self.imgs,
                     &self.item_imgs,
                     &self.fonts,
