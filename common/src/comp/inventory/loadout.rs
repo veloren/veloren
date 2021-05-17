@@ -290,17 +290,6 @@ impl Loadout {
     /// If no slot is available the item is returned.
     #[must_use = "Returned item will be lost if not used"]
     pub(super) fn try_equip(&mut self, item: Item) -> Result<(), Item> {
-        /* if let Some(loadout_slot) = self
-            .slots
-            .iter_mut()
-            .find(|s| s.slot.is_none() && self.slot_can_hold(s.equip_slot, item.kind()))
-        {
-            loadout_slot.slot = Some(item);
-            Ok(())
-        } else {
-            Err(item)
-        } */
-        // TODO: Get XVar to see if there better way to handle mutability issues
         let loadout_slot = self
             .slots
             .iter()
@@ -328,15 +317,8 @@ impl Loadout {
         equip_slot: EquipSlot,
         item_kind: Option<&ItemKind>,
     ) -> bool {
-        // let weapon_compare_slots = match equip_slot {
-        //     EquipSlot::ActiveMainhand | EquipSlot::ActiveOffhand => {
-        //         Some((EquipSlot::ActiveMainhand, EquipSlot::ActiveOffhand))
-        //     },
-        //     EquipSlot::InactiveMainhand | EquipSlot::InactiveOffhand => {
-        //         Some((EquipSlot::InactiveMainhand, EquipSlot::InactiveOffhand))
-        //     },
-        //     _ => None,
-        // };
+        // Disallow equipping incompatible weapon pairs (i.e a two-handed weapon and a
+        // one-handed weapon)
         if !(match equip_slot {
             EquipSlot::ActiveMainhand => Loadout::is_valid_weapon_pair(
                 item_kind,
@@ -358,17 +340,6 @@ impl Loadout {
         }) {
             return false;
         }
-
-        // Disallow equipping incompatible weapon pairs (i.e a two-handed weapon and a
-        // one-handed weapon)
-        // if let Some(weapon_compare_slots) = weapon_compare_slots {
-        //     if !Loadout::is_valid_weapon_pair(
-        //         self.equipped(weapon_compare_slots.0).map(|x| &x.kind),
-        //         self.equipped(weapon_compare_slots.1).map(|x| &x.kind),
-        //     ) {
-        //         return false;
-        //     }
-        // }
 
         item_kind.map_or(true, |item_kind| equip_slot.can_hold(item_kind))
     }
