@@ -107,6 +107,23 @@
         "hud.settings.awaitingkey": "Pressione uma tecla...",
         "hud.settings.unbound": "Nenhum",
         "hud.settings.reset_keybinds": "Restaurar Padrões",
+
+        "hud.settings.chat_tabs": "Abas de Chat",
+        "hud.settings.label": "Rótulo:",
+        "hud.settings.delete": "Deletar",
+        "hud.settings.show_all": "Exibir Todas",
+        "hud.settings.messages": "Mensagens",
+        "hud.settings.activity": "Atividade",
+        "hud.settings.death": "Morte",
+        "hud.settings.group": "Grupo",
+        "hud.settings.faction": "Facção",
+        "hud.settings.world": "Mundo",
+        "hud.settings.region": "Região",
+        "hud.settings.say": "Fala",
+        "hud.settings.none": "Nenhum",
+        "hud.settings.all": "Todos",
+        "hud.settings.group_only": "Grupo apenas",
+        "hud.settings.reset_chat" : "Restaurar Padrões",
     },
 
 

@@ -3,6 +3,9 @@
 /// Localization for Portuguese (Brazil)
 (
     string_map: {
+        "hud.chat.all": "Todos",
+        "hud.chat.chat_tab_hover_tooltip": "Clique direito para configurar",
+
         // Debuff outcomes
         "hud.outcome.burning": "morreu de: queimadura",
         "hud.outcome.curse": "morreu de: maldição",

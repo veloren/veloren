@@ -24,7 +24,7 @@
         "char_selection.eyeshape": "Detalhe dos Olhos",
         "char_selection.accessories": "Acessórios",
         "char_selection.create_info_name": "Seu personagem precisa de um nome!",
-        "char_selection.version_mismatch": "AVISO! Este servidor está executando uma versão diferente e possivelmente incompatível do jogo. Por favor, atualize o seu jogo."
+        "char_selection.version_mismatch": "AVISO! Este servidor está executando uma versão diferente e possivelmente incompatível do jogo. Por favor, atualize o seu jogo.",
     },
 
     vector_map: {

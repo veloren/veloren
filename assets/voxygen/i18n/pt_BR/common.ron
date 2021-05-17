@@ -16,6 +16,7 @@
         "common.controls": "Controles",
         "common.video": "Vídeo",
         "common.sound": "Som",
+        "common.chat": "Chat",
         "common.resume": "Continuar",
         "common.characters": "Personagens",
         "common.close": "Fechar",
@@ -44,6 +45,7 @@
         "common.video_settings": "Configurações Gráficas",
         "common.sound_settings": "Configurações de Som",
         "common.language_settings": "Configurações de Idioma",
+        "common.chat_settings": "Configuraçõões de Chat",
 
         // Message when connection to the server is lost
         "common.connection_lost": r#"Conexão Perdida!
