@@ -116,10 +116,6 @@ impl PlayState for CharSelectionState {
                     },
                     ui::Event::Play(character_id) => {
                         self.client.borrow_mut().request_character(character_id);
-                        //Send our ViewDistance
-                        self.client
-                            .borrow_mut()
-                            .set_view_distance(global_state.settings.graphics.view_distance);
 
                         return PlayStateResult::Switch(Box::new(SessionState::new(
                             global_state,
