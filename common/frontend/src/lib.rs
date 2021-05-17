@@ -59,7 +59,6 @@ where
             .add_directive("tokio_util=info".parse().unwrap())
             .add_directive("rustls=info".parse().unwrap())
             .add_directive("veloren_network_protocol=info".parse().unwrap())
-            .add_directive("quinn_proto::connection=info".parse().unwrap())
             .add_directive(
                 "veloren_server::persistence::character=info"
                     .parse()

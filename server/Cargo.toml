@@ -20,7 +20,7 @@ common-state = { package = "veloren-common-state", path = "../common/state" }
 common-systems = { package = "veloren-common-systems", path = "../common/systems" }
 common-net = { package = "veloren-common-net", path = "../common/net" }
 world = { package = "veloren-world", path = "../world" }
-network = { package = "veloren-network", path = "../network", features = ["metrics", "compression", "quic"], default-features = false }
+network = { package = "veloren-network", path = "../network", features = ["metrics", "compression"], default-features = false }
 
 # inline_tweak = "1.0.8"
 
@@ -33,7 +33,6 @@ vek = { version = "0.14.1", features = ["serde"] }
 futures-util = "0.3.7"
 tokio = { version = "1", default-features = false, features = ["rt"] }
 prometheus-hyper = "0.1.2"
-quinn = "0.7.2"
 atomicwrites = "0.3.0"
 chrono = { version = "0.4.9", features = ["serde"] }
 humantime = "2.1.0"

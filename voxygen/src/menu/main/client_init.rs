@@ -17,6 +17,7 @@ use tracing::{trace, warn};
 
 #[derive(Debug)]
 pub enum Error {
+    NoAddress,
     ClientError {
         error: ClientError,
         mismatched_server_info: Option<ServerInfo>,
@@ -28,6 +29,12 @@ pub enum Error {
 pub enum Msg {
     IsAuthTrusted(String),
     Done(Result<Client, Error>),
+}
+
+pub enum ClientConnArgs {
+    Host(String),
+    #[allow(dead_code)] //singleplayer
+    Resolved(ConnectionArgs),
 }
 
 pub struct AuthTrust(String, bool);
@@ -44,8 +51,9 @@ impl ClientInit {
     #[allow(clippy::op_ref)] // TODO: Pending review in #587
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn new(
-        connection_args: ConnectionArgs,
+        connection_args: ClientConnArgs,
         username: String,
+        view_distance: Option<u32>,
         password: String,
         runtime: Option<Arc<runtime::Runtime>>,
     ) -> Self {
@@ -81,6 +89,18 @@ impl ClientInit {
                     .unwrap_or(false)
             };
 
+            let connection_args = match connection_args {
+                ClientConnArgs::Host(host) => match ConnectionArgs::resolve(&host, false).await {
+                    Ok(r) => r,
+                    Err(_) => {
+                        let _ = tx.send(Msg::Done(Err(Error::NoAddress)));
+                        tokio::task::block_in_place(move || drop(runtime2));
+                        return;
+                    },
+                },
+                ClientConnArgs::Resolved(r) => r,
+            };
+
             let mut last_err = None;
 
             const FOUR_MINUTES_RETRIES: u64 = 48;
@@ -91,6 +111,7 @@ impl ClientInit {
                 let mut mismatched_server_info = None;
                 match Client::new(
                     connection_args.clone(),
+                    view_distance,
                     Arc::clone(&runtime2),
                     &mut mismatched_server_info,
                 )
@@ -125,11 +146,8 @@ impl ClientInit {
                 tokio::time::sleep(Duration::from_secs(5)).await;
             }
 
-            // Only possibility for no last_err is aborting
-            let _ = tx.send(Msg::Done(Err(last_err.unwrap_or(Error::ClientError {
-                error: ClientError::Other("Connection attempt aborted by user".to_owned()),
-                mismatched_server_info: None,
-            }))));
+            // Parsing/host name resolution successful but no connection succeeded.
+            let _ = tx.send(Msg::Done(Err(last_err.unwrap_or(Error::NoAddress))));
 
             // Safe drop runtime
             tokio::task::block_in_place(move || drop(runtime2));
