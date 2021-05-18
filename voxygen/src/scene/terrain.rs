@@ -877,12 +877,13 @@ impl<V: RectRasterableVol> Terrain<V> {
                                 });
 
                         // Make sure not to skip remeshing a chunk if it already had to be
-                        // fully meshed for other reasons.  The exception: if the mesh is currently
-                        // active, we can stll set skip_remesh, since we know that means it was
-                        // enqueued during an older tick and hence there was no intermediate update
-                        // to this block between the enqueue and now.
-                        todo.skip_remesh =
-                            !todo.is_worker_active && todo.skip_remesh || skip_remesh;
+                        // fully meshed for other reasons.  Even if the mesh is currently active
+                        // (so relighting would be redundant), we currently have to remesh
+                        // everything unless the previous mesh was also able to skip remeshing,
+                        // since otherwise the active remesh is computing new lighting values
+                        // that we don't have yet.
+                        todo.skip_remesh &= skip_remesh;
+                        todo.is_worker_active = false;
                         todo.started_tick = current_tick;
                     }
                 }
