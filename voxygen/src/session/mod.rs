@@ -520,6 +520,9 @@ impl PlayState for SessionState {
                             },
                             GameInput::Glide => {
                                 if state {
+                                    if global_state.settings.gameplay.stop_auto_walk_on_input {
+                                        self.stop_auto_walk();
+                                    }
                                     self.client.borrow_mut().toggle_glide();
                                 }
                             },
@@ -682,7 +685,21 @@ impl PlayState for SessionState {
                                     &mut self.auto_walk,
                                     |b| hud.auto_walk(b),
                                 );
-                                self.key_state.auto_walk = self.auto_walk;
+
+                                if self
+                                    .client
+                                    .borrow()
+                                    .state()
+                                    .ecs()
+                                    .read_storage::<comp::CharacterState>()
+                                    .get(self.client.borrow().entity())
+                                    .filter(|cs| matches!(cs, comp::CharacterState::Glide(_)))
+                                    .is_some()
+                                {
+                                    self.key_state.auto_walk = false
+                                } else {
+                                    self.key_state.auto_walk = self.auto_walk
+                                }
                             },
                             GameInput::CameraClamp => {
                                 let hud = &mut self.hud;
@@ -747,7 +764,32 @@ impl PlayState for SessionState {
                 }
             }
 
-            if !self.free_look {
+            if let Some(dir) = self
+                .auto_walk
+                .then_some((
+                    self.client.borrow().state().ecs(),
+                    self.client.borrow().entity(),
+                ))
+                .filter(|(ecs, entity)| {
+                    ecs.read_storage::<comp::CharacterState>()
+                        .get(*entity)
+                        .map_or(false, |cs| matches!(cs, comp::CharacterState::Glide(_)))
+                })
+                .and_then(|(ecs, entity)| {
+                    ecs.read_storage::<comp::PhysicsState>()
+                        .get(entity)?
+                        .in_fluid
+                        .and_then(|fluid| {
+                            Dir::from_unnormalized(
+                                -fluid
+                                    .relative_flow(ecs.read_storage::<comp::Vel>().get(entity)?)
+                                    .0,
+                            )
+                        })
+                })
+            {
+                self.inputs.look_dir = dir;
+            } else if !self.free_look {
                 self.walk_forward_dir = self.scene.camera().forward_xy();
                 self.walk_right_dir = self.scene.camera().right_xy();
                 self.inputs.look_dir = Dir::from_unnormalized(cam_dir + aim_dir_offset).unwrap();
