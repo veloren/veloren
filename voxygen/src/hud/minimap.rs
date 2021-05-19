@@ -210,15 +210,8 @@ impl VoxelMinimap {
     }
 
     fn remove_unloaded_chunks(&mut self, terrain: &TerrainGrid) {
-        let mut removals = Vec::new();
-        for key in self.chunk_minimaps.keys() {
-            if terrain.get_key(*key).is_none() {
-                removals.push(*key);
-            }
-        }
-        for key in removals.into_iter() {
-            self.chunk_minimaps.remove(&key);
-        }
+        self.chunk_minimaps
+            .retain(|key, _| terrain.get_key(*key).is_some());
     }
 
     pub fn maintain(&mut self, client: &Client, ui: &mut Ui) {
