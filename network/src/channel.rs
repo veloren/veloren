@@ -548,7 +548,7 @@ impl UnreliableDrain for QuicDrain {
             QuicDataFormatStream::Unreliable => unimplemented!(),
             QuicDataFormatStream::Reliable(sid) => {
                 use hashbrown::hash_map::Entry;
-                tracing::trace!(?sid, "Reliable");
+                //tracing::trace!(?sid, "Reliable");
                 match self.reliables.entry(sid) {
                     Entry::Occupied(mut occupied) => occupied.get_mut().write_all(&data.data).await,
                     Entry::Vacant(vacant) => {

@@ -403,7 +403,6 @@ impl Server {
             match || -> Result<_, Box<dyn std::error::Error>> {
                 let mut server_config =
                     quinn::ServerConfigBuilder::new(quinn::ServerConfig::default());
-                server_config.protocols(&[b"VELOREN"]);
                 let key = fs::read(&quic.key)?;
                 let key = if quic.key.extension().map_or(false, |x| x == "der") {
                     quinn::PrivateKey::from_der(&key)?
@@ -422,12 +421,17 @@ impl Server {
                 Ok(server_config.build())
             }() {
                 Ok(server_config) => {
+                    warn!(
+                        "QUIC is enabled. This is experimental and not recommended in production"
+                    );
                     runtime.block_on(
                         network
                             .listen(ListenAddr::Quic(settings.gameserver_address, server_config)),
                     )?;
                 },
-                Err(e) => error!(?e, "Failed to load Quic Certificate, run without Quic"),
+                Err(e) => {
+                    error!(?e, ?settings.quic_files, "Failed to load Quic Certificate, run without Quic")
+                },
             }
         }
         let connection_handler = ConnectionHandler::new(network, &runtime);

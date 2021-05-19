@@ -220,9 +220,11 @@ impl Client {
                 hostname,
                 prefer_ipv6,
             } => {
-                let mut config = quinn::ClientConfigBuilder::default();
-                config.protocols(&[b"VELOREN"]);
-                let config = config.build();
+                warn!(
+                    "QUIC is enabled. This is experimental and you won't be able to connect to \
+                     TCP servers unless deactivated"
+                );
+                let config = quinn::ClientConfigBuilder::default().build();
                 addr::try_connect(&network, &hostname, prefer_ipv6, |a| {
                     ConnectAddr::Quic(a, config.clone(), hostname.clone())
                 })
