@@ -56,6 +56,7 @@ pub struct AttackerInfo<'a> {
     pub uid: Uid,
     pub energy: Option<&'a Energy>,
     pub combo: Option<&'a Combo>,
+    pub inventory: Option<&'a Inventory>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -213,11 +214,13 @@ impl Attack {
                             }
                         },
                         CombatEffect::EnergyReward(ec) => {
-                            if let Some(attacker_entity) = attacker.map(|a| a.entity) {
+                            if let Some(attacker) = attacker {
                                 emit(ServerEvent::EnergyChange {
-                                    entity: attacker_entity,
+                                    entity: attacker.entity,
                                     change: EnergyChange {
-                                        amount: *ec as i32,
+                                        amount: (*ec
+                                            * Energy::compute_energy_reward_mod(attacker.inventory))
+                                            as i32,
                                         source: EnergySource::HitEnemy,
                                     },
                                 });
@@ -348,11 +351,13 @@ impl Attack {
                         }
                     },
                     CombatEffect::EnergyReward(ec) => {
-                        if let Some(attacker_entity) = attacker.map(|a| a.entity) {
+                        if let Some(attacker) = attacker {
                             emit(ServerEvent::EnergyChange {
-                                entity: attacker_entity,
+                                entity: attacker.entity,
                                 change: EnergyChange {
-                                    amount: ec as i32,
+                                    amount: (ec
+                                        * Energy::compute_energy_reward_mod(attacker.inventory))
+                                        as i32,
                                     source: EnergySource::HitEnemy,
                                 },
                             });

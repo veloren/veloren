@@ -1,4 +1,4 @@
-use crate::comp::Body;
+use crate::comp::{self, Body, Inventory};
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
@@ -119,6 +119,24 @@ impl Energy {
     fn set_base_max(&mut self, amount: u32) {
         self.base_max = amount;
         self.current = self.current.min(self.maximum);
+    }
+
+    /// Computes the energy reward modifer from worn armor
+    pub fn compute_energy_reward_mod(inventory: Option<&Inventory>) -> f32 {
+        use comp::item::ItemKind;
+        // Starts with a value of 1.0 when summing the stats from each armor piece, and
+        // defaults to a value of 1.0 if no inventory is equipped
+        inventory.map_or(1.0, |inv| {
+            inv.equipped_items()
+                .filter_map(|item| {
+                    if let ItemKind::Armor(armor) = &item.kind() {
+                        Some(armor.get_energy_recovery())
+                    } else {
+                        None
+                    }
+                })
+                .fold(1.0, |a, b| a + b)
+        })
     }
 }
 

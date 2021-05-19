@@ -64,6 +64,8 @@ pub struct Stats {
     pub power: f32,
     pub poise_strength: f32,
     pub speed: f32,
+    // Done for testing purposes, properly remove stat from weapons later
+    #[serde(skip)]
     pub crit_chance: f32,
     pub crit_mult: f32,
 }

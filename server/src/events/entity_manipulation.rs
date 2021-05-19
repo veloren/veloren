@@ -705,25 +705,18 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
             RadiusEffect::Attack(attack) => {
                 let energies = &ecs.read_storage::<comp::Energy>();
                 let combos = &ecs.read_storage::<comp::Combo>();
+                let inventories = &ecs.read_storage::<comp::Inventory>();
                 for (
                     entity_b,
                     pos_b,
                     health_b,
-                    (
-                        body_b_maybe,
-                        inventory_b_maybe,
-                        stats_b_maybe,
-                        ori_b_maybe,
-                        char_state_b_maybe,
-                        uid_b,
-                    ),
+                    (body_b_maybe, stats_b_maybe, ori_b_maybe, char_state_b_maybe, uid_b),
                 ) in (
                     &ecs.entities(),
                     &ecs.read_storage::<comp::Pos>(),
                     &ecs.read_storage::<comp::Health>(),
                     (
                         ecs.read_storage::<comp::Body>().maybe(),
-                        ecs.read_storage::<comp::Inventory>().maybe(),
                         ecs.read_storage::<comp::Stats>().maybe(),
                         ecs.read_storage::<comp::Ori>().maybe(),
                         ecs.read_storage::<comp::CharacterState>().maybe(),
@@ -767,12 +760,13 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                                     uid,
                                     energy: energies.get(entity),
                                     combo: combos.get(entity),
+                                    inventory: inventories.get(entity),
                                 });
 
                         let target_info = combat::TargetInfo {
                             entity: entity_b,
                             uid: *uid_b,
-                            inventory: inventory_b_maybe,
+                            inventory: inventories.get(entity_b),
                             stats: stats_b_maybe,
                             health: Some(health_b),
                             pos: pos_b.0,

@@ -146,6 +146,7 @@ impl<'a> System<'a> for Sys {
                         uid: *uid,
                         energy: read_data.energies.get(attacker),
                         combo: read_data.combos.get(attacker),
+                        inventory: read_data.inventories.get(attacker),
                     });
 
                     let target_info = TargetInfo {
