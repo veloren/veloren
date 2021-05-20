@@ -22,7 +22,7 @@ use common::{
     trade::TradeResult,
     util::{
         find_dist::{Cube, Cylinder, FindDist},
-        Dir,
+        Dir, Plane,
     },
     vol::ReadVol,
 };
@@ -762,19 +762,32 @@ impl PlayState for SessionState {
                         .read_storage::<comp::PhysicsState>()
                         .get(entity)?
                         .in_fluid?;
-                    let wind = ecs
-                        .read_storage::<comp::Vel>()
+                    ecs.read_storage::<comp::Vel>()
                         .get(entity)
-                        .map(|vel| -fluid.relative_flow(vel).0)?;
-                    Dir::from_unnormalized(wind)
+                        .map(|vel| fluid.relative_flow(vel).0)
+                        .map(|rel_flow| {
+                            if !self.free_look {
+                                Plane::from(Dir::new(self.scene.camera().right())).projection(
+                                    rel_flow * self.inputs.look_dir.dot(rel_flow).signum(),
+                                )
+                            } else {
+                                -rel_flow
+                            }
+                        })
+                        .and_then(Dir::from_unnormalized)
                 })
             {
                 self.key_state.auto_walk = false;
+                self.inputs.move_dir = Vec2::zero();
                 self.inputs.look_dir = dir;
-            } else if !self.free_look {
-                self.walk_forward_dir = self.scene.camera().forward_xy();
-                self.walk_right_dir = self.scene.camera().right_xy();
-                self.inputs.look_dir = Dir::from_unnormalized(cam_dir + aim_dir_offset).unwrap();
+            } else {
+                self.key_state.auto_walk = self.auto_walk;
+                if !self.free_look {
+                    self.walk_forward_dir = self.scene.camera().forward_xy();
+                    self.walk_right_dir = self.scene.camera().right_xy();
+                    self.inputs.look_dir =
+                        Dir::from_unnormalized(cam_dir + aim_dir_offset).unwrap();
+                }
             }
 
             // Get the current state of movement related inputs
