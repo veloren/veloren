@@ -186,6 +186,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
                 &blocks_of_interest,
             ));
         mesh = Some(MeshWorkerResponseMesh {
+            // TODO: Take sprite bounds into account somehow?
             z_bounds: (bounds.min.z, bounds.max.z),
             opaque_mesh,
             fluid_mesh,
@@ -644,14 +645,29 @@ impl<V: RectRasterableVol> Terrain<V> {
     }
 
     /// Determine whether a given block change actually require remeshing.
-    fn skip_remesh(old_block: Block, new_block: Block) -> bool {
-        // Both blocks are unfilled and of the same kind (this includes
-        // sprites within the same fluid, for example).
-        !new_block.is_filled() && !old_block.is_filled() && new_block.kind() == old_block.kind() &&
-        // Block glow and sunlight handling are the same (so we don't have to redo
-        // lighting).
-        new_block.get_glow() == old_block.get_glow() &&
-        new_block.get_max_sunlight() == old_block.get_max_sunlight()
+    ///
+    /// Returns (skip_color, skip_lights) where
+    ///
+    /// skip_color means no textures were recolored (i.e. this was a sprite only
+    /// change).
+    ///
+    /// skip_lights means no remeshing or relighting was required
+    /// (i.e. the block opacity / lighting info / block kind didn't change).
+    fn skip_remesh(old_block: Block, new_block: Block) -> (bool, bool) {
+        let same_mesh =
+            // Both blocks are of the same opacity and same liquidity (since these are what we use
+            // to determine mesh boundaries).
+            new_block.is_liquid() == old_block.is_liquid() &&
+            new_block.is_opaque() == old_block.is_opaque();
+        let skip_lights = same_mesh &&
+            // Block glow and sunlight handling are the same (so we don't have to redo
+            // lighting).
+            new_block.get_glow() == old_block.get_glow() &&
+            new_block.get_max_sunlight() == old_block.get_max_sunlight();
+        let skip_color = same_mesh &&
+            // Both blocks are uncolored
+            !new_block.has_color() && !old_block.has_color();
+        (skip_color, skip_lights)
     }
 
     /// Find the glow level (light from lamps) at the given world position.
@@ -770,7 +786,9 @@ impl<V: RectRasterableVol> Terrain<V> {
                 for j in -1..2 {
                     let pos = pos + Vec2::new(i, j);
 
-                    if !self.chunks.contains_key(&pos) || modified {
+                    if !(self.chunks.contains_key(&pos) || self.mesh_todo.contains_key(&pos))
+                        || modified
+                    {
                         let mut neighbours = true;
                         for i in -1..2 {
                             for j in -1..2 {
@@ -806,7 +824,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             // stores the old state.
             let new_block = scene_data.state.get_block(pos);
 
-            let skip_remesh = if let Some(new_block) = new_block {
+            let (skip_color, skip_lights) = if let Some(new_block) = new_block {
                 Self::skip_remesh(old_block, new_block)
             } else {
                 // The block coordinates of a modified block should be in bounds, since they are
@@ -819,8 +837,12 @@ impl<V: RectRasterableVol> Terrain<V> {
                      bug; please contact the developers if you see this error message!",
                     pos
                 );
-                false
+                (false, false)
             };
+
+            // Currently, we can only skip remeshing if both lights and
+            // colors don't need to be reworked.
+            let skip_remesh = skip_color && skip_lights;
 
             // TODO: Be cleverer about this to avoid remeshing all neighbours. There are a
             // few things that can create an 'effect at a distance'. These are
@@ -831,10 +853,11 @@ impl<V: RectRasterableVol> Terrain<V> {
             //   removed (or added) thereby
             // changing the way that sunlight propagates into the cavity.
             //
-            // We can and should be cleverer about this, but it's non-trivial. For now, just
-            // conservatively assume that the lighting in all neighbouring
-            // chunks is invalidated. Thankfully, this doesn't need to happen often
-            // because block modification is unusual in Veloren.
+            // We can and should be cleverer about this, but it's non-trivial. For now, we
+            // don't remesh if only a block color changed or a sprite was
+            // altered in a way that doesn't affect its glow, but we make no
+            // attempt to do smarter cavity checking (to see if altering the
+            // block changed the sunlight neighbors could get).
             // let block_effect_radius = block.get_glow().unwrap_or(0).max(1);
             let block_effect_radius = crate::mesh::terrain::MAX_LIGHT_DIST;
 
@@ -848,9 +871,9 @@ impl<V: RectRasterableVol> Terrain<V> {
                     let neighbour_pos = pos + Vec3::new(x, y, 0) * block_effect_radius;
                     let neighbour_chunk_pos = scene_data.state.terrain().pos_key(neighbour_pos);
 
-                    if skip_remesh && !(x == 0 && y == 0) {
+                    if skip_lights && !(x == 0 && y == 0) {
                         // We don't need to remesh neighboring chunks if this block change doesn't
-                        // require remeshing.
+                        // require relighting.
                         continue;
                     }
 
@@ -877,12 +900,13 @@ impl<V: RectRasterableVol> Terrain<V> {
                                 });
 
                         // Make sure not to skip remeshing a chunk if it already had to be
-                        // fully meshed for other reasons.  The exception: if the mesh is currently
-                        // active, we can stll set skip_remesh, since we know that means it was
-                        // enqueued during an older tick and hence there was no intermediate update
-                        // to this block between the enqueue and now.
-                        todo.skip_remesh =
-                            !todo.is_worker_active && todo.skip_remesh || skip_remesh;
+                        // fully meshed for other reasons.  Even if the mesh is currently active
+                        // (so relighting would be redundant), we currently have to remesh
+                        // everything unless the previous mesh was also able to skip remeshing,
+                        // since otherwise the active remesh is computing new lighting values
+                        // that we don't have yet.
+                        todo.skip_remesh &= skip_remesh;
+                        todo.is_worker_active = false;
                         todo.started_tick = current_tick;
                     }
                 }
@@ -899,18 +923,24 @@ impl<V: RectRasterableVol> Terrain<V> {
         };
 
         span!(guard, "Queue meshing from todo list");
+        let mesh_focus_pos = focus_pos.map(|e| e.trunc()).xy().as_::<i64>();
         for (todo, chunk) in self
             .mesh_todo
             .values_mut()
             .filter(|todo| !todo.is_worker_active)
-            .min_by_key(|todo| todo.started_tick)
+            .min_by_key(|todo| ((todo.pos.as_::<i64>() * TerrainChunk::RECT_SIZE.as_::<i64>()).distance_squared(mesh_focus_pos), todo.started_tick))
             // Find a reference to the actual `TerrainChunk` we're meshing
             .and_then(|todo| {
                 let pos = todo.pos;
                 Some((todo, scene_data.state
                     .terrain()
                     .get_key_arc(pos)
-                    .cloned()?))
+                    .cloned()
+                    .or_else(|| {
+                        warn!("Invariant violation: a chunk whose neighbors have not been fetched was found in the todo list,
+                              which could halt meshing entirely.");
+                        None
+                    })?))
             })
         {
             if self.mesh_todos_active.load(Ordering::Relaxed) > meshing_cores {
