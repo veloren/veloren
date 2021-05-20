@@ -686,20 +686,8 @@ impl PlayState for SessionState {
                                     |b| hud.auto_walk(b),
                                 );
 
-                                if self
-                                    .client
-                                    .borrow()
-                                    .state()
-                                    .ecs()
-                                    .read_storage::<comp::CharacterState>()
-                                    .get(self.client.borrow().entity())
-                                    .filter(|cs| matches!(cs, comp::CharacterState::Glide(_)))
-                                    .is_some()
-                                {
-                                    self.key_state.auto_walk = false
-                                } else {
-                                    self.key_state.auto_walk = self.auto_walk
-                                }
+                                self.key_state.auto_walk =
+                                    self.auto_walk && !self.client.borrow().is_gliding();
                             },
                             GameInput::CameraClamp => {
                                 let hud = &mut self.hud;
@@ -764,30 +752,24 @@ impl PlayState for SessionState {
                 }
             }
 
-            if let Some(dir) = self
-                .auto_walk
-                .then_some((
-                    self.client.borrow().state().ecs(),
-                    self.client.borrow().entity(),
-                ))
-                .filter(|(ecs, entity)| {
-                    ecs.read_storage::<comp::CharacterState>()
-                        .get(*entity)
-                        .map_or(false, |cs| matches!(cs, comp::CharacterState::Glide(_)))
-                })
-                .and_then(|(ecs, entity)| {
-                    ecs.read_storage::<comp::PhysicsState>()
+            // If auto-gliding, point camera into the wind
+            if let Some(dir) = (self.auto_walk && self.client.borrow().is_gliding())
+                .then_some(self.client.borrow())
+                .and_then(|client| {
+                    let ecs = client.state().ecs();
+                    let entity = client.entity();
+                    let fluid = ecs
+                        .read_storage::<comp::PhysicsState>()
                         .get(entity)?
-                        .in_fluid
-                        .and_then(|fluid| {
-                            Dir::from_unnormalized(
-                                -fluid
-                                    .relative_flow(ecs.read_storage::<comp::Vel>().get(entity)?)
-                                    .0,
-                            )
-                        })
+                        .in_fluid?;
+                    let wind = ecs
+                        .read_storage::<comp::Vel>()
+                        .get(entity)
+                        .map(|vel| -fluid.relative_flow(vel).0)?;
+                    Dir::from_unnormalized(wind)
                 })
             {
+                self.key_state.auto_walk = false;
                 self.inputs.look_dir = dir;
             } else if !self.free_look {
                 self.walk_forward_dir = self.scene.camera().forward_xy();
