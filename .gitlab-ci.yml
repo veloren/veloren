@@ -13,9 +13,9 @@ variables:
   # ttps://docs.gitlab.com/ee/ci/yaml/#shallow-cloning
   GIT_DEPTH: 3
   GIT_CLEAN_FLAGS: -f
+  CACHE_IMAGE_TAG: 7ea40612
 
 default:
-  image: registry.gitlab.com/veloren/veloren-docker-ci/cache:e134e812
   # https://docs.gitlab.com/ee/ci/pipelines/settings.html#auto-cancel-pending-pipelines
   interruptible: true
   # Retry automatically incase the runner times out or there's a runner failure
@@ -24,6 +24,8 @@ default:
     when:
       - runner_system_failure
       - stuck_or_timeout_failure
+  tags:
+    - veloren-wgpu-docker
 
 before_script:
   - source $HOME/.cargo/env

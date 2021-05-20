@@ -1,8 +1,6 @@
 # allow_failure: true makes these pipelines manual and "non-blocking" which changed with except -> rule syntax
 .optional-release:
   stage: check
-  tags:
-    - veloren-docker
   rules:
     - if: $CI_COMMIT_REF_NAME =~ /^master$/ || $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+/ || $CI_COMMIT_REF_NAME =~ /^r[0-9]+\.[0-9]+/ || $CI_PIPELINE_SOURCE == "schedule"
       when: never
@@ -12,8 +10,6 @@
 # Template to only run if pushes to master or a tag happened
 .release:
   stage: build
-  tags:
-    - veloren-docker
   rules:
     - if: $CI_COMMIT_REF_NAME =~ /^master$/ || $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+/ || $CI_COMMIT_REF_NAME =~ /^r[0-9]+\.[0-9]+/
       when: always
@@ -22,8 +18,6 @@
 # Template to only run if pushes to master or a tag happened
 .release-nightly-tmp-fix-airshipper:
   stage: build-nightly
-  tags:
-    - veloren-docker
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($CI_COMMIT_REF_NAME =~ /^master$/ || $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+/ || $CI_COMMIT_REF_NAME =~ /^r[0-9]+\.[0-9]+/)
       when: always

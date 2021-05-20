@@ -1,10 +1,11 @@
 unittests:
   extends: .recompile-branch
   stage: build
+  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
   variables:
     GIT_DEPTH: 9999999999999
   script:
-    - ln -s /dockercache/cache-all target
+    - ln -s /dockercache/target target
     - rm -r target/debug/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
     - cargo test --package veloren-i18n --lib test_all_localizations -- --nocapture --ignored
     - rm -r target/debug/incremental* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
@@ -15,11 +16,12 @@ unittests:
 benchmarks:
   extends: .post-merge
   stage: build
+  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/bench:${CACHE_IMAGE_TAG}
   tags:
     - veloren-benchmark
   script:
     - unset DISABLE_GIT_LFS_CHECK
-    - ln -s /dockercache/cache-all target
+    - ln -s /dockercache/target target
     - ls -la target/*
     - rm -r target/debug/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
     - rm -r target/release/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
@@ -40,8 +42,9 @@ benchmarks:
 coverage:
   extends: .post-merge
   stage: build
+  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/tarpaulin:${CACHE_IMAGE_TAG}
   script:
-    - ln -s /dockercache/cache-tarpaulin target
+    - ln -s /dockercache/target target
     - rm -r target/debug/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
     - find ./* -name "Cargo.toml" -exec sed -i 's/, "simd"]/]/g' {} \;
     - find ./* -name "Cargo.toml" -exec sed -i 's/"simd"]/]/g' {} \;
@@ -52,8 +55,9 @@ coverage:
 
 #linux, windows, macos builds here as template
 .tlinux:
+  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/release-linux:${CACHE_IMAGE_TAG}
   script:
-    - ln -s /dockercache/cache-release-linux target
+    - ln -s /dockercache/target target
     - rm -r target/release/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
     - VELOREN_USERDATA_STRATEGY=executable cargo build --release
     - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
@@ -67,8 +71,9 @@ coverage:
     expire_in: 1 week
 
 .twindows:
+  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/release-windows:${CACHE_IMAGE_TAG}
   script:
-    - ln -s /dockercache/cache-release-windows target
+    - ln -s /dockercache/target target
     - rm -r target/release/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
     - VELOREN_USERDATA_STRATEGY=executable cargo build --target=x86_64-pc-windows-gnu --release
     - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
@@ -82,10 +87,11 @@ coverage:
     expire_in: 1 week
 
 .tmacos:
+  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/release-macos:${CACHE_IMAGE_TAG}
   script:
-    - ln -s /dockercache/cache-release-macos target
+    - ln -s /dockercache/target target
     - rm -r target/release/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
-    - VELOREN_USERDATA_STRATEGY=executable WINIT_LINK_COLORSYNC=true PATH="/dockercache/osxcross/target/bin:$PATH" COREAUDIO_SDK_PATH=/dockercache/osxcross/target/SDK/MacOSX10.13.sdk CC=o64-clang CXX=o64-clang++ cargo build --target x86_64-apple-darwin --release
+    - VELOREN_USERDATA_STRATEGY=executable WINIT_LINK_COLORSYNC=true PATH="/osxcross/target/bin:$PATH" COREAUDIO_SDK_PATH=/osxcross/target/SDK/MacOSX10.13.sdk CC=o64-clang CXX=o64-clang++ cargo build --target x86_64-apple-darwin --release
     - cp -r target/x86_64-apple-darwin/release/veloren-server-cli $CI_PROJECT_DIR
     - cp -r target/x86_64-apple-darwin/release/veloren-voxygen $CI_PROJECT_DIR
   artifacts:

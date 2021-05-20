@@ -2,8 +2,9 @@
 code-quality:
   extends: .recompile-branch
   stage: check
+  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
   script:
-    - ln -s /dockercache/cache-all target
+    - ln -s /dockercache/target target
     - rm -r target/debug/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
     - cargo clippy --all-targets --locked -- -D warnings
     - cargo fmt --all -- --check
@@ -11,7 +12,8 @@ code-quality:
 security:
   extends: .recompile-branch
   stage: check
+  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
   allow_failure: true
   script:
-    - ln -s /dockercache/cache-all target
+    - ln -s /dockercache/target target
     - cargo audit
