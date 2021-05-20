@@ -753,8 +753,10 @@ impl PlayState for SessionState {
             }
 
             // If auto-gliding, point camera into the wind
-            if let Some(dir) = (self.auto_walk && self.client.borrow().is_gliding())
+            if let Some(dir) = self
+                .auto_walk
                 .then_some(self.client.borrow())
+                .filter(|client| client.is_gliding())
                 .and_then(|client| {
                     let ecs = client.state().ecs();
                     let entity = client.entity();
@@ -766,10 +768,23 @@ impl PlayState for SessionState {
                         .get(entity)
                         .map(|vel| fluid.relative_flow(vel).0)
                         .map(|rel_flow| {
+                            let is_wind_downwards = rel_flow.dot(Vec3::unit_z()).is_sign_negative();
                             if !self.free_look {
-                                Plane::from(Dir::new(self.scene.camera().right())).projection(
-                                    rel_flow * self.inputs.look_dir.dot(rel_flow).signum(),
-                                )
+                                if is_wind_downwards {
+                                    self.scene.camera().forward_xy().into()
+                                } else {
+                                    let windwards = rel_flow
+                                        * self
+                                            .scene
+                                            .camera()
+                                            .forward_xy()
+                                            .dot(rel_flow.xy())
+                                            .signum();
+                                    Plane::from(Dir::new(self.scene.camera().right()))
+                                        .projection(windwards)
+                                }
+                            } else if is_wind_downwards {
+                                Vec3::from(-rel_flow.xy())
                             } else {
                                 -rel_flow
                             }
