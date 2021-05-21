@@ -796,126 +796,17 @@ impl Floor {
                             boss_spawn_tile + if boss_tile_is_pillar { 1 } else { 0 };
 
                         if tile_pos == boss_spawn_tile && tile_wcenter.xy() == wpos2d {
-                            let chosen = match room.difficulty {
-                                0 => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.weapons.tier-0",
-                                ),
-                                1 => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.weapons.tier-1",
-                                ),
-                                2 => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.weapons.tier-2",
-                                ),
-                                3 => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.weapons.tier-3",
-                                ),
-                                4 => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.weapons.tier-4",
-                                ),
-                                5 => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.dungeon.tier-5.boss",
-                                ),
-                                _ => {
-                                    Lottery::<LootSpec>::load_expect("common.loot_tables.fallback")
-                                },
-                            };
-                            let entity = match room.difficulty {
-                                0 => {
-                                    vec![
-                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                            .with_body(comp::Body::BipedLarge(
-                                                comp::biped_large::Body::random_with(
-                                                    dynamic_rng,
-                                                    &comp::biped_large::Species::Harvester,
-                                                ),
-                                            ))
-                                            .with_name("Harvester".to_string())
-                                            .with_loot_drop(chosen.read().choose().to_item()),
-                                    ]
-                                },
-                                1 => {
-                                    vec![
-                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                            .with_body(comp::Body::BipedLarge(
-                                                comp::biped_large::Body::random_with(
-                                                    dynamic_rng,
-                                                    &comp::biped_large::Species::Yeti,
-                                                ),
-                                            ))
-                                            .with_name("Yeti".to_string())
-                                            .with_loot_drop(chosen.read().choose().to_item()),
-                                    ]
-                                },
-                                2 => {
-                                    vec![
-                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                            .with_body(comp::Body::BipedLarge(
-                                                comp::biped_large::Body::random_with(
-                                                    dynamic_rng,
-                                                    &comp::biped_large::Species::Tidalwarrior,
-                                                ),
-                                            ))
-                                            .with_name("Tidal Warrior".to_string())
-                                            .with_loot_drop(chosen.read().choose().to_item()),
-                                    ]
-                                },
-                                3 => {
-                                    let mut entities = Vec::new();
-                                    entities.resize_with(2, || {
-                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                            .with_body(comp::Body::Golem(
-                                                comp::golem::Body::random_with(
-                                                    dynamic_rng,
-                                                    &comp::golem::Species::ClayGolem,
-                                                ),
-                                            ))
-                                            .with_name("Clay Golem".to_string())
-                                            .with_loot_drop(chosen.read().choose().to_item())
-                                    });
-                                    entities
-                                },
-                                4 => {
-                                    vec![
-                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                            .with_body(comp::Body::BipedLarge(
-                                                comp::biped_large::Body::random_with(
-                                                    dynamic_rng,
-                                                    &comp::biped_large::Species::Minotaur,
-                                                ),
-                                            ))
-                                            .with_name("Minotaur".to_string())
-                                            .with_loot_drop(chosen.read().choose().to_item()),
-                                    ]
-                                },
-                                5 => {
-                                    vec![
-                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                            .with_body(comp::Body::BipedLarge(
-                                                comp::biped_large::Body::random_with(
-                                                    dynamic_rng,
-                                                    &comp::biped_large::Species::Mindflayer,
-                                                ),
-                                            ))
-                                            .with_name("Mindflayer".to_string())
-                                            .with_loot_drop(chosen.read().choose().to_item())
-                                            .with_skillset_config(
-                                                common::skillset_builder::SkillSetConfig::Mindflayer,
-                                            ),
-                                    ]
-                                },
-                                _ => {
-                                    vec![EntityInfo::at(tile_wcenter.map(|e| e as f32)).with_body(
-                                        comp::Body::QuadrupedSmall(
-                                            comp::quadruped_small::Body::random_with(
-                                                dynamic_rng,
-                                                &comp::quadruped_small::Species::Sheep,
-                                            ),
-                                        ),
-                                    )]
-                                },
+                            let entities = match room.difficulty {
+                                0 => boss_0(dynamic_rng, tile_wcenter),
+                                1 => boss_1(dynamic_rng, tile_wcenter),
+                                2 => boss_2(dynamic_rng, tile_wcenter),
+                                3 => boss_3(dynamic_rng, tile_wcenter),
+                                4 => boss_4(dynamic_rng, tile_wcenter),
+                                5 => boss_5(dynamic_rng, tile_wcenter),
+                                _ => boss_fallback(dynamic_rng, tile_wcenter),
                             };
 
-                            for entity in entity {
+                            for entity in entities {
                                 supplement.add_entity(
                                     entity
                                         .with_level(
@@ -1223,6 +1114,111 @@ impl Floor {
     }
 }
 
+fn boss_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-0.boss");
+
+    vec![
+        EntityInfo::at(tile_wcenter.map(|e| e as f32))
+            .with_body(comp::Body::BipedLarge(
+                comp::biped_large::Body::random_with(
+                    dynamic_rng,
+                    &comp::biped_large::Species::Harvester,
+                ),
+            ))
+            .with_name("Harvester".to_string())
+            .with_loot_drop(chosen.read().choose().to_item()),
+    ]
+}
+fn boss_1(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-1.boss");
+
+    vec![
+        EntityInfo::at(tile_wcenter.map(|e| e as f32))
+            .with_body(comp::Body::BipedLarge(
+                comp::biped_large::Body::random_with(
+                    dynamic_rng,
+                    &comp::biped_large::Species::Yeti,
+                ),
+            ))
+            .with_name("Yeti".to_string())
+            .with_loot_drop(chosen.read().choose().to_item()),
+    ]
+}
+fn boss_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-2.boss");
+
+    vec![
+        EntityInfo::at(tile_wcenter.map(|e| e as f32))
+            .with_body(comp::Body::BipedLarge(
+                comp::biped_large::Body::random_with(
+                    dynamic_rng,
+                    &comp::biped_large::Species::Tidalwarrior,
+                ),
+            ))
+            .with_name("Tidal Warrior".to_string())
+            .with_loot_drop(chosen.read().choose().to_item()),
+    ]
+}
+fn boss_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-3.boss");
+
+    let mut entities = Vec::new();
+    entities.resize_with(2, || {
+        EntityInfo::at(tile_wcenter.map(|e| e as f32))
+            .with_body(comp::Body::Golem(comp::golem::Body::random_with(
+                dynamic_rng,
+                &comp::golem::Species::ClayGolem,
+            )))
+            .with_name("Clay Golem".to_string())
+            .with_loot_drop(chosen.read().choose().to_item())
+    });
+    entities
+}
+
+fn boss_4(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-4.boss");
+
+    vec![
+        EntityInfo::at(tile_wcenter.map(|e| e as f32))
+            .with_body(comp::Body::BipedLarge(
+                comp::biped_large::Body::random_with(
+                    dynamic_rng,
+                    &comp::biped_large::Species::Minotaur,
+                ),
+            ))
+            .with_name("Minotaur".to_string())
+            .with_loot_drop(chosen.read().choose().to_item()),
+    ]
+}
+
+fn boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-5.boss");
+
+    vec![
+        EntityInfo::at(tile_wcenter.map(|e| e as f32))
+            .with_body(comp::Body::BipedLarge(
+                comp::biped_large::Body::random_with(
+                    dynamic_rng,
+                    &comp::biped_large::Species::Mindflayer,
+                ),
+            ))
+            .with_name("Mindflayer".to_string())
+            .with_loot_drop(chosen.read().choose().to_item())
+            .with_skillset_config(common::skillset_builder::SkillSetConfig::Mindflayer),
+    ]
+}
+
+fn boss_fallback(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    vec![
+        EntityInfo::at(tile_wcenter.map(|e| e as f32)).with_body(comp::Body::QuadrupedSmall(
+            comp::quadruped_small::Body::random_with(
+                dynamic_rng,
+                &comp::quadruped_small::Species::Sheep,
+            ),
+        )),
+    ]
+}
+
 fn mini_boss_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.weapons.tier-0");
     vec![
@@ -1362,11 +1358,8 @@ fn mini_boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
 
 fn mini_boss_fallback(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
-        EntityInfo::at(tile_wcenter.map(|e| e as f32)).with_body(comp::Body::QuadrupedSmall(
-            comp::quadruped_small::Body::random_with(
-                dynamic_rng,
-                &comp::quadruped_small::Species::Sheep,
-            ),
+        EntityInfo::at(tile_wcenter.map(|e| e as f32)).with_body(comp::Body::BirdMedium(
+            comp::bird_medium::Body::random_with(dynamic_rng, &comp::bird_medium::Species::Goose),
         )),
     ]
 }
@@ -1374,6 +1367,19 @@ fn mini_boss_fallback(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Ve
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_creating_bosses() {
+        let mut dynamic_rng = rand::thread_rng();
+        let tile_wcenter = Vec3::new(0, 0, 0);
+        boss_0(&mut dynamic_rng, tile_wcenter);
+        boss_1(&mut dynamic_rng, tile_wcenter);
+        boss_2(&mut dynamic_rng, tile_wcenter);
+        boss_3(&mut dynamic_rng, tile_wcenter);
+        boss_4(&mut dynamic_rng, tile_wcenter);
+        boss_5(&mut dynamic_rng, tile_wcenter);
+        boss_fallback(&mut dynamic_rng, tile_wcenter);
+    }
 
     #[test]
     fn test_creating_minibosses() {
@@ -1387,4 +1393,5 @@ mod tests {
         mini_boss_5(&mut dynamic_rng, tile_wcenter);
         mini_boss_fallback(&mut dynamic_rng, tile_wcenter);
     }
+
 }
