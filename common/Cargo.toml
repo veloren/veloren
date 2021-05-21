@@ -19,6 +19,7 @@ common-base = { package = "veloren-common-base", path = "base" }
 
 # Serde
 serde = { version = "1.0.110", features = ["derive", "rc"] }
+ron = { version = "0.6", default-features = false }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 approx = "0.4.0"
