@@ -1384,6 +1384,16 @@ mod tests {
         boss_fallback(&mut dynamic_rng, tile_wcenter);
     }
 
+    //FIXME: it will miss items with rng branching
+    // like this
+    // .with_main_tool(comp::Item::new_from_asset_expect(
+    //     match dynamic_rng.gen_range(0..6) {
+    //         0 => "common.items.weapons.axe.malachite_axe-0",
+    //         1..=2 => "common.items.weapons.sword.cultist",
+    //         3 => "common.items.weapons.hammer.cultist_purp_2h-0",
+    //         4 => "common.items.weapons.staff.cultist_staff",
+    //         _ => "common.items.weapons.bow.velorite",
+    //     },
     #[test]
     fn test_creating_minibosses() {
         let mut dynamic_rng = rand::thread_rng();
