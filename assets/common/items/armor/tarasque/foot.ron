@@ -1,11 +1,15 @@
 ItemDef(
     name: "Tarasque Boots",
-    description: "Tarasque claws form the outside of these boots, protecting the wearer\'s feet.",
+    description: "Tarasque claws form the outside of these boots, protecting the wearer's feet.",
     kind: Armor((
         kind: Foot("Tarasque"),
         stats: (
             protection: Normal(8.0),
             poise_resilience: Normal(1.0),
+            energy_max: 0,
+            energy_recovery: 0.0,
+            crit_power: 0.0,
+            stealth: 0.0,
         ),
     )),
     quality: High,

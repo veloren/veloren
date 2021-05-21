@@ -1,11 +1,15 @@
 ItemDef(
     name: "Tarasque Cuirass",
-    description: "The rough protective underbelly and back of a tarasque\'s shell, formed to fit humanoid proportions.",
+    description: "The rough protective underbelly and back of a tarasque's shell, formed to fit humanoid proportions.",
     kind: Armor((
         kind: Chest("Tarasque"),
         stats: (
             protection: Normal(25.0),
             poise_resilience: Normal(1.0),
+            energy_max: 0,
+            energy_recovery: 0.0,
+            crit_power: 0.0,
+            stealth: 0.0,
         ),
     )),
     quality: High,

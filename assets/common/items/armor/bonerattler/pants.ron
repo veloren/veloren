@@ -1,11 +1,15 @@
 ItemDef(
     name: "Bonerattler Chausses",
-    description: "Assorted bones and hide from a bonerattler provide protection around the wearer\'s legs.",
+    description: "Assorted bones and hide from a bonerattler provide protection around the wearer's legs.",
     kind: Armor((
         kind: Pants("Bonerattler"),
         stats: (
             protection: Normal(20.0),
             poise_resilience: Normal(1.0),
+            energy_max: 0,
+            energy_recovery: 0.0,
+            crit_power: 0.0,
+            stealth: 0.0,
         ),
     )),
     quality: High,
