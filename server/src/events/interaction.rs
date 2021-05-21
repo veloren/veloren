@@ -254,15 +254,15 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid
             assert!(
                 inventory
                     .swap(
-                        Slot::Equip(EquipSlot::Mainhand),
-                        Slot::Equip(EquipSlot::Offhand),
+                        Slot::Equip(EquipSlot::ActiveMainhand),
+                        Slot::Equip(EquipSlot::InactiveMainhand),
                     )
                     .first()
                     .is_none(),
-                "Swapping main and offhand never results in leftover items",
+                "Swapping active and inactive mainhands never results in leftover items",
             );
 
-            inventory.replace_loadout_item(EquipSlot::Mainhand, Some(debug_item));
+            inventory.replace_loadout_item(EquipSlot::ActiveMainhand, Some(debug_item));
         }
 
         // Remove will of the entity

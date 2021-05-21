@@ -536,7 +536,7 @@ impl<'a> Widget for Skillbar<'a> {
                         .map(|item| (item.name(), item.description())),
                     hotbar::SlotContents::Ability3 => content_source
                         .1
-                        .equipped(EquipSlot::Mainhand)
+                        .equipped(EquipSlot::ActiveMainhand)
                         .map(|i| i.kind())
                         .and_then(|kind| match kind {
                             ItemKind::Tool(Tool { kind, .. }) => ability_description(kind),
@@ -552,14 +552,14 @@ impl<'a> Widget for Skillbar<'a> {
                             _ => None,
                         };
 
-                        let active_tool_hands = hands(EquipSlot::Mainhand);
-                        let second_tool_hands = hands(EquipSlot::Offhand);
+                        let active_tool_hands = hands(EquipSlot::ActiveMainhand);
+                        let second_tool_hands = hands(EquipSlot::ActiveOffhand);
 
                         let equip_slot = match (active_tool_hands, second_tool_hands) {
-                            (Some(Hands::Two), _) => Some(EquipSlot::Mainhand),
-                            (Some(_), Some(Hands::One)) => Some(EquipSlot::Offhand),
-                            (Some(Hands::One), _) => Some(EquipSlot::Mainhand),
-                            (None, Some(_)) => Some(EquipSlot::Offhand),
+                            (Some(Hands::Two), _) => Some(EquipSlot::ActiveMainhand),
+                            (Some(_), Some(Hands::One)) => Some(EquipSlot::ActiveOffhand),
+                            (Some(Hands::One), _) => Some(EquipSlot::ActiveMainhand),
+                            (None, Some(_)) => Some(EquipSlot::ActiveOffhand),
                             (_, _) => None,
                         };
 
@@ -657,8 +657,8 @@ impl<'a> Widget for Skillbar<'a> {
             .right_from(state.ids.slot5, slot_offset)
             .set(state.ids.m1_slot_bg, ui);
 
-        let active_tool = get_item_and_tool(self.inventory, EquipSlot::Mainhand);
-        let second_tool = get_item_and_tool(self.inventory, EquipSlot::Offhand);
+        let active_tool = get_item_and_tool(self.inventory, EquipSlot::ActiveMainhand);
+        let second_tool = get_item_and_tool(self.inventory, EquipSlot::ActiveOffhand);
 
         let tool = match (
             active_tool.map(|(_, x)| x.hands),
@@ -700,8 +700,8 @@ impl<'a> Widget for Skillbar<'a> {
             }
         }
 
-        let active_tool = get_item_and_tool(self.inventory, EquipSlot::Mainhand);
-        let second_tool = get_item_and_tool(self.inventory, EquipSlot::Offhand);
+        let active_tool = get_item_and_tool(self.inventory, EquipSlot::ActiveMainhand);
+        let second_tool = get_item_and_tool(self.inventory, EquipSlot::ActiveOffhand);
 
         let tool = match (
             active_tool.map(|(_, x)| x.hands),

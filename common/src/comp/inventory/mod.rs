@@ -552,15 +552,7 @@ impl Inventory {
     pub fn equip(&mut self, inv_slot: InvSlotId) -> Vec<Item> {
         self.get(inv_slot)
             .and_then(|item| self.loadout.get_slot_to_equip_into(item.kind()))
-            .map(|equip_slot| {
-                // Special case when equipping into main hand - swap with offhand first
-                if equip_slot == EquipSlot::Mainhand {
-                    self.loadout
-                        .swap_slots(EquipSlot::Mainhand, EquipSlot::Offhand);
-                }
-
-                self.swap_inventory_loadout(inv_slot, equip_slot)
-            })
+            .map(|equip_slot| self.swap_inventory_loadout(inv_slot, equip_slot))
             .unwrap_or_else(Vec::new)
     }
 
@@ -585,7 +577,7 @@ impl Inventory {
             + i32::try_from(slots_from_inv).expect("Inventory item with more than i32::MAX slots")
             - i32::try_from(self.populated_slots())
                 .expect("Inventory item with more than i32::MAX used slots")
-            + inv_slot_for_equipped // If there is no item already in the equip slot we gain 1 slot  
+            + inv_slot_for_equipped // If there is no item already in the equip slot we gain 1 slot
     }
 
     /// Handles picking up an item, unloading any items inside the item being
@@ -648,7 +640,7 @@ impl Inventory {
                 .expect("Equipped item with more than i32::MAX slots")
             - i32::try_from(self.populated_slots())
                 .expect("Inventory item with more than i32::MAX used slots")
-            - inv_slot_for_unequipped // If there is an item being unequipped we lose 1 slot 
+            - inv_slot_for_unequipped // If there is an item being unequipped we lose 1 slot
     }
 
     /// Swaps items from two slots, regardless of if either is inventory or
@@ -692,7 +684,7 @@ impl Inventory {
             - i32::try_from(self.populated_slots())
             .expect("inventory with more than i32::MAX used slots")
             - inv_slot_for_equipped // +1 inventory slot required if an item was unequipped
-            + inv_slot_for_inv_item // -1 inventory slot required if an item was equipped        
+            + inv_slot_for_inv_item // -1 inventory slot required if an item was equipped
     }
 
     /// Swap item in an inventory slot with one in a loadout slot.
@@ -730,6 +722,36 @@ impl Inventory {
             })
             .unwrap_or_default();
 
+        // If 2 1h weapons are equipped, and mainhand weapon removed, move offhand into
+        // mainhand
+        match equip_slot {
+            EquipSlot::ActiveMainhand => {
+                if self.loadout.equipped(EquipSlot::ActiveMainhand).is_none()
+                    && self.loadout.equipped(EquipSlot::ActiveOffhand).is_some()
+                {
+                    let offhand = self.loadout.swap(EquipSlot::ActiveOffhand, None);
+                    assert!(
+                        self.loadout
+                            .swap(EquipSlot::ActiveMainhand, offhand)
+                            .is_none()
+                    );
+                }
+            },
+            EquipSlot::InactiveMainhand => {
+                if self.loadout.equipped(EquipSlot::InactiveMainhand).is_none()
+                    && self.loadout.equipped(EquipSlot::InactiveOffhand).is_some()
+                {
+                    let offhand = self.loadout.swap(EquipSlot::InactiveOffhand, None);
+                    assert!(
+                        self.loadout
+                            .swap(EquipSlot::InactiveMainhand, offhand)
+                            .is_none()
+                    );
+                }
+            },
+            _ => {},
+        }
+
         // Attempt to put any items unloaded from the unequipped item into empty
         // inventory slots and return any that don't fit to the caller where they
         // will be dropped on the ground
@@ -743,12 +765,12 @@ impl Inventory {
     /// account whether there will be free space in the inventory for the
     /// loadout item once any slots that were provided by it have been
     /// removed.
+    #[allow(clippy::blocks_in_if_conditions)]
     pub fn can_swap(&self, inv_slot_id: InvSlotId, equip_slot: EquipSlot) -> bool {
         // Check if loadout slot can hold item
-        if !self
-            .get(inv_slot_id)
-            .map_or(true, |item| equip_slot.can_hold(&item.kind()))
-        {
+        if !self.get(inv_slot_id).map_or(true, |item| {
+            self.loadout.slot_can_hold(equip_slot, Some(&item.kind()))
+        }) {
             trace!("can_swap = false, equip slot can't hold item");
             return false;
         }
@@ -777,6 +799,8 @@ impl Inventory {
     pub fn equipped_items_of_kind(&self, item_kind: ItemKind) -> impl Iterator<Item = &Item> {
         self.loadout.equipped_items_of_kind(item_kind)
     }
+
+    pub fn swap_equipped_weapons(&mut self) { self.loadout.swap_equipped_weapons() }
 }
 
 impl Component for Inventory {

@@ -329,7 +329,7 @@ impl PlayState for SessionState {
                 .borrow()
                 .inventories()
                 .get(player_entity)
-                .and_then(|inv| inv.equipped(EquipSlot::Mainhand))
+                .and_then(|inv| inv.equipped(EquipSlot::ActiveMainhand))
                 .and_then(|item| item.tool())
                 .map_or(false, |tool| tool.kind == ToolKind::Pick)
                 && self.client.borrow().is_wielding() == Some(true);
@@ -1085,6 +1085,9 @@ impl PlayState for SessionState {
                         if move_allowed {
                             self.client.borrow_mut().use_slot(slot);
                         }
+                    },
+                    HudEvent::SwapEquippedWeapons => {
+                        self.client.borrow_mut().swap_loadout();
                     },
                     HudEvent::SwapSlots {
                         slot_a,

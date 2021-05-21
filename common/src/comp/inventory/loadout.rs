@@ -1,6 +1,6 @@
 use crate::comp::{
     inventory::{
-        item::ItemKind,
+        item::{Hands, ItemKind, Tool},
         slot::{ArmorSlot, EquipSlot},
         InvSlot,
     },
@@ -75,8 +75,10 @@ impl Loadout {
                 (EquipSlot::Armor(ArmorSlot::Bag2), "bag2".to_string()),
                 (EquipSlot::Armor(ArmorSlot::Bag3), "bag3".to_string()),
                 (EquipSlot::Armor(ArmorSlot::Bag4), "bag4".to_string()),
-                (EquipSlot::Mainhand, "active_item".to_string()),
-                (EquipSlot::Offhand, "second_item".to_string()),
+                (EquipSlot::ActiveMainhand, "active_mainhand".to_string()),
+                (EquipSlot::ActiveOffhand, "active_offhand".to_string()),
+                (EquipSlot::InactiveMainhand, "inactive_mainhand".to_string()),
+                (EquipSlot::InactiveOffhand, "inactive_offhand".to_string()),
             ]
             .into_iter()
             .map(|(equip_slot, persistence_key)| LoadoutSlot::new(equip_slot, persistence_key))
@@ -166,23 +168,17 @@ impl Loadout {
         }
 
         let item_a = self.swap(equip_slot_a, None);
-        let item_b = self.swap(equip_slot_b, None);
+        let item_b = self.swap(equip_slot_b, item_a);
+        assert_eq!(self.swap(equip_slot_a, item_b), None);
 
-        // Check if items can go in the other slots
-        if item_a
-            .as_ref()
-            .map_or(true, |i| equip_slot_b.can_hold(&i.kind()))
-            && item_b
-                .as_ref()
-                .map_or(true, |i| equip_slot_a.can_hold(&i.kind()))
+        // Check if items are valid in their new positions
+        if !self.slot_can_hold(equip_slot_a, self.equipped(equip_slot_b).map(|x| x.kind()))
+            || !self.slot_can_hold(equip_slot_b, self.equipped(equip_slot_a).map(|x| x.kind()))
         {
-            // Swap
-            self.swap(equip_slot_b, item_a).unwrap_none();
-            self.swap(equip_slot_a, item_b).unwrap_none();
-        } else {
-            // Otherwise put the items back
-            self.swap(equip_slot_a, item_a).unwrap_none();
-            self.swap(equip_slot_b, item_b).unwrap_none();
+            // If not, revert the swap
+            let item_a = self.swap(equip_slot_a, None);
+            let item_b = self.swap(equip_slot_b, item_a);
+            assert_eq!(self.swap(equip_slot_a, item_b), None);
         }
     }
 
@@ -195,7 +191,7 @@ impl Loadout {
         let mut suitable_slots = self
             .slots
             .iter()
-            .filter(|s| s.equip_slot.can_hold(item_kind));
+            .filter(|s| self.slot_can_hold(s.equip_slot, Some(item_kind)));
 
         let first = suitable_slots.next();
 
@@ -215,7 +211,7 @@ impl Loadout {
     ) -> impl Iterator<Item = &Item> {
         self.slots
             .iter()
-            .filter(move |s| s.equip_slot.can_hold(&item_kind))
+            .filter(move |s| self.slot_can_hold(s.equip_slot, Some(&item_kind)))
             .filter_map(|s| s.slot.as_ref())
     }
 
@@ -264,7 +260,7 @@ impl Loadout {
     pub(super) fn inv_slots_mut(&mut self) -> impl Iterator<Item = &mut InvSlot> {
         self.slots.iter_mut()
             .filter_map(|x| x.slot.as_mut().map(|item| item.slots_mut()))  // Discard loadout items that have no slots of their own
-            .flat_map(|loadout_slots| loadout_slots.iter_mut()) //Collapse iter of Vec<InvSlot> to iter of InvSlot 
+            .flat_map(|loadout_slots| loadout_slots.iter_mut()) //Collapse iter of Vec<InvSlot> to iter of InvSlot
     }
 
     /// Gets the range of loadout-provided inventory slot indexes that are
@@ -294,12 +290,17 @@ impl Loadout {
     /// If no slot is available the item is returned.
     #[must_use = "Returned item will be lost if not used"]
     pub(super) fn try_equip(&mut self, item: Item) -> Result<(), Item> {
-        if let Some(loadout_slot) = self
+        let loadout_slot = self
+            .slots
+            .iter()
+            .find(|s| s.slot.is_none() && self.slot_can_hold(s.equip_slot, Some(item.kind())))
+            .map(|s| s.equip_slot);
+        if let Some(slot) = self
             .slots
             .iter_mut()
-            .find(|s| s.slot.is_none() && s.equip_slot.can_hold(item.kind()))
+            .find(|s| Some(s.equip_slot) == loadout_slot)
         {
-            loadout_slot.slot = Some(item);
+            slot.slot = Some(item);
             Ok(())
         } else {
             Err(item)
@@ -308,6 +309,90 @@ impl Loadout {
 
     pub(super) fn items(&self) -> impl Iterator<Item = &Item> {
         self.slots.iter().filter_map(|x| x.slot.as_ref())
+    }
+
+    /// Checks that a slot can hold a given item
+    pub(super) fn slot_can_hold(
+        &self,
+        equip_slot: EquipSlot,
+        item_kind: Option<&ItemKind>,
+    ) -> bool {
+        // Disallow equipping incompatible weapon pairs (i.e a two-handed weapon and a
+        // one-handed weapon)
+        if !(match equip_slot {
+            EquipSlot::ActiveMainhand => Loadout::is_valid_weapon_pair(
+                item_kind,
+                self.equipped(EquipSlot::ActiveOffhand).map(|x| &x.kind),
+            ),
+            EquipSlot::ActiveOffhand => Loadout::is_valid_weapon_pair(
+                self.equipped(EquipSlot::ActiveMainhand).map(|x| &x.kind),
+                item_kind,
+            ),
+            EquipSlot::InactiveMainhand => Loadout::is_valid_weapon_pair(
+                item_kind,
+                self.equipped(EquipSlot::InactiveOffhand).map(|x| &x.kind),
+            ),
+            EquipSlot::InactiveOffhand => Loadout::is_valid_weapon_pair(
+                self.equipped(EquipSlot::InactiveMainhand).map(|x| &x.kind),
+                item_kind,
+            ),
+            _ => true,
+        }) {
+            return false;
+        }
+
+        item_kind.map_or(true, |item_kind| equip_slot.can_hold(item_kind))
+    }
+
+    #[rustfmt::skip]
+    fn is_valid_weapon_pair(main_hand: Option<&ItemKind>, off_hand: Option<&ItemKind>) -> bool {
+        matches!((main_hand, off_hand),
+            (Some(ItemKind::Tool(Tool { hands: Hands::One, .. })), None) |
+            (Some(ItemKind::Tool(Tool { hands: Hands::Two, .. })), None) |
+            (Some(ItemKind::Tool(Tool { hands: Hands::One, .. })), Some(ItemKind::Tool(Tool { hands: Hands::One, .. }))) |
+            (None, None))
+    }
+
+    pub(super) fn swap_equipped_weapons(&mut self) {
+        // Checks if a given slot can hold an item right now, defaults to true if
+        // nothing is equipped in slot
+        let valid_slot = |equip_slot| {
+            self.equipped(equip_slot)
+                .map_or(true, |i| self.slot_can_hold(equip_slot, Some(i.kind())))
+        };
+
+        // If every weapon is currently in a valid slot, after this change they will
+        // still be in a valid slot. This is because active mainhand and
+        // inactive mainhand, and active offhand and inactive offhand have the same
+        // requirements on what can be equipped.
+        if valid_slot(EquipSlot::ActiveMainhand)
+            && valid_slot(EquipSlot::ActiveOffhand)
+            && valid_slot(EquipSlot::InactiveMainhand)
+            && valid_slot(EquipSlot::InactiveOffhand)
+        {
+            // Get weapons from each slot
+            let active_mainhand = self.swap(EquipSlot::ActiveMainhand, None);
+            let active_offhand = self.swap(EquipSlot::ActiveOffhand, None);
+            let inactive_mainhand = self.swap(EquipSlot::InactiveMainhand, None);
+            let inactive_offhand = self.swap(EquipSlot::InactiveOffhand, None);
+            // Equip weapons into new slots
+            assert!(
+                self.swap(EquipSlot::ActiveMainhand, inactive_mainhand)
+                    .is_none()
+            );
+            assert!(
+                self.swap(EquipSlot::ActiveOffhand, inactive_offhand)
+                    .is_none()
+            );
+            assert!(
+                self.swap(EquipSlot::InactiveMainhand, active_mainhand)
+                    .is_none()
+            );
+            assert!(
+                self.swap(EquipSlot::InactiveOffhand, active_offhand)
+                    .is_none()
+            );
+        }
     }
 }
 

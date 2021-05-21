@@ -307,7 +307,7 @@ impl Scene {
             .clean(&mut self.col_lights, scene_data.tick);
 
         let active_item_kind = inventory
-            .and_then(|inv| inv.equipped(EquipSlot::Mainhand))
+            .and_then(|inv| inv.equipped(EquipSlot::ActiveMainhand))
             .map(|i| i.kind());
 
         let (active_tool_kind, active_tool_hand) =
@@ -318,7 +318,7 @@ impl Scene {
             };
 
         let second_item_kind = inventory
-            .and_then(|inv| inv.equipped(EquipSlot::Offhand))
+            .and_then(|inv| inv.equipped(EquipSlot::ActiveOffhand))
             .map(|i| i.kind());
 
         let (second_tool_kind, second_tool_hand) =

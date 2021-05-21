@@ -30,7 +30,7 @@ use tracing::warn;
 /// // Build a loadout with character starter defaults and a specific sword with default sword abilities
 /// let loadout = LoadoutBuilder::new()
 ///     .defaults()
-///     .active_item(Some(Item::new_from_asset_expect("common.items.weapons.sword.steel-8")))
+///     .active_mainhand(Some(Item::new_from_asset_expect("common.items.weapons.sword.steel-8")))
 ///     .build();
 /// ```
 #[derive(Clone)]
@@ -376,7 +376,7 @@ impl LoadoutBuilder {
             match config {
                 Adlet => match active_tool_kind {
                     Some(ToolKind::Bow) => LoadoutBuilder::new()
-                        .active_item(active_item)
+                        .active_mainhand(active_item)
                         .head(Some(Item::new_from_asset_expect(
                             "common.items.npc_armor.biped_small.adlet.head.adlet_bow",
                         )))
@@ -397,7 +397,7 @@ impl LoadoutBuilder {
                         )))
                         .build(),
                     Some(ToolKind::Spear) | Some(ToolKind::Staff) => LoadoutBuilder::new()
-                        .active_item(active_item)
+                        .active_mainhand(active_item)
                         .head(Some(Item::new_from_asset_expect(
                             "common.items.npc_armor.biped_small.adlet.head.adlet_spear",
                         )))
@@ -417,11 +417,11 @@ impl LoadoutBuilder {
                             "common.items.npc_armor.biped_small.adlet.tail.adlet",
                         )))
                         .build(),
-                    _ => LoadoutBuilder::new().active_item(active_item).build(),
+                    _ => LoadoutBuilder::new().active_mainhand(active_item).build(),
                 },
                 Gnarling => match active_tool_kind {
                     Some(ToolKind::Bow) => LoadoutBuilder::new()
-                        .active_item(active_item)
+                        .active_mainhand(active_item)
                         .head(Some(Item::new_from_asset_expect(
                             "common.items.npc_armor.biped_small.gnarling.head.gnarling",
                         )))
@@ -442,7 +442,7 @@ impl LoadoutBuilder {
                         )))
                         .build(),
                     Some(ToolKind::Staff) => LoadoutBuilder::new()
-                        .active_item(active_item)
+                        .active_mainhand(active_item)
                         .head(Some(Item::new_from_asset_expect(
                             "common.items.npc_armor.biped_small.gnarling.head.gnarling",
                         )))
@@ -463,7 +463,7 @@ impl LoadoutBuilder {
                         )))
                         .build(),
                     Some(ToolKind::Spear) => LoadoutBuilder::new()
-                        .active_item(active_item)
+                        .active_mainhand(active_item)
                         .head(Some(Item::new_from_asset_expect(
                             "common.items.npc_armor.biped_small.gnarling.head.gnarling",
                         )))
@@ -480,10 +480,10 @@ impl LoadoutBuilder {
                             "common.items.npc_armor.biped_small.gnarling.pants.gnarling",
                         )))
                         .build(),
-                    _ => LoadoutBuilder::new().active_item(active_item).build(),
+                    _ => LoadoutBuilder::new().active_mainhand(active_item).build(),
                 },
                 Sahagin => LoadoutBuilder::new()
-                    .active_item(active_item)
+                    .active_mainhand(active_item)
                     .head(Some(Item::new_from_asset_expect(
                         "common.items.npc_armor.biped_small.sahagin.head.sahagin",
                     )))
@@ -504,7 +504,7 @@ impl LoadoutBuilder {
                     )))
                     .build(),
                 Haniwa => LoadoutBuilder::new()
-                    .active_item(active_item)
+                    .active_mainhand(active_item)
                     .head(Some(Item::new_from_asset_expect(
                         "common.items.npc_armor.biped_small.haniwa.head.haniwa",
                     )))
@@ -522,7 +522,7 @@ impl LoadoutBuilder {
                     )))
                     .build(),
                 Myrmidon => LoadoutBuilder::new()
-                    .active_item(active_item)
+                    .active_mainhand(active_item)
                     .head(Some(Item::new_from_asset_expect(
                         "common.items.npc_armor.biped_small.myrmidon.head.myrmidon",
                     )))
@@ -543,7 +543,7 @@ impl LoadoutBuilder {
                     )))
                     .build(),
                 Husk => LoadoutBuilder::new()
-                    .active_item(active_item)
+                    .active_mainhand(active_item)
                     .head(Some(Item::new_from_asset_expect(
                         "common.items.npc_armor.biped_small.husk.head.husk",
                     )))
@@ -561,7 +561,7 @@ impl LoadoutBuilder {
                     )))
                     .build(),
                 Guard => LoadoutBuilder::new()
-                    .active_item(active_item)
+                    .active_mainhand(active_item)
                     .shoulder(Some(Item::new_from_asset_expect(
                         "common.items.armor.leather_plate.shoulder",
                     )))
@@ -703,7 +703,7 @@ impl LoadoutBuilder {
                         }
                     }
                     LoadoutBuilder::new()
-                        .active_item(active_item)
+                        .active_mainhand(active_item)
                         .shoulder(Some(Item::new_from_asset_expect(
                             "common.items.armor.twigsflowers.shoulder",
                         )))
@@ -742,7 +742,7 @@ impl LoadoutBuilder {
                         .build()
                 },
                 Outcast => LoadoutBuilder::new()
-                    .active_item(active_item)
+                    .active_mainhand(active_item)
                     .shoulder(Some(Item::new_from_asset_expect(
                         "common.items.armor.cloth_purple.shoulder",
                     )))
@@ -767,7 +767,7 @@ impl LoadoutBuilder {
                     })
                     .build(),
                 Highwayman => LoadoutBuilder::new()
-                    .active_item(active_item)
+                    .active_mainhand(active_item)
                     .shoulder(Some(Item::new_from_asset_expect(
                         "common.items.armor.swift.shoulder",
                     )))
@@ -795,7 +795,7 @@ impl LoadoutBuilder {
                     )))
                     .build(),
                 Bandit => LoadoutBuilder::new()
-                    .active_item(active_item)
+                    .active_mainhand(active_item)
                     .shoulder(Some(Item::new_from_asset_expect(
                         "common.items.armor.assassin.shoulder",
                     )))
@@ -823,7 +823,7 @@ impl LoadoutBuilder {
                     )))
                     .build(),
                 CultistNovice => LoadoutBuilder::new()
-                    .active_item(active_item)
+                    .active_mainhand(active_item)
                     .shoulder(Some(Item::new_from_asset_expect(
                         "common.items.armor.steel.shoulder",
                     )))
@@ -854,7 +854,7 @@ impl LoadoutBuilder {
                     )))
                     .build(),
                 CultistAcolyte => LoadoutBuilder::new()
-                    .active_item(active_item)
+                    .active_mainhand(active_item)
                     .shoulder(Some(Item::new_from_asset_expect(
                         "common.items.armor.cultist.shoulder",
                     )))
@@ -885,7 +885,7 @@ impl LoadoutBuilder {
                     )))
                     .build(),
                 Warlord => LoadoutBuilder::new()
-                    .active_item(active_item)
+                    .active_mainhand(active_item)
                     .shoulder(Some(Item::new_from_asset_expect(
                         "common.items.armor.warlord.shoulder",
                     )))
@@ -916,7 +916,7 @@ impl LoadoutBuilder {
                     )))
                     .build(),
                 Warlock => LoadoutBuilder::new()
-                    .active_item(active_item)
+                    .active_mainhand(active_item)
                     .shoulder(Some(Item::new_from_asset_expect(
                         "common.items.armor.warlock.shoulder",
                     )))
@@ -947,7 +947,7 @@ impl LoadoutBuilder {
                     )))
                     .build(),
                 Villager => LoadoutBuilder::new()
-                    .active_item(active_item)
+                    .active_mainhand(active_item)
                     .chest(Some(Item::new_from_asset_expect(
                         match rand::thread_rng().gen_range(0..10) {
                             0 => "common.items.armor.misc.chest.worker_green_0",
@@ -981,36 +981,46 @@ impl LoadoutBuilder {
             match body {
                 Body::BipedLarge(b) => match b.species {
                     biped_large::Species::Mindflayer => LoadoutBuilder::new()
-                        .active_item(active_item)
+                        .active_mainhand(active_item)
                         .chest(Some(Item::new_from_asset_expect(
                             "common.items.npc_armor.biped_large.mindflayer",
                         )))
                         .build(),
-                    _ => LoadoutBuilder::new().active_item(active_item).build(),
+                    _ => LoadoutBuilder::new().active_mainhand(active_item).build(),
                 },
                 Body::Golem(g) => match g.species {
                     golem::Species::ClayGolem => LoadoutBuilder::new()
-                        .active_item(active_item)
+                        .active_mainhand(active_item)
                         .chest(Some(Item::new_from_asset_expect(
                             "common.items.npc_armor.golem.claygolem",
                         )))
                         .build(),
-                    _ => LoadoutBuilder::new().active_item(active_item).build(),
+                    _ => LoadoutBuilder::new().active_mainhand(active_item).build(),
                 },
-                _ => LoadoutBuilder::new().active_item(active_item).build(),
+                _ => LoadoutBuilder::new().active_mainhand(active_item).build(),
             }
         };
 
         Self(loadout)
     }
 
-    pub fn active_item(mut self, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::Mainhand, item);
+    pub fn active_mainhand(mut self, item: Option<Item>) -> Self {
+        self.0.swap(EquipSlot::ActiveMainhand, item);
         self
     }
 
-    pub fn second_item(mut self, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::Offhand, item);
+    pub fn active_offhand(mut self, item: Option<Item>) -> Self {
+        self.0.swap(EquipSlot::ActiveOffhand, item);
+        self
+    }
+
+    pub fn inactive_mainhand(mut self, item: Option<Item>) -> Self {
+        self.0.swap(EquipSlot::InactiveMainhand, item);
+        self
+    }
+
+    pub fn inactive_offhand(mut self, item: Option<Item>) -> Self {
+        self.0.swap(EquipSlot::InactiveOffhand, item);
         self
     }
 

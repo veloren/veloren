@@ -440,14 +440,34 @@ pub fn handle_wield(data: &JoinData, update: &mut StateUpdate) {
 
 /// If a tool is equipped, goes into Equipping state, otherwise goes to Idle
 pub fn attempt_wield(data: &JoinData, update: &mut StateUpdate) {
-    if let Some((item, ItemKind::Tool(tool))) = data
-        .inventory
-        .equipped(EquipSlot::Mainhand)
-        .map(|i| (i, i.kind()))
-    {
+    // Closure to get equip time provided an equip slot if a tool is equipped in
+    // equip slot
+    let equip_time = |equip_slot| {
+        data.inventory
+            .equipped(equip_slot)
+            .and_then(|item| match item.kind() {
+                ItemKind::Tool(tool) => Some((item, tool)),
+                _ => None,
+            })
+            .map(|(item, tool)| tool.equip_time(data.msm, item.components()))
+    };
+
+    // Calculates time required to equip weapons, if weapon in mainhand and offhand,
+    // uses maximum duration
+    let mainhand_equip_time = equip_time(EquipSlot::ActiveMainhand);
+    let offhand_equip_time = equip_time(EquipSlot::ActiveOffhand);
+    let equip_time = match (mainhand_equip_time, offhand_equip_time) {
+        (Some(a), Some(b)) => Some(a.max(b)),
+        (Some(a), None) | (None, Some(a)) => Some(a),
+        (None, None) => None,
+    };
+
+    // Moves entity into equipping state if there is some equip time, else moves
+    // intantly into wield
+    if let Some(equip_time) = equip_time {
         update.character = CharacterState::Equipping(equipping::Data {
             static_data: equipping::StaticData {
-                buildup_duration: tool.equip_time(data.msm, item.components()),
+                buildup_duration: equip_time,
             },
             timer: Duration::default(),
         });
@@ -504,7 +524,15 @@ pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) -> bool {
 
 /// Checks that player can Swap Weapons and updates `Loadout` if so
 pub fn attempt_swap_equipped_weapons(data: &JoinData, update: &mut StateUpdate) {
-    if data.inventory.equipped(EquipSlot::Offhand).is_some() {
+    if data
+        .inventory
+        .equipped(EquipSlot::InactiveMainhand)
+        .is_some()
+        || data
+            .inventory
+            .equipped(EquipSlot::InactiveOffhand)
+            .is_some()
+    {
         update.swap_equipped_weapons = true;
     }
 }
@@ -556,14 +584,14 @@ fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
     let no_main_hand = hands.0.is_none();
     // skill_index used to select ability for the AbilityKey::Skill2 input
     let (equip_slot, skill_index) = if no_main_hand {
-        (Some(EquipSlot::Offhand), 1)
+        (Some(EquipSlot::ActiveOffhand), 1)
     } else if always_main_hand {
-        (Some(EquipSlot::Mainhand), 0)
+        (Some(EquipSlot::ActiveMainhand), 0)
     } else {
         match hands {
-            (Some(Hands::Two), _) => (Some(EquipSlot::Mainhand), 1),
-            (_, Some(Hands::One)) => (Some(EquipSlot::Offhand), 0),
-            (Some(Hands::One), _) => (Some(EquipSlot::Mainhand), 1),
+            (Some(Hands::Two), _) => (Some(EquipSlot::ActiveMainhand), 1),
+            (_, Some(Hands::One)) => (Some(EquipSlot::ActiveOffhand), 0),
+            (Some(Hands::One), _) => (Some(EquipSlot::ActiveMainhand), 1),
             (_, _) => (None, 0),
         }
     };
@@ -596,7 +624,11 @@ fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
         {
             update.character = CharacterState::from((
                 &ability,
-                AbilityInfo::from_input(data, matches!(equip_slot, EquipSlot::Offhand), input),
+                AbilityInfo::from_input(
+                    data,
+                    matches!(equip_slot, EquipSlot::ActiveOffhand),
+                    input,
+                ),
             ));
         }
     }
@@ -640,7 +672,8 @@ pub fn handle_block_input(data: &JoinData, update: &mut StateUpdate) {
         |equip_slot| matches!(unwrap_tool_data(data, equip_slot), Some(tool) if tool.can_block());
     let hands = get_hands(data);
     if input_is_pressed(data, InputKind::Block)
-        && (can_block(EquipSlot::Mainhand) || (hands.0.is_none() && can_block(EquipSlot::Offhand)))
+        && (can_block(EquipSlot::ActiveMainhand)
+            || (hands.0.is_none() && can_block(EquipSlot::ActiveOffhand)))
     {
         let ability = CharacterAbility::default_block();
         if ability.requirements_paid(data, update) {
@@ -696,15 +729,18 @@ pub fn get_hands(data: &JoinData) -> (Option<Hands>, Option<Hands>) {
             None
         }
     };
-    (hand(EquipSlot::Mainhand), hand(EquipSlot::Offhand))
+    (
+        hand(EquipSlot::ActiveMainhand),
+        hand(EquipSlot::ActiveOffhand),
+    )
 }
 
 pub fn get_crit_data(data: &JoinData, ai: AbilityInfo) -> (f32, f32) {
     const DEFAULT_CRIT_DATA: (f32, f32) = (0.5, 1.3);
     use HandInfo::*;
     let slot = match ai.hand {
-        Some(TwoHanded) | Some(MainHand) => EquipSlot::Mainhand,
-        Some(OffHand) => EquipSlot::Offhand,
+        Some(TwoHanded) | Some(MainHand) => EquipSlot::ActiveMainhand,
+        Some(OffHand) => EquipSlot::ActiveOffhand,
         None => return DEFAULT_CRIT_DATA,
     };
     if let Some(item) = data.inventory.equipped(slot) {
@@ -792,9 +828,9 @@ pub struct AbilityInfo {
 impl AbilityInfo {
     pub fn from_input(data: &JoinData, from_offhand: bool, input: InputKind) -> Self {
         let tool_data = if from_offhand {
-            unwrap_tool_data(data, EquipSlot::Offhand)
+            unwrap_tool_data(data, EquipSlot::ActiveOffhand)
         } else {
-            unwrap_tool_data(data, EquipSlot::Mainhand)
+            unwrap_tool_data(data, EquipSlot::ActiveMainhand)
         };
         let (tool, hand) = (
             tool_data.map(|t| t.kind),

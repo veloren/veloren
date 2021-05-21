@@ -13,7 +13,7 @@ use std::time::{Duration, Instant};
 #[test]
 fn maps_wield_while_equipping() {
     let loadout = LoadoutBuilder::new()
-        .active_item(Some(Item::new_from_asset_expect(
+        .active_mainhand(Some(Item::new_from_asset_expect(
             "common.items.weapons.axe.starter_axe",
         )))
         .build();
@@ -40,7 +40,7 @@ fn maps_wield_while_equipping() {
 #[test]
 fn maps_unwield() {
     let loadout = LoadoutBuilder::new()
-        .active_item(Some(Item::new_from_asset_expect(
+        .active_mainhand(Some(Item::new_from_asset_expect(
             "common.items.weapons.bow.starter",
         )))
         .build();
@@ -62,7 +62,7 @@ fn maps_unwield() {
 #[test]
 fn maps_basic_melee() {
     let loadout = LoadoutBuilder::new()
-        .active_item(Some(Item::new_from_asset_expect(
+        .active_mainhand(Some(Item::new_from_asset_expect(
             "common.items.weapons.axe.starter_axe",
         )))
         .build();
@@ -104,7 +104,7 @@ fn maps_basic_melee() {
 #[test]
 fn matches_ability_stage() {
     let loadout = LoadoutBuilder::new()
-        .active_item(Some(Item::new_from_asset_expect(
+        .active_mainhand(Some(Item::new_from_asset_expect(
             "common.items.weapons.sword.starter",
         )))
         .build();
@@ -163,7 +163,7 @@ fn matches_ability_stage() {
 #[test]
 fn ignores_different_ability_stage() {
     let loadout = LoadoutBuilder::new()
-        .active_item(Some(Item::new_from_asset_expect(
+        .active_mainhand(Some(Item::new_from_asset_expect(
             "common.items.weapons.axe.starter_axe",
         )))
         .build();

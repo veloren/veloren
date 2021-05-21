@@ -231,23 +231,29 @@ fn unequip_items_both_hands() {
 
     let sword = Item::new_from_asset_expect("common.items.weapons.sword.steel-8");
 
-    inv.replace_loadout_item(EquipSlot::Mainhand, Some(sword.duplicate(ability_map, msm)));
-    inv.replace_loadout_item(EquipSlot::Offhand, Some(sword.duplicate(ability_map, msm)));
+    inv.replace_loadout_item(
+        EquipSlot::ActiveMainhand,
+        Some(sword.duplicate(ability_map, msm)),
+    );
+    inv.replace_loadout_item(
+        EquipSlot::InactiveMainhand,
+        Some(sword.duplicate(ability_map, msm)),
+    );
 
     // Fill all inventory slots except one
     fill_inv_slots(&mut inv, 17);
 
-    let result = inv.unequip(EquipSlot::Mainhand);
+    let result = inv.unequip(EquipSlot::ActiveMainhand);
     // We have space in the inventory, so this should have unequipped
-    assert_eq!(None, inv.equipped(EquipSlot::Mainhand));
+    assert_eq!(None, inv.equipped(EquipSlot::ActiveMainhand));
     assert_eq!(18, inv.populated_slots());
     assert_eq!(true, result.is_ok());
 
-    let result = inv.unequip(EquipSlot::Offhand).unwrap_err();
+    let result = inv.unequip(EquipSlot::InactiveMainhand).unwrap_err();
     assert_eq!(SlotError::InventoryFull, result);
 
     // There is no more space in the inventory, so this should still be equipped
-    assert_eq!(&sword, inv.equipped(EquipSlot::Offhand).unwrap());
+    assert_eq!(&sword, inv.equipped(EquipSlot::InactiveMainhand).unwrap());
 
     // Verify inventory
     assert_eq!(inv.slots[17], Some(sword));

@@ -5,14 +5,9 @@ use specs::{
 
 use common::{
     comp::{
-        self,
-        inventory::{
-            item::MaterialStatManifest,
-            slot::{EquipSlot, Slot},
-        },
-        Beam, Body, CharacterState, Combo, Controller, Density, Energy, Health, Inventory, Mass,
-        Melee, Mounting, Ori, PhysicsState, Poise, PoiseState, Pos, SkillSet, StateUpdate, Stats,
-        Vel,
+        self, inventory::item::MaterialStatManifest, Beam, Body, CharacterState, Combo, Controller,
+        Density, Energy, Health, Inventory, Mass, Melee, Mounting, Ori, PhysicsState, Poise,
+        PoiseState, Pos, SkillSet, StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     outcome::Outcome,
@@ -48,16 +43,7 @@ fn incorporate_update(join: &mut JoinStruct, mut state_update: StateUpdate) {
     if state_update.swap_equipped_weapons {
         let mut inventory = join.inventory.get_mut_unchecked();
         let inventory = &mut *inventory;
-        assert!(
-            inventory
-                .swap(
-                    Slot::Equip(EquipSlot::Mainhand),
-                    Slot::Equip(EquipSlot::Offhand),
-                )
-                .first()
-                .is_none(),
-            "Swapping main and offhand never results in leftover items",
-        );
+        inventory.swap_equipped_weapons();
     }
 }
 

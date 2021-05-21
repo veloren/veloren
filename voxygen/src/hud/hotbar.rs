@@ -88,9 +88,12 @@ impl State {
                 _ => None,
             };
 
-        let equip_slot = match (hands(EquipSlot::Mainhand), hands(EquipSlot::Offhand)) {
-            (Some(_), _) => Some(EquipSlot::Mainhand),
-            (_, Some(_)) => Some(EquipSlot::Offhand),
+        let equip_slot = match (
+            hands(EquipSlot::ActiveMainhand),
+            hands(EquipSlot::ActiveOffhand),
+        ) {
+            (Some(_), _) => Some(EquipSlot::ActiveMainhand),
+            (_, Some(_)) => Some(EquipSlot::ActiveOffhand),
             _ => None,
         };
 
@@ -140,14 +143,14 @@ impl State {
                 _ => None,
             };
 
-            let active_tool_hands = hands(EquipSlot::Mainhand);
-            let second_tool_hands = hands(EquipSlot::Offhand);
+            let active_tool_hands = hands(EquipSlot::ActiveMainhand);
+            let second_tool_hands = hands(EquipSlot::ActiveOffhand);
 
             let (equip_slot, skill_index) = match (active_tool_hands, second_tool_hands) {
-                (Some(Hands::Two), _) => (Some(EquipSlot::Mainhand), 1),
-                (Some(_), Some(Hands::One)) => (Some(EquipSlot::Offhand), 0),
-                (Some(Hands::One), _) => (Some(EquipSlot::Mainhand), 1),
-                (None, Some(_)) => (Some(EquipSlot::Offhand), 1),
+                (Some(Hands::Two), _) => (Some(EquipSlot::ActiveMainhand), 1),
+                (Some(_), Some(Hands::One)) => (Some(EquipSlot::ActiveOffhand), 0),
+                (Some(Hands::One), _) => (Some(EquipSlot::ActiveMainhand), 1),
+                (None, Some(_)) => (Some(EquipSlot::ActiveOffhand), 1),
                 (_, _) => (None, 0),
             };
 

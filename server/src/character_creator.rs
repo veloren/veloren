@@ -38,7 +38,7 @@ pub fn create_character(
 
     let loadout = LoadoutBuilder::new()
         .defaults()
-        .active_item(Some(Item::new_from_asset_expect(&tool_id)))
+        .active_mainhand(Some(Item::new_from_asset_expect(&tool_id)))
         .build();
 
     let mut inventory = Inventory::new_with_loadout(loadout);
