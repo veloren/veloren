@@ -899,3 +899,19 @@ pub fn combat_rating(
     // skills would account for. It should only not be 1.0 for non-humanoids
     combined_rating * body.combat_multiplier()
 }
+
+pub fn compute_crit_mult(inventory: Option<&Inventory>) -> f32 {
+    // Starts with a value of 1.25 when summing the stats from each armor piece, and
+    // defaults to a value of 1.25 if no inventory is equipped
+    inventory.map_or(1.25, |inv| {
+        inv.equipped_items()
+            .filter_map(|item| {
+                if let ItemKind::Armor(armor) = &item.kind() {
+                    Some(armor.get_crit_power())
+                } else {
+                    None
+                }
+            })
+            .fold(1.25, |a, b| a + b)
+    })
+}

@@ -29,15 +29,27 @@ impl Armor {
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Stats {
     #[serde(default)]
+    /// Protection is non-linearly transformed to a damage reduction using
+    /// (prot / (60 + prot))
     protection: Protection,
     #[serde(default)]
+    /// Poise protection is non-linearly transformed to a poise damage reduction
+    /// using (prot / (60 + prot))
     poise_resilience: Protection,
     #[serde(default)]
+    /// Energy max is summed, and then applied directly to the max energy stat
+    /// (multiply values by 10 for expected results, as energy internally is 10x
+    /// larger to allow smaller changes to occur with an integer)
     energy_max: i32,
     #[serde(default)]
+    /// Energy recovery is summed, and then added to 1.0. When attacks reward
+    /// energy, it is then multiplied by this value before the energy is
+    /// rewarded.
     energy_recovery: f32,
     #[serde(default)]
-    crit_chance: f32,
+    /// Crit power is summed, and then added to the default crit multiplier of
+    /// 1.25. Damage is multiplied by this value when an attack crits.
+    crit_power: f32,
     #[serde(default)]
     stealth: f32,
 }
@@ -50,7 +62,7 @@ impl Stats {
         poise_resilience: Protection,
         energy_max: i32,
         energy_recovery: f32,
-        crit_chance: f32,
+        crit_power: f32,
         stealth: f32,
     ) -> Self {
         Self {
@@ -58,7 +70,7 @@ impl Stats {
             poise_resilience,
             energy_max,
             energy_recovery,
-            crit_chance,
+            crit_power,
             stealth,
         }
     }
@@ -71,7 +83,7 @@ impl Stats {
 
     pub fn get_energy_recovery(&self) -> f32 { self.energy_recovery }
 
-    pub fn get_crit_chance(&self) -> f32 { self.crit_chance }
+    pub fn get_crit_chance(&self) -> f32 { self.crit_power }
 
     pub fn get_stealth(&self) -> f32 { self.stealth }
 }
@@ -85,7 +97,7 @@ impl Sub<Stats> for Stats {
             poise_resilience: self.poise_resilience - other.poise_resilience,
             energy_max: self.energy_max - other.energy_max,
             energy_recovery: self.energy_recovery - other.energy_recovery,
-            crit_chance: self.crit_chance - other.crit_chance,
+            crit_power: self.crit_power - other.crit_power,
             stealth: self.stealth - other.stealth,
         }
     }
@@ -143,7 +155,7 @@ impl Armor {
 
     pub fn get_energy_recovery(&self) -> f32 { self.stats.energy_recovery }
 
-    pub fn get_crit_chance(&self) -> f32 { self.stats.crit_chance }
+    pub fn get_crit_power(&self) -> f32 { self.stats.crit_power }
 
     pub fn get_stealth(&self) -> f32 { self.stats.stealth }
 
