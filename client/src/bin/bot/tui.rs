@@ -27,16 +27,11 @@ impl Tui {
         let handle = thread::spawn(move || {
             thread::sleep(Duration::from_millis(20));
             let mut readline = rustyline::Editor::<()>::new();
-            loop {
-                match readline.readline("\n\nbotclient> ") {
-                    Ok(cmd) => {
-                        let keep_going = Self::process_command(&cmd, &mut commands_s);
-                        readline.add_history_entry(cmd);
-                        if !keep_going {
-                            break;
-                        }
-                    },
-                    Err(_) => break,
+            while let Ok(cmd) = readline.readline("\n\nbotclient> ") {
+                let keep_going = Self::process_command(&cmd, &mut commands_s);
+                readline.add_history_entry(cmd);
+                if !keep_going {
+                    break;
                 }
             }
         });
@@ -69,7 +64,7 @@ impl Tui {
                     .about("Join the world with some random character")
                     .args(&[Arg::with_name("prefix").required(true)]),
             )
-            .get_matches_from_safe(cmd.split(" "));
+            .get_matches_from_safe(cmd.split(' '));
         use clap::ErrorKind::*;
         match matches {
             Ok(matches) => {

@@ -1,4 +1,5 @@
 #![deny(clippy::clone_on_ref_ptr)]
+#![allow(clippy::expect_fun_call)]
 
 use hashbrown::HashMap;
 use ron::ser::{to_string_pretty, PrettyConfig};
@@ -68,11 +69,8 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
         {
             match item.kind() {
                 comp::item::ItemKind::Armor(armor) => {
-                    match armor.kind {
-                        ArmorKind::Bag(_) => {
-                            continue;
-                        },
-                        _ => {},
+                    if let ArmorKind::Bag(_) = armor.kind {
+                        continue;
                     }
 
                     if let Ok(ref record) = record {
@@ -217,7 +215,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                                 .with_enumerate_arrays(true);
 
                             let mut path = ASSETS_PATH.clone();
-                            for part in item.item_definition_id().split(".") {
+                            for part in item.item_definition_id().split('.') {
                                 path.push(part);
                             }
                             path.set_extension("ron");
@@ -329,15 +327,6 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 .parse()
                                 .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
 
-                            let crit_mult: f32 = record
-                                .get(headers["Crit Mult"])
-                                .expect(&format!(
-                                    "Error unwrapping crit_mult for {:?}",
-                                    item.item_definition_id()
-                                ))
-                                .parse()
-                                .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
-
                             let tool = comp::item::tool::Tool::new(
                                 kind,
                                 hands,
@@ -346,7 +335,6 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 poise_strength,
                                 speed,
                                 crit_chance,
-                                crit_mult,
                             );
 
                             let quality = if let Some(quality_raw) = record.get(headers["Quality"])
@@ -396,7 +384,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 .with_enumerate_arrays(true);
 
                             let mut path = ASSETS_PATH.clone();
-                            for part in item.item_definition_id().split(".") {
+                            for part in item.item_definition_id().split('.') {
                                 path.push(part);
                             }
                             path.set_extension("ron");
@@ -432,41 +420,39 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
 
     let mut items = Vec::<(f32, LootSpec)>::new();
 
-    for record in rdr.records() {
-        if let Ok(ref record) = record {
-            let item = match record.get(headers["Kind"]).expect("No loot specifier") {
-                "Item" => {
-                    if let (Some(Ok(lower)), Some(Ok(upper))) = (
-                        record.get(headers["Lower Amount"]).map(|a| a.parse()),
-                        record.get(headers["Upper Amount"]).map(|a| a.parse()),
-                    ) {
-                        LootSpec::ItemQuantity(
-                            record.get(headers["Item"]).expect("No item").to_string(),
-                            lower,
-                            upper,
-                        )
-                    } else {
-                        LootSpec::Item(record.get(headers["Item"]).expect("No item").to_string())
-                    }
-                },
-                "LootTable" => LootSpec::LootTable(
-                    record
-                        .get(headers["Item"])
-                        .expect("No loot table")
-                        .to_string(),
-                ),
-                a => panic!(
-                    "Loot specifier kind must be either \"Item\" or \"LootTable\"\n{}",
-                    a
-                ),
-            };
-            let chance: f32 = record
-                .get(headers["Relative Chance"])
-                .expect("No chance for item in entry")
-                .parse()
-                .expect("Not an f32 for chance in entry");
-            items.push((chance, item));
-        }
+    for ref record in rdr.records().flatten() {
+        let item = match record.get(headers["Kind"]).expect("No loot specifier") {
+            "Item" => {
+                if let (Some(Ok(lower)), Some(Ok(upper))) = (
+                    record.get(headers["Lower Amount"]).map(|a| a.parse()),
+                    record.get(headers["Upper Amount"]).map(|a| a.parse()),
+                ) {
+                    LootSpec::ItemQuantity(
+                        record.get(headers["Item"]).expect("No item").to_string(),
+                        lower,
+                        upper,
+                    )
+                } else {
+                    LootSpec::Item(record.get(headers["Item"]).expect("No item").to_string())
+                }
+            },
+            "LootTable" => LootSpec::LootTable(
+                record
+                    .get(headers["Item"])
+                    .expect("No loot table")
+                    .to_string(),
+            ),
+            a => panic!(
+                "Loot specifier kind must be either \"Item\" or \"LootTable\"\n{}",
+                a
+            ),
+        };
+        let chance: f32 = record
+            .get(headers["Relative Chance"])
+            .expect("No chance for item in entry")
+            .parse()
+            .expect("Not an f32 for chance in entry");
+        items.push((chance, item));
     }
 
     let pretty_config = PrettyConfig::new()
@@ -476,7 +462,7 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
     let mut path = ASSETS_PATH.clone();
     path.push("common");
     path.push("loot_tables");
-    for part in loot_table.split(".") {
+    for part in loot_table.split('.') {
         path.push(part);
     }
     path.set_extension("ron");
@@ -514,7 +500,7 @@ Would you like to continue? (y/n)
 > ",
         )
         .to_lowercase()
-            == "y".to_string()
+            == *"y"
         {
             if let Err(e) = armor_stats() {
                 println!("Error: {}\n", e)
@@ -544,7 +530,7 @@ Would you like to continue? (y/n)
 > ",
         )
         .to_lowercase()
-            == "y".to_string()
+            == *"y"
         {
             if let Err(e) = weapon_stats() {
                 println!("Error: {}\n", e)
@@ -578,7 +564,7 @@ Would you like to continue? (y/n)
 > ",
         )
         .to_lowercase()
-            == "y".to_string()
+            == *"y"
         {
             if let Err(e) = loot_table(&loot_table_name) {
                 println!("Error: {}\n", e)

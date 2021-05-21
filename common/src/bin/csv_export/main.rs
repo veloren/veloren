@@ -121,7 +121,6 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                 let poise_strength = tool.base_poise_strength(&msm, &[]).to_string();
                 let speed = tool.base_speed(&msm, &[]).to_string();
                 let crit_chance = tool.base_crit_chance(&msm, &[]).to_string();
-                let crit_mult = tool.base_crit_mult(&msm, &[]).to_string();
                 let equip_time = tool.equip_time(&msm, &[]).as_secs_f32().to_string();
                 let kind = get_tool_kind(&tool.kind);
                 let hands = get_tool_hands(&tool);
@@ -136,7 +135,6 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                     &poise_strength,
                     &speed,
                     &crit_chance,
-                    &crit_mult,
                     &equip_time,
                     item.description(),
                 ])?;
