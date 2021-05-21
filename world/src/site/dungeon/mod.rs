@@ -1220,7 +1220,7 @@ fn boss_fallback(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Ent
 }
 
 fn mini_boss_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.weapons.tier-0");
+    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.creature.quad_medium.default");
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
             .with_body(comp::Body::QuadrupedMedium(
@@ -1235,8 +1235,9 @@ fn mini_boss_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
 }
 
 fn mini_boss_1(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.weapons.tier-1");
-    vec![
+    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.creature.quad_medium.default");
+    let mut entities = Vec::new();
+    entities.resize_with(3, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
             .with_body(comp::Body::QuadrupedMedium(
                 comp::quadruped_medium::Body::random_with(
@@ -1245,13 +1246,13 @@ fn mini_boss_1(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
                 ),
             ))
             .with_name("Bonerattler".to_string())
-            .with_loot_drop(chosen.read().choose().to_item());
-        3
-    ]
+            .with_loot_drop(chosen.read().choose().to_item())
+    });
+    entities
 }
 
 fn mini_boss_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.weapons.tier-2");
+    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.creature.quad_low.default");
     let mut entities = Vec::new();
     entities.resize_with(6, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
@@ -1268,9 +1269,9 @@ fn mini_boss_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
 }
 
 fn mini_boss_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.weapons.tier-3");
+    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.creature.quad_low.default");
     let mut entities = Vec::new();
-    entities.resize_with(6, || {
+    entities.resize_with(8, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
             .with_body(comp::Body::QuadrupedLow(
                 comp::quadruped_low::Body::random_with(
