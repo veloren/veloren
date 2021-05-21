@@ -1220,7 +1220,8 @@ fn boss_fallback(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Ent
 }
 
 fn mini_boss_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.creature.quad_medium.default");
+    let chosen =
+        Lottery::<LootSpec>::load_expect("common.loot_tables.creature.quad_medium.default");
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
             .with_body(comp::Body::QuadrupedMedium(
@@ -1235,7 +1236,8 @@ fn mini_boss_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
 }
 
 fn mini_boss_1(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.creature.quad_medium.default");
+    let chosen =
+        Lottery::<LootSpec>::load_expect("common.loot_tables.creature.quad_medium.default");
     let mut entities = Vec::new();
     entities.resize_with(3, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
@@ -1394,5 +1396,4 @@ mod tests {
         mini_boss_5(&mut dynamic_rng, tile_wcenter);
         mini_boss_fallback(&mut dynamic_rng, tile_wcenter);
     }
-
 }
