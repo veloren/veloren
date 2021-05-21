@@ -22,7 +22,7 @@ use common::{
     trade::TradeResult,
     util::{
         find_dist::{Cube, Cylinder, FindDist},
-        Dir,
+        Dir, Plane,
     },
     vol::ReadVol,
 };
@@ -520,6 +520,9 @@ impl PlayState for SessionState {
                             },
                             GameInput::Glide => {
                                 if state {
+                                    if global_state.settings.gameplay.stop_auto_walk_on_input {
+                                        self.stop_auto_walk();
+                                    }
                                     self.client.borrow_mut().toggle_glide();
                                 }
                             },
@@ -682,7 +685,9 @@ impl PlayState for SessionState {
                                     &mut self.auto_walk,
                                     |b| hud.auto_walk(b),
                                 );
-                                self.key_state.auto_walk = self.auto_walk;
+
+                                self.key_state.auto_walk =
+                                    self.auto_walk && !self.client.borrow().is_gliding();
                             },
                             GameInput::CameraClamp => {
                                 let hud = &mut self.hud;
@@ -747,10 +752,57 @@ impl PlayState for SessionState {
                 }
             }
 
-            if !self.free_look {
-                self.walk_forward_dir = self.scene.camera().forward_xy();
-                self.walk_right_dir = self.scene.camera().right_xy();
-                self.inputs.look_dir = Dir::from_unnormalized(cam_dir + aim_dir_offset).unwrap();
+            // If auto-gliding, point camera into the wind
+            if let Some(dir) = self
+                .auto_walk
+                .then_some(self.client.borrow())
+                .filter(|client| client.is_gliding())
+                .and_then(|client| {
+                    let ecs = client.state().ecs();
+                    let entity = client.entity();
+                    let fluid = ecs
+                        .read_storage::<comp::PhysicsState>()
+                        .get(entity)?
+                        .in_fluid?;
+                    ecs.read_storage::<comp::Vel>()
+                        .get(entity)
+                        .map(|vel| fluid.relative_flow(vel).0)
+                        .map(|rel_flow| {
+                            let is_wind_downwards = rel_flow.dot(Vec3::unit_z()).is_sign_negative();
+                            if !self.free_look {
+                                if is_wind_downwards {
+                                    self.scene.camera().forward_xy().into()
+                                } else {
+                                    let windwards = rel_flow
+                                        * self
+                                            .scene
+                                            .camera()
+                                            .forward_xy()
+                                            .dot(rel_flow.xy())
+                                            .signum();
+                                    Plane::from(Dir::new(self.scene.camera().right()))
+                                        .projection(windwards)
+                                }
+                            } else if is_wind_downwards {
+                                Vec3::from(-rel_flow.xy())
+                            } else {
+                                -rel_flow
+                            }
+                        })
+                        .and_then(Dir::from_unnormalized)
+                })
+            {
+                self.key_state.auto_walk = false;
+                self.inputs.move_dir = Vec2::zero();
+                self.inputs.look_dir = dir;
+            } else {
+                self.key_state.auto_walk = self.auto_walk;
+                if !self.free_look {
+                    self.walk_forward_dir = self.scene.camera().forward_xy();
+                    self.walk_right_dir = self.scene.camera().right_xy();
+                    self.inputs.look_dir =
+                        Dir::from_unnormalized(cam_dir + aim_dir_offset).unwrap();
+                }
             }
 
             // Get the current state of movement related inputs

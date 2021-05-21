@@ -22,6 +22,7 @@ pub struct Data {
     pub ori: Ori,
     last_vel: Vel,
     timer: f32,
+    inputs_disabled: bool,
 }
 
 impl Data {
@@ -40,13 +41,19 @@ impl Data {
             ori,
             last_vel: Vel::zero(),
             timer: 0.0,
+            inputs_disabled: true,
         }
     }
 
     fn tgt_dir(&self, data: &JoinData) -> Dir {
+        let move_dir = if self.inputs_disabled {
+            Vec2::zero()
+        } else {
+            data.inputs.move_dir
+        };
         let look_ori = Ori::from(data.inputs.look_dir);
         look_ori
-            .yawed_right(PI / 3.0 * look_ori.right().xy().dot(data.inputs.move_dir))
+            .yawed_right(PI / 3.0 * look_ori.right().xy().dot(move_dir))
             .pitched_up(PI * 0.04)
             .pitched_down(
                 data.inputs
@@ -54,7 +61,7 @@ impl Data {
                     .xy()
                     .try_normalized()
                     .map_or(0.0, |ld| {
-                        PI * 0.1 * ld.dot(data.inputs.move_dir) * self.timer.min(PITCH_SLOW_TIME)
+                        PI * 0.1 * ld.dot(move_dir) * self.timer.min(PITCH_SLOW_TIME)
                             / PITCH_SLOW_TIME
                     }),
             )
@@ -83,6 +90,8 @@ impl CharacterBehavior for Data {
                 .in_fluid
                 .map(|fluid| fluid.relative_flow(data.vel))
                 .unwrap_or_default();
+
+            let inputs_disabled = self.inputs_disabled && !data.inputs.move_dir.is_approx_zero();
 
             let ori = {
                 let slerp_s = {
@@ -178,6 +187,7 @@ impl CharacterBehavior for Data {
                 ori,
                 last_vel: *data.vel,
                 timer: self.timer + data.dt.0,
+                inputs_disabled,
                 ..*self
             });
         } else {

@@ -931,6 +931,11 @@ impl Client {
 
     pub fn is_dead(&self) -> bool { self.current::<comp::Health>().map_or(false, |h| h.is_dead) }
 
+    pub fn is_gliding(&self) -> bool {
+        self.current::<comp::CharacterState>()
+            .map_or(false, |cs| matches!(cs, comp::CharacterState::Glide(_)))
+    }
+
     pub fn split_swap_slots(&mut self, a: comp::slot::Slot, b: comp::slot::Slot) {
         match (a, b) {
             (Slot::Equip(equip), slot) | (slot, Slot::Equip(equip)) => self.control_action(
@@ -1234,7 +1239,7 @@ impl Client {
     }
 
     pub fn toggle_glide(&mut self) {
-        let is_gliding = self
+        let using_glider = self
             .state
             .ecs()
             .read_storage::<comp::CharacterState>()
@@ -1246,7 +1251,7 @@ impl Client {
                 )
             });
 
-        match is_gliding {
+        match using_glider {
             Some(true) => self.control_action(ControlAction::Unwield),
             Some(false) => self.control_action(ControlAction::GlideWield),
             None => warn!("Can't toggle glide, client entity doesn't have a `CharacterState`"),
