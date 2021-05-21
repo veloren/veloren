@@ -28,29 +28,23 @@ impl Armor {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Stats {
-    #[serde(default)]
     /// Protection is non-linearly transformed to a damage reduction using
     /// (prot / (60 + prot))
     protection: Protection,
-    #[serde(default)]
     /// Poise protection is non-linearly transformed to a poise damage reduction
     /// using (prot / (60 + prot))
     poise_resilience: Protection,
-    #[serde(default)]
     /// Energy max is summed, and then applied directly to the max energy stat
     /// (multiply values by 10 for expected results, as energy internally is 10x
     /// larger to allow smaller changes to occur with an integer)
     energy_max: i32,
-    #[serde(default)]
     /// Energy recovery is summed, and then added to 1.0. When attacks reward
     /// energy, it is then multiplied by this value before the energy is
     /// rewarded.
     energy_recovery: f32,
-    #[serde(default)]
     /// Crit power is summed, and then added to the default crit multiplier of
     /// 1.25. Damage is multiplied by this value when an attack crits.
     crit_power: f32,
-    #[serde(default)]
     stealth: f32,
 }
 
@@ -170,6 +164,10 @@ impl Armor {
             stats: Stats {
                 protection,
                 poise_resilience,
+                energy_max: 0,
+                energy_recovery: 0.0,
+                crit_power: 0.0,
+                stealth: 0.0,
             },
         }
     }

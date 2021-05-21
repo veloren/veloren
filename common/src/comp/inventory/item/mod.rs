@@ -707,8 +707,8 @@ impl Item {
             SpriteKind::Apple => "common.items.food.apple",
             SpriteKind::Mushroom => "common.items.food.mushroom",
             SpriteKind::CaveMushroom => "common.items.food.mushroom",
-            SpriteKind::Velorite => "common.items.ore.velorite",
-            SpriteKind::VeloriteFrag => "common.items.ore.veloritefrag",
+            SpriteKind::Velorite => "common.items.mineral.ore.velorite",
+            SpriteKind::VeloriteFrag => "common.items.mineral.ore.veloritefrag",
             SpriteKind::BlueFlower => "common.items.flowers.blue",
             SpriteKind::PinkFlower => "common.items.flowers.pink",
             SpriteKind::PurpleFlower => "common.items.flowers.purple",
@@ -956,7 +956,8 @@ mod tests {
         Item::new_from_asset_glob("common.items.npc_weapons.*")
             .expect("Failed to iterate over npc weapons.");
 
-        Item::new_from_asset_glob("common.items.ore.*").expect("Failed to iterate over ores.");
+        Item::new_from_asset_glob("common.items.mineral.*")
+            .expect("Failed to iterate over minerals.");
 
         Item::new_from_asset_glob("common.items.tag_examples.*")
             .expect("Failed to iterate over tag examples.");
