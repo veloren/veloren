@@ -134,6 +134,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Squirrels are no longer immune to arrows at some angles.
 - /spawn command's auto-complete now works for species names
 - Mindflayer AI now correctly summons husks at certain HP thresholds.
+- Far away NPCs respond to being damaged by a projectile
 
 ## [0.9.0] - 2021-03-20
 
