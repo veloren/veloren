@@ -980,24 +980,60 @@ impl LoadoutBuilder {
             }
         } else {
             match body {
-                Body::BipedLarge(b) => match b.species {
-                    biped_large::Species::Mindflayer => LoadoutBuilder::new()
-                        .active_mainhand(active_item)
-                        .chest(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.biped_large.mindflayer",
-                        )))
-                        .build(),
-                    _ => LoadoutBuilder::new().active_mainhand(active_item).build(),
-                },
-                Body::Golem(g) => match g.species {
-                    golem::Species::ClayGolem => LoadoutBuilder::new()
-                        .active_mainhand(active_item)
-                        .chest(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.golem.claygolem",
-                        )))
-                        .build(),
-                    _ => LoadoutBuilder::new().active_mainhand(active_item).build(),
-                },
+                Body::BipedLarge(biped_large::Body {
+                    species: biped_large::Species::Mindflayer,
+                    ..
+                }) => LoadoutBuilder::new()
+                    .active_mainhand(active_item)
+                    .chest(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_large.mindflayer",
+                    )))
+                    .build(),
+                Body::BipedLarge(biped_large::Body {
+                    species: biped_large::Species::Minotaur,
+                    ..
+                }) => LoadoutBuilder::new()
+                    .active_mainhand(active_item)
+                    .chest(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_large.minotaur",
+                    )))
+                    .build(),
+                Body::BipedLarge(biped_large::Body {
+                    species: biped_large::Species::Tidalwarrior,
+                    ..
+                }) => LoadoutBuilder::new()
+                    .active_mainhand(active_item)
+                    .chest(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_large.tidal_warrior",
+                    )))
+                    .build(),
+                Body::BipedLarge(biped_large::Body {
+                    species: biped_large::Species::Yeti,
+                    ..
+                }) => LoadoutBuilder::new()
+                    .active_mainhand(active_item)
+                    .chest(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_large.yeti",
+                    )))
+                    .build(),
+                Body::BipedLarge(biped_large::Body {
+                    species: biped_large::Species::Harvester,
+                    ..
+                }) => LoadoutBuilder::new()
+                    .active_mainhand(active_item)
+                    .chest(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_large.harvester",
+                    )))
+                    .build(),
+                Body::Golem(golem::Body {
+                    species: golem::Species::ClayGolem,
+                    ..
+                }) => LoadoutBuilder::new()
+                    .active_mainhand(active_item)
+                    .chest(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.golem.claygolem",
+                    )))
+                    .build(),
                 _ => LoadoutBuilder::new().active_mainhand(active_item).build(),
             }
         };
@@ -1131,9 +1167,9 @@ mod tests {
             "common.items.npc_weapons.biped_small.sahagin.wooden_spear", // Spear
             // Exotic
             "common.items.npc_weapons.unique.beast_claws", // Natural
-            "common.items.weapons.tool.rake",                      // Farming
-            "common.items.tool.pick",                              // Pick
-            "common.items.weapons.empty.empty",                    // Empty
+            "common.items.weapons.tool.rake",              // Farming
+            "common.items.tool.pick",                      // Pick
+            "common.items.weapons.empty.empty",            // Empty
         ];
 
         for config in LoadoutConfig::iter() {

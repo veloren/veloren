@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Tidal Warrior Armor",
+    description: "Made of fish scales.",
+    kind: Armor((
+        kind: Chest("Tidal Warrior"),
+        stats: (
+            protection: Normal(0.0),
+            poise_resilience: Normal(0.0),
+        ),
+    )),
+    quality: Legendary,
+    tags: [],
+)
