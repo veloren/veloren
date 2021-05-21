@@ -2,7 +2,7 @@ use common::{
     comp::{
         self,
         skills::{GeneralSkill, Skill},
-        Body, CharacterState, Combo, Energy, EnergyChange, EnergySource, Health, Poise,
+        Body, CharacterState, Combo, Energy, EnergyChange, EnergySource, Health, Inventory, Poise,
         PoiseChange, PoiseSource, Pos, SkillSet, Stats,
     },
     event::{EventBus, ServerEvent},
@@ -30,6 +30,7 @@ pub struct ReadData<'a> {
     uids: ReadStorage<'a, Uid>,
     bodies: ReadStorage<'a, Body>,
     char_states: ReadStorage<'a, CharacterState>,
+    inventories: ReadStorage<'a, Inventory>,
 }
 
 /// This system kills players, levels them up, and regenerates energy.
@@ -84,13 +85,15 @@ impl<'a> System<'a> for Sys {
         poises.set_event_emission(true);
 
         // Update stats
-        for (entity, uid, stats, mut skill_set, mut health, pos) in (
+        for (entity, uid, stats, mut skill_set, mut health, pos, mut energy, inventory) in (
             &read_data.entities,
             &read_data.uids,
             &stats,
             &mut skill_sets.restrict_mut(),
             &mut healths.restrict_mut(),
             &read_data.positions,
+            &mut energies,
+            read_data.inventories.maybe(),
         )
             .join()
         {
@@ -122,6 +125,10 @@ impl<'a> System<'a> for Sys {
                 let mut health = health.get_mut_unchecked();
                 health.scale_maximum(stat.max_health_modifier);
             }
+
+            // Happens every tick unlike health in order to apply inventory effects
+            let max_energy_inventory_mod = energy.compute_max_energy_mod_from_inv(inventory);
+            energy.scale_maximum(stat.max_energy_modifier + max_energy_inventory_mod);
 
             let skillset = skill_set.get_unchecked();
             let skills_to_level = skillset

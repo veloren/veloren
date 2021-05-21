@@ -6,9 +6,8 @@ use specs_idvs::IdvStorage;
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Energy {
     current: u32,
-    maximum: u32,
     base_max: u32,
-    last_max: u32,
+    maximum: u32,
     pub regen_rate: f32,
     pub last_change: Option<(i32, f64, EnergySource)>,
 }
@@ -45,13 +44,14 @@ impl Energy {
             current: 0,
             maximum: 0,
             base_max: 0,
-            last_max: 0,
             regen_rate: 0.0,
             last_change: None,
         }
     }
 
     pub fn current(&self) -> u32 { self.current }
+
+    pub fn base_max(&self) -> u32 { self.base_max }
 
     pub fn maximum(&self) -> u32 { self.maximum }
 
@@ -74,6 +74,12 @@ impl Energy {
         self.current = self.current.min(self.maximum);
     }
 
+    // Scales the temporary max health by a modifier.
+    pub fn scale_maximum(&mut self, scaled: f32) {
+        let scaled_max = (self.base_max as f32 * scaled) as u32;
+        self.set_maximum(scaled_max);
+    }
+
     pub fn try_change_by(
         &mut self,
         amount: i32,
@@ -92,26 +98,15 @@ impl Energy {
         }
     }
 
-    //sets last_max to base HP, then if the current is more than your base_max
-    // it'll set it to base max
-    pub fn last_set(&mut self) { self.last_max = self.maximum }
-
     pub fn update_max_energy(&mut self, body: Option<Body>, level: u16) {
+        const ENERGY_PER_LEVEL: u32 = 50;
         if let Some(body) = body {
-            self.set_base_max(body.base_energy() + 50 * level as u32);
-            self.set_maximum(body.base_energy() + 50 * level as u32);
+            self.set_base_max(body.base_energy() + ENERGY_PER_LEVEL * level as u32);
+            self.set_maximum(body.base_energy() + ENERGY_PER_LEVEL * level as u32);
             self.change_by(EnergyChange {
-                amount: 50,
+                amount: ENERGY_PER_LEVEL as i32,
                 source: EnergySource::LevelUp,
             });
-        }
-    }
-
-    pub fn reset_max(&mut self) {
-        self.maximum = self.base_max;
-        if self.current > self.last_max {
-            self.current = self.last_max;
-            self.last_max = self.base_max;
         }
     }
 
@@ -137,6 +132,29 @@ impl Energy {
                 })
                 .fold(1.0, |a, b| a + b)
         })
+    }
+
+    /// Computes the modifier that should be applied to max energy from the
+    /// currently equipped items
+    pub fn compute_max_energy_mod_from_inv(&self, inventory: Option<&Inventory>) -> f32 {
+        use comp::item::ItemKind;
+        // Defaults to a value of 0 if no inventory is equipped
+        let energy_increase = inventory.map_or(0, |inv| {
+            inv.equipped_items()
+                .filter_map(|item| {
+                    if let ItemKind::Armor(armor) = &item.kind() {
+                        Some(armor.get_energy_max())
+                    } else {
+                        None
+                    }
+                })
+                .sum()
+        });
+        // Returns the energy increase divided by base max of energy.
+        // This value is then added to the max_energy_modifier field on stats component.
+        // Adding is important here, as it ensures that a flat modifier is applied
+        // correctly.
+        energy_increase as f32 / self.base_max as f32
     }
 }
 

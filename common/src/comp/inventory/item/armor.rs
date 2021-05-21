@@ -33,7 +33,7 @@ pub struct Stats {
     #[serde(default)]
     poise_resilience: Protection,
     #[serde(default)]
-    energy_max: u32,
+    energy_max: i32,
     #[serde(default)]
     energy_recovery: f32,
     #[serde(default)]
@@ -48,7 +48,7 @@ impl Stats {
     pub fn new(
         protection: Protection,
         poise_resilience: Protection,
-        energy_max: u32,
+        energy_max: i32,
         energy_recovery: f32,
         crit_chance: f32,
         stealth: f32,
@@ -67,7 +67,7 @@ impl Stats {
 
     pub fn get_poise_resilience(&self) -> Protection { self.poise_resilience }
 
-    pub fn get_energy_max(&self) -> u32 { self.energy_max }
+    pub fn get_energy_max(&self) -> i32 { self.energy_max }
 
     pub fn get_energy_recovery(&self) -> f32 { self.energy_recovery }
 
@@ -83,7 +83,7 @@ impl Sub<Stats> for Stats {
         Self {
             protection: self.protection - other.protection,
             poise_resilience: self.poise_resilience - other.poise_resilience,
-            energy_max: self.energy_max.saturating_sub(other.energy_max),
+            energy_max: self.energy_max - other.energy_max,
             energy_recovery: self.energy_recovery - other.energy_recovery,
             crit_chance: self.crit_chance - other.crit_chance,
             stealth: self.stealth - other.stealth,
@@ -139,7 +139,7 @@ impl Armor {
 
     pub fn get_poise_resilience(&self) -> Protection { self.stats.poise_resilience }
 
-    pub fn get_energy_max(&self) -> u32 { self.stats.energy_max }
+    pub fn get_energy_max(&self) -> i32 { self.stats.energy_max }
 
     pub fn get_energy_recovery(&self) -> f32 { self.stats.energy_recovery }
 

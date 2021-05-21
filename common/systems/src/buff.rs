@@ -23,6 +23,7 @@ pub struct ReadData<'a> {
     inventories: ReadStorage<'a, Inventory>,
     healths: ReadStorage<'a, Health>,
     physics_states: ReadStorage<'a, PhysicsState>,
+    energies: ReadStorage<'a, Energy>,
 }
 
 #[derive(Default)]
@@ -30,7 +31,6 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         ReadData<'a>,
-        WriteStorage<'a, Energy>,
         WriteStorage<'a, Buffs>,
         WriteStorage<'a, Stats>,
     );
@@ -39,20 +39,16 @@ impl<'a> System<'a> for Sys {
     const ORIGIN: Origin = Origin::Common;
     const PHASE: Phase = Phase::Create;
 
-    fn run(
-        _job: &mut Job<Self>,
-        (read_data, mut energies, mut buffs, mut stats): Self::SystemData,
-    ) {
+    fn run(_job: &mut Job<Self>, (read_data, mut buffs, mut stats): Self::SystemData) {
         let mut server_emitter = read_data.server_bus.emitter();
         let dt = read_data.dt.0;
         // Set to false to avoid spamming server
         buffs.set_event_emission(false);
-        energies.set_event_emission(false);
         stats.set_event_emission(false);
-        for (entity, mut buff_comp, mut energy, mut stat, health) in (
+        for (entity, mut buff_comp, energy, mut stat, health) in (
             &read_data.entities,
             &mut buffs,
-            &mut energies,
+            &read_data.energies,
             &mut stats,
             &read_data.healths,
         )
@@ -106,9 +102,7 @@ impl<'a> System<'a> for Sys {
                 }
             }
 
-            // Call to reset energy and stats to base values
-            energy.last_set();
-            energy.reset_max();
+            // Call to reset stats to base values
             stat.reset_temp_modifiers();
 
             // Iterator over the lists of buffs by kind
@@ -160,7 +154,7 @@ impl<'a> System<'a> for Sys {
                             },
                             BuffEffect::MaxHealthModifier { value, kind } => match kind {
                                 ModifierKind::Additive => {
-                                    stat.max_health_modifier += *value / (health.maximum() as f32);
+                                    stat.max_health_modifier += *value / (health.base_max() as f32);
                                 },
                                 ModifierKind::Fractional => {
                                     stat.max_health_modifier *= *value;
@@ -168,12 +162,10 @@ impl<'a> System<'a> for Sys {
                             },
                             BuffEffect::MaxEnergyModifier { value, kind } => match kind {
                                 ModifierKind::Additive => {
-                                    let new_max = (energy.maximum() as f32 + *value) as u32;
-                                    energy.set_maximum(new_max);
+                                    stat.max_energy_modifier += *value / (energy.base_max() as f32);
                                 },
                                 ModifierKind::Fractional => {
-                                    let new_max = (energy.maximum() as f32 + *value) as u32;
-                                    energy.set_maximum(new_max);
+                                    stat.max_energy_modifier *= *value;
                                 },
                             },
                             BuffEffect::DamageReduction(dr) => {
@@ -244,7 +236,6 @@ impl<'a> System<'a> for Sys {
         }
         // Turned back to true
         buffs.set_event_emission(true);
-        energies.set_event_emission(true);
         stats.set_event_emission(true);
     }
 }
