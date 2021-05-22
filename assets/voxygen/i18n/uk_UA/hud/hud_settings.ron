@@ -36,6 +36,7 @@
         "hud.settings.background_transparency": "Прозорість фону",
         "hud.settings.chat_character_name": "Імена персонажів в чаті",
         "hud.settings.loading_tips": "Підказки на екрані завантаження",
+        "hud.settings.reset_interface": "Значення за\n замовчуванням",
 
         "hud.settings.pan_sensitivity": "Чутливість миші",
         "hud.settings.zoom_sensitivity": "Чутливість прокрутки",
@@ -51,6 +52,7 @@
         "hud.settings.camera_clamp_behavior": "Поведінка закріпленої камери",
         "hud.settings.player_physics_behavior": "Ігрова фізика (експереминтальнe)",
         "hud.settings.stop_auto_walk_on_input": "Вимикати авто-ходу\nпри русі",
+        "hud.settings.reset_gameplay": "Значення за\n замовчуванням",
 
         "hud.settings.view_distance": "ДВ (дальн. видим.)",
         "hud.settings.sprites_view_distance": "ДВ спрайтів",
@@ -91,23 +93,38 @@
         "hud.settings.shadow_rendering_mode.map.resolution": "Роздільна здатність",
         "hud.settings.lod_detail": "Рівень деталізації",
         "hud.settings.save_window_size": "Зберегти розмір вікна",
+        "hud.settings.reset_graphics": "Значення за\n замовчуванням",
 
         "hud.settings.master_volume": "Гучність",
         "hud.settings.inactive_master_volume_perc": "Гучність (якщо вікно неактивне)",
         "hud.settings.music_volume": "Гучність Музики",
         "hud.settings.sound_effect_volume": "Гучність Звукових Eфектів",
         "hud.settings.audio_device": "Звуковий пристрій",
+        "hud.settings.reset_sound": "Значення за\n замовчуванням",
 
         "hud.settings.awaitingkey": "Натисніть клавішу...",
         "hud.settings.unbound": "Нічого",
-
-        "hud.settings.english_fallback": "Використовувати англійську для неперекладених рядків",
-
         "hud.settings.reset_keybinds": "Значення за\n замовчуванням",
-        "hud.settings.reset_gameplay": "Значення за\n замовчуванням",
-        "hud.settings.reset_graphics": "Значення за\n замовчуванням",
-        "hud.settings.reset_interface": "Значення за\n замовчуванням",
-        "hud.settings.reset_sound": "Значення за\n замовчуванням",
+
+        // Language settings
+        "hud.settings.english_fallback": "Використовувати англійську для неперекладених рядків",
+        // Chat settings
+        "hud.settings.chat_tabs": "Секціі Чату",
+        "hud.settings.label": "Ярлик:",
+        "hud.settings.delete": "Видалити",
+        "hud.settings.show_all": "Показати все",
+        "hud.settings.messages": "Повідомлення",
+        "hud.settings.activity": "Активності",
+        "hud.settings.death": "Смерті",
+        "hud.settings.group": "Група",
+        "hud.settings.faction": "Фракція",
+        "hud.settings.world": "Світ",
+        "hud.settings.region": "Регіон",
+        "hud.settings.say": "Голос",
+        "hud.settings.none": "Нічого",
+        "hud.settings.all": "Усе",
+        "hud.settings.group_only": "Тільки група",
+        "hud.settings.reset_chat" : "Значення за\n замовчуванням",
     },
 
 

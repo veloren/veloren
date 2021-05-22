@@ -13,6 +13,7 @@
 
         // Settings Submenus
         "common.interface": "Інтерфейс",
+        "common.chat": "Чат",
         "common.gameplay": "Гра",
         "common.controls": "Елементи Керування",
         "common.video": "Графіка",
@@ -43,6 +44,7 @@
 
         // Settings Window title
         "common.interface_settings": "Налаштування Інтерфейсу",
+        "common.chat_settings": "Налаштування Чату",
         "common.gameplay_settings": "Налаштування Гри",
         "common.controls_settings": "Налаштування Елементів Керування",
         "common.video_settings": "Налаштування Графіки",

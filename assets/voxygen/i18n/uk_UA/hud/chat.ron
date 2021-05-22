@@ -3,6 +3,9 @@
 /// Localization for Ukrainian
 (
     string_map: {
+        // Tabs
+        "hud.chat.all": "Все",
+        "hud.chat.chat_tab_hover_tooltip": "Правий клік для налаштування",
         // Outcomes
         "hud.outcome.bleeding": "померли від крововтрати",
         "hud.outcome.burning": "згоріли живцем",

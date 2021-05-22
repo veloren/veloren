@@ -22,9 +22,15 @@
         "hud.bag.back": "Спина",
         "hud.bag.legs": "Ноги",
         "hud.bag.feet": "Ступні",
+        "hud.bag.bag": "Сумка",
+
+        // Loadouts
         "hud.bag.mainhand": "Основна рука",
         "hud.bag.offhand": "Другорядна рука",
-        "hud.bag.bag": "Сумка",
+        "hud.bag.inactive_mainhand": "Основна рука (запас)",
+        "hud.bag.inactive_offhand": "Другорядна рука (запас)",
+        "hud.bag.swap_equipped_weapons_title": "Змінити зброю",
+        "hud.bag.swap_equipped_weapons_desc": "Натисніть {key}",
 
         // Inventory actions
         "hud.bag.sort_by_name": "Сортувати за Назвою",
