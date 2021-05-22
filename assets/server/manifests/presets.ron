@@ -76,21 +76,23 @@
         (UnlockGroup(Weapon(Bow)), 1),
 
         (Bow(ProjSpeed), 2),
-        (Bow(BDamage), 3),
-        (Bow(BRegen), 2),
 
         (Bow(CDamage), 3),
         (Bow(CKnockback), 2),
-        (Bow(CProjSpeed), 2),
-        (Bow(CDrain), 2),
         (Bow(CSpeed), 2),
+        (Bow(CRegen), 2),
         (Bow(CMove), 2),
 
-        (Bow(UnlockRepeater), 1),
-        (Bow(RGlide), 1),
-        (Bow(RDamage), 2),
-        (Bow(RArrows), 2),
+        (Bow(RDamage), 3),
         (Bow(RCost), 2),
+        (Bow(RSpeed), 2),
+
+        (Bow(UnlockShotgun), 1),
+        (Bow(SDamage), 2),
+        (Bow(SCost), 2),
+        (Bow(SArrows), 2),
+        (Bow(SSpread), 2),
+
         // Staff
         (UnlockGroup(Weapon(Staff)), 1),
 
@@ -125,5 +127,41 @@
         (Sceptre(ADuration), 2),
         (Sceptre(ARange), 2),
         (Sceptre(ACost), 2),
+    ],
+    // Basic skill preset to unlock all abilities
+    "basic": [
+        // General skills
+
+        // Sword
+        (UnlockGroup(Weapon(Sword)), 1),
+
+        (Sword(InterruptingAttacks), 1),
+        (Sword(DInfinite), 1),
+        (Sword(UnlockSpin), 1),
+
+        // Axe
+        (UnlockGroup(Weapon(Axe)), 1),
+
+        (Axe(SInfinite), 1),
+        (Axe(UnlockLeap), 1),
+
+        // Hammer
+        (UnlockGroup(Weapon(Hammer)), 1),
+
+        (Hammer(UnlockLeap), 1),
+        // Bow
+        (UnlockGroup(Weapon(Bow)), 1),
+
+        (Bow(UnlockShotgun), 1),
+
+        // Staff
+        (UnlockGroup(Weapon(Staff)), 1),
+
+        (Staff(UnlockShockwave), 1),
+
+        // Sceptre
+        (UnlockGroup(Weapon(Sceptre)), 1),
+
+        (Sceptre(UnlockAura), 1),
     ],
 })
