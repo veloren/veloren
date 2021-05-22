@@ -722,7 +722,7 @@ dependencies = [
 [[package]]
 name = "conrod_core"
 version = "0.63.0"
-source = "git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#1ae5193588fb662a7189d81edd9f2d653c7f1da0"
+source = "git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#ca9fd429ca7db854e018acc6dcb2cd8abd9e070d"
 dependencies = [
  "conrod_derive",
  "copypasta",
@@ -737,7 +737,7 @@ dependencies = [
 [[package]]
 name = "conrod_derive"
 version = "0.63.0"
-source = "git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#1ae5193588fb662a7189d81edd9f2d653c7f1da0"
+source = "git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#ca9fd429ca7db854e018acc6dcb2cd8abd9e070d"
 dependencies = [
  "proc-macro2 0.4.30",
  "quote 0.6.13",
@@ -747,7 +747,7 @@ dependencies = [
 [[package]]
 name = "conrod_winit"
 version = "0.63.0"
-source = "git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#1ae5193588fb662a7189d81edd9f2d653c7f1da0"
+source = "git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#ca9fd429ca7db854e018acc6dcb2cd8abd9e070d"
 
 [[package]]
 name = "constant_time_eq"
