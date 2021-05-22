@@ -34,6 +34,16 @@
         ("common.items.weapons.axe.malachite_axe-0",1),
         ("common.items.weapons.sceptre.sceptre_velorite_0",1),
     ],
+    "ferocious": [
+        ("common.items.armor.ferocious.chest",1),
+        ("common.items.armor.ferocious.pants",1),
+        ("common.items.armor.ferocious.hand",1),
+        ("common.items.armor.ferocious.foot",1),
+        ("common.items.armor.ferocious.shoulder",1),
+        ("common.items.armor.ferocious.belt",1),    
+        ("common.items.armor.ferocious.back",1),  
+        ("common.items.weapons.sword.bloodsteel-1",1),    
+    ],
     "consumables": [
         ("common.items.consumable.potion_minor", 100),
         ("common.items.consumable.potion_med", 100),

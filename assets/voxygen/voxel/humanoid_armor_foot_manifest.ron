@@ -28,6 +28,10 @@
             vox_spec: ("armor.cloth_purple.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
+        "Ferocious": (
+            vox_spec: ("armor.ferocious.foot", (-2.5, -3.5, -2.0)),
+            color: None
+        ),
         "ClothBlue": (
             vox_spec: ("armor.cloth_blue.foot", (-2.5, -3.5, -2.0)),
             color: None

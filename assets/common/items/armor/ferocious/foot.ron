@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Ferocious Waraji",
+    description: "The dark side of nature",
+    kind: Armor((
+        kind: Foot("Ferocious"),
+        stats: (
+            protection: Normal(6.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Epic,
+    tags: [ClothItem],
+)

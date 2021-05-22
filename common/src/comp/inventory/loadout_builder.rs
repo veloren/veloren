@@ -52,6 +52,7 @@ pub enum LoadoutConfig {
     Bandit,
     CultistNovice,
     CultistAcolyte,
+    Beastmaster,
     Warlord,
     Warlock,
 }
@@ -875,6 +876,37 @@ impl LoadoutBuilder {
                     )))
                     .back(Some(Item::new_from_asset_expect(
                         "common.items.armor.misc.back.dungeon_purple",
+                    )))
+                    .lantern(match rand::thread_rng().gen_range(0..3) {
+                        0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
+                        _ => None,
+                    })
+                    .glider(Some(Item::new_from_asset_expect(
+                        "common.items.glider.glider_blue",
+                    )))
+                    .build(),
+                Beastmaster => LoadoutBuilder::new()
+                    .active_mainhand(active_item)
+                    .shoulder(Some(Item::new_from_asset_expect(
+                        "common.items.armor.ferocious.shoulder",
+                    )))
+                    .chest(Some(Item::new_from_asset_expect(
+                        "common.items.armor.ferocious.chest",
+                    )))
+                    .belt(Some(Item::new_from_asset_expect(
+                        "common.items.armor.ferocious.belt",
+                    )))
+                    .hands(Some(Item::new_from_asset_expect(
+                        "common.items.armor.ferocious.hand",
+                    )))
+                    .pants(Some(Item::new_from_asset_expect(
+                        "common.items.armor.ferocious.pants",
+                    )))
+                    .feet(Some(Item::new_from_asset_expect(
+                        "common.items.armor.ferocious.foot",
+                    )))
+                    .back(Some(Item::new_from_asset_expect(
+                        "common.items.armor.ferocious.back",
                     )))
                     .lantern(match rand::thread_rng().gen_range(0..3) {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),

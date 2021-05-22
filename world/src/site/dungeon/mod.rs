@@ -1313,16 +1313,14 @@ fn mini_boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
             entities.push(
                 EntityInfo::at(tile_wcenter.map(|e| e as f32))
                     .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
-                    .with_name("Animal Trainer".to_string())
+                    .with_name("Beastmaster".to_string())
                     .with_loot_drop(trainer_loot.read().choose().to_item())
-                    .with_loadout_config(loadout_builder::LoadoutConfig::CultistAcolyte)
+                    .with_loadout_config(loadout_builder::LoadoutConfig::Beastmaster)
                     .with_skillset_config(common::skillset_builder::SkillSetConfig::CultistAcolyte)
                     .with_main_tool(comp::Item::new_from_asset_expect(
-                        match dynamic_rng.gen_range(0..6) {
+                        match dynamic_rng.gen_range(0..3) {
                             0 => "common.items.weapons.axe.malachite_axe-0",
-                            1..=2 => "common.items.weapons.sword.cultist",
-                            3 => "common.items.weapons.hammer.cultist_purp_2h-0",
-                            4 => "common.items.weapons.staff.cultist_staff",
+                            1 => "common.items.weapons.sword.bloodsteel-1",
                             _ => "common.items.weapons.bow.velorite",
                         },
                     )),

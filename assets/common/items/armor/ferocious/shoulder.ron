@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Ferocious Guards",
+    description: "The dark side of nature",
+    kind: Armor((
+        kind: Shoulder("Ferocious"),
+        stats: (
+            protection: Normal(18.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Epic,
+    tags: [ClothItem],
+)

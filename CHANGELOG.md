@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added non-admin moderators with limit privileges and updated the security model to reflect this.
 - Chat tabs
 - NPC's now hear certain sounds
+- Renamed Animal Trainers to Beastmasters and gave them their own set of armor to wear
 
 ### Changed
 

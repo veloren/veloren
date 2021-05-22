@@ -30,6 +30,16 @@
                 color: None
             )
         ),
+        "Ferocious": (
+            left: (
+                vox_spec: ("armor.ferocious.hand", (-1.5, -1.5, -3.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.ferocious.hand", (-1.5, -1.5, -3.0)),
+                color: None
+            )
+        ),
         "Plate": (
             left: (
                 vox_spec: ("armor.plate.hand", (-1.5, -1.5, -2.5)),

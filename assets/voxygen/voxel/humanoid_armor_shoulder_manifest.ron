@@ -41,6 +41,16 @@
                 color: None
             )
         ),
+        "Ferocious": (
+            left: (
+                vox_spec: ("armor.ferocious.shoulder", (-6.0, -2.5, -1.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.ferocious.shoulder", (-3.0, -2.5, -1.0)),
+                color: None
+            )
+        ),
         "Plate": (
             left: (
                 vox_spec: ("armor.plate.shoulder", (-3.6, -3.5, -0.0)),

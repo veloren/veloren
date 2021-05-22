@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Ferocious Sash",
+    description: "The dark side of nature",
+    kind: Armor((
+        kind: Belt("Ferocious"),
+        stats: (
+            protection: Normal(6.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Epic,
+    tags: [ClothItem],
+)

@@ -28,6 +28,10 @@
             vox_spec: ("armor.misc.chest.grayscale", (-7.0, -3.5, 2.0)),
             color: Some((29, 26, 33))
         ),
+        "Ferocious": (
+            vox_spec: ("armor.ferocious.chest", (-7.0, -3.5, 2.0)),
+            color: None
+        ),
         "Assassin": (
             vox_spec: ("armor.assassin.chest", (-7.0, -3.5, 2.0)),
             color: None
