@@ -115,7 +115,7 @@
         "hud.skill.bow_charged_speed_title" : "Charged Speed",
         "hud.skill.bow_charged_speed" : "Increases the rate that you charge the attack by 10%{SP}",
         "hud.skill.bow_charged_move_title" : "Charged Move Speed",
-        "hud.skill.bow_charged_move" : "Increases how fast you can shuffle while charging the attack by 20%{SP}",
+        "hud.skill.bow_charged_move" : "Increases how fast you can shuffle while charging the attack by 10%{SP}",
         "hud.skill.bow_repeater_title" : "Repeater",
         "hud.skill.bow_repeater" : "Shoots faster the longer you fire for",
         "hud.skill.bow_repeater_damage_title" : "Repeater Damage",

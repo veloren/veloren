@@ -940,8 +940,11 @@ impl CharacterAbility {
                 use skills::BowSkill::*;
                 match self {
                     ChargedRanged {
+                        ref mut initial_damage,
                         ref mut scaled_damage,
+                        ref mut initial_regen,
                         ref mut scaled_regen,
+                        ref mut initial_knockback,
                         ref mut scaled_knockback,
                         ref mut speed,
                         ref mut move_speed,
@@ -955,19 +958,25 @@ impl CharacterAbility {
                             *scaled_projectile_speed *= projectile_speed_scaling;
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CDamage)) {
-                            *scaled_damage *= 1.2_f32.powi(level.into());
+                            let damage_scaling = 1.2_f32.powi(level.into());
+                            *initial_damage *= damage_scaling;
+                            *scaled_damage *= damage_scaling;
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CRegen)) {
-                            *scaled_regen *= 1.2_f32.powi(level.into());
+                            let regen_scaling = 1.2_f32.powi(level.into());
+                            *initial_regen *= regen_scaling;
+                            *scaled_regen *= regen_scaling;
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CKnockback)) {
-                            *scaled_knockback *= 1.2_f32.powi(level.into());
+                            let knockback_scaling = 1.2_f32.powi(level.into());
+                            *initial_knockback *= knockback_scaling;
+                            *scaled_knockback *= knockback_scaling;
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CSpeed)) {
                             *speed *= 1.1_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CMove)) {
-                            *move_speed *= 1.2_f32.powi(level.into());
+                            *move_speed *= 1.1_f32.powi(level.into());
                         }
                     },
                     RepeaterRanged {
