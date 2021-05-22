@@ -75,7 +75,8 @@ pub fn handle_knockback(server: &Server, entity: EcsEntity, impulse: Vec3<f32>) 
                 0.4
             };
         if let Some(mass) = ecs.read_storage::<comp::Mass>().get(entity) {
-            impulse /= mass.0;
+            // we go easy on the little ones (because they fly so far)
+            impulse /= mass.0.max(40.0);
         }
         let mut velocities = ecs.write_storage::<comp::Vel>();
         if let Some(vel) = velocities.get_mut(entity) {

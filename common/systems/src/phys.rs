@@ -1,14 +1,15 @@
 use common::{
     comp::{
         body::ship::figuredata::{VoxelCollider, VOXEL_COLLIDER_MANIFEST},
-        BeamSegment, Body, CharacterState, Collider, Density, Fluid, Mass, Mounting, Ori,
-        PhysicsState, Pos, PosVelDefer, PreviousPhysCache, Projectile, Scale, Shockwave, Sticky,
-        Vel,
+        fluid_dynamics::{Fluid, Wings},
+        BeamSegment, Body, CharacterState, Collider, Density, Mass, Mounting, Ori, PhysicsState,
+        Pos, PosVelDefer, PreviousPhysCache, Projectile, Scale, Shockwave, Sticky, Vel,
     },
     consts::{AIR_DENSITY, FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
     outcome::Outcome,
     resources::DeltaTime,
+    states,
     terrain::{Block, TerrainGrid},
     uid::Uid,
     util::{Projection, SpatialGrid},
@@ -42,10 +43,9 @@ fn fluid_density(height: f32, fluid: &Fluid) -> Density {
 fn integrate_forces(
     dt: &DeltaTime,
     mut vel: Vel,
-    body: &Body,
+    (body, wings): (&Body, Option<&Wings>),
     density: &Density,
     mass: &Mass,
-    character_state: Option<&CharacterState>,
     fluid: &Fluid,
     gravity: f32,
 ) -> Vel {
@@ -59,7 +59,7 @@ fn integrate_forces(
     // Aerodynamic/hydrodynamic forces
     if !rel_flow.0.is_approx_zero() {
         debug_assert!(!rel_flow.0.map(|a| a.is_nan()).reduce_or());
-        let impulse = dt.0 * body.aerodynamic_forces(&rel_flow, fluid_density.0, character_state);
+        let impulse = dt.0 * body.aerodynamic_forces(&rel_flow, fluid_density.0, wings);
         debug_assert!(!impulse.map(|a| a.is_nan()).reduce_or());
         if !impulse.is_approx_zero() {
             let new_v = vel.0 + impulse / mass.0;
@@ -71,7 +71,7 @@ fn integrate_forces(
             if new_v.dot(vel.0) < 0.0 {
                 // Multiply by a factor to prevent full stop, as this can cause things to get
                 // stuck in high-density medium
-                vel.0 -= vel.0.projected(&impulse) * 0.7;
+                vel.0 -= vel.0.projected(&impulse) * 0.9;
             } else {
                 vel.0 = new_v;
             }
@@ -616,13 +616,26 @@ impl<'a> PhysicsData<'a> {
                                 vel.0.z -= dt.0 * GRAVITY;
                             },
                             Some(fluid) => {
+                                let wings = match character_state {
+                                    Some(&CharacterState::Glide(states::glide::Data {
+                                        aspect_ratio,
+                                        planform_area,
+                                        ori,
+                                        ..
+                                    })) => Some(Wings {
+                                        aspect_ratio,
+                                        planform_area,
+                                        ori,
+                                    }),
+
+                                    _ => None,
+                                };
                                 vel.0 = integrate_forces(
                                     &dt,
                                     *vel,
-                                    body,
+                                    (body, wings.as_ref()),
                                     density,
                                     mass,
-                                    character_state,
                                     &fluid,
                                     GRAVITY,
                                 )
