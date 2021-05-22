@@ -1,7 +1,6 @@
 use super::{
     img_ids::Imgs, ChatTab, ERROR_COLOR, FACTION_COLOR, GROUP_COLOR, INFO_COLOR, KILL_COLOR,
-    LOOT_COLOR, OFFLINE_COLOR, ONLINE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR,
-    WORLD_COLOR,
+    OFFLINE_COLOR, ONLINE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR, WORLD_COLOR,
 };
 use crate::{i18n::Localization, settings::chat::MAX_CHAT_TABS, ui::fonts::Fonts, GlobalState};
 use client::{cmd, Client};
@@ -722,7 +721,6 @@ fn render_chat_line(chat_type: &ChatType<String>, imgs: &Imgs) -> (Color, conrod
         ChatType::Offline(_) => (OFFLINE_COLOR, imgs.chat_offline_small),
         ChatType::CommandError => (ERROR_COLOR, imgs.chat_command_error_small),
         ChatType::CommandInfo => (INFO_COLOR, imgs.chat_command_info_small),
-        ChatType::Loot => (LOOT_COLOR, imgs.chat_loot_small),
         ChatType::GroupMeta(_) => (GROUP_COLOR, imgs.chat_group_small),
         ChatType::FactionMeta(_) => (FACTION_COLOR, imgs.chat_faction_small),
         ChatType::Kill(_, _) => (KILL_COLOR, imgs.chat_kill_small),

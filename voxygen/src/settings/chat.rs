@@ -44,7 +44,6 @@ impl ChatFilter {
             ChatType::NpcSay(..) => true,
             ChatType::NpcTell(..) => true,
             ChatType::Meta => true,
-            ChatType::Loot => true,
         }
     }
 }

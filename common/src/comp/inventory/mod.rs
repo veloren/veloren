@@ -4,6 +4,7 @@ use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{collections::HashMap, convert::TryFrom, mem, ops::Range};
 use tracing::{debug, trace, warn};
+use vek::Vec3;
 
 use crate::{
     comp::{
@@ -16,6 +17,7 @@ use crate::{
         Item,
     },
     recipe::{Recipe, RecipeInput},
+    uid::Uid,
     LoadoutBuilder,
 };
 
@@ -817,7 +819,8 @@ pub enum InventoryUpdateEvent {
     Swapped,
     Dropped,
     Collected(Item),
-    CollectFailed,
+    BlockCollectFailed(Vec3<i32>),
+    EntityCollectFailed(Uid),
     Possession,
     Debug,
     Craft,

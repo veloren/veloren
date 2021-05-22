@@ -1,19 +1,20 @@
 pub mod settings_change;
 
-use std::{cell::RefCell, collections::HashSet, rc::Rc, time::Duration};
+use std::{cell::RefCell, collections::HashSet, rc::Rc, result::Result, sync::Arc, time::Duration};
 
 use ordered_float::OrderedFloat;
 use specs::{Join, WorldExt};
-use tracing::{error, info};
+use tracing::{error, info, warn};
 use vek::*;
 
 use client::{self, Client};
 use common::{
+    assets::AssetExt,
     comp,
     comp::{
         inventory::slot::{EquipSlot, Slot},
         invite::InviteKind,
-        item::{tool::ToolKind, ItemDesc},
+        item::{tool::ToolKind, ItemDef, ItemDesc},
         ChatMsg, ChatType, InputKind, InventoryUpdateEvent, Pos, Vel,
     },
     consts::{MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
@@ -34,7 +35,7 @@ use common_net::{
 
 use crate::{
     audio::sfx::SfxEvent,
-    hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, PromptDialogSettings},
+    hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, LootMessage, PromptDialogSettings},
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
     render::Renderer,
@@ -179,22 +180,31 @@ impl SessionState {
                     let sfx_trigger_item = sfx_triggers.get_key_value(&SfxEvent::from(&inv_event));
                     global_state.audio.emit_sfx_item(sfx_trigger_item);
 
-                    let i18n = global_state.i18n.read();
-
                     match inv_event {
-                        InventoryUpdateEvent::CollectFailed => {
-                            self.hud.new_message(ChatMsg {
-                                message: i18n.get("hud.chat.loot_fail").to_string(),
-                                chat_type: ChatType::CommandError,
-                            });
+                        InventoryUpdateEvent::BlockCollectFailed(pos) => {
+                            self.hud.add_failed_block_pickup(pos);
+                        },
+                        InventoryUpdateEvent::EntityCollectFailed(uid) => {
+                            if let Some(entity) = client.state().ecs().entity_from_uid(uid.into()) {
+                                self.hud.add_failed_entity_pickup(entity);
+                            }
                         },
                         InventoryUpdateEvent::Collected(item) => {
-                            self.hud.new_message(ChatMsg {
-                                message: i18n
-                                    .get("hud.chat.loot_msg")
-                                    .replace("{item}", item.name()),
-                                chat_type: ChatType::Loot,
-                            });
+                            match Arc::<ItemDef>::load_cloned(item.item_definition_id()) {
+                                Result::Ok(item_def) => {
+                                    self.hud.new_loot_message(LootMessage {
+                                        item: item_def,
+                                        amount: item.amount(),
+                                    });
+                                },
+                                Result::Err(e) => {
+                                    warn!(
+                                        ?e,
+                                        "Item not present on client: {}",
+                                        item.item_definition_id()
+                                    );
+                                },
+                            }
                         },
                         _ => {},
                     };
