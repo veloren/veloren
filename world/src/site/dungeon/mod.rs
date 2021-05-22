@@ -1220,34 +1220,32 @@ fn boss_fallback(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Ent
 }
 
 fn mini_boss_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen =
-        Lottery::<LootSpec>::load_expect("common.loot_tables.creature.quad_medium.default");
+    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.weapons.tier-0");
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_body(comp::Body::QuadrupedMedium(
-                comp::quadruped_medium::Body::random_with(
+            .with_body(comp::Body::QuadrupedLow(
+                comp::quadruped_low::Body::random_with(
                     dynamic_rng,
-                    &comp::quadruped_medium::Species::Bonerattler,
+                    &comp::quadruped_low::Species::Deadwood,
                 ),
             ))
-            .with_name("Bonerattler".to_string())
-            .with_loot_drop(chosen.read().choose().to_item()),
+            .with_name("Deadwood".to_string())
+            .with_loot_drop(chosen.read().choose().to_item())
     ]
 }
 
 fn mini_boss_1(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen =
-        Lottery::<LootSpec>::load_expect("common.loot_tables.creature.quad_medium.default");
+    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.creature.quad_small.default");
     let mut entities = Vec::new();
-    entities.resize_with(3, || {
+    entities.resize_with(4, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_body(comp::Body::QuadrupedMedium(
-                comp::quadruped_medium::Body::random_with(
+            .with_body(comp::Body::QuadrupedSmall(
+                comp::quadruped_low::Body::random_with(
                     dynamic_rng,
-                    &comp::quadruped_medium::Species::Bonerattler,
+                    &comp::quadruped_small::Species::Rat,
                 ),
             ))
-            .with_name("Bonerattler".to_string())
+            .with_name("Rat".to_string())
             .with_loot_drop(chosen.read().choose().to_item())
     });
     entities
@@ -1271,18 +1269,19 @@ fn mini_boss_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
 }
 
 fn mini_boss_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.creature.quad_low.default");
+    let chosen =
+        Lottery::<LootSpec>::load_expect("common.loot_tables.creature.quad_medium.default");
     let mut entities = Vec::new();
-    entities.resize_with(8, || {
+    entities.resize_with(5, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_body(comp::Body::QuadrupedLow(
-                comp::quadruped_low::Body::random_with(
+            .with_body(comp::Body::QuadrupedMedium(
+                comp::quadruped_medium::Body::random_with(
                     dynamic_rng,
-                    &comp::quadruped_low::Species::Hakulaq,
+                    &comp::quadruped_medium::Species::Bonerattler,
                 ),
             ))
-            .with_name("Hakulaq".to_string())
-            .with_loot_drop(chosen.read().choose().to_item())
+            .with_name("Bonerattler".to_string())
+            .with_loot_drop(chosen.read().choose().to_item()),
     });
     entities
 }
