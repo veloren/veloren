@@ -1375,6 +1375,35 @@
         "voxel.armor.agile.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
+    //Ferocious Armor
+    Armor(Chest("Ferocious")): VoxTrans(
+        "voxel.armor.ferocious.chest",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Pants("Ferocious")): VoxTrans(
+        "voxel.armor.ferocious.pants",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Belt("Ferocious")): VoxTrans(
+        "voxel.armor.ferocious.belt",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.8,
+    ),
+    Armor(Foot("Ferocious")): VoxTrans(
+        "voxel.armor.ferocious.foot",
+        (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
+    ),
+    Armor(Hand("Ferocious")): VoxTrans(
+        "voxel.armor.ferocious.hand",
+        (0.0, 0.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
+    ),
+    Armor(Shoulder("Ferocious")): VoxTrans(
+        "voxel.armor.ferocious.shoulder",
+        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
+    ),
+    Armor(Back("Ferocious")): VoxTrans(
+        "voxel.armor.ferocious.back",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    ),
     //Blue Leather Armor
     Armor(Chest("BlueLeather")): VoxTrans(
         "voxel.armor.leather_blue.chest",

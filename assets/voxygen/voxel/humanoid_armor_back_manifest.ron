@@ -24,6 +24,10 @@
             vox_spec: ("armor.agile.back", (-5.0, -1.0, -11.0)),
             color: None
         ),
+        "Ferocious": (
+            vox_spec: ("armor.ferocious.back", (-5.0, -1.5, -14.0)),
+            color: None
+        ),
         "Backpack": (
             vox_spec: ("armor.misc.back.backpack", (-7.0, -5.0, -10.0)),
             color: None

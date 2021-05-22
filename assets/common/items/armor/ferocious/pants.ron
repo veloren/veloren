@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Ferocious Shorts",
+    description: "The dark side of nature",
+    kind: Armor((
+        kind: Pants("Ferocious"),
+        stats: (
+            protection: Normal(24.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Epic,
+    tags: [ClothItem],
+)
