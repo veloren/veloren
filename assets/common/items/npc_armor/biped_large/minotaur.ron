@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Minotaur Armor",
+    description: "The best defense is a good offense.",
+    kind: Armor((
+        kind: Chest("Minotaur"),
+        stats: (
+            protection: Normal(0.0),
+            poise_resilience: Normal(0.0),
+        ),
+    )),
+    quality: Legendary,
+    tags: [],
+)

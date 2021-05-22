@@ -13,6 +13,7 @@ use crate::{
 };
 use rand::Rng;
 use serde::{Deserialize, Serialize};
+use strum_macros::EnumIter;
 use tracing::warn;
 
 /// Builder for character Loadouts, containing weapon and armour items belonging
@@ -36,7 +37,7 @@ use tracing::warn;
 #[derive(Clone)]
 pub struct LoadoutBuilder(Loadout);
 
-#[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug)]
+#[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug, EnumIter)]
 pub enum LoadoutConfig {
     Adlet,
     Gnarling,
@@ -1011,24 +1012,60 @@ impl LoadoutBuilder {
             }
         } else {
             match body {
-                Body::BipedLarge(b) => match b.species {
-                    biped_large::Species::Mindflayer => LoadoutBuilder::new()
-                        .active_mainhand(active_item)
-                        .chest(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.biped_large.mindflayer",
-                        )))
-                        .build(),
-                    _ => LoadoutBuilder::new().active_mainhand(active_item).build(),
-                },
-                Body::Golem(g) => match g.species {
-                    golem::Species::ClayGolem => LoadoutBuilder::new()
-                        .active_mainhand(active_item)
-                        .chest(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.golem.claygolem",
-                        )))
-                        .build(),
-                    _ => LoadoutBuilder::new().active_mainhand(active_item).build(),
-                },
+                Body::BipedLarge(biped_large::Body {
+                    species: biped_large::Species::Mindflayer,
+                    ..
+                }) => LoadoutBuilder::new()
+                    .active_mainhand(active_item)
+                    .chest(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_large.mindflayer",
+                    )))
+                    .build(),
+                Body::BipedLarge(biped_large::Body {
+                    species: biped_large::Species::Minotaur,
+                    ..
+                }) => LoadoutBuilder::new()
+                    .active_mainhand(active_item)
+                    .chest(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_large.minotaur",
+                    )))
+                    .build(),
+                Body::BipedLarge(biped_large::Body {
+                    species: biped_large::Species::Tidalwarrior,
+                    ..
+                }) => LoadoutBuilder::new()
+                    .active_mainhand(active_item)
+                    .chest(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_large.tidal_warrior",
+                    )))
+                    .build(),
+                Body::BipedLarge(biped_large::Body {
+                    species: biped_large::Species::Yeti,
+                    ..
+                }) => LoadoutBuilder::new()
+                    .active_mainhand(active_item)
+                    .chest(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_large.yeti",
+                    )))
+                    .build(),
+                Body::BipedLarge(biped_large::Body {
+                    species: biped_large::Species::Harvester,
+                    ..
+                }) => LoadoutBuilder::new()
+                    .active_mainhand(active_item)
+                    .chest(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_large.harvester",
+                    )))
+                    .build(),
+                Body::Golem(golem::Body {
+                    species: golem::Species::ClayGolem,
+                    ..
+                }) => LoadoutBuilder::new()
+                    .active_mainhand(active_item)
+                    .chest(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.golem.claygolem",
+                    )))
+                    .build(),
                 _ => LoadoutBuilder::new().active_mainhand(active_item).build(),
             }
         };
@@ -1132,4 +1169,97 @@ impl LoadoutBuilder {
     }
 
     pub fn build(self) -> Loadout { self.0 }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::comp::{self, Body};
+    use rand::thread_rng;
+    use strum::IntoEnumIterator;
+
+    // Testing all configs in loadout with weapons of different toolkinds
+    //
+    // Things that will be catched - invalid assets paths
+    // FIXME: if item is used in some branch of rng test may miss it
+    #[test]
+    fn test_loadout_configs() {
+        let test_weapons = vec![
+            // Melee
+            "common.items.weapons.sword.starter",   // Sword
+            "common.items.weapons.axe.starter_axe", // Axe
+            "common.items.weapons.hammer.starter_hammer", // Hammer
+            // Ranged
+            "common.items.weapons.bow.starter",             // Bow
+            "common.items.weapons.staff.starter_staff",     // Staff
+            "common.items.weapons.sceptre.starter_sceptre", // Sceptre
+            // Other
+            "common.items.weapons.dagger.starter_dagger", // Dagger
+            "common.items.weapons.shield.shield_1",       // Shield
+            "common.items.npc_weapons.biped_small.sahagin.wooden_spear", // Spear
+            // Exotic
+            "common.items.npc_weapons.unique.beast_claws", // Natural
+            "common.items.weapons.tool.rake",              // Farming
+            "common.items.tool.pick",                      // Pick
+            "common.items.weapons.empty.empty",            // Empty
+        ];
+
+        for config in LoadoutConfig::iter() {
+            test_weapons.iter().for_each(|test_weapon| {
+                LoadoutBuilder::build_loadout(
+                    Body::Humanoid(comp::humanoid::Body::random()),
+                    Some(Item::new_from_asset_expect(test_weapon)),
+                    Some(config),
+                    None,
+                );
+            });
+        }
+    }
+
+    // Testing different species
+    //
+    // Things that will be catched - invalid assets paths for
+    // creating default main hand tool or equipement without config
+    //
+    // FIXME: if species has differences of body type (male/female) test may miss it
+    #[test]
+    fn test_loadout_species() {
+        macro_rules! test_species {
+            // base case
+            ($species:tt : $body:tt) => {
+                let mut rng = thread_rng();
+                for s in comp::$species::ALL_SPECIES.iter() {
+                    let body = comp::$species::Body::random_with(&mut rng, s);
+                    LoadoutBuilder::build_loadout(
+                        Body::$body(body),
+                        None,
+                        None,
+                        None,
+                    );
+                }
+            };
+            // recursive call
+            ($base:tt : $body:tt, $($species:tt : $nextbody:tt),+ $(,)?) => {
+                test_species!($base: $body);
+                test_species!($($species: $nextbody),+);
+            }
+        }
+
+        // See `[AllBodies](crate::comp::body::AllBodies)`
+        test_species!(
+            humanoid: Humanoid,
+            quadruped_small: QuadrupedSmall,
+            quadruped_medium: QuadrupedMedium,
+            quadruped_low: QuadrupedLow,
+            bird_medium: BirdMedium,
+            bird_large: BirdLarge,
+            fish_small: FishSmall,
+            fish_medium: FishMedium,
+            biped_small: BipedSmall,
+            biped_large: BipedLarge,
+            theropod: Theropod,
+            dragon: Dragon,
+            golem: Golem,
+        );
+    }
 }

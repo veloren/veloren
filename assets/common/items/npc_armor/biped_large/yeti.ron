@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Yeti Hide",
+    description: "Strong as Yeti itself.",
+    kind: Armor((
+        kind: Chest("Yeti"),
+        stats: (
+            protection: Normal(0.0),
+            poise_resilience: Normal(0.0),
+        ),
+    )),
+    quality: Legendary,
+    tags: [],
+)
