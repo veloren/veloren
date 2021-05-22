@@ -1,9 +1,11 @@
 [
     // armor
-    (6.0, LootTable("common.loot_tables.armor.cultist")),
-    (1.0, Item("common.items.armor.misc.back.dungeon_purple")),
-    (1.0, Item("common.items.armor.misc.ring.skull")),
+    (3.0, LootTable("common.loot_tables.armor.cultist")),
+    (0.25, Item("common.items.armor.misc.back.dungeon_purple")),
+    (0.5, Item("common.items.armor.misc.ring.skull")),
     // weapons
     (1.5, LootTable("common.loot_tables.weapons.cultist")),
     (1.5, LootTable("common.loot_tables.weapons.cave")),
+    // to not get boring from getting OP loot
+    (6.0, LootTable("common.loot_tables.dungeon.tier-5.enemy")),
 ]

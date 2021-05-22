@@ -1,0 +1,8 @@
+[
+    (0.1, Item("common.items.utility.firework_blue")),
+    (0.1, Item("common.items.utility.firework_green")),
+    (0.1, Item("common.items.utility.firework_purple")),
+    (0.1, Item("common.items.utility.firework_red")),
+    (0.1, Item("common.items.utility.firework_white")),
+    (0.1, Item("common.items.utility.firework_yellow")),
+]

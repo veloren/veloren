@@ -1,6 +1,19 @@
 [
-    (1.0, LootTable("common.loot_tables.humanoids")),
-    (1.0, LootTable("common.loot_tables.weapons.tier-5")),
-    (3.0, LootTable("common.loot_tables.cultists")),
+    // Materials
+    (1.0, LootTable("common.loot_tables.materials.common")),
+    (1.0, LootTable("common.loot_tables.food.wild_ingredients")),
+    (1.0, LootTable("common.loot_tables.food.prepared")),
     (5.0, Item("common.items.food.cheese")),
+    // Gear
+    (3.0, LootTable("common.loot_tables.weapons.tier-5")),
+    (2.0, LootTable("common.loot_tables.armor.steel")),
+    (0.25, Item("common.items.armor.misc.neck.plain_1")),
+    (0.5, Item("common.items.armor.misc.ring.gold")),
+    (0.25, Item("common.items.armor.misc.ring.skull")),
+    // Misc
+    (0.1, Item("common.items.glider.glider_blue")),
+    (0.001, Item("common.items.armor.misc.back.backpack")),
+    (0.1, Item("common.items.armor.misc.bag.heavy_seabag")),
+    (0.5, LootTable("common.loot_tables.fireworks")),
+    (0.5, Item("common.items.utility.bomb")),
 ]
