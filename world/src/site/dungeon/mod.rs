@@ -1230,7 +1230,7 @@ fn mini_boss_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
                 ),
             ))
             .with_name("Deadwood".to_string())
-            .with_loot_drop(chosen.read().choose().to_item())
+            .with_loot_drop(chosen.read().choose().to_item()),
     ]
 }
 
