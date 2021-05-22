@@ -172,8 +172,8 @@ impl Loadout {
         assert_eq!(self.swap(equip_slot_a, item_b), None);
 
         // Check if items are valid in their new positions
-        if !self.slot_can_hold(equip_slot_a, self.equipped(equip_slot_b).map(|x| x.kind()))
-            || !self.slot_can_hold(equip_slot_b, self.equipped(equip_slot_a).map(|x| x.kind()))
+        if !self.slot_can_hold(equip_slot_a, self.equipped(equip_slot_a).map(|x| x.kind()))
+            || !self.slot_can_hold(equip_slot_b, self.equipped(equip_slot_b).map(|x| x.kind()))
         {
             // If not, revert the swap
             let item_a = self.swap(equip_slot_a, None);
