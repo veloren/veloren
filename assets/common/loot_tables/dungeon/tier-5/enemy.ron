@@ -14,11 +14,6 @@
     (0.1, Item("common.items.glider.glider_blue")),
     (0.001, Item("common.items.armor.misc.back.backpack")),
     (0.1, Item("common.items.armor.misc.bag.heavy_seabag")),
-    (0.1, Item("common.items.utility.firework_blue")),
-    (0.1, Item("common.items.utility.firework_green")),
-    (0.1, Item("common.items.utility.firework_purple")),
-    (0.1, Item("common.items.utility.firework_red")),
-    (0.1, Item("common.items.utility.firework_white")),
-    (0.1, Item("common.items.utility.firework_yellow")),
+    (0.5, LootTable("common.loot_tables.fireworks")),
     (0.5, Item("common.items.utility.bomb")),
 ]
