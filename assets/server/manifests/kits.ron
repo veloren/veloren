@@ -80,4 +80,22 @@
         ("common.items.weapons.sceptre.coralline_cane", 1),
         ("common.items.consumable.potion_med", 100),
     ],
+    "tier-0": [
+        ("common.items.armor.cloth_purple.belt", 1),
+        ("common.items.armor.cloth_purple.chest", 1),
+        ("common.items.armor.cloth_purple.foot", 1),
+        ("common.items.armor.cloth_purple.hand", 1),
+        ("common.items.armor.cloth_purple.pants", 1),
+        ("common.items.armor.cloth_purple.shoulder", 1),
+
+        ("common.items.weapons.sword.stone-0", 1),
+        ("common.items.weapons.axe_1h.stone-0", 1),
+        ("common.items.weapons.axe_1h.stone-1", 1),
+        ("common.items.weapons.hammer.stone_hammer-0", 1),
+        ("common.items.weapons.bow.wood-0", 1),
+        ("common.items.weapons.staff.bent_fuse", 1),
+        ("common.items.weapons.sceptre.divine_gohei", 1),
+
+        ("common.items.consumable.potion_minor", 100),
+    ],
 })
