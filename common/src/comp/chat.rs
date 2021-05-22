@@ -113,8 +113,6 @@ pub enum ChatType<G> {
     NpcTell(Uid, Uid, u16),
     /// Anything else
     Meta,
-    // Looted items
-    Loot,
 }
 
 impl<G> ChatType<G> {
@@ -166,7 +164,6 @@ impl<G> GenericChatMsg<G> {
             ChatType::Offline(a) => ChatType::Offline(a),
             ChatType::CommandInfo => ChatType::CommandInfo,
             ChatType::CommandError => ChatType::CommandError,
-            ChatType::Loot => ChatType::Loot,
             ChatType::FactionMeta(a) => ChatType::FactionMeta(a),
             ChatType::GroupMeta(g) => ChatType::GroupMeta(f(g)),
             ChatType::Kill(a, b) => ChatType::Kill(a, b),
@@ -214,7 +211,6 @@ impl<G> GenericChatMsg<G> {
             ChatType::Offline(_) => SpeechBubbleType::None,
             ChatType::CommandInfo => SpeechBubbleType::None,
             ChatType::CommandError => SpeechBubbleType::None,
-            ChatType::Loot => SpeechBubbleType::None,
             ChatType::FactionMeta(_) => SpeechBubbleType::None,
             ChatType::GroupMeta(_) => SpeechBubbleType::None,
             ChatType::Kill(_, _) => SpeechBubbleType::None,
@@ -237,7 +233,6 @@ impl<G> GenericChatMsg<G> {
             ChatType::Offline(_) => None,
             ChatType::CommandInfo => None,
             ChatType::CommandError => None,
-            ChatType::Loot => None,
             ChatType::FactionMeta(_) => None,
             ChatType::GroupMeta(_) => None,
             ChatType::Kill(_, _) => None,

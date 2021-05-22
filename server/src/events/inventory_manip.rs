@@ -158,7 +158,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     );
                     drop(item_storage);
                     drop(inventories);
-                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::CollectFailed)
+                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::EntityCollectFailed(uid))
                 },
                 Ok(_) => {
                     // We succeeded in picking up the item, so we may now delete its old entity
@@ -216,7 +216,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             // drop it.
                             Err(_) => (
                                 Some(comp::InventoryUpdate::new(
-                                    comp::InventoryUpdateEvent::CollectFailed,
+                                    comp::InventoryUpdateEvent::BlockCollectFailed(pos),
                                 )),
                                 false,
                             ),

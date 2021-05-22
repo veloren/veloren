@@ -543,7 +543,6 @@ impl StateExt for State {
             comp::ChatType::Offline(_)
             | comp::ChatType::CommandInfo
             | comp::ChatType::CommandError
-            | comp::ChatType::Loot
             | comp::ChatType::Meta
             | comp::ChatType::World(_) => self.notify_players(ServerGeneral::ChatMsg(resolved_msg)),
             comp::ChatType::Online(u) => {

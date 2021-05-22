@@ -9,6 +9,7 @@ mod group;
 mod hotbar;
 pub mod img_ids;
 pub mod item_imgs;
+mod loot_scroller;
 mod map;
 mod minimap;
 mod overhead;
@@ -25,6 +26,7 @@ pub mod util;
 pub use crafting::CraftingTab;
 pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
 pub use item_imgs::animate_by_pulse;
+pub use loot_scroller::LootMessage;
 pub use settings_window::ScaleChange;
 
 use bag::Bag;
@@ -38,6 +40,7 @@ use esc_menu::EscMenu;
 use group::Group;
 use img_ids::Imgs;
 use item_imgs::ItemImgs;
+use loot_scroller::LootScroller;
 use map::Map;
 use minimap::MiniMap;
 use popup::Popup;
@@ -60,7 +63,8 @@ use crate::{
     },
     settings::chat::ChatFilter,
     ui::{
-        fonts::Fonts, img_ids::Rotations, slot, slot::SlotKey, Graphic, Ingameable, ScaleMode, Ui,
+        self, fonts::Fonts, img_ids::Rotations, slot, slot::SlotKey, Graphic, Ingameable,
+        ScaleMode, Ui,
     },
     window::{Event as WinEvent, GameInput},
     GlobalState,
@@ -95,7 +99,7 @@ use conrod_core::{
 };
 use hashbrown::HashMap;
 use rand::Rng;
-use specs::{Join, WorldExt};
+use specs::{Entity as EcsEntity, Join, WorldExt};
 use std::{
     borrow::Cow,
     collections::VecDeque,
@@ -161,8 +165,6 @@ const REGION_COLOR: Color = Color::Rgba(0.8, 1.0, 0.8, 1.0);
 const KILL_COLOR: Color = Color::Rgba(1.0, 0.17, 0.17, 1.0);
 /// Color for global messages
 const WORLD_COLOR: Color = Color::Rgba(0.95, 1.0, 0.95, 1.0);
-/// Color for collected loot messages
-const LOOT_COLOR: Color = Color::Rgba(0.69, 0.57, 1.0, 1.0);
 
 //Nametags
 const GROUP_MEMBER: Color = Color::Rgba(0.47, 0.84, 1.0, 1.0);
@@ -258,6 +260,7 @@ widget_ids! {
 
         // External
         chat,
+        loot_scroller,
         map,
         world_map,
         character_window,
@@ -728,7 +731,7 @@ impl Show {
 
     /// If all of the menus are closed, adjusts coordinates of cursor to center
     /// of screen
-    fn toggle_cursor_on_menu_close(&self, global_state: &mut GlobalState) {
+    fn toggle_cursor_on_menu_close(&self, global_state: &mut GlobalState, ui: &mut Ui) {
         if !self.bag
             && !self.trade
             && !self.esc_menu
@@ -740,6 +743,9 @@ impl Show {
             && !self.intro
             && global_state.window.is_cursor_grabbed()
         {
+            ui.handle_event(ui::Event(
+                conrod_core::input::Motion::MouseCursor { x: 0.0, y: 0.0 }.into(),
+            ));
             global_state.window.center_cursor();
         }
     }
@@ -782,6 +788,9 @@ pub struct Hud {
     item_imgs: ItemImgs,
     fonts: Fonts,
     rot_imgs: ImgsRot,
+    failed_block_pickups: HashMap<Vec3<i32>, f32>,
+    failed_entity_pickups: HashMap<EcsEntity, f32>,
+    new_loot_messages: VecDeque<LootMessage>,
     new_messages: VecDeque<comp::ChatMsg>,
     new_notifications: VecDeque<Notification>,
     speech_bubbles: HashMap<Uid, comp::SpeechBubble>,
@@ -864,6 +873,9 @@ impl Hud {
             item_imgs,
             fonts,
             ids,
+            failed_block_pickups: HashMap::default(),
+            failed_entity_pickups: HashMap::default(),
+            new_loot_messages: VecDeque::new(),
             new_messages: VecDeque::new(),
             new_notifications: VecDeque::new(),
             speech_bubbles: HashMap::new(),
@@ -1434,8 +1446,9 @@ impl Hud {
             let mut overitem_walker = self.ids.overitems.walk();
             let mut sct_walker = self.ids.scts.walk();
             let mut sct_bg_walker = self.ids.sct_bgs.walk();
+            let pulse = self.pulse;
 
-            let make_overitem = |item: &Item, pos, distance, active, fonts| {
+            let make_overitem = |item: &Item, pos, distance, properties, fonts| {
                 let text = if item.amount() > 1 {
                     format!("{} x {}", item.amount(), item.name())
                 } else {
@@ -1450,14 +1463,21 @@ impl Hud {
                     quality,
                     distance,
                     fonts,
+                    &i18n,
                     &global_state.settings.controls,
                     // If we're currently set to interact with the item...
-                    active,
+                    properties,
+                    pulse,
                     &global_state.window.key_layout,
                 )
                 .x_y(0.0, 100.0)
                 .position_ingame(pos)
             };
+
+            self.failed_block_pickups
+                .retain(|_, t| pulse - *t < overitem::PICKUP_FAILED_FADE_OUT_TIME);
+            self.failed_entity_pickups
+                .retain(|_, t| pulse - *t < overitem::PICKUP_FAILED_FADE_OUT_TIME);
 
             // Render overitem: name, etc.
             for (entity, pos, item, distance) in (&entities, &pos, &items)
@@ -1474,7 +1494,10 @@ impl Hud {
                     item,
                     pos.0 + Vec3::unit_z() * 1.2,
                     distance,
-                    interactable.as_ref().and_then(|i| i.entity()) == Some(entity),
+                    overitem::OveritemProperties {
+                        active: interactable.as_ref().and_then(|i| i.entity()) == Some(entity),
+                        pickup_failed_pulse: self.failed_entity_pickups.get(&entity).copied(),
+                    },
                     &self.fonts,
                 )
                 .set(overitem_id, ui_widgets);
@@ -1487,6 +1510,10 @@ impl Hud {
                     &mut ui_widgets.widget_id_generator(),
                 );
 
+                let overitem_properties = overitem::OveritemProperties {
+                    active: true,
+                    pickup_failed_pulse: self.failed_block_pickups.get(&pos).copied(),
+                };
                 let pos = pos.map(|e| e as f32 + 0.5);
                 let over_pos = pos + Vec3::unit_z() * 0.7;
 
@@ -1497,8 +1524,10 @@ impl Hud {
                         overitem::TEXT_COLOR,
                         pos.distance_squared(player_pos),
                         &self.fonts,
+                        &i18n,
                         &global_state.settings.controls,
-                        true,
+                        overitem_properties,
+                        self.pulse,
                         &global_state.window.key_layout,
                     )
                     .x_y(0.0, 100.0)
@@ -1509,7 +1538,7 @@ impl Hud {
                         &item,
                         over_pos,
                         pos.distance_squared(player_pos),
-                        true,
+                        overitem_properties,
                         &self.fonts,
                     )
                     .set(overitem_id, ui_widgets);
@@ -1520,8 +1549,10 @@ impl Hud {
                         overitem::TEXT_COLOR,
                         pos.distance_squared(player_pos),
                         &self.fonts,
+                        &i18n,
                         &global_state.settings.controls,
-                        true,
+                        overitem_properties,
+                        self.pulse,
                         &global_state.window.key_layout,
                     )
                     .x_y(0.0, 100.0)
@@ -2646,6 +2677,24 @@ impl Hud {
         self.new_messages = VecDeque::new();
         self.new_notifications = VecDeque::new();
 
+        //Loot
+        LootScroller::new(
+            &mut self.new_loot_messages,
+            client,
+            &self.show,
+            &self.imgs,
+            &self.item_imgs,
+            &self.rot_imgs,
+            &self.fonts,
+            &*i18n,
+            &msm,
+            item_tooltip_manager,
+            self.pulse,
+        )
+        .set(self.ids.loot_scroller, ui_widgets);
+
+        self.new_loot_messages = VecDeque::new();
+
         // Windows
 
         // Char Window will always appear at the left side. Other Windows default to the
@@ -3201,6 +3250,18 @@ impl Hud {
         events
     }
 
+    pub fn add_failed_block_pickup(&mut self, pos: Vec3<i32>) {
+        self.failed_block_pickups.insert(pos, self.pulse);
+    }
+
+    pub fn add_failed_entity_pickup(&mut self, entity: EcsEntity) {
+        self.failed_entity_pickups.insert(entity, self.pulse);
+    }
+
+    pub fn new_loot_message(&mut self, item: LootMessage) {
+        self.new_loot_messages.push_back(item);
+    }
+
     pub fn new_message(&mut self, msg: comp::ChatMsg) { self.new_messages.push_back(msg); }
 
     pub fn new_notification(&mut self, msg: Notification) { self.new_notifications.push_back(msg); }
@@ -3443,7 +3504,8 @@ impl Hud {
 
                 // When a player closes all menus, resets the cursor
                 // to the center of the screen
-                self.show.toggle_cursor_on_menu_close(global_state);
+                self.show
+                    .toggle_cursor_on_menu_close(global_state, &mut self.ui);
                 matching_key
             },
             // Else the player is typing in chat

@@ -9,6 +9,7 @@
         "hud.you_died": "You Died",
         "hud.waypoint_saved": "Waypoint Saved",
         "hud.sp_arrow_txt": "SP",
+        "hud.inventory_full": "Inventory Full",
 
         "hud.press_key_to_show_keybindings_fmt": "[{key}] Keybindings",
         "hud.press_key_to_toggle_lantern_fmt": "[{key}] Lantern",

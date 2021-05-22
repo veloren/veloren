@@ -1900,7 +1900,8 @@ impl Client {
             },
             ServerGeneral::InventoryUpdate(inventory, event) => {
                 match event {
-                    InventoryUpdateEvent::CollectFailed => {},
+                    InventoryUpdateEvent::BlockCollectFailed(_) => {},
+                    InventoryUpdateEvent::EntityCollectFailed(_) => {},
                     _ => {
                         // Push the updated inventory component to the client
                         // FIXME: Figure out whether this error can happen under normal gameplay,
@@ -2287,7 +2288,6 @@ impl Client {
             },
             comp::ChatType::CommandError => message.to_string(),
             comp::ChatType::CommandInfo => message.to_string(),
-            comp::ChatType::Loot => message.to_string(),
             comp::ChatType::FactionMeta(_) => message.to_string(),
             comp::ChatType::GroupMeta(_) => message.to_string(),
             comp::ChatType::Kill(kill_source, victim) => {

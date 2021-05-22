@@ -561,7 +561,6 @@ image_ids! {
         chat_command_info_small: "voxygen.element.ui.chat.icons.command_info_small",
         chat_online_small: "voxygen.element.ui.chat.icons.online_small",
         chat_offline_small: "voxygen.element.ui.chat.icons.offline_small",
-        chat_loot_small: "voxygen.element.ui.chat.icons.loot_small",
 
         chat_faction: "voxygen.element.ui.chat.icons.faction",
         chat_group: "voxygen.element.ui.chat.icons.group",
