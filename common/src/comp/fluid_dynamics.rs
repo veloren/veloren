@@ -1,6 +1,6 @@
 use super::{
     body::{object, Body},
-    CharacterState, Density, Ori, Vel,
+    Density, Ori, Vel,
 };
 use crate::{
     consts::{AIR_DENSITY, WATER_DENSITY},
@@ -87,12 +87,18 @@ impl Default for Fluid {
     }
 }
 
+pub struct Wings {
+    pub aspect_ratio: f32,
+    pub planform_area: f32,
+    pub ori: Ori,
+}
+
 impl Body {
     pub fn aerodynamic_forces(
         &self,
         rel_flow: &Vel,
         fluid_density: f32,
-        character_state: Option<&CharacterState>,
+        wings: Option<&Wings>,
     ) -> Vec3<f32> {
         let v_sq = rel_flow.0.magnitude_squared();
         if v_sq < 0.25 {
@@ -103,31 +109,27 @@ impl Body {
             // All the coefficients come pre-multiplied by their reference area
             0.5 * fluid_density
                 * v_sq
-                * character_state
-                    .and_then(|cs| match cs {
-                        CharacterState::Glide(data) => {
-                            Some((data.aspect_ratio, data.planform_area, data.ori))
-                        },
-                        _ => None,
-                    })
-                    .map(|(ar, area, ori)| {
-                        if ar > 25.0 {
+                * match wings {
+                    Some(&Wings {
+                        aspect_ratio,
+                        planform_area,
+                        ori,
+                    }) => {
+                        if aspect_ratio > 25.0 {
                             tracing::warn!(
                                 "Calculating lift for wings with an aspect ratio of {}. The \
                                  formulas are only valid for aspect ratios below 25.",
-                                ar
+                                aspect_ratio
                             )
                         };
-                        (ar.min(24.0), area, ori)
-                    })
-                    .map(|(ar, area, ori)| {
+                        let ar = aspect_ratio.min(24.0);
                         // We have an elliptical wing; proceed to calculate its lift and drag
 
                         // aoa will be positive when we're pitched up and negative otherwise
                         let aoa = angle_of_attack(&ori, &rel_flow_dir);
                         // c_l will be positive when aoa is positive (we have positive lift,
                         // producing an upward force) and negative otherwise
-                        let c_l = lift_coefficient(ar, area, aoa);
+                        let c_l = lift_coefficient(ar, planform_area, aoa);
 
                         // lift dir will be orthogonal to the local relative flow vector.
                         // Local relative flow is the resulting vector of (relative) freestream
@@ -151,22 +153,26 @@ impl Body {
                             ori.pitched_down(aoa_eff).up()
                         };
 
-                        // drag coefficient due to lift
+                        // drag coefficient
                         let c_d = {
                             // Oswald's efficiency factor (empirically derived--very magical)
                             // (this definition should not be used for aspect ratios > 25)
                             let e = 1.78 * (1.0 - 0.045 * ar.powf(0.68)) - 0.64;
+                            // induced drag coefficient (drag due to lift)
+                            let cdi = c_l.powi(2) / (PI * e * ar);
 
-                            zero_lift_drag_coefficient(area)
-                                + self.parasite_drag_coefficient()
-                                + c_l.powi(2) / (PI * e * ar)
+                            zero_lift_drag_coefficient(planform_area)
+                                + self.parasite_drag_coefficient(wings)
+                                + cdi
                         };
                         debug_assert!(c_d.is_sign_positive());
                         debug_assert!(c_l.is_sign_positive() || aoa.is_sign_negative());
 
                         c_l * *lift_dir + c_d * *rel_flow_dir
-                    })
-                    .unwrap_or_else(|| self.parasite_drag_coefficient() * *rel_flow_dir)
+                    },
+
+                    _ => self.parasite_drag_coefficient(wings) * *rel_flow_dir,
+                }
         }
     }
 
@@ -174,14 +180,15 @@ impl Body {
     /// Skin friction is the drag arising from the shear forces between a fluid
     /// and a surface, while pressure drag is due to flow separation. Both are
     /// viscous effects.
-    fn parasite_drag_coefficient(&self) -> f32 {
+    fn parasite_drag_coefficient(&self, wings: Option<&Wings>) -> f32 {
         // Reference area and drag coefficient assumes best-case scenario of the
         // orientation producing least amount of drag
         match self {
             // Cross-section, head/feet first
             Body::BipedLarge(_) | Body::BipedSmall(_) | Body::Golem(_) | Body::Humanoid(_) => {
                 let dim = self.dimensions().xy().map(|a| a * 0.5);
-                0.7 * PI * dim.x * dim.y
+                const CD: f32 = 0.7;
+                CD * PI * dim.x * dim.y
             },
 
             // Cross-section, nose/tail first
@@ -190,7 +197,7 @@ impl Body {
             | Body::QuadrupedSmall(_)
             | Body::QuadrupedLow(_) => {
                 let dim = self.dimensions().map(|a| a * 0.5);
-                let cd = if matches!(self, Body::QuadrupedLow(_)) {
+                let cd: f32 = if matches!(self, Body::QuadrupedLow(_)) {
                     0.7
                 } else {
                     1.0
@@ -201,12 +208,16 @@ impl Body {
             // Cross-section, zero-lift angle; exclude the wings (width * 0.2)
             Body::BirdMedium(_) | Body::BirdLarge(_) | Body::Dragon(_) => {
                 let dim = self.dimensions().map(|a| a * 0.5);
-                // "Field Estimates of Body Drag Coefficient on the Basis of Dives in Passerine
-                // Birds", Anders Hedenström and Felix Liechti, 2001
-                let cd = match self {
-                    Body::BirdLarge(_) | Body::BirdMedium(_) => 0.2,
-                    // arbitrary
-                    _ => 0.7,
+                let cd: f32 = if wings.is_none() {
+                    0.7
+                } else {
+                    // "Field Estimates of Body Drag Coefficient on the Basis of Dives in Passerine
+                    // Birds", Anders Hedenström and Felix Liechti, 2001
+                    match self {
+                        Body::BirdLarge(_) | Body::BirdMedium(_) => 0.2,
+                        // arbitrary
+                        _ => 0.7,
+                    }
                 };
                 cd * PI * dim.x * 0.2 * dim.z
             },
@@ -216,7 +227,8 @@ impl Body {
                 let dim = self.dimensions().map(|a| a * 0.5);
                 // "A Simple Method to Determine Drag Coefficients in Aquatic Animals",
                 // D. Bilo and W. Nachtigall, 1980
-                0.031 * PI * dim.x * 0.2 * dim.z
+                const CD: f32 = 0.031;
+                CD * PI * dim.x * 0.2 * dim.z
             },
 
             Body::Object(object) => match object {
@@ -232,7 +244,8 @@ impl Body {
                 | object::Body::FireworkYellow
                 | object::Body::MultiArrow => {
                     let dim = self.dimensions().map(|a| a * 0.5);
-                    0.02 * PI * dim.x * dim.z
+                    const CD: f32 = 0.02;
+                    CD * PI * dim.x * dim.z
                 },
 
                 // spherical-ish objects
@@ -250,12 +263,14 @@ impl Body {
                 | object::Body::Pumpkin4
                 | object::Body::Pumpkin5 => {
                     let dim = self.dimensions().map(|a| a * 0.5);
-                    0.5 * PI * dim.x * dim.z
+                    const CD: f32 = 0.5;
+                    CD * PI * dim.x * dim.z
                 },
 
                 _ => {
                     let dim = self.dimensions();
-                    2.0 * (PI / 6.0 * dim.x * dim.y * dim.z).powf(2.0 / 3.0)
+                    const CD: f32 = 2.0;
+                    CD * (PI / 6.0 * dim.x * dim.y * dim.z).powf(2.0 / 3.0)
                 },
             },
 

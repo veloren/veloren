@@ -184,18 +184,24 @@ impl Body {
             },
             Body::BipedSmall(_) => 50.0,
 
-            // ravens are 0.69-2 kg, crows are 0.51 kg on average
-            Body::BirdMedium(_) => 1.0,
-            Body::BirdLarge(_) => 200.0,
+            // ravens are 0.69-2 kg, crows are 0.51 kg on average.
+            Body::BirdMedium(body) => match body.species {
+                bird_medium::Species::Chicken => 2.0, // ~✅ Red junglefowl are 1-1.5 kg
+                bird_medium::Species::Duck => 2.0,
+                bird_medium::Species::Eagle => 10.0, // ~✅ Steller's sea eagle are 5-9 kg
+                bird_medium::Species::Goose => 3.5,  // ~✅ Swan geese are 2.8-3.5 kg
+                bird_medium::Species::Owl => 2.0,
+                bird_medium::Species::Parrot => 2.0,
+                bird_medium::Species::Peacock => 5.0,
+            },
+            Body::BirdLarge(_) => 100.0,
 
             Body::Dragon(_) => 20_000.0,
-            Body::FishMedium(_) => 2.5,
+            Body::FishMedium(_) => 5.0,
             Body::FishSmall(_) => 1.0,
             Body::Golem(_) => 10_000.0,
             Body::Humanoid(humanoid) => {
-                // humanoids are quite a bit larger than in real life, so we multiply their mass
-                // to scale it up proportionally (remember cube law)
-                1.0 * match (humanoid.species, humanoid.body_type) {
+                match (humanoid.species, humanoid.body_type) {
                     (humanoid::Species::Orc, humanoid::BodyType::Male) => 120.0,
                     (humanoid::Species::Orc, humanoid::BodyType::Female) => 120.0,
                     (humanoid::Species::Human, humanoid::BodyType::Male) => 77.0, // ~✅
@@ -240,13 +246,33 @@ impl Body {
                 _ => 200.0,
             },
             Body::QuadrupedSmall(body) => match body.species {
-                quadruped_small::Species::Batfox => 50.0,
+                quadruped_small::Species::Axolotl => 1.0,
+                quadruped_small::Species::Batfox => 10.0,
+                quadruped_small::Species::Beaver => 10.0,
                 quadruped_small::Species::Boar => 80.0, // ~✅ (60-100 kg)
-                quadruped_small::Species::Dodarock => 150.0,
-                quadruped_small::Species::Holladon => 150.0,
+                quadruped_small::Species::Cat => 4.0,   // ~✅ (4-5 kg)
+                quadruped_small::Species::Dodarock => 500.0,
+                quadruped_small::Species::Dog => 30.0, // ~✅ (German Shepherd: 30-40 kg)
+                quadruped_small::Species::Fox => 10.0,
+                quadruped_small::Species::Frog => 1.0,
+                quadruped_small::Species::Fungome => 10.0,
+                quadruped_small::Species::Gecko => 1.0,
+                quadruped_small::Species::Goat => 50.0,
+                quadruped_small::Species::Hare => 10.0,
+                quadruped_small::Species::Holladon => 60.0,
                 quadruped_small::Species::Hyena => 70.0, // ~✅ (vaguely)
-                quadruped_small::Species::Truffler => 150.0,
-                _ => 80.0,
+                quadruped_small::Species::Jackalope => 10.0,
+                quadruped_small::Species::Pig => 20.0,
+                quadruped_small::Species::Porcupine => 5.0,
+                quadruped_small::Species::Quokka => 10.0,
+                quadruped_small::Species::Rabbit => 2.0,
+                quadruped_small::Species::Raccoon => 30.0,
+                quadruped_small::Species::Rat => 1.0,
+                quadruped_small::Species::Sheep => 50.0,
+                quadruped_small::Species::Skunk => 5.0,
+                quadruped_small::Species::Squirrel => 1.0,
+                quadruped_small::Species::Truffler => 70.0,
+                quadruped_small::Species::Turtle => 40.0,
             },
             Body::Theropod(body) => match body.species {
                 // for reference, elephants are in the range of 2.6-6.9 tons
