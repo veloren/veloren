@@ -1220,7 +1220,7 @@ fn boss_fallback(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Ent
 }
 
 fn mini_boss_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.weapons.tier-0");
+    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-0.miniboss");
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
             .with_body(comp::Body::QuadrupedLow(
@@ -1240,7 +1240,7 @@ fn mini_boss_1(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
     entities.resize_with(4, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
             .with_body(comp::Body::QuadrupedSmall(
-                comp::quadruped_low::Body::random_with(
+                comp::quadruped_small::Body::random_with(
                     dynamic_rng,
                     &comp::quadruped_small::Species::Rat,
                 ),
@@ -1281,7 +1281,7 @@ fn mini_boss_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
                 ),
             ))
             .with_name("Bonerattler".to_string())
-            .with_loot_drop(chosen.read().choose().to_item()),
+            .with_loot_drop(chosen.read().choose().to_item())
     });
     entities
 }
