@@ -295,6 +295,22 @@ impl PlayState for SessionState {
                 camera.set_orientation(cam_dir);
             }
 
+            let client = self.client.borrow();
+            let player_entity = client.entity();
+
+            let fov_scaling = {
+                if let Some(comp::CharacterState::ChargedRanged(cr)) = client
+                    .state()
+                    .read_storage::<comp::CharacterState>()
+                    .get(player_entity)
+                {
+                    1.0 - 3.0 * cr.charge_frac() / 4.0
+                } else {
+                    1.0
+                }
+            };
+            camera.set_fov((global_state.settings.graphics.fov as f32 * fov_scaling).to_radians());
+
             // Compute camera data
             camera.compute_dependents(&*self.client.borrow().state().terrain());
             let camera::Dependents {
@@ -305,18 +321,17 @@ impl PlayState for SessionState {
             let cam_pos = cam_pos + focus_off;
 
             let (is_aiming, aim_dir_offset) = {
-                let client = self.client.borrow();
                 let is_aiming = client
                     .state()
                     .read_storage::<comp::CharacterState>()
-                    .get(client.entity())
+                    .get(player_entity)
                     .map(|cs| cs.is_aimed())
                     .unwrap_or(false);
 
                 (
                     is_aiming,
                     if is_aiming && self.scene.camera().get_mode() == CameraMode::ThirdPerson {
-                        Vec3::unit_z() * 0.05
+                        Vec3::unit_z() * 0.025
                     } else {
                         Vec3::zero()
                     },
@@ -324,25 +339,21 @@ impl PlayState for SessionState {
             };
             self.is_aiming = is_aiming;
 
-            let player_entity = self.client.borrow().entity();
-
-            let can_build = self
-                .client
-                .borrow()
+            let can_build = client
                 .state()
                 .read_storage::<comp::CanBuild>()
                 .get(player_entity)
                 .map_or_else(|| false, |cb| cb.enabled);
 
-            let is_mining = self
-                .client
-                .borrow()
+            let is_mining = client
                 .inventories()
                 .get(player_entity)
                 .and_then(|inv| inv.equipped(EquipSlot::ActiveMainhand))
                 .and_then(|item| item.tool())
                 .map_or(false, |tool| tool.kind == ToolKind::Pick)
-                && self.client.borrow().is_wielding() == Some(true);
+                && client.is_wielding() == Some(true);
+
+            drop(client);
 
             // Check to see whether we're aiming at anything
             let (build_pos, select_pos, target_entity) =

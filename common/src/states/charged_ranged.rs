@@ -61,6 +61,13 @@ pub struct Data {
     pub exhausted: bool,
 }
 
+impl Data {
+    /// How complete the charge is, on a scale of 0.0 to 1.0
+    pub fn charge_frac(&self) -> f32 {
+        (self.timer.as_secs_f32() / self.static_data.charge_duration.as_secs_f32()).min(1.0)
+    }
+}
+
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
@@ -91,9 +98,7 @@ impl CharacterBehavior for Data {
             },
             StageSection::Charge => {
                 if !input_is_pressed(data, self.static_data.ability_info.input) && !self.exhausted {
-                    let charge_frac = (self.timer.as_secs_f32()
-                        / self.static_data.charge_duration.as_secs_f32())
-                    .min(1.0);
+                    let charge_frac = self.charge_frac();
                     let arrow = ProjectileConstructor::Arrow {
                         damage: self.static_data.initial_damage as f32
                             + charge_frac * self.static_data.scaled_damage as f32,
