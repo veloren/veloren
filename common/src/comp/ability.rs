@@ -80,6 +80,7 @@ pub enum CharacterAbility {
         projectile_light: Option<LightEmitter>,
         projectile_speed: f32,
         num_projectiles: u32,
+        projectile_spread: f32,
     },
     RepeaterRanged {
         energy_cost: f32,
@@ -938,77 +939,81 @@ impl CharacterAbility {
             Some(ToolKind::Bow) => {
                 use skills::BowSkill::*;
                 match self {
-                    BasicRanged {
-                        ref mut projectile,
-                        ref mut projectile_speed,
-                        ..
-                    } => {
-                        if let Ok(Some(level)) = skillset.skill_level(Bow(ProjSpeed)) {
-                            *projectile_speed *= 1.3_f32.powi(level.into());
-                        }
-                        let damage_level = skillset
-                            .skill_level(Bow(BDamage))
-                            .unwrap_or(None)
-                            .unwrap_or(0);
-                        let regen_level = skillset
-                            .skill_level(Bow(BRegen))
-                            .unwrap_or(None)
-                            .unwrap_or(0);
-                        let power = 1.20_f32.powi(damage_level.into());
-                        let regen = 1.4_f32.powi(regen_level.into());
-                        *projectile = projectile.modified_projectile(power, regen, 1_f32);
-                    },
                     ChargedRanged {
                         ref mut scaled_damage,
+                        ref mut scaled_regen,
                         ref mut scaled_knockback,
-                        ref mut energy_drain,
                         ref mut speed,
+                        ref mut move_speed,
                         ref mut initial_projectile_speed,
                         ref mut scaled_projectile_speed,
-                        ref mut move_speed,
                         ..
                     } => {
                         if let Ok(Some(level)) = skillset.skill_level(Bow(ProjSpeed)) {
-                            *initial_projectile_speed *= 1.3_f32.powi(level.into());
+                            let projectile_speed_scaling = 1.2_f32.powi(level.into());
+                            *initial_projectile_speed *= projectile_speed_scaling;
+                            *scaled_projectile_speed *= projectile_speed_scaling;
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CDamage)) {
                             *scaled_damage *= 1.2_f32.powi(level.into());
                         }
+                        if let Ok(Some(level)) = skillset.skill_level(Bow(CRegen)) {
+                            *scaled_regen *= 1.2_f32.powi(level.into());
+                        }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CKnockback)) {
-                            *scaled_knockback *= 1.25_f32.powi(level.into());
-                        }
-                        if let Ok(Some(level)) = skillset.skill_level(Bow(CProjSpeed)) {
-                            *scaled_projectile_speed *= 1.2_f32.powi(level.into());
-                        }
-                        if let Ok(Some(level)) = skillset.skill_level(Bow(CDrain)) {
-                            *energy_drain *= 0.85_f32.powi(level.into());
+                            *scaled_knockback *= 1.2_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CSpeed)) {
-                            *speed *= 1.10_f32.powi(level.into());
+                            *speed *= 1.1_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CMove)) {
-                            *move_speed *= 1.25_f32.powi(level.into());
+                            *move_speed *= 1.2_f32.powi(level.into());
                         }
                     },
                     RepeaterRanged {
                         ref mut energy_cost,
-                        ref mut buildup_duration,
                         ref mut projectile,
+                        ref mut max_speed,
                         ref mut projectile_speed,
                         ..
                     } => {
                         if let Ok(Some(level)) = skillset.skill_level(Bow(ProjSpeed)) {
-                            *projectile_speed *= 1.3_f32.powi(level.into());
+                            *projectile_speed *= 1.2_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(RDamage)) {
-                            let power = 1.4_f32.powi(level.into());
+                            let power = 1.2_f32.powi(level.into());
                             *projectile = projectile.modified_projectile(power, 1_f32, 1_f32);
                         }
-                        if !skillset.has_skill(Bow(RGlide)) {
-                            *buildup_duration = 0.001;
-                        }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(RCost)) {
-                            *energy_cost *= 0.70_f32.powi(level.into());
+                            *energy_cost *= 0.8_f32.powi(level.into());
+                        }
+                        if let Ok(Some(level)) = skillset.skill_level(Bow(RSpeed)) {
+                            *max_speed *= 1.2_f32.powi(level.into());
+                        }
+                    },
+                    BasicRanged {
+                        ref mut projectile,
+                        ref mut energy_cost,
+                        ref mut num_projectiles,
+                        ref mut projectile_spread,
+                        ref mut projectile_speed,
+                        ..
+                    } => {
+                        if let Ok(Some(level)) = skillset.skill_level(Bow(ProjSpeed)) {
+                            *projectile_speed *= 1.2_f32.powi(level.into());
+                        }
+                        if let Ok(Some(level)) = skillset.skill_level(Bow(SDamage)) {
+                            let power = 1.2_f32.powi(level.into());
+                            *projectile = projectile.modified_projectile(power, 1_f32, 1_f32);
+                        }
+                        if let Ok(Some(level)) = skillset.skill_level(Bow(SCost)) {
+                            *energy_cost *= 0.8_f32.powi(level.into());
+                        }
+                        if let Ok(Some(level)) = skillset.skill_level(Bow(SArrows)) {
+                            *num_projectiles += level as u32;
+                        }
+                        if let Ok(Some(level)) = skillset.skill_level(Bow(SSpread)) {
+                            *projectile_spread *= 0.8_f32.powi(level.into());
                         }
                     },
                     _ => {},
@@ -1224,6 +1229,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 projectile_speed,
                 energy_cost: _,
                 num_projectiles,
+                projectile_spread,
             } => CharacterState::BasicRanged(basic_ranged::Data {
                 static_data: basic_ranged::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1233,6 +1239,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     projectile_light: *projectile_light,
                     projectile_speed: *projectile_speed,
                     num_projectiles: *num_projectiles,
+                    projectile_spread: *projectile_spread,
                     ability_info,
                 },
                 timer: Duration::default(),

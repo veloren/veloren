@@ -2,6 +2,7 @@ BasicRanged(
     energy_cost: 350,
     buildup_duration: 0.4,
     recover_duration: 0.3,
+    projectile_spread: 0.05,
     projectile: Arrow(
         damage: 50.0,
         knockback: 5.0,
@@ -10,5 +11,5 @@ BasicRanged(
     projectile_body: Object(Arrow),
     projectile_light: None,
     projectile_speed: 60.0,
-    num_projectiles: 8,
+    num_projectiles: 6,
 )

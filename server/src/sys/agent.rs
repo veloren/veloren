@@ -2091,7 +2091,7 @@ impl<'a> AgentData<'a> {
                         agent.action_state.timer += read_data.dt.0;
                     } else if self
                         .skill_set
-                        .has_skill(Skill::Bow(BowSkill::UnlockRepeater))
+                        .has_skill(Skill::Bow(BowSkill::UnlockShotgun))
                         && self.energy.current() > 400
                         && thread_rng().gen_bool(0.8)
                     {

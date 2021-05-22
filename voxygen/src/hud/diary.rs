@@ -102,21 +102,21 @@ widget_ids! {
         skill_hammer_leap_4,
         skill_hammer_leap_5,
         bow_render,
-        skill_bow_basic_0,
-        skill_bow_basic_1,
-        skill_bow_basic_2,
         skill_bow_charged_0,
         skill_bow_charged_1,
         skill_bow_charged_2,
         skill_bow_charged_3,
         skill_bow_charged_4,
         skill_bow_charged_5,
-        skill_bow_charged_6,
         skill_bow_repeater_0,
         skill_bow_repeater_1,
         skill_bow_repeater_2,
         skill_bow_repeater_3,
-        skill_bow_repeater_4,
+        skill_bow_shotgun_0,
+        skill_bow_shotgun_1,
+        skill_bow_shotgun_2,
+        skill_bow_shotgun_3,
+        skill_bow_shotgun_4,
         skill_bow_passive_0,
         staff_render,
         skill_staff_basic_0,
@@ -538,7 +538,7 @@ impl<'a> Widget for Diary<'a> {
             SelectedSkillTree::Weapon(ToolKind::Sword) => 5,
             SelectedSkillTree::Weapon(ToolKind::Axe) => 5,
             SelectedSkillTree::Weapon(ToolKind::Hammer) => 5,
-            SelectedSkillTree::Weapon(ToolKind::Bow) => 3,
+            SelectedSkillTree::Weapon(ToolKind::Bow) => 6,
             SelectedSkillTree::Weapon(ToolKind::Staff) => 4,
             SelectedSkillTree::Weapon(ToolKind::Sceptre) => 5,
             _ => 0,
@@ -548,7 +548,7 @@ impl<'a> Widget for Diary<'a> {
             SelectedSkillTree::Weapon(ToolKind::Sword) => 7,
             SelectedSkillTree::Weapon(ToolKind::Axe) => 6,
             SelectedSkillTree::Weapon(ToolKind::Hammer) => 5,
-            SelectedSkillTree::Weapon(ToolKind::Bow) => 7,
+            SelectedSkillTree::Weapon(ToolKind::Bow) => 4,
             SelectedSkillTree::Weapon(ToolKind::Staff) => 5,
             SelectedSkillTree::Weapon(ToolKind::Sceptre) => 4,
             _ => 0,
@@ -2509,72 +2509,6 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        &self.localized_strings.get("hud.skill.bow_title"),
-                        &self.localized_strings.get("hud.skill.bow"),
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_bow_basic_0, ui);
-                let skill = Skill::Bow(BDamage);
-                if create_skill_button(
-                    self.imgs.physical_damage_skill,
-                    state.skills_top_l[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.bow_damage_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.bow_damage"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
-                    &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_bow_basic_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Bow(BRegen);
-                if create_skill_button(
-                    self.imgs.physical_energy_regen_skill,
-                    state.skills_top_l[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.bow_energy_regen_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.bow_energy_regen"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
-                    &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_bow_basic_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                // Top right skills
-                Button::image(self.imgs.bow_m2)
-                    .w_h(74.0, 74.0)
-                    .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
-                    .with_tooltip(
-                        self.tooltip_manager,
                         &self.localized_strings.get("hud.skill.bow_charged_title"),
                         &self.localized_strings.get("hud.skill.bow_charged"),
                         &diary_tooltip,
@@ -2584,7 +2518,7 @@ impl<'a> Widget for Diary<'a> {
                 let skill = Skill::Bow(CDamage);
                 if create_skill_button(
                     self.imgs.physical_damage_skill,
-                    state.skills_top_r[1],
+                    state.skills_top_l[1],
                     &self.skill_set,
                     skill,
                     self.fonts,
@@ -2609,10 +2543,10 @@ impl<'a> Widget for Diary<'a> {
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
-                let skill = Skill::Bow(CDrain);
+                let skill = Skill::Bow(CRegen);
                 if create_skill_button(
-                    self.imgs.physical_energy_drain_skill,
-                    state.skills_top_r[2],
+                    self.imgs.physical_energy_regen_skill,
+                    state.skills_top_l[2],
                     &self.skill_set,
                     skill,
                     self.fonts,
@@ -2622,9 +2556,11 @@ impl<'a> Widget for Diary<'a> {
                     self.tooltip_manager,
                     &self
                         .localized_strings
-                        .get("hud.skill.bow_charged_drain_title"),
+                        .get("hud.skill.bow_charged_energy_regen_title"),
                     &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.bow_charged_drain"),
+                        &self
+                            .localized_strings
+                            .get("hud.skill.bow_charged_energy_regen"),
                         skill,
                         &self.skill_set,
                         &self.localized_strings,
@@ -2637,10 +2573,10 @@ impl<'a> Widget for Diary<'a> {
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
-                let skill = Skill::Bow(CProjSpeed);
+                let skill = Skill::Bow(CKnockback);
                 if create_skill_button(
-                    self.imgs.physical_projectile_speed_skill,
-                    state.skills_top_r[3],
+                    self.imgs.physical_knockback_skill,
+                    state.skills_top_l[3],
                     &self.skill_set,
                     skill,
                     self.fonts,
@@ -2650,11 +2586,11 @@ impl<'a> Widget for Diary<'a> {
                     self.tooltip_manager,
                     &self
                         .localized_strings
-                        .get("hud.skill.bow_charged_projectile_speed_title"),
+                        .get("hud.skill.bow_charged_knockback_title"),
                     &add_sp_cost_tooltip(
                         &self
                             .localized_strings
-                            .get("hud.skill.bow_charged_projectile_speed"),
+                            .get("hud.skill.bow_charged_knockback"),
                         skill,
                         &self.skill_set,
                         &self.localized_strings,
@@ -2670,7 +2606,7 @@ impl<'a> Widget for Diary<'a> {
                 let skill = Skill::Bow(CSpeed);
                 if create_skill_button(
                     self.imgs.physical_speed_skill,
-                    state.skills_top_r[4],
+                    state.skills_top_l[4],
                     &self.skill_set,
                     skill,
                     self.fonts,
@@ -2698,7 +2634,7 @@ impl<'a> Widget for Diary<'a> {
                 let skill = Skill::Bow(CMove);
                 if create_skill_button(
                     self.imgs.physical_speed_skill,
-                    state.skills_top_r[5],
+                    state.skills_top_l[5],
                     &self.skill_set,
                     skill,
                     self.fonts,
@@ -2708,11 +2644,9 @@ impl<'a> Widget for Diary<'a> {
                     self.tooltip_manager,
                     &self
                         .localized_strings
-                        .get("hud.skill.bow_charged_move_speed_title"),
+                        .get("hud.skill.bow_charged_move_title"),
                     &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.bow_charged_move_speed"),
+                        &self.localized_strings.get("hud.skill.bow_charged_move"),
                         skill,
                         &self.skill_set,
                         &self.localized_strings,
@@ -2725,69 +2659,22 @@ impl<'a> Widget for Diary<'a> {
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
-                let skill = Skill::Bow(CKnockback);
-                if create_skill_button(
-                    self.imgs.physical_knockback_skill,
-                    state.skills_top_r[6],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.bow_charged_knockback_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.bow_charged_knockback"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
-                    &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_bow_charged_6, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                // Bottom left skills
-                let skill = Skill::Bow(UnlockRepeater);
-                if create_skill_button(
-                    self.imgs.skill_bow_jump_burst,
-                    state.skills_bot_l[0],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.bow_repeater_unlock_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.bow_repeater_unlock"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
-                    &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_bow_repeater_0, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                // Top right skills
+                Button::image(self.imgs.bow_m2)
+                    .w_h(74.0, 74.0)
+                    .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &self.localized_strings.get("hud.skill.bow_repeater_title"),
+                        &self.localized_strings.get("hud.skill.bow_repeater"),
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_bow_repeater_0, ui);
                 let skill = Skill::Bow(RDamage);
                 if create_skill_button(
                     self.imgs.physical_damage_skill,
-                    state.skills_bot_l[1],
+                    state.skills_top_r[1],
                     &self.skill_set,
                     skill,
                     self.fonts,
@@ -2812,38 +2699,10 @@ impl<'a> Widget for Diary<'a> {
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
-                let skill = Skill::Bow(RGlide);
-                if create_skill_button(
-                    self.imgs.physical_helicopter_skill,
-                    state.skills_bot_l[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.bow_repeater_glide_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.bow_repeater_glide"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
-                    &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_bow_repeater_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
                 let skill = Skill::Bow(RCost);
                 if create_skill_button(
                     self.imgs.physical_cost_skill,
-                    state.skills_bot_l[3],
+                    state.skills_top_r[2],
                     &self.skill_set,
                     skill,
                     self.fonts,
@@ -2863,14 +2722,157 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
+                .set(state.skill_bow_repeater_2, ui)
+                .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(skill));
+                };
+                let skill = Skill::Bow(RSpeed);
+                if create_skill_button(
+                    self.imgs.physical_speed_skill,
+                    state.skills_top_r[3],
+                    &self.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    &self
+                        .localized_strings
+                        .get("hud.skill.bow_repeater_speed_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.bow_repeater_speed"),
+                        skill,
+                        &self.skill_set,
+                        &self.localized_strings,
+                    ),
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
                 .set(state.skill_bow_repeater_3, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
-                let skill = Skill::Bow(RArrows);
+                // Bottom left skills
+                let skill = Skill::Bow(UnlockShotgun);
+                if create_skill_button(
+                    self.imgs.skill_bow_jump_burst,
+                    state.skills_bot_l[0],
+                    &self.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    &self
+                        .localized_strings
+                        .get("hud.skill.bow_shotgun_unlock_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.bow_shotgun_unlock"),
+                        skill,
+                        &self.skill_set,
+                        &self.localized_strings,
+                    ),
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_bow_shotgun_0, ui)
+                .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(skill));
+                };
+                let skill = Skill::Bow(SDamage);
+                if create_skill_button(
+                    self.imgs.physical_damage_skill,
+                    state.skills_bot_l[1],
+                    &self.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    &self
+                        .localized_strings
+                        .get("hud.skill.bow_shotgun_damage_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.bow_shotgun_damage"),
+                        skill,
+                        &self.skill_set,
+                        &self.localized_strings,
+                    ),
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_bow_shotgun_1, ui)
+                .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(skill));
+                };
+                let skill = Skill::Bow(SCost);
+                if create_skill_button(
+                    self.imgs.physical_cost_skill,
+                    state.skills_bot_l[2],
+                    &self.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    &self
+                        .localized_strings
+                        .get("hud.skill.bow_shotgun_cost_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.bow_shotgun_cost"),
+                        skill,
+                        &self.skill_set,
+                        &self.localized_strings,
+                    ),
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_bow_shotgun_2, ui)
+                .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(skill));
+                };
+                let skill = Skill::Bow(SArrows);
                 if create_skill_button(
                     self.imgs.physical_amount_skill,
+                    state.skills_bot_l[3],
+                    &self.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    &self
+                        .localized_strings
+                        .get("hud.skill.bow_shotgun_arrow_count_title"),
+                    &add_sp_cost_tooltip(
+                        &self
+                            .localized_strings
+                            .get("hud.skill.bow_shotgun_arrow_count"),
+                        skill,
+                        &self.skill_set,
+                        &self.localized_strings,
+                    ),
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_bow_shotgun_3, ui)
+                .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(skill));
+                };
+                let skill = Skill::Bow(SSpread);
+                if create_skill_button(
+                    self.imgs.physical_explosion_skill,
                     state.skills_bot_l[4],
                     &self.skill_set,
                     skill,
@@ -2881,9 +2883,9 @@ impl<'a> Widget for Diary<'a> {
                     self.tooltip_manager,
                     &self
                         .localized_strings
-                        .get("hud.skill.bow_arrow_count_title"),
+                        .get("hud.skill.bow_shotgun_spread_title"),
                     &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.bow_arrow_count"),
+                        &self.localized_strings.get("hud.skill.bow_shotgun_spread"),
                         skill,
                         &self.skill_set,
                         &self.localized_strings,
@@ -2891,7 +2893,7 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_bow_repeater_4, ui)
+                .set(state.skill_bow_shotgun_4, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
