@@ -1,0 +1,17 @@
+({
+    "shoulder": Item("common.items.armor.ferocious.shoulder"),
+    "chest": Item("common.items.armor.ferocious.chest"),
+    "belt": Item("common.items.armor.ferocious.belt"),
+    "hands": Item("common.items.armor.ferocious.hand"),
+    "pants": Item("common.items.armor.ferocious.pants"),
+    "feet": Item("common.items.armor.ferocious.foot"),
+
+    "back": Item("common.items.armor.ferocious.back"),
+
+    "lantern": Choice([
+        (1.0, Some(Item("common.items.lantern.black_0"))),
+        (2.0, None),
+    ]),
+
+    "glider": Item("common.items.glider.glider_blue"),
+})

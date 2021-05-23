@@ -1,0 +1,7 @@
+({
+    "head": Item("common.items.npc_armor.biped_small.haniwa.head.haniwa"),
+    "feet": Item("common.items.npc_armor.biped_small.haniwa.foot.haniwa"),
+    "hands": Item("common.items.npc_armor.biped_small.haniwa.hand.haniwa"),
+    "chest": Item("common.items.npc_armor.biped_small.haniwa.chest.haniwa"),
+    "pants": Item("common.items.npc_armor.biped_small.haniwa.pants.haniwa"),
+})

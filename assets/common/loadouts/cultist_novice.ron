@@ -1,0 +1,17 @@
+({
+    "shoulder": Item("common.items.armor.steel.shoulder"),
+    "chest": Item("common.items.armor.steel.chest"),
+    "belt": Item("common.items.armor.steel.belt"),
+    "hands": Item("common.items.armor.steel.hand"),
+    "pants": Item("common.items.armor.steel.pants"),
+    "feet": Item("common.items.armor.steel.foot"),
+
+    "back": Item("common.items.armor.misc.back.dungeon_purple"),
+
+    "lantern": Choice([
+        (1.0, Some(Item("common.items.lantern.black_0"))),
+        (2.0, None),
+    ]),
+
+    "glider": Item("common.items.glider.glider_blue"),
+})

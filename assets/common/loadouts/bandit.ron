@@ -1,0 +1,15 @@
+({
+    "shoulder": Item("common.items.armor.assassin.shoulder"),
+    "chest": Item("common.items.armor.assassin.chest"),
+    "belt": Item("common.items.armor.assassin.belt"),
+    "hands": Item("common.items.armor.assassin.hand"),
+    "pants": Item("common.items.armor.assassin.pants"),
+    "feet": Item("common.items.armor.assassin.foot"),
+
+    "lantern": Choice([
+        (1.0, Some(Item("common.items.lantern.black_0"))),
+        (2.0, None),
+    ]),
+
+    "glider": Item("common.items.glider.glider_cloverleaf"),
+})

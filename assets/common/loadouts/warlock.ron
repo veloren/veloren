@@ -1,0 +1,17 @@
+({
+    "shoulder": Item("common.items.armor.warlock.shoulder"),
+    "chest": Item("common.items.armor.warlock.chest"),
+    "belt": Item("common.items.armor.warlock.belt"),
+    "hands": Item("common.items.armor.warlock.hand"),
+    "pants": Item("common.items.armor.warlock.pants"),
+    "feet": Item("common.items.armor.warlock.foot"),
+
+    "back": Item("common.items.armor.warlock.back"),
+
+    "lantern": Choice([
+        (1.0, Some(Item("common.items.lantern.black_0"))),
+        (2.0, None),
+    ]),
+
+    "glider": Item("common.items.glider.glider_purp"),
+})
