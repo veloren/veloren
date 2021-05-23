@@ -320,45 +320,62 @@ impl LoadoutBuilder {
         let loadout = if let Some(config) = config {
             use LoadoutConfig::*;
             match config {
-                Adlet => match active_tool_kind {
-                    Some(ToolKind::Bow) => LoadoutBuilder::new()
-                        .active_mainhand(active_item)
-                        .complete_from_spec("common.loadouts.adlet_bow")
-                        .build(),
-                    Some(ToolKind::Spear) | Some(ToolKind::Staff) => LoadoutBuilder::new()
-                        .active_mainhand(active_item)
-                        .complete_from_spec("common.loadouts.adlet_spear")
-                        .build(),
-                    _ => LoadoutBuilder::new().active_mainhand(active_item).build(),
-                },
                 Gnarling => match active_tool_kind {
                     Some(ToolKind::Bow) | Some(ToolKind::Staff) | Some(ToolKind::Spear) => {
                         LoadoutBuilder::new()
                             .active_mainhand(active_item)
-                            .complete_from_spec("common.loadouts.gnarling")
+                            .complete_from_spec("common.loadouts.dungeon.tier-0.gnarling")
                             .build()
                     },
                     _ => LoadoutBuilder::new().active_mainhand(active_item).build(),
                 },
+                Adlet => match active_tool_kind {
+                    Some(ToolKind::Bow) => LoadoutBuilder::new()
+                        .active_mainhand(active_item)
+                        .complete_from_spec("common.loadouts.dungeon.tier-1.adlet_bow")
+                        .build(),
+                    Some(ToolKind::Spear) | Some(ToolKind::Staff) => LoadoutBuilder::new()
+                        .active_mainhand(active_item)
+                        .complete_from_spec("common.loadouts.dungeon.tier-1.adlet_spear")
+                        .build(),
+                    _ => LoadoutBuilder::new().active_mainhand(active_item).build(),
+                },
                 Sahagin => LoadoutBuilder::new()
                     .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.sahagin")
+                    .complete_from_spec("common.loadouts.dungeon.tier-2.sahagin")
                     .build(),
                 Haniwa => LoadoutBuilder::new()
                     .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.haniwa")
+                    .complete_from_spec("common.loadouts.dungeon.tier-3.haniwa")
                     .build(),
                 Myrmidon => LoadoutBuilder::new()
                     .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.myrmidon")
+                    .complete_from_spec("common.loadouts.dungeon.tier-4.myrmidon")
                     .build(),
                 Husk => LoadoutBuilder::new()
                     .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.husk")
+                    .complete_from_spec("common.loadouts.dungeon.tier-5.husk")
+                    .build(),
+                Beastmaster => LoadoutBuilder::new()
+                    .active_mainhand(active_item)
+                    .complete_from_spec("common.loadouts.dungeon.tier-5.beastmaster")
+                    .build(),
+                Warlord => LoadoutBuilder::new()
+                    .active_mainhand(active_item)
+                    .complete_from_spec("common.loadouts.dungeon.tier-5.warlord")
+                    .build(),
+                Warlock => LoadoutBuilder::new()
+                    .active_mainhand(active_item)
+                    .complete_from_spec("common.loadouts.dungeon.tier-5.warlock")
+                    .build(),
+                Villager => LoadoutBuilder::new()
+                    .active_mainhand(active_item)
+                    .complete_from_spec("common.loadouts.village.villager")
+                    .bag(ArmorSlot::Bag1, Some(make_potion_bag(10)))
                     .build(),
                 Guard => LoadoutBuilder::new()
                     .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.guard")
+                    .complete_from_spec("common.loadouts.village.guard")
                     .bag(ArmorSlot::Bag1, Some(make_potion_bag(25)))
                     .build(),
                 Merchant => {
@@ -484,45 +501,28 @@ impl LoadoutBuilder {
                         .bag(ArmorSlot::Bag2, Some(bag2))
                         .bag(ArmorSlot::Bag3, Some(bag3))
                         .bag(ArmorSlot::Bag4, Some(bag4))
-                        .complete_from_spec("common.loadouts.merchant")
+                        .complete_from_spec("common.loadouts.village.merchant")
                         .build()
                 },
                 Outcast => LoadoutBuilder::new()
                     .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.outcast")
+                    .complete_from_spec("common.loadouts.unused.outcast")
                     .build(),
                 Highwayman => LoadoutBuilder::new()
                     .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.highwayman")
+                    .complete_from_spec("common.loadouts.unused.highwayman")
                     .build(),
                 Bandit => LoadoutBuilder::new()
                     .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.bandit")
+                    .complete_from_spec("common.loadouts.unused.bandit")
                     .build(),
                 CultistNovice => LoadoutBuilder::new()
                     .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.cultist_novice")
+                    .complete_from_spec("common.loadouts.unused.cultist_novice")
                     .build(),
                 CultistAcolyte => LoadoutBuilder::new()
                     .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.cultist_acolyte")
-                    .build(),
-                Beastmaster => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.beastmaster")
-                    .build(),
-                Warlord => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.warlord")
-                    .build(),
-                Warlock => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.warlock")
-                    .build(),
-                Villager => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.villager")
-                    .bag(ArmorSlot::Bag1, Some(make_potion_bag(10)))
+                    .complete_from_spec("common.loadouts.unused.cultist_acolyte")
                     .build(),
             }
         } else {
