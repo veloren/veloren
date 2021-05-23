@@ -1,0 +1,8 @@
+({
+    Armor(Head): Item("common.items.npc_armor.biped_small.adlet.head.adlet_spear"),
+    Armor(Hands): Item("common.items.npc_armor.biped_small.adlet.hand.adlet_spear"),
+    Armor(Feet): Item("common.items.npc_armor.biped_small.adlet.foot.adlet"),
+    Armor(Chest): Item("common.items.npc_armor.biped_small.adlet.chest.adlet_spear"),
+    Armor(Legs): Item("common.items.npc_armor.biped_small.adlet.pants.adlet_spear"),
+    Armor(Belt): Item("common.items.npc_armor.biped_small.adlet.tail.adlet"),
+})
