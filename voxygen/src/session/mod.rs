@@ -72,6 +72,7 @@ pub struct SessionState {
     target_entity: Option<specs::Entity>,
     selected_entity: Option<(specs::Entity, std::time::Instant)>,
     interactable: Option<Interactable>,
+    saved_zoom_dist: Option<f32>,
 }
 
 /// Represents an active game session (i.e., the one being played).
@@ -118,6 +119,7 @@ impl SessionState {
             target_entity: None,
             selected_entity: None,
             interactable: None,
+            saved_zoom_dist: None,
         }
     }
 
@@ -298,17 +300,20 @@ impl PlayState for SessionState {
             let client = self.client.borrow();
             let player_entity = client.entity();
 
-            let fov_scaling = {
-                if let Some(comp::CharacterState::ChargedRanged(cr)) = client
-                    .state()
-                    .read_storage::<comp::CharacterState>()
-                    .get(player_entity)
-                {
-                    1.0 - 3.0 * cr.charge_frac() / 4.0
-                } else {
-                    1.0
+            let mut fov_scaling = 1.0;
+            if let Some(comp::CharacterState::ChargedRanged(cr)) = client
+                .state()
+                .read_storage::<comp::CharacterState>()
+                .get(player_entity)
+            {
+                fov_scaling -= 3.0 * cr.charge_frac() / 4.0;
+                if self.saved_zoom_dist.is_none() {
+                    self.saved_zoom_dist = Some(camera.get_distance());
+                    camera.set_distance(0.0);
                 }
-            };
+            } else if let Some(dist) = self.saved_zoom_dist.take() {
+                camera.set_distance(dist);
+            }
             camera.set_fov((global_state.settings.graphics.fov as f32 * fov_scaling).to_radians());
 
             // Compute camera data

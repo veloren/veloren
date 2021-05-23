@@ -64,7 +64,11 @@ pub struct Data {
 impl Data {
     /// How complete the charge is, on a scale of 0.0 to 1.0
     pub fn charge_frac(&self) -> f32 {
-        (self.timer.as_secs_f32() / self.static_data.charge_duration.as_secs_f32()).min(1.0)
+        if let StageSection::Charge = self.stage_section {
+            (self.timer.as_secs_f32() / self.static_data.charge_duration.as_secs_f32()).min(1.0)
+        } else {
+            0.0
+        }
     }
 }
 
