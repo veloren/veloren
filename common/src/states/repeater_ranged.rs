@@ -100,7 +100,6 @@ impl CharacterBehavior for Data {
                     );
                     update.server_events.push_front(ServerEvent::Shoot {
                         entity: data.entity,
-                        // Provides slight variation to projectile direction
                         dir: data.inputs.look_dir,
                         body: self.static_data.projectile_body,
                         projectile,
@@ -109,6 +108,7 @@ impl CharacterBehavior for Data {
                         object: None,
                     });
 
+                    // Removes energy from character when arrow is fired
                     update.server_events.push_front(ServerEvent::EnergyChange {
                         entity: data.entity,
                         change: EnergyChange {
@@ -117,6 +117,7 @@ impl CharacterBehavior for Data {
                         },
                     });
 
+                    // Sets new speed of shoot. Scales based off of the number of projectiles fired.
                     let new_speed = 1.0
                         + self.projectiles_fired as f32
                             / (self.static_data.half_speed_at as f32

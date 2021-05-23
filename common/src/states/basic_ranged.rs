@@ -82,7 +82,10 @@ impl CharacterBehavior for Data {
                         crit_chance,
                         crit_mult,
                     );
+                    // Shoots all projectiles simultaneously
                     for i in 0..self.static_data.num_projectiles {
+                        // Adds a slight spread to the projectiles. First projectile has no spread,
+                        // and spread increases linearly with number of projectiles created.
                         let dir = Dir::from_unnormalized(data.inputs.look_dir.map(|x| {
                             let offset = (2.0 * thread_rng().gen::<f32>() - 1.0)
                                 * self.static_data.projectile_spread
@@ -90,6 +93,7 @@ impl CharacterBehavior for Data {
                             x + offset
                         }))
                         .unwrap_or(data.inputs.look_dir);
+                        // Tells server to create and shoot the projectile
                         update.server_events.push_front(ServerEvent::Shoot {
                             entity: data.entity,
                             dir,
