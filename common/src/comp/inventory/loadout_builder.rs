@@ -806,6 +806,8 @@ mod tests {
     //
     // Things that will be catched - invalid assets paths
     // FIXME: if item is used in some branch of rng test may miss it
+    // TODO: as of now there is no rng generation of items
+    // validate assets for all possible branches
     #[test]
     fn test_loadout_configs() {
         let test_weapons = vec![
