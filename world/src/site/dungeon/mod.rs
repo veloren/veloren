@@ -584,7 +584,6 @@ impl Floor {
                         )
                         //.do_if(is_giant, |e| e.into_giant())
                         .with_alignment(comp::Alignment::Enemy)
-                        .with_loadout_config(loadout_builder::LoadoutConfig::CultistAcolyte)
                         .with_skillset_config(common::skillset_builder::SkillSetConfig::CultistAcolyte)
                         .with_loot_drop(chosen.read().choose().to_item())
                         .with_level(dynamic_rng.gen_range((room.difficulty as f32).powf(1.25) + 3.0..(room.difficulty as f32).powf(1.5) + 4.0).round() as u16);

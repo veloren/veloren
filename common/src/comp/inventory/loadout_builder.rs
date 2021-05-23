@@ -265,6 +265,160 @@ impl LoadoutBuilder {
     #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self { Self(Loadout::new_empty()) }
 
+    fn with_default_equipment(body: &Body, active_item: Option<Item>) -> Self {
+        let mut builder = LoadoutBuilder::new();
+        builder = match body {
+            Body::BipedLarge(biped_large::Body {
+                species: biped_large::Species::Mindflayer,
+                ..
+            }) => builder.chest(Some(Item::new_from_asset_expect(
+                "common.items.npc_armor.biped_large.mindflayer",
+            ))),
+            Body::BipedLarge(biped_large::Body {
+                species: biped_large::Species::Minotaur,
+                ..
+            }) => builder.chest(Some(Item::new_from_asset_expect(
+                "common.items.npc_armor.biped_large.minotaur",
+            ))),
+            Body::BipedLarge(biped_large::Body {
+                species: biped_large::Species::Tidalwarrior,
+                ..
+            }) => builder.chest(Some(Item::new_from_asset_expect(
+                "common.items.npc_armor.biped_large.tidal_warrior",
+            ))),
+            Body::BipedLarge(biped_large::Body {
+                species: biped_large::Species::Yeti,
+                ..
+            }) => builder.chest(Some(Item::new_from_asset_expect(
+                "common.items.npc_armor.biped_large.yeti",
+            ))),
+            Body::BipedLarge(biped_large::Body {
+                species: biped_large::Species::Harvester,
+                ..
+            }) => builder.chest(Some(Item::new_from_asset_expect(
+                "common.items.npc_armor.biped_large.harvester",
+            ))),
+            Body::Golem(golem::Body {
+                species: golem::Species::ClayGolem,
+                ..
+            }) => builder.chest(Some(Item::new_from_asset_expect(
+                "common.items.npc_armor.golem.claygolem",
+            ))),
+            _ => builder,
+        };
+
+        builder.active_mainhand(active_item)
+    }
+
+    pub fn from_asset_expect(asset_specifier: &str) -> Self {
+        let spec = LoadoutSpec::load_expect(asset_specifier).read().0.clone();
+        let mut loadout = LoadoutBuilder::new();
+        for (key, specifier) in spec {
+            let item = match specifier {
+                ItemSpec::Item(specifier) => Item::new_from_asset_expect(&specifier),
+                ItemSpec::Choice(items) => {
+                    let mut rng = rand::thread_rng();
+                    match items
+                        .choose_weighted(&mut rng, |item| item.0)
+                        .unwrap_or_else(|_| {
+                            panic!(
+                                "failed to choose item from loadout asset ({})",
+                                asset_specifier
+                            )
+                        }) {
+                        (_, Some(ItemSpec::Item(item_specifier))) => {
+                            Item::new_from_asset_expect(&item_specifier)
+                        },
+                        (_, Some(ItemSpec::Choice(_))) => {
+                            let err = format!(
+                                "Using choice of choices in ({}): {}. Unimplemented.",
+                                asset_specifier, key,
+                            );
+                            if cfg!(tests) {
+                                panic!("{}", err);
+                            } else {
+                                warn!("{}", err);
+                            }
+                            continue;
+                        },
+                        (_, None) => continue,
+                    }
+                },
+            };
+            match key.as_str() {
+                "active_mainhand" => {
+                    loadout = loadout.active_mainhand(Some(item));
+                },
+                "active_offhand" => {
+                    loadout = loadout.active_offhand(Some(item));
+                },
+                "inactive_mainhand" => {
+                    loadout = loadout.inactive_mainhand(Some(item));
+                },
+                "inactive_offhand" => {
+                    loadout = loadout.inactive_offhand(Some(item));
+                },
+                "head" => {
+                    loadout = loadout.head(Some(item));
+                },
+                "shoulder" => {
+                    loadout = loadout.shoulder(Some(item));
+                },
+                "chest" => {
+                    loadout = loadout.chest(Some(item));
+                },
+                "hands" => {
+                    loadout = loadout.hands(Some(item));
+                },
+                "pants" => {
+                    loadout = loadout.pants(Some(item));
+                },
+                "feet" => {
+                    loadout = loadout.feet(Some(item));
+                },
+                "belt" => {
+                    loadout = loadout.belt(Some(item));
+                },
+                "back" => {
+                    loadout = loadout.back(Some(item));
+                },
+                "neck" => {
+                    loadout = loadout.neck(Some(item));
+                },
+                "ring1" => {
+                    loadout = loadout.ring1(Some(item));
+                },
+                "ring2" => {
+                    loadout = loadout.ring2(Some(item));
+                },
+                "lantern" => {
+                    loadout = loadout.lantern(Some(item));
+                },
+                "tabard" => {
+                    loadout = loadout.tabard(Some(item));
+                },
+                "glider" => {
+                    loadout = loadout.glider(Some(item));
+                },
+                _ => {
+                    if cfg!(tests) {
+                        panic!(
+                            "Unexpected key in loadout asset ({}): {}",
+                            asset_specifier, key
+                        );
+                    } else {
+                        warn!(
+                            "Unexpected key in loadout asset ({}): {}",
+                            asset_specifier, key
+                        );
+                    }
+                },
+            };
+        }
+
+        loadout
+    }
+
     /// Set default armor items for the loadout. This may vary with game
     /// updates, but should be safe defaults for a new character.
     pub fn defaults(self) -> Self {
@@ -317,60 +471,66 @@ impl LoadoutBuilder {
             match config {
                 Gnarling => match active_tool_kind {
                     Some(ToolKind::Bow) | Some(ToolKind::Staff) | Some(ToolKind::Spear) => {
-                        LoadoutBuilder::new()
+                        LoadoutBuilder::from_asset_expect("common.loadouts.dungeon.tier-0.gnarling")
                             .active_mainhand(active_item)
-                            .complete_from_spec("common.loadouts.dungeon.tier-0.gnarling")
                             .build()
                     },
                     _ => LoadoutBuilder::new().active_mainhand(active_item).build(),
                 },
                 Adlet => match active_tool_kind {
-                    Some(ToolKind::Bow) => LoadoutBuilder::new()
+                    Some(ToolKind::Bow) => LoadoutBuilder::from_asset_expect(
+                        "common.loadouts.dungeon.tier-1.adlet_bow",
+                    )
+                    .active_mainhand(active_item)
+                    .build(),
+                    Some(ToolKind::Spear) | Some(ToolKind::Staff) => {
+                        LoadoutBuilder::from_asset_expect(
+                            "common.loadouts.dungeon.tier-1.adlet_spear",
+                        )
                         .active_mainhand(active_item)
-                        .complete_from_spec("common.loadouts.dungeon.tier-1.adlet_bow")
-                        .build(),
-                    Some(ToolKind::Spear) | Some(ToolKind::Staff) => LoadoutBuilder::new()
-                        .active_mainhand(active_item)
-                        .complete_from_spec("common.loadouts.dungeon.tier-1.adlet_spear")
-                        .build(),
+                        .build()
+                    },
                     _ => LoadoutBuilder::new().active_mainhand(active_item).build(),
                 },
-                Sahagin => LoadoutBuilder::new()
+                Sahagin => {
+                    LoadoutBuilder::from_asset_expect("common.loadouts.dungeon.tier-2.sahagin")
+                        .active_mainhand(active_item)
+                        .build()
+                },
+                Haniwa => {
+                    LoadoutBuilder::from_asset_expect("common.loadouts.dungeon.tier-3.haniwa")
+                        .active_mainhand(active_item)
+                        .build()
+                },
+                Myrmidon => {
+                    LoadoutBuilder::from_asset_expect("common.loadouts.dungeon.tier-4.myrmidon")
+                        .active_mainhand(active_item)
+                        .build()
+                },
+                Husk => LoadoutBuilder::from_asset_expect("common.loadouts.dungeon.tier-5.husk")
                     .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.dungeon.tier-2.sahagin")
                     .build(),
-                Haniwa => LoadoutBuilder::new()
+                Beastmaster => {
+                    LoadoutBuilder::from_asset_expect("common.loadouts.dungeon.tier-5.beastmaster")
+                        .active_mainhand(active_item)
+                        .build()
+                },
+                Warlord => {
+                    LoadoutBuilder::from_asset_expect("common.loadouts.dungeon.tier-5.warlord")
+                        .active_mainhand(active_item)
+                        .build()
+                },
+                Warlock => {
+                    LoadoutBuilder::from_asset_expect("common.loadouts.dungeon.tier-5.warlock")
+                        .active_mainhand(active_item)
+                        .build()
+                },
+                Villager => LoadoutBuilder::from_asset_expect("common.loadouts.village.villager")
                     .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.dungeon.tier-3.haniwa")
-                    .build(),
-                Myrmidon => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.dungeon.tier-4.myrmidon")
-                    .build(),
-                Husk => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.dungeon.tier-5.husk")
-                    .build(),
-                Beastmaster => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.dungeon.tier-5.beastmaster")
-                    .build(),
-                Warlord => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.dungeon.tier-5.warlord")
-                    .build(),
-                Warlock => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.dungeon.tier-5.warlock")
-                    .build(),
-                Villager => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.village.villager")
                     .bag(ArmorSlot::Bag1, Some(make_potion_bag(10)))
                     .build(),
-                Guard => LoadoutBuilder::new()
+                Guard => LoadoutBuilder::from_asset_expect("common.loadouts.village.guard")
                     .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.village.guard")
                     .bag(ArmorSlot::Bag1, Some(make_potion_bag(25)))
                     .build(),
                 Merchant => {
@@ -489,75 +649,18 @@ impl LoadoutBuilder {
                             *i = item_with_amount(&item_id, &mut potions);
                         }
                     }
-                    LoadoutBuilder::new()
+                    LoadoutBuilder::from_asset_expect("common.loadouts.village.merchant")
                         .active_mainhand(active_item)
                         .back(Some(backpack))
                         .bag(ArmorSlot::Bag1, Some(bag1))
                         .bag(ArmorSlot::Bag2, Some(bag2))
                         .bag(ArmorSlot::Bag3, Some(bag3))
                         .bag(ArmorSlot::Bag4, Some(bag4))
-                        .complete_from_spec("common.loadouts.village.merchant")
                         .build()
                 },
             }
         } else {
-            match body {
-                Body::BipedLarge(biped_large::Body {
-                    species: biped_large::Species::Mindflayer,
-                    ..
-                }) => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .chest(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.biped_large.mindflayer",
-                    )))
-                    .build(),
-                Body::BipedLarge(biped_large::Body {
-                    species: biped_large::Species::Minotaur,
-                    ..
-                }) => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .chest(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.biped_large.minotaur",
-                    )))
-                    .build(),
-                Body::BipedLarge(biped_large::Body {
-                    species: biped_large::Species::Tidalwarrior,
-                    ..
-                }) => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .chest(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.biped_large.tidal_warrior",
-                    )))
-                    .build(),
-                Body::BipedLarge(biped_large::Body {
-                    species: biped_large::Species::Yeti,
-                    ..
-                }) => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .chest(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.biped_large.yeti",
-                    )))
-                    .build(),
-                Body::BipedLarge(biped_large::Body {
-                    species: biped_large::Species::Harvester,
-                    ..
-                }) => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .chest(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.biped_large.harvester",
-                    )))
-                    .build(),
-                Body::Golem(golem::Body {
-                    species: golem::Species::ClayGolem,
-                    ..
-                }) => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .chest(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.golem.claygolem",
-                    )))
-                    .build(),
-                _ => LoadoutBuilder::new().active_mainhand(active_item).build(),
-            }
+            LoadoutBuilder::with_default_equipment(&body, active_item).build()
         };
 
         Self(loadout)
@@ -659,115 +762,6 @@ impl LoadoutBuilder {
     }
 
     pub fn build(self) -> Loadout { self.0 }
-
-    pub fn complete_from_spec(self, asset_specifier: &str) -> Self {
-        let spec = LoadoutSpec::load_expect(asset_specifier).read().0.clone();
-        let mut loadout = self;
-        for (key, specifier) in spec {
-            let item = match specifier {
-                ItemSpec::Item(specifier) => Item::new_from_asset_expect(&specifier),
-                ItemSpec::Choice(items) => {
-                    let mut rng = rand::thread_rng();
-                    match items
-                        .choose_weighted(&mut rng, |item| item.0)
-                        .unwrap_or_else(|_| {
-                            panic!(
-                                "failed to choose item from loadout asset ({})",
-                                asset_specifier
-                            )
-                        }) {
-                        (_, Some(ItemSpec::Item(item_specifier))) => {
-                            Item::new_from_asset_expect(&item_specifier)
-                        },
-                        (_, Some(ItemSpec::Choice(_))) => {
-                            let err = format!(
-                                "Using choice of choices in ({}): {}. Unimplemented.",
-                                asset_specifier, key,
-                            );
-                            if cfg!(tests) {
-                                panic!("{}", err);
-                            } else {
-                                warn!("{}", err);
-                            }
-                            continue;
-                        },
-                        (_, None) => continue,
-                    }
-                },
-            };
-            match key.as_str() {
-                "active_mainhand" => {
-                    loadout = loadout.active_mainhand(Some(item));
-                },
-                "active_offhand" => {
-                    loadout = loadout.active_offhand(Some(item));
-                },
-                "inactive_mainhand" => {
-                    loadout = loadout.inactive_mainhand(Some(item));
-                },
-                "inactive_offhand" => {
-                    loadout = loadout.inactive_offhand(Some(item));
-                },
-                "head" => {
-                    loadout = loadout.head(Some(item));
-                },
-                "shoulder" => {
-                    loadout = loadout.shoulder(Some(item));
-                },
-                "chest" => {
-                    loadout = loadout.chest(Some(item));
-                },
-                "hands" => {
-                    loadout = loadout.hands(Some(item));
-                },
-                "pants" => {
-                    loadout = loadout.pants(Some(item));
-                },
-                "feet" => {
-                    loadout = loadout.feet(Some(item));
-                },
-                "belt" => {
-                    loadout = loadout.belt(Some(item));
-                },
-                "back" => {
-                    loadout = loadout.back(Some(item));
-                },
-                "neck" => {
-                    loadout = loadout.neck(Some(item));
-                },
-                "ring1" => {
-                    loadout = loadout.ring1(Some(item));
-                },
-                "ring2" => {
-                    loadout = loadout.ring2(Some(item));
-                },
-                "lantern" => {
-                    loadout = loadout.lantern(Some(item));
-                },
-                "tabard" => {
-                    loadout = loadout.tabard(Some(item));
-                },
-                "glider" => {
-                    loadout = loadout.glider(Some(item));
-                },
-                _ => {
-                    if cfg!(tests) {
-                        panic!(
-                            "Unexpected key in loadout asset ({}): {}",
-                            asset_specifier, key
-                        );
-                    } else {
-                        warn!(
-                            "Unexpected key in loadout asset ({}): {}",
-                            asset_specifier, key
-                        );
-                    }
-                },
-            };
-        }
-
-        loadout
-    }
 }
 
 #[cfg(test)]
@@ -865,5 +859,5 @@ mod tests {
     }
 
     #[test]
-    fn test_loadout_assets() { LoadoutBuilder::new().complete_from_spec("common.loadouts.test"); }
+    fn test_loadout_assets() { LoadoutBuilder::from_asset_expect("common.loadouts.test"); }
 }
