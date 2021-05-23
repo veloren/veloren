@@ -59,11 +59,10 @@ pub enum LoadoutConfig {
 enum ItemSpec {
     /// One specific item.
     /// Example:
-    /// `Item("common.items.armor.steel.foot")`
+    /// Item("common.items.armor.steel.foot")
     Item(String),
     /// Choice from items with weights.
     /// Example:
-    /// ```
     /// Choice([
     ///  (1.0, Some(Item("common.items.lantern.blue_0"))),
     ///  (1.0, None),
