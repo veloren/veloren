@@ -2843,7 +2843,7 @@ impl<'a> AgentData<'a> {
                 if matches!(self.char_state, CharacterState::Blink(_)) {
                     *num_fireballs = rand::random::<u8>() % 4;
                 }
-            } else {
+            } else if matches!(self.char_state, CharacterState::Wielding) {
                 *num_fireballs -= 1;
                 controller.actions.push(ControlAction::StartInput {
                     input: InputKind::Ability(1),
