@@ -1,0 +1,13 @@
+({
+    "shoulder": Item("common.items.armor.twigsflowers.shoulder"),
+    "chest": Item("common.items.armor.twigsflowers.chest"),
+    "hands": Item("common.items.armor.twigsflowers.hand"),
+    "pants": Item("common.items.armor.twigsflowers.pants"),
+    "feet": Item("common.items.armor.twigsflowers.foot"),
+    "belt": Item("common.items.armor.twigsflowers.belt"),
+
+    "lantern": Item("common.items.lantern.black_0"),
+    "neck": Item("common.items.armor.misc.neck.plain_1"),
+    "ring1": Item("common.items.armor.misc.ring.gold"),
+    "ring2": Item("common.items.armor.misc.ring.gold"),
+})

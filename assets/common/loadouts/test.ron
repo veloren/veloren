@@ -1,0 +1,28 @@
+({
+    // Weapons
+    "active_mainhand": Item("common.items.weapons.sword_1h.bloodsteel-0"),
+    "active_offhand": Item("common.items.weapons.sword_1h.bloodsteel-0"),
+
+    "inactive_mainhand": Item("common.items.weapons.sword_1h.bloodsteel-0"),
+    "inactive_offhand": Item("common.items.weapons.sword_1h.bloodsteel-0"),
+    
+    // Gear
+    "head": Item("common.items.npc_armor.biped_small.myrmidon.head.myrmidon"),
+    "shoulder": Item("common.items.armor.twigsflowers.shoulder"),
+    "chest": Item("common.items.armor.twigsflowers.chest"),
+    "hands": Item("common.items.armor.twigsflowers.hand"),
+    "pants": Item("common.items.armor.twigsflowers.pants"),
+    "feet": Item("common.items.armor.twigsflowers.foot"),
+    "belt": Item("common.items.armor.twigsflowers.belt"),
+
+    // Biju
+    "back": Item("common.items.armor.misc.back.dungeon_purple"),
+    "neck": Item("common.items.armor.misc.neck.plain_1"),
+    "ring1": Item("common.items.armor.misc.ring.gold"),
+    "ring2": Item("common.items.armor.misc.ring.gold"),
+    
+    // Misc
+    "lantern": Item("common.items.lantern.black_0"),
+    "tabard": Item("common.items.debug.admin"),
+    "glider": Item("common.items.glider.glider_basic_red"),
+})

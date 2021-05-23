@@ -1,4 +1,5 @@
 use crate::{
+    assets::{self, AssetExt},
     comp::{
         biped_large, biped_small, bird_large, golem,
         inventory::{
@@ -11,6 +12,7 @@ use crate::{
     },
     trade::{Good, SiteInformation},
 };
+use hashbrown::HashMap;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use strum_macros::EnumIter;
@@ -58,6 +60,30 @@ pub enum LoadoutConfig {
     Warlock,
 }
 
+#[derive(Debug, Deserialize, Clone)]
+enum ItemSpec {
+    // One specific item.
+    // Example:
+    // `Item("common.items.armor.steel.foot")`
+    Item(String),
+    // Choice from items with weights.
+    // Example:
+    // ```
+    // Choice([
+    //  (1.0, Some(Item("common.items.lantern.blue_0"))),
+    //  (1.0, None),
+    // ])
+    Choice(Vec<(f32, Option<ItemSpec>)>),
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct LoadoutSpec(HashMap<String, ItemSpec>);
+impl assets::Asset for LoadoutSpec {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
 pub fn make_potion_bag(quantity: u32) -> Item {
     let mut bag = Item::new_from_asset_expect("common.items.armor.misc.bag.tiny_leather_pouch");
     if let Some(i) = bag.slots_mut().iter_mut().next() {
@@ -68,6 +94,176 @@ pub fn make_potion_bag(quantity: u32) -> Item {
         *i = Some(potions);
     }
     bag
+}
+
+pub fn default_main_tool(body: &Body) -> Option<Item> {
+    match body {
+        Body::Golem(golem) => match golem.species {
+            golem::Species::StoneGolem => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.stone_golems_fist",
+            )),
+            golem::Species::ClayGolem => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.clay_golem_fist",
+            )),
+            _ => None,
+        },
+        Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
+            quadruped_medium::Species::Wolf
+            | quadruped_medium::Species::Grolgar
+            | quadruped_medium::Species::Lion
+            | quadruped_medium::Species::Bonerattler
+            | quadruped_medium::Species::Darkhound
+            | quadruped_medium::Species::Snowleopard => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.quadmedquick",
+            )),
+            quadruped_medium::Species::Donkey
+            | quadruped_medium::Species::Horse
+            | quadruped_medium::Species::Zebra
+            | quadruped_medium::Species::Kelpie
+            | quadruped_medium::Species::Hirdrasil
+            | quadruped_medium::Species::Deer
+            | quadruped_medium::Species::Antelope => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.quadmedhoof",
+            )),
+            quadruped_medium::Species::Saber => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.quadmedjump",
+            )),
+            quadruped_medium::Species::Tuskram
+            | quadruped_medium::Species::Roshwalr
+            | quadruped_medium::Species::Moose
+            | quadruped_medium::Species::Dreadhorn => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.quadmedcharge",
+            )),
+            quadruped_medium::Species::Highland
+            | quadruped_medium::Species::Cattle
+            | quadruped_medium::Species::Yak => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.quadmedbasicgentle",
+            )),
+            _ => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.quadmedbasic",
+            )),
+        },
+        Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
+            quadruped_low::Species::Maneater | quadruped_low::Species::Asp => Some(
+                Item::new_from_asset_expect("common.items.npc_weapons.unique.quadlowranged"),
+            ),
+            quadruped_low::Species::Crocodile
+            | quadruped_low::Species::Alligator
+            | quadruped_low::Species::Salamander => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.quadlowtail",
+            )),
+            quadruped_low::Species::Monitor | quadruped_low::Species::Pangolin => Some(
+                Item::new_from_asset_expect("common.items.npc_weapons.unique.quadlowquick"),
+            ),
+            quadruped_low::Species::Lavadrake => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.quadlowbreathe",
+            )),
+            quadruped_low::Species::Deadwood => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.quadlowbeam",
+            )),
+            _ => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.quadlowbasic",
+            )),
+        },
+        Body::QuadrupedSmall(_) => Some(Item::new_from_asset_expect(
+            "common.items.npc_weapons.unique.quadsmallbasic",
+        )),
+        Body::Theropod(theropod) => match theropod.species {
+            theropod::Species::Sandraptor
+            | theropod::Species::Snowraptor
+            | theropod::Species::Woodraptor => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.theropodbird",
+            )),
+            theropod::Species::Yale => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.theropodcharge",
+            )),
+            _ => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.theropodbasic",
+            )),
+        },
+        Body::BipedLarge(biped_large) => match (biped_large.species, biped_large.body_type) {
+            (biped_large::Species::Occultsaurok, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.staff.saurok_staff",
+            )),
+            (biped_large::Species::Mightysaurok, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.sword.saurok_sword",
+            )),
+            (biped_large::Species::Slysaurok, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.bow.saurok_bow",
+            )),
+            (biped_large::Species::Ogre, biped_large::BodyType::Male) => Some(
+                Item::new_from_asset_expect("common.items.npc_weapons.hammer.ogre_hammer"),
+            ),
+            (biped_large::Species::Ogre, biped_large::BodyType::Female) => Some(
+                Item::new_from_asset_expect("common.items.npc_weapons.staff.ogre_staff"),
+            ),
+            (biped_large::Species::Troll, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.hammer.troll_hammer",
+            )),
+            (biped_large::Species::Wendigo, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.wendigo_magic",
+            )),
+            (biped_large::Species::Werewolf, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.beast_claws",
+            )),
+            (biped_large::Species::Cyclops, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.hammer.cyclops_hammer",
+            )),
+            (biped_large::Species::Dullahan, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.sword.dullahan_sword",
+            )),
+            (biped_large::Species::Mindflayer, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.staff.mindflayer_staff",
+            )),
+            (biped_large::Species::Minotaur, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.axe.minotaur_axe",
+            )),
+            (biped_large::Species::Tidalwarrior, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.tidal_claws",
+            )),
+            (biped_large::Species::Yeti, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.hammer.yeti_hammer",
+            )),
+            (biped_large::Species::Harvester, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.hammer.harvester_scythe",
+            )),
+            (biped_large::Species::Blueoni, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.axe.oni_blue_axe",
+            )),
+            (biped_large::Species::Redoni, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.hammer.oni_red_hammer",
+            )),
+        },
+        Body::Object(body) => match body {
+            object::Body::Crossbow => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.turret",
+            )),
+            object::Body::HaniwaSentry => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.haniwa_sentry",
+            )),
+            _ => None,
+        },
+        Body::BipedSmall(biped_small) => match (biped_small.species, biped_small.body_type) {
+            (biped_small::Species::Gnome, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.biped_small.adlet.gnoll_staff",
+            )),
+            (biped_small::Species::Husk, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.husk",
+            )),
+            _ => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.biped_small.adlet.wooden_spear",
+            )),
+        },
+        Body::BirdLarge(bird_large) => match (bird_large.species, bird_large.body_type) {
+            (bird_large::Species::Cockatrice, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.birdlargebreathe",
+            )),
+            (bird_large::Species::Phoenix, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.birdlargefire",
+            )),
+        },
+        _ => None,
+    }
 }
 
 impl LoadoutBuilder {
@@ -104,259 +300,7 @@ impl LoadoutBuilder {
     ) -> Self {
         // If no main tool is passed in, checks if species has a default main tool
         if main_tool.is_none() {
-            match body {
-                Body::Golem(golem) => match golem.species {
-                    golem::Species::StoneGolem => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.stone_golems_fist",
-                        ));
-                    },
-                    golem::Species::ClayGolem => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.clay_golem_fist",
-                        ));
-                    },
-                    _ => {},
-                },
-                Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
-                    quadruped_medium::Species::Wolf
-                    | quadruped_medium::Species::Grolgar
-                    | quadruped_medium::Species::Lion
-                    | quadruped_medium::Species::Bonerattler
-                    | quadruped_medium::Species::Darkhound
-                    | quadruped_medium::Species::Snowleopard => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.quadmedquick",
-                        ));
-                    },
-                    quadruped_medium::Species::Donkey
-                    | quadruped_medium::Species::Horse
-                    | quadruped_medium::Species::Zebra
-                    | quadruped_medium::Species::Kelpie
-                    | quadruped_medium::Species::Hirdrasil
-                    | quadruped_medium::Species::Deer
-                    | quadruped_medium::Species::Antelope => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.quadmedhoof",
-                        ));
-                    },
-                    quadruped_medium::Species::Saber => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.quadmedjump",
-                        ));
-                    },
-                    quadruped_medium::Species::Tuskram
-                    | quadruped_medium::Species::Roshwalr
-                    | quadruped_medium::Species::Moose
-                    | quadruped_medium::Species::Dreadhorn => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.quadmedcharge",
-                        ));
-                    },
-                    quadruped_medium::Species::Highland
-                    | quadruped_medium::Species::Cattle
-                    | quadruped_medium::Species::Yak => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.quadmedbasicgentle",
-                        ));
-                    },
-                    _ => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.quadmedbasic",
-                        ));
-                    },
-                },
-                Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
-                    quadruped_low::Species::Maneater | quadruped_low::Species::Asp => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.quadlowranged",
-                        ));
-                    },
-                    quadruped_low::Species::Crocodile
-                    | quadruped_low::Species::Alligator
-                    | quadruped_low::Species::Salamander => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.quadlowtail",
-                        ));
-                    },
-                    quadruped_low::Species::Monitor | quadruped_low::Species::Pangolin => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.quadlowquick",
-                        ));
-                    },
-                    quadruped_low::Species::Lavadrake => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.quadlowbreathe",
-                        ));
-                    },
-                    quadruped_low::Species::Deadwood => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.quadlowbeam",
-                        ));
-                    },
-                    _ => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.quadlowbasic",
-                        ));
-                    },
-                },
-                Body::QuadrupedSmall(_) => {
-                    main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.unique.quadsmallbasic",
-                    ));
-                },
-                Body::Theropod(theropod) => match theropod.species {
-                    theropod::Species::Sandraptor
-                    | theropod::Species::Snowraptor
-                    | theropod::Species::Woodraptor => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.theropodbird",
-                        ));
-                    },
-                    theropod::Species::Yale => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.theropodcharge",
-                        ));
-                    },
-                    _ => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.theropodbasic",
-                        ));
-                    },
-                },
-                Body::BipedLarge(biped_large) => match (biped_large.species, biped_large.body_type)
-                {
-                    (biped_large::Species::Occultsaurok, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.staff.saurok_staff",
-                        ));
-                    },
-                    (biped_large::Species::Mightysaurok, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.sword.saurok_sword",
-                        ));
-                    },
-                    (biped_large::Species::Slysaurok, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.bow.saurok_bow",
-                        ));
-                    },
-                    (biped_large::Species::Ogre, biped_large::BodyType::Male) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.hammer.ogre_hammer",
-                        ));
-                    },
-                    (biped_large::Species::Ogre, biped_large::BodyType::Female) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.staff.ogre_staff",
-                        ));
-                    },
-                    (biped_large::Species::Troll, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.hammer.troll_hammer",
-                        ));
-                    },
-                    (biped_large::Species::Wendigo, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.wendigo_magic",
-                        ));
-                    },
-                    (biped_large::Species::Werewolf, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.beast_claws",
-                        ));
-                    },
-                    (biped_large::Species::Cyclops, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.hammer.cyclops_hammer",
-                        ));
-                    },
-                    (biped_large::Species::Dullahan, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.sword.dullahan_sword",
-                        ));
-                    },
-                    (biped_large::Species::Mindflayer, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.staff.mindflayer_staff",
-                        ));
-                    },
-                    (biped_large::Species::Minotaur, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.axe.minotaur_axe",
-                        ));
-                    },
-                    (biped_large::Species::Tidalwarrior, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.tidal_claws",
-                        ));
-                    },
-                    (biped_large::Species::Yeti, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.hammer.yeti_hammer",
-                        ));
-                    },
-                    (biped_large::Species::Harvester, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.hammer.harvester_scythe",
-                        ));
-                    },
-                    (biped_large::Species::Blueoni, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.axe.oni_blue_axe",
-                        ));
-                    },
-                    (biped_large::Species::Redoni, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.hammer.oni_red_hammer",
-                        ));
-                    },
-                },
-                Body::Object(body) => match body {
-                    object::Body::Crossbow => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.turret",
-                        ));
-                    },
-                    object::Body::HaniwaSentry => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.haniwa_sentry",
-                        ));
-                    },
-                    _ => {},
-                },
-                Body::BipedSmall(biped_small) => match (biped_small.species, biped_small.body_type)
-                {
-                    (biped_small::Species::Gnome, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.biped_small.adlet.gnoll_staff",
-                        ));
-                    },
-                    (biped_small::Species::Husk, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.husk",
-                        ));
-                    },
-                    _ => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.biped_small.adlet.wooden_spear",
-                        ));
-                    },
-                },
-                Body::BirdLarge(bird_large) => match (bird_large.species, bird_large.body_type) {
-                    (bird_large::Species::Cockatrice, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.birdlargebreathe",
-                        ));
-                    },
-                    (bird_large::Species::Phoenix, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.birdlargefire",
-                        ));
-                    },
-                },
-                _ => {},
-            };
+            main_tool = default_main_tool(&body);
         }
 
         // Constructs ItemConfig from Item
@@ -422,66 +366,12 @@ impl LoadoutBuilder {
                     _ => LoadoutBuilder::new().active_mainhand(active_item).build(),
                 },
                 Gnarling => match active_tool_kind {
-                    Some(ToolKind::Bow) => LoadoutBuilder::new()
-                        .active_mainhand(active_item)
-                        .head(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.biped_small.gnarling.head.gnarling",
-                        )))
-                        .feet(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.biped_small.gnarling.foot.gnarling",
-                        )))
-                        .hands(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.biped_small.gnarling.hand.gnarling",
-                        )))
-                        .chest(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.biped_small.gnarling.chest.gnarling",
-                        )))
-                        .pants(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.biped_small.gnarling.pants.gnarling",
-                        )))
-                        .belt(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.biped_small.gnarling.tail.gnarling",
-                        )))
-                        .build(),
-                    Some(ToolKind::Staff) => LoadoutBuilder::new()
-                        .active_mainhand(active_item)
-                        .head(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.biped_small.gnarling.head.gnarling",
-                        )))
-                        .feet(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.biped_small.gnarling.foot.gnarling",
-                        )))
-                        .hands(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.biped_small.gnarling.hand.gnarling",
-                        )))
-                        .chest(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.biped_small.gnarling.chest.gnarling",
-                        )))
-                        .pants(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.biped_small.gnarling.pants.gnarling",
-                        )))
-                        .belt(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.biped_small.gnarling.tail.gnarling",
-                        )))
-                        .build(),
-                    Some(ToolKind::Spear) => LoadoutBuilder::new()
-                        .active_mainhand(active_item)
-                        .head(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.biped_small.gnarling.head.gnarling",
-                        )))
-                        .feet(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.biped_small.gnarling.foot.gnarling",
-                        )))
-                        .hands(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.biped_small.gnarling.hand.gnarling",
-                        )))
-                        .chest(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.biped_small.gnarling.chest.gnarling",
-                        )))
-                        .pants(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.biped_small.gnarling.pants.gnarling",
-                        )))
-                        .build(),
+                    Some(ToolKind::Bow) | Some(ToolKind::Staff) | Some(ToolKind::Spear) => {
+                        LoadoutBuilder::new()
+                            .active_mainhand(active_item)
+                            .complete_from_spec("common.loadouts.gnarling")
+                            .build()
+                    },
                     _ => LoadoutBuilder::new().active_mainhand(active_item).build(),
                 },
                 Sahagin => LoadoutBuilder::new()
@@ -706,41 +596,12 @@ impl LoadoutBuilder {
                     }
                     LoadoutBuilder::new()
                         .active_mainhand(active_item)
-                        .shoulder(Some(Item::new_from_asset_expect(
-                            "common.items.armor.twigsflowers.shoulder",
-                        )))
-                        .chest(Some(Item::new_from_asset_expect(
-                            "common.items.armor.twigsflowers.chest",
-                        )))
-                        .belt(Some(Item::new_from_asset_expect(
-                            "common.items.armor.twigsflowers.belt",
-                        )))
-                        .hands(Some(Item::new_from_asset_expect(
-                            "common.items.armor.twigsflowers.hand",
-                        )))
-                        .pants(Some(Item::new_from_asset_expect(
-                            "common.items.armor.twigsflowers.pants",
-                        )))
-                        .feet(Some(Item::new_from_asset_expect(
-                            "common.items.armor.twigsflowers.foot",
-                        )))
-                        .lantern(Some(Item::new_from_asset_expect(
-                            "common.items.lantern.black_0",
-                        )))
                         .back(Some(backpack))
-                        .neck(Some(Item::new_from_asset_expect(
-                            "common.items.armor.misc.neck.plain_1",
-                        )))
-                        .ring1(Some(Item::new_from_asset_expect(
-                            "common.items.armor.misc.ring.gold",
-                        )))
-                        .ring2(Some(Item::new_from_asset_expect(
-                            "common.items.armor.misc.ring.gold",
-                        )))
                         .bag(ArmorSlot::Bag1, Some(bag1))
                         .bag(ArmorSlot::Bag2, Some(bag2))
                         .bag(ArmorSlot::Bag3, Some(bag3))
                         .bag(ArmorSlot::Bag4, Some(bag4))
+                        .complete_from_spec("common.loadouts.merchant")
                         .build()
                 },
                 Outcast => LoadoutBuilder::new()
@@ -1169,6 +1030,88 @@ impl LoadoutBuilder {
     }
 
     pub fn build(self) -> Loadout { self.0 }
+
+    pub fn complete_from_spec(self, asset_specifier: &str) -> Self {
+        let spec = LoadoutSpec::load_expect(asset_specifier).read().0.clone();
+        let mut loadout = self;
+        for (key, specifier) in spec {
+            let item = match specifier {
+                ItemSpec::Item(specifier) => Item::new_from_asset_expect(&specifier),
+                ItemSpec::Choice(_) => Item::empty(),
+            };
+            match key.as_str() {
+                "active_mainhand" => {
+                    loadout = loadout.active_mainhand(Some(item));
+                },
+                "active_offhand" => {
+                    loadout = loadout.active_offhand(Some(item));
+                },
+                "inactive_mainhand" => {
+                    loadout = loadout.inactive_mainhand(Some(item));
+                },
+                "inactive_offhand" => {
+                    loadout = loadout.inactive_offhand(Some(item));
+                },
+                "head" => {
+                    loadout = loadout.head(Some(item));
+                },
+                "shoulder" => {
+                    loadout = loadout.shoulder(Some(item));
+                },
+                "chest" => {
+                    loadout = loadout.chest(Some(item));
+                },
+                "hands" => {
+                    loadout = loadout.hands(Some(item));
+                },
+                "pants" => {
+                    loadout = loadout.pants(Some(item));
+                },
+                "feet" => {
+                    loadout = loadout.feet(Some(item));
+                },
+                "belt" => {
+                    loadout = loadout.belt(Some(item));
+                },
+                "back" => {
+                    loadout = loadout.back(Some(item));
+                },
+                "neck" => {
+                    loadout = loadout.neck(Some(item));
+                },
+                "ring1" => {
+                    loadout = loadout.ring1(Some(item));
+                },
+                "ring2" => {
+                    loadout = loadout.ring2(Some(item));
+                },
+                "lantern" => {
+                    loadout = loadout.lantern(Some(item));
+                },
+                "tabard" => {
+                    loadout = loadout.tabard(Some(item));
+                },
+                "glider" => {
+                    loadout = loadout.glider(Some(item));
+                },
+                _ => {
+                    if cfg!(tests) {
+                        panic!(
+                            "Unexpected key in loadout asset ({}): {}",
+                            asset_specifier, key
+                        );
+                    } else {
+                        warn!(
+                            "Unexpected key in loadout asset ({}): {}",
+                            asset_specifier, key
+                        );
+                    }
+                },
+            };
+        }
+
+        loadout
+    }
 }
 
 #[cfg(test)]
@@ -1262,4 +1205,7 @@ mod tests {
             golem: Golem,
         );
     }
+
+    #[test]
+    fn test_loadout_assets() { LoadoutBuilder::new().complete_from_spec("common.loadouts.test"); }
 }

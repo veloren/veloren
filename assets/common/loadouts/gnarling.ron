@@ -1,0 +1,8 @@
+({
+    "head": Item("common.items.npc_armor.biped_small.gnarling.head.gnarling"),
+    "feet": Item("common.items.npc_armor.biped_small.gnarling.foot.gnarling"),
+    "hands": Item("common.items.npc_armor.biped_small.gnarling.hand.gnarling"),
+    "chest": Item("common.items.npc_armor.biped_small.gnarling.chest.gnarling"),
+    "pants": Item("common.items.npc_armor.biped_small.gnarling.pants.gnarling"),
+    "belt": Item("common.items.npc_armor.biped_small.gnarling.tail.gnarling"),
+})
