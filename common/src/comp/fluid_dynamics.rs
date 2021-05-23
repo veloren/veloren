@@ -162,7 +162,7 @@ impl Body {
                             let cdi = c_l.powi(2) / (PI * e * ar);
 
                             zero_lift_drag_coefficient(planform_area)
-                                + self.parasite_drag_coefficient(wings)
+                                + self.parasite_drag_coefficient()
                                 + cdi
                         };
                         debug_assert!(c_d.is_sign_positive());
@@ -171,7 +171,7 @@ impl Body {
                         c_l * *lift_dir + c_d * *rel_flow_dir
                     },
 
-                    _ => self.parasite_drag_coefficient(wings) * *rel_flow_dir,
+                    _ => self.parasite_drag_coefficient() * *rel_flow_dir,
                 }
         }
     }
@@ -180,7 +180,7 @@ impl Body {
     /// Skin friction is the drag arising from the shear forces between a fluid
     /// and a surface, while pressure drag is due to flow separation. Both are
     /// viscous effects.
-    fn parasite_drag_coefficient(&self, wings: Option<&Wings>) -> f32 {
+    fn parasite_drag_coefficient(&self) -> f32 {
         // Reference area and drag coefficient assumes best-case scenario of the
         // orientation producing least amount of drag
         match self {
@@ -208,16 +208,12 @@ impl Body {
             // Cross-section, zero-lift angle; exclude the wings (width * 0.2)
             Body::BirdMedium(_) | Body::BirdLarge(_) | Body::Dragon(_) => {
                 let dim = self.dimensions().map(|a| a * 0.5);
-                let cd: f32 = if wings.is_none() {
-                    0.7
-                } else {
+                let cd: f32 = match self {
                     // "Field Estimates of Body Drag Coefficient on the Basis of Dives in Passerine
                     // Birds", Anders Hedenström and Felix Liechti, 2001
-                    match self {
-                        Body::BirdLarge(_) | Body::BirdMedium(_) => 0.2,
-                        // arbitrary
-                        _ => 0.7,
-                    }
+                    Body::BirdLarge(_) | Body::BirdMedium(_) => 0.2,
+                    // arbitrary
+                    _ => 0.7,
                 };
                 cd * PI * dim.x * 0.2 * dim.z
             },
