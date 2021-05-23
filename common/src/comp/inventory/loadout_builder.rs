@@ -13,7 +13,7 @@ use crate::{
     trade::{Good, SiteInformation},
 };
 use hashbrown::HashMap;
-use rand::Rng;
+use rand::{seq::SliceRandom, Rng};
 use serde::{Deserialize, Serialize};
 use strum_macros::EnumIter;
 use tracing::warn;
@@ -1037,7 +1037,34 @@ impl LoadoutBuilder {
         for (key, specifier) in spec {
             let item = match specifier {
                 ItemSpec::Item(specifier) => Item::new_from_asset_expect(&specifier),
-                ItemSpec::Choice(_) => Item::empty(),
+                ItemSpec::Choice(items) => {
+                    let mut rng = rand::thread_rng();
+                    match items
+                        .choose_weighted(&mut rng, |item| item.0)
+                        .unwrap_or_else(|| {
+                            panic!(
+                                "failed to choose item from loadout asset ({})",
+                                asset_specifier
+                            )
+                        }) {
+                        (_, Some(ItemSpec::Item(item_specifier))) => {
+                            Item::new_from_asset_expect(&item_specifier)
+                        },
+                        (_, Some(ItemSpec::Choice(_))) => {
+                            let err = format!(
+                                "Using choice of choices in ({}): {}. Unimplemented.",
+                                asset_specifier, key,
+                            );
+                            if cfg!(tests) {
+                                panic!("{}", err);
+                            } else {
+                                warn!("{}", err);
+                            }
+                            continue;
+                        },
+                        (_, None) => continue,
+                    }
+                },
             };
             match key.as_str() {
                 "active_mainhand" => {
