@@ -72,7 +72,7 @@ enum ItemSpec {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct LoadoutSpec(HashMap<String, ItemSpec>);
+pub struct LoadoutSpec(HashMap<EquipSlot, ItemSpec>);
 impl assets::Asset for LoadoutSpec {
     type Loader = assets::RonLoader;
 
@@ -331,7 +331,7 @@ impl LoadoutBuilder {
                         },
                         (_, Some(ItemSpec::Choice(_))) => {
                             let err = format!(
-                                "Using choice of choices in ({}): {}. Unimplemented.",
+                                "Using choice of choices in ({}): {:?}. Unimplemented.",
                                 asset_specifier, key,
                             );
                             if cfg!(tests) {
@@ -345,73 +345,66 @@ impl LoadoutBuilder {
                     }
                 },
             };
-            match key.as_str() {
-                "active_mainhand" => {
+            match key {
+                EquipSlot::ActiveMainhand => {
                     loadout = loadout.active_mainhand(Some(item));
                 },
-                "active_offhand" => {
+                EquipSlot::ActiveOffhand => {
                     loadout = loadout.active_offhand(Some(item));
                 },
-                "inactive_mainhand" => {
+                EquipSlot::InactiveMainhand => {
                     loadout = loadout.inactive_mainhand(Some(item));
                 },
-                "inactive_offhand" => {
+                EquipSlot::InactiveOffhand => {
                     loadout = loadout.inactive_offhand(Some(item));
                 },
-                "head" => {
+                EquipSlot::Armor(ArmorSlot::Head) => {
                     loadout = loadout.head(Some(item));
                 },
-                "shoulder" => {
+                EquipSlot::Armor(ArmorSlot::Shoulders) => {
                     loadout = loadout.shoulder(Some(item));
                 },
-                "chest" => {
+                EquipSlot::Armor(ArmorSlot::Chest) => {
                     loadout = loadout.chest(Some(item));
                 },
-                "hands" => {
+                EquipSlot::Armor(ArmorSlot::Hands) => {
                     loadout = loadout.hands(Some(item));
                 },
-                "pants" => {
+                EquipSlot::Armor(ArmorSlot::Legs) => {
                     loadout = loadout.pants(Some(item));
                 },
-                "feet" => {
+                EquipSlot::Armor(ArmorSlot::Feet) => {
                     loadout = loadout.feet(Some(item));
                 },
-                "belt" => {
+                EquipSlot::Armor(ArmorSlot::Belt) => {
                     loadout = loadout.belt(Some(item));
                 },
-                "back" => {
+                EquipSlot::Armor(ArmorSlot::Back) => {
                     loadout = loadout.back(Some(item));
                 },
-                "neck" => {
+                EquipSlot::Armor(ArmorSlot::Neck) => {
                     loadout = loadout.neck(Some(item));
                 },
-                "ring1" => {
+                EquipSlot::Armor(ArmorSlot::Ring1) => {
                     loadout = loadout.ring1(Some(item));
                 },
-                "ring2" => {
+                EquipSlot::Armor(ArmorSlot::Ring2) => {
                     loadout = loadout.ring2(Some(item));
                 },
-                "lantern" => {
+                EquipSlot::Lantern => {
                     loadout = loadout.lantern(Some(item));
                 },
-                "tabard" => {
+                EquipSlot::Armor(ArmorSlot::Tabard) => {
                     loadout = loadout.tabard(Some(item));
                 },
-                "glider" => {
+                EquipSlot::Glider => {
                     loadout = loadout.glider(Some(item));
                 },
-                _ => {
-                    if cfg!(tests) {
-                        panic!(
-                            "Unexpected key in loadout asset ({}): {}",
-                            asset_specifier, key
-                        );
-                    } else {
-                        warn!(
-                            "Unexpected key in loadout asset ({}): {}",
-                            asset_specifier, key
-                        );
-                    }
+                EquipSlot::Armor(slot @ ArmorSlot::Bag1)
+                    | EquipSlot::Armor(slot @ ArmorSlot::Bag2)
+                    | EquipSlot::Armor(slot @ ArmorSlot::Bag3)
+                    | EquipSlot::Armor(slot @ ArmorSlot::Bag4) => {
+                    loadout = loadout.bag(slot, Some(item));
                 },
             };
         }
@@ -775,8 +768,8 @@ mod tests {
     //
     // Things that will be catched - invalid assets paths
     // FIXME: if item is used in some branch of rng test may miss it
-    // TODO: as of now there is no rng generation of items
-    // validate assets for all possible branches
+    // TODO: as of now there is no rng generation of items.
+    // Validate assets for all possible branches
     #[test]
     fn test_loadout_configs() {
         let test_weapons = vec![

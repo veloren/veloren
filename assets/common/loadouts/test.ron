@@ -1,28 +1,32 @@
 ({
     // Weapons
-    "active_mainhand": Item("common.items.weapons.sword_1h.bloodsteel-0"),
-    "active_offhand": Item("common.items.weapons.sword_1h.bloodsteel-0"),
+    ActiveMainhand: Item("common.items.weapons.sword_1h.bloodsteel-0"),
+    ActiveOffhand: Item("common.items.weapons.sword_1h.bloodsteel-0"),
 
-    "inactive_mainhand": Item("common.items.weapons.sword_1h.bloodsteel-0"),
-    "inactive_offhand": Item("common.items.weapons.sword_1h.bloodsteel-0"),
+    InactiveMainhand: Item("common.items.weapons.sword_1h.bloodsteel-0"),
+    InactiveOffhand: Item("common.items.weapons.sword_1h.bloodsteel-0"),
     
     // Gear
-    "head": Item("common.items.npc_armor.biped_small.myrmidon.head.myrmidon"),
-    "shoulder": Item("common.items.armor.twigsflowers.shoulder"),
-    "chest": Item("common.items.armor.twigsflowers.chest"),
-    "hands": Item("common.items.armor.twigsflowers.hand"),
-    "pants": Item("common.items.armor.twigsflowers.pants"),
-    "feet": Item("common.items.armor.twigsflowers.foot"),
-    "belt": Item("common.items.armor.twigsflowers.belt"),
+    Armor(Head): Item("common.items.npc_armor.biped_small.myrmidon.head.myrmidon"),
+    Armor(Shoulders): Item("common.items.armor.twigsflowers.shoulder"),
+    Armor(Chest): Item("common.items.armor.twigsflowers.chest"),
+    Armor(Hands): Item("common.items.armor.twigsflowers.hand"),
+    Armor(Legs): Item("common.items.armor.twigsflowers.pants"),
+    Armor(Feet): Item("common.items.armor.twigsflowers.foot"),
+    Armor(Belt): Item("common.items.armor.twigsflowers.belt"),
 
     // Biju
-    "back": Item("common.items.armor.misc.back.dungeon_purple"),
-    "neck": Item("common.items.armor.misc.neck.plain_1"),
-    "ring1": Item("common.items.armor.misc.ring.gold"),
-    "ring2": Item("common.items.armor.misc.ring.gold"),
+    Armor(Back): Item("common.items.armor.misc.back.dungeon_purple"),
+    Armor(Neck): Item("common.items.armor.misc.neck.plain_1"),
+    Armor(Ring1): Item("common.items.armor.misc.ring.gold"),
+    Armor(Ring2): Item("common.items.armor.misc.ring.gold"),
     
     // Misc
-    "lantern": Item("common.items.lantern.black_0"),
-    "tabard": Item("common.items.debug.admin"),
-    "glider": Item("common.items.glider.glider_basic_red"),
+    Lantern: Item("common.items.lantern.black_0"),
+    Armor(Tabard): Item("common.items.debug.admin"),
+    Glider: Item("common.items.glider.glider_basic_red"),
+    Armor(Bag1): Item("common.items.armor.misc.bag.tiny_leather_pouch"),
+    Armor(Bag2): Item("common.items.armor.misc.bag.tiny_leather_pouch"),
+    Armor(Bag3): Item("common.items.armor.misc.bag.tiny_leather_pouch"),
+    Armor(Bag4): Item("common.items.armor.misc.bag.tiny_leather_pouch"),
 })
