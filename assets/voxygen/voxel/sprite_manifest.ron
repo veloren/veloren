@@ -2902,7 +2902,16 @@ SapphireSmall: Some((
     ],
     wind_sway: 0.0,
 )),
-
+Crystal: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mineral.gem.crystal-0",
+            offset: (-8.5, -8.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 // Lantern
 Lantern: Some((
     variations: [

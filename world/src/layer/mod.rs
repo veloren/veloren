@@ -180,15 +180,29 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             let difficulty = cave_depth / 100.0;
 
             // Scatter things in caves
-            if rng.gen::<f32>() < 0.001 * difficulty.powf(1.5) && cave_base < surface_z as i32 - 25
-            {
-                let kind = *Lottery::<SpriteKind>::load_expect("common.cave_scatter")
-                    .read()
-                    .choose();
-                canvas.map(Vec3::new(wpos2d.x, wpos2d.y, cave_base), |block| {
-                    block.with_sprite(kind)
-                });
-            }
+            if difficulty.round() < 2.0 {
+                if rng.gen::<f32>() < 0.3 * difficulty.powf(1.5) * (cave_x.max(0.5).powf(4.0))
+                    && cave_base < surface_z as i32 - 25
+                {
+                    let kind = *Lottery::<SpriteKind>::load_expect("common.cave_scatter.shallow")
+                        .read()
+                        .choose();
+                    canvas.map(Vec3::new(wpos2d.x, wpos2d.y, cave_base), |block| {
+                        block.with_sprite(kind)
+                    });
+                }
+            } else {
+                if rng.gen::<f32>() < 0.1 * difficulty.powf(1.5) * (cave_x.max(0.5).powf(4.0))
+                    && cave_base < surface_z as i32 - 25
+                {
+                    let kind = *Lottery::<SpriteKind>::load_expect("common.cave_scatter.deep")
+                        .read()
+                        .choose();
+                    canvas.map(Vec3::new(wpos2d.x, wpos2d.y, cave_base), |block| {
+                        block.with_sprite(kind)
+                    });
+                }
+            };
         }
     });
 }
@@ -229,7 +243,7 @@ pub fn apply_caves_supplement<'a>(
                 let cave_base = (cave.alt + cave_floor) as i32;
 
                 let cave_depth = (col_sample.alt - cave.alt).max(0.0);
-                let difficulty = cave_depth / 200.0;
+                let difficulty = cave_depth / 50.0;
 
                 // Scatter things in caves
                 if RandomField::new(index.seed).chance(wpos2d.into(), 0.001 * difficulty)
@@ -241,8 +255,8 @@ pub fn apply_caves_supplement<'a>(
                         wpos2d.y as f32,
                         cave_base as f32,
                     ))
-                    .with_body(match dynamic_rng.gen_range(0..5) {
-                        0 => {
+                    .with_body(match difficulty.round() as i32 {
+                        0 | 1 | 2 => {
                             is_hostile = false;
                             let species = match dynamic_rng.gen_range(0..4) {
                                 0 => comp::quadruped_small::Species::Truffler,
@@ -252,33 +266,23 @@ pub fn apply_caves_supplement<'a>(
                             };
                             comp::quadruped_small::Body::random_with(dynamic_rng, &species).into()
                         },
-                        1 => {
+                        3 => {
                             is_hostile = true;
-                            let species = match dynamic_rng.gen_range(0..2) {
-                                0 => comp::quadruped_medium::Species::Tarasque,
-                                _ => comp::quadruped_medium::Species::Bonerattler,
+                            let species = match dynamic_rng.gen_range(0..3) {
+                                0 => comp::quadruped_low::Species::Rocksnapper,
+                                1 => comp::quadruped_low::Species::Salamander,
+                                _ => comp::quadruped_low::Species::Asp,
                             };
-                            comp::quadruped_medium::Body::random_with(dynamic_rng, &species).into()
+                            comp::quadruped_low::Body::random_with(dynamic_rng, &species).into()
                         },
-                        2 => {
+                        4 => {
                             is_hostile = true;
                             let species = match dynamic_rng.gen_range(0..3) {
                                 0 => comp::quadruped_low::Species::Rocksnapper,
                                 1 => comp::quadruped_low::Species::Lavadrake,
-                                _ => comp::quadruped_low::Species::Salamander,
+                                _ => comp::quadruped_low::Species::Basilisk,
                             };
                             comp::quadruped_low::Body::random_with(dynamic_rng, &species).into()
-                        },
-                        3 => {
-                            is_hostile = true;
-                            let species = match dynamic_rng.gen_range(0..5) {
-                                0 => comp::theropod::Species::Sandraptor,
-                                1 => comp::theropod::Species::Snowraptor,
-                                2 => comp::theropod::Species::Woodraptor,
-                                3 => comp::theropod::Species::Odonto,
-                                _ => comp::theropod::Species::Archaeos,
-                            };
-                            comp::theropod::Body::random_with(dynamic_rng, &species).into()
                         },
                         _ => {
                             is_hostile = true;

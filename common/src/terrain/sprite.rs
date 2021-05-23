@@ -156,6 +156,7 @@ make_case_elim!(
         DungeonChest5 = 0x81,
         Loom = 0x82,
         SpinningWheel = 0x83,
+        Crystal = 0x84,
     }
 );
 

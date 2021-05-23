@@ -187,14 +187,14 @@
     "gold ingot": (
         output: ("common.items.mineral.ingot.gold", 1),
         inputs: [
-            (Item("common.items.mineral.ore.gold_ore"), 1),
+            (Item("common.items.mineral.ore.gold"), 1),
         ],	
         craft_sprite: Some(Forge),
     ),
     "silver ingot": (
         output: ("common.items.mineral.ingot.silver", 1),
         inputs: [
-            (Item("common.items.mineral.ore.silver_ore"), 1),
+            (Item("common.items.mineral.ore.silver"), 1),
         ],	
         craft_sprite: Some(Forge),
     ),
@@ -202,44 +202,44 @@
     "iron ingot": (
         output: ("common.items.mineral.ingot.iron", 1),
         inputs: [
-            (Item("common.items.mineral.ore.iron_ore"), 1),
+            (Item("common.items.mineral.ore.iron"), 1),
         ],	
         craft_sprite: Some(Forge),
     ),
     "cobalt ingot": (
         output: ("common.items.mineral.ingot.cobalt", 1),
         inputs: [
-            (Item("common.items.mineral.ore.cobalt_ore"), 1),
+            (Item("common.items.mineral.ore.cobalt"), 1),
         ],	
         craft_sprite: Some(Forge),
     ),
     "tin ingot": (
         output: ("common.items.mineral.ingot.tin", 2),
         inputs: [
-            (Item("common.items.mineral.ore.tin_ore"), 1),
+            (Item("common.items.mineral.ore.tin"), 1),
         ],		
         craft_sprite: Some(Forge),
     ),
     "orichalcum ingot": (
         output: ("common.items.mineral.ingot.orichalcum", 2),
         inputs: [
-            (Item("common.items.mineral.ore.gold_ore"), 1),
-            (Item("common.items.mineral.ore.silver_ore"), 1),
+            (Item("common.items.mineral.ore.gold"), 1),
+            (Item("common.items.mineral.ore.silver"), 1),
         ],		
         craft_sprite: Some(Forge),
     ),
     "copper ingot": (
         output: ("common.items.mineral.ingot.copper", 2),
         inputs: [
-            (Item("common.items.mineral.ore.copper_ore"), 1),
+            (Item("common.items.mineral.ore.copper"), 1),
         ],		
         craft_sprite: Some(Forge),
     ),
     "bloodsteel ingot": (
         output: ("common.items.mineral.ingot.bloodsteel", 2),
         inputs: [
-            (Item("common.items.mineral.ore.bloodstone_ore"), 1),
-            (Item("common.items.mineral.ore.iron_ore"), 1),  
+            (Item("common.items.mineral.ore.bloodstone"), 1),
+            (Item("common.items.mineral.ore.iron"), 1),  
             (Item("common.items.mineral.ore.coal"), 1),  
       ],		
         craft_sprite: Some(Forge),
@@ -247,7 +247,7 @@
     "steel ingot": (
         output: ("common.items.mineral.ingot.steel", 1),
         inputs: [
-            (Item("common.items.mineral.ore.iron_ore"), 1),  
+            (Item("common.items.mineral.ore.iron"), 1),  
             (Item("common.items.mineral.ore.coal"), 1),  
       ],		
         craft_sprite: Some(Forge),
@@ -255,8 +255,8 @@
     "bronze ingot": (
         output: ("common.items.mineral.ingot.bronze", 2),
         inputs: [
-            (Item("common.items.mineral.ore.copper_ore"), 1),
-            (Item("common.items.mineral.ore.tin_ore"), 1),
+            (Item("common.items.mineral.ore.copper"), 1),
+            (Item("common.items.mineral.ore.tin"), 1),
         ],	
         craft_sprite: Some(Forge),
     ),

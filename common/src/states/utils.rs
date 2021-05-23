@@ -740,7 +740,7 @@ pub fn get_crit_data(data: &JoinData, ai: AbilityInfo) -> (f32, f32) {
     let slot = match ai.hand {
         Some(TwoHanded) | Some(MainHand) => EquipSlot::ActiveMainhand,
         Some(OffHand) => EquipSlot::ActiveOffhand,
-        None => return DEFAULT_CRIT_CHANCE, crit_mult),
+        None => return (DEFAULT_CRIT_CHANCE, crit_mult),
     };
     if let Some(item) = data.inventory.equipped(slot) {
         if let ItemKind::Tool(tool) = item.kind() {

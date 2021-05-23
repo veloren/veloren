@@ -438,9 +438,16 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     Some(common::comp::Body::Humanoid(_)) => object::Body::Pouch,
                     Some(common::comp::Body::BipedSmall(_)) => object::Body::Pouch,
                     Some(common::comp::Body::Golem(_)) => object::Body::Chest,
+                    Some(common::comp::Body::QuadrupedSmall(_)) => object::Body::SmallMeat,
+                    Some(common::comp::Body::FishMedium(_))
+                    | Some(common::comp::Body::FishSmall(_)) => object::Body::FishMeat,
+                    Some(common::comp::Body::QuadrupedMedium(_)) => object::Body::BeastMeat,
                     Some(common::comp::Body::BipedLarge(_))
-                    | Some(common::comp::Body::QuadrupedLow(_)) => object::Body::MeatDrop,
-                    _ => object::Body::Steak,
+                    | Some(common::comp::Body::QuadrupedLow(_)) => object::Body::ToughMeat,
+                    Some(common::comp::Body::BirdLarge(_))
+                    | Some(common::comp::Body::BirdMedium(_)) => object::Body::BirdMeat,
+
+                    _ => object::Body::BeastMeat,
                 })
                 .maybe_with(vel)
                 .with(item)
