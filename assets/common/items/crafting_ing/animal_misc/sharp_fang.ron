@@ -1,8 +1,8 @@
 ItemDef(
-    name: "Predator Fang",
+    name: "Sharp Fang",
     description: "Incredibly sharp tooth from a predatory animal.",
     kind: Ingredient(
-        kind: "Fang",
+        kind: "SharpFang",
     ),
     quality: Common,
     tags: [],

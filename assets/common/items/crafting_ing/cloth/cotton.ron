@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Cotton",
+    description: "Easy to work with and multi-functional.",
+    kind: Ingredient(
+        kind: "Cotton",
+    ),
+    quality: Low,
+    tags: [],
+)

@@ -688,6 +688,9 @@ impl<'a> Widget for Crafting<'a> {
                     Some(SpriteKind::Cauldron) => "Cauldron",
                     Some(SpriteKind::CookingPot) => "CookingPot",
                     Some(SpriteKind::CraftingBench) => "CraftingBench",
+                    Some(SpriteKind::Forge) => "Forge",
+                    Some(SpriteKind::Loom) => "Loom",
+                    Some(SpriteKind::SpinningWheel) => "SpinningWheel",
                     None => "CraftsmanHammer",
                     _ => "CraftsmanHammer",
                 };
@@ -707,6 +710,9 @@ impl<'a> Widget for Crafting<'a> {
                     Some(SpriteKind::Cauldron) => "hud.crafting.cauldron",
                     Some(SpriteKind::CookingPot) => "hud.crafting.cooking_pot",
                     Some(SpriteKind::CraftingBench) => "hud.crafting.crafting_bench",
+                    Some(SpriteKind::Forge) => "hud.crafting.forge",
+                    Some(SpriteKind::Loom) => "hud.crafting.loom",
+                    Some(SpriteKind::SpinningWheel) => "hud.crafting.spinning_wheel",
                     _ => "",
                 };
                 Text::new(&self.localized_strings.get(station_name))

@@ -19,6 +19,18 @@
         "voxel.sprite.crafting_bench.crafting_bench-0",
        (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 1.0,
     ),    
+    Tool("Forge"): VoxTrans(
+        "voxel.object.forge",
+       (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 1.0,
+    ),  
+    Tool("Loom"): VoxTrans(
+        "voxel.object.loom",
+       (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 1.0,
+    ),  
+    Tool("SpinningWheel"): VoxTrans(
+        "voxel.object.spinning_wheel",
+       (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 1.0,
+    ),  
     // Weapons
     // Diary Example Images
     Tool("example_utility"): VoxTrans(
@@ -2466,12 +2478,32 @@
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
     Ingredient("VenomSac"): VoxTrans(
-        "voxel.sprite.crafting_ing.venom_sac",
+        "voxel.sprite.crafting_ing.animal_misc.venom_sac",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("SharpFang"): VoxTrans(
+        "voxel.sprite.crafting_ing.animal_misc.sharp_fang",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("LargeHorn"): VoxTrans(
+        "voxel.sprite.crafting_ing.animal_misc.large_horn",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("GrimEyeball"): VoxTrans(
+        "voxel.sprite.crafting_ing.animal_misc.grim_eyeball",
+        (0.0, 0.0, 0.0), (-60.0, 30.0, 20.0), 0.8,
     ),
     Ingredient("PlantFiber"): VoxTrans(
         "voxel.sprite.crafting_ing.plant_fiber",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("CottonBoll"): VoxTrans(
+        "voxel.sprite.crafting_ing.cotton_boll",
+        (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
+    ),
+    Ingredient("Cotton"): VoxTrans(
+        "voxel.sprite.crafting_ing.cloth.cotton",
+        (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
     ),
     Ingredient("Linen"): VoxTrans(
         "voxel.sprite.crafting_ing.cloth.linen",
@@ -2567,6 +2599,10 @@
     ),
     Ingredient("TinOre"): VoxTrans(
         "voxel.sprite.mineral.ore.tin",
+        (0.0, 0.0, 0.0), (-60.0, 30.0, 20.0), 0.8,
+    ),
+    Ingredient("Coal"): VoxTrans(
+        "voxel.sprite.mineral.ore.coal",
         (0.0, 0.0, 0.0), (-60.0, 30.0, 20.0), 0.8,
     ),
     Ingredient("Honey"): Png(

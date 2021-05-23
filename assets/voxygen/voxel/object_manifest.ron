@@ -99,6 +99,36 @@
             central: ("armor.empty"),
         )
     ),
+    Forge: (
+        bone0: (
+            offset: (-6.5, -6.0, 0.0),
+            central: ("object.forge"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    Loom: (
+        bone0: (
+            offset: (-6.0, -4.0, 0.0),
+            central: ("object.loom"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    SpinningWheel: (
+        bone0: (
+            offset: (-7.5, -5.0, 0.0),
+            central: ("object.spinning_wheel"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
     ChestVines: (
         bone0: (
             offset: (-7.5, -6.0, 0.0),

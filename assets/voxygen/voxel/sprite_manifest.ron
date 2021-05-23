@@ -2940,8 +2940,28 @@ Cauldron: Some((
 Forge: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.forge.forge-0",
-            offset: (-20.0, -20.0, 0.0),
+            model: "voxygen.voxel.object.forge",
+            offset: (-6.5, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Loom: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.object.loom",
+            offset: (-6.0, -4.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+SpinningWheel: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.object.spinning_wheel",
+            offset: (-7.5, -5.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
     ],

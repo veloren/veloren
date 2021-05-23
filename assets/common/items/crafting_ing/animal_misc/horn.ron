@@ -1,9 +1,0 @@
-ItemDef(
-    name: "Sharp Horn",
-    description: "A sharp horn from an animal.",
-    kind: Ingredient(
-        kind: "Horn",
-    ),
-    quality: Common,
-    tags: [],
-)

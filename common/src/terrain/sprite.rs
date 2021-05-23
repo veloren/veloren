@@ -154,6 +154,8 @@ make_case_elim!(
         DungeonChest3 = 0x7F,
         DungeonChest4 = 0x80,
         DungeonChest5 = 0x81,
+        Loom = 0x82,
+        SpinningWheel = 0x83,
     }
 );
 
@@ -204,6 +206,8 @@ impl SpriteKind {
             SpriteKind::CraftingBench => 1.18,
             SpriteKind::Forge => 2.7,
             SpriteKind::Cauldron => 1.27,
+            SpriteKind::SpinningWheel => 1.6,
+            SpriteKind::Loom => 1.27,
             SpriteKind::Anvil => 1.1,
             SpriteKind::CookingPot => 1.36,
             // TODO: Find suitable heights.
@@ -357,6 +361,8 @@ impl SpriteKind {
                 | SpriteKind::Cauldron
                 | SpriteKind::Anvil
                 | SpriteKind::CookingPot
+                | SpriteKind::SpinningWheel
+                | SpriteKind::Loom
         )
     }
 }
