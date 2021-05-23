@@ -41,23 +41,18 @@ pub struct LoadoutBuilder(Loadout);
 
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug, EnumIter)]
 pub enum LoadoutConfig {
-    Adlet,
     Gnarling,
+    Adlet,
     Sahagin,
     Haniwa,
     Myrmidon,
     Husk,
-    Guard,
-    Villager,
-    Merchant,
-    Outcast,
-    Highwayman,
-    Bandit,
-    CultistNovice,
-    CultistAcolyte,
     Beastmaster,
     Warlord,
     Warlock,
+    Villager,
+    Guard,
+    Merchant,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -504,26 +499,6 @@ impl LoadoutBuilder {
                         .complete_from_spec("common.loadouts.village.merchant")
                         .build()
                 },
-                Outcast => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.unused.outcast")
-                    .build(),
-                Highwayman => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.unused.highwayman")
-                    .build(),
-                Bandit => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.unused.bandit")
-                    .build(),
-                CultistNovice => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.unused.cultist_novice")
-                    .build(),
-                CultistAcolyte => LoadoutBuilder::new()
-                    .active_mainhand(active_item)
-                    .complete_from_spec("common.loadouts.unused.cultist_acolyte")
-                    .build(),
             }
         } else {
             match body {
