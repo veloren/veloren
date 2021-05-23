@@ -1,8 +1,8 @@
 ({
-    "head": Item("common.items.npc_armor.biped_small.gnarling.head.gnarling"),
-    "feet": Item("common.items.npc_armor.biped_small.gnarling.foot.gnarling"),
-    "hands": Item("common.items.npc_armor.biped_small.gnarling.hand.gnarling"),
-    "chest": Item("common.items.npc_armor.biped_small.gnarling.chest.gnarling"),
-    "pants": Item("common.items.npc_armor.biped_small.gnarling.pants.gnarling"),
-    "belt": Item("common.items.npc_armor.biped_small.gnarling.tail.gnarling"),
+    Armor(Head): Item("common.items.npc_armor.biped_small.gnarling.head.gnarling"),
+    Armor(Feet): Item("common.items.npc_armor.biped_small.gnarling.foot.gnarling"),
+    Armor(Hands): Item("common.items.npc_armor.biped_small.gnarling.hand.gnarling"),
+    Armor(Chest): Item("common.items.npc_armor.biped_small.gnarling.chest.gnarling"),
+    Armor(Legs): Item("common.items.npc_armor.biped_small.gnarling.pants.gnarling"),
+    Armor(Belt): Item("common.items.npc_armor.biped_small.gnarling.tail.gnarling"),
 })

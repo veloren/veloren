@@ -401,9 +401,9 @@ impl LoadoutBuilder {
                     loadout = loadout.glider(Some(item));
                 },
                 EquipSlot::Armor(slot @ ArmorSlot::Bag1)
-                    | EquipSlot::Armor(slot @ ArmorSlot::Bag2)
-                    | EquipSlot::Armor(slot @ ArmorSlot::Bag3)
-                    | EquipSlot::Armor(slot @ ArmorSlot::Bag4) => {
+                | EquipSlot::Armor(slot @ ArmorSlot::Bag2)
+                | EquipSlot::Armor(slot @ ArmorSlot::Bag3)
+                | EquipSlot::Armor(slot @ ArmorSlot::Bag4) => {
                     loadout = loadout.bag(slot, Some(item));
                 },
             };
@@ -760,16 +760,16 @@ impl LoadoutBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::comp::{self, Body};
+    use crate::{
+        assets::{AssetExt, Error},
+        comp::{self, Body},
+    };
     use rand::thread_rng;
     use strum::IntoEnumIterator;
 
     // Testing all configs in loadout with weapons of different toolkinds
     //
     // Things that will be catched - invalid assets paths
-    // FIXME: if item is used in some branch of rng test may miss it
-    // TODO: as of now there is no rng generation of items.
-    // Validate assets for all possible branches
     #[test]
     fn test_loadout_configs() {
         let test_weapons = vec![
@@ -852,5 +852,62 @@ mod tests {
     }
 
     #[test]
-    fn test_loadout_assets() { LoadoutBuilder::from_asset_expect("common.loadouts.test"); }
+    fn test_loadout_asset() { LoadoutBuilder::from_asset_expect("common.loadouts.test"); }
+
+    #[test]
+    fn test_all_loadout_assets() {
+        #[derive(Clone)]
+        struct LoadoutsList(Vec<LoadoutSpec>);
+        impl assets::Compound for LoadoutsList {
+            fn load<S: assets::source::Source>(
+                cache: &assets::AssetCache<S>,
+                specifier: &str,
+            ) -> Result<Self, Error> {
+                let list = cache
+                    .load::<assets::Directory>(specifier)?
+                    .read()
+                    .iter()
+                    .map(|spec| LoadoutSpec::load_cloned(spec))
+                    .collect::<Result<_, Error>>()?;
+
+                Ok(LoadoutsList(list))
+            }
+        }
+
+        // It just load everything that could
+        // TODO: add some checks, e.g. that Armor(Head) key correspond
+        // to Item with ItemKind Head(_)
+        fn validate_asset(loadout: LoadoutSpec) {
+            let spec = loadout.0.clone();
+            for (key, specifier) in spec {
+                match specifier {
+                    ItemSpec::Item(specifier) => {
+                        Item::new_from_asset_expect(&specifier);
+                    },
+                    ItemSpec::Choice(ref items) => {
+                        for item in items {
+                            match item {
+                                (_, Some(ItemSpec::Item(specifier))) => {
+                                    Item::new_from_asset_expect(&specifier);
+                                },
+                                (_, None) => {},
+                                (_, _) => {
+                                    panic!(
+                                        "\n\nChoice of Choice is unimplemented. (Search for \n{:?}: \
+                                         {:#?})\n\n",
+                                        key, specifier,
+                                    );
+                                },
+                            };
+                        }
+                    },
+                };
+            }
+        }
+
+        let loadouts = LoadoutsList::load_expect_cloned("common.loadouts.*").0;
+        for loadout in loadouts {
+            validate_asset(loadout);
+        }
+    }
 }

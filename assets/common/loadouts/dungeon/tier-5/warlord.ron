@@ -1,17 +1,17 @@
 ({
-    "shoulder": Item("common.items.armor.warlord.shoulder"),
-    "chest": Item("common.items.armor.warlord.chest"),
-    "belt": Item("common.items.armor.warlord.belt"),
-    "hands": Item("common.items.armor.warlord.hand"),
-    "pants": Item("common.items.armor.warlord.pants"),
-    "feet": Item("common.items.armor.warlord.foot"),
+    Armor(Shoulders): Item("common.items.armor.warlord.shoulder"),
+    Armor(Chest): Item("common.items.armor.warlord.chest"),
+    Armor(Belt): Item("common.items.armor.warlord.belt"),
+    Armor(Hands): Item("common.items.armor.warlord.hand"),
+    Armor(Legs): Item("common.items.armor.warlord.pants"),
+    Armor(Feet): Item("common.items.armor.warlord.foot"),
 
-    "back": Item("common.items.armor.warlord.back"),
+    Armor(Back): Item("common.items.armor.warlord.back"),
 
-    "lantern": Choice([
+    Lantern: Choice([
         (1.0, Some(Item("common.items.lantern.black_0"))),
         (2.0, None),
     ]),
 
-    "glider": Item("common.items.glider.glider_purp"),
+    Glider: Item("common.items.glider.glider_purp"),
 })

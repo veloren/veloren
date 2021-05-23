@@ -1,7 +1,7 @@
 ({
-    "head": Item("common.items.npc_armor.biped_small.husk.head.husk"),
-    "feet": Item("common.items.npc_armor.biped_small.husk.foot.husk"),
-    "hands": Item("common.items.npc_armor.biped_small.husk.hand.husk"),
-    "chest": Item("common.items.npc_armor.biped_small.husk.chest.husk"),
-    "pants": Item("common.items.npc_armor.biped_small.husk.pants.husk"),
+    Armor(Head): Item("common.items.npc_armor.biped_small.husk.head.husk"),
+    Armor(Feet): Item("common.items.npc_armor.biped_small.husk.foot.husk"),
+    Armor(Hands): Item("common.items.npc_armor.biped_small.husk.hand.husk"),
+    Armor(Chest): Item("common.items.npc_armor.biped_small.husk.chest.husk"),
+    Armor(Legs): Item("common.items.npc_armor.biped_small.husk.pants.husk"),
 })
