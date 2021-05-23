@@ -91,7 +91,7 @@ fn calc_z_limit(
     char_state_maybe: Option<&CharacterState>,
     collider: Option<&Collider>,
 ) -> (f32, f32) {
-    let modifier = if char_state_maybe.map_or(false, |c_s| c_s.is_dodge()) {
+    let modifier = if char_state_maybe.map_or(false, |c_s| c_s.is_dodge() || c_s.is_glide()) {
         0.5
     } else {
         1.0

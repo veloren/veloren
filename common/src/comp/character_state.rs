@@ -188,6 +188,8 @@ impl CharacterState {
 
     pub fn is_dodge(&self) -> bool { matches!(self, CharacterState::Roll(_)) }
 
+    pub fn is_glide(&self) -> bool { matches!(self, CharacterState::Glide(_)) }
+
     pub fn is_melee_dodge(&self) -> bool {
         matches!(self, CharacterState::Roll(d) if d.static_data.immune_melee)
     }
