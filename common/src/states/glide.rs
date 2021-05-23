@@ -177,12 +177,6 @@ impl CharacterBehavior for Data {
                     slerp_s,
                 )
             };
-            update.pos.0 = {
-                // offset character pos such that it's the center of rotation is not around the
-                // character
-                let center_off = data.body.height() * 0.7;
-                update.pos.0 + *data.ori.up() * center_off - *update.ori.up() * center_off
-            };
             update.character = CharacterState::Glide(Self {
                 ori,
                 last_vel: *data.vel,

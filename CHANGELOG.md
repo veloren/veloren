@@ -137,6 +137,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - /spawn command's auto-complete now works for species names
 - Mindflayer AI now correctly summons husks at certain HP thresholds.
 - Far away NPCs respond to being damaged by a projectile
+- Fixed terrain clipping with glider
 
 ## [0.9.0] - 2021-03-20
 
