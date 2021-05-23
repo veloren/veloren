@@ -57,17 +57,17 @@ pub enum LoadoutConfig {
 
 #[derive(Debug, Deserialize, Clone)]
 enum ItemSpec {
-    // One specific item.
-    // Example:
-    // `Item("common.items.armor.steel.foot")`
+    /// One specific item.
+    /// Example:
+    /// `Item("common.items.armor.steel.foot")`
     Item(String),
-    // Choice from items with weights.
-    // Example:
-    // ```
-    // Choice([
-    //  (1.0, Some(Item("common.items.lantern.blue_0"))),
-    //  (1.0, None),
-    // ])
+    /// Choice from items with weights.
+    /// Example:
+    /// ```
+    /// Choice([
+    ///  (1.0, Some(Item("common.items.lantern.blue_0"))),
+    ///  (1.0, None),
+    /// ])
     Choice(Vec<(f32, Option<ItemSpec>)>),
 }
 
@@ -808,8 +808,6 @@ mod tests {
     //
     // Things that will be catched - invalid assets paths for
     // creating default main hand tool or equipement without config
-    //
-    // FIXME: if species has differences of body type (male/female) test may miss it
     #[test]
     fn test_loadout_species() {
         macro_rules! test_species {
@@ -818,8 +816,22 @@ mod tests {
                 let mut rng = thread_rng();
                 for s in comp::$species::ALL_SPECIES.iter() {
                     let body = comp::$species::Body::random_with(&mut rng, s);
+                    let female_body = comp::$species::Body {
+                        body_type: comp::$species::BodyType::Female,
+                        ..body
+                    };
+                    let male_body = comp::$species::Body {
+                        body_type: comp::$species::BodyType::Male,
+                        ..body
+                    };
                     LoadoutBuilder::build_loadout(
-                        Body::$body(body),
+                        Body::$body(female_body),
+                        None,
+                        None,
+                        None,
+                    );
+                    LoadoutBuilder::build_loadout(
+                        Body::$body(male_body),
                         None,
                         None,
                         None,
@@ -878,7 +890,7 @@ mod tests {
         // TODO: add some checks, e.g. that Armor(Head) key correspond
         // to Item with ItemKind Head(_)
         fn validate_asset(loadout: LoadoutSpec) {
-            let spec = loadout.0.clone();
+            let spec = loadout.0;
             for (key, specifier) in spec {
                 match specifier {
                     ItemSpec::Item(specifier) => {
@@ -893,8 +905,8 @@ mod tests {
                                 (_, None) => {},
                                 (_, _) => {
                                     panic!(
-                                        "\n\nChoice of Choice is unimplemented. (Search for \n{:?}: \
-                                         {:#?})\n\n",
+                                        "\n\nChoice of Choice is unimplemented. (Search for \
+                                         \n{:?}: {:#?})\n\n",
                                         key, specifier,
                                     );
                                 },
