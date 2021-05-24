@@ -148,6 +148,12 @@ make_case_elim!(
         Cauldron = 0x79,
         Anvil = 0x7A,
         CookingPot = 0x7B,
+        DungeonChest0 = 0x7C,
+        DungeonChest1 = 0x7D,
+        DungeonChest2 = 0x7E,
+        DungeonChest3 = 0x7F,
+        DungeonChest4 = 0x80,
+        DungeonChest5 = 0x81,
     }
 );
 
@@ -163,6 +169,12 @@ impl SpriteKind {
             SpriteKind::Pumpkin => 0.81,
             SpriteKind::Cabbage => 0.45,
             SpriteKind::Chest => 1.09,
+            SpriteKind::DungeonChest0 => 1.09,
+            SpriteKind::DungeonChest1 => 1.09,
+            SpriteKind::DungeonChest2 => 1.09,
+            SpriteKind::DungeonChest3 => 1.09,
+            SpriteKind::DungeonChest4 => 1.09,
+            SpriteKind::DungeonChest5 => 1.09,
             SpriteKind::StreetLamp => 2.65,
             SpriteKind::Carrot => 0.18,
             SpriteKind::Radish => 0.18,
@@ -235,6 +247,12 @@ impl SpriteKind {
             // SpriteKind::Velorite => true,
             // SpriteKind::VeloriteFrag => true,
             SpriteKind::Chest => true,
+            SpriteKind::DungeonChest0 => true,
+            SpriteKind::DungeonChest1 => true,
+            SpriteKind::DungeonChest2 => true,
+            SpriteKind::DungeonChest3 => true,
+            SpriteKind::DungeonChest4 => true,
+            SpriteKind::DungeonChest5 => true,
             SpriteKind::Coconut => true,
             SpriteKind::Stones => true,
             SpriteKind::Twigs => true,
@@ -254,7 +272,16 @@ impl SpriteKind {
     pub fn is_container(&self) -> bool {
         matches!(
             self,
-            SpriteKind::Chest | SpriteKind::ChestBuried | SpriteKind::Mud | SpriteKind::Crate,
+            SpriteKind::DungeonChest0
+                | SpriteKind::DungeonChest1
+                | SpriteKind::DungeonChest2
+                | SpriteKind::DungeonChest3
+                | SpriteKind::DungeonChest4
+                | SpriteKind::DungeonChest5
+                | SpriteKind::Chest
+                | SpriteKind::ChestBuried
+                | SpriteKind::Mud
+                | SpriteKind::Crate,
         )
     }
 
@@ -310,6 +337,12 @@ impl SpriteKind {
                 | SpriteKind::WardrobeDouble
                 | SpriteKind::Pot
                 | SpriteKind::Chest
+                | SpriteKind::DungeonChest0
+                | SpriteKind::DungeonChest1
+                | SpriteKind::DungeonChest2
+                | SpriteKind::DungeonChest3
+                | SpriteKind::DungeonChest4
+                | SpriteKind::DungeonChest5
                 | SpriteKind::DropGate
                 | SpriteKind::DropGateBottom
                 | SpriteKind::Door

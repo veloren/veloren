@@ -703,7 +703,6 @@ impl Item {
     pub fn slot_mut(&mut self, slot: usize) -> Option<&mut InvSlot> { self.slots.get_mut(slot) }
 
     pub fn try_reclaim_from_block(block: Block) -> Option<Self> {
-        let chosen;
         Some(Item::new_from_asset_expect(match block.get_sprite()? {
             SpriteKind::Apple => "common.items.food.apple",
             SpriteKind::Mushroom => "common.items.food.mushroom",
@@ -721,27 +720,6 @@ impl Item {
             SpriteKind::MediumGrass => "common.items.grasses.medium",
             SpriteKind::ShortGrass => "common.items.grasses.short",
             SpriteKind::Coconut => "common.items.food.coconut",
-
-            // Containers
-            // IMPORTANT: Add any new container to `SpriteKind::is_container`
-            SpriteKind::Chest => {
-                chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.sprite.chest").read();
-                return Some(chosen.choose().to_item());
-            },
-            SpriteKind::ChestBuried => {
-                chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.sprite.chest-buried")
-                    .read();
-                return Some(chosen.choose().to_item());
-            },
-            SpriteKind::Mud => {
-                chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.sprite.mud").read();
-                return Some(chosen.choose().to_item());
-            },
-            SpriteKind::Crate => {
-                chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.sprite.crate").read();
-                return Some(chosen.choose().to_item());
-            },
-
             SpriteKind::Beehive => "common.items.crafting_ing.honey",
             SpriteKind::Stones => "common.items.crafting_ing.stones",
             SpriteKind::Twigs => "common.items.crafting_ing.twigs",
@@ -761,8 +739,84 @@ impl Item {
             SpriteKind::EmeraldSmall => "common.items.crafting_ing.emerald",
             SpriteKind::SapphireSmall => "common.items.crafting_ing.sapphire",
             SpriteKind::Seashells => "common.items.crafting_ing.seashells",
+            // Containers
+            // IMPORTANT: Add any new container to `SpriteKind::is_container`
+            container
+            @
+            (SpriteKind::DungeonChest0
+            | SpriteKind::DungeonChest1
+            | SpriteKind::DungeonChest2
+            | SpriteKind::DungeonChest3
+            | SpriteKind::DungeonChest4
+            | SpriteKind::DungeonChest5
+            | SpriteKind::Chest
+            | SpriteKind::Mud
+            | SpriteKind::Crate
+            | SpriteKind::ChestBuried) => {
+                return Item::from_container(container);
+            },
             _ => return None,
         }))
+    }
+
+    fn from_container(container: SpriteKind) -> Option<Item> {
+        let chosen;
+        match container {
+            SpriteKind::DungeonChest0 => {
+                chosen =
+                    Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-0.chest")
+                        .read();
+                return Some(chosen.choose().to_item());
+            },
+            SpriteKind::DungeonChest1 => {
+                chosen =
+                    Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-1.chest")
+                        .read();
+                return Some(chosen.choose().to_item());
+            },
+            SpriteKind::DungeonChest2 => {
+                chosen =
+                    Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-2.chest")
+                        .read();
+                return Some(chosen.choose().to_item());
+            },
+            SpriteKind::DungeonChest3 => {
+                chosen =
+                    Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-3.chest")
+                        .read();
+                return Some(chosen.choose().to_item());
+            },
+            SpriteKind::DungeonChest4 => {
+                chosen =
+                    Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-4.chest")
+                        .read();
+                return Some(chosen.choose().to_item());
+            },
+            SpriteKind::DungeonChest5 => {
+                chosen =
+                    Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-5.chest")
+                        .read();
+                return Some(chosen.choose().to_item());
+            },
+            SpriteKind::Chest => {
+                chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.sprite.chest").read();
+                return Some(chosen.choose().to_item());
+            },
+            SpriteKind::ChestBuried => {
+                chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.sprite.chest-buried")
+                    .read();
+                return Some(chosen.choose().to_item());
+            },
+            SpriteKind::Mud => {
+                chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.sprite.mud").read();
+                return Some(chosen.choose().to_item());
+            },
+            SpriteKind::Crate => {
+                chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.sprite.crate").read();
+                return Some(chosen.choose().to_item());
+            },
+            _ => None,
+        }
     }
 
     pub fn ability_spec(&self) -> Option<&AbilitySpec> { self.item_def.ability_spec.as_ref() }

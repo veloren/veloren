@@ -1,5 +1,5 @@
 [
     (1.0, LootTable("common.loot_tables.armor.cloth")),
     (2.0, LootTable("common.loot_tables.weapons.tier-0")),
-    (2.0, LootTable("common.loot_tables.consumables")),
+    (2.0, LootTable("common.loot_tables.consumable.potion")),
 ]

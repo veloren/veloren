@@ -671,6 +671,68 @@ Chest: Some((
     wind_sway: 0.0,
 )),
 
+// Dungeon Chests
+DungeonChest0: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_vines",
+            offset: (-7.0, -5.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+DungeonChest1: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_skull",
+            offset: (-7.0, -5.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+DungeonChest2: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_light",
+            offset: (-7.0, -5.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+DungeonChest3: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_gold",
+            offset: (-7.0, -5.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+DungeonChest4: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_gold",
+            offset: (-7.0, -5.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+DungeonChest5: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_demon",
+            offset: (-7.0, -5.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+
 // Welwitch
 Welwitch: Some((
     variations: [

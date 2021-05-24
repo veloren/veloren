@@ -1,0 +1,14 @@
+[
+    // Gear
+    (0.5, LootTable("common.loot_tables.weapons.tier-0")),
+    (0.5, LootTable("common.loot_tables.armor.cloth")),
+    // Currency
+    (2.0, ItemQuantity("common.items.utility.coins", 10, 20)),
+    // Consumables
+    (1.0, Item("common.items.consumable.potion_minor")),
+    // Food
+    (1.0, Item("common.items.food.cheese")),
+    (1.0, Item("common.items.food.plainsalad")),
+    (0.5, Item("common.items.food.apple_stick")),
+    (0.5, Item("common.items.food.mushroom_stick")),
+]
