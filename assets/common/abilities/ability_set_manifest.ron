@@ -109,9 +109,12 @@
         abilities: [],
     ),
     Custom("Tidal Claws"): (
-        primary: "common.abilities.staff.flamethrower",
-        secondary: "common.abilities.custom.wendigomagic.singlestrike",
-        abilities: [],
+        primary: "common.abilities.custom.tidalwarrior.pincer",
+        secondary: "common.abilities.custom.tidalwarrior.scuttle",
+        abilities: [
+            (None, "common.abilities.custom.tidalwarrior.bubbles"),
+            (None, "common.abilities.custom.tidalwarrior.totem"),
+        ],
     ),
     Custom("Quad Med Quick"): (
         primary: "common.abilities.custom.quadmedquick.triplestrike",

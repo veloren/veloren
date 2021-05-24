@@ -830,6 +830,31 @@ impl ParticleMgr {
                         )
                     })
                 },
+                beam::FrontendSpecifier::Bubbles => {
+                    let mut rng = thread_rng();
+                    let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());
+                    let m = Mat3::<f32>::rotation_from_to_3d(from, to);
+                    self.particles.resize_with(
+                        self.particles.len() + usize::from(beam_tick_count) / 15,
+                        || {
+                            let phi: f32 = rng.gen_range(0.0..beam.properties.angle);
+                            let theta: f32 = rng.gen_range(0.0..2.0 * PI);
+                            let offset_z = Vec3::new(
+                                phi.sin() * theta.cos(),
+                                phi.sin() * theta.sin(),
+                                phi.cos(),
+                            );
+                            let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
+                            Particle::new_directed(
+                                beam.properties.duration,
+                                time,
+                                ParticleMode::Bubbles,
+                                pos.0,
+                                pos.0 + random_ori * range,
+                            )
+                        },
+                    );
+                },
             }
         }
     }

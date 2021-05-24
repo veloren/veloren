@@ -67,6 +67,10 @@ pub enum BuffKind {
     /// speed, 1.0 is 33% speed. Movement speed debuff is scaled to be slightly
     /// smaller than attack speed debuff.
     Frozen,
+    /// Makes you wet and causes you to have reduced friction on the ground.
+    /// Strength scales the friction you ignore non-linearly. 0.5 is 50% ground
+    /// friction, 1.0 is 33% ground friction.
+    Wet,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -88,6 +92,7 @@ impl BuffKind {
             BuffKind::Crippled => false,
             BuffKind::Frenzied => true,
             BuffKind::Frozen => false,
+            BuffKind::Wet => false,
         }
     }
 
@@ -156,6 +161,8 @@ pub enum BuffEffect {
     MovementSpeed(f32),
     /// Modifies attack speed of target
     AttackSpeed(f32),
+    /// Modifies ground friction of target
+    GroundFriction(f32),
 }
 
 /// Actual de/buff.
@@ -314,6 +321,10 @@ impl Buff {
                     BuffEffect::MovementSpeed(f32::powf(1.0 - nn_scaling(data.strength), 1.1)),
                     BuffEffect::AttackSpeed(1.0 - nn_scaling(data.strength)),
                 ],
+                data.duration,
+            ),
+            BuffKind::Wet => (
+                vec![BuffEffect::GroundFriction(1.0 - nn_scaling(data.strength))],
                 data.duration,
             ),
         };

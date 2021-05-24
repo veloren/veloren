@@ -3,7 +3,7 @@ use common::{
         body::ship::figuredata::{VoxelCollider, VOXEL_COLLIDER_MANIFEST},
         fluid_dynamics::{Fluid, Wings},
         BeamSegment, Body, CharacterState, Collider, Density, Mass, Mounting, Ori, PhysicsState,
-        Pos, PosVelDefer, PreviousPhysCache, Projectile, Scale, Shockwave, Sticky, Vel,
+        Pos, PosVelDefer, PreviousPhysCache, Projectile, Scale, Shockwave, Stats, Sticky, Vel,
     },
     consts::{AIR_DENSITY, FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
@@ -124,6 +124,7 @@ pub struct PhysicsRead<'a> {
     bodies: ReadStorage<'a, Body>,
     character_states: ReadStorage<'a, CharacterState>,
     densities: ReadStorage<'a, Density>,
+    stats: ReadStorage<'a, Stats>,
 }
 
 #[derive(SystemData)]
@@ -779,6 +780,7 @@ impl<'a> PhysicsData<'a> {
                                 block_snap,
                                 climbing,
                                 |entity, vel| land_on_ground = Some((entity, vel)),
+                                read,
                             );
                             tgt_pos = cpos.0;
                         },
@@ -808,6 +810,7 @@ impl<'a> PhysicsData<'a> {
                                 block_snap,
                                 climbing,
                                 |entity, vel| land_on_ground = Some((entity, vel)),
+                                read,
                             );
 
                             // Sticky things shouldn't move when on a surface
@@ -1048,6 +1051,7 @@ impl<'a> PhysicsData<'a> {
                                             land_on_ground =
                                                 Some((entity, Vel(ori_from.mul_direction(vel.0))));
                                         },
+                                        read,
                                     );
 
                                     cpos.0 = transform_from.mul_point(cpos.0) + wpos;
@@ -1242,6 +1246,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     block_snap: bool,
     climbing: bool,
     mut land_on_ground: impl FnMut(Entity, Vel),
+    read: &PhysicsRead,
 ) {
     let (radius, z_min, z_max) = cylinder;
 
@@ -1567,8 +1572,9 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         }
     }
     physics_state.on_wall = on_wall;
+    let fric_mod = read.stats.get(entity).map_or(1.0, |s| s.friction_modifier);
     if physics_state.on_ground || (physics_state.on_wall.is_some() && climbing) {
-        vel.0 *= (1.0 - FRIC_GROUND.min(1.0)).powf(dt.0 * 60.0);
+        vel.0 *= (1.0 - FRIC_GROUND.min(1.0) * fric_mod).powf(dt.0 * 60.0);
         physics_state.ground_vel = ground_vel;
     }
 

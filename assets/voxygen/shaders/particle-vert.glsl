@@ -67,6 +67,7 @@ const int BLOOD = 25;
 const int ENRAGED = 26;
 const int BIG_SHRAPNEL = 27;
 const int LASER = 28;
+const int BUBBLES = 29;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -181,7 +182,7 @@ void main() {
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
             );
             break;
-        case FIRE: 
+        case FIRE:
             f_reflect = 0.0; // Fire doesn't reflect light, it emits it
             attr = Attr(
                 linear_motion(
@@ -487,6 +488,17 @@ void main() {
                 vec3(1.0, 1.0, 50.0),
                 vec4(vec3(2.0, 0.0, 0.0), 1),
                 spin_in_axis(perp_axis, asin(inst_dir.z / length(inst_dir)) + PI / 2.0)
+            );
+            break;
+        case BUBBLES:
+            f_reflect = 0.0; // Magic water doesn't reflect light, it emits it
+            float blue_color = 1.5 + 0.2 * rand3 + 1.5 * max(floor(rand4 + 0.3), 0.0);
+            float size = 8.0 * (1 - slow_start(0.1)) * slow_end(0.15);
+            attr = Attr(
+                (inst_dir * slow_end(1.5)) + vec3(rand0, rand1, rand2) * (percent() + 2) * 0.1,
+                vec3(size),
+                vec4(0.5 * blue_color, 0.75 * blue_color, blue_color, 1),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;
         default:

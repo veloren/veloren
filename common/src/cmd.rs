@@ -271,6 +271,7 @@ lazy_static! {
             BuffKind::Frenzied => "frenzied",
             BuffKind::Crippled => "crippled",
             BuffKind::Frozen => "frozen",
+            BuffKind::Wet => "wet",
         };
         let mut buff_parser = HashMap::new();
         BuffKind::iter().for_each(|kind| {buff_parser.insert(string_from_buff(kind).to_string(), kind);});

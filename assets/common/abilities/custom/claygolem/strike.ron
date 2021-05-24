@@ -5,7 +5,7 @@ BasicMelee(
     recover_duration: 0.5,
     base_damage: 200,
     base_poise_damage: 50,
-    knockback: 10.0,
+    knockback: ( strength: 10.0, direction: Away),
     range: 4.0,
     max_angle: 45.0,
     damage_effect: None,
