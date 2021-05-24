@@ -2467,7 +2467,7 @@
     ),
     Ingredient("Scale"): VoxTrans(
         "voxel.sprite.crafting_ing.hide.scale",
-        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.8,
     ),
     Ingredient("DragonScale"): VoxTrans(
         "voxel.sprite.crafting_ing.hide.dragon_scale",
@@ -2480,6 +2480,10 @@
     Ingredient("VenomSac"): VoxTrans(
         "voxel.sprite.crafting_ing.animal_misc.venom_sac",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("LivelyVine"): VoxTrans(
+        "voxel.sprite.crafting_ing.animal_misc.lively_vine",
+        (0.0, 0.0, 0.0), (-40.0, -40.0, 20.0), 1.2,
     ),
     Ingredient("SharpFang"): VoxTrans(
         "voxel.sprite.crafting_ing.animal_misc.sharp_fang",
@@ -2496,6 +2500,14 @@
     Ingredient("PlantFiber"): VoxTrans(
         "voxel.sprite.crafting_ing.plant_fiber",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("Moonbell"): VoxTrans(
+        "voxel.sprite.flowers.moonbell",
+        (0.0, 0.0, 0.0), (-65.0, 40.0, 20.0), 0.9,
+    ),
+    Ingredient("Pyrebloom"): VoxTrans(
+        "voxel.sprite.flowers.pyrebloom",
+        (0.0, 0.0, 0.0), (-75.0, 0.0, 20.0), 0.9,
     ),
     Ingredient("CottonBoll"): VoxTrans(
         "voxel.sprite.crafting_ing.cotton_boll",
@@ -2581,8 +2593,8 @@
         "voxel.sprite.mineral.ore.orichalcum",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("BloodsteelOre"): VoxTrans(
-        "voxel.sprite.mineral.ore.bloodsteel",
+    Ingredient("BloodstoneOre"): VoxTrans(
+        "voxel.sprite.mineral.ore.bloodstone",
         (0.0, 0.0, 0.0), (-60.0, 30.0, 20.0), 0.8,
     ),
     Ingredient("CobaltOre"): VoxTrans(

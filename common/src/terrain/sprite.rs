@@ -157,6 +157,17 @@ make_case_elim!(
         Loom = 0x82,
         SpinningWheel = 0x83,
         Crystal = 0x84,
+        Bloodstone = 0x85,
+        Coal = 0x86,
+        Cobalt = 0x87,
+        Copper = 0x88,
+        Iron = 0x89,
+        Tin = 0x8A,
+        Silver = 0x8B,
+        Gold = 0x8C,
+        Cotton = 0x8D,
+        Moonbell = 0x8E,
+        Pyrebloom = 0x8F,
     }
 );
 
@@ -230,6 +241,15 @@ impl SpriteKind {
             // TODO: Figure out if this should be solid or not.
             SpriteKind::Shelf => 1.0,
             SpriteKind::Lantern => 0.9,
+            SpriteKind::Crystal => 1.5,
+            SpriteKind::Bloodstone
+            | SpriteKind::Coal
+            | SpriteKind::Cobalt
+            | SpriteKind::Copper
+            | SpriteKind::Iron
+            | SpriteKind::Tin
+            | SpriteKind::Silver
+            | SpriteKind::Gold => 0.6,
             _ => return None,
         })
     }
@@ -269,6 +289,9 @@ impl SpriteKind {
             SpriteKind::ChestBuried => true,
             SpriteKind::Mud => true,
             SpriteKind::Seashells => true,
+            SpriteKind::Cotton => true,
+            SpriteKind::Moonbell => true,
+            SpriteKind::Pyrebloom => true,
             _ => false,
         }
     }
@@ -306,6 +329,14 @@ impl SpriteKind {
             | SpriteKind::DiamondSmall
             | SpriteKind::RubySmall
             | SpriteKind::EmeraldSmall
+            | SpriteKind::Bloodstone
+            | SpriteKind::Coal
+            | SpriteKind::Cobalt
+            | SpriteKind::Copper
+            | SpriteKind::Iron
+            | SpriteKind::Tin
+            | SpriteKind::Silver
+            | SpriteKind::Gold
             | SpriteKind::SapphireSmall => Some(ToolKind::Pick),
             _ => None,
         }

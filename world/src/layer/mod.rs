@@ -181,7 +181,8 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
 
             // Scatter things in caves
             if difficulty.round() < 2.0 {
-                if rng.gen::<f32>() < 0.3 * difficulty.powf(1.5) * (cave_x.max(0.5).powf(4.0))
+                if rng.gen::<f32>()
+                    < 0.75 * (difficulty / 2.0).powf(2.5) * (cave_x.max(0.5).powf(4.0))
                     && cave_base < surface_z as i32 - 25
                 {
                     let kind = *Lottery::<SpriteKind>::load_expect("common.cave_scatter.shallow")
@@ -192,7 +193,8 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                     });
                 }
             } else {
-                if rng.gen::<f32>() < 0.1 * difficulty.powf(1.5) * (cave_x.max(0.5).powf(4.0))
+                if rng.gen::<f32>()
+                    < 0.3 * (difficulty / 3.0).powf(2.5) * (cave_x.max(0.5).powf(4.0))
                     && cave_base < surface_z as i32 - 25
                 {
                     let kind = *Lottery::<SpriteKind>::load_expect("common.cave_scatter.deep")
@@ -246,7 +248,7 @@ pub fn apply_caves_supplement<'a>(
                 let difficulty = cave_depth / 50.0;
 
                 // Scatter things in caves
-                if RandomField::new(index.seed).chance(wpos2d.into(), 0.001 * difficulty)
+                if RandomField::new(index.seed).chance(wpos2d.into(), 0.001 * difficulty.powf(0.5))
                     && cave_base < surface_z as i32 - 40
                 {
                     let is_hostile: bool;

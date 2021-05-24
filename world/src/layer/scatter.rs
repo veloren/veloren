@@ -85,6 +85,18 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((100.0, 0.1)),
             )
         }),
+        (Cotton, false, |c, col| {
+            (
+                close(c.temp, CONFIG.temperate_temp, 0.7).min(close(
+                    c.humidity,
+                    CONFIG.jungle_hum,
+                    0.4,
+                )) * col.tree_density
+                    * MUSH_FACT
+                    * 75.0,
+                Some((256.0, 0.25)),
+            )
+        }),
         (Sunflower, false, |c, col| {
             (
                 close(c.temp, 0.0, 0.7).min(close(c.humidity, CONFIG.jungle_hum, 0.4))
@@ -196,6 +208,16 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((48.0, 0.2)),
             )
         }),
+        (Moonbell, false, |c, _| {
+            (
+                close(c.temp, CONFIG.snow_temp - 0.2, 0.4).min(close(
+                    c.humidity,
+                    CONFIG.forest_hum,
+                    0.5,
+                )) * 0.003,
+                Some((48.0, 0.2)),
+            )
+        }),
         // Savanna Plants
         (SavannaGrass, false, |c, _| {
             (
@@ -241,6 +263,12 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
         (DeadBush, false, |c, _| {
             (
                 close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 7.5,
+                None,
+            )
+        }),
+        (Pyrebloom, false, |c, _| {
+            (
+                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 0.75,
                 None,
             )
         }),

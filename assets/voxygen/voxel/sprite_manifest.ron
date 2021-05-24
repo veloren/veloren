@@ -2902,11 +2902,121 @@ SapphireSmall: Some((
     ],
     wind_sway: 0.0,
 )),
+Bloodstone: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.bloodstone",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Coal: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.coal",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Cobalt: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.cobalt",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Copper: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.copper",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Iron: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.iron",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Tin: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.tin",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Silver: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.silver",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Gold: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.gold",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 Crystal: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.gem.crystal-0",
             offset: (-8.5, -8.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Cotton: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.flowers.cotton",
+            offset: (-4.5, -4.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Moonbell: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.flowers.moonbell",
+            offset: (-3.5, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Pyrebloom: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.flowers.pyrebloom",
+            offset: (-5.5, -6.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
     ],

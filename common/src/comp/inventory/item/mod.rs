@@ -738,6 +738,17 @@ impl Item {
             SpriteKind::RubySmall => "common.items.mineral.gem.ruby",
             SpriteKind::EmeraldSmall => "common.items.mineral.emerald",
             SpriteKind::SapphireSmall => "common.items.mineral.gem.sapphire",
+            SpriteKind::Bloodstone => "common.items.mineral.ore.bloodstone",
+            SpriteKind::Coal => "common.items.mineral.ore.coal",
+            SpriteKind::Cobalt => "common.items.mineral.ore.cobalt",
+            SpriteKind::Copper => "common.items.mineral.ore.copper",
+            SpriteKind::Iron => "common.items.mineral.ore.iron",
+            SpriteKind::Tin => "common.items.mineral.ore.tin",
+            SpriteKind::Silver => "common.items.mineral.ore.silver",
+            SpriteKind::Gold => "common.items.mineral.ore.gold",
+            SpriteKind::Cotton => "common.items.crafting_ing.cotton_boll",
+            SpriteKind::Moonbell => "common.items.flowers.moonbell",
+            SpriteKind::Pyrebloom => "common.items.flowers.pyrebloom",
             SpriteKind::Seashells => "common.items.crafting_ing.seashells",
             // Containers
             // IMPORTANT: Add any new container to `SpriteKind::is_container`

@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Lively Vine",
+    description: "I think it just moved.",
+    kind: Ingredient(
+        kind: "LivelyVine",
+    ),
+    quality: Common,
+    tags: [],
+)
