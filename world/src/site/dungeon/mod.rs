@@ -996,7 +996,15 @@ impl Floor {
         {
             let room = &self.rooms[*room];
             if RandomField::new(room.seed).chance(Vec3::from(pos), room.loot_density * 0.5) {
-                BlockMask::new(with_sprite(SpriteKind::Chest), 1)
+                match room.difficulty {
+                    0 => BlockMask::new(with_sprite(SpriteKind::DungeonChest0), 1),
+                    1 => BlockMask::new(with_sprite(SpriteKind::DungeonChest1), 1),
+                    2 => BlockMask::new(with_sprite(SpriteKind::DungeonChest2), 1),
+                    3 => BlockMask::new(with_sprite(SpriteKind::DungeonChest3), 1),
+                    4 => BlockMask::new(with_sprite(SpriteKind::DungeonChest4), 1),
+                    5 => BlockMask::new(with_sprite(SpriteKind::DungeonChest5), 1),
+                    _ => BlockMask::new(with_sprite(SpriteKind::Chest), 1),
+                }
             } else {
                 vacant
             }
