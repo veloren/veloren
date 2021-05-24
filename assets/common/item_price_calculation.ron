@@ -31,7 +31,7 @@ loot_tables: [
     (0.4, true, "common.loot_tables.food.wild_ingredients"),
     (0.2, true, "common.loot_tables.food.prepared"),
     // TODO: Change consumables and split them up
-    (1.0, true, "common.loot_tables.consumables.default"),
+    (1.0, true, "common.loot_tables.consumable.default"),
     (0.5, false, "common.loot_tables.trading"),
 ],
 // this is the amount of that good the most common item represents

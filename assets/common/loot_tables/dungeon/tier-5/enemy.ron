@@ -14,5 +14,5 @@
     (0.1, Item("common.items.glider.glider_blue")),
     (0.001, Item("common.items.armor.misc.back.backpack")),
     (0.1, Item("common.items.armor.misc.bag.heavy_seabag")),
-    (1.0, LootTable("common.loot_tables.consumables.default")),
+    (1.0, LootTable("common.loot_tables.consumable.default")),
 ]

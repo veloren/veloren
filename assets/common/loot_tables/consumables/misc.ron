@@ -1,5 +1,0 @@
-[
-    // misc
-    (0.1, Item("common.items.utility.collar")),
-    (1.0, LootTable("common.loot_tables.consumables.fireworks")),
-]

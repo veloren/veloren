@@ -741,7 +741,9 @@ impl Item {
             SpriteKind::Seashells => "common.items.crafting_ing.seashells",
             // Containers
             // IMPORTANT: Add any new container to `SpriteKind::is_container`
-            container @ (SpriteKind::DungeonChest0
+            container
+            @
+            (SpriteKind::DungeonChest0
             | SpriteKind::DungeonChest1
             | SpriteKind::DungeonChest2
             | SpriteKind::DungeonChest3

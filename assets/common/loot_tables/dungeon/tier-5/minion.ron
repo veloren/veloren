@@ -5,5 +5,5 @@
     (3.0, LootTable("common.loot_tables.food.wild_ingredients")),
     (0.5, LootTable("common.loot_tables.food.prepared")),
     // Consumables
-    (0.5, LootTable("common.loot_tables.consumables.default")),
+    (0.5, LootTable("common.loot_tables.consumable.default")),
 ]
