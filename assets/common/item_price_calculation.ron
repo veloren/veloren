@@ -10,8 +10,8 @@ loot_tables: [
     (1.0, false, "common.loot_tables.weapons.tier-4"),
     (0.5, false, "common.loot_tables.weapons.tier-5"),
     (0.05, false, "common.loot_tables.weapons.cultist"),
-    (0.125, false, "common.loot_tables.weapons.cave"),
-    (0.0625, false, "common.loot_tables.weapons.legendary"),
+    (0.05, false, "common.loot_tables.weapons.cave"),
+    (0.04, false, "common.loot_tables.weapons.legendary"),
     // Armor
     (20.0, true, "common.loot_tables.armor.cloth"),
     (6.0, true, "common.loot_tables.armor.agile"),
@@ -30,8 +30,8 @@ loot_tables: [
     (0.3, true, "common.loot_tables.food.farm_ingredients"),
     (0.4, true, "common.loot_tables.food.wild_ingredients"),
     (0.2, true, "common.loot_tables.food.prepared"),
-    // TODO: Change consumables when they are split up later
-    (1.0, true, "common.loot_tables.consumables"),
+    // TODO: Change consumables and split them up
+    (1.0, true, "common.loot_tables.consumables.default"),
     (0.5, false, "common.loot_tables.trading"),
 ],
 // this is the amount of that good the most common item represents

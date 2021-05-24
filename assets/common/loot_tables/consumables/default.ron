@@ -1,0 +1,5 @@
+[
+    (2.0, LootTable("common.loot_tables.consumables.potions")),
+    (0.5, LootTable("common.loot_tables.consumables.throwables")),
+    (1.0, LootTable("common.loot_tables.consumables.misc")),
+]
