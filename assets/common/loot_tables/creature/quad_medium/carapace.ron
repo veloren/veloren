@@ -1,0 +1,6 @@
+[
+    (1.5, Item("common.items.food.meat.beast_small_raw")),
+    (0.5, Item("common.items.food.meat.beast_large_raw")),
+    (2.0, Item("common.items.crafting_ing.animal_misc.sharp_fang")),
+    (3.0, Item("common.items.crafting_ing.hide.carapace")),
+]

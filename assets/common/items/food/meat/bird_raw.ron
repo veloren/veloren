@@ -1,0 +1,22 @@
+ItemDef(
+    name: "Raw Bird Meat",
+    description: "A hefty drumstick.",
+    kind: Consumable(
+        kind: "BirdRaw",
+        effect: [
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: 15.0,
+                    duration: Some((
+                            secs: 3,
+                            nanos: 0,
+                        )),
+                    ),
+                cat_ids: [Natural],
+            )),
+        ]
+    ),
+    quality: Common,
+    tags: [Food],
+)

@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Phoenix Feather",
+    description: "Said to have magical properties.",
+    kind: Ingredient(
+        kind: "PhoenixFeather",
+    ),
+    quality: Common,
+    tags: [],
+)

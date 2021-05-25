@@ -153,6 +153,12 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
         (Stones, false, |c, _| {
             ((c.rockiness - 0.5).max(0.025) * 1.0e-3, None)
         }),
+        (Copper, false, |c, _| {
+            ((c.rockiness - 0.5).max(0.025) * 1.5e-3, None)
+        }),
+        (Tin, false, |c, _| {
+            ((c.rockiness - 0.5).max(0.025) * 1.5e-3, None)
+        }),
         // Don't spawn Mushrooms in snowy regions
         (Mushroom, false, |c, _| {
             (

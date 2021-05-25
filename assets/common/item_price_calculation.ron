@@ -19,7 +19,6 @@ loot_tables: [
     (1.0, true, "common.loot_tables.armor.twigs"),
     (1.0, true, "common.loot_tables.armor.twigsflowers"),
     (1.0, true, "common.loot_tables.armor.twigsleaves"),
-    (0.25, false, "common.loot_tables.armor.steel"),
     (0.075, false, "common.loot_tables.armor.cultist"),
     // Materials
     (7.5, true, "common.loot_tables.materials.common"),

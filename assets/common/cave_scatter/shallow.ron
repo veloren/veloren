@@ -1,15 +1,12 @@
 [
-    (10, Velorite),
-    (15, VeloriteFrag),
     (110, Stones),
     (150, ShortGrass),
     (120, CaveMushroom),
     (30, AmethystSmall),
     (15, TopazSmall),
-    (20, Tin),
-    (16, Copper),
-    (5, Coal),
-    (8, Iron),
+    (15, Tin),
+    (12, Copper),
+    (15, Iron),
     (5, Chest),
     (15, Crate),
 ]

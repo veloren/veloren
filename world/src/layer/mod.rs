@@ -150,7 +150,7 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 .index()
                 .noise
                 .cave_nz
-                .get(wpos2d.map(|e| e as f64 * 0.125).into_array())
+                .get(wpos2d.map(|e| e as f64 * 0.18).into_array())
                 .sub(0.5)
                 .max(0.0)
                 .mul(
@@ -191,6 +191,12 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                     canvas.map(Vec3::new(wpos2d.x, wpos2d.y, cave_base), |block| {
                         block.with_sprite(kind)
                     });
+                    let kind2 = *Lottery::<SpriteKind>::load_expect("common.cave_scatter.shallow")
+                        .read()
+                        .choose();
+                    canvas.map(Vec3::new(wpos2d.x, wpos2d.y, cave_roof - 1), |block| {
+                        block.with_sprite(kind2)
+                    });
                 }
             } else {
                 if rng.gen::<f32>()
@@ -201,6 +207,16 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                         .read()
                         .choose();
                     canvas.map(Vec3::new(wpos2d.x, wpos2d.y, cave_base), |block| {
+                        block.with_sprite(kind)
+                    });
+                }
+                if rng.gen::<f32>() < 0.3 * (difficulty / 3.0).powf(2.5)
+                    && cave_base < surface_z as i32 - 25
+                {
+                    let kind = *Lottery::<SpriteKind>::load_expect("common.cave_scatter.deep")
+                        .read()
+                        .choose();
+                    canvas.map(Vec3::new(wpos2d.x, wpos2d.y, cave_roof - 1), |block| {
                         block.with_sprite(kind)
                     });
                 }

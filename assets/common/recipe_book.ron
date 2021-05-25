@@ -149,6 +149,20 @@
         ],
         craft_sprite: Some(CookingPot),
     ),
+    "bird_cooked": (
+        output: ("common.items.food.meat.bird_cooked", 1),
+        inputs: [
+            (Item("common.items.food.meat.bird_raw"), 1),
+        ],
+        craft_sprite: Some(CookingPot),
+    ),
+    "bird_large_cooked": (
+        output: ("common.items.food.meat.bird_large_cooked", 1),
+        inputs: [
+            (Item("common.items.food.meat.bird_large_raw"), 1),
+        ],
+        craft_sprite: Some(CookingPot),
+    ),
     "beast_small_cooked": (
         output: ("common.items.food.meat.beast_small_cooked", 1),
         inputs: [
@@ -442,6 +456,13 @@
             (Item("common.items.crafting_ing.stones"), 0),
         ],
         craft_sprite: Some(Anvil),
+    ),
+    "Burnt Drumstick": (
+        output: ("common.items.weapons.hammer.burnt_drumstick", 1),
+        inputs: [
+            (Item("common.items.food.meat.bird_large_cooked"), 1),
+        ],
+        craft_sprite: Some(CookingPot),
     ),
 //ARMOR/HIDE/RAWHIDE
     "rawhide back": (

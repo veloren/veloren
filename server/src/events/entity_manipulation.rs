@@ -2,7 +2,7 @@ use crate::{
     client::Client,
     comp::{
         agent::{Sound, SoundKind},
-        biped_large, quadruped_low, quadruped_medium, quadruped_small,
+        biped_large, bird_large, quadruped_low, quadruped_medium, quadruped_small,
         skills::SkillGroupKind,
         theropod, PhysicsState,
     },
@@ -358,6 +358,25 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         quadruped_small::Species::Dodarock => {
                             "common.loot_tables.creature.quad_small.dodarock"
                         },
+                        quadruped_small::Species::Truffler | quadruped_small::Species::Fungome => {
+                            "common.loot_tables.creature.quad_small.mushroom"
+                        },
+                        quadruped_small::Species::Sheep => {
+                            "common.loot_tables.creature.quad_small.sheep"
+                        },
+                        quadruped_small::Species::Skunk
+                        | quadruped_small::Species::Quokka
+                        | quadruped_small::Species::Beaver
+                        | quadruped_small::Species::Jackalope
+                        | quadruped_small::Species::Hare => {
+                            "common.loot_tables.creature.quad_small.fur"
+                        },
+                        quadruped_small::Species::Frog
+                        | quadruped_small::Species::Axolotl
+                        | quadruped_small::Species::Gecko
+                        | quadruped_small::Species::Turtle => {
+                            "common.loot_tables.creature.quad_small.ooze"
+                        },
                         _ => "common.loot_tables.creature.quad_small.default",
                     }
                 },
@@ -365,12 +384,47 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     quadruped_medium::Species::Frostfang | quadruped_medium::Species::Roshwalr => {
                         "common.loot_tables.creature.quad_medium.ice"
                     },
-                    _ => "common.loot_tables.creature.quad_medium.default",
+                    quadruped_medium::Species::Catoblepas => {
+                        "common.loot_tables.creature.quad_medium.catoblepas"
+                    },
+                    quadruped_medium::Species::Bear
+                    | quadruped_medium::Species::Snowleopard
+                    | quadruped_medium::Species::Tiger
+                    | quadruped_medium::Species::Lion => {
+                        "common.loot_tables.creature.quad_medium.clawed"
+                    },
+                    quadruped_medium::Species::Tarasque
+                    | quadruped_medium::Species::Bonerattler => {
+                        "common.loot_tables.creature.quad_medium.carapace"
+                    },
+                    quadruped_medium::Species::Dreadhorn => {
+                        "common.loot_tables.creature.quad_medium.dreadhorn"
+                    },
+                    quadruped_medium::Species::Mouflon
+                    | quadruped_medium::Species::Camel
+                    | quadruped_medium::Species::Deer
+                    | quadruped_medium::Species::Hirdrasil
+                    | quadruped_medium::Species::Horse
+                    | quadruped_medium::Species::Highland
+                    | quadruped_medium::Species::Zebra
+                    | quadruped_medium::Species::Donkey
+                    | quadruped_medium::Species::Antelope
+                    | quadruped_medium::Species::Kelpie
+                    | quadruped_medium::Species::Cattle
+                    | quadruped_medium::Species::Yak => {
+                        "common.loot_tables.creature.quad_medium.gentle"
+                    },
+                    _ => "common.loot_tables.creature.quad_medium.fanged",
                 },
                 Some(common::comp::Body::BirdMedium(_)) => {
                     "common.loot_tables.creature.bird_medium"
                 },
-                Some(common::comp::Body::BirdLarge(_)) => "common.loot_tables.creature.bird_medium",
+                Some(common::comp::Body::BirdLarge(bird_large)) => match bird_large.species {
+                    bird_large::Species::Cockatrice => {
+                        "common.loot_tables.creature.bird_large.cockatrice"
+                    },
+                    _ => "common.loot_tables.creature.bird_large.phoenix",
+                },
                 Some(common::comp::Body::FishMedium(_)) => "common.loot_tables.creature.fish",
                 Some(common::comp::Body::FishSmall(_)) => "common.loot_tables.creature.fish",
                 Some(common::comp::Body::BipedLarge(biped_large)) => match biped_large.species {
@@ -389,8 +443,10 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 Some(common::comp::Body::Theropod(theropod)) => match theropod.species {
                     theropod::Species::Sandraptor
                     | theropod::Species::Snowraptor
-                    | theropod::Species::Woodraptor => {
-                        "common.loot_tables.creature.theropod.raptor"
+                    | theropod::Species::Woodraptor
+                    | theropod::Species::Sunlizard => "common.loot_tables.creature.theropod.raptor",
+                    theropod::Species::Archaeos | theropod::Species::Ntouka => {
+                        "common.loot_tables.creature.theropod.horned"
                     },
                     _ => "common.loot_tables.creature.theropod.default",
                 },
@@ -403,7 +459,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         quadruped_low::Species::Lavadrake => {
                             "common.loot_tables.creature.quad_low.carapace"
                         },
-                        quadruped_low::Species::Rocksnapper => {
+                        quadruped_low::Species::Rocksnapper | quadruped_low::Species::Sandshark => {
                             "common.loot_tables.creature.quad_low.carapace"
                         },
                         quadruped_low::Species::Asp => {
@@ -411,6 +467,9 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         },
                         quadruped_low::Species::Hakulaq => {
                             "common.loot_tables.creature.quad_low.fanged"
+                        },
+                        quadruped_low::Species::Deadwood => {
+                            "common.loot_tables.creature.quad_low.deadwood"
                         },
                         quadruped_low::Species::Basilisk => {
                             "common.loot_tables.creature.quad_low.basilisk"

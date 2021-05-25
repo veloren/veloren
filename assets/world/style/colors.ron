@@ -59,7 +59,7 @@
     deep_stone_color: (125, 120, 130),
     layer: (
         bridge: (80, 80, 100),
-        stalagtite: (140, 150, 200),
+        stalagtite: (77, 91, 161),
     ),
     site: (
         castle: (),

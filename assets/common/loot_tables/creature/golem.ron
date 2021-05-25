@@ -1,6 +1,5 @@
 [
     (1.0, LootTable("common.loot_tables.food.prepared")),
-    (1.0, LootTable("common.loot_tables.armor.steel")),
     (1.0, LootTable("common.loot_tables.weapons.tier-1")),
     (1.0, LootTable("common.loot_tables.weapons.tier-2")),
     (1.0, LootTable("common.loot_tables.weapons.tier-3")),

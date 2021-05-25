@@ -1,0 +1,5 @@
+[
+    (0.1, Item("common.items.food.meat.bird_large_raw")),
+    (1.0, Item("common.items.crafting_ing.animal_misc.phoenix_feather")),
+
+]

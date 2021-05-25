@@ -792,6 +792,10 @@
         "voxel.weapon.hammer.cult_purp-0",
         (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
+    Tool("common.items.weapons.hammer.burnt_drumstick"): VoxTrans(
+        "voxel.weapon.hammer.burnt_drumstick",
+        (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
     // 1h Hammers
     Tool("common.items.weapons.hammer_1h.bloodsteel-0"): VoxTrans(
         "voxel.weapon.hammer_1h.bloodsteel-0",
@@ -2327,6 +2331,22 @@
         "voxel.sprite.food.meat.fish_cooked",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
+    Consumable("BirdRaw"): VoxTrans(
+        "voxel.sprite.food.meat.bird_raw",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Consumable("BirdCooked"): VoxTrans(
+        "voxel.sprite.food.meat.bird_cooked",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Consumable("BirdLargeRaw"): VoxTrans(
+        "voxel.sprite.food.meat.bird_large_raw",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Consumable("BirdLargeCooked"): VoxTrans(
+        "voxel.sprite.food.meat.bird_large_cooked",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
     Consumable("BeastSmallRaw"): VoxTrans(
         "voxel.sprite.food.meat.beast_small_raw",
         (0.0, 0.0, 0.0), (-50.0, 10.0, 0.0), 1.0,
@@ -2474,7 +2494,7 @@
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
     Ingredient("Claw"): VoxTrans(
-        "voxel.sprite.crafting_ing.claw",
+        "voxel.sprite.crafting_ing.animal_misc.claw",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
     Ingredient("VenomSac"): VoxTrans(
@@ -2487,7 +2507,11 @@
     ),
     Ingredient("SharpFang"): VoxTrans(
         "voxel.sprite.crafting_ing.animal_misc.sharp_fang",
-        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 1.0,
+    ),
+    Ingredient("Fur"): VoxTrans(
+        "voxel.sprite.crafting_ing.animal_misc.fur",
+        (0.0, 0.0, 0.0), (-40.0, -10.0, 10.0), 1.0,
     ),
     Ingredient("LargeHorn"): VoxTrans(
         "voxel.sprite.crafting_ing.animal_misc.large_horn",
@@ -2645,7 +2669,11 @@
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
     Ingredient("ViscousOoze"): VoxTrans(
-        "voxel.sprite.crafting_ing.ooze",
+        "voxel.sprite.crafting_ing.animal_misc.ooze",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Ingredient("PhoenixFeather"): VoxTrans(
+        "voxel.sprite.crafting_ing.animal_misc.phoenix_feather",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
     // Gliders
