@@ -15,7 +15,8 @@ use common_net::{
     msg::{InviteAnswer, ServerGeneral},
     sync::WorldSyncExt,
 };
-use specs::world::WorldExt;
+use common_state::State;
+use specs::{world::WorldExt, Entity};
 use std::time::{Duration, Instant};
 use tracing::{error, warn};
 
@@ -164,31 +165,12 @@ pub fn handle_invite_response(
 pub fn handle_invite_accept(server: &mut Server, entity: specs::Entity) {
     let index = server.index.clone();
     let state = server.state_mut();
-    let clients = state.ecs().read_storage::<Client>();
-    let uids = state.ecs().read_storage::<Uid>();
-    let mut agents = state.ecs().write_storage::<Agent>();
-    let mut invites = state.ecs().write_storage::<Invite>();
-    if let Some((inviter, kind)) = invites.remove(entity).and_then(|invite| {
-        let Invite { inviter, kind } = invite;
-        let mut pending_invites = state.ecs().write_storage::<PendingInvites>();
-        let pending = &mut pending_invites.get_mut(inviter)?.0;
-        // Check that inviter has a pending invite and remove it from the list
-        let invite_index = pending.iter().position(|p| p.0 == entity)?;
-        pending.swap_remove(invite_index);
-        // If no pending invites remain remove the component
-        if pending.is_empty() {
-            pending_invites.remove(inviter);
-        }
+    if let Some((inviter, kind)) = get_inviter_and_kind(entity, state) {
+        handle_invite_answer(state, inviter, entity, InviteAnswer::Accepted, kind);
+        let clients = state.ecs().read_storage::<Client>();
+        let uids = state.ecs().read_storage::<Uid>();
+        let mut agents = state.ecs().write_storage::<Agent>();
 
-        Some((inviter, kind))
-    }) {
-        if let (Some(client), Some(target)) = (clients.get(inviter), uids.get(entity).copied()) {
-            client.send_fallible(ServerGeneral::InviteComplete {
-                target,
-                answer: InviteAnswer::Accepted,
-                kind,
-            });
-        }
         match kind {
             InviteKind::Group => {
                 let mut group_manager = state.ecs().write_resource::<GroupManager>();
@@ -257,12 +239,9 @@ pub fn handle_invite_accept(server: &mut Server, entity: specs::Entity) {
     }
 }
 
-pub fn handle_invite_decline(server: &mut Server, entity: specs::Entity) {
-    let state = server.state_mut();
-    let clients = state.ecs().read_storage::<Client>();
-    let uids = state.ecs().read_storage::<Uid>();
+fn get_inviter_and_kind(entity: Entity, state: &mut State) -> Option<(Entity, InviteKind)> {
     let mut invites = state.ecs().write_storage::<Invite>();
-    if let Some((inviter, kind)) = invites.remove(entity).and_then(|invite| {
+    invites.remove(entity).and_then(|invite| {
         let Invite { inviter, kind } = invite;
         let mut pending_invites = state.ecs().write_storage::<PendingInvites>();
         let pending = &mut pending_invites.get_mut(inviter)?.0;
@@ -275,14 +254,32 @@ pub fn handle_invite_decline(server: &mut Server, entity: specs::Entity) {
         }
 
         Some((inviter, kind))
-    }) {
+    })
+}
+
+fn handle_invite_answer(
+    state: &mut State,
+    inviter: Entity,
+    entity: Entity,
+    invite_answer: InviteAnswer,
+    kind: InviteKind,
+) {
+    let clients = state.ecs().read_storage::<Client>();
+    let uids = state.ecs().read_storage::<Uid>();
+
+    if let (Some(client), Some(target)) = (clients.get(inviter), uids.get(entity).copied()) {
+        client.send_fallible(ServerGeneral::InviteComplete {
+            target,
+            answer: invite_answer,
+            kind,
+        });
+    }
+}
+
+pub fn handle_invite_decline(server: &mut Server, entity: specs::Entity) {
+    let state = server.state_mut();
+    if let Some((inviter, kind)) = get_inviter_and_kind(entity, state) {
         // Inform inviter of rejection
-        if let (Some(client), Some(target)) = (clients.get(inviter), uids.get(entity).copied()) {
-            client.send_fallible(ServerGeneral::InviteComplete {
-                target,
-                answer: InviteAnswer::Declined,
-                kind,
-            });
-        }
+        handle_invite_answer(state, inviter, entity, InviteAnswer::Declined, kind)
     }
 }
