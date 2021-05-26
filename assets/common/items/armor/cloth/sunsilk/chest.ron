@@ -4,10 +4,10 @@ ItemDef(
     kind: Armor((
         kind: Chest("Sunsilk"),
         stats: (
-            protection: Normal(30.0),
+            protection: Normal(90.0),
             poise_resilience: Normal(1.0),
-            energy_max: 0,
-            energy_recovery: 0.0,
+            energy_max: 1000,
+            energy_recovery: 1.0,
             crit_power: 0.0,
             stealth: 0.0,
         ),

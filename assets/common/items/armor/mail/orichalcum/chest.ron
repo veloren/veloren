@@ -5,7 +5,7 @@ ItemDef(
         kind: Chest("Orichalcum"),
         stats: (
             protection: Normal(240.0),
-            poise_resilience: Normal(0.0),
+            poise_resilience: Normal(60.0),
             energy_max: 1000,
             energy_recovery: 3.0,
             crit_power: 2.0,
