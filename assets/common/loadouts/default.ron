@@ -1,0 +1,8 @@
+({
+    Armor(Chest): Item("common.items.armor.misc.chest.worker_purple_brown"),
+    Armor(Legs): Item("common.items.armor.misc.pants.worker_brown"),
+    Armor(Feet): Item("common.items.armor.misc.foot.sandals"),
+
+    Lantern: Item("common.items.lantern.black_0"),
+    Glider: Item("common.items.glider.glider_cloverleaf"),
+})

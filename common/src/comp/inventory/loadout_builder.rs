@@ -413,23 +413,7 @@ impl LoadoutBuilder {
 
     /// Set default armor items for the loadout. This may vary with game
     /// updates, but should be safe defaults for a new character.
-    pub fn defaults(self) -> Self {
-        self.chest(Some(Item::new_from_asset_expect(
-            "common.items.armor.misc.chest.worker_purple_brown",
-        )))
-        .pants(Some(Item::new_from_asset_expect(
-            "common.items.armor.misc.pants.worker_brown",
-        )))
-        .feet(Some(Item::new_from_asset_expect(
-            "common.items.armor.misc.foot.sandals",
-        )))
-        .lantern(Some(Item::new_from_asset_expect(
-            "common.items.lantern.black_0",
-        )))
-        .glider(Some(Item::new_from_asset_expect(
-            "common.items.glider.glider_cloverleaf",
-        )))
-    }
+    pub fn defaults(self) -> Self { LoadoutBuilder::from_asset_expect("common.loadouts.default") }
 
     /// Builds loadout of creature when spawned
     #[allow(clippy::single_match)]
