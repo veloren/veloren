@@ -13,5 +13,5 @@ ItemDef(
         ),
     )),
     quality: Epic,
-    tags: [],
+    tags: [ArmorClass((class: Medium)), MaterialKind((material: Dragonscale))],
 )

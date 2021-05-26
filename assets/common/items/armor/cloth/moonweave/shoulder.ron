@@ -13,5 +13,5 @@ ItemDef(
         ),
     )),
     quality: Moderate,
-    tags: [],
+    tags: [ArmorClass((class: Light)), MaterialKind((material: Moonweave))],
 )

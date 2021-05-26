@@ -91,13 +91,126 @@ pub trait TagExampleInfo {
     fn exemplar_identifier(&self) -> &'static str;
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum MaterialKind {
+    Bronze,
+    Iron,
+    Steel,
+    Cobalt,
+    Bloodsteel,
+    Orichalcum,
+    Wood,
+    Bamboo,
+    Hardwood,
+    Ironwood,
+    Frostwood,
+    Eldwood,
+    Rock,
+    Granite,
+    Bone,
+    Basalt,
+    Obsidian,
+    Velorite,
+    Linen,
+    Wool,
+    Silk,
+    Lifecloth,
+    Moonweave,
+    Sunsilk,
+    Rawhide,
+    Leather,
+    Scale,
+    Carapace,
+    Plate,
+    Dragonscale,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct MaterialKindTag {
+    material: MaterialKind,
+}
+
+impl TagExampleInfo for MaterialKindTag {
+    fn name(&self) -> &'static str {
+        match self.material {
+            MaterialKind::Bronze => "bronze",
+            MaterialKind::Iron => "iron",
+            MaterialKind::Steel => "steel",
+            MaterialKind::Cobalt => "cobalt",
+            MaterialKind::Bloodsteel => "bloodsteel",
+            MaterialKind::Orichalcum => "orichalcum",
+            MaterialKind::Wood => "wood",
+            MaterialKind::Bamboo => "bamboo",
+            MaterialKind::Hardwood => "hardwood",
+            MaterialKind::Ironwood => "ironwood",
+            MaterialKind::Frostwood => "frostwood",
+            MaterialKind::Eldwood => "eldwood",
+            MaterialKind::Rock => "rock",
+            MaterialKind::Granite => "granite",
+            MaterialKind::Bone => "bone",
+            MaterialKind::Basalt => "basalt",
+            MaterialKind::Obsidian => "obsidian",
+            MaterialKind::Velorite => "velorite",
+            MaterialKind::Linen => "linen",
+            MaterialKind::Wool => "wood",
+            MaterialKind::Silk => "silk",
+            MaterialKind::Lifecloth => "lifecloth",
+            MaterialKind::Moonweave => "moonweave",
+            MaterialKind::Sunsilk => "sunsilk",
+            MaterialKind::Rawhide => "rawhide",
+            MaterialKind::Leather => "leather",
+            MaterialKind::Scale => "scale",
+            MaterialKind::Carapace => "carapace",
+            MaterialKind::Plate => "plate",
+            MaterialKind::Dragonscale => "dragonscale",
+        }
+    }
+
+    fn exemplar_identifier(&self) -> &'static str {
+        match self.material {
+            MaterialKind::Bronze => "common.items.tag_examples.material.bronze",
+            MaterialKind::Iron => "common.items.tag_examples.material.iron",
+            MaterialKind::Steel => "common.items.tag_examples.material.steel",
+            MaterialKind::Cobalt => "common.items.tag_examples.material.cobalt",
+            MaterialKind::Bloodsteel => "common.items.tag_examples.material.bloodsteel",
+            MaterialKind::Orichalcum => "common.items.tag_examples.material.orichalcum",
+            MaterialKind::Wood => "common.items.tag_examples.material.wood",
+            MaterialKind::Bamboo => "common.items.tag_examples.material.bamboo",
+            MaterialKind::Hardwood => "common.items.tag_examples.material.hardwood",
+            MaterialKind::Ironwood => "common.items.tag_examples.material.ironwood",
+            MaterialKind::Frostwood => "common.items.tag_examples.material.frostwood",
+            MaterialKind::Eldwood => "common.items.tag_examples.material.eldwood",
+            MaterialKind::Rock => "common.items.tag_examples.material.rock",
+            MaterialKind::Granite => "common.items.tag_examples.material.granite",
+            MaterialKind::Bone => "common.items.tag_examples.material.bone",
+            MaterialKind::Basalt => "common.items.tag_examples.material.basalt",
+            MaterialKind::Obsidian => "common.items.tag_examples.material.obsidian",
+            MaterialKind::Velorite => "common.items.tag_examples.material.velorite",
+            MaterialKind::Linen => "common.items.tag_examples.material.linen",
+            MaterialKind::Wool => "common.items.tag_examples.material.wool",
+            MaterialKind::Silk => "common.items.tag_examples.material.silk",
+            MaterialKind::Lifecloth => "common.items.tag_examples.material.lifecloth",
+            MaterialKind::Moonweave => "common.items.tag_examples.material.moonweave",
+            MaterialKind::Sunsilk => "common.items.tag_examples.material.sunsilk",
+            MaterialKind::Rawhide => "common.items.tag_examples.material.rawhide",
+            MaterialKind::Leather => "common.items.tag_examples.material.leather",
+            MaterialKind::Scale => "common.items.tag_examples.material.scale",
+            MaterialKind::Carapace => "common.items.tag_examples.material.carapace",
+            MaterialKind::Plate => "common.items.tag_examples.material.plate",
+            MaterialKind::Dragonscale => "common.items.tag_examples.material.dragonscale",
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ItemTag {
     ClothItem,
     LeatherItem,
-    ModularComponent(ModularComponentTag),
     MetalIngot,
     Textile,
+    MaterialKind(MaterialKindTag),
+    ArmorClass(armor::ArmorClassTag),
+    ModularComponent(ModularComponentTag),
     Cultist,
     Potion,
     Food,
@@ -110,8 +223,8 @@ pub enum ItemTag {
 impl TagExampleInfo for ItemTag {
     fn name(&self) -> &'static str {
         match self {
-            ItemTag::ClothItem => "cloth item",
-            ItemTag::LeatherItem => "leather item",
+            ItemTag::MaterialKind(material) => material.name(),
+            ItemTag::ArmorClass(class) => class.name(),
             ItemTag::ModularComponent(kind) => kind.name(),
             ItemTag::MetalIngot => "metal ingot",
             ItemTag::Textile => "textile",
@@ -128,8 +241,8 @@ impl TagExampleInfo for ItemTag {
     // TODO: Autogenerate these?
     fn exemplar_identifier(&self) -> &'static str {
         match self {
-            ItemTag::ClothItem => "common.items.tag_examples.cloth_item",
-            ItemTag::LeatherItem => "common.items.tag_examples.leather_item",
+            ItemTag::MaterialKind(material) => material.exemplar_identifier(),
+            ItemTag::ArmorClass(class) => class.exemplar_identifier(),
             ItemTag::ModularComponent(tag) => tag.exemplar_identifier(),
             ItemTag::MetalIngot => "common.items.tag_examples.metal_ingot",
             ItemTag::Textile => "common.items.tag_examples.textile",

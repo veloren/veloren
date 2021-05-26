@@ -13,7 +13,7 @@ use common::{
     combat,
     comp::item::{
         armor::{ArmorKind, Protection},
-        Item, ItemDesc, ItemKind, MaterialStatManifest, Quality,
+        Item, ItemDesc, ItemKind, ItemTag, MaterialStatManifest, Quality,
     },
     trade::SitePrices,
 };
@@ -463,7 +463,26 @@ impl<'a> Widget for ItemTooltip<'a> {
 
         let (title, desc) = (item.name().to_string(), item.description().to_string());
 
-        let subtitle = util::kind_text(item.kind(), i18n);
+        let item_kind = util::kind_text(item.kind(), i18n).to_string();
+
+        let armor_class_tag = item
+            .tags()
+            .into_iter()
+            .filter_map(|t| match t {
+                ItemTag::ArmorClass(armor_class) => Some(armor_class),
+                _ => None,
+            })
+            .next();
+
+        let subtitle = if let Some(class) = armor_class_tag {
+            format!(
+                "{} ({})",
+                item_kind,
+                util::armorclass_text(class.class(), i18n)
+            )
+        } else {
+            item_kind
+        };
 
         let text_color = conrod_core::color::WHITE;
 

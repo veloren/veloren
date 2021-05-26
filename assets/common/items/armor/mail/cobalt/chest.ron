@@ -13,5 +13,5 @@ ItemDef(
         ),
     )),
     quality: High,
-    tags: [],
+    tags: [ArmorClass((class: Heavy)), MaterialKind((material: Cobalt))],
 )

@@ -202,14 +202,14 @@
         output: ("common.items.mineral.ingot.gold", 1),
         inputs: [
             (Item("common.items.mineral.ore.gold"), 1),
-        ],	
+        ],
         craft_sprite: Some(Forge),
     ),
     "silver ingot": (
         output: ("common.items.mineral.ingot.silver", 1),
         inputs: [
             (Item("common.items.mineral.ore.silver"), 1),
-        ],	
+        ],
         craft_sprite: Some(Forge),
     ),
 
@@ -217,21 +217,21 @@
         output: ("common.items.mineral.ingot.iron", 1),
         inputs: [
             (Item("common.items.mineral.ore.iron"), 1),
-        ],	
+        ],
         craft_sprite: Some(Forge),
     ),
     "cobalt ingot": (
         output: ("common.items.mineral.ingot.cobalt", 1),
         inputs: [
             (Item("common.items.mineral.ore.cobalt"), 1),
-        ],	
+        ],
         craft_sprite: Some(Forge),
     ),
     "tin ingot": (
         output: ("common.items.mineral.ingot.tin", 2),
         inputs: [
             (Item("common.items.mineral.ore.tin"), 1),
-        ],		
+        ],
         craft_sprite: Some(Forge),
     ),
     "orichalcum ingot": (
@@ -239,31 +239,31 @@
         inputs: [
             (Item("common.items.mineral.ore.gold"), 1),
             (Item("common.items.mineral.ore.silver"), 1),
-        ],		
+        ],
         craft_sprite: Some(Forge),
     ),
     "copper ingot": (
         output: ("common.items.mineral.ingot.copper", 2),
         inputs: [
             (Item("common.items.mineral.ore.copper"), 1),
-        ],		
+        ],
         craft_sprite: Some(Forge),
     ),
     "bloodsteel ingot": (
         output: ("common.items.mineral.ingot.bloodsteel", 2),
         inputs: [
             (Item("common.items.mineral.ore.bloodstone"), 1),
-            (Item("common.items.mineral.ore.iron"), 1),  
-            (Item("common.items.mineral.ore.coal"), 1),  
-      ],		
+            (Item("common.items.mineral.ore.iron"), 1),
+            (Item("common.items.mineral.ore.coal"), 1),
+      ],
         craft_sprite: Some(Forge),
     ),
     "steel ingot": (
         output: ("common.items.mineral.ingot.steel", 1),
         inputs: [
-            (Item("common.items.mineral.ore.iron"), 1),  
-            (Item("common.items.mineral.ore.coal"), 1),  
-      ],		
+            (Item("common.items.mineral.ore.iron"), 1),
+            (Item("common.items.mineral.ore.coal"), 1),
+      ],
         craft_sprite: Some(Forge),
     ),
     "bronze ingot": (
@@ -271,50 +271,55 @@
         inputs: [
             (Item("common.items.mineral.ore.copper"), 1),
             (Item("common.items.mineral.ore.tin"), 1),
-        ],	
+        ],
         craft_sprite: Some(Forge),
     ),
     "cotton": (
         output: ("common.items.crafting_ing.cloth.cotton", 1),
         inputs: [
             (Item("common.items.crafting_ing.cotton_boll"), 1),
-        ],		
+        ],
         craft_sprite: Some(SpinningWheel),
     ),
     "linen": (
         output: ("common.items.crafting_ing.cloth.linen", 1),
         inputs: [
             (Item("common.items.flowers.wild_flax"), 1),
-        ],		
+        ],
         craft_sprite: Some(SpinningWheel),
     ),
     "silk": (
         output: ("common.items.crafting_ing.cloth.silk", 1),
         inputs: [
             (Item("common.items.crafting_ing.sticky_thread"), 1),
-        ],		
+        ],
         craft_sprite: Some(SpinningWheel),
     ),
     "lifecloth": (
         output: ("common.items.crafting_ing.cloth.lifecloth", 1),
         inputs: [
+<<<<<<< HEAD
             (Item("common.items.crafting_ing.animal_misc.lively_vine"), 1),
             (Item("common.items.crafting_ing.cloth.cotton"), 1),
         ],		
+=======
+            (Item("common.items.crafting_ing.cloth.lifecloth"), 1),
+        ],
+>>>>>>> Add material and armor class tags
         craft_sprite: Some(SpinningWheel),
     ),
     "moonweave": (
         output: ("common.items.crafting_ing.cloth.moonweave", 1),
         inputs: [
             (Item("common.items.flowers.moonbell"), 1),
-        ],		
+        ],
         craft_sprite: Some(SpinningWheel),
     ),
     "sunsilk": (
         output: ("common.items.crafting_ing.cloth.sunsilk", 1),
         inputs: [
             (Item("common.items.flowers.pyrebloom"), 1),
-        ],		
+        ],
         craft_sprite: Some(SpinningWheel),
     ),
     "salad_plain": (
@@ -322,7 +327,7 @@
         inputs: [
             (Item("common.items.food.lettuce"), 1),
             (Item("common.items.crafting_ing.bowl"), 1),
-        ],		
+        ],
     ),
     "salad_tomato": (
         output: ("common.items.food.tomatosalad", 1),
@@ -1522,7 +1527,7 @@
             (Item("common.items.mineral.ingot.orichalcum"), 3),
             (Item("common.items.crafting_ing.hide.plate"), 3),
             (Item("common.items.mineral.gem.diamond"), 2),
-            (Item("common.items.mineral.gem.sapphire"), 1),        
+            (Item("common.items.mineral.gem.sapphire"), 1),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -1532,7 +1537,7 @@
             (Item("common.items.mineral.ingot.orichalcum"), 2),
             (Item("common.items.crafting_ing.hide.plate"), 2),
             (Item("common.items.mineral.gem.diamond"), 2),
-            (Item("common.items.mineral.gem.sapphire"), 1),        
+            (Item("common.items.mineral.gem.sapphire"), 1),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -1553,7 +1558,7 @@
             (Item("common.items.mineral.ingot.orichalcum"), 3),
             (Item("common.items.crafting_ing.hide.plate"), 2),
             (Item("common.items.mineral.gem.diamond"), 1),
-            (Item("common.items.mineral.gem.sapphire"), 1),        
+            (Item("common.items.mineral.gem.sapphire"), 1),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -1563,7 +1568,7 @@
             (Item("common.items.mineral.ingot.orichalcum"), 3),
             (Item("common.items.crafting_ing.hide.plate"), 2),
             (Item("common.items.mineral.gem.diamond"), 1),
-            (Item("common.items.mineral.gem.sapphire"), 1),            
+            (Item("common.items.mineral.gem.sapphire"), 1),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -1582,7 +1587,7 @@
         inputs: [
             (Item("common.items.mineral.ingot.orichalcum"), 8),
             (Item("common.items.crafting_ing.hide.plate"), 4),
-            (Item("common.items.mineral.gem.sapphire"), 2),            
+            (Item("common.items.mineral.gem.sapphire"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),

@@ -37,7 +37,7 @@
         "common.automatic": "Auto",
         "common.random": "Random",
         "common.empty": "Empty",
-        
+
         // Settings Window title
         "common.interface_settings": "Interface Settings",
         "common.gameplay_settings": "Gameplay Settings",
@@ -100,6 +100,10 @@ Is the client up to date?"#,
         "common.stats.armor": "Armor",
         "common.stats.poise_res":"Stun Res",
         "common.stats.slots": "Slots",
+
+        "common.armor.light": "Light",
+        "common.armor.medium": "Medium",
+        "common.armor.heavy": "Heavy",
     },
 
 

@@ -2,7 +2,7 @@ use common::{
     comp::{
         inventory::trade_pricing::TradePricing,
         item::{
-            armor::{Armor, ArmorKind, Protection},
+            armor::{Armor, ArmorClass, ArmorKind, Protection},
             tool::{Hands, StatKind, Stats, Tool, ToolKind},
             Item, ItemKind, MaterialStatManifest, ModularComponent,
         },
@@ -70,6 +70,14 @@ pub fn kind_text<'a>(kind: &ItemKind, i18n: &'a Localization) -> Cow<'a, str> {
         ItemKind::Ingredient { .. } => Cow::Borrowed(i18n.get("common.kind.ingredient")),
         ItemKind::Lantern { .. } => Cow::Borrowed(i18n.get("common.kind.lantern")),
         ItemKind::TagExamples { .. } => Cow::Borrowed(""),
+    }
+}
+
+pub fn armorclass_text<'a>(kind: &ArmorClass, i18n: &'a Localization) -> Cow<'a, str> {
+    match kind {
+        ArmorClass::Light { .. } => Cow::Borrowed(i18n.get("common.armor.light")),
+        ArmorClass::Medium { .. } => Cow::Borrowed(i18n.get("common.armor.medium")),
+        ArmorClass::Heavy { .. } => Cow::Borrowed(i18n.get("common.armor.heavy")),
     }
 }
 
