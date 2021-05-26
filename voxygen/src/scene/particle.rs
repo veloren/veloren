@@ -323,6 +323,9 @@ impl ParticleMgr {
                 Body::Object(object::Body::BoltNature) => {
                     self.maintain_boltnature_particles(scene_data, pos, vel)
                 },
+                Body::Object(object::Body::Tornado) => {
+                    self.maintain_tornado_particles(scene_data, pos, vel)
+                },
                 Body::Object(
                     object::Body::Bomb
                     | object::Body::FireworkBlue
@@ -491,6 +494,26 @@ impl ParticleMgr {
                     Duration::from_millis(500),
                     time,
                     ParticleMode::CampfireSmoke,
+                    pos.0.map(|e| e + rng.gen_range(-0.25..0.25))
+                        + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.gen::<f32>()),
+                )
+            },
+        );
+    }
+
+    fn maintain_tornado_particles(&mut self, scene_data: &SceneData, pos: &Pos, vel: Option<&Vel>) {
+        let time = scene_data.state.get_time();
+        let dt = scene_data.state.get_delta_time();
+        let mut rng = thread_rng();
+
+        // nature
+        self.particles.resize_with(
+            self.particles.len() + usize::from(self.scheduler.heartbeats(Duration::from_millis(5))),
+            || {
+                Particle::new(
+                    Duration::from_millis(1000),
+                    time,
+                    ParticleMode::Tornado,
                     pos.0.map(|e| e + rng.gen_range(-0.25..0.25))
                         + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.gen::<f32>()),
                 )

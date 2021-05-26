@@ -431,7 +431,11 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     biped_large::Species::Wendigo => {
                         "common.loot_tables.creature.biped_large.wendigo"
                     },
-                    biped_large::Species::Troll => "common.loot_tables.creature.biped_large.troll",
+                    biped_large::Species::Cavetroll
+                    | biped_large::Species::Mountaintroll
+                    | biped_large::Species::Swamptroll => {
+                        "common.loot_tables.creature.biped_large.troll"
+                    },
                     biped_large::Species::Occultsaurok
                     | biped_large::Species::Mightysaurok
                     | biped_large::Species::Slysaurok => {

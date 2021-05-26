@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Bird Large Basic",
+    description: "testing123",
+    kind: Tool((
+        kind: Natural,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.01,
+            power: 1.0,
+            poise_strength: 1.0,
+            speed: 1.0,
+            crit_chance: 0.0625,
+            crit_mult: 1.9142857,
+        )),
+    )),
+    quality: Low,
+    tags: [],
+    ability_spec: Some(Custom("Bird Large Basic")),
+)

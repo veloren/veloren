@@ -489,7 +489,7 @@ pub fn apply_caves_supplement<'a>(
                                             0 => comp::biped_large::Species::Blueoni,
                                             _ => comp::biped_large::Species::Redoni,
                                         },
-                                        _ => comp::biped_large::Species::Troll,
+                                        _ => comp::biped_large::Species::Cavetroll,
                                     };
                                     comp::biped_large::Body::random_with(dynamic_rng, &species)
                                         .into()

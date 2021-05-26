@@ -167,4 +167,88 @@
             lateral: ("npc.cockatrice.male.foot_r"),
         )
     ),
+    (Roc, Male): (
+        wing_in_l: (
+            offset: (-13.0, -14.0, -2.5),
+            lateral: ("npc.roc.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (0.0, -14.0, -2.5),
+            lateral: ("npc.roc.male.wing_in_r"),
+        ),
+        wing_mid_l: (
+            offset: (-11.0, -18.0, -2.0),
+            lateral: ("npc.roc.male.wing_mid_r"),
+        ),
+        wing_mid_r: (
+            offset: (0.0, -18.0, -2.0),
+            lateral: ("npc.roc.male.wing_mid_r"),
+        ),
+        wing_out_l: (
+            offset: (-20.0, -18.0, -2.0),
+            lateral: ("npc.roc.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -18.0, -2.0),
+            lateral: ("npc.roc.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-4.0, -5.5, -7.5),
+            lateral: ("npc.roc.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-4.0, -5.5, -7.5),
+            lateral: ("npc.roc.male.leg_r"),
+        ),
+        foot_l: (
+            offset: (-5.5, -3.0, -12.0),
+            lateral: ("npc.roc.male.foot_r"),
+        ),
+        foot_r: (
+            offset: (-5.5, -3.0, -12.0),
+            lateral: ("npc.roc.male.foot_r"),
+        )
+    ),
+    (Roc, Female): (
+        wing_in_l: (
+            offset: (-13.0, -14.0, -2.5),
+            lateral: ("npc.roc.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (0.0, -14.0, -2.5),
+            lateral: ("npc.roc.male.wing_in_r"),
+        ),
+        wing_mid_l: (
+            offset: (-11.0, -18.0, -2.0),
+            lateral: ("npc.roc.male.wing_mid_r"),
+        ),
+        wing_mid_r: (
+            offset: (0.0, -18.0, -2.0),
+            lateral: ("npc.roc.male.wing_mid_r"),
+        ),
+        wing_out_l: (
+            offset: (-20.0, -18.0, -2.0),
+            lateral: ("npc.roc.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -18.0, -2.0),
+            lateral: ("npc.roc.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-4.0, -5.5, -7.5),
+            lateral: ("npc.roc.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-4.0, -5.5, -7.5),
+            lateral: ("npc.roc.male.leg_r"),
+        ),
+        foot_l: (
+            offset: (-5.5, -3.0, -12.0),
+            lateral: ("npc.roc.male.foot_r"),
+        ),
+        foot_r: (
+            offset: (-5.5, -3.0, -12.0),
+            lateral: ("npc.roc.male.foot_r"),
+        )
+    ),
 })

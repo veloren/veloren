@@ -454,9 +454,8 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                         0 => {
                             biped_large::Body::random_with(rng, &biped_large::Species::Ogre).into()
                         },
-                        1 => {
-                            biped_large::Body::random_with(rng, &biped_large::Species::Troll).into()
-                        },
+                        1 => biped_large::Body::random_with(rng, &biped_large::Species::Swamptroll)
+                            .into(),
                         _ => biped_large::Body::random_with(rng, &biped_large::Species::Cyclops)
                             .into(),
                     })

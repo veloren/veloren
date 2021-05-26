@@ -759,4 +759,14 @@
             central: ("armor.empty"),
         )
     ),
+    Tornado: (
+        bone0: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

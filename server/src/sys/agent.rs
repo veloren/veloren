@@ -116,10 +116,12 @@ pub enum Tactic {
     Mindflayer,
     BirdLargeBreathe,
     BirdLargeFire,
+    BirdLargeBasic,
     Minotaur,
     ClayGolem,
     TidalWarrior,
     Yeti,
+    Tornado,
 }
 
 #[derive(SystemData)]
@@ -1605,6 +1607,7 @@ impl<'a> AgentData<'a> {
                             "Haniwa Sentry" => Tactic::RotatingTurret,
                             "Bird Large Breathe" => Tactic::BirdLargeBreathe,
                             "Bird Large Fire" => Tactic::BirdLargeFire,
+                            "Bird Large Basic" => Tactic::BirdLargeBasic,
                             "Mindflayer" => Tactic::Mindflayer,
                             "Minotaur" => Tactic::Minotaur,
                             "Clay Golem" => Tactic::ClayGolem,
@@ -1833,6 +1836,7 @@ impl<'a> AgentData<'a> {
                 &tgt_data,
                 &read_data,
             ),
+            Tactic::Tornado => self.handle_tornado_attack(controller),
             Tactic::Mindflayer => self.handle_mindflayer_attack(
                 agent,
                 controller,
@@ -1849,6 +1853,13 @@ impl<'a> AgentData<'a> {
             ),
             // Mostly identical to BirdLargeFire but tweaked for flamethrower instead of shockwave
             Tactic::BirdLargeBreathe => self.handle_birdlarge_breathe_attack(
+                agent,
+                controller,
+                &attack_data,
+                &tgt_data,
+                &read_data,
+            ),
+            Tactic::BirdLargeBasic => self.handle_birdlarge_basic_attack(
                 agent,
                 controller,
                 &attack_data,
@@ -2906,6 +2917,12 @@ impl<'a> AgentData<'a> {
         }
     }
 
+    fn handle_tornado_attack(&self, controller: &mut Controller) {
+        controller
+            .actions
+            .push(ControlAction::basic_input(InputKind::Primary));
+    }
+
     fn handle_mindflayer_attack(
         &self,
         agent: &mut Agent,
@@ -3258,6 +3275,29 @@ impl<'a> AgentData<'a> {
             agent.action_state.timer = 0.0;
             // Target is behind us or the timer needs to be reset. Chase target
             self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+        }
+    }
+
+    fn handle_birdlarge_basic_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if can_see_tgt(
+            &*read_data.terrain,
+            self.pos,
+            tgt_data.pos,
+            attack_data.dist_sqrd,
+        ) && attack_data.angle < 15.0
+        {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
+        } else {
+            agent.target = None;
         }
     }
 

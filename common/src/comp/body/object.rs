@@ -88,6 +88,7 @@ make_case_elim!(
         BirdMeat = 73,
         FishMeat = 74,
         SmallMeat = 75,
+        Tornado = 76,
     }
 );
 
@@ -98,7 +99,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 76] = [
+pub const ALL_OBJECTS: [Body; 77] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -175,6 +176,7 @@ pub const ALL_OBJECTS: [Body; 76] = [
     Body::BirdMeat,
     Body::FishMeat,
     Body::SmallMeat,
+    Body::Tornado,
 ];
 
 impl From<Body> for super::Body {
@@ -260,6 +262,7 @@ impl Body {
             Body::BirdMeat => "bird_meat",
             Body::FishMeat => "fish_meat",
             Body::SmallMeat => "small_meat",
+            Body::Tornado => "tornado",
         }
     }
 
@@ -357,6 +360,7 @@ impl Body {
             Body::FishMeat => 10.0,
             Body::BirdMeat => 10.0,
             Body::SmallMeat => 10.0,
+            Body::Tornado => 50.0,
         };
 
         Mass(m)

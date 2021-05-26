@@ -149,54 +149,67 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             chest: match (body.species, body.body_type) {
                 (Phoenix, _) => (2.5, 16.0),
                 (Cockatrice, _) => (2.5, 16.0),
+                (Roc, _) => (2.5, 27.5),
             },
             neck: match (body.species, body.body_type) {
                 (Phoenix, _) => (2.5, -5.5),
                 (Cockatrice, _) => (5.0, -1.5),
+                (Roc, _) => (9.5, -1.5),
             },
             head: match (body.species, body.body_type) {
                 (Phoenix, _) => (6.0, 12.0),
                 (Cockatrice, _) => (8.0, 4.5),
+                (Roc, _) => (17.0, -3.5),
             },
             beak: match (body.species, body.body_type) {
                 (Phoenix, _) => (5.0, 3.0),
                 (Cockatrice, _) => (2.0, -3.0),
+                (Roc, _) => (0.0, -3.0),
             },
             tail_front: match (body.species, body.body_type) {
                 (Phoenix, _) => (-9.5, -1.0),
                 (Cockatrice, _) => (-5.0, -2.5),
+                (Roc, _) => (-7.5, -3.5),
             },
             tail_rear: match (body.species, body.body_type) {
                 (Phoenix, _) => (-11.0, 0.0),
                 (Cockatrice, _) => (-8.0, -3.0),
+                (Roc, _) => (-8.0, -3.0),
             },
             wing_in: match (body.species, body.body_type) {
                 (Phoenix, _) => (3.0, 2.5, 2.0),
                 (Cockatrice, _) => (3.5, 7.0, 3.5),
+                (Roc, _) => (5.5, 7.5, -1.0),
             },
             wing_mid: match (body.species, body.body_type) {
                 (Phoenix, _) => (10.0, 1.0, 0.0),
                 (Cockatrice, _) => (6.0, 0.0, 0.0),
+                (Roc, _) => (12.0, 1.0, -0.5),
             },
             wing_out: match (body.species, body.body_type) {
                 (Phoenix, _) => (7.0, 2.0, 1.5),
                 (Cockatrice, _) => (4.0, -1.0, 1.0),
+                (Roc, _) => (10.0, -2.0, 0.0),
             },
             leg: match (body.species, body.body_type) {
                 (Phoenix, _) => (4.0, 1.5, 12.0),
                 (Cockatrice, _) => (3.5, 2.5, 13.0),
+                (Roc, _) => (5.5, -1.5, 17.5),
             },
             foot: match (body.species, body.body_type) {
                 (Phoenix, _) => (0.5, -0.5, -2.5),
                 (Cockatrice, _) => (0.5, -3.0, -3.0),
+                (Roc, _) => (2.5, -2.5, -5.5),
             },
             scaler: match (body.species, body.body_type) {
                 (Phoenix, _) => (1.0),
                 (Cockatrice, _) => (1.0),
+                (Roc, _) => (1.0),
             },
             feed: match (body.species, body.body_type) {
                 (Phoenix, _) => (-0.65),
                 (Cockatrice, _) => (-0.5),
+                (Roc, _) => (-0.65),
             },
         }
     }
