@@ -108,7 +108,7 @@
         secondary: "common.abilities.custom.wendigomagic.singlestrike",
         abilities: [],
     ),
-    Custom("Tidal Claws"): (
+    Custom("Tidal Warrior"): (
         primary: "common.abilities.custom.tidalwarrior.pincer",
         secondary: "common.abilities.custom.tidalwarrior.scuttle",
         abilities: [

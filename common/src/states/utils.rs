@@ -263,21 +263,15 @@ fn basic_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
 }
 
 /// Handles forced movement
-pub fn handle_forced_movement(
-    data: &JoinData,
-    update: &mut StateUpdate,
-    movement: ForcedMovement,
-    efficiency: f32,
-) {
-    let efficiency = efficiency * data.stats.move_speed_modifier * data.stats.friction_modifier;
-
+pub fn handle_forced_movement(data: &JoinData, update: &mut StateUpdate, movement: ForcedMovement) {
     match movement {
         ForcedMovement::Forward { strength } => {
+            let strength = strength * data.stats.move_speed_modifier * data.stats.friction_modifier;
             if let Some(accel) = data.physics.on_ground.then_some(data.body.base_accel()) {
                 update.vel.0 += Vec2::broadcast(data.dt.0)
                     * accel
-                    * (data.inputs.move_dir + Vec2::from(update.ori) * strength)
-                    * efficiency;
+                    * (data.inputs.move_dir + Vec2::from(update.ori))
+                    * strength;
             }
         },
         ForcedMovement::Leap {

@@ -167,14 +167,9 @@ impl CharacterBehavior for Data {
                         self.static_data.movement_behavior,
                         MovementBehavior::ForwardGround
                     ) {
-                        handle_forced_movement(
-                            data,
-                            &mut update,
-                            ForcedMovement::Forward {
-                                strength: self.static_data.forward_speed,
-                            },
-                            0.1,
-                        );
+                        handle_forced_movement(data, &mut update, ForcedMovement::Forward {
+                            strength: self.static_data.forward_speed,
+                        });
                     }
 
                     // Swings

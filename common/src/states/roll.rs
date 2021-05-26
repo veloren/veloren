@@ -78,19 +78,14 @@ impl CharacterBehavior for Data {
             },
             StageSection::Movement => {
                 // Update velocity
-                handle_forced_movement(
-                    data,
-                    &mut update,
-                    ForcedMovement::Forward {
-                        strength: self.static_data.roll_strength
-                            * ((1.0
-                                - self.timer.as_secs_f32()
-                                    / self.static_data.movement_duration.as_secs_f32())
-                                / 2.0
-                                + 0.5),
-                    },
-                    0.0,
-                );
+                handle_forced_movement(data, &mut update, ForcedMovement::Forward {
+                    strength: self.static_data.roll_strength
+                        * ((1.0
+                            - self.timer.as_secs_f32()
+                                / self.static_data.movement_duration.as_secs_f32())
+                            / 2.0
+                            + 0.5),
+                });
 
                 if self.timer < self.static_data.movement_duration {
                     // Movement

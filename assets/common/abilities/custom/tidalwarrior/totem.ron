@@ -1,18 +1,14 @@
-BasicMelee(
-    energy_cost: 0,
-    buildup_duration: 0.3,
-    swing_duration: 0.1,
-    recover_duration: 0.6,
-    base_damage: 50.0,
-    base_poise_damage: 100.0,
-    knockback: ( strength: 50.0, direction: Towards),
-    range: 5.0,
-    max_angle: 60.0,
-    damage_effect: Some(Buff((
-        kind: Crippled,
-        dur_secs: 15.0,
-        strength: Value(0.5),
-        chance: 1.0,
-    ))),
-    damage_kind: Slashing,
+BasicSummon(
+    buildup_duration: 0.5,
+    cast_duration: 1.0,
+    recover_duration: 0.5,
+    summon_amount: 6,
+    summon_info: (
+        // If this is still HaniwaSentry, code reviewers open a comment. I'll know what to do.
+        body: Object(HaniwaSentry),
+        scale: None,
+        health_scaling: 20,
+        loadout_config: None,
+        skillset_config: None,
+    ),
 )

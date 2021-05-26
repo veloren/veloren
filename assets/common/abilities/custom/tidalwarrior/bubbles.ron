@@ -10,7 +10,7 @@ BasicBeam(
         kind: Wet,
         dur_secs: 15.0,
         strength: Value(4.5),
-        chance: 0.25,
+        chance: 1.0,
     ))),
     energy_regen: 0,
     energy_drain: 0,

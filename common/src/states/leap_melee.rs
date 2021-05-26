@@ -86,17 +86,12 @@ impl CharacterBehavior for Data {
                     let progress = 1.0
                         - self.timer.as_secs_f32()
                             / self.static_data.movement_duration.as_secs_f32();
-                    handle_forced_movement(
-                        data,
-                        &mut update,
-                        ForcedMovement::Leap {
-                            vertical: self.static_data.vertical_leap_strength,
-                            forward: self.static_data.forward_leap_strength,
-                            progress,
-                            direction: MovementDirection::Look,
-                        },
-                        0.15,
-                    );
+                    handle_forced_movement(data, &mut update, ForcedMovement::Leap {
+                        vertical: self.static_data.vertical_leap_strength,
+                        forward: self.static_data.forward_leap_strength,
+                        progress,
+                        direction: MovementDirection::Look,
+                    });
 
                     // Increment duration
                     // If we were to set a timeout for state, this would be
