@@ -42,6 +42,7 @@ pub struct Camera {
     ori: Vec3<f32>,
     tgt_dist: f32,
     dist: f32,
+    tgt_fov: f32,
     fov: f32,
     aspect: f32,
     mode: CameraMode,
@@ -76,6 +77,7 @@ impl Camera {
             ori: Vec3::zero(),
             tgt_dist: 10.0,
             dist: 10.0,
+            tgt_fov: 1.1,
             fov: 1.1,
             aspect,
             mode,
@@ -222,6 +224,14 @@ impl Camera {
             );
         }
 
+        if (self.fov - self.tgt_fov).abs() > 0.01 {
+            self.fov = f32::lerp(
+                self.fov,
+                self.tgt_fov,
+                0.65 * (delta as f32) / self.interp_time(),
+            );
+        }
+
         if (self.focus - self.tgt_focus).magnitude_squared() > 0.001 {
             let lerped_focus = Lerp::lerp(
                 self.focus,
@@ -290,7 +300,7 @@ impl Camera {
     pub fn get_fov(&self) -> f32 { self.fov }
 
     /// Set the field of view of the camera in radians.
-    pub fn set_fov(&mut self, fov: f32) { self.fov = fov; }
+    pub fn set_fov(&mut self, fov: f32) { self.tgt_fov = fov; }
 
     /// Set the FOV in degrees
     pub fn set_fov_deg(&mut self, fov: u16) {

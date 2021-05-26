@@ -62,6 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chat tabs
 - NPC's now hear certain sounds
 - Renamed Animal Trainers to Beastmasters and gave them their own set of armor to wear
+- ChargedRanged attacks (such as some bow attacks) use an FOV zoom effect to indicate charge.
 - Add chest to each dungeon with unique loot 
 
 ### Changed
