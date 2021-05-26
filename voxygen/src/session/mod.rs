@@ -306,11 +306,17 @@ impl PlayState for SessionState {
                 .read_storage::<comp::CharacterState>()
                 .get(player_entity)
             {
-                fov_scaling -= 3.0 * cr.charge_frac() / 4.0;
-                if self.saved_zoom_dist.is_none() {
-                    self.saved_zoom_dist = Some(camera.get_distance());
-                    camera.set_distance(0.0);
+                if cr.charge_frac() > 0.25 {
+                    fov_scaling -= 3.0 * cr.charge_frac() / 4.0;
                 }
+                let max_dist = if let Some(dist) = self.saved_zoom_dist {
+                    dist
+                } else {
+                    let dist = camera.get_distance();
+                    self.saved_zoom_dist = Some(dist);
+                    dist
+                };
+                camera.set_distance(Lerp::lerp(max_dist, 2.0, 1.0 - fov_scaling));
             } else if let Some(dist) = self.saved_zoom_dist.take() {
                 camera.set_distance(dist);
             }
