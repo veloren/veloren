@@ -13,5 +13,5 @@ ItemDef(
         ),
     )),
     quality: Common,
-    tags: [ArmorClass((class: Light)), MaterialKind((material: Wool))],
+    tags: [Material((material: Wool))],
 )

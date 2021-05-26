@@ -13,7 +13,5 @@ ItemDef(
         ),
     )),
     quality: Common,
-    tags: [
-        ClothItem,
-    ],
+    tags: [Material((material: Linen))],
 )

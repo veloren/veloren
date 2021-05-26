@@ -13,5 +13,5 @@ ItemDef(
         ),
     )),
     quality: Moderate,
-    tags: [ArmorClass((class: Light)), MaterialKind((material: Silk))],
+    tags: [Material((material: Silk))],
 )

@@ -2,9 +2,9 @@ use common::{
     comp::{
         inventory::trade_pricing::TradePricing,
         item::{
-            armor::{Armor, ArmorClass, ArmorKind, Protection},
+            armor::{Armor, ArmorKind, Protection},
             tool::{Hands, StatKind, Stats, Tool, ToolKind},
-            Item, ItemKind, MaterialStatManifest, ModularComponent,
+            Item, ItemKind, MaterialKind, MaterialStatManifest, ModularComponent,
         },
         BuffKind,
     },
@@ -73,11 +73,13 @@ pub fn kind_text<'a>(kind: &ItemKind, i18n: &'a Localization) -> Cow<'a, str> {
     }
 }
 
-pub fn armorclass_text<'a>(kind: &ArmorClass, i18n: &'a Localization) -> Cow<'a, str> {
+pub fn materialkind_text<'a>(kind: &MaterialKind, i18n: &'a Localization) -> Cow<'a, str> {
     match kind {
-        ArmorClass::Light { .. } => Cow::Borrowed(i18n.get("common.armor.light")),
-        ArmorClass::Medium { .. } => Cow::Borrowed(i18n.get("common.armor.medium")),
-        ArmorClass::Heavy { .. } => Cow::Borrowed(i18n.get("common.armor.heavy")),
+        MaterialKind::Metal { .. } => Cow::Borrowed(i18n.get("common.material.metal")),
+        MaterialKind::Wood { .. } => Cow::Borrowed(i18n.get("common.material.wood")),
+        MaterialKind::Stone { .. } => Cow::Borrowed(i18n.get("common.material.stone")),
+        MaterialKind::Cloth { .. } => Cow::Borrowed(i18n.get("common.material.cloth")),
+        MaterialKind::Hide { .. } => Cow::Borrowed(i18n.get("common.material.hide")),
     }
 }
 
@@ -209,6 +211,7 @@ fn tool_kind<'a>(tool: &Tool, i18n: &'a Localization) -> &'a str {
     kind
 }
 
+// Output the number of hands needed to hold a tool
 pub fn tool_hands<'a>(tool: &Tool, i18n: &'a Localization) -> &'a str {
     let hands = match tool.hands {
         Hands::One => i18n.get("common.hands.one"),
@@ -241,6 +244,7 @@ pub fn comparison<T: PartialOrd>(first: T, other: T) -> (&'static str, conrod_co
     }
 }
 
+// Output protection as a string
 pub fn protec2string(stat: Protection) -> String {
     match stat {
         Protection::Normal(a) => format!("{:.1}", a),

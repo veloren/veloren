@@ -13,5 +13,5 @@ ItemDef(
         ),
     )),
     quality: Moderate,
-    tags: [ArmorClass((class: Light)), MaterialKind((material: Sunsilk))],
+    tags: [Material((material: Sunsilk))],
 )

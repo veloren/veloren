@@ -13,5 +13,5 @@ ItemDef(
         ),
     )),
     quality: Epic,
-    tags: [ArmorClass((class: Light)), MaterialKind((material: Sunsilk))],
+    tags: [Material((material: Sunsilk))],
 )

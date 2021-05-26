@@ -1,4 +1,3 @@
-use super::TagExampleInfo;
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, ops::Sub};
 
@@ -16,40 +15,6 @@ pub enum ArmorKind {
     Head(String),
     Tabard(String),
     Bag(String),
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum ArmorClass {
-    Light,
-    Medium,
-    Heavy,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct ArmorClassTag {
-    class: ArmorClass,
-}
-
-impl TagExampleInfo for ArmorClassTag {
-    fn name(&self) -> &'static str {
-        match self.class {
-            ArmorClass::Light => "light armor",
-            ArmorClass::Medium => "medium armor",
-            ArmorClass::Heavy => "heavy armor",
-        }
-    }
-
-    fn exemplar_identifier(&self) -> &'static str {
-        match self.class {
-            ArmorClass::Light => "common.items.tag_examples.armor.light",
-            ArmorClass::Medium => "common.items.tag_examples.armor.medium",
-            ArmorClass::Heavy => "common.items.tag_examples.armor.heavy",
-        }
-    }
-}
-
-impl ArmorClassTag {
-    pub fn class(&self) -> &ArmorClass { &self.class }
 }
 
 impl Armor {

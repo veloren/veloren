@@ -465,20 +465,20 @@ impl<'a> Widget for ItemTooltip<'a> {
 
         let item_kind = util::kind_text(item.kind(), i18n).to_string();
 
-        let armor_class_tag = item
+        let material_tag = item
             .tags()
             .into_iter()
             .filter_map(|t| match t {
-                ItemTag::ArmorClass(armor_class) => Some(armor_class),
+                ItemTag::Material(material) => Some(material),
                 _ => None,
             })
             .next();
 
-        let subtitle = if let Some(class) = armor_class_tag {
+        let subtitle = if let Some(material_tag) = material_tag {
             format!(
                 "{} ({})",
                 item_kind,
-                util::armorclass_text(class.class(), i18n)
+                util::materialkind_text(&material_tag.material().material_kind(), i18n)
             )
         } else {
             item_kind

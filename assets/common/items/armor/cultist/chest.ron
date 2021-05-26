@@ -13,7 +13,5 @@ ItemDef(
         ),
     )),
     quality: Epic,
-    tags: [
-        Cultist,
-    ],
+    tags: [Cultist],
 )

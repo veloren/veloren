@@ -13,5 +13,5 @@ ItemDef(
         ),
     )),
     quality: Common,
-    tags: [ArmorClass((class: Heavy)), MaterialKind((material: Bronze))],
+    tags: [Material((material: Bronze))],
 )

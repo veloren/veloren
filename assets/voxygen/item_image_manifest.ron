@@ -18,23 +18,23 @@
     Tool("CraftingBench"): VoxTrans(
         "voxel.sprite.crafting_bench.crafting_bench-0",
        (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 1.0,
-    ),    
+    ),
     Tool("Forge"): VoxTrans(
         "voxel.object.forge",
        (0.0, 0.0, 0.0), (-80.0, 20.0, 0.0), 1.0,
-    ),  
+    ),
     Tool("Loom"): VoxTrans(
         "voxel.object.loom",
        (0.0, 0.0, 0.0), (-100.0, 00.0, 0.0), 1.0,
-    ),  
+    ),
     Tool("SpinningWheel"): VoxTrans(
         "voxel.object.spinning_wheel",
        (0.0, 0.0, 0.0), (-70.0, 10.0, 0.0), 1.0,
-    ),  
+    ),
     Tool("TanningRack"): VoxTrans(
         "voxel.object.tanning_rack",
        (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 1.0,
-    ),  
+    ),
     // Weapons
     // Diary Example Images
     Tool("example_utility"): VoxTrans(
@@ -2416,11 +2416,11 @@
         "voxel.object.training_dummy",
         (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    // Ingredients    
-    Tool("common.items.tool.craftsman_hammer"): VoxTrans( 
+    // Ingredients
+    Tool("common.items.tool.craftsman_hammer"): VoxTrans(
         "voxel.weapon.hammer.craftsman",
         (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 0.9,
-    ),    
+    ),
     Ingredient("SewingSet"): Png(
         "element.items.sewing_set",
     ),

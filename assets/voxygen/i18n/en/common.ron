@@ -101,9 +101,11 @@ Is the client up to date?"#,
         "common.stats.poise_res":"Stun Res",
         "common.stats.slots": "Slots",
 
-        "common.armor.light": "Light",
-        "common.armor.medium": "Medium",
-        "common.armor.heavy": "Heavy",
+        "common.material.metal": "Metal",
+        "common.material.wood": "Wood",
+        "common.material.stone": "Stone",
+        "common.material.cloth": "Cloth",
+        "common.material.hide": "Hide",
     },
 
 

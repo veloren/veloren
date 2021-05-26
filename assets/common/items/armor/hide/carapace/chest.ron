@@ -13,5 +13,5 @@ ItemDef(
         ),
     )),
     quality: High,
-    tags: [ArmorClass((class: Medium)), MaterialKind((material: Carapace))],
+    tags: [Material((material: Carapace))],
 )

@@ -1692,17 +1692,46 @@
         craft_sprite: Some(Anvil),
     ),
     "cloth_scraps": (
-        output: ("common.items.crafting_ing.cloth.cloth_scraps", 1),
+        output: ("common.items.crafting_ing.cloth.linen", 1),
         inputs: [
-            (Tag(ClothItem), 1),
+            (Tag(Material((material: Linen))), 1),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
     ),
-    "leather_strips": (
-        output: ("common.items.crafting_ing.leather.leather_strips", 3),
+    "wool": (
+        output: ("common.items.crafting_ing.cloth.wool", 1),
         inputs: [
-            (Tag(LeatherItem), 1),
+            (Tag(Material((material: Wool))), 1),
+            (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
+    ),
+    "rawhide": (
+        output: ("common.items.crafting_ing.leather.simple_leather", 1),
+        inputs: [
+            (Tag(Material((material: Rawhide))), 1),
+            (Item("common.items.crafting_tools.sewing_set"), 0),
+        ],
+    ),
+    "leather": (
+        output: ("common.items.crafting_ing.leather.thick_leather", 1),
+        inputs: [
+            (Tag(Material((material: Leather))), 1),
+            (Item("common.items.crafting_tools.sewing_set"), 0),
+        ],
+    ),
+    "bronze": (
+        output: ("common.items.mineral.ingot.bronze", 1),
+        inputs: [
+            (Tag(Material((material: Bronze))), 1),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    "iron": (
+        output: ("common.items.mineral.ingot.iron", 1),
+        inputs: [
+            (Tag(Material((material: Iron))), 1),
+        ],
+        craft_sprite: Some(Anvil),
     ),
     //"metal_blade": (
     //    output: ("common.items.crafting_ing.modular.damage.sword.metal_blade", 1),

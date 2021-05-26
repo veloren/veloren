@@ -5,5 +5,5 @@ ItemDef(
         kind: "SilverIngot",
     ),
     quality: Epic,
-    tags: [],
+    tags: [MetalIngot],
 )
