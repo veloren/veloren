@@ -12,7 +12,6 @@
     iter_map_while,
     label_break_value,
     option_zip,
-    or_patterns,
     trait_alias,
     type_alias_impl_trait
 )]
