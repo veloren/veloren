@@ -3058,12 +3058,13 @@ fn handle_skill_preset(
 fn clear_skillset(skill_set: &mut comp::SkillSet) { *skill_set = comp::SkillSet::default(); }
 
 fn set_skills(skill_set: &mut comp::SkillSet, preset: &str) -> CmdResult<()> {
-    let presets =
-        if let Ok(presets) = common::cmd::SkillPresetManifest::load("server.manifests.presets") {
-            presets.read().0.clone()
-        } else {
+    let presets = match common::cmd::SkillPresetManifest::load("server.manifests.presets") {
+        Ok(presets) => presets.read().0.clone(),
+        Err(err) => {
+            warn!("Error in preset: {}", err);
             return Err("Error while loading presets".to_owned());
-        };
+        },
+    };
     if let Some(preset) = presets.get(preset) {
         for (skill, level) in preset {
             let group = if let Some(group) = skill.skill_group_kind() {

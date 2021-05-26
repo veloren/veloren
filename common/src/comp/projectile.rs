@@ -12,7 +12,7 @@ use specs::Component;
 use specs_idvs::IdvStorage;
 use std::time::Duration;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Effect {
     Attack(Attack),
     Explode(Explosion),
@@ -21,7 +21,7 @@ pub enum Effect {
     Possess,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Projectile {
     // TODO: use SmallVec for these effects
     pub hit_solid: Vec<Effect>,

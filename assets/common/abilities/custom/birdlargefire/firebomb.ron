@@ -14,4 +14,6 @@ BasicRanged(
     }),*/
     projectile_gravity: Some(Gravity(0.15)),
     projectile_speed: 60.0,
+    num_projectiles: 1,
+    projectile_spread: 0.0,
 )

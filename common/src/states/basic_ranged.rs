@@ -5,7 +5,9 @@ use crate::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
+    util::Dir,
 };
+use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -16,11 +18,15 @@ pub struct StaticData {
     pub buildup_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
+    /// How much spread there is when more than 1 projectile is created
+    pub projectile_spread: f32,
     /// Projectile variables
     pub projectile: ProjectileConstructor,
     pub projectile_body: Body,
     pub projectile_light: Option<LightEmitter>,
     pub projectile_speed: f32,
+    /// How many projectiles are simultaneously fired
+    pub num_projectiles: u32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -76,15 +82,28 @@ impl CharacterBehavior for Data {
                         crit_chance,
                         crit_mult,
                     );
-                    update.server_events.push_front(ServerEvent::Shoot {
-                        entity: data.entity,
-                        dir: data.inputs.look_dir,
-                        body: self.static_data.projectile_body,
-                        projectile,
-                        light: self.static_data.projectile_light,
-                        speed: self.static_data.projectile_speed,
-                        object: None,
-                    });
+                    // Shoots all projectiles simultaneously
+                    for i in 0..self.static_data.num_projectiles {
+                        // Adds a slight spread to the projectiles. First projectile has no spread,
+                        // and spread increases linearly with number of projectiles created.
+                        let dir = Dir::from_unnormalized(data.inputs.look_dir.map(|x| {
+                            let offset = (2.0 * thread_rng().gen::<f32>() - 1.0)
+                                * self.static_data.projectile_spread
+                                * i as f32;
+                            x + offset
+                        }))
+                        .unwrap_or(data.inputs.look_dir);
+                        // Tells server to create and shoot the projectile
+                        update.server_events.push_front(ServerEvent::Shoot {
+                            entity: data.entity,
+                            dir,
+                            body: self.static_data.projectile_body,
+                            projectile: projectile.clone(),
+                            light: self.static_data.projectile_light,
+                            speed: self.static_data.projectile_speed,
+                            object: None,
+                        });
+                    }
 
                     update.character = CharacterState::BasicRanged(Data {
                         exhausted: true,

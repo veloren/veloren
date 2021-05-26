@@ -1,29 +1,32 @@
 use crate::{
-    comp::{Body, CharacterState, LightEmitter, ProjectileConstructor, StateUpdate},
+    comp::{
+        Body, CharacterState, EnergyChange, EnergySource, LightEmitter, ProjectileConstructor,
+        StateUpdate,
+    },
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::{StageSection, *},
     },
-    util::dir::*,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use vek::Vec3;
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 /// Separated out to condense update portions of character state
 pub struct StaticData {
-    /// How long the state is in movement
-    pub movement_duration: Duration,
     /// How long we've readied the weapon
     pub buildup_duration: Duration,
     /// How long the state is shooting
     pub shoot_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
-    /// Whether there should be a jump and how strong the leap is
-    pub leap: Option<f32>,
+    /// Energy cost per projectile
+    pub energy_cost: f32,
+    /// Max speed that can be reached
+    pub max_speed: f32,
+    /// Projectiles required to reach half of max speed
+    pub half_speed_at: u32,
     /// Projectile options
     pub projectile: ProjectileConstructor,
     pub projectile_body: Body,
@@ -42,64 +45,20 @@ pub struct Data {
     pub timer: Duration,
     /// What section the character stage is in
     pub stage_section: StageSection,
-    /// How many repetitions remaining
-    pub reps_remaining: u32,
+    /// Speed of the state while in shoot section
+    pub speed: f32,
+    /// Number of projectiles fired so far
+    pub projectiles_fired: u32,
 }
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         handle_orientation(data, &mut update, 1.0);
-        handle_move(data, &mut update, 1.0);
-        handle_jump(data, &mut update, 1.0);
+        handle_move(data, &mut update, 0.3);
 
         match self.stage_section {
-            StageSection::Movement => {
-                // Jumping
-                if let Some(leap_strength) = self.static_data.leap {
-                    let progress = 1.0
-                        - self.timer.as_secs_f32()
-                            / self.static_data.movement_duration.as_secs_f32();
-                    handle_forced_movement(
-                        data,
-                        &mut update,
-                        ForcedMovement::Leap {
-                            vertical: leap_strength,
-                            forward: 10.0,
-                            progress,
-                            direction: MovementDirection::Move,
-                        },
-                        1.0,
-                    );
-                }
-                if self.timer < self.static_data.movement_duration {
-                    // Do movement
-                    update.character = CharacterState::RepeaterRanged(Data {
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
-                            .unwrap_or_default(),
-                        ..*self
-                    });
-                } else {
-                    // Transition to buildup
-                    update.character = CharacterState::RepeaterRanged(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Buildup,
-                        ..*self
-                    });
-                }
-            },
             StageSection::Buildup => {
-                // Aim gliding
-                if self.static_data.leap.is_some() {
-                    handle_forced_movement(
-                        data,
-                        &mut update,
-                        ForcedMovement::Hover { move_input: 0.1 },
-                        1.0,
-                    );
-                }
                 if self.timer < self.static_data.buildup_duration {
                     // Buildup to attack
                     update.character = CharacterState::RepeaterRanged(Data {
@@ -119,12 +78,19 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Shoot => {
-                // Aim gliding
-                if self.static_data.leap.is_some() {
-                    update.vel.0 = Vec3::new(data.vel.0.x, data.vel.0.y, 0.0);
-                }
-                if self.reps_remaining > 0 {
-                    // Fire
+                if self.timer < self.static_data.shoot_duration {
+                    // Draw projectile
+                    update.character = CharacterState::RepeaterRanged(Data {
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0 * self.speed))
+                            .unwrap_or_default(),
+                        ..*self
+                    });
+                } else if input_is_pressed(data, self.static_data.ability_info.input)
+                    && update.energy.current() as f32 >= self.static_data.energy_cost
+                {
+                    // Fire if input is pressed still
                     let (crit_chance, crit_mult) =
                         get_crit_data(data, self.static_data.ability_info);
                     let projectile = self.static_data.projectile.create_projectile(
@@ -134,23 +100,7 @@ impl CharacterBehavior for Data {
                     );
                     update.server_events.push_front(ServerEvent::Shoot {
                         entity: data.entity,
-                        // Provides slight variation to projectile direction
-                        dir: Dir::from_unnormalized(Vec3::new(
-                            data.inputs.look_dir[0]
-                                + (if self.reps_remaining % 2 == 0 {
-                                    self.reps_remaining as f32 / 400.0
-                                } else {
-                                    -1.0 * self.reps_remaining as f32 / 400.0
-                                }),
-                            data.inputs.look_dir[1]
-                                + (if self.reps_remaining % 2 == 0 {
-                                    -1.0 * self.reps_remaining as f32 / 400.0
-                                } else {
-                                    self.reps_remaining as f32 / 400.0
-                                }),
-                            data.inputs.look_dir[2],
-                        ))
-                        .unwrap_or(data.inputs.look_dir),
+                        dir: data.inputs.look_dir,
                         body: self.static_data.projectile_body,
                         projectile,
                         light: self.static_data.projectile_light,
@@ -158,22 +108,26 @@ impl CharacterBehavior for Data {
                         object: None,
                     });
 
-                    // Shoot projectiles
-                    update.character = CharacterState::RepeaterRanged(Data {
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
-                            .unwrap_or_default(),
-                        reps_remaining: self.reps_remaining - 1,
-                        ..*self
+                    // Removes energy from character when arrow is fired
+                    update.server_events.push_front(ServerEvent::EnergyChange {
+                        entity: data.entity,
+                        change: EnergyChange {
+                            amount: -self.static_data.energy_cost as i32,
+                            source: EnergySource::Ability,
+                        },
                     });
-                } else if self.timer < self.static_data.shoot_duration {
-                    // Finish shooting
+
+                    // Sets new speed of shoot. Scales based off of the number of projectiles fired.
+                    let new_speed = 1.0
+                        + self.projectiles_fired as f32
+                            / (self.static_data.half_speed_at as f32
+                                + self.projectiles_fired as f32)
+                            * self.static_data.max_speed;
+
                     update.character = CharacterState::RepeaterRanged(Data {
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
-                            .unwrap_or_default(),
+                        timer: Duration::default(),
+                        speed: new_speed,
+                        projectiles_fired: self.projectiles_fired + 1,
                         ..*self
                     });
                 } else {
@@ -186,10 +140,7 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Recover => {
-                if self.static_data.leap.is_some() && data.physics.on_ground {
-                    // Done
-                    update.character = CharacterState::Wielding;
-                } else if self.timer < self.static_data.recover_duration {
+                if self.timer < self.static_data.recover_duration {
                     // Recover from attack
                     update.character = CharacterState::RepeaterRanged(Data {
                         timer: self

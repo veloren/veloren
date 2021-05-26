@@ -1,11 +1,7 @@
 use crate::{
-    combat::{
-        Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement, Damage,
-        DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
-    },
     comp::{
-        projectile, Body, CharacterState, EnergyChange, EnergySource, LightEmitter, Projectile,
-        StateUpdate,
+        projectile::ProjectileConstructor, Body, CharacterState, EnergyChange, EnergySource,
+        LightEmitter, StateUpdate,
     },
     event::ServerEvent,
     states::{
@@ -27,6 +23,10 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// How much energy is drained per second when charging
     pub energy_drain: f32,
+    /// How much energy is gained with no charge
+    pub initial_regen: f32,
+    /// How much the energy gain scales as it is charged
+    pub scaled_regen: f32,
     /// How much damage is dealt with no charge
     pub initial_damage: f32,
     /// How much the damage scales as it is charged
@@ -46,8 +46,6 @@ pub struct StaticData {
     pub move_speed: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
-    /// What kind of damage the attack does
-    pub damage_kind: DamageKind,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -96,45 +94,19 @@ impl CharacterBehavior for Data {
                     let charge_frac = (self.timer.as_secs_f32()
                         / self.static_data.charge_duration.as_secs_f32())
                     .min(1.0);
-                    let knockback = AttackEffect::new(
-                        Some(GroupTarget::OutOfGroup),
-                        CombatEffect::Knockback(Knockback {
-                            strength: self.static_data.initial_knockback
-                                + charge_frac * self.static_data.scaled_knockback,
-                            direction: KnockbackDir::Away,
-                        }),
-                    )
-                    .with_requirement(CombatRequirement::AnyDamage);
-                    let buff = CombatEffect::Buff(CombatBuff::default_physical());
-                    let damage = AttackDamage::new(
-                        Damage {
-                            source: DamageSource::Projectile,
-                            kind: self.static_data.damage_kind,
-                            value: self.static_data.initial_damage as f32
-                                + charge_frac * self.static_data.scaled_damage as f32,
-                        },
-                        Some(GroupTarget::OutOfGroup),
-                    )
-                    .with_effect(buff);
+                    let arrow = ProjectileConstructor::Arrow {
+                        damage: self.static_data.initial_damage as f32
+                            + charge_frac * self.static_data.scaled_damage as f32,
+                        knockback: self.static_data.initial_knockback
+                            + charge_frac * self.static_data.scaled_knockback,
+                        energy_regen: self.static_data.initial_regen
+                            + charge_frac * self.static_data.scaled_regen,
+                    };
+                    // Fire
                     let (crit_chance, crit_mult) =
                         get_crit_data(data, self.static_data.ability_info);
-                    let attack = Attack::default()
-                        .with_damage(damage)
-                        .with_crit(crit_chance, crit_mult)
-                        .with_effect(knockback)
-                        .with_combo_increment();
-
-                    // Fire
-                    let projectile = Projectile {
-                        hit_solid: vec![projectile::Effect::Stick],
-                        hit_entity: vec![
-                            projectile::Effect::Attack(attack),
-                            projectile::Effect::Vanish,
-                        ],
-                        time_left: Duration::from_secs(15),
-                        owner: Some(*data.uid),
-                        ignore_group: true,
-                    };
+                    let projectile =
+                        arrow.create_projectile(Some(*data.uid), crit_chance, crit_mult);
                     update.server_events.push_front(ServerEvent::Shoot {
                         entity: data.entity,
                         dir: data.inputs.look_dir,
@@ -166,7 +138,7 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
 
-                    // Consumes energy if there's enough left and RMB is held down
+                    // Consumes energy if there's enough left and input is held down
                     update.energy.change_by(EnergyChange {
                         amount: -(self.static_data.energy_drain as f32
                             * data.dt.0

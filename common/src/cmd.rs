@@ -912,3 +912,13 @@ impl ArgumentSpec {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_loading_skill_presets() {
+        SkillPresetManifest::load_expect("server.manifests.presets");
+    }
+}
