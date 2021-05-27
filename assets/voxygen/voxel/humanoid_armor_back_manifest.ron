@@ -53,7 +53,7 @@
             color: None
         ),
         "Leather": (
-            vox_spec: ("armor.hide.leather.back", (-5.0, -1.0, -11.0)),
+            vox_spec: ("armor.hide.leather.back", (-4.0, -1.0, -6.0)),
             color: None
         ),
         "Scale": (

@@ -17,6 +17,7 @@
         "hud.crafting.forge": "Forge",
         "hud.crafting.loom": "Loom",
         "hud.crafting.spinning_wheel": "Spinning Wheel",
+        "hud.crafting.tanning_rack": "Tanning Rack",
         // Tabs
         "hud.crafting.tabs.all": "All",
         "hud.crafting.tabs.armor": "Armor",
@@ -28,6 +29,7 @@
         "hud.crafting.tabs.utility": "Utility",
         "hud.crafting.tabs.weapon": "Weapons",
         "hud.crafting.tabs.bag": "Bags",
+        "hud.crafting.tabs.material": "Materials",
     },
 
 

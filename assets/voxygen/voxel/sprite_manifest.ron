@@ -3022,6 +3022,41 @@ Pyrebloom: Some((
     ],
     wind_sway: 0.0,
 )),
+WildFlax: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.flax.flax-0",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.7),
+        ),
+        (
+            model: "voxygen.voxel.sprite.flax.flax-1",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.7),
+        ),
+        (
+            model: "voxygen.voxel.sprite.flax.flax-2",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.7),
+        ),
+        (
+            model: "voxygen.voxel.sprite.flax.flax-3",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.7),
+        ),
+        (
+            model: "voxygen.voxel.sprite.flax.flax-4",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.7),
+        ),
+        (
+            model: "voxygen.voxel.sprite.flax.flax-5",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.7),
+        ),
+    ],
+    wind_sway: 0.4,
+)),
 // Lantern
 Lantern: Some((
     variations: [
@@ -3081,6 +3116,16 @@ SpinningWheel: Some((
         (
             model: "voxygen.voxel.object.spinning_wheel",
             offset: (-7.5, -5.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+TanningRack: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.object.tanning_rack",
+            offset: (-7.5, -4.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
     ],

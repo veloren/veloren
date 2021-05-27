@@ -21,14 +21,18 @@
     ),    
     Tool("Forge"): VoxTrans(
         "voxel.object.forge",
-       (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 1.0,
+       (0.0, 0.0, 0.0), (-80.0, 20.0, 0.0), 1.0,
     ),  
     Tool("Loom"): VoxTrans(
         "voxel.object.loom",
-       (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 1.0,
+       (0.0, 0.0, 0.0), (-100.0, 00.0, 0.0), 1.0,
     ),  
     Tool("SpinningWheel"): VoxTrans(
         "voxel.object.spinning_wheel",
+       (0.0, 0.0, 0.0), (-70.0, 10.0, 0.0), 1.0,
+    ),  
+    Tool("TanningRack"): VoxTrans(
+        "voxel.object.tanning_rack",
        (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 1.0,
     ),  
     // Weapons
@@ -2533,6 +2537,10 @@
         "voxel.sprite.flowers.pyrebloom",
         (0.0, 0.0, 0.0), (-75.0, 0.0, 20.0), 0.9,
     ),
+    Ingredient("WildFlax"): VoxTrans(
+        "voxel.sprite.flowers.flax",
+        (0.0, 0.0, 0.0), (-75.0, 0.0, 20.0), 0.8,
+    ),
     Ingredient("CottonBoll"): VoxTrans(
         "voxel.sprite.crafting_ing.cotton_boll",
         (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
@@ -2612,10 +2620,6 @@
     Ingredient("SilverOre"): VoxTrans(
         "voxel.sprite.mineral.ore.silver",
         (0.0, 0.0, 0.0), (-60.0, 30.0, 20.0), 0.8,
-    ),
-    Ingredient("OrichalcumIngot"): VoxTrans(
-        "voxel.sprite.mineral.ore.orichalcum",
-        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
     Ingredient("BloodstoneOre"): VoxTrans(
         "voxel.sprite.mineral.ore.bloodstone",

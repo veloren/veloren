@@ -5,5 +5,5 @@ ItemDef(
         kind: "Silk",
     ),
     quality: Moderate,
-    tags: [],
+    tags: [Textile],
 )

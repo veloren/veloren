@@ -97,6 +97,7 @@ pub enum ItemTag {
     LeatherItem,
     ModularComponent(ModularComponentTag),
     MetalIngot,
+    Textile,
     Cultist,
     Potion,
     Food,
@@ -113,6 +114,7 @@ impl TagExampleInfo for ItemTag {
             ItemTag::LeatherItem => "leather item",
             ItemTag::ModularComponent(kind) => kind.name(),
             ItemTag::MetalIngot => "metal ingot",
+            ItemTag::Textile => "textile",
             ItemTag::Cultist => "cultist",
             ItemTag::Potion => "potion",
             ItemTag::Food => "food",
@@ -130,6 +132,7 @@ impl TagExampleInfo for ItemTag {
             ItemTag::LeatherItem => "common.items.tag_examples.leather_item",
             ItemTag::ModularComponent(tag) => tag.exemplar_identifier(),
             ItemTag::MetalIngot => "common.items.tag_examples.metal_ingot",
+            ItemTag::Textile => "common.items.tag_examples.textile",
             ItemTag::Cultist => "common.items.tag_examples.cultist",
             ItemTag::Potion => "common.items.tag_examples.placeholder",
             ItemTag::Food => "common.items.tag_examples.placeholder",
@@ -749,6 +752,7 @@ impl Item {
             SpriteKind::Cotton => "common.items.crafting_ing.cotton_boll",
             SpriteKind::Moonbell => "common.items.flowers.moonbell",
             SpriteKind::Pyrebloom => "common.items.flowers.pyrebloom",
+            SpriteKind::WildFlax => "common.items.flowers.wild_flax",
             SpriteKind::Seashells => "common.items.crafting_ing.seashells",
             // Containers
             // IMPORTANT: Add any new container to `SpriteKind::is_container`

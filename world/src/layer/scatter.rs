@@ -106,6 +106,15 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((100.0, 0.15)),
             )
         }),
+        (WildFlax, false, |c, col| {
+            (
+                close(c.temp, 0.0, 0.7).min(close(c.humidity, CONFIG.jungle_hum, 0.4))
+                    * col.tree_density
+                    * MUSH_FACT
+                    * 600.0,
+                Some((100.0, 0.15)),
+            )
+        }),
         // Herbs and Spices
         (LingonBerry, false, |c, _| {
             (

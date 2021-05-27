@@ -5,5 +5,5 @@ ItemDef(
         kind: "ClothScraps",
     ),
     quality: Common,
-    tags: [BaseMaterial],
+    tags: [Textile],
 )

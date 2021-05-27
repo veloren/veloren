@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Wild Flax",
+    description: "Could be used to spin some simple cloth.",
+    kind: Ingredient(
+        kind: "WildFlax",
+    ),
+    quality: Common,
+    tags: [],
+)

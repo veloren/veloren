@@ -5,5 +5,5 @@ ItemDef(
         kind: "Moonweave",
     ),
     quality: Epic,
-    tags: [],
+    tags: [Textile],
 )

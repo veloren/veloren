@@ -11,12 +11,4 @@
         (1.0, Some(Item("common.items.armor.misc.chest.worker_orange_0"))),
         (1.0, Some(Item("common.items.armor.misc.chest.worker_orange_1"))),
     ]),
-
-    Armor(Belt): Item("common.items.armor.swift.belt"),
-    Armor(Legs): Item("common.items.armor.misc.pants.worker_blue"),
-
-    Armor(Feet): Choice([
-        (1.0, Some(Item("common.items.armor.swift.foot"))),
-        (1.0, Some(Item("common.items.armor.misc.foot.sandals"))),
-    ]),
 })

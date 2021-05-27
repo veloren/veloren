@@ -147,6 +147,7 @@ pub enum CraftingTab {
     Tool,
     Utility,
     Glider,
+    Material,
 }
 impl CraftingTab {
     fn name_key(&self) -> &str {
@@ -161,6 +162,7 @@ impl CraftingTab {
             CraftingTab::Utility => "hud.crafting.tabs.utility",
             CraftingTab::Weapon => "hud.crafting.tabs.weapon",
             CraftingTab::Bag => "hud.crafting.tabs.bag",
+            CraftingTab::Material => "hud.crafting.tabs.material",
         }
     }
 
@@ -176,6 +178,7 @@ impl CraftingTab {
             CraftingTab::Utility => imgs.icon_utility,
             CraftingTab::Weapon => imgs.icon_weapon,
             CraftingTab::Bag => imgs.icon_bag,
+            CraftingTab::Material => imgs.icon_material,
         }
     }
 
@@ -189,6 +192,9 @@ impl CraftingTab {
             },
             CraftingTab::Glider => matches!(item.kind(), ItemKind::Glider(_)),
             CraftingTab::Potion => item.tags().contains(&ItemTag::Potion),
+            CraftingTab::Material => {
+                item.tags().contains(&ItemTag::MetalIngot) | item.tags().contains(&ItemTag::Textile)
+            },
             CraftingTab::Bag => item.tags().contains(&ItemTag::Bag),
             CraftingTab::Tool => item.tags().contains(&ItemTag::CraftingTool),
             CraftingTab::Utility => item.tags().contains(&ItemTag::Utility),
@@ -691,6 +697,7 @@ impl<'a> Widget for Crafting<'a> {
                     Some(SpriteKind::Forge) => "Forge",
                     Some(SpriteKind::Loom) => "Loom",
                     Some(SpriteKind::SpinningWheel) => "SpinningWheel",
+                    Some(SpriteKind::TanningRack) => "TanningRack",
                     None => "CraftsmanHammer",
                     _ => "CraftsmanHammer",
                 };
@@ -713,6 +720,7 @@ impl<'a> Widget for Crafting<'a> {
                     Some(SpriteKind::Forge) => "hud.crafting.forge",
                     Some(SpriteKind::Loom) => "hud.crafting.loom",
                     Some(SpriteKind::SpinningWheel) => "hud.crafting.spinning_wheel",
+                    Some(SpriteKind::TanningRack) => "hud.crafting.tanning_rack",
                     _ => "",
                 };
                 Text::new(&self.localized_strings.get(station_name))

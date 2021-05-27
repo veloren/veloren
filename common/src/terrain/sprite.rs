@@ -168,6 +168,8 @@ make_case_elim!(
         Cotton = 0x8D,
         Moonbell = 0x8E,
         Pyrebloom = 0x8F,
+        TanningRack = 0x90,
+        WildFlax = 0x91,
     }
 );
 
@@ -219,6 +221,7 @@ impl SpriteKind {
             SpriteKind::Forge => 2.7,
             SpriteKind::Cauldron => 1.27,
             SpriteKind::SpinningWheel => 1.6,
+            SpriteKind::TanningRack => 2.2,
             SpriteKind::Loom => 1.27,
             SpriteKind::Anvil => 1.1,
             SpriteKind::CookingPot => 1.36,
@@ -292,6 +295,7 @@ impl SpriteKind {
             SpriteKind::Cotton => true,
             SpriteKind::Moonbell => true,
             SpriteKind::Pyrebloom => true,
+            SpriteKind::WildFlax => true,
             _ => false,
         }
     }
@@ -394,6 +398,7 @@ impl SpriteKind {
                 | SpriteKind::Anvil
                 | SpriteKind::CookingPot
                 | SpriteKind::SpinningWheel
+                | SpriteKind::TanningRack
                 | SpriteKind::Loom
         )
     }
