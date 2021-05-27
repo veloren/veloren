@@ -2107,25 +2107,25 @@ impl<'a> AgentData<'a> {
                         .push(ControlAction::basic_input(InputKind::Primary));
                 }
             }
-        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            if can_see_tgt(
+        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2)
+            && can_see_tgt(
                 &*read_data.terrain,
                 self.pos,
                 tgt_data.pos,
                 attack_data.dist_sqrd,
-            ) {
-                // If not really far, and can see target, attempt to shoot bow
-                if self.energy.current() < DESIRED_ENERGY_LEVEL {
-                    // If low on energy, use primary to attempt to regen energy
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Primary));
-                } else {
-                    // Else we have enough energy, use repeater
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Secondary));
-                }
+            )
+        {
+            // If not really far, and can see target, attempt to shoot bow
+            if self.energy.current() < DESIRED_ENERGY_LEVEL {
+                // If low on energy, use primary to attempt to regen energy
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+            } else {
+                // Else we have enough energy, use repeater
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
             }
         }
         // Logic to move. Intentionally kept separate from ability logic so duplicated

@@ -38,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sort inventory button
 - Option to change the master volume when window is unfocused
 - Crafting stations in towns
-- Option to change the master volume when window is unfocused 
+- Option to change the master volume when window is unfocused
 - Entities now have mass
 - Entities now have density
 - Buoyancy is calculated from the difference in density between an entity and surrounding fluid
@@ -63,7 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - NPC's now hear certain sounds
 - Renamed Animal Trainers to Beastmasters and gave them their own set of armor to wear
 - ChargedRanged attacks (such as some bow attacks) use an FOV zoom effect to indicate charge.
-- Add chest to each dungeon with unique loot 
+- Add chest to each dungeon with unique loot
 
 ### Changed
 
@@ -111,6 +111,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Entities catch on fire if they stand too close to campfires
 - Water extinguishes entities on fire
 - Item pickups are shown in separate window and inventory-full shows above item
+- Reworked bow
 
 ### Removed
 

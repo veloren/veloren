@@ -909,19 +909,33 @@ fn handle_exp_gain(
     uid: &Uid,
     outcomes: &mut Vec<Outcome>,
 ) {
-    let (main_tool_kind, second_tool_kind) = combat::get_weapons(inventory);
+    use comp::inventory::{item::ItemKind, slot::EquipSlot};
+    // Create hash set of xp pools to consider splitting xp amongst
     let mut xp_pools = HashSet::<SkillGroupKind>::new();
+    // Insert general pool since it is always accessible
     xp_pools.insert(SkillGroupKind::General);
-    if let Some(w) = main_tool_kind {
-        if skill_set.contains_skill_group(SkillGroupKind::Weapon(w)) {
-            xp_pools.insert(SkillGroupKind::Weapon(w));
+    // Closure to add xp pool corresponding to weapon type equipped in a particular
+    // EquipSlot
+    let mut add_tool_from_slot = |equip_slot| {
+        let tool_kind = inventory.equipped(equip_slot).and_then(|i| {
+            if let ItemKind::Tool(tool) = &i.kind() {
+                Some(tool.kind)
+            } else {
+                None
+            }
+        });
+        if let Some(weapon) = tool_kind {
+            // Only adds to xp pools if entity has that skill group available
+            if skill_set.contains_skill_group(SkillGroupKind::Weapon(weapon)) {
+                xp_pools.insert(SkillGroupKind::Weapon(weapon));
+            }
         }
-    }
-    if let Some(w) = second_tool_kind {
-        if skill_set.contains_skill_group(SkillGroupKind::Weapon(w)) {
-            xp_pools.insert(SkillGroupKind::Weapon(w));
-        }
-    }
+    };
+    // Add weapons to xp pools considered
+    add_tool_from_slot(EquipSlot::ActiveMainhand);
+    add_tool_from_slot(EquipSlot::ActiveOffhand);
+    add_tool_from_slot(EquipSlot::InactiveMainhand);
+    add_tool_from_slot(EquipSlot::InactiveOffhand);
     let num_pools = xp_pools.len() as f32;
     for pool in xp_pools {
         skill_set.change_experience(pool, (exp_reward / num_pools).ceil() as i32);
