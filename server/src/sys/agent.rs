@@ -1644,15 +1644,27 @@ impl<'a> AgentData<'a> {
             | Tactic::Turret
                 if dist_sqrd > 0.0 =>
             {
-                aim_projectile(
-                    90.0, // + self.vel.0.magnitude(),
-                    Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
-                    Vec3::new(
-                        tgt_data.pos.0.x,
-                        tgt_data.pos.0.y,
-                        tgt_data.pos.0.z + tgt_eye_offset,
-                    ),
-                )
+                if matches!(self.char_state, CharacterState::ChargedRanged(_)) {
+                    aim_projectile(
+                        175.0,
+                        Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+                        Vec3::new(
+                            tgt_data.pos.0.x,
+                            tgt_data.pos.0.y,
+                            tgt_data.pos.0.z + tgt_eye_offset,
+                        ),
+                    )
+                } else {
+                    aim_projectile(
+                        90.0, // + self.vel.0.magnitude(),
+                        Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+                        Vec3::new(
+                            tgt_data.pos.0.x,
+                            tgt_data.pos.0.y,
+                            tgt_data.pos.0.z + tgt_eye_offset,
+                        ),
+                    )
+                }
             }
             Tactic::ClayGolem if matches!(self.char_state, CharacterState::BasicRanged(_)) => {
                 const ROCKET_SPEED: f32 = 30.0;
@@ -2094,8 +2106,10 @@ impl<'a> AgentData<'a> {
                     .push(ControlAction::basic_input(InputKind::Ability(0)));
             } else if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
                 && self.energy.current() > CharacterAbility::default_roll().get_energy_cost()
+                && !matches!(self.char_state, CharacterState::BasicRanged(c) if !matches!(c.stage_section, StageSection::Recover))
             {
-                // Else roll away if can roll and have enough energy
+                // Else roll away if can roll and have enough energy, and not using shotgun
+                // (other 2 attacks have interrupt handled above) unless in recover
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Roll));
@@ -2181,7 +2195,7 @@ impl<'a> AgentData<'a> {
             // Sometimes try to roll
             if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
                 && attack_data.dist_sqrd < 16.0f32.powi(2)
-                && thread_rng().gen::<f32>() < 0.02
+                && thread_rng().gen::<f32>() < 0.01
             {
                 controller
                     .actions
