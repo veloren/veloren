@@ -551,10 +551,12 @@ impl LoadoutBuilder {
                                 .expect("coins should be stackable");
                             *s = Some(coin_item);
                             coins = 0;
-                        } else if let Some(item_id) =
-                            TradePricing::random_item(Good::Armor, armor, true)
-                        {
-                            *s = Some(Item::new_from_asset_expect(&item_id));
+                        } else if armor > 0.0 {
+                            if let Some(item_id) =
+                                TradePricing::random_item(Good::Armor, armor, true)
+                            {
+                                *s = Some(Item::new_from_asset_expect(&item_id));
+                            }
                         }
                     }
                     let mut bag1 = Item::new_from_asset_expect(
@@ -566,10 +568,13 @@ impl LoadoutBuilder {
                         .copied()
                         .unwrap_or_default()
                         / 10.0;
-                    for i in bag1.slots_mut() {
-                        if let Some(item_id) = TradePricing::random_item(Good::Tools, weapon, true)
-                        {
-                            *i = Some(Item::new_from_asset_expect(&item_id));
+                    if weapon > 0.0 {
+                        for i in bag1.slots_mut() {
+                            if let Some(item_id) =
+                                TradePricing::random_item(Good::Tools, weapon, true)
+                            {
+                                *i = Some(Item::new_from_asset_expect(&item_id));
+                            }
                         }
                     }
                     let mut rng = rand::thread_rng();

@@ -339,12 +339,12 @@ impl Economy {
             values: {
                 let labor_values = normalize(self.labor_values.clone());
                 // Use labor values as prices. Not correct (doesn't care about exchange value)
-                let prices = normalize(self.values.clone())
-                    .map(|good, value| Some((labor_values[good]? + value?) * 0.5));
-                prices
-                    .iter()
-                    .map(|(g, v)| (g, v.unwrap_or(Economy::MINIMUM_PRICE)))
-                    .collect()
+                let prices = normalize(self.values.clone()).map(|good, value| {
+                    (labor_values[good].unwrap_or(Economy::MINIMUM_PRICE)
+                        + value.unwrap_or(Economy::MINIMUM_PRICE))
+                        * 0.5
+                });
+                prices.iter().map(|(g, v)| (g, *v)).collect()
             },
         }
     }

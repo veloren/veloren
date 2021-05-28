@@ -5,6 +5,7 @@ use crate::{
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
+use strum_macros::EnumIter;
 use tracing::{trace, warn};
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -296,7 +297,7 @@ impl Default for Trades {
 // we need this declaration in common for Merchant loadout creation, it is not
 // directly related to trade between entities, but between sites (more abstract)
 // economical information
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize, EnumIter)]
 pub enum Good {
     Territory(BiomeKind),
     Flour,

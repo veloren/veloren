@@ -7,7 +7,7 @@ edition = "2018"
 [features]
 tracy = ["common/tracy", "common-net/tracy"]
 simd = ["vek/platform_intrinsics"]
-bin_compression = ["lz-fear", "deflate", "flate2", "common-frontend", "image/jpeg", "num-traits"]
+bin_compression = ["lz-fear", "deflate", "flate2", "image/jpeg", "num-traits"]
 
 default = ["simd"]
 
@@ -43,15 +43,18 @@ lz-fear = { version = "0.1.1", optional = true }
 deflate = { version = "0.9.1", optional = true }
 flate2 = { version = "1.0.20", optional = true }
 num-traits = { version = "0.2", optional = true }
-common-frontend = { package = "veloren-common-frontend", path = "../common/frontend", optional = true }
 
 
 [dev-dependencies]
+common-frontend = { package = "veloren-common-frontend", path = "../common/frontend" }
 criterion = "0.3"
+csv = "1.1.3"
 tracing-subscriber = { version = "0.2.15", default-features = false, features = ["fmt", "chrono", "ansi", "smallvec", "env-filter"] }
 minifb = "0.19.1"
+rusqlite = { version = "0.24.2", features = ["array", "vtab", "bundled", "trace"] }
 svg_fmt = "0.4"
 structopt = "0.3"
+strum = "0.20"
 
 [[bench]]
 harness = false

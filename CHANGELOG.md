@@ -141,6 +141,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Mindflayer AI now correctly summons husks at certain HP thresholds.
 - Far away NPCs respond to being damaged by a projectile
 - Fixed terrain clipping with glider
+- Fixed an issue where prices weren't properly making their way from econsim to the actual trade values.
 
 ## [0.9.0] - 2021-03-20
 
