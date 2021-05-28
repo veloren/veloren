@@ -1644,15 +1644,27 @@ impl<'a> AgentData<'a> {
             | Tactic::Turret
                 if dist_sqrd > 0.0 =>
             {
-                aim_projectile(
-                    90.0, // + self.vel.0.magnitude(),
-                    Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
-                    Vec3::new(
-                        tgt_data.pos.0.x,
-                        tgt_data.pos.0.y,
-                        tgt_data.pos.0.z + tgt_eye_offset,
-                    ),
-                )
+                if matches!(self.char_state, CharacterState::ChargedRanged(_)) {
+                    aim_projectile(
+                        175.0,
+                        Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+                        Vec3::new(
+                            tgt_data.pos.0.x,
+                            tgt_data.pos.0.y,
+                            tgt_data.pos.0.z + tgt_eye_offset,
+                        ),
+                    )
+                } else {
+                    aim_projectile(
+                        90.0, // + self.vel.0.magnitude(),
+                        Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+                        Vec3::new(
+                            tgt_data.pos.0.x,
+                            tgt_data.pos.0.y,
+                            tgt_data.pos.0.z + tgt_eye_offset,
+                        ),
+                    )
+                }
             }
             Tactic::ClayGolem if matches!(self.char_state, CharacterState::BasicRanged(_)) => {
                 const ROCKET_SPEED: f32 = 30.0;
@@ -2040,10 +2052,64 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
-            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                && self.energy.current() > CharacterAbility::default_roll().get_energy_cost()
+        const MIN_CHARGE_FRAC: f32 = 0.5;
+        const OPTIMAL_TARGET_VELOCITY: f32 = 5.0;
+        const DESIRED_ENERGY_LEVEL: u32 = 500;
+        // Logic to use abilities
+        if let CharacterState::ChargedRanged(c) = self.char_state {
+            if !matches!(c.stage_section, StageSection::Recover) {
+                // Don't even bother with this logic if in recover
+                let target_speed_sqd = agent
+                    .target
+                    .as_ref()
+                    .map(|t| t.target)
+                    .and_then(|e| read_data.velocities.get(e))
+                    .map_or(0.0, |v| v.0.magnitude_squared());
+                if c.charge_frac() < MIN_CHARGE_FRAC
+                    || (target_speed_sqd > OPTIMAL_TARGET_VELOCITY.powi(2) && c.charge_frac() < 1.0)
+                {
+                    // If haven't charged to desired level, or target is moving too fast and haven't
+                    // fully charged, keep charging
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Primary));
+                }
+                // Else don't send primary input to release the shot
+            }
+        } else if matches!(self.char_state, CharacterState::RepeaterRanged(c) if self.energy.current() > 50 && !matches!(c.stage_section, StageSection::Recover))
+        {
+            // If in repeater ranged, have enough energy, and aren't in recovery, try to
+            // keep firing
+            if attack_data.dist_sqrd > attack_data.min_attack_dist.powi(2)
+                && can_see_tgt(
+                    &*read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                )
             {
+                // Only keep firing if not in melee range or if can see target
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+            }
+        } else if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
+            if self
+                .skill_set
+                .has_skill(Skill::Bow(BowSkill::UnlockShotgun))
+                && self.energy.current() > 450
+                && thread_rng().gen_bool(0.5)
+            {
+                // Use shotgun if target close and have sufficient energy
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+            } else if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+                && self.energy.current() > CharacterAbility::default_roll().get_energy_cost()
+                && !matches!(self.char_state, CharacterState::BasicRanged(c) if !matches!(c.stage_section, StageSection::Recover))
+            {
+                // Else roll away if can roll and have enough energy, and not using shotgun
+                // (other 2 attacks have interrupt handled above) unless in recover
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Roll));
@@ -2055,7 +2121,46 @@ impl<'a> AgentData<'a> {
                         .push(ControlAction::basic_input(InputKind::Primary));
                 }
             }
+        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2)
+            && can_see_tgt(
+                &*read_data.terrain,
+                self.pos,
+                tgt_data.pos,
+                attack_data.dist_sqrd,
+            )
+        {
+            // If not really far, and can see target, attempt to shoot bow
+            if self.energy.current() < DESIRED_ENERGY_LEVEL {
+                // If low on energy, use primary to attempt to regen energy
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+            } else {
+                // Else we have enough energy, use repeater
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+            }
+        }
+        // Logic to move. Intentionally kept separate from ability logic so duplicated
+        // work is less necessary.
+        if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
+            // Attempt to move away from target if too close
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+            }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
+            // Else attempt to circle target if neither too close nor too far
             if let Some((bearing, speed)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
@@ -2079,54 +2184,25 @@ impl<'a> AgentData<'a> {
                         .try_normalized()
                         .unwrap_or_else(Vec2::zero)
                         * speed;
-                    if agent.action_state.timer > 4.0 {
-                        controller
-                            .actions
-                            .push(ControlAction::CancelInput(InputKind::Secondary));
-                        agent.action_state.timer = 0.0;
-                    } else if agent.action_state.timer > 2.0 && self.energy.current() > 300 {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Secondary));
-                        agent.action_state.timer += read_data.dt.0;
-                    } else if self
-                        .skill_set
-                        .has_skill(Skill::Bow(BowSkill::UnlockShotgun))
-                        && self.energy.current() > 400
-                        && thread_rng().gen_bool(0.8)
-                    {
-                        controller
-                            .actions
-                            .push(ControlAction::CancelInput(InputKind::Secondary));
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Ability(0)));
-                        agent.action_state.timer += read_data.dt.0;
-                    } else {
-                        controller
-                            .actions
-                            .push(ControlAction::CancelInput(InputKind::Secondary));
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Primary));
-                        agent.action_state.timer += read_data.dt.0;
-                    }
                 } else {
+                    // Unless cannot see target, then move towards them
                     controller.inputs.move_dir =
                         bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
                     self.jump_if(controller, bearing.z > 1.5);
                     controller.inputs.move_z = bearing.z;
                 }
             }
+            // Sometimes try to roll
             if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
                 && attack_data.dist_sqrd < 16.0f32.powi(2)
-                && thread_rng().gen::<f32>() < 0.02
+                && thread_rng().gen::<f32>() < 0.01
             {
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Roll));
             }
         } else {
+            // If too far, move towards target
             self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
         }
     }
