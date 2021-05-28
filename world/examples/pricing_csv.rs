@@ -70,19 +70,21 @@ fn economy_sqlite(world: &World, index: &Index) -> Result<(), Box<dyn Error>> {
     let conn = Connection::open("economy.sqlite")?;
     #[rustfmt::skip]
     conn.execute_batch("
-    CREATE TABLE IF NOT EXISTS site (
+    DROP TABLE IF EXISTS site;
+    CREATE TABLE site (
         xcoord INTEGER NOT NULL,
         ycoord INTEGER NUT NULL,
         name TEXT NOT NULL
     );
-    CREATE UNIQUE INDEX IF NOT EXISTS site_position ON site(xcoord, ycoord);
-    CREATE TABLE IF NOT EXISTS site_price (
+    CREATE UNIQUE INDEX site_position ON site(xcoord, ycoord);
+    DROP TABLE IF EXISTS site_price;
+    CREATE TABLE site_price (
         xcoord INTEGER NOT NULL,
         ycoord INTEGER NOT NULL,
         good TEXT NOT NULL,
         price REAL NOT NULL
     );
-    CREATE UNIQUE INDEX IF NOT EXISTS site_good on site_price(xcoord, ycoord, good);
+    CREATE UNIQUE INDEX site_good on site_price(xcoord, ycoord, good);
     ")?;
     let mut all_goods = Vec::new();
     for good in Good::iter() {
@@ -115,10 +117,11 @@ fn economy_sqlite(world: &World, index: &Index) -> Result<(), Box<dyn Error>> {
 
     #[rustfmt::skip]
     let create_view = format!("
-        CREATE VIEW IF NOT EXISTS site_price_tr (xcoord, ycoord {})
+        DROP VIEW IF EXISTS site_price_tr;
+        CREATE VIEW site_price_tr (xcoord, ycoord {})
         AS SELECT xcoord, ycoord {}
         FROM site NATURAL JOIN site_price
-        GROUP BY xcoord, ycoord
+        GROUP BY xcoord, ycoord;
         ", good_columns, good_exprs);
     conn.execute_batch(&create_view)?;
     let mut insert_price_stmt = conn
