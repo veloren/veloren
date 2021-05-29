@@ -5,13 +5,17 @@ ItemDef(
         kind: Chest("Dragonscale"),
         stats: (
             protection: Normal(140.0),
-            poise_resilience: Normal(1.0),
+            poise_resilience: Normal(0.0),
             energy_max: 0,
             energy_recovery: 0.0,
             crit_power: 2.0,
             stealth: 0.0,
         ),
     )),
-    quality: Epic,
-    tags: [Material((material: Dragonscale))],
+    quality: Legendary,
+    tags: [
+        Material((
+            material: Dragonscale,
+        )),
+    ],
 )

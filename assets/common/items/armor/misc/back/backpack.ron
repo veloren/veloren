@@ -13,5 +13,7 @@ ItemDef(
         ),
     )),
     quality: High,
-    tags: [Bag],
+    tags: [
+        Bag,
+    ],
 )

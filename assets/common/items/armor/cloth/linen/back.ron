@@ -4,14 +4,18 @@ ItemDef(
     kind: Armor((
         kind: Back("Linen"),
         stats: (
-            protection: Normal(0.2),
-            poise_resilience: Normal(0.1),
+            protection: Normal(0.0),
+            poise_resilience: Normal(0.0),
             energy_max: 0,
             energy_recovery: 0.0,
             crit_power: 0.0,
             stealth: 0.0,
         ),
     )),
-    quality: Common,
-    tags: [Material((material: Linen))],
+    quality: Low,
+    tags: [
+        Material((
+            material: Linen,
+        )),
+    ],
 )

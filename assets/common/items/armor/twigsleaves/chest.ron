@@ -5,7 +5,7 @@ ItemDef(
         kind: Chest("TwigsLeaves"),
         stats: (
             protection: Normal(15.0),
-            poise_resilience: Normal(1.0),
+            poise_resilience: Normal(0.0),
             energy_max: 0,
             energy_recovery: 0.0,
             crit_power: 0.0,
@@ -13,5 +13,9 @@ ItemDef(
         ),
     )),
     quality: Moderate,
-    tags: [Material((material: Linen))],
+    tags: [
+        Material((
+            material: Linen,
+        )),
+    ],
 )

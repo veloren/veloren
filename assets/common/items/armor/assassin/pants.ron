@@ -13,5 +13,9 @@ ItemDef(
         ),
     )),
     quality: Moderate,
-    tags: [Material((material: Leather))],
+    tags: [
+        Material((
+            material: Leather,
+        )),
+    ],
 )

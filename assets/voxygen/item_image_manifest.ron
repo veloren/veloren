@@ -2673,7 +2673,7 @@
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
     Ingredient("ViscousOoze"): VoxTrans(
-        "voxel.sprite.crafting_ing.animal_misc.ooze",
+        "voxel.sprite.crafting_ing.animal_misc.viscous_ooze",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
     Ingredient("PhoenixFeather"): VoxTrans(

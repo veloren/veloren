@@ -4,14 +4,18 @@ ItemDef(
     kind: Armor((
         kind: Shoulder("Silken"),
         stats: (
-            protection: Normal(9.0),
-            poise_resilience: Normal(1.0),
+            protection: Normal(0.0),
+            poise_resilience: Normal(0.0),
             energy_max: 0,
             energy_recovery: 0.0,
             crit_power: 0.0,
             stealth: 0.0,
         ),
     )),
-    quality: Common,
-    tags: [Material((material: Silk))],
+    quality: Moderate,
+    tags: [
+        Material((
+            material: Silk,
+        )),
+    ],
 )

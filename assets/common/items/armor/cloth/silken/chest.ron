@@ -5,7 +5,7 @@ ItemDef(
         kind: Chest("Silken"),
         stats: (
             protection: Normal(45.0),
-            poise_resilience: Normal(1.0),
+            poise_resilience: Normal(0.0),
             energy_max: 495,
             energy_recovery: 0.5,
             crit_power: 0.0,
@@ -13,5 +13,9 @@ ItemDef(
         ),
     )),
     quality: Moderate,
-    tags: [Material((material: Silk))],
+    tags: [
+        Material((
+            material: Silk,
+        )),
+    ],
 )

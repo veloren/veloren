@@ -12,6 +12,10 @@ ItemDef(
             stealth: 0.0,
         ),
     )),
-    quality: Moderate,
-    tags: [Material((material: Bronze))],
+    quality: Low,
+    tags: [
+        Material((
+            material: Bronze,
+        )),
+    ],
 )

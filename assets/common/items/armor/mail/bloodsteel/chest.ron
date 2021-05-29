@@ -12,6 +12,10 @@ ItemDef(
             stealth: 0.0,
         ),
     )),
-    quality: High,
-    tags: [Material((material: Bloodsteel))],
+    quality: Epic,
+    tags: [
+        Material((
+            material: Bloodsteel,
+        )),
+    ],
 )

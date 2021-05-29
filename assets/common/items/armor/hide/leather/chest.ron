@@ -5,15 +5,17 @@ ItemDef(
         kind: Chest("Leather"),
         stats: (
             protection: Normal(48.0),
-            poise_resilience: Normal(1.0),
+            poise_resilience: Normal(0.0),
             energy_max: 0,
             energy_recovery: 0.0,
             crit_power: 0.67,
             stealth: 0.0,
         ),
     )),
-    quality: Moderate,
+    quality: Common,
     tags: [
-        Material((material: Leather))
+        Material((
+            material: Leather,
+        )),
     ],
 )

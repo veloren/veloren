@@ -434,7 +434,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                     if matches!(armor.kind, ArmorKind::Bag(_)) {
                         0
                     } else {
-                        1
+                        5
                     }
                 },
                 ItemKind::Tool(_) => 5,
@@ -467,7 +467,7 @@ impl<'a> Widget for ItemTooltip<'a> {
 
         let material_tag = item
             .tags()
-            .into_iter()
+            .iter()
             .filter_map(|t| match t {
                 ItemTag::Material(material) => Some(material),
                 _ => None,
@@ -801,6 +801,11 @@ impl<'a> Widget for ItemTooltip<'a> {
                         // Armour
                         let protection = armor.get_protection();
                         let poise_res = armor.get_poise_resilience();
+                        let energy_max = armor.get_energy_max() / 10;
+                        let energy_recovery = armor.get_energy_recovery() * 10.0;
+                        let crit_power = armor.get_crit_power();
+                        let stealth = armor.get_stealth();
+
                         widget::Text::new(&util::protec2string(protection))
                             .graphics_for(id)
                             .parent(id)
@@ -849,6 +854,57 @@ impl<'a> Widget for ItemTooltip<'a> {
                             .down_from(state.ids.stats[0], V_PAD_STATS)
                             .set(state.ids.stats[1], ui);
                         }
+                        // Max Energy
+                        widget::Text::new(&format!(
+                            "{} : {}",
+                            i18n.get("common.stats.energy_max"),
+                            energy_max
+                        ))
+                        .graphics_for(id)
+                        .parent(id)
+                        .with_style(self.style.desc)
+                        .color(text_color)
+                        .down_from(state.ids.stats[0], V_PAD_STATS)
+                        .set(state.ids.stats[1], ui);
+
+                        // Energy Recovery
+                        widget::Text::new(&format!(
+                            "{} : {}",
+                            i18n.get("common.stats.energy_recovery"),
+                            energy_recovery
+                        ))
+                        .graphics_for(id)
+                        .parent(id)
+                        .with_style(self.style.desc)
+                        .color(text_color)
+                        .down_from(state.ids.stats[1], V_PAD_STATS)
+                        .set(state.ids.stats[2], ui);
+
+                        // Crit Power
+                        widget::Text::new(&format!(
+                            "{} : {}",
+                            i18n.get("common.stats.crit_power"),
+                            crit_power
+                        ))
+                        .graphics_for(id)
+                        .parent(id)
+                        .with_style(self.style.desc)
+                        .color(text_color)
+                        .down_from(state.ids.stats[2], V_PAD_STATS)
+                        .set(state.ids.stats[3], ui);
+
+                        // Stealth
+                        widget::Text::new(&format!(
+                            "{} : {}",
+                            i18n.get("common.stats.stealth"),
+                            stealth
+                        ))
+                        .graphics_for(id)
+                        .parent(id)
+                        .with_style(self.style.desc)
+                        .color(text_color)
+                        .down_from(state.ids.stats[3], V_PAD_STATS)
+                        .set(state.ids.stats[4], ui);
                     },
                 }
 
@@ -863,7 +919,20 @@ impl<'a> Widget for ItemTooltip<'a> {
                             &armor.get_poise_resilience(),
                             &equipped_armor.get_poise_resilience(),
                         );
-
+                        let energy_max_diff = util::comparison(
+                            &armor.get_energy_max(),
+                            &equipped_armor.get_energy_max(),
+                        );
+                        let energy_recovery_diff = util::comparison(
+                            &armor.get_energy_recovery(),
+                            &equipped_armor.get_energy_recovery(),
+                        );
+                        let crit_power_diff = util::comparison(
+                            &armor.get_crit_power(),
+                            &equipped_armor.get_crit_power(),
+                        );
+                        let stealth_diff =
+                            util::comparison(&armor.get_stealth(), &equipped_armor.get_stealth());
                         if diff.get_protection() != Protection::Normal(0.0) {
                             widget::Text::new(&protection_diff.0)
                                 .right_from(state.ids.main_stat_text, H_PAD)
@@ -887,6 +956,66 @@ impl<'a> Widget for ItemTooltip<'a> {
                             .with_style(self.style.desc)
                             .color(poise_res_diff.1)
                             .set(state.ids.diffs[0], ui);
+                        }
+
+                        if diff.get_energy_max() != 0.0 as i32 {
+                            widget::Text::new(&format!(
+                                "{} {}",
+                                &energy_max_diff.0,
+                                diff.get_energy_max() / 10
+                            ))
+                            .align_middle_y_of(state.ids.stats[1])
+                            .right_from(state.ids.stats[1], H_PAD)
+                            .graphics_for(id)
+                            .parent(id)
+                            .with_style(self.style.desc)
+                            .color(energy_max_diff.1)
+                            .set(state.ids.diffs[1], ui);
+                        }
+
+                        if diff.get_energy_recovery() != 0.0_f32 {
+                            widget::Text::new(&format!(
+                                "{} {}",
+                                &energy_recovery_diff.0,
+                                diff.get_energy_recovery() * 10.0
+                            ))
+                            .align_middle_y_of(state.ids.stats[2])
+                            .right_from(state.ids.stats[2], H_PAD)
+                            .graphics_for(id)
+                            .parent(id)
+                            .with_style(self.style.desc)
+                            .color(energy_recovery_diff.1)
+                            .set(state.ids.diffs[2], ui);
+                        }
+
+                        if diff.get_crit_power() != 0.0_f32 {
+                            widget::Text::new(&format!(
+                                "{} {}",
+                                &crit_power_diff.0,
+                                diff.get_crit_power()
+                            ))
+                            .align_middle_y_of(state.ids.stats[3])
+                            .right_from(state.ids.stats[3], H_PAD)
+                            .graphics_for(id)
+                            .parent(id)
+                            .with_style(self.style.desc)
+                            .color(crit_power_diff.1)
+                            .set(state.ids.diffs[3], ui);
+                        }
+
+                        if diff.get_stealth() != 0.0_f32 {
+                            widget::Text::new(&format!(
+                                "{} {}",
+                                &stealth_diff.0,
+                                diff.get_stealth()
+                            ))
+                            .align_middle_y_of(state.ids.stats[4])
+                            .right_from(state.ids.stats[4], H_PAD)
+                            .graphics_for(id)
+                            .parent(id)
+                            .with_style(self.style.desc)
+                            .color(stealth_diff.1)
+                            .set(state.ids.diffs[4], ui);
                         }
                     }
                 }
@@ -1000,7 +1129,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                     if matches!(armor.kind, ArmorKind::Bag(_)) {
                         0
                     } else {
-                        1
+                        5
                     }
                 },
                 ItemKind::Tool(_) => 5,

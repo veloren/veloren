@@ -77,7 +77,7 @@ impl Stats {
 
     pub fn get_energy_recovery(&self) -> f32 { self.energy_recovery }
 
-    pub fn get_crit_chance(&self) -> f32 { self.crit_power }
+    pub fn get_crit_power(&self) -> f32 { self.crit_power }
 
     pub fn get_stealth(&self) -> f32 { self.stealth }
 }

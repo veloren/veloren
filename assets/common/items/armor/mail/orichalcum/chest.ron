@@ -12,6 +12,10 @@ ItemDef(
             stealth: 0.0,
         ),
     )),
-    quality: Epic,
-    tags: [Material((material: Orichalcum))],
+    quality: Legendary,
+    tags: [
+        Material((
+            material: Orichalcum,
+        )),
+    ],
 )

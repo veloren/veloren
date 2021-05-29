@@ -13,5 +13,9 @@ ItemDef(
         ),
     )),
     quality: High,
-    tags: [Material((material: Cobalt))],
+    tags: [
+        Material((
+            material: Cobalt,
+        )),
+    ],
 )

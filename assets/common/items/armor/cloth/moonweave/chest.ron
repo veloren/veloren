@@ -5,13 +5,17 @@ ItemDef(
         kind: Chest("Moonweave"),
         stats: (
             protection: Normal(75.0),
-            poise_resilience: Normal(1.0),
+            poise_resilience: Normal(0.0),
             energy_max: 825,
             energy_recovery: 0.84,
             crit_power: 0.0,
             stealth: 0.0,
         ),
     )),
-    quality: High,
-    tags: [Material((material: Moonweave))],
+    quality: Epic,
+    tags: [
+        Material((
+            material: Moonweave,
+        )),
+    ],
 )

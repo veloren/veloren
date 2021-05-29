@@ -298,14 +298,9 @@
     "lifecloth": (
         output: ("common.items.crafting_ing.cloth.lifecloth", 1),
         inputs: [
-<<<<<<< HEAD
             (Item("common.items.crafting_ing.animal_misc.lively_vine"), 1),
             (Item("common.items.crafting_ing.cloth.cotton"), 1),
         ],		
-=======
-            (Item("common.items.crafting_ing.cloth.lifecloth"), 1),
-        ],
->>>>>>> Add material and armor class tags
         craft_sprite: Some(SpinningWheel),
     ),
     "moonweave": (

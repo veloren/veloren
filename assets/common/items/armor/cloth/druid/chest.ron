@@ -5,7 +5,7 @@ ItemDef(
         kind: Chest("Druid"),
         stats: (
             protection: Normal(60.0),
-            poise_resilience: Normal(1.0),
+            poise_resilience: Normal(0.0),
             energy_max: 660,
             energy_recovery: 0.67,
             crit_power: 0.0,
@@ -13,5 +13,9 @@ ItemDef(
         ),
     )),
     quality: High,
-    tags: [Material((material: Lifecloth))],
+    tags: [
+        Material((
+            material: Lifecloth,
+        )),
+    ],
 )

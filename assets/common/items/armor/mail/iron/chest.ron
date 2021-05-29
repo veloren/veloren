@@ -12,6 +12,10 @@ ItemDef(
             stealth: 0.0,
         ),
     )),
-    quality: Moderate,
-    tags: [Material((material: Iron))],
+    quality: Common,
+    tags: [
+        Material((
+            material: Iron,
+        )),
+    ],
 )

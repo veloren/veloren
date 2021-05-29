@@ -5,13 +5,17 @@ ItemDef(
         kind: Chest("Primal"),
         stats: (
             protection: Normal(120.0),
-            poise_resilience: Normal(1.0),
+            poise_resilience: Normal(0.0),
             energy_max: 0,
             energy_recovery: 0.0,
             crit_power: 1.67,
             stealth: 0.0,
         ),
     )),
-    quality: High,
-    tags: [Material((material: Plate))],
+    quality: Epic,
+    tags: [
+        Material((
+            material: Plate,
+        )),
+    ],
 )
