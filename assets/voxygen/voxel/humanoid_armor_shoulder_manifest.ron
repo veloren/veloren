@@ -253,31 +253,31 @@
         ),
         "Rawhide": (
             left: (
-                vox_spec: ("armor.hide.rawhide.shoulder", (-5.0, -3.8, -0.9)),
+                vox_spec: ("armor.hide.rawhide.shoulder", (-4.0, -3.2, -0.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hide.rawhide.shoulder", (-1.0, -3.8, -0.9)),
+                vox_spec: ("armor.hide.rawhide.shoulder", (-1.0, -3.2, -0.5)),
                 color: None
             )
         ),
         "Leather": (
             left: (
-                vox_spec: ("armor.hide.leather.shoulder", (-3.2, -3.5, 0.0)),
+                vox_spec: ("armor.hide.leather.shoulder", (-5.5, -3.2, -1.8)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hide.leather.shoulder", (-1.4, -3.5, 0.0)),
+                vox_spec: ("armor.hide.leather.shoulder", (-0.5, -3.2, -1.8)),
                 color: None
             )
         ),
         "Scale": (
             left: (
-                vox_spec: ("armor.hide.scale.shoulder", (-5.5, -4.0 , -0.5)),
+                vox_spec: ("armor.hide.scale.shoulder", (-3.2, -3.5 , 0.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hide.scale.shoulder", (-0.5, -4.0, -0.5)),
+                vox_spec: ("armor.hide.scale.shoulder", (-1.4, -3.5, -0.5)),
                 color: None
             )
         ),
