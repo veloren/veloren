@@ -556,13 +556,8 @@ impl<'a> PhysicsData<'a> {
         drop(guard);
 
         // Apply movement inputs
-        span!(guard, "Apply movement and terrain collision");
-        let (positions, velocities, previous_phys_cache, orientations) = (
-            &write.positions,
-            &mut write.velocities,
-            &write.previous_phys_cache,
-            &write.orientations,
-        );
+        span!(guard, "Apply movement");
+        let (positions, velocities) = (&write.positions, &mut write.velocities);
 
         // First pass: update velocity using air resistance and gravity for each entity.
         // We do this in a first pass because it helps keep things more stable for
@@ -645,10 +640,34 @@ impl<'a> PhysicsData<'a> {
                     }
                 },
             );
+        drop(guard);
+        job.cpu_stats.measure(ParMode::Single);
 
-        let velocities = &write.velocities;
+        // Second pass: resolve collisions for terrain-like entities, this is required
+        // in order to update their positions before resolving collisions for
+        // non-terrain-like entities, since otherwise, collision is resolved
+        // based on where the terrain-like entity was in the previous frame.
+        Self::resolve_et_collision(job, read, write, voxel_collider_spatial_grid, true);
 
-        // Second pass: resolve collisions
+        // Third pass: resolve collisions for non-terrain-like entities
+        Self::resolve_et_collision(job, read, write, voxel_collider_spatial_grid, false);
+    }
+
+    fn resolve_et_collision(
+        job: &mut Job<Sys>,
+        read: &PhysicsRead,
+        write: &mut PhysicsWrite,
+        voxel_collider_spatial_grid: &SpatialGrid,
+        terrain_like_entities: bool,
+    ) {
+        let (positions, velocities, previous_phys_cache, orientations) = (
+            &write.positions,
+            &write.velocities,
+            &write.previous_phys_cache,
+            &write.orientations,
+        );
+        span!(guard, "Apply terrain collision");
+        job.cpu_stats.measure(ParMode::Rayon);
         let (land_on_grounds, mut outcomes) = (
             &read.entities,
             read.scales.maybe(),
@@ -665,6 +684,7 @@ impl<'a> PhysicsData<'a> {
             !&read.mountings,
         )
             .par_join()
+            .filter(|tuple| matches!(tuple.3, Collider::Voxel { .. }) == terrain_like_entities)
             .map_init(
                 || {
                     prof_span!(guard, "physics e<>t rayon job");
@@ -1106,13 +1126,15 @@ impl<'a> PhysicsData<'a> {
         write.outcomes.append(&mut outcomes);
 
         prof_span!(guard, "write deferred pos and vel");
-        for (_, pos, vel, pos_vel_defer) in (
+        for (_, pos, vel, pos_vel_defer, _) in (
             &read.entities,
             &mut write.positions,
             &mut write.velocities,
             &mut write.pos_vel_defers,
+            &read.colliders,
         )
             .join()
+            .filter(|tuple| matches!(tuple.4, Collider::Voxel { .. }) == terrain_like_entities)
         {
             if let Some(new_pos) = pos_vel_defer.pos.take() {
                 *pos = new_pos;
@@ -1124,8 +1146,13 @@ impl<'a> PhysicsData<'a> {
         drop(guard);
 
         prof_span!(guard, "record ori into phys_cache");
-        for (ori, previous_phys_cache) in
-            (&write.orientations, &mut write.previous_phys_cache).join()
+        for (ori, previous_phys_cache, _) in (
+            &write.orientations,
+            &mut write.previous_phys_cache,
+            &read.colliders,
+        )
+            .join()
+            .filter(|tuple| matches!(tuple.2, Collider::Voxel { .. }) == terrain_like_entities)
         {
             previous_phys_cache.ori = ori.to_quat();
         }
