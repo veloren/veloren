@@ -112,6 +112,7 @@ pub enum Tactic {
     Turret,
     FixedTurret,
     RotatingTurret,
+    RadialTurret,
     Mindflayer,
     BirdLargeBreathe,
     BirdLargeFire,
@@ -1607,6 +1608,7 @@ impl<'a> AgentData<'a> {
                             "Minotaur" => Tactic::Minotaur,
                             "Clay Golem" => Tactic::ClayGolem,
                             "Tidal Warrior" => Tactic::TidalWarrior,
+                            "Tidal Totem" => Tactic::RadialTurret,
                             _ => Tactic::Melee,
                         },
                         AbilitySpec::Tool(tool_kind) => tool_tactic(*tool_kind),
@@ -1850,6 +1852,13 @@ impl<'a> AgentData<'a> {
                 &read_data,
             ),
             Tactic::TidalWarrior => self.handle_tidal_warrior_attack(
+                agent,
+                controller,
+                &attack_data,
+                &tgt_data,
+                &read_data,
+            ),
+            Tactic::RadialTurret => self.handle_radial_turret_attack(
                 agent,
                 controller,
                 &attack_data,
@@ -2857,6 +2866,26 @@ impl<'a> AgentData<'a> {
                 .push(ControlAction::basic_input(InputKind::Primary));
         } else {
             agent.target = None;
+        }
+    }
+
+    fn handle_radial_turret_attack(
+        &self,
+        _agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if can_see_tgt(
+            &*read_data.terrain,
+            self.pos,
+            tgt_data.pos,
+            attack_data.dist_sqrd,
+        ) {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
         }
     }
 

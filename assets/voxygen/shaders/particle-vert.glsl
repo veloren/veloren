@@ -68,6 +68,7 @@ const int ENRAGED = 26;
 const int BIG_SHRAPNEL = 27;
 const int LASER = 28;
 const int BUBBLES = 29;
+const int WATER = 30;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -499,6 +500,17 @@ void main() {
                 vec3(size),
                 vec4(0.5 * blue_color, 0.75 * blue_color, blue_color, 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
+            );
+            break;
+        case WATER:
+            f_reflect = 0.0; // Magic water doesn't reflect light, it emits it
+            blue_color = 1.25 + 0.2 * rand3 + 1.75 * max(floor(rand4 + 0.15), 0.0);
+            size = 8.0 * (1 - slow_start(0.1)) * slow_end(0.15);
+            attr = Attr(
+                (inst_dir * slow_end(0.2)) + vec3(rand0, rand1, rand2) * 0.5,
+                vec3(size),
+                vec4(0.5 * blue_color, 0.9 * blue_color, blue_color, 1),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 5 + 3 * rand9)
             );
             break;
         default:

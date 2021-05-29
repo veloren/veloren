@@ -2,12 +2,11 @@ BasicSummon(
     buildup_duration: 0.5,
     cast_duration: 1.0,
     recover_duration: 0.5,
-    summon_amount: 6,
+    summon_amount: 1,
     summon_info: (
-        // If this is still HaniwaSentry, code reviewers open a comment. I'll know what to do.
-        body: Object(HaniwaSentry),
+        body: Object(SeaLantern),
         scale: None,
-        health_scaling: 20,
+        health_scaling: 0,
         loadout_config: None,
         skillset_config: None,
     ),

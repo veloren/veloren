@@ -80,6 +80,7 @@ pub enum ParticleMode {
     BigShrapnel = 27,
     Laser = 28,
     Bubbles = 29,
+    Water = 30,
 }
 
 impl ParticleMode {

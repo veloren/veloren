@@ -13,4 +13,5 @@ Shockwave(
     requires_ground: false,
     move_efficiency: 0.1,
     damage_kind: Energy,
+    specifier: Fire,
 )

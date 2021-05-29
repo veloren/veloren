@@ -13,4 +13,5 @@ Shockwave(
     requires_ground: true,
     move_efficiency: 0.0,
     damage_kind: Crushing,
+    specifier: Ground,
 )

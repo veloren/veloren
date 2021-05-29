@@ -83,6 +83,7 @@ make_case_elim!(
         SilverOre = 68,
         ClayRocket = 69,
         HaniwaSentry = 70,
+        SeaLantern = 71,
     }
 );
 
@@ -93,7 +94,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 71] = [
+pub const ALL_OBJECTS: [Body; 72] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -165,6 +166,7 @@ pub const ALL_OBJECTS: [Body; 71] = [
     Body::GoldOre,
     Body::ClayRocket,
     Body::HaniwaSentry,
+    Body::SeaLantern,
 ];
 
 impl From<Body> for super::Body {
@@ -245,6 +247,7 @@ impl Body {
             Body::GoldOre => "gold_ore",
             Body::ClayRocket => "clay_rocket",
             Body::HaniwaSentry => "haniwa_sentry",
+            Body::SeaLantern => "sea_lantern",
         }
     }
 
@@ -336,6 +339,7 @@ impl Body {
             Body::GoldOre => 1000.0,
             Body::ClayRocket => 50.0,
             Body::HaniwaSentry => 300.0,
+            Body::SeaLantern => 1000.0,
         };
 
         Mass(m)

@@ -9,8 +9,8 @@ use crate::{
 use common::{
     assets::{AssetExt, DotVoxAsset},
     comp::{
-        self, aura, beam, body, buff, item::Reagent, object, BeamSegment, Body, CharacterState,
-        Ori, Pos, Shockwave, Vel,
+        self, aura, beam, body, buff, item::Reagent, object, shockwave, BeamSegment, Body,
+        CharacterState, Ori, Pos, Shockwave, Vel,
     },
     figure::Segment,
     outcome::Outcome,
@@ -1118,6 +1118,7 @@ impl ParticleMgr {
         let state = scene_data.state;
         let ecs = state.ecs();
         let time = state.get_time();
+        let dt = scene_data.state.ecs().fetch::<DeltaTime>().0;
 
         for (_entity, pos, ori, shockwave) in (
             &ecs.entities(),
@@ -1127,9 +1128,10 @@ impl ParticleMgr {
         )
             .join()
         {
-            let elapsed = time - shockwave.creation.unwrap_or_default();
+            let elapsed = time - shockwave.creation.unwrap_or(time);
+            let speed = shockwave.properties.speed;
 
-            let distance = shockwave.properties.speed * elapsed as f32;
+            let distance = speed * elapsed as f32;
 
             let radians = shockwave.properties.angle.to_radians();
 
@@ -1137,55 +1139,99 @@ impl ParticleMgr {
             let theta = ori_vec.y.atan2(ori_vec.x);
             let dtheta = radians / distance;
 
-            let heartbeats = self.scheduler.heartbeats(Duration::from_millis(2));
+            // Number of particles derived from arc length (for new particles at least, old
+            // can be converted later)
+            let arc_length = distance * radians;
 
-            for heartbeat in 0..heartbeats {
-                if shockwave.properties.requires_ground {
-                    // 1 / 3 the size of terrain voxel
-                    let scale = 1.0 / 3.0;
+            use shockwave::FrontendSpecifier;
+            match shockwave.properties.specifier {
+                FrontendSpecifier::Ground => {
+                    let heartbeats = self.scheduler.heartbeats(Duration::from_millis(2));
+                    for heartbeat in 0..heartbeats {
+                        // 1 / 3 the size of terrain voxel
+                        let scale = 1.0 / 3.0;
 
-                    let scaled_speed = shockwave.properties.speed * scale;
+                        let scaled_speed = speed * scale;
 
-                    let sub_tick_interpolation = scaled_speed * 1000.0 * heartbeat as f32;
+                        let sub_tick_interpolation = scaled_speed * 1000.0 * heartbeat as f32;
 
-                    let distance =
-                        shockwave.properties.speed * (elapsed as f32 - sub_tick_interpolation);
+                        let distance = speed * (elapsed as f32 - sub_tick_interpolation);
 
-                    let particle_count_factor = radians / (3.0 * scale);
-                    let new_particle_count = distance * particle_count_factor;
-                    self.particles.reserve(new_particle_count as usize);
+                        let particle_count_factor = radians / (3.0 * scale);
+                        let new_particle_count = distance * particle_count_factor;
+                        self.particles.reserve(new_particle_count as usize);
 
-                    for d in 0..(new_particle_count as i32) {
-                        let arc_position =
-                            theta - radians / 2.0 + dtheta * d as f32 / particle_count_factor;
+                        for d in 0..(new_particle_count as i32) {
+                            let arc_position =
+                                theta - radians / 2.0 + dtheta * d as f32 / particle_count_factor;
 
-                        let position = pos.0
-                            + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
+                            let position = pos.0
+                                + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
 
-                        let position_snapped = ((position / scale).floor() + 0.5) * scale;
+                            let position_snapped = ((position / scale).floor() + 0.5) * scale;
 
-                        self.particles.push(Particle::new(
-                            Duration::from_millis(250),
-                            time,
-                            ParticleMode::GroundShockwave,
-                            position_snapped,
-                        ));
+                            self.particles.push(Particle::new(
+                                Duration::from_millis(250),
+                                time,
+                                ParticleMode::GroundShockwave,
+                                position_snapped,
+                            ));
+                        }
                     }
-                } else {
-                    for d in 0..3 * distance as i32 {
-                        let arc_position = theta - radians / 2.0 + dtheta * d as f32 / 3.0;
+                },
+                FrontendSpecifier::Fire => {
+                    let heartbeats = self.scheduler.heartbeats(Duration::from_millis(2));
+                    for _ in 0..heartbeats {
+                        for d in 0..3 * distance as i32 {
+                            let arc_position = theta - radians / 2.0 + dtheta * d as f32 / 3.0;
 
-                        let position = pos.0
-                            + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
+                            let position = pos.0
+                                + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
 
-                        self.particles.push(Particle::new(
-                            Duration::from_secs_f32((distance + 10.0) / 50.0),
-                            time,
-                            ParticleMode::FireShockwave,
-                            position,
-                        ));
+                            self.particles.push(Particle::new(
+                                Duration::from_secs_f32((distance + 10.0) / 50.0),
+                                time,
+                                ParticleMode::FireShockwave,
+                                position,
+                            ));
+                        }
                     }
-                }
+                },
+                FrontendSpecifier::Water => {
+                    // 4 particles per unit length of arc
+                    let particles_per_length = (arc_length) as usize;
+                    let dtheta = radians / particles_per_length as f32;
+                    // Scales number of desired heartbeats from speed - thicker arc = higher speed =
+                    // lower duration = more particles
+                    let heartbeats = self
+                        .scheduler
+                        .heartbeats(Duration::from_secs_f32(1.0 / speed));
+
+                    // Reserves capacity for new particles
+                    let new_particle_count = particles_per_length * heartbeats as usize;
+                    self.particles.reserve(new_particle_count);
+
+                    for i in 0..particles_per_length {
+                        let angle = dtheta * i as f32;
+                        let direction = Vec3::new(angle.cos(), angle.sin(), 0.0);
+                        for j in 0..heartbeats {
+                            // Sub tick dt
+                            let dt = (j as f32 / heartbeats as f32) * dt;
+                            let distance = distance + speed * dt;
+                            let pos1 = pos.0 + distance * direction - Vec3::unit_z();
+                            let pos2 = pos1 + (Vec3::unit_z() + direction) * 3.0;
+                            let time = time + dt as f64;
+
+                            self.particles.push(Particle::new_directed(
+                                Duration::from_secs_f32(0.5),
+                                time,
+                                ParticleMode::Water,
+                                pos1,
+                                pos2,
+                            ));
+                        }
+                    }
+                },
             }
         }
     }

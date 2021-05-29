@@ -308,6 +308,9 @@ pub fn default_main_tool(body: &Body) -> Option<Item> {
             object::Body::HaniwaSentry => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.haniwa_sentry",
             )),
+            object::Body::SeaLantern => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.tidal_totem",
+            )),
             _ => None,
         },
         Body::BipedSmall(biped_small) => match (biped_small.species, biped_small.body_type) {

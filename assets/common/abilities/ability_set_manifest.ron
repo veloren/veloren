@@ -116,6 +116,11 @@
             (None, "common.abilities.custom.tidalwarrior.totem"),
         ],
     ),
+    Custom("Tidal Totem"): (
+        primary: "common.abilities.custom.tidalwarrior.totem_wave",
+        secondary: "common.abilities.custom.tidalwarrior.totem_wave",
+        abilities: [],
+    ),
     Custom("Quad Med Quick"): (
         primary: "common.abilities.custom.quadmedquick.triplestrike",
         secondary: "common.abilities.custom.quadmedquick.dash",

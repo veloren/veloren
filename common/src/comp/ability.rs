@@ -2,7 +2,7 @@ use crate::{
     assets::{self, Asset},
     combat::{self, CombatEffect, DamageKind, Knockback},
     comp::{
-        aura, beam, buff, inventory::item::tool::ToolKind, projectile::ProjectileConstructor,
+        self, aura, beam, buff, inventory::item::tool::ToolKind, projectile::ProjectileConstructor,
         skills, Body, CharacterState, EnergySource, LightEmitter, StateUpdate,
     },
     states::{
@@ -233,6 +233,7 @@ pub enum CharacterAbility {
         requires_ground: bool,
         move_efficiency: f32,
         damage_kind: DamageKind,
+        specifier: comp::shockwave::FrontendSpecifier,
     },
     BasicBeam {
         buildup_duration: f32,
@@ -1596,6 +1597,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 requires_ground,
                 move_efficiency,
                 damage_kind,
+                specifier,
             } => CharacterState::Shockwave(shockwave::Data {
                 static_data: shockwave::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1612,6 +1614,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     move_efficiency: *move_efficiency,
                     ability_info,
                     damage_kind: *damage_kind,
+                    specifier: *specifier,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
