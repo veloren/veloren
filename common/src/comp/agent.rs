@@ -7,7 +7,7 @@ use crate::{
 };
 use specs::{Component, Entity as EcsEntity};
 use specs_idvs::IdvStorage;
-use std::collections::VecDeque;
+use std::{collections::VecDeque, fmt};
 use vek::*;
 
 use super::dialogue::Subject;
@@ -300,6 +300,7 @@ pub struct Target {
     pub selected_at: f64,
 }
 
+#[allow(clippy::type_complexity)]
 #[derive(Clone, Debug, Default)]
 pub struct Agent {
     pub rtsim_controller: RtSimController,
@@ -313,6 +314,7 @@ pub struct Agent {
     pub bearing: Vec2<f32>,
     pub sounds_heard: Vec<Sound>,
     pub awareness: f32,
+    pub pid_controller: Option<PidController<fn(Vec3<f32>, Vec3<f32>) -> f32, 16>>,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -333,6 +335,15 @@ impl Agent {
         self.psyche = Psyche { aggro: 1.0 };
         self.rtsim_controller = RtSimController::with_destination(pos);
         self.behavior.allow(BehaviorCapability::SPEAK);
+        self
+    }
+
+    #[allow(clippy::type_complexity)]
+    pub fn with_pid_controller(
+        mut self,
+        pid: PidController<fn(Vec3<f32>, Vec3<f32>) -> f32, 16>,
+    ) -> Self {
+        self.pid_controller = Some(pid);
         self
     }
 
@@ -383,5 +394,85 @@ mod tests {
         // test `from`
         let b = Behavior::from(BehaviorCapability::SPEAK);
         assert!(b.can(BehaviorCapability::SPEAK));
+    }
+}
+
+#[derive(Clone)]
+pub struct PidController<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> {
+    pub kp: f32,
+    pub ki: f32,
+    pub kd: f32,
+    pub sp: Vec3<f32>,
+    pv_samples: [(f64, Vec3<f32>); NUM_SAMPLES],
+    pv_idx: usize,
+    e: F,
+}
+
+impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> fmt::Debug
+    for PidController<F, NUM_SAMPLES>
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("PidController")
+            .field("kp", &self.kp)
+            .field("ki", &self.ki)
+            .field("kd", &self.kd)
+            .field("sp", &self.sp)
+            .field("pv_samples", &self.pv_samples)
+            .field("pv_idx", &self.pv_idx)
+            .finish()
+    }
+}
+
+impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> PidController<F, NUM_SAMPLES> {
+    pub fn new(kp: f32, ki: f32, kd: f32, sp: Vec3<f32>, time: f64, e: F) -> Self {
+        Self {
+            kp,
+            ki,
+            kd,
+            sp,
+            pv_samples: [(time, Vec3::zero()); NUM_SAMPLES],
+            pv_idx: 0,
+            e,
+        }
+    }
+
+    pub fn add_measurement(&mut self, time: f64, pv: Vec3<f32>) {
+        self.pv_idx += 1;
+        self.pv_idx %= NUM_SAMPLES;
+        self.pv_samples[self.pv_idx] = (time, pv);
+    }
+
+    /// https://en.wikipedia.org/wiki/PID_controller#Mathematical_form
+    pub fn calc_err(&self) -> f32 {
+        self.kp * self.proportional_err()
+            + self.ki * self.integral_err()
+            + self.kd * self.derivative_err()
+    }
+
+    pub fn proportional_err(&self) -> f32 { (self.e)(self.sp, self.pv_samples[self.pv_idx].1) }
+
+    /// https://en.wikipedia.org/wiki/Trapezoidal_rule#Uniform_grid
+    pub fn integral_err(&self) -> f32 {
+        let f = |x| (self.e)(self.sp, x);
+        let (a, x0) = self.pv_samples[(self.pv_idx + 1) % NUM_SAMPLES];
+        let (b, xn) = self.pv_samples[self.pv_idx];
+        let dx = (b - a) / NUM_SAMPLES as f64;
+        let mut err = 0.0;
+        for i in 1..=NUM_SAMPLES - 1 {
+            let xk = self.pv_samples[(self.pv_idx + 1 + i) % NUM_SAMPLES].1;
+            err += f(xk);
+        }
+        err += (f(xn) - f(x0)) / 2.0;
+        err *= dx as f32;
+        err
+    }
+
+    /// https://en.wikipedia.org/wiki/Numerical_differentiation#Finite_differences
+    pub fn derivative_err(&self) -> f32 {
+        let f = |x| (self.e)(self.sp, x);
+        let (a, x0) = self.pv_samples[(self.pv_idx + NUM_SAMPLES - 1) % NUM_SAMPLES];
+        let (b, x1) = self.pv_samples[self.pv_idx];
+        let h = b - a;
+        (f(x1) - f(x0)) / h as f32
     }
 }

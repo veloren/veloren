@@ -1152,9 +1152,10 @@ fn handle_spawn_airship(
                 200.0,
             )
     });
+    let ship = comp::ship::Body::DefaultAirship;
     let mut builder = server
         .state
-        .create_ship(pos, comp::ship::Body::DefaultAirship, true)
+        .create_ship(pos, ship, true)
         .with(LightEmitter {
             col: Rgb::new(1.0, 0.65, 0.2),
             strength: 2.0,
@@ -1162,7 +1163,19 @@ fn handle_spawn_airship(
             animated: true,
         });
     if let Some(pos) = destination {
-        builder = builder.with(comp::Agent::default().with_destination(pos))
+        let (kp, ki, kd) = ship.pid_coefficients();
+        fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp - pv).z }
+        let agent = comp::Agent::default()
+            .with_destination(pos)
+            .with_pid_controller(comp::PidController::new(
+                kp,
+                ki,
+                kd,
+                Vec3::zero(),
+                0.0,
+                pure_z,
+            ));
+        builder = builder.with(agent);
     }
     builder.build();
 

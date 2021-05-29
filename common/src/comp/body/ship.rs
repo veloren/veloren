@@ -52,6 +52,13 @@ impl Body {
     pub fn density(&self) -> Density { Density(AIR_DENSITY) }
 
     pub fn mass(&self) -> Mass { Mass((self.hull_vol() + self.balloon_vol()) * self.density().0) }
+
+    pub fn pid_coefficients(&self) -> (f32, f32, f32) {
+        let kp = 1.0;
+        let ki = 1.0;
+        let kd = 1.0;
+        (kp, ki, kd)
+    }
 }
 
 /// Terrain is 11.0 scale relative to small-scale voxels,
