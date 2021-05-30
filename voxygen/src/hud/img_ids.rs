@@ -585,6 +585,7 @@ image_ids! {
         debuff_bleed_0: "voxygen.element.de_buffs.debuff_bleed_0",
         debuff_burning_0: "voxygen.element.de_buffs.debuff_burning_0",
         debuff_crippled_0: "voxygen.element.de_buffs.debuff_cripple_0",
+        debuff_frozen_0: "voxygen.element.de_buffs.debuff_frozen_0",
 
         // Animation Frames
         // Buff Frame
