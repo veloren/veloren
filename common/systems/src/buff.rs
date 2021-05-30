@@ -208,11 +208,11 @@ impl<'a> System<'a> for Sys {
                                     stat.max_health_modifier *= current_fraction;
                                 }
                             },
-                            BuffEffect::MovementSpeed(ms) => {
-                                stat.move_speed_modifier *= *ms;
+                            BuffEffect::MovementSpeed(speed) => {
+                                stat.move_speed_modifier *= *speed;
                             },
-                            BuffEffect::AttackSpeed(val) => {
-                                stat.attack_speed_modifier *= *val;
+                            BuffEffect::AttackSpeed(speed) => {
+                                stat.attack_speed_modifier *= *speed;
                             },
                         };
                     }
