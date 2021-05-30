@@ -764,6 +764,12 @@ pub fn input_is_pressed(data: &JoinData, input: InputKind) -> bool {
     data.controller.queued_inputs.contains_key(&input)
 }
 
+pub fn tick_attack_duraction(data: &JoinData, timer: Duration) -> Duration {
+    timer
+        .checked_add(data.dt.0 * data.stats.attack_speed_modifier)
+        .unwrap_or_default()
+}
+
 /// Determines what portion a state is in. Used in all attacks (eventually). Is
 /// used to control aspects of animation code, as well as logic within the
 /// character states.

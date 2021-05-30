@@ -151,6 +151,8 @@ pub enum BuffEffect {
     },
     /// Modifies move speed of target
     MovementSpeed(f32),
+    /// Modifies attack speed of target
+    AttackSpeed(f32),
 }
 
 /// Actual de/buff.
