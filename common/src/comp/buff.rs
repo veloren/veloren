@@ -62,7 +62,10 @@ pub enum BuffKind {
     /// Strength scales the movement speed debuff non-linearly. 0.5 is 50%
     /// speed, 1.0 is 33% speed. Bleeding is at 10x the value of the strength.
     Crippled,
-    /// Prevents actions
+    /// Slows movement and attack speed.
+    /// Strength scales the attack speed debuff non-linearly. 0.5 is ~50%
+    /// speed, 1.0 is 33% speed. Movement speed debuff is scaled to be slightly
+    /// smaller than attack speed debuff. Both are limited to a minimum of 0.1
     Frozen,
 }
 
