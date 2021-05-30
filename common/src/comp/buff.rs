@@ -62,6 +62,8 @@ pub enum BuffKind {
     /// Strength scales the movement speed debuff non-linearly. 0.5 is 50%
     /// speed, 1.0 is 33% speed. Bleeding is at 10x the value of the strength.
     Crippled,
+    /// Prevents actions
+    Frozen,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -82,6 +84,7 @@ impl BuffKind {
             BuffKind::Burning => false,
             BuffKind::Crippled => false,
             BuffKind::Frenzied => true,
+            BuffKind::Frozen => false,
         }
     }
 
@@ -301,6 +304,7 @@ impl Buff {
                 ],
                 data.duration,
             ),
+            BuffKind::Frozen => (vec![BuffEffect::MovementSpeed(0.1)], data.duration),
         };
         Buff {
             kind,
