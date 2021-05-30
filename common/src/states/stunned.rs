@@ -44,10 +44,7 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
                     update.character = CharacterState::Stunned(Data {
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
-                            .unwrap_or_default(),
+                        timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
                 } else {
@@ -63,10 +60,7 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.recover_duration {
                     // Recovery
                     update.character = CharacterState::Stunned(Data {
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
-                            .unwrap_or_default(),
+                        timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
                 } else {

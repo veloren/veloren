@@ -85,10 +85,7 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
                     update.character = CharacterState::ChargedRanged(Data {
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
-                            .unwrap_or_default(),
+                        timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
                 } else {
@@ -138,12 +135,11 @@ impl CharacterBehavior for Data {
                 {
                     // Charges
                     update.character = CharacterState::ChargedRanged(Data {
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(
-                                data.dt.0 * self.static_data.speed,
-                            ))
-                            .unwrap_or_default(),
+                        timer: tick_attack_or_default(
+                            data,
+                            self.timer,
+                            Some(self.static_data.speed),
+                        ),
                         ..*self
                     });
 
@@ -157,12 +153,11 @@ impl CharacterBehavior for Data {
                 } else if input_is_pressed(data, self.static_data.ability_info.input) {
                     // Holds charge
                     update.character = CharacterState::ChargedRanged(Data {
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(
-                                data.dt.0 * self.static_data.speed,
-                            ))
-                            .unwrap_or_default(),
+                        timer: tick_attack_or_default(
+                            data,
+                            self.timer,
+                            Some(self.static_data.speed),
+                        ),
                         ..*self
                     });
 
@@ -180,10 +175,7 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.recover_duration {
                     // Recovers
                     update.character = CharacterState::ChargedRanged(Data {
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
-                            .unwrap_or_default(),
+                        timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
                 } else {

@@ -764,6 +764,26 @@ pub fn input_is_pressed(data: &JoinData, input: InputKind) -> bool {
     data.controller.queued_inputs.contains_key(&input)
 }
 
+/// Checked `Duration` addition. Computes `timer` + `dt`, applying relevant stat
+/// attack modifiers and `other_modifiers`, returning None if overflow occurred.
+pub fn checked_tick_attack(
+    data: &JoinData,
+    timer: Duration,
+    other_modifier: Option<f32>,
+) -> Option<Duration> {
+    timer.checked_add(Duration::from_secs_f32(
+        data.dt.0 * data.stats.attack_speed_modifier * other_modifier.unwrap_or(1.0),
+    ))
+}
+/// Ticks `timer` by `dt`, applying relevant stat attack modifiers and
+/// `other_modifier`. Returns `Duration::default()` if overflow occurs
+pub fn tick_attack_or_default(
+    data: &JoinData,
+    timer: Duration,
+    other_modifier: Option<f32>,
+) -> Duration {
+    checked_tick_attack(data, timer, other_modifier).unwrap_or_default()
+}
 /// Determines what portion a state is in. Used in all attacks (eventually). Is
 /// used to control aspects of animation code, as well as logic within the
 /// character states.

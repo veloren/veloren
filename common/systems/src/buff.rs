@@ -9,6 +9,7 @@ use common::{
     Damage, DamageSource,
 };
 use common_ecs::{Job, Origin, Phase, System};
+use hashbrown::HashMap;
 use specs::{
     shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, WriteStorage,
 };
@@ -57,7 +58,10 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            let (buff_comp_kinds, buff_comp_buffs) = buff_comp.parts();
+            let (buff_comp_kinds, buff_comp_buffs): (
+                &HashMap<BuffKind, Vec<BuffId>>,
+                &mut HashMap<BuffId, Buff>,
+            ) = buff_comp.parts();
             let mut expired_buffs = Vec::<BuffId>::new();
             // For each buff kind present on entity, if the buff kind queues, only ticks
             // duration of strongest buff of that kind, else it ticks durations of all buffs
@@ -204,8 +208,11 @@ impl<'a> System<'a> for Sys {
                                     stat.max_health_modifier *= current_fraction;
                                 }
                             },
-                            BuffEffect::MovementSpeed(ms) => {
-                                stat.move_speed_modifier *= *ms;
+                            BuffEffect::MovementSpeed(speed) => {
+                                stat.move_speed_modifier *= *speed;
+                            },
+                            BuffEffect::AttackSpeed(speed) => {
+                                stat.attack_speed_modifier *= *speed;
                             },
                         };
                     }

@@ -743,6 +743,7 @@ fn insert_killing_buff(buff: BuffKind, localized_strings: &Localization, templat
         BuffKind::Bleeding => localized_strings.get("hud.outcome.bleeding"),
         BuffKind::Cursed => localized_strings.get("hud.outcome.curse"),
         BuffKind::Crippled => localized_strings.get("hud.outcome.crippled"),
+        BuffKind::Frozen => localized_strings.get("hud.outcome.frozen"),
         BuffKind::Regeneration
         | BuffKind::Saturation
         | BuffKind::Potion

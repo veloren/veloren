@@ -30,6 +30,8 @@
         "buff.desc.burn": "You are burning alive",
         "buff.title.crippled": "Crippled",
         "buff.desc.crippled": "Your movement is crippled as your legs are heavily injured.",
+        "buff.title.frozen": "Frozen",
+        "buff.desc.frozen": "Your movements and attacks are slowed.",
         // Buffs stats
         "buff.stat.health": "Restores {str_total} Health",
         "buff.stat.increase_max_stamina": "Raises Maximum Stamina by {strength}",
