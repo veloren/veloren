@@ -211,8 +211,8 @@ impl<'a> System<'a> for Sys {
                             BuffEffect::MovementSpeed(ms) => {
                                 stat.move_speed_modifier *= *ms;
                             },
-                            BuffEffect::AttackSpeed(ms) => {
-                                stat.attack_speed_modifier *= *ms;
+                            BuffEffect::AttackSpeed(val) => {
+                                stat.attack_speed_modifier *= *val;
                             },
                         };
                     }
