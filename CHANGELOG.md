@@ -142,6 +142,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Far away NPCs respond to being damaged by a projectile
 - Fixed terrain clipping with glider
 - Fixed an issue where prices weren't properly making their way from econsim to the actual trade values.
+- Fixed entities with voxel colliders being off by one physics tick for collision.
 
 ## [0.9.0] - 2021-03-20
 
