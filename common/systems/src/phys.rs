@@ -1317,6 +1317,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     }
 
     physics_state.on_ground = false;
+    physics_state.on_ceiling = false;
 
     let mut on_ground = false;
     let mut on_ceiling = false;
