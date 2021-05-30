@@ -65,7 +65,7 @@ pub enum BuffKind {
     /// Slows movement and attack speed.
     /// Strength scales the attack speed debuff non-linearly. 0.5 is ~50%
     /// speed, 1.0 is 33% speed. Movement speed debuff is scaled to be slightly
-    /// smaller than attack speed debuff. Both are limited to a minimum of 0.1
+    /// smaller than attack speed debuff.
     Frozen,
 }
 
@@ -311,11 +311,8 @@ impl Buff {
             ),
             BuffKind::Frozen => (
                 vec![
-                    BuffEffect::MovementSpeed(f32::min(
-                        0.1,
-                        f32::powf(1.0 - nn_scaling(data.strength), 1.1),
-                    )),
-                    BuffEffect::AttackSpeed(f32::min(0.1, 1.0 - nn_scaling(data.strength))),
+                    BuffEffect::MovementSpeed(f32::powf(1.0 - nn_scaling(data.strength), 1.1)),
+                    BuffEffect::AttackSpeed(1.0 - nn_scaling(data.strength)),
                 ],
                 data.duration,
             ),
