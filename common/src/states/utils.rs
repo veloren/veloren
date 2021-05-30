@@ -771,13 +771,9 @@ pub fn checked_tick_attack(
     timer: Duration,
     other_modifier: Option<f32>,
 ) -> Option<Duration> {
-    let tick_dur = if let Some(other_mod) = other_modifier {
-        data.dt.0 * data.stats.attack_speed_modifier * other_mod
-    } else {
-        data.dt.0 * data.stats.attack_speed_modifier
-    };
-
-    timer.checked_add(Duration::from_secs_f32(tick_dur))
+    timer.checked_add(Duration::from_secs_f32(
+        data.dt.0 * data.stats.attack_speed_modifier * other_modifier.unwrap_or(1.0),
+    ))
 }
 /// Ticks `timer` by `dt`, applying relevant stat attack modifiers and
 /// `other_modifier`. Returns `Duration::default()` if overflow occurs
