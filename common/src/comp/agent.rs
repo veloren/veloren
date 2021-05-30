@@ -397,14 +397,24 @@ mod tests {
     }
 }
 
+/// PID controllers are used for automatically adapting nonlinear controls (like
+/// buoyancy for airships) to target specific outcomes (i.e. a specific height)
 #[derive(Clone)]
 pub struct PidController<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> {
+    /// The coefficient of the proportional term
     pub kp: f32,
+    /// The coefficient of the integral term
     pub ki: f32,
+    /// The coefficient of the derivative term
     pub kd: f32,
+    /// The setpoint that the process has as its goal
     pub sp: Vec3<f32>,
+    /// A ring buffer of the last NUM_SAMPLES measured process variables
     pv_samples: [(f64, Vec3<f32>); NUM_SAMPLES],
+    /// The index into the ring buffer of process variables
     pv_idx: usize,
+    /// The error function, to change how the difference between the setpoint
+    /// and process variables are calculated
     e: F,
 }
 
@@ -424,6 +434,8 @@ impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> fmt::Debug
 }
 
 impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> PidController<F, NUM_SAMPLES> {
+    /// Constructs a PidController with the specified weights, setpoint,
+    /// starting time, and error function
     pub fn new(kp: f32, ki: f32, kd: f32, sp: Vec3<f32>, time: f64, e: F) -> Self {
         Self {
             kp,
@@ -436,12 +448,15 @@ impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> PidController
         }
     }
 
+    /// Adds a measurement of the process variable to the ringbuffer
     pub fn add_measurement(&mut self, time: f64, pv: Vec3<f32>) {
         self.pv_idx += 1;
         self.pv_idx %= NUM_SAMPLES;
         self.pv_samples[self.pv_idx] = (time, pv);
     }
 
+    /// The amount to set the control variable to is a weighed sum of the
+    /// proportional error, the integral error, and the derivative error.
     /// https://en.wikipedia.org/wiki/PID_controller#Mathematical_form
     pub fn calc_err(&self) -> f32 {
         self.kp * self.proportional_err()
@@ -449,8 +464,13 @@ impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> PidController
             + self.kd * self.derivative_err()
     }
 
+    /// The proportional error is the error function applied to the set point
+    /// and the most recent process variable measurement
     pub fn proportional_err(&self) -> f32 { (self.e)(self.sp, self.pv_samples[self.pv_idx].1) }
 
+    /// The integral error is the error function integrated over the last
+    /// NUM_SAMPLES values. The trapezoid rule for numerical integration was
+    /// chosen because it's fairly easy to calculate and sufficiently accurate.
     /// https://en.wikipedia.org/wiki/Trapezoidal_rule#Uniform_grid
     pub fn integral_err(&self) -> f32 {
         let f = |x| (self.e)(self.sp, x);
@@ -458,15 +478,22 @@ impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> PidController
         let (b, xn) = self.pv_samples[self.pv_idx];
         let dx = (b - a) / NUM_SAMPLES as f64;
         let mut err = 0.0;
-        for i in 1..=NUM_SAMPLES - 1 {
-            let xk = self.pv_samples[(self.pv_idx + 1 + i) % NUM_SAMPLES].1;
+        // \Sigma_{k=1}^{N-1} f(x_k)
+        for k in 1..=NUM_SAMPLES - 1 {
+            let xk = self.pv_samples[(self.pv_idx + 1 + k) % NUM_SAMPLES].1;
             err += f(xk);
         }
+        // (\Sigma_{k=1}^{N-1} f(x_k)) + \frac{f(x_N) + f(x_0)}{2}
         err += (f(xn) - f(x0)) / 2.0;
+        // \Delta x * ((\Sigma_{k=1}^{N-1} f(x_k)) + \frac{f(x_N) + f(x_0)}{2})
         err *= dx as f32;
         err
     }
 
+    /// The derivative error is the numerical derivative of the error function
+    /// based on the most recent 2 samples. Using more than 2 samples might
+    /// improve the accuracy of the estimate of the derivative, but it would be
+    /// an estimate of the derivative error further in the past.
     /// https://en.wikipedia.org/wiki/Numerical_differentiation#Finite_differences
     pub fn derivative_err(&self) -> f32 {
         let f = |x| (self.e)(self.sp, x);
