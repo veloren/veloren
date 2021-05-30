@@ -1,5 +1,5 @@
 use crate::{
-    comp::{humanoid, quadruped_low, quadruped_medium, quadruped_small, Body},
+    comp::{humanoid, quadruped_low, quadruped_medium, quadruped_small, ship, Body},
     path::Chaser,
     rtsim::RtSimController,
     trade::{PendingTrade, ReducedInventory, SiteId, SitePrices, TradeId, TradeResult},
@@ -314,7 +314,7 @@ pub struct Agent {
     pub bearing: Vec2<f32>,
     pub sounds_heard: Vec<Sound>,
     pub awareness: f32,
-    pub pid_controller: Option<PidController<fn(Vec3<f32>, Vec3<f32>) -> f32, 16>>,
+    pub position_pid_controller: Option<PidController<fn(Vec3<f32>, Vec3<f32>) -> f32, 16>>,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -339,11 +339,11 @@ impl Agent {
     }
 
     #[allow(clippy::type_complexity)]
-    pub fn with_pid_controller(
+    pub fn with_position_pid_controller(
         mut self,
         pid: PidController<fn(Vec3<f32>, Vec3<f32>) -> f32, 16>,
     ) -> Self {
-        self.pid_controller = Some(pid);
+        self.position_pid_controller = Some(pid);
         self
     }
 
@@ -501,5 +501,20 @@ impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> PidController
         let (b, x1) = self.pv_samples[self.pv_idx];
         let h = b - a;
         (f(x1) - f(x0)) / h as f32
+    }
+}
+
+/// Get the PID coefficients associated with some Body, since it will likely
+/// need to be tuned differently for each body type
+pub fn pid_coefficients(body: &Body) -> (f32, f32, f32) {
+    match body {
+        Body::Ship(ship::Body::DefaultAirship) => {
+            let kp = 1.0;
+            let ki = 1.0;
+            let kd = 1.0;
+            (kp, ki, kd)
+        },
+        // default to a pure-proportional controller, which is the first step when tuning
+        _ => (1.0, 0.0, 0.0),
     }
 }

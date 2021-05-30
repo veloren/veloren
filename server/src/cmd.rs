@@ -1163,11 +1163,11 @@ fn handle_spawn_airship(
             animated: true,
         });
     if let Some(pos) = destination {
-        let (kp, ki, kd) = ship.pid_coefficients();
+        let (kp, ki, kd) = comp::agent::pid_coefficients(&comp::Body::Ship(ship));
         fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp - pv).z }
         let agent = comp::Agent::default()
             .with_destination(pos)
-            .with_pid_controller(comp::PidController::new(
+            .with_position_pid_controller(comp::PidController::new(
                 kp,
                 ki,
                 kd,

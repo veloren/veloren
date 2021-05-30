@@ -271,7 +271,7 @@ impl<'a> System<'a> for Sys {
                         Some(CharacterState::GlideWield) | Some(CharacterState::Glide(_))
                     ) && !physics_state.on_ground;
 
-                    if let Some(pid) = agent.pid_controller.as_mut() {
+                    if let Some(pid) = agent.position_pid_controller.as_mut() {
                         pid.add_measurement(read_data.time.0, pos.0);
                     }
 
@@ -870,7 +870,7 @@ impl<'a> AgentData<'a> {
                     } else {
                         0.05 //normal land traveller offset
                     };
-                if let Some(pid) = agent.pid_controller.as_mut() {
+                if let Some(pid) = agent.position_pid_controller.as_mut() {
                     pid.sp = self.pos.0.z + height_offset * Vec3::unit_z();
                     controller.inputs.move_z = pid.calc_err();
                 } else {
