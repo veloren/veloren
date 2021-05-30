@@ -251,14 +251,14 @@ impl Animation for WieldAnimation {
                                 next.control_r.orientation =
                                     Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_y(0.15);
                             },
-                            "Tidal Claws" => {
-                                next.control_l.position = Vec3::new(-14.0, 12.0, -12.0);
-                                next.control_r.position = Vec3::new(14.0, 12.0, -12.0);
+                            "Tidal Warrior" => {
+                                next.hand_l.position = Vec3::new(-14.0, 2.0, -4.0);
+                                next.hand_r.position = Vec3::new(14.0, 2.0, -4.0);
 
-                                next.control_l.orientation = Quaternion::rotation_x(PI / 3.0)
-                                    * Quaternion::rotation_y(-0.15);
-                                next.control_r.orientation =
-                                    Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_y(0.15);
+                                next.hand_l.orientation = Quaternion::rotation_x(PI / 3.0)
+                                    * Quaternion::rotation_z(-0.35);
+                                next.hand_r.orientation =
+                                    Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_z(0.35);
                             },
                             "Beast Claws" => {
                                 next.shoulder_l.position =

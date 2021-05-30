@@ -46,7 +46,7 @@ impl Animation for DashAnimation {
         let lab: f32 = 0.65 * s_a.tempo;
         let speed = Vec2::<f32>::from(velocity).magnitude();
 
-        let speednorm = (speed / 12.0).powf(0.4);
+        let speednorm = (speed.min(16.0) / 12.0).powf(0.4);
         let foothoril = (acc_vel * lab + PI * 1.45).sin() * speednorm;
         let foothorir = (acc_vel * lab + PI * (0.45)).sin() * speednorm;
         let footrotl = ((1.0 / (0.5 + (0.5) * ((acc_vel * lab + PI * 1.4).sin()).powi(2))).sqrt())
@@ -64,12 +64,18 @@ impl Animation for DashAnimation {
         next.second.orientation = Quaternion::rotation_x(0.0);
         next.hand_l.orientation = Quaternion::rotation_x(0.0);
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
-        let (move1base, move2base, move3base, move4) = match stage_section {
-            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0, 0.0),
-            Some(StageSection::Charge) => (1.0, (anim_time.powf(4.0)).min(1.0), 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, 1.0, anim_time.powf(4.0), 0.0),
-            Some(StageSection::Recover) => (1.1, 1.0, 1.0, anim_time.powf(4.0)),
-            _ => (0.0, 0.0, 0.0, 0.0),
+        let (move1base, motion, move2base, move3base, move4) = match stage_section {
+            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0, 0.0, 0.0),
+            Some(StageSection::Charge) => (
+                1.0,
+                (acc_vel * lab).sin(),
+                (anim_time.powf(4.0)).min(1.0),
+                0.0,
+                0.0,
+            ),
+            Some(StageSection::Swing) => (1.0, 1.0, 1.0, anim_time.powf(4.0), 0.0),
+            Some(StageSection::Recover) => (1.1, 1.0, 1.0, 1.0, anim_time.powf(4.0)),
+            _ => (0.0, 0.0, 0.0, 0.0, 0.0),
         };
         let pullback = 1.0 - move4;
         let move1 = move1base * pullback;
@@ -188,6 +194,32 @@ impl Animation for DashAnimation {
                             next.shoulder_l.orientation = Quaternion::rotation_x(-0.3);
 
                             next.shoulder_r.orientation = Quaternion::rotation_x(-0.3);
+                        },
+                        "Tidal Warrior" => {
+                            next.head.orientation =
+                                Quaternion::rotation_x(0.0) * Quaternion::rotation_z(move1 * -0.3);
+                            next.upper_torso.orientation = Quaternion::rotation_x(move1 * -0.1)
+                                * Quaternion::rotation_z(move1 * 1.57);
+                            next.lower_torso.orientation = Quaternion::rotation_x(move1 * 0.1)
+                                * Quaternion::rotation_x(move1 * -0.1)
+                                * Quaternion::rotation_z(move1 * -0.2);
+
+                            next.hand_l.position = Vec3::new(-14.0, 2.0 + motion * 1.5, -4.0);
+
+                            next.hand_l.orientation =
+                                Quaternion::rotation_x(PI / 3.0 + move1 * 1.0)
+                                    * Quaternion::rotation_y(0.0)
+                                    * Quaternion::rotation_z(-0.35 + motion * -0.6);
+                            next.hand_r.position = Vec3::new(14.0, 2.0 + motion * -1.5, -4.0);
+
+                            next.hand_r.orientation =
+                                Quaternion::rotation_x(PI / 3.0 + move1 * 1.0)
+                                    * Quaternion::rotation_y(0.0)
+                                    * Quaternion::rotation_z(0.35 + motion * 0.6);
+
+                            next.shoulder_l.orientation = Quaternion::rotation_x(move1 * 0.8);
+
+                            next.shoulder_r.orientation = Quaternion::rotation_x(move1 * 0.8);
                         },
                         _ => {},
                     }

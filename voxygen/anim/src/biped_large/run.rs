@@ -48,8 +48,8 @@ impl Animation for RunAnimation {
         *rate = 1.0;
 
         let lab: f32 = 0.65 * s_a.tempo;
-        let speednorm = (speed / 12.0).powf(0.6);
-        let speednormlow = (speed / 12.0).powf(4.0);
+        let speednorm = (speed.min(16.0) / 12.0).powf(0.6);
+        let speednormlow = (speed.min(16.0) / 12.0).powf(4.0);
 
         let footvertl = (acc_vel * lab + PI * -0.2).sin() * speednorm;
         let footvertr = (acc_vel * lab + PI * -1.2).sin() * speednorm;
@@ -119,16 +119,17 @@ impl Animation for RunAnimation {
 
         let foothoril = (acc_vel * lab + PI * 1.45).sin() * speednorm;
         let foothorir = (acc_vel * lab + PI * (0.45)).sin() * speednorm;
-        let footstrafel = (acc_vel * lab + PI * 1.45).sin();
-        let footstrafer = (acc_vel * lab + PI * (0.95)).sin();
-        let footvertsl = (acc_vel * lab).sin();
-        let footvertsr = (acc_vel * lab + PI * 0.5).sin();
+        let footstrafel = (acc_vel * lab + PI * 1.45).sin() * speednorm;
+        let footstrafer = (acc_vel * lab + PI * (0.95)).sin() * speednorm;
+        let footvertsl = (acc_vel * lab).sin() * speednorm;
+        let footvertsr = (acc_vel * lab + PI * 0.5).sin() * speednorm;
         let direction = velocity.y * -0.098 * orientation.y + velocity.x * -0.098 * orientation.x;
 
-        let side =
-            (velocity.x * -0.098 * orientation.y + velocity.y * 0.098 * orientation.x) * -1.0;
+        let side = ((velocity.x * -0.098 * orientation.y + velocity.y * 0.098 * orientation.x)
+            * -1.0)
+            .min(1.0)
+            .max(-1.0);
         let sideabs = side.abs();
-
         let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude());
 
         next.jaw.scale = Vec3::one() * 1.02;
