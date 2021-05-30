@@ -308,7 +308,10 @@ impl Buff {
             ),
             BuffKind::Frozen => (
                 vec![
-                    BuffEffect::MovementSpeed(f32::min(0.1, 0.75 - nn_scaling(data.strength))),
+                    BuffEffect::MovementSpeed(f32::min(
+                        0.1,
+                        f32::powf(1.0 - nn_scaling(data.strength), 1.1),
+                    )),
                     BuffEffect::AttackSpeed(f32::min(0.1, 1.0 - nn_scaling(data.strength))),
                 ],
                 data.duration,
