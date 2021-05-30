@@ -54,10 +54,7 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
                     update.character = CharacterState::BasicSummon(Data {
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
-                            .unwrap_or_default(),
+                        timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
                 } else {
@@ -131,20 +128,14 @@ impl CharacterBehavior for Data {
                         ));
 
                         update.character = CharacterState::BasicSummon(Data {
-                            timer: self
-                                .timer
-                                .checked_add(Duration::from_secs_f32(data.dt.0))
-                                .unwrap_or_default(),
+                            timer: tick_attack_or_default(data, self.timer, None),
                             summon_count: self.summon_count + 1,
                             ..*self
                         });
                     } else {
                         // Cast
                         update.character = CharacterState::BasicSummon(Data {
-                            timer: self
-                                .timer
-                                .checked_add(Duration::from_secs_f32(data.dt.0))
-                                .unwrap_or_default(),
+                            timer: tick_attack_or_default(data, self.timer, None),
                             ..*self
                         });
                     }
@@ -161,10 +152,7 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.recover_duration {
                     // Recovery
                     update.character = CharacterState::BasicSummon(Data {
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
-                            .unwrap_or_default(),
+                        timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
                 } else {

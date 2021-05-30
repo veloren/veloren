@@ -144,10 +144,7 @@ impl CharacterBehavior for Data {
                     // Build up
                     update.character = CharacterState::ComboMelee(Data {
                         static_data: self.static_data.clone(),
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0 * speed_modifer))
-                            .unwrap_or_default(),
+                        timer: tick_attack_or_default(data, self.timer, Some(speed_modifer)),
                         ..*self
                     });
                 } else {
@@ -250,10 +247,7 @@ impl CharacterBehavior for Data {
                     // Swings
                     update.character = CharacterState::ComboMelee(Data {
                         static_data: self.static_data.clone(),
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0 * speed_modifer))
-                            .unwrap_or_default(),
+                        timer: tick_attack_or_default(data, self.timer, Some(speed_modifer)),
                         ..*self
                     });
                 } else {
@@ -272,10 +266,7 @@ impl CharacterBehavior for Data {
                     // Recovers
                     update.character = CharacterState::ComboMelee(Data {
                         static_data: self.static_data.clone(),
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0 * speed_modifer))
-                            .unwrap_or_default(),
+                        timer: tick_attack_or_default(data, self.timer, Some(speed_modifer)),
                         ..*self
                     });
                 } else {

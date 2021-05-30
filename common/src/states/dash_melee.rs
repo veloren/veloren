@@ -81,10 +81,7 @@ impl CharacterBehavior for Data {
                     handle_orientation(data, &mut update, 1.0);
                     // Build up
                     update.character = CharacterState::DashMelee(Data {
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
-                            .unwrap_or_default(),
+                        timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
                 } else {
@@ -177,10 +174,7 @@ impl CharacterBehavior for Data {
                                 .filter(|(_, tool)| tool == &Some(ToolKind::Pick)),
                         });
                         update.character = CharacterState::DashMelee(Data {
-                            timer: self
-                                .timer
-                                .checked_add(Duration::from_secs_f32(data.dt.0))
-                                .unwrap_or_default(),
+                            timer: tick_attack_or_default(data, self.timer, None),
                             exhausted: true,
                             ..*self
                         })
@@ -188,20 +182,14 @@ impl CharacterBehavior for Data {
                         if !melee.applied {
                             // If melee attack has not applied, just tick duration
                             update.character = CharacterState::DashMelee(Data {
-                                timer: self
-                                    .timer
-                                    .checked_add(Duration::from_secs_f32(data.dt.0))
-                                    .unwrap_or_default(),
+                                timer: tick_attack_or_default(data, self.timer, None),
                                 ..*self
                             });
                         } else if melee.hit_count == 0 {
                             // If melee attack has applied, but not hit anything, remove exhausted
                             // so it can attack again
                             update.character = CharacterState::DashMelee(Data {
-                                timer: self
-                                    .timer
-                                    .checked_add(Duration::from_secs_f32(data.dt.0))
-                                    .unwrap_or_default(),
+                                timer: tick_attack_or_default(data, self.timer, None),
                                 exhausted: false,
                                 ..*self
                             });
@@ -221,10 +209,7 @@ impl CharacterBehavior for Data {
                                         .min(self.static_data.charge_duration)
                                 };
                             update.character = CharacterState::DashMelee(Data {
-                                timer: self
-                                    .timer
-                                    .checked_add(Duration::from_secs_f32(data.dt.0))
-                                    .unwrap_or_default(),
+                                timer: tick_attack_or_default(data, self.timer, None),
                                 charge_end_timer,
                                 ..*self
                             });
@@ -240,10 +225,7 @@ impl CharacterBehavior for Data {
                     } else {
                         // If melee attack has not applied, just tick duration
                         update.character = CharacterState::DashMelee(Data {
-                            timer: self
-                                .timer
-                                .checked_add(Duration::from_secs_f32(data.dt.0))
-                                .unwrap_or_default(),
+                            timer: tick_attack_or_default(data, self.timer, None),
                             exhausted: false,
                             ..*self
                         });
@@ -328,20 +310,14 @@ impl CharacterBehavior for Data {
                             .filter(|(_, tool)| tool == &Some(ToolKind::Pick)),
                     });
                     update.character = CharacterState::DashMelee(Data {
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
-                            .unwrap_or_default(),
+                        timer: tick_attack_or_default(data, self.timer, None),
                         exhausted: true,
                         ..*self
                     })
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings
                     update.character = CharacterState::DashMelee(Data {
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
-                            .unwrap_or_default(),
+                        timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
                 } else {
@@ -357,10 +333,7 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.recover_duration {
                     // Recover
                     update.character = CharacterState::DashMelee(Data {
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
-                            .unwrap_or_default(),
+                        timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
                 } else {
