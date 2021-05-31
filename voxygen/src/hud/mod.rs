@@ -1465,7 +1465,6 @@ impl Hud {
                     fonts,
                     &i18n,
                     &global_state.settings.controls,
-                    // If we're currently set to interact with the item...
                     properties,
                     pulse,
                     &global_state.window.key_layout,

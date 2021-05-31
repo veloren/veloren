@@ -2,7 +2,7 @@ use super::{
     animate_by_pulse, get_quality_col,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
-    Show, TEXT_COLOR,
+    Show, Windows, TEXT_COLOR,
 };
 use crate::{
     i18n::Localization,
@@ -189,7 +189,13 @@ impl<'a> Widget for LootScroller<'a> {
             ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
         }
 
-        if self.show.social || self.show.trade {
+        // check if it collides with other windows
+        if self.show.diary
+            || self.show.map
+            || self.show.open_windows != Windows::None
+            || self.show.social
+            || self.show.trade
+        {
             if state.last_hover_pulse.is_some() || state.last_auto_show_pulse.is_some() {
                 state.update(|s| {
                     s.last_hover_pulse = None;
@@ -197,8 +203,10 @@ impl<'a> Widget for LootScroller<'a> {
                 });
             }
         } else {
+            //check if hovered
             if ui
                 .rect_of(state.ids.message_box)
+                .map(|r| r.pad_left(-6.0))
                 .map_or(false, |r| r.is_over(ui.global_input().current.mouse.xy))
             {
                 state.update(|s| s.last_hover_pulse = Some(self.pulse));
@@ -266,6 +274,7 @@ impl<'a> Widget for LootScroller<'a> {
                 .bottom_left_with_margins_on(ui.window, 308.0, 20.0)
                 .set(state.ids.message_box, ui);
 
+            //only show scrollbar if it is being hovered and needed
             if show_all_age < 1.0
                 && ui
                     .widget_graph()
