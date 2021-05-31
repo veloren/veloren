@@ -1,5 +1,5 @@
 use common::{clock::Clock, consts::MIN_RECOMMENDED_TOKIO_THREADS};
-use crossbeam::channel::{bounded, unbounded, Receiver, Sender, TryRecvError};
+use crossbeam_channel::{bounded, unbounded, Receiver, Sender, TryRecvError};
 use server::{
     persistence::{DatabaseSettings, SqlLogMode},
     Error as ServerError, Event, Input, Server,

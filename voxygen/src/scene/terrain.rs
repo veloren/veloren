@@ -21,7 +21,7 @@ use common::{
 };
 use common_base::span;
 use core::{f32, fmt::Debug, i32, marker::PhantomData, time::Duration};
-use crossbeam::channel;
+use crossbeam_channel as channel;
 use enum_iterator::IntoEnumIterator;
 use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
