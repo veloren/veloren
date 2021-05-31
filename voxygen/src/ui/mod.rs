@@ -48,7 +48,7 @@ use conrod_core::{
 };
 use core::{convert::TryInto, f32, f64, ops::Range};
 use graphic::TexId;
-use hashbrown::{hash_map::Entry, HashMap, HashSet};
+use hashbrown::{hash_map::Entry, HashMap};
 use std::{hash::Hash, time::Duration};
 use tracing::{error, warn};
 use vek::*;
@@ -1055,11 +1055,15 @@ fn default_scissor(renderer: &Renderer) -> Aabr<u16> {
     }
 }
 
+enum KeyedJobTask<V> {
+    Pending,
+    Completed(V),
+}
+
 pub struct KeyedJobs<K, V> {
     tx: crossbeam_channel::Sender<(K, V)>,
     rx: crossbeam_channel::Receiver<(K, V)>,
-    completed: HashMap<K, V>,
-    pending: HashSet<K>,
+    tasks: HashMap<K, KeyedJobTask<V>>,
 }
 
 impl<K: Hash + Eq + Send + Sync + 'static + Clone, V: Send + Sync + 'static> KeyedJobs<K, V> {
@@ -1069,8 +1073,7 @@ impl<K: Hash + Eq + Send + Sync + 'static + Clone, V: Send + Sync + 'static> Key
         Self {
             tx,
             rx,
-            completed: HashMap::new(),
-            pending: HashSet::new(),
+            tasks: HashMap::new(),
         }
     }
 
@@ -1081,26 +1084,35 @@ impl<K: Hash + Eq + Send + Sync + 'static + Clone, V: Send + Sync + 'static> Key
         f: impl FnOnce(&K) -> V + Send + Sync + 'static,
     ) -> Option<(K, V)> {
         if let Some(pool) = pool {
-            if let Some(v) = self.completed.remove(&k) {
-                Some((k, v))
-            } else {
-                while let Ok((k2, v)) = self.rx.try_recv() {
-                    self.pending.remove(&k2);
-                    if k == k2 {
-                        return Some((k, v));
-                    } else {
-                        self.completed.insert(k2, v);
-                    }
+            while let Ok((k2, v)) = self.rx.try_recv() {
+                if k == k2 {
+                    return Some((k, v));
+                } else {
+                    self.tasks.insert(k2, KeyedJobTask::Completed(v));
                 }
-                if !self.pending.contains(&k) {
-                    self.pending.insert(k.clone());
+            }
+            match self.tasks.entry(k.clone()) {
+                Entry::Occupied(e) => {
+                    let mut ret = None;
+                    e.replace_entry_with(|_, v| {
+                        if let KeyedJobTask::Completed(v) = v {
+                            ret = Some((k, v));
+                            None
+                        } else {
+                            Some(v)
+                        }
+                    });
+                    ret
+                },
+                Entry::Vacant(e) => {
                     let tx = self.tx.clone();
                     pool.spawn("IMAGE_PROCESSING", move || {
                         let v = f(&k);
                         let _ = tx.send((k, v));
                     });
-                }
-                None
+                    e.insert(KeyedJobTask::Pending);
+                    None
+                },
             }
         } else {
             let v = f(&k);
