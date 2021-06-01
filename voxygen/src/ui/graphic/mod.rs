@@ -402,27 +402,30 @@ fn draw_graphic(
     pool: Option<&SlowJobPool>,
 ) -> Option<(RgbaImage, Option<Rgba<f32>>)> {
     match graphic_map.get(&graphic_id) {
+        // Short-circuit spawning a threadpool for blank graphics
         Some(Graphic::Blank) => None,
         Some(inner) => {
-            let inner = inner.clone();
             keyed_jobs
-                .spawn(pool, (graphic_id, dims), move |_| {
-                    match inner {
-                        // Render image at requested resolution
-                        // TODO: Use source aabr.
-                        Graphic::Image(ref image, border_color) => Some((
-                            resize_pixel_art(
-                                &image.to_rgba8(),
-                                u32::from(dims.x),
-                                u32::from(dims.y),
-                            ),
-                            border_color,
-                        )),
-                        Graphic::Voxel(ref segment, trans, sample_strat) => Some((
-                            renderer::draw_vox(&segment, dims, trans, sample_strat),
-                            None,
-                        )),
-                        _ => None,
+                .spawn(pool, (graphic_id, dims), || {
+                    let inner = inner.clone();
+                    move |_| {
+                        match inner {
+                            // Render image at requested resolution
+                            // TODO: Use source aabr.
+                            Graphic::Image(ref image, border_color) => Some((
+                                resize_pixel_art(
+                                    &image.to_rgba8(),
+                                    u32::from(dims.x),
+                                    u32::from(dims.y),
+                                ),
+                                border_color,
+                            )),
+                            Graphic::Voxel(ref segment, trans, sample_strat) => Some((
+                                renderer::draw_vox(&segment, dims, trans, sample_strat),
+                                None,
+                            )),
+                            Graphic::Blank => None,
+                        }
                     }
                 })
                 .and_then(|(_, v)| v)

@@ -34,11 +34,11 @@ struct MinimapColumn {
     /// Coordinate of lowest z-slice
     zlo: i32,
     /// Z-slices of colors and filled-ness
-    layers: Vec<Grid<(Vec4<u8>, bool)>>,
+    layers: Vec<Grid<(Rgba<u8>, bool)>>,
     /// Color and filledness above the highest layer
-    above: (Vec4<u8>, bool),
+    above: (Rgba<u8>, bool),
     /// Color and filledness below the lowest layer
-    below: (Vec4<u8>, bool),
+    below: (Rgba<u8>, bool),
 }
 
 pub struct VoxelMinimap {
@@ -53,14 +53,14 @@ pub struct VoxelMinimap {
 }
 
 const VOXEL_MINIMAP_SIDELENGTH: u32 = 256;
+
 impl VoxelMinimap {
     pub fn new(ui: &mut Ui) -> Self {
-        let mut composited = RgbaImage::new(VOXEL_MINIMAP_SIDELENGTH, VOXEL_MINIMAP_SIDELENGTH);
-        for x in 0..VOXEL_MINIMAP_SIDELENGTH {
-            for y in 0..VOXEL_MINIMAP_SIDELENGTH {
-                composited.put_pixel(x, y, image::Rgba([0, 0, 0, 64]));
-            }
-        }
+        let composited = RgbaImage::from_pixel(
+            VOXEL_MINIMAP_SIDELENGTH,
+            VOXEL_MINIMAP_SIDELENGTH,
+            image::Rgba([0, 0, 0, 64]),
+        );
         Self {
             chunk_minimaps: HashMap::new(),
             image_id: ui.add_graphic_with_rotations(Graphic::Image(
@@ -75,34 +75,30 @@ impl VoxelMinimap {
         }
     }
 
-    fn block_color(block: &Block) -> Option<Vec4<u8>> {
+    fn block_color(block: &Block) -> Option<Rgba<u8>> {
         block
             .get_color()
-            .map(|rgb| Vec4::new(rgb.r, rgb.g, rgb.b, 255))
+            .map(|rgb| Rgba::new(rgb.r, rgb.g, rgb.b, 255))
             .or_else(|| {
-                if matches!(block.kind(), BlockKind::Water) {
-                    Some(Vec4::new(119, 149, 197, 255))
-                } else {
-                    None
-                }
+                matches!(block.kind(), BlockKind::Water).then(|| Rgba::new(119, 149, 197, 255))
             })
     }
 
     /// Each layer is a slice of the terrain near that z-level
-    fn composite_layer_slice(chunk: &TerrainChunk, layers: &mut Vec<Grid<(Vec4<u8>, bool)>>) {
+    fn composite_layer_slice(chunk: &TerrainChunk, layers: &mut Vec<Grid<(Rgba<u8>, bool)>>) {
         for z in chunk.get_min_z()..chunk.get_max_z() {
             let grid = Grid::populate_from(Vec2::new(32, 32), |v| {
-                let mut rgba = Vec4::<f32>::zero();
+                let mut rgba = Rgba::<f32>::zero();
                 let (weights, zoff) = (&[1, 2, 4, 1, 1, 1][..], -2);
                 for dz in 0..weights.len() {
                     let color = chunk
                         .get(Vec3::new(v.x, v.y, dz as i32 + z + zoff))
                         .ok()
                         .and_then(Self::block_color)
-                        .unwrap_or_else(Vec4::zero);
+                        .unwrap_or_else(Rgba::zero);
                     rgba += color.as_() * weights[dz as usize] as f32;
                 }
-                let rgba: Vec4<u8> = (rgba / weights.iter().map(|x| *x as f32).sum::<f32>()).as_();
+                let rgba: Rgba<u8> = (rgba / weights.iter().map(|x| *x as f32).sum::<f32>()).as_();
                 (rgba, true)
             });
             layers.push(grid);
@@ -110,7 +106,7 @@ impl VoxelMinimap {
     }
 
     /// Each layer is the overhead as if its z-level were the ceiling
-    fn composite_layer_overhead(chunk: &TerrainChunk, layers: &mut Vec<Grid<(Vec4<u8>, bool)>>) {
+    fn composite_layer_overhead(chunk: &TerrainChunk, layers: &mut Vec<Grid<(Rgba<u8>, bool)>>) {
         for z in chunk.get_min_z()..chunk.get_max_z() {
             let grid = Grid::populate_from(Vec2::new(32, 32), |v| {
                 let mut rgba = None;
@@ -124,9 +120,6 @@ impl VoxelMinimap {
                         .and_then(Self::block_color)
                     {
                         if seen_air > 0 {
-                            /*rgba = Some(color.map(|j| {
-                                (j as u32).saturating_sub(if seen_air > 2 { 4 } else { 0 }) as u8
-                            }));*/
                             rgba = Some(color);
                             break;
                         }
@@ -147,7 +140,7 @@ impl VoxelMinimap {
                 let is_filled = block.map_or(true, |b| {
                     b.is_filled() && !matches!(b.kind(), BlockKind::Leaves | BlockKind::Wood)
                 });
-                let rgba = rgba.unwrap_or_else(|| Vec3::zero().with_w(255));
+                let rgba = rgba.unwrap_or_else(|| Rgba::new(0, 0, 0, 255));
                 (rgba, is_filled)
             });
             layers.push(grid);
@@ -164,40 +157,42 @@ impl VoxelMinimap {
 
         for (key, chunk) in terrain.iter() {
             let delta: Vec2<u32> = (key - cpos).map(i32::abs).as_();
-            if !self.chunk_minimaps.contains_key(&key)
-                && delta.x < VOXEL_MINIMAP_SIDELENGTH / TerrainChunkSize::RECT_SIZE.x
+            if delta.x < VOXEL_MINIMAP_SIDELENGTH / TerrainChunkSize::RECT_SIZE.x
                 && delta.y < VOXEL_MINIMAP_SIDELENGTH / TerrainChunkSize::RECT_SIZE.y
+                && !self.chunk_minimaps.contains_key(&key)
             {
-                let arc_chunk = Arc::clone(chunk);
-                if let Some((_, column)) = self.keyed_jobs.spawn(Some(&pool), key, move |_| {
-                    let mut layers = Vec::new();
-                    const MODE_OVERHEAD: bool = true;
-                    if MODE_OVERHEAD {
-                        Self::composite_layer_overhead(&arc_chunk, &mut layers);
-                    } else {
-                        Self::composite_layer_slice(&arc_chunk, &mut layers);
-                    }
-                    let above = arc_chunk
-                        .get(Vec3::new(0, 0, arc_chunk.get_max_z() + 1))
-                        .ok()
-                        .cloned()
-                        .unwrap_or_else(Block::empty);
-                    let below = arc_chunk
-                        .get(Vec3::new(0, 0, arc_chunk.get_min_z() - 1))
-                        .ok()
-                        .cloned()
-                        .unwrap_or_else(Block::empty);
-                    MinimapColumn {
-                        zlo: arc_chunk.get_min_z(),
-                        layers,
-                        above: (
-                            Self::block_color(&above).unwrap_or_else(Vec4::zero),
-                            above.is_filled(),
-                        ),
-                        below: (
-                            Self::block_color(&below).unwrap_or_else(Vec4::zero),
-                            below.is_filled(),
-                        ),
+                if let Some((_, column)) = self.keyed_jobs.spawn(Some(&pool), key, || {
+                    let arc_chunk = Arc::clone(chunk);
+                    move |_| {
+                        let mut layers = Vec::new();
+                        const MODE_OVERHEAD: bool = true;
+                        if MODE_OVERHEAD {
+                            Self::composite_layer_overhead(&arc_chunk, &mut layers);
+                        } else {
+                            Self::composite_layer_slice(&arc_chunk, &mut layers);
+                        }
+                        let above = arc_chunk
+                            .get(Vec3::new(0, 0, arc_chunk.get_max_z() + 1))
+                            .ok()
+                            .copied()
+                            .unwrap_or_else(Block::empty);
+                        let below = arc_chunk
+                            .get(Vec3::new(0, 0, arc_chunk.get_min_z() - 1))
+                            .ok()
+                            .copied()
+                            .unwrap_or_else(Block::empty);
+                        MinimapColumn {
+                            zlo: arc_chunk.get_min_z(),
+                            layers,
+                            above: (
+                                Self::block_color(&above).unwrap_or_else(Rgba::zero),
+                                above.is_filled(),
+                            ),
+                            below: (
+                                Self::block_color(&below).unwrap_or_else(Rgba::zero),
+                                below.is_filled(),
+                            ),
+                        }
                     }
                 }) {
                     self.chunk_minimaps.insert(key, column);
@@ -216,120 +211,127 @@ impl VoxelMinimap {
 
     pub fn maintain(&mut self, client: &Client, ui: &mut Ui) {
         let player = client.entity();
-        if let Some(pos) = client.state().ecs().read_storage::<comp::Pos>().get(player) {
-            let pos = pos.0;
-            let vpos = pos.xy() - VOXEL_MINIMAP_SIDELENGTH as f32 / 2.0;
-            let cpos: Vec2<i32> = vpos
+        let pos = if let Some(pos) = client.state().ecs().read_storage::<comp::Pos>().get(player) {
+            pos.0
+        } else {
+            return;
+        };
+        let vpos = pos.xy() - VOXEL_MINIMAP_SIDELENGTH as f32 / 2.0;
+        let cpos: Vec2<i32> = vpos
+            .map2(TerrainChunkSize::RECT_SIZE, |i, j| (i as u32).div_euclid(j))
+            .as_();
+
+        let pool = client.state().ecs().read_resource::<SlowJobPool>();
+        let terrain = client.state().terrain();
+        let new_chunks = self.add_chunks_near(&pool, &terrain, cpos);
+        self.remove_unloaded_chunks(&terrain);
+
+        // ceiling_offset is the distance from the player to a block heuristically
+        // detected as the ceiling height (a non-tree solid block above them, or
+        // the sky if no such block exists). This is used for determining which
+        // z-slice of the minimap to show, such that house roofs and caves and
+        // dungeons are all handled uniformly.
+        let ceiling_offset = {
+            let voff = Vec2::new(
+                VOXEL_MINIMAP_SIDELENGTH as f32,
+                VOXEL_MINIMAP_SIDELENGTH as f32,
+            ) / 2.0;
+            let coff: Vec2<i32> = voff
                 .map2(TerrainChunkSize::RECT_SIZE, |i, j| (i as u32).div_euclid(j))
                 .as_();
-
-            let pool = client.state().ecs().read_resource::<SlowJobPool>();
-            let terrain = client.state().terrain();
-            let new_chunks = self.add_chunks_near(&pool, &terrain, cpos);
-            self.remove_unloaded_chunks(&terrain);
-
-            let ceiling_offset = {
-                let voff = Vec2::new(
-                    VOXEL_MINIMAP_SIDELENGTH as f32,
-                    VOXEL_MINIMAP_SIDELENGTH as f32,
-                ) / 2.0;
-                let coff: Vec2<i32> = voff
-                    .map2(TerrainChunkSize::RECT_SIZE, |i, j| (i as u32).div_euclid(j))
-                    .as_();
-                let cmod: Vec2<i32> = vpos
-                    .map2(TerrainChunkSize::RECT_SIZE, |i, j| (i as u32).rem_euclid(j))
-                    .as_();
-                let column = self.chunk_minimaps.get(&(cpos + coff));
-                column
-                    .map(
-                        |MinimapColumn {
-                             zlo, layers, above, ..
-                         }| {
-                            (0..layers.len() as i32)
-                                .filter_map(|dz| {
-                                    layers.get((pos.z as i32 - zlo + dz) as usize).and_then(
-                                        |grid| {
-                                            if grid.get(cmod).map_or(false, |(_, b)| *b) {
-                                                Some(dz)
-                                            } else {
-                                                None
-                                            }
-                                        },
+            let cmod: Vec2<i32> = vpos
+                .map2(TerrainChunkSize::RECT_SIZE, |i, j| (i as u32).rem_euclid(j))
+                .as_();
+            let column = self.chunk_minimaps.get(&(cpos + coff));
+            column
+                .map(
+                    |MinimapColumn {
+                         zlo, layers, above, ..
+                     }| {
+                        (0..layers.len() as i32)
+                            .find(|dz| {
+                                layers
+                                    .get((pos.z as i32 - zlo + dz) as usize)
+                                    .and_then(|grid| grid.get(cmod))
+                                    .map_or(false, |(_, b)| *b)
+                            })
+                            .unwrap_or_else(|| {
+                                if above.1 {
+                                    1
+                                } else {
+                                    self.max_chunk_z - pos.z as i32
+                                }
+                            })
+                    },
+                )
+                .unwrap_or(0)
+        };
+        if cpos.distance_squared(self.last_pos.xy()) >= 1
+            || self.last_pos.z != pos.z as i32
+            || self.last_ceiling != ceiling_offset
+            || new_chunks
+        {
+            self.last_pos = cpos.with_z(pos.z as i32);
+            self.last_ceiling = ceiling_offset;
+            for y in 0..VOXEL_MINIMAP_SIDELENGTH {
+                for x in 0..VOXEL_MINIMAP_SIDELENGTH {
+                    let voff = Vec2::new(x as f32, y as f32);
+                    let coff: Vec2<i32> = voff
+                        .map2(TerrainChunkSize::RECT_SIZE, |i, j| (i as u32).div_euclid(j))
+                        .as_();
+                    let cmod: Vec2<i32> = voff
+                        .map2(TerrainChunkSize::RECT_SIZE, |i, j| (i as u32).rem_euclid(j))
+                        .as_();
+                    let column = self.chunk_minimaps.get(&(cpos + coff));
+                    let color: Rgba<u8> = column
+                        .and_then(|column| {
+                            let MinimapColumn {
+                                zlo,
+                                layers,
+                                above,
+                                below,
+                            } = column;
+                            if pos.z as i32 + ceiling_offset < *zlo {
+                                // If the ceiling is below the bottom of a chunk, color it black,
+                                // so that the middles of caves/dungeons don't show the forests
+                                // around them.
+                                Some(Rgba::new(0, 0, 0, 255))
+                            } else {
+                                // Otherwise, take the pixel from the precomputed z-level view at
+                                // the ceiling's height (using the top slice of the chunk if the
+                                // ceiling is above the chunk, (e.g. so that forests with
+                                // differently-tall trees are handled properly)
+                                layers
+                                    .get(
+                                        ((pos.z as i32 - zlo + ceiling_offset) as usize)
+                                            .min(layers.len().saturating_sub(1)),
                                     )
-                                })
-                                .next()
-                                .unwrap_or_else(|| {
-                                    if above.1 {
-                                        1
-                                    } else {
-                                        self.max_chunk_z - pos.z as i32
-                                    }
-                                })
-                        },
-                    )
-                    .unwrap_or(0)
-            };
-            if cpos.distance_squared(self.last_pos.xy()) >= 1
-                || self.last_pos.z != pos.z as i32
-                || self.last_ceiling != ceiling_offset
-                || new_chunks
-            {
-                self.last_pos = cpos.with_z(pos.z as i32);
-                self.last_ceiling = ceiling_offset;
-                for y in 0..VOXEL_MINIMAP_SIDELENGTH {
-                    for x in 0..VOXEL_MINIMAP_SIDELENGTH {
-                        let voff = Vec2::new(x as f32, y as f32);
-                        let coff: Vec2<i32> = voff
-                            .map2(TerrainChunkSize::RECT_SIZE, |i, j| (i as u32).div_euclid(j))
-                            .as_();
-                        let cmod: Vec2<i32> = voff
-                            .map2(TerrainChunkSize::RECT_SIZE, |i, j| (i as u32).rem_euclid(j))
-                            .as_();
-                        let column = self.chunk_minimaps.get(&(cpos + coff));
-                        let color: Vec4<u8> = column
-                            .and_then(
-                                |MinimapColumn {
-                                     zlo,
-                                     layers,
-                                     above,
-                                     below,
-                                 }| {
-                                    if pos.z as i32 + ceiling_offset < *zlo {
-                                        Some(Vec3::zero().with_w(255))
-                                    } else {
-                                        layers
-                                            .get(
-                                                ((pos.z as i32 - zlo + ceiling_offset) as usize)
-                                                    .min(layers.len().saturating_sub(1)),
-                                            )
-                                            .and_then(|grid| grid.get(cmod).map(|c| c.0.as_()))
-                                            .or_else(|| {
-                                                Some(if pos.z as i32 > *zlo {
-                                                    above.0
-                                                } else {
-                                                    below.0
-                                                })
-                                            })
-                                    }
-                                },
-                            )
-                            .unwrap_or_else(Vec4::zero);
-                        self.composited.put_pixel(
-                            x,
-                            VOXEL_MINIMAP_SIDELENGTH - y - 1,
-                            image::Rgba([color.x, color.y, color.z, color.w]),
-                        );
-                    }
+                                    .and_then(|grid| grid.get(cmod).map(|c| c.0.as_()))
+                                    .or_else(|| {
+                                        Some(if pos.z as i32 > *zlo {
+                                            above.0
+                                        } else {
+                                            below.0
+                                        })
+                                    })
+                            }
+                        })
+                        .unwrap_or_else(Rgba::zero);
+                    self.composited.put_pixel(
+                        x,
+                        VOXEL_MINIMAP_SIDELENGTH - y - 1,
+                        image::Rgba([color.r, color.g, color.b, color.a]),
+                    );
                 }
-
-                ui.replace_graphic(
-                    self.image_id.none,
-                    Graphic::Image(
-                        Arc::new(DynamicImage::ImageRgba8(self.composited.clone())),
-                        Some(Rgba::from([0.0, 0.0, 0.0, 0.0])),
-                    ),
-                );
             }
+
+            ui.replace_graphic(
+                self.image_id.none,
+                Graphic::Image(
+                    Arc::new(DynamicImage::ImageRgba8(self.composited.clone())),
+                    Some(Rgba::from([0.0, 0.0, 0.0, 0.0])),
+                ),
+            );
         }
     }
 }

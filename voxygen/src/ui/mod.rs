@@ -1077,11 +1077,14 @@ impl<K: Hash + Eq + Send + Sync + 'static + Clone, V: Send + Sync + 'static> Key
         }
     }
 
-    pub fn spawn(
+    /// Spawn a task on a specified threadpool. The function is given as a thunk
+    /// so that if work is needed to create captured variables (e.g.
+    /// `Arc::clone`), that only occurs if the task hasn't yet been scheduled.
+    pub fn spawn<F: FnOnce(&K) -> V + Send + Sync + 'static>(
         &mut self,
         pool: Option<&SlowJobPool>,
         k: K,
-        f: impl FnOnce(&K) -> V + Send + Sync + 'static,
+        f: impl FnOnce() -> F,
     ) -> Option<(K, V)> {
         if let Some(pool) = pool {
             while let Ok((k2, v)) = self.rx.try_recv() {
@@ -1106,6 +1109,7 @@ impl<K: Hash + Eq + Send + Sync + 'static + Clone, V: Send + Sync + 'static> Key
                 },
                 Entry::Vacant(e) => {
                     let tx = self.tx.clone();
+                    let f = f();
                     pool.spawn("IMAGE_PROCESSING", move || {
                         let v = f(&k);
                         let _ = tx.send((k, v));
@@ -1115,7 +1119,7 @@ impl<K: Hash + Eq + Send + Sync + 'static + Clone, V: Send + Sync + 'static> Key
                 },
             }
         } else {
-            let v = f(&k);
+            let v = f()(&k);
             Some((k, v))
         }
     }
