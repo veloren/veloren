@@ -2,12 +2,12 @@ BasicRanged(
     energy_cost: 0,
     buildup_duration: 0.5,
     recover_duration: 0.4,
-    projectile: Frostball( // Snowball
-        damage: 80.0,
+    projectile: Snowball(
+        damage: 200.0,
         radius: 5.0,
     ),
-    projectile_body: Object(BoltFire), // Snowball
-    projectile_speed: 30.0,
+    projectile_body: Object(Snowball),
+    projectile_speed: 60.0,
     num_projectiles: 1,
     projectile_spread: 0.0,
 )

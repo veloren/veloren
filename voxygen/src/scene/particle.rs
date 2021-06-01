@@ -100,7 +100,7 @@ impl ParticleMgr {
                                 },
                             );
                         },
-                        Some(Reagent::Blue) => {
+                        Some(Reagent::White) => {
                             self.particles.resize_with(
                                 self.particles.len() + (75.0 * power.abs()) as usize,
                                 || {

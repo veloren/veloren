@@ -132,6 +132,8 @@ impl<'a> System<'a> for Sys {
                                         time_left: Duration::from_secs(60),
                                         owner: *owner,
                                         ignore_group: true,
+                                        is_sticky: true,
+                                        is_point: true,
                                     },
                                     speed,
                                     object: Some(Object::Firework {

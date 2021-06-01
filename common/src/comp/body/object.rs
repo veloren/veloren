@@ -84,6 +84,7 @@ make_case_elim!(
         ClayRocket = 69,
         HaniwaSentry = 70,
         SeaLantern = 71,
+        Snowball = 72,
     }
 );
 
@@ -94,7 +95,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 72] = [
+pub const ALL_OBJECTS: [Body; 73] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -167,6 +168,7 @@ pub const ALL_OBJECTS: [Body; 72] = [
     Body::ClayRocket,
     Body::HaniwaSentry,
     Body::SeaLantern,
+    Body::Snowball,
 ];
 
 impl From<Body> for super::Body {
@@ -248,6 +250,7 @@ impl Body {
             Body::ClayRocket => "clay_rocket",
             Body::HaniwaSentry => "haniwa_sentry",
             Body::SeaLantern => "sea_lantern",
+            Body::Snowball => "snowball",
         }
     }
 
@@ -270,6 +273,7 @@ impl Body {
             Body::Crate => 300.0, // let's say it's a lot of wood and maybe some contents
             Body::Scarecrow => 900.0,
             Body::TrainingDummy => 2000.0,
+            Body::Snowball => 0.9 * WATER_DENSITY,
             // let them sink
             _ => 1.1 * WATER_DENSITY,
         };
@@ -340,6 +344,7 @@ impl Body {
             Body::ClayRocket => 50.0,
             Body::HaniwaSentry => 300.0,
             Body::SeaLantern => 1000.0,
+            Body::Snowball => 7360.0, // 2.5 m diamter
         };
 
         Mass(m)
@@ -354,6 +359,7 @@ impl Body {
             Body::Crossbow => Vec3::new(3.0, 3.0, 1.5),
             Body::HaniwaSentry => Vec3::new(0.8, 0.8, 1.4),
             Body::SeaLantern => Vec3::new(0.5, 0.5, 1.0),
+            Body::Snowball => Vec3::broadcast(2.5),
             _ => Vec3::broadcast(0.5),
         }
     }
