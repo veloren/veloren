@@ -956,7 +956,7 @@ impl Hud {
         interactable: Option<Interactable>,
     ) -> Vec<Event> {
         span!(_guard, "update_layout", "Hud::update_layout");
-        let mut events = std::mem::replace(&mut self.events, Vec::new());
+        let mut events = core::mem::take(&mut self.events);
         let (ref mut ui_widgets, ref mut item_tooltip_manager, ref mut tooltip_manager) =
             &mut self.ui.set_widgets();
         // self.ui.set_item_widgets(); pulse time for pulsating elements

@@ -116,17 +116,18 @@ pub(crate) struct GenCtx {
     pub warp_nz: FastNoise,
     pub tree_nz: BasicMulti,
 
-    pub cave_0_nz: SuperSimplex,
-    pub cave_1_nz: SuperSimplex,
+    // TODO: unused, remove??? @zesterer
+    pub _cave_0_nz: SuperSimplex,
+    pub _cave_1_nz: SuperSimplex,
 
     pub structure_gen: StructureGen2d,
-    pub big_structure_gen: StructureGen2d,
-    pub region_gen: StructureGen2d,
+    pub _big_structure_gen: StructureGen2d,
+    pub _region_gen: StructureGen2d,
 
-    pub fast_turb_x_nz: FastNoise,
-    pub fast_turb_y_nz: FastNoise,
+    pub _fast_turb_x_nz: FastNoise,
+    pub _fast_turb_y_nz: FastNoise,
 
-    pub town_gen: StructureGen2d,
+    pub _town_gen: StructureGen2d,
     pub river_seed: RandomField,
     pub rock_strength_nz: Fbm,
     pub uplift_nz: Worley,
@@ -521,22 +522,22 @@ impl WorldSim {
                 .set_octaves(12)
                 .set_persistence(0.75)
                 .set_seed(rng.gen()),
-            cave_0_nz: SuperSimplex::new().set_seed(rng.gen()),
-            cave_1_nz: SuperSimplex::new().set_seed(rng.gen()),
+            _cave_0_nz: SuperSimplex::new().set_seed(rng.gen()),
+            _cave_1_nz: SuperSimplex::new().set_seed(rng.gen()),
 
             structure_gen: StructureGen2d::new(rng.gen(), 24, 10),
-            big_structure_gen: StructureGen2d::new(rng.gen(), 768, 512),
-            region_gen: StructureGen2d::new(rng.gen(), 400, 96),
+            _big_structure_gen: StructureGen2d::new(rng.gen(), 768, 512),
+            _region_gen: StructureGen2d::new(rng.gen(), 400, 96),
             humid_nz: Billow::new()
                 .set_octaves(9)
                 .set_persistence(0.4)
                 .set_frequency(0.2)
                 .set_seed(rng.gen()),
 
-            fast_turb_x_nz: FastNoise::new(rng.gen()),
-            fast_turb_y_nz: FastNoise::new(rng.gen()),
+            _fast_turb_x_nz: FastNoise::new(rng.gen()),
+            _fast_turb_y_nz: FastNoise::new(rng.gen()),
 
-            town_gen: StructureGen2d::new(rng.gen(), 2048, 1024),
+            _town_gen: StructureGen2d::new(rng.gen(), 2048, 1024),
             river_seed: RandomField::new(rng.gen()),
             rock_strength_nz: Fbm::new()
                 .set_octaves(10)

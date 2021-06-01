@@ -91,7 +91,7 @@ pub struct TerrainChunkMeta {
     contains_dungeon: bool,
 }
 
-#[allow(clippy::clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments)]
 impl TerrainChunkMeta {
     pub fn new(
         name: Option<String>,

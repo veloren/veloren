@@ -581,12 +581,12 @@ pub struct HybridMulti {
 
 impl HybridMulti {
     pub const DEFAULT_FREQUENCY: f64 = 2.0;
-    pub const DEFAULT_LACUNARITY: f64 = /* std::f64::consts::PI * 2.0 / 3.0 */2.0;
+    pub const DEFAULT_LACUNARITY: f64 = /* std::f64::consts::PI * 2.0 / 3.0 */ 2.0;
     pub const DEFAULT_OCTAVES: usize = 6;
-    pub const DEFAULT_OFFSET: f64 = /* 0.25 *//* 0.5*/ 0.7;
+    pub const DEFAULT_OFFSET: f64 = /* 0.25 *//* 0.5 */ 0.7;
     // -ln(2^(-0.25))/ln(2) = 0.25
     // 2^(-0.25) ~ 13/16
-    pub const DEFAULT_PERSISTENCE: f64 = /* 0.25 *//* 0.5*/ 13.0 / 16.0;
+    pub const DEFAULT_PERSISTENCE: f64 = /* 0.25 *//* 0.5 */ 13.0 / 16.0;
     pub const DEFAULT_SEED: u32 = 0;
     pub const MAX_OCTAVES: usize = 32;
 

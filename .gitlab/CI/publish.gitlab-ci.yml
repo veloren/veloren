@@ -2,8 +2,6 @@
 # https://gitlab.com/veloren/veloren/container_registry
 .publish:
   stage: publish
-  tags:
-    - veloren-docker
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "schedule"
       when: always
@@ -11,8 +9,6 @@
 
 .publish-nightly:
   stage: publish
-  tags:
-    - veloren-docker
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: always

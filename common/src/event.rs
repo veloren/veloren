@@ -204,7 +204,7 @@ impl<E> EventBus<E> {
     pub fn emit_now(&self, event: E) { self.queue.lock().unwrap().push_back(event); }
 
     pub fn recv_all(&self) -> impl ExactSizeIterator<Item = E> {
-        std::mem::replace(self.queue.lock().unwrap().deref_mut(), VecDeque::new()).into_iter()
+        std::mem::take(self.queue.lock().unwrap().deref_mut()).into_iter()
     }
 }
 

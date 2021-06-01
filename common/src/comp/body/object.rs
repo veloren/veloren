@@ -172,7 +172,7 @@ impl From<Body> for super::Body {
 }
 
 impl Body {
-    pub fn to_string(&self) -> &str {
+    pub fn to_string(self) -> &'static str {
         match self {
             Body::Arrow => "arrow",
             Body::Bomb => "bomb",

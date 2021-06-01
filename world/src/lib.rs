@@ -5,6 +5,7 @@
     clippy::blocks_in_if_conditions,
     clippy::too_many_arguments
 )]
+#![allow(clippy::branches_sharing_code)] // TODO: evaluate
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(
     arbitrary_enum_discriminant,
@@ -12,7 +13,6 @@
     const_generics,
     const_panic,
     label_break_value,
-    or_patterns,
     array_map
 )]
 

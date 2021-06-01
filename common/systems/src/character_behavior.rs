@@ -257,7 +257,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Controller actions
-            let actions = std::mem::replace(&mut controller.actions, Vec::new());
+            let actions = std::mem::take(&mut controller.actions);
 
             let mut join_struct = JoinStruct {
                 entity,

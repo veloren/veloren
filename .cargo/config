@@ -13,3 +13,5 @@ test-voxygen = "run --bin veloren-voxygen --no-default-features --features gl,si
 tracy-voxygen = "-Zunstable-options run --bin veloren-voxygen --no-default-features --features tracy,gl,simd --profile no_overflow"
 server = "run --bin veloren-server-cli"
 
+[env]
+RUSTC_FORCE_INCREMENTAL = "1"

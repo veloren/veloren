@@ -130,9 +130,7 @@ fn free_slots_minus_equipped_item_items_only_present_in_equipped_bag_slots() {
     inv.loadout
         .swap(bag1_slot, Some(bag.duplicate(ability_map, msm)));
 
-    inv.insert_at(InvSlotId::new(15, 0), bag)
-        .unwrap()
-        .unwrap_none();
+    assert!(inv.insert_at(InvSlotId::new(15, 0), bag).unwrap().is_none());
 
     let result = inv.free_slots_minus_equipped_item(bag1_slot);
 
@@ -156,9 +154,7 @@ fn free_slots_minus_equipped_item() {
         Some(bag.duplicate(ability_map, msm)),
     );
 
-    inv.insert_at(InvSlotId::new(16, 0), bag)
-        .unwrap()
-        .unwrap_none();
+    assert!(inv.insert_at(InvSlotId::new(16, 0), bag).unwrap().is_none());
 
     let result = inv.free_slots_minus_equipped_item(bag1_slot);
 
@@ -247,7 +243,7 @@ fn unequip_items_both_hands() {
     // We have space in the inventory, so this should have unequipped
     assert_eq!(None, inv.equipped(EquipSlot::ActiveMainhand));
     assert_eq!(18, inv.populated_slots());
-    assert_eq!(true, result.is_ok());
+    assert!(result.is_ok());
 
     let result = inv.unequip(EquipSlot::InactiveMainhand).unwrap_err();
     assert_eq!(SlotError::InventoryFull, result);
@@ -303,9 +299,11 @@ fn equip_equipping_smaller_bag_from_last_slot_of_big_bag() {
     let small_bag = get_test_bag(9);
     let large_bag = Item::new_from_asset_expect(LARGE_BAG_ID);
 
-    inv.loadout
-        .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(large_bag))
-        .unwrap_none();
+    assert!(
+        inv.loadout
+            .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(large_bag))
+            .is_none()
+    );
 
     inv.insert_at(InvSlotId::new(15, 15), small_bag).unwrap();
 
@@ -326,9 +324,11 @@ fn unequip_unequipping_bag_into_its_own_slot_with_no_other_free_slots() {
     let mut inv = Inventory::new_empty();
     let bag = get_test_bag(9);
 
-    inv.loadout
-        .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(bag))
-        .unwrap_none();
+    assert!(
+        inv.loadout
+            .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(bag))
+            .is_none()
+    );
 
     // Fill all inventory built-in slots
     fill_inv_slots(&mut inv, 18);
@@ -345,12 +345,14 @@ fn equip_one_bag_equipped_equip_second_bag() {
     let mut inv = Inventory::new_empty();
 
     let bag = get_test_bag(9);
-    inv.loadout
-        .swap(
-            EquipSlot::Armor(ArmorSlot::Bag1),
-            Some(bag.duplicate(ability_map, msm)),
-        )
-        .unwrap_none();
+    assert!(
+        inv.loadout
+            .swap(
+                EquipSlot::Armor(ArmorSlot::Bag1),
+                Some(bag.duplicate(ability_map, msm)),
+            )
+            .is_none()
+    );
 
     inv.push(bag).unwrap();
 
@@ -364,9 +366,11 @@ fn free_after_swap_equipped_item_has_more_slots() {
     let mut inv = Inventory::new_empty();
 
     let bag = get_test_bag(18);
-    inv.loadout
-        .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(bag))
-        .unwrap_none();
+    assert!(
+        inv.loadout
+            .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(bag))
+            .is_none()
+    );
 
     let small_bag = get_test_bag(9);
     inv.push(small_bag).unwrap();
@@ -385,9 +389,11 @@ fn free_after_swap_equipped_item_has_less_slots() {
     let mut inv = Inventory::new_empty();
 
     let bag = get_test_bag(9);
-    inv.loadout
-        .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(bag))
-        .unwrap_none();
+    assert!(
+        inv.loadout
+            .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(bag))
+            .is_none()
+    );
 
     let small_bag = get_test_bag(18);
     inv.push(small_bag).unwrap();
@@ -406,9 +412,11 @@ fn free_after_swap_equipped_item_with_slots_swapped_with_empty_inv_slot() {
     let mut inv = Inventory::new_empty();
 
     let bag = get_test_bag(9);
-    inv.loadout
-        .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(bag))
-        .unwrap_none();
+    assert!(
+        inv.loadout
+            .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(bag))
+            .is_none()
+    );
 
     // Add 5 items to the inventory
     fill_inv_slots(&mut inv, 5);

@@ -1,3 +1,5 @@
+#![allow(clippy::clone_on_copy)] // TODO: fix after wgpu branch 
+
 use crate::{
     mesh::{
         greedy::{self, GreedyConfig, GreedyMesh},

@@ -1,5 +1,3 @@
-#![feature(const_fn)]
-
 pub extern crate plugin_derive;
 
 pub mod retrieve;

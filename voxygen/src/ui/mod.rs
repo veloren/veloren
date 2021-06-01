@@ -530,6 +530,7 @@ impl Ui {
             });
 
         if glyph_missing {
+            #[allow(clippy::branches_sharing_code)] // TODO: evaluate (ask sharp)
             if *retry {
                 // If a glyph was missing and this was our second try, we know something was
                 // messed up during the glyph_cache redraw.  It is possible that

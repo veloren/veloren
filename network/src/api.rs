@@ -1159,10 +1159,11 @@ impl Drop for Participant {
 impl Drop for Stream {
     #[instrument(name="remote", skip(self), fields(p = %self.remote_pid))]
     #[instrument(name="network", skip(self), fields(p = %self.local_pid))]
+
     fn drop(&mut self) {
         // send if closed is unnecessary but doesn't hurt, we must not crash
+        let sid = self.sid;
         if !self.send_closed.load(Ordering::Relaxed) {
-            let sid = self.sid;
             debug!(?sid, "Shutting down Stream");
             if let Err(e) = self.a2b_close_stream_s.take().unwrap().send(self.sid) {
                 debug!(
@@ -1171,7 +1172,6 @@ impl Drop for Stream {
                 );
             }
         } else {
-            let sid = self.sid;
             trace!(?sid, "Stream Drop not needed");
         }
     }
