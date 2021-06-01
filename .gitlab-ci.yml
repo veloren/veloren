@@ -27,6 +27,7 @@ default:
   tags:
     - veloren-docker
 
+# NOTE: overriden for the `.tmacos` template so relevant changes need to be mirrored there
 before_script:
   - source $HOME/.cargo/env
   - df -h /
