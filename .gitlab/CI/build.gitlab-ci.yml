@@ -87,13 +87,19 @@ coverage:
     expire_in: 1 week
 
 .tmacos:
-  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/release-macos:${CACHE_IMAGE_TAG}
+  tags: ["veloren-macos"]
+  before_script:
+    - source $HOME/.cargo/env
+    - cargo --version
+    - export DISABLE_GIT_LFS_CHECK=true
+    - export VELOREN_ASSETS="$(pwd)/assets"
+    - echo "VELOREN_ASSETS=$VELOREN_ASSETS"
+    - export RUSTFLAGS="-D warnings"
   script:
-    - ln -s /dockercache/target target
-    - rm -r target/release/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
-    - VELOREN_USERDATA_STRATEGY=executable WINIT_LINK_COLORSYNC=true PATH="/osxcross/target/bin:$PATH" COREAUDIO_SDK_PATH=/osxcross/target/SDK/MacOSX10.13.sdk CC=o64-clang CXX=o64-clang++ cargo build --target x86_64-apple-darwin --release
-    - cp -r target/x86_64-apple-darwin/release/veloren-server-cli $CI_PROJECT_DIR
-    - cp -r target/x86_64-apple-darwin/release/veloren-voxygen $CI_PROJECT_DIR
+    - export MACOSX_DEPLOYMENT_TARGET="10.13"
+    - cargo build --release
+    - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
+    - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
   artifacts:
     paths:
       - veloren-server-cli
@@ -101,6 +107,20 @@ coverage:
       - assets/
       - LICENSE
     expire_in: 1 week
+
+# e.g. post merge and scheduled builds
+.tmacos-master-cache:
+    cache:
+      key: "macos-master-cache"
+      paths:
+        - target/
+
+# e.g. optional builds from MRs
+.tmacos-mr-cache:
+    cache:
+      key: "macos-mr-cache"
+      paths:
+        - target/
 
 # build on release or master
 linux:
@@ -117,6 +137,7 @@ macos:
   extends:
     - .tmacos
     - .release
+    - .tmacos-master-cache
 
 # build on schedule quickfix till airshipper 0.5
 air-linux:
@@ -133,6 +154,7 @@ air-macos:
   extends:
     - .tmacos
     - .release-nightly-tmp-fix-airshipper
+    - .tmacos-master-cache
 
 # if NOT release or master, allow optional builds
 opt-linux:
@@ -149,3 +171,4 @@ opt-macos:
   extends:
     - .tmacos
     - .optional-release
+    - .tmacos-mr-cache
