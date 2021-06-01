@@ -237,6 +237,14 @@
             (None, "common.abilities.custom.claygolem.rocket"),
         ],
     ),
+    Custom("Yeti"): (
+        primary: "common.abilities.custom.yeti.strike",
+        secondary: "common.abilities.custom.yeti.icespikes",
+        abilities: [
+            (None, "common.abilities.custom.yeti.frostbreath"),
+            (None, "common.abilities.custom.yeti.snowball"),
+        ],
+    ),
     Custom("Bird Large Breathe"): (
         primary: "common.abilities.custom.birdlargebreathe.firebomb",
         secondary: "common.abilities.custom.birdlargebreathe.triplestrike",

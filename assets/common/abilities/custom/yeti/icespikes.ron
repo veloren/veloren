@@ -1,0 +1,17 @@
+Shockwave(
+    energy_cost: 0,
+    buildup_duration: 0.6,
+    swing_duration: 0.12,
+    recover_duration: 1.2,
+    damage: 300,
+    poise_damage: 30,
+    knockback: (strength: 40.0, direction: Up),
+    shockwave_angle: 90.0,
+    shockwave_vertical_angle: 15.0,
+    shockwave_speed: 25.0,
+    shockwave_duration: 1.0,
+    requires_ground: false,
+    move_efficiency: 0.0,
+    damage_kind: Piercing,
+    //specifier: IceSpikes,
+)

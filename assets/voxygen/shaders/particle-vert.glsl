@@ -144,6 +144,12 @@ vec3 perp_axis2(vec3 axis1, vec3 axis2) {
     return normalize(vec3(axis1.y * axis2.z - axis1.z * axis2.y, axis1.z * axis2.x - axis1.x * axis2.z, axis1.x * axis2.y - axis1.y * axis2.x));
 }
 
+// Line is the axis of the spiral, it goes from the start position to the end position
+// Radius is the distance from the axis the particle is
+// Time function is some value that ideally goes from 0 to 1. When it is 0, it is as
+// the point (0, 0, 0), when it is 1, it is at the point provided by the coordinates of line
+// Frequency increases the frequency of rotation
+// Offset is an offset to the angle of the rotation
 vec3 spiral_motion(vec3 line, float radius, float time_function, float frequency, float offset) {
     vec3 axis2 = perp_axis1(line);
     vec3 axis3 = perp_axis2(line, axis2);
@@ -420,10 +426,11 @@ void main() {
             break;
         case ICE:
             f_reflect = 0.0; // Ice doesn't reflect to look like magic
+            float ice_color = 1.9 + rand5 * 0.3;
             attr = Attr(
                 inst_dir * ((rand0+1.0)/2 + 0.4) * slow_end(2.0) + 0.3 * grav_vel(earth_gravity),
-                vec3((3 * (1 - slow_start(0.1)))),
-                vec4(0.2, 1.6 + rand5 * 0.3 - 0.4 * percent(), 3, 1),
+                vec3((5 * (1 - slow_start(.1)))),
+                vec4(0.8 * ice_color, 0.9 * ice_color, ice_color, 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;

@@ -81,6 +81,7 @@ pub enum ParticleMode {
     Laser = 28,
     Bubbles = 29,
     Water = 30,
+    IceSpikes = 31,
 }
 
 impl ParticleMode {
