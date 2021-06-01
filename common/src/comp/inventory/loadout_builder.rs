@@ -13,7 +13,7 @@ use crate::{
     trade::{Good, SiteInformation},
 };
 use hashbrown::HashMap;
-use rand::{seq::SliceRandom, Rng};
+use rand::{self, distributions::WeightedError, seq::SliceRandom, Rng};
 use serde::{Deserialize, Serialize};
 use strum_macros::EnumIter;
 use tracing::warn;
@@ -68,6 +68,38 @@ enum ItemSpec {
     ///  (1.0, None),
     /// ])
     Choice(Vec<(f32, Option<ItemSpec>)>),
+}
+
+fn choose<'a>(
+    items: &'a [(f32, Option<ItemSpec>)],
+    asset_specifier: &'static str,
+) -> &'a Option<ItemSpec> {
+    let mut rng = rand::thread_rng();
+
+    items
+        .choose_weighted(&mut rng, |item| item.0)
+        .map(|(_p, itemspec)| itemspec)
+        .unwrap_or_else(|err| match err {
+            WeightedError::NoItem | WeightedError::AllWeightsZero => &None,
+            WeightedError::InvalidWeight => {
+                let err = format!("Negative values of probability in {}.", asset_specifier);
+                if cfg!(tests) {
+                    panic!("{}", err);
+                } else {
+                    warn!("{}", err);
+                    &None
+                }
+            },
+            WeightedError::TooMany => {
+                let err = format!("More than u32::MAX values in {}.", asset_specifier);
+                if cfg!(tests) {
+                    panic!("{}", err);
+                } else {
+                    warn!("{}", err);
+                    &None
+                }
+            },
+        })
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -309,114 +341,108 @@ impl LoadoutBuilder {
         builder.active_mainhand(active_item)
     }
 
-    pub fn from_asset_expect(asset_specifier: &str) -> Self {
+    pub fn from_asset_expect(asset_specifier: &'static str) -> Self {
+        let loadout = LoadoutBuilder::new();
+
+        loadout.apply_asset_expect(asset_specifier)
+    }
+
+    pub fn apply_asset_expect(mut self, asset_specifier: &'static str) -> Self {
         let spec = LoadoutSpec::load_expect(asset_specifier).read().0.clone();
-        let mut loadout = LoadoutBuilder::new();
         for (key, specifier) in spec {
             let item = match specifier {
                 ItemSpec::Item(specifier) => Item::new_from_asset_expect(&specifier),
-                ItemSpec::Choice(items) => {
-                    let mut rng = rand::thread_rng();
-                    match items
-                        .choose_weighted(&mut rng, |item| item.0)
-                        .unwrap_or_else(|_| {
-                            panic!(
-                                "failed to choose item from loadout asset ({})",
-                                asset_specifier
-                            )
-                        }) {
-                        (_, Some(ItemSpec::Item(item_specifier))) => {
-                            Item::new_from_asset_expect(&item_specifier)
-                        },
-                        (_, Some(ItemSpec::Choice(_))) => {
-                            let err = format!(
-                                "Using choice of choices in ({}): {:?}. Unimplemented.",
-                                asset_specifier, key,
-                            );
-                            if cfg!(tests) {
-                                panic!("{}", err);
-                            } else {
-                                warn!("{}", err);
-                            }
-                            continue;
-                        },
-                        (_, None) => continue,
-                    }
+                ItemSpec::Choice(items) => match choose(&items, asset_specifier) {
+                    Some(ItemSpec::Item(item_specifier)) => {
+                        Item::new_from_asset_expect(&item_specifier)
+                    },
+                    Some(ItemSpec::Choice(_)) => {
+                        let err = format!(
+                            "Using choice of choices in ({}): {:?}. Unimplemented.",
+                            asset_specifier, key,
+                        );
+                        if cfg!(tests) {
+                            panic!("{}", err);
+                        } else {
+                            warn!("{}", err);
+                        }
+                        continue;
+                    },
+                    None => continue,
                 },
             };
             match key {
                 EquipSlot::ActiveMainhand => {
-                    loadout = loadout.active_mainhand(Some(item));
+                    self = self.active_mainhand(Some(item));
                 },
                 EquipSlot::ActiveOffhand => {
-                    loadout = loadout.active_offhand(Some(item));
+                    self = self.active_offhand(Some(item));
                 },
                 EquipSlot::InactiveMainhand => {
-                    loadout = loadout.inactive_mainhand(Some(item));
+                    self = self.inactive_mainhand(Some(item));
                 },
                 EquipSlot::InactiveOffhand => {
-                    loadout = loadout.inactive_offhand(Some(item));
+                    self = self.inactive_offhand(Some(item));
                 },
                 EquipSlot::Armor(ArmorSlot::Head) => {
-                    loadout = loadout.head(Some(item));
+                    self = self.head(Some(item));
                 },
                 EquipSlot::Armor(ArmorSlot::Shoulders) => {
-                    loadout = loadout.shoulder(Some(item));
+                    self = self.shoulder(Some(item));
                 },
                 EquipSlot::Armor(ArmorSlot::Chest) => {
-                    loadout = loadout.chest(Some(item));
+                    self = self.chest(Some(item));
                 },
                 EquipSlot::Armor(ArmorSlot::Hands) => {
-                    loadout = loadout.hands(Some(item));
+                    self = self.hands(Some(item));
                 },
                 EquipSlot::Armor(ArmorSlot::Legs) => {
-                    loadout = loadout.pants(Some(item));
+                    self = self.pants(Some(item));
                 },
                 EquipSlot::Armor(ArmorSlot::Feet) => {
-                    loadout = loadout.feet(Some(item));
+                    self = self.feet(Some(item));
                 },
                 EquipSlot::Armor(ArmorSlot::Belt) => {
-                    loadout = loadout.belt(Some(item));
+                    self = self.belt(Some(item));
                 },
                 EquipSlot::Armor(ArmorSlot::Back) => {
-                    loadout = loadout.back(Some(item));
+                    self = self.back(Some(item));
                 },
                 EquipSlot::Armor(ArmorSlot::Neck) => {
-                    loadout = loadout.neck(Some(item));
+                    self = self.neck(Some(item));
                 },
                 EquipSlot::Armor(ArmorSlot::Ring1) => {
-                    loadout = loadout.ring1(Some(item));
+                    self = self.ring1(Some(item));
                 },
                 EquipSlot::Armor(ArmorSlot::Ring2) => {
-                    loadout = loadout.ring2(Some(item));
+                    self = self.ring2(Some(item));
                 },
                 EquipSlot::Lantern => {
-                    loadout = loadout.lantern(Some(item));
+                    self = self.lantern(Some(item));
                 },
                 EquipSlot::Armor(ArmorSlot::Tabard) => {
-                    loadout = loadout.tabard(Some(item));
+                    self = self.tabard(Some(item));
                 },
                 EquipSlot::Glider => {
-                    loadout = loadout.glider(Some(item));
+                    self = self.glider(Some(item));
                 },
                 EquipSlot::Armor(slot @ ArmorSlot::Bag1)
                 | EquipSlot::Armor(slot @ ArmorSlot::Bag2)
                 | EquipSlot::Armor(slot @ ArmorSlot::Bag3)
                 | EquipSlot::Armor(slot @ ArmorSlot::Bag4) => {
-                    loadout = loadout.bag(slot, Some(item));
+                    self = self.bag(slot, Some(item));
                 },
             };
         }
 
-        loadout
+        self
     }
 
     /// Set default armor items for the loadout. This may vary with game
     /// updates, but should be safe defaults for a new character.
-    pub fn defaults(self) -> Self { LoadoutBuilder::from_asset_expect("common.loadouts.default") }
+    pub fn defaults(self) -> Self { self.apply_asset_expect("common.loadouts.default") }
 
     /// Builds loadout of creature when spawned
-    #[allow(clippy::single_match)]
     pub fn build_loadout(
         body: Body,
         mut main_tool: Option<Item>,

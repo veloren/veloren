@@ -1,3 +1,4 @@
+// Keep in mind that this should be safe defaults for new character
 ({
     Armor(Chest): Item("common.items.armor.misc.chest.worker_purple_brown"),
     Armor(Legs): Item("common.items.armor.misc.pants.worker_brown"),
