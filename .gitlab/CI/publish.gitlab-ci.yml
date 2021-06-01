@@ -42,6 +42,7 @@ docker-nightly:
 
 pages:
   extends: .publish
+  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
   artifacts:
     paths:
       - public
