@@ -78,10 +78,43 @@ enum ItemSpec {
     Choice(Vec<(f32, Option<ItemSpec>)>),
 }
 
-fn choose<'a>(
-    items: &'a [(f32, Option<ItemSpec>)],
-    asset_specifier: &str,
-) -> &'a Option<ItemSpec> {
+impl ItemSpec {
+    fn try_to_item(&self, asset_specifier: &str) -> Option<Item> {
+        match self {
+            ItemSpec::Item(specifier) => Some(Item::new_from_asset_expect(&specifier)),
+
+            ItemSpec::Choice(items) => {
+                choose(&items, asset_specifier)
+                    .as_ref()
+                    .and_then(|e| match e {
+                        entry @ ItemSpec::Item { .. } => entry.try_to_item(asset_specifier),
+                        choice @ ItemSpec::Choice { .. } => choice.try_to_item(asset_specifier),
+                    })
+            },
+        }
+    }
+
+    #[cfg(test)]
+    // Read everything and checks if it's loading
+    fn validate(&self, key: EquipSlot) {
+        match self {
+            ItemSpec::Item(specifier) => std::mem::drop(Item::new_from_asset_expect(&specifier)),
+            ItemSpec::Choice(items) => {
+                for (p, entry) in items {
+                    if p <= &0.0 {
+                        let err =
+                            format!("Weight is less or equal to 0.0.\n ({:?}: {:?})", key, self,);
+                        panic!("\n\n{}\n\n", err);
+                    } else {
+                        entry.as_ref().map(|e| e.validate(key));
+                    }
+                }
+            },
+        }
+    }
+}
+
+fn choose<'a>(items: &'a [(f32, Option<ItemSpec>)], asset_specifier: &str) -> &'a Option<ItemSpec> {
     let mut rng = rand::thread_rng();
 
     items.choose_weighted(&mut rng, |item| item.0).map_or_else(
@@ -378,27 +411,10 @@ impl LoadoutBuilder {
     #[must_use]
     pub fn apply_asset_expect(mut self, asset_specifier: &str) -> Self {
         let spec = LoadoutSpec::load_expect(asset_specifier).read().0.clone();
-        for (key, specifier) in spec {
-            let item = match specifier {
-                ItemSpec::Item(specifier) => Item::new_from_asset_expect(&specifier),
-                ItemSpec::Choice(items) => match choose(&items, asset_specifier) {
-                    Some(ItemSpec::Item(item_specifier)) => {
-                        Item::new_from_asset_expect(item_specifier)
-                    },
-                    Some(ItemSpec::Choice(_)) => {
-                        let err = format!(
-                            "Using choice of choices in ({}): {:?}. Unimplemented.",
-                            asset_specifier, key,
-                        );
-                        if cfg!(tests) {
-                            panic!("{}", err);
-                        } else {
-                            warn!("{}", err);
-                        }
-                        continue;
-                    },
-                    None => continue,
-                },
+        for (key, entry) in spec {
+            let item = match entry.try_to_item(asset_specifier) {
+                Some(item) => item,
+                None => continue,
             };
             match key {
                 EquipSlot::ActiveMainhand => {
@@ -926,44 +942,12 @@ mod tests {
         // It just load everything that could
         // TODO: add some checks, e.g. that Armor(Head) key correspond
         // to Item with ItemKind Head(_)
-        fn validate_asset(loadout: LoadoutSpec) {
-            let spec = loadout.0;
-            for (key, specifier) in spec {
-                match specifier {
-                    ItemSpec::Item(specifier) => {
-                        Item::new_from_asset_expect(&specifier);
-                    },
-                    ItemSpec::Choice(ref items) => {
-                        for item in items {
-                            match item {
-                                (p, _) if p <= &0.0 => {
-                                    let err = format!(
-                                        "Weight is less or equal to 0.0.\n ({:?}: {:?})",
-                                        key, specifier,
-                                    );
-                                    panic!("\n\n{}\n\n", err);
-                                },
-                                (_, Some(ItemSpec::Item(specifier))) => {
-                                    Item::new_from_asset_expect(specifier);
-                                },
-                                (_, None) => {},
-                                (_, _) => {
-                                    let err = format!(
-                                        "Choice of Choice is unimplemented. \n({:?}: {:?})",
-                                        key, specifier,
-                                    );
-                                    panic!("\n\n{}\n\n", err);
-                                },
-                            };
-                        }
-                    },
-                };
-            }
-        }
-
         let loadouts = LoadoutList::load_expect_cloned("common.loadouts.*").0;
         for loadout in loadouts {
-            validate_asset(loadout);
+            let spec = loadout.0;
+            for (key, entry) in spec {
+                entry.validate(key);
+            }
         }
     }
 }
