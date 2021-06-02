@@ -1224,7 +1224,7 @@ fn mini_boss_1(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
 }
 
 fn mini_boss_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.creature.quad_low.default");
+    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.creature.quad_low.fanged");
     let mut entities = Vec::new();
     entities.resize_with(6, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
@@ -1242,7 +1242,7 @@ fn mini_boss_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
 
 fn mini_boss_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     let chosen =
-        Lottery::<LootSpec>::load_expect("common.loot_tables.creature.quad_medium.default");
+        Lottery::<LootSpec>::load_expect("common.loot_tables.creature.quad_medium.carapace");
     let mut entities = Vec::new();
     entities.resize_with(3, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))

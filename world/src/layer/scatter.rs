@@ -163,7 +163,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             ((c.rockiness - 0.5).max(0.025) * 1.0e-3, None)
         }),
         (Copper, false, |c, _| {
-            ((c.rockiness - 0.5).max(0.025) * 1.5e-3, None)
+            ((c.rockiness - 0.1).max(0.025) * 1.5e-3, None)
         }),
         (Tin, false, |c, _| {
             ((c.rockiness - 0.5).max(0.025) * 1.5e-3, None)
@@ -283,7 +283,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
         }),
         (Pyrebloom, false, |c, _| {
             (
-                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 0.75,
+                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 0.35,
                 None,
             )
         }),

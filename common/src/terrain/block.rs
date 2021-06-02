@@ -176,7 +176,10 @@ impl Block {
             | SpriteKind::WallSconce
             | SpriteKind::FireBowlGround => Some(16),
             SpriteKind::Velorite | SpriteKind::VeloriteFrag => Some(6),
-            SpriteKind::CaveMushroom | SpriteKind::CookingPot | SpriteKind::Crystal => Some(16),
+            SpriteKind::CaveMushroom
+            | SpriteKind::CookingPot
+            | SpriteKind::CrystalHigh
+            | SpriteKind::CrystalLow => Some(16),
             SpriteKind::Amethyst
             | SpriteKind::Ruby
             | SpriteKind::Sapphire

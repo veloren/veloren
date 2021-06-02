@@ -156,7 +156,7 @@ make_case_elim!(
         DungeonChest5 = 0x81,
         Loom = 0x82,
         SpinningWheel = 0x83,
-        Crystal = 0x84,
+        CrystalHigh = 0x84,
         Bloodstone = 0x85,
         Coal = 0x86,
         Cobalt = 0x87,
@@ -170,6 +170,7 @@ make_case_elim!(
         Pyrebloom = 0x8F,
         TanningRack = 0x90,
         WildFlax = 0x91,
+        CrystalLow = 0x92,
     }
 );
 
@@ -244,7 +245,7 @@ impl SpriteKind {
             // TODO: Figure out if this should be solid or not.
             SpriteKind::Shelf => 1.0,
             SpriteKind::Lantern => 0.9,
-            SpriteKind::Crystal => 1.5,
+            SpriteKind::CrystalHigh | SpriteKind::CrystalLow => 1.5,
             SpriteKind::Bloodstone
             | SpriteKind::Coal
             | SpriteKind::Cobalt

@@ -90,9 +90,9 @@ SET item_definition_id = 'common.items.crafting_ing.hide.carapace' WHERE item_de
 UPDATE item
 SET item_definition_id = 'common.items.crafting_ing.animal_misc.claw' WHERE item_definition_id = 'common.items.crafting_ing.claw';
 UPDATE item
-SET item_definition_id = 'common.items.crafting_ing.cloth.cloth_scraps' WHERE item_definition_id = 'common.items.crafting_ing.cloth_scraps';
+SET item_definition_id = 'common.items.crafting_ing.cloth.cloth_scraps' WHERE item_definition_id = 'common.items.crafting_ing.linen';
 UPDATE item
-SET item_definition_id = 'common.items.crafting_ing.cloth.cloth_scraps_red' WHERE item_definition_id = 'common.items.crafting_ing.cloth_scraps_red';
+SET item_definition_id = 'common.items.crafting_ing.cloth.cloth_scraps_red' WHERE item_definition_id = 'common.items.crafting_ing.linen_red';
 UPDATE item
 SET item_definition_id = 'common.items.mineral.ore.coal' WHERE item_definition_id = 'common.items.crafting_ing.coal';
 UPDATE item

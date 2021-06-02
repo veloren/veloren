@@ -59,7 +59,12 @@
     deep_stone_color: (125, 120, 130),
     layer: (
         bridge: (80, 80, 100),
-        stalagtite: (77, 91, 161),
+        stalagtite: (90, 71, 112),
+        cave_floor: (42, 39, 82),
+        cave_roof: (38, 21, 79),
+        dirt: (69, 48, 15),
+        scaffold: (195, 190, 212),
+        vein: (222, 140, 39),
     ),
     site: (
         castle: (),

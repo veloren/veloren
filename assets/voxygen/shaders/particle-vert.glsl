@@ -70,6 +70,7 @@ const int LASER = 28;
 const int BUBBLES = 29;
 const int WATER = 30;
 const int ICE_SPIKES = 31;
+const int DUST = 31;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -528,6 +529,17 @@ void main() {
                 vec3(0.0),
                 vec3(11.0, 11.0, 11.0 * length(inst_dir) * 2.0 * (0.5 - abs(0.5 - slow_end(0.5)))) / 3,
                 vec4(0.8 * ice_color, 0.9 * ice_color, ice_color, 1),
+                spin_in_axis(vec3(1,0,0),0)
+            );
+            break;
+        case DUST:
+            attr = Attr(
+                linear_motion(
+                    vec3(0),
+                    normalize(vec3(rand4, rand5, rand6))  + grav_vel(earth_gravity)
+                ),
+                vec3((2.0 * (1 - slow_start(0.2)))),
+                vec4(1, 1, 0, 1),
                 spin_in_axis(vec3(1,0,0),0)
             );
             break;

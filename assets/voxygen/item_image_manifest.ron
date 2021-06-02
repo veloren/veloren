@@ -2573,6 +2573,10 @@
         "voxel.sprite.crafting_ing.cloth.sunsilk",
         (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
     ),
+    Ingredient("LinenRed"): VoxTrans(
+        "voxel.sprite.crafting_ing.cloth.linen_red",
+        (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
+    ),
     Ingredient("SilverIngot"): VoxTrans(
         "voxel.sprite.mineral.ingot.silver",
         (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
@@ -2650,12 +2654,6 @@
     ),
     Ingredient("TrollLeather"): Png(
         "element.items.item_leather_green",
-    ),
-    Ingredient("ClothScraps"): Png(
-        "element.items.item_cloth0",
-    ),
-    Ingredient("ClothScrapsRed"): Png(
-        "element.items.item_cloth_red",
     ),
     Ingredient("MortarPestle"): Png(
         "element.items.item_mortarpestlecoco",

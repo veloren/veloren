@@ -574,7 +574,7 @@ Liana: Some((
             lod_axes: (0.0, 0.0, 0.5),
         ),
     ],
-    wind_sway: 0.05,
+    wind_sway: 0.0,
 )),
 
 // Velorite
@@ -2982,15 +2982,110 @@ Gold: Some((
     ],
     wind_sway: 0.0,
 )),
-Crystal: Some((
+CrystalHigh: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.mineral.gem.crystal-0",
-            offset: (-8.5, -8.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.ceiling.blue-0",
+            offset: (-8.5, -9.0, -7.0),
+            lod_axes: (1.0, 1.0, 1.0),
         ),
-    ],
-    wind_sway: 0.0,
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.ceiling.blue-1",
+            offset: (-8.0, -8.0, -10.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.ceiling.blue-2",
+            offset: (-11.5, -12.5, -9.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.ceiling.purple-0",
+            offset: (-8.5, -9.0, -7.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.ceiling.purple-1",
+            offset: (-8.0, -8.0, -10.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.ceiling.purple-2",
+            offset: (-11.5, -12.5, -9.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.ceiling.purple-3",
+            offset: (-11.5, -12.5, -49.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.ceiling.green-0",
+            offset: (-8.5, -9.0, -7.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.ceiling.green-1",
+            offset: (-8.0, -8.0, -10.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.ceiling.green-2",
+            offset: (-11.5, -12.5, -9.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        )
+],
+wind_sway: 0.0,
+)),
+CrystalLow: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.floor.blue-0",
+            offset: (-8.5, -9.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.floor.blue-1",
+            offset: (-8.0, -8.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.floor.blue-2",
+            offset: (-11.5, -12.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.floor.purple-0",
+            offset: (-8.5, -9.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.floor.purple-1",
+            offset: (-8.0, -8.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.floor.purple-2",
+            offset: (-11.5, -12.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.floor.green-0",
+            offset: (-8.5, -9.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.floor.green-1",
+            offset: (-8.0, -8.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.floor.green-2",
+            offset: (-11.5, -12.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        )
+],
+wind_sway: 0.0,
 )),
 Cotton: Some((
     variations: [
@@ -3000,7 +3095,7 @@ Cotton: Some((
             lod_axes: (0.0, 0.0, 0.0),
         ),
     ],
-    wind_sway: 0.0,
+    wind_sway: 0.4,
 )),
 Moonbell: Some((
     variations: [

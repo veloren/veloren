@@ -1,6 +1,5 @@
 [
     (1.0, Item("common.items.crafting_ing.bowl")),
     (1.0, Item("common.items.crafting_ing.empty_vial")),
-    (2.0, Item("common.items.crafting_ing.cloth.cloth_scraps")),
     (1.0, Item("common.items.crafting_ing.leather.leather_strips")),
 ]
