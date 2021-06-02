@@ -42,7 +42,7 @@ use img_ids::Imgs;
 use item_imgs::ItemImgs;
 use loot_scroller::LootScroller;
 use map::Map;
-use minimap::MiniMap;
+use minimap::{MiniMap, VoxelMinimap};
 use popup::Popup;
 use prompt_dialog::PromptDialog;
 use serde::{Deserialize, Serialize};
@@ -81,6 +81,7 @@ use common::{
     },
     consts::MAX_PICKUP_RANGE,
     outcome::Outcome,
+    slowjob::SlowJobPool,
     terrain::{SpriteKind, TerrainChunk},
     trade::{ReducedInventory, TradeAction},
     uid::Uid,
@@ -810,6 +811,7 @@ pub struct Hud {
     events: Vec<Event>,
     crosshair_opacity: f32,
     floaters: Floaters,
+    voxel_minimap: VoxelMinimap,
 }
 
 impl Hud {
@@ -866,6 +868,7 @@ impl Hud {
         );
 
         Self {
+            voxel_minimap: VoxelMinimap::new(&mut ui),
             ui,
             imgs,
             world_map,
@@ -957,6 +960,9 @@ impl Hud {
     ) -> Vec<Event> {
         span!(_guard, "update_layout", "Hud::update_layout");
         let mut events = core::mem::take(&mut self.events);
+        if global_state.settings.interface.map_show_voxel_map {
+            self.voxel_minimap.maintain(&client, &mut self.ui);
+        }
         let (ref mut ui_widgets, ref mut item_tooltip_manager, ref mut tooltip_manager) =
             &mut self.ui.set_widgets();
         // self.ui.set_item_widgets(); pulse time for pulsating elements
@@ -2364,6 +2370,7 @@ impl Hud {
             camera.get_orientation(),
             &global_state,
             self.show.location_marker,
+            &self.voxel_minimap,
         )
         .set(self.ids.minimap, ui_widgets)
         {
@@ -3599,9 +3606,14 @@ impl Hud {
 
         // Check if item images need to be reloaded
         self.item_imgs.reload_if_changed(&mut self.ui);
-
+        // TODO: using a thread pool in the obvious way for speeding up map zoom results
+        // in flickering artifacts, figure out a better way to make use of the
+        // thread pool
+        let _pool = client.state().ecs().read_resource::<SlowJobPool>();
         self.ui.maintain(
             &mut global_state.window.renderer_mut(),
+            None,
+            //Some(&pool),
             Some(proj_mat * view_mat * Mat4::translation_3d(-focus_off)),
         );
 

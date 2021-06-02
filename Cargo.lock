@@ -1033,20 +1033,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "crossbeam"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd01a6eb3daaafa260f6fc94c3a6c36390abc2080e38e3e34ced87393fb77d80"
-dependencies = [
- "cfg-if 1.0.0",
- "crossbeam-channel",
- "crossbeam-deque 0.8.0",
- "crossbeam-epoch 0.9.3",
- "crossbeam-queue",
- "crossbeam-utils 0.8.3",
-]
-
-[[package]]
 name = "crossbeam-channel"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5815,7 +5801,8 @@ dependencies = [
  "coreaudio-sys",
  "cpal",
  "criterion",
- "crossbeam",
+ "crossbeam-channel",
+ "crossbeam-utils 0.8.3",
  "directories-next",
  "dispatch 0.1.4",
  "dot_vox",

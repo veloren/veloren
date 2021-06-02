@@ -20,7 +20,7 @@ use crate::{
     },
     Error,
 };
-use common::util::srgba_to_linear;
+use common::{slowjob::SlowJobPool, util::srgba_to_linear};
 use common_base::span;
 use std::{convert::TryInto, ops::Range};
 use vek::*;
@@ -184,7 +184,12 @@ impl IcedRenderer {
         self.cache.resize_glyph_cache(renderer).unwrap();
     }
 
-    pub fn draw(&mut self, primitive: Primitive, renderer: &mut Renderer) {
+    pub fn draw(
+        &mut self,
+        primitive: Primitive,
+        renderer: &mut Renderer,
+        pool: Option<&SlowJobPool>,
+    ) {
         span!(_guard, "draw", "IcedRenderer::draw");
         // Re-use memory
         self.draw_commands.clear();
@@ -194,7 +199,7 @@ impl IcedRenderer {
         self.current_state = State::Plain;
         self.start = 0;
 
-        self.draw_primitive(primitive, Vec2::zero(), 1.0, renderer);
+        self.draw_primitive(primitive, Vec2::zero(), 1.0, renderer, pool);
 
         // Enter the final command.
         self.draw_commands.push(match self.current_state {
@@ -426,12 +431,13 @@ impl IcedRenderer {
         offset: Vec2<u32>,
         alpha: f32,
         renderer: &mut Renderer,
+        pool: Option<&SlowJobPool>,
     ) {
         match primitive {
             Primitive::Group { primitives } => {
                 primitives
                     .into_iter()
-                    .for_each(|p| self.draw_primitive(p, offset, alpha, renderer));
+                    .for_each(|p| self.draw_primitive(p, offset, alpha, renderer, pool));
             },
             Primitive::Image {
                 handle,
@@ -536,6 +542,7 @@ impl IcedRenderer {
                 // Cache graphic at particular resolution.
                 let (uv_aabr, tex_id) = match graphic_cache.cache_res(
                     renderer,
+                    pool,
                     graphic_id,
                     resolution,
                     // TODO: take f32 here
@@ -730,7 +737,7 @@ impl IcedRenderer {
                 // TODO: cull primitives outside the current scissor
 
                 // Renderer child
-                self.draw_primitive(*content, offset + clip_offset, alpha, renderer);
+                self.draw_primitive(*content, offset + clip_offset, alpha, renderer, pool);
 
                 // Reset scissor
                 self.draw_commands.push(match self.current_state {
@@ -745,7 +752,7 @@ impl IcedRenderer {
                     .push(DrawCommand::Scissor(self.window_scissor));
             },
             Primitive::Opacity { alpha: a, content } => {
-                self.draw_primitive(*content, offset, alpha * a, renderer);
+                self.draw_primitive(*content, offset, alpha * a, renderer, pool);
             },
             Primitive::Nothing => {},
         }

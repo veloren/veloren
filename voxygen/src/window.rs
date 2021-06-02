@@ -5,7 +5,7 @@ use crate::{
     ui, Error,
 };
 use common_base::span;
-use crossbeam::channel;
+use crossbeam_channel as channel;
 use gilrs::{EventType, Gilrs};
 use hashbrown::HashMap;
 use itertools::Itertools;

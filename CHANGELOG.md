@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - /skill_preset command which allows you to apply skill presets
 - Added timed bans and ban history.
 - Added non-admin moderators with limit privileges and updated the security model to reflect this.
+- Added a minimap mode that visualizes terrain within a chunk.
 - Chat tabs
 - NPC's now hear certain sounds
 - Renamed Animal Trainers to Beastmasters and gave them their own set of armor to wear

@@ -4,7 +4,7 @@ use client::{
     Client, ServerInfo,
 };
 use common::consts::MIN_RECOMMENDED_TOKIO_THREADS;
-use crossbeam::channel::{unbounded, Receiver, Sender, TryRecvError};
+use crossbeam_channel::{unbounded, Receiver, Sender, TryRecvError};
 use std::{
     sync::{
         atomic::{AtomicBool, AtomicUsize, Ordering},

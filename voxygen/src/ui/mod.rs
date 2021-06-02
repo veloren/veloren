@@ -8,9 +8,11 @@ pub mod img_ids;
 #[macro_use]
 pub mod fonts;
 pub mod ice;
+pub mod keyed_jobs;
 
 pub use event::Event;
 pub use graphic::{Graphic, Id as GraphicId, Rotation, SampleStrat, Transform};
+pub use keyed_jobs::KeyedJobs;
 pub use scale::{Scale, ScaleMode};
 pub use widgets::{
     image_frame::ImageFrame,
@@ -34,7 +36,7 @@ use crate::{
 #[rustfmt::skip]
 use ::image::GenericImageView;
 use cache::Cache;
-use common::util::srgba_to_linear;
+use common::{slowjob::SlowJobPool, util::srgba_to_linear};
 use common_base::span;
 use conrod_core::{
     event::Input,
@@ -306,7 +308,12 @@ impl Ui {
     pub fn widget_input(&self, id: widget::Id) -> Widget { self.ui.widget_input(id) }
 
     #[allow(clippy::float_cmp)] // TODO: Pending review in #587
-    pub fn maintain(&mut self, renderer: &mut Renderer, view_projection_mat: Option<Mat4<f32>>) {
+    pub fn maintain(
+        &mut self,
+        renderer: &mut Renderer,
+        pool: Option<&SlowJobPool>,
+        view_projection_mat: Option<Mat4<f32>>,
+    ) {
         span!(_guard, "maintain", "Ui::maintain");
         // Maintain tooltip manager
         self.tooltip_manager
@@ -353,16 +360,17 @@ impl Ui {
         }
 
         let mut retry = false;
-        self.maintain_internal(renderer, view_projection_mat, &mut retry);
+        self.maintain_internal(renderer, pool, view_projection_mat, &mut retry);
         if retry {
             // Update the glyph cache and try again.
-            self.maintain_internal(renderer, view_projection_mat, &mut retry);
+            self.maintain_internal(renderer, pool, view_projection_mat, &mut retry);
         }
     }
 
     fn maintain_internal(
         &mut self,
         renderer: &mut Renderer,
+        pool: Option<&SlowJobPool>,
         view_projection_mat: Option<Mat4<f32>>,
         retry: &mut bool,
     ) {
@@ -806,6 +814,7 @@ impl Ui {
                     // Cache graphic at particular resolution.
                     let (uv_aabr, tex_id) = match graphic_cache.cache_res(
                         renderer,
+                        pool,
                         *graphic_id,
                         resolution,
                         source_aabr,

@@ -65,6 +65,9 @@ widget_ids! {
         show_peaks_img,
         show_peaks_box,
         show_peaks_text,
+        show_voxel_map_img,
+        show_voxel_map_box,
+        show_voxel_map_text,
         show_difficulty_img,
         show_difficulty_box,
         show_difficulty_text,
@@ -200,6 +203,7 @@ impl<'a> Widget for Map<'a> {
         let show_caves = self.global_state.settings.interface.map_show_caves;
         let show_trees = self.global_state.settings.interface.map_show_trees;
         let show_peaks = self.global_state.settings.interface.map_show_peaks;
+        let show_voxel_map = self.global_state.settings.interface.map_show_voxel_map;
         let show_topo_map = self.global_state.settings.interface.map_show_topo_map;
         let mut events = Vec::new();
         let i18n = &self.localized_strings;
@@ -636,6 +640,44 @@ impl<'a> Widget for Map<'a> {
             .graphics_for(state.ids.show_peaks_box)
             .color(TEXT_COLOR)
             .set(state.ids.show_peaks_text, ui);
+        // Voxel map (TODO: enable this once Pfau approves the final UI, and once
+        // there's a non-placeholder graphic for the checkbox)
+        const EXPOSE_VOXEL_MAP_TOGGLE_IN_UI: bool = false;
+        if EXPOSE_VOXEL_MAP_TOGGLE_IN_UI {
+            Image::new(self.imgs.mmap_poi_peak)
+                .down_from(state.ids.show_peaks_img, 10.0)
+                .w_h(20.0, 20.0)
+                .set(state.ids.show_voxel_map_img, ui);
+            if Button::image(if show_voxel_map {
+                self.imgs.checkbox_checked
+            } else {
+                self.imgs.checkbox
+            })
+            .w_h(18.0, 18.0)
+            .hover_image(if show_voxel_map {
+                self.imgs.checkbox_checked_mo
+            } else {
+                self.imgs.checkbox_mo
+            })
+            .press_image(if show_voxel_map {
+                self.imgs.checkbox_checked
+            } else {
+                self.imgs.checkbox_press
+            })
+            .right_from(state.ids.show_voxel_map_img, 10.0)
+            .set(state.ids.show_voxel_map_box, ui)
+            .was_clicked()
+            {
+                events.push(Event::SettingsChange(MapShowVoxelMap(!show_voxel_map)));
+            }
+            Text::new(i18n.get("hud.map.voxel_map"))
+                .right_from(state.ids.show_voxel_map_box, 10.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .graphics_for(state.ids.show_voxel_map_box)
+                .color(TEXT_COLOR)
+                .set(state.ids.show_voxel_map_text, ui);
+        }
         // Map icons
         if state.ids.mmap_poi_icons.len() < self.client.pois().len() {
             state.update(|state| {

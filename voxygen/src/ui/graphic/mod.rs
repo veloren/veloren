@@ -3,13 +3,16 @@ mod renderer;
 
 pub use renderer::{SampleStrat, Transform};
 
-use crate::render::{RenderError, Renderer, Texture};
-use common::figure::Segment;
+use crate::{
+    render::{RenderError, Renderer, Texture},
+    ui::KeyedJobs,
+};
+use common::{figure::Segment, slowjob::SlowJobPool};
 use guillotiere::{size2, SimpleAtlasAllocator};
 use hashbrown::{hash_map::Entry, HashMap};
 use image::{DynamicImage, RgbaImage};
 use pixel_art::resize_pixel_art;
-use std::sync::Arc;
+use std::{hash::Hash, sync::Arc};
 use tracing::warn;
 use vek::*;
 
@@ -142,6 +145,9 @@ pub struct GraphicCache {
     textures: Vec<Texture>,
     // Stores the location of graphics rendered at a particular resolution and cached on the cpu
     cache_map: HashMap<Parameters, CachedDetails>,
+
+    #[allow(clippy::type_complexity)]
+    keyed_jobs: KeyedJobs<(Id, Vec2<u16>), Option<(RgbaImage, Option<Rgba<f32>>)>>,
 }
 impl GraphicCache {
     pub fn new(renderer: &mut Renderer) -> Self {
@@ -153,6 +159,7 @@ impl GraphicCache {
             atlases: vec![(atlas, 0)],
             textures: vec![texture],
             cache_map: HashMap::default(),
+            keyed_jobs: KeyedJobs::new("IMAGE_PROCESSING"),
         }
     }
 
@@ -222,6 +229,7 @@ impl GraphicCache {
     pub fn cache_res(
         &mut self,
         renderer: &mut Renderer,
+        pool: Option<&SlowJobPool>,
         graphic_id: Id,
         dims: Vec2<u16>,
         source: Aabr<f64>,
@@ -277,7 +285,8 @@ impl GraphicCache {
                 // graphic
                 if !valid {
                     // Create image
-                    let (image, border) = draw_graphic(graphic_map, graphic_id, dims)?;
+                    let (image, border) =
+                        draw_graphic(graphic_map, graphic_id, dims, &mut self.keyed_jobs, pool)?;
                     // If the cache location is invalid, we know the underlying texture is mutable,
                     // so we should be able to replace the graphic.  However, we still want to make
                     // sure that we are not reusing textures for images that specify a border
@@ -292,8 +301,10 @@ impl GraphicCache {
             Entry::Vacant(details) => details,
         };
 
-        // Construct image
-        let (image, border_color) = draw_graphic(graphic_map, graphic_id, dims)?;
+        // Construct image in a threadpool
+
+        let (image, border_color) =
+            draw_graphic(graphic_map, graphic_id, dims, &mut self.keyed_jobs, pool)?;
 
         // Upload
         let atlas_size = atlas_size(renderer);
@@ -382,23 +393,43 @@ impl GraphicCache {
 }
 
 // Draw a graphic at the specified dimensions
+#[allow(clippy::type_complexity)]
 fn draw_graphic(
     graphic_map: &GraphicMap,
     graphic_id: Id,
     dims: Vec2<u16>,
+    keyed_jobs: &mut KeyedJobs<(Id, Vec2<u16>), Option<(RgbaImage, Option<Rgba<f32>>)>>,
+    pool: Option<&SlowJobPool>,
 ) -> Option<(RgbaImage, Option<Rgba<f32>>)> {
     match graphic_map.get(&graphic_id) {
+        // Short-circuit spawning a job on the threadpool for blank graphics
         Some(Graphic::Blank) => None,
-        // Render image at requested resolution
-        // TODO: Use source aabr.
-        Some(&Graphic::Image(ref image, border_color)) => Some((
-            resize_pixel_art(&image.to_rgba8(), u32::from(dims.x), u32::from(dims.y)),
-            border_color,
-        )),
-        Some(Graphic::Voxel(ref segment, trans, sample_strat)) => Some((
-            renderer::draw_vox(&segment, dims, trans.clone(), *sample_strat),
-            None,
-        )),
+        Some(inner) => {
+            keyed_jobs
+                .spawn(pool, (graphic_id, dims), || {
+                    let inner = inner.clone();
+                    move |_| {
+                        match inner {
+                            // Render image at requested resolution
+                            // TODO: Use source aabr.
+                            Graphic::Image(ref image, border_color) => Some((
+                                resize_pixel_art(
+                                    &image.to_rgba8(),
+                                    u32::from(dims.x),
+                                    u32::from(dims.y),
+                                ),
+                                border_color,
+                            )),
+                            Graphic::Voxel(ref segment, trans, sample_strat) => Some((
+                                renderer::draw_vox(&segment, dims, trans, sample_strat),
+                                None,
+                            )),
+                            Graphic::Blank => None,
+                        }
+                    }
+                })
+                .and_then(|(_, v)| v)
+        },
         None => {
             warn!(
                 ?graphic_id,

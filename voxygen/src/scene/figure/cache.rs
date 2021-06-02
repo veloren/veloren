@@ -25,7 +25,7 @@ use common::{
     vol::BaseVol,
 };
 use core::{hash::Hash, ops::Range};
-use crossbeam::atomic;
+use crossbeam_utils::atomic;
 use hashbrown::{hash_map::Entry, HashMap};
 use std::sync::Arc;
 use vek::*;
