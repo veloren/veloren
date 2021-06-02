@@ -25,6 +25,8 @@ benchmarks:
     - ls -la target/*
     - rm -r target/debug/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
     - rm -r target/release/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
+    - rm -r target/debug/incremental/* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
+    - rm -r target/release/incremental/* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
     - cargo bench || exit 0 #temp fix
     - TAGUUID="Z$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)" || echo "ignore this returncode, dont ask me why, it works"
     - echo $TAGUUID
