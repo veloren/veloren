@@ -1,5 +1,5 @@
 use crate::{
-    comp::{humanoid, quadruped_low, quadruped_medium, quadruped_small, Body},
+    comp::{humanoid, quadruped_low, quadruped_medium, quadruped_small, ship, Body},
     path::Chaser,
     rtsim::RtSimController,
     trade::{PendingTrade, ReducedInventory, SiteId, SitePrices, TradeId, TradeResult},
@@ -7,7 +7,7 @@ use crate::{
 };
 use specs::{Component, Entity as EcsEntity};
 use specs_idvs::IdvStorage;
-use std::collections::VecDeque;
+use std::{collections::VecDeque, fmt};
 use vek::*;
 
 use super::dialogue::Subject;
@@ -300,6 +300,7 @@ pub struct Target {
     pub selected_at: f64,
 }
 
+#[allow(clippy::type_complexity)]
 #[derive(Clone, Debug, Default)]
 pub struct Agent {
     pub rtsim_controller: RtSimController,
@@ -313,6 +314,7 @@ pub struct Agent {
     pub bearing: Vec2<f32>,
     pub sounds_heard: Vec<Sound>,
     pub awareness: f32,
+    pub position_pid_controller: Option<PidController<fn(Vec3<f32>, Vec3<f32>) -> f32, 16>>,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -333,6 +335,15 @@ impl Agent {
         self.psyche = Psyche { aggro: 1.0 };
         self.rtsim_controller = RtSimController::with_destination(pos);
         self.behavior.allow(BehaviorCapability::SPEAK);
+        self
+    }
+
+    #[allow(clippy::type_complexity)]
+    pub fn with_position_pid_controller(
+        mut self,
+        pid: PidController<fn(Vec3<f32>, Vec3<f32>) -> f32, 16>,
+    ) -> Self {
+        self.position_pid_controller = Some(pid);
         self
     }
 
@@ -383,5 +394,127 @@ mod tests {
         // test `from`
         let b = Behavior::from(BehaviorCapability::SPEAK);
         assert!(b.can(BehaviorCapability::SPEAK));
+    }
+}
+
+/// PID controllers are used for automatically adapting nonlinear controls (like
+/// buoyancy for airships) to target specific outcomes (i.e. a specific height)
+#[derive(Clone)]
+pub struct PidController<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> {
+    /// The coefficient of the proportional term
+    pub kp: f32,
+    /// The coefficient of the integral term
+    pub ki: f32,
+    /// The coefficient of the derivative term
+    pub kd: f32,
+    /// The setpoint that the process has as its goal
+    pub sp: Vec3<f32>,
+    /// A ring buffer of the last NUM_SAMPLES measured process variables
+    pv_samples: [(f64, Vec3<f32>); NUM_SAMPLES],
+    /// The index into the ring buffer of process variables
+    pv_idx: usize,
+    /// The error function, to change how the difference between the setpoint
+    /// and process variables are calculated
+    e: F,
+}
+
+impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> fmt::Debug
+    for PidController<F, NUM_SAMPLES>
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("PidController")
+            .field("kp", &self.kp)
+            .field("ki", &self.ki)
+            .field("kd", &self.kd)
+            .field("sp", &self.sp)
+            .field("pv_samples", &self.pv_samples)
+            .field("pv_idx", &self.pv_idx)
+            .finish()
+    }
+}
+
+impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> PidController<F, NUM_SAMPLES> {
+    /// Constructs a PidController with the specified weights, setpoint,
+    /// starting time, and error function
+    pub fn new(kp: f32, ki: f32, kd: f32, sp: Vec3<f32>, time: f64, e: F) -> Self {
+        Self {
+            kp,
+            ki,
+            kd,
+            sp,
+            pv_samples: [(time, Vec3::zero()); NUM_SAMPLES],
+            pv_idx: 0,
+            e,
+        }
+    }
+
+    /// Adds a measurement of the process variable to the ringbuffer
+    pub fn add_measurement(&mut self, time: f64, pv: Vec3<f32>) {
+        self.pv_idx += 1;
+        self.pv_idx %= NUM_SAMPLES;
+        self.pv_samples[self.pv_idx] = (time, pv);
+    }
+
+    /// The amount to set the control variable to is a weighed sum of the
+    /// proportional error, the integral error, and the derivative error.
+    /// https://en.wikipedia.org/wiki/PID_controller#Mathematical_form
+    pub fn calc_err(&self) -> f32 {
+        self.kp * self.proportional_err()
+            + self.ki * self.integral_err()
+            + self.kd * self.derivative_err()
+    }
+
+    /// The proportional error is the error function applied to the set point
+    /// and the most recent process variable measurement
+    pub fn proportional_err(&self) -> f32 { (self.e)(self.sp, self.pv_samples[self.pv_idx].1) }
+
+    /// The integral error is the error function integrated over the last
+    /// NUM_SAMPLES values. The trapezoid rule for numerical integration was
+    /// chosen because it's fairly easy to calculate and sufficiently accurate.
+    /// https://en.wikipedia.org/wiki/Trapezoidal_rule#Uniform_grid
+    pub fn integral_err(&self) -> f32 {
+        let f = |x| (self.e)(self.sp, x);
+        let (a, x0) = self.pv_samples[(self.pv_idx + 1) % NUM_SAMPLES];
+        let (b, xn) = self.pv_samples[self.pv_idx];
+        let dx = (b - a) / NUM_SAMPLES as f64;
+        let mut err = 0.0;
+        // \Sigma_{k=1}^{N-1} f(x_k)
+        for k in 1..=NUM_SAMPLES - 1 {
+            let xk = self.pv_samples[(self.pv_idx + 1 + k) % NUM_SAMPLES].1;
+            err += f(xk);
+        }
+        // (\Sigma_{k=1}^{N-1} f(x_k)) + \frac{f(x_N) + f(x_0)}{2}
+        err += (f(xn) - f(x0)) / 2.0;
+        // \Delta x * ((\Sigma_{k=1}^{N-1} f(x_k)) + \frac{f(x_N) + f(x_0)}{2})
+        err *= dx as f32;
+        err
+    }
+
+    /// The derivative error is the numerical derivative of the error function
+    /// based on the most recent 2 samples. Using more than 2 samples might
+    /// improve the accuracy of the estimate of the derivative, but it would be
+    /// an estimate of the derivative error further in the past.
+    /// https://en.wikipedia.org/wiki/Numerical_differentiation#Finite_differences
+    pub fn derivative_err(&self) -> f32 {
+        let f = |x| (self.e)(self.sp, x);
+        let (a, x0) = self.pv_samples[(self.pv_idx + NUM_SAMPLES - 1) % NUM_SAMPLES];
+        let (b, x1) = self.pv_samples[self.pv_idx];
+        let h = b - a;
+        (f(x1) - f(x0)) / h as f32
+    }
+}
+
+/// Get the PID coefficients associated with some Body, since it will likely
+/// need to be tuned differently for each body type
+pub fn pid_coefficients(body: &Body) -> (f32, f32, f32) {
+    match body {
+        Body::Ship(ship::Body::DefaultAirship) => {
+            let kp = 1.0;
+            let ki = 1.0;
+            let kd = 1.0;
+            (kp, ki, kd)
+        },
+        // default to a pure-proportional controller, which is the first step when tuning
+        _ => (1.0, 0.0, 0.0),
     }
 }

@@ -273,6 +273,10 @@ impl<'a> System<'a> for Sys {
                         Some(CharacterState::GlideWield) | Some(CharacterState::Glide(_))
                     ) && !physics_state.on_ground;
 
+                    if let Some(pid) = agent.position_pid_controller.as_mut() {
+                        pid.add_measurement(read_data.time.0, pos.0);
+                    }
+
                     // This controls how picky NPCs are about their pathfinding. Giants are larger
                     // and so can afford to be less precise when trying to move around
                     // the world (especially since they would otherwise get stuck on
@@ -802,7 +806,7 @@ impl<'a> AgentData<'a> {
                 controller.inputs.climb = Some(comp::Climb::Up);
                 //.filter(|_| bearing.z > 0.1 || self.physics_state.in_liquid().is_some());
 
-                controller.inputs.move_z = bearing.z
+                let height_offset = bearing.z
                     + if self.traversal_config.can_fly {
                         // NOTE: costs 4 us (imbris)
                         let obstacle_ahead = read_data
@@ -822,14 +826,14 @@ impl<'a> AgentData<'a> {
                             .body
                             .map(|body| {
                                 #[cfg(feature = "worldgen")]
-                                let height_approx = self.pos.0.y
+                                let height_approx = self.pos.0.z
                                     - read_data
                                         .world
                                         .sim()
                                         .get_alt_approx(self.pos.0.xy().map(|x: f32| x as i32))
                                         .unwrap_or(0.0);
                                 #[cfg(not(feature = "worldgen"))]
-                                let height_approx = self.pos.0.y;
+                                let height_approx = self.pos.0.z;
 
                                 height_approx < body.flying_height()
                             })
@@ -861,14 +865,19 @@ impl<'a> AgentData<'a> {
                         }
 
                         if obstacle_ahead || ground_too_close {
-                            1.0 //fly up when approaching obstacles
+                            5.0 //fly up when approaching obstacles
                         } else {
-                            -0.1
+                            -2.0
                         } //flying things should slowly come down from the stratosphere
                     } else {
                         0.05 //normal land traveller offset
                     };
-
+                if let Some(pid) = agent.position_pid_controller.as_mut() {
+                    pid.sp = self.pos.0.z + height_offset * Vec3::unit_z();
+                    controller.inputs.move_z = pid.calc_err();
+                } else {
+                    controller.inputs.move_z = height_offset;
+                }
                 // Put away weapon
                 if thread_rng().gen_bool(0.1)
                     && matches!(

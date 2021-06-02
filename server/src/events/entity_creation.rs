@@ -3,13 +3,14 @@ use common::{
     character::CharacterId,
     comp::{
         self,
+        agent::pid_coefficients,
         aura::{Aura, AuraKind, AuraTarget},
         beam,
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
         inventory::loadout::Loadout,
         shockwave, Agent, Alignment, Body, Health, HomeChunk, Inventory, Item, ItemDrop,
-        LightEmitter, Object, Ori, Poise, Pos, Projectile, Scale, SkillSet, Stats, Vel,
-        WaypointArea,
+        LightEmitter, Object, Ori, PidController, Poise, Pos, Projectile, Scale, SkillSet, Stats,
+        Vel, WaypointArea,
     },
     outcome::Outcome,
     rtsim::RtSimEntity,
@@ -146,7 +147,17 @@ pub fn handle_create_ship(
     rtsim_entity: Option<RtSimEntity>,
 ) {
     let mut entity = server.state.create_ship(pos, ship, mountable);
-    if let Some(agent) = agent {
+    if let Some(mut agent) = agent {
+        let (kp, ki, kd) = pid_coefficients(&Body::Ship(ship));
+        fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp - pv).z }
+        agent = agent.with_position_pid_controller(PidController::new(
+            kp,
+            ki,
+            kd,
+            Vec3::zero(),
+            0.0,
+            pure_z,
+        ));
         entity = entity.with(agent);
     }
     if let Some(rtsim_entity) = rtsim_entity {
