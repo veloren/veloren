@@ -28,6 +28,7 @@ pub struct TradePricing {
 
     // get amount of material per item
     material_cache: HashMap<String, (Good, f32)>,
+    equality_set: EqualitySet,
 }
 
 lazy_static! {
@@ -80,6 +81,36 @@ impl assets::Asset for TradingPriceFile {
     type Loader = assets::LoadFrom<TradingPriceFile, assets::RonLoader>;
 
     const EXTENSION: &'static str = "ron";
+}
+
+#[derive(Clone, Debug, Default)]
+struct EqualitySet {
+    // which item should this item's occurrences be counted towards
+    equivalence_class: HashMap<String, String>,
+}
+
+impl assets::Compound for EqualitySet {
+    fn load<S: assets::source::Source>(
+        cache: &assets::AssetCache<S>,
+        id: &str,
+    ) -> Result<Self, assets::Error> {
+        let manifest = cache.load::<assets::Ron<Vec<Vec<String>>>>(id)?;
+        let mut ret = EqualitySet {
+            equivalence_class: HashMap::new(),
+        };
+        for set in manifest.read().0.iter() {
+            let mut iter = set.iter();
+            if let Some(first) = iter.next() {
+                let first = first.to_string();
+                ret.equivalence_class.insert(first.clone(), first.clone());
+                for item in iter {
+                    ret.equivalence_class
+                        .insert(item.to_string(), first.clone());
+                }
+            }
+        }
+        Ok(ret)
+    }
 }
 
 #[derive(Debug)]
@@ -168,8 +199,19 @@ impl TradePricing {
     }
 
     fn read() -> Self {
-        fn add(entryvec: &mut Entries, itemname: &str, probability: f32, can_sell: bool) {
-            let val = entryvec.iter_mut().find(|j| *j.0 == *itemname);
+        fn add(
+            entryvec: &mut Entries,
+            eqset: &EqualitySet,
+            itemname: &str,
+            probability: f32,
+            can_sell: bool,
+        ) {
+            let canonical_itemname = eqset
+                .equivalence_class
+                .get(itemname)
+                .map(|i| &**i)
+                .unwrap_or(itemname);
+            let val = entryvec.iter_mut().find(|j| *j.0 == *canonical_itemname);
             if let Some(r) = val {
                 if PRICING_DEBUG {
                     info!("Update {} {}+{}", r.0, r.1, probability);
@@ -179,7 +221,11 @@ impl TradePricing {
                 if PRICING_DEBUG {
                     info!("New {} {}", itemname, probability);
                 }
-                entryvec.push((itemname.to_string(), probability, can_sell));
+                entryvec.push((canonical_itemname.to_string(), probability, can_sell));
+                if canonical_itemname != itemname {
+                    // Add the non-canonical item so that it'll show up in merchant inventories
+                    entryvec.push((itemname.to_string(), 0.0, can_sell));
+                }
             }
         }
         fn sort_and_normalize(entryvec: &mut [Entry], scale: f32) {
@@ -205,6 +251,8 @@ impl TradePricing {
 
         let mut result = TradePricing::default();
         let files = TradingPriceFile::load_expect("common.item_price_calculation");
+        let eqset = EqualitySet::load_expect("common.item_price_equality");
+        result.equality_set = eqset.read().clone();
         let contents = files.read();
         for i in contents.loot_tables.iter() {
             if PRICING_DEBUG {
@@ -212,7 +260,13 @@ impl TradePricing {
             }
             let loot = ProbabilityFile::load_expect(&i.2);
             for j in loot.read().content.iter() {
-                add(&mut result.get_list_by_path_mut(&j.1), &j.1, i.0 * j.0, i.1);
+                add(
+                    &mut result.get_list_by_path_mut(&j.1),
+                    &eqset.read(),
+                    &j.1,
+                    i.0 * j.0,
+                    i.1,
+                );
             }
         }
 
@@ -238,7 +292,12 @@ impl TradePricing {
             });
         }
         // look up price (inverse frequency) of an item
-        fn price_lookup(s: &TradePricing, name: &str) -> f32 {
+        fn price_lookup(s: &TradePricing, eqset: &EqualitySet, name: &str) -> f32 {
+            let name = eqset
+                .equivalence_class
+                .get(name)
+                .map(|i| &**i)
+                .unwrap_or(name);
             let vec = s.get_list_by_path(name);
             vec.iter()
                 .find(|(n, _, _)| n == name)
@@ -246,19 +305,27 @@ impl TradePricing {
                 // even if we multiply by INVEST_FACTOR we need to remain above UNAVAILABLE_PRICE (add 1.0 to compensate rounding errors)
                 .unwrap_or(TradePricing::UNAVAILABLE_PRICE/TradePricing::INVEST_FACTOR+1.0)
         }
-        fn calculate_material_cost(s: &TradePricing, r: &RememberedRecipe) -> f32 {
+        fn calculate_material_cost(
+            s: &TradePricing,
+            eqset: &EqualitySet,
+            r: &RememberedRecipe,
+        ) -> f32 {
             r.input
                 .iter()
                 .map(|(name, amount)| {
-                    price_lookup(s, name) * (*amount as f32).max(TradePricing::INVEST_FACTOR)
+                    price_lookup(s, eqset, name) * (*amount as f32).max(TradePricing::INVEST_FACTOR)
                 })
                 .sum()
         }
         // re-look up prices and sort the vector by ascending material cost, return
         // whether first cost is finite
-        fn price_sort(s: &TradePricing, vec: &mut Vec<RememberedRecipe>) -> bool {
+        fn price_sort(
+            s: &TradePricing,
+            eqset: &EqualitySet,
+            vec: &mut Vec<RememberedRecipe>,
+        ) -> bool {
             for e in vec.iter_mut() {
-                e.material_cost = calculate_material_cost(s, e);
+                e.material_cost = calculate_material_cost(s, eqset, e);
             }
             vec.sort_by(|a, b| a.material_cost.partial_cmp(&b.material_cost).unwrap());
             //info!(?vec);
@@ -268,12 +335,13 @@ impl TradePricing {
         }
         // re-evaluate prices based on crafting tables
         // (start with cheap ones to avoid changing material prices after evaluation)
-        while price_sort(&result, &mut ordered_recipes) {
+        while price_sort(&result, &eqset.read(), &mut ordered_recipes) {
             ordered_recipes.retain(|e| {
                 if e.material_cost < TradePricing::UNAVAILABLE_PRICE {
-                    let actual_cost = calculate_material_cost(&result, e);
+                    let actual_cost = calculate_material_cost(&result, &eqset.read(), e);
                     add(
                         &mut result.get_list_by_path_mut(&e.output),
+                        &eqset.read(),
                         &e.output,
                         (e.amount as f32) / actual_cost * TradePricing::CRAFTING_FACTOR,
                         true,
@@ -341,6 +409,12 @@ impl TradePricing {
         if item == TradePricing::COIN_ITEM {
             (Good::Coin, 1.0)
         } else {
+            let item = TRADE_PRICING
+                .equality_set
+                .equivalence_class
+                .get(item)
+                .map(|i| &**i)
+                .unwrap_or(item);
             TRADE_PRICING.material_cache.get(item).cloned().map_or(
                 (Good::Terrain(crate::terrain::BiomeKind::Void), 0.0),
                 |(a, b)| (a, b * TRADE_PRICING.coin_scale),
