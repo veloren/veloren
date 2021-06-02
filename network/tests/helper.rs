@@ -99,7 +99,6 @@ pub fn quic() -> (ListenAddr, ConnectAddr) {
     let mut server_config = quinn::ServerConfig::default();
     server_config.transport = Arc::new(transport_config);
     let mut server_config = quinn::ServerConfigBuilder::new(server_config);
-    server_config.protocols(&[b"veloren"]);
 
     trace!("generating self-signed certificate");
     let cert = rcgen::generate_simple_self_signed(vec![LOCALHOST.into()]).unwrap();
@@ -115,7 +114,6 @@ pub fn quic() -> (ListenAddr, ConnectAddr) {
     let server_config = server_config.build();
 
     let mut client_config = quinn::ClientConfigBuilder::default();
-    client_config.protocols(&[b"veloren"]);
     client_config
         .add_certificate_authority(cert)
         .expect("adding certificate failed");

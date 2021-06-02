@@ -193,24 +193,30 @@ impl BParticipant {
 
     fn best_protocol(all: &SortedVec<Cid, SendProtocols>, promises: Promises) -> Option<Cid> {
         // check for mpsc
-        for (cid, p) in all.data.iter() {
-            if matches!(p, SendProtocols::Mpsc(_)) {
-                return Some(*cid);
+        all.data.iter().find(|(_, p)| matches!(p, SendProtocols::Mpsc(_))).map(|(c, _)| *c).or_else(
+            || if network_protocol::TcpSendProtocol::<crate::channel::TcpDrain>::supported_promises()
+                .contains(promises)
+            {
+                // check for tcp
+                all.data.iter().find(|(_, p)| matches!(p, SendProtocols::Tcp(_))).map(|(c, _)| *c)
+            } else {
+                None
             }
-        }
-        // check for tcp
-        if network_protocol::TcpSendProtocol::<crate::channel::TcpDrain>::supported_promises()
-            .contains(promises)
-        {
-            for (cid, p) in all.data.iter() {
-                if matches!(p, SendProtocols::Tcp(_)) {
-                    return Some(*cid);
-                }
+        ).or_else(
+            // check for quic, TODO: evaluate to order quic BEFORE tcp once its stable
+            || if network_protocol::QuicSendProtocol::<crate::channel::QuicDrain>::supported_promises()
+                .contains(promises)
+            {
+                all.data.iter().find(|(_, p)| matches!(p, SendProtocols::Quic(_))).map(|(c, _)| *c)
+            } else {
+                None
             }
-        }
-
-        warn!("couldn't satisfy promises");
-        all.data.first().map(|(c, _)| *c)
+        ).or_else(
+            || {
+                warn!("couldn't satisfy promises");
+                all.data.first().map(|(c, _)| *c)
+            }
+        )
     }
 
     //TODO: local stream_cid: HashMap<Sid, Cid> to know the respective protocol

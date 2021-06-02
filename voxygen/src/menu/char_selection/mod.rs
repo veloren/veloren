@@ -115,8 +115,12 @@ impl PlayState for CharSelectionState {
                         self.client.borrow_mut().delete_character(character_id);
                     },
                     ui::Event::Play(character_id) => {
-                        self.client.borrow_mut().request_character(character_id);
-
+                        {
+                            let mut c = self.client.borrow_mut();
+                            c.request_character(character_id);
+                            //Send our ViewDistance
+                            c.set_view_distance(global_state.settings.graphics.view_distance);
+                        }
                         return PlayStateResult::Switch(Box::new(SessionState::new(
                             global_state,
                             Rc::clone(&self.client),

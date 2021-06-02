@@ -203,10 +203,8 @@ pub struct CharacterList {
 }
 
 impl Client {
-    /// Create a new `Client`.
     pub async fn new(
         addr: ConnectionArgs,
-        view_distance: Option<u32>,
         runtime: Arc<Runtime>,
         // TODO: refactor to avoid needing to use this out parameter
         mismatched_server_info: &mut Option<ServerInfo>,
@@ -214,20 +212,23 @@ impl Client {
         let network = Network::new(Pid::new(), &runtime);
 
         let participant = match addr {
-            ConnectionArgs::IpAndPort(addrs) => {
-                // Try to connect to all IP's and return the first that works
-                let mut participant = None;
-                for addr in addrs {
-                    match network.connect(ConnectAddr::Tcp(addr)).await {
-                        Ok(p) => {
-                            participant = Some(Ok(p));
-                            break;
-                        },
-                        Err(e) => participant = Some(Err(Error::NetworkErr(e))),
-                    }
-                }
-                participant
-                    .unwrap_or_else(|| Err(Error::Other("No Ip Addr provided".to_string())))?
+            ConnectionArgs::Tcp {
+                hostname,
+                prefer_ipv6,
+            } => addr::try_connect(&network, &hostname, prefer_ipv6, ConnectAddr::Tcp).await?,
+            ConnectionArgs::Quic {
+                hostname,
+                prefer_ipv6,
+            } => {
+                warn!(
+                    "QUIC is enabled. This is experimental and you won't be able to connect to \
+                     TCP servers unless deactivated"
+                );
+                let config = quinn::ClientConfigBuilder::default().build();
+                addr::try_connect(&network, &hostname, prefer_ipv6, |a| {
+                    ConnectAddr::Quic(a, config.clone(), hostname.clone())
+                })
+                .await?
             },
             ConnectionArgs::Mpsc(id) => network.connect(ConnectAddr::Mpsc(id)).await?,
         };
@@ -694,7 +695,7 @@ impl Client {
 
             tick: 0,
             state,
-            view_distance,
+            view_distance: None,
             loaded_distance: 0.0,
 
             pending_chunks: HashMap::new(),
@@ -2452,7 +2453,6 @@ impl Drop for Client {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::net::SocketAddr;
 
     #[test]
     /// THIS TEST VERIFIES THE CONSTANT API.
@@ -2462,17 +2462,16 @@ mod tests {
     /// CONTACT @Core Developer BEFORE MERGING CHANGES TO THIS TEST
     fn constant_api_test() {
         use common::clock::Clock;
-        use std::net::{IpAddr, Ipv4Addr};
 
         const SPT: f64 = 1.0 / 60.0;
 
-        let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9000);
-        let view_distance: Option<u32> = None;
         let runtime = Arc::new(Runtime::new().unwrap());
         let runtime2 = Arc::clone(&runtime);
         let veloren_client: Result<Client, Error> = runtime.block_on(Client::new(
-            ConnectionArgs::IpAndPort(vec![socket]),
-            view_distance,
+            ConnectionArgs::Tcp {
+                hostname: "127.0.0.1:9000".to_owned(),
+                prefer_ipv6: false,
+            },
             runtime2,
             &mut None,
         ));
