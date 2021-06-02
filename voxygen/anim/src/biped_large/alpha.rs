@@ -233,7 +233,6 @@ impl Animation for AlphaAnimation {
                                     Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_z(0.35);
 
                                 next.shoulder_r.orientation = Quaternion::rotation_x(0.0);
-                                next.torso.position = Vec3::new(0.0, move2 * -2.2, move2 * -1.0);
                             } else {
                                 next.head.orientation = Quaternion::rotation_z(move1 * -0.75);
                                 next.upper_torso.orientation =
@@ -263,8 +262,8 @@ impl Animation for AlphaAnimation {
                                     * Quaternion::rotation_z(-0.35);
 
                                 next.shoulder_l.orientation = Quaternion::rotation_x(0.0);
-                                next.torso.position = Vec3::new(0.0, move2 * -2.2, move2 * -1.0);
                             };
+                            next.torso.position = Vec3::new(0.0, move2 * -2.2, move2 * -1.0);
                         },
                         "Minotaur" => {
                             next.control_l.position = Vec3::new(0.0, 4.0, 5.0);

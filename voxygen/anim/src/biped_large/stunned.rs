@@ -213,9 +213,11 @@ impl Animation for StunnedAnimation {
                                     Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_y(0.15);
                             },
                             "Tidal Warrior" => {
-                                next.head.orientation = Quaternion::rotation_x(move1 * -2.0);
-                                next.upper_torso.orientation = Quaternion::rotation_z(move1 * 1.0);
-                                next.lower_torso.orientation = Quaternion::rotation_z(move1 * -1.0);
+                                next.head.orientation = Quaternion::rotation_x(movement1 * -2.0);
+                                next.upper_torso.orientation =
+                                    Quaternion::rotation_z(movement1 * 1.0);
+                                next.lower_torso.orientation =
+                                    Quaternion::rotation_z(movement1 * -1.0);
                                 next.hand_l.position = Vec3::new(-14.0, 2.0, -4.0);
                                 next.hand_r.position = Vec3::new(14.0, 2.0, -4.0);
 

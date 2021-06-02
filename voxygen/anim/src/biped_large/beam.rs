@@ -11,6 +11,7 @@ use std::f32::consts::PI;
 pub struct BeamAnimation;
 
 impl Animation for BeamAnimation {
+    #[allow(clippy::type_complexity)]
     type Dependency<'a> = (
         (Option<ToolKind>, Option<&'a AbilitySpec>),
         (Option<ToolKind>, Option<&'a AbilitySpec>),
