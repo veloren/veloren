@@ -987,7 +987,9 @@ impl<'a> Widget for Video<'a> {
             .lossy_terrain_compression
             != lossy_terrain_compression
         {
-            events.push(ToggleLossyTerrainCompression(lossy_terrain_compression));
+            events.push(GraphicsChange::ToggleLossyTerrainCompression(
+                lossy_terrain_compression,
+            ));
         }
 
         // Resolution
