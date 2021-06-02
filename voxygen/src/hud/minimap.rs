@@ -47,8 +47,6 @@ pub struct VoxelMinimap {
     image_id: img_ids::Rotations,
     last_pos: Vec3<i32>,
     last_ceiling: i32,
-    /// Maximum z of the top of the tallest loaded chunk (for ceiling pruning)
-    max_chunk_z: i32,
     keyed_jobs: KeyedJobs<Vec2<i32>, MinimapColumn>,
 }
 
@@ -70,8 +68,7 @@ impl VoxelMinimap {
             composited,
             last_pos: Vec3::zero(),
             last_ceiling: 0,
-            max_chunk_z: 0,
-            keyed_jobs: KeyedJobs::new(),
+            keyed_jobs: KeyedJobs::new("IMAGE_PROCESSING"),
         }
     }
 
@@ -197,16 +194,19 @@ impl VoxelMinimap {
                 }) {
                     self.chunk_minimaps.insert(key, column);
                     new_chunks = true;
-                    self.max_chunk_z = self.max_chunk_z.max(chunk.get_max_z());
                 }
             }
         }
         new_chunks
     }
 
-    fn remove_unloaded_chunks(&mut self, terrain: &TerrainGrid) {
-        self.chunk_minimaps
-            .retain(|key, _| terrain.get_key(*key).is_some());
+    fn remove_chunks_far(&mut self, terrain: &TerrainGrid, cpos: Vec2<i32>) {
+        self.chunk_minimaps.retain(|key, _| {
+            let delta: Vec2<u32> = (key - cpos).map(i32::abs).as_();
+            delta.x < 1 + VOXEL_MINIMAP_SIDELENGTH / TerrainChunkSize::RECT_SIZE.x
+                && delta.y < 1 + VOXEL_MINIMAP_SIDELENGTH / TerrainChunkSize::RECT_SIZE.y
+                && terrain.get_key(*key).is_some()
+        });
     }
 
     pub fn maintain(&mut self, client: &Client, ui: &mut Ui) {
@@ -224,7 +224,7 @@ impl VoxelMinimap {
         let pool = client.state().ecs().read_resource::<SlowJobPool>();
         let terrain = client.state().terrain();
         let new_chunks = self.add_chunks_near(&pool, &terrain, cpos);
-        self.remove_unloaded_chunks(&terrain);
+        self.remove_chunks_far(&terrain, cpos);
 
         // ceiling_offset is the distance from the player to a block heuristically
         // detected as the ceiling height (a non-tree solid block above them, or
@@ -256,10 +256,18 @@ impl VoxelMinimap {
                                     .map_or(false, |(_, b)| *b)
                             })
                             .unwrap_or_else(|| {
+                                // if the `find` returned None, there's no solid blocks above the
+                                // player within the chunk
                                 if above.1 {
+                                    // if the `above` block is solid, the chunk has an infinite
+                                    // solid ceiling, and so we render from 1 block above the
+                                    // player (which is where the player's head is if they're 2
+                                    // blocks tall)
                                     1
                                 } else {
-                                    self.max_chunk_z - pos.z as i32
+                                    // if the ceiling is a non-solid sky, use the largest value
+                                    // (subsequent arithmetic on ceiling_offset must be saturating)
+                                    i32::MAX
                                 }
                             })
                     },
@@ -291,7 +299,7 @@ impl VoxelMinimap {
                                 above,
                                 below,
                             } = column;
-                            if pos.z as i32 + ceiling_offset < *zlo {
+                            if (pos.z as i32).saturating_add(ceiling_offset) < *zlo {
                                 // If the ceiling is below the bottom of a chunk, color it black,
                                 // so that the middles of caves/dungeons don't show the forests
                                 // around them.
@@ -303,7 +311,8 @@ impl VoxelMinimap {
                                 // differently-tall trees are handled properly)
                                 layers
                                     .get(
-                                        ((pos.z as i32 - zlo + ceiling_offset) as usize)
+                                        (((pos.z as i32 - zlo).saturating_add(ceiling_offset))
+                                            as usize)
                                             .min(layers.len().saturating_sub(1)),
                                     )
                                     .and_then(|grid| grid.get(cmod).map(|c| c.0.as_()))

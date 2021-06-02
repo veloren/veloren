@@ -159,7 +159,7 @@ impl GraphicCache {
             atlases: vec![(atlas, 0)],
             textures: vec![texture],
             cache_map: HashMap::default(),
-            keyed_jobs: KeyedJobs::new(),
+            keyed_jobs: KeyedJobs::new("IMAGE_PROCESSING"),
         }
     }
 
@@ -402,7 +402,7 @@ fn draw_graphic(
     pool: Option<&SlowJobPool>,
 ) -> Option<(RgbaImage, Option<Rgba<f32>>)> {
     match graphic_map.get(&graphic_id) {
-        // Short-circuit spawning a threadpool for blank graphics
+        // Short-circuit spawning a job on the threadpool for blank graphics
         Some(Graphic::Blank) => None,
         Some(inner) => {
             keyed_jobs

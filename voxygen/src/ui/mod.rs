@@ -8,9 +8,11 @@ pub mod img_ids;
 #[macro_use]
 pub mod fonts;
 pub mod ice;
+pub mod keyed_jobs;
 
 pub use event::Event;
 pub use graphic::{Graphic, Id as GraphicId, Rotation, SampleStrat, Transform};
+pub use keyed_jobs::KeyedJobs;
 pub use scale::{Scale, ScaleMode};
 pub use widgets::{
     image_frame::ImageFrame,
@@ -48,8 +50,8 @@ use conrod_core::{
 };
 use core::{convert::TryInto, f32, f64, ops::Range};
 use graphic::TexId;
-use hashbrown::{hash_map::Entry, HashMap};
-use std::{hash::Hash, time::Duration};
+use hashbrown::hash_map::Entry;
+use std::time::Duration;
 use tracing::{error, warn};
 use vek::*;
 
@@ -1052,75 +1054,5 @@ fn default_scissor(renderer: &Renderer) -> Aabr<u16> {
             x: screen_w,
             y: screen_h,
         },
-    }
-}
-
-enum KeyedJobTask<V> {
-    Pending,
-    Completed(V),
-}
-
-pub struct KeyedJobs<K, V> {
-    tx: crossbeam_channel::Sender<(K, V)>,
-    rx: crossbeam_channel::Receiver<(K, V)>,
-    tasks: HashMap<K, KeyedJobTask<V>>,
-}
-
-impl<K: Hash + Eq + Send + Sync + 'static + Clone, V: Send + Sync + 'static> KeyedJobs<K, V> {
-    #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
-        let (tx, rx) = crossbeam_channel::unbounded();
-        Self {
-            tx,
-            rx,
-            tasks: HashMap::new(),
-        }
-    }
-
-    /// Spawn a task on a specified threadpool. The function is given as a thunk
-    /// so that if work is needed to create captured variables (e.g.
-    /// `Arc::clone`), that only occurs if the task hasn't yet been scheduled.
-    pub fn spawn<F: FnOnce(&K) -> V + Send + Sync + 'static>(
-        &mut self,
-        pool: Option<&SlowJobPool>,
-        k: K,
-        f: impl FnOnce() -> F,
-    ) -> Option<(K, V)> {
-        if let Some(pool) = pool {
-            while let Ok((k2, v)) = self.rx.try_recv() {
-                if k == k2 {
-                    return Some((k, v));
-                } else {
-                    self.tasks.insert(k2, KeyedJobTask::Completed(v));
-                }
-            }
-            match self.tasks.entry(k.clone()) {
-                Entry::Occupied(e) => {
-                    let mut ret = None;
-                    e.replace_entry_with(|_, v| {
-                        if let KeyedJobTask::Completed(v) = v {
-                            ret = Some((k, v));
-                            None
-                        } else {
-                            Some(v)
-                        }
-                    });
-                    ret
-                },
-                Entry::Vacant(e) => {
-                    let tx = self.tx.clone();
-                    let f = f();
-                    pool.spawn("IMAGE_PROCESSING", move || {
-                        let v = f(&k);
-                        let _ = tx.send((k, v));
-                    });
-                    e.insert(KeyedJobTask::Pending);
-                    None
-                },
-            }
-        } else {
-            let v = f()(&k);
-            Some((k, v))
-        }
     }
 }
