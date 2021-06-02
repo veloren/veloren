@@ -1,11 +1,5 @@
 #![warn(clippy::pedantic)]
 //#![warn(clippy::nursery)]
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_sign_loss,
-    clippy::cast_possible_truncation
-)]
-
 use crate::{
     assets::{self, AssetExt},
     comp::{
@@ -492,7 +486,12 @@ impl LoadoutBuilder {
     // The reason why this function is so long is creating merchant inventory
     // with all items to sell.
     // Maybe we should do it on the caller side?
-    #[allow(clippy::too_many_lines)]
+    #[allow(
+        clippy::too_many_lines,
+        clippy::cast_precision_loss,
+        clippy::cast_sign_loss,
+        clippy::cast_possible_truncation
+    )]
     pub fn build_loadout(
         body: Body,
         mut main_tool: Option<Item>,
