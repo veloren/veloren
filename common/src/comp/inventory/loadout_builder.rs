@@ -1,3 +1,11 @@
+#![warn(clippy::pedantic)]
+//#![warn(clippy::nursery)]
+#![allow(
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_truncation
+)]
+
 use crate::{
     assets::{self, AssetExt},
     comp::{
@@ -19,8 +27,8 @@ use strum_macros::EnumIter;
 use tracing::warn;
 
 /// Builder for character Loadouts, containing weapon and armour items belonging
-/// to a character, along with some helper methods for loading Items and
-/// ItemConfig
+/// to a character, along with some helper methods for loading `Item`-s and
+/// `ItemConfig`
 ///
 /// ```
 /// use veloren_common::{
@@ -76,10 +84,8 @@ fn choose<'a>(
 ) -> &'a Option<ItemSpec> {
     let mut rng = rand::thread_rng();
 
-    items
-        .choose_weighted(&mut rng, |item| item.0)
-        .map(|(_p, itemspec)| itemspec)
-        .unwrap_or_else(|err| match err {
+    items.choose_weighted(&mut rng, |item| item.0).map_or_else(
+        |err| match err {
             WeightedError::NoItem | WeightedError::AllWeightsZero => &None,
             WeightedError::InvalidWeight => {
                 let err = format!("Negative values of probability in {}.", asset_specifier);
@@ -99,7 +105,9 @@ fn choose<'a>(
                     &None
                 }
             },
-        })
+        },
+        |(_p, itemspec)| itemspec,
+    )
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -110,6 +118,7 @@ impl assets::Asset for LoadoutSpec {
     const EXTENSION: &'static str = "ron";
 }
 
+#[must_use]
 pub fn make_potion_bag(quantity: u32) -> Item {
     let mut bag = Item::new_from_asset_expect("common.items.armor.misc.bag.tiny_leather_pouch");
     if let Some(i) = bag.slots_mut().iter_mut().next() {
@@ -122,6 +131,11 @@ pub fn make_potion_bag(quantity: u32) -> Item {
     bag
 }
 
+#[must_use]
+// We have many species so this function is long
+// Also we are using default tools for un-specified species so
+// it's fine to have wildcards
+#[allow(clippy::too_many_lines, clippy::match_wildcard_for_single_variants)]
 pub fn default_main_tool(body: &Body) -> Option<Item> {
     match body {
         Body::Golem(golem) => match golem.species {
@@ -292,12 +306,17 @@ pub fn default_main_tool(body: &Body) -> Option<Item> {
     }
 }
 
+impl Default for LoadoutBuilder {
+    fn default() -> Self { Self::new() }
+}
+
 impl LoadoutBuilder {
-    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
+    #[must_use]
     pub fn new() -> Self { Self(Loadout::new_empty()) }
 
+    #[must_use]
     fn with_default_equipment(body: &Body, active_item: Option<Item>) -> Self {
-        let mut builder = LoadoutBuilder::new();
+        let mut builder = Self::new();
         builder = match body {
             Body::BipedLarge(biped_large::Body {
                 species: biped_large::Species::Mindflayer,
@@ -341,12 +360,22 @@ impl LoadoutBuilder {
         builder.active_mainhand(active_item)
     }
 
+    #[must_use]
     pub fn from_asset_expect(asset_specifier: &str) -> Self {
-        let loadout = LoadoutBuilder::new();
+        let loadout = Self::new();
 
         loadout.apply_asset_expect(asset_specifier)
     }
 
+    /// # Usage
+    /// Creates new `LoadoutBuilder` with all field replaced from
+    /// `asset_specifier` which corresponds to loadout config
+    ///
+    /// # Panics
+    /// 1) Will panic if there is no asset with such `asset_specifier`
+    /// 2) Will panic if path to item specified in loadout file doesn't exist
+    /// 3) Will panic while runs in tests and asset doesn't have "correct" form
+    #[must_use]
     pub fn apply_asset_expect(mut self, asset_specifier: &str) -> Self {
         let spec = LoadoutSpec::load_expect(asset_specifier).read().0.clone();
         for (key, specifier) in spec {
@@ -354,7 +383,7 @@ impl LoadoutBuilder {
                 ItemSpec::Item(specifier) => Item::new_from_asset_expect(&specifier),
                 ItemSpec::Choice(items) => match choose(&items, asset_specifier) {
                     Some(ItemSpec::Item(item_specifier)) => {
-                        Item::new_from_asset_expect(&item_specifier)
+                        Item::new_from_asset_expect(item_specifier)
                     },
                     Some(ItemSpec::Choice(_)) => {
                         let err = format!(
@@ -426,10 +455,9 @@ impl LoadoutBuilder {
                 EquipSlot::Glider => {
                     self = self.glider(Some(item));
                 },
-                EquipSlot::Armor(slot @ ArmorSlot::Bag1)
-                | EquipSlot::Armor(slot @ ArmorSlot::Bag2)
-                | EquipSlot::Armor(slot @ ArmorSlot::Bag3)
-                | EquipSlot::Armor(slot @ ArmorSlot::Bag4) => {
+                EquipSlot::Armor(
+                    slot @ (ArmorSlot::Bag1 | ArmorSlot::Bag2 | ArmorSlot::Bag3 | ArmorSlot::Bag4),
+                ) => {
                     self = self.bag(slot, Some(item));
                 },
             };
@@ -440,9 +468,15 @@ impl LoadoutBuilder {
 
     /// Set default armor items for the loadout. This may vary with game
     /// updates, but should be safe defaults for a new character.
+    #[must_use]
     pub fn defaults(self) -> Self { self.apply_asset_expect("common.loadouts.default") }
 
     /// Builds loadout of creature when spawned
+    #[must_use]
+    // The reason why this function is so long is creating merchant inventory
+    // with all items to sell.
+    // Maybe we should do it on the caller side?
+    #[allow(clippy::too_many_lines)]
     pub fn build_loadout(
         body: Body,
         mut main_tool: Option<Item>,
@@ -455,7 +489,7 @@ impl LoadoutBuilder {
         }
 
         // Constructs ItemConfig from Item
-        let active_item = if let Some(ItemKind::Tool(_)) = main_tool.as_ref().map(|i| i.kind()) {
+        let active_item = if let Some(ItemKind::Tool(_)) = main_tool.as_ref().map(Item::kind) {
             main_tool
         } else {
             Some(Item::empty())
@@ -469,54 +503,63 @@ impl LoadoutBuilder {
         });
         // Creates rest of loadout
         let loadout_builder = if let Some(config) = config {
-            use LoadoutConfig::*;
-            let builder = LoadoutBuilder::new().active_mainhand(active_item);
+            let builder = Self::new().active_mainhand(active_item);
             // NOTE: we apply asset after active mainhand so asset has ability override it
             match config {
-                Gnarling => match active_tool_kind {
-                    Some(ToolKind::Bow) | Some(ToolKind::Staff) | Some(ToolKind::Spear) => {
+                LoadoutConfig::Gnarling => match active_tool_kind {
+                    Some(ToolKind::Bow | ToolKind::Staff | ToolKind::Spear) => {
                         builder.apply_asset_expect("common.loadouts.dungeon.tier-0.gnarling")
                     },
                     _ => builder,
                 },
-                Adlet => match active_tool_kind {
+                LoadoutConfig::Adlet => match active_tool_kind {
                     Some(ToolKind::Bow) => {
                         builder.apply_asset_expect("common.loadouts.dungeon.tier-1.adlet_bow")
                     },
-                    Some(ToolKind::Spear) | Some(ToolKind::Staff) => {
+                    Some(ToolKind::Spear | ToolKind::Staff) => {
                         builder.apply_asset_expect("common.loadouts.dungeon.tier-1.adlet_spear")
                     },
                     _ => builder,
                 },
-                Sahagin => builder.apply_asset_expect("common.loadouts.dungeon.tier-2.sahagin"),
-                Haniwa => builder.apply_asset_expect("common.loadouts.dungeon.tier-3.haniwa"),
-                Myrmidon => builder.apply_asset_expect("common.loadouts.dungeon.tier-4.myrmidon"),
-                Husk => builder.apply_asset_expect("common.loadouts.dungeon.tier-5.husk"),
-                Beastmaster => {
+                LoadoutConfig::Sahagin => {
+                    builder.apply_asset_expect("common.loadouts.dungeon.tier-2.sahagin")
+                },
+                LoadoutConfig::Haniwa => {
+                    builder.apply_asset_expect("common.loadouts.dungeon.tier-3.haniwa")
+                },
+                LoadoutConfig::Myrmidon => {
+                    builder.apply_asset_expect("common.loadouts.dungeon.tier-4.myrmidon")
+                },
+                LoadoutConfig::Husk => {
+                    builder.apply_asset_expect("common.loadouts.dungeon.tier-5.husk")
+                },
+                LoadoutConfig::Beastmaster => {
                     builder.apply_asset_expect("common.loadouts.dungeon.tier-5.beastmaster")
                 },
-                Warlord => builder.apply_asset_expect("common.loadouts.dungeon.tier-5.warlord"),
-                Warlock => builder.apply_asset_expect("common.loadouts.dungeon.tier-5.warlock"),
-                Villager => builder
+                LoadoutConfig::Warlord => {
+                    builder.apply_asset_expect("common.loadouts.dungeon.tier-5.warlord")
+                },
+                LoadoutConfig::Warlock => {
+                    builder.apply_asset_expect("common.loadouts.dungeon.tier-5.warlock")
+                },
+                LoadoutConfig::Villager => builder
                     .apply_asset_expect("common.loadouts.village.villager")
                     .bag(ArmorSlot::Bag1, Some(make_potion_bag(10))),
-                Guard => builder
+                LoadoutConfig::Guard => builder
                     .apply_asset_expect("common.loadouts.village.guard")
                     .bag(ArmorSlot::Bag1, Some(make_potion_bag(25))),
-                Merchant => {
+                LoadoutConfig::Merchant => {
                     let mut backpack =
                         Item::new_from_asset_expect("common.items.armor.misc.back.backpack");
                     let mut coins = economy
-                        .map(|e| e.unconsumed_stock.get(&Good::Coin))
-                        .flatten()
+                        .and_then(|e| e.unconsumed_stock.get(&Good::Coin))
                         .copied()
                         .unwrap_or_default()
                         .round()
                         .min(rand::thread_rng().gen_range(1000.0..3000.0))
                         as u32;
                     let armor = economy
-                        .map(|e| e.unconsumed_stock.get(&Good::Armor))
-                        .flatten()
+                        .and_then(|e| e.unconsumed_stock.get(&Good::Armor))
                         .copied()
                         .unwrap_or_default()
                         / 10.0;
@@ -541,8 +584,7 @@ impl LoadoutBuilder {
                         "common.items.armor.misc.bag.reliable_backpack",
                     );
                     let weapon = economy
-                        .map(|e| e.unconsumed_stock.get(&Good::Tools))
-                        .flatten()
+                        .and_then(|e| e.unconsumed_stock.get(&Good::Tools))
                         .copied()
                         .unwrap_or_default()
                         / 10.0;
@@ -558,7 +600,7 @@ impl LoadoutBuilder {
                     let mut rng = rand::thread_rng();
                     let mut item_with_amount = |item_id: &str, amount: &mut f32| {
                         if *amount > 0.0 {
-                            let mut item = Item::new_from_asset_expect(&item_id);
+                            let mut item = Item::new_from_asset_expect(item_id);
                             // NOTE: Conversion to and from f32 works fine because we make sure the
                             // number we're converting is ≤ 100.
                             let max = amount.min(16.min(item.max_amount()) as f32) as u32;
@@ -577,8 +619,7 @@ impl LoadoutBuilder {
                         "common.items.armor.misc.bag.reliable_backpack",
                     );
                     let mut ingredients = economy
-                        .map(|e| e.unconsumed_stock.get(&Good::Ingredients))
-                        .flatten()
+                        .and_then(|e| e.unconsumed_stock.get(&Good::Ingredients))
                         .copied()
                         .unwrap_or_default()
                         / 10.0;
@@ -597,8 +638,7 @@ impl LoadoutBuilder {
                     // food for sale at every site, to be used until we have some solution like NPC
                     // houses as a limit on econsim population growth
                     let mut food = economy
-                        .map(|e| e.unconsumed_stock.get(&Good::Food))
-                        .flatten()
+                        .and_then(|e| e.unconsumed_stock.get(&Good::Food))
                         .copied()
                         .unwrap_or_default()
                         .max(10000.0)
@@ -612,8 +652,7 @@ impl LoadoutBuilder {
                         "common.items.armor.misc.bag.reliable_backpack",
                     );
                     let mut potions = economy
-                        .map(|e| e.unconsumed_stock.get(&Good::Potions))
-                        .flatten()
+                        .and_then(|e| e.unconsumed_stock.get(&Good::Potions))
                         .copied()
                         .unwrap_or_default()
                         / 10.0;
@@ -634,107 +673,127 @@ impl LoadoutBuilder {
                 },
             }
         } else {
-            LoadoutBuilder::with_default_equipment(&body, active_item)
+            Self::with_default_equipment(&body, active_item)
         };
 
         Self(loadout_builder.build())
     }
 
+    #[must_use]
     pub fn active_mainhand(mut self, item: Option<Item>) -> Self {
         self.0.swap(EquipSlot::ActiveMainhand, item);
         self
     }
 
+    #[must_use]
     pub fn active_offhand(mut self, item: Option<Item>) -> Self {
         self.0.swap(EquipSlot::ActiveOffhand, item);
         self
     }
 
+    #[must_use]
     pub fn inactive_mainhand(mut self, item: Option<Item>) -> Self {
         self.0.swap(EquipSlot::InactiveMainhand, item);
         self
     }
 
+    #[must_use]
     pub fn inactive_offhand(mut self, item: Option<Item>) -> Self {
         self.0.swap(EquipSlot::InactiveOffhand, item);
         self
     }
 
+    #[must_use]
     pub fn shoulder(mut self, item: Option<Item>) -> Self {
         self.0.swap(EquipSlot::Armor(ArmorSlot::Shoulders), item);
         self
     }
 
+    #[must_use]
     pub fn chest(mut self, item: Option<Item>) -> Self {
         self.0.swap(EquipSlot::Armor(ArmorSlot::Chest), item);
         self
     }
 
+    #[must_use]
     pub fn belt(mut self, item: Option<Item>) -> Self {
         self.0.swap(EquipSlot::Armor(ArmorSlot::Belt), item);
         self
     }
 
+    #[must_use]
     pub fn hands(mut self, item: Option<Item>) -> Self {
         self.0.swap(EquipSlot::Armor(ArmorSlot::Hands), item);
         self
     }
 
+    #[must_use]
     pub fn pants(mut self, item: Option<Item>) -> Self {
         self.0.swap(EquipSlot::Armor(ArmorSlot::Legs), item);
         self
     }
 
+    #[must_use]
     pub fn feet(mut self, item: Option<Item>) -> Self {
         self.0.swap(EquipSlot::Armor(ArmorSlot::Feet), item);
         self
     }
 
+    #[must_use]
     pub fn back(mut self, item: Option<Item>) -> Self {
         self.0.swap(EquipSlot::Armor(ArmorSlot::Back), item);
         self
     }
 
+    #[must_use]
     pub fn ring1(mut self, item: Option<Item>) -> Self {
         self.0.swap(EquipSlot::Armor(ArmorSlot::Ring1), item);
         self
     }
 
+    #[must_use]
     pub fn ring2(mut self, item: Option<Item>) -> Self {
         self.0.swap(EquipSlot::Armor(ArmorSlot::Ring2), item);
         self
     }
 
+    #[must_use]
     pub fn neck(mut self, item: Option<Item>) -> Self {
         self.0.swap(EquipSlot::Armor(ArmorSlot::Neck), item);
         self
     }
 
+    #[must_use]
     pub fn lantern(mut self, item: Option<Item>) -> Self {
         self.0.swap(EquipSlot::Lantern, item);
         self
     }
 
+    #[must_use]
     pub fn glider(mut self, item: Option<Item>) -> Self {
         self.0.swap(EquipSlot::Glider, item);
         self
     }
 
+    #[must_use]
     pub fn head(mut self, item: Option<Item>) -> Self {
         self.0.swap(EquipSlot::Armor(ArmorSlot::Head), item);
         self
     }
 
+    #[must_use]
     pub fn tabard(mut self, item: Option<Item>) -> Self {
         self.0.swap(EquipSlot::Armor(ArmorSlot::Tabard), item);
         self
     }
 
+    #[must_use]
     pub fn bag(mut self, which: ArmorSlot, item: Option<Item>) -> Self {
         self.0.swap(EquipSlot::Armor(which), item);
         self
     }
 
+    #[must_use]
     pub fn build(self) -> Loadout { self.0 }
 }
 
@@ -774,14 +833,14 @@ mod tests {
         ];
 
         for config in LoadoutConfig::iter() {
-            test_weapons.iter().for_each(|test_weapon| {
-                LoadoutBuilder::build_loadout(
+            for test_weapon in &test_weapons {
+                std::mem::drop(LoadoutBuilder::build_loadout(
                     Body::Humanoid(comp::humanoid::Body::random()),
                     Some(Item::new_from_asset_expect(test_weapon)),
                     Some(config),
                     None,
-                );
-            });
+                ));
+            }
         }
     }
 
@@ -805,18 +864,18 @@ mod tests {
                         body_type: comp::$species::BodyType::Male,
                         ..body
                     };
-                    LoadoutBuilder::build_loadout(
+                    std::mem::drop(LoadoutBuilder::build_loadout(
                         Body::$body(female_body),
                         None,
                         None,
                         None,
-                    );
-                    LoadoutBuilder::build_loadout(
+                    ));
+                    std::mem::drop(LoadoutBuilder::build_loadout(
                         Body::$body(male_body),
                         None,
                         None,
                         None,
-                    );
+                    ));
                 }
             };
             // recursive call
@@ -845,13 +904,10 @@ mod tests {
     }
 
     #[test]
-    fn test_loadout_asset() { LoadoutBuilder::from_asset_expect("common.loadouts.test"); }
-
-    #[test]
     fn test_all_loadout_assets() {
         #[derive(Clone)]
-        struct LoadoutsList(Vec<LoadoutSpec>);
-        impl assets::Compound for LoadoutsList {
+        struct LoadoutList(Vec<LoadoutSpec>);
+        impl assets::Compound for LoadoutList {
             fn load<S: assets::source::Source>(
                 cache: &assets::AssetCache<S>,
                 specifier: &str,
@@ -863,7 +919,7 @@ mod tests {
                     .map(|spec| LoadoutSpec::load_cloned(spec))
                     .collect::<Result<_, Error>>()?;
 
-                Ok(LoadoutsList(list))
+                Ok(Self(list))
             }
         }
 
@@ -880,16 +936,23 @@ mod tests {
                     ItemSpec::Choice(ref items) => {
                         for item in items {
                             match item {
+                                (p, _) if p <= &0.0 => {
+                                    let err = format!(
+                                        "Weight is less or equal to 0.0.\n ({:?}: {:?})",
+                                        key, specifier,
+                                    );
+                                    panic!("\n\n{}\n\n", err);
+                                },
                                 (_, Some(ItemSpec::Item(specifier))) => {
-                                    Item::new_from_asset_expect(&specifier);
+                                    Item::new_from_asset_expect(specifier);
                                 },
                                 (_, None) => {},
                                 (_, _) => {
-                                    panic!(
-                                        "\n\nChoice of Choice is unimplemented. (Search for \
-                                         \n{:?}: {:#?})\n\n",
+                                    let err = format!(
+                                        "Choice of Choice is unimplemented. \n({:?}: {:?})",
                                         key, specifier,
                                     );
+                                    panic!("\n\n{}\n\n", err);
                                 },
                             };
                         }
@@ -898,7 +961,7 @@ mod tests {
             }
         }
 
-        let loadouts = LoadoutsList::load_expect_cloned("common.loadouts.*").0;
+        let loadouts = LoadoutList::load_expect_cloned("common.loadouts.*").0;
         for loadout in loadouts {
             validate_asset(loadout);
         }
