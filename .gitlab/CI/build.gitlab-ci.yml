@@ -99,7 +99,7 @@ coverage:
     - export RUSTFLAGS="-D warnings"
   script:
     - export MACOSX_DEPLOYMENT_TARGET="10.13"
-    - cargo build --release
+    - VELOREN_USERDATA_STRATEGY=executable cargo build --release
     - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
     - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
   artifacts:
