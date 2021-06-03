@@ -681,7 +681,7 @@ pub(super) fn initial_create_pipelines(
     let send_pool = Arc::clone(&pool);
     // Track pipeline creation progress
     let progress = Arc::new(Progress::new());
-    let (pipeline_send, pipeline_recv) = crossbeam::channel::bounded(0);
+    let (pipeline_send, pipeline_recv) = crossbeam_channel::bounded(0);
     let pipeline_creation = PipelineCreation {
         progress: Arc::clone(&progress),
         recv: pipeline_recv,
@@ -729,7 +729,7 @@ pub(super) fn recreate_pipelines(
     let send_pool = Arc::clone(&pool);
     // Track pipeline creation progress
     let progress = Arc::new(Progress::new());
-    let (result_send, result_recv) = crossbeam::channel::bounded(0);
+    let (result_send, result_recv) = crossbeam_channel::bounded(0);
     let pipeline_creation = PipelineCreation {
         progress: Arc::clone(&progress),
         recv: result_recv,
@@ -841,7 +841,7 @@ impl Drop for Task<'_> {
 
 pub struct PipelineCreation<T> {
     progress: Arc<Progress>,
-    recv: crossbeam::channel::Receiver<T>,
+    recv: crossbeam_channel::Receiver<T>,
 }
 
 impl<T> PipelineCreation<T> {
@@ -860,7 +860,7 @@ impl<T> PipelineCreation<T> {
     /// Checks if the pipelines were completed and returns the result if they
     /// were
     pub fn try_complete(self) -> Result<T, Self> {
-        use crossbeam::channel::TryRecvError;
+        use crossbeam_channel::TryRecvError;
         match self.recv.try_recv() {
             // Yay!
             Ok(t) => Ok(t),
