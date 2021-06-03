@@ -556,6 +556,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         let mut render_pass = self.render_pass.scope("figures", self.borrow.device);
 
         render_pass.set_pipeline(&self.pipelines.figure.pipeline);
+        // Note: figures use the same vertex type as the terrain
         set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, &self.borrow);
 
         FigureDrawer { render_pass }
@@ -590,7 +591,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         let mut render_pass = self.render_pass.scope("sprites", self.borrow.device);
 
         render_pass.set_pipeline(&self.pipelines.sprite.pipeline);
-        set_quad_index_buffer::<particle::Vertex>(&mut render_pass, &self.borrow);
+        set_quad_index_buffer::<sprite::Vertex>(&mut render_pass, &self.borrow);
         render_pass.set_bind_group(0, &globals.bind_group, &[]);
         render_pass.set_bind_group(3, &col_lights.bind_group, &[]);
 

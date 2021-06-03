@@ -943,36 +943,40 @@ impl Renderer {
     pub(super) fn ensure_sufficient_index_length<V: Vertex>(
         &mut self,
         // Length of the vert buffer with 4 verts per quad
-        length: usize,
+        vert_length: usize,
     ) {
+        let quad_index_length = vert_length / 4 * 6;
+
         match V::QUADS_INDEX {
             Some(wgpu::IndexFormat::Uint16) => {
                 // Make sure the global quad index buffer is large enough
-                if self.quad_index_buffer_u16.len() < length {
+                if self.quad_index_buffer_u16.len() < quad_index_length {
                     // Make sure we aren't over the max
-                    if length > u16::MAX as usize {
+                    if vert_length > u16::MAX as usize {
                         panic!(
                             "Vertex type: {} needs to use a larger index type, length: {}",
                             core::any::type_name::<V>(),
-                            length
+                            vert_length
                         );
                     }
-                    self.quad_index_buffer_u16 = create_quad_index_buffer_u16(&self.device, length);
+                    self.quad_index_buffer_u16 =
+                        create_quad_index_buffer_u16(&self.device, vert_length);
                 }
             },
             Some(wgpu::IndexFormat::Uint32) => {
                 // Make sure the global quad index buffer is large enough
-                if self.quad_index_buffer_u32.len() < length {
+                if self.quad_index_buffer_u32.len() < quad_index_length {
                     // Make sure we aren't over the max
-                    if length > u32::MAX as usize {
+                    if vert_length > u32::MAX as usize {
                         panic!(
                             "More than u32::MAX({}) verts({}) for type({}) using an index buffer!",
                             u32::MAX,
-                            length,
+                            vert_length,
                             core::any::type_name::<V>()
                         );
                     }
-                    self.quad_index_buffer_u32 = create_quad_index_buffer_u32(&self.device, length);
+                    self.quad_index_buffer_u32 =
+                        create_quad_index_buffer_u32(&self.device, vert_length);
                 }
             },
             None => {},
