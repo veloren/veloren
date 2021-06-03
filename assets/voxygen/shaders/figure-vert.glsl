@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 
 #include <constants.glsl>
 
@@ -17,15 +17,15 @@
 #include <globals.glsl>
 #include <lod.glsl>
 
-in uint v_pos_norm;
-in uint v_atlas_pos;
+layout(location = 0) in uint v_pos_norm;
+layout(location = 1) in uint v_atlas_pos;
 
 // in vec3 v_norm;
 /* in uint v_col;
 // out vec3 light_pos[2];
 in uint v_ao_bone; */
 
-layout (std140)
+layout (std140, set = 2, binding = 0)
 uniform u_locals {
     mat4 model_mat;
     vec4 highlight_col;
@@ -40,10 +40,16 @@ uniform u_locals {
 
 struct BoneData {
     mat4 bone_mat;
+    // This is actually a matrix, but we explicitly rely on being able to index into it
+    // in column major order, and some shader compilers seem to transpose the matrix to
+    // a different format when it's copied out of the array.  So we shouldn't put it in
+    // a local variable (I think explicitly marking it as a vec4[4] works, but I'm not
+    // sure whether it optimizes the same, and in any case the fact that there's a
+    // format change suggests an actual wasteful copy is happening).
     mat4 normals_mat;
 };
 
-layout (std140)
+layout (std140, set = 2, binding = 1)
 uniform u_bones {
     // Warning: might not actually be 16 elements long. Don't index out of bounds!
     BoneData bones[16];
@@ -59,11 +65,11 @@ uniform u_bones {
 //    ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
 //};
 
-out vec3 f_pos;
+layout(location = 0) out vec3 f_pos;
 // flat out uint f_pos_norm;
-flat out vec3 f_norm;
+layout(location = 1) flat out vec3 f_norm;
 // float dummy;
-/*centroid */out vec2 f_uv_pos;
+/*centroid */layout(location = 2) out vec2 f_uv_pos;
 // out vec3 f_col;
 // out float f_ao;
 // out float f_alt;
@@ -78,16 +84,14 @@ void main() {
     /* uint bone_idx = (v_ao_bone >> 2) & 0x3Fu; */
     uint bone_idx = (v_pos_norm >> 27) & 0xFu;
 
-    mat4 bone_mat = bones[bone_idx].bone_mat;
-    mat4 normals_mat = bones[bone_idx].normals_mat;
-    mat4 combined_mat = /*model_mat * */bone_mat;
+    // mat4 combined_mat = model_mat * bone_mat;
 
     vec3 pos = (vec3((uvec3(v_pos_norm) >> uvec3(0, 9, 18)) & uvec3(0x1FFu)) - 256.0) / 2.0;
 
     // vec4 bone_pos = bones[bone_idx].bone_mat * vec4(pos, 1);
 
     f_pos = (
-        combined_mat *
+        bones[bone_idx].bone_mat *
         vec4(pos, 1.0)
     ).xyz + (model_pos - focus_off.xyz);
 
@@ -110,7 +114,7 @@ void main() {
     // vec3 norm = normals[normal_idx];
     uint axis_idx = v_atlas_pos & 3u;
 
-    vec3 norm = normals_mat[axis_idx].xyz;
+    vec3 norm = bones[bone_idx].normals_mat[axis_idx].xyz;
     // norm = normalize(norm);
     // vec3 norm = norm_mat * vec4(uvec3(1 << axis_idx) & uvec3(0x1u, 0x3u, 0x7u), 1);
 

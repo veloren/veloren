@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 
 #include <constants.glsl>
 
@@ -17,22 +17,22 @@
 #include <random.glsl>
 #include <lod.glsl>
 
-in vec3 v_pos;
+layout(location = 0) in vec3 v_pos;
 // in uint v_col;
-in uint v_norm_ao;
-in vec3 inst_pos;
-in float inst_time;
-in float inst_lifespan;
-in float inst_entropy;
-in vec3 inst_dir;
-in int inst_mode;
+layout(location = 1) in uint v_norm_ao;
+layout(location = 2) in float inst_time;
+layout(location = 3) in float inst_lifespan;
+layout(location = 4) in float inst_entropy;
+layout(location = 5) in int inst_mode;
+layout(location = 6) in vec3 inst_dir;
+layout(location = 7) in vec3 inst_pos;
 
-out vec3 f_pos;
-flat out vec3 f_norm;
-out vec4 f_col;
-out float f_ao;
-out float f_light;
-out float f_reflect;
+layout(location = 0) out vec3 f_pos;
+layout(location = 1) flat out vec3 f_norm;
+layout(location = 2) out vec4 f_col;
+//layout(location = x) out float f_ao;
+//layout(location = x) out float f_light;
+layout(location = 3) out float f_reflect;
 
 const float SCALE = 1.0 / 11.0;
 

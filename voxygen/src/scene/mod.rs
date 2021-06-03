@@ -1,4 +1,5 @@
 pub mod camera;
+pub mod debug;
 pub mod figure;
 pub mod lod;
 pub mod math;
@@ -8,6 +9,7 @@ pub mod terrain;
 
 pub use self::{
     camera::{Camera, CameraMode},
+    debug::{Debug, DebugShape, DebugShapeId},
     figure::FigureMgr,
     lod::Lod,
     particle::ParticleMgr,
@@ -16,9 +18,9 @@ pub use self::{
 use crate::{
     audio::{ambient::AmbientMgr, music::MusicMgr, sfx::SfxMgr, AudioFrontend},
     render::{
-        create_clouds_mesh, create_pp_mesh, create_skybox_mesh, CloudsLocals, CloudsPipeline,
-        Consts, GlobalModel, Globals, Light, LodData, Model, PostProcessLocals,
-        PostProcessPipeline, Renderer, Shadow, ShadowLocals, SkyboxLocals, SkyboxPipeline,
+        create_skybox_mesh, CloudsLocals, Consts, Drawer, GlobalModel, Globals, GlobalsBindGroup,
+        Light, Model, PointLightMatrix, PostProcessLocals, Renderer, Shadow, ShadowLocals,
+        SkyboxVertex,
     },
     settings::Settings,
     window::{AnalogGameInput, Event},
@@ -34,6 +36,7 @@ use common::{
 use common_base::span;
 use common_state::State;
 use comp::item::Reagent;
+use hashbrown::HashMap;
 use num::traits::{Float, FloatConst};
 use specs::{Entity as EcsEntity, Join, WorldExt};
 use vek::*;
@@ -41,7 +44,7 @@ use vek::*;
 // TODO: Don't hard-code this.
 const CURSOR_PAN_SCALE: f32 = 0.005;
 
-const MAX_LIGHT_COUNT: usize = 31;
+const MAX_LIGHT_COUNT: usize = 20; // 31 (total shadow_mats is limited to 128 with default max_uniform_buffer_binding_size)
 const MAX_SHADOW_COUNT: usize = 24;
 const NUM_DIRECTED_LIGHTS: usize = 1;
 const LIGHT_DIST_RADIUS: f32 = 64.0; // The distance beyond which lights may not emit light from their origin
@@ -67,30 +70,19 @@ struct EventLight {
 }
 
 struct Skybox {
-    model: Model<SkyboxPipeline>,
-    locals: Consts<SkyboxLocals>,
-}
-
-struct Clouds {
-    model: Model<CloudsPipeline>,
-    locals: Consts<CloudsLocals>,
-}
-
-struct PostProcess {
-    model: Model<PostProcessPipeline>,
-    locals: Consts<PostProcessLocals>,
+    model: Model<SkyboxVertex>,
 }
 
 pub struct Scene {
     data: GlobalModel,
+    globals_bind_group: GlobalsBindGroup,
     camera: Camera,
     camera_input_state: Vec2<f32>,
     event_lights: Vec<EventLight>,
 
     skybox: Skybox,
-    clouds: Clouds,
-    postprocess: PostProcess,
     terrain: Terrain<TerrainChunk>,
+    pub debug: Debug,
     pub lod: Lod,
     loaded_distance: f32,
     /// x coordinate is sea level (minimum height for any land chunk), and y
@@ -141,7 +133,7 @@ impl<'a> SceneData<'a> {
 /// W_e = 2 is the width of the image plane (for our projections, since they go
 /// from -1 to 1) n_e = near_plane is the near plane for the view frustum
 /// θ = (fov / 2) is the half-angle of the FOV (the one passed to
-/// Mat4::projection_rh_no).
+/// Mat4::projection_rh_zo).
 ///
 /// Although the widths for the x and y image planes are the same, they are
 /// different in this framework due to the introduction of an aspect ratio:
@@ -273,42 +265,36 @@ impl Scene {
         client: &Client,
         settings: &Settings,
     ) -> Self {
-        let resolution = renderer.get_resolution().map(|e| e as f32);
+        let resolution = renderer.resolution().map(|e| e as f32);
         let sprite_render_context = lazy_init(renderer);
 
+        let data = GlobalModel {
+            globals: renderer.create_consts(&[Globals::default()]),
+            lights: renderer.create_consts(&[Light::default(); MAX_LIGHT_COUNT]),
+            shadows: renderer.create_consts(&[Shadow::default(); MAX_SHADOW_COUNT]),
+            shadow_mats: renderer.create_shadow_bound_locals(&[ShadowLocals::default()]),
+            point_light_matrices: Box::new([PointLightMatrix::default(); MAX_LIGHT_COUNT * 6 + 6]),
+        };
+
+        let lod = Lod::new(renderer, client, settings);
+
+        let globals_bind_group = renderer.bind_globals(&data, lod.get_data());
+
+        let terrain = Terrain::new(renderer, &data, lod.get_data(), sprite_render_context);
+
         Self {
-            data: GlobalModel {
-                globals: renderer.create_consts(&[Globals::default()]).unwrap(),
-                lights: renderer
-                    .create_consts(&[Light::default(); MAX_LIGHT_COUNT])
-                    .unwrap(),
-                shadows: renderer
-                    .create_consts(&[Shadow::default(); MAX_SHADOW_COUNT])
-                    .unwrap(),
-                shadow_mats: renderer
-                    .create_consts(&[ShadowLocals::default(); MAX_LIGHT_COUNT * 6 + 6])
-                    .unwrap(),
-            },
+            data,
+            globals_bind_group,
             camera: Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson),
             camera_input_state: Vec2::zero(),
             event_lights: Vec::new(),
 
             skybox: Skybox {
                 model: renderer.create_model(&create_skybox_mesh()).unwrap(),
-                locals: renderer.create_consts(&[SkyboxLocals::default()]).unwrap(),
             },
-            clouds: Clouds {
-                model: renderer.create_model(&create_clouds_mesh()).unwrap(),
-                locals: renderer.create_consts(&[CloudsLocals::default()]).unwrap(),
-            },
-            postprocess: PostProcess {
-                model: renderer.create_model(&create_pp_mesh()).unwrap(),
-                locals: renderer
-                    .create_consts(&[PostProcessLocals::default()])
-                    .unwrap(),
-            },
-            terrain: Terrain::new(renderer, sprite_render_context),
-            lod: Lod::new(renderer, client, settings),
+            terrain,
+            debug: Debug::new(),
+            lod,
             loaded_distance: 0.0,
             map_bounds: Vec2::new(
                 client.world_data().min_chunk_alt(),
@@ -590,9 +576,7 @@ impl Scene {
         );
         lights.sort_by_key(|light| light.get_pos().distance_squared(player_pos) as i32);
         lights.truncate(MAX_LIGHT_COUNT);
-        renderer
-            .update_consts(&mut self.data.lights, &lights)
-            .expect("Failed to update light constants");
+        renderer.update_consts(&mut self.data.lights, &lights);
 
         // Update event lights
         let dt = ecs.fetch::<DeltaTime>().0;
@@ -629,9 +613,7 @@ impl Scene {
             .collect::<Vec<_>>();
         shadows.sort_by_key(|shadow| shadow.get_pos().distance_squared(player_pos) as i32);
         shadows.truncate(MAX_SHADOW_COUNT);
-        renderer
-            .update_consts(&mut self.data.shadows, &shadows)
-            .expect("Failed to update light constants");
+        renderer.update_consts(&mut self.data.shadows, &shadows);
 
         // Remember to put the new loaded distance back in the scene.
         self.loaded_distance = loaded_distance;
@@ -642,51 +624,42 @@ impl Scene {
         let focus_off = focus_pos.map(|e| e.trunc());
 
         // Update global constants.
-        renderer
-            .update_consts(&mut self.data.globals, &[Globals::new(
-                view_mat,
-                proj_mat,
-                cam_pos,
-                focus_pos,
-                self.loaded_distance,
-                self.lod.get_data().tgt_detail as f32,
-                self.map_bounds,
-                time_of_day,
-                scene_data.state.get_time(),
-                renderer.get_resolution(),
-                Vec2::new(SHADOW_NEAR, SHADOW_FAR),
-                lights.len(),
-                shadows.len(),
-                NUM_DIRECTED_LIGHTS,
-                scene_data
-                    .state
-                    .terrain()
-                    .get((cam_pos + focus_off).map(|e| e.floor() as i32))
-                    .map(|b| b.kind())
-                    .unwrap_or(BlockKind::Air),
-                self.select_pos.map(|e| e - focus_off.map(|e| e as i32)),
-                scene_data.gamma,
-                scene_data.exposure,
-                scene_data.ambiance,
-                self.camera.get_mode(),
-                scene_data.sprite_render_distance as f32 - 20.0,
-            )])
-            .expect("Failed to update global constants");
-        renderer
-            .update_consts(&mut self.clouds.locals, &[CloudsLocals::new(
-                proj_mat_inv,
-                view_mat_inv,
-            )])
-            .expect("Failed to update cloud locals");
-        renderer
-            .update_consts(&mut self.postprocess.locals, &[PostProcessLocals::new(
-                proj_mat_inv,
-                view_mat_inv,
-            )])
-            .expect("Failed to update post-process locals");
+        renderer.update_consts(&mut self.data.globals, &[Globals::new(
+            view_mat,
+            proj_mat,
+            cam_pos,
+            focus_pos,
+            self.loaded_distance,
+            self.lod.get_data().tgt_detail as f32,
+            self.map_bounds,
+            time_of_day,
+            scene_data.state.get_time(),
+            renderer.resolution().as_(),
+            Vec2::new(SHADOW_NEAR, SHADOW_FAR),
+            lights.len(),
+            shadows.len(),
+            NUM_DIRECTED_LIGHTS,
+            scene_data
+                .state
+                .terrain()
+                .get((cam_pos + focus_off).map(|e| e.floor() as i32))
+                .map(|b| b.kind())
+                .unwrap_or(BlockKind::Air),
+            self.select_pos.map(|e| e - focus_off.map(|e| e as i32)),
+            scene_data.gamma,
+            scene_data.exposure,
+            scene_data.ambiance,
+            self.camera.get_mode(),
+            scene_data.sprite_render_distance as f32 - 20.0,
+        )]);
+        renderer.update_clouds_locals(CloudsLocals::new(proj_mat_inv, view_mat_inv));
+        renderer.update_postprocess_locals(PostProcessLocals::new(proj_mat_inv, view_mat_inv));
 
         // Maintain LoD.
         self.lod.maintain(renderer);
+
+        // Maintain debug shapes
+        self.debug.maintain(renderer);
 
         // Maintain the terrain.
         let (_visible_bounds, visible_light_volume, visible_psr_bounds) = self.terrain.maintain(
@@ -694,8 +667,7 @@ impl Scene {
             &scene_data,
             focus_pos,
             self.loaded_distance,
-            view_mat,
-            proj_mat,
+            &self.camera,
         );
 
         // Maintain the figures.
@@ -732,7 +704,11 @@ impl Scene {
             // to transform it correctly into texture coordinates, as well as
             // OpenGL coordinates.  Note that the matrix for directional light
             // is *already* linear in the depth buffer.
-            let texture_mat = Mat4::scaling_3d(0.5f32) * Mat4::translation_3d(1.0f32);
+            //
+            // Also, observe that we flip the texture sampling matrix in order to account
+            // for the fact that DirectX renders top-down.
+            let texture_mat = Mat4::<f32>::scaling_3d::<Vec3<f32>>(Vec3::new(0.5, -0.5, 1.0))
+                * Mat4::translation_3d(Vec3::new(1.0, -1.0, 0.0));
             // We need to compute these offset matrices to transform world space coordinates
             // to the translated ones we use when multiplying by the light space
             // matrix; this helps avoid precision loss during the
@@ -744,226 +720,281 @@ impl Scene {
             let new_dir = math::Vec3::from(view_dir);
             let new_dir = new_dir.normalized();
             let up: math::Vec3<f32> = math::Vec3::unit_y();
-            directed_shadow_mats.push(math::Mat4::look_at_rh(
-                look_at,
-                look_at + directed_light_dir,
-                up,
-            ));
+            let light_view_mat = math::Mat4::look_at_rh(look_at, look_at + directed_light_dir, up);
+            {
+                // NOTE: Light view space, right-handed.
+                let v_p_orig =
+                    math::Vec3::from(light_view_mat * math::Vec4::from_direction(new_dir));
+                let mut v_p = v_p_orig.normalized();
+                let cos_gamma = new_dir
+                    .map(f64::from)
+                    .dot(directed_light_dir.map(f64::from));
+                let sin_gamma = (1.0 - cos_gamma * cos_gamma).sqrt();
+                let gamma = sin_gamma.asin();
+                let view_mat = math::Mat4::from_col_array(view_mat.into_col_array());
+                // coordinates are transformed from world space (right-handed) to view space
+                // (right-handed).
+                let bounds1 = math::fit_psr(
+                    view_mat.map_cols(math::Vec4::from),
+                    visible_light_volume.iter().copied(),
+                    math::Vec4::homogenized,
+                );
+                let n_e = f64::from(-bounds1.max.z);
+                let factor = compute_warping_parameter_perspective(
+                    gamma,
+                    n_e,
+                    f64::from(fov),
+                    f64::from(aspect_ratio),
+                );
+
+                v_p.z = 0.0;
+                v_p.normalize();
+                let l_r: math::Mat4<f32> = if factor > EPSILON_UPSILON {
+                    // NOTE: Our coordinates are now in left-handed space, but v_p isn't; however,
+                    // v_p has no z component, so we don't have to adjust it for left-handed
+                    // spaces.
+                    math::Mat4::look_at_lh(math::Vec3::zero(), math::Vec3::unit_z(), v_p)
+                } else {
+                    math::Mat4::identity()
+                };
+                // Convert from right-handed to left-handed coordinates.
+                let directed_proj_mat = math::Mat4::new(
+                    1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+                );
+
+                let light_all_mat = l_r * directed_proj_mat * light_view_mat;
+                // coordinates are transformed from world space (right-handed) to rotated light
+                // space (left-handed).
+                let bounds0 = math::fit_psr(
+                    light_all_mat,
+                    visible_light_volume.iter().copied(),
+                    math::Vec4::homogenized,
+                );
+                // Vague idea: project z_n from the camera view to the light view (where it's
+                // tilted by γ).
+                //
+                // NOTE: To transform a normal by M, we multiply by the transpose of the inverse
+                // of M. For the cases below, we are transforming by an
+                // already-inverted matrix, so the transpose of its inverse is
+                // just the transpose of the original matrix.
+                let (z_0, z_1) = {
+                    let f_e = f64::from(-bounds1.min.z).max(n_e);
+                    // view space, right-handed coordinates.
+                    let p_z = bounds1.max.z;
+                    // rotated light space, left-handed coordinates.
+                    let p_y = bounds0.min.y;
+                    let p_x = bounds0.center().x;
+                    // moves from view-space (right-handed) to world space (right-handed)
+                    let view_inv = view_mat.inverted();
+                    // moves from rotated light space (left-handed) to world space (right-handed).
+                    let light_all_inv = light_all_mat.inverted();
+
+                    // moves from view-space (right-handed) to world-space (right-handed).
+                    let view_point = view_inv
+                        * math::Vec4::from_point(
+                            -math::Vec3::unit_z() * p_z, /* + math::Vec4::unit_w() */
+                        );
+                    let view_plane = view_mat.transposed() * -math::Vec4::unit_z();
+
+                    // moves from rotated light space (left-handed) to world space (right-handed).
+                    let light_point = light_all_inv
+                        * math::Vec4::from_point(
+                            math::Vec3::unit_y() * p_y, /* + math::Vec4::unit_w() */
+                        );
+                    let light_plane = light_all_mat.transposed() * math::Vec4::unit_y();
+
+                    // moves from rotated light space (left-handed) to world space (right-handed).
+                    let shadow_point = light_all_inv
+                        * math::Vec4::from_point(
+                            math::Vec3::unit_x() * p_x, /* + math::Vec4::unit_w() */
+                        );
+                    let shadow_plane = light_all_mat.transposed() * math::Vec4::unit_x();
+
+                    // Find the point at the intersection of the three planes; note that since the
+                    // equations are already in right-handed world space, we don't need to negate
+                    // the z coordinates.
+                    let solve_p0 = math::Mat4::new(
+                        view_plane.x,
+                        view_plane.y,
+                        view_plane.z,
+                        0.0,
+                        light_plane.x,
+                        light_plane.y,
+                        light_plane.z,
+                        0.0,
+                        shadow_plane.x,
+                        shadow_plane.y,
+                        shadow_plane.z,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                    );
+
+                    // in world-space (right-handed).
+                    let plane_dist = math::Vec4::new(
+                        view_plane.dot(view_point),
+                        light_plane.dot(light_point),
+                        shadow_plane.dot(shadow_point),
+                        1.0,
+                    );
+                    let p0_world = solve_p0.inverted() * plane_dist;
+                    // in rotated light-space (left-handed).
+                    let p0 = light_all_mat * p0_world;
+                    let mut p1 = p0;
+                    // in rotated light-space (left-handed).
+                    p1.y = bounds0.max.y;
+
+                    // transforms from rotated light-space (left-handed) to view space
+                    // (right-handed).
+                    let view_from_light_mat = view_mat * light_all_inv;
+                    // z0 and z1 are in view space (right-handed).
+                    let z0 = view_from_light_mat * p0;
+                    let z1 = view_from_light_mat * p1;
+
+                    // Extract the homogenized forward component (right-handed).
+                    //
+                    // NOTE: I don't think the w component should be anything but 1 here, but
+                    // better safe than sorry.
+                    (
+                        f64::from(z0.homogenized().dot(-math::Vec4::unit_z())).clamp(n_e, f_e),
+                        f64::from(z1.homogenized().dot(-math::Vec4::unit_z())).clamp(n_e, f_e),
+                    )
+                };
+
+                // all of this is in rotated light-space (left-handed).
+                let mut light_focus_pos: math::Vec3<f32> = math::Vec3::zero();
+                light_focus_pos.x = bounds0.center().x;
+                light_focus_pos.y = bounds0.min.y;
+                light_focus_pos.z = bounds0.center().z;
+
+                let d = f64::from(bounds0.max.y - bounds0.min.y).abs();
+
+                let w_l_y = d;
+
+                // NOTE: See section 5.1.2.2 of Lloyd's thesis.
+                // NOTE: Since z_1 and z_0 are in the same coordinate space, we don't have to
+                // worry about the handedness of their ratio.
+                let alpha = z_1 / z_0;
+                let alpha_sqrt = alpha.sqrt();
+                let directed_near_normal = if factor < 0.0 {
+                    // Standard shadow map to LiSPSM
+                    (1.0 + alpha_sqrt - factor * (alpha - 1.0)) / ((alpha - 1.0) * (factor + 1.0))
+                } else {
+                    // LiSPSM to PSM
+                    ((alpha_sqrt - 1.0) * (factor * alpha_sqrt + 1.0)).recip()
+                };
+
+                // Equation 5.14 - 5.16
+                let y_ = |v: f64| w_l_y * (v + directed_near_normal).abs();
+                let directed_near = y_(0.0) as f32;
+                let directed_far = y_(1.0) as f32;
+                light_focus_pos.y = if factor > EPSILON_UPSILON {
+                    light_focus_pos.y - directed_near
+                } else {
+                    light_focus_pos.y
+                };
+                // Left-handed translation.
+                let w_v: math::Mat4<f32> = math::Mat4::translation_3d(-math::Vec3::new(
+                    light_focus_pos.x,
+                    light_focus_pos.y,
+                    light_focus_pos.z,
+                ));
+                let shadow_view_mat: math::Mat4<f32> = w_v * light_all_mat;
+                let w_p: math::Mat4<f32> = {
+                    if factor > EPSILON_UPSILON {
+                        // Projection for y
+                        let near = directed_near;
+                        let far = directed_far;
+                        let left = -1.0;
+                        let right = 1.0;
+                        let bottom = -1.0;
+                        let top = 1.0;
+                        let s_x = 2.0 * near / (right - left);
+                        let o_x = (right + left) / (right - left);
+                        let s_z = 2.0 * near / (top - bottom);
+                        let o_z = (top + bottom) / (top - bottom);
+
+                        let s_y = (far + near) / (far - near);
+                        let o_y = -2.0 * far * near / (far - near);
+
+                        math::Mat4::new(
+                            s_x, o_x, 0.0, 0.0, 0.0, s_y, 0.0, o_y, 0.0, o_z, s_z, 0.0, 0.0, 1.0,
+                            0.0, 0.0,
+                        )
+                    } else {
+                        math::Mat4::identity()
+                    }
+                };
+
+                let shadow_all_mat: math::Mat4<f32> = w_p * shadow_view_mat;
+                // coordinates are transformed from world space (right-handed)
+                // to post-warp light space (left-handed), then homogenized.
+                let math::Aabb::<f32> {
+                    min:
+                        math::Vec3 {
+                            x: xmin,
+                            y: ymin,
+                            z: zmin,
+                        },
+                    max:
+                        math::Vec3 {
+                            x: xmax,
+                            y: ymax,
+                            z: zmax,
+                        },
+                } = math::fit_psr(
+                    shadow_all_mat,
+                    visible_light_volume.iter().copied(),
+                    math::Vec4::homogenized,
+                );
+                let s_x = 2.0 / (xmax - xmin);
+                let s_y = 2.0 / (ymax - ymin);
+                let s_z = 1.0 / (zmax - zmin);
+                let o_x = -(xmax + xmin) / (xmax - xmin);
+                let o_y = -(ymax + ymin) / (ymax - ymin);
+                let o_z = -zmin / (zmax - zmin);
+                let directed_proj_mat = Mat4::new(
+                    s_x, 0.0, 0.0, o_x, 0.0, s_y, 0.0, o_y, 0.0, 0.0, s_z, o_z, 0.0, 0.0, 0.0, 1.0,
+                );
+
+                let shadow_all_mat: Mat4<f32> =
+                    Mat4::from_col_arrays(shadow_all_mat.into_col_arrays());
+
+                let directed_texture_proj_mat = texture_mat * directed_proj_mat;
+                let shadow_locals = ShadowLocals::new(
+                    directed_proj_mat * shadow_all_mat,
+                    directed_texture_proj_mat * shadow_all_mat,
+                );
+
+                renderer.update_consts(&mut self.data.shadow_mats, &[shadow_locals]);
+            }
+            directed_shadow_mats.push(light_view_mat);
             // This leaves us with five dummy slots, which we push as defaults.
             directed_shadow_mats
                 .extend_from_slice(&[math::Mat4::default(); 6 - NUM_DIRECTED_LIGHTS] as _);
             // Now, construct the full projection matrices in the first two directed light
             // slots.
             let mut shadow_mats = Vec::with_capacity(6 * (lights.len() + 1));
-            shadow_mats.extend(directed_shadow_mats.iter().enumerate().map(
-                move |(idx, &light_view_mat)| {
-                    if idx >= NUM_DIRECTED_LIGHTS {
-                        return ShadowLocals::new(Mat4::identity(), Mat4::identity());
-                    }
-
-                    let v_p_orig =
-                        math::Vec3::from(light_view_mat * math::Vec4::from_direction(new_dir));
-                    let mut v_p = v_p_orig.normalized();
-                    let cos_gamma = new_dir
-                        .map(f64::from)
-                        .dot(directed_light_dir.map(f64::from));
-                    let sin_gamma = (1.0 - cos_gamma * cos_gamma).sqrt();
-                    let gamma = sin_gamma.asin();
-                    let view_mat = math::Mat4::from_col_array(view_mat.into_col_array());
-                    let bounds1 = math::fit_psr(
-                        view_mat.map_cols(math::Vec4::from),
-                        visible_light_volume.iter().copied(),
-                        math::Vec4::homogenized,
-                    );
-                    let n_e = f64::from(-bounds1.max.z);
-                    let factor = compute_warping_parameter_perspective(
-                        gamma,
-                        n_e,
-                        f64::from(fov),
-                        f64::from(aspect_ratio),
-                    );
-
-                    v_p.z = 0.0;
-                    v_p.normalize();
-                    let l_r: math::Mat4<f32> = if factor > EPSILON_UPSILON {
-                        math::Mat4::look_at_rh(math::Vec3::zero(), -math::Vec3::unit_z(), v_p)
-                    } else {
-                        math::Mat4::identity()
-                    };
-                    let directed_proj_mat = math::Mat4::new(
-                        1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0,
-                        1.0,
-                    );
-
-                    let light_all_mat = l_r * directed_proj_mat * light_view_mat;
-                    let bounds0 = math::fit_psr(
-                        light_all_mat,
-                        visible_light_volume.iter().copied(),
-                        math::Vec4::homogenized,
-                    );
-                    // Vague idea: project z_n from the camera view to the light view (where it's
-                    // tilted by γ).
-                    let (z_0, z_1) = {
-                        let p_z = bounds1.max.z;
-                        let p_y = bounds0.min.y;
-                        let p_x = bounds0.center().x;
-                        let view_inv = view_mat.inverted();
-                        let light_all_inv = light_all_mat.inverted();
-
-                        let view_point = view_inv * math::Vec4::new(0.0, 0.0, p_z, 1.0);
-                        let view_plane =
-                            view_inv * math::Vec4::from_direction(math::Vec3::unit_z());
-
-                        let light_point = light_all_inv * math::Vec4::new(0.0, p_y, 0.0, 1.0);
-                        let light_plane =
-                            light_all_inv * math::Vec4::from_direction(math::Vec3::unit_y());
-
-                        let shadow_point = light_all_inv * math::Vec4::new(p_x, 0.0, 0.0, 1.0);
-                        let shadow_plane =
-                            light_all_inv * math::Vec4::from_direction(math::Vec3::unit_x());
-
-                        let solve_p0 = math::Mat4::new(
-                            view_plane.x,
-                            view_plane.y,
-                            view_plane.z,
-                            -view_plane.dot(view_point),
-                            light_plane.x,
-                            light_plane.y,
-                            light_plane.z,
-                            -light_plane.dot(light_point),
-                            shadow_plane.x,
-                            shadow_plane.y,
-                            shadow_plane.z,
-                            -shadow_plane.dot(shadow_point),
-                            0.0,
-                            0.0,
-                            0.0,
-                            1.0,
-                        );
-
-                        let p0_world = solve_p0.inverted() * math::Vec4::unit_w();
-                        let p0 = light_all_mat * p0_world;
-                        let mut p1 = p0;
-                        p1.y = bounds0.max.y;
-
-                        let view_from_light_mat = view_mat * light_all_inv;
-                        let z0 = view_from_light_mat * p0;
-                        let z1 = view_from_light_mat * p1;
-
-                        (f64::from(z0.z), f64::from(z1.z))
-                    };
-
-                    let mut light_focus_pos: math::Vec3<f32> = math::Vec3::zero();
-                    light_focus_pos.x = bounds0.center().x;
-                    light_focus_pos.y = bounds0.min.y;
-                    light_focus_pos.z = bounds0.center().z;
-
-                    let d = f64::from(bounds0.max.y - bounds0.min.y).abs();
-
-                    let w_l_y = d;
-
-                    // NOTE: See section 5.1.2.2 of Lloyd's thesis.
-                    let alpha = z_1 / z_0;
-                    let alpha_sqrt = alpha.sqrt();
-                    let directed_near_normal = if factor < 0.0 {
-                        // Standard shadow map to LiSPSM
-                        (1.0 + alpha_sqrt - factor * (alpha - 1.0))
-                            / ((alpha - 1.0) * (factor + 1.0))
-                    } else {
-                        // LiSPSM to PSM
-                        ((alpha_sqrt - 1.0) * (factor * alpha_sqrt + 1.0)).recip()
-                    };
-
-                    // Equation 5.14 - 5.16
-                    let y_ = |v: f64| w_l_y * (v + directed_near_normal).abs();
-                    let directed_near = y_(0.0) as f32;
-                    let directed_far = y_(1.0) as f32;
-                    light_focus_pos.y = if factor > EPSILON_UPSILON {
-                        light_focus_pos.y - directed_near
-                    } else {
-                        light_focus_pos.y
-                    };
-                    let w_v: math::Mat4<f32> = math::Mat4::translation_3d(-math::Vec3::new(
-                        light_focus_pos.x,
-                        light_focus_pos.y,
-                        light_focus_pos.z,
-                    ));
-                    let shadow_view_mat: math::Mat4<f32> = w_v * light_all_mat;
-                    let w_p: math::Mat4<f32> = {
-                        if factor > EPSILON_UPSILON {
-                            // Projection for y
-                            let near = directed_near;
-                            let far = directed_far;
-                            let left = -1.0;
-                            let right = 1.0;
-                            let bottom = -1.0;
-                            let top = 1.0;
-                            let s_x = 2.0 * near / (right - left);
-                            let o_x = (right + left) / (right - left);
-                            let s_z = 2.0 * near / (top - bottom);
-                            let o_z = (top + bottom) / (top - bottom);
-
-                            let s_y = (far + near) / (far - near);
-                            let o_y = -2.0 * far * near / (far - near);
-
-                            math::Mat4::new(
-                                s_x, o_x, 0.0, 0.0, 0.0, s_y, 0.0, o_y, 0.0, o_z, s_z, 0.0, 0.0,
-                                1.0, 0.0, 0.0,
-                            )
-                        } else {
-                            math::Mat4::identity()
-                        }
-                    };
-
-                    let shadow_all_mat: math::Mat4<f32> = w_p * shadow_view_mat;
-                    let math::Aabb::<f32> {
-                        min:
-                            math::Vec3 {
-                                x: xmin,
-                                y: ymin,
-                                z: zmin,
-                            },
-                        max:
-                            math::Vec3 {
-                                x: xmax,
-                                y: ymax,
-                                z: zmax,
-                            },
-                    } = math::fit_psr(
-                        shadow_all_mat,
-                        visible_light_volume.iter().copied(),
-                        math::Vec4::homogenized,
-                    );
-                    let s_x = 2.0 / (xmax - xmin);
-                    let s_y = 2.0 / (ymax - ymin);
-                    let s_z = 2.0 / (zmax - zmin);
-                    let o_x = -(xmax + xmin) / (xmax - xmin);
-                    let o_y = -(ymax + ymin) / (ymax - ymin);
-                    let o_z = -(zmax + zmin) / (zmax - zmin);
-                    let directed_proj_mat = Mat4::new(
-                        s_x, 0.0, 0.0, o_x, 0.0, s_y, 0.0, o_y, 0.0, 0.0, s_z, o_z, 0.0, 0.0, 0.0,
-                        1.0,
-                    );
-
-                    let shadow_all_mat: Mat4<f32> =
-                        Mat4::from_col_arrays(shadow_all_mat.into_col_arrays());
-
-                    let directed_texture_proj_mat = texture_mat * directed_proj_mat;
-                    ShadowLocals::new(
-                        directed_proj_mat * shadow_all_mat,
-                        directed_texture_proj_mat * shadow_all_mat,
-                    )
-                },
-            ));
+            shadow_mats.resize_with(6, PointLightMatrix::default);
             // Now, we tackle point lights.
             // First, create a perspective projection matrix at 90 degrees (to cover a whole
-            // face of the cube map we're using).
-            let shadow_proj = Mat4::perspective_rh_no(
+            // face of the cube map we're using); we use a negative near plane to exactly
+            // match OpenGL's behavior if we use a left-handed coordinate system everywhere
+            // else.
+            let shadow_proj = camera::perspective_rh_zo_general(
                 90.0f32.to_radians(),
                 point_shadow_aspect,
-                SHADOW_NEAR,
-                SHADOW_FAR,
+                1.0 / SHADOW_NEAR,
+                1.0 / SHADOW_FAR,
             );
+            // NOTE: We negate here to emulate a right-handed projection with a negative
+            // near plane, which produces the correct transformation to exactly match
+            // OpenGL's rendering behavior if we use a left-handed coordinate
+            // system everywhere else.
+            let shadow_proj = shadow_proj * Mat4::scaling_3d(-1.0);
+
             // Next, construct the 6 orientations we'll use for the six faces, in terms of
             // their (forward, up) vectors.
             let orientations = [
@@ -974,6 +1005,7 @@ impl Scene {
                 (Vec3::new(0.0, 0.0, 1.0), Vec3::new(0.0, -1.0, 0.0)),
                 (Vec3::new(0.0, 0.0, -1.0), Vec3::new(0.0, -1.0, 0.0)),
             ];
+
             // NOTE: We could create the shadow map collection at the same time as the
             // lights, but then we'd have to sort them both, which wastes time.  Plus, we
             // want to prepend our directed lights.
@@ -984,16 +1016,13 @@ impl Scene {
                 orientations.iter().map(move |&(forward, up)| {
                     // NOTE: We don't currently try to linearize point lights or need a separate
                     // transform for them.
-                    ShadowLocals::new(
-                        shadow_proj * Mat4::look_at_rh(eye, eye + forward, up),
-                        Mat4::identity(),
-                    )
+                    PointLightMatrix::new(shadow_proj * Mat4::look_at_lh(eye, eye + forward, up))
                 })
             }));
 
-            renderer
-                .update_consts(&mut self.data.shadow_mats, &shadow_mats)
-                .expect("Failed to update light constants");
+            for (i, val) in shadow_mats.into_iter().enumerate() {
+                self.data.point_light_matrices[i] = val
+            }
         }
 
         // Remove unused figures.
@@ -1013,10 +1042,12 @@ impl Scene {
             .maintain(audio, scene_data.state, client, &self.camera);
     }
 
-    /// Render the scene using the provided `Renderer`.
-    pub fn render(
-        &mut self,
-        renderer: &mut Renderer,
+    pub fn global_bind_group(&self) -> &GlobalsBindGroup { &self.globals_bind_group }
+
+    /// Render the scene using the provided `Drawer`.
+    pub fn render<'a>(
+        &'a self,
+        drawer: &mut Drawer<'a>,
         state: &State,
         player_entity: EcsEntity,
         tick: u64,
@@ -1028,84 +1059,120 @@ impl Scene {
         let focus_pos = self.camera.get_focus_pos();
         let cam_pos = self.camera.dependents().cam_pos + focus_pos.map(|e| e.trunc());
 
-        let global = &self.data;
-        let light_data = (is_daylight, &*self.light_data);
         let camera_data = (&self.camera, scene_data.figure_lod_render_distance);
 
         // would instead have this as an extension.
-        if renderer.render_mode().shadow.is_map() && (is_daylight || !light_data.1.is_empty()) {
+        if drawer.render_mode().shadow.is_map() && (is_daylight || !self.light_data.is_empty()) {
             if is_daylight {
-                // Set up shadow mapping.
-                renderer.start_shadows();
+                if let Some(mut shadow_pass) = drawer.shadow_pass() {
+                    // Render terrain directed shadows.
+                    self.terrain
+                        .render_shadows(&mut shadow_pass.draw_terrain_shadows(), focus_pos);
+
+                    // Render figure directed shadows.
+                    self.figure_mgr.render_shadows(
+                        &mut shadow_pass.draw_figure_shadows(),
+                        state,
+                        tick,
+                        camera_data,
+                    );
+                }
             }
 
-            // Render terrain shadows.
-            self.terrain
-                .render_shadows(renderer, global, light_data, focus_pos);
+            // Render terrain point light shadows.
+            drawer.draw_point_shadows(
+                &self.data.point_light_matrices,
+                self.terrain.chunks_for_point_shadows(focus_pos),
+            )
+        }
 
-            // Render figure shadows.
-            self.figure_mgr
-                .render_shadows(renderer, state, tick, global, light_data, camera_data);
+        if let Some(mut first_pass) = drawer.first_pass() {
+            self.figure_mgr.render_player(
+                &mut first_pass.draw_figures(),
+                state,
+                player_entity,
+                tick,
+                camera_data,
+            );
 
-            if is_daylight {
-                // Flush shadows.
-                renderer.flush_shadows();
+            self.terrain.render(&mut first_pass, focus_pos);
+
+            self.figure_mgr.render(
+                &mut first_pass.draw_figures(),
+                state,
+                player_entity,
+                tick,
+                camera_data,
+            );
+
+            self.lod.render(&mut first_pass);
+
+            // Render the skybox.
+            first_pass.draw_skybox(&self.skybox.model);
+
+            // Draws translucent terrain and sprites
+            self.terrain.render_translucent(
+                &mut first_pass,
+                focus_pos,
+                cam_pos,
+                scene_data.sprite_render_distance,
+            );
+
+            // Render particle effects.
+            self.particle_mgr
+                .render(&mut first_pass.draw_particles(), scene_data);
+
+            // Render debug shapes
+            self.debug.render(&mut first_pass.draw_debug());
+        }
+    }
+
+    pub fn maintain_debug_hitboxes(
+        &mut self,
+        client: &Client,
+        settings: &Settings,
+        hitboxes: &mut HashMap<specs::Entity, DebugShapeId>,
+    ) {
+        let ecs = client.state().ecs();
+        let mut current_entities = hashbrown::HashSet::new();
+        if settings.interface.toggle_hitboxes {
+            let positions = ecs.read_component::<comp::Pos>();
+            let colliders = ecs.read_component::<comp::Collider>();
+            let groups = ecs.read_component::<comp::Group>();
+            for (entity, pos, collider, group) in
+                (&ecs.entities(), &positions, &colliders, groups.maybe()).join()
+            {
+                if let comp::Collider::Box {
+                    radius,
+                    z_min,
+                    z_max,
+                } = collider
+                {
+                    current_entities.insert(entity);
+                    let shape_id = hitboxes.entry(entity).or_insert_with(|| {
+                        self.debug.add_shape(DebugShape::Cylinder {
+                            radius: *radius,
+                            height: *z_max - *z_min,
+                        })
+                    });
+                    let hb_pos = [pos.0.x, pos.0.y, pos.0.z + *z_min, 0.0];
+                    let color = if group == Some(&comp::group::ENEMY) {
+                        [1.0, 0.0, 0.0, 0.5]
+                    } else if group == Some(&comp::group::NPC) {
+                        [0.0, 0.0, 1.0, 0.5]
+                    } else {
+                        [0.0, 1.0, 0.0, 0.5]
+                    };
+                    self.debug.set_pos_and_color(*shape_id, hb_pos, color);
+                }
             }
         }
-        let lod = self.lod.get_data();
-
-        self.figure_mgr.render_player(
-            renderer,
-            state,
-            player_entity,
-            tick,
-            global,
-            lod,
-            camera_data,
-        );
-
-        // Render terrain and figures.
-        self.terrain.render(renderer, global, lod, focus_pos);
-
-        self.figure_mgr.render(
-            renderer,
-            state,
-            player_entity,
-            tick,
-            global,
-            lod,
-            camera_data,
-        );
-        self.lod.render(renderer, global);
-
-        // Render the skybox.
-        renderer.render_skybox(&self.skybox.model, global, &self.skybox.locals, lod);
-
-        self.terrain.render_translucent(
-            renderer,
-            global,
-            lod,
-            focus_pos,
-            cam_pos,
-            scene_data.sprite_render_distance,
-        );
-
-        // Render particle effects.
-        self.particle_mgr.render(renderer, scene_data, global, lod);
-
-        // Render clouds (a post-processing effect)
-        renderer.render_clouds(
-            &self.clouds.model,
-            &global.globals,
-            &self.clouds.locals,
-            self.lod.get_data(),
-        );
-
-        renderer.render_post_process(
-            &self.postprocess.model,
-            &global.globals,
-            &self.postprocess.locals,
-            self.lod.get_data(),
-        );
+        hitboxes.retain(|k, v| {
+            let keep = current_entities.contains(k);
+            if !keep {
+                self.debug.remove_shape(*v);
+            }
+            keep
+        });
     }
 }

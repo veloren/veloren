@@ -1,6 +1,6 @@
 use super::graphic::{Graphic, GraphicCache, Id as GraphicId};
 use crate::{
-    render::{Renderer, Texture},
+    render::{Renderer, Texture, UiTextureBindGroup},
     Error,
 };
 use common::assets::{self, AssetExt};
@@ -12,7 +12,7 @@ use std::{
 use vek::*;
 
 // Multiplied by current window size
-const GLYPH_CACHE_SIZE: u16 = 1;
+const GLYPH_CACHE_SIZE: u32 = 1;
 // Glyph cache tolerances
 // TODO: consider scaling based on dpi as well as providing as an option to the
 // user
@@ -46,36 +46,42 @@ pub struct FontId(pub(super) glyph_brush::FontId);
 
 pub struct Cache {
     glyph_brush: RefCell<GlyphBrush>,
-    glyph_cache_tex: Texture,
+    glyph_cache_tex: (Texture, UiTextureBindGroup),
     graphic_cache: GraphicCache,
 }
 
 // TODO: Should functions be returning UiError instead of Error?
 impl Cache {
     pub fn new(renderer: &mut Renderer, default_font: Font) -> Result<Self, Error> {
-        let (w, h) = renderer.get_resolution().into_tuple();
+        let (w, h) = renderer.resolution().into_tuple();
 
         let max_texture_size = renderer.max_texture_size();
 
         let glyph_cache_dims =
-            Vec2::new(w, h).map(|e| (e * GLYPH_CACHE_SIZE).min(max_texture_size as u16).max(512));
+            Vec2::new(w, h).map(|e| (e * GLYPH_CACHE_SIZE).min(max_texture_size).max(512));
 
         let glyph_brush = GlyphBrushBuilder::using_font(default_font)
-            .initial_cache_size((glyph_cache_dims.x as u32, glyph_cache_dims.y as u32))
+            .initial_cache_size((glyph_cache_dims.x, glyph_cache_dims.y))
             .draw_cache_scale_tolerance(SCALE_TOLERANCE)
             .draw_cache_position_tolerance(POSITION_TOLERANCE)
             .build();
 
+        let glyph_cache_tex = {
+            let tex = renderer.create_dynamic_texture(glyph_cache_dims);
+            let bind = renderer.ui_bind_texture(&tex);
+            (tex, bind)
+        };
+
         Ok(Self {
             glyph_brush: RefCell::new(glyph_brush),
-            glyph_cache_tex: renderer.create_dynamic_texture(glyph_cache_dims.map(|e| e as u16))?,
+            glyph_cache_tex,
             graphic_cache: GraphicCache::new(renderer),
         })
     }
 
-    pub fn glyph_cache_tex(&self) -> &Texture { &self.glyph_cache_tex }
+    pub fn glyph_cache_tex(&self) -> &(Texture, UiTextureBindGroup) { &self.glyph_cache_tex }
 
-    pub fn glyph_cache_mut_and_tex(&mut self) -> (&mut GlyphBrush, &Texture) {
+    pub fn glyph_cache_mut_and_tex(&mut self) -> (&mut GlyphBrush, &(Texture, UiTextureBindGroup)) {
         (self.glyph_brush.get_mut(), &self.glyph_cache_tex)
     }
 
@@ -117,6 +123,7 @@ impl Cache {
         self.graphic_cache.replace_graphic(id, graphic)
     }
 
+    // TODO: combine resize functions
     // Resizes and clears the GraphicCache
     pub fn resize_graphic_cache(&mut self, renderer: &mut Renderer) {
         self.graphic_cache.clear_cache(renderer);
@@ -126,15 +133,20 @@ impl Cache {
     pub fn resize_glyph_cache(&mut self, renderer: &mut Renderer) -> Result<(), Error> {
         let max_texture_size = renderer.max_texture_size();
         let cache_dims = renderer
-            .get_resolution()
-            .map(|e| (e * GLYPH_CACHE_SIZE).min(max_texture_size as u16).max(512));
+            .resolution()
+            .map(|e| (e * GLYPH_CACHE_SIZE).min(max_texture_size).max(512));
         let glyph_brush = self.glyph_brush.get_mut();
         *glyph_brush = glyph_brush
             .to_builder()
-            .initial_cache_size((cache_dims.x as u32, cache_dims.y as u32))
+            .initial_cache_size((cache_dims.x, cache_dims.y))
             .build();
 
-        self.glyph_cache_tex = renderer.create_dynamic_texture(cache_dims.map(|e| e as u16))?;
+        self.glyph_cache_tex = {
+            let tex = renderer.create_dynamic_texture(cache_dims);
+            let bind = renderer.ui_bind_texture(&tex);
+            (tex, bind)
+        };
+
         Ok(())
     }
 }

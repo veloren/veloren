@@ -1,16 +1,25 @@
 mod watcher;
+
 pub use self::watcher::{BlocksOfInterest, Interaction};
 
 use crate::{
-    mesh::{greedy::GreedyMesh, terrain::SUNLIGHT, Meshable},
+    mesh::{
+        greedy::GreedyMesh,
+        segment::generate_mesh_base_vol_sprite,
+        terrain::{generate_mesh, SUNLIGHT},
+    },
     render::{
-        ColLightFmt, ColLightInfo, Consts, FluidPipeline, GlobalModel, Instances, Mesh, Model,
-        RenderError, Renderer, ShadowPipeline, SpriteInstance, SpriteLocals, SpritePipeline,
-        TerrainLocals, TerrainPipeline, Texture,
+        pipelines::{self, ColLights},
+        ColLightInfo, FirstPassDrawer, FluidVertex, GlobalModel, Instances, LodData, Mesh, Model,
+        RenderError, Renderer, SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex, SpriteVerts,
+        TerrainLocals, TerrainShadowDrawer, TerrainVertex, SPRITE_VERT_PAGE_SIZE,
     },
 };
 
-use super::{math, LodData, SceneData};
+use super::{
+    camera::{self, Camera},
+    math, SceneData,
+};
 use common::{
     assets::{self, AssetExt, DotVoxAsset},
     figure::Segment,
@@ -35,6 +44,7 @@ use treeculler::{BVol, Frustum, AABB};
 use vek::*;
 
 const SPRITE_SCALE: Vec3<f32> = Vec3::new(1.0 / 11.0, 1.0 / 11.0, 1.0 / 11.0);
+const SPRITE_LOD_LEVELS: usize = 5;
 
 #[derive(Clone, Copy, Debug)]
 struct Visibility {
@@ -61,22 +71,22 @@ type LightMapFn = Arc<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>;
 pub struct TerrainChunkData {
     // GPU data
     load_time: f32,
-    opaque_model: Model<TerrainPipeline>,
-    fluid_model: Option<Model<FluidPipeline>>,
+    opaque_model: Option<Model<TerrainVertex>>,
+    fluid_model: Option<Model<FluidVertex>>,
     /// If this is `None`, this texture is not allocated in the current atlas,
     /// and therefore there is no need to free its allocation.
-    col_lights: Option<guillotiere::AllocId>,
+    col_lights_alloc: Option<guillotiere::AllocId>,
     /// The actual backing texture for this chunk.  Use this for rendering
     /// purposes.  The texture is reference-counted, so it will be
     /// automatically freed when no chunks are left that need it (though
     /// shadow chunks will still keep it alive; we could deal with this by
     /// making this an `Option`, but it probably isn't worth it since they
     /// shouldn't be that much more nonlocal than regular chunks).
-    texture: Texture<ColLightFmt>,
+    col_lights: Arc<ColLights<pipelines::terrain::Locals>>,
     light_map: LightMapFn,
     glow_map: LightMapFn,
-    sprite_instances: HashMap<(SpriteKind, usize), Instances<SpriteInstance>>,
-    locals: Consts<TerrainLocals>,
+    sprite_instances: [Instances<SpriteInstance>; SPRITE_LOD_LEVELS],
+    locals: pipelines::terrain::BoundLocals,
     pub blocks_of_interest: BlocksOfInterest,
 
     visible: Visibility,
@@ -98,8 +108,8 @@ struct ChunkMeshState {
 /// Just the mesh part of a mesh worker response.
 pub struct MeshWorkerResponseMesh {
     z_bounds: (f32, f32),
-    opaque_mesh: Mesh<TerrainPipeline>,
-    fluid_mesh: Mesh<FluidPipeline>,
+    opaque_mesh: Mesh<TerrainVertex>,
+    fluid_mesh: Mesh<FluidVertex>,
     col_lights_info: ColLightInfo,
     light_map: LightMapFn,
     glow_map: LightMapFn,
@@ -109,7 +119,7 @@ pub struct MeshWorkerResponseMesh {
 /// mesh of a chunk.
 struct MeshWorkerResponse {
     pos: Vec2<i32>,
-    sprite_instances: HashMap<(SpriteKind, usize), Vec<SpriteInstance>>,
+    sprite_instances: [Vec<SpriteInstance>; SPRITE_LOD_LEVELS],
     /// If None, this update was requested without meshing.
     mesh: Option<MeshWorkerResponseMesh>,
     started_tick: u64,
@@ -169,22 +179,26 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
     max_texture_size: u16,
     chunk: Arc<TerrainChunk>,
     range: Aabb<i32>,
-    sprite_data: &HashMap<(SpriteKind, usize), Vec<SpriteData>>,
+    sprite_data: &HashMap<(SpriteKind, usize), [SpriteData; SPRITE_LOD_LEVELS]>,
     sprite_config: &SpriteSpec,
 ) -> MeshWorkerResponse {
     span!(_guard, "mesh_worker");
     let blocks_of_interest = BlocksOfInterest::from_chunk(&chunk);
+
     let mesh;
     let (light_map, glow_map) = if let Some((light_map, glow_map)) = &skip_remesh {
         mesh = None;
         (&**light_map, &**glow_map)
     } else {
         let (opaque_mesh, fluid_mesh, _shadow_mesh, (bounds, col_lights_info, light_map, glow_map)) =
-            volume.generate_mesh((
-                range,
-                Vec2::new(max_texture_size, max_texture_size),
-                &blocks_of_interest,
-            ));
+            generate_mesh(
+                &volume,
+                (
+                    range,
+                    Vec2::new(max_texture_size, max_texture_size),
+                    &blocks_of_interest,
+                ),
+            );
         mesh = Some(MeshWorkerResponseMesh {
             // TODO: Take sprite bounds into account somehow?
             z_bounds: (bounds.min.z, bounds.max.z),
@@ -198,12 +212,13 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
         let mesh = mesh.as_ref().unwrap();
         (&*mesh.light_map, &*mesh.glow_map)
     };
+
     MeshWorkerResponse {
         pos,
         // Extract sprite locations from volume
         sprite_instances: {
             span!(_guard, "extract sprite_instances");
-            let mut instances = HashMap::new();
+            let mut instances = [(); SPRITE_LOD_LEVELS].map(|()| Vec::new());
 
             for x in 0..V::RECT_SIZE.x as i32 {
                 for y in 0..V::RECT_SIZE.y as i32 {
@@ -231,23 +246,39 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
                             let key = (sprite, variation);
                             // NOTE: Safe because we called sprite_config_for already.
                             // NOTE: Safe because 0 ≤ ori < 8
-                            let sprite_data = &sprite_data[&key][0];
-                            let instance = SpriteInstance::new(
-                                Mat4::identity()
+                            let light = light_map(wpos);
+                            let glow = glow_map(wpos);
+
+                            for (lod_level, sprite_data) in
+                                instances.iter_mut().zip(&sprite_data[&key])
+                            {
+                                let mat = Mat4::identity()
+                                    // Scaling for different LOD resolutions
+                                    .scaled_3d(sprite_data.scale)
+                                    // Offset
                                     .translated_3d(sprite_data.offset)
+                                    .scaled_3d(SPRITE_SCALE)
                                     .rotated_z(f32::consts::PI * 0.25 * ori as f32)
                                     .translated_3d(
-                                        (rel_pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0))
-                                            / SPRITE_SCALE,
-                                    ),
-                                cfg.wind_sway,
-                                rel_pos,
-                                ori,
-                                light_map(wpos),
-                                glow_map(wpos),
-                            );
-
-                            instances.entry(key).or_insert(Vec::new()).push(instance);
+                                        rel_pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)
+                                    );
+                                // Add an instance for each page in the sprite model
+                                for page in sprite_data.vert_pages.clone() {
+                                    // TODO: could be more efficient to create once and clone while
+                                    // modifying vert_page
+                                    let instance = SpriteInstance::new(
+                                        mat,
+                                        cfg.wind_sway,
+                                        sprite_data.scale.z,
+                                        rel_pos,
+                                        ori,
+                                        light,
+                                        glow,
+                                        page,
+                                    );
+                                    lod_level.push(instance);
+                                }
+                            }
                         }
                     }
                 }
@@ -262,10 +293,11 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
 }
 
 struct SpriteData {
-    /* mat: Mat4<f32>, */
-    locals: Consts<SpriteLocals>,
-    model: Model<SpritePipeline>,
-    /* scale: Vec3<f32>, */
+    // Sprite vert page ranges that need to be drawn
+    vert_pages: core::ops::Range<u32>,
+    // Scale
+    scale: Vec3<f32>,
+    // Offset
     offset: Vec3<f32>,
 }
 
@@ -316,14 +348,15 @@ pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
     mesh_recv_overflow: f32,
 
     // GPU data
-    sprite_data: Arc<HashMap<(SpriteKind, usize), Vec<SpriteData>>>,
-    sprite_col_lights: Texture<ColLightFmt>,
+    // Maps sprite kind + variant to data detailing how to render it
+    sprite_data: Arc<HashMap<(SpriteKind, usize), [SpriteData; SPRITE_LOD_LEVELS]>>,
+    sprite_globals: SpriteGlobalsBindGroup,
+    sprite_col_lights: Arc<ColLights<pipelines::sprite::Locals>>,
     /// As stated previously, this is always the very latest texture into which
     /// we allocate.  Code cannot assume that this is the assigned texture
     /// for any particular chunk; look at the `texture` field in
     /// `TerrainChunkData` for that.
-    col_lights: Texture<ColLightFmt>,
-    waves: Texture,
+    col_lights: Arc<ColLights<pipelines::terrain::Locals>>,
 
     phantom: PhantomData<V>,
 }
@@ -335,8 +368,10 @@ impl TerrainChunkData {
 #[derive(Clone)]
 pub struct SpriteRenderContext {
     sprite_config: Arc<SpriteSpec>,
-    sprite_data: Arc<HashMap<(SpriteKind, usize), Vec<SpriteData>>>,
-    sprite_col_lights: Texture<ColLightFmt>,
+    // Maps sprite kind + variant to data detailing how to render it
+    sprite_data: Arc<HashMap<(SpriteKind, usize), [SpriteData; SPRITE_LOD_LEVELS]>>,
+    sprite_col_lights: Arc<ColLights<pipelines::sprite::Locals>>,
+    sprite_verts_buffer: Arc<SpriteVerts>,
 }
 
 pub type SpriteRenderContextLazy = Box<dyn FnMut(&mut Renderer) -> SpriteRenderContext>;
@@ -346,16 +381,11 @@ impl SpriteRenderContext {
     pub fn new(renderer: &mut Renderer) -> SpriteRenderContextLazy {
         let max_texture_size = renderer.max_texture_size();
 
-        struct SpriteDataResponse {
-            locals: [SpriteLocals; 8],
-            model: Mesh<SpritePipeline>,
-            offset: Vec3<f32>,
-        }
-
         struct SpriteWorkerResponse {
             sprite_config: Arc<SpriteSpec>,
-            sprite_data: HashMap<(SpriteKind, usize), Vec<SpriteDataResponse>>,
+            sprite_data: HashMap<(SpriteKind, usize), [SpriteData; SPRITE_LOD_LEVELS]>,
             sprite_col_lights: ColLightInfo,
+            sprite_mesh: Mesh<SpriteVertex>,
         }
 
         let join_handle = std::thread::spawn(move || {
@@ -363,17 +393,14 @@ impl SpriteRenderContext {
             let sprite_config =
                 Arc::<SpriteSpec>::load_expect("voxygen.voxel.sprite_manifest").cloned();
 
-            let max_size =
-                guillotiere::Size::new(i32::from(max_texture_size), i32::from(max_texture_size));
+            let max_size = guillotiere::Size::new(max_texture_size as i32, max_texture_size as i32);
             let mut greedy = GreedyMesh::new(max_size);
-            let mut locals_buffer = [SpriteLocals::default(); 8];
+            let mut sprite_mesh = Mesh::new();
             let sprite_config_ = &sprite_config;
             // NOTE: Tracks the start vertex of the next model to be meshed.
-
             let sprite_data: HashMap<(SpriteKind, usize), _> = SpriteKind::into_enum_iter()
                 .filter_map(|kind| Some((kind, kind.elim_case_pure(&sprite_config_.0).as_ref()?)))
                 .flat_map(|(kind, sprite_config)| {
-                    let wind_sway = sprite_config.wind_sway;
                     sprite_config.variations.iter().enumerate().map(
                         move |(
                             variation,
@@ -401,68 +428,60 @@ impl SpriteRenderContext {
                                 )
                                 .unwrap_or(zero);
                             let max_model_size = Vec3::new(31.0, 31.0, 63.0);
-                            let model_scale = max_model_size.map2(model_size, |max_sz: f32, cur_sz| {
-                                let scale = max_sz / max_sz.max(cur_sz as f32);
-                                if scale < 1.0 && (cur_sz as f32 * scale).ceil() > max_sz {
-                                    scale - 0.001
-                                } else {
-                                    scale
-                                }
-                            });
-                            let sprite_mat: Mat4<f32> =
-                                Mat4::translation_3d(offset).scaled_3d(SPRITE_SCALE);
-                            move |greedy: &mut GreedyMesh| {
-                                (
-                                    (kind, variation),
-                                    scaled
-                                        .iter()
-                                        .map(|&lod_scale_orig| {
-                                            let lod_scale = model_scale
-                                                * if lod_scale_orig == 1.0 {
-                                                    Vec3::broadcast(1.0)
-                                                } else {
-                                                    lod_axes * lod_scale_orig
-                                                        + lod_axes
-                                                            .map(|e| if e == 0.0 { 1.0 } else { 0.0 })
-                                                };
-                                            // Mesh generation exclusively acts using side effects; it
-                                            // has no
-                                            // interesting return value, but updates the mesh.
-                                            let mut opaque_mesh = Mesh::new();
-                                            Meshable::<SpritePipeline, &mut GreedyMesh>::generate_mesh(
-                                                Segment::from(&model.read().0).scaled_by(lod_scale),
-                                                (greedy, &mut opaque_mesh, false),
-                                            );
+                            let model_scale =
+                                max_model_size.map2(model_size, |max_sz: f32, cur_sz| {
+                                    let scale = max_sz / max_sz.max(cur_sz as f32);
+                                    if scale < 1.0 && (cur_sz as f32 * scale).ceil() > max_sz {
+                                        scale - 0.001
+                                    } else {
+                                        scale
+                                    }
+                                });
+                            move |greedy: &mut GreedyMesh, sprite_mesh: &mut Mesh<SpriteVertex>| {
+                                let lod_sprite_data = scaled.map(|lod_scale_orig| {
+                                    let lod_scale = model_scale
+                                        * if lod_scale_orig == 1.0 {
+                                            Vec3::broadcast(1.0)
+                                        } else {
+                                            lod_axes * lod_scale_orig
+                                                + lod_axes.map(|e| if e == 0.0 { 1.0 } else { 0.0 })
+                                        };
 
-                                            let sprite_scale = Vec3::one() / lod_scale;
-                                            let sprite_mat: Mat4<f32> =
-                                                sprite_mat * Mat4::scaling_3d(sprite_scale);
-                                            locals_buffer.iter_mut().enumerate().for_each(
-                                                |(ori, locals)| {
-                                                    let sprite_mat = sprite_mat
-                                                        .rotated_z(f32::consts::PI * 0.25 * ori as f32);
-                                                    *locals = SpriteLocals::new(
-                                                        sprite_mat,
-                                                        sprite_scale,
-                                                        offset,
-                                                        wind_sway,
-                                                    );
-                                                },
-                                            );
+                                    // Get starting page count of opaque mesh
+                                    let start_page_num = sprite_mesh.vertices().len()
+                                        / SPRITE_VERT_PAGE_SIZE as usize;
+                                    // Mesh generation exclusively acts using side effects; it
+                                    // has no interesting return value, but updates the mesh.
+                                    generate_mesh_base_vol_sprite(
+                                        Segment::from(&model.read().0).scaled_by(lod_scale),
+                                        (greedy, sprite_mesh, false),
+                                    );
+                                    // Get the number of pages after the model was meshed
+                                    let end_page_num = (sprite_mesh.vertices().len()
+                                        + SPRITE_VERT_PAGE_SIZE as usize
+                                        - 1)
+                                        / SPRITE_VERT_PAGE_SIZE as usize;
+                                    // Fill the current last page up with degenerate verts
+                                    sprite_mesh.vertices_mut_vec().resize_with(
+                                        end_page_num * SPRITE_VERT_PAGE_SIZE as usize,
+                                        SpriteVertex::default,
+                                    );
 
-                                            SpriteDataResponse {
-                                                model: opaque_mesh,
-                                                offset,
-                                                locals: locals_buffer,
-                                            }
-                                        })
-                                        .collect::<Vec<_>>(),
-                                )
+                                    let sprite_scale = Vec3::one() / lod_scale;
+
+                                    SpriteData {
+                                        vert_pages: start_page_num as u32..end_page_num as u32,
+                                        scale: sprite_scale,
+                                        offset,
+                                    }
+                                });
+
+                                ((kind, variation), lod_sprite_data)
                             }
                         },
                     )
                 })
-                .map(|mut f| f(&mut greedy))
+                .map(|f| f(&mut greedy, &mut sprite_mesh))
                 .collect();
 
             let sprite_col_lights = greedy.finalize();
@@ -471,6 +490,7 @@ impl SpriteRenderContext {
                 sprite_config,
                 sprite_data,
                 sprite_col_lights,
+                sprite_mesh,
             }
         });
 
@@ -485,6 +505,7 @@ impl SpriteRenderContext {
                 sprite_config,
                 sprite_data,
                 sprite_col_lights,
+                sprite_mesh,
             } = join_handle
                 .take()
                 .expect(
@@ -494,41 +515,19 @@ impl SpriteRenderContext {
                 .join()
                 .unwrap();
 
-            let sprite_data = sprite_data
-                .into_iter()
-                .map(|(key, models)| {
-                    (
-                        key,
-                        models
-                            .into_iter()
-                            .map(
-                                |SpriteDataResponse {
-                                     locals,
-                                     model,
-                                     offset,
-                                 }| {
-                                    SpriteData {
-                                        locals: renderer
-                                            .create_consts(&locals)
-                                            .expect("Failed to upload sprite locals to the GPU!"),
-                                        model: renderer.create_model(&model).expect(
-                                            "Failed to upload sprite model data to the GPU!",
-                                        ),
-                                        offset,
-                                    }
-                                },
-                            )
-                            .collect(),
-                    )
-                })
-                .collect();
-            let sprite_col_lights = ShadowPipeline::create_col_lights(renderer, &sprite_col_lights)
-                .expect("Failed to upload sprite color and light data to the GPU!");
+            let sprite_col_lights =
+                pipelines::shadow::create_col_lights(renderer, &sprite_col_lights);
+            let sprite_col_lights = renderer.sprite_bind_col_light(sprite_col_lights);
+
+            // Write sprite model to a 1D texture
+            let sprite_verts_buffer = renderer.create_sprite_verts(sprite_mesh);
 
             Self {
+                // TODO: these are all Arcs, would it makes sense to factor out the Arc?
                 sprite_config: Arc::clone(&sprite_config),
                 sprite_data: Arc::new(sprite_data),
-                sprite_col_lights,
+                sprite_col_lights: Arc::new(sprite_col_lights),
+                sprite_verts_buffer: Arc::new(sprite_verts_buffer),
             }
         };
         Box::new(move |renderer| init.get_or_init(|| closure(renderer)).clone())
@@ -536,7 +535,12 @@ impl SpriteRenderContext {
 }
 
 impl<V: RectRasterableVol> Terrain<V> {
-    pub fn new(renderer: &mut Renderer, sprite_render_context: SpriteRenderContext) -> Self {
+    pub fn new(
+        renderer: &mut Renderer,
+        global_model: &GlobalModel,
+        lod_data: &LodData,
+        sprite_render_context: SpriteRenderContext,
+    ) -> Self {
         // Create a new mpsc (Multiple Produced, Single Consumer) pair for communicating
         // with worker threads that are meshing chunks.
         let (send, recv) = channel::unbounded();
@@ -556,26 +560,22 @@ impl<V: RectRasterableVol> Terrain<V> {
             mesh_recv_overflow: 0.0,
             sprite_data: sprite_render_context.sprite_data,
             sprite_col_lights: sprite_render_context.sprite_col_lights,
-            waves: renderer
-                .create_texture(
-                    &assets::Image::load_expect("voxygen.texture.waves").read().0,
-                    Some(gfx::texture::FilterMethod::Trilinear),
-                    Some(gfx::texture::WrapMode::Tile),
-                    None,
-                )
-                .expect("Failed to create wave texture"),
-            col_lights,
+            sprite_globals: renderer.bind_sprite_globals(
+                global_model,
+                lod_data,
+                &sprite_render_context.sprite_verts_buffer,
+            ),
+            col_lights: Arc::new(col_lights),
             phantom: PhantomData,
         }
     }
 
     fn make_atlas(
         renderer: &mut Renderer,
-    ) -> Result<(AtlasAllocator, Texture<ColLightFmt>), RenderError> {
+    ) -> Result<(AtlasAllocator, ColLights<pipelines::terrain::Locals>), RenderError> {
         span!(_guard, "make_atlas", "Terrain::make_atlas");
         let max_texture_size = renderer.max_texture_size();
-        let atlas_size =
-            guillotiere::Size::new(i32::from(max_texture_size), i32::from(max_texture_size));
+        let atlas_size = guillotiere::Size::new(max_texture_size as i32, max_texture_size as i32);
         let atlas = AtlasAllocator::with_options(atlas_size, &guillotiere::AllocatorOptions {
             // TODO: Verify some good empirical constants.
             small_size_threshold: 128,
@@ -583,28 +583,48 @@ impl<V: RectRasterableVol> Terrain<V> {
             ..guillotiere::AllocatorOptions::default()
         });
         let texture = renderer.create_texture_raw(
-            gfx::texture::Kind::D2(
-                max_texture_size,
-                max_texture_size,
-                gfx::texture::AaMode::Single,
-            ),
-            1_u8,
-            gfx::memory::Bind::SHADER_RESOURCE,
-            gfx::memory::Usage::Dynamic,
-            (0, 0),
-            gfx::format::Swizzle::new(),
-            gfx::texture::SamplerInfo::new(
-                gfx::texture::FilterMethod::Bilinear,
-                gfx::texture::WrapMode::Clamp,
-            ),
-        )?;
-        Ok((atlas, texture))
+            &wgpu::TextureDescriptor {
+                label: Some("Atlas texture"),
+                size: wgpu::Extent3d {
+                    width: max_texture_size,
+                    height: max_texture_size,
+                    depth_or_array_layers: 1,
+                },
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format: wgpu::TextureFormat::Rgba8Unorm,
+                usage: wgpu::TextureUsage::COPY_DST | wgpu::TextureUsage::SAMPLED,
+            },
+            &wgpu::TextureViewDescriptor {
+                label: Some("Atlas texture view"),
+                format: Some(wgpu::TextureFormat::Rgba8Unorm),
+                dimension: Some(wgpu::TextureViewDimension::D2),
+                aspect: wgpu::TextureAspect::All,
+                base_mip_level: 0,
+                mip_level_count: None,
+                base_array_layer: 0,
+                array_layer_count: None,
+            },
+            &wgpu::SamplerDescriptor {
+                label: Some("Atlas sampler"),
+                address_mode_u: wgpu::AddressMode::ClampToEdge,
+                address_mode_v: wgpu::AddressMode::ClampToEdge,
+                address_mode_w: wgpu::AddressMode::ClampToEdge,
+                mag_filter: wgpu::FilterMode::Linear,
+                min_filter: wgpu::FilterMode::Linear,
+                mipmap_filter: wgpu::FilterMode::Nearest,
+                ..Default::default()
+            },
+        );
+        let col_light = renderer.terrain_bind_col_light(texture);
+        Ok((atlas, col_light))
     }
 
     fn remove_chunk_meta(&mut self, _pos: Vec2<i32>, chunk: &TerrainChunkData) {
         // No need to free the allocation if the chunk is not allocated in the current
         // atlas, since we don't bother tracking it at that point.
-        if let Some(col_lights) = chunk.col_lights {
+        if let Some(col_lights) = chunk.col_lights_alloc {
             self.atlas.deallocate(col_lights);
         }
         /* let (zmin, zmax) = chunk.z_bounds;
@@ -736,9 +756,14 @@ impl<V: RectRasterableVol> Terrain<V> {
         scene_data: &SceneData,
         focus_pos: Vec3<f32>,
         loaded_distance: f32,
-        view_mat: Mat4<f32>,
-        proj_mat: Mat4<f32>,
+        camera: &Camera,
     ) -> (Aabb<f32>, Vec<math::Vec3<f32>>, math::Aabr<f32>) {
+        let camera::Dependents {
+            view_mat,
+            proj_mat_treeculler,
+            ..
+        } = camera.dependents();
+
         // Remove any models for chunks that have been recently removed.
         // Note: Does this before adding to todo list just in case removed chunks were
         // replaced with new chunks (although this would probably be recorded as
@@ -947,7 +972,6 @@ impl<V: RectRasterableVol> Terrain<V> {
                 break;
             }
 
-            // Find the area of the terrain we want. Because meshing needs to compute things
             // like ambient occlusion and edge elision, we also need the borders
             // of the chunk's neighbours too (hence the `- 1` and `+ 1`).
             let aabr = Aabr {
@@ -1014,7 +1038,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                         skip_remesh,
                         started_tick,
                         volume,
-                        max_texture_size,
+                        max_texture_size as u16,
                         chunk,
                         aabb,
                         &sprite_data,
@@ -1044,18 +1068,12 @@ impl<V: RectRasterableVol> Terrain<V> {
                 // data structure (convert the mesh to a model first of course).
                 Some(todo) if response.started_tick <= todo.started_tick => {
                     let started_tick = todo.started_tick;
-                    let sprite_instances = response
-                        .sprite_instances
-                        .into_iter()
-                        .map(|(kind, instances)| {
-                            (
-                                kind,
-                                renderer
-                                    .create_instances(&instances)
-                                    .expect("Failed to upload chunk sprite instances to the GPU!"),
-                            )
-                        })
-                        .collect();
+
+                    let sprite_instances = response.sprite_instances.map(|instances| {
+                        renderer
+                            .create_instances(&instances)
+                            .expect("Failed to upload chunk sprite instances to the GPU!")
+                    });
 
                     if let Some(mesh) = response.mesh {
                         // Full update, insert the whole chunk.
@@ -1070,89 +1088,63 @@ impl<V: RectRasterableVol> Terrain<V> {
                         let atlas = &mut self.atlas;
                         let chunks = &mut self.chunks;
                         let col_lights = &mut self.col_lights;
-                        let allocation = atlas
-                            .allocate(guillotiere::Size::new(
-                                i32::from(tex_size.x),
-                                i32::from(tex_size.y),
-                            ))
-                            .unwrap_or_else(|| {
-                                // Atlas allocation failure: try allocating a new texture and atlas.
-                                let (new_atlas, new_col_lights) = Self::make_atlas(renderer)
-                                    .expect("Failed to create atlas texture");
+                        let alloc_size =
+                            guillotiere::Size::new(i32::from(tex_size.x), i32::from(tex_size.y));
 
-                                // We reset the atlas and clear allocations from existing chunks,
-                                // even though we haven't yet
-                                // checked whether the new allocation can fit in
-                                // the texture.  This is reasonable because we don't have a fallback
-                                // if a single chunk can't fit in an empty atlas of maximum size.
-                                //
-                                // TODO: Consider attempting defragmentation first rather than just
-                                // always moving everything into the new chunk.
-                                chunks.iter_mut().for_each(|(_, chunk)| {
-                                    chunk.col_lights = None;
-                                });
-                                *atlas = new_atlas;
-                                *col_lights = new_col_lights;
+                        let allocation = atlas.allocate(alloc_size).unwrap_or_else(|| {
+                            // Atlas allocation failure: try allocating a new texture and atlas.
+                            let (new_atlas, new_col_lights) =
+                                Self::make_atlas(renderer).expect("Failed to create atlas texture");
 
-                                atlas
-                                    .allocate(guillotiere::Size::new(
-                                        i32::from(tex_size.x),
-                                        i32::from(tex_size.y),
-                                    ))
-                                    .expect("Chunk data does not fit in a texture of maximum size.")
+                            // We reset the atlas and clear allocations from existing chunks,
+                            // even though we haven't yet
+                            // checked whether the new allocation can fit in
+                            // the texture.  This is reasonable because we don't have a fallback
+                            // if a single chunk can't fit in an empty atlas of maximum size.
+                            //
+                            // TODO: Consider attempting defragmentation first rather than just
+                            // always moving everything into the new chunk.
+                            chunks.iter_mut().for_each(|(_, chunk)| {
+                                chunk.col_lights_alloc = None;
                             });
+                            *atlas = new_atlas;
+                            *col_lights = Arc::new(new_col_lights);
+
+                            atlas
+                                .allocate(alloc_size)
+                                .expect("Chunk data does not fit in a texture of maximum size.")
+                        });
 
                         // NOTE: Cast is safe since the origin was a u16.
                         let atlas_offs = Vec2::new(
-                            allocation.rectangle.min.x as u16,
-                            allocation.rectangle.min.y as u16,
+                            allocation.rectangle.min.x as u32,
+                            allocation.rectangle.min.y as u32,
                         );
-                        if let Err(err) = renderer.update_texture(
-                            col_lights,
+                        renderer.update_texture(
+                            &col_lights.texture,
                             atlas_offs.into_array(),
-                            tex_size.into_array(),
+                            tex_size.map(u32::from).into_array(),
                             &tex,
-                        ) {
-                            warn!("Failed to update texture: {:?}", err);
-                        }
+                        );
 
                         self.insert_chunk(response.pos, TerrainChunkData {
                             load_time,
-                            opaque_model: renderer
-                                .create_model(&mesh.opaque_mesh)
-                                .expect("Failed to upload chunk mesh to the GPU!"),
-                            fluid_model: if mesh.fluid_mesh.vertices().len() > 0 {
-                                Some(
-                                    renderer
-                                        .create_model(&mesh.fluid_mesh)
-                                        .expect("Failed to upload chunk mesh to the GPU!"),
-                                )
-                            } else {
-                                None
-                            },
-                            col_lights: Some(allocation.id),
-                            texture: self.col_lights.clone(),
+                            opaque_model: renderer.create_model(&mesh.opaque_mesh),
+                            fluid_model: renderer.create_model(&mesh.fluid_mesh),
+                            col_lights_alloc: Some(allocation.id),
+                            col_lights: Arc::clone(&self.col_lights),
                             light_map: mesh.light_map,
                             glow_map: mesh.glow_map,
                             sprite_instances,
-                            locals: renderer
-                                .create_consts(&[TerrainLocals {
-                                    model_offs: Vec3::from(
-                                        response.pos.map2(VolGrid2d::<V>::chunk_size(), |e, sz| {
-                                            e as f32 * sz as f32
-                                        }),
-                                    )
-                                    .into_array(),
-                                    atlas_offs: Vec4::new(
-                                        i32::from(atlas_offs.x),
-                                        i32::from(atlas_offs.y),
-                                        0,
-                                        0,
-                                    )
-                                    .into_array(),
-                                    load_time,
-                                }])
-                                .expect("Failed to upload chunk locals to the GPU!"),
+                            locals: renderer.create_terrain_bound_locals(&[TerrainLocals::new(
+                                Vec3::from(
+                                    response.pos.map2(VolGrid2d::<V>::chunk_size(), |e, sz| {
+                                        e as f32 * sz as f32
+                                    }),
+                                ),
+                                atlas_offs,
+                                load_time,
+                            )]),
                             visible: Visibility {
                                 in_range: false,
                                 in_frustum: false,
@@ -1186,7 +1178,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         span!(guard, "Construct view frustum");
         let focus_off = focus_pos.map(|e| e.trunc());
         let frustum = Frustum::from_modelview_projection(
-            (proj_mat * view_mat * Mat4::translation_3d(-focus_off)).into_col_arrays(),
+            (proj_mat_treeculler * view_mat * Mat4::translation_3d(-focus_off)).into_col_arrays(),
         );
         drop(guard);
 
@@ -1263,10 +1255,13 @@ impl<V: RectRasterableVol> Terrain<V> {
             let focus_off = math::Vec3::from(focus_off);
             let visible_bounds_fine = visible_bounding_box.as_::<f64>();
             let inv_proj_view =
-                math::Mat4::from_col_arrays((proj_mat * view_mat).into_col_arrays())
+                math::Mat4::from_col_arrays((proj_mat_treeculler * view_mat).into_col_arrays())
                     .as_::<f64>()
                     .inverted();
             let ray_direction = math::Vec3::<f32>::from(ray_direction);
+            // NOTE: We use proj_mat_treeculler here because
+            // calc_focused_light_volume_points makes the assumption that the
+            // near plane lies before the far plane.
             let visible_light_volume = math::calc_focused_light_volume_points(
                 inv_proj_view,
                 ray_direction.as_::<f64>(),
@@ -1368,18 +1363,12 @@ impl<V: RectRasterableVol> Terrain<V> {
 
     pub fn shadow_chunk_count(&self) -> usize { self.shadow_chunks.len() }
 
-    pub fn render_shadows(
-        &self,
-        renderer: &mut Renderer,
-        global: &GlobalModel,
-        (is_daylight, light_data): super::LightData,
+    pub fn render_shadows<'a>(
+        &'a self,
+        drawer: &mut TerrainShadowDrawer<'_, 'a>,
         focus_pos: Vec3<f32>,
     ) {
         span!(_guard, "render_shadows", "Terrain::render_shadows");
-        if !renderer.render_mode().shadow.is_map() {
-            return;
-        };
-
         let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
             (e as i32).div_euclid(sz as i32)
         });
@@ -1396,77 +1385,80 @@ impl<V: RectRasterableVol> Terrain<V> {
         // NOTE: We also render shadows for dead chunks that were found to still be
         // potential shadow casters, to avoid shadows suddenly disappearing at
         // very steep sun angles (e.g. sunrise / sunset).
-        if is_daylight {
-            chunk_iter
-                .clone()
-                .filter(|chunk| chunk.can_shadow_sun())
-                .chain(self.shadow_chunks.iter().map(|(_, chunk)| chunk))
-                .for_each(|chunk| {
-                    // Directed light shadows.
-                    renderer.render_terrain_shadow_directed(
-                        &chunk.opaque_model,
-                        global,
-                        &chunk.locals,
-                        &global.shadow_mats,
-                    );
-                });
-        }
-
-        // Point shadows
-        //
-        // NOTE: We don't bother retaining chunks unless they cast sun shadows, so we
-        // don't use `shadow_chunks` here.
-        light_data.iter().take(1).for_each(|_light| {
-            chunk_iter.clone().for_each(|chunk| {
-                if chunk.can_shadow_point {
-                    renderer.render_shadow_point(
-                        &chunk.opaque_model,
-                        global,
-                        &chunk.locals,
-                        &global.shadow_mats,
-                    );
-                }
-            });
-        });
+        chunk_iter
+            .filter(|chunk| chunk.can_shadow_sun())
+            .chain(self.shadow_chunks.iter().map(|(_, chunk)| chunk))
+            .filter_map(|chunk| {
+                chunk
+                    .opaque_model
+                    .as_ref()
+                    .map(|model| (model, &chunk.locals))
+            })
+            .for_each(|(model, locals)| drawer.draw(model, locals));
     }
 
-    pub fn render(
+    pub fn chunks_for_point_shadows(
         &self,
-        renderer: &mut Renderer,
-        global: &GlobalModel,
-        lod: &LodData,
         focus_pos: Vec3<f32>,
-    ) {
-        span!(_guard, "render", "Terrain::render");
+    ) -> impl Clone
+    + Iterator<
+        Item = (
+            &Model<pipelines::terrain::Vertex>,
+            &pipelines::terrain::BoundLocals,
+        ),
+    > {
         let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
             (e as i32).div_euclid(sz as i32)
         });
 
         let chunk_iter = Spiral2d::new()
-            .filter_map(|rpos| {
+            .filter_map(move |rpos| {
                 let pos = focus_chunk + rpos;
-                self.chunks.get(&pos).map(|c| (pos, c))
+                self.chunks.get(&pos)
             })
             .take(self.chunks.len());
 
-        for (_, chunk) in chunk_iter {
-            if chunk.visible.is_visible() {
-                renderer.render_terrain_chunk(
-                    &chunk.opaque_model,
-                    &chunk.texture,
-                    global,
-                    &chunk.locals,
-                    lod,
-                );
-            }
-        }
+        // Point shadows
+        //
+        // NOTE: We don't bother retaining chunks unless they cast sun shadows, so we
+        // don't use `shadow_chunks` here.
+        chunk_iter
+            .filter(|chunk| chunk.can_shadow_point)
+            .filter_map(|chunk| {
+                chunk
+                    .opaque_model
+                    .as_ref()
+                    .map(|model| (model, &chunk.locals))
+            })
     }
 
-    pub fn render_translucent(
-        &self,
-        renderer: &mut Renderer,
-        global: &GlobalModel,
-        lod: &LodData,
+    pub fn render<'a>(&'a self, drawer: &mut FirstPassDrawer<'a>, focus_pos: Vec3<f32>) {
+        span!(_guard, "render", "Terrain::render");
+        let mut drawer = drawer.draw_terrain();
+
+        let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
+            (e as i32).div_euclid(sz as i32)
+        });
+
+        Spiral2d::new()
+            .filter_map(|rpos| {
+                let pos = focus_chunk + rpos;
+                self.chunks.get(&pos)
+            })
+            .take(self.chunks.len())
+            .filter(|chunk| chunk.visible.is_visible())
+            .filter_map(|chunk| {
+                chunk
+                    .opaque_model
+                    .as_ref()
+                    .map(|model| (model, &chunk.col_lights, &chunk.locals))
+            })
+            .for_each(|(model, col_lights, locals)| drawer.draw(model, col_lights, locals));
+    }
+
+    pub fn render_translucent<'a>(
+        &'a self,
+        drawer: &mut FirstPassDrawer<'a>,
         focus_pos: Vec3<f32>,
         cam_pos: Vec3<f32>,
         sprite_render_distance: f32,
@@ -1488,68 +1480,54 @@ impl<V: RectRasterableVol> Terrain<V> {
         // TODO: move to separate functions
         span!(guard, "Terrain sprites");
         let chunk_size = V::RECT_SIZE.map(|e| e as f32);
-        let chunk_mag = (chunk_size * (f32::consts::SQRT_2 * 0.5)).magnitude_squared();
-        for (pos, chunk) in chunk_iter.clone() {
-            if chunk.visible.is_visible() {
-                let sprite_low_detail_distance = sprite_render_distance * 0.75;
-                let sprite_mid_detail_distance = sprite_render_distance * 0.5;
-                let sprite_hid_detail_distance = sprite_render_distance * 0.35;
-                let sprite_high_detail_distance = sprite_render_distance * 0.15;
+
+        let sprite_low_detail_distance = sprite_render_distance * 0.75;
+        let sprite_mid_detail_distance = sprite_render_distance * 0.5;
+        let sprite_hid_detail_distance = sprite_render_distance * 0.35;
+        let sprite_high_detail_distance = sprite_render_distance * 0.15;
+
+        let mut sprite_drawer = drawer.draw_sprites(&self.sprite_globals, &self.sprite_col_lights);
+        chunk_iter
+            .clone()
+            .filter(|(_, c)| c.visible.is_visible())
+            .for_each(|(pos, chunk)| {
+                // Skip chunk if it has no sprites
+                if chunk.sprite_instances[0].count() == 0 {
+                    return;
+                }
 
                 let chunk_center = pos.map2(chunk_size, |e, sz| (e as f32 + 0.5) * sz);
                 let focus_dist_sqrd = Vec2::from(focus_pos).distance_squared(chunk_center);
-                let dist_sqrd =
-                    Vec2::from(cam_pos)
-                        .distance_squared(chunk_center)
-                        .min(Vec2::from(cam_pos).distance_squared(chunk_center - chunk_size * 0.5))
-                        .min(Vec2::from(cam_pos).distance_squared(
-                            chunk_center - chunk_size.x * 0.5 + chunk_size.y * 0.5,
-                        ))
-                        .min(
-                            Vec2::from(cam_pos).distance_squared(chunk_center + chunk_size.x * 0.5),
-                        )
-                        .min(Vec2::from(cam_pos).distance_squared(
-                            chunk_center + chunk_size.x * 0.5 - chunk_size.y * 0.5,
-                        ));
-                if focus_dist_sqrd < sprite_render_distance.powi(2) {
-                    for (kind, instances) in (&chunk.sprite_instances).into_iter() {
-                        let SpriteData { model, locals, .. } = if kind
-                            .0
-                            .elim_case_pure(&self.sprite_config.0)
-                            .as_ref()
-                            .map(|config| config.wind_sway >= 0.4)
-                            .unwrap_or(false)
-                            && dist_sqrd <= chunk_mag
-                            || dist_sqrd < sprite_high_detail_distance.powi(2)
-                        {
-                            &self.sprite_data[&kind][0]
-                        } else if dist_sqrd < sprite_hid_detail_distance.powi(2) {
-                            &self.sprite_data[&kind][1]
-                        } else if dist_sqrd < sprite_mid_detail_distance.powi(2) {
-                            &self.sprite_data[&kind][2]
-                        } else if dist_sqrd < sprite_low_detail_distance.powi(2) {
-                            &self.sprite_data[&kind][3]
-                        } else {
-                            &self.sprite_data[&kind][4]
-                        };
-                        renderer.render_sprites(
-                            model,
-                            &self.sprite_col_lights,
-                            global,
-                            &chunk.locals,
-                            locals,
-                            &instances,
-                            lod,
-                        );
-                    }
+                let dist_sqrd = Aabr {
+                    min: chunk_center - chunk_size * 0.5,
+                    max: chunk_center + chunk_size * 0.5,
                 }
-            }
-        }
+                .projected_point(cam_pos.xy())
+                .distance_squared(cam_pos.xy());
+
+                if focus_dist_sqrd < sprite_render_distance.powi(2) {
+                    let lod_level = if dist_sqrd < sprite_high_detail_distance.powi(2) {
+                        0
+                    } else if dist_sqrd < sprite_hid_detail_distance.powi(2) {
+                        1
+                    } else if dist_sqrd < sprite_mid_detail_distance.powi(2) {
+                        2
+                    } else if dist_sqrd < sprite_low_detail_distance.powi(2) {
+                        3
+                    } else {
+                        4
+                    };
+
+                    sprite_drawer.draw(&chunk.locals, &chunk.sprite_instances[lod_level]);
+                }
+            });
+        drop(sprite_drawer);
         drop(guard);
 
         // Translucent
+        span!(guard, "Fluid chunks");
+        let mut fluid_drawer = drawer.draw_fluid();
         chunk_iter
-            .clone()
             .filter(|(_, chunk)| chunk.visible.is_visible())
             .filter_map(|(_, chunk)| {
                 chunk
@@ -1561,13 +1539,12 @@ impl<V: RectRasterableVol> Terrain<V> {
             .into_iter()
             .rev() // Render back-to-front
             .for_each(|(model, locals)| {
-                renderer.render_fluid_chunk(
+                fluid_drawer.draw(
                     model,
-                    global,
                     locals,
-                    lod,
-                    &self.waves,
                 )
             });
+        drop(fluid_drawer);
+        drop(guard);
     }
 }

@@ -1,4 +1,8 @@
-uniform sampler2D t_noise;
+#ifndef RANDOM_GLSL
+#define RANDOM_GLSL
+
+layout(set = 0, binding = 1) uniform texture2D t_noise;
+layout(set = 0, binding = 2) uniform sampler s_noise;
 
 float hash(vec4 p) {
     p = fract(p * 0.3183099 + 0.1) - fract(p + 23.22121);
@@ -28,7 +32,7 @@ float hash_fast(uvec3 q)
 
 // 2D, but using shifted 2D textures
 float noise_2d(vec2 pos) {
-    return texture(t_noise, pos).x;
+    return textureLod(sampler2D(t_noise, s_noise), pos, 0).x;
 }
 
 // 3D, but using shifted 2D textures
@@ -37,7 +41,7 @@ float noise_3d(vec3 pos) {
     uint z = uint(trunc(pos.z));
     vec2 offs0 = vec2(hash_one(z), hash_one(z + 73u));
     vec2 offs1 = vec2(hash_one(z + 1u), hash_one(z + 1u + 73u));
-    return mix(texture(t_noise, pos.xy + offs0).x, texture(t_noise, pos.xy + offs1).x, fract(pos.z));
+    return mix(textureLod(sampler2D(t_noise, s_noise), pos.xy + offs0, 0).x, textureLod(sampler2D(t_noise, s_noise), pos.xy + offs1, 0).x, fract(pos.z));
 }
 
 // 3D version of `snoise`
@@ -100,3 +104,4 @@ vec3 smooth_rand(vec3 pos, float lerp_axis) {
     vec3 r1 = rand_perm_3(vec3(pos.x, pos.y, pos.z) + floor(lerp_axis + 1.0));
     return r0 + (r1 - r0) * fract(lerp_axis);
 }
+#endif

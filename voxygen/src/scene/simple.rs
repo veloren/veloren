@@ -1,15 +1,13 @@
 use crate::{
-    mesh::{greedy::GreedyMesh, Meshable},
+    mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_terrain},
     render::{
-        create_clouds_mesh, create_pp_mesh, create_skybox_mesh, BoneMeshes, CloudsLocals,
-        CloudsPipeline, Consts, FigureModel, FigurePipeline, GlobalModel, Globals, Light, Mesh,
-        Model, PostProcessLocals, PostProcessPipeline, Renderer, Shadow, ShadowLocals,
-        SkyboxLocals, SkyboxPipeline, TerrainPipeline,
+        create_skybox_mesh, BoneMeshes, Consts, FigureModel, FirstPassDrawer, GlobalModel, Globals,
+        GlobalsBindGroup, Light, LodData, Mesh, Model, PointLightMatrix, Renderer, Shadow,
+        ShadowLocals, SkyboxVertex, TerrainVertex,
     },
     scene::{
         camera::{self, Camera, CameraMode},
         figure::{load_mesh, FigureColLights, FigureModelCache, FigureModelEntry, FigureState},
-        LodData,
     },
     window::{Event, PressState},
 };
@@ -30,7 +28,6 @@ use common::{
     terrain::BlockKind,
     vol::{BaseVol, ReadVol},
 };
-use tracing::error;
 use vek::*;
 use winit::event::MouseButton;
 
@@ -45,41 +42,26 @@ impl ReadVol for VoidVol {
 
 fn generate_mesh<'a>(
     greedy: &mut GreedyMesh<'a>,
-    mesh: &mut Mesh<TerrainPipeline>,
+    mesh: &mut Mesh<TerrainVertex>,
     segment: Segment,
     offset: Vec3<f32>,
     bone_idx: u8,
 ) -> BoneMeshes {
     let (opaque, _, /* shadow */ _, bounds) =
-        Meshable::<FigurePipeline, &mut GreedyMesh>::generate_mesh(
-            segment,
-            (greedy, mesh, offset, Vec3::one(), bone_idx),
-        );
+        generate_mesh_base_vol_terrain(segment, (greedy, mesh, offset, Vec3::one(), bone_idx));
     (opaque /* , shadow */, bounds)
 }
 
 struct Skybox {
-    model: Model<SkyboxPipeline>,
-    locals: Consts<SkyboxLocals>,
-}
-
-struct PostProcess {
-    model: Model<PostProcessPipeline>,
-    locals: Consts<PostProcessLocals>,
-}
-
-struct Clouds {
-    model: Model<CloudsPipeline>,
-    locals: Consts<CloudsLocals>,
+    model: Model<SkyboxVertex>,
 }
 
 pub struct Scene {
     data: GlobalModel,
+    globals_bind_group: GlobalsBindGroup,
     camera: Camera,
 
     skybox: Skybox,
-    clouds: Clouds,
-    postprocess: PostProcess,
     lod: LodData,
     map_bounds: Vec2<f32>,
 
@@ -109,16 +91,12 @@ pub struct SceneData<'a> {
 impl Scene {
     pub fn new(renderer: &mut Renderer, backdrop: Option<&str>, client: &Client) -> Self {
         let start_angle = 90.0f32.to_radians();
-        let resolution = renderer.get_resolution().map(|e| e as f32);
+        let resolution = renderer.resolution().map(|e| e as f32);
 
         let map_bounds = Vec2::new(
             client.world_data().min_chunk_alt(),
             client.world_data().max_chunk_alt(),
         );
-        let map_border = [0.0, 0.0, 0.0, 0.0];
-        let map_image = [0];
-        let alt_image = [0];
-        let horizon_image = [0x_00_01_00_01];
 
         let mut camera = Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson);
         camera.set_focus_pos(Vec3::unit_z() * 1.5);
@@ -127,39 +105,24 @@ impl Scene {
 
         let mut col_lights = FigureColLights::new(renderer);
 
-        Self {
-            data: GlobalModel {
-                globals: renderer.create_consts(&[Globals::default()]).unwrap(),
-                lights: renderer.create_consts(&[Light::default(); 32]).unwrap(),
-                shadows: renderer.create_consts(&[Shadow::default(); 32]).unwrap(),
-                shadow_mats: renderer
-                    .create_consts(&[ShadowLocals::default(); 6])
-                    .unwrap(),
-            },
+        let data = GlobalModel {
+            globals: renderer.create_consts(&[Globals::default()]),
+            lights: renderer.create_consts(&[Light::default(); 20]),
+            shadows: renderer.create_consts(&[Shadow::default(); 24]),
+            shadow_mats: renderer.create_shadow_bound_locals(&[ShadowLocals::default()]),
+            point_light_matrices: Box::new([PointLightMatrix::default(); 126]),
+        };
+        let lod = LodData::dummy(renderer);
 
+        let globals_bind_group = renderer.bind_globals(&data, &lod);
+
+        Self {
+            data,
+            globals_bind_group,
             skybox: Skybox {
                 model: renderer.create_model(&create_skybox_mesh()).unwrap(),
-                locals: renderer.create_consts(&[SkyboxLocals::default()]).unwrap(),
             },
-            clouds: Clouds {
-                model: renderer.create_model(&create_clouds_mesh()).unwrap(),
-                locals: renderer.create_consts(&[CloudsLocals::default()]).unwrap(),
-            },
-            postprocess: PostProcess {
-                model: renderer.create_model(&create_pp_mesh()).unwrap(),
-                locals: renderer
-                    .create_consts(&[PostProcessLocals::default()])
-                    .unwrap(),
-            },
-            lod: LodData::new(
-                renderer,
-                Vec2::new(1, 1),
-                &map_image,
-                &alt_image,
-                &horizon_image,
-                1,
-                map_border.into(),
-            ),
+            lod,
             map_bounds,
 
             figure_model_cache: FigureModelCache::new(),
@@ -177,9 +140,9 @@ impl Scene {
                 // total size is bounded by 2^24 * 3 * 1.5 which is bounded by
                 // 2^27, which fits in a u32.
                 let range = 0..opaque_mesh.vertices().len() as u32;
-                let model = col_lights
-                    .create_figure(renderer, greedy.finalize(), (opaque_mesh, bounds), [range])
-                    .unwrap();
+                let model =
+                    col_lights
+                        .create_figure(renderer, greedy.finalize(), (opaque_mesh, bounds), [range]);
                 let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
                 state.update(
                     renderer,
@@ -277,7 +240,7 @@ impl Scene {
         const SHADOW_NEAR: f32 = 1.0;
         const SHADOW_FAR: f32 = 25.0;
 
-        if let Err(e) = renderer.update_consts(&mut self.data.globals, &[Globals::new(
+        renderer.update_consts(&mut self.data.globals, &[Globals::new(
             view_mat,
             proj_mat,
             cam_pos,
@@ -287,7 +250,7 @@ impl Scene {
             self.map_bounds,
             TIME,
             scene_data.time,
-            renderer.get_resolution(),
+            renderer.resolution().as_(),
             Vec2::new(SHADOW_NEAR, SHADOW_FAR),
             0,
             0,
@@ -299,9 +262,7 @@ impl Scene {
             scene_data.ambiance,
             self.camera.get_mode(),
             250.0,
-        )]) {
-            error!(?e, "Renderer failed to update");
-        }
+        )]);
 
         self.figure_model_cache
             .clean(&mut self.col_lights, scene_data.tick);
@@ -384,20 +345,16 @@ impl Scene {
         }
     }
 
-    pub fn render(
-        &mut self,
-        renderer: &mut Renderer,
+    pub fn global_bind_group(&self) -> &GlobalsBindGroup { &self.globals_bind_group }
+
+    pub fn render<'a>(
+        &'a self,
+        drawer: &mut FirstPassDrawer<'a>,
         tick: u64,
         body: Option<humanoid::Body>,
         inventory: Option<&Inventory>,
     ) {
-        renderer.render_skybox(
-            &self.skybox.model,
-            &self.data,
-            &self.skybox.locals,
-            &self.lod,
-        );
-
+        let mut figure_drawer = drawer.draw_figures();
         if let Some(body) = body {
             let model = &self.figure_model_cache.get_model(
                 &self.col_lights,
@@ -409,40 +366,23 @@ impl Scene {
             );
 
             if let Some(model) = model {
-                renderer.render_figure(
-                    &model.models[0],
+                figure_drawer.draw(
+                    model.lod_model(0),
+                    self.figure_state.bound(),
                     &self.col_lights.texture(model),
-                    &self.data,
-                    self.figure_state.locals(),
-                    self.figure_state.bone_consts(),
-                    &self.lod,
                 );
             }
         }
 
         if let Some((model, state)) = &self.backdrop {
-            renderer.render_figure(
-                &model.models[0],
+            figure_drawer.draw(
+                model.lod_model(0),
+                state.bound(),
                 &self.col_lights.texture(model),
-                &self.data,
-                state.locals(),
-                state.bone_consts(),
-                &self.lod,
             );
         }
+        drop(figure_drawer);
 
-        renderer.render_clouds(
-            &self.clouds.model,
-            &self.data.globals,
-            &self.clouds.locals,
-            &self.lod,
-        );
-
-        renderer.render_post_process(
-            &self.postprocess.model,
-            &self.data.globals,
-            &self.postprocess.locals,
-            &self.lod,
-        );
+        drawer.draw_skybox(&self.skybox.model);
     }
 }

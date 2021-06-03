@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 
 #include <constants.glsl>
 
@@ -20,10 +20,10 @@
 #include <srgb.glsl>
 #include <random.glsl>
 
-in uint v_pos_norm;
+layout(location = 0) in uint v_pos_norm;
 // in uint v_col_light;
 
-layout (std140)
+layout(std140, set = 2, binding = 0)
 uniform u_locals {
     vec3 model_offs;
     float load_time;
@@ -40,8 +40,8 @@ uniform u_locals {
 //     ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
 // };
 
-out vec3 f_pos;
-flat out uint f_pos_norm;
+layout(location = 0) out vec3 f_pos;
+layout(location = 1) flat out uint f_pos_norm;
 // out vec3 f_col;
 // out float f_light;
 // out vec3 light_pos[2];

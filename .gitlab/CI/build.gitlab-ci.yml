@@ -75,17 +75,25 @@ coverage:
 .twindows:
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/release-windows:${CACHE_IMAGE_TAG}
   script:
+    - update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+    - update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
     - ln -s /dockercache/target target
     - rm -r target/release/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
     - VELOREN_USERDATA_STRATEGY=executable cargo build --target=x86_64-pc-windows-gnu --release
     - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
     - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
+    - cp /usr/lib/gcc/x86_64-w64-mingw32/7.3-posix/libgcc_s_seh-1.dll $CI_PROJECT_DIR
+    - cp /usr/lib/gcc/x86_64-w64-mingw32/7.3-posix/libstdc++-6.dll $CI_PROJECT_DIR
+    - cp /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll $CI_PROJECT_DIR
   artifacts:
     paths:
       - veloren-server-cli.exe
       - veloren-voxygen.exe
       - assets/
       - LICENSE
+      - libgcc_s_seh-1.dll
+      - libstdc++-6.dll
+      - libwinpthread-1.dll
     expire_in: 1 week
 
 .tmacos:

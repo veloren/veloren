@@ -58,7 +58,10 @@ macro_rules! span {
     };
 }
 
-pub struct DummySpan;
+#[cfg(feature = "tracy")]
+pub struct ProfSpan(pub tracy_client::Span);
+#[cfg(not(feature = "tracy"))]
+pub struct ProfSpan;
 
 /// Like the span macro but only used when profiling and not in regular tracing
 /// operations
@@ -66,16 +69,16 @@ pub struct DummySpan;
 macro_rules! prof_span {
     ($guard_name:tt, $name:expr) => {
         #[cfg(feature = "tracy")]
-        let $guard_name = $crate::tracy_client::Span::new(
+        let $guard_name = $crate::ProfSpan($crate::tracy_client::Span::new(
             $name,
             "",
             module_path!(),
             line!(),
             // No callstack since this has significant overhead
             0,
-        );
+        ));
         #[cfg(not(feature = "tracy"))]
-        let $guard_name = $crate::DummySpan;
+        let $guard_name = $crate::ProfSpan;
     };
 }
 

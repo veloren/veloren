@@ -1,3 +1,5 @@
+pub mod bound;
+mod buffer;
 #[allow(clippy::single_component_path_imports)] // TODO: Pending review in #587
 pub mod consts;
 mod error;
@@ -10,58 +12,55 @@ pub mod texture;
 
 // Reexports
 pub use self::{
+    bound::Bound,
+    buffer::Buffer,
     consts::Consts,
     error::RenderError,
     instances::Instances,
     mesh::{Mesh, Quad, Tri},
-    model::{DynamicModel, Model},
+    model::{DynamicModel, Model, SubModel},
     pipelines::{
-        clouds::{create_mesh as create_clouds_mesh, CloudsPipeline, Locals as CloudsLocals},
+        clouds::Locals as CloudsLocals,
+        debug::{DebugPipeline, Locals as DebugLocals, Vertex as DebugVertex},
         figure::{
-            BoneData as FigureBoneData, BoneMeshes, FigureModel, FigurePipeline,
+            BoneData as FigureBoneData, BoneMeshes, FigureLayout, FigureModel,
             Locals as FigureLocals,
         },
-        fluid::FluidPipeline,
-        lod_terrain::{Locals as LodTerrainLocals, LodData, LodTerrainPipeline},
-        particle::{Instance as ParticleInstance, ParticlePipeline},
-        postprocess::{
-            create_mesh as create_pp_mesh, Locals as PostProcessLocals, PostProcessPipeline,
+        fluid::Vertex as FluidVertex,
+        lod_terrain::{LodData, Vertex as LodTerrainVertex},
+        particle::{Instance as ParticleInstance, Vertex as ParticleVertex},
+        postprocess::Locals as PostProcessLocals,
+        shadow::{Locals as ShadowLocals, PointLightMatrix},
+        skybox::{create_mesh as create_skybox_mesh, Vertex as SkyboxVertex},
+        sprite::{
+            Instance as SpriteInstance, SpriteGlobalsBindGroup, SpriteVerts,
+            Vertex as SpriteVertex, VERT_PAGE_SIZE as SPRITE_VERT_PAGE_SIZE,
         },
-        shadow::{Locals as ShadowLocals, ShadowPipeline},
-        skybox::{create_mesh as create_skybox_mesh, Locals as SkyboxLocals, SkyboxPipeline},
-        sprite::{Instance as SpriteInstance, Locals as SpriteLocals, SpritePipeline},
-        terrain::{Locals as TerrainLocals, TerrainPipeline},
+        terrain::{Locals as TerrainLocals, TerrainLayout, Vertex as TerrainVertex},
         ui::{
             create_quad as create_ui_quad,
             create_quad_vert_gradient as create_ui_quad_vert_gradient, create_tri as create_ui_tri,
-            Locals as UiLocals, Mode as UiMode, UiPipeline,
+            BoundLocals as UiBoundLocals, Locals as UiLocals, Mode as UiMode,
+            TextureBindGroup as UiTextureBindGroup, Vertex as UiVertex,
         },
-        GlobalModel, Globals, Light, Shadow,
+        GlobalModel, Globals, GlobalsBindGroup, GlobalsLayouts, Light, Shadow,
     },
     renderer::{
-        ColLightFmt, ColLightInfo, LodAltFmt, LodColorFmt, LodTextureFmt, Renderer,
-        ShadowDepthStencilFmt, TgtColorFmt, TgtDepthStencilFmt, WinColorFmt, WinDepthFmt,
+        drawer::{
+            DebugDrawer, Drawer, FigureDrawer, FigureShadowDrawer, FirstPassDrawer, ParticleDrawer,
+            PreparedUiDrawer, SecondPassDrawer, ShadowPassDrawer, SpriteDrawer, TerrainDrawer,
+            TerrainShadowDrawer, ThirdPassDrawer, UiDrawer,
+        },
+        ColLightInfo, Renderer,
     },
     texture::Texture,
 };
-pub use gfx::texture::{FilterMethod, WrapMode};
+pub use wgpu::{AddressMode, FilterMode};
 
-#[cfg(feature = "gl")]
-use gfx_device_gl as gfx_backend;
-
-/// Used to represent a specific rendering configuration.
-///
-/// Note that pipelines are tied to the
-/// rendering backend, and as such it is necessary to modify the rendering
-/// subsystem when adding new pipelines - custom pipelines are not currently an
-/// objective of the rendering subsystem.
-///
-/// # Examples
-///
-/// - `SkyboxPipeline`
-/// - `FigurePipeline`
-pub trait Pipeline {
-    type Vertex: Clone + gfx::traits::Pod + gfx::pso::buffer::Structure<gfx::format::Format>;
+pub trait Vertex: Clone + bytemuck::Pod {
+    const STRIDE: wgpu::BufferAddress;
+    // Whether these types of verts use the quad index buffer for drawing them
+    const QUADS_INDEX: Option<wgpu::IndexFormat>;
 }
 
 use serde::{Deserialize, Serialize};
@@ -243,6 +242,30 @@ impl Default for UpscaleMode {
     fn default() -> Self { Self { factor: 1.0 } }
 }
 
+/// Present modes
+/// See https://docs.rs/wgpu/0.7.0/wgpu/enum.PresentMode.html
+#[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum PresentMode {
+    Fifo,
+    Mailbox,
+    #[serde(other)]
+    Immediate,
+}
+
+impl Default for PresentMode {
+    fn default() -> Self { Self::Immediate }
+}
+
+impl From<PresentMode> for wgpu::PresentMode {
+    fn from(mode: PresentMode) -> Self {
+        match mode {
+            PresentMode::Fifo => wgpu::PresentMode::Fifo,
+            PresentMode::Mailbox => wgpu::PresentMode::Mailbox,
+            PresentMode::Immediate => wgpu::PresentMode::Immediate,
+        }
+    }
+}
+
 /// Render modes
 #[derive(PartialEq, Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(default)]
@@ -253,4 +276,6 @@ pub struct RenderMode {
     pub lighting: LightingMode,
     pub shadow: ShadowMode,
     pub upscale_mode: UpscaleMode,
+    pub present_mode: PresentMode,
+    pub profiler_enabled: bool,
 }

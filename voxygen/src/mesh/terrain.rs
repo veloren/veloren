@@ -3,9 +3,9 @@
 use crate::{
     mesh::{
         greedy::{self, GreedyConfig, GreedyMesh},
-        MeshGen, Meshable,
+        MeshGen,
     },
-    render::{self, ColLightInfo, FluidPipeline, Mesh, ShadowPipeline, TerrainPipeline},
+    render::{ColLightInfo, FluidVertex, Mesh, TerrainVertex},
     scene::terrain::BlocksOfInterest,
 };
 use common::{
@@ -18,9 +18,6 @@ use common_base::span;
 use std::{collections::VecDeque, fmt::Debug, sync::Arc};
 use tracing::error;
 use vek::*;
-
-type TerrainVertex = <TerrainPipeline as render::Pipeline>::Vertex;
-type FluidVertex = <FluidPipeline as render::Pipeline>::Vertex;
 
 #[derive(Clone, Copy, PartialEq)]
 enum FaceKind {
@@ -227,243 +224,234 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     }
 }
 
-impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>
-    Meshable<TerrainPipeline, FluidPipeline> for &'a VolGrid2d<V>
-{
-    type Pipeline = TerrainPipeline;
-    #[allow(clippy::type_complexity)]
-    type Result = (
+#[allow(clippy::collapsible_if)]
+#[allow(clippy::many_single_char_names)]
+#[allow(clippy::type_complexity)]
+#[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
+#[allow(clippy::or_fun_call)] // TODO: Pending review in #587
+pub fn generate_mesh<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>(
+    vol: &'a VolGrid2d<V>,
+    (range, max_texture_size, _boi): (Aabb<i32>, Vec2<u16>, &'a BlocksOfInterest),
+) -> MeshGen<
+    TerrainVertex,
+    FluidVertex,
+    TerrainVertex,
+    (
         Aabb<f32>,
         ColLightInfo,
         Arc<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
         Arc<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
+    ),
+> {
+    span!(
+        _guard,
+        "generate_mesh",
+        "<&VolGrid2d as Meshable<_, _>>::generate_mesh"
     );
-    type ShadowPipeline = ShadowPipeline;
-    type Supplement = (Aabb<i32>, Vec2<u16>, &'a BlocksOfInterest);
-    type TranslucentPipeline = FluidPipeline;
 
-    #[allow(clippy::collapsible_if)]
-    #[allow(clippy::many_single_char_names)]
-    #[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
-    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
-    fn generate_mesh(
-        self,
-        (range, max_texture_size, _boi): Self::Supplement,
-    ) -> MeshGen<TerrainPipeline, FluidPipeline, Self> {
-        span!(
-            _guard,
-            "generate_mesh",
-            "<&VolGrid2d as Meshable<_, _>>::generate_mesh"
-        );
+    // Find blocks that should glow
+    // TODO: Search neighbouring chunks too!
+    // let glow_blocks = boi.lights
+    //     .iter()
+    //     .map(|(pos, glow)| (*pos + range.min.xy(), *glow));
+    /*  DefaultVolIterator::new(vol, range.min - MAX_LIGHT_DIST, range.max + MAX_LIGHT_DIST)
+    .filter_map(|(pos, block)| block.get_glow().map(|glow| (pos, glow))); */
 
-        // Find blocks that should glow
-        // TODO: Search neighbouring chunks too!
-        // let glow_blocks = boi.lights
-        //     .iter()
-        //     .map(|(pos, glow)| (*pos + range.min.xy(), *glow));
-        /*  DefaultVolIterator::new(self, range.min - MAX_LIGHT_DIST, range.max + MAX_LIGHT_DIST)
-        .filter_map(|(pos, block)| block.get_glow().map(|glow| (pos, glow))); */
+    let mut glow_blocks = Vec::new();
 
-        let mut glow_blocks = Vec::new();
-
-        // TODO: This expensive, use BlocksOfInterest instead
-        let mut volume = self.cached();
-        for x in -MAX_LIGHT_DIST..range.size().w + MAX_LIGHT_DIST {
-            for y in -MAX_LIGHT_DIST..range.size().h + MAX_LIGHT_DIST {
-                for z in -1..range.size().d + 1 {
-                    let wpos = range.min + Vec3::new(x, y, z);
-                    volume
-                        .get(wpos)
-                        .ok()
-                        .and_then(|b| b.get_glow())
-                        .map(|glow| glow_blocks.push((wpos, glow)));
-                }
+    // TODO: This expensive, use BlocksOfInterest instead
+    let mut volume = vol.cached();
+    for x in -MAX_LIGHT_DIST..range.size().w + MAX_LIGHT_DIST {
+        for y in -MAX_LIGHT_DIST..range.size().h + MAX_LIGHT_DIST {
+            for z in -1..range.size().d + 1 {
+                let wpos = range.min + Vec3::new(x, y, z);
+                volume
+                    .get(wpos)
+                    .ok()
+                    .and_then(|b| b.get_glow())
+                    .map(|glow| glow_blocks.push((wpos, glow)));
             }
         }
+    }
 
-        // Calculate chunk lighting (sunlight defaults to 1.0, glow to 0.0)
-        let light = calc_light(true, SUNLIGHT, range, self, core::iter::empty());
-        let glow = calc_light(false, 0, range, self, glow_blocks.into_iter());
+    // Calculate chunk lighting (sunlight defaults to 1.0, glow to 0.0)
+    let light = calc_light(true, SUNLIGHT, range, vol, core::iter::empty());
+    let glow = calc_light(false, 0, range, vol, glow_blocks.into_iter());
 
-        let mut opaque_limits = None::<Limits>;
-        let mut fluid_limits = None::<Limits>;
-        let mut air_limits = None::<Limits>;
-        let flat_get = {
-            span!(_guard, "copy to flat array");
-            let (w, h, d) = range.size().into_tuple();
-            // z can range from -1..range.size().d + 1
-            let d = d + 2;
-            let flat = {
-                let mut volume = self.cached();
-
-                const AIR: Block = Block::air(common::terrain::sprite::SpriteKind::Empty);
-
-                // TODO: Once we can manage it sensibly, consider using something like
-                // Option<Block> instead of just assuming air.
-                let mut flat = vec![AIR; (w * h * d) as usize];
-                let mut i = 0;
-                for x in 0..range.size().w {
-                    for y in 0..range.size().h {
-                        for z in -1..range.size().d + 1 {
-                            let wpos = range.min + Vec3::new(x, y, z);
-                            let block = volume
-                                .get(wpos)
-                                .map(|b| *b)
-                                // TODO: Replace with None or some other more reasonable value,
-                                // since it's not clear this will work properly with liquid.
-                                .unwrap_or(AIR);
-                            if block.is_opaque() {
-                                opaque_limits = opaque_limits
-                                    .map(|l| l.including(z))
-                                    .or_else(|| Some(Limits::from_value(z)));
-                            } else if block.is_liquid() {
-                                fluid_limits = fluid_limits
-                                    .map(|l| l.including(z))
-                                    .or_else(|| Some(Limits::from_value(z)));
-                            } else {
-                                // Assume air
-                                air_limits = air_limits
-                                    .map(|l| l.including(z))
-                                    .or_else(|| Some(Limits::from_value(z)));
-                            };
-                            flat[i] = block;
-                            i += 1;
-                        }
+    let mut opaque_limits = None::<Limits>;
+    let mut fluid_limits = None::<Limits>;
+    let mut air_limits = None::<Limits>;
+    let flat_get = {
+        span!(_guard, "copy to flat array");
+        let (w, h, d) = range.size().into_tuple();
+        // z can range from -1..range.size().d + 1
+        let d = d + 2;
+        let flat = {
+            let mut volume = vol.cached();
+            const AIR: Block = Block::air(common::terrain::sprite::SpriteKind::Empty);
+            // TODO: Once we can manage it sensibly, consider using something like
+            // Option<Block> instead of just assuming air.
+            let mut flat = vec![AIR; (w * h * d) as usize];
+            let mut i = 0;
+            for x in 0..range.size().w {
+                for y in 0..range.size().h {
+                    for z in -1..range.size().d + 1 {
+                        let wpos = range.min + Vec3::new(x, y, z);
+                        let block = volume
+                            .get(wpos)
+                            .map(|b| *b)
+                            // TODO: Replace with None or some other more reasonable value,
+                            // since it's not clear this will work properly with liquid.
+                            .unwrap_or(AIR);
+                        if block.is_opaque() {
+                            opaque_limits = opaque_limits
+                                .map(|l| l.including(z))
+                                .or_else(|| Some(Limits::from_value(z)));
+                        } else if block.is_liquid() {
+                            fluid_limits = fluid_limits
+                                .map(|l| l.including(z))
+                                .or_else(|| Some(Limits::from_value(z)));
+                        } else {
+                            // Assume air
+                            air_limits = air_limits
+                                .map(|l| l.including(z))
+                                .or_else(|| Some(Limits::from_value(z)));
+                        };
+                        flat[i] = block;
+                        i += 1;
                     }
                 }
-                flat
-            };
-
-            move |Vec3 { x, y, z }| {
-                // z can range from -1..range.size().d + 1
-                let z = z + 1;
-                match flat.get((x * h * d + y * d + z) as usize).copied() {
-                    Some(b) => b,
-                    None => panic!("x {} y {} z {} d {} h {}", x, y, z, d, h),
-                }
             }
+            flat
         };
 
-        // Constrain iterated area
-        let (z_start, z_end) = match (air_limits, fluid_limits, opaque_limits) {
-            (Some(air), Some(fluid), Some(opaque)) => air.three_way_intersection(fluid, opaque),
-            (Some(air), Some(fluid), None) => air.intersection(fluid),
-            (Some(air), None, Some(opaque)) => air.intersection(opaque),
-            (None, Some(fluid), Some(opaque)) => fluid.intersection(opaque),
-            // No interfaces (Note: if there are multiple fluid types this could change)
-            (Some(_), None, None) | (None, Some(_), None) | (None, None, Some(_)) => None,
-            (None, None, None) => {
-                error!("Impossible unless given an input AABB that has a height of zero");
-                None
-            },
+        move |Vec3 { x, y, z }| {
+            // z can range from -1..range.size().d + 1
+            let z = z + 1;
+            match flat.get((x * h * d + y * d + z) as usize).copied() {
+                Some(b) => b,
+                None => panic!("x {} y {} z {} d {} h {}", x, y, z, d, h),
+            }
         }
-        .map_or((0, 0), |limits| {
-            let (start, end) = limits.into_tuple();
-            let start = start.max(0);
-            let end = end.min(range.size().d - 1).max(start);
-            (start, end)
-        });
+    };
 
-        let max_size =
-            guillotiere::Size::new(i32::from(max_texture_size.x), i32::from(max_texture_size.y));
-        assert!(z_end >= z_start);
-        let greedy_size = Vec3::new(range.size().w - 2, range.size().h - 2, z_end - z_start + 1);
-        // NOTE: Terrain sizes are limited to 32 x 32 x 16384 (to fit in 24 bits: 5 + 5
-        // + 14). FIXME: Make this function fallible, since the terrain
-        // information might be dynamically generated which would make this hard
-        // to enforce.
-        assert!(greedy_size.x <= 32 && greedy_size.y <= 32 && greedy_size.z <= 16384);
-        // NOTE: Cast is safe by prior assertion on greedy_size; it fits into a u16,
-        // which always fits into a f32.
-        let max_bounds: Vec3<f32> = greedy_size.as_::<f32>();
-        // NOTE: Cast is safe by prior assertion on greedy_size; it fits into a u16,
-        // which always fits into a usize.
-        let greedy_size = greedy_size.as_::<usize>();
-        let greedy_size_cross = Vec3::new(greedy_size.x - 1, greedy_size.y - 1, greedy_size.z);
-        let draw_delta = Vec3::new(1, 1, z_start);
-
-        let get_light = |_: &mut (), pos: Vec3<i32>| {
-            if flat_get(pos).is_opaque() {
-                0.0
-            } else {
-                light(pos + range.min)
-            }
-        };
-        let get_glow = |_: &mut (), pos: Vec3<i32>| glow(pos + range.min);
-        let get_color =
-            |_: &mut (), pos: Vec3<i32>| flat_get(pos).get_color().unwrap_or(Rgb::zero());
-        let get_opacity = |_: &mut (), pos: Vec3<i32>| !flat_get(pos).is_opaque();
-        let flat_get = |pos| flat_get(pos);
-        let should_draw = |_: &mut (), pos: Vec3<i32>, delta: Vec3<i32>, _uv| {
-            should_draw_greedy(pos, delta, flat_get)
-        };
-        // NOTE: Conversion to f32 is fine since this i32 is actually in bounds for u16.
-        let mesh_delta = Vec3::new(0.0, 0.0, (z_start + range.min.z) as f32);
-        let create_opaque = |atlas_pos, pos, norm, meta| {
-            TerrainVertex::new(atlas_pos, pos + mesh_delta, norm, meta)
-        };
-        let create_transparent = |_atlas_pos, pos, norm| FluidVertex::new(pos + mesh_delta, norm);
-
-        let mut greedy = GreedyMesh::new(max_size);
-        let mut opaque_mesh = Mesh::new();
-        let mut fluid_mesh = Mesh::new();
-        greedy.push(GreedyConfig {
-            data: (),
-            draw_delta,
-            greedy_size,
-            greedy_size_cross,
-            get_light,
-            get_glow,
-            get_opacity,
-            should_draw,
-            push_quad: |atlas_origin, dim, origin, draw_dim, norm, meta: &FaceKind| match meta {
-                FaceKind::Opaque(meta) => {
-                    opaque_mesh.push_quad(greedy::create_quad(
-                        atlas_origin,
-                        dim,
-                        origin,
-                        draw_dim,
-                        norm,
-                        meta,
-                        |atlas_pos, pos, norm, &meta| create_opaque(atlas_pos, pos, norm, meta),
-                    ));
-                },
-                FaceKind::Fluid => {
-                    fluid_mesh.push_quad(greedy::create_quad(
-                        atlas_origin,
-                        dim,
-                        origin,
-                        draw_dim,
-                        norm,
-                        &(),
-                        |atlas_pos, pos, norm, &_meta| create_transparent(atlas_pos, pos, norm),
-                    ));
-                },
-            },
-            make_face_texel: |data: &mut (), pos, light, glow| {
-                TerrainVertex::make_col_light(light, glow, get_color(data, pos))
-            },
-        });
-
-        let min_bounds = mesh_delta;
-        let bounds = Aabb {
-            min: min_bounds,
-            max: max_bounds + min_bounds,
-        };
-        let (col_lights, col_lights_size) = greedy.finalize();
-
-        (
-            opaque_mesh,
-            fluid_mesh,
-            Mesh::new(),
-            (
-                bounds,
-                (col_lights, col_lights_size),
-                Arc::new(light),
-                Arc::new(glow),
-            ),
-        )
+    // Constrain iterated area
+    let (z_start, z_end) = match (air_limits, fluid_limits, opaque_limits) {
+        (Some(air), Some(fluid), Some(opaque)) => air.three_way_intersection(fluid, opaque),
+        (Some(air), Some(fluid), None) => air.intersection(fluid),
+        (Some(air), None, Some(opaque)) => air.intersection(opaque),
+        (None, Some(fluid), Some(opaque)) => fluid.intersection(opaque),
+        // No interfaces (Note: if there are multiple fluid types this could change)
+        (Some(_), None, None) | (None, Some(_), None) | (None, None, Some(_)) => None,
+        (None, None, None) => {
+            error!("Impossible unless given an input AABB that has a height of zero");
+            None
+        },
     }
+    .map_or((0, 0), |limits| {
+        let (start, end) = limits.into_tuple();
+        let start = start.max(0);
+        let end = end.min(range.size().d - 1).max(start);
+        (start, end)
+    });
+
+    let max_size =
+        guillotiere::Size::new(i32::from(max_texture_size.x), i32::from(max_texture_size.y));
+    assert!(z_end >= z_start);
+    let greedy_size = Vec3::new(range.size().w - 2, range.size().h - 2, z_end - z_start + 1);
+    // NOTE: Terrain sizes are limited to 32 x 32 x 16384 (to fit in 24 bits: 5 + 5
+    // + 14). FIXME: Make this function fallible, since the terrain
+    // information might be dynamically generated which would make this hard
+    // to enforce.
+    assert!(greedy_size.x <= 32 && greedy_size.y <= 32 && greedy_size.z <= 16384);
+    // NOTE: Cast is safe by prior assertion on greedy_size; it fits into a u16,
+    // which always fits into a f32.
+    let max_bounds: Vec3<f32> = greedy_size.as_::<f32>();
+    // NOTE: Cast is safe by prior assertion on greedy_size; it fits into a u16,
+    // which always fits into a usize.
+    let greedy_size = greedy_size.as_::<usize>();
+    let greedy_size_cross = Vec3::new(greedy_size.x - 1, greedy_size.y - 1, greedy_size.z);
+    let draw_delta = Vec3::new(1, 1, z_start);
+
+    let get_light = |_: &mut (), pos: Vec3<i32>| {
+        if flat_get(pos).is_opaque() {
+            0.0
+        } else {
+            light(pos + range.min)
+        }
+    };
+    let get_glow = |_: &mut (), pos: Vec3<i32>| glow(pos + range.min);
+    let get_color = |_: &mut (), pos: Vec3<i32>| flat_get(pos).get_color().unwrap_or(Rgb::zero());
+    let get_opacity = |_: &mut (), pos: Vec3<i32>| !flat_get(pos).is_opaque();
+    let flat_get = |pos| flat_get(pos);
+    let should_draw = |_: &mut (), pos: Vec3<i32>, delta: Vec3<i32>, _uv| {
+        should_draw_greedy(pos, delta, flat_get)
+    };
+    // NOTE: Conversion to f32 is fine since this i32 is actually in bounds for u16.
+    let mesh_delta = Vec3::new(0.0, 0.0, (z_start + range.min.z) as f32);
+    let create_opaque =
+        |atlas_pos, pos, norm, meta| TerrainVertex::new(atlas_pos, pos + mesh_delta, norm, meta);
+    let create_transparent = |_atlas_pos, pos, norm| FluidVertex::new(pos + mesh_delta, norm);
+
+    let mut greedy = GreedyMesh::new(max_size);
+    let mut opaque_mesh = Mesh::new();
+    let mut fluid_mesh = Mesh::new();
+    greedy.push(GreedyConfig {
+        data: (),
+        draw_delta,
+        greedy_size,
+        greedy_size_cross,
+        get_light,
+        get_glow,
+        get_opacity,
+        should_draw,
+        push_quad: |atlas_origin, dim, origin, draw_dim, norm, meta: &FaceKind| match meta {
+            FaceKind::Opaque(meta) => {
+                opaque_mesh.push_quad(greedy::create_quad(
+                    atlas_origin,
+                    dim,
+                    origin,
+                    draw_dim,
+                    norm,
+                    meta,
+                    |atlas_pos, pos, norm, &meta| create_opaque(atlas_pos, pos, norm, meta),
+                ));
+            },
+            FaceKind::Fluid => {
+                fluid_mesh.push_quad(greedy::create_quad(
+                    atlas_origin,
+                    dim,
+                    origin,
+                    draw_dim,
+                    norm,
+                    &(),
+                    |atlas_pos, pos, norm, &_meta| create_transparent(atlas_pos, pos, norm),
+                ));
+            },
+        },
+        make_face_texel: |data: &mut (), pos, light, glow| {
+            TerrainVertex::make_col_light(light, glow, get_color(data, pos))
+        },
+    });
+
+    let min_bounds = mesh_delta;
+    let bounds = Aabb {
+        min: min_bounds,
+        max: max_bounds + min_bounds,
+    };
+    let (col_lights, col_lights_size) = greedy.finalize();
+
+    (
+        opaque_mesh,
+        fluid_mesh,
+        Mesh::new(),
+        (
+            bounds,
+            (col_lights, col_lights_size),
+            Arc::new(light),
+            Arc::new(glow),
+        ),
+    )
 }
 
 /// NOTE: Make sure to reflect any changes to how meshing is performanced in

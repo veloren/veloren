@@ -1,53 +1,120 @@
-use super::{
-    super::{Mesh, Pipeline, Quad, TgtColorFmt, TgtDepthStencilFmt},
-    Globals,
-};
-use gfx::{
-    self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta, gfx_pipeline,
-    gfx_pipeline_inner, gfx_vertex_struct_meta,
-};
+use super::super::{AaMode, GlobalsLayouts, Mesh, Quad, Vertex as VertexTrait};
+use bytemuck::{Pod, Zeroable};
+use std::mem;
 
-gfx_defines! {
-    vertex Vertex {
-        pos: [f32; 3] = "v_pos",
-    }
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Zeroable, Pod)]
+pub struct Vertex {
+    pub pos: [f32; 3],
+}
 
-    constant Locals {
-        nul: [f32; 4] = "nul",
-    }
-
-    pipeline pipe {
-        vbuf: gfx::VertexBuffer<Vertex> = (),
-
-        locals: gfx::ConstantBuffer<Locals> = "u_locals",
-        globals: gfx::ConstantBuffer<Globals> = "u_globals",
-
-        alt: gfx::TextureSampler<[f32; 2]> = "t_alt",
-        horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
-
-        noise: gfx::TextureSampler<f32> = "t_noise",
-
-        tgt_color: gfx::RenderTarget<TgtColorFmt> = "tgt_color",
-        tgt_depth_stencil: gfx::DepthTarget<TgtDepthStencilFmt> = gfx::preset::depth::LESS_EQUAL_TEST,
-        // tgt_depth_stencil: gfx::DepthStencilTarget<TgtDepthStencilFmt> = (gfx::preset::depth::LESS_EQUAL_WRITE,Stencil::new(Comparison::Always,0xff,(StencilOp::Keep,StencilOp::Keep,StencilOp::Keep))),
+impl Vertex {
+    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+        wgpu::VertexBufferLayout {
+            array_stride: Self::STRIDE,
+            step_mode: wgpu::InputStepMode::Vertex,
+            attributes: &[wgpu::VertexAttribute {
+                offset: 0,
+                shader_location: 0,
+                format: wgpu::VertexFormat::Float32x3,
+            }],
+        }
     }
 }
 
-impl Locals {
-    pub fn default() -> Self { Self { nul: [0.0; 4] } }
+impl VertexTrait for Vertex {
+    const QUADS_INDEX: Option<wgpu::IndexFormat> = None;
+    const STRIDE: wgpu::BufferAddress = mem::size_of::<Self>() as wgpu::BufferAddress;
 }
 
-pub struct SkyboxPipeline;
-
-impl Pipeline for SkyboxPipeline {
-    type Vertex = Vertex;
+// TODO: does skybox still do anything with new cloud shaders?
+pub struct SkyboxPipeline {
+    pub pipeline: wgpu::RenderPipeline,
 }
 
-pub fn create_mesh() -> Mesh<SkyboxPipeline> {
+impl SkyboxPipeline {
+    pub fn new(
+        device: &wgpu::Device,
+        vs_module: &wgpu::ShaderModule,
+        fs_module: &wgpu::ShaderModule,
+        layouts: &GlobalsLayouts,
+        aa_mode: AaMode,
+    ) -> Self {
+        common_base::span!(_guard, "SkyboxPipeline::new");
+        let render_pipeline_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("Skybox pipeline layout"),
+                push_constant_ranges: &[],
+                bind_group_layouts: &[&layouts.globals, &layouts.shadow_textures],
+            });
+
+        let samples = match aa_mode {
+            AaMode::None | AaMode::Fxaa => 1,
+            AaMode::MsaaX4 => 4,
+            AaMode::MsaaX8 => 8,
+            AaMode::MsaaX16 => 16,
+        };
+
+        let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("Skybox pipeline"),
+            layout: Some(&render_pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: vs_module,
+                entry_point: "main",
+                buffers: &[Vertex::desc()],
+            },
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: Some(wgpu::Face::Back),
+                clamp_depth: false,
+                polygon_mode: wgpu::PolygonMode::Fill,
+                conservative: false,
+            },
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: wgpu::TextureFormat::Depth32Float,
+                depth_write_enabled: true,
+                depth_compare: wgpu::CompareFunction::GreaterEqual,
+                stencil: wgpu::StencilState {
+                    front: wgpu::StencilFaceState::IGNORE,
+                    back: wgpu::StencilFaceState::IGNORE,
+                    read_mask: !0,
+                    write_mask: !0,
+                },
+                bias: wgpu::DepthBiasState {
+                    constant: 0,
+                    slope_scale: 0.0,
+                    clamp: 0.0,
+                },
+            }),
+            multisample: wgpu::MultisampleState {
+                count: samples,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: fs_module,
+                entry_point: "main",
+                targets: &[wgpu::ColorTargetState {
+                    format: wgpu::TextureFormat::Rgba16Float,
+                    blend: None,
+                    write_mask: wgpu::ColorWrite::ALL,
+                }],
+            }),
+        });
+
+        Self {
+            pipeline: render_pipeline,
+        }
+    }
+}
+
+#[rustfmt::skip]
+pub fn create_mesh() -> Mesh<Vertex> {
     let mut mesh = Mesh::new();
 
     // -x
-    #[rustfmt::skip]
     mesh.push_quad(Quad::new(
         Vertex { pos: [-1.0, -1.0, -1.0] },
         Vertex { pos: [-1.0,  1.0, -1.0] },
@@ -55,7 +122,6 @@ pub fn create_mesh() -> Mesh<SkyboxPipeline> {
         Vertex { pos: [-1.0, -1.0,  1.0] },
     ));
     // +x
-    #[rustfmt::skip]
     mesh.push_quad(Quad::new(
         Vertex { pos: [ 1.0, -1.0,  1.0] },
         Vertex { pos: [ 1.0,  1.0,  1.0] },
@@ -63,7 +129,6 @@ pub fn create_mesh() -> Mesh<SkyboxPipeline> {
         Vertex { pos: [ 1.0, -1.0, -1.0] },
     ));
     // -y
-    #[rustfmt::skip]
     mesh.push_quad(Quad::new(
         Vertex { pos: [ 1.0, -1.0, -1.0] },
         Vertex { pos: [-1.0, -1.0, -1.0] },
@@ -71,7 +136,6 @@ pub fn create_mesh() -> Mesh<SkyboxPipeline> {
         Vertex { pos: [ 1.0, -1.0,  1.0] },
     ));
     // +y
-    #[rustfmt::skip]
     mesh.push_quad(Quad::new(
         Vertex { pos: [ 1.0,  1.0,  1.0] },
         Vertex { pos: [-1.0,  1.0,  1.0] },
@@ -79,7 +143,6 @@ pub fn create_mesh() -> Mesh<SkyboxPipeline> {
         Vertex { pos: [ 1.0,  1.0, -1.0] },
     ));
     // -z
-    #[rustfmt::skip]
     mesh.push_quad(Quad::new(
         Vertex { pos: [-1.0, -1.0, -1.0] },
         Vertex { pos: [ 1.0, -1.0, -1.0] },
@@ -87,7 +150,6 @@ pub fn create_mesh() -> Mesh<SkyboxPipeline> {
         Vertex { pos: [-1.0,  1.0, -1.0] },
     ));
     // +z
-    #[rustfmt::skip]
     mesh.push_quad(Quad::new(
         Vertex { pos: [-1.0,  1.0,  1.0] },
         Vertex { pos: [ 1.0,  1.0,  1.0] },

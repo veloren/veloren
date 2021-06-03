@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 
 #include <constants.glsl>
 
@@ -21,8 +21,8 @@
 #include <globals.glsl>
 #include <random.glsl>
 
-in vec3 f_pos;
-flat in uint f_pos_norm;
+layout(location = 0) in vec3 f_pos;
+layout(location = 1) flat in uint f_pos_norm;
 // in vec3 f_col;
 // in float f_light;
 // in vec3 light_pos[2];
@@ -37,16 +37,14 @@ flat in uint f_pos_norm;
 //     ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
 // };
 
-layout (std140)
+layout(std140, set = 2, binding = 0)
 uniform u_locals {
     vec3 model_offs;
     float load_time;
     ivec4 atlas_offs;
 };
 
-uniform sampler2D t_waves;
-
-out vec4 tgt_color;
+layout(location = 0) out vec4 tgt_color;
 
 #include <sky.glsl>
 #include <light.glsl>
@@ -92,7 +90,7 @@ void main() {
 #endif
 
 #if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP)
-    vec4 f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
+    vec4 f_shadow = textureBicubic(t_horizon, s_horizon, pos_to_tex(f_pos.xy));
     float sun_shade_frac = horizon_at2(f_shadow, f_alt, f_pos, sun_dir);
 #elif (SHADOW_MODE == SHADOW_MODE_NONE)
     float sun_shade_frac = 1.0;//horizon_at2(f_shadow, f_alt, f_pos, sun_dir);

@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 
 #include <constants.glsl>
 
@@ -24,14 +24,15 @@
 #include <shadows.glsl>
 
 
-in uint v_pos_norm;
+layout(location = 0) in uint v_pos_norm;
 // in uint v_col_light;
-in uint v_atlas_pos;
+layout(location = 1) in uint v_atlas_pos;
 
-layout (std140)
+layout (std140, set = 2, binding = 0)
 uniform u_locals {
     vec3 model_offs;
     float load_time;
+    // TODO: consider whether these need to be signed
     ivec4 atlas_offs;
 };
 
@@ -45,10 +46,10 @@ uniform u_locals {
 //    ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
 //};
 
-out vec3 f_pos;
+layout(location = 0) out vec3 f_pos;
 // #ifdef FLUID_MODE_SHINY
-flat out uint f_pos_norm;
-flat out float f_load_time;
+layout(location = 1) flat out uint f_pos_norm;
+layout(location = 2) flat out float f_load_time;
 
 // #if (SHADOW_MODE == SHADOW_MODE_MAP)
 // out vec4 sun_pos;
@@ -60,7 +61,7 @@ flat out float f_load_time;
 // out vec3 f_col;
 // out vec3 f_chunk_pos;
 // out float f_ao;
-/*centroid */out vec2 f_uv_pos;
+/*centroid */layout(location = 3) out vec2 f_uv_pos;
 // out vec3 light_pos[2];
 // out float f_light;
 
@@ -155,7 +156,7 @@ void main() {
 
 #ifdef HAS_SHADOW_MAPS
     gl_Position =
-        /*all_mat*/shadowMats[0].shadowMatrices/*texture_mat*/ *
+        /*all_mat*/shadowMatrices/*texture_mat*/ *
         vec4(f_pos/*newRay*/, 1);
     gl_Position.z = clamp(gl_Position.z, -abs(gl_Position.w), abs(gl_Position.w));
 #else

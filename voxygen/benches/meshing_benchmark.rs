@@ -5,7 +5,7 @@ use common::{
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use std::sync::Arc;
 use vek::*;
-use veloren_voxygen::{mesh::Meshable, scene::terrain::BlocksOfInterest};
+use veloren_voxygen::{mesh::terrain::generate_mesh, scene::terrain::BlocksOfInterest};
 use world::{sim, World};
 
 const CENTER: Vec2<i32> = Vec2 { x: 512, y: 512 };
@@ -142,11 +142,10 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             let (volume, range) = sample(Vec2::new(x, y));
             meshing_benches.bench_function(&format!("Terrain mesh {}, {}", x, y), move |b| {
                 b.iter(|| {
-                    volume.generate_mesh(black_box((
-                        range,
-                        Vec2::new(8192, 8192),
-                        &BlocksOfInterest::default(),
-                    )))
+                    generate_mesh(
+                        black_box(&volume),
+                        black_box((range, Vec2::new(8192, 8192), &BlocksOfInterest::default())),
+                    )
                 })
             });
         }

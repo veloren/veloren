@@ -1,34 +1,26 @@
-use super::{gfx_backend, RenderError};
-use gfx::{
-    self,
-    buffer::Role,
-    memory::{Bind, Usage},
-    Factory,
-};
+use super::buffer::DynamicBuffer;
+use bytemuck::Pod;
 
 /// Represents a mesh that has been sent to the GPU.
-pub struct Instances<T: Copy + gfx::traits::Pod> {
-    pub ibuf: gfx::handle::Buffer<gfx_backend::Resources, T>,
+pub struct Instances<T: Copy + Pod> {
+    buf: DynamicBuffer<T>,
 }
 
-impl<T: Copy + gfx::traits::Pod> Instances<T> {
-    pub fn new(factory: &mut gfx_backend::Factory, len: usize) -> Result<Self, RenderError> {
-        Ok(Self {
-            ibuf: factory
-                .create_buffer(len, Role::Vertex, Usage::Dynamic, Bind::empty())
-                .map_err(RenderError::BufferCreationError)?,
-        })
+impl<T: Copy + Pod> Instances<T> {
+    pub fn new(device: &wgpu::Device, len: usize) -> Self {
+        Self {
+            // TODO: examine if we have Instances that are not updated (e.g. sprites) and if there
+            // would be any gains from separating those out
+            buf: DynamicBuffer::new(device, len, wgpu::BufferUsage::VERTEX),
+        }
     }
 
-    pub fn count(&self) -> usize { self.ibuf.len() }
+    // TODO: count vs len naming scheme??
+    pub fn count(&self) -> usize { self.buf.len() }
 
-    pub fn update(
-        &mut self,
-        encoder: &mut gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
-        instances: &[T],
-    ) -> Result<(), RenderError> {
-        encoder
-            .update_buffer(&self.ibuf, instances, 0)
-            .map_err(RenderError::UpdateError)
+    pub fn update(&mut self, queue: &wgpu::Queue, vals: &[T], offset: usize) {
+        self.buf.update(queue, vals, offset)
     }
+
+    pub fn buf(&self) -> &wgpu::Buffer { &self.buf.buf }
 }

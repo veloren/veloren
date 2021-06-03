@@ -7,10 +7,10 @@ use crate::{
     },
     i18n::Localization,
     render::{
-        AaMode, CloudMode, FluidMode, LightingMode, RenderMode, ShadowMapMode, ShadowMode,
-        UpscaleMode,
+        AaMode, CloudMode, FluidMode, LightingMode, PresentMode, RenderMode, ShadowMapMode,
+        ShadowMode, UpscaleMode,
     },
-    session::settings_change::{Graphics as GraphicsChange, Graphics::*},
+    session::settings_change::Graphics as GraphicsChange,
     settings::Fps,
     ui::{fonts::Fonts, ImageSlider, ToggleButton},
     window::{FullScreenSettings, FullscreenMode},
@@ -35,6 +35,7 @@ widget_ids! {
         window_scrollbar,
         reset_graphics_button,
         fps_counter,
+        pipeline_recreation_text,
         vd_slider,
         vd_text,
         vd_value,
@@ -50,6 +51,8 @@ widget_ids! {
         max_fps_slider,
         max_fps_text,
         max_fps_value,
+        present_mode_text,
+        present_mode_list,
         fov_slider,
         fov_text,
         fov_value,
@@ -79,6 +82,9 @@ widget_ids! {
         bit_depth_label,
         refresh_rate,
         refresh_rate_label,
+        //
+        gpu_profiler_button,
+        gpu_profiler_label,
         //
         particles_button,
         particles_label,
@@ -205,6 +211,24 @@ impl<'a> Widget for Video<'a> {
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(18))
             .set(state.ids.fps_counter, ui);
+
+        // Pipeline recreation status
+        if let Some((total, complete)) = self
+            .global_state
+            .window
+            .renderer()
+            .pipeline_recreation_status()
+        {
+            Text::new(&format!("Rebuilding pipelines: ({}/{})", complete, total))
+                .down_from(state.ids.fps_counter, 10.0)
+                .align_right_of(state.ids.fps_counter)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                // TODO: make color pulse or something
+                .color(TEXT_COLOR)
+                .set(state.ids.pipeline_recreation_text, ui);
+        }
+
         // View Distance
         Text::new(&self.localized_strings.get("hud.settings.view_distance"))
             .top_left_with_margins_on(state.ids.window, 10.0, 10.0)
@@ -229,7 +253,7 @@ impl<'a> Widget for Video<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.vd_slider, ui)
         {
-            events.push(AdjustViewDistance(new_val));
+            events.push(GraphicsChange::AdjustViewDistance(new_val));
         }
 
         Text::new(&format!(
@@ -267,7 +291,7 @@ impl<'a> Widget for Video<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.max_fps_slider, ui)
         {
-            events.push(ChangeMaxFPS(FPS_CHOICES[which]));
+            events.push(GraphicsChange::ChangeMaxFPS(FPS_CHOICES[which]));
         }
 
         Text::new(&self.global_state.settings.graphics.max_fps.to_string())
@@ -276,6 +300,53 @@ impl<'a> Widget for Video<'a> {
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.max_fps_value, ui);
+
+        // Get render mode
+        let render_mode = &self.global_state.settings.graphics.render_mode;
+
+        // Present Mode
+        Text::new(&self.localized_strings.get("hud.settings.present_mode"))
+            .down_from(state.ids.vd_slider, 10.0)
+            .right_from(state.ids.max_fps_value, 30.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.present_mode_text, ui);
+
+        let mode_list = [
+            PresentMode::Fifo,
+            PresentMode::Mailbox,
+            PresentMode::Immediate,
+        ];
+        let mode_label_list = [
+            &self.localized_strings.get("hud.settings.present_mode.fifo"),
+            &self
+                .localized_strings
+                .get("hud.settings.present_mode.mailbox"),
+            &self
+                .localized_strings
+                .get("hud.settings.present_mode.immediate"),
+        ];
+
+        // Get which present mode is currently active
+        let selected = mode_list
+            .iter()
+            .position(|x| *x == render_mode.present_mode);
+
+        if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
+            .w_h(120.0, 22.0)
+            .color(MENU_BG)
+            .label_color(TEXT_COLOR)
+            .label_font_id(self.fonts.cyri.conrod_id)
+            .down_from(state.ids.present_mode_text, 8.0)
+            .align_middle_x()
+            .set(state.ids.present_mode_list, ui)
+        {
+            events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
+                present_mode: mode_list[clicked],
+                ..render_mode.clone()
+            })));
+        }
 
         // FOV
         Text::new(&self.localized_strings.get("hud.settings.fov"))
@@ -299,7 +370,7 @@ impl<'a> Widget for Video<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.fov_slider, ui)
         {
-            events.push(ChangeFOV(new_val));
+            events.push(GraphicsChange::ChangeFOV(new_val));
         }
 
         Text::new(&format!("{}", self.global_state.settings.graphics.fov))
@@ -332,7 +403,7 @@ impl<'a> Widget for Video<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.lod_detail_slider, ui)
         {
-            events.push(AdjustLodDetail(
+            events.push(GraphicsChange::AdjustLodDetail(
                 (5.0f32.powf(new_val as f32 / 10.0) * 100.0) as u32,
             ));
         }
@@ -369,7 +440,9 @@ impl<'a> Widget for Video<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.gamma_slider, ui)
         {
-            events.push(ChangeGamma(2.0f32.powf(new_val as f32 / 8.0)));
+            events.push(GraphicsChange::ChangeGamma(
+                2.0f32.powf(new_val as f32 / 8.0),
+            ));
         }
 
         Text::new(&format!("{:.2}", self.global_state.settings.graphics.gamma))
@@ -394,7 +467,7 @@ impl<'a> Widget for Video<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.exposure_slider, ui)
         {
-            events.push(ChangeExposure(new_val as f32 / 16.0));
+            events.push(GraphicsChange::ChangeExposure(new_val as f32 / 16.0));
         }
 
         Text::new(&self.localized_strings.get("hud.settings.exposure"))
@@ -432,7 +505,7 @@ impl<'a> Widget for Video<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.ambiance_slider, ui)
         {
-            events.push(ChangeAmbiance(new_val as f32));
+            events.push(GraphicsChange::ChangeAmbiance(new_val as f32));
         }
         Text::new(&self.localized_strings.get("hud.settings.ambiance"))
             .up_from(state.ids.ambiance_slider, 8.0)
@@ -468,7 +541,7 @@ impl<'a> Widget for Video<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.sprite_dist_slider, ui)
         {
-            events.push(AdjustSpriteRenderDistance(new_val));
+            events.push(GraphicsChange::AdjustSpriteRenderDistance(new_val));
         }
         Text::new(
             &self
@@ -508,7 +581,7 @@ impl<'a> Widget for Video<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.figure_dist_slider, ui)
         {
-            events.push(AdjustFigureLoDRenderDistance(new_val));
+            events.push(GraphicsChange::AdjustFigureLoDRenderDistance(new_val));
         }
         Text::new(
             &self
@@ -533,8 +606,6 @@ impl<'a> Widget for Video<'a> {
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)
         .set(state.ids.figure_dist_value, ui);
-
-        let render_mode = &self.global_state.settings.graphics.render_mode;
 
         // AaMode
         Text::new(&self.localized_strings.get("hud.settings.antialiasing_mode"))
@@ -572,7 +643,7 @@ impl<'a> Widget for Video<'a> {
             .down_from(state.ids.aa_mode_text, 8.0)
             .set(state.ids.aa_mode_list, ui)
         {
-            events.push(ChangeRenderMode(Box::new(RenderMode {
+            events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
                 aa: mode_list[clicked],
                 ..render_mode.clone()
             })));
@@ -612,7 +683,7 @@ impl<'a> Widget for Video<'a> {
         .down_from(state.ids.upscale_factor_text, 8.0)
         .set(state.ids.upscale_factor_list, ui)
         {
-            events.push(ChangeRenderMode(Box::new(RenderMode {
+            events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
                 upscale_mode: UpscaleMode {
                     factor: upscale_factors[clicked],
                 },
@@ -670,7 +741,7 @@ impl<'a> Widget for Video<'a> {
             .down_from(state.ids.cloud_mode_text, 8.0)
             .set(state.ids.cloud_mode_list, ui)
         {
-            events.push(ChangeRenderMode(Box::new(RenderMode {
+            events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
                 cloud: mode_list[clicked],
                 ..render_mode.clone()
             })));
@@ -709,7 +780,7 @@ impl<'a> Widget for Video<'a> {
             .down_from(state.ids.fluid_mode_text, 8.0)
             .set(state.ids.fluid_mode_list, ui)
         {
-            events.push(ChangeRenderMode(Box::new(RenderMode {
+            events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
                 fluid: mode_list[clicked],
                 ..render_mode.clone()
             })));
@@ -755,7 +826,7 @@ impl<'a> Widget for Video<'a> {
             .down_from(state.ids.lighting_mode_text, 8.0)
             .set(state.ids.lighting_mode_list, ui)
         {
-            events.push(ChangeRenderMode(Box::new(RenderMode {
+            events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
                 lighting: mode_list[clicked],
                 ..render_mode.clone()
             })));
@@ -802,7 +873,7 @@ impl<'a> Widget for Video<'a> {
             .down_from(state.ids.shadow_mode_text, 8.0)
             .set(state.ids.shadow_mode_list, ui)
         {
-            events.push(ChangeRenderMode(Box::new(RenderMode {
+            events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
                 shadow: mode_list[clicked],
                 ..render_mode.clone()
             })));
@@ -835,7 +906,7 @@ impl<'a> Widget for Video<'a> {
             .pad_track((5.0, 5.0))
             .set(state.ids.shadow_mode_map_resolution_slider, ui)
             {
-                events.push(ChangeRenderMode(Box::new(RenderMode {
+                events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
                     shadow: ShadowMode::Map(ShadowMapMode {
                         resolution: 2.0f32.powf(f32::from(new_val) / 4.0),
                     }),
@@ -853,11 +924,37 @@ impl<'a> Widget for Video<'a> {
                 .set(state.ids.shadow_mode_map_resolution_value, ui);
         }
 
+        // GPU Profiler
+        Text::new(&self.localized_strings.get("hud.settings.gpu_profiler"))
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .down_from(state.ids.shadow_mode_list, 8.0)
+            .color(TEXT_COLOR)
+            .set(state.ids.gpu_profiler_label, ui);
+
+        let gpu_profiler_enabled = ToggleButton::new(
+            render_mode.profiler_enabled,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .right_from(state.ids.gpu_profiler_label, 10.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.gpu_profiler_button, ui);
+
+        if render_mode.profiler_enabled != gpu_profiler_enabled {
+            events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
+                profiler_enabled: gpu_profiler_enabled,
+                ..render_mode.clone()
+            })));
+        }
+
         // Particles
         Text::new(&self.localized_strings.get("hud.settings.particles"))
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
-            .down_from(state.ids.shadow_mode_list, 8.0)
+            .down_from(state.ids.gpu_profiler_label, 8.0)
             .color(TEXT_COLOR)
             .set(state.ids.particles_label, ui);
 
@@ -873,7 +970,7 @@ impl<'a> Widget for Video<'a> {
         .set(state.ids.particles_button, ui);
 
         if self.global_state.settings.graphics.particles_enabled != particles_enabled {
-            events.push(ToggleParticlesEnabled(particles_enabled));
+            events.push(GraphicsChange::ToggleParticlesEnabled(particles_enabled));
         }
 
         // Lossy terrain compression
@@ -909,7 +1006,9 @@ impl<'a> Widget for Video<'a> {
             .lossy_terrain_compression
             != lossy_terrain_compression
         {
-            events.push(ToggleLossyTerrainCompression(lossy_terrain_compression));
+            events.push(GraphicsChange::ToggleLossyTerrainCompression(
+                lossy_terrain_compression,
+            ));
         }
 
         // Resolution
@@ -946,7 +1045,7 @@ impl<'a> Widget for Video<'a> {
         .down_from(state.ids.resolution_label, 10.0)
         .set(state.ids.resolution, ui)
         {
-            events.push(ChangeFullscreenMode(FullScreenSettings {
+            events.push(GraphicsChange::ChangeFullscreenMode(FullScreenSettings {
                 resolution: resolutions[clicked],
                 ..self.global_state.settings.graphics.fullscreen
             }));
@@ -1010,7 +1109,7 @@ impl<'a> Widget for Video<'a> {
         .right_from(state.ids.resolution, 8.0)
         .set(state.ids.bit_depth, ui)
         {
-            events.push(ChangeFullscreenMode(FullScreenSettings {
+            events.push(GraphicsChange::ChangeFullscreenMode(FullScreenSettings {
                 bit_depth: if clicked == 0 {
                     None
                 } else {
@@ -1064,7 +1163,7 @@ impl<'a> Widget for Video<'a> {
         .right_from(state.ids.bit_depth, 8.0)
         .set(state.ids.refresh_rate, ui)
         {
-            events.push(ChangeFullscreenMode(FullScreenSettings {
+            events.push(GraphicsChange::ChangeFullscreenMode(FullScreenSettings {
                 refresh_rate: if clicked == 0 {
                     None
                 } else {
@@ -1094,7 +1193,7 @@ impl<'a> Widget for Video<'a> {
         .set(state.ids.fullscreen_button, ui);
 
         if self.global_state.settings.graphics.fullscreen.enabled != enabled {
-            events.push(ChangeFullscreenMode(FullScreenSettings {
+            events.push(GraphicsChange::ChangeFullscreenMode(FullScreenSettings {
                 enabled,
                 ..self.global_state.settings.graphics.fullscreen
             }));
@@ -1131,7 +1230,7 @@ impl<'a> Widget for Video<'a> {
             .down_from(state.ids.fullscreen_mode_text, 8.0)
             .set(state.ids.fullscreen_mode_list, ui)
         {
-            events.push(ChangeFullscreenMode(FullScreenSettings {
+            events.push(GraphicsChange::ChangeFullscreenMode(FullScreenSettings {
                 mode: mode_list[clicked],
                 ..self.global_state.settings.graphics.fullscreen
             }));
@@ -1151,7 +1250,7 @@ impl<'a> Widget for Video<'a> {
             .set(state.ids.save_window_size_button, ui)
             .was_clicked()
         {
-            events.push(AdjustWindowSize(
+            events.push(GraphicsChange::AdjustWindowSize(
                 self.global_state
                     .window
                     .logical_size()
@@ -1175,7 +1274,7 @@ impl<'a> Widget for Video<'a> {
             .set(state.ids.reset_graphics_button, ui)
             .was_clicked()
         {
-            events.push(ResetGraphicsSettings);
+            events.push(GraphicsChange::ResetGraphicsSettings);
         }
 
         events

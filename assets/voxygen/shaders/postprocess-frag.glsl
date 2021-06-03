@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 
 #include <constants.glsl>
 
@@ -22,17 +22,21 @@
 #include <srgb.glsl>
 #include <cloud.glsl>
 
-//uniform sampler2D src_depth;
+layout(set = 1, binding = 0)
+uniform texture2D t_src_color;
+layout(set = 1, binding = 1)
+uniform sampler s_src_color;
 
-in vec2 f_pos;
 
-layout (std140)
+layout(location = 0) in vec2 uv;
+
+layout (std140, set = 1, binding = 2)
 uniform u_locals {
     mat4 proj_mat_inv;
     mat4 view_mat_inv;
 };
 
-out vec4 tgt_color;
+layout(location = 0) out vec4 tgt_color;
 
 vec3 rgb2hsv(vec3 c) {
     vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
@@ -145,33 +149,7 @@ vec3 _illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitte
     // return /*srgb_to_linear*/(/*0.5*//*0.125 * */vec3(pow(color.x, gamma), pow(color.y, gamma), pow(color.z, gamma)));
 }
 
-/*
-float depth_at(vec2 uv) {
-    float buf_depth = texture(src_depth, uv).x;
-    vec4 clip_space = vec4(uv * 2.0 - 1.0, buf_depth, 1.0);
-    vec4 view_space = proj_mat_inv * clip_space;
-    view_space /= view_space.w;
-    return -view_space.z;
-}
-
-vec3 wpos_at(vec2 uv) {
-    float buf_depth = texture(src_depth, uv).x * 2.0 - 1.0;
-    mat4 inv = view_mat_inv * proj_mat_inv;//inverse(all_mat);
-    vec4 clip_space = vec4(uv * 2.0 - 1.0, buf_depth, 1.0);
-    vec4 view_space = inv * clip_space;
-    view_space /= view_space.w;
-    if (buf_depth == 1.0) {
-        vec3 direction = normalize(view_space.xyz);
-        return direction.xyz * 100000.0 + cam_pos.xyz;
-    } else {
-        return view_space.xyz;
-    }
-}
-*/
-
 void main() {
-    vec2 uv = (f_pos + 1.0) * 0.5;
-
     /* if (medium.x == 1u) {
         uv = clamp(uv + vec2(sin(uv.y * 16.0 + tick.x), sin(uv.x * 24.0 + tick.x)) * 0.005, 0, 1);
     } */
@@ -202,7 +180,7 @@ void main() {
 
     // float bright_color = (bright_color0 + bright_color1 + bright_color2 + bright_color3 + bright_color4) / 5.0;
 
-    vec4 aa_color = aa_apply(src_color, uv * screen_res.xy, screen_res.xy);
+    vec4 aa_color = aa_apply(t_src_color, s_src_color, uv * screen_res.xy, screen_res.xy);
 
     // Tonemapping
     float exposure_offset = 1.0;

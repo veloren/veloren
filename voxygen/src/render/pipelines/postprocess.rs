@@ -1,40 +1,12 @@
-use super::{
-    super::{Mesh, Pipeline, TgtColorFmt, TgtDepthStencilFmt, Tri, WinColorFmt},
-    Globals,
-};
-use gfx::{
-    self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta, gfx_pipeline,
-    gfx_pipeline_inner, gfx_vertex_struct_meta,
-};
+use super::super::{Consts, GlobalsLayouts};
+use bytemuck::{Pod, Zeroable};
 use vek::*;
 
-gfx_defines! {
-    vertex Vertex {
-        pos: [f32; 2] = "v_pos",
-    }
-
-    constant Locals {
-        proj_mat_inv: [[f32; 4]; 4] = "proj_mat_inv",
-        view_mat_inv: [[f32; 4]; 4] = "view_mat_inv",
-    }
-
-    pipeline pipe {
-        vbuf: gfx::VertexBuffer<Vertex> = (),
-
-        locals: gfx::ConstantBuffer<Locals> = "u_locals",
-        globals: gfx::ConstantBuffer<Globals> = "u_globals",
-
-        map: gfx::TextureSampler<[f32; 4]> = "t_map",
-        alt: gfx::TextureSampler<[f32; 2]> = "t_alt",
-        horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
-
-        color_sampler: gfx::TextureSampler<<TgtColorFmt as gfx::format::Formatted>::View> = "src_color",
-        depth_sampler: gfx::TextureSampler<<TgtDepthStencilFmt as gfx::format::Formatted>::View> = "src_depth",
-
-        noise: gfx::TextureSampler<f32> = "t_noise",
-
-        tgt_color: gfx::RenderTarget<WinColorFmt> = "tgt_color",
-    }
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Zeroable, Pod)]
+pub struct Locals {
+    proj_mat_inv: [[f32; 4]; 4],
+    view_mat_inv: [[f32; 4]; 4],
 }
 
 impl Default for Locals {
@@ -50,28 +22,143 @@ impl Locals {
     }
 }
 
-pub struct PostProcessPipeline;
-
-impl Pipeline for PostProcessPipeline {
-    type Vertex = Vertex;
+pub struct BindGroup {
+    pub(in super::super) bind_group: wgpu::BindGroup,
 }
 
-pub fn create_mesh() -> Mesh<PostProcessPipeline> {
-    let mut mesh = Mesh::new();
+pub struct PostProcessLayout {
+    pub layout: wgpu::BindGroupLayout,
+}
 
-    #[rustfmt::skip]
-    mesh.push_tri(Tri::new(
-        Vertex { pos: [ 1.0, -1.0] },
-        Vertex { pos: [-1.0,  1.0] },
-        Vertex { pos: [-1.0, -1.0] },
-    ));
+impl PostProcessLayout {
+    pub fn new(device: &wgpu::Device) -> Self {
+        Self {
+            layout: device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: None,
+                entries: &[
+                    // src color
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                        ty: wgpu::BindingType::Texture {
+                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                            view_dimension: wgpu::TextureViewDimension::D2,
+                            multisampled: false,
+                        },
+                        count: None,
+                    },
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
+                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                        ty: wgpu::BindingType::Sampler {
+                            filtering: true,
+                            comparison: false,
+                        },
+                        count: None,
+                    },
+                    // Locals
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 2,
+                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Uniform,
+                            has_dynamic_offset: false,
+                            min_binding_size: None,
+                        },
+                        count: None,
+                    },
+                ],
+            }),
+        }
+    }
 
-    #[rustfmt::skip]
-    mesh.push_tri(Tri::new(
-        Vertex { pos: [1.0, -1.0] },
-        Vertex { pos: [1.0,  1.0] },
-        Vertex { pos: [-1.0, 1.0] },
-    ));
+    pub fn bind(
+        &self,
+        device: &wgpu::Device,
+        src_color: &wgpu::TextureView,
+        sampler: &wgpu::Sampler,
+        locals: &Consts<Locals>,
+    ) -> BindGroup {
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &self.layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(src_color),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(sampler),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: locals.buf().as_entire_binding(),
+                },
+            ],
+        });
 
-    mesh
+        BindGroup { bind_group }
+    }
+}
+
+pub struct PostProcessPipeline {
+    pub pipeline: wgpu::RenderPipeline,
+}
+
+impl PostProcessPipeline {
+    pub fn new(
+        device: &wgpu::Device,
+        vs_module: &wgpu::ShaderModule,
+        fs_module: &wgpu::ShaderModule,
+        sc_desc: &wgpu::SwapChainDescriptor,
+        global_layout: &GlobalsLayouts,
+        layout: &PostProcessLayout,
+    ) -> Self {
+        common_base::span!(_guard, "PostProcessPipeline::new");
+        let render_pipeline_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("Post process pipeline layout"),
+                push_constant_ranges: &[],
+                bind_group_layouts: &[&global_layout.globals, &layout.layout],
+            });
+
+        let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("Post process pipeline"),
+            layout: Some(&render_pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: vs_module,
+                entry_point: "main",
+                buffers: &[],
+            },
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: None,
+                clamp_depth: false,
+                polygon_mode: wgpu::PolygonMode::Fill,
+                conservative: false,
+            },
+            depth_stencil: None,
+            multisample: wgpu::MultisampleState {
+                count: 1,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: fs_module,
+                entry_point: "main",
+                targets: &[wgpu::ColorTargetState {
+                    format: sc_desc.format,
+                    blend: None,
+                    write_mask: wgpu::ColorWrite::ALL,
+                }],
+            }),
+        });
+
+        Self {
+            pipeline: render_pipeline,
+        }
+    }
 }

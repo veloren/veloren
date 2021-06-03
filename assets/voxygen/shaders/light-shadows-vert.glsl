@@ -26,12 +26,12 @@
  *
  * */
 
-in uint v_pos_norm;
+layout(location = 1) in uint v_pos_norm;
 // in uint v_col_light;
 // in vec4 v_pos;
 
 // Light projection matrices.
-layout (std140)
+layout (std140, set = 1,  binding = 0)
 uniform u_locals {
     vec3 model_offs;
     float load_time;

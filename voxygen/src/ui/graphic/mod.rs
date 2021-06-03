@@ -4,7 +4,7 @@ mod renderer;
 pub use renderer::{SampleStrat, Transform};
 
 use crate::{
-    render::{RenderError, Renderer, Texture},
+    render::{Renderer, Texture, UiTextureBindGroup},
     ui::KeyedJobs,
 };
 use common::{figure::Segment, slowjob::SlowJobPool};
@@ -51,7 +51,7 @@ pub enum Rotation {
 /// Fraction of the total graphic cache size
 const ATLAS_CUTOFF_FRAC: f32 = 0.2;
 /// Multiplied by current window size
-const GRAPHIC_CACHE_RELATIVE_SIZE: u16 = 1;
+const GRAPHIC_CACHE_RELATIVE_SIZE: u32 = 1;
 
 #[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
 pub struct Id(u32);
@@ -142,7 +142,7 @@ pub struct GraphicCache {
 
     // Atlases with the index of their texture in the textures vec
     atlases: Vec<(SimpleAtlasAllocator, usize)>,
-    textures: Vec<Texture>,
+    textures: Vec<(Texture, UiTextureBindGroup)>,
     // Stores the location of graphics rendered at a particular resolution and cached on the cpu
     cache_map: HashMap<Parameters, CachedDetails>,
 
@@ -191,7 +191,7 @@ impl GraphicCache {
     pub fn get_graphic(&self, id: Id) -> Option<&Graphic> { self.graphic_map.get(&id) }
 
     /// Used to acquire textures for rendering
-    pub fn get_tex(&self, id: TexId) -> &Texture {
+    pub fn get_tex(&self, id: TexId) -> &(Texture, UiTextureBindGroup) {
         self.textures.get(id.0).expect("Invalid TexId used")
     }
 
@@ -293,7 +293,7 @@ impl GraphicCache {
                     // color.
                     assert!(border.is_none());
                     // Transfer to the gpu
-                    upload_image(renderer, aabr, &textures[idx], &image);
+                    upload_image(renderer, aabr, &textures[idx].0, &image);
                 }
 
                 return Some((transformed_aabr(aabr.map(|e| e as f64)), TexId(idx)));
@@ -314,7 +314,7 @@ impl GraphicCache {
         // Graphics over a particular size are sent to their own textures
         let location = if let Some(border_color) = border_color {
             // Create a new immutable texture.
-            let texture = create_image(renderer, image, border_color).unwrap();
+            let texture = create_image(renderer, image, border_color);
             // NOTE: All mutations happen only after the upload succeeds!
             let index = textures.len();
             textures.push(texture);
@@ -335,7 +335,7 @@ impl GraphicCache {
                         valid: true,
                         aabr,
                     });
-                    upload_image(renderer, aabr, &textures[texture_idx], &image);
+                    upload_image(renderer, aabr, &textures[texture_idx].0, &image);
                     break;
                 }
             }
@@ -355,7 +355,7 @@ impl GraphicCache {
                     let atlas_idx = atlases.len();
                     textures.push(texture);
                     atlases.push((atlas, tex_idx));
-                    upload_image(renderer, aabr, &textures[tex_idx], &image);
+                    upload_image(renderer, aabr, &textures[tex_idx].0, &image);
                     CachedDetails::Atlas {
                         atlas_idx,
                         valid: true,
@@ -365,7 +365,11 @@ impl GraphicCache {
             }
         } else {
             // Create a texture just for this
-            let texture = renderer.create_dynamic_texture(dims).unwrap();
+            let texture = {
+                let tex = renderer.create_dynamic_texture(dims.map(|e| e as u32));
+                let bind = renderer.ui_bind_texture(&tex);
+                (tex, bind)
+            };
             // NOTE: All mutations happen only after the texture creation succeeds!
             let index = textures.len();
             textures.push(texture);
@@ -376,7 +380,7 @@ impl GraphicCache {
                     // Note texture should always match the cached dimensions
                     max: dims,
                 },
-                &textures[index],
+                &textures[index].0,
                 &image,
             );
             CachedDetails::Texture { index, valid: true }
@@ -440,20 +444,28 @@ fn draw_graphic(
     }
 }
 
-fn atlas_size(renderer: &Renderer) -> Vec2<u16> {
+fn atlas_size(renderer: &Renderer) -> Vec2<u32> {
     let max_texture_size = renderer.max_texture_size();
 
-    renderer.get_resolution().map(|e| {
+    renderer.resolution().map(|e| {
         (e * GRAPHIC_CACHE_RELATIVE_SIZE)
             .max(512)
             .min(max_texture_size)
     })
 }
 
-fn create_atlas_texture(renderer: &mut Renderer) -> (SimpleAtlasAllocator, Texture) {
+fn create_atlas_texture(
+    renderer: &mut Renderer,
+) -> (SimpleAtlasAllocator, (Texture, UiTextureBindGroup)) {
     let size = atlas_size(renderer);
-    let atlas = SimpleAtlasAllocator::new(size2(i32::from(size.x), i32::from(size.y)));
-    let texture = renderer.create_dynamic_texture(size).unwrap();
+    // Note: here we assume the atlas size is under i32::MAX
+    let atlas = SimpleAtlasAllocator::new(size2(size.x as i32, size.y as i32));
+    let texture = {
+        let tex = renderer.create_dynamic_texture(size);
+        let bind = renderer.ui_bind_texture(&tex);
+        (tex, bind)
+    };
+
     (atlas, texture)
 }
 
@@ -466,29 +478,34 @@ fn aabr_from_alloc_rect(rect: guillotiere::Rectangle) -> Aabr<u16> {
 }
 
 fn upload_image(renderer: &mut Renderer, aabr: Aabr<u16>, tex: &Texture, image: &RgbaImage) {
+    let aabr = aabr.map(|e| e as u32);
     let offset = aabr.min.into_array();
     let size = aabr.size().into_array();
-    if let Err(e) = renderer.update_texture(
+    renderer.update_texture(
         tex,
         offset,
         size,
         // NOTE: Rgba texture, so each pixel is 4 bytes, ergo this cannot fail.
         // We make the cast parameters explicit for clarity.
-        gfx::memory::cast_slice::<u8, [u8; 4]>(&image),
-    ) {
-        warn!(?e, "Failed to update texture");
-    }
+        bytemuck::cast_slice::<u8, [u8; 4]>(&image),
+    );
 }
 
 fn create_image(
     renderer: &mut Renderer,
     image: RgbaImage,
-    border_color: Rgba<f32>,
-) -> Result<Texture, RenderError> {
-    renderer.create_texture(
-        &DynamicImage::ImageRgba8(image),
-        None,
-        Some(gfx::texture::WrapMode::Border),
-        Some(border_color.into_array().into()),
-    )
+    _border_color: Rgba<f32>, // See TODO below
+) -> (Texture, UiTextureBindGroup) {
+    let tex = renderer
+        .create_texture(
+            &DynamicImage::ImageRgba8(image),
+            None,
+            //TODO: either use the desktop only border color or just emulate this
+            // Some(border_color.into_array().into()),
+            Some(wgpu::AddressMode::ClampToBorder),
+        )
+        .expect("create_texture only panics is non ImageRbga8 is passed");
+    let bind = renderer.ui_bind_texture(&tex);
+
+    (tex, bind)
 }

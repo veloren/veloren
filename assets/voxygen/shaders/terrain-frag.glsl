@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 // #extension GL_ARB_texture_storage : require
 
 #include <constants.glsl>
@@ -22,12 +22,12 @@
 #include <globals.glsl>
 #include <random.glsl>
 
-in vec3 f_pos;
+layout(location = 0) in vec3 f_pos;
 // in float f_ao;
 // in vec3 f_chunk_pos;
 // #ifdef FLUID_MODE_SHINY
-flat in uint f_pos_norm;
-flat in float f_load_time;
+layout(location = 1) flat in uint f_pos_norm;
+layout(location = 2) flat in float f_load_time;
 // #else
 // const uint f_pos_norm = 0u;
 // #endif
@@ -35,7 +35,7 @@ flat in float f_load_time;
 // in vec4 f_shadow;
 // in vec3 f_col;
 // in float f_light;
-/*centroid */in vec2 f_uv_pos;
+/*centroid */layout(location = 3) in vec2 f_uv_pos;
 // in vec3 light_pos[2];
 // const vec3 light_pos[6] = vec3[](vec3(0), vec3(0), vec3(00), vec3(0), vec3(0), vec3(0));
 
@@ -45,16 +45,19 @@ in vec4 sun_pos;
 const vec4 sun_pos = vec4(0.0);
 #endif */
 
-uniform sampler2D t_col_light;
+layout(set = 3, binding = 0)
+uniform texture2D t_col_light;
+layout(set = 3, binding = 1)
+uniform sampler s_col_light;
 
-layout (std140)
+layout (std140, set = 2, binding = 0)
 uniform u_locals {
     vec3 model_offs;
     float load_time;
     ivec4 atlas_offs;
 };
 
-out vec4 tgt_color;
+layout(location = 0) out vec4 tgt_color;
 
 #include <sky.glsl>
 #include <light.glsl>
@@ -82,7 +85,7 @@ void main() {
     // vec4 f_col_light = textureProj(t_col_light, vec3(f_uv_pos + 0.5, textureSize(t_col_light, 0)));//(f_uv_pos/* + 0.5*/) / texSize);
     // float f_light = textureProj(t_col_light, vec3(f_uv_pos + 0.5, textureSize(t_col_light, 0))).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
     float f_light, f_glow;
-    vec3 f_col = greedy_extract_col_light_glow(t_col_light, f_uv_pos, f_light, f_glow);
+    vec3 f_col = greedy_extract_col_light_glow(t_col_light, s_col_light, f_uv_pos, f_light, f_glow);
     //float f_light = (uint(texture(t_col_light, (f_uv_pos + 0.5) / textureSize(t_col_light, 0)).r * 255.0) & 0x1Fu) / 31.0;
     // vec2 texSize = textureSize(t_col_light, 0);
     // float f_light = texture(t_col_light, f_uv_pos/* + vec2(atlas_offs.xy)*/).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
@@ -216,7 +219,7 @@ void main() {
     // float f_alt = alt_at(f_pos.xy);
     // vec4 f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
 #if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP)
-    vec4 f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
+    vec4 f_shadow = textureBicubic(t_horizon, s_horizon, pos_to_tex(f_pos.xy));
     float sun_shade_frac = horizon_at2(f_shadow, f_alt, f_pos, sun_dir);
 #elif (SHADOW_MODE == SHADOW_MODE_NONE)
     float sun_shade_frac = 1.0;//horizon_at2(f_shadow, f_alt, f_pos, sun_dir);

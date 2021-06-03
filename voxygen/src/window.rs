@@ -1,6 +1,6 @@
 use crate::{
     controller::*,
-    render::{Renderer, WinColorFmt, WinDepthFmt},
+    render::Renderer,
     settings::{ControlSettings, Settings},
     ui, Error,
 };
@@ -10,9 +10,8 @@ use gilrs::{EventType, Gilrs};
 use hashbrown::HashMap;
 use itertools::Itertools;
 use keyboard_keynames::key_layout::KeyLayout;
-use old_school_gfx_glutin_ext::{ContextBuilderExt, WindowInitExt, WindowUpdateExt};
 use serde::{Deserialize, Serialize};
-use tracing::{error, info, warn};
+use tracing::{error, warn};
 use vek::*;
 use winit::monitor::VideoMode;
 
@@ -519,7 +518,7 @@ impl KeyMouse {
 
 pub struct Window {
     renderer: Renderer,
-    window: glutin::ContextWrapper<glutin::PossiblyCurrent, winit::window::Window>,
+    window: winit::window::Window,
     cursor_grabbed: bool,
     pub pan_sensitivity: u32,
     pub zoom_sensitivity: u32,
@@ -565,26 +564,9 @@ impl Window {
             false,
         );
 
-        let (window, device, factory, win_color_view, win_depth_view) =
-            glutin::ContextBuilder::new()
-                .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (3, 3)))
-                .with_vsync(false)
-                .with_gfx_color_depth::<WinColorFmt, WinDepthFmt>()
-                .build_windowed(win_builder, &event_loop)
-                .map_err(|err| Error::BackendError(Box::new(err)))?
-                .init_gfx::<WinColorFmt, WinDepthFmt>();
+        let window = win_builder.build(&event_loop).unwrap();
 
-        let vendor = device.get_info().platform_name.vendor;
-        let renderer = device.get_info().platform_name.renderer;
-        let opengl_version = device.get_info().version;
-        let glsl_version = device.get_info().shading_language;
-        info!(
-            ?vendor,
-            ?renderer,
-            ?opengl_version,
-            ?glsl_version,
-            "selected graphics device"
-        );
+        let renderer = Renderer::new(&window, settings.graphics.render_mode.clone())?;
 
         let keypress_map = HashMap::new();
 
@@ -617,9 +599,9 @@ impl Window {
             channel::Receiver<String>,
         ) = channel::unbounded::<String>();
 
-        let scale_factor = window.window().scale_factor();
+        let scale_factor = window.scale_factor();
 
-        let key_layout = match KeyLayout::new_from_window(window.window()) {
+        let key_layout = match KeyLayout::new_from_window(&window) {
             Ok(kl) => Some(kl),
             Err(err) => {
                 warn!(
@@ -632,13 +614,7 @@ impl Window {
         };
 
         let mut this = Self {
-            renderer: Renderer::new(
-                device,
-                factory,
-                win_color_view,
-                win_depth_view,
-                settings.graphics.render_mode.clone(),
-            )?,
+            renderer,
             window,
             cursor_grabbed: false,
             pan_sensitivity: settings.gameplay.pan_sensitivity,
@@ -687,6 +663,7 @@ impl Window {
     }
 
     pub fn fetch_events(&mut self) -> Vec<Event> {
+        span!(_guard, "fetch_events", "Window::fetch_events");
         // Refresh ui size (used when changing playstates)
         if self.needs_refresh_resize {
             let logical_size = self.logical_size();
@@ -951,11 +928,15 @@ impl Window {
 
         match event {
             WindowEvent::CloseRequested => self.events.push(Event::Close),
-            WindowEvent::Resized(physical) => {
-                let (mut color_view, mut depth_view) = self.renderer.win_views_mut();
-                self.window.resize(physical);
-                self.window.update_gfx(&mut color_view, &mut depth_view);
-                self.renderer.on_resize().unwrap();
+            WindowEvent::Resized(_) => {
+                // We don't use the event provided size because since this event
+                // more could have happened making the value wrong so we query
+                // directly from the window, this prevents some errors
+                let physical = self.window.inner_size();
+
+                self.renderer
+                    .on_resize(Vec2::new(physical.width, physical.height))
+                    .unwrap();
                 // TODO: update users of this event with the fact that it is now the physical
                 // size
                 let winit::dpi::PhysicalSize { width, height } = physical;
@@ -963,6 +944,7 @@ impl Window {
                     .push(Event::Resize(Vec2::new(width as u32, height as u32)));
             },
             WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
+                // TODO: is window resized event emitted? or do we need to handle that here?
                 self.scale_factor = scale_factor;
                 self.events.push(Event::ScaleFactorChanged(scale_factor));
             },
@@ -1099,32 +1081,24 @@ impl Window {
     /// Moves cursor by an offset
     pub fn offset_cursor(&self, d: Vec2<f32>) {
         if d != Vec2::zero() {
-            if let Err(err) =
-                self.window
-                    .window()
-                    .set_cursor_position(winit::dpi::LogicalPosition::new(
-                        d.x as f64 + self.cursor_position.x,
-                        d.y as f64 + self.cursor_position.y,
-                    ))
+            if let Err(err) = self
+                .window
+                .set_cursor_position(winit::dpi::LogicalPosition::new(
+                    d.x as f64 + self.cursor_position.x,
+                    d.y as f64 + self.cursor_position.y,
+                ))
             {
                 error!("Error setting cursor position: {:?}", err);
             }
         }
     }
 
-    pub fn swap_buffers(&self) -> Result<(), Error> {
-        span!(_guard, "swap_buffers", "Window::swap_buffers");
-        self.window
-            .swap_buffers()
-            .map_err(|err| Error::BackendError(Box::new(err)))
-    }
-
     pub fn is_cursor_grabbed(&self) -> bool { self.cursor_grabbed }
 
     pub fn grab_cursor(&mut self, grab: bool) {
         self.cursor_grabbed = grab;
-        self.window.window().set_cursor_visible(!grab);
-        let _ = self.window.window().set_cursor_grab(grab);
+        self.window.set_cursor_visible(!grab);
+        let _ = self.window.set_cursor_grab(grab);
     }
 
     /// Moves mouse cursor to center of screen
@@ -1132,13 +1106,12 @@ impl Window {
     pub fn center_cursor(&self) {
         let dimensions: Vec2<f64> = self.logical_size();
 
-        if let Err(err) =
-            self.window
-                .window()
-                .set_cursor_position(winit::dpi::PhysicalPosition::new(
-                    dimensions[0] / (2_f64),
-                    dimensions[1] / (2_f64),
-                ))
+        if let Err(err) = self
+            .window
+            .set_cursor_position(winit::dpi::PhysicalPosition::new(
+                dimensions[0] / (2_f64),
+                dimensions[1] / (2_f64),
+            ))
         {
             error!("Error centering cursor position: {:?}", err);
         }
@@ -1170,8 +1143,7 @@ impl Window {
         // the correct resolution already, load that value, otherwise filter it
         // in this iteration
         let correct_res = correct_res.unwrap_or_else(|| {
-            let window = self.window.window();
-            window
+            self.window
                 .current_monitor()
                 .unwrap()
                 .video_modes()
@@ -1323,7 +1295,6 @@ impl Window {
 
                 self
                     .window
-                    .window()
                     .current_monitor().unwrap()
                     .video_modes()
                     // Prefer bit depth over refresh rate
@@ -1335,7 +1306,7 @@ impl Window {
     }
 
     pub fn set_fullscreen_mode(&mut self, fullscreen: FullScreenSettings) {
-        let window = self.window.window();
+        let window = &self.window;
         self.fullscreen = fullscreen;
         window.set_fullscreen(fullscreen.enabled.then(|| match fullscreen.mode {
             FullscreenMode::Exclusive => {
@@ -1357,61 +1328,50 @@ impl Window {
     pub fn logical_size(&self) -> Vec2<f64> {
         let (w, h) = self
             .window
-            .window()
             .inner_size()
-            .to_logical::<f64>(self.window.window().scale_factor())
+            .to_logical::<f64>(self.window.scale_factor())
             .into();
         Vec2::new(w, h)
     }
 
     pub fn set_size(&mut self, new_size: Vec2<u16>) {
-        self.window
-            .window()
-            .set_inner_size(glutin::dpi::LogicalSize::new(
-                new_size.x as f64,
-                new_size.y as f64,
-            ));
+        self.window.set_inner_size(winit::dpi::LogicalSize::new(
+            new_size.x as f64,
+            new_size.y as f64,
+        ));
     }
 
     pub fn send_event(&mut self, event: Event) { self.events.push(event) }
 
     pub fn take_screenshot(&mut self, settings: &Settings) {
-        match self.renderer.create_screenshot() {
-            Ok(img) => {
-                let mut path = settings.screenshots_path.clone();
-                let sender = self.message_sender.clone();
-
-                let builder = std::thread::Builder::new().name("screenshot".into());
-                builder
-                    .spawn(move || {
-                        use std::time::SystemTime;
-                        // Check if folder exists and create it if it does not
-                        if !path.exists() {
-                            if let Err(e) = std::fs::create_dir_all(&path) {
-                                warn!(?e, "Couldn't create folder for screenshot");
-                                let _result = sender
-                                    .send(String::from("Couldn't create folder for screenshot"));
-                            }
-                        }
-                        path.push(format!(
-                            "screenshot_{}.png",
-                            SystemTime::now()
-                                .duration_since(SystemTime::UNIX_EPOCH)
-                                .map(|d| d.as_millis())
-                                .unwrap_or(0)
-                        ));
-                        if let Err(e) = img.save(&path) {
-                            warn!(?e, "Couldn't save screenshot");
-                            let _result = sender.send(String::from("Couldn't save screenshot"));
-                        } else {
-                            let _result = sender
-                                .send(format!("Screenshot saved to {}", path.to_string_lossy()));
-                        }
-                    })
-                    .unwrap();
-            },
-            Err(e) => error!(?e, "Couldn't create screenshot due to renderer error"),
-        }
+        let sender = self.message_sender.clone();
+        let mut path = settings.screenshots_path.clone();
+        self.renderer.create_screenshot(move |image| {
+            use std::time::SystemTime;
+            // Check if folder exists and create it if it does not
+            if !path.exists() {
+                if let Err(e) = std::fs::create_dir_all(&path) {
+                    warn!(?e, "Couldn't create folder for screenshot");
+                    let _result =
+                        sender.send(String::from("Couldn't create folder for screenshot"));
+                }
+            }
+            path.push(format!(
+                "screenshot_{}.png",
+                SystemTime::now()
+                    .duration_since(SystemTime::UNIX_EPOCH)
+                    .map(|d| d.as_millis())
+                    .unwrap_or(0)
+            ));
+            // Try to save the image
+            if let Err(e) = image.into_rgba8().save(&path) {
+                warn!(?e, "Couldn't save screenshot");
+                let _result = sender.send(String::from("Couldn't save screenshot"));
+            } else {
+                let _result =
+                    sender.send(format!("Screenshot saved to {}", path.to_string_lossy()));
+            }
+        });
     }
 
     fn is_pressed(
@@ -1458,7 +1418,7 @@ impl Window {
         self.remapping_keybindings = Some(game_input);
     }
 
-    pub fn window(&self) -> &winit::window::Window { self.window.window() }
+    pub fn window(&self) -> &winit::window::Window { &self.window }
 
     pub fn modifiers(&self) -> winit::event::ModifiersState { self.modifiers }
 

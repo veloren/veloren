@@ -20,3 +20,4 @@ libloading = {version = "0.7", optional = true}
 notify = {version = "5.0.0-pre.2", optional = true}
 tracing = {version = "0.1", optional = true}
 vek = {version = "=0.14.1", features = ["serde"]}
+bytemuck = { version="1.4", features=["derive"] }

@@ -1,241 +1,98 @@
+mod binding;
+pub(super) mod drawer;
+// Consts and bind groups for post-process and clouds
+mod locals;
+mod pipeline_creation;
+mod screenshot;
+mod shaders;
+mod shadow_map;
+
+use locals::Locals;
+use pipeline_creation::{
+    IngameAndShadowPipelines, InterfacePipelines, PipelineCreation, Pipelines, ShadowPipelines,
+};
+use shaders::Shaders;
+use shadow_map::{ShadowMap, ShadowMapRenderer};
+
 use super::{
+    buffer::Buffer,
     consts::Consts,
-    gfx_backend,
     instances::Instances,
     mesh::Mesh,
     model::{DynamicModel, Model},
     pipelines::{
-        clouds, figure, fluid, lod_terrain, particle, postprocess, shadow, skybox, sprite, terrain,
-        ui, GlobalModel, Globals,
+        blit, clouds, debug, figure, postprocess, shadow, sprite, terrain, ui, GlobalsBindGroup,
+        GlobalsLayouts, ShadowTexturesBindGroup,
     },
     texture::Texture,
-    AaMode, CloudMode, FilterMethod, FluidMode, LightingMode, Pipeline, RenderError, RenderMode,
-    ShadowMapMode, ShadowMode, WrapMode,
+    AaMode, AddressMode, FilterMode, RenderError, RenderMode, ShadowMapMode, ShadowMode, Vertex,
 };
 use common::assets::{self, AssetExt, AssetHandle};
 use common_base::span;
 use core::convert::TryFrom;
-use gfx::{
-    self,
-    handle::Sampler,
-    state::Comparison,
-    traits::{Device, Factory, FactoryExt},
-};
-use glsl_include::Context as IncludeContext;
-use tracing::{error, warn};
+use std::sync::Arc;
+use tracing::{error, info, warn};
 use vek::*;
 
-/// Represents the format of the pre-processed color target.
-// TODO: `(gfx::format::R11_G11_B10, gfx::format::Float)` would be better in
-// theory, but it doesn't seem to work
-pub type TgtColorFmt = gfx::format::Rgba16F;
-/// Represents the format of the pre-processed depth and stencil target.
-pub type TgtDepthStencilFmt = gfx::format::Depth;
-
-/// Represents the format of the window's color target.
-pub type WinColorFmt = gfx::format::Srgba8;
-/// Represents the format of the window's depth target.
-pub type WinDepthFmt = gfx::format::Depth;
-
-/// Represents the format of the pre-processed shadow depth target.
-pub type ShadowDepthStencilFmt = gfx::format::Depth;
-
-/// A handle to a pre-processed color target.
-pub type TgtColorView = gfx::handle::RenderTargetView<gfx_backend::Resources, TgtColorFmt>;
-/// A handle to a pre-processed depth target.
-pub type TgtDepthStencilView =
-    gfx::handle::DepthStencilView<gfx_backend::Resources, TgtDepthStencilFmt>;
-
-/// A handle to a window color target.
-pub type WinColorView = gfx::handle::RenderTargetView<gfx_backend::Resources, WinColorFmt>;
-/// A handle to a window depth target.
-pub type WinDepthView = gfx::handle::DepthStencilView<gfx_backend::Resources, WinDepthFmt>;
-
-/// Represents the format of LOD shadows.
-pub type LodTextureFmt = (gfx::format::R8_G8_B8_A8, gfx::format::Unorm);
-
-/// Represents the format of LOD altitudes.
-pub type LodAltFmt = (gfx::format::R16_G16, gfx::format::Unorm);
-
-/// Represents the format of LOD map colors.
-pub type LodColorFmt = (gfx::format::R8_G8_B8_A8, gfx::format::Srgb);
-
-/// Represents the format of greedy meshed color-light textures.
-pub type ColLightFmt = (gfx::format::R8_G8_B8_A8, gfx::format::Unorm);
-
-/// A handle to a shadow depth target.
-pub type ShadowDepthStencilView =
-    gfx::handle::DepthStencilView<gfx_backend::Resources, ShadowDepthStencilFmt>;
-/// A handle to a shadow depth target as a resource.
-pub type ShadowResourceView = gfx::handle::ShaderResourceView<
-    gfx_backend::Resources,
-    <ShadowDepthStencilFmt as gfx::format::Formatted>::View,
->;
-
-/// A handle to a render color target as a resource.
-pub type TgtColorRes = gfx::handle::ShaderResourceView<
-    gfx_backend::Resources,
-    <TgtColorFmt as gfx::format::Formatted>::View,
->;
-
-/// A handle to a render depth target as a resource.
-pub type TgtDepthRes = gfx::handle::ShaderResourceView<
-    gfx_backend::Resources,
-    <TgtDepthStencilFmt as gfx::format::Formatted>::View,
->;
-
-/// A handle to a greedy meshed color-light texture as a resource.
-pub type ColLightRes = gfx::handle::ShaderResourceView<
-    gfx_backend::Resources,
-    <ColLightFmt as gfx::format::Formatted>::View,
->;
+// TODO: yeet this somewhere else
 /// A type representing data that can be converted to an immutable texture map
 /// of ColLight data (used for texture atlases created during greedy meshing).
-pub type ColLightInfo = (
-    Vec<<<ColLightFmt as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType>,
-    Vec2<u16>,
-);
+// TODO: revert to u16
+pub type ColLightInfo = (Vec<[u8; 4]>, Vec2<u16>);
 
-/// Load from a GLSL file.
-pub struct Glsl(String);
+const QUAD_INDEX_BUFFER_U16_START_VERT_LEN: u16 = 3000;
+const QUAD_INDEX_BUFFER_U32_START_VERT_LEN: u32 = 3000;
 
-impl From<String> for Glsl {
-    fn from(s: String) -> Glsl { Glsl(s) }
+/// A type that stores all the layouts associated with this renderer.
+struct Layouts {
+    global: GlobalsLayouts,
+
+    clouds: clouds::CloudsLayout,
+    debug: debug::DebugLayout,
+    figure: figure::FigureLayout,
+    postprocess: postprocess::PostProcessLayout,
+    shadow: shadow::ShadowLayout,
+    sprite: sprite::SpriteLayout,
+    terrain: terrain::TerrainLayout,
+    ui: ui::UiLayout,
+    blit: blit::BlitLayout,
 }
 
-impl assets::Asset for Glsl {
-    type Loader = assets::LoadFrom<String, assets::StringLoader>;
+/// Render target views
+struct Views {
+    // NOTE: unused for now, maybe... we will want it for something
+    _win_depth: wgpu::TextureView,
 
-    const EXTENSION: &'static str = "glsl";
+    tgt_color: wgpu::TextureView,
+    tgt_depth: wgpu::TextureView,
+    // TODO: rename
+    tgt_color_pp: wgpu::TextureView,
 }
 
-struct Shaders {
-    constants: AssetHandle<Glsl>,
-    globals: AssetHandle<Glsl>,
-    sky: AssetHandle<Glsl>,
-    light: AssetHandle<Glsl>,
-    srgb: AssetHandle<Glsl>,
-    random: AssetHandle<Glsl>,
-    lod: AssetHandle<Glsl>,
-    shadows: AssetHandle<Glsl>,
-
-    anti_alias_none: AssetHandle<Glsl>,
-    anti_alias_fxaa: AssetHandle<Glsl>,
-    anti_alias_msaa_x4: AssetHandle<Glsl>,
-    anti_alias_msaa_x8: AssetHandle<Glsl>,
-    anti_alias_msaa_x16: AssetHandle<Glsl>,
-    cloud_none: AssetHandle<Glsl>,
-    cloud_regular: AssetHandle<Glsl>,
-    figure_vert: AssetHandle<Glsl>,
-
-    terrain_point_shadow_vert: AssetHandle<Glsl>,
-    terrain_directed_shadow_vert: AssetHandle<Glsl>,
-    figure_directed_shadow_vert: AssetHandle<Glsl>,
-    directed_shadow_frag: AssetHandle<Glsl>,
-
-    skybox_vert: AssetHandle<Glsl>,
-    skybox_frag: AssetHandle<Glsl>,
-    figure_frag: AssetHandle<Glsl>,
-    terrain_vert: AssetHandle<Glsl>,
-    terrain_frag: AssetHandle<Glsl>,
-    fluid_vert: AssetHandle<Glsl>,
-    fluid_frag_cheap: AssetHandle<Glsl>,
-    fluid_frag_shiny: AssetHandle<Glsl>,
-    sprite_vert: AssetHandle<Glsl>,
-    sprite_frag: AssetHandle<Glsl>,
-    particle_vert: AssetHandle<Glsl>,
-    particle_frag: AssetHandle<Glsl>,
-    ui_vert: AssetHandle<Glsl>,
-    ui_frag: AssetHandle<Glsl>,
-    lod_terrain_vert: AssetHandle<Glsl>,
-    lod_terrain_frag: AssetHandle<Glsl>,
-    clouds_vert: AssetHandle<Glsl>,
-    clouds_frag: AssetHandle<Glsl>,
-    postprocess_vert: AssetHandle<Glsl>,
-    postprocess_frag: AssetHandle<Glsl>,
-    player_shadow_frag: AssetHandle<Glsl>,
-    light_shadows_geom: AssetHandle<Glsl>,
-    light_shadows_frag: AssetHandle<Glsl>,
+/// Shadow rendering textures, layouts, pipelines, and bind groups
+struct Shadow {
+    map: ShadowMap,
+    bind: ShadowTexturesBindGroup,
 }
 
-impl assets::Compound for Shaders {
-    // TODO: Taking the specifier argument as a base for shaders specifiers
-    // would allow to use several shaders groups easily
-    fn load<S: assets::source::Source>(
-        _: &assets::AssetCache<S>,
-        _: &str,
-    ) -> Result<Shaders, assets::Error> {
-        Ok(Shaders {
-            constants: AssetExt::load("voxygen.shaders.include.constants")?,
-            globals: AssetExt::load("voxygen.shaders.include.globals")?,
-            sky: AssetExt::load("voxygen.shaders.include.sky")?,
-            light: AssetExt::load("voxygen.shaders.include.light")?,
-            srgb: AssetExt::load("voxygen.shaders.include.srgb")?,
-            random: AssetExt::load("voxygen.shaders.include.random")?,
-            lod: AssetExt::load("voxygen.shaders.include.lod")?,
-            shadows: AssetExt::load("voxygen.shaders.include.shadows")?,
-
-            anti_alias_none: AssetExt::load("voxygen.shaders.antialias.none")?,
-            anti_alias_fxaa: AssetExt::load("voxygen.shaders.antialias.fxaa")?,
-            anti_alias_msaa_x4: AssetExt::load("voxygen.shaders.antialias.msaa-x4")?,
-            anti_alias_msaa_x8: AssetExt::load("voxygen.shaders.antialias.msaa-x8")?,
-            anti_alias_msaa_x16: AssetExt::load("voxygen.shaders.antialias.msaa-x16")?,
-            cloud_none: AssetExt::load("voxygen.shaders.include.cloud.none")?,
-            cloud_regular: AssetExt::load("voxygen.shaders.include.cloud.regular")?,
-            figure_vert: AssetExt::load("voxygen.shaders.figure-vert")?,
-
-            terrain_point_shadow_vert: AssetExt::load("voxygen.shaders.light-shadows-vert")?,
-            terrain_directed_shadow_vert: AssetExt::load(
-                "voxygen.shaders.light-shadows-directed-vert",
-            )?,
-            figure_directed_shadow_vert: AssetExt::load(
-                "voxygen.shaders.light-shadows-figure-vert",
-            )?,
-            directed_shadow_frag: AssetExt::load("voxygen.shaders.light-shadows-directed-frag")?,
-
-            skybox_vert: AssetExt::load("voxygen.shaders.skybox-vert")?,
-            skybox_frag: AssetExt::load("voxygen.shaders.skybox-frag")?,
-            figure_frag: AssetExt::load("voxygen.shaders.figure-frag")?,
-            terrain_vert: AssetExt::load("voxygen.shaders.terrain-vert")?,
-            terrain_frag: AssetExt::load("voxygen.shaders.terrain-frag")?,
-            fluid_vert: AssetExt::load("voxygen.shaders.fluid-vert")?,
-            fluid_frag_cheap: AssetExt::load("voxygen.shaders.fluid-frag.cheap")?,
-            fluid_frag_shiny: AssetExt::load("voxygen.shaders.fluid-frag.shiny")?,
-            sprite_vert: AssetExt::load("voxygen.shaders.sprite-vert")?,
-            sprite_frag: AssetExt::load("voxygen.shaders.sprite-frag")?,
-            particle_vert: AssetExt::load("voxygen.shaders.particle-vert")?,
-            particle_frag: AssetExt::load("voxygen.shaders.particle-frag")?,
-            ui_vert: AssetExt::load("voxygen.shaders.ui-vert")?,
-            ui_frag: AssetExt::load("voxygen.shaders.ui-frag")?,
-            lod_terrain_vert: AssetExt::load("voxygen.shaders.lod-terrain-vert")?,
-            lod_terrain_frag: AssetExt::load("voxygen.shaders.lod-terrain-frag")?,
-            clouds_vert: AssetExt::load("voxygen.shaders.clouds-vert")?,
-            clouds_frag: AssetExt::load("voxygen.shaders.clouds-frag")?,
-            postprocess_vert: AssetExt::load("voxygen.shaders.postprocess-vert")?,
-            postprocess_frag: AssetExt::load("voxygen.shaders.postprocess-frag")?,
-            player_shadow_frag: AssetExt::load("voxygen.shaders.player-shadow-frag")?,
-            light_shadows_geom: AssetExt::load("voxygen.shaders.light-shadows-geom")?,
-            light_shadows_frag: AssetExt::load("voxygen.shaders.light-shadows-frag")?,
-        })
-    }
-}
-
-/// A type that holds shadow map data.  Since shadow mapping may not be
-/// supported on all platforms, we try to keep it separate.
-pub struct ShadowMapRenderer {
-    // directed_encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
-    // point_encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
-    directed_depth_stencil_view: ShadowDepthStencilView,
-    directed_res: ShadowResourceView,
-    directed_sampler: Sampler<gfx_backend::Resources>,
-
-    point_depth_stencil_view: ShadowDepthStencilView,
-    point_res: ShadowResourceView,
-    point_sampler: Sampler<gfx_backend::Resources>,
-
-    point_pipeline: GfxPipeline<shadow::pipe::Init<'static>>,
-    terrain_directed_pipeline: GfxPipeline<shadow::pipe::Init<'static>>,
-    figure_directed_pipeline: GfxPipeline<shadow::figure_pipe::Init<'static>>,
+/// Represent two states of the renderer:
+/// 1. Only interface pipelines created
+/// 2. All of the pipelines have been created
+#[allow(clippy::large_enum_variant)] // They are both pretty large
+enum State {
+    // NOTE: this is used as a transient placeholder for moving things out of State temporarily
+    Nothing,
+    Interface {
+        pipelines: InterfacePipelines,
+        shadow_views: Option<(Texture, Texture)>,
+        // In progress creation of the remaining pipelines in the background
+        creating: PipelineCreation<IngameAndShadowPipelines>,
+    },
+    Complete {
+        pipelines: Pipelines,
+        shadow: Shadow,
+        recreating: Option<PipelineCreation<Result<(Pipelines, ShadowPipelines), RenderError>>>,
+    },
 }
 
 /// A type that encapsulates rendering state. `Renderer` is central to Voxygen's
@@ -243,67 +100,156 @@ pub struct ShadowMapRenderer {
 /// GPU, along with pipeline state objects (PSOs) needed to renderer different
 /// kinds of models to the screen.
 pub struct Renderer {
-    device: gfx_backend::Device,
-    encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
-    factory: gfx_backend::Factory,
+    device: Arc<wgpu::Device>,
+    queue: wgpu::Queue,
+    surface: wgpu::Surface,
+    swap_chain: wgpu::SwapChain,
+    sc_desc: wgpu::SwapChainDescriptor,
 
-    win_color_view: WinColorView,
-    win_depth_view: WinDepthView,
+    sampler: wgpu::Sampler,
+    depth_sampler: wgpu::Sampler,
 
-    tgt_color_view: TgtColorView,
-    tgt_depth_stencil_view: TgtDepthStencilView,
-    tgt_color_view_pp: TgtColorView,
+    state: State,
+    // true if there is a pending need to recreate the pipelines (e.g. RenderMode change or shader
+    // hotloading)
+    recreation_pending: bool,
 
-    tgt_color_res: TgtColorRes,
-    tgt_depth_res: TgtDepthRes,
-    tgt_color_res_pp: TgtColorRes,
+    layouts: Arc<Layouts>,
+    // Note: we keep these here since their bind groups need to be updated if we resize the
+    // color/depth textures
+    locals: Locals,
+    views: Views,
+    noise_tex: Texture,
 
-    sampler: Sampler<gfx_backend::Resources>,
-
-    shadow_map: Option<ShadowMapRenderer>,
-
-    skybox_pipeline: GfxPipeline<skybox::pipe::Init<'static>>,
-    figure_pipeline: GfxPipeline<figure::pipe::Init<'static>>,
-    terrain_pipeline: GfxPipeline<terrain::pipe::Init<'static>>,
-    fluid_pipeline: GfxPipeline<fluid::pipe::Init<'static>>,
-    sprite_pipeline: GfxPipeline<sprite::pipe::Init<'static>>,
-    particle_pipeline: GfxPipeline<particle::pipe::Init<'static>>,
-    ui_pipeline: GfxPipeline<ui::pipe::Init<'static>>,
-    lod_terrain_pipeline: GfxPipeline<lod_terrain::pipe::Init<'static>>,
-    clouds_pipeline: GfxPipeline<clouds::pipe::Init<'static>>,
-    postprocess_pipeline: GfxPipeline<postprocess::pipe::Init<'static>>,
-    #[allow(dead_code)] //TODO: remove ?
-    player_shadow_pipeline: GfxPipeline<figure::pipe::Init<'static>>,
+    quad_index_buffer_u16: Buffer<u16>,
+    quad_index_buffer_u32: Buffer<u32>,
 
     shaders: AssetHandle<Shaders>,
 
-    noise_tex: Texture<(gfx::format::R8, gfx::format::Unorm)>,
-
     mode: RenderMode,
+    resolution: Vec2<u32>,
+
+    // If this is Some then a screenshot will be taken and passed to the handler here
+    take_screenshot: Option<screenshot::ScreenshotFn>,
+
+    profiler: wgpu_profiler::GpuProfiler,
+    profile_times: Vec<wgpu_profiler::GpuTimerScopeResult>,
+    profiler_features_enabled: bool,
 }
 
 impl Renderer {
     /// Create a new `Renderer` from a variety of backend-specific components
     /// and the window targets.
-    pub fn new(
-        mut device: gfx_backend::Device,
-        mut factory: gfx_backend::Factory,
-        win_color_view: WinColorView,
-        win_depth_view: WinDepthView,
-        mode: RenderMode,
-    ) -> Result<Self, RenderError> {
+    pub fn new(window: &winit::window::Window, mut mode: RenderMode) -> Result<Self, RenderError> {
         // Enable seamless cubemaps globally, where available--they are essentially a
         // strict improvement on regular cube maps.
         //
         // Note that since we only have to enable this once globally, there is no point
         // in doing this on rerender.
-        Self::enable_seamless_cube_maps(&mut device);
+        // Self::enable_seamless_cube_maps(&mut device);
 
-        let dims = win_color_view.get_dimensions();
+        // TODO: fix panic on wayland with opengl?
+        // TODO: fix backend defaulting to opengl on wayland.
+        let backend_bit = std::env::var("WGPU_BACKEND")
+            .ok()
+            .and_then(|backend| match backend.to_lowercase().as_str() {
+                "vulkan" => Some(wgpu::BackendBit::VULKAN),
+                "metal" => Some(wgpu::BackendBit::METAL),
+                "dx12" => Some(wgpu::BackendBit::DX12),
+                "primary" => Some(wgpu::BackendBit::PRIMARY),
+                "opengl" | "gl" => Some(wgpu::BackendBit::GL),
+                "dx11" => Some(wgpu::BackendBit::DX11),
+                "secondary" => Some(wgpu::BackendBit::SECONDARY),
+                "all" => Some(wgpu::BackendBit::all()),
+                _ => None,
+            })
+            .unwrap_or(
+                (wgpu::BackendBit::PRIMARY | wgpu::BackendBit::SECONDARY) & !wgpu::BackendBit::GL,
+            );
 
-        let shadow_views = Self::create_shadow_views(
-            &mut factory,
-            (dims.0, dims.1),
+        let instance = wgpu::Instance::new(backend_bit);
+
+        let dims = window.inner_size();
+
+        // This is unsafe because the window handle must be valid, if you find a way to
+        // have an invalid winit::Window then you have bigger issues
+        #[allow(unsafe_code)]
+        let surface = unsafe { instance.create_surface(window) };
+
+        let adapter = futures_executor::block_on(instance.request_adapter(
+            &wgpu::RequestAdapterOptionsBase {
+                power_preference: wgpu::PowerPreference::HighPerformance,
+                compatible_surface: Some(&surface),
+            },
+        ))
+        .ok_or(RenderError::CouldNotFindAdapter)?;
+
+        let limits = wgpu::Limits {
+            max_push_constant_size: 64,
+            ..Default::default()
+        };
+
+        let (device, queue) = futures_executor::block_on(
+            adapter.request_device(
+                &wgpu::DeviceDescriptor {
+                    // TODO
+                    label: None,
+                    features: wgpu::Features::DEPTH_CLAMPING
+                        | wgpu::Features::ADDRESS_MODE_CLAMP_TO_BORDER
+                        | wgpu::Features::PUSH_CONSTANTS
+                        | (adapter.features() & wgpu_profiler::GpuProfiler::REQUIRED_WGPU_FEATURES),
+                    limits,
+                },
+                std::env::var_os("WGPU_TRACE_DIR")
+                    .as_ref()
+                    .map(|v| std::path::Path::new(v)),
+            ),
+        )?;
+
+        // Set error handler for wgpu errors
+        // This is better for use than their default because it includes the error in
+        // the panic message
+        device.on_uncaptured_error(|error| {
+            error!("{}", &error);
+            panic!(
+                "wgpu error (handling all wgpu errors as fatal): {:?}",
+                &error,
+            )
+        });
+
+        let profiler_features_enabled = device
+            .features()
+            .contains(wgpu_profiler::GpuProfiler::REQUIRED_WGPU_FEATURES);
+        if !profiler_features_enabled {
+            info!(
+                "The features for GPU profiling (timestamp queries) are not available on this \
+                 adapter"
+            );
+        }
+
+        let info = adapter.get_info();
+        info!(
+            ?info.name,
+            ?info.vendor,
+            ?info.backend,
+            ?info.device,
+            ?info.device_type,
+            "selected graphics device"
+        );
+
+        let sc_desc = wgpu::SwapChainDescriptor {
+            usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
+            format: wgpu::TextureFormat::Bgra8UnormSrgb,
+            width: dims.width,
+            height: dims.height,
+            present_mode: mode.present_mode.into(),
+        };
+
+        let swap_chain = device.create_swap_chain(&surface, &sc_desc);
+
+        let shadow_views = ShadowMap::create_shadow_views(
+            &device,
+            (dims.width, dims.height),
             &ShadowMapMode::try_from(mode.shadow).unwrap_or_default(),
         )
         .map_err(|err| {
@@ -313,157 +259,187 @@ impl Renderer {
 
         let shaders = Shaders::load_expect("");
 
-        let (
-            skybox_pipeline,
-            figure_pipeline,
-            terrain_pipeline,
-            fluid_pipeline,
-            sprite_pipeline,
-            particle_pipeline,
-            ui_pipeline,
-            lod_terrain_pipeline,
-            clouds_pipeline,
-            postprocess_pipeline,
-            player_shadow_pipeline,
-            point_shadow_pipeline,
-            terrain_directed_shadow_pipeline,
-            figure_directed_shadow_pipeline,
-        ) = create_pipelines(&mut factory, &shaders.read(), &mode, shadow_views.is_some())?;
+        let layouts = {
+            let global = GlobalsLayouts::new(&device);
 
-        let (
-            tgt_color_view,
-            tgt_depth_stencil_view,
-            tgt_color_view_pp,
-            tgt_color_res,
-            tgt_depth_res,
-            tgt_color_res_pp,
-        ) = Self::create_rt_views(&mut factory, (dims.0, dims.1), &mode)?;
+            let clouds = clouds::CloudsLayout::new(&device);
+            let debug = debug::DebugLayout::new(&device);
+            let figure = figure::FigureLayout::new(&device);
+            let postprocess = postprocess::PostProcessLayout::new(&device);
+            let shadow = shadow::ShadowLayout::new(&device);
+            let sprite = sprite::SpriteLayout::new(&device);
+            let terrain = terrain::TerrainLayout::new(&device);
+            let ui = ui::UiLayout::new(&device);
+            let blit = blit::BlitLayout::new(&device);
 
-        let shadow_map = if let (
-            Some(point_pipeline),
-            Some(terrain_directed_pipeline),
-            Some(figure_directed_pipeline),
-            Some(shadow_views),
-        ) = (
-            point_shadow_pipeline,
-            terrain_directed_shadow_pipeline,
-            figure_directed_shadow_pipeline,
-            shadow_views,
-        ) {
-            let (
-                point_depth_stencil_view,
-                point_res,
-                point_sampler,
-                directed_depth_stencil_view,
-                directed_res,
-                directed_sampler,
-            ) = shadow_views;
-            Some(ShadowMapRenderer {
-                directed_depth_stencil_view,
-                directed_res,
-                directed_sampler,
+            Layouts {
+                global,
 
-                // point_encoder: factory.create_command_buffer().into(),
-                // directed_encoder: factory.create_command_buffer().into(),
-                point_depth_stencil_view,
-                point_res,
-                point_sampler,
-
-                point_pipeline,
-                terrain_directed_pipeline,
-                figure_directed_pipeline,
-            })
-        } else {
-            None
+                clouds,
+                debug,
+                figure,
+                postprocess,
+                shadow,
+                sprite,
+                terrain,
+                ui,
+                blit,
+            }
         };
 
-        let sampler = factory.create_sampler(gfx::texture::SamplerInfo::new(
-            gfx::texture::FilterMethod::Bilinear,
-            gfx::texture::WrapMode::Clamp,
-        ));
+        // Arcify the device and layouts
+        let device = Arc::new(device);
+        let layouts = Arc::new(layouts);
+
+        let (interface_pipelines, creating) = pipeline_creation::initial_create_pipelines(
+            // TODO: combine Arcs?
+            Arc::clone(&device),
+            Arc::clone(&layouts),
+            shaders.read().clone(),
+            mode.clone(),
+            sc_desc.clone(), // Note: cheap clone
+            shadow_views.is_some(),
+        )?;
+
+        let state = State::Interface {
+            pipelines: interface_pipelines,
+            shadow_views,
+            creating,
+        };
+
+        let views = Self::create_rt_views(&device, (dims.width, dims.height), &mode)?;
+
+        let create_sampler = |filter| {
+            device.create_sampler(&wgpu::SamplerDescriptor {
+                label: None,
+                address_mode_u: wgpu::AddressMode::ClampToEdge,
+                address_mode_v: wgpu::AddressMode::ClampToEdge,
+                address_mode_w: wgpu::AddressMode::ClampToEdge,
+                mag_filter: filter,
+                min_filter: filter,
+                mipmap_filter: wgpu::FilterMode::Nearest,
+                compare: None,
+                ..Default::default()
+            })
+        };
+
+        let sampler = create_sampler(wgpu::FilterMode::Linear);
+        let depth_sampler = create_sampler(wgpu::FilterMode::Nearest);
 
         let noise_tex = Texture::new(
-            &mut factory,
+            &device,
+            &queue,
             &assets::Image::load_expect("voxygen.texture.noise").read().0,
-            Some(gfx::texture::FilterMethod::Trilinear),
-            Some(gfx::texture::WrapMode::Tile),
-            None,
+            Some(wgpu::FilterMode::Linear),
+            Some(wgpu::AddressMode::Repeat),
         )?;
+
+        let clouds_locals =
+            Self::create_consts_inner(&device, &queue, &[clouds::Locals::default()]);
+        let postprocess_locals =
+            Self::create_consts_inner(&device, &queue, &[postprocess::Locals::default()]);
+
+        let locals = Locals::new(
+            &device,
+            &layouts,
+            clouds_locals,
+            postprocess_locals,
+            &views.tgt_color,
+            &views.tgt_depth,
+            &views.tgt_color_pp,
+            &sampler,
+            &depth_sampler,
+        );
+
+        let quad_index_buffer_u16 =
+            create_quad_index_buffer_u16(&device, QUAD_INDEX_BUFFER_U16_START_VERT_LEN as usize);
+        let quad_index_buffer_u32 =
+            create_quad_index_buffer_u32(&device, QUAD_INDEX_BUFFER_U32_START_VERT_LEN as usize);
+        let mut profiler = wgpu_profiler::GpuProfiler::new(4, queue.get_timestamp_period());
+        mode.profiler_enabled &= profiler_features_enabled;
+        profiler.enable_timer = mode.profiler_enabled;
+        profiler.enable_debug_marker = mode.profiler_enabled;
 
         Ok(Self {
             device,
-            encoder: factory.create_command_buffer().into(),
-            factory,
+            queue,
+            surface,
+            swap_chain,
+            sc_desc,
 
-            win_color_view,
-            win_depth_view,
+            state,
+            recreation_pending: false,
 
-            tgt_color_view,
-            tgt_depth_stencil_view,
-            tgt_color_view_pp,
-
-            tgt_color_res,
-            tgt_depth_res,
-            tgt_color_res_pp,
+            layouts,
+            locals,
+            views,
 
             sampler,
+            depth_sampler,
+            noise_tex,
 
-            shadow_map,
-
-            skybox_pipeline,
-            figure_pipeline,
-            terrain_pipeline,
-            fluid_pipeline,
-            sprite_pipeline,
-            particle_pipeline,
-            ui_pipeline,
-            lod_terrain_pipeline,
-            clouds_pipeline,
-            postprocess_pipeline,
-            player_shadow_pipeline,
+            quad_index_buffer_u16,
+            quad_index_buffer_u32,
 
             shaders,
 
-            noise_tex,
-
             mode,
+            resolution: Vec2::new(dims.width, dims.height),
+
+            take_screenshot: None,
+
+            profiler,
+            profile_times: Vec::new(),
+            profiler_features_enabled,
         })
     }
 
-    /// Get references to the internal render target views that get rendered to
-    /// before post-processing.
-    #[allow(dead_code)]
-    pub fn tgt_views(&self) -> (&TgtColorView, &TgtDepthStencilView) {
-        (&self.tgt_color_view, &self.tgt_depth_stencil_view)
+    /// Check the status of the intial pipeline creation
+    /// Returns `None` if complete
+    /// Returns `Some((total, complete))` if in progress
+    pub fn pipeline_creation_status(&self) -> Option<(usize, usize)> {
+        if let State::Interface { creating, .. } = &self.state {
+            Some(creating.status())
+        } else {
+            None
+        }
     }
 
-    /// Get references to the internal render target views that get displayed
-    /// directly by the window.
-    #[allow(dead_code)]
-    pub fn win_views(&self) -> (&WinColorView, &WinDepthView) {
-        (&self.win_color_view, &self.win_depth_view)
-    }
-
-    /// Get mutable references to the internal render target views that get
-    /// rendered to before post-processing.
-    #[allow(dead_code)]
-    pub fn tgt_views_mut(&mut self) -> (&mut TgtColorView, &mut TgtDepthStencilView) {
-        (&mut self.tgt_color_view, &mut self.tgt_depth_stencil_view)
-    }
-
-    /// Get mutable references to the internal render target views that get
-    /// displayed directly by the window.
-    #[allow(dead_code)]
-    pub fn win_views_mut(&mut self) -> (&mut WinColorView, &mut WinDepthView) {
-        (&mut self.win_color_view, &mut self.win_depth_view)
+    /// Check the status the pipeline recreation
+    /// Returns `None` if pipelines are currently not being recreated
+    /// Returns `Some((total, complete))` if in progress
+    pub fn pipeline_recreation_status(&self) -> Option<(usize, usize)> {
+        if let State::Complete { recreating, .. } = &self.state {
+            recreating.as_ref().map(|r| r.status())
+        } else {
+            None
+        }
     }
 
     /// Change the render mode.
     pub fn set_render_mode(&mut self, mode: RenderMode) -> Result<(), RenderError> {
+        // TODO: are there actually any issues with the current mode not matching the
+        // pipelines (since we could previously have inconsistencies from
+        // pipelines failing to build due to shader editing)?
+        // TODO: FIXME: defer mode changing until pipelines are rebuilt to prevent
+        // incompatibilities as pipelines are now rebuilt in a deferred mannder in the
+        // background TODO: consider separating changes that don't require
+        // rebuilding pipelines
         self.mode = mode;
+        self.sc_desc.present_mode = self.mode.present_mode.into();
+
+        // Only enable profiling if the wgpu features are enabled
+        self.mode.profiler_enabled &= self.profiler_features_enabled;
+        // Enable/disable profiler
+        if !self.mode.profiler_enabled {
+            // Clear the times if disabled
+            core::mem::take(&mut self.profile_times);
+        }
+        self.profiler.enable_timer = self.mode.profiler_enabled;
+        self.profiler.enable_debug_marker = self.mode.profiler_enabled;
 
         // Recreate render target
-        self.on_resize()?;
+        self.on_resize(self.resolution)?;
 
         // Recreate pipelines with the new AA mode
         self.recreate_pipelines();
@@ -474,45 +450,97 @@ impl Renderer {
     /// Get the render mode.
     pub fn render_mode(&self) -> &RenderMode { &self.mode }
 
+    /// Get the current profiling times
+    /// Nested timings immediately follow their parent
+    /// Returns Vec<(how nested this timing is, label, length in seconds)>
+    pub fn timings(&self) -> Vec<(u8, &str, f64)> {
+        use wgpu_profiler::GpuTimerScopeResult;
+        fn recursive_collect<'a>(
+            vec: &mut Vec<(u8, &'a str, f64)>,
+            result: &'a GpuTimerScopeResult,
+            nest_level: u8,
+        ) {
+            vec.push((
+                nest_level,
+                &result.label,
+                result.time.end - result.time.start,
+            ));
+            result
+                .nested_scopes
+                .iter()
+                .for_each(|child| recursive_collect(vec, child, nest_level + 1));
+        }
+        let mut vec = Vec::new();
+        self.profile_times
+            .iter()
+            .for_each(|child| recursive_collect(&mut vec, child, 0));
+        vec
+    }
+
     /// Resize internal render targets to match window render target dimensions.
-    pub fn on_resize(&mut self) -> Result<(), RenderError> {
-        let dims = self.win_color_view.get_dimensions();
-
+    pub fn on_resize(&mut self, dims: Vec2<u32>) -> Result<(), RenderError> {
         // Avoid panics when creating texture with w,h of 0,0.
-        if dims.0 != 0 && dims.1 != 0 {
-            let (
-                tgt_color_view,
-                tgt_depth_stencil_view,
-                tgt_color_view_pp,
-                tgt_color_res,
-                tgt_depth_res,
-                tgt_color_res_pp,
-            ) = Self::create_rt_views(&mut self.factory, (dims.0, dims.1), &self.mode)?;
-            self.tgt_color_res = tgt_color_res;
-            self.tgt_depth_res = tgt_depth_res;
-            self.tgt_color_res_pp = tgt_color_res_pp;
-            self.tgt_color_view = tgt_color_view;
-            self.tgt_depth_stencil_view = tgt_depth_stencil_view;
-            self.tgt_color_view_pp = tgt_color_view_pp;
-            if let (Some(shadow_map), ShadowMode::Map(mode)) =
-                (self.shadow_map.as_mut(), self.mode.shadow)
-            {
-                match Self::create_shadow_views(&mut self.factory, (dims.0, dims.1), &mode) {
-                    Ok((
-                        point_depth_stencil_view,
-                        point_res,
-                        point_sampler,
-                        directed_depth_stencil_view,
-                        directed_res,
-                        directed_sampler,
-                    )) => {
-                        shadow_map.point_depth_stencil_view = point_depth_stencil_view;
-                        shadow_map.point_res = point_res;
-                        shadow_map.point_sampler = point_sampler;
+        if dims.x != 0 && dims.y != 0 {
+            // Resize swap chain
+            self.resolution = dims;
+            self.sc_desc.width = dims.x;
+            self.sc_desc.height = dims.y;
+            self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
 
-                        shadow_map.directed_depth_stencil_view = directed_depth_stencil_view;
-                        shadow_map.directed_res = directed_res;
-                        shadow_map.directed_sampler = directed_sampler;
+            // Resize other render targets
+            self.views = Self::create_rt_views(&self.device, (dims.x, dims.y), &self.mode)?;
+            // Rebind views to clouds/postprocess bind groups
+            self.locals.rebind(
+                &self.device,
+                &self.layouts,
+                &self.views.tgt_color,
+                &self.views.tgt_depth,
+                &self.views.tgt_color_pp,
+                &self.sampler,
+                &self.depth_sampler,
+            );
+
+            // Get mutable reference to shadow views out of the current state
+            let shadow_views = match &mut self.state {
+                State::Interface { shadow_views, .. } => {
+                    shadow_views.as_mut().map(|s| (&mut s.0, &mut s.1))
+                },
+                State::Complete {
+                    shadow:
+                        Shadow {
+                            map: ShadowMap::Enabled(shadow_map),
+                            ..
+                        },
+                    ..
+                } => Some((&mut shadow_map.point_depth, &mut shadow_map.directed_depth)),
+                State::Complete { .. } => None,
+                State::Nothing => None, // Should never hit this
+            };
+
+            if let (Some((point_depth, directed_depth)), ShadowMode::Map(mode)) =
+                (shadow_views, self.mode.shadow)
+            {
+                match ShadowMap::create_shadow_views(&self.device, (dims.x, dims.y), &mode) {
+                    Ok((new_point_depth, new_directed_depth)) => {
+                        *point_depth = new_point_depth;
+                        *directed_depth = new_directed_depth;
+                        // Recreate the shadow bind group if needed
+                        if let State::Complete {
+                            shadow:
+                                Shadow {
+                                    bind,
+                                    map: ShadowMap::Enabled(shadow_map),
+                                    ..
+                                },
+                            ..
+                        } = &mut self.state
+                        {
+                            *bind = self.layouts.global.bind_shadow_textures(
+                                &self.device,
+                                &shadow_map.point_depth,
+                                &shadow_map.directed_depth,
+                            );
+                        }
                     },
                     Err(err) => {
                         warn!("Could not create shadow map views: {:?}", err);
@@ -524,270 +552,136 @@ impl Renderer {
         Ok(())
     }
 
+    /// Create render target views
     fn create_rt_views(
-        factory: &mut gfx_device_gl::Factory,
-        size: (u16, u16),
+        device: &wgpu::Device,
+        size: (u32, u32),
         mode: &RenderMode,
-    ) -> Result<
-        (
-            TgtColorView,
-            TgtDepthStencilView,
-            TgtColorView,
-            TgtColorRes,
-            TgtDepthRes,
-            TgtColorRes,
-        ),
-        RenderError,
-    > {
-        let upscaled = Vec2::from(size)
-            .map(|e: u16| (e as f32 * mode.upscale_mode.factor) as u16)
+    ) -> Result<Views, RenderError> {
+        let upscaled = Vec2::<u32>::from(size)
+            .map(|e| (e as f32 * mode.upscale_mode.factor) as u32)
             .into_tuple();
-        let kind = match mode.aa {
-            AaMode::None | AaMode::Fxaa => {
-                gfx::texture::Kind::D2(upscaled.0, upscaled.1, gfx::texture::AaMode::Single)
-            },
-            // TODO: Ensure sampling in the shader is exactly between the 4 texels
-            AaMode::MsaaX4 => {
-                gfx::texture::Kind::D2(upscaled.0, upscaled.1, gfx::texture::AaMode::Multi(4))
-            },
-            AaMode::MsaaX8 => {
-                gfx::texture::Kind::D2(upscaled.0, upscaled.1, gfx::texture::AaMode::Multi(8))
-            },
-            AaMode::MsaaX16 => {
-                gfx::texture::Kind::D2(upscaled.0, upscaled.1, gfx::texture::AaMode::Multi(16))
-            },
+        let (width, height, sample_count) = match mode.aa {
+            AaMode::None | AaMode::Fxaa => (upscaled.0, upscaled.1, 1),
+            AaMode::MsaaX4 => (upscaled.0, upscaled.1, 4),
+            AaMode::MsaaX8 => (upscaled.0, upscaled.1, 8),
+            AaMode::MsaaX16 => (upscaled.0, upscaled.1, 16),
         };
         let levels = 1;
 
-        let color_cty = <<TgtColorFmt as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped
-                >::get_channel_type();
-        let mut color_tex = || {
-            factory.create_texture(
-                kind,
-                levels,
-                gfx::memory::Bind::SHADER_RESOURCE | gfx::memory::Bind::RENDER_TARGET,
-                gfx::memory::Usage::Data,
-                Some(color_cty),
-            )
+        let color_view = || {
+            let tex = device.create_texture(&wgpu::TextureDescriptor {
+                label: None,
+                size: wgpu::Extent3d {
+                    width,
+                    height,
+                    depth_or_array_layers: 1,
+                },
+                mip_level_count: levels,
+                sample_count,
+                dimension: wgpu::TextureDimension::D2,
+                format: wgpu::TextureFormat::Rgba16Float,
+                usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
+            });
+
+            tex.create_view(&wgpu::TextureViewDescriptor {
+                label: None,
+                format: Some(wgpu::TextureFormat::Rgba16Float),
+                dimension: Some(wgpu::TextureViewDimension::D2),
+                // TODO: why is this not Color?
+                aspect: wgpu::TextureAspect::All,
+                base_mip_level: 0,
+                mip_level_count: None,
+                base_array_layer: 0,
+                array_layer_count: None,
+            })
         };
-        let tgt_color_tex = color_tex()?;
-        let tgt_color_tex_pp = color_tex()?;
-        let mut color_res = |tex| {
-            factory.view_texture_as_shader_resource::<TgtColorFmt>(
-                tex,
-                (0, levels - 1),
-                gfx::format::Swizzle::new(),
-            )
-        };
-        let tgt_color_res = color_res(&tgt_color_tex)?;
-        let tgt_color_res_pp = color_res(&tgt_color_tex_pp)?;
-        let tgt_color_view = factory.view_texture_as_render_target(&tgt_color_tex, 0, None)?;
-        let tgt_color_view_pp =
-            factory.view_texture_as_render_target(&tgt_color_tex_pp, 0, None)?;
 
-        let depth_stencil_cty = <<TgtDepthStencilFmt as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped>::get_channel_type();
-        let tgt_depth_stencil_tex = factory.create_texture(
-            kind,
-            levels,
-            gfx::memory::Bind::SHADER_RESOURCE | gfx::memory::Bind::DEPTH_STENCIL,
-            gfx::memory::Usage::Data,
-            Some(depth_stencil_cty),
-        )?;
-        let tgt_depth_res = factory.view_texture_as_shader_resource::<TgtDepthStencilFmt>(
-            &tgt_depth_stencil_tex,
-            (0, levels - 1),
-            gfx::format::Swizzle::new(),
-        )?;
-        let tgt_depth_stencil_view =
-            factory.view_texture_as_depth_stencil_trivial(&tgt_depth_stencil_tex)?;
+        let tgt_color_view = color_view();
+        let tgt_color_pp_view = color_view();
 
-        Ok((
-            tgt_color_view,
-            tgt_depth_stencil_view,
-            tgt_color_view_pp,
-            tgt_color_res,
-            tgt_depth_res,
-            tgt_color_res_pp,
-        ))
-    }
-
-    /// Create textures and views for shadow maps.
-    // This is a one-use type and the two halves are not guaranteed to remain identical, so we
-    // disable the type complexity lint.
-    #[allow(clippy::type_complexity)]
-    fn create_shadow_views(
-        factory: &mut gfx_device_gl::Factory,
-        size: (u16, u16),
-        mode: &ShadowMapMode,
-    ) -> Result<
-        (
-            ShadowDepthStencilView,
-            ShadowResourceView,
-            Sampler<gfx_backend::Resources>,
-            ShadowDepthStencilView,
-            ShadowResourceView,
-            Sampler<gfx_backend::Resources>,
-        ),
-        RenderError,
-    > {
-        // (Attempt to) apply resolution factor to shadow map resolution.
-        let resolution_factor = mode.resolution.clamped(0.25, 4.0);
-
-        let max_texture_size = Self::max_texture_size_raw(factory);
-        // Limit to max texture size, rather than erroring.
-        let size = Vec2::new(size.0, size.1).map(|e| {
-            let size = f32::from(e) * resolution_factor;
-            // NOTE: We know 0 <= e since we clamped the resolution factor to be between
-            // 0.25 and 4.0.
-            if size <= f32::from(max_texture_size) {
-                size as u16
-            } else {
-                max_texture_size
-            }
+        let tgt_depth_tex = device.create_texture(&wgpu::TextureDescriptor {
+            label: None,
+            size: wgpu::Extent3d {
+                width,
+                height,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: levels,
+            sample_count,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Depth32Float,
+            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
+        });
+        let tgt_depth_view = tgt_depth_tex.create_view(&wgpu::TextureViewDescriptor {
+            label: None,
+            format: Some(wgpu::TextureFormat::Depth32Float),
+            dimension: Some(wgpu::TextureViewDimension::D2),
+            aspect: wgpu::TextureAspect::DepthOnly,
+            base_mip_level: 0,
+            mip_level_count: None,
+            base_array_layer: 0,
+            array_layer_count: None,
         });
 
-        let levels = 1;
-        // Limit to max texture size rather than erroring.
-        let two_size = size.map(|e| {
-            u16::checked_next_power_of_two(e)
-                .filter(|&e| e <= max_texture_size)
-                .unwrap_or(max_texture_size)
+        let win_depth_tex = device.create_texture(&wgpu::TextureDescriptor {
+            label: None,
+            size: wgpu::Extent3d {
+                width: size.0,
+                height: size.1,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: levels,
+            sample_count,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Depth32Float,
+            usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
         });
-        let min_size = size.reduce_min();
-        let max_size = size.reduce_max();
-        let _min_two_size = two_size.reduce_min();
-        let _max_two_size = two_size.reduce_max();
-        // For rotated shadow maps, the maximum size of a pixel along any axis is the
-        // size of a diagonal along that axis.
-        let diag_size = size.map(f64::from).magnitude();
-        let diag_cross_size = f64::from(min_size) / f64::from(max_size) * diag_size;
-        let (diag_size, _diag_cross_size) =
-            if 0.0 < diag_size && diag_size <= f64::from(max_texture_size) {
-                // NOTE: diag_cross_size must be non-negative, since it is the ratio of a
-                // non-negative and a positive number (if max_size were zero,
-                // diag_size would be 0 too).  And it must be <= diag_size,
-                // since min_size <= max_size.  Therefore, if diag_size fits in a
-                // u16, so does diag_cross_size.
-                (diag_size as u16, diag_cross_size as u16)
-            } else {
-                // Limit to max texture resolution rather than error.
-                (max_texture_size as u16, max_texture_size as u16)
-            };
-        let diag_two_size = u16::checked_next_power_of_two(diag_size)
-            .filter(|&e| e <= max_texture_size)
-            // Limit to max texture resolution rather than error.
-            .unwrap_or(max_texture_size);
-        let depth_stencil_cty = <<ShadowDepthStencilFmt as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped>::get_channel_type();
+        // TODO: Consider no depth buffer for the final draw to the window?
+        let win_depth_view = win_depth_tex.create_view(&wgpu::TextureViewDescriptor {
+            label: None,
+            format: Some(wgpu::TextureFormat::Depth32Float),
+            dimension: Some(wgpu::TextureViewDimension::D2),
+            aspect: wgpu::TextureAspect::DepthOnly,
+            base_mip_level: 0,
+            mip_level_count: None,
+            base_array_layer: 0,
+            array_layer_count: None,
+        });
 
-        let point_shadow_tex = factory
-            .create_texture(
-                gfx::texture::Kind::Cube(diag_two_size / 4),
-                levels as gfx::texture::Level,
-                gfx::memory::Bind::SHADER_RESOURCE | gfx::memory::Bind::DEPTH_STENCIL,
-                gfx::memory::Usage::Data,
-                Some(depth_stencil_cty),
-            )
-            .map_err(|err| RenderError::CombinedError(gfx::CombinedError::Texture(err)))?;
-
-        let point_tgt_shadow_view = factory
-            .view_texture_as_depth_stencil::<ShadowDepthStencilFmt>(
-                &point_shadow_tex,
-                0,
-                None,
-                gfx::texture::DepthStencilFlags::empty(),
-            )?;
-
-        let point_tgt_shadow_res = factory
-            .view_texture_as_shader_resource::<ShadowDepthStencilFmt>(
-                &point_shadow_tex,
-                (0, levels - 1),
-                gfx::format::Swizzle::new(),
-            )?;
-
-        let directed_shadow_tex = factory
-            .create_texture(
-                gfx::texture::Kind::D2(diag_two_size, diag_two_size, gfx::texture::AaMode::Single),
-                levels as gfx::texture::Level,
-                gfx::memory::Bind::SHADER_RESOURCE | gfx::memory::Bind::DEPTH_STENCIL,
-                gfx::memory::Usage::Data,
-                Some(depth_stencil_cty),
-            )
-            .map_err(|err| RenderError::CombinedError(gfx::CombinedError::Texture(err)))?;
-        let directed_tgt_shadow_view = factory
-            .view_texture_as_depth_stencil::<ShadowDepthStencilFmt>(
-                &directed_shadow_tex,
-                0,
-                None,
-                gfx::texture::DepthStencilFlags::empty(),
-            )?;
-        let directed_tgt_shadow_res = factory
-            .view_texture_as_shader_resource::<ShadowDepthStencilFmt>(
-                &directed_shadow_tex,
-                (0, levels - 1),
-                gfx::format::Swizzle::new(),
-            )?;
-
-        let mut sampler_info = gfx::texture::SamplerInfo::new(
-            gfx::texture::FilterMethod::Bilinear,
-            // Lights should always be assumed to flood areas we can't see.
-            gfx::texture::WrapMode::Border,
-        );
-        sampler_info.comparison = Some(Comparison::LessEqual);
-        sampler_info.border = [1.0; 4].into();
-        let point_shadow_tex_sampler = factory.create_sampler(sampler_info);
-        let directed_shadow_tex_sampler = factory.create_sampler(sampler_info);
-
-        Ok((
-            point_tgt_shadow_view,
-            point_tgt_shadow_res,
-            point_shadow_tex_sampler,
-            directed_tgt_shadow_view,
-            directed_tgt_shadow_res,
-            directed_shadow_tex_sampler,
-        ))
+        Ok(Views {
+            tgt_color: tgt_color_view,
+            tgt_depth: tgt_depth_view,
+            tgt_color_pp: tgt_color_pp_view,
+            _win_depth: win_depth_view,
+        })
     }
 
     /// Get the resolution of the render target.
-    /// Note: the change after a resize can be delayed so
-    /// don't rely on this value being constant between resize events
-    pub fn get_resolution(&self) -> Vec2<u16> {
-        Vec2::new(
-            self.win_color_view.get_dimensions().0,
-            self.win_color_view.get_dimensions().1,
-        )
-    }
+    pub fn resolution(&self) -> Vec2<u32> { self.resolution }
 
     /// Get the resolution of the shadow render target.
-    pub fn get_shadow_resolution(&self) -> (Vec2<u16>, Vec2<u16>) {
-        if let Some(shadow_map) = &self.shadow_map {
-            let point_dims = shadow_map.point_depth_stencil_view.get_dimensions();
-            let directed_dims = shadow_map.directed_depth_stencil_view.get_dimensions();
-            (
-                Vec2::new(point_dims.0, point_dims.1),
-                Vec2::new(directed_dims.0, directed_dims.1),
-            )
-        } else {
-            (Vec2::new(1, 1), Vec2::new(1, 1))
+    pub fn get_shadow_resolution(&self) -> (Vec2<u32>, Vec2<u32>) {
+        match &self.state {
+            State::Interface { shadow_views, .. } => shadow_views.as_ref().map(|s| (&s.0, &s.1)),
+            State::Complete {
+                shadow:
+                    Shadow {
+                        map: ShadowMap::Enabled(shadow_map),
+                        ..
+                    },
+                ..
+            } => Some((&shadow_map.point_depth, &shadow_map.directed_depth)),
+            State::Complete { .. } | State::Nothing => None,
         }
+        .map(|(point, directed)| (point.get_dimensions().xy(), directed.get_dimensions().xy()))
+        .unwrap_or_else(|| (Vec2::new(1, 1), Vec2::new(1, 1)))
     }
 
-    /// Queue the clearing of the shadow targets ready for a new frame to be
-    /// rendered.
-    pub fn clear_shadows(&mut self) {
-        span!(_guard, "clear_shadows", "Renderer::clear_shadows");
-        if !self.mode.shadow.is_map() {
-            return;
-        }
-        if let Some(shadow_map) = self.shadow_map.as_mut() {
-            // let point_encoder = &mut shadow_map.point_encoder;
-            let point_encoder = &mut self.encoder;
-            point_encoder.clear_depth(&shadow_map.point_depth_stencil_view, 1.0);
-            // let directed_encoder = &mut shadow_map.directed_encoder;
-            let directed_encoder = &mut self.encoder;
-            directed_encoder.clear_depth(&shadow_map.directed_depth_stencil_view, 1.0);
-        }
-    }
-
+    // TODO: Seamless is potentially the default with wgpu but we need further
+    // investigation into whether this is actually turned on for the OpenGL
+    // backend
+    //
     /// NOTE: Supported by Vulkan (by default), DirectX 10+ (it seems--it's hard
     /// to find proof of this, but Direct3D 10 apparently does it by
     /// default, and 11 definitely does, so I assume it's natively supported
@@ -795,1440 +689,535 @@ impl Renderer {
     /// there may be some GPUs that don't quite support it correctly, the
     /// impact is relatively small, so there is no reason not to enable it where
     /// available.
-    #[allow(unsafe_code)]
-    fn enable_seamless_cube_maps(device: &mut gfx_backend::Device) {
-        unsafe {
-            // NOTE: Currently just fail silently rather than complain if the computer is on
-            // a version lower than 3.2, where seamless cubemaps were introduced.
-            if !device.get_info().is_version_supported(3, 2) {
-                return;
+    //fn enable_seamless_cube_maps() {
+    //todo!()
+    // unsafe {
+    //     // NOTE: Currently just fail silently rather than complain if the
+    // computer is on     // a version lower than 3.2, where
+    // seamless cubemaps were introduced.     if !device.get_info().
+    // is_version_supported(3, 2) {         return;
+    //     }
+
+    //     // NOTE: Safe because GL_TEXTURE_CUBE_MAP_SEAMLESS is supported
+    // by OpenGL 3.2+     // (see https://www.khronos.org/opengl/wiki/Cubemap_Texture#Seamless_cubemap);
+    //     // enabling seamless cube maps should always be safe regardless
+    // of the state of     // the OpenGL context, so no further
+    // checks are needed.     device.with_gl(|gl| {
+    //         gl.Enable(gfx_gl::TEXTURE_CUBE_MAP_SEAMLESS);
+    //     });
+    // }
+    //}
+
+    /// Start recording the frame
+    /// When the returned `Drawer` is dropped the recorded draw calls will be
+    /// submitted to the queue
+    /// If there is an intermittent issue with the swap chain then Ok(None) will
+    /// be returned
+    pub fn start_recording_frame<'a>(
+        &'a mut self,
+        globals: &'a GlobalsBindGroup,
+    ) -> Result<Option<drawer::Drawer<'a>>, RenderError> {
+        span!(
+            _guard,
+            "start_recording_frame",
+            "Renderer::start_recording_frame"
+        );
+
+        // Try to get the latest profiling results
+        if self.mode.profiler_enabled {
+            // Note: this lags a few frames behind
+            if let Some(profile_times) = self.profiler.process_finished_frame() {
+                self.profile_times = profile_times;
             }
-
-            // NOTE: Safe because GL_TEXTURE_CUBE_MAP_SEAMLESS is supported by OpenGL 3.2+
-            // (see https://www.khronos.org/opengl/wiki/Cubemap_Texture#Seamless_cubemap);
-            // enabling seamless cube maps should always be safe regardless of the state of
-            // the OpenGL context, so no further checks are needed.
-            device.with_gl(|gl| {
-                gl.Enable(gfx_gl::TEXTURE_CUBE_MAP_SEAMLESS);
-            });
         }
-    }
 
-    /// NOTE: Supported by all but a handful of mobile GPUs
-    /// (see https://github.com/gpuweb/gpuweb/issues/480)
-    /// so wgpu should support it too.
-    #[allow(unsafe_code)]
-    fn set_depth_clamp(device: &mut gfx_backend::Device, depth_clamp: bool) {
-        unsafe {
-            // NOTE: Currently just fail silently rather than complain if the computer is on
-            // a version lower than 3.3, though we probably will complain
-            // elsewhere regardless, since shadow mapping is an optional feature
-            // and having depth clamping disabled won't cause undefined
-            // behavior, just incorrect shadowing from objects behind the viewer.
-            if !device.get_info().is_version_supported(3, 3) {
-                return;
+        // Handle polling background pipeline creation/recreation
+        // Temporarily set to nothing and then replace in the statement below
+        let state = core::mem::replace(&mut self.state, State::Nothing);
+        // If still creating initial pipelines, check if complete
+        self.state = if let State::Interface {
+            pipelines: interface,
+            shadow_views,
+            creating,
+        } = state
+        {
+            match creating.try_complete() {
+                Ok(pipelines) => {
+                    let IngameAndShadowPipelines { ingame, shadow } = pipelines;
+
+                    let pipelines = Pipelines::consolidate(interface, ingame);
+
+                    let shadow_map = ShadowMap::new(
+                        &self.device,
+                        &self.queue,
+                        shadow.point,
+                        shadow.directed,
+                        shadow.figure,
+                        shadow_views,
+                    );
+
+                    let shadow_bind = {
+                        let (point, directed) = shadow_map.textures();
+                        self.layouts
+                            .global
+                            .bind_shadow_textures(&self.device, point, directed)
+                    };
+
+                    let shadow = Shadow {
+                        map: shadow_map,
+                        bind: shadow_bind,
+                    };
+
+                    State::Complete {
+                        pipelines,
+                        shadow,
+                        recreating: None,
+                    }
+                },
+                // Not complete
+                Err(creating) => State::Interface {
+                    pipelines: interface,
+                    shadow_views,
+                    creating,
+                },
             }
-
-            // NOTE: Safe because glDepthClamp is (I believe) supported by
-            // OpenGL 3.3, so we shouldn't have to check for other OpenGL versions which
-            // may use different extensions.  Also, enabling depth clamping should
-            // essentially always be safe regardless of the state of the OpenGL
-            // context, so no further checks are needed.
-            device.with_gl(|gl| {
-                if depth_clamp {
-                    gl.Enable(gfx_gl::DEPTH_CLAMP);
-                } else {
-                    gl.Disable(gfx_gl::DEPTH_CLAMP);
-                }
-            });
-        }
-    }
-
-    /// Queue the clearing of the depth target ready for a new frame to be
-    /// rendered.
-    pub fn clear(&mut self) {
-        span!(_guard, "clear", "Renderer::clear");
-        self.encoder.clear_depth(&self.tgt_depth_stencil_view, 1.0);
-        // self.encoder.clear_stencil(&self.tgt_depth_stencil_view, 0);
-        self.encoder.clear_depth(&self.win_depth_view, 1.0);
-    }
-
-    /// Set up shadow rendering.
-    pub fn start_shadows(&mut self) {
-        if !self.mode.shadow.is_map() {
-            return;
-        }
-        if let Some(_shadow_map) = self.shadow_map.as_mut() {
-            self.encoder.flush(&mut self.device);
-            Self::set_depth_clamp(&mut self.device, true);
-        }
-    }
-
-    /// Perform all queued draw calls for global.shadows.
-    pub fn flush_shadows(&mut self) {
-        if !self.mode.shadow.is_map() {
-            return;
-        }
-        if let Some(_shadow_map) = self.shadow_map.as_mut() {
-            let point_encoder = &mut self.encoder;
-            // let point_encoder = &mut shadow_map.point_encoder;
-            point_encoder.flush(&mut self.device);
-            // let directed_encoder = &mut shadow_map.directed_encoder;
-            // directed_encoder.flush(&mut self.device);
-            // Reset depth clamping.
-            Self::set_depth_clamp(&mut self.device, false);
-        }
-    }
-
-    /// Perform all queued draw calls for this frame and clean up discarded
-    /// items.
-    pub fn flush(&mut self) {
-        span!(_guard, "flush", "Renderer::flush");
-        self.encoder.flush(&mut self.device);
-        self.device.cleanup();
+        // If recreating the pipelines, check if that is complete
+        } else if let State::Complete {
+            pipelines,
+            mut shadow,
+            recreating: Some(recreating),
+        } = state
+        {
+            match recreating.try_complete() {
+                Ok(Ok((pipelines, shadow_pipelines))) => {
+                    if let (
+                        Some(point_pipeline),
+                        Some(terrain_directed_pipeline),
+                        Some(figure_directed_pipeline),
+                        ShadowMap::Enabled(shadow_map),
+                    ) = (
+                        shadow_pipelines.point,
+                        shadow_pipelines.directed,
+                        shadow_pipelines.figure,
+                        &mut shadow.map,
+                    ) {
+                        shadow_map.point_pipeline = point_pipeline;
+                        shadow_map.terrain_directed_pipeline = terrain_directed_pipeline;
+                        shadow_map.figure_directed_pipeline = figure_directed_pipeline;
+                    }
+                    State::Complete {
+                        pipelines,
+                        shadow,
+                        recreating: None,
+                    }
+                },
+                Ok(Err(e)) => {
+                    error!(?e, "Could not recreate shaders from assets due to an error");
+                    State::Complete {
+                        pipelines,
+                        shadow,
+                        recreating: None,
+                    }
+                },
+                // Not complete
+                Err(recreating) => State::Complete {
+                    pipelines,
+                    shadow,
+                    recreating: Some(recreating),
+                },
+            }
+        } else {
+            state
+        };
 
         // If the shaders files were changed attempt to recreate the shaders
         if self.shaders.reloaded() {
             self.recreate_pipelines();
         }
+
+        // Or if we have a recreation pending
+        if self.recreation_pending
+            && matches!(&self.state, State::Complete { recreating, .. } if recreating.is_none())
+        {
+            self.recreation_pending = false;
+            self.recreate_pipelines();
+        }
+
+        let tex = match self.swap_chain.get_current_frame() {
+            Ok(frame) => frame.output,
+            // If lost recreate the swap chain
+            Err(err @ wgpu::SwapChainError::Lost) => {
+                warn!("{}. Recreating swap chain. A frame will be missed", err);
+                return self.on_resize(self.resolution).map(|()| None);
+            },
+            Err(wgpu::SwapChainError::Timeout) => {
+                // This will probably be resolved on the next frame
+                // NOTE: we don't log this because it happens very frequently with
+                // PresentMode::Fifo and unlimited FPS on certain machines
+                return Ok(None);
+            },
+            Err(err @ wgpu::SwapChainError::Outdated) => {
+                warn!("{}. This will probably be resolved on the next frame", err);
+                return Ok(None);
+            },
+            Err(err @ wgpu::SwapChainError::OutOfMemory) => return Err(err.into()),
+        };
+        let encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("A render encoder"),
+            });
+
+        Ok(Some(drawer::Drawer::new(encoder, self, tex, globals)))
     }
 
     /// Recreate the pipelines
     fn recreate_pipelines(&mut self) {
-        match create_pipelines(
-            &mut self.factory,
-            &self.shaders.read(),
-            &self.mode,
-            self.shadow_map.is_some(),
-        ) {
-            Ok((
-                skybox_pipeline,
-                figure_pipeline,
-                terrain_pipeline,
-                fluid_pipeline,
-                sprite_pipeline,
-                particle_pipeline,
-                ui_pipeline,
-                lod_terrain_pipeline,
-                clouds_pipeline,
-                postprocess_pipeline,
-                player_shadow_pipeline,
-                point_shadow_pipeline,
-                terrain_directed_shadow_pipeline,
-                figure_directed_shadow_pipeline,
-            )) => {
-                self.skybox_pipeline = skybox_pipeline;
-                self.figure_pipeline = figure_pipeline;
-                self.terrain_pipeline = terrain_pipeline;
-                self.fluid_pipeline = fluid_pipeline;
-                self.sprite_pipeline = sprite_pipeline;
-                self.particle_pipeline = particle_pipeline;
-                self.ui_pipeline = ui_pipeline;
-                self.lod_terrain_pipeline = lod_terrain_pipeline;
-                self.clouds_pipeline = clouds_pipeline;
-                self.postprocess_pipeline = postprocess_pipeline;
-                self.player_shadow_pipeline = player_shadow_pipeline;
-                if let (
-                    Some(point_pipeline),
-                    Some(terrain_directed_pipeline),
-                    Some(figure_directed_pipeline),
-                    Some(shadow_map),
-                ) = (
-                    point_shadow_pipeline,
-                    terrain_directed_shadow_pipeline,
-                    figure_directed_shadow_pipeline,
-                    self.shadow_map.as_mut(),
-                ) {
-                    shadow_map.point_pipeline = point_pipeline;
-                    shadow_map.terrain_directed_pipeline = terrain_directed_pipeline;
-                    shadow_map.figure_directed_pipeline = figure_directed_pipeline;
-                }
+        match &mut self.state {
+            State::Complete { recreating, .. } if recreating.is_some() => {
+                // Defer recreation so that we are not building multiple sets of pipelines in
+                // the background at once
+                self.recreation_pending = true;
             },
-            Err(e) => error!(?e, "Could not recreate shaders from assets due to an error",),
+            State::Complete {
+                recreating, shadow, ..
+            } => {
+                *recreating = Some(pipeline_creation::recreate_pipelines(
+                    Arc::clone(&self.device),
+                    Arc::clone(&self.layouts),
+                    self.shaders.read().clone(),
+                    self.mode.clone(),
+                    self.sc_desc.clone(), // Note: cheap clone
+                    shadow.map.is_enabled(),
+                ));
+            },
+            State::Interface { .. } => {
+                // Defer recreation so that we are not building multiple sets of pipelines in
+                // the background at once
+                self.recreation_pending = true;
+            },
+            State::Nothing => {},
         }
     }
 
     /// Create a new set of constants with the provided values.
-    pub fn create_consts<T: Copy + gfx::traits::Pod>(
-        &mut self,
+    pub fn create_consts<T: Copy + bytemuck::Pod>(&mut self, vals: &[T]) -> Consts<T> {
+        Self::create_consts_inner(&self.device, &self.queue, vals)
+    }
+
+    pub fn create_consts_inner<T: Copy + bytemuck::Pod>(
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
         vals: &[T],
-    ) -> Result<Consts<T>, RenderError> {
-        let mut consts = Consts::new(&mut self.factory, vals.len());
-        consts.update(&mut self.encoder, vals, 0)?;
-        Ok(consts)
+    ) -> Consts<T> {
+        let mut consts = Consts::new(device, vals.len());
+        consts.update(queue, vals, 0);
+        consts
     }
 
     /// Update a set of constants with the provided values.
-    pub fn update_consts<T: Copy + gfx::traits::Pod>(
-        &mut self,
-        consts: &mut Consts<T>,
-        vals: &[T],
-    ) -> Result<(), RenderError> {
-        consts.update(&mut self.encoder, vals, 0)
+    pub fn update_consts<T: Copy + bytemuck::Pod>(&self, consts: &mut Consts<T>, vals: &[T]) {
+        consts.update(&self.queue, vals, 0)
+    }
+
+    pub fn update_clouds_locals(&mut self, new_val: clouds::Locals) {
+        self.locals.clouds.update(&self.queue, &[new_val], 0)
+    }
+
+    pub fn update_postprocess_locals(&mut self, new_val: postprocess::Locals) {
+        self.locals.postprocess.update(&self.queue, &[new_val], 0)
     }
 
     /// Create a new set of instances with the provided values.
-    pub fn create_instances<T: Copy + gfx::traits::Pod>(
+    pub fn create_instances<T: Copy + bytemuck::Pod>(
         &mut self,
         vals: &[T],
     ) -> Result<Instances<T>, RenderError> {
-        let mut instances = Instances::new(&mut self.factory, vals.len())?;
-        instances.update(&mut self.encoder, vals)?;
+        let mut instances = Instances::new(&self.device, vals.len());
+        instances.update(&self.queue, vals, 0);
         Ok(instances)
     }
 
+    /// Ensure that the quad index buffer is large enough for a quad vertex
+    /// buffer with this many vertices
+    pub(super) fn ensure_sufficient_index_length<V: Vertex>(
+        &mut self,
+        // Length of the vert buffer with 4 verts per quad
+        vert_length: usize,
+    ) {
+        let quad_index_length = vert_length / 4 * 6;
+
+        match V::QUADS_INDEX {
+            Some(wgpu::IndexFormat::Uint16) => {
+                // Make sure the global quad index buffer is large enough
+                if self.quad_index_buffer_u16.len() < quad_index_length {
+                    // Make sure we aren't over the max
+                    if vert_length > u16::MAX as usize {
+                        panic!(
+                            "Vertex type: {} needs to use a larger index type, length: {}",
+                            core::any::type_name::<V>(),
+                            vert_length
+                        );
+                    }
+                    self.quad_index_buffer_u16 =
+                        create_quad_index_buffer_u16(&self.device, vert_length);
+                }
+            },
+            Some(wgpu::IndexFormat::Uint32) => {
+                // Make sure the global quad index buffer is large enough
+                if self.quad_index_buffer_u32.len() < quad_index_length {
+                    // Make sure we aren't over the max
+                    if vert_length > u32::MAX as usize {
+                        panic!(
+                            "More than u32::MAX({}) verts({}) for type({}) using an index buffer!",
+                            u32::MAX,
+                            vert_length,
+                            core::any::type_name::<V>()
+                        );
+                    }
+                    self.quad_index_buffer_u32 =
+                        create_quad_index_buffer_u32(&self.device, vert_length);
+                }
+            },
+            None => {},
+        }
+    }
+
+    pub fn create_sprite_verts(&mut self, mesh: Mesh<sprite::Vertex>) -> sprite::SpriteVerts {
+        self.ensure_sufficient_index_length::<sprite::Vertex>(sprite::VERT_PAGE_SIZE as usize);
+        sprite::create_verts_buffer(&self.device, mesh)
+    }
+
     /// Create a new model from the provided mesh.
-    pub fn create_model<P: Pipeline>(&mut self, mesh: &Mesh<P>) -> Result<Model<P>, RenderError> {
-        Ok(Model::new(&mut self.factory, mesh))
+    /// If the provided mesh is empty this returns None
+    pub fn create_model<V: Vertex>(&mut self, mesh: &Mesh<V>) -> Option<Model<V>> {
+        self.ensure_sufficient_index_length::<V>(mesh.vertices().len());
+        Model::new(&self.device, mesh)
     }
 
     /// Create a new dynamic model with the specified size.
-    pub fn create_dynamic_model<P: Pipeline>(
-        &mut self,
-        size: usize,
-    ) -> Result<DynamicModel<P>, RenderError> {
-        DynamicModel::new(&mut self.factory, size)
+    pub fn create_dynamic_model<V: Vertex>(&mut self, size: usize) -> DynamicModel<V> {
+        DynamicModel::new(&self.device, size)
     }
 
     /// Update a dynamic model with a mesh and a offset.
-    pub fn update_model<P: Pipeline>(
-        &mut self,
-        model: &DynamicModel<P>,
-        mesh: &Mesh<P>,
-        offset: usize,
-    ) -> Result<(), RenderError> {
-        model.update(&mut self.encoder, mesh, offset)
+    pub fn update_model<V: Vertex>(&self, model: &DynamicModel<V>, mesh: &Mesh<V>, offset: usize) {
+        model.update(&self.queue, mesh, offset)
     }
 
     /// Return the maximum supported texture size.
-    pub fn max_texture_size(&self) -> u16 { Self::max_texture_size_raw(&self.factory) }
+    pub fn max_texture_size(&self) -> u32 { Self::max_texture_size_raw(&self.device) }
 
     /// Return the maximum supported texture size from the factory.
-    fn max_texture_size_raw(factory: &gfx_backend::Factory) -> u16 {
-        /// NOTE: OpenGL requirement.
-        const MAX_TEXTURE_SIZE_MIN: u16 = 1024;
-        #[cfg(target_os = "macos")]
-        /// NOTE: Because Macs lie about their max supported texture size.
-        const MAX_TEXTURE_SIZE_MAX: u16 = 8192;
-        #[cfg(not(target_os = "macos"))]
-        /// NOTE: Apparently Macs aren't the only machines that lie.
-        ///
-        /// TODO: Find a way to let graphics cards that don't lie do better.
-        const MAX_TEXTURE_SIZE_MAX: u16 = 8192;
-        // NOTE: Many APIs for textures require coordinates to fit in u16, which is why
-        // we perform this conversion.
-        u16::try_from(factory.get_capabilities().max_texture_size)
-            .unwrap_or(MAX_TEXTURE_SIZE_MIN)
-            .min(MAX_TEXTURE_SIZE_MAX)
+    fn max_texture_size_raw(_device: &wgpu::Device) -> u32 {
+        // This value is temporary as there are plans to include a way to get this in
+        // wgpu this is just a sane standard for now
+        8192
     }
 
     /// Create a new immutable texture from the provided image.
-    pub fn create_texture_immutable_raw<F: gfx::format::Formatted>(
+    /// # Panics
+    /// If the provided data doesn't completely fill the texture this function
+    /// will panic.
+    pub fn create_texture_with_data_raw(
         &mut self,
-        kind: gfx::texture::Kind,
-        mipmap: gfx::texture::Mipmap,
-        data: &[&[<F::Surface as gfx::format::SurfaceTyped>::DataType]],
-        sampler_info: gfx::texture::SamplerInfo,
-    ) -> Result<Texture<F>, RenderError>
-    where
-        F::Surface: gfx::format::TextureSurface,
-        F::Channel: gfx::format::TextureChannel,
-        <F::Surface as gfx::format::SurfaceTyped>::DataType: Copy,
-    {
-        Texture::new_immutable_raw(&mut self.factory, kind, mipmap, data, sampler_info)
+        texture_info: &wgpu::TextureDescriptor,
+        view_info: &wgpu::TextureViewDescriptor,
+        sampler_info: &wgpu::SamplerDescriptor,
+        data: &[u8],
+    ) -> Texture {
+        let tex = Texture::new_raw(&self.device, &texture_info, &view_info, &sampler_info);
+
+        let size = texture_info.size;
+        let block_size = texture_info.format.describe().block_size;
+        assert_eq!(
+            size.width as usize
+                * size.height as usize
+                * size.depth_or_array_layers as usize
+                * block_size as usize,
+            data.len(),
+            "Provided data length {} does not fill the provided texture size {:?}",
+            data.len(),
+            size,
+        );
+
+        tex.update(
+            &self.queue,
+            [0; 2],
+            [texture_info.size.width, texture_info.size.height],
+            data,
+        );
+
+        tex
     }
 
     /// Create a new raw texture.
-    pub fn create_texture_raw<F: gfx::format::Formatted>(
+    pub fn create_texture_raw(
         &mut self,
-        kind: gfx::texture::Kind,
-        max_levels: u8,
-        bind: gfx::memory::Bind,
-        usage: gfx::memory::Usage,
-        levels: (u8, u8),
-        swizzle: gfx::format::Swizzle,
-        sampler_info: gfx::texture::SamplerInfo,
-    ) -> Result<Texture<F>, RenderError>
-    where
-        F::Surface: gfx::format::TextureSurface,
-        F::Channel: gfx::format::TextureChannel,
-        <F::Surface as gfx::format::SurfaceTyped>::DataType: Copy,
-    {
-        Texture::new_raw(
-            &mut self.device,
-            &mut self.factory,
-            kind,
-            max_levels,
-            bind,
-            usage,
-            levels,
-            swizzle,
-            sampler_info,
-        )
+        texture_info: &wgpu::TextureDescriptor,
+        view_info: &wgpu::TextureViewDescriptor,
+        sampler_info: &wgpu::SamplerDescriptor,
+    ) -> Texture {
+        let texture = Texture::new_raw(&self.device, texture_info, view_info, sampler_info);
+        texture.clear(&self.queue); // Needs to be fully initialized for partial writes to work on Dx12 AMD
+        texture
     }
 
     /// Create a new texture from the provided image.
-    pub fn create_texture<F: gfx::format::Formatted>(
+    ///
+    /// Currently only supports Rgba8Srgb
+    pub fn create_texture(
         &mut self,
         image: &image::DynamicImage,
-        filter_method: Option<FilterMethod>,
-        wrap_mode: Option<WrapMode>,
-        border: Option<gfx::texture::PackedColor>,
-    ) -> Result<Texture<F>, RenderError>
-    where
-        F::Surface: gfx::format::TextureSurface,
-        F::Channel: gfx::format::TextureChannel,
-        <F::Surface as gfx::format::SurfaceTyped>::DataType: Copy,
-    {
-        Texture::new(&mut self.factory, image, filter_method, wrap_mode, border)
+        filter_method: Option<FilterMode>,
+        address_mode: Option<AddressMode>,
+    ) -> Result<Texture, RenderError> {
+        Texture::new(
+            &self.device,
+            &self.queue,
+            image,
+            filter_method,
+            address_mode,
+        )
     }
 
-    /// Create a new dynamic texture (gfx::memory::Usage::Dynamic) with the
+    /// Create a new dynamic texture with the
     /// specified dimensions.
-    pub fn create_dynamic_texture(&mut self, dims: Vec2<u16>) -> Result<Texture, RenderError> {
-        Texture::new_dynamic(&mut self.factory, dims.x, dims.y)
+    ///
+    /// Currently only supports Rgba8Srgb
+    pub fn create_dynamic_texture(&mut self, dims: Vec2<u32>) -> Texture {
+        Texture::new_dynamic(&self.device, &self.queue, dims.x, dims.y)
     }
 
     /// Update a texture with the provided offset, size, and data.
-    pub fn update_texture<T: gfx::format::Formatted>(
+    ///
+    /// Currently only supports Rgba8Srgb
+    pub fn update_texture(
         &mut self,
-        texture: &Texture<T>,
-        offset: [u16; 2],
-        size: [u16; 2],
-        data: &[<<T as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType],
-    ) -> Result<(), RenderError>
-    where
-        <T as gfx::format::Formatted>::Surface: gfx::format::TextureSurface,
-        <T as gfx::format::Formatted>::Channel: gfx::format::TextureChannel,
-        <<T as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType: Copy,
-    {
-        texture.update(&mut self.encoder, offset, size, data)
+        texture: &Texture, /* <T> */
+        offset: [u32; 2],
+        size: [u32; 2],
+        // TODO: be generic over pixel type
+        data: &[[u8; 4]],
+    ) {
+        texture.update(&self.queue, offset, size, bytemuck::cast_slice(data))
     }
 
-    /// Creates a download buffer, downloads the win_color_view, and converts to
-    /// a image::DynamicImage.
-    #[allow(clippy::map_clone)] // TODO: Pending review in #587
-    pub fn create_screenshot(&mut self) -> Result<image::DynamicImage, RenderError> {
-        let (width, height) = self.get_resolution().into_tuple();
-        use gfx::{
-            format::{Formatted, SurfaceTyped},
-            memory::Typed,
-        };
-        type WinSurfaceData = <<WinColorFmt as Formatted>::Surface as SurfaceTyped>::DataType;
-        let download = self
-            .factory
-            .create_download_buffer::<WinSurfaceData>(width as usize * height as usize)?;
-        self.encoder.copy_texture_to_buffer_raw(
-            self.win_color_view.raw().get_texture(),
-            None,
-            gfx::texture::RawImageInfo {
-                xoffset: 0,
-                yoffset: 0,
-                zoffset: 0,
-                width,
-                height,
-                depth: 0,
-                format: WinColorFmt::get_format(),
-                mipmap: 0,
-            },
-            download.raw(),
-            0,
-        )?;
-        self.flush();
-
-        // Assumes that the format is Rgba8.
-        let raw_data = self
-            .factory
-            .read_mapping(&download)?
-            .chunks_exact(width as usize)
-            .rev()
-            .flatten()
-            .flatten()
-            .map(|&e| e)
-            .collect::<Vec<_>>();
-        Ok(image::DynamicImage::ImageRgba8(
-            // Should not fail if the dimensions are correct.
-            image::ImageBuffer::from_raw(width as u32, height as u32, raw_data).unwrap(),
-        ))
-    }
-
-    /// Queue the rendering of the provided skybox model in the upcoming frame.
-    pub fn render_skybox(
+    /// Queue to obtain a screenshot on the next frame render
+    pub fn create_screenshot(
         &mut self,
-        model: &Model<skybox::SkyboxPipeline>,
-        global: &GlobalModel,
-        locals: &Consts<skybox::Locals>,
-        lod: &lod_terrain::LodData,
+        screenshot_handler: impl FnOnce(image::DynamicImage) + Send + 'static,
     ) {
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.skybox_pipeline.pso,
-            &skybox::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                locals: locals.buf.clone(),
-                globals: global.globals.buf.clone(),
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                tgt_color: self.tgt_color_view.clone(),
-                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
-            },
-        );
-    }
-
-    /// Queue the rendering of the provided figure model in the upcoming frame.
-    pub fn render_figure(
-        &mut self,
-        model: &figure::FigureModel,
-        col_lights: &Texture<ColLightFmt>,
-        global: &GlobalModel,
-        locals: &Consts<figure::Locals>,
-        bones: &Consts<figure::BoneData>,
-        lod: &lod_terrain::LodData,
-    ) {
-        let (point_shadow_maps, directed_shadow_maps) =
-            if let Some(shadow_map) = &mut self.shadow_map {
-                (
-                    (
-                        shadow_map.point_res.clone(),
-                        shadow_map.point_sampler.clone(),
-                    ),
-                    (
-                        shadow_map.directed_res.clone(),
-                        shadow_map.directed_sampler.clone(),
-                    ),
-                )
-            } else {
-                (
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                )
-            };
-        let model = &model.opaque;
-
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.figure_pipeline.pso,
-            &figure::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
-                locals: locals.buf.clone(),
-                globals: global.globals.buf.clone(),
-                bones: bones.buf.clone(),
-                lights: global.lights.buf.clone(),
-                shadows: global.shadows.buf.clone(),
-                light_shadows: global.shadow_mats.buf.clone(),
-                point_shadow_maps,
-                directed_shadow_maps,
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                tgt_color: self.tgt_color_view.clone(),
-                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
-            },
-        );
-    }
-
-    /// Queue the rendering of the player silhouette in the upcoming frame.
-    pub fn render_player_shadow(
-        &mut self,
-        _model: &figure::FigureModel,
-        _col_lights: &Texture<ColLightFmt>,
-        _global: &GlobalModel,
-        _bones: &Consts<figure::BoneData>,
-        _lod: &lod_terrain::LodData,
-        _locals: &Consts<shadow::Locals>,
-    ) {
-        // FIXME: Consider reenabling at some point.
-        /* let (point_shadow_maps, directed_shadow_maps) =
-            if let Some(shadow_map) = &mut self.shadow_map {
-                (
-                    (
-                        shadow_map.point_res.clone(),
-                        shadow_map.point_sampler.clone(),
-                    ),
-                    (
-                        shadow_map.directed_res.clone(),
-                        shadow_map.directed_sampler.clone(),
-                    ),
-                )
-            } else {
-                (
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                )
-            };
-        let model = &model.opaque;
-
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.player_shadow_pipeline.pso,
-            &figure::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
-                locals: locals.buf.clone(),
-                globals: global.globals.buf.clone(),
-                bones: bones.buf.clone(),
-                lights: global.lights.buf.clone(),
-                shadows: global.shadows.buf.clone(),
-                light_shadows: global.shadow_mats.buf.clone(),
-                point_shadow_maps,
-                directed_shadow_maps,
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                tgt_color: self.tgt_color_view.clone(),
-                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (0, 0) */),
-            },
-        ); */
-    }
-
-    /// Queue the rendering of the player model in the upcoming frame.
-    pub fn render_player(
-        &mut self,
-        model: &figure::FigureModel,
-        col_lights: &Texture<ColLightFmt>,
-        global: &GlobalModel,
-        locals: &Consts<figure::Locals>,
-        bones: &Consts<figure::BoneData>,
-        lod: &lod_terrain::LodData,
-    ) {
-        let (point_shadow_maps, directed_shadow_maps) =
-            if let Some(shadow_map) = &mut self.shadow_map {
-                (
-                    (
-                        shadow_map.point_res.clone(),
-                        shadow_map.point_sampler.clone(),
-                    ),
-                    (
-                        shadow_map.directed_res.clone(),
-                        shadow_map.directed_sampler.clone(),
-                    ),
-                )
-            } else {
-                (
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                )
-            };
-        let model = &model.opaque;
-
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.figure_pipeline.pso,
-            &figure::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
-                locals: locals.buf.clone(),
-                globals: global.globals.buf.clone(),
-                bones: bones.buf.clone(),
-                lights: global.lights.buf.clone(),
-                shadows: global.shadows.buf.clone(),
-                light_shadows: global.shadow_mats.buf.clone(),
-                point_shadow_maps,
-                directed_shadow_maps,
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                tgt_color: self.tgt_color_view.clone(),
-                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
-            },
-        );
-    }
-
-    /// Queue the rendering of the provided terrain chunk model in the upcoming
-    /// frame.
-    pub fn render_terrain_chunk(
-        &mut self,
-        model: &Model<terrain::TerrainPipeline>,
-        col_lights: &Texture<ColLightFmt>,
-        global: &GlobalModel,
-        locals: &Consts<terrain::Locals>,
-        lod: &lod_terrain::LodData,
-    ) {
-        let (point_shadow_maps, directed_shadow_maps) =
-            if let Some(shadow_map) = &mut self.shadow_map {
-                (
-                    (
-                        shadow_map.point_res.clone(),
-                        shadow_map.point_sampler.clone(),
-                    ),
-                    (
-                        shadow_map.directed_res.clone(),
-                        shadow_map.directed_sampler.clone(),
-                    ),
-                )
-            } else {
-                (
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                )
-            };
-
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.terrain_pipeline.pso,
-            &terrain::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                // TODO: Consider splitting out texture atlas data into a separate vertex buffer,
-                // since we don't need it for things like global.shadows.
-                col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
-                locals: locals.buf.clone(),
-                globals: global.globals.buf.clone(),
-                lights: global.lights.buf.clone(),
-                shadows: global.shadows.buf.clone(),
-                light_shadows: global.shadow_mats.buf.clone(),
-                point_shadow_maps,
-                directed_shadow_maps,
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                tgt_color: self.tgt_color_view.clone(),
-                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
-            },
-        );
-    }
-
-    /// Queue the rendering of a shadow map from a point light in the upcoming
-    /// frame.
-    pub fn render_shadow_point(
-        &mut self,
-        model: &Model<terrain::TerrainPipeline>,
-        global: &GlobalModel,
-        terrain_locals: &Consts<terrain::Locals>,
-        locals: &Consts<shadow::Locals>,
-    ) {
-        if !self.mode.shadow.is_map() {
-            return;
-        }
-        // NOTE: Don't render shadows if the shader is not supported.
-        let shadow_map = if let Some(shadow_map) = &mut self.shadow_map {
-            shadow_map
-        } else {
-            return;
-        };
-
-        // let point_encoder = &mut shadow_map.point_encoder;
-        let point_encoder = &mut self.encoder;
-        point_encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &shadow_map.point_pipeline.pso,
-            &shadow::pipe::Data {
-                // Terrain vertex stuff
-                vbuf: model.vbuf.clone(),
-                locals: terrain_locals.buf.clone(),
-                globals: global.globals.buf.clone(),
-
-                // Shadow stuff
-                light_shadows: locals.buf.clone(),
-                tgt_depth_stencil: shadow_map.point_depth_stencil_view.clone(),
-            },
-        );
-    }
-
-    /// Queue the rendering of terrain shadow map from all directional lights in
-    /// the upcoming frame.
-    pub fn render_terrain_shadow_directed(
-        &mut self,
-        model: &Model<terrain::TerrainPipeline>,
-        global: &GlobalModel,
-        terrain_locals: &Consts<terrain::Locals>,
-        locals: &Consts<shadow::Locals>,
-    ) {
-        if !self.mode.shadow.is_map() {
-            return;
-        }
-        // NOTE: Don't render shadows if the shader is not supported.
-        let shadow_map = if let Some(shadow_map) = &mut self.shadow_map {
-            shadow_map
-        } else {
-            return;
-        };
-
-        // let directed_encoder = &mut shadow_map.directed_encoder;
-        let directed_encoder = &mut self.encoder;
-        directed_encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &shadow_map.terrain_directed_pipeline.pso,
-            &shadow::pipe::Data {
-                // Terrain vertex stuff
-                vbuf: model.vbuf.clone(),
-                locals: terrain_locals.buf.clone(),
-                globals: global.globals.buf.clone(),
-
-                // Shadow stuff
-                light_shadows: locals.buf.clone(),
-                tgt_depth_stencil: shadow_map.directed_depth_stencil_view.clone(),
-            },
-        );
-    }
-
-    /// Queue the rendering of figure shadow map from all directional lights in
-    /// the upcoming frame.
-    pub fn render_figure_shadow_directed(
-        &mut self,
-        model: &figure::FigureModel,
-        global: &GlobalModel,
-        figure_locals: &Consts<figure::Locals>,
-        bones: &Consts<figure::BoneData>,
-        locals: &Consts<shadow::Locals>,
-    ) {
-        if !self.mode.shadow.is_map() {
-            return;
-        }
-        // NOTE: Don't render shadows if the shader is not supported.
-        let shadow_map = if let Some(shadow_map) = &mut self.shadow_map {
-            shadow_map
-        } else {
-            return;
-        };
-        let model = &model.opaque;
-
-        // let directed_encoder = &mut shadow_map.directed_encoder;
-        let directed_encoder = &mut self.encoder;
-        directed_encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &shadow_map.figure_directed_pipeline.pso,
-            &shadow::figure_pipe::Data {
-                // Terrain vertex stuff
-                vbuf: model.vbuf.clone(),
-                locals: figure_locals.buf.clone(),
-                bones: bones.buf.clone(),
-                globals: global.globals.buf.clone(),
-
-                // Shadow stuff
-                light_shadows: locals.buf.clone(),
-                tgt_depth_stencil: shadow_map.directed_depth_stencil_view.clone(),
-            },
-        );
-    }
-
-    /// Queue the rendering of the provided terrain chunk model in the upcoming
-    /// frame.
-    pub fn render_fluid_chunk(
-        &mut self,
-        model: &Model<fluid::FluidPipeline>,
-        global: &GlobalModel,
-        locals: &Consts<terrain::Locals>,
-        lod: &lod_terrain::LodData,
-        waves: &Texture,
-    ) {
-        let (point_shadow_maps, directed_shadow_maps) =
-            if let Some(shadow_map) = &mut self.shadow_map {
-                (
-                    (
-                        shadow_map.point_res.clone(),
-                        shadow_map.point_sampler.clone(),
-                    ),
-                    (
-                        shadow_map.directed_res.clone(),
-                        shadow_map.directed_sampler.clone(),
-                    ),
-                )
-            } else {
-                (
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                )
-            };
-
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.fluid_pipeline.pso,
-            &fluid::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                locals: locals.buf.clone(),
-                globals: global.globals.buf.clone(),
-                lights: global.lights.buf.clone(),
-                shadows: global.shadows.buf.clone(),
-                light_shadows: global.shadow_mats.buf.clone(),
-                point_shadow_maps,
-                directed_shadow_maps,
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                waves: (waves.srv.clone(), waves.sampler.clone()),
-                tgt_color: self.tgt_color_view.clone(),
-                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
-            },
-        );
-    }
-
-    /// Queue the rendering of the provided terrain chunk model in the upcoming
-    /// frame.
-    pub fn render_sprites(
-        &mut self,
-        model: &Model<sprite::SpritePipeline>,
-        col_lights: &Texture<ColLightFmt>,
-        global: &GlobalModel,
-        terrain_locals: &Consts<terrain::Locals>,
-        locals: &Consts<sprite::Locals>,
-        instances: &Instances<sprite::Instance>,
-        lod: &lod_terrain::LodData,
-    ) {
-        let (point_shadow_maps, directed_shadow_maps) =
-            if let Some(shadow_map) = &mut self.shadow_map {
-                (
-                    (
-                        shadow_map.point_res.clone(),
-                        shadow_map.point_sampler.clone(),
-                    ),
-                    (
-                        shadow_map.directed_res.clone(),
-                        shadow_map.directed_sampler.clone(),
-                    ),
-                )
-            } else {
-                (
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                )
-            };
-
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: Some((instances.count() as u32, 0)),
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.sprite_pipeline.pso,
-            &sprite::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                ibuf: instances.ibuf.clone(),
-                col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
-                terrain_locals: terrain_locals.buf.clone(),
-                // NOTE: It would be nice if this wasn't needed and we could use a constant buffer
-                // offset into the sprite data.  Hopefully, when we switch to wgpu we can do this,
-                // as it offers the exact API we want (the equivalent can be done in OpenGL using
-                // glBindBufferOffset).
-                locals: locals.buf.clone(),
-                globals: global.globals.buf.clone(),
-                lights: global.lights.buf.clone(),
-                shadows: global.shadows.buf.clone(),
-                light_shadows: global.shadow_mats.buf.clone(),
-                point_shadow_maps,
-                directed_shadow_maps,
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                tgt_color: self.tgt_color_view.clone(),
-                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
-            },
-        );
-    }
-
-    /// Queue the rendering of the provided LoD terrain model in the upcoming
-    /// frame.
-    pub fn render_lod_terrain(
-        &mut self,
-        model: &Model<lod_terrain::LodTerrainPipeline>,
-        global: &GlobalModel,
-        locals: &Consts<lod_terrain::Locals>,
-        lod: &lod_terrain::LodData,
-    ) {
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.lod_terrain_pipeline.pso,
-            &lod_terrain::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                locals: locals.buf.clone(),
-                globals: global.globals.buf.clone(),
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                map: (lod.map.srv.clone(), lod.map.sampler.clone()),
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                tgt_color: self.tgt_color_view.clone(),
-                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
-            },
-        );
-    }
-
-    /// Queue the rendering of the provided particle in the upcoming frame.
-    pub fn render_particles(
-        &mut self,
-        model: &Model<particle::ParticlePipeline>,
-        global: &GlobalModel,
-        instances: &Instances<particle::Instance>,
-        lod: &lod_terrain::LodData,
-    ) {
-        let (point_shadow_maps, directed_shadow_maps) =
-            if let Some(shadow_map) = &mut self.shadow_map {
-                (
-                    (
-                        shadow_map.point_res.clone(),
-                        shadow_map.point_sampler.clone(),
-                    ),
-                    (
-                        shadow_map.directed_res.clone(),
-                        shadow_map.directed_sampler.clone(),
-                    ),
-                )
-            } else {
-                (
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                )
-            };
-
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: Some((instances.count() as u32, 0)),
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.particle_pipeline.pso,
-            &particle::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                ibuf: instances.ibuf.clone(),
-                globals: global.globals.buf.clone(),
-                lights: global.lights.buf.clone(),
-                shadows: global.shadows.buf.clone(),
-                light_shadows: global.shadow_mats.buf.clone(),
-                point_shadow_maps,
-                directed_shadow_maps,
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                tgt_color: self.tgt_color_view.clone(),
-                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
-            },
-        );
-    }
-
-    /// Queue the rendering of the provided UI element in the upcoming frame.
-    pub fn render_ui_element<F: gfx::format::Formatted<View = [f32; 4]>>(
-        &mut self,
-        model: Model<ui::UiPipeline>,
-        tex: &Texture<F>,
-        scissor: Aabr<u16>,
-        globals: &Consts<Globals>,
-        locals: &Consts<ui::Locals>,
-    ) where
-        F::Surface: gfx::format::TextureSurface,
-        F::Channel: gfx::format::TextureChannel,
-        <F::Surface as gfx::format::SurfaceTyped>::DataType: Copy,
-    {
-        let Aabr { min, max } = scissor;
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range.start,
-                end: model.vertex_range.end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.ui_pipeline.pso,
-            &ui::pipe::Data {
-                vbuf: model.vbuf,
-                scissor: gfx::Rect {
-                    x: min.x,
-                    y: min.y,
-                    w: max.x - min.x,
-                    h: max.y - min.y,
-                },
-                tex: (tex.srv.clone(), tex.sampler.clone()),
-                locals: locals.buf.clone(),
-                globals: globals.buf.clone(),
-                tgt_color: self.win_color_view.clone(),
-                tgt_depth: self.win_depth_view.clone(),
-            },
-        );
-    }
-
-    pub fn render_clouds(
-        &mut self,
-        model: &Model<clouds::CloudsPipeline>,
-        globals: &Consts<Globals>,
-        locals: &Consts<clouds::Locals>,
-        lod: &lod_terrain::LodData,
-    ) {
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.clouds_pipeline.pso,
-            &clouds::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                locals: locals.buf.clone(),
-                globals: globals.buf.clone(),
-                map: (lod.map.srv.clone(), lod.map.sampler.clone()),
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                color_sampler: (self.tgt_color_res.clone(), self.sampler.clone()),
-                depth_sampler: (self.tgt_depth_res.clone(), self.sampler.clone()),
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                tgt_color: self.tgt_color_view_pp.clone(),
-            },
-        )
-    }
-
-    pub fn render_post_process(
-        &mut self,
-        model: &Model<postprocess::PostProcessPipeline>,
-        globals: &Consts<Globals>,
-        locals: &Consts<postprocess::Locals>,
-        lod: &lod_terrain::LodData,
-    ) {
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.postprocess_pipeline.pso,
-            &postprocess::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                locals: locals.buf.clone(),
-                globals: globals.buf.clone(),
-                map: (lod.map.srv.clone(), lod.map.sampler.clone()),
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                color_sampler: (self.tgt_color_res_pp.clone(), self.sampler.clone()),
-                depth_sampler: (self.tgt_depth_res.clone(), self.sampler.clone()),
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                tgt_color: self.win_color_view.clone(),
-            },
-        )
-    }
-}
-
-struct GfxPipeline<P: gfx::pso::PipelineInit> {
-    pso: gfx::pso::PipelineState<gfx_backend::Resources, P::Meta>,
-}
-
-/// Creates all the pipelines used to render.
-#[allow(clippy::type_complexity)] // TODO: Pending review in #587
-fn create_pipelines(
-    factory: &mut gfx_backend::Factory,
-    shaders: &Shaders,
-    mode: &RenderMode,
-    has_shadow_views: bool,
-) -> Result<
-    (
-        GfxPipeline<skybox::pipe::Init<'static>>,
-        GfxPipeline<figure::pipe::Init<'static>>,
-        GfxPipeline<terrain::pipe::Init<'static>>,
-        GfxPipeline<fluid::pipe::Init<'static>>,
-        GfxPipeline<sprite::pipe::Init<'static>>,
-        GfxPipeline<particle::pipe::Init<'static>>,
-        GfxPipeline<ui::pipe::Init<'static>>,
-        GfxPipeline<lod_terrain::pipe::Init<'static>>,
-        GfxPipeline<clouds::pipe::Init<'static>>,
-        GfxPipeline<postprocess::pipe::Init<'static>>,
-        GfxPipeline<figure::pipe::Init<'static>>,
-        Option<GfxPipeline<shadow::pipe::Init<'static>>>,
-        Option<GfxPipeline<shadow::pipe::Init<'static>>>,
-        Option<GfxPipeline<shadow::figure_pipe::Init<'static>>>,
-    ),
-    RenderError,
-> {
-    // We dynamically add extra configuration settings to the constants file.
-    let constants = format!(
-        r#"
-{}
-
-#define VOXYGEN_COMPUTATION_PREFERENCE {}
-#define FLUID_MODE {}
-#define CLOUD_MODE {}
-#define LIGHTING_ALGORITHM {}
-#define SHADOW_MODE {}
-
-"#,
-        shaders.constants.read().0,
-        // TODO: Configurable vertex/fragment shader preference.
-        "VOXYGEN_COMPUTATION_PREFERENCE_FRAGMENT",
-        match mode.fluid {
-            FluidMode::Cheap => "FLUID_MODE_CHEAP",
-            FluidMode::Shiny => "FLUID_MODE_SHINY",
-        },
-        match mode.cloud {
-            CloudMode::None => "CLOUD_MODE_NONE",
-            CloudMode::Minimal => "CLOUD_MODE_MINIMAL",
-            CloudMode::Low => "CLOUD_MODE_LOW",
-            CloudMode::Medium => "CLOUD_MODE_MEDIUM",
-            CloudMode::High => "CLOUD_MODE_HIGH",
-            CloudMode::Ultra => "CLOUD_MODE_ULTRA",
-        },
-        match mode.lighting {
-            LightingMode::Ashikhmin => "LIGHTING_ALGORITHM_ASHIKHMIN",
-            LightingMode::BlinnPhong => "LIGHTING_ALGORITHM_BLINN_PHONG",
-            LightingMode::Lambertian => "LIGHTING_ALGORITHM_LAMBERTIAN",
-        },
-        match mode.shadow {
-            ShadowMode::None => "SHADOW_MODE_NONE",
-            ShadowMode::Map(_) if has_shadow_views => "SHADOW_MODE_MAP",
-            ShadowMode::Cheap | ShadowMode::Map(_) => "SHADOW_MODE_CHEAP",
-        },
-    );
-
-    let anti_alias = &match mode.aa {
-        AaMode::None => shaders.anti_alias_none,
-        AaMode::Fxaa => shaders.anti_alias_fxaa,
-        AaMode::MsaaX4 => shaders.anti_alias_msaa_x4,
-        AaMode::MsaaX8 => shaders.anti_alias_msaa_x8,
-        AaMode::MsaaX16 => shaders.anti_alias_msaa_x16,
-    };
-
-    let cloud = &match mode.cloud {
-        CloudMode::None => shaders.cloud_none,
-        _ => shaders.cloud_regular,
-    };
-
-    let mut include_ctx = IncludeContext::new();
-    include_ctx.include("constants.glsl", &constants);
-    include_ctx.include("globals.glsl", &shaders.globals.read().0);
-    include_ctx.include("shadows.glsl", &shaders.shadows.read().0);
-    include_ctx.include("sky.glsl", &shaders.sky.read().0);
-    include_ctx.include("light.glsl", &shaders.light.read().0);
-    include_ctx.include("srgb.glsl", &shaders.srgb.read().0);
-    include_ctx.include("random.glsl", &shaders.random.read().0);
-    include_ctx.include("lod.glsl", &shaders.lod.read().0);
-    include_ctx.include("anti-aliasing.glsl", &anti_alias.read().0);
-    include_ctx.include("cloud.glsl", &cloud.read().0);
-
-    // Construct a pipeline for rendering skyboxes
-    let skybox_pipeline = create_pipeline(
-        factory,
-        skybox::pipe::new(),
-        &shaders.skybox_vert.read().0,
-        &shaders.skybox_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-    )?;
-
-    // Construct a pipeline for rendering figures
-    let figure_pipeline = create_pipeline(
-        factory,
-        figure::pipe::new(),
-        &shaders.figure_vert.read().0,
-        &shaders.figure_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-    )?;
-
-    // Construct a pipeline for rendering terrain
-    let terrain_pipeline = create_pipeline(
-        factory,
-        terrain::pipe::new(),
-        &shaders.terrain_vert.read().0,
-        &shaders.terrain_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-    )?;
-
-    // Construct a pipeline for rendering fluids
-    let fluid_pipeline = create_pipeline(
-        factory,
-        fluid::pipe::new(),
-        &shaders.fluid_vert.read().0,
-        &match mode.fluid {
-            FluidMode::Cheap => shaders.fluid_frag_cheap,
-            FluidMode::Shiny => shaders.fluid_frag_shiny,
-        }
-        .read()
-        .0,
-        &include_ctx,
-        gfx::state::CullFace::Nothing,
-    )?;
-
-    // Construct a pipeline for rendering sprites
-    let sprite_pipeline = create_pipeline(
-        factory,
-        sprite::pipe::new(),
-        &shaders.sprite_vert.read().0,
-        &shaders.sprite_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-    )?;
-
-    // Construct a pipeline for rendering particles
-    let particle_pipeline = create_pipeline(
-        factory,
-        particle::pipe::new(),
-        &shaders.particle_vert.read().0,
-        &shaders.particle_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-    )?;
-
-    // Construct a pipeline for rendering UI elements
-    let ui_pipeline = create_pipeline(
-        factory,
-        ui::pipe::new(),
-        &shaders.ui_vert.read().0,
-        &shaders.ui_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-    )?;
-
-    // Construct a pipeline for rendering terrain
-    let lod_terrain_pipeline = create_pipeline(
-        factory,
-        lod_terrain::pipe::new(),
-        &shaders.lod_terrain_vert.read().0,
-        &shaders.lod_terrain_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-    )?;
-
-    // Construct a pipeline for rendering our clouds (a kind of post-processing)
-    let clouds_pipeline = create_pipeline(
-        factory,
-        clouds::pipe::new(),
-        &shaders.clouds_vert.read().0,
-        &shaders.clouds_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-    )?;
-
-    // Construct a pipeline for rendering our post-processing
-    let postprocess_pipeline = create_pipeline(
-        factory,
-        postprocess::pipe::new(),
-        &shaders.postprocess_vert.read().0,
-        &shaders.postprocess_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-    )?;
-
-    // Construct a pipeline for rendering the player silhouette
-    let player_shadow_pipeline = create_pipeline(
-        factory,
-        figure::pipe::Init {
-            tgt_depth_stencil: (gfx::preset::depth::PASS_TEST/*,
-            Stencil::new(
-                Comparison::Equal,
-                0xff,
-                (StencilOp::Keep, StencilOp::Keep, StencilOp::Keep),
-            ),*/),
-            ..figure::pipe::new()
-        },
-        &shaders.figure_vert.read().0,
-        &shaders.player_shadow_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-    )?;
-
-    // Construct a pipeline for rendering point light terrain shadow maps.
-    let point_shadow_pipeline = match create_shadow_pipeline(
-        factory,
-        shadow::pipe::new(),
-        &shaders.terrain_point_shadow_vert.read().0,
-        Some(&shaders.light_shadows_geom.read().0),
-        &shaders.light_shadows_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-        None, // Some(gfx::state::Offset(2, 0))
-    ) {
-        Ok(pipe) => Some(pipe),
-        Err(err) => {
-            warn!("Could not load point shadow map pipeline: {:?}", err);
-            None
-        },
-    };
-
-    // Construct a pipeline for rendering directional light terrain shadow maps.
-    let terrain_directed_shadow_pipeline = match create_shadow_pipeline(
-        factory,
-        shadow::pipe::new(),
-        &shaders.terrain_directed_shadow_vert.read().0,
-        None,
-        &shaders.directed_shadow_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-        None, // Some(gfx::state::Offset(2, 1))
-    ) {
-        Ok(pipe) => Some(pipe),
-        Err(err) => {
-            warn!(
-                "Could not load directed terrain shadow map pipeline: {:?}",
-                err
+        // Queue screenshot
+        self.take_screenshot = Some(Box::new(screenshot_handler));
+        // Take profiler snapshot
+        if self.mode.profiler_enabled {
+            let file_name = format!(
+                "frame-trace_{}.json",
+                std::time::SystemTime::now()
+                    .duration_since(std::time::SystemTime::UNIX_EPOCH)
+                    .map(|d| d.as_millis())
+                    .unwrap_or(0)
             );
-            None
-        },
-    };
 
-    // Construct a pipeline for rendering directional light figure shadow maps.
-    let figure_directed_shadow_pipeline = match create_shadow_pipeline(
-        factory,
-        shadow::figure_pipe::new(),
-        &shaders.figure_directed_shadow_vert.read().0,
-        None,
-        &shaders.directed_shadow_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-        None, // Some(gfx::state::Offset(2, 1))
-    ) {
-        Ok(pipe) => Some(pipe),
-        Err(err) => {
-            warn!(
-                "Could not load directed figure shadow map pipeline: {:?}",
-                err
-            );
-            None
-        },
-    };
+            if let Err(err) = wgpu_profiler::chrometrace::write_chrometrace(
+                std::path::Path::new(&file_name),
+                &self.profile_times,
+            ) {
+                error!(?err, "Failed to save GPU timing snapshot");
+            } else {
+                info!("Saved GPU timing snapshot as: {}", file_name);
+            }
+        }
+    }
 
-    Ok((
-        skybox_pipeline,
-        figure_pipeline,
-        terrain_pipeline,
-        fluid_pipeline,
-        sprite_pipeline,
-        particle_pipeline,
-        ui_pipeline,
-        lod_terrain_pipeline,
-        clouds_pipeline,
-        postprocess_pipeline,
-        player_shadow_pipeline,
-        point_shadow_pipeline,
-        terrain_directed_shadow_pipeline,
-        figure_directed_shadow_pipeline,
-    ))
+    // Consider reenabling at some time
+    //
+    // /// Queue the rendering of the player silhouette in the upcoming frame.
+    // pub fn render_player_shadow(
+    //     &mut self,
+    //     _model: &figure::FigureModel,
+    //     _col_lights: &Texture<ColLightFmt>,
+    //     _global: &GlobalModel,
+    //     _bones: &Consts<figure::BoneData>,
+    //     _lod: &lod_terrain::LodData,
+    //     _locals: &Consts<shadow::Locals>,
+    // ) {
+    //     // FIXME: Consider reenabling at some point.
+    //     /* let (point_shadow_maps, directed_shadow_maps) =
+    //         if let Some(shadow_map) = &mut self.shadow_map {
+    //             (
+    //                 (
+    //                     shadow_map.point_res.clone(),
+    //                     shadow_map.point_sampler.clone(),
+    //                 ),
+    //                 (
+    //                     shadow_map.directed_res.clone(),
+    //                     shadow_map.directed_sampler.clone(),
+    //                 ),
+    //             )
+    //         } else {
+    //             (
+    //                 (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+    //                 (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+    //             )
+    //         };
+    //     let model = &model.opaque;
+
+    //     self.encoder.draw(
+    //         &gfx::Slice {
+    //             start: model.vertex_range().start,
+    //             end: model.vertex_range().end,
+    //             base_vertex: 0,
+    //             instances: None,
+    //             buffer: gfx::IndexBuffer::Auto,
+    //         },
+    //         &self.player_shadow_pipeline.pso,
+    //         &figure::pipe::Data {
+    //             vbuf: model.vbuf.clone(),
+    //             col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
+    //             locals: locals.buf.clone(),
+    //             globals: global.globals.buf.clone(),
+    //             bones: bones.buf.clone(),
+    //             lights: global.lights.buf.clone(),
+    //             shadows: global.shadows.buf.clone(),
+    //             light_shadows: global.shadow_mats.buf.clone(),
+    //             point_shadow_maps,
+    //             directed_shadow_maps,
+    //             noise: (self.noise_tex.srv.clone(),
+    // self.noise_tex.sampler.clone()),             alt: (lod.alt.srv.clone(),
+    // lod.alt.sampler.clone()),             horizon: (lod.horizon.srv.clone(),
+    // lod.horizon.sampler.clone()),             tgt_color:
+    // self.tgt_color_view.clone(),             tgt_depth:
+    // (self.tgt_depth_view.clone()/* , (0, 0) */),         },
+    //     ); */
+    // }
 }
 
-/// Create a new pipeline from the provided vertex shader and fragment shader.
-fn create_pipeline<P: gfx::pso::PipelineInit>(
-    factory: &mut gfx_backend::Factory,
-    pipe: P,
-    vs: &str,
-    fs: &str,
-    ctx: &IncludeContext,
-    cull_face: gfx::state::CullFace,
-) -> Result<GfxPipeline<P>, RenderError> {
-    let vs = ctx.expand(vs)?;
-    let fs = ctx.expand(fs)?;
+fn create_quad_index_buffer_u16(device: &wgpu::Device, vert_length: usize) -> Buffer<u16> {
+    assert!(vert_length <= u16::MAX as usize);
+    let indices = [0, 1, 2, 2, 1, 3]
+        .iter()
+        .cycle()
+        .copied()
+        .take(vert_length / 4 * 6)
+        .enumerate()
+        .map(|(i, b)| (i / 6 * 4 + b) as u16)
+        .collect::<Vec<_>>();
 
-    let program = factory.link_program(vs.as_bytes(), fs.as_bytes())?;
-
-    let result = Ok(GfxPipeline {
-        pso: factory.create_pipeline_from_program(
-            &program,
-            gfx::Primitive::TriangleList,
-            gfx::state::Rasterizer {
-                front_face: gfx::state::FrontFace::CounterClockwise,
-                cull_face,
-                method: gfx::state::RasterMethod::Fill,
-                offset: None,
-                samples: Some(gfx::state::MultiSample),
-            },
-            pipe,
-        )?,
-    });
-
-    result
+    Buffer::new(device, wgpu::BufferUsage::INDEX, &indices)
 }
 
-/// Create a new shadow map pipeline.
-fn create_shadow_pipeline<P: gfx::pso::PipelineInit>(
-    factory: &mut gfx_backend::Factory,
-    pipe: P,
-    vs: &str,
-    gs: Option<&str>,
-    fs: &str,
-    ctx: &IncludeContext,
-    cull_face: gfx::state::CullFace,
-    offset: Option<gfx::state::Offset>,
-) -> Result<GfxPipeline<P>, RenderError> {
-    let vs = ctx.expand(vs)?;
-    let gs = gs.map(|gs| ctx.expand(gs)).transpose()?;
-    let fs = ctx.expand(fs)?;
+fn create_quad_index_buffer_u32(device: &wgpu::Device, vert_length: usize) -> Buffer<u32> {
+    assert!(vert_length <= u32::MAX as usize);
+    let indices = [0, 1, 2, 2, 1, 3]
+        .iter()
+        .cycle()
+        .copied()
+        .take(vert_length / 4 * 6)
+        .enumerate()
+        .map(|(i, b)| (i / 6 * 4 + b) as u32)
+        .collect::<Vec<_>>();
 
-    let shader_set = if let Some(gs) = gs {
-        factory.create_shader_set_geometry(vs.as_bytes(), gs.as_bytes(), fs.as_bytes())?
-    } else {
-        factory.create_shader_set(vs.as_bytes(), fs.as_bytes())?
-    };
-
-    Ok(GfxPipeline {
-        pso: factory.create_pipeline_state(
-            &shader_set,
-            gfx::Primitive::TriangleList,
-            gfx::state::Rasterizer {
-                front_face: gfx::state::FrontFace::CounterClockwise,
-                // Second-depth shadow mapping: should help reduce z-fighting provided all objects
-                // are "watertight" (every triangle edge is shared with at most one other
-                // triangle); this *should* be true for Veloren.
-                cull_face: match cull_face {
-                    gfx::state::CullFace::Front => gfx::state::CullFace::Back,
-                    gfx::state::CullFace::Back => gfx::state::CullFace::Front,
-                    gfx::state::CullFace::Nothing => gfx::state::CullFace::Nothing,
-                },
-                method: gfx::state::RasterMethod::Fill,
-                offset,
-                samples: None,
-            },
-            pipe,
-        )?,
-    })
+    Buffer::new(device, wgpu::BufferUsage::INDEX, &indices)
 }

@@ -103,11 +103,6 @@ impl Scale {
     /// Get logical window size
     pub fn logical_resolution(&self) -> Vec2<f64> { self.window_dims }
 
-    /// Get physical window size
-    pub fn physical_resolution(&self) -> Vec2<u16> {
-        (self.window_dims * self.scale_factor).map(|e| e.round() as u16)
-    }
-
     // Transform point from logical to scaled coordinates.
     pub fn scale_point(&self, point: Vec2<f64>) -> Vec2<f64> { point / self.scale_factor_logical() }
 }

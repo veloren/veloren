@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 
 #include <constants.glsl>
 
@@ -18,31 +18,28 @@
 
 #include <globals.glsl>
 
-in vec3 v_pos;
+layout(location = 0) in vec3 v_pos;
 
-layout (std140)
-uniform u_locals {
-    vec4 nul;
-};
-
-out vec3 f_pos;
+layout(location = 0) out vec3 f_pos;
 
 void main() {
-    /* vec3 v_pos = v_pos;
-    v_pos.y = -v_pos.y; */
     f_pos = v_pos;
 
     // TODO: Make this position-independent to avoid rounding error jittering
+    // NOTE: we may or may not want to use an infinite projection here
+    //
+    // Essentially: using any finite projection is likely wrong here if we want
+    // to project out to infinity, but since we want to perturb the skybox as we
+    // move and we have stars now, the "right" answer is heavily dependent on
+    // how we compute cloud position and stuff.
+    //
+    // Infinite projections of cubemaps are nice because they can be oriented
+    // but still extend infinitely far.
     gl_Position =
-        /* proj_mat *
-        view_mat * */
         all_mat *
-        /* proj_mat *
-        view_mat * */
-        vec4(/*100000 * */v_pos + cam_pos.xyz, 1);
-        // vec4(v_pos * (100000.0/* + 0.5*/) + cam_pos.xyz, 1);
+        vec4(v_pos + cam_pos.xyz, 1);
     // gl_Position = vec4(gl_Position.xy, sign(gl_Position.z) * gl_Position.w, gl_Position.w);
-    gl_Position.z = gl_Position.w;
+    gl_Position.z = 0;
     // gl_Position.z = gl_Position.w - 0.000001;//0.0;
     // gl_Position.z = 1.0;
     // gl_Position.z = -1.0;

@@ -1,57 +1,31 @@
 use super::{
-    super::{Mesh, Model, Pipeline, TerrainPipeline, TgtColorFmt, TgtDepthStencilFmt},
-    shadow, Globals, Light, Shadow,
+    super::{AaMode, Bound, Consts, GlobalsLayouts, Mesh, Model},
+    terrain::Vertex,
 };
 use crate::mesh::greedy::GreedyMesh;
-use gfx::{
-    self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta, gfx_pipeline,
-    gfx_pipeline_inner, state::ColorMask,
-};
+use bytemuck::{Pod, Zeroable};
 use vek::*;
 
-gfx_defines! {
-    constant Locals {
-        model_mat: [[f32; 4]; 4] = "model_mat",
-        highlight_col: [f32; 4] = "highlight_col",
-        model_light: [f32; 4] = "model_light",
-        model_glow: [f32; 4] = "model_glow",
-        atlas_offs: [i32; 4] = "atlas_offs",
-        model_pos: [f32; 3] = "model_pos",
-        flags: u32 = "flags",
-    }
-
-    constant BoneData {
-        bone_mat: [[f32; 4]; 4] = "bone_mat",
-        normals_mat: [[f32; 4]; 4] = "normals_mat",
-    }
-
-    pipeline pipe {
-        vbuf: gfx::VertexBuffer<<TerrainPipeline as Pipeline>::Vertex> = (),
-        // abuf: gfx::VertexBuffer<<TerrainPipeline as Pipeline>::Vertex> = (),
-        col_lights: gfx::TextureSampler<[f32; 4]> = "t_col_light",
-
-        locals: gfx::ConstantBuffer<Locals> = "u_locals",
-        globals: gfx::ConstantBuffer<Globals> = "u_globals",
-        bones: gfx::ConstantBuffer<BoneData> = "u_bones",
-        lights: gfx::ConstantBuffer<Light> = "u_lights",
-        shadows: gfx::ConstantBuffer<Shadow> = "u_shadows",
-
-        point_shadow_maps: gfx::TextureSampler<f32> = "t_point_shadow_maps",
-        directed_shadow_maps: gfx::TextureSampler<f32> = "t_directed_shadow_maps",
-
-        alt: gfx::TextureSampler<[f32; 2]> = "t_alt",
-        horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
-
-        noise: gfx::TextureSampler<f32> = "t_noise",
-
-        // Shadow stuff
-        light_shadows: gfx::ConstantBuffer<shadow::Locals> = "u_light_shadows",
-
-        tgt_color: gfx::BlendTarget<TgtColorFmt> = ("tgt_color", ColorMask::all(), gfx::preset::blend::ALPHA),
-        tgt_depth_stencil: gfx::DepthTarget<TgtDepthStencilFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,
-        // tgt_depth_stencil: gfx::DepthStencilTarget<TgtDepthStencilFmt> = (gfx::preset::depth::LESS_EQUAL_WRITE,Stencil::new(Comparison::Always,0xff,(StencilOp::Keep,StencilOp::Keep,StencilOp::Replace))),
-    }
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Zeroable, Pod)]
+pub struct Locals {
+    model_mat: [[f32; 4]; 4],
+    highlight_col: [f32; 4],
+    model_light: [f32; 4],
+    model_glow: [f32; 4],
+    atlas_offs: [i32; 4],
+    model_pos: [f32; 3],
+    flags: u32,
 }
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Zeroable, Pod)]
+pub struct BoneData {
+    bone_mat: [[f32; 4]; 4],
+    normals_mat: [[f32; 4]; 4],
+}
+
+pub type BoundLocals = Bound<(Consts<Locals>, Consts<BoneData>)>;
 
 impl Locals {
     pub fn new(
@@ -105,14 +79,8 @@ impl Default for BoneData {
     fn default() -> Self { Self::new(anim::vek::Mat4::identity(), anim::vek::Mat4::identity()) }
 }
 
-pub struct FigurePipeline;
-
-impl Pipeline for FigurePipeline {
-    type Vertex = <TerrainPipeline as Pipeline>::Vertex;
-}
-
 pub struct FigureModel {
-    pub opaque: Model<TerrainPipeline>,
+    pub opaque: Model<Vertex>,
     /* TODO: Consider using mipmaps instead of storing multiple texture atlases for different
      * LOD levels. */
 }
@@ -129,4 +97,157 @@ impl FigureModel {
     }
 }
 
-pub type BoneMeshes = (Mesh<TerrainPipeline>, anim::vek::Aabb<f32>);
+pub type BoneMeshes = (Mesh<Vertex>, anim::vek::Aabb<f32>);
+
+pub struct FigureLayout {
+    pub locals: wgpu::BindGroupLayout,
+}
+
+impl FigureLayout {
+    pub fn new(device: &wgpu::Device) -> Self {
+        Self {
+            locals: device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: None,
+                entries: &[
+                    // locals
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Uniform,
+                            has_dynamic_offset: false,
+                            min_binding_size: None,
+                        },
+                        count: None,
+                    },
+                    // bone data
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
+                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Uniform,
+                            has_dynamic_offset: false,
+                            min_binding_size: None,
+                        },
+                        count: None,
+                    },
+                ],
+            }),
+        }
+    }
+
+    pub fn bind_locals(
+        &self,
+        device: &wgpu::Device,
+        locals: Consts<Locals>,
+        bone_data: Consts<BoneData>,
+    ) -> BoundLocals {
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &self.locals,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: locals.buf().as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: bone_data.buf().as_entire_binding(),
+                },
+            ],
+        });
+
+        BoundLocals {
+            bind_group,
+            with: (locals, bone_data),
+        }
+    }
+}
+
+pub struct FigurePipeline {
+    pub pipeline: wgpu::RenderPipeline,
+}
+
+impl FigurePipeline {
+    pub fn new(
+        device: &wgpu::Device,
+        vs_module: &wgpu::ShaderModule,
+        fs_module: &wgpu::ShaderModule,
+        global_layout: &GlobalsLayouts,
+        layout: &FigureLayout,
+        aa_mode: AaMode,
+    ) -> Self {
+        common_base::span!(_guard, "FigurePipeline::new");
+        let render_pipeline_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("Figure pipeline layout"),
+                push_constant_ranges: &[],
+                bind_group_layouts: &[
+                    &global_layout.globals,
+                    &global_layout.shadow_textures,
+                    &layout.locals,
+                    &global_layout.col_light,
+                ],
+            });
+
+        let samples = match aa_mode {
+            AaMode::None | AaMode::Fxaa => 1,
+            AaMode::MsaaX4 => 4,
+            AaMode::MsaaX8 => 8,
+            AaMode::MsaaX16 => 16,
+        };
+
+        let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("Figure pipeline"),
+            layout: Some(&render_pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: vs_module,
+                entry_point: "main",
+                buffers: &[Vertex::desc()],
+            },
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: Some(wgpu::Face::Back),
+                clamp_depth: false,
+                polygon_mode: wgpu::PolygonMode::Fill,
+                conservative: false,
+            },
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: wgpu::TextureFormat::Depth32Float,
+                depth_write_enabled: true,
+                depth_compare: wgpu::CompareFunction::GreaterEqual,
+                stencil: wgpu::StencilState {
+                    front: wgpu::StencilFaceState::IGNORE,
+                    back: wgpu::StencilFaceState::IGNORE,
+                    read_mask: !0,
+                    write_mask: !0,
+                },
+                bias: wgpu::DepthBiasState {
+                    constant: 0,
+                    slope_scale: 0.0,
+                    clamp: 0.0,
+                },
+            }),
+            multisample: wgpu::MultisampleState {
+                count: samples,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: fs_module,
+                entry_point: "main",
+                targets: &[wgpu::ColorTargetState {
+                    format: wgpu::TextureFormat::Rgba16Float,
+                    blend: None,
+                    write_mask: wgpu::ColorWrite::ALL,
+                }],
+            }),
+        });
+
+        Self {
+            pipeline: render_pipeline,
+        }
+    }
+}

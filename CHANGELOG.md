@@ -65,6 +65,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed Animal Trainers to Beastmasters and gave them their own set of armor to wear
 - ChargedRanged attacks (such as some bow attacks) use an FOV zoom effect to indicate charge.
 - Add chest to each dungeon with unique loot
+- Added a new option in the graphics menu to enable GPU timing (not always supported). The timing values can be viewed in the HUD debug info (F3) and will be saved as chrome trace files in the working directory when taking a screenshot.
+- Added new Present Mode option in the graphics menu. Selecting Fifo (i.e. vsync) or Mailbox can be used to eliminate screen tearing.
 
 ### Changed
 
@@ -113,6 +115,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Water extinguishes entities on fire
 - Item pickups are shown in separate window and inventory-full shows above item
 - Reworked bow
+- Switched to the `wgpu` graphics library giving us support for vulkan, dx12, metal, and dx11 (support for opengl is lost for the moment). This improves the graphics performance for many users.
+- Reworked sprite rendering to vastly reduce the CPU work. Large sprite view distances are now much more performant.
+- Optimized rendering of quads (most of the graphics in the game) using an index buffer, decreasing the number of vertices that need to be processed by 33%.
+- Moved the rest of screenshot work into the background. Screenshoting no longer induces large pauses.
 
 ### Removed
 

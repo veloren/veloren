@@ -1,69 +1,89 @@
-use super::{gfx_backend, mesh::Mesh, Pipeline, RenderError};
-use gfx::{
-    buffer::Role,
-    memory::{Bind, Usage},
-    traits::FactoryExt,
-    Factory,
+use super::{
+    buffer::{Buffer, DynamicBuffer},
+    mesh::Mesh,
+    Vertex,
 };
 use std::ops::Range;
 
 /// Represents a mesh that has been sent to the GPU.
-pub struct Model<P: Pipeline> {
-    pub vbuf: gfx::handle::Buffer<gfx_backend::Resources, P::Vertex>,
+pub struct SubModel<'a, V: Vertex> {
     pub vertex_range: Range<u32>,
+    buf: &'a wgpu::Buffer,
+    phantom_data: std::marker::PhantomData<V>,
 }
 
-impl<P: Pipeline> Model<P> {
-    pub fn new(factory: &mut gfx_backend::Factory, mesh: &Mesh<P>) -> Self {
-        Self {
-            vbuf: factory.create_vertex_buffer(mesh.vertices()),
-            vertex_range: 0..mesh.vertices().len() as u32,
-        }
+impl<'a, V: Vertex> SubModel<'a, V> {
+    pub(super) fn buf(&self) -> wgpu::BufferSlice<'a> {
+        let start = self.vertex_range.start as wgpu::BufferAddress * V::STRIDE;
+        let end = self.vertex_range.end as wgpu::BufferAddress * V::STRIDE;
+        self.buf.slice(start..end)
     }
 
-    pub fn vertex_range(&self) -> Range<u32> { self.vertex_range.clone() }
+    #[allow(clippy::len_without_is_empty)]
+    pub fn len(&self) -> u32 { self.vertex_range.end - self.vertex_range.start }
+}
 
-    /// Create a model with a slice of a portion of this model to send to the
-    /// renderer.
-    pub fn submodel(&self, vertex_range: Range<u32>) -> Model<P> {
-        Model {
-            vbuf: self.vbuf.clone(),
-            vertex_range,
+/// Represents a mesh that has been sent to the GPU.
+pub struct Model<V: Vertex> {
+    vbuf: Buffer<V>,
+}
+
+impl<V: Vertex> Model<V> {
+    /// Returns None if the provided mesh is empty
+    pub fn new(device: &wgpu::Device, mesh: &Mesh<V>) -> Option<Self> {
+        if mesh.vertices().is_empty() {
+            return None;
         }
-    }
-}
 
-/// Represents a mesh on the GPU which can be updated dynamically.
-pub struct DynamicModel<P: Pipeline> {
-    pub vbuf: gfx::handle::Buffer<gfx_backend::Resources, P::Vertex>,
-}
-
-impl<P: Pipeline> DynamicModel<P> {
-    pub fn new(factory: &mut gfx_backend::Factory, size: usize) -> Result<Self, RenderError> {
-        Ok(Self {
-            vbuf: factory
-                .create_buffer(size, Role::Vertex, Usage::Dynamic, Bind::empty())
-                .map_err(RenderError::BufferCreationError)?,
+        Some(Self {
+            vbuf: Buffer::new(device, wgpu::BufferUsage::VERTEX, mesh.vertices()),
         })
     }
 
     /// Create a model with a slice of a portion of this model to send to the
     /// renderer.
-    pub fn submodel(&self, vertex_range: Range<u32>) -> Model<P> {
-        Model {
-            vbuf: self.vbuf.clone(),
+    pub fn submodel(&self, vertex_range: Range<u32>) -> SubModel<V> {
+        SubModel {
             vertex_range,
+            buf: self.buf(),
+            phantom_data: std::marker::PhantomData,
         }
     }
 
-    pub fn update(
-        &self,
-        encoder: &mut gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
-        mesh: &Mesh<P>,
-        offset: usize,
-    ) -> Result<(), RenderError> {
-        encoder
-            .update_buffer(&self.vbuf, mesh.vertices(), offset)
-            .map_err(RenderError::UpdateError)
+    pub(super) fn buf(&self) -> &wgpu::Buffer { &self.vbuf.buf }
+
+    #[allow(clippy::len_without_is_empty)]
+    pub fn len(&self) -> usize { self.vbuf.len() }
+}
+
+/// Represents a mesh that has been sent to the GPU.
+pub struct DynamicModel<V: Vertex> {
+    vbuf: DynamicBuffer<V>,
+}
+
+impl<V: Vertex> DynamicModel<V> {
+    pub fn new(device: &wgpu::Device, size: usize) -> Self {
+        Self {
+            vbuf: DynamicBuffer::new(device, size, wgpu::BufferUsage::VERTEX),
+        }
     }
+
+    pub fn update(&self, queue: &wgpu::Queue, mesh: &Mesh<V>, offset: usize) {
+        self.vbuf.update(queue, mesh.vertices(), offset)
+    }
+
+    /// Create a model with a slice of a portion of this model to send to the
+    /// renderer.
+    pub fn submodel(&self, vertex_range: Range<u32>) -> SubModel<V> {
+        SubModel {
+            vertex_range,
+            buf: self.buf(),
+            phantom_data: std::marker::PhantomData,
+        }
+    }
+
+    pub fn buf(&self) -> &wgpu::Buffer { &self.vbuf.buf }
+
+    #[allow(clippy::len_without_is_empty)]
+    pub fn len(&self) -> usize { self.vbuf.len() }
 }

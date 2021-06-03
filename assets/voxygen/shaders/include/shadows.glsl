@@ -1,22 +1,29 @@
+#ifndef SHADOWS_GLSL
+#define SHADOWS_GLSL
+
 #ifdef HAS_SHADOW_MAPS
 
-    #if (SHADOW_MODE == SHADOW_MODE_MAP)
-struct ShadowLocals {
+#if (SHADOW_MODE == SHADOW_MODE_MAP)
+layout (std140, set = 0, binding = 9)
+uniform u_light_shadows {
     mat4 shadowMatrices;
     mat4 texture_mat;
 };
 
-layout (std140)
-uniform u_light_shadows {
-    ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
-};
-
-uniform sampler2DShadow t_directed_shadow_maps;
+// Use with sampler2DShadow
+layout(set = 1, binding = 2)
+uniform texture2D t_directed_shadow_maps;
+layout(set = 1, binding = 3)
+uniform samplerShadow s_directed_shadow_maps;
 // uniform sampler2DArrayShadow t_directed_shadow_maps;
 
 // uniform samplerCubeArrayShadow t_shadow_maps;
 // uniform samplerCubeArray t_shadow_maps;
-uniform samplerCubeShadow t_point_shadow_maps;
+// Use with samplerCubeShadow
+layout(set = 1, binding = 0)
+uniform textureCube t_point_shadow_maps;
+layout(set = 1, binding = 1)
+uniform samplerShadow s_point_shadow_maps;
 // uniform samplerCube t_shadow_maps;
 
 // uniform sampler2DArray t_directed_shadow_maps;
@@ -35,9 +42,13 @@ float VectorToDepth (vec3 Vec)
 
     // float NormZComp = (screen_res.w+screen_res.z) / (screen_res.w-screen_res.z) - (2*screen_res.w*screen_res.z)/(screen_res.w-screen_res.z)/LocalZcomp;
     // float NormZComp = 1.0 - shadow_proj_factors.y / shadow_proj_factors.x / LocalZcomp;
+    // -(1 + 2n/(f-n)) - 2(1 + n/(f-n)) * n/z
+    // -(1 + n/(f-n)) - (1 + n/(f-n)) * n/z
+    // f/(f-n) - fn/(f-n)/z
     float NormZComp = shadow_proj_factors.x - shadow_proj_factors.y / LocalZcomp;
     // NormZComp = -1000.0 / (NormZComp + 10000.0);
-    return (NormZComp + 1.0) * 0.5;
+    // return (NormZComp + 1.0) * 0.5;
+    return NormZComp;
 
     // float NormZComp = length(LocalZcomp);
     // NormZComp = -NormZComp / screen_res.w;
@@ -64,7 +75,9 @@ float ShadowCalculationPoint(uint lightIndex, vec3 fragToLight, vec3 fragNorm, /
     {
         float currentDepth = VectorToDepth(fragToLight);// + bias;
 
-        float visibility = texture(t_point_shadow_maps, vec4(fragToLight, currentDepth));// / (screen_res.w/* - screen_res.z*/)/*1.0 -bias*//*-(currentDepth - bias) / screen_res.w*//*-screen_res.w*/);
+        // currentDepth = -currentDepth * 0.5 + 0.5;
+
+        float visibility = texture(samplerCubeShadow(t_point_shadow_maps, s_point_shadow_maps), vec4(fragToLight, currentDepth));// / (screen_res.w/* - screen_res.z*/)/*1.0 -bias*//*-(currentDepth - bias) / screen_res.w*//*-screen_res.w*/);
         /* if (visibility == 1.0 || visibility == 0.0) {
             return visibility;
         } */
@@ -154,10 +167,45 @@ float ShadowCalculationDirected(in vec3 fragPos)//in vec4 /*light_pos[2]*/sun_po
     } */
     // vec3 fragPos = sun_pos.xyz;// / sun_pos.w;//light_pos[lightIndex].xyz;
     // sun_pos.z += sun_pos.w * bias;
-    mat4 texture_mat = shadowMats[0].texture_mat;
-    vec4 sun_pos = texture_mat * vec4(fragPos, 1.0);
-    // sun_pos.z -= sun_pos.w * bias;
-    float visibility = textureProj(t_directed_shadow_maps, sun_pos);
+    vec4 sun_pos = texture_mat/*shadowMatrices*/ * vec4(fragPos, 1.0);
+    // sun_pos.xy = 0.5 * sun_pos.w + sun_pos.xy * 0.5;
+    // sun_pos.xy = sun_pos.ww - sun_pos.xy;
+    // sun_pos.xyz /= abs(sun_pos.w);
+    // sun_pos.w = sign(sun_pos.w);
+    // sun_pos.xy = (sun_pos.xy + 1.0) * 0.5;
+    // vec4 orig_pos = warpViewMat * lightViewMat * vec4(fragPos, 1.0);
+    //
+    // vec4 shadow_pos;
+    // shadow_pos.xyz = (warpProjMat * orig_pos).xyz:
+    // shadow_pos.w = orig_pos.y;
+    //
+    // sun_pos.xy = 0.5 * (shadow_pos.xy + shadow_pos.w) = 0.5 * (shadow_pos.xy + orig_pos.yy);
+    // sun_pos.z = shadow_pos.z;
+    //
+    // sun_pos.w = sign(shadow_pos.w) = sign(orig_pos.y);
+    // sun_pos.xyz = sun_pos.xyz / shadow_pos.w = vec3(0.5 * shadow_pos.xy / orig_pos.yy + 0.5, shadow_pos.z / orig_pos.y)
+    //             = vec3(0.5 * (2.0 * warp_pos.xy / orig_pos.yy - (max_warp_pos + min_warp_pos).xy) / (max_warp_pos - min_warp_pos).xy + 0.5,
+    //                    -(warp_pos.z / orig_pos.y - min_warp_pos.z) / (max_warp_pos - min_warp_pos).z )
+    //             = vec3((warp_pos.x / orig_pos.y - min_warp_pos.x) / (max_warp_pos - min_warp_pos).x,
+    //                    (warp_pos.y / orig_pos.y - min_warp_pos.y) / (max_warp_pos - min_warp_pos).y,
+    //                    -(warp_pos.z / orig_pos.y - min_warp_pos.z) / (max_warp_pos - min_warp_pos).z )
+    //             = vec3((near * orig_pos.x / orig_pos.y - min_warp_pos.x) / (max_warp_pos - min_warp_pos).x,
+    //                    (((far+near) - 2.0 * near * far / orig_pos.y)/(far-near) - min_warp_pos.y) / (max_warp_pos - min_warp_pos).y,
+    //                    -(near * orig_pos.z / orig_pos.y - min_warp_pos.z) / (max_warp_pos - min_warp_pos).z )
+    //             = vec3((near * orig_pos.x / orig_pos.y - min_warp_pos.x) / (max_warp_pos - min_warp_pos).x,
+    //                    (2.0 * (1.0 - far / orig_pos.y)*near/(far-near) + 1.0 - min_warp_pos.y) / (max_warp_pos - min_warp_pos).y,
+    //                    -(near * orig_pos.z / orig_pos.y - min_warp_pos.z) / (max_warp_pos - min_warp_pos).z )
+    //             = vec3((near * orig_pos.x / orig_pos.y - min_warp_pos.x) / (max_warp_pos - min_warp_pos).x,
+    //                    (2.0 * (1.0 - far / orig_pos.y)*near/(far-near) + 1.0 - 0.0) / (1.0 - 0.0),
+    //                    -(near * orig_pos.z / orig_pos.y - min_warp_pos.z) / (max_warp_pos - min_warp_pos).z )
+    //             = vec3((near * orig_pos.x / orig_pos.y - min_warp_pos.x) / (max_warp_pos - min_warp_pos).x,
+    //                    2.0 * (1.0 - far / orig_pos.y)*near/(far-near) + 1.0,
+    //                    -(near * orig_pos.z / orig_pos.y - min_warp_pos.z) / (max_warp_pos - min_warp_pos).z )
+    //
+    // orig_pos.y = n: warp_pos.y = 2*(1-f/n)*n/(f-n) + 1 = 2*(n-f)/(f-n) + 1 = 2 * -1 + 1 = -1, sun_pos.y = (-1 - -1) / 2 = 0
+    // orig_pos.y = f: warp_pos.y = 2*(1-f/f)*n/(f-n) + 1 = 2*(1-1)*n/(f-n) + 1 = 2 * 0 * n/(f-n) + 1 = 1, sun_pos.y = (1 - -1) / 2 = 1
+    //
+    float visibility = textureProj(sampler2DShadow(t_directed_shadow_maps, s_directed_shadow_maps), sun_pos);
     /* float visibilityLeft = textureProj(t_directed_shadow_maps, sun_shadow.texture_mat * vec4(fragPos + vec3(0.0, -diskRadius, 0.0), 1.0));
     float visibilityRight = textureProj(t_directed_shadow_maps, sun_shadow.texture_mat * vec4(fragPos + vec3(0.0, diskRadius, 0.0), 1.0)); */
     // float nearVisibility = textureProj(t_directed_shadow_maps + vec3(0.001, sun_pos));
@@ -215,4 +263,6 @@ float ShadowCalculationPoint(uint lightIndex, vec3 fragToLight, vec3 fragNorm, /
 {
     return 1.0;
 }
+#endif
+
 #endif

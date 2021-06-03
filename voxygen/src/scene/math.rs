@@ -80,7 +80,7 @@ pub fn calc_view_frustum_world_coord<T: Float + MulAdd<T, T, Output = T>>(
     inv_proj_view: Mat4<T>,
 ) -> [Vec3<T>; 8] {
     let mut world_pts = aabb_to_points(Aabb {
-        min: -Vec3::one(),
+        min: Vec3::new(-T::one(), -T::one(), T::zero()),
         max: Vec3::one(),
     });
     mat_mul_points(inv_proj_view, &mut world_pts, |p| Vec3::from(p) / p.w);

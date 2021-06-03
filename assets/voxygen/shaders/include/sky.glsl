@@ -1,3 +1,6 @@
+#ifndef SKY_GLSL
+#define SKY_GLSL
+
 #include <random.glsl>
 #include <srgb.glsl>
 #include <shadows.glsl>
@@ -84,7 +87,7 @@ vec2 wind_offset = vec2(time_of_day.x * wind_speed);
 float cloud_scale = view_distance.z / 150.0;
 
 float cloud_tendency_at(vec2 pos) {
-    float nz = texture(t_noise, (pos + wind_offset) / 60000.0 / cloud_scale).x - 0.3;
+    float nz = textureLod(sampler2D(t_noise, s_noise), (pos + wind_offset) / 60000.0 / cloud_scale, 0).x - 0.3;
     nz = pow(clamp(nz, 0, 1), 3);
     return nz;
 }
@@ -425,7 +428,7 @@ vec3 get_sky_light(vec3 dir, float time_of_day, bool with_stars) {
         mix(
             SKY_DUSK_TOP,
             SKY_NIGHT_TOP,
-            max(pow(sun_dir.z, 0.2), 0)
+            pow(max(sun_dir.z, 0.0), 0.2)
         ) + star,
         SKY_DAY_TOP,
         max(-sun_dir.z, 0)
@@ -434,7 +437,7 @@ vec3 get_sky_light(vec3 dir, float time_of_day, bool with_stars) {
     vec3 sky_mid = mix(
         mix( SKY_DUSK_MID,
             SKY_NIGHT_MID,
-            max(pow(sun_dir.z, 0.1), 0)
+            pow(max(sun_dir.z, 0.0), 0.1)
         ),
         SKY_DAY_MID,
         max(-sun_dir.z, 0)
@@ -444,7 +447,7 @@ vec3 get_sky_light(vec3 dir, float time_of_day, bool with_stars) {
         mix(
             SKY_DUSK_BOT,
             SKY_NIGHT_BOT,
-            max(pow(sun_dir.z, 0.2), 0)
+            pow(max(sun_dir.z, 0.0), 0.2)
         ),
         SKY_DAY_BOT,
         max(-sun_dir.z, 0)
@@ -640,3 +643,5 @@ vec3 illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitted
     // float sum_col = color.r + color.g + color.b;
     // return /*srgb_to_linear*/(/*0.5*//*0.125 * */vec3(pow(color.x, gamma), pow(color.y, gamma), pow(color.z, gamma)));
 }
+
+#endif

@@ -1,42 +1,12 @@
-use super::{
-    super::{Pipeline, TerrainLocals, TgtColorFmt, TgtDepthStencilFmt},
-    shadow, Globals, Light, Shadow,
-};
-use gfx::{
-    self, gfx_defines, gfx_impl_struct_meta, gfx_pipeline, gfx_pipeline_inner,
-    gfx_vertex_struct_meta, state::ColorMask,
-};
+use super::super::{AaMode, GlobalsLayouts, TerrainLayout, Vertex as VertexTrait};
+use bytemuck::{Pod, Zeroable};
+use std::mem;
 use vek::*;
 
-gfx_defines! {
-    vertex Vertex {
-        pos_norm: u32 = "v_pos_norm",
-    }
-
-    pipeline pipe {
-        vbuf: gfx::VertexBuffer<Vertex> = (),
-
-        locals: gfx::ConstantBuffer<TerrainLocals> = "u_locals",
-        globals: gfx::ConstantBuffer<Globals> = "u_globals",
-        lights: gfx::ConstantBuffer<Light> = "u_lights",
-        shadows: gfx::ConstantBuffer<Shadow> = "u_shadows",
-
-        point_shadow_maps: gfx::TextureSampler<f32> = "t_point_shadow_maps",
-        directed_shadow_maps: gfx::TextureSampler<f32> = "t_directed_shadow_maps",
-
-        alt: gfx::TextureSampler<[f32; 2]> = "t_alt",
-        horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
-
-        noise: gfx::TextureSampler<f32> = "t_noise",
-        waves: gfx::TextureSampler<[f32; 4]> = "t_waves",
-
-        // Shadow stuff
-        light_shadows: gfx::ConstantBuffer<shadow::Locals> = "u_light_shadows",
-
-        tgt_color: gfx::BlendTarget<TgtColorFmt> = ("tgt_color", ColorMask::all(), gfx::preset::blend::ALPHA),
-        tgt_depth_stencil: gfx::DepthTarget<TgtDepthStencilFmt> = gfx::preset::depth::LESS_EQUAL_TEST,
-        // tgt_depth_stencil: gfx::DepthStencilTarget<TgtDepthStencilFmt> = (gfx::preset::depth::LESS_EQUAL_TEST,Stencil::new(Comparison::Always,0xff,(StencilOp::Keep,StencilOp::Keep,StencilOp::Keep))),
-    }
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Zeroable, Pod)]
+pub struct Vertex {
+    pos_norm: u32,
 }
 
 impl Vertex {
@@ -61,10 +31,116 @@ impl Vertex {
                 | (norm_bits & 0x7) << 29,
         }
     }
+
+    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+        const ATTRIBUTES: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![0 => Uint32];
+        wgpu::VertexBufferLayout {
+            array_stride: Self::STRIDE,
+            step_mode: wgpu::InputStepMode::Vertex,
+            attributes: &ATTRIBUTES,
+        }
+    }
 }
 
-pub struct FluidPipeline;
+impl VertexTrait for Vertex {
+    const QUADS_INDEX: Option<wgpu::IndexFormat> = Some(wgpu::IndexFormat::Uint16);
+    const STRIDE: wgpu::BufferAddress = mem::size_of::<Self>() as wgpu::BufferAddress;
+}
 
-impl Pipeline for FluidPipeline {
-    type Vertex = Vertex;
+pub struct FluidPipeline {
+    pub pipeline: wgpu::RenderPipeline,
+}
+
+impl FluidPipeline {
+    pub fn new(
+        device: &wgpu::Device,
+        vs_module: &wgpu::ShaderModule,
+        fs_module: &wgpu::ShaderModule,
+        global_layout: &GlobalsLayouts,
+        terrain_layout: &TerrainLayout,
+        aa_mode: AaMode,
+    ) -> Self {
+        common_base::span!(_guard, "FluidPipeline::new");
+        let render_pipeline_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("Fluid pipeline layout"),
+                push_constant_ranges: &[],
+                bind_group_layouts: &[
+                    &global_layout.globals,
+                    &global_layout.shadow_textures,
+                    &terrain_layout.locals,
+                ],
+            });
+
+        let samples = match aa_mode {
+            AaMode::None | AaMode::Fxaa => 1,
+            AaMode::MsaaX4 => 4,
+            AaMode::MsaaX8 => 8,
+            AaMode::MsaaX16 => 16,
+        };
+
+        let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("Fluid pipeline"),
+            layout: Some(&render_pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: vs_module,
+                entry_point: "main",
+                buffers: &[Vertex::desc()],
+            },
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: None,
+                clamp_depth: false,
+                polygon_mode: wgpu::PolygonMode::Fill,
+                conservative: false,
+            },
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: wgpu::TextureFormat::Depth32Float,
+                depth_write_enabled: false,
+                depth_compare: wgpu::CompareFunction::GreaterEqual,
+                stencil: wgpu::StencilState {
+                    front: wgpu::StencilFaceState::IGNORE,
+                    back: wgpu::StencilFaceState::IGNORE,
+                    read_mask: !0,
+                    write_mask: !0,
+                },
+                bias: wgpu::DepthBiasState {
+                    constant: 0,
+                    slope_scale: 0.0,
+                    clamp: 0.0,
+                },
+            }),
+            multisample: wgpu::MultisampleState {
+                count: samples,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: fs_module,
+                entry_point: "main",
+                targets: &[wgpu::ColorTargetState {
+                    format: wgpu::TextureFormat::Rgba16Float,
+                    blend: Some(wgpu::BlendState {
+                        color: wgpu::BlendComponent {
+                            src_factor: wgpu::BlendFactor::SrcAlpha,
+                            dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                            operation: wgpu::BlendOperation::Add,
+                        },
+                        alpha: wgpu::BlendComponent {
+                            src_factor: wgpu::BlendFactor::One,
+                            dst_factor: wgpu::BlendFactor::One,
+                            operation: wgpu::BlendOperation::Add,
+                        },
+                    }),
+                    write_mask: wgpu::ColorWrite::ALL,
+                }],
+            }),
+        });
+
+        Self {
+            pipeline: render_pipeline,
+        }
+    }
 }

@@ -9,9 +9,11 @@ csv-import = "run --manifest-path common/Cargo.toml --features=bin_csv --bin csv
 test-server = "run --bin veloren-server-cli --no-default-features -- -b"
 tracy-server = "-Zunstable-options run --bin veloren-server-cli --no-default-features --features tracy,simd --profile no_overflow"
 tracy-world-server = "-Zunstable-options run --bin veloren-server-cli --features tracy,simd --profile no_overflow -- -b"
-test-voxygen = "run --bin veloren-voxygen --no-default-features --features gl,simd"
-tracy-voxygen = "-Zunstable-options run --bin veloren-voxygen --no-default-features --features tracy,gl,simd --profile no_overflow"
+test-voxygen = "run --bin veloren-voxygen --no-default-features --features simd"
+tracy-voxygen = "-Zunstable-options run --bin veloren-voxygen --no-default-features --features tracy,simd --profile no_overflow"
 server = "run --bin veloren-server-cli"
+dbg-voxygen = "run --bin veloren-voxygen -Zunstable-options --profile debuginfo"
+
 
 [env]
 RUSTC_FORCE_INCREMENTAL = "1"

@@ -36,6 +36,8 @@ widget_ids! {
         load_tips_button_label,
         debug_button,
         debug_button_label,
+        hitboxes_button,
+        hitboxes_button_label,
         ch_title,
         ch_transp_slider,
         ch_transp_value,
@@ -239,9 +241,33 @@ impl<'a> Widget for Interface<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.debug_button_label, ui);
 
+        // Hitboxes
+        let show_hitboxes = ToggleButton::new(
+            self.global_state.settings.interface.toggle_hitboxes,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .down_from(state.ids.debug_button, 8.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.hitboxes_button, ui);
+
+        if self.global_state.settings.interface.toggle_hitboxes != show_hitboxes {
+            events.push(ToggleHitboxes(show_hitboxes));
+        }
+
+        Text::new(&self.localized_strings.get("hud.settings.show_hitboxes"))
+            .right_from(state.ids.hitboxes_button, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.hitboxes_button)
+            .color(TEXT_COLOR)
+            .set(state.ids.hitboxes_button_label, ui);
+
         // Ui Scale
         Text::new(&self.localized_strings.get("hud.settings.ui_scale"))
-            .down_from(state.ids.debug_button, 20.0)
+            .down_from(state.ids.hitboxes_button, 20.0)
             .font_size(self.fonts.cyri.scale(18))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)

@@ -15,8 +15,8 @@ use super::{
 };
 use crate::{
     render::{
-        create_ui_quad, create_ui_quad_vert_gradient, Consts, DynamicModel, Globals, Mesh,
-        Renderer, UiLocals, UiMode, UiPipeline,
+        create_ui_quad, create_ui_quad_vert_gradient, DynamicModel, Mesh, Renderer, UiBoundLocals,
+        UiDrawer, UiLocals, UiMode, UiVertex,
     },
     Error,
 };
@@ -83,12 +83,11 @@ pub struct IcedRenderer {
     //image_map: Map<(Image, Rotation)>,
     cache: Cache,
     // Model for drawing the ui
-    model: DynamicModel<UiPipeline>,
+    model: DynamicModel<UiVertex>,
     // Consts to specify positions of ingame elements (e.g. Nametags)
-    ingame_locals: Vec<Consts<UiLocals>>,
+    ingame_locals: Vec<UiBoundLocals>,
     // Consts for default ui drawing position (ie the interface)
-    interface_locals: Consts<UiLocals>,
-    default_globals: Consts<Globals>,
+    interface_locals: UiBoundLocals,
 
     // Used to delay cache resizing until after current frame is drawn
     //need_cache_resize: bool,
@@ -105,7 +104,7 @@ pub struct IcedRenderer {
 
     // Per-frame/update
     current_state: State,
-    mesh: Mesh<UiPipeline>,
+    mesh: Mesh<UiVertex>,
     glyphs: Vec<(usize, usize, Rgba<f32>, Vec2<u32>)>,
     // Output from glyph_brush in the previous frame
     // It can sometimes ask you to redraw with these instead (idk if that is done with
@@ -119,18 +118,19 @@ impl IcedRenderer {
     pub fn new(
         renderer: &mut Renderer,
         scaled_resolution: Vec2<f32>,
-        physical_resolution: Vec2<u16>,
+        physical_resolution: Vec2<u32>,
         default_font: Font,
     ) -> Result<Self, Error> {
         let (half_res, align, p_scale) =
             Self::calculate_resolution_dependents(physical_resolution, scaled_resolution);
 
+        let interface_locals = renderer.create_ui_bound_locals(&[UiLocals::default()]);
+
         Ok(Self {
             cache: Cache::new(renderer, default_font)?,
             draw_commands: Vec::new(),
-            model: renderer.create_dynamic_model(100)?,
-            interface_locals: renderer.create_consts(&[UiLocals::default()])?,
-            default_globals: renderer.create_consts(&[Globals::default()])?,
+            model: renderer.create_dynamic_model(100),
+            interface_locals,
             ingame_locals: Vec::new(),
             mesh: Mesh::new(),
             glyphs: Vec::new(),
@@ -170,7 +170,7 @@ impl IcedRenderer {
     pub fn resize(
         &mut self,
         scaled_resolution: Vec2<f32>,
-        physical_resolution: Vec2<u16>,
+        physical_resolution: Vec2<u32>,
         renderer: &mut Renderer,
     ) {
         self.win_dims = scaled_resolution;
@@ -227,22 +227,20 @@ impl IcedRenderer {
             .push(DrawCommand::plain(self.start..self.mesh.vertices().len()));*/
 
         // Fill in placeholder glyph quads
-        let (glyph_cache, cache_tex) = self.cache.glyph_cache_mut_and_tex();
+        let (glyph_cache, (cache_tex, _)) = self.cache.glyph_cache_mut_and_tex();
         let half_res = self.half_res;
 
         let brush_result = glyph_cache.process_queued(
             |rect, tex_data| {
-                let offset = [rect.min[0] as u16, rect.min[1] as u16];
-                let size = [rect.width() as u16, rect.height() as u16];
+                let offset = rect.min;
+                let size = [rect.width(), rect.height()];
 
                 let new_data = tex_data
                     .iter()
                     .map(|x| [255, 255, 255, *x])
                     .collect::<Vec<[u8; 4]>>();
 
-                if let Err(err) = renderer.update_texture(cache_tex, offset, size, &new_data) {
-                    tracing::warn!("Failed to update glyph cache texture: {:?}", err);
-                }
+                renderer.update_texture(cache_tex, offset, size, &new_data);
             },
             // Urgh more allocation we don't need
             |vertex_data| {
@@ -313,18 +311,16 @@ impl IcedRenderer {
 
         // Create a larger dynamic model if the mesh is larger than the current model
         // size.
-        if self.model.vbuf.len() < self.mesh.vertices().len() {
-            self.model = renderer
-                .create_dynamic_model(self.mesh.vertices().len() * 4 / 3)
-                .unwrap();
+        if self.model.len() < self.mesh.vertices().len() {
+            self.model = renderer.create_dynamic_model(self.mesh.vertices().len() * 4 / 3);
         }
         // Update model with new mesh.
-        renderer.update_model(&self.model, &self.mesh, 0).unwrap();
+        renderer.update_model(&self.model, &self.mesh, 0);
     }
 
     // Returns (half_res, align)
     fn calculate_resolution_dependents(
-        res: Vec2<u16>,
+        res: Vec2<u32>,
         win_dims: Vec2<f32>,
     ) -> (Vec2<f32>, Vec2<f32>, f32) {
         let half_res = res.map(|e| e as f32 / 2.0);
@@ -335,7 +331,7 @@ impl IcedRenderer {
         (half_res, align, p_scale)
     }
 
-    fn update_resolution_dependents(&mut self, res: Vec2<u16>) {
+    fn update_resolution_dependents(&mut self, res: Vec2<u32>) {
         let (half_res, align, p_scale) = Self::calculate_resolution_dependents(res, self.win_dims);
         self.half_res = half_res;
         self.align = align;
@@ -553,7 +549,9 @@ impl IcedRenderer {
                     Some((aabr, tex_id)) => {
                         let cache_dims = graphic_cache
                             .get_tex(tex_id)
+                            .0
                             .get_dimensions()
+                            .xy()
                             .map(|e| e as f32);
                         let min = Vec2::new(aabr.min.x as f32, aabr.max.y as f32) / cache_dims;
                         let max = Vec2::new(aabr.max.x as f32, aabr.min.y as f32) / cache_dims;
@@ -773,26 +771,26 @@ impl IcedRenderer {
         }
     }
 
-    pub fn render(&self, renderer: &mut Renderer, maybe_globals: Option<&Consts<Globals>>) {
+    pub fn render<'a>(&'a self, drawer: &mut UiDrawer<'_, 'a>) {
         span!(_guard, "render", "IcedRenderer::render");
-        let mut scissor = self.window_scissor;
-        let globals = maybe_globals.unwrap_or(&self.default_globals);
-        let mut locals = &self.interface_locals;
+        let mut drawer = drawer.prepare(&self.interface_locals, &self.model, self.window_scissor);
         for draw_command in self.draw_commands.iter() {
             match draw_command {
                 DrawCommand::Scissor(new_scissor) => {
-                    scissor = *new_scissor;
+                    drawer.set_scissor(*new_scissor);
                 },
                 DrawCommand::WorldPos(index) => {
-                    locals = index.map_or(&self.interface_locals, |i| &self.ingame_locals[i]);
+                    drawer.set_locals(
+                        index.map_or(&self.interface_locals, |i| &self.ingame_locals[i]),
+                    );
                 },
                 DrawCommand::Draw { kind, verts } => {
+                    // TODO: don't make these: assert!(!verts.is_empty());
                     let tex = match kind {
                         DrawKind::Image(tex_id) => self.cache.graphic_cache().get_tex(*tex_id),
                         DrawKind::Plain => self.cache.glyph_cache_tex(),
                     };
-                    let model = self.model.submodel(verts.clone());
-                    renderer.render_ui_element(model, tex, scissor, globals, locals);
+                    drawer.draw(&tex.1, verts.clone()); // Note: trivial clone
                 },
             }
         }
@@ -802,7 +800,7 @@ impl IcedRenderer {
 // Given the the resolution determines the offset needed to align integer
 // offsets from the center of the sceen to pixels
 #[inline(always)]
-fn align(res: Vec2<u16>) -> Vec2<f32> {
+fn align(res: Vec2<u32>) -> Vec2<f32> {
     // TODO: does this logic still apply in iced's coordinate system?
     // If the resolution is odd then the center of the screen will be within the
     // middle of a pixel so we need to offset by 0.5 pixels to be on the edge of
@@ -810,13 +808,13 @@ fn align(res: Vec2<u16>) -> Vec2<f32> {
     res.map(|e| (e & 1) as f32 * 0.5)
 }
 
-fn default_scissor(physical_resolution: Vec2<u16>) -> Aabr<u16> {
+fn default_scissor(physical_resolution: Vec2<u32>) -> Aabr<u16> {
     let (screen_w, screen_h) = physical_resolution.into_tuple();
     Aabr {
         min: Vec2 { x: 0, y: 0 },
         max: Vec2 {
-            x: screen_w,
-            y: screen_h,
+            x: screen_w as u16,
+            y: screen_h as u16,
         },
     }
 }

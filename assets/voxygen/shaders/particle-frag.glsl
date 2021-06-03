@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 
 #include <constants.glsl>
 
@@ -16,12 +16,12 @@
 
 #include <globals.glsl>
 
-in vec3 f_pos;
-flat in vec3 f_norm;
-in vec4 f_col;
-in float f_reflect;
+layout(location = 0) in vec3 f_pos;
+layout(location = 1) flat in vec3 f_norm;
+layout(location = 2) in vec4 f_col;
+layout(location = 3) in float f_reflect;
 
-out vec4 tgt_color;
+layout(location = 0) out vec4 tgt_color;
 
 #include <sky.glsl>
 #include <light.glsl>
@@ -40,7 +40,7 @@ void main() {
 #endif
 
 #if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP)
-    vec4 f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
+    vec4 f_shadow = textureBicubic(t_horizon, s_horizon, pos_to_tex(f_pos.xy));
     float sun_shade_frac = horizon_at2(f_shadow, f_alt, f_pos, sun_dir);
 #elif (SHADOW_MODE == SHADOW_MODE_NONE)
     float sun_shade_frac = 1.0;

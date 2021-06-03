@@ -1,40 +1,12 @@
-use super::{
-    super::{
-        LodAltFmt, LodColorFmt, LodTextureFmt, Pipeline, Renderer, Texture, TgtColorFmt,
-        TgtDepthStencilFmt,
-    },
-    Globals,
-};
-use gfx::{
-    self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta, gfx_pipeline,
-    gfx_pipeline_inner, gfx_vertex_struct_meta, texture::SamplerInfo,
-};
+use super::super::{AaMode, GlobalsLayouts, Renderer, Texture, Vertex as VertexTrait};
+use bytemuck::{Pod, Zeroable};
+use std::mem;
 use vek::*;
 
-gfx_defines! {
-    vertex Vertex {
-        pos: [f32; 2] = "v_pos",
-    }
-
-    constant Locals {
-        nul: [f32; 4] = "nul",
-    }
-
-    pipeline pipe {
-        vbuf: gfx::VertexBuffer<Vertex> = (),
-
-        locals: gfx::ConstantBuffer<Locals> = "u_locals",
-        globals: gfx::ConstantBuffer<Globals> = "u_globals",
-        map: gfx::TextureSampler<[f32; 4]> = "t_map",
-        alt: gfx::TextureSampler<[f32; 2]> = "t_alt",
-        horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
-
-        noise: gfx::TextureSampler<f32> = "t_noise",
-
-        tgt_color: gfx::RenderTarget<TgtColorFmt> = "tgt_color",
-        tgt_depth_stencil: gfx::DepthTarget<TgtDepthStencilFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,
-        // tgt_depth_stencil: gfx::DepthStencilTarget<TgtDepthStencilFmt> = (gfx::preset::depth::LESS_EQUAL_WRITE,Stencil::new(Comparison::Always,0xff,(StencilOp::Keep,StencilOp::Keep,StencilOp::Keep))),
-    }
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Zeroable, Pod)]
+pub struct Vertex {
+    pos: [f32; 2],
 }
 
 impl Vertex {
@@ -43,75 +15,210 @@ impl Vertex {
             pos: pos.into_array(),
         }
     }
+
+    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+        const ATTRIBUTES: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![0 => Float32x2];
+        wgpu::VertexBufferLayout {
+            array_stride: Self::STRIDE,
+            step_mode: wgpu::InputStepMode::Vertex,
+            attributes: &ATTRIBUTES,
+        }
+    }
 }
 
-impl Locals {
-    pub fn default() -> Self { Self { nul: [0.0; 4] } }
-}
-
-pub struct LodTerrainPipeline;
-
-impl Pipeline for LodTerrainPipeline {
-    type Vertex = Vertex;
+impl VertexTrait for Vertex {
+    const QUADS_INDEX: Option<wgpu::IndexFormat> = Some(wgpu::IndexFormat::Uint32);
+    const STRIDE: wgpu::BufferAddress = mem::size_of::<Self>() as wgpu::BufferAddress;
 }
 
 pub struct LodData {
-    pub map: Texture<LodColorFmt>,
-    pub alt: Texture<LodAltFmt>,
-    pub horizon: Texture<LodTextureFmt>,
+    pub map: Texture,
+    pub alt: Texture,
+    pub horizon: Texture,
     pub tgt_detail: u32,
 }
 
 impl LodData {
+    pub fn dummy(renderer: &mut Renderer) -> Self {
+        let map_size = Vec2::new(1, 1);
+        //let map_border = [0.0, 0.0, 0.0, 0.0];
+        let map_image = [0];
+        let alt_image = [0];
+        let horizon_image = [0x_00_01_00_01];
+
+        Self::new(
+            renderer,
+            map_size,
+            &map_image,
+            &alt_image,
+            &horizon_image,
+            1,
+            //map_border.into(),
+        )
+    }
+
     pub fn new(
         renderer: &mut Renderer,
-        map_size: Vec2<u16>,
+        map_size: Vec2<u32>,
         lod_base: &[u32],
         lod_alt: &[u32],
         lod_horizon: &[u32],
         tgt_detail: u32,
-        border_color: gfx::texture::PackedColor,
+        //border_color: gfx::texture::PackedColor,
     ) -> Self {
-        let kind = gfx::texture::Kind::D2(map_size.x, map_size.y, gfx::texture::AaMode::Single);
-        let info = gfx::texture::SamplerInfo::new(
-            gfx::texture::FilterMethod::Bilinear,
-            gfx::texture::WrapMode::Border,
+        let mut create_texture = |format, data, filter| {
+            let texture_info = wgpu::TextureDescriptor {
+                label: None,
+                size: wgpu::Extent3d {
+                    width: map_size.x,
+                    height: map_size.y,
+                    depth_or_array_layers: 1,
+                },
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format,
+                usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+            };
+
+            let sampler_info = wgpu::SamplerDescriptor {
+                label: None,
+                address_mode_u: wgpu::AddressMode::ClampToEdge,
+                address_mode_v: wgpu::AddressMode::ClampToEdge,
+                address_mode_w: wgpu::AddressMode::ClampToEdge,
+                mag_filter: filter,
+                min_filter: filter,
+                mipmap_filter: wgpu::FilterMode::Nearest,
+                border_color: Some(wgpu::SamplerBorderColor::TransparentBlack),
+                ..Default::default()
+            };
+
+            let view_info = wgpu::TextureViewDescriptor {
+                label: None,
+                format: Some(format),
+                dimension: Some(wgpu::TextureViewDimension::D2),
+                aspect: wgpu::TextureAspect::All,
+                base_mip_level: 0,
+                mip_level_count: None,
+                base_array_layer: 0,
+                array_layer_count: None,
+            };
+
+            renderer.create_texture_with_data_raw(
+                &texture_info,
+                &view_info,
+                &sampler_info,
+                bytemuck::cast_slice(data),
+            )
+        };
+        let map = create_texture(
+            wgpu::TextureFormat::Rgba8UnormSrgb,
+            lod_base,
+            wgpu::FilterMode::Linear,
         );
+        //             SamplerInfo {
+        //                 border: border_color,
+        let alt = create_texture(
+            wgpu::TextureFormat::Rgba8Unorm,
+            lod_alt,
+            wgpu::FilterMode::Linear,
+        );
+        //             SamplerInfo {
+        //                 border: [0.0, 0.0, 0.0, 0.0].into(),
+        let horizon = create_texture(
+            wgpu::TextureFormat::Rgba8Unorm,
+            lod_horizon,
+            wgpu::FilterMode::Linear,
+        );
+        //             SamplerInfo {
+        //                 border: [1.0, 0.0, 1.0, 0.0].into(),
+
         Self {
-            map: renderer
-                .create_texture_immutable_raw(
-                    kind,
-                    gfx::texture::Mipmap::Provided,
-                    &[gfx::memory::cast_slice(lod_base)],
-                    SamplerInfo {
-                        border: border_color,
-                        ..info
-                    },
-                )
-                .expect("Failed to generate map texture"),
-            alt: renderer
-                .create_texture_immutable_raw(
-                    kind,
-                    gfx::texture::Mipmap::Provided,
-                    &[gfx::memory::cast_slice(lod_alt)],
-                    SamplerInfo {
-                        border: [0.0, 0.0, 0.0, 0.0].into(),
-                        ..info
-                    },
-                )
-                .expect("Failed to generate alt texture"),
-            horizon: renderer
-                .create_texture_immutable_raw(
-                    kind,
-                    gfx::texture::Mipmap::Provided,
-                    &[gfx::memory::cast_slice(lod_horizon)],
-                    SamplerInfo {
-                        border: [1.0, 0.0, 1.0, 0.0].into(),
-                        ..info
-                    },
-                )
-                .expect("Failed to generate horizon texture"),
+            map,
+            alt,
+            horizon,
             tgt_detail,
+        }
+    }
+}
+
+pub struct LodTerrainPipeline {
+    pub pipeline: wgpu::RenderPipeline,
+}
+
+impl LodTerrainPipeline {
+    pub fn new(
+        device: &wgpu::Device,
+        vs_module: &wgpu::ShaderModule,
+        fs_module: &wgpu::ShaderModule,
+        global_layout: &GlobalsLayouts,
+        aa_mode: AaMode,
+    ) -> Self {
+        let render_pipeline_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("Lod terrain pipeline layout"),
+                push_constant_ranges: &[],
+                bind_group_layouts: &[&global_layout.globals, &global_layout.shadow_textures],
+            });
+
+        let samples = match aa_mode {
+            AaMode::None | AaMode::Fxaa => 1,
+            AaMode::MsaaX4 => 4,
+            AaMode::MsaaX8 => 8,
+            AaMode::MsaaX16 => 16,
+        };
+
+        let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("Lod terrain pipeline"),
+            layout: Some(&render_pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: vs_module,
+                entry_point: "main",
+                buffers: &[Vertex::desc()],
+            },
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: Some(wgpu::Face::Back),
+                clamp_depth: false,
+                polygon_mode: wgpu::PolygonMode::Fill,
+                conservative: false,
+            },
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: wgpu::TextureFormat::Depth32Float,
+                depth_write_enabled: true,
+                depth_compare: wgpu::CompareFunction::GreaterEqual,
+                stencil: wgpu::StencilState {
+                    front: wgpu::StencilFaceState::IGNORE,
+                    back: wgpu::StencilFaceState::IGNORE,
+                    read_mask: !0,
+                    write_mask: !0,
+                },
+                bias: wgpu::DepthBiasState {
+                    constant: 0,
+                    slope_scale: 0.0,
+                    clamp: 0.0,
+                },
+            }),
+            multisample: wgpu::MultisampleState {
+                count: samples,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: fs_module,
+                entry_point: "main",
+                targets: &[wgpu::ColorTargetState {
+                    format: wgpu::TextureFormat::Rgba16Float,
+                    blend: None,
+                    write_mask: wgpu::ColorWrite::ALL,
+                }],
+            }),
+        });
+
+        Self {
+            pipeline: render_pipeline,
         }
     }
 }

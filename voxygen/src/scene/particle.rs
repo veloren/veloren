@@ -1,9 +1,9 @@
 use super::{terrain::BlocksOfInterest, SceneData, Terrain};
 use crate::{
-    mesh::{greedy::GreedyMesh, Meshable},
+    mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_particle},
     render::{
-        pipelines::particle::ParticleMode, GlobalModel, Instances, Light, LodData, Model,
-        ParticleInstance, ParticlePipeline, Renderer,
+        pipelines::particle::ParticleMode, Instances, Light, Model, ParticleDrawer,
+        ParticleInstance, ParticleVertex, Renderer,
     },
 };
 use common::{
@@ -38,7 +38,7 @@ pub struct ParticleMgr {
     instances: Instances<ParticleInstance>,
 
     /// GPU Vertex Buffers
-    model_cache: HashMap<&'static str, Model<ParticlePipeline>>,
+    model_cache: HashMap<&'static str, Model<ParticleVertex>>,
 }
 
 impl ParticleMgr {
@@ -276,15 +276,18 @@ impl ParticleMgr {
             self.maintain_shockwave_particles(scene_data);
             self.maintain_aura_particles(scene_data);
             self.maintain_buff_particles(scene_data);
+
+            self.upload_particles(renderer);
         } else {
             // remove all particle lifespans
-            self.particles.clear();
+            if !self.particles.is_empty() {
+                self.particles.clear();
+                self.upload_particles(renderer);
+            }
 
             // remove all timings
             self.scheduler.clear();
         }
-
-        self.upload_particles(renderer);
     }
 
     fn maintain_body_particles(&mut self, scene_data: &SceneData) {
@@ -1178,13 +1181,7 @@ impl ParticleMgr {
         self.instances = gpu_instances;
     }
 
-    pub fn render(
-        &self,
-        renderer: &mut Renderer,
-        scene_data: &SceneData,
-        global: &GlobalModel,
-        lod: &LodData,
-    ) {
+    pub fn render<'a>(&'a self, drawer: &mut ParticleDrawer<'_, 'a>, scene_data: &SceneData) {
         span!(_guard, "render", "ParticleMgr::render");
         if scene_data.particles_enabled {
             let model = &self
@@ -1192,7 +1189,7 @@ impl ParticleMgr {
                 .get(DEFAULT_MODEL_KEY)
                 .expect("Expected particle model in cache");
 
-            renderer.render_particles(model, global, &self.instances, lod);
+            drawer.draw(model, &self.instances);
         }
     }
 
@@ -1211,7 +1208,7 @@ fn default_instances(renderer: &mut Renderer) -> Instances<ParticleInstance> {
 
 const DEFAULT_MODEL_KEY: &str = "voxygen.voxel.particle";
 
-fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<ParticlePipeline>> {
+fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<ParticleVertex>> {
     let mut model_cache = HashMap::new();
 
     model_cache.entry(DEFAULT_MODEL_KEY).or_insert_with(|| {
@@ -1220,14 +1217,12 @@ fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<Particl
         // NOTE: If we add texturing we may eventually try to share it among all
         // particles in a single atlas.
         let max_texture_size = renderer.max_texture_size();
-        let max_size =
-            guillotiere::Size::new(i32::from(max_texture_size), i32::from(max_texture_size));
+        let max_size = guillotiere::Size::new(max_texture_size as i32, max_texture_size as i32);
         let mut greedy = GreedyMesh::new(max_size);
 
         let segment = Segment::from(&vox.read().0);
         let segment_size = segment.size();
-        let mut mesh =
-            Meshable::<ParticlePipeline, &mut GreedyMesh>::generate_mesh(segment, &mut greedy).0;
+        let mut mesh = generate_mesh_base_vol_particle(segment, &mut greedy).0;
         // Center particle vertices around origin
         for vert in mesh.vertices_mut() {
             vert.pos[0] -= segment_size.x as f32 / 2.0;
