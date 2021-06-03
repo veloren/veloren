@@ -67,7 +67,7 @@
         ),
         jaw: (
             offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),
+            central: ("npc.cyclops.male.jaw"),
         ),
         tail: (
             offset: (0.0, 0.0, 0.0),
@@ -93,7 +93,7 @@
         ),
         jaw: (
             offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),
+            central: ("npc.cyclops.male.jaw"),
         ),
         tail: (
             offset: (0.0, 0.0, 0.0),

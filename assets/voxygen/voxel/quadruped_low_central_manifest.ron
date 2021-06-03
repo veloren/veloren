@@ -626,19 +626,19 @@
     ),
     (Basilisk, Male): (
         upper: (
-            offset: (-5.5, 0.0, -11.0),
+            offset: (-7.5, 0.0, -11.0),
             central: ("npc.basilisk.male.head_upper"),
         ),
         lower: (
-            offset: (-8.5, 0.0, -4.0),
+            offset: (-13.5, -2.0, -4.0),
             central: ("npc.basilisk.male.head_lower"),
         ),
         jaw: (
-            offset: (-2.5, 0.0, -15.0),
+            offset: (-6.5, 0.0, -15.0),
             central: ("npc.basilisk.male.jaw"),
         ),
         chest: (
-            offset: (-6.5, -13.0, -12.5),
+            offset: (-13.5, -13.0, -12.5),
             central: ("npc.basilisk.male.chest"),
         ),
         tail_rear: (
@@ -646,7 +646,7 @@
             central: ("npc.basilisk.male.tail_rear"),
         ),
 		tail_front: (
-            offset: (-4.5, -24.0, -7.0),
+            offset: (-10.5, -24.0, -7.0),
             central: ("npc.basilisk.male.tail_front"),
         ),
     ),

@@ -1152,7 +1152,7 @@ fn handle_spawn_airship(
                 200.0,
             )
     });
-    let ship = comp::ship::Body::DefaultAirship;
+    let ship = comp::ship::Body::random();
     let mut builder = server
         .state
         .create_ship(pos, ship, true)

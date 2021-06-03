@@ -25,4 +25,26 @@
             central: ("rudder"),
         ),
     ),
+    AirBalloon: (
+        bone0: (
+            offset: (-14.5, -16.0, 0.0),
+            phys_offset: (0.0, 0.0, 0.0),
+            central: ("Air_Balloon"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            phys_offset: (0.0, 0.0, 0.0),
+            central: ("empty"),
+        ),
+        bone2: (
+            offset: (0.0, 0.0, 0.0),
+            phys_offset: (0.0, 0.0, 0.0),
+            central: ("empty"),
+        ),
+        bone3: (
+            offset: (-1.5, 37.0, -6.5),
+            phys_offset: (0.0, 0.0, 0.0),
+            central: ("Air_Balloon_rudder"),
+        ),
+    ),
 })

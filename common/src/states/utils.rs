@@ -3,7 +3,7 @@ use crate::{
         biped_large, biped_small,
         inventory::slot::EquipSlot,
         item::{Hands, ItemKind, Tool, ToolKind},
-        quadruped_low, quadruped_medium, quadruped_small, ship,
+        quadruped_low, quadruped_medium, quadruped_small,
         skills::{Skill, SwimSkill},
         theropod, Body, CharacterAbility, CharacterState, Density, InputAttr, InputKind,
         InventoryAction, StateUpdate,
@@ -190,7 +190,7 @@ impl Body {
             Body::BirdMedium(_) => Some(GRAVITY * self.mass().0 * 2.0),
             Body::BirdLarge(_) => Some(GRAVITY * self.mass().0 * 0.5),
             Body::Dragon(_) => Some(200_000.0),
-            Body::Ship(ship::Body::DefaultAirship) => Some(300_000.0),
+            Body::Ship(ship) if ship.can_fly() => Some(300_000.0),
             _ => None,
         }
     }
@@ -390,7 +390,7 @@ pub fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) -> b
                 update.vel.0.z += data.dt.0 * (anti_grav + accel * data.inputs.move_z.max(0.0));
             },
             // floaty floaty
-            Body::Ship(ship @ ship::Body::DefaultAirship) => {
+            Body::Ship(ship) if ship.can_fly() => {
                 let regulate_density = |min: f32, max: f32, def: f32, rate: f32| -> Density {
                     // Reset to default on no input
                     let change = if data.inputs.move_z.abs() > std::f32::EPSILON {

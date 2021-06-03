@@ -2,505 +2,505 @@
     (Crocodile, Male): (
         front_left: (
             offset: (-7.0, -0.0, -4.0),//full x dimension, 0 y dimension, full z dimension
-            lateral: ("npc.crocodile.male.foot_fr"),
+            lateral: ("npc.crocodile.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, -0.0, -4.0),//0 x dimension, 0 y dimension, full z dimension
-            lateral: ("npc.crocodile.male.foot_fr"),
+            lateral: ("npc.crocodile.male.foot_fr", false),
         ),
         back_left: (
             offset: (-8.0, -0.0, -4.0),//full x dimension, 0 y dimension, full z dimension
-            lateral: ("npc.crocodile.male.foot_br"),
+            lateral: ("npc.crocodile.male.foot_br", false),
         ),
         back_right: (
             offset: (0.0, -0.0, -4.0),//0 x dimension, 0 y dimension, full z dimension
-            lateral: ("npc.crocodile.male.foot_br"),
+            lateral: ("npc.crocodile.male.foot_br", false),
         ),
     ),
     (Crocodile, Female): (
         front_left: (
             offset: (-7.0, -0.0, -4.0),
-            lateral: ("npc.crocodile.male.foot_fr"),
+            lateral: ("npc.crocodile.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, -0.0, -4.0),
-            lateral: ("npc.crocodile.male.foot_fr"),
+            lateral: ("npc.crocodile.male.foot_fr", false),
         ),
         back_left: (
             offset: (-8.0, -0.0, -4.0),
-            lateral: ("npc.crocodile.male.foot_br"),
+            lateral: ("npc.crocodile.male.foot_br", false),
         ),
         back_right: (
             offset: (0.0, -0.0, -4.0),
-            lateral: ("npc.crocodile.male.foot_br"),
+            lateral: ("npc.crocodile.male.foot_br", false),
         ),
     ),
     (Alligator, Male): (
         front_left: (
             offset: (-7.0, 0.0, -4.0),
-            lateral: ("npc.alligator.male.foot_fr"),
+            lateral: ("npc.alligator.male.foot_fr", false),
         ),
         front_right: (
             offset: (-0.0, 0.0, -4.0),
-            lateral: ("npc.alligator.male.foot_fr"),
+            lateral: ("npc.alligator.male.foot_fr", false),
         ),
         back_left: (
             offset: (-8.0, 0.0, -4.0),
-            lateral: ("npc.alligator.male.foot_br"),
+            lateral: ("npc.alligator.male.foot_br", false),
         ),
         back_right: (
             offset: (-0.0, 0.0, -4.0),
-            lateral: ("npc.alligator.male.foot_br"),
+            lateral: ("npc.alligator.male.foot_br", false),
         ),
     ),
     (Alligator, Female): (
         front_left: (
             offset: (-7.0, 0.0, -4.0),
-            lateral: ("npc.alligator.male.foot_fr"),
+            lateral: ("npc.alligator.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, 0.0, -4.0),
-            lateral: ("npc.alligator.male.foot_fr"),
+            lateral: ("npc.alligator.male.foot_fr", false),
         ),
         back_left: (
             offset: (-8.0, 0.0, -4.0),
-            lateral: ("npc.alligator.male.foot_br"),
+            lateral: ("npc.alligator.male.foot_br", false),
         ),
         back_right: (
             offset: (0.0, 0.0, -4.0),
-            lateral: ("npc.alligator.male.foot_br"),
+            lateral: ("npc.alligator.male.foot_br", false),
         ),
     ),
     (Salamander, Male): (
         front_left: (
             offset: (-6.0, 0.0, -3.0),
-            lateral: ("npc.salamander.male.foot_fr"),
+            lateral: ("npc.salamander.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, 0.0, -3.0),
-            lateral: ("npc.salamander.male.foot_fr"),
+            lateral: ("npc.salamander.male.foot_fr", false),
         ),
         back_left: (
             offset: (-7.0, 0.0, -3.0),
-            lateral: ("npc.salamander.male.foot_br"),
+            lateral: ("npc.salamander.male.foot_br", false),
         ),
         back_right: (
             offset: (-0.0, 0.0, -3.0),
-            lateral: ("npc.salamander.male.foot_br"),
+            lateral: ("npc.salamander.male.foot_br", false),
         ),
     ),
     (Salamander, Female): (
         front_left: (
             offset: (-6.0, 0.0, -3.0),
-            lateral: ("npc.salamander.female.foot_fr"),
+            lateral: ("npc.salamander.female.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, 0.0, -3.0),
-            lateral: ("npc.salamander.female.foot_fr"),
+            lateral: ("npc.salamander.female.foot_fr", false),
         ),
         back_left: (
             offset: (-8.0, 0.0, -3.0),
-            lateral: ("npc.salamander.female.foot_br"),
+            lateral: ("npc.salamander.female.foot_br", false),
         ),
         back_right: (
             offset: (0.0, 0.0, -3.0),
-            lateral: ("npc.salamander.female.foot_br"),
+            lateral: ("npc.salamander.female.foot_br", false),
         ),
     ),
     (Monitor, Male): (
         front_left: (
             offset: (-8.0, 0.0, -5.0),
-            lateral: ("npc.monitor.male.foot_fr"),
+            lateral: ("npc.monitor.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, 0.0, -5.0),
-            lateral: ("npc.monitor.male.foot_fr"),
+            lateral: ("npc.monitor.male.foot_fr", false),
         ),
         back_left: (
             offset: (-7.0, 0.0, -5.0),
-            lateral: ("npc.monitor.male.foot_br"),
+            lateral: ("npc.monitor.male.foot_br", false),
         ),
         back_right: (
             offset: (0.0, 0.0, -5.0),
-            lateral: ("npc.monitor.male.foot_br"),
+            lateral: ("npc.monitor.male.foot_br", false),
         ),
     ),
     (Monitor, Female): (
         front_left: (
             offset: (-8.0, 0.0, -5.0),
-            lateral: ("npc.monitor.male.foot_fr"),
+            lateral: ("npc.monitor.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, 0.0, -5.0),
-            lateral: ("npc.monitor.male.foot_fr"),
+            lateral: ("npc.monitor.male.foot_fr", false),
         ),
         back_left: (
             offset: (-7.0, 0.0, -5.0),
-            lateral: ("npc.monitor.male.foot_br"),
+            lateral: ("npc.monitor.male.foot_br", false),
         ),
         back_right: (
             offset: (0.0, 0.0, -5.0),
-            lateral: ("npc.monitor.male.foot_br"),
+            lateral: ("npc.monitor.male.foot_br", false),
         ),
     ),
     (Asp, Male): (
         front_left: (
             offset: (-10.0, 0.0, -6.5),
-            lateral: ("npc.asp.male.foot_fr"),
+            lateral: ("npc.asp.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, 0.0, -6.5),
-            lateral: ("npc.asp.male.foot_fr"),
+            lateral: ("npc.asp.male.foot_fr", false),
         ),
         back_left: (
             offset: (-7.5, 0.0, -6.5),
-            lateral: ("npc.asp.male.foot_br"),
+            lateral: ("npc.asp.male.foot_br", false),
         ),
         back_right: (
             offset: (0.0, 0.0, -6.5),
-            lateral: ("npc.asp.male.foot_br"),
+            lateral: ("npc.asp.male.foot_br", false),
         ),
     ),
     (Asp, Female): (
         front_left: (
             offset: (-10.0, 0.0, -6.5),
-            lateral: ("npc.asp.male.foot_fr"),
+            lateral: ("npc.asp.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, 0.0, -6.5),
-            lateral: ("npc.asp.male.foot_fr"),
+            lateral: ("npc.asp.male.foot_fr", false),
         ),
         back_left: (
             offset: (-7.5, 0.0, -6.5),
-            lateral: ("npc.asp.male.foot_br"),
+            lateral: ("npc.asp.male.foot_br", false),
         ),
         back_right: (
             offset: (0.0, 0.0, -6.5),
-            lateral: ("npc.asp.male.foot_br"),
+            lateral: ("npc.asp.male.foot_br", false),
         ),
     ),
     (Tortoise, Male): (
         front_left: (
             offset: (-7.0, 0.0, -8.0),
-            lateral: ("npc.tortoise.male.foot_fr"),
+            lateral: ("npc.tortoise.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, 0.0, -8.0),
-            lateral: ("npc.tortoise.male.foot_fr"),
+            lateral: ("npc.tortoise.male.foot_fr", false),
         ),
         back_left: (
             offset: (-7.0, 0.0, -8.0),
-            lateral: ("npc.tortoise.male.foot_br"),
+            lateral: ("npc.tortoise.male.foot_br", false),
         ),
         back_right: (
             offset: (0.0, 0.0, -8.0),
-            lateral: ("npc.tortoise.male.foot_br"),
+            lateral: ("npc.tortoise.male.foot_br", false),
         ),
     ),
     (Tortoise, Female): (
         front_left: (
             offset: (-7.0, 0.0, -8.0),
-            lateral: ("npc.tortoise.male.foot_fr"),
+            lateral: ("npc.tortoise.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, 0.0, -8.0),
-            lateral: ("npc.tortoise.male.foot_fr"),
+            lateral: ("npc.tortoise.male.foot_fr", false),
         ),
         back_left: (
             offset: (-7.0, 0.0, -8.0),
-            lateral: ("npc.tortoise.male.foot_br"),
+            lateral: ("npc.tortoise.male.foot_br", false),
         ),
         back_right: (
             offset: (0.0, 0.0, -8.0),
-            lateral: ("npc.tortoise.male.foot_br"),
+            lateral: ("npc.tortoise.male.foot_br", false),
         ),
     ),
     (Rocksnapper, Male): (
         front_left: (
             offset: (-12.0, 0.0, -10.0),
-            lateral: ("npc.rocksnapper.male.foot_fr"),
+            lateral: ("npc.rocksnapper.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, 0.0, -10.0),
-            lateral: ("npc.rocksnapper.male.foot_fr"),
+            lateral: ("npc.rocksnapper.male.foot_fr", false),
         ),
         back_left: (
             offset: (-11.0, -6.0, -9.0),
-            lateral: ("npc.rocksnapper.male.foot_br"),
+            lateral: ("npc.rocksnapper.male.foot_br", false),
         ),
         back_right: (
             offset: (0.0, -6.0, -9.0),
-            lateral: ("npc.rocksnapper.male.foot_br"),
+            lateral: ("npc.rocksnapper.male.foot_br", false),
         ),
     ),
     (Rocksnapper, Female): (
         front_left: (
             offset: (-12.0, 0.0, -10.0),
-            lateral: ("npc.rocksnapper.male.foot_fr"),
+            lateral: ("npc.rocksnapper.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, 0.0, -10.0),
-            lateral: ("npc.rocksnapper.male.foot_fr"),
+            lateral: ("npc.rocksnapper.male.foot_fr", false),
         ),
         back_left: (
             offset: (-11.0, -6.0, -9.0),//special case
-            lateral: ("npc.rocksnapper.male.foot_br"),
+            lateral: ("npc.rocksnapper.male.foot_br", false),
         ),
         back_right: (
             offset: (0.0, -6.0, -9.0),
-            lateral: ("npc.rocksnapper.male.foot_br"),
+            lateral: ("npc.rocksnapper.male.foot_br", false),
         ),
     ),
     (Pangolin, Male): (
         front_left: (
             offset: (-1.5, 0.0, -6.0),//unique
-            lateral: ("npc.pangolin.male.foot_fr"),
+            lateral: ("npc.pangolin.male.foot_fr", false),
         ),
         front_right: (
             offset: (-1.5, 0.0, -6.0),
-            lateral: ("npc.pangolin.male.foot_fr"),
+            lateral: ("npc.pangolin.male.foot_fr", false),
         ),
         back_left: (
             offset: (-1.5, 0.0, -6.0),
-            lateral: ("npc.pangolin.male.foot_br"),
+            lateral: ("npc.pangolin.male.foot_br", false),
         ),
         back_right: (
             offset: (-1.5, 0.0, -6.0),
-            lateral: ("npc.pangolin.male.foot_br"),
+            lateral: ("npc.pangolin.male.foot_br", false),
         ),
     ),
     (Pangolin, Female): (
         front_left: (
             offset: (-1.5, 0.0, -6.0),
-            lateral: ("npc.pangolin.male.foot_fr"),
+            lateral: ("npc.pangolin.male.foot_fr", false),
         ),
         front_right: (
             offset: (-1.5, 0.0, -6.0),
-            lateral: ("npc.pangolin.male.foot_fr"),
+            lateral: ("npc.pangolin.male.foot_fr", false),
         ),
         back_left: (
             offset: (-1.5, 0.0, -6.0),//special case
-            lateral: ("npc.pangolin.male.foot_br"),
+            lateral: ("npc.pangolin.male.foot_br", false),
         ),
         back_right: (
             offset: (-1.5, 0.0, -6.0),
-            lateral: ("npc.pangolin.male.foot_br"),
+            lateral: ("npc.pangolin.male.foot_br", false),
         ),
     ),
     (Maneater, Male): (
         front_left: (
             offset: (-6.0, 0.0, -6.5),
-            lateral: ("npc.maneater.male.foot_fr"),
+            lateral: ("npc.maneater.male.foot_fr", false),
         ),
         front_right: (
             offset: (-2.0, 0.0, -6.5),
-            lateral: ("npc.maneater.male.foot_fr"),
+            lateral: ("npc.maneater.male.foot_fr", false),
         ),
         back_left: (
             offset: (-6.0, -8.0, -9.0),
-            lateral: ("npc.maneater.male.foot_br"),
+            lateral: ("npc.maneater.male.foot_br", false),
         ),
         back_right: (
             offset: (-2.0, -8.0, -9.0),
-            lateral: ("npc.maneater.male.foot_br"),
+            lateral: ("npc.maneater.male.foot_br", false),
         ),
     ),
     (Maneater, Female): (
         front_left: (
             offset: (-6.0, 0.0, -6.5),
-            lateral: ("npc.maneater.male.foot_fr"),
+            lateral: ("npc.maneater.male.foot_fr", false),
         ),
         front_right: (
             offset: (-2.0, 0.0, -6.5),
-            lateral: ("npc.maneater.male.foot_fr"),
+            lateral: ("npc.maneater.male.foot_fr", false),
         ),
         back_left: (
             offset: (-6.0, -8.0, -9.0),
-            lateral: ("npc.maneater.male.foot_br"),
+            lateral: ("npc.maneater.male.foot_br", false),
         ),
         back_right: (
             offset: (-2.0, -8.0, -9.0),
-            lateral: ("npc.maneater.male.foot_br"),
+            lateral: ("npc.maneater.male.foot_br", false),
         ),
     ),
     (Hakulaq, Male): (
         front_left: (
             offset: (-10.0, 0.0, -9.0),
-            lateral: ("npc.hakulaq.male.foot_fr"),
+            lateral: ("npc.hakulaq.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, 0.0, -9.0),
-            lateral: ("npc.hakulaq.male.foot_fr"),
+            lateral: ("npc.hakulaq.male.foot_fr", false),
         ),
         back_left: (
             offset: (-10.0, 0.0, -9.0),
-            lateral: ("npc.hakulaq.male.foot_br"),
+            lateral: ("npc.hakulaq.male.foot_br", false),
         ),
         back_right: (
             offset: (0.0, 0.0, -9.0),
-            lateral: ("npc.hakulaq.male.foot_br"),
+            lateral: ("npc.hakulaq.male.foot_br", false),
         ),
     ),
     (Hakulaq, Female): (
         front_left: (
             offset: (-10.0, 0.0, -9.0),
-            lateral: ("npc.hakulaq.male.foot_fr"),
+            lateral: ("npc.hakulaq.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, 0.0, -9.0),
-            lateral: ("npc.hakulaq.male.foot_fr"),
+            lateral: ("npc.hakulaq.male.foot_fr", false),
         ),
         back_left: (
             offset: (-10.0, 0.0, -9.0),
-            lateral: ("npc.hakulaq.male.foot_br"),
+            lateral: ("npc.hakulaq.male.foot_br", false),
         ),
         back_right: (
             offset: (0.0, 0.0, -9.0),
-            lateral: ("npc.hakulaq.male.foot_br"),
+            lateral: ("npc.hakulaq.male.foot_br", false),
         ),
     ),
     (Sandshark, Male): (
         front_left: (
             offset: (-17.0, 0.0, -12.0),
-            lateral: ("npc.sandshark.male.foot_fr"),
+            lateral: ("npc.sandshark.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, 0.0, -12.0),
-            lateral: ("npc.sandshark.male.foot_fr"),
+            lateral: ("npc.sandshark.male.foot_fr", false),
         ),
         back_left: (
             offset: (-9.0, 0.0, -6.0),
-            lateral: ("npc.sandshark.male.foot_br"),
+            lateral: ("npc.sandshark.male.foot_br", false),
         ),
         back_right: (
             offset: (-2.0, 0.0, -6.0),
-            lateral: ("npc.sandshark.male.foot_br"),
+            lateral: ("npc.sandshark.male.foot_br", false),
         ),
     ),
     (Sandshark, Female): (
         front_left: (
             offset: (-17.0, 0.0, -12.0),
-            lateral: ("npc.sandshark.male.foot_fr"),
+            lateral: ("npc.sandshark.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, 0.0, -12.0),
-            lateral: ("npc.sandshark.male.foot_fr"),
+            lateral: ("npc.sandshark.male.foot_fr", false),
         ),
         back_left: (
             offset: (-9.0, 0.0, -6.0),
-            lateral: ("npc.sandshark.male.foot_br"),
+            lateral: ("npc.sandshark.male.foot_br", false),
         ),
         back_right: (
             offset: (-2.0, 0.0, -6.0),
-            lateral: ("npc.sandshark.male.foot_br"),
+            lateral: ("npc.sandshark.male.foot_br", false),
         ),
     ),
     (Lavadrake, Male): (
         front_left: (
             offset: (-14.0, -4.0, -10.0),
-            lateral: ("npc.lavadrake.male.foot_fr"),
+            lateral: ("npc.lavadrake.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, -4.0, -10.0),
-            lateral: ("npc.lavadrake.male.foot_fr"),
+            lateral: ("npc.lavadrake.male.foot_fr", false),
         ),
         back_left: (
             offset: (-14.0, -7.5, -10.0),
-            lateral: ("npc.lavadrake.male.foot_br"),
+            lateral: ("npc.lavadrake.male.foot_br", false),
         ),
         back_right: (
             offset: (0.0, -7.5, -10.0),
-            lateral: ("npc.lavadrake.male.foot_br"),
+            lateral: ("npc.lavadrake.male.foot_br", false),
         ),
     ),
     (Lavadrake, Female): (
         front_left: (
             offset: (-14.0, -4.0, -10.0),
-            lateral: ("npc.lavadrake.male.foot_fr"),
+            lateral: ("npc.lavadrake.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, -4.0, -10.0),
-            lateral: ("npc.lavadrake.male.foot_fr"),
+            lateral: ("npc.lavadrake.male.foot_fr", false),
         ),
         back_left: (
             offset: (-14.0, -7.5, -10.0),
-            lateral: ("npc.lavadrake.male.foot_br"),
+            lateral: ("npc.lavadrake.male.foot_br", false),
         ),
         back_right: (
             offset: (0.0, -7.5, -10.0),
-            lateral: ("npc.lavadrake.male.foot_br"),
+            lateral: ("npc.lavadrake.male.foot_br", false),
         ),
     ),
     (Basilisk, Male): (
         front_left: (
-            offset: (-17.0, 0.0, -9.0),
-            lateral: ("npc.basilisk.male.foot_fr"),
+            offset: (-15.0, 0.0, -9.0),
+            lateral: ("npc.basilisk.male.foot_fl", true),
         ),
         front_right: (
             offset: (0.0, 0.0, -9.0),
-            lateral: ("npc.basilisk.male.foot_fr"),
+            lateral: ("npc.basilisk.male.foot_fr", true),
         ),
         back_left: (
             offset: (-15.0, 0.0, -9.0),
-            lateral: ("npc.basilisk.male.foot_br"),
+            lateral: ("npc.basilisk.male.foot_bl", true),
         ),
         back_right: (
             offset: (0.0, 0.0, -9.0),
-            lateral: ("npc.basilisk.male.foot_br"),
+            lateral: ("npc.basilisk.male.foot_br", true),
         ),
     ),
     (Basilisk, Female): (
         front_left: (
-            offset: (-17.0, 0.0, -9.0),
-            lateral: ("npc.basilisk.male.foot_fr"),
+            offset: (-15.0, 0.0, -9.0),
+            lateral: ("npc.basilisk.male.foot_fl", true),
         ),
         front_right: (
             offset: (0.0, 0.0, -9.0),
-            lateral: ("npc.basilisk.male.foot_fr"),
+            lateral: ("npc.basilisk.male.foot_fr", false),
         ),
         back_left: (
             offset: (-15.0, 0.0, -9.0),
-            lateral: ("npc.basilisk.male.foot_br"),
+            lateral: ("npc.basilisk.male.foot_bl", true),
         ),
         back_right: (
             offset: (0.0, 0.0, -9.0),
-            lateral: ("npc.basilisk.male.foot_br"),
+            lateral: ("npc.basilisk.male.foot_br", false),
         ),
     ),
     (Deadwood, Male): (
         front_left: (
             offset: (-5.0, -2.0, -7.0),
-            lateral: ("npc.deadwood.male.foot_fr"),
+            lateral: ("npc.deadwood.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, -2.0, -7.0),
-            lateral: ("npc.deadwood.male.foot_fr"),
+            lateral: ("npc.deadwood.male.foot_fr", false),
         ),
         back_left: (
             offset: (-5.0, -1.0, -7.0),
-            lateral: ("npc.deadwood.male.foot_br"),
+            lateral: ("npc.deadwood.male.foot_br", false),
         ),
         back_right: (
             offset: (0.0, -1.0, -7.0),
-            lateral: ("npc.deadwood.male.foot_br"),
+            lateral: ("npc.deadwood.male.foot_br", false),
         ),
     ),
     (Deadwood, Female): (
         front_left: (
             offset: (-5.0, -2.0, -7.0),
-            lateral: ("npc.deadwood.male.foot_fr"),
+            lateral: ("npc.deadwood.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, -2.0, -7.0),
-            lateral: ("npc.deadwood.male.foot_fr"),
+            lateral: ("npc.deadwood.male.foot_fr", false),
         ),
         back_left: (
             offset: (-5.0, -1.0, -7.0),
-            lateral: ("npc.deadwood.male.foot_br"),
+            lateral: ("npc.deadwood.male.foot_br", false),
         ),
         back_right: (
             offset: (0.0, -1.0, -7.0),
-            lateral: ("npc.deadwood.male.foot_br"),
+            lateral: ("npc.deadwood.male.foot_br", false),
         ),
     ),
 })
