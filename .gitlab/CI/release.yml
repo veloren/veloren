@@ -11,11 +11,11 @@
 .release:
   stage: build
   rules:
-    - if: $CI_COMMIT_REF_NAME =~ /^master$/ || $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+/ || $CI_COMMIT_REF_NAME =~ /^r[0-9]+\.[0-9]+/
+    - if: $CI_PIPELINE_SOURCE != "schedule" && ($CI_COMMIT_REF_NAME =~ /^master$/ || $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+/ || $CI_COMMIT_REF_NAME =~ /^r[0-9]+\.[0-9]+/)
       when: always
     - when: never
 
-# Template to only run if pushes to master or a tag happened
+# Template to only run if pushes to master or a tag happened for scheduled builds
 .release-nightly-tmp-fix-airshipper:
   stage: build-nightly
   rules:
