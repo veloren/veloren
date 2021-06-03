@@ -109,6 +109,10 @@ key = "veloren-nix.cachix.org-1:zokfKJqVsNV6kI/oJdLF6TYBdNPYGSb+diMVQPn/5Rc="
 buildInputs = ["openssl"]
 nativeBuildInputs = ["pkg-config"]
 
+[workspace.metadata.nix.crateOverride.shaderc-sys]
+buildInputs = ["shaderc"]
+nativeBuildInputs = ["cmake", "python3", "gnumake"]
+
 [patch.crates-io]
 # macos CI fix isn't released yet
 winit = { git = "https://gitlab.com/veloren/winit.git", branch = "macos-test-spiffed" }
