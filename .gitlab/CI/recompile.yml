@@ -10,6 +10,7 @@
         - ".gitlab-ci.yml"
         - "**/*.yml"
 
+# TODO: appears unused
 # like .recompile-branch but will run on master too
 .recompile:
   rules:
@@ -24,6 +25,8 @@
 .post-merge:
   stage: build
   rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
     - if: $CI_COMMIT_REF_NAME =~ /^master$/
       changes:
         - "**/*.{glsl,rs,ron,toml,vox,png}"
