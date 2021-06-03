@@ -127,7 +127,7 @@ impl<'a> System<'a> for Sys {
                     pos: comp::Pos(spawn_pos),
                     stats: comp::Stats::new(entity.get_name()),
                     skill_set: comp::SkillSet::default(),
-                    health: comp::Health::new(body, 10),
+                    health: Some(comp::Health::new(body, 10)),
                     loadout: match body {
                         comp::Body::Humanoid(_) => entity.get_loadout(),
                         _ => LoadoutBuilder::new().build(),
@@ -146,6 +146,7 @@ impl<'a> System<'a> for Sys {
                     drop_item: None,
                     home_chunk: None,
                     rtsim_entity,
+                    projectile: None,
                 },
             };
             server_emitter.emit(event);

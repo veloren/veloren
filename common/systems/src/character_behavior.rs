@@ -1,6 +1,6 @@
 use specs::{
-    shred::ResourceId, Entities, Join, LazyUpdate, Read, ReadStorage, SystemData, World, Write,
-    WriteStorage,
+    shred::ResourceId, Entities, Join, LazyUpdate, Read, ReadExpect, ReadStorage, SystemData,
+    World, Write, WriteStorage,
 };
 
 use common::{
@@ -16,6 +16,7 @@ use common::{
         self,
         behavior::{CharacterBehavior, JoinData, JoinStruct},
     },
+    terrain::TerrainGrid,
     uid::Uid,
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -67,6 +68,7 @@ pub struct ReadData<'a> {
     msm: Read<'a, MaterialStatManifest>,
     combos: ReadStorage<'a, Combo>,
     alignments: ReadStorage<'a, comp::Alignment>,
+    terrain: ReadExpect<'a, TerrainGrid>,
 }
 
 /// ## Character Behavior System
@@ -280,6 +282,7 @@ impl<'a> System<'a> for Sys {
                 skill_set: &skill_set,
                 combo: &combo,
                 alignment: read_data.alignments.get(entity),
+                terrain: &read_data.terrain,
             };
 
             for action in actions {

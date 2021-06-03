@@ -39,7 +39,7 @@ pub trait StateExt {
         pos: comp::Pos,
         stats: comp::Stats,
         skill_set: comp::SkillSet,
-        health: comp::Health,
+        health: Option<comp::Health>,
         poise: comp::Poise,
         inventory: comp::Inventory,
         body: comp::Body,
@@ -175,7 +175,7 @@ impl StateExt for State {
         pos: comp::Pos,
         stats: comp::Stats,
         skill_set: comp::SkillSet,
-        health: comp::Health,
+        health: Option<comp::Health>,
         poise: comp::Poise,
         inventory: comp::Inventory,
         body: comp::Body,
@@ -215,7 +215,7 @@ impl StateExt for State {
             ))
             .with(stats)
             .with(skill_set)
-            .with(health)
+            .maybe_with(health)
             .with(poise)
             .with(comp::Alignment::Npc)
             .with(comp::CharacterState::default())

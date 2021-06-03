@@ -239,7 +239,7 @@ impl<'a> System<'a> for Sys {
                     loadout_builder.build()
                 };
 
-                let health = comp::Health::new(body, entity.level.unwrap_or(0));
+                let health = Some(comp::Health::new(body, entity.level.unwrap_or(0)));
                 let poise = comp::Poise::new(body);
 
                 let can_speak = match body {
@@ -293,6 +293,7 @@ impl<'a> System<'a> for Sys {
                     home_chunk: Some(comp::HomeChunk(key)),
                     drop_item: entity.loot_drop,
                     rtsim_entity: None,
+                    projectile: None,
                 })
             }
 

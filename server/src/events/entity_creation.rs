@@ -53,7 +53,7 @@ pub fn handle_create_npc(
     pos: Pos,
     stats: Stats,
     skill_set: SkillSet,
-    health: Health,
+    health: Option<Health>,
     poise: Poise,
     loadout: Loadout,
     body: Body,
@@ -63,6 +63,7 @@ pub fn handle_create_npc(
     drop_item: Option<Item>,
     home_chunk: Option<HomeChunk>,
     rtsim_entity: Option<RtSimEntity>,
+    projectile: Option<Projectile>,
 ) {
     let inventory = Inventory::new_with_loadout(loadout);
 
@@ -92,6 +93,12 @@ pub fn handle_create_npc(
 
     let entity = if let Some(rtsim_entity) = rtsim_entity {
         entity.with(rtsim_entity)
+    } else {
+        entity
+    };
+
+    let entity = if let Some(projectile) = projectile {
+        entity.with(projectile)
     } else {
         entity
     };

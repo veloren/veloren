@@ -209,7 +209,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             feed: match (body.species, body.body_type) {
                 (Phoenix, _) => (-0.65),
                 (Cockatrice, _) => (-0.5),
-                (Roc, _) => (-0.65),
+                (Roc, _) => (-0.4),
             },
         }
     }
