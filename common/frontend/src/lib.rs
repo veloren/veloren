@@ -57,6 +57,7 @@ where
             .add_directive("h2=info".parse().unwrap())
             .add_directive("tokio_util=info".parse().unwrap())
             .add_directive("rustls=info".parse().unwrap())
+            .add_directive("wgpu_core=info".parse().unwrap())
             .add_directive("wgpu_core::device=warn".parse().unwrap())
             .add_directive("veloren_network_protocol=info".parse().unwrap())
             .add_directive("quinn_proto::connection=info".parse().unwrap())

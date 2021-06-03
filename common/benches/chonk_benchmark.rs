@@ -33,7 +33,9 @@ fn criterion_benchmark(c: &mut Criterion) {
             .unwrap();
     }
 
-    c.bench_function("chunk: full read", |b| {
+    let mut c = c.benchmark_group("chunk");
+
+    c.bench_function("full read", |b| {
         b.iter(|| {
             for (_, vox) in chunk.vol_iter(
                 Vec3::new(0, 0, MIN_Z),
@@ -48,7 +50,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         })
     });
 
-    c.bench_function("chunk: constrained read", |b| {
+    c.bench_function("constrained read", |b| {
         b.iter(|| {
             for (_, vox) in
                 chunk.vol_iter(Vec3::new(9, 13, 2 + MIN_Z), Vec3::new(26, 30, -13 + MAX_Z))
@@ -58,7 +60,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         })
     });
 
-    c.bench_function("chunk: local read", |b| {
+    c.bench_function("local read", |b| {
         b.iter(|| {
             for (_, vox) in
                 chunk.vol_iter(Vec3::new(9, 13, 2 + MIN_Z), Vec3::new(14, 18, 7 + MIN_Z))
@@ -68,7 +70,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         })
     });
 
-    c.bench_function("chunk: X-direction read", |b| {
+    c.bench_function("X-direction read", |b| {
         b.iter(|| {
             for (_, vox) in
                 chunk.vol_iter(Vec3::new(9, 13, 2 + MIN_Z), Vec3::new(26, 14, 3 + MIN_Z))
@@ -78,7 +80,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         })
     });
 
-    c.bench_function("chunk: Y-direction read", |b| {
+    c.bench_function("Y-direction read", |b| {
         b.iter(|| {
             for (_, vox) in
                 chunk.vol_iter(Vec3::new(9, 13, 2 + MIN_Z), Vec3::new(10, 30, 3 + MIN_Z))
@@ -88,7 +90,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         })
     });
 
-    c.bench_function("chunk: Z-direction read", |b| {
+    c.bench_function("Z-direction read", |b| {
         b.iter(|| {
             for (_, vox) in
                 chunk.vol_iter(Vec3::new(9, 13, 2 + MIN_Z), Vec3::new(10, 14, 19 + MIN_Z))
@@ -98,7 +100,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         })
     });
 
-    c.bench_function("chunk: long Z-direction read", |b| {
+    c.bench_function("long Z-direction read", |b| {
         b.iter(|| {
             for (_, vox) in
                 chunk.vol_iter(Vec3::new(9, 13, 2 + MIN_Z), Vec3::new(10, 14, -13 + MAX_Z))
@@ -108,7 +110,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         })
     });
 
-    c.bench_function("chunk: full write (dense)", |b| {
+    c.bench_function("full write (dense)", |b| {
         b.iter(|| {
             for pos in chunk.pos_iter(
                 Vec3::new(0, 0, MIN_Z),
