@@ -176,7 +176,7 @@ impl Renderer {
         #[allow(unsafe_code)]
         let surface = unsafe { instance.create_surface(window) };
 
-        let adapter = futures::executor::block_on(instance.request_adapter(
+        let adapter = futures_executor::block_on(instance.request_adapter(
             &wgpu::RequestAdapterOptionsBase {
                 power_preference: wgpu::PowerPreference::HighPerformance,
                 compatible_surface: Some(&surface),
@@ -189,7 +189,7 @@ impl Renderer {
             ..Default::default()
         };
 
-        let (device, queue) = futures::executor::block_on(
+        let (device, queue) = futures_executor::block_on(
             adapter.request_device(
                 &wgpu::DeviceDescriptor {
                     // TODO

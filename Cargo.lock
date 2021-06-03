@@ -6030,7 +6030,7 @@ dependencies = [
  "dot_vox",
  "enum-iterator",
  "euc",
- "futures",
+ "futures-executor",
  "gilrs",
  "glyph_brush",
  "guillotiere",
