@@ -376,6 +376,7 @@ impl Body {
             Body::HaniwaSentry => Vec3::new(0.8, 0.8, 1.4),
             Body::SeaLantern => Vec3::new(0.5, 0.5, 1.0),
             Body::Snowball => Vec3::broadcast(2.5),
+            Body::Tornado => Vec3::new(2.0, 2.0, 3.4),
             _ => Vec3::broadcast(0.5),
         }
     }

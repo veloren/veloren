@@ -119,9 +119,15 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(
-                        biped_large::Body::random_with(rng, &biped_large::Species::Wendigo).into(),
-                    )
+                    .with_body(match rng.gen_range(0..2) {
+                        0 => biped_large::Body::random_with(rng, &biped_large::Species::Wendigo)
+                            .into(),
+                        _ => biped_large::Body::random_with(
+                            rng,
+                            &biped_large::Species::Mountaintroll,
+                        )
+                        .into(),
+                    })
                     .with_alignment(Alignment::Enemy)
             },
             group_size: 1..2,
@@ -623,7 +629,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..4) {
+                    .with_body(match rng.gen_range(0..5) {
                         0 => theropod::Body::random_with(rng, &theropod::Species::Odonto).into(),
                         1 => {
                             biped_large::Body::random_with(rng, &biped_large::Species::Mightysaurok)
@@ -633,6 +639,8 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                             biped_large::Body::random_with(rng, &biped_large::Species::Occultsaurok)
                                 .into()
                         },
+                        3 => bird_large::Body::random_with(rng, &bird_large::Species::Cockatrice)
+                            .into(),
                         _ => biped_large::Body::random_with(rng, &biped_large::Species::Slysaurok)
                             .into(),
                     })
@@ -652,12 +660,11 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..4) {
+                    .with_body(match rng.gen_range(0..3) {
                         0 => bird_medium::Body::random_with(rng, &bird_medium::Species::Parrot)
                             .into(),
-                        1 => bird_large::Body::random_with(rng, &bird_large::Species::Cockatrice)
-                            .into(),
-                        2 => quadruped_small::Body::random_with(
+
+                        1 => quadruped_small::Body::random_with(
                             rng,
                             &quadruped_small::Species::Quokka,
                         )

@@ -265,8 +265,8 @@
         ],
     ),
     Custom("Bird Large Basic"): (
-        primary: "common.abilities.custom.birdlargebreathe.firebomb",
-        secondary: "common.abilities.custom.birdlargebreathe.triplestrike",
+        primary: "common.abilities.custom.birdlargebasic.dash",
+        secondary: "common.abilities.custom.birdlargebasic.triplestrike",
         abilities: [
             (None, "common.abilities.custom.birdlargebasic.summontornadoes"),
         ],

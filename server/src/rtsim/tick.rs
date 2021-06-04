@@ -137,6 +137,11 @@ impl<'a> System<'a> for Sys {
                     agent,
                     alignment: match body {
                         comp::Body::Humanoid(_) => comp::Alignment::Npc,
+                        comp::Body::BirdLarge(bird_large) => match bird_large.species {
+                            comp::bird_large::Species::Roc => comp::Alignment::Enemy,
+                            comp::bird_large::Species::Cockatrice => comp::Alignment::Enemy,
+                            _ => comp::Alignment::Wild,
+                        },
                         _ => comp::Alignment::Wild,
                     },
                     scale: match body {

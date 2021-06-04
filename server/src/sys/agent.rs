@@ -3286,18 +3286,57 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        if can_see_tgt(
-            &*read_data.terrain,
-            self.pos,
-            tgt_data.pos,
-            attack_data.dist_sqrd,
-        ) && attack_data.angle < 15.0
+        if !read_data
+            .terrain
+            .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * 2.0))
+            .until(Block::is_solid)
+            .cast()
+            .1
+            .map_or(true, |b| b.is_some())
+        {
+            // Fly to target
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Fly));
+            let move_dir = tgt_data.pos.0 - self.pos.0;
+            controller.inputs.move_dir =
+                move_dir.xy().try_normalized().unwrap_or_else(Vec2::zero) * 2.0;
+            controller.inputs.move_z = move_dir.z - 0.5;
+        } else if agent.action_state.timer > 7.0 {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Ability(0)));
+            // Reset timer
+            agent.action_state.timer = 0.0;
+        } else if attack_data.angle < 90.0
+            && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
+            && agent.action_state.timer < 6.0
+        {
+            controller.inputs.move_dir = Vec2::zero();
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Secondary));
+            agent.action_state.timer += read_data.dt.0;
+        } else if attack_data.dist_sqrd < (3.0 * attack_data.min_attack_dist).powi(2)
+            && attack_data.dist_sqrd > (2.0 * attack_data.min_attack_dist).powi(2)
+            && attack_data.angle < 90.0
+            && agent.action_state.timer < 6.0
         {
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Primary));
+            controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                .xy()
+                .rotated_z(-0.47 * PI)
+                .try_normalized()
+                .unwrap_or_else(Vec2::unit_y);
+            agent.action_state.timer += read_data.dt.0;
+        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
+            self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+            agent.action_state.timer += read_data.dt.0;
         } else {
-            agent.target = None;
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+            agent.action_state.timer += read_data.dt.0;
         }
     }
 
