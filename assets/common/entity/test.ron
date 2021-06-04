@@ -1,0 +1,31 @@
+{
+    /// Name of Entity
+    name: Some("Paddy"),
+
+    /// Body
+    /// Can be Exact (Body with all fields e.g BodyType, Species, Hair color and such)
+    /// or Random (will use random if available for this Body)
+    /// or RandomWith (will use random_with if available for this Body)
+    body: Humanoid(Random),
+
+    /// Loot
+    /// Can be Item (with asset_specifier for item)
+    /// or LootTable (with asset_specifier for loot table)
+    loot: LootTable("common.loot_tables.humanoids"),
+
+    /// Main and second tools
+    /// Can be Option<Item> (with asset_specifier for item)
+    /// or Choice
+    /// (array of pairs with weight of choosing some item and Option<Item>)
+    main_tool: Some(Item("common.items.weapons.axe_1h.orichalcum-0")),
+    second_tool: None,
+
+    /// Loadout Config as Option<Loadout> (with asset_specifier for loadout)
+    loadout_config: Some(Loadout("common.loadout.village.merchant")),
+
+    /// Skillset Config as Option<SkillSet> (with asset_specifier for skillset)
+    skillset_config: None,
+
+    /// Meta Info (level, alignment, agency, etc)
+    meta: {},
+}
