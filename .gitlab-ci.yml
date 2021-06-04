@@ -10,10 +10,10 @@ variables:
   # However in gitlab web ui it's set to fetch so it should be fine ¯\_(ツ)_/¯
   GIT_STRATEGY: fetch
   # Note: this is deprecated!
-  # ttps://docs.gitlab.com/ee/ci/yaml/#shallow-cloning
+  # https://docs.gitlab.com/ee/ci/yaml/#shallow-cloning
   GIT_DEPTH: 3
   GIT_CLEAN_FLAGS: -f
-  CACHE_IMAGE_TAG: 7ea40612
+  CACHE_IMAGE_TAG: 55629eab
 
 default:
   # https://docs.gitlab.com/ee/ci/pipelines/settings.html#auto-cancel-pending-pipelines
