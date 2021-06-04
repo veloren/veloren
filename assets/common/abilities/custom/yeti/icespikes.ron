@@ -13,5 +13,5 @@ Shockwave(
     requires_ground: false,
     move_efficiency: 0.0,
     damage_kind: Piercing,
-    //specifier: IceSpikes,
+    specifier: IceSpikes,
 )

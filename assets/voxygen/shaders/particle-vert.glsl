@@ -69,6 +69,7 @@ const int BIG_SHRAPNEL = 27;
 const int LASER = 28;
 const int BUBBLES = 29;
 const int WATER = 30;
+const int ICE_SPIKES = 31;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -518,6 +519,16 @@ void main() {
                 vec3(size),
                 vec4(0.5 * blue_color, 0.9 * blue_color, blue_color, 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 5 + 3 * rand9)
+            );
+            break;
+        case ICE_SPIKES:
+            f_reflect = 0.0; // Ice doesn't reflect to look like magic
+            ice_color = 1.7 + rand5 * 0.2;
+            attr = Attr(
+                vec3(0.0),
+                vec3(11.0, 11.0, 11.0 * length(inst_dir) * 2.0 * (0.5 - abs(0.5 - slow_end(0.5)))) / 3,
+                vec4(0.8 * ice_color, 0.9 * ice_color, ice_color, 1),
+                spin_in_axis(vec3(1,0,0),0)
             );
             break;
         default:
