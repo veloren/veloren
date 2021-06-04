@@ -64,13 +64,33 @@ impl Default for SkeletonAttr {
     fn default() -> Self {
         Self {
             bone0: (0.0, 0.0, 0.0),
-            bone1: (-13.0, -25.0, 10.0),
-            bone2: (13.0, -25.0, 10.0),
-            bone3: (0.0, -27.5, 8.5),
+            bone1: (0.0, 0.0, 0.0),
+            bone2: (0.0, 0.0, 0.0),
+            bone3: (0.0, 0.0, 0.0),
         }
     }
 }
 
 impl<'a> From<&'a Body> for SkeletonAttr {
-    fn from(_: &'a Body) -> Self { Self::default() }
+    fn from(body: &'a Body) -> Self {
+        use comp::ship::Body::*;
+        Self {
+            bone0: match body {
+                DefaultAirship => (0.0, 0.0, 0.0),
+                AirBalloon => (0.0, 0.0, 0.0),
+            },
+            bone1: match body {
+                DefaultAirship => (-13.0, -25.0, 10.0),
+                AirBalloon => (0.0, 0.0, 0.0),
+            },
+            bone2: match body {
+                DefaultAirship => (13.0, -25.0, 10.0),
+                AirBalloon => (0.0, 0.0, 0.0),
+            },
+            bone3: match body {
+                DefaultAirship => (0.0, -27.5, 8.5),
+                AirBalloon => (0.0, -9.0, 8.0),
+            },
+        }
+    }
 }

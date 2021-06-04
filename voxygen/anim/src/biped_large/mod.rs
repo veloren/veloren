@@ -208,7 +208,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             head: match (body.species, body.body_type) {
                 (Ogre, Male) => (5.0, 6.0),
                 (Ogre, Female) => (1.0, 7.5),
-                (Cyclops, _) => (4.5, 7.5),
+                (Cyclops, _) => (9.5, 7.5),
                 (Wendigo, _) => (3.0, 7.5),
                 (Troll, _) => (6.0, 10.0),
                 (Dullahan, _) => (3.0, 6.0),
@@ -226,7 +226,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             jaw: match (body.species, body.body_type) {
                 (Ogre, _) => (0.0, 0.0),
-                (Cyclops, _) => (0.0, 0.0),
+                (Cyclops, _) => (-4.5, -6.0),
                 (Wendigo, _) => (0.0, 0.0),
                 (Troll, _) => (2.0, -4.0),
                 (Dullahan, _) => (0.0, 0.0),
@@ -245,7 +245,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             upper_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 27.5),
                 (Ogre, Female) => (0.0, 28.0),
-                (Cyclops, _) => (-2.0, 27.0),
+                (Cyclops, _) => (-2.0, 31.0),
                 (Wendigo, _) => (-1.0, 29.0),
                 (Troll, _) => (-1.0, 26.5),
                 (Dullahan, _) => (0.0, 29.0),
@@ -264,7 +264,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             lower_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (1.0, -7.0),
                 (Ogre, Female) => (0.0, -6.0),
-                (Cyclops, _) => (1.0, -4.5),
+                (Cyclops, _) => (1.0, -8.5),
                 (Wendigo, _) => (-1.5, -6.0),
                 (Troll, _) => (1.0, -10.5),
                 (Dullahan, _) => (0.0, -6.5),
@@ -291,7 +291,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             shoulder: match (body.species, body.body_type) {
                 (Ogre, Male) => (12.0, 0.5, 3.0),
                 (Ogre, Female) => (8.0, 0.5, 2.0),
-                (Cyclops, _) => (9.5, 2.5, 4.5),
+                (Cyclops, _) => (15.0, 3.5, 1.5),
                 (Wendigo, _) => (9.0, 0.5, 2.5),
                 (Troll, _) => (11.0, 0.5, 4.5),
                 (Dullahan, _) => (14.0, 0.5, 3.5),
@@ -310,7 +310,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             hand: match (body.species, body.body_type) {
                 (Ogre, Male) => (14.5, 0.0, -4.0),
                 (Ogre, Female) => (9.0, 0.5, -4.5),
-                (Cyclops, _) => (10.0, 2.0, -0.5),
+                (Cyclops, _) => (14.0, 2.0, -5.5),
                 (Wendigo, _) => (12.0, 0.0, -3.5),
                 (Troll, _) => (11.5, 0.0, -5.5),
                 (Dullahan, _) => (14.5, 0.0, -2.5),
@@ -329,7 +329,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             leg: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 0.0, -4.0),
                 (Ogre, Female) => (0.0, 0.0, -2.0),
-                (Cyclops, _) => (0.0, -1.0, -5.0),
+                (Cyclops, _) => (4.5, 1.0, -8.5),
                 (Wendigo, _) => (2.0, 2.0, -2.5),
                 (Troll, _) => (5.0, 0.0, -6.0),
                 (Dullahan, _) => (0.0, 0.0, -5.0),
@@ -348,7 +348,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             foot: match (body.species, body.body_type) {
                 (Ogre, Male) => (4.0, 1.0, -12.0),
                 (Ogre, Female) => (4.0, 0.5, -13.5),
-                (Cyclops, _) => (4.0, 1.5, -17.0),
+                (Cyclops, _) => (6.0, 3.5, -15.5),
                 (Wendigo, _) => (5.0, 2.5, -17.0),
                 (Troll, _) => (6.0, 1.5, -13.0),
                 (Dullahan, _) => (4.0, 2.5, -14.0),

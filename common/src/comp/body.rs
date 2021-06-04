@@ -367,6 +367,7 @@ impl Body {
                 quadruped_low::Species::Rocksnapper => Vec3::new(1.0, 1.6, 2.9),
                 quadruped_low::Species::Salamander => Vec3::new(1.0, 2.4, 1.3),
                 quadruped_low::Species::Tortoise => Vec3::new(1.0, 1.6, 2.0),
+                quadruped_low::Species::Basilisk => Vec3::new(1.8, 2.2, 2.9),
                 _ => Vec3::new(1.0, 1.6, 1.3),
             },
             Body::Ship(ship) => ship.dimensions(),
@@ -688,7 +689,7 @@ impl Body {
     pub fn mounting_offset(&self) -> Vec3<f32> {
         match self {
             Body::Ship(ship::Body::DefaultAirship) => Vec3::from([0.0, 0.0, 10.0]),
-            Body::Ship(ship::Body::AirBalloon) => Vec3::from([0.0, 0.0, 10.0]),
+            Body::Ship(ship::Body::AirBalloon) => Vec3::from([0.0, 0.0, 5.0]),
             _ => Vec3::unit_z(),
         }
     }

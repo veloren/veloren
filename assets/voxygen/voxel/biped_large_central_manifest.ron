@@ -54,19 +54,19 @@
     ),
     (Cyclops, Male): (
         head: (
-            offset: (-7.0, -7.0, -6.5),
+            offset: (-7.0, -7.5, -7.0),
             central: ("npc.cyclops.male.head"),
         ),
         torso_upper: (
-            offset: (-8.0, -6.0, -6.0),
+            offset: (-9.0, -10.0, -10.5),
             central: ("npc.cyclops.male.torso_upper"),
         ),
         torso_lower: (
-            offset: (-6.0, -5.5, -12.0),
+            offset: (-8.0, -6.0, -10.0),
             central: ("npc.cyclops.male.torso_lower"),
         ),
         jaw: (
-            offset: (0.0, 0.0, 0.0),
+            offset: (-4.0, 0.0, -2.0),
             central: ("npc.cyclops.male.jaw"),
         ),
         tail: (
@@ -80,19 +80,19 @@
     ),
     (Cyclops, Female): (
         head: (
-            offset: (-7.0, -7.0, -6.5),
+            offset: (-7.0, -7.5, -7.0),
             central: ("npc.cyclops.male.head"),
         ),
         torso_upper: (
-            offset: (-8.0, -6.0, -6.0),
+            offset: (-9.0, -10.0, -10.5),
             central: ("npc.cyclops.male.torso_upper"),
         ),
         torso_lower: (
-            offset: (-6.0, -5.5, -12.0),
+            offset: (-8.0, -6.0, -10.0),
             central: ("npc.cyclops.male.torso_lower"),
         ),
         jaw: (
-            offset: (0.0, 0.0, 0.0),
+            offset: (-4.0, 0.0, -2.0),
             central: ("npc.cyclops.male.jaw"),
         ),
         tail: (
