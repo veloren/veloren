@@ -1,12 +1,12 @@
 RepeaterRanged(
     energy_cost: 50,
     buildup_duration: 0.2,
-    shoot_duration: 1.0,
+    shoot_duration: 0.5,
     recover_duration: 0.8,
-    max_speed: 5.0,
-    half_speed_at: 4,
+    max_speed: 2.0,
+    half_speed_at: 1,
     projectile: Arrow(
-        damage: 40.0,
+        damage: 30.0,
         knockback: 5.0,
         energy_regen: 0,
     ),
