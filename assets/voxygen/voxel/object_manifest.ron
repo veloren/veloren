@@ -713,6 +713,12 @@
         bone0: (
             offset: (-4.5, -4.5, 0.0),
             central: ("object.sea_lantern"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
     BirdMeat: (
         bone0: (
             offset: (-5.5, -3.0, 0.0),

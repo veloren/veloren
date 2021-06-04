@@ -4,10 +4,10 @@ ItemDef(
     kind: Armor((
         kind: Chest("Silken"),
         stats: (
-            protection: Normal(45.0),
+            protection: Normal(14.0),
             poise_resilience: Normal(0.0),
-            energy_max: 495,
-            energy_recovery: 0.5,
+            energy_max: 149,
+            energy_recovery: 0.15,
             crit_power: 0.0,
             stealth: 0.0,
         ),

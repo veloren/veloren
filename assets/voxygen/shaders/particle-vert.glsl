@@ -70,7 +70,7 @@ const int LASER = 28;
 const int BUBBLES = 29;
 const int WATER = 30;
 const int ICE_SPIKES = 31;
-const int DUST = 31;
+const int DUST = 32;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;

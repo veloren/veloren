@@ -270,7 +270,7 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 }
             }
             if vein_condition && cave_base < surface_z as i32 - 25 {
-                let kind = *Lottery::<SpriteKind>::load_expect("common.cave_scatter.deep_floor")
+                let kind = *Lottery::<SpriteKind>::load_expect("common.cave_scatter.vein")
                     .read()
                     .choose();
                 canvas.map(Vec3::new(wpos2d.x, wpos2d.y, vein_floor), |block| {

@@ -4,7 +4,7 @@ ItemDef(
     kind: Armor((
         kind: Head("Leather"),
         stats: (
-            protection: Normal(0.0),
+            protection: Normal(1.0),
             poise_resilience: Normal(0.0),
             energy_max: 0,
             energy_recovery: 0.0,

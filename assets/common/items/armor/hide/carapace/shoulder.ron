@@ -4,11 +4,11 @@ ItemDef(
     kind: Armor((
         kind: Shoulder("Carapace"),
         stats: (
-            protection: Normal(0.0),
+            protection: Normal(19.0),
             poise_resilience: Normal(0.0),
             energy_max: 0,
             energy_recovery: 0.0,
-            crit_power: 0.0,
+            crit_power: 0.266,
             stealth: 0.0,
         ),
     )),
