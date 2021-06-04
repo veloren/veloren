@@ -33,7 +33,7 @@ docker-nightly:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   dependencies:
-    - linux
+    - air-linux
   before_script:
     - ls "$CI_PROJECT_DIR/server-cli/"
   script:
