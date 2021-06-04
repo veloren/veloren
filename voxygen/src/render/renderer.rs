@@ -857,7 +857,8 @@ impl Renderer {
                 return Ok(None);
             },
             Err(err @ wgpu::SwapChainError::Outdated) => {
-                warn!("{}. This will probably be resolved on the next frame", err);
+                warn!("{}. Recreating the swapchain", err);
+                self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
                 return Ok(None);
             },
             Err(err @ wgpu::SwapChainError::OutOfMemory) => return Err(err.into()),
