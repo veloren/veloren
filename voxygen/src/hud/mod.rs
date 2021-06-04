@@ -3777,6 +3777,8 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Burning { .. } => imgs.debuff_burning_0,
         BuffKind::Crippled { .. } => imgs.debuff_crippled_0,
         BuffKind::Frozen { .. } => imgs.debuff_frozen_0,
+        // TODO: Get icon for this before merging. Anyone doing code review open a comment here.
+        BuffKind::Wet { .. } => imgs.debuff_burning_0,
     }
 }
 
@@ -3798,6 +3800,7 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> &str 
         BuffKind::Burning { .. } => localized_strings.get("buff.title.burn"),
         BuffKind::Crippled { .. } => localized_strings.get("buff.title.crippled"),
         BuffKind::Frozen { .. } => localized_strings.get("buff.title.frozen"),
+        BuffKind::Wet { .. } => localized_strings.get("buff.title.wet"),
     }
 }
 
@@ -3831,6 +3834,7 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
         BuffKind::Burning { .. } => Cow::Borrowed(localized_strings.get("buff.desc.burn")),
         BuffKind::Crippled { .. } => Cow::Borrowed(localized_strings.get("buff.desc.crippled")),
         BuffKind::Frozen { .. } => Cow::Borrowed(localized_strings.get("buff.desc.frozen")),
+        BuffKind::Wet { .. } => Cow::Borrowed(localized_strings.get("buff.desc.wet")),
     }
 }
 

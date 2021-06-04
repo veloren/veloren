@@ -108,9 +108,17 @@
         secondary: "common.abilities.custom.wendigomagic.singlestrike",
         abilities: [],
     ),
-    Custom("Tidal Claws"): (
-        primary: "common.abilities.staff.flamethrower",
-        secondary: "common.abilities.custom.wendigomagic.singlestrike",
+    Custom("Tidal Warrior"): (
+        primary: "common.abilities.custom.tidalwarrior.pincer",
+        secondary: "common.abilities.custom.tidalwarrior.scuttle",
+        abilities: [
+            (None, "common.abilities.custom.tidalwarrior.bubbles"),
+            (None, "common.abilities.custom.tidalwarrior.totem"),
+        ],
+    ),
+    Custom("Tidal Totem"): (
+        primary: "common.abilities.custom.tidalwarrior.totem_wave",
+        secondary: "common.abilities.custom.tidalwarrior.totem_wave",
         abilities: [],
     ),
     Custom("Quad Med Quick"): (

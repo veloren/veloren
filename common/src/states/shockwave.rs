@@ -44,6 +44,8 @@ pub struct StaticData {
     pub ability_info: AbilityInfo,
     /// What kind of damage the attack does
     pub damage_kind: DamageKind,
+    /// Used to specify the shockwave to the frontend
+    pub specifier: shockwave::FrontendSpecifier,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -108,6 +110,7 @@ impl CharacterBehavior for Data {
                         attack,
                         requires_ground: self.static_data.requires_ground,
                         owner: Some(*data.uid),
+                        specifier: self.static_data.specifier,
                     };
                     update.server_events.push_front(ServerEvent::Shockwave {
                         properties,

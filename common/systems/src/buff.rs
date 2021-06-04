@@ -214,6 +214,9 @@ impl<'a> System<'a> for Sys {
                             BuffEffect::AttackSpeed(speed) => {
                                 stat.attack_speed_modifier *= *speed;
                             },
+                            BuffEffect::GroundFriction(gf) => {
+                                stat.friction_modifier *= *gf;
+                            },
                         };
                     }
                 }

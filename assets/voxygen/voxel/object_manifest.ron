@@ -709,4 +709,14 @@
             central: ("object.haniwa_sentry.bone1"),
         )
     ),
+    SeaLantern: (
+        bone0: (
+            offset: (-4.5, -4.5, 0.0),
+            central: ("object.sea_lantern"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

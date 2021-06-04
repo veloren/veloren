@@ -87,6 +87,10 @@ struct AttackData {
     angle: f32,
 }
 
+impl AttackData {
+    fn in_min_range(&self) -> bool { self.dist_sqrd < self.min_attack_dist.powi(2) }
+}
+
 #[derive(Eq, PartialEq)]
 pub enum Tactic {
     Melee,
@@ -108,11 +112,13 @@ pub enum Tactic {
     Turret,
     FixedTurret,
     RotatingTurret,
+    RadialTurret,
     Mindflayer,
     BirdLargeBreathe,
     BirdLargeFire,
     Minotaur,
     ClayGolem,
+    TidalWarrior,
 }
 
 #[derive(SystemData)]
@@ -1601,6 +1607,8 @@ impl<'a> AgentData<'a> {
                             "Mindflayer" => Tactic::Mindflayer,
                             "Minotaur" => Tactic::Minotaur,
                             "Clay Golem" => Tactic::ClayGolem,
+                            "Tidal Warrior" => Tactic::TidalWarrior,
+                            "Tidal Totem" => Tactic::RadialTurret,
                             _ => Tactic::Melee,
                         },
                         AbilitySpec::Tool(tool_kind) => tool_tactic(*tool_kind),
@@ -1843,6 +1851,20 @@ impl<'a> AgentData<'a> {
                 &tgt_data,
                 &read_data,
             ),
+            Tactic::TidalWarrior => self.handle_tidal_warrior_attack(
+                agent,
+                controller,
+                &attack_data,
+                &tgt_data,
+                &read_data,
+            ),
+            Tactic::RadialTurret => self.handle_radial_turret_attack(
+                agent,
+                controller,
+                &attack_data,
+                &tgt_data,
+                &read_data,
+            ),
         }
     }
 
@@ -1854,7 +1876,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        if attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2) && attack_data.angle < 45.0 {
+        if attack_data.in_min_range() && attack_data.angle < 45.0 {
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Primary));
@@ -1883,7 +1905,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        if attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2) && attack_data.angle < 45.0 {
+        if attack_data.in_min_range() && attack_data.angle < 45.0 {
             controller.inputs.move_dir = Vec2::zero();
             if agent.action_state.timer > 6.0 {
                 controller
@@ -1932,7 +1954,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        if attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2) && attack_data.angle < 45.0 {
+        if attack_data.in_min_range() && attack_data.angle < 45.0 {
             controller.inputs.move_dir = Vec2::zero();
             if agent.action_state.timer > 4.0 {
                 controller
@@ -2004,7 +2026,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        if attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2) && attack_data.angle < 45.0 {
+        if attack_data.in_min_range() && attack_data.angle < 45.0 {
             controller.inputs.move_dir = Vec2::zero();
             if self
                 .skill_set
@@ -2226,9 +2248,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-            && attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2)
-        {
+        if self.body.map(|b| b.is_humanoid()).unwrap_or(false) && attack_data.in_min_range() {
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Roll));
@@ -2325,7 +2345,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        if attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2) && attack_data.angle < 90.0 {
+        if attack_data.in_min_range() && attack_data.angle < 90.0 {
             controller.inputs.move_dir = Vec2::zero();
             controller
                 .actions
@@ -2371,8 +2391,7 @@ impl<'a> AgentData<'a> {
         radius: u32,
         circle_time: u32,
     ) {
-        if attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2) && thread_rng().gen_bool(0.5)
-        {
+        if attack_data.in_min_range() && thread_rng().gen_bool(0.5) {
             controller.inputs.move_dir = Vec2::zero();
             controller
                 .actions
@@ -2679,7 +2698,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        if attack_data.angle < 90.0 && attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2) {
+        if attack_data.angle < 90.0 && attack_data.in_min_range() {
             controller.inputs.move_dir = Vec2::zero();
             if agent.action_state.timer < 2.0 {
                 controller
@@ -2762,7 +2781,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        if attack_data.angle < 90.0 && attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2) {
+        if attack_data.angle < 90.0 && attack_data.in_min_range() {
             controller.inputs.move_dir = Vec2::zero();
             controller
                 .actions
@@ -2847,6 +2866,26 @@ impl<'a> AgentData<'a> {
                 .push(ControlAction::basic_input(InputKind::Primary));
         } else {
             agent.target = None;
+        }
+    }
+
+    fn handle_radial_turret_attack(
+        &self,
+        _agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if can_see_tgt(
+            &*read_data.terrain,
+            self.pos,
+            tgt_data.pos,
+            attack_data.dist_sqrd,
+        ) {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
         }
     }
 
@@ -3190,7 +3229,7 @@ impl<'a> AgentData<'a> {
             agent.action_state.timer += read_data.dt.0;
         } else if agent.action_state.timer < 6.0
             && attack_data.angle < 90.0
-            && attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2)
+            && attack_data.in_min_range()
         {
             // Triplestrike
             controller
@@ -3353,6 +3392,88 @@ impl<'a> AgentData<'a> {
         }
         // Make clay golem move towards target
         self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+    }
+
+    fn handle_tidal_warrior_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const SCUTTLE_RANGE: f32 = 40.0;
+        const BUBBLE_RANGE: f32 = 20.0;
+        const MINION_SUMMON_THRESHOLD: f32 = 0.20;
+        let health_fraction = self.health.map_or(0.5, |h| h.fraction());
+        // Sets counter at start of combat, using `condition` to keep track of whether
+        // it was already intitialized
+        if !agent.action_state.condition {
+            agent.action_state.counter = 1.0 - MINION_SUMMON_THRESHOLD;
+            agent.action_state.condition = true;
+        }
+
+        if agent.action_state.counter > health_fraction {
+            // Summon minions at particular thresholds of health
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Ability(1)));
+
+            if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
+            {
+                agent.action_state.counter -= MINION_SUMMON_THRESHOLD;
+            }
+        } else if attack_data.dist_sqrd < SCUTTLE_RANGE.powi(2) {
+            if matches!(self.char_state, CharacterState::DashMelee(c) if !matches!(c.stage_section, StageSection::Recover))
+            {
+                // Keep scuttling if already in dash melee and not in recover
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+            } else if attack_data.dist_sqrd < BUBBLE_RANGE.powi(2) {
+                if matches!(self.char_state, CharacterState::BasicBeam(c) if !matches!(c.stage_section, StageSection::Recover) && c.timer < Duration::from_secs(10))
+                {
+                    // Keep shooting bubbles at them if already in basic beam and not in recover and
+                    // have not been bubbling too long
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Ability(0)));
+                } else if attack_data.in_min_range() && attack_data.angle < 60.0 {
+                    // Pincer them if they're in range and angle
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Primary));
+                } else if attack_data.angle < 30.0
+                    && can_see_tgt(
+                        &*read_data.terrain,
+                        self.pos,
+                        tgt_data.pos,
+                        attack_data.dist_sqrd,
+                    )
+                {
+                    // Start bubbling them if not close enough to do something else and in angle and
+                    // can see target
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Ability(0)));
+                }
+            } else if attack_data.angle < 90.0
+                && can_see_tgt(
+                    &*read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                )
+            {
+                // Start scuttling if not close enough to do something else and in angle and can
+                // see target
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+            }
+        }
+        // Always attempt to path towards target
+        self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
     }
 
     fn follow(

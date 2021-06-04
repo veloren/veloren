@@ -3807,6 +3807,7 @@ impl FigureMgr {
                                     time,
                                     Some(s.stage_section),
                                     state.acc_vel,
+                                    state.state_time,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -4005,6 +4006,7 @@ impl FigureMgr {
                                         time,
                                         Some(s.stage_section),
                                         state.acc_vel,
+                                        state.state_time,
                                     ),
                                     stage_progress,
                                     &mut state_animation_rate,
@@ -4090,8 +4092,8 @@ impl FigureMgr {
                             anim::biped_large::SummonAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
+                                    (active_tool_kind, active_tool_spec),
+                                    (second_tool_kind, second_tool_spec),
                                     rel_vel,
                                     time,
                                     Some(s.stage_section),
@@ -4185,12 +4187,13 @@ impl FigureMgr {
                             anim::biped_large::BeamAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
+                                    (active_tool_kind, active_tool_spec),
+                                    (second_tool_kind, second_tool_spec),
                                     time,
                                     rel_vel,
                                     Some(s.stage_section),
                                     state.acc_vel,
+                                    state.state_time,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,

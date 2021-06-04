@@ -1,7 +1,7 @@
 use super::*;
 use crate::audio::sfx::SfxEvent;
 use common::{
-    combat::DamageKind,
+    combat::{self, DamageKind},
     comp::{
         inventory::loadout_builder::LoadoutBuilder, item::tool::ToolKind, CharacterAbilityType,
         CharacterState, InputKind, Item,
@@ -76,7 +76,10 @@ fn maps_basic_melee() {
                 recover_duration: Duration::default(),
                 base_damage: 10.0,
                 base_poise_damage: 10.0,
-                knockback: 0.0,
+                knockback: combat::Knockback {
+                    strength: 0.0,
+                    direction: combat::KnockbackDir::Away,
+                },
                 range: 1.0,
                 max_angle: 1.0,
                 ability_info: empty_ability_info(),

@@ -243,7 +243,7 @@ pub fn handle_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
 /// Updates components to move player as if theyre on ground or in air
 #[allow(clippy::assign_op_pattern)] // TODO: Pending review in #587
 fn basic_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
-    let efficiency = efficiency * data.stats.move_speed_modifier;
+    let efficiency = efficiency * data.stats.move_speed_modifier * data.stats.friction_modifier;
 
     let accel = if data.physics.on_ground {
         data.body.base_accel()
@@ -263,20 +263,15 @@ fn basic_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
 }
 
 /// Handles forced movement
-pub fn handle_forced_movement(
-    data: &JoinData,
-    update: &mut StateUpdate,
-    movement: ForcedMovement,
-    efficiency: f32,
-) {
-    let efficiency = efficiency * data.stats.move_speed_modifier;
-
+pub fn handle_forced_movement(data: &JoinData, update: &mut StateUpdate, movement: ForcedMovement) {
     match movement {
         ForcedMovement::Forward { strength } => {
+            let strength = strength * data.stats.move_speed_modifier * data.stats.friction_modifier;
             if let Some(accel) = data.physics.on_ground.then_some(data.body.base_accel()) {
                 update.vel.0 += Vec2::broadcast(data.dt.0)
                     * accel
-                    * (data.inputs.move_dir * efficiency + Vec2::from(update.ori) * strength);
+                    * (data.inputs.move_dir + Vec2::from(update.ori))
+                    * strength;
             }
         },
         ForcedMovement::Leap {
@@ -328,7 +323,7 @@ pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, efficiency:
 
 /// Updates components to move player as if theyre swimming
 fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, submersion: f32) -> bool {
-    let efficiency = efficiency * data.stats.move_speed_modifier;
+    let efficiency = efficiency * data.stats.move_speed_modifier * data.stats.friction_modifier;
     if let Some(force) = data.body.swim_thrust() {
         let force = efficiency * force;
         let mut water_accel = force / data.mass.0;
@@ -366,7 +361,7 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, submers
 
 /// Updates components to move entity as if it's flying
 pub fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) -> bool {
-    let efficiency = efficiency * data.stats.move_speed_modifier;
+    let efficiency = efficiency * data.stats.move_speed_modifier * data.stats.friction_modifier;
 
     let glider = match data.character {
         CharacterState::Glide(data) => Some(data),

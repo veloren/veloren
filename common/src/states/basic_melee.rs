@@ -1,11 +1,13 @@
 use crate::{
-    combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
+    combat::{
+        Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement, Damage,
+        DamageKind, DamageSource, GroupTarget, Knockback,
+    },
     comp::{tool::ToolKind, CharacterState, Melee, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
-    Damage, DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -24,7 +26,7 @@ pub struct StaticData {
     /// Base poise reduction
     pub base_poise_damage: f32,
     /// Knockback
-    pub knockback: f32,
+    pub knockback: Knockback,
     /// Max range
     pub range: f32,
     /// Max angle (45.0 will give you a 90.0 angle window)
@@ -91,10 +93,7 @@ impl CharacterBehavior for Data {
                     .with_requirement(CombatRequirement::AnyDamage);
                     let knockback = AttackEffect::new(
                         Some(GroupTarget::OutOfGroup),
-                        CombatEffect::Knockback(Knockback {
-                            strength: self.static_data.knockback,
-                            direction: KnockbackDir::Away,
-                        }),
+                        CombatEffect::Knockback(self.static_data.knockback),
                     )
                     .with_requirement(CombatRequirement::AnyDamage);
                     let energy = AttackEffect::new(None, CombatEffect::EnergyReward(50.0))

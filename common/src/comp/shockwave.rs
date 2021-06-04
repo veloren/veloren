@@ -13,6 +13,7 @@ pub struct Properties {
     pub requires_ground: bool,
     pub duration: Duration,
     pub owner: Option<Uid>,
+    pub specifier: FrontendSpecifier,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -42,4 +43,11 @@ pub struct ShockwaveHitEntities {
 
 impl Component for ShockwaveHitEntities {
     type Storage = IdvStorage<Self>;
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub enum FrontendSpecifier {
+    Ground,
+    Fire,
+    Water,
 }
