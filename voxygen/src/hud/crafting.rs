@@ -276,16 +276,6 @@ impl<'a> Widget for Crafting<'a> {
             .color(Some(UI_MAIN))
             .w_h(422.0, 460.0)
             .set(state.ids.window, ui);
-        // Search Background
-        // I couldn't find a way to manually set they layer of a widget
-        // If it is possible, please move this code (for rectangle) down to the code for
-        // search input
-        if self.show.crafting_search_key.is_some() {
-            Rectangle::fill([114.0, 20.0])
-                .top_left_with_margins_on(state.ids.window, 52.0, 26.0)
-                .hsla(0.0, 0.0, 0.0, 0.7)
-                .set(state.ids.input_bg_search, ui);
-        }
         // Window
         Image::new(self.imgs.crafting_frame)
             .middle_of(state.ids.window)
@@ -887,6 +877,12 @@ impl<'a> Widget for Crafting<'a> {
             {
                 events.push(Event::SearchRecipe(None));
             }
+            Rectangle::fill([114.0, 20.0])
+                .top_left_with_margins_on(state.ids.btn_close_search, -2.0, 16.0)
+                .hsla(0.0, 0.0, 0.0, 0.7)
+                .depth(1.0)
+                .parent(state.ids.window)
+                .set(state.ids.input_bg_search, ui);
             if let Some(string) = TextEdit::new(key.as_str())
                 .top_left_with_margins_on(state.ids.btn_close_search, -2.0, 18.0)
                 .w_h(90.0, 20.0)

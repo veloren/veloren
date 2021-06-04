@@ -135,14 +135,6 @@ impl<'a> Widget for Social<'a> {
             .color(Some(UI_MAIN))
             .w_h(280.0, 460.0)
             .set(state.ids.bg, ui);
-        // Search Background
-        // I couldn't find a way to manually set they layer of a widget
-        // If it is possible, please move this code (for rectangle) down to the code for
-        // search input
-        Rectangle::fill([248.0, 20.0])
-            .top_left_with_margins_on(state.ids.bg, 52.0, 27.0)
-            .hsla(0.0, 0.0, 0.0, 0.7)
-            .set(state.ids.player_search_input_bg, ui);
         // Window frame
         Image::new(self.imgs.social_frame_on)
             .middle_of(state.ids.bg)
@@ -426,6 +418,12 @@ impl<'a> Widget for Social<'a> {
         {
             events.push(Event::Focus(state.ids.player_search_input));
         }
+        Rectangle::fill([248.0, 20.0])
+            .top_left_with_margins_on(state.ids.player_search_icon, -2.0, 18.0)
+            .hsla(0.0, 0.0, 0.0, 0.7)
+            .depth(1.0)
+            .parent(state.ids.bg)
+            .set(state.ids.player_search_input_bg, ui);
         if let Some(string) =
             TextEdit::new(self.show.social_search_key.as_deref().unwrap_or_default())
                 .top_left_with_margins_on(state.ids.player_search_icon, -1.0, 22.0)
