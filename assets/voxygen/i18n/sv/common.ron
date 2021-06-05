@@ -91,14 +91,14 @@ Startade servern om?
         "common.rand_appearance": "Slumpmässigt utseende",
         "common.rand_name": "Slumpmässigt namn",
 
-        "common.stats.combat_rating": "Stridsduglighet", // TODO combat rating --> stridsduglighet
+        "common.stats.combat_rating": "Stridsduglighet", // combat rating --> stridsduglighet
         "common.stats.power": "Kraft",
         "common.stats.speed": "Hastighet",
         "common.stats.poise": "Allmäntillstånd",
-        "common.stats.crit_chance": "Crit Chance", // TODO
-        "common.stats.crit_mult": "Crit Mult", // TODO
+        "common.stats.crit_chance": "Kritisk chans",
+        "common.stats.crit_mult": "Kritisk multi",
         "common.stats.armor": "Rustning",
-        "common.stats.poise_res":"Stun Res", // TODO
+        "common.stats.poise_res":"Motståndskraft",
         "common.stats.slots": "Packningutrymme",
     },
 

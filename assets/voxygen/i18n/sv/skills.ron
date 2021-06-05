@@ -44,17 +44,17 @@
         "hud.skill.swim_speed_title": "Simningshastighet",
         "hud.skill.swim_speed": "Simma 40% fortare{SP}",
         // Sceptre
-        "hud.skill.sc_lifesteal_title": "Lifesteal Beam", //TODO
+        "hud.skill.sc_lifesteal_title": "Livsstjälande stråle",
         "hud.skill.sc_lifesteal": "Sug livet ur dina fiender",
         "hud.skill.sc_lifesteal_damage_title": "Skada",
         "hud.skill.sc_lifesteal_damage": "Orsaka 20% större skada{SP}",
         "hud.skill.sc_lifesteal_range_title": "Räckvidd",
         "hud.skill.sc_lifesteal_range": "Din stråle når 20% längre{SP}",
-        "hud.skill.sc_lifesteal_lifesteal_title": "Lifesteal", //TODO
+        "hud.skill.sc_lifesteal_lifesteal_title": "Livsstjälande",
         "hud.skill.sc_lifesteal_lifesteal": "Omvandlar ytterligare 15% av skadan till kroppspoäng{SP}",
         "hud.skill.sc_lifesteal_regen_title": "Engergiåterhämtning",
         "hud.skill.sc_lifesteal_regen": "Återhämta ytterligare 20% energi{SP}",
-        "hud.skill.sc_heal_title": "Healing Beam", //TODO
+        "hud.skill.sc_heal_title": "Helande stråle",
         "hud.skill.sc_heal": "Hela dina alleirade med dina fienders blod",
         "hud.skill.sc_heal_heal_title": "Helande",
         "hud.skill.sc_heal_heal": "Ökar din förmåga att hela andra med 20%{SP}",
@@ -62,16 +62,16 @@
         "hud.skill.sc_heal_cost": "Helande av andra kräver 20% mindre energi{SP}",
         "hud.skill.sc_heal_range_title": "Räckvidd",
         "hud.skill.sc_heal_range": "Din stråle når 20% längre{SP}",
-        "hud.skill.sc_wardaura_unlock_title": "Warding Aura Unlock", //TODO
-        "hud.skill.sc_wardaura_unlock": "Allows you to ward your allies against enemy attacks{SP}", //TODO
+        "hud.skill.sc_wardaura_unlock_title": "Låser upp beskyddande aura",
+        "hud.skill.sc_wardaura_unlock": "Låter dig skydda dina vänner mot fiendeattacker{SP}",
         "hud.skill.sc_wardaura_strength_title": "Styrka",
-        "hud.skill.sc_wardaura_strength": "The strength of your protection increases by 15%{SP}", //TODO
+        "hud.skill.sc_wardaura_strength": "Ditt skydd blir 15% starkare{SP}",
         "hud.skill.sc_wardaura_duration_title": "Varaktighet",
-        "hud.skill.sc_wardaura_duration": "The effects of your ward last 20% longer{SP}", //TODO
+        "hud.skill.sc_wardaura_duration": "Ditt beskydd varar 20% längre{SP}",
         "hud.skill.sc_wardaura_range_title": "Räckvidd",
-        "hud.skill.sc_wardaura_range": "Your ward reaches 25% further{SP}", //TODO
+        "hud.skill.sc_wardaura_range": "Ditt beskydd når 25% längre{SP}",
         "hud.skill.sc_wardaura_cost_title": "Energikostnad",
-        "hud.skill.sc_wardaura_cost": "Creating the ward requries 15% less energy{SP}", //TODO
+        "hud.skill.sc_wardaura_cost": "Ditt beskydd kräver 15% mindre energi att upprätta{SP}",
         // Staff
         "hud.skill.st_shockwave_range_title" : "Chockfrontens räckvidd",
         "hud.skill.st_shockwave_range" : "Kasta saker som tidigre var utom räckhåll, räckvidden utökas med 20%{SP}",
@@ -82,13 +82,13 @@
         "hud.skill.st_shockwave_damage_title" : "Chockfrontens skada",
         "hud.skill.st_shockwave_damage" : "Ökar skadeverkan med 30%{SP}",
         "hud.skill.st_shockwave_unlock_title" : "Lås upp chockfront",
-        "hud.skill.st_shockwave_unlock" : "Låser upp möjligheten att slå undan fiender med eld{SP}", //TODO
+        "hud.skill.st_shockwave_unlock" : "Låser upp möjligheten att slå undan fiender med eld{SP}",
         "hud.skill.st_flamethrower_title" : "Eldkastare",
         "hud.skill.st_flamethrower" : "Slungar eld, för välgrillade fiender",
-        "hud.skill.st_flame_velocity_title" : "Flame Velocity", //TODO
-        "hud.skill.st_flame_velocity" : "Gets the fire there faster, 25% faster{SP}", //TODO
+        "hud.skill.st_flame_velocity_title" : "Flamhastighet",
+        "hud.skill.st_flame_velocity" : "Elden sprider sig snabbt, 25% snabbare{SP}",
         "hud.skill.st_flamethrower_range_title" : "Eldkastares räckvidd",
-        "hud.skill.st_flamethrower_range" : "For when the flames just won't reach, they go 25% further{SP}", //TODO
+        "hud.skill.st_flamethrower_range" : "När flammorna inte når, räcker de 25% längre{SP}",
         "hud.skill.st_energy_drain_title" : "Energikostnad",
         "hud.skill.st_energy_drain" : "Minskar energikostnaden med 20%{SP}",
         "hud.skill.st_flamethrower_damage_title" : "Eldkastarens skadeverkan",

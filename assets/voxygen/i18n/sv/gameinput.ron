@@ -48,7 +48,7 @@
         "gameinput.settings": "Inställningar",
         "gameinput.respawn": "Starta om",
         "gameinput.charge": "Anfall",
-        "gameinput.togglewield": "Toggle Wield", // TODO
+        "gameinput.togglewield": "Byt draget vapen",
         "gameinput.interact": "Interagera",
         "gameinput.freelook": "Frigör kamera",
         "gameinput.autowalk": "Gå eller simma automatiskt",
