@@ -77,65 +77,8 @@ impl Entity {
 
     pub fn get_loadout(&self) -> comp::inventory::loadout::Loadout {
         let mut rng = self.rng(PERM_LOADOUT);
-        let main_tool = comp::Item::new_from_asset_expect(
-            (&[
-                "common.items.weapons.sword.wood-2",
-                "common.items.weapons.sword.starter",
-                "common.items.weapons.sword.wood-0",
-                "common.items.weapons.bow.starter",
-                "common.items.weapons.bow.hardwood-2",
-            ])
-                .choose(&mut rng)
-                .unwrap(),
-        );
 
-        let back = match rng.gen_range(0..5) {
-            0 => Some(comp::Item::new_from_asset_expect(
-                "common.items.armor.hide.rawhide.back",
-            )),
-            1 => Some(comp::Item::new_from_asset_expect(
-                "common.items.armor.misc.back.backpack",
-            )),
-            2 => Some(comp::Item::new_from_asset_expect(
-                "common.items.npc_armor.back.backpack_blue",
-            )),
-            3 => Some(comp::Item::new_from_asset_expect(
-                "common.items.npc_armor.back.leather_blue",
-            )),
-            _ => None,
-        };
-
-        let lantern = match rng.gen_range(0..4) {
-            0 => Some(comp::Item::new_from_asset_expect(
-                "common.items.lantern.black_0",
-            )),
-            1 => Some(comp::Item::new_from_asset_expect(
-                "common.items.lantern.blue_0",
-            )),
-            2 => Some(comp::Item::new_from_asset_expect(
-                "common.items.lantern.green_0",
-            )),
-            _ => Some(comp::Item::new_from_asset_expect(
-                "common.items.lantern.red_0",
-            )),
-        };
-
-        let chest = Some(comp::Item::new_from_asset_expect(
-            "common.items.npc_armor.chest.leather_blue",
-        ));
-        let pants = Some(comp::Item::new_from_asset_expect(
-            "common.items.npc_armor.pants.leather_blue",
-        ));
-        let shoulder = Some(comp::Item::new_from_asset_expect(
-            "common.items.armor.hide.leather.shoulder",
-        ));
-
-        LoadoutBuilder::build_loadout(self.get_body(), Some(main_tool), None, None)
-            .back(back)
-            .lantern(lantern)
-            .chest(chest)
-            .pants(pants)
-            .shoulder(shoulder)
+        LoadoutBuilder::from_asset_expect("common.loadout.world.traveler", &mut rng)
             .bag(
                 comp::inventory::slot::ArmorSlot::Bag1,
                 Some(comp::inventory::loadout_builder::make_potion_bag(100)),

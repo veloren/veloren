@@ -73,16 +73,16 @@ enum ItemSpec {
 }
 
 impl ItemSpec {
-    fn try_to_item(&self, asset_specifier: &str) -> Option<Item> {
+    fn try_to_item(&self, asset_specifier: &str, rng: &mut impl Rng) -> Option<Item> {
         match self {
             ItemSpec::Item(specifier) => Some(Item::new_from_asset_expect(&specifier)),
 
             ItemSpec::Choice(items) => {
-                choose(&items, asset_specifier)
+                choose(&items, asset_specifier, rng)
                     .as_ref()
                     .and_then(|e| match e {
-                        entry @ ItemSpec::Item { .. } => entry.try_to_item(asset_specifier),
-                        choice @ ItemSpec::Choice { .. } => choice.try_to_item(asset_specifier),
+                        entry @ ItemSpec::Item { .. } => entry.try_to_item(asset_specifier, rng),
+                        choice @ ItemSpec::Choice { .. } => choice.try_to_item(asset_specifier, rng),
                     })
             },
         }
@@ -108,10 +108,12 @@ impl ItemSpec {
     }
 }
 
-fn choose<'a>(items: &'a [(f32, Option<ItemSpec>)], asset_specifier: &str) -> &'a Option<ItemSpec> {
-    let mut rng = rand::thread_rng();
-
-    items.choose_weighted(&mut rng, |item| item.0).map_or_else(
+fn choose<'a>(
+    items: &'a [(f32, Option<ItemSpec>)],
+    asset_specifier: &str,
+    rng: &mut impl Rng,
+) -> &'a Option<ItemSpec> {
+    items.choose_weighted(rng, |item| item.0).map_or_else(
         |err| match err {
             WeightedError::NoItem | WeightedError::AllWeightsZero => &None,
             WeightedError::InvalidWeight => {
@@ -394,10 +396,15 @@ impl LoadoutBuilder {
     }
 
     #[must_use]
-    pub fn from_asset_expect(asset_specifier: &str) -> Self {
+    pub fn from_asset_expect(asset_specifier: &str, rng: Option<&mut impl Rng>) -> Self {
         let loadout = Self::new();
 
-        loadout.with_asset_expect(asset_specifier)
+        if let Some(rng) = rng {
+            loadout.with_asset_expect(asset_specifier, rng)
+        } else {
+            let rng = &mut rand::thread_rng();
+            loadout.with_asset_expect(asset_specifier, rng)
+        }
     }
 
     /// # Usage
@@ -409,10 +416,10 @@ impl LoadoutBuilder {
     /// 2) Will panic if path to item specified in loadout file doesn't exist
     /// 3) Will panic while runs in tests and asset doesn't have "correct" form
     #[must_use]
-    pub fn with_asset_expect(mut self, asset_specifier: &str) -> Self {
+    pub fn with_asset_expect(mut self, asset_specifier: &str, rng: &mut impl Rng) -> Self {
         let spec = LoadoutSpec::load_expect(asset_specifier).read().0.clone();
         for (key, entry) in spec {
-            let item = match entry.try_to_item(asset_specifier) {
+            let item = match entry.try_to_item(asset_specifier, rng) {
                 Some(item) => item,
                 None => continue,
             };
@@ -485,7 +492,10 @@ impl LoadoutBuilder {
     /// Set default armor items for the loadout. This may vary with game
     /// updates, but should be safe defaults for a new character.
     #[must_use]
-    pub fn defaults(self) -> Self { self.with_asset_expect("common.loadout.default") }
+    pub fn defaults(self) -> Self {
+        let rng = &mut rand::thread_rng();
+        self.with_asset_expect("common.loadout.default", rng)
+    }
 
     /// Builds loadout of creature when spawned
     #[must_use]
@@ -523,51 +533,52 @@ impl LoadoutBuilder {
             }
         });
         // Creates rest of loadout
+        let rng = &mut rand::thread_rng();
         let loadout_builder = if let Some(config) = config {
             let builder = Self::new().active_mainhand(active_item);
             // NOTE: we apply asset after active mainhand so asset has ability override it
             match config {
                 LoadoutConfig::Gnarling => match active_tool_kind {
                     Some(ToolKind::Bow | ToolKind::Staff | ToolKind::Spear) => {
-                        builder.with_asset_expect("common.loadout.dungeon.tier-0.gnarling")
+                        builder.with_asset_expect("common.loadout.dungeon.tier-0.gnarling", rng)
                     },
                     _ => builder,
                 },
                 LoadoutConfig::Adlet => match active_tool_kind {
                     Some(ToolKind::Bow) => {
-                        builder.with_asset_expect("common.loadout.dungeon.tier-1.adlet_bow")
+                        builder.with_asset_expect("common.loadout.dungeon.tier-1.adlet_bow", rng)
                     },
                     Some(ToolKind::Spear | ToolKind::Staff) => {
-                        builder.with_asset_expect("common.loadout.dungeon.tier-1.adlet_spear")
+                        builder.with_asset_expect("common.loadout.dungeon.tier-1.adlet_spear", rng)
                     },
                     _ => builder,
                 },
                 LoadoutConfig::Sahagin => {
-                    builder.with_asset_expect("common.loadout.dungeon.tier-2.sahagin")
+                    builder.with_asset_expect("common.loadout.dungeon.tier-2.sahagin", rng)
                 },
                 LoadoutConfig::Haniwa => {
-                    builder.with_asset_expect("common.loadout.dungeon.tier-3.haniwa")
+                    builder.with_asset_expect("common.loadout.dungeon.tier-3.haniwa", rng)
                 },
                 LoadoutConfig::Myrmidon => {
-                    builder.with_asset_expect("common.loadout.dungeon.tier-4.myrmidon")
+                    builder.with_asset_expect("common.loadout.dungeon.tier-4.myrmidon", rng)
                 },
                 LoadoutConfig::Husk => {
-                    builder.with_asset_expect("common.loadout.dungeon.tier-5.husk")
+                    builder.with_asset_expect("common.loadout.dungeon.tier-5.husk", rng)
                 },
                 LoadoutConfig::Beastmaster => {
-                    builder.with_asset_expect("common.loadout.dungeon.tier-5.beastmaster")
+                    builder.with_asset_expect("common.loadout.dungeon.tier-5.beastmaster", rng)
                 },
                 LoadoutConfig::Warlord => {
-                    builder.with_asset_expect("common.loadout.dungeon.tier-5.warlord")
+                    builder.with_asset_expect("common.loadout.dungeon.tier-5.warlord", rng)
                 },
                 LoadoutConfig::Warlock => {
-                    builder.with_asset_expect("common.loadout.dungeon.tier-5.warlock")
+                    builder.with_asset_expect("common.loadout.dungeon.tier-5.warlock", rng)
                 },
                 LoadoutConfig::Villager => builder
-                    .with_asset_expect("common.loadout.village.villager")
+                    .with_asset_expect("common.loadout.village.villager", rng)
                     .bag(ArmorSlot::Bag1, Some(make_potion_bag(10))),
                 LoadoutConfig::Guard => builder
-                    .with_asset_expect("common.loadout.village.guard")
+                    .with_asset_expect("common.loadout.village.guard", rng)
                     .bag(ArmorSlot::Bag1, Some(make_potion_bag(25))),
                 LoadoutConfig::Merchant => {
                     let mut backpack =
@@ -618,7 +629,6 @@ impl LoadoutBuilder {
                             }
                         }
                     }
-                    let mut rng = rand::thread_rng();
                     let mut item_with_amount = |item_id: &str, amount: &mut f32| {
                         if *amount > 0.0 {
                             let mut item = Item::new_from_asset_expect(item_id);
@@ -685,7 +695,7 @@ impl LoadoutBuilder {
                         }
                     }
                     builder
-                        .with_asset_expect("common.loadout.village.merchant")
+                        .with_asset_expect("common.loadout.village.merchant", rng)
                         .back(Some(backpack))
                         .bag(ArmorSlot::Bag1, Some(bag1))
                         .bag(ArmorSlot::Bag2, Some(bag2))
