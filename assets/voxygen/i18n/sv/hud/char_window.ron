@@ -1,17 +1,17 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Localization for "global" English
+/// Localization for "global" Swedish
 (
     string_map: {
-        "character_window.character_name": "Character Name",
+        "character_window.character_name": "Rollpersonens namn",
         // Character stats
-        "character_window.character_stats": r#"Endurance
+        "character_window.character_stats": r#"Uthållighet
 
-Fitness
+Kondition
 
-Willpower
+Viljekraft
 
-Protection
+Skydd
 "#,
     },
 
