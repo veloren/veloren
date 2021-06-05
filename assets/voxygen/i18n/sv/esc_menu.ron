@@ -1,10 +1,10 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Localization for "global" English
+/// Localization for "global" Swedish
 (
     string_map: {
-        "esc_menu.logout": "Logout",
-        "esc_menu.quit_game": "Quit Game",
+        "esc_menu.logout": "Logga ut",
+        "esc_menu.quit_game": "Avsluta spel",
     },
 
 
