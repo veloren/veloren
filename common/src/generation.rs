@@ -25,8 +25,10 @@ pub struct EntityInfo {
     // TODO: Properly give NPCs skills
     pub level: Option<u16>,
     pub loot_drop: Option<Item>,
-    pub loadout_config: Option<LoadoutConfig>,
-    pub skillset_config: Option<SkillSetConfig>,
+    pub loadout_config: Option<String>,
+    pub loadout_preset: Option<LoadoutConfig>,
+    pub skillset_config: Option<String>,
+    pub skillset_preset: Option<SkillSetConfig>,
     pub pet: Option<Box<EntityInfo>>,
     // we can't use DHashMap, do we want to move that into common?
     pub trading_information: Option<crate::trade::SiteInformation>,
@@ -49,7 +51,9 @@ impl EntityInfo {
             level: None,
             loot_drop: None,
             loadout_config: None,
+            loadout_preset: None,
             skillset_config: None,
+            skillset_preset: None,
             pet: None,
             trading_information: None,
         }
@@ -117,13 +121,23 @@ impl EntityInfo {
         self
     }
 
-    pub fn with_loadout_config(mut self, config: LoadoutConfig) -> Self {
+    pub fn with_loadout_config(mut self, config: String) -> Self {
         self.loadout_config = Some(config);
         self
     }
 
-    pub fn with_skillset_config(mut self, config: SkillSetConfig) -> Self {
+    pub fn with_loadout_preset(mut self, preset: LoadoutConfig) -> Self {
+        self.loadout_preset = Some(preset);
+        self
+    }
+
+    pub fn with_skillset_config(mut self, config: String) -> Self {
         self.skillset_config = Some(config);
+        self
+    }
+
+    pub fn with_skillset_preset(mut self, preset: SkillSetConfig) -> Self {
+        self.skillset_preset = Some(preset);
         self
     }
 

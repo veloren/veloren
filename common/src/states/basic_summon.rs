@@ -79,14 +79,14 @@ impl CharacterBehavior for Data {
                         let loadout = LoadoutBuilder::build_loadout(
                             body,
                             None,
-                            self.static_data.summon_info.loadout_config,
+                            self.static_data.summon_info.loadout_preset,
                             None,
                         )
                         .build();
                         let stats = comp::Stats::new("Summon".to_string());
                         let skill_set = SkillSetBuilder::build_skillset(
                             &None,
-                            self.static_data.summon_info.skillset_config,
+                            self.static_data.summon_info.skillset_preset,
                         )
                         .build();
 
@@ -175,6 +175,7 @@ pub struct SummonInfo {
     body: comp::Body,
     scale: Option<comp::Scale>,
     health_scaling: u16,
-    loadout_config: Option<LoadoutConfig>,
-    skillset_config: Option<SkillSetConfig>,
+    // TODO: use assets for specifying skills and loadouts?
+    loadout_preset: Option<LoadoutConfig>,
+    skillset_preset: Option<SkillSetConfig>,
 }
