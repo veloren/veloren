@@ -1,51 +1,51 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Localization for "global" English
+/// Localization for "global" Swedish
 (
     string_map: {
-        "hud.do_not_show_on_startup": "Don't show this on Startup",
-        "hud.show_tips": "Show Tips",
-        "hud.quests": "Quests",
-        "hud.you_died": "You Died",
-        "hud.waypoint_saved": "Waypoint Saved",
-        "hud.sp_arrow_txt": "SP",
-        "hud.inventory_full": "Inventory Full",
+        "hud.do_not_show_on_startup": "Visa inte detta vid uppstart",
+        "hud.show_tips": "Visa tips",
+        "hud.quests": "Uppdrag",
+        "hud.you_died": "Du dog",
+        "hud.waypoint_saved": "Landmärke sparat",
+        "hud.sp_arrow_txt": "FP",
+        "hud.inventory_full": "Full packning",
 
-        "hud.press_key_to_show_keybindings_fmt": "[{key}] Keybindings",
-        "hud.press_key_to_toggle_lantern_fmt": "[{key}] Lantern",
-        "hud.press_key_to_show_debug_info_fmt": "Press {key} to show debug info",
-        "hud.press_key_to_toggle_keybindings_fmt": "Press {key} to toggle keybindings",
-        "hud.press_key_to_toggle_debug_info_fmt": "Press {key} to toggle debug info",
+        "hud.press_key_to_show_keybindings_fmt": "[{key}] tangentbordsgenvägar",
+        "hud.press_key_to_toggle_lantern_fmt": "[{key}] lykta",
+        "hud.press_key_to_show_debug_info_fmt": "Tryck {key} för att vids felsökningsinformation",
+        "hud.press_key_to_toggle_keybindings_fmt": "Tryck {key} för att visa/dölja genvägar",
+        "hud.press_key_to_toggle_debug_info_fmt": "Tryck {key} att visa/dölja felsökningsinformation",
 
         // Respawn message
-        "hud.press_key_to_respawn": r#"Press {key} to respawn at the last campfire you visited."#,
+        "hud.press_key_to_respawn": r#"Tryck {key} för att gå tillbaka till lägereld du besökte senast."#,
 
         // Tutorial Button
-        "hud.tutorial_btn": r#"Tutorial"#,
-        "hud.tutorial_click_here": r#"Press [ {key} ] to free your cursor and click this button!"#,
-        "hud.tutorial_elements": r#"Crafting"#,
+        "hud.tutorial_btn": r#"Instruktioner"#,
+        "hud.tutorial_click_here": r#"Tryck [ {key} ] för att frigöra din muspekare och klicka på den här knappen!"#,
+        "hud.tutorial_elements": r#"Crafting"#, // TODO: translate crafting
 
-"hud.temp_quest_headline": r#"Greetings Traveller!"#,
-"hud.temp_quest_text": r#"To begin your journey you could start looking through this village and gather some supplies. 
+"hud.temp_quest_headline": r#"Var hälsad!"#,
+"hud.temp_quest_text": r#"Du kan börja din färd med att utforska den här byn och samla ihop lite förnödenheter.
 
-You are welcome to take whatever you need on your journey!
+Känn dig fri att ta med dig vad du kan tänkas behöva på dina äventyr!
 
-Look at the bottom right of the screen to find various things like your bag, the crafting menu and the map.
+Titta längst ner på din skärm för att se saker som din packning, karta och meny för att tillverka saker.
 
-The crafting menu allows you to create armor, weapons, food and much more!
+Tilllverkningsmenyn låter dig tillverka saker som rustning, vapen, mat och mycket mer därtill!
 
-The wild animals all around town are a great source of Leather Scraps to create some protection against the dangers of the world.
+De vilda djuren i och omkring byn är en bra källa till läderbitar som kan användas för att tillverka något för att skydda mot farorna som lurar där ute i världen.
 
-Whenever you feel ready, try to get even better equipment from the many challenges marked on your map!
+När du känner dig redo kan du försöka skaffa bättre utrustning genom de många utmaningar som finns markerade på din karta!
 "#,
 
-        "hud.spell": "Spells",
+        "hud.spell": "Förtrollningar",
         // Diary
-        "hud.diary": "Diary",
+        "hud.diary": "Dagbok",
 
-        "hud.free_look_indicator": "Free look active. Press {key} to disable.",
-        "hud.camera_clamp_indicator": "Camera vertical clamp active. Press {key} to disable.",
-        "hud.auto_walk_indicator": "Auto walk/swim active",
+        "hud.free_look_indicator": "Kameran är olåst. Tryck {key} för att ändra.",
+        "hud.camera_clamp_indicator": "Kameran är låst vertikalt. Tryck {key} För att ändra.",
+        "hud.auto_walk_indicator": "Automatisk gång / simning aktiverad",
     },
 
 
