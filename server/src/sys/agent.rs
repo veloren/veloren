@@ -3503,7 +3503,7 @@ impl<'a> AgentData<'a> {
     ) {
         const ICE_SPIKES_RANGE: f32 = 20.0;
         const ICE_BREATH_RANGE: f32 = 15.0;
-        const ICE_BREATH_TIMER: f32 = 5.0;
+        const ICE_BREATH_TIMER: f32 = 10.0;
         const SNOWBALL_MAX_RANGE: f32 = 50.0;
 
         agent.action_state.counter += read_data.dt.0;

@@ -84,7 +84,7 @@ impl CharacterBehavior for Data {
                             - self.timer.as_secs_f32()
                                 / self.static_data.movement_duration.as_secs_f32())
                             / 2.0
-                            + 0.5),
+                            + 0.25),
                 });
 
                 if self.timer < self.static_data.movement_duration {

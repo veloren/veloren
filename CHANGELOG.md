@@ -120,6 +120,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optimized rendering of quads (most of the graphics in the game) using an index buffer, decreasing the number of vertices that need to be processed by 33%.
 - Moved the rest of screenshot work into the background. Screenshoting no longer induces large pauses.
 - Reworked tidal warrior to have unique attacks
+- Reworked yeti to have unique attacks
 
 ### Removed
 
