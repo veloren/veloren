@@ -164,12 +164,15 @@ fn handle_main_events_cleared(
         *control_flow = winit::event_loop::ControlFlow::Exit;
     }
 
+    let mut capped_fps = false;
+
     drop(guard);
     if let Some(last) = states.last_mut() {
         span!(guard, "Render");
         let renderer = global_state.window.renderer_mut();
         // Render the screen using the global renderer
         last.render(renderer, &global_state.settings);
+        capped_fps = last.capped_fps();
 
         drop(guard);
     }
@@ -177,9 +180,21 @@ fn handle_main_events_cleared(
     if !exit {
         // Wait for the next tick.
         span!(guard, "Main thread sleep");
-        global_state.clock.set_target_dt(Duration::from_secs_f64(
-            1.0 / get_fps(global_state.settings.graphics.max_fps) as f64,
-        ));
+
+        // Enforce an FPS cap for the non-game session play states to prevent them
+        // running at hundreds/thousands of FPS resulting in high GPU usage for
+        // effectively doing nothing.
+        let max_fps = get_fps(global_state.settings.graphics.max_fps);
+        const TITLE_SCREEN_FPS_CAP: u32 = 60;
+        let target_fps = if capped_fps {
+            u32::min(TITLE_SCREEN_FPS_CAP, max_fps)
+        } else {
+            max_fps
+        };
+
+        global_state
+            .clock
+            .set_target_dt(Duration::from_secs_f64(1.0 / target_fps as f64));
         global_state.clock.tick();
         drop(guard);
         #[cfg(feature = "tracy")]

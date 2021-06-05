@@ -1387,6 +1387,8 @@ impl PlayState for SessionState {
 
     fn name(&self) -> &'static str { "Session" }
 
+    fn capped_fps(&self) -> bool { false }
+
     /// Render the session to the screen.
     ///
     /// This method should be called once per frame.

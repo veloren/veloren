@@ -132,6 +132,9 @@ pub trait PlayState {
     /// Get a descriptive name for this state type.
     fn name(&self) -> &'static str;
 
+    /// Determines whether the play state should have an enforced FPS cap
+    fn capped_fps(&self) -> bool;
+
     /// Draw the play state.
     fn render(&mut self, renderer: &mut Renderer, settings: &Settings);
 }

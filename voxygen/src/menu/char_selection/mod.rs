@@ -232,6 +232,8 @@ impl PlayState for CharSelectionState {
 
     fn name(&self) -> &'static str { "Character Selection" }
 
+    fn capped_fps(&self) -> bool { true }
+
     fn render(&mut self, renderer: &mut Renderer, _: &Settings) {
         let mut drawer = match renderer
             .start_recording_frame(self.scene.global_bind_group())
