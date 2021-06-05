@@ -1,26 +1,26 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Localization for "global" English
+/// Localization for "global" Swedish
 (
     string_map: {
-        "hud.trade.trade_window": "Trade window",
-	"hud.trade.phase1_description": "Drag the items you want to trade\n into the corresponding area.",
-	"hud.trade.phase2_description": "The trade is now locked to give you\n time to review it.",
-	/// Phase3 should only be visible for a few milliseconds if everything is working properly, but is included for completeness
-	"hud.trade.phase3_description": "Trade is being processed.",
-	"hud.trade.persons_offer": "{playername}'s offer",
-	"hud.trade.has_accepted": "{playername}\nhas accepted",
-	"hud.trade.accept": "Accept",
-	"hud.trade.decline": "Decline",
-	"hud.trade.invite_sent": "Trade request sent to {playername}.",
-	"hud.trade.result.completed": "Trade completed successfully.",
-	"hud.trade.result.declined": "Trade declined.",
-	"hud.trade.result.nospace": "Not enough space to complete the trade.",
-	"hud.trade.buy_price": "Buy price",
-	"hud.trade.sell_price": "Sell Price",
-	"hud.trade.coin": "coin(s)",
-	"hud.trade.tooltip_hint_1": "<Shift-Click to Add/Remove from trade.>",
-	"hud.trade.tooltip_hint_2": "<Ctrl-Click to Auto-Balance with this.>",
+        "hud.trade.trade_window": "Handelsfönster",
+        "hud.trade.phase1_description": "Dra de föremål du vill sälja\n till motsvarande ruta.",
+        "hud.trade.phase2_description": "Handelsförslaget är nu låst för att ge dig\n tid att betrakta det.",
+        /// Phase3 should only be visible for a few milliseconds if everything is working properly, but is included for completeness
+        "hud.trade.phase3_description": "Köpet behandlas.",
+        "hud.trade.persons_offer": "Erbjudande från {playername}",
+        "hud.trade.has_accepted": "{playername}\nhar accepterat",
+        "hud.trade.accept": "Acceptera",
+        "hud.trade.decline": "Avböj",
+        "hud.trade.invite_sent": "Handelsförfrågan har skickats till {playername}.",
+        "hud.trade.result.completed": "Köpet har genomförts.",
+        "hud.trade.result.declined": "Köpet har avbrutits.",
+        "hud.trade.result.nospace": "Det finns inte tillräckligt med utrymme för att genomföra köpet.",
+        "hud.trade.buy_price": "Köpepris",
+        "hud.trade.sell_price": "Försäljningspris",
+        "hud.trade.coin": "mynt",
+        "hud.trade.tooltip_hint_1": "<Shift-klick> för att lägga till eller ta bort från köp.",
+        "hud.trade.tooltip_hint_2": "<Ctrl-klick> för att automatiskt balansera med detta.",
     },
 
 
