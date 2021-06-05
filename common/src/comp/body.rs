@@ -471,7 +471,7 @@ impl Body {
                 biped_large::Species::Dullahan => 3000,
                 biped_large::Species::Mindflayer => 12500,
                 biped_large::Species::Tidalwarrior => 16000,
-                biped_large::Species::Yeti => 4000,
+                biped_large::Species::Yeti => 12000,
                 biped_large::Species::Minotaur => 30000,
                 biped_large::Species::Harvester => 3000,
                 biped_large::Species::Blueoni => 2400,
@@ -586,7 +586,7 @@ impl Body {
                 biped_large::Species::Wendigo => 80,
                 biped_large::Species::Troll => 60,
                 biped_large::Species::Dullahan => 120,
-                biped_large::Species::Yeti => 80,
+                biped_large::Species::Yeti => 0,
                 biped_large::Species::Harvester => 80,
                 // Boss enemies have their health set, not adjusted by level.
                 biped_large::Species::Mindflayer => 0,
@@ -650,6 +650,7 @@ impl Body {
                 biped_large::Species::Mindflayer => 4.8,
                 biped_large::Species::Minotaur => 3.2,
                 biped_large::Species::Tidalwarrior => 2.25,
+                biped_large::Species::Yeti => 2.0,
                 _ => 1.0,
             },
             Body::Golem(g) => match g.species {
