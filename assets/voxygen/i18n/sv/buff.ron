@@ -1,0 +1,50 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        // Buffs
+        "buff.remove": "Click to remove",
+        "buff.title.missing": "Missing Title",
+        "buff.desc.missing": "Missing Description",
+        "buff.title.heal": "Heal",
+        "buff.desc.heal": "Gain health over time.",
+        "buff.title.potion": "Potion",
+        "buff.desc.potion": "Drinking...",
+        "buff.title.saturation": "Saturation",
+        "buff.desc.saturation": "Gain health over time from consumables.",
+        "buff.title.campfire_heal": "Campfire Heal",
+        "buff.desc.campfire_heal": "Resting at a campfire heals {rate}% per second.",
+        "buff.title.invulnerability": "Invulnerability",
+        "buff.desc.invulnerability": "You cannot be damaged by any attack.",
+        "buff.title.protectingward": "Protecting Ward",
+        "buff.desc.protectingward": "You are protected, somewhat, from attacks.",
+        "buff.title.frenzied": "Frenzied",
+        "buff.desc.frenzied": "You are imbued with unnatural speed and can ignore minor injuries.",
+        // Debuffs
+        "buff.title.bleed": "Bleeding",
+        "buff.desc.bleed": "Inflicts regular damage.",
+        "buff.title.cursed": "Cursed",
+        "buff.desc.cursed": "You are cursed.",
+        "buff.title.burn": "On Fire",
+        "buff.desc.burn": "You are burning alive",
+        "buff.title.crippled": "Crippled",
+        "buff.desc.crippled": "Your movement is crippled as your legs are heavily injured.",
+        "buff.title.frozen": "Frozen",
+        "buff.desc.frozen": "Your movements and attacks are slowed.",
+        "buff.title.wet": "Wet",
+        "buff.desc.wet": "The ground rejects your feet, making it hard to stop.",
+        // Buffs stats
+        "buff.stat.health": "Restores {str_total} Health",
+        "buff.stat.increase_max_stamina": "Raises Maximum Stamina by {strength}",
+        "buff.stat.increase_max_health": "Raises Maximum Health by {strength}",
+        "buff.stat.invulnerability": "Grants invulnerability",
+        // Text
+        "buff.text.over_seconds": "over {dur_secs} seconds",
+        "buff.text.for_seconds": "for {dur_secs} seconds",
+    },
+
+
+    vector_map: {
+    }
+)

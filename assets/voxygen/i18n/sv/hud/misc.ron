@@ -1,0 +1,54 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        "hud.do_not_show_on_startup": "Don't show this on Startup",
+        "hud.show_tips": "Show Tips",
+        "hud.quests": "Quests",
+        "hud.you_died": "You Died",
+        "hud.waypoint_saved": "Waypoint Saved",
+        "hud.sp_arrow_txt": "SP",
+        "hud.inventory_full": "Inventory Full",
+
+        "hud.press_key_to_show_keybindings_fmt": "[{key}] Keybindings",
+        "hud.press_key_to_toggle_lantern_fmt": "[{key}] Lantern",
+        "hud.press_key_to_show_debug_info_fmt": "Press {key} to show debug info",
+        "hud.press_key_to_toggle_keybindings_fmt": "Press {key} to toggle keybindings",
+        "hud.press_key_to_toggle_debug_info_fmt": "Press {key} to toggle debug info",
+
+        // Respawn message
+        "hud.press_key_to_respawn": r#"Press {key} to respawn at the last campfire you visited."#,
+
+        // Tutorial Button
+        "hud.tutorial_btn": r#"Tutorial"#,
+        "hud.tutorial_click_here": r#"Press [ {key} ] to free your cursor and click this button!"#,
+        "hud.tutorial_elements": r#"Crafting"#,
+
+"hud.temp_quest_headline": r#"Greetings Traveller!"#,
+"hud.temp_quest_text": r#"To begin your journey you could start looking through this village and gather some supplies. 
+
+You are welcome to take whatever you need on your journey!
+
+Look at the bottom right of the screen to find various things like your bag, the crafting menu and the map.
+
+The crafting menu allows you to create armor, weapons, food and much more!
+
+The wild animals all around town are a great source of Leather Scraps to create some protection against the dangers of the world.
+
+Whenever you feel ready, try to get even better equipment from the many challenges marked on your map!
+"#,
+
+        "hud.spell": "Spells",
+        // Diary
+        "hud.diary": "Diary",
+
+        "hud.free_look_indicator": "Free look active. Press {key} to disable.",
+        "hud.camera_clamp_indicator": "Camera vertical clamp active. Press {key} to disable.",
+        "hud.auto_walk_indicator": "Auto walk/swim active",
+    },
+
+
+    vector_map: {
+    }
+)

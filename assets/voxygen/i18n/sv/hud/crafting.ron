@@ -1,0 +1,33 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        "hud.crafting": "Crafting",
+        "hud.crafting.recipes": "Recipes",
+        "hud.crafting.ingredients": "Ingredients:",
+        "hud.crafting.craft": "Craft",
+        "hud.crafting.tool_cata": "Requires:",
+        // Crafting Stations
+        "hud.crafting.req_crafting_station": "Requires:",
+        "hud.crafting.anvil": "Anvil",
+        "hud.crafting.cauldron": "Cauldron",
+        "hud.crafting.cooking_pot": "Cooking Pot",
+        "hud.crafting.crafting_bench": "Crafting Bench",
+        // Tabs
+        "hud.crafting.tabs.all": "All",
+        "hud.crafting.tabs.armor": "Armor",
+        "hud.crafting.tabs.dismantle": "Dismantle",
+        "hud.crafting.tabs.food": "Food",
+        "hud.crafting.tabs.glider": "Gliders",
+        "hud.crafting.tabs.potion": "Potions",
+        "hud.crafting.tabs.tool": "Tools",
+        "hud.crafting.tabs.utility": "Utility",
+        "hud.crafting.tabs.weapon": "Weapons",
+        "hud.crafting.tabs.bag": "Bags",
+    },
+
+
+    vector_map: {
+    }
+)
