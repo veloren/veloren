@@ -32,6 +32,10 @@ pub struct Projectile {
     /// Whether projectile collides with entities in the same group as its
     /// owner
     pub ignore_group: bool,
+    /// Whether the projectile is sticky
+    pub is_sticky: bool,
+    /// Whether the projectile should use a point collider
+    pub is_point: bool,
 }
 
 impl Component for Projectile {
@@ -63,6 +67,10 @@ pub enum ProjectileConstructor {
         damage: f32,
         radius: f32,
         knockback: f32,
+    },
+    Snowball {
+        damage: f32,
+        radius: f32,
     },
 }
 
@@ -113,6 +121,8 @@ impl ProjectileConstructor {
                     time_left: Duration::from_secs(15),
                     owner,
                     ignore_group: true,
+                    is_sticky: true,
+                    is_point: true,
                 }
             },
             Fireball {
@@ -149,6 +159,8 @@ impl ProjectileConstructor {
                     time_left: Duration::from_secs(10),
                     owner,
                     ignore_group: true,
+                    is_sticky: true,
+                    is_point: true,
                 }
             },
             Frostball { damage, radius } => {
@@ -167,7 +179,7 @@ impl ProjectileConstructor {
                 let explosion = Explosion {
                     effects: vec![RadiusEffect::Attack(attack)],
                     radius,
-                    reagent: Some(Reagent::Blue),
+                    reagent: Some(Reagent::White),
                 };
                 Projectile {
                     hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
@@ -175,6 +187,8 @@ impl ProjectileConstructor {
                     time_left: Duration::from_secs(10),
                     owner,
                     ignore_group: true,
+                    is_sticky: true,
+                    is_point: true,
                 }
             },
             NecroticSphere { damage, radius } => {
@@ -201,6 +215,8 @@ impl ProjectileConstructor {
                     time_left: Duration::from_secs(10),
                     owner,
                     ignore_group: true,
+                    is_sticky: true,
+                    is_point: true,
                 }
             },
             Possess => Projectile {
@@ -209,6 +225,8 @@ impl ProjectileConstructor {
                 time_left: Duration::from_secs(10),
                 owner,
                 ignore_group: false,
+                is_sticky: true,
+                is_point: true,
             },
             ClayRocket {
                 damage,
@@ -249,6 +267,35 @@ impl ProjectileConstructor {
                     time_left: Duration::from_secs(10),
                     owner,
                     ignore_group: true,
+                    is_sticky: true,
+                    is_point: true,
+                }
+            },
+            Snowball { damage, radius } => {
+                let damage = AttackDamage::new(
+                    Damage {
+                        source: DamageSource::Explosion,
+                        kind: DamageKind::Energy,
+                        value: damage,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                );
+                let attack = Attack::default()
+                    .with_damage(damage)
+                    .with_crit(crit_chance, crit_mult);
+                let explosion = Explosion {
+                    effects: vec![RadiusEffect::Attack(attack)],
+                    radius,
+                    reagent: Some(Reagent::White),
+                };
+                Projectile {
+                    hit_solid: vec![],
+                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
+                    time_left: Duration::from_secs(120),
+                    owner,
+                    ignore_group: true,
+                    is_sticky: false,
+                    is_point: false,
                 }
             },
         }
@@ -296,6 +343,13 @@ impl ProjectileConstructor {
                 ref mut damage,
                 ref mut radius,
                 ..
+            } => {
+                *damage *= power;
+                *radius *= range;
+            },
+            Snowball {
+                ref mut damage,
+                ref mut radius,
             } => {
                 *damage *= power;
                 *radius *= range;

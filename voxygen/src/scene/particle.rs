@@ -100,7 +100,7 @@ impl ParticleMgr {
                                 },
                             );
                         },
-                        Some(Reagent::Blue) => {
+                        Some(Reagent::White) => {
                             self.particles.resize_with(
                                 self.particles.len() + (75.0 * power.abs()) as usize,
                                 || {
@@ -855,6 +855,31 @@ impl ParticleMgr {
                         },
                     );
                 },
+                beam::FrontendSpecifier::Frost => {
+                    let mut rng = thread_rng();
+                    let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());
+                    let m = Mat3::<f32>::rotation_from_to_3d(from, to);
+                    self.particles.resize_with(
+                        self.particles.len() + usize::from(beam_tick_count) / 4,
+                        || {
+                            let phi: f32 = rng.gen_range(0.0..beam.properties.angle);
+                            let theta: f32 = rng.gen_range(0.0..2.0 * PI);
+                            let offset_z = Vec3::new(
+                                phi.sin() * theta.cos(),
+                                phi.sin() * theta.sin(),
+                                phi.cos(),
+                            );
+                            let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
+                            Particle::new_directed(
+                                beam.properties.duration,
+                                time,
+                                ParticleMode::Ice,
+                                pos.0,
+                                pos.0 + random_ori * range,
+                            )
+                        },
+                    );
+                },
             }
         }
     }
@@ -1131,12 +1156,14 @@ impl ParticleMgr {
             let elapsed = time - shockwave.creation.unwrap_or(time);
             let speed = shockwave.properties.speed;
 
+            let percent = elapsed as f32 / shockwave.properties.duration.as_secs_f32();
+
             let distance = speed * elapsed as f32;
 
             let radians = shockwave.properties.angle.to_radians();
 
             let ori_vec = ori.look_vec();
-            let theta = ori_vec.y.atan2(ori_vec.x);
+            let theta = ori_vec.y.atan2(ori_vec.x) - radians / 2.0;
             let dtheta = radians / distance;
 
             // Number of particles derived from arc length (for new particles at least, old
@@ -1162,8 +1189,7 @@ impl ParticleMgr {
                         self.particles.reserve(new_particle_count as usize);
 
                         for d in 0..(new_particle_count as i32) {
-                            let arc_position =
-                                theta - radians / 2.0 + dtheta * d as f32 / particle_count_factor;
+                            let arc_position = theta + dtheta * d as f32 / particle_count_factor;
 
                             let position = pos.0
                                 + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
@@ -1183,7 +1209,7 @@ impl ParticleMgr {
                     let heartbeats = self.scheduler.heartbeats(Duration::from_millis(2));
                     for _ in 0..heartbeats {
                         for d in 0..3 * distance as i32 {
-                            let arc_position = theta - radians / 2.0 + dtheta * d as f32 / 3.0;
+                            let arc_position = theta + dtheta * d as f32 / 3.0;
 
                             let position = pos.0
                                 + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
@@ -1198,8 +1224,8 @@ impl ParticleMgr {
                     }
                 },
                 FrontendSpecifier::Water => {
-                    // 4 particles per unit length of arc
-                    let particles_per_length = (arc_length) as usize;
+                    // 1 particle per unit length of arc
+                    let particles_per_length = arc_length as usize;
                     let dtheta = radians / particles_per_length as f32;
                     // Scales number of desired heartbeats from speed - thicker arc = higher speed =
                     // lower duration = more particles
@@ -1229,6 +1255,67 @@ impl ParticleMgr {
                                 pos1,
                                 pos2,
                             ));
+                        }
+                    }
+                },
+                FrontendSpecifier::IceSpikes => {
+                    // 1 / 3 the size of terrain voxel
+                    let scale = 1.0 / 3.0;
+                    let scaled_distance = distance / scale;
+                    let scaled_speed = speed / scale;
+
+                    // 1 particle per scaled unit length of arc
+                    let particles_per_length = (0.25 * arc_length / scale) as usize;
+                    let dtheta = radians / particles_per_length as f32;
+                    // Scales number of desired heartbeats from speed - thicker arc = higher speed =
+                    // lower duration = more particles
+                    let heartbeats = self
+                        .scheduler
+                        .heartbeats(Duration::from_secs_f32(3.0 / scaled_speed));
+
+                    // Reserves capacity for new particles
+                    let new_particle_count = particles_per_length * heartbeats as usize;
+                    self.particles.reserve(new_particle_count);
+
+                    // Used to make taller the further out spikes are
+                    let height_scale = 0.5 + 1.5 * percent;
+
+                    for i in 0..particles_per_length {
+                        let angle = theta + dtheta * i as f32;
+                        let direction = Vec3::new(angle.cos(), angle.sin(), 0.0);
+                        for j in 0..heartbeats {
+                            // Sub tick dt
+                            let dt = (j as f32 / heartbeats as f32) * dt;
+                            let scaled_distance = scaled_distance + scaled_speed * dt;
+                            let pos1 = pos.0 + (scaled_distance * direction).floor() * scale;
+                            let time = time + dt as f64;
+
+                            let get_positions = |a| {
+                                let pos1 = match a {
+                                    2 => pos1 + Vec3::unit_x() * scale,
+                                    3 => pos1 - Vec3::unit_x() * scale,
+                                    4 => pos1 + Vec3::unit_y() * scale,
+                                    5 => pos1 - Vec3::unit_y() * scale,
+                                    _ => pos1,
+                                };
+                                let pos2 = if a == 1 {
+                                    pos1 + Vec3::unit_z() * 5.0 * height_scale
+                                } else {
+                                    pos1 + Vec3::unit_z() * 1.0 * height_scale
+                                };
+                                (pos1, pos2)
+                            };
+
+                            for a in 1..=5 {
+                                let (pos1, pos2) = get_positions(a);
+                                self.particles.push(Particle::new_directed(
+                                    Duration::from_secs_f32(0.5),
+                                    time,
+                                    ParticleMode::IceSpikes,
+                                    pos1,
+                                    pos2,
+                                ));
+                            }
                         }
                     }
                 },

@@ -719,4 +719,14 @@
             central: ("armor.empty"),
         )
     ),
+    Snowball: (
+        bone0: (
+            offset: (-12.5, -12.5, 0.0),
+            central: ("weapon.projectile.snowball"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

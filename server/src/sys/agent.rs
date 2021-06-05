@@ -119,6 +119,7 @@ pub enum Tactic {
     Minotaur,
     ClayGolem,
     TidalWarrior,
+    Yeti,
 }
 
 #[derive(SystemData)]
@@ -1609,6 +1610,7 @@ impl<'a> AgentData<'a> {
                             "Clay Golem" => Tactic::ClayGolem,
                             "Tidal Warrior" => Tactic::TidalWarrior,
                             "Tidal Totem" => Tactic::RadialTurret,
+                            "Yeti" => Tactic::Yeti,
                             _ => Tactic::Melee,
                         },
                         AbilitySpec::Tool(tool_kind) => tool_tactic(*tool_kind),
@@ -1689,6 +1691,18 @@ impl<'a> AgentData<'a> {
                 const ROCKET_SPEED: f32 = 30.0;
                 aim_projectile(
                     ROCKET_SPEED,
+                    Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+                    Vec3::new(
+                        tgt_data.pos.0.x,
+                        tgt_data.pos.0.y,
+                        tgt_data.pos.0.z + tgt_eye_offset,
+                    ),
+                )
+            },
+            Tactic::Yeti if matches!(self.char_state, CharacterState::BasicRanged(_)) => {
+                const SNOWBALL_SPEED: f32 = 60.0;
+                aim_projectile(
+                    SNOWBALL_SPEED,
                     Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
                     Vec3::new(
                         tgt_data.pos.0.x,
@@ -1865,6 +1879,9 @@ impl<'a> AgentData<'a> {
                 &tgt_data,
                 &read_data,
             ),
+            Tactic::Yeti => {
+                self.handle_yeti_attack(agent, controller, &attack_data, &tgt_data, &read_data)
+            },
         }
     }
 
@@ -3472,6 +3489,65 @@ impl<'a> AgentData<'a> {
                     .push(ControlAction::basic_input(InputKind::Secondary));
             }
         }
+        // Always attempt to path towards target
+        self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+    }
+
+    fn handle_yeti_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const ICE_SPIKES_RANGE: f32 = 20.0;
+        const ICE_BREATH_RANGE: f32 = 15.0;
+        const ICE_BREATH_TIMER: f32 = 10.0;
+        const SNOWBALL_MAX_RANGE: f32 = 50.0;
+
+        agent.action_state.counter += read_data.dt.0;
+
+        if attack_data.dist_sqrd < ICE_BREATH_RANGE.powi(2) && attack_data.angle < 60.0 {
+            if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(1))
+            {
+                // Keep using ice breath until a second has passed
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+            } else if agent.action_state.counter > ICE_BREATH_TIMER {
+                // Use ice breath if timer has gone for long enough
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+
+                if matches!(self.char_state, CharacterState::BasicBeam(_)) {
+                    // Resets action counter when using beam
+                    agent.action_state.counter = 0.0;
+                }
+            } else if attack_data.in_min_range() {
+                // Basic attack if on top of them
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+            } else {
+                // Use ice spikes if too far for other abilities
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+            }
+        } else if attack_data.dist_sqrd < ICE_SPIKES_RANGE.powi(2) && attack_data.angle < 60.0 {
+            // Use ice spikes if in range
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Secondary));
+        } else if attack_data.dist_sqrd < SNOWBALL_MAX_RANGE.powi(2) && attack_data.angle < 60.0 {
+            // Otherwise, chuck all the snowballs
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Ability(1)));
+        }
+
         // Always attempt to path towards target
         self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
     }

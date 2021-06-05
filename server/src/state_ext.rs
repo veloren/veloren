@@ -285,17 +285,29 @@ impl StateExt for State {
         body: comp::Body,
         projectile: comp::Projectile,
     ) -> EcsEntityBuilder {
-        self.ecs_mut()
+        let mut projectile_base = self
+            .ecs_mut()
             .create_entity_synced()
             .with(pos)
             .with(vel)
             .with(comp::Ori::from_unnormalized_vec(vel.0).unwrap_or_default())
             .with(body.mass())
-            .with(body.density())
-            .with(comp::Collider::Point)
-            .with(body)
-            .with(projectile)
-            .with(comp::Sticky)
+            .with(body.density());
+
+        if projectile.is_sticky {
+            projectile_base = projectile_base.with(comp::Sticky)
+        }
+        if projectile.is_point {
+            projectile_base = projectile_base.with(comp::Collider::Point)
+        } else {
+            projectile_base = projectile_base.with(comp::Collider::Box {
+                radius: body.radius(),
+                z_min: 0.0,
+                z_max: body.height(),
+            })
+        }
+
+        projectile_base.with(projectile).with(body)
     }
 
     fn create_shockwave(

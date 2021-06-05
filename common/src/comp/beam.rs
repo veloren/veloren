@@ -54,4 +54,5 @@ pub enum FrontendSpecifier {
     Cultist,
     ClayGolem,
     Bubbles,
+    Frost,
 }

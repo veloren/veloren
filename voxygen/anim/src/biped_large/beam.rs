@@ -73,17 +73,12 @@ impl Animation for BeamAnimation {
 
         next.hand_l.orientation = Quaternion::rotation_x(0.0);
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
-        let (move1base, move2shake, _move2base, move3) = match stage_section {
-            Some(StageSection::Buildup) => (
-                (anim_time.powf(0.25)).min(1.0),
-                (anim_time * 15.0 + PI).sin(),
-                (anim_time * 10.0 + PI).sin(),
-                0.0,
-            ),
+        let (move1base, move2shake, move2base, move3) = match stage_section {
+            Some(StageSection::Buildup) => ((anim_time.powf(0.25)).min(1.0), 0.0, 0.0, 0.0),
             Some(StageSection::Cast) => (
                 1.0,
                 (anim_time * 15.0 + PI).sin(),
-                anim_time.powf(0.25),
+                (anim_time.powf(0.1)).min(1.0),
                 0.0,
             ),
             Some(StageSection::Recover) => (1.0, 1.0, 1.0, anim_time),
@@ -91,6 +86,7 @@ impl Animation for BeamAnimation {
         };
         let pullback = 1.0 - move3;
         let move1 = move1base * pullback;
+        let move2 = move2base * pullback;
         match active_tool_kind {
             Some(ToolKind::Sceptre) | Some(ToolKind::Staff) => {
                 next.control_l.position = Vec3::new(-1.0, 3.0, 12.0);
@@ -128,8 +124,6 @@ impl Animation for BeamAnimation {
                 );
                 next.shoulder_r.orientation =
                     Quaternion::rotation_x(move1 * 0.2 + 0.3 + 0.6 * speednorm + (footrotl * -0.2));
-                next.torso.orientation = Quaternion::rotation_x(move1 * -0.1);
-                next.torso.position = Vec3::new(0.0, 0.0, move1 * 1.0);
             },
             Some(ToolKind::Natural) => {
                 if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
@@ -176,6 +170,50 @@ impl Animation for BeamAnimation {
 
                                 next.shoulder_r.orientation = Quaternion::rotation_z(move1 * 0.3);
                             };
+                        },
+                        "Yeti" => {
+                            next.second.scale = Vec3::one() * 0.0;
+
+                            next.head.orientation = Quaternion::rotation_x(
+                                move1 * 0.5 + move2 * -0.5 + move2shake * -0.02,
+                            );
+                            next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
+                            next.jaw.orientation =
+                                Quaternion::rotation_x(move2 * -0.5 + move2shake * -0.1);
+                            next.control_l.position = Vec3::new(-0.5, 4.0, 1.0);
+                            next.control_r.position = Vec3::new(-0.5, 4.0, 1.0);
+                            next.control_l.orientation = Quaternion::rotation_x(1.57);
+                            next.control_r.orientation = Quaternion::rotation_x(1.57);
+
+                            next.weapon_l.position = Vec3::new(-12.0, -1.0, -15.0);
+                            next.weapon_r.position = Vec3::new(12.0, -1.0, -15.0);
+
+                            next.weapon_l.orientation = Quaternion::rotation_x(-1.57 - 0.1);
+                            next.weapon_r.orientation = Quaternion::rotation_x(-1.57 - 0.1);
+
+                            next.arm_control_r.orientation =
+                                Quaternion::rotation_x(move1 * 1.1 + move2 * -1.6)
+                                    * Quaternion::rotation_y(move1 * 1.4 + move2 * -1.8);
+
+                            next.shoulder_l.orientation =
+                                Quaternion::rotation_x(move1 * 1.4 + move2 * -1.8);
+
+                            next.shoulder_r.orientation =
+                                Quaternion::rotation_x(move1 * 1.4 + move2 * -1.8);
+
+                            next.upper_torso.position = Vec3::new(
+                                0.0,
+                                s_a.upper_torso.0,
+                                s_a.upper_torso.1 + move1 * -1.9 + move2 * 1.2,
+                            );
+                            next.upper_torso.orientation = Quaternion::rotation_x(
+                                move1 * 0.8 + move2 * -1.1 + move2shake * -0.02,
+                            );
+                            next.lower_torso.position =
+                                Vec3::new(0.0, s_a.lower_torso.0, s_a.lower_torso.1);
+                            next.lower_torso.orientation = Quaternion::rotation_x(
+                                move1 * -0.8 + move2 * 1.1 + move2shake * 0.02,
+                            );
                         },
                         _ => {},
                     }

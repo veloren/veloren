@@ -1,0 +1,13 @@
+BasicRanged(
+    energy_cost: 0,
+    buildup_duration: 0.5,
+    recover_duration: 0.4,
+    projectile: Snowball(
+        damage: 200.0,
+        radius: 5.0,
+    ),
+    projectile_body: Object(Snowball),
+    projectile_speed: 60.0,
+    num_projectiles: 1,
+    projectile_spread: 0.0,
+)

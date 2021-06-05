@@ -219,6 +219,49 @@ impl Animation for ShootAnimation {
                                     * Quaternion::rotation_z(move1 * -0.5);
                             next.head.orientation = Quaternion::rotation_x(move1 * -0.3);
                         },
+                        "Yeti" => {
+                            let (move1, move2, move3) = match stage_section {
+                                Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                                Some(StageSection::Swing) => (1.0, anim_time, 0.0),
+                                Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
+                                _ => (0.0, 0.0, 0.0),
+                            };
+                            next.second.scale = Vec3::one() * 0.0;
+
+                            next.head.orientation = Quaternion::rotation_x(move1 * 0.4);
+                            next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
+                            next.jaw.orientation = Quaternion::rotation_x(move2 * -0.3);
+                            next.control_l.position = Vec3::new(-0.5, 4.0, 1.0);
+                            next.control_r.position = Vec3::new(-0.5, 4.0, 1.0);
+                            next.control_l.orientation = Quaternion::rotation_x(1.57);
+                            next.control_r.orientation = Quaternion::rotation_x(1.57);
+                            next.weapon_l.position = Vec3::new(-12.0, -1.0, -15.0);
+                            next.weapon_r.position = Vec3::new(12.0, -1.0, -15.0);
+
+                            next.weapon_l.orientation = Quaternion::rotation_x(-1.57 - 0.1);
+                            next.weapon_r.orientation = Quaternion::rotation_x(-1.57 - 0.1);
+
+                            let twist = move1 * 0.8 + move3 * -0.8;
+                            next.upper_torso.position =
+                                Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1);
+                            next.upper_torso.orientation =
+                                Quaternion::rotation_x(move1 * 0.8 + move2 * -1.1)
+                                    * Quaternion::rotation_z(
+                                        twist * -0.2 + move1 * -0.1 + move2 * 0.3,
+                                    );
+
+                            next.lower_torso.orientation =
+                                Quaternion::rotation_x(move1 * -0.8 + move2 * 1.1)
+                                    * Quaternion::rotation_z(twist);
+
+                            next.arm_control_r.orientation =
+                                Quaternion::rotation_x(move1 * PI / 2.0)
+                                    * Quaternion::rotation_y(move1 * -PI / 2.0 + move2 * 2.5);
+                            //* Quaternion::rotation_y(move1 * -PI/2.0)
+                            //* Quaternion::rotation_z(move1 * -PI/2.0);
+                            next.arm_control_r.position =
+                                Vec3::new(0.0, move1 * 10.0 + move2 * -10.0, 0.0);
+                        },
                         _ => {},
                     }
                 }
