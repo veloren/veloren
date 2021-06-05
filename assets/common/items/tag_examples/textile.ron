@@ -3,6 +3,10 @@ ItemDef(
     description: "Cloths spun from plant material.",
     kind: TagExamples(
         item_ids: [
+            "common.items.crafting_ing.cloth.linen",
+            "common.items.crafting_ing.cloth.wool",
+            "common.items.crafting_ing.cloth.silk",
+            "common.items.crafting_ing.cloth.lifecloth",
             "common.items.crafting_ing.cloth.moonweave",
             "common.items.crafting_ing.cloth.sunsilk",
         ],

@@ -70,7 +70,7 @@ const int LASER = 28;
 const int BUBBLES = 29;
 const int WATER = 30;
 const int ICE_SPIKES = 31;
-const int DUST = 32;
+const int DRIP = 32;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -532,7 +532,7 @@ void main() {
                 spin_in_axis(vec3(1,0,0),0)
             );
             break;
-        case DUST:
+        case DRIP:
             attr = Attr(
                 linear_motion(
                     vec3(0),

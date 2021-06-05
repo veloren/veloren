@@ -198,6 +198,13 @@
         ],
         craft_sprite: Some(TanningRack),
     ),
+    "rigid leather": (
+        output: ("common.items.crafting_ing.leather.rigid_leather", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.hide.rugged_hide"), 1),
+        ],
+        craft_sprite: Some(TanningRack),
+    ),
     "gold ingot": (
         output: ("common.items.mineral.ingot.gold", 1),
         inputs: [
@@ -707,7 +714,7 @@
             (Item("common.items.crafting_ing.animal_misc.large_horn"), 1),
             (Item("common.items.crafting_ing.cloth.lifecloth"), 1),
             (Item("common.items.crafting_ing.hide.plate"), 3),
-            (Item("common.items.crafting_ing.leather.thick_leather"), 2),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -716,7 +723,7 @@
         inputs: [
             (Item("common.items.crafting_ing.cloth.lifecloth"), 1),
             (Item("common.items.crafting_ing.hide.plate"), 2),
-            (Item("common.items.crafting_ing.leather.thick_leather"), 2),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -726,7 +733,7 @@
             (Item("common.items.crafting_ing.animal_misc.large_horn"), 1),
             (Item("common.items.crafting_ing.cloth.lifecloth"), 2),
             (Item("common.items.crafting_ing.hide.plate"), 10),
-            (Item("common.items.crafting_ing.leather.thick_leather"), 4),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 4),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -735,7 +742,7 @@
         inputs: [
             (Item("common.items.crafting_ing.cloth.lifecloth"), 1),
             (Item("common.items.crafting_ing.hide.plate"), 3),
-            (Item("common.items.crafting_ing.leather.thick_leather"), 2),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -744,7 +751,7 @@
         inputs: [
             (Item("common.items.crafting_ing.cloth.lifecloth"), 1),
             (Item("common.items.crafting_ing.hide.plate"), 3),
-            (Item("common.items.crafting_ing.leather.thick_leather"), 2),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -754,7 +761,7 @@
             (Item("common.items.crafting_ing.animal_misc.large_horn"), 1),
             (Item("common.items.crafting_ing.cloth.lifecloth"), 2),
             (Item("common.items.crafting_ing.hide.plate"), 8),
-            (Item("common.items.crafting_ing.leather.thick_leather"), 4),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 4),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -764,7 +771,7 @@
             (Item("common.items.crafting_ing.animal_misc.large_horn"), 2),
             (Item("common.items.crafting_ing.cloth.lifecloth"), 2),
             (Item("common.items.crafting_ing.hide.plate"), 8),
-            (Item("common.items.crafting_ing.leather.thick_leather"), 6),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 6),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -774,6 +781,7 @@
         inputs: [
             (Item("common.items.mineral.ingot.bloodsteel"), 2),
             (Item("common.items.crafting_ing.hide.dragon_scale"), 3),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 1),
             (Item("common.items.crafting_ing.hide.scales"), 2),
         ],
         craft_sprite: Some(CraftingBench),
@@ -792,6 +800,7 @@
         inputs: [
             (Item("common.items.mineral.ingot.bloodsteel"), 3),
             (Item("common.items.crafting_ing.hide.dragon_scale"), 10),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 2),
             (Item("common.items.crafting_ing.hide.scales"), 4),
         ],
         craft_sprite: Some(CraftingBench),
@@ -819,6 +828,7 @@
         inputs: [
             (Item("common.items.mineral.ingot.bloodsteel"), 3),
             (Item("common.items.crafting_ing.hide.dragon_scale"), 8),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 1),
             (Item("common.items.crafting_ing.hide.scales"), 4),
         ],
         craft_sprite: Some(CraftingBench),
@@ -828,6 +838,7 @@
         inputs: [
             (Item("common.items.mineral.ingot.bloodsteel"), 3),
             (Item("common.items.crafting_ing.hide.dragon_scale"), 8),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 2),
             (Item("common.items.crafting_ing.hide.scales"), 6),
         ],
         craft_sprite: Some(CraftingBench),
@@ -1676,12 +1687,20 @@
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
     ),
-    "pickaxe": (
-        output: ("common.items.tool.pick", 1),
+    "tin pickaxe": (
+        output: ("common.items.tool.pickaxe_stone", 1),
         inputs: [
-            (Item("common.items.crafting_ing.cloth.linen"), 1), // TODO: Replace with plant fiber when obtainable
-            (Item("common.items.crafting_ing.stones"), 5), // TODO: Replace with iron ingots when obtainable
-            (Item("common.items.crafting_ing.twigs"), 4),
+            (Item("common.items.crafting_ing.cloth.linen"), 1), 
+            (Item("common.items.crafting_ing.stones"), 5),
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    "steel pickaxe": (
+        output: ("common.items.tool.pickaxe_steel", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.lifecloth"), 1), 
+            (Item("common.items.mineral.ingot.steel"), 5),
             (Item("common.items.tool.craftsman_hammer"), 0),
         ],
         craft_sprite: Some(Anvil),

@@ -195,6 +195,7 @@ impl CraftingTab {
             CraftingTab::Material => {
                 item.tags().contains(&ItemTag::MetalIngot)
                     | item.tags().contains(&ItemTag::Textile)
+                    | item.tags().contains(&ItemTag::Leather)
                     | item.tags().contains(&ItemTag::BaseMaterial)
             },
             CraftingTab::Bag => item.tags().contains(&ItemTag::Bag),

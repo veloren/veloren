@@ -82,7 +82,7 @@ pub enum ParticleMode {
     Bubbles = 29,
     Water = 30,
     IceSpikes = 31,
-    Dust = 32,
+    Drip = 32,
 }
 
 impl ParticleMode {

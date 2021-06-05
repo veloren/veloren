@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Rigid Leather",
+    description: "Light but layered, perfect for protection.",
+    kind: Ingredient(
+        kind: "RigidLeather",
+    ),
+    quality: Common,
+    tags: [BaseMaterial, Leather],
+)

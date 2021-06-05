@@ -1,5 +1,5 @@
 [
     (1.0, ItemQuantity("common.items.crafting_ing.animal_misc.fur", 1, 3)),
-    (1.0, Item("common.items.crafting_ing.hide.animal_hide")),
+    (0.25, LootTable("common.loot_tables.creature.quad_low.generic")),
 
 ]

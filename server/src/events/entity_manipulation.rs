@@ -377,7 +377,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         | quadruped_small::Species::Turtle => {
                             "common.loot_tables.creature.quad_small.ooze"
                         },
-                        _ => "common.loot_tables.creature.quad_small.default",
+                        _ => "common.loot_tables.creature.quad_small.generic",
                     }
                 },
                 Some(Body::QuadrupedMedium(quadruped_medium)) => match quadruped_medium.species {
@@ -445,10 +445,10 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     | theropod::Species::Snowraptor
                     | theropod::Species::Woodraptor
                     | theropod::Species::Sunlizard => "common.loot_tables.creature.theropod.raptor",
-                    theropod::Species::Archaeos | theropod::Species::Ntouka => {
-                        "common.loot_tables.creature.theropod.horned"
-                    },
-                    _ => "common.loot_tables.creature.theropod.default",
+                    theropod::Species::Archaeos
+                    | theropod::Species::Ntouka
+                    | theropod::Species::Yale => "common.loot_tables.creature.theropod.horned",
+                    _ => "common.loot_tables.creature.theropod.generic",
                 },
                 Some(common::comp::Body::Dragon(_)) => "common.loot_tables.creature.dragon",
                 Some(common::comp::Body::QuadrupedLow(quadruped_low)) => {
@@ -456,10 +456,9 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         quadruped_low::Species::Maneater => {
                             "common.loot_tables.creature.quad_low.maneater"
                         },
-                        quadruped_low::Species::Lavadrake => {
-                            "common.loot_tables.creature.quad_low.carapace"
-                        },
-                        quadruped_low::Species::Rocksnapper | quadruped_low::Species::Sandshark => {
+                        quadruped_low::Species::Lavadrake
+                        | quadruped_low::Species::Rocksnapper
+                        | quadruped_low::Species::Sandshark => {
                             "common.loot_tables.creature.quad_low.carapace"
                         },
                         quadruped_low::Species::Asp => {
@@ -474,7 +473,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         quadruped_low::Species::Basilisk => {
                             "common.loot_tables.creature.quad_low.basilisk"
                         },
-                        _ => "common.loot_tables.creature.quad_low.default",
+                        _ => "common.loot_tables.creature.quad_low.generic",
                     }
                 },
                 _ => "common.loot_tables.fallback",

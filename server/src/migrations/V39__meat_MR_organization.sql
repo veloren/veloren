@@ -36,8 +36,6 @@ SET item_definition_id = 'common.items.armor.hide.rawhide.shoulder' WHERE item_d
 UPDATE item
 SET item_definition_id = 'common.items.armor.hide.rawhide.foot' WHERE item_definition_id = 'common.items.armor.agile.foot';
 UPDATE item
-SET item_definition_id = 'common.items.armor.hide.rawhide.foot' WHERE item_definition_id = 'common.items.armor.agile.foot';
-UPDATE item
 SET item_definition_id = 'common.items.armor.hide.rawhide.back' WHERE item_definition_id = 'common.items.armor.agile.back';
 UPDATE item
 SET item_definition_id = 'common.items.armor.hide.leather.belt' WHERE item_definition_id = 'common.items.armor.swift.belt';
@@ -52,23 +50,19 @@ SET item_definition_id = 'common.items.armor.hide.leather.shoulder' WHERE item_d
 UPDATE item
 SET item_definition_id = 'common.items.armor.hide.leather.foot' WHERE item_definition_id = 'common.items.armor.swift.foot';
 UPDATE item
-SET item_definition_id = 'common.items.armor.hide.leather.foot' WHERE item_definition_id = 'common.items.armor.swift.foot';
-UPDATE item
 SET item_definition_id = 'common.items.armor.hide.leather.head' WHERE item_definition_id = 'common.items.armor.swift.head';
 UPDATE item
-SET item_definition_id = 'common.items.armor.cloth.druid.belt' WHERE item_definition_id = 'common.items.armor.plate.belt';
+SET item_definition_id = 'common.items.armor.mail.iron.belt' WHERE item_definition_id = 'common.items.armor.plate.belt';
 UPDATE item
-SET item_definition_id = 'common.items.armor.cloth.druid.chest' WHERE item_definition_id = 'common.items.armor.plate.chest';
+SET item_definition_id = 'common.items.armor.mail.iron.chest' WHERE item_definition_id = 'common.items.armor.plate.chest';
 UPDATE item
-SET item_definition_id = 'common.items.armor.cloth.druid.hand' WHERE item_definition_id = 'common.items.armor.plate.hand';
+SET item_definition_id = 'common.items.armor.mail.iron.hand' WHERE item_definition_id = 'common.items.armor.plate.hand';
 UPDATE item
-SET item_definition_id = 'common.items.armor.cloth.druid.pants' WHERE item_definition_id = 'common.items.armor.plate.pants';
+SET item_definition_id = 'common.items.armor.mail.iron.pants' WHERE item_definition_id = 'common.items.armor.plate.pants';
 UPDATE item
-SET item_definition_id = 'common.items.armor.cloth.druid.shoulder' WHERE item_definition_id = 'common.items.armor.plate.shoulder';
+SET item_definition_id = 'common.items.armor.mail.iron.shoulder' WHERE item_definition_id = 'common.items.armor.plate.shoulder';
 UPDATE item
-SET item_definition_id = 'common.items.armor.cloth.druid.foot' WHERE item_definition_id = 'common.items.armor.plate.foot';
-UPDATE item
-SET item_definition_id = 'common.items.mineral.gem.amethyst' WHERE item_definition_id = 'common.items.crafting_ing.amethyst';
+SET item_definition_id = 'common.items.armor.mail.iron.foot' WHERE item_definition_id = 'common.items.armor.plate.foot';
 UPDATE item
 SET item_definition_id = 'common.items.mineral.gem.amethyst' WHERE item_definition_id = 'common.items.crafting_ing.amethyst';
 UPDATE item
@@ -176,8 +170,6 @@ SET item_definition_id = 'common.items.mineral.ore.silver' WHERE item_definition
 UPDATE item
 SET item_definition_id = 'common.items.mineral.ingot.steel' WHERE item_definition_id = 'common.items.crafting_ing.steel_ingot';
 UPDATE item
-SET item_definition_id = 'common.items.mineral.ore.silver' WHERE item_definition_id = 'common.items.crafting_ing.silver_ore';
-UPDATE item
 SET item_definition_id = 'common.items.crafting_ing.cloth.sunsilk' WHERE item_definition_id = 'common.items.crafting_ing.sunsilk';
 UPDATE item
 SET item_definition_id = 'common.items.mineral.ingot.tin' WHERE item_definition_id = 'common.items.crafting_ing.tin_ingot';
@@ -201,3 +193,5 @@ UPDATE item
 SET item_definition_id = 'common.items.mineral.ore.veloritefrag' WHERE item_definition_id = 'common.items.ore.veloritefrag';
 UPDATE item
 SET item_definition_id = 'common.items.food.meat.fish_raw' WHERE item_definition_id = 'common.items.food.fish';
+UPDATE item
+SET item_definition_id = 'common.items.tool.pickaxe_stone' WHERE item_definition_id = 'common.items.tool.pick';

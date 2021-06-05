@@ -177,7 +177,7 @@
             color: None
         ),
         "Bloodsteel": (
-            vox_spec: ("armor.mail.bloodsteel.pants", (-6.5, -4.0, 0.5)),
+            vox_spec: ("armor.mail.bloodsteel.pants", (-7.0, -4.0, 0.5)),
             color: None
         ),
         "Orichalcum": (

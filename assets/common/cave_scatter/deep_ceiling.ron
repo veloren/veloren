@@ -1,15 +1,6 @@
 [
-    (30, Velorite),
-    (40, VeloriteFrag),
-    (70, ShortGrass),
-    (10, CaveMushroom),
-    (10, AmethystSmall),
-    (10, TopazSmall),
-    (16, SapphireSmall),
-    (60, CrystalHigh),
-    (12, EmeraldSmall),
-    (10, RubySmall),
-    (8, DiamondSmall),
-    (5, Chest),
-    (15, Crate),
+    (10, CeilingMushroom),
+    (6, Liana),
+    (7, CrystalHigh),
+
 ]

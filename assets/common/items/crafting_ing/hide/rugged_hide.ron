@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Rugged Hide",
+    description: "A durable pelt, favored by leatherworkers.",
+    kind: Ingredient(
+        kind: "RuggedHide",
+    ),
+    quality: Common,
+    tags: [Material((material: Leather))],
+)

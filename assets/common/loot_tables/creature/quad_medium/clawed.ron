@@ -1,6 +1,4 @@
 [
-    (1.5, Item("common.items.food.meat.beast_small_raw")),
-    (0.5, Item("common.items.food.meat.beast_large_raw")),
+    (4.0, LootTable("common.loot_tables.creature.quad_medium.generic")),
     (2.0, Item("common.items.crafting_ing.animal_misc.claw")),
-    (3.0, Item("common.items.crafting_ing.hide.tough_hide")),
 ]

@@ -478,7 +478,7 @@ impl<'a> Widget for ItemTooltip<'a> {
             format!(
                 "{} ({})",
                 item_kind,
-                util::materialkind_text(&material_tag.material().material_kind(), i18n)
+                util::material_kind_text(&material_tag.material().material_kind(), i18n)
             )
         } else {
             item_kind

@@ -5,5 +5,5 @@ ItemDef(
         kind: "ThickLeather",
     ),
     quality: Common,
-    tags: [BaseMaterial],
+    tags: [BaseMaterial, Leather],
 )

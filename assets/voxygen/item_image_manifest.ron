@@ -33,7 +33,7 @@
     ),
     Tool("TanningRack"): VoxTrans(
         "voxel.object.tanning_rack",
-       (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 1.0,
+       (0.0, 0.0, 0.0), (-90.0, 20.0, 0.0), 1.0,
     ),
     // Weapons
     // Diary Example Images
@@ -1071,8 +1071,12 @@
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
 	// Picks
-    Tool("common.items.tool.pick"): VoxTrans(
+    Tool("common.items.tool.pickaxe_stone"): VoxTrans(
         "voxel.weapon.tool.pickaxe_green-0",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.tool.pickaxe_steel"): VoxTrans(
+        "voxel.weapon.tool.pickaxe_green-1",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
     // Other
@@ -2469,12 +2473,24 @@
         "voxel.sprite.crafting_ing.hide.tough_hide",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
+    Ingredient("RuggedHide"): VoxTrans(
+        "voxel.sprite.crafting_ing.hide.rugged_hide",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
     Ingredient("SimpleLeather"): VoxTrans(
         "voxel.sprite.crafting_ing.leather.simple_leather",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
     Ingredient("ThickLeather"): VoxTrans(
         "voxel.sprite.crafting_ing.leather.thick_leather",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("RigidLeather"): VoxTrans(
+        "voxel.sprite.crafting_ing.leather.rigid_leather",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("TrollLeather"): VoxTrans(
+        "voxel.sprite.crafting_ing.hide.troll_hide",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
     Ingredient("LeatherStrips"): VoxTrans(
@@ -2577,6 +2593,10 @@
         "voxel.sprite.crafting_ing.cloth.linen_red",
         (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
     ),
+    Ingredient("StickyThread"): VoxTrans(
+        "voxel.sprite.crafting_ing.sticky_thread",
+        (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
+    ),
     Ingredient("SilverIngot"): VoxTrans(
         "voxel.sprite.mineral.ingot.silver",
         (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
@@ -2651,9 +2671,6 @@
     ),
     Ingredient("Honey"): Png(
         "element.items.item_honey",
-    ),
-    Ingredient("TrollLeather"): Png(
-        "element.items.item_leather_green",
     ),
     Ingredient("MortarPestle"): Png(
         "element.items.item_mortarpestlecoco",

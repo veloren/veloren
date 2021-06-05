@@ -124,7 +124,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                                 };
 
                             let energy_recovery = if let Some(energy_recovery_raw) =
-                                record.get(headers["Energy Recovery"])
+                                record.get(headers["Energy Reward"])
                             {
                                 energy_recovery_raw.parse().unwrap()
                             } else {

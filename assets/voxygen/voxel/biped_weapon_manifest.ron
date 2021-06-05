@@ -975,8 +975,12 @@
         color: None
     ),
 	// Picks
-	"common.items.tool.pick": (
+    "common.items.tool.pickaxe_stone": (
         vox_spec: ("weapon.tool.pickaxe_green-0", (-1.5, -7.5, -4.0)),
+        color: None
+    ),
+    "common.items.tool.pickaxe_steel": (
+        vox_spec: ("weapon.tool.pickaxe_green-1", (-1.5, -9.5, -4.0)),
         color: None
     ),
     // Misc

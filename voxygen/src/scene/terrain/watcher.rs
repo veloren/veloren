@@ -16,7 +16,7 @@ pub enum Interaction {
 #[derive(Default)]
 pub struct BlocksOfInterest {
     pub leaves: Vec<Vec3<i32>>,
-    pub dust: Vec<Vec3<i32>>,
+    pub drip: Vec<Vec3<i32>>,
     pub grass: Vec<Vec3<i32>>,
     pub river: Vec<Vec3<i32>>,
     pub fires: Vec<Vec3<i32>>,
@@ -42,7 +42,7 @@ impl BlocksOfInterest {
     pub fn from_chunk(chunk: &TerrainChunk) -> Self {
         span!(_guard, "from_chunk", "BlocksOfInterest::from_chunk");
         let mut leaves = Vec::new();
-        let mut dust = Vec::new();
+        let mut drip = Vec::new();
         let mut grass = Vec::new();
         let mut river = Vec::new();
         let mut fires = Vec::new();
@@ -72,7 +72,7 @@ impl BlocksOfInterest {
             .for_each(|(pos, block)| {
                 match block.kind() {
                     BlockKind::Leaves if thread_rng().gen_range(0..16) == 0 => leaves.push(pos),
-                    BlockKind::WeakRock if thread_rng().gen_range(0..6) == 0 => dust.push(pos),
+                    BlockKind::WeakRock if thread_rng().gen_range(0..6) == 0 => drip.push(pos),
                     BlockKind::Grass => {
                         if thread_rng().gen_range(0..16) == 0 {
                             grass.push(pos);
@@ -156,7 +156,7 @@ impl BlocksOfInterest {
 
         Self {
             leaves,
-            dust,
+            drip,
             grass,
             river,
             fires,

@@ -28,11 +28,11 @@ impl Armor {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Stats {
-    /// Protection is non-linearly transformed to a damage reduction using
-    /// (prot / (60 + prot))
+    /// Protection is non-linearly transformed (following summation) to a damage
+    /// reduction using (prot / (60 + prot))
     protection: Protection,
-    /// Poise protection is non-linearly transformed to a poise damage reduction
-    /// using (prot / (60 + prot))
+    /// Poise protection is non-linearly transformed (following summation) to a
+    /// poise damage reduction using (prot / (60 + prot))
     poise_resilience: Protection,
     /// Energy max is summed, and then applied directly to the max energy stat
     /// (multiply values by 10 for expected results, as energy internally is 10x

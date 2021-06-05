@@ -120,7 +120,7 @@ impl Energy {
     pub fn compute_energy_reward_mod(inventory: Option<&Inventory>) -> f32 {
         use comp::item::ItemKind;
         // Starts with a value of 1.0 when summing the stats from each armor piece, and
-        // defaults to a value of 1.0 if no inventory is equipped
+        // defaults to a value of 1.0 if no inventory is present
         inventory.map_or(1.0, |inv| {
             inv.equipped_items()
                 .filter_map(|item| {
@@ -138,7 +138,7 @@ impl Energy {
     /// currently equipped items
     pub fn compute_max_energy_mod_from_inv(&self, inventory: Option<&Inventory>) -> f32 {
         use comp::item::ItemKind;
-        // Defaults to a value of 0 if no inventory is equipped
+        // Defaults to a value of 0 if no inventory is present
         let energy_increase = inventory.map_or(0, |inv| {
             inv.equipped_items()
                 .filter_map(|item| {

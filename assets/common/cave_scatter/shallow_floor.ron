@@ -1,7 +1,8 @@
 [
     (110, Stones),
     (150, ShortGrass),
-    (120, CaveMushroom),
+    (50, CaveMushroom),
+    (50, Mushroom),
     (30, AmethystSmall),
     (15, TopazSmall),
     (15, Tin),

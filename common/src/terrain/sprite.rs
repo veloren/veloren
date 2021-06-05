@@ -171,6 +171,8 @@ make_case_elim!(
         TanningRack = 0x90,
         WildFlax = 0x91,
         CrystalLow = 0x92,
+        CeilingMushroom = 0x93,
+        Orb = 0x94,
     }
 );
 
@@ -272,7 +274,6 @@ impl SpriteKind {
             SpriteKind::ShortGrass => false,
             SpriteKind::Apple => true,
             SpriteKind::Mushroom => true,
-            SpriteKind::CaveMushroom => true,
             // SpriteKind::Velorite => true,
             // SpriteKind::VeloriteFrag => true,
             SpriteKind::Chest => true,

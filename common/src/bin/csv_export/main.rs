@@ -37,7 +37,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
         "Protection",
         "Poise Resilience",
         "Max Energy",
-        "Energy Recovery",
+        "Energy Reward",
         "Crit Power",
         "Stealth",
         "Description",

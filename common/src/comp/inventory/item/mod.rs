@@ -223,6 +223,7 @@ impl TagExampleInfo for MaterialTag {
 pub enum ItemTag {
     MetalIngot,
     Textile,
+    Leather,
     Material(MaterialTag),
     ModularComponent(ModularComponentTag),
     Cultist,
@@ -241,6 +242,7 @@ impl TagExampleInfo for ItemTag {
             ItemTag::ModularComponent(kind) => kind.name(),
             ItemTag::MetalIngot => "metal ingot",
             ItemTag::Textile => "textile",
+            ItemTag::Leather => "leather",
             ItemTag::Cultist => "cultist",
             ItemTag::Potion => "potion",
             ItemTag::Food => "food",
@@ -258,6 +260,7 @@ impl TagExampleInfo for ItemTag {
             ItemTag::ModularComponent(tag) => tag.exemplar_identifier(),
             ItemTag::MetalIngot => "common.items.tag_examples.metal_ingot",
             ItemTag::Textile => "common.items.tag_examples.textile",
+            ItemTag::Leather => "common.items.tag_examples.leather",
             ItemTag::Cultist => "common.items.tag_examples.cultist",
             ItemTag::Potion => "common.items.tag_examples.placeholder",
             ItemTag::Food => "common.items.tag_examples.placeholder",
@@ -834,7 +837,6 @@ impl Item {
         Some(Item::new_from_asset_expect(match block.get_sprite()? {
             SpriteKind::Apple => "common.items.food.apple",
             SpriteKind::Mushroom => "common.items.food.mushroom",
-            SpriteKind::CaveMushroom => "common.items.food.mushroom",
             SpriteKind::Velorite => "common.items.mineral.ore.velorite",
             SpriteKind::VeloriteFrag => "common.items.mineral.ore.veloritefrag",
             SpriteKind::BlueFlower => "common.items.flowers.blue",
