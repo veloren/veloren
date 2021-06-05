@@ -7,12 +7,11 @@ use crate::{
         inventory::{
             loadout::Loadout,
             slot::{ArmorSlot, EquipSlot},
-            trade_pricing::TradePricing,
         },
-        item::{tool::ToolKind, Item, ItemKind},
+        item::Item,
         object, quadruped_low, quadruped_medium, theropod, Body,
     },
-    trade::{Good, SiteInformation},
+    trade::SiteInformation,
 };
 use hashbrown::HashMap;
 use rand::{self, distributions::WeightedError, seq::SliceRandom, Rng};
@@ -41,20 +40,9 @@ use tracing::warn;
 #[derive(Clone)]
 pub struct LoadoutBuilder(Loadout);
 
-#[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug, EnumIter)]
-pub enum LoadoutConfig {
-    Gnarling,
-    Adlet,
-    Sahagin,
-    Haniwa,
-    Myrmidon,
+#[derive(Copy, Clone, PartialEq, Deserialize, Serialize, Debug, EnumIter)]
+pub enum LoadoutPreset {
     Husk,
-    Beastmaster,
-    Warlord,
-    Warlock,
-    Villager,
-    Guard,
-    Merchant,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -82,7 +70,9 @@ impl ItemSpec {
                     .as_ref()
                     .and_then(|e| match e {
                         entry @ ItemSpec::Item { .. } => entry.try_to_item(asset_specifier, rng),
-                        choice @ ItemSpec::Choice { .. } => choice.try_to_item(asset_specifier, rng),
+                        choice @ ItemSpec::Choice { .. } => {
+                            choice.try_to_item(asset_specifier, rng)
+                        },
                     })
             },
         }
@@ -165,7 +155,7 @@ pub fn make_potion_bag(quantity: u32) -> Item {
 // Also we are using default tools for un-specified species so
 // it's fine to have wildcards
 #[allow(clippy::too_many_lines, clippy::match_wildcard_for_single_variants)]
-pub fn default_main_tool(body: &Body) -> Option<Item> {
+fn default_main_tool(body: &Body) -> Option<Item> {
     match body {
         Body::Golem(golem) => match golem.species {
             golem::Species::StoneGolem => Some(Item::new_from_asset_expect(
@@ -350,61 +340,106 @@ impl LoadoutBuilder {
     pub fn new() -> Self { Self(Loadout::new_empty()) }
 
     #[must_use]
-    fn with_default_equipment(body: &Body, active_item: Option<Item>) -> Self {
-        let mut builder = Self::new();
-        builder = match body {
-            Body::BipedLarge(biped_large::Body {
-                species: biped_large::Species::Mindflayer,
-                ..
-            }) => builder.chest(Some(Item::new_from_asset_expect(
-                "common.items.npc_armor.biped_large.mindflayer",
-            ))),
-            Body::BipedLarge(biped_large::Body {
-                species: biped_large::Species::Minotaur,
-                ..
-            }) => builder.chest(Some(Item::new_from_asset_expect(
-                "common.items.npc_armor.biped_large.minotaur",
-            ))),
-            Body::BipedLarge(biped_large::Body {
-                species: biped_large::Species::Tidalwarrior,
-                ..
-            }) => builder.chest(Some(Item::new_from_asset_expect(
-                "common.items.npc_armor.biped_large.tidal_warrior",
-            ))),
-            Body::BipedLarge(biped_large::Body {
-                species: biped_large::Species::Yeti,
-                ..
-            }) => builder.chest(Some(Item::new_from_asset_expect(
-                "common.items.npc_armor.biped_large.yeti",
-            ))),
-            Body::BipedLarge(biped_large::Body {
-                species: biped_large::Species::Harvester,
-                ..
-            }) => builder.chest(Some(Item::new_from_asset_expect(
-                "common.items.npc_armor.biped_large.harvester",
-            ))),
-            Body::Golem(golem::Body {
-                species: golem::Species::ClayGolem,
-                ..
-            }) => builder.chest(Some(Item::new_from_asset_expect(
-                "common.items.npc_armor.golem.claygolem",
-            ))),
-            _ => builder,
-        };
-
-        builder.active_mainhand(active_item)
-    }
-
-    #[must_use]
+    /// Construct new `LoadoutBuilder` from `asset_specifier`
+    /// Will panic if asset is broken
     pub fn from_asset_expect(asset_specifier: &str, rng: Option<&mut impl Rng>) -> Self {
+        // It's impossible to use lambdas because `loadout` is used by value
+        #![allow(clippy::option_if_let_else)]
         let loadout = Self::new();
 
         if let Some(rng) = rng {
             loadout.with_asset_expect(asset_specifier, rng)
         } else {
-            let rng = &mut rand::thread_rng();
-            loadout.with_asset_expect(asset_specifier, rng)
+            let fallback_rng = &mut rand::thread_rng();
+            loadout.with_asset_expect(asset_specifier, fallback_rng)
         }
+    }
+
+    #[must_use]
+    /// Construct new default `LoadoutBuilder` for corresponding `body`
+    ///
+    /// NOTE: make sure that you check what is default for this body
+    /// Use it if you don't care much about it, for example in "/spawn" command
+    pub fn from_default(body: &Body) -> Self {
+        let loadout = Self::new();
+        loadout
+            .with_default_maintool(body)
+            .with_default_equipment(body)
+    }
+
+    #[must_use]
+    /// Set default active mainhand weapon based on `body`
+    pub fn with_default_maintool(self, body: &Body) -> Self {
+        self.active_mainhand(default_main_tool(body))
+    }
+
+    #[must_use]
+    /// Set default equipement based on `body`
+    pub fn with_default_equipment(mut self, body: &Body) -> Self {
+        self = match body {
+            Body::BipedLarge(biped_large::Body {
+                species: biped_large::Species::Mindflayer,
+                ..
+            }) => self.chest(Some(Item::new_from_asset_expect(
+                "common.items.npc_armor.biped_large.mindflayer",
+            ))),
+            Body::BipedLarge(biped_large::Body {
+                species: biped_large::Species::Minotaur,
+                ..
+            }) => self.chest(Some(Item::new_from_asset_expect(
+                "common.items.npc_armor.biped_large.minotaur",
+            ))),
+            Body::BipedLarge(biped_large::Body {
+                species: biped_large::Species::Tidalwarrior,
+                ..
+            }) => self.chest(Some(Item::new_from_asset_expect(
+                "common.items.npc_armor.biped_large.tidal_warrior",
+            ))),
+            Body::BipedLarge(biped_large::Body {
+                species: biped_large::Species::Yeti,
+                ..
+            }) => self.chest(Some(Item::new_from_asset_expect(
+                "common.items.npc_armor.biped_large.yeti",
+            ))),
+            Body::BipedLarge(biped_large::Body {
+                species: biped_large::Species::Harvester,
+                ..
+            }) => self.chest(Some(Item::new_from_asset_expect(
+                "common.items.npc_armor.biped_large.harvester",
+            ))),
+            Body::Golem(golem::Body {
+                species: golem::Species::ClayGolem,
+                ..
+            }) => self.chest(Some(Item::new_from_asset_expect(
+                "common.items.npc_armor.golem.claygolem",
+            ))),
+            _ => self,
+        };
+
+        self
+    }
+
+    #[must_use]
+    pub fn with_preset(mut self, preset: LoadoutPreset) -> Self {
+        let rng = &mut rand::thread_rng();
+        match preset {
+            LoadoutPreset::Husk => {
+                self = self.with_asset_expect("common.loadout.dungeon.tier-5.husk", rng)
+            },
+        }
+
+        self
+    }
+
+    #[must_use]
+    pub fn with_creator(
+        mut self,
+        creator: fn(LoadoutBuilder, Option<&SiteInformation>) -> LoadoutBuilder,
+        economy: Option<&SiteInformation>,
+    ) -> LoadoutBuilder {
+        self = creator(self, economy);
+
+        self
     }
 
     /// # Usage
@@ -495,219 +530,6 @@ impl LoadoutBuilder {
     pub fn defaults(self) -> Self {
         let rng = &mut rand::thread_rng();
         self.with_asset_expect("common.loadout.default", rng)
-    }
-
-    /// Builds loadout of creature when spawned
-    #[must_use]
-    // The reason why this function is so long is creating merchant inventory
-    // with all items to sell.
-    // Maybe we should do it on the caller side?
-    #[allow(
-        clippy::too_many_lines,
-        clippy::cast_precision_loss,
-        clippy::cast_sign_loss,
-        clippy::cast_possible_truncation
-    )]
-    pub fn build_loadout(
-        body: Body,
-        mut main_tool: Option<Item>,
-        config: Option<LoadoutConfig>,
-        economy: Option<&SiteInformation>,
-    ) -> Self {
-        // If no main tool is passed in, checks if species has a default main tool
-        if main_tool.is_none() {
-            main_tool = default_main_tool(&body);
-        }
-
-        // Constructs ItemConfig from Item
-        let active_item = if let Some(ItemKind::Tool(_)) = main_tool.as_ref().map(Item::kind) {
-            main_tool
-        } else {
-            Some(Item::empty())
-        };
-        let active_tool_kind = active_item.as_ref().and_then(|i| {
-            if let ItemKind::Tool(tool) = &i.kind() {
-                Some(tool.kind)
-            } else {
-                None
-            }
-        });
-        // Creates rest of loadout
-        let rng = &mut rand::thread_rng();
-        let loadout_builder = if let Some(config) = config {
-            let builder = Self::new().active_mainhand(active_item);
-            // NOTE: we apply asset after active mainhand so asset has ability override it
-            match config {
-                LoadoutConfig::Gnarling => match active_tool_kind {
-                    Some(ToolKind::Bow | ToolKind::Staff | ToolKind::Spear) => {
-                        builder.with_asset_expect("common.loadout.dungeon.tier-0.gnarling", rng)
-                    },
-                    _ => builder,
-                },
-                LoadoutConfig::Adlet => match active_tool_kind {
-                    Some(ToolKind::Bow) => {
-                        builder.with_asset_expect("common.loadout.dungeon.tier-1.adlet_bow", rng)
-                    },
-                    Some(ToolKind::Spear | ToolKind::Staff) => {
-                        builder.with_asset_expect("common.loadout.dungeon.tier-1.adlet_spear", rng)
-                    },
-                    _ => builder,
-                },
-                LoadoutConfig::Sahagin => {
-                    builder.with_asset_expect("common.loadout.dungeon.tier-2.sahagin", rng)
-                },
-                LoadoutConfig::Haniwa => {
-                    builder.with_asset_expect("common.loadout.dungeon.tier-3.haniwa", rng)
-                },
-                LoadoutConfig::Myrmidon => {
-                    builder.with_asset_expect("common.loadout.dungeon.tier-4.myrmidon", rng)
-                },
-                LoadoutConfig::Husk => {
-                    builder.with_asset_expect("common.loadout.dungeon.tier-5.husk", rng)
-                },
-                LoadoutConfig::Beastmaster => {
-                    builder.with_asset_expect("common.loadout.dungeon.tier-5.beastmaster", rng)
-                },
-                LoadoutConfig::Warlord => {
-                    builder.with_asset_expect("common.loadout.dungeon.tier-5.warlord", rng)
-                },
-                LoadoutConfig::Warlock => {
-                    builder.with_asset_expect("common.loadout.dungeon.tier-5.warlock", rng)
-                },
-                LoadoutConfig::Villager => builder
-                    .with_asset_expect("common.loadout.village.villager", rng)
-                    .bag(ArmorSlot::Bag1, Some(make_potion_bag(10))),
-                LoadoutConfig::Guard => builder
-                    .with_asset_expect("common.loadout.village.guard", rng)
-                    .bag(ArmorSlot::Bag1, Some(make_potion_bag(25))),
-                LoadoutConfig::Merchant => {
-                    let mut backpack =
-                        Item::new_from_asset_expect("common.items.armor.misc.back.backpack");
-                    let mut coins = economy
-                        .and_then(|e| e.unconsumed_stock.get(&Good::Coin))
-                        .copied()
-                        .unwrap_or_default()
-                        .round()
-                        .min(rand::thread_rng().gen_range(1000.0..3000.0))
-                        as u32;
-                    let armor = economy
-                        .and_then(|e| e.unconsumed_stock.get(&Good::Armor))
-                        .copied()
-                        .unwrap_or_default()
-                        / 10.0;
-                    for s in backpack.slots_mut() {
-                        if coins > 0 {
-                            let mut coin_item =
-                                Item::new_from_asset_expect("common.items.utility.coins");
-                            coin_item
-                                .set_amount(coins)
-                                .expect("coins should be stackable");
-                            *s = Some(coin_item);
-                            coins = 0;
-                        } else if armor > 0.0 {
-                            if let Some(item_id) =
-                                TradePricing::random_item(Good::Armor, armor, true)
-                            {
-                                *s = Some(Item::new_from_asset_expect(&item_id));
-                            }
-                        }
-                    }
-                    let mut bag1 = Item::new_from_asset_expect(
-                        "common.items.armor.misc.bag.reliable_backpack",
-                    );
-                    let weapon = economy
-                        .and_then(|e| e.unconsumed_stock.get(&Good::Tools))
-                        .copied()
-                        .unwrap_or_default()
-                        / 10.0;
-                    if weapon > 0.0 {
-                        for i in bag1.slots_mut() {
-                            if let Some(item_id) =
-                                TradePricing::random_item(Good::Tools, weapon, true)
-                            {
-                                *i = Some(Item::new_from_asset_expect(&item_id));
-                            }
-                        }
-                    }
-                    let mut item_with_amount = |item_id: &str, amount: &mut f32| {
-                        if *amount > 0.0 {
-                            let mut item = Item::new_from_asset_expect(item_id);
-                            // NOTE: Conversion to and from f32 works fine because we make sure the
-                            // number we're converting is ≤ 100.
-                            let max = amount.min(16.min(item.max_amount()) as f32) as u32;
-                            let n = rng.gen_range(1..max.max(2));
-                            *amount -= if item.set_amount(n).is_ok() {
-                                n as f32
-                            } else {
-                                1.0
-                            };
-                            Some(item)
-                        } else {
-                            None
-                        }
-                    };
-                    let mut bag2 = Item::new_from_asset_expect(
-                        "common.items.armor.misc.bag.reliable_backpack",
-                    );
-                    let mut ingredients = economy
-                        .and_then(|e| e.unconsumed_stock.get(&Good::Ingredients))
-                        .copied()
-                        .unwrap_or_default()
-                        / 10.0;
-                    for i in bag2.slots_mut() {
-                        if let Some(item_id) =
-                            TradePricing::random_item(Good::Ingredients, ingredients, true)
-                        {
-                            *i = item_with_amount(&item_id, &mut ingredients);
-                        }
-                    }
-                    let mut bag3 = Item::new_from_asset_expect(
-                        "common.items.armor.misc.bag.reliable_backpack",
-                    );
-                    // TODO: currently econsim spends all its food on population, resulting in none
-                    // for the players to buy; the `.max` is temporary to ensure that there's some
-                    // food for sale at every site, to be used until we have some solution like NPC
-                    // houses as a limit on econsim population growth
-                    let mut food = economy
-                        .and_then(|e| e.unconsumed_stock.get(&Good::Food))
-                        .copied()
-                        .unwrap_or_default()
-                        .max(10000.0)
-                        / 10.0;
-                    for i in bag3.slots_mut() {
-                        if let Some(item_id) = TradePricing::random_item(Good::Food, food, true) {
-                            *i = item_with_amount(&item_id, &mut food);
-                        }
-                    }
-                    let mut bag4 = Item::new_from_asset_expect(
-                        "common.items.armor.misc.bag.reliable_backpack",
-                    );
-                    let mut potions = economy
-                        .and_then(|e| e.unconsumed_stock.get(&Good::Potions))
-                        .copied()
-                        .unwrap_or_default()
-                        / 10.0;
-                    for i in bag4.slots_mut() {
-                        if let Some(item_id) =
-                            TradePricing::random_item(Good::Potions, potions, true)
-                        {
-                            *i = item_with_amount(&item_id, &mut potions);
-                        }
-                    }
-                    builder
-                        .with_asset_expect("common.loadout.village.merchant", rng)
-                        .back(Some(backpack))
-                        .bag(ArmorSlot::Bag1, Some(bag1))
-                        .bag(ArmorSlot::Bag2, Some(bag2))
-                        .bag(ArmorSlot::Bag3, Some(bag3))
-                        .bag(ArmorSlot::Bag4, Some(bag4))
-                },
-            }
-        } else {
-            Self::with_default_equipment(&body, active_item)
-        };
-
-        Self(loadout_builder.build())
     }
 
     #[must_use]
@@ -838,40 +660,13 @@ mod tests {
     use rand::thread_rng;
     use strum::IntoEnumIterator;
 
-    // Testing all configs in loadout with weapons of different toolkinds
+    // Testing all loadout presets
     //
     // Things that will be catched - invalid assets paths
     #[test]
-    fn test_loadout_configs() {
-        let test_weapons = vec![
-            // Melee
-            "common.items.weapons.sword.starter",   // Sword
-            "common.items.weapons.axe.starter_axe", // Axe
-            "common.items.weapons.hammer.starter_hammer", // Hammer
-            // Ranged
-            "common.items.weapons.bow.starter",             // Bow
-            "common.items.weapons.staff.starter_staff",     // Staff
-            "common.items.weapons.sceptre.starter_sceptre", // Sceptre
-            // Other
-            "common.items.weapons.dagger.starter_dagger", // Dagger
-            "common.items.weapons.shield.shield_1",       // Shield
-            "common.items.npc_weapons.biped_small.sahagin.wooden_spear", // Spear
-            // Exotic
-            "common.items.npc_weapons.unique.beast_claws", // Natural
-            "common.items.weapons.tool.rake",              // Farming
-            "common.items.tool.pickaxe_stone",             // Pick
-            "common.items.weapons.empty.empty",            // Empty
-        ];
-
-        for config in LoadoutConfig::iter() {
-            for test_weapon in &test_weapons {
-                std::mem::drop(LoadoutBuilder::build_loadout(
-                    Body::Humanoid(comp::humanoid::Body::random()),
-                    Some(Item::new_from_asset_expect(test_weapon)),
-                    Some(config),
-                    None,
-                ));
-            }
+    fn test_loadout_presets() {
+        for preset in LoadoutPreset::iter() {
+            std::mem::drop(LoadoutBuilder::default().with_preset(preset));
         }
     }
 
@@ -895,17 +690,11 @@ mod tests {
                         body_type: comp::$species::BodyType::Male,
                         ..body
                     };
-                    std::mem::drop(LoadoutBuilder::build_loadout(
-                        Body::$body(female_body),
-                        None,
-                        None,
-                        None,
+                    std::mem::drop(LoadoutBuilder::from_default(
+                        &Body::$body(female_body),
                     ));
-                    std::mem::drop(LoadoutBuilder::build_loadout(
-                        Body::$body(male_body),
-                        None,
-                        None,
-                        None,
+                    std::mem::drop(LoadoutBuilder::from_default(
+                        &Body::$body(male_body),
                     ));
                 }
             };

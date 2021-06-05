@@ -78,7 +78,7 @@ impl Entity {
     pub fn get_loadout(&self) -> comp::inventory::loadout::Loadout {
         let mut rng = self.rng(PERM_LOADOUT);
 
-        LoadoutBuilder::from_asset_expect("common.loadout.world.traveler", &mut rng)
+        LoadoutBuilder::from_asset_expect("common.loadout.world.traveler", Some(&mut rng))
             .bag(
                 comp::inventory::slot::ArmorSlot::Bag1,
                 Some(comp::inventory::loadout_builder::make_potion_bag(100)),

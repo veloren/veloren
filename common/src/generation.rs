@@ -1,7 +1,12 @@
 use crate::{
-    comp::{self, humanoid, inventory::loadout_builder::LoadoutConfig, Alignment, Body, Item},
+    comp::{
+        self, agent, humanoid,
+        inventory::loadout_builder::{LoadoutBuilder, LoadoutPreset},
+        Alignment, Body, Item,
+    },
     npc::{self, NPC_NAMES},
     skillset_builder::SkillSetConfig,
+    trade,
     trade::SiteInformation,
 };
 use vek::*;
@@ -17,6 +22,7 @@ pub struct EntityInfo {
     pub is_giant: bool,
     pub has_agency: bool,
     pub alignment: Alignment,
+    pub agent_mark: Option<agent::Mark>,
     pub body: Body,
     pub name: Option<String>,
     pub main_tool: Option<Item>,
@@ -25,13 +31,16 @@ pub struct EntityInfo {
     // TODO: Properly give NPCs skills
     pub level: Option<u16>,
     pub loot_drop: Option<Item>,
+    // FIXME: using both preset and asset is silly, make it enum
+    // so it will be correct by construction
     pub loadout_config: Option<String>,
-    pub loadout_preset: Option<LoadoutConfig>,
+    pub loadout_preset: Option<LoadoutPreset>,
+    pub make_loadout: Option<fn(LoadoutBuilder, Option<&trade::SiteInformation>) -> LoadoutBuilder>,
     pub skillset_config: Option<String>,
     pub skillset_preset: Option<SkillSetConfig>,
     pub pet: Option<Box<EntityInfo>>,
     // we can't use DHashMap, do we want to move that into common?
-    pub trading_information: Option<crate::trade::SiteInformation>,
+    pub trading_information: Option<trade::SiteInformation>,
     //Option<hashbrown::HashMap<crate::trade::Good, (f32, f32)>>, /* price and available amount */
 }
 
@@ -43,6 +52,7 @@ impl EntityInfo {
             is_giant: false,
             has_agency: true,
             alignment: Alignment::Wild,
+            agent_mark: None,
             body: Body::Humanoid(humanoid::Body::random()),
             name: None,
             main_tool: None,
@@ -52,6 +62,7 @@ impl EntityInfo {
             loot_drop: None,
             loadout_config: None,
             loadout_preset: None,
+            make_loadout: None,
             skillset_config: None,
             skillset_preset: None,
             pet: None,
@@ -96,6 +107,11 @@ impl EntityInfo {
         self
     }
 
+    pub fn with_agent_mark(mut self, agent_mark: agent::Mark) -> Self {
+        self.agent_mark = Some(agent_mark);
+        self
+    }
+
     pub fn with_main_tool(mut self, main_tool: Item) -> Self {
         self.main_tool = Some(main_tool);
         self
@@ -121,23 +137,33 @@ impl EntityInfo {
         self
     }
 
-    pub fn with_loadout_config(mut self, config: String) -> Self {
-        self.loadout_config = Some(config);
-        self
-    }
-
-    pub fn with_loadout_preset(mut self, preset: LoadoutConfig) -> Self {
+    pub fn with_loadout_preset(mut self, preset: LoadoutPreset) -> Self {
         self.loadout_preset = Some(preset);
         self
     }
 
-    pub fn with_skillset_config(mut self, config: String) -> Self {
-        self.skillset_config = Some(config);
+    pub fn with_loadout_config(mut self, config: &str) -> Self {
+        self.loadout_config = Some(config.to_owned());
+        self
+    }
+
+    pub fn with_lazy_loadout(
+        mut self,
+        creator: fn(LoadoutBuilder, Option<&trade::SiteInformation>) -> LoadoutBuilder,
+    ) -> Self {
+        self.make_loadout = Some(creator);
         self
     }
 
     pub fn with_skillset_preset(mut self, preset: SkillSetConfig) -> Self {
         self.skillset_preset = Some(preset);
+        self
+    }
+
+    // FIXME: Doesn't work for now, because skills can't be loaded from assets for
+    // now
+    pub fn with_skillset_config(mut self, config: String) -> Self {
+        self.skillset_config = Some(config);
         self
     }
 

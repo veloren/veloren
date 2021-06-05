@@ -3,12 +3,9 @@ use crate::{
     presence::Presence, rtsim::RtSim, settings::Settings, SpawnPoint, Tick,
 };
 use common::{
-    comp::{
-        self, bird_medium, inventory::loadout_builder::LoadoutConfig, Alignment,
-        BehaviorCapability, Pos,
-    },
+    comp::{self, agent, bird_medium, Alignment, BehaviorCapability, Pos},
     event::{EventBus, ServerEvent},
-    generation::get_npc_name,
+    generation::{get_npc_name, EntityInfo},
     npc::NPC_NAMES,
     terrain::TerrainGrid,
     LoadoutBuilder, SkillSetBuilder,
@@ -178,7 +175,6 @@ impl<'a> System<'a> for Sys {
                 let mut body = entity.body;
                 let name = entity.name.unwrap_or_else(|| "Unnamed".to_string());
                 let alignment = entity.alignment;
-                let main_tool = entity.main_tool;
                 let mut stats = comp::Stats::new(name);
 
                 let mut scale = entity.scale;
@@ -198,14 +194,53 @@ impl<'a> System<'a> for Sys {
                     scale = 2.0 + rand::random::<f32>();
                 }
 
-                let loadout_config = entity.loadout_config;
-                let economy = entity.trading_information.as_ref();
-                let skillset_config = entity.skillset_config;
+                let EntityInfo {
+                    skillset_preset,
+                    main_tool,
+                    loadout_preset,
+                    loadout_config,
+                    make_loadout,
+                    trading_information: economy,
+                    ..
+                } = entity;
 
                 let skill_set =
-                    SkillSetBuilder::build_skillset(&main_tool, skillset_config).build();
-                let loadout =
-                    LoadoutBuilder::build_loadout(body, main_tool, loadout_config, economy).build();
+                    SkillSetBuilder::build_skillset(&main_tool, skillset_preset).build();
+
+                let mut loadout_builder = LoadoutBuilder::new();
+                let rng = &mut rand::thread_rng();
+
+                // If main tool is passed, use it. Otherwise fallback to default tool
+                if let Some(main_tool) = main_tool {
+                    loadout_builder = loadout_builder.active_mainhand(Some(main_tool));
+                } else {
+                    loadout_builder = loadout_builder.with_default_maintool(&body);
+                }
+
+                // If there are configs, apply them
+                match (loadout_preset, &loadout_config) {
+                    (Some(preset), Some(config)) => {
+                        loadout_builder = loadout_builder.with_preset(preset);
+                        loadout_builder = loadout_builder.with_asset_expect(&config, rng);
+                    },
+                    (Some(preset), None) => {
+                        loadout_builder = loadout_builder.with_preset(preset);
+                    },
+                    (None, Some(config)) => {
+                        loadout_builder = loadout_builder.with_asset_expect(&config, rng);
+                    },
+                    // If not, use default equipement for this body
+                    (None, None) => {
+                        loadout_builder = loadout_builder.with_default_equipment(&body);
+                    },
+                }
+
+                // Evaluate lazy function for loadout creation
+                if let Some(make_loadout) = make_loadout {
+                    loadout_builder = loadout_builder.with_creator(make_loadout, economy.as_ref());
+                }
+
+                let loadout = loadout_builder.build();
 
                 let health = comp::Health::new(body, entity.level.unwrap_or(0));
                 let poise = comp::Poise::new(body);
@@ -219,7 +254,7 @@ impl<'a> System<'a> for Sys {
                     },
                     _ => false,
                 };
-                let trade_for_site = if matches!(loadout_config, Some(LoadoutConfig::Merchant)) {
+                let trade_for_site = if matches!(entity.agent_mark, Some(agent::Mark::Merchant)) {
                     economy.map(|e| e.id)
                 } else {
                     None
@@ -250,10 +285,7 @@ impl<'a> System<'a> for Sys {
                                     can_speak.then(|| BehaviorCapability::SPEAK),
                                 )
                                 .with_trade_site(trade_for_site),
-                            matches!(
-                                loadout_config,
-                                Some(comp::inventory::loadout_builder::LoadoutConfig::Guard)
-                            ),
+                            matches!(entity.agent_mark, Some(agent::Mark::Guard)),
                         ))
                     } else {
                         None

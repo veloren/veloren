@@ -11,10 +11,7 @@ use crate::{
 use common::{
     assets::{AssetExt, AssetHandle},
     astar::Astar,
-    comp::{
-        inventory::loadout_builder,
-        {self},
-    },
+    comp::{self},
     generation::{ChunkSupplement, EntityInfo},
     lottery::{LootSpec, Lottery},
     store::{Id, Store},
@@ -936,8 +933,8 @@ fn enemy_0(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
             ),
         ))
         .with_name("Gnarling")
-        .with_loadout_config(loadout_builder::LoadoutConfig::Gnarling)
-        .with_skillset_config(common::skillset_builder::SkillSetConfig::Gnarling)
+        .with_loadout_config("common.loadout.dungeon.tier-0.gnarling")
+        .with_skillset_preset(common::skillset_builder::SkillSetConfig::Gnarling)
         .with_loot_drop(chosen.read().choose().to_item())
         .with_main_tool(comp::Item::new_from_asset_expect(
             match dynamic_rng.gen_range(0..5) {
@@ -951,21 +948,31 @@ fn enemy_0(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
 fn enemy_1(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
     let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-1.enemy");
 
-    entity
+    let adlet = entity
         .with_body(comp::Body::BipedSmall(
             comp::biped_small::Body::random_with(dynamic_rng, &comp::biped_small::Species::Adlet),
         ))
         .with_name("Adlet")
-        .with_loadout_config(loadout_builder::LoadoutConfig::Adlet)
-        .with_skillset_config(common::skillset_builder::SkillSetConfig::Adlet)
-        .with_loot_drop(chosen.read().choose().to_item())
-        .with_main_tool(comp::Item::new_from_asset_expect(
-            match dynamic_rng.gen_range(0..5) {
-                0 => "common.items.npc_weapons.biped_small.adlet.adlet_bow",
-                1 => "common.items.npc_weapons.biped_small.adlet.gnoll_staff",
-                _ => "common.items.npc_weapons.biped_small.adlet.wooden_spear",
-            },
-        ))
+        .with_skillset_preset(common::skillset_builder::SkillSetConfig::Adlet)
+        .with_loot_drop(chosen.read().choose().to_item());
+
+    match dynamic_rng.gen_range(0..5) {
+        0 => adlet
+            .with_main_tool(comp::Item::new_from_asset_expect(
+                "common.items.npc_weapons.biped_small.adlet.adlet_bow",
+            ))
+            .with_loadout_config("common.loadout.dungeon.tier-1.adlet_bow"),
+        1 => adlet
+            .with_main_tool(comp::Item::new_from_asset_expect(
+                "common.items.npc_weapons.biped_small.adlet.adlet_staff",
+            ))
+            .with_loadout_config("common.loadout.dungeon.tier-1.adlet_spear"),
+        _ => adlet
+            .with_main_tool(comp::Item::new_from_asset_expect(
+                "common.items.npc_weapons.biped_small.adlet.adlet_spear",
+            ))
+            .with_loadout_config("common.loadout.dungeon.tier-1.adlet_spear"),
+    }
 }
 
 fn enemy_2(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
@@ -976,8 +983,8 @@ fn enemy_2(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
             comp::biped_small::Body::random_with(dynamic_rng, &comp::biped_small::Species::Sahagin),
         ))
         .with_name("Sahagin")
-        .with_loadout_config(loadout_builder::LoadoutConfig::Sahagin)
-        .with_skillset_config(common::skillset_builder::SkillSetConfig::Sahagin)
+        .with_loadout_config("common.loadout.dungeon.tier-2.sahagin")
+        .with_skillset_preset(common::skillset_builder::SkillSetConfig::Sahagin)
         .with_loot_drop(chosen.read().choose().to_item())
         .with_main_tool(comp::Item::new_from_asset_expect(
             match dynamic_rng.gen_range(0..5) {
@@ -1005,8 +1012,8 @@ fn enemy_3(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
                 ),
             ))
             .with_name("Haniwa")
-            .with_loadout_config(loadout_builder::LoadoutConfig::Haniwa)
-            .with_skillset_config(common::skillset_builder::SkillSetConfig::Haniwa)
+            .with_loadout_config("common.loadout.dungeon.tier-3.haniwa")
+            .with_skillset_preset(common::skillset_builder::SkillSetConfig::Haniwa)
             .with_loot_drop(chosen.read().choose().to_item())
             .with_main_tool(comp::Item::new_from_asset_expect(
                 match dynamic_rng.gen_range(0..5) {
@@ -1028,8 +1035,8 @@ fn enemy_4(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
             ),
         ))
         .with_name("Myrmidon")
-        .with_loadout_config(loadout_builder::LoadoutConfig::Myrmidon)
-        .with_skillset_config(common::skillset_builder::SkillSetConfig::Myrmidon)
+        .with_loadout_config("common.loadout.dungeon.tier-4.myrmidon")
+        .with_skillset_preset(common::skillset_builder::SkillSetConfig::Myrmidon)
         .with_loot_drop(chosen.read().choose().to_item())
         .with_main_tool(comp::Item::new_from_asset_expect(
             match dynamic_rng.gen_range(0..5) {
@@ -1052,16 +1059,16 @@ fn enemy_5(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
         1 => entity
             .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
             .with_name("Cultist Warlock")
-            .with_loadout_config(loadout_builder::LoadoutConfig::Warlock)
-            .with_skillset_config(common::skillset_builder::SkillSetConfig::Warlock)
+            .with_loadout_config("common.loadout.dungeon.tier-5.warlock")
+            .with_skillset_preset(common::skillset_builder::SkillSetConfig::Warlock)
             .with_loot_drop(chosen.read().choose().to_item())
             .with_main_tool(comp::Item::new_from_asset_expect(
                 "common.items.weapons.staff.cultist_staff",
             )),
         _ => entity
             .with_name("Cultist Warlord")
-            .with_loadout_config(loadout_builder::LoadoutConfig::Warlord)
-            .with_skillset_config(common::skillset_builder::SkillSetConfig::Warlord)
+            .with_loadout_config("common.loadout.dungeon.tier-5.warlord")
+            .with_skillset_preset(common::skillset_builder::SkillSetConfig::Warlord)
             .with_loot_drop(chosen.read().choose().to_item())
             .with_main_tool(comp::Item::new_from_asset_expect(
                 match dynamic_rng.gen_range(0..6) {
@@ -1176,7 +1183,7 @@ fn boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo
             ))
             .with_name("Mindflayer".to_string())
             .with_loot_drop(chosen.read().choose().to_item())
-            .with_skillset_config(common::skillset_builder::SkillSetConfig::Mindflayer),
+            .with_skillset_preset(common::skillset_builder::SkillSetConfig::Mindflayer),
     ]
 }
 
@@ -1286,8 +1293,8 @@ fn mini_boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
                     .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
                     .with_name("Beastmaster".to_string())
                     .with_loot_drop(trainer_loot.read().choose().to_item())
-                    .with_loadout_config(loadout_builder::LoadoutConfig::Beastmaster)
-                    .with_skillset_config(common::skillset_builder::SkillSetConfig::CultistAcolyte)
+                    .with_loadout_config("common.loadout.dungeon.tier-5.beastmaster")
+                    .with_skillset_preset(common::skillset_builder::SkillSetConfig::CultistAcolyte)
                     .with_main_tool(comp::Item::new_from_asset_expect(
                         match dynamic_rng.gen_range(0..3) {
                             0 => "common.items.weapons.axe.malachite_axe-0",
@@ -1321,7 +1328,7 @@ fn mini_boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
                     ))
                     .with_name("Cultist Husk".to_string())
                     .with_loot_drop(chosen.read().choose().to_item())
-                    .with_loadout_config(loadout_builder::LoadoutConfig::Husk)
+                    .with_loadout_config("common.loadout.dungeon.tier-5.husk")
             });
         },
     }

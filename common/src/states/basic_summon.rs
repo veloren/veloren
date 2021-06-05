@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         self,
-        inventory::loadout_builder::{LoadoutBuilder, LoadoutConfig},
+        inventory::loadout_builder::{LoadoutBuilder, LoadoutPreset},
         Behavior, BehaviorCapability, CharacterState, StateUpdate,
     },
     event::{LocalEvent, ServerEvent},
@@ -76,13 +76,15 @@ impl CharacterBehavior for Data {
                     {
                         let body = self.static_data.summon_info.body;
 
-                        let loadout = LoadoutBuilder::build_loadout(
-                            body,
-                            None,
-                            self.static_data.summon_info.loadout_preset,
-                            None,
-                        )
-                        .build();
+                        let mut loadout_builder =
+                            LoadoutBuilder::new().with_default_maintool(&body);
+
+                        if let Some(preset) = self.static_data.summon_info.loadout_preset {
+                            loadout_builder = loadout_builder.with_preset(preset);
+                        }
+
+                        let loadout = loadout_builder.build();
+
                         let stats = comp::Stats::new("Summon".to_string());
                         let skill_set = SkillSetBuilder::build_skillset(
                             &None,
@@ -176,6 +178,6 @@ pub struct SummonInfo {
     scale: Option<comp::Scale>,
     health_scaling: u16,
     // TODO: use assets for specifying skills and loadouts?
-    loadout_preset: Option<LoadoutConfig>,
+    loadout_preset: Option<LoadoutPreset>,
     skillset_preset: Option<SkillSetConfig>,
 }

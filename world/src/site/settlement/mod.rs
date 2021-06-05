@@ -16,14 +16,20 @@ use crate::{
 use common::{
     astar::Astar,
     comp::{
-        self, bird_medium, humanoid, inventory::loadout_builder, object, quadruped_small, Item,
+        self, agent, bird_medium, humanoid,
+        inventory::{
+            loadout_builder::{make_potion_bag, LoadoutBuilder},
+            slot::ArmorSlot,
+            trade_pricing::TradePricing,
+        },
+        object, quadruped_small, Item,
     },
     generation::{ChunkSupplement, EntityInfo},
     path::Path,
     spiral::Spiral2d,
     store::{Id, Store},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
-    trade::SiteInformation,
+    trade::{self, Good, SiteInformation},
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, WriteVol},
 };
 use fxhash::FxHasher64;
@@ -950,9 +956,10 @@ impl Settlement {
                                         "common.items.weapons.sword.iron-4",
                                     ))
                                     .with_name("Guard")
+                                    .with_agent_mark(agent::Mark::Guard)
+                                    .with_lazy_loadout(guard_loadout)
                                     .with_level(dynamic_rng.gen_range(10..15))
-                                    .with_loadout_config(loadout_builder::LoadoutConfig::Guard)
-                                    .with_skillset_config(
+                                    .with_skillset_preset(
                                         common::skillset_builder::SkillSetConfig::Guard,
                                     ),
                                 1 | 2 => entity
@@ -960,27 +967,28 @@ impl Settlement {
                                         "common.items.weapons.bow.eldwood-0",
                                     ))
                                     .with_name("Merchant")
+                                    .with_agent_mark(agent::Mark::Merchant)
+                                    .with_economy(&economy)
+                                    .with_lazy_loadout(merchant_loadout)
                                     .with_level(dynamic_rng.gen_range(10..15))
-                                    .with_loadout_config(loadout_builder::LoadoutConfig::Merchant)
-                                    .with_skillset_config(
+                                    .with_skillset_preset(
                                         common::skillset_builder::SkillSetConfig::Merchant,
-                                    )
-                                    .with_economy(&economy),
+                                    ),
                                 _ => entity
                                     .with_main_tool(Item::new_from_asset_expect(
                                         match dynamic_rng.gen_range(0..7) {
-                                    0 => "common.items.weapons.tool.broom",
-                                    1 => "common.items.weapons.tool.hoe",
-                                    2 => "common.items.weapons.tool.pickaxe",
-                                    3 => "common.items.weapons.tool.pitchfork",
-                                    4 => "common.items.weapons.tool.rake",
-                                    5 => "common.items.weapons.tool.shovel-0",
-                                    _ => "common.items.weapons.tool.shovel-1",
-                                    //_ => "common.items.weapons.bow.starter", TODO: Re-Add this when we have a better way of distributing npc_weapons here
-                                },
+                                            0 => "common.items.weapons.tool.broom",
+                                            1 => "common.items.weapons.tool.hoe",
+                                            2 => "common.items.weapons.tool.pickaxe",
+                                            3 => "common.items.weapons.tool.pitchfork",
+                                            4 => "common.items.weapons.tool.rake",
+                                            5 => "common.items.weapons.tool.shovel-0",
+                                            _ => "common.items.weapons.tool.shovel-1",
+                                            //_ => "common.items.weapons.bow.starter", TODO: Re-Add this when we have a better way of distributing npc_weapons here
+                                        },
                                     ))
-                                    .with_loadout_config(loadout_builder::LoadoutConfig::Villager)
-                                    .with_skillset_config(
+                                    .with_lazy_loadout(villager_loadout)
+                                    .with_skillset_preset(
                                         common::skillset_builder::SkillSetConfig::Villager,
                                     ),
                             }
@@ -1041,6 +1049,137 @@ impl Settlement {
 
         None
     }
+}
+
+fn merchant_loadout(
+    loadout_builder: LoadoutBuilder,
+    economy: Option<&trade::SiteInformation>,
+) -> LoadoutBuilder {
+    let rng = &mut rand::thread_rng();
+    let mut backpack = Item::new_from_asset_expect("common.items.armor.misc.back.backpack");
+    let mut coins = economy
+        .and_then(|e| e.unconsumed_stock.get(&Good::Coin))
+        .copied()
+        .unwrap_or_default()
+        .round()
+        .min(rand::thread_rng().gen_range(1000.0..3000.0)) as u32;
+    let armor = economy
+        .and_then(|e| e.unconsumed_stock.get(&Good::Armor))
+        .copied()
+        .unwrap_or_default()
+        / 10.0;
+    for s in backpack.slots_mut() {
+        if coins > 0 {
+            let mut coin_item = Item::new_from_asset_expect("common.items.utility.coins");
+            coin_item
+                .set_amount(coins)
+                .expect("coins should be stackable");
+            *s = Some(coin_item);
+            coins = 0;
+        } else if armor > 0.0 {
+            if let Some(item_id) = TradePricing::random_item(Good::Armor, armor, true) {
+                *s = Some(Item::new_from_asset_expect(&item_id));
+            }
+        }
+    }
+    let mut bag1 = Item::new_from_asset_expect("common.items.armor.misc.bag.reliable_backpack");
+    let weapon = economy
+        .and_then(|e| e.unconsumed_stock.get(&Good::Tools))
+        .copied()
+        .unwrap_or_default()
+        / 10.0;
+    if weapon > 0.0 {
+        for i in bag1.slots_mut() {
+            if let Some(item_id) = TradePricing::random_item(Good::Tools, weapon, true) {
+                *i = Some(Item::new_from_asset_expect(&item_id));
+            }
+        }
+    }
+    let mut item_with_amount = |item_id: &str, amount: &mut f32| {
+        if *amount > 0.0 {
+            let mut item = Item::new_from_asset_expect(item_id);
+            // NOTE: Conversion to and from f32 works fine because we make sure the
+            // number we're converting is ≤ 100.
+            let max = amount.min(16.min(item.max_amount()) as f32) as u32;
+            let n = rng.gen_range(1..max.max(2));
+            *amount -= if item.set_amount(n).is_ok() {
+                n as f32
+            } else {
+                1.0
+            };
+            Some(item)
+        } else {
+            None
+        }
+    };
+    let mut bag2 = Item::new_from_asset_expect("common.items.armor.misc.bag.reliable_backpack");
+    let mut ingredients = economy
+        .and_then(|e| e.unconsumed_stock.get(&Good::Ingredients))
+        .copied()
+        .unwrap_or_default()
+        / 10.0;
+    for i in bag2.slots_mut() {
+        if let Some(item_id) = TradePricing::random_item(Good::Ingredients, ingredients, true) {
+            *i = item_with_amount(&item_id, &mut ingredients);
+        }
+    }
+    let mut bag3 = Item::new_from_asset_expect("common.items.armor.misc.bag.reliable_backpack");
+    // TODO: currently econsim spends all its food on population, resulting in none
+    // for the players to buy; the `.max` is temporary to ensure that there's some
+    // food for sale at every site, to be used until we have some solution like NPC
+    // houses as a limit on econsim population growth
+    let mut food = economy
+        .and_then(|e| e.unconsumed_stock.get(&Good::Food))
+        .copied()
+        .unwrap_or_default()
+        .max(10000.0)
+        / 10.0;
+    for i in bag3.slots_mut() {
+        if let Some(item_id) = TradePricing::random_item(Good::Food, food, true) {
+            *i = item_with_amount(&item_id, &mut food);
+        }
+    }
+    let mut bag4 = Item::new_from_asset_expect("common.items.armor.misc.bag.reliable_backpack");
+    let mut potions = economy
+        .and_then(|e| e.unconsumed_stock.get(&Good::Potions))
+        .copied()
+        .unwrap_or_default()
+        / 10.0;
+    for i in bag4.slots_mut() {
+        if let Some(item_id) = TradePricing::random_item(Good::Potions, potions, true) {
+            *i = item_with_amount(&item_id, &mut potions);
+        }
+    }
+
+    loadout_builder
+        .with_asset_expect("common.loadout.village.merchant", rng)
+        .back(Some(backpack))
+        .bag(ArmorSlot::Bag1, Some(bag1))
+        .bag(ArmorSlot::Bag2, Some(bag2))
+        .bag(ArmorSlot::Bag3, Some(bag3))
+        .bag(ArmorSlot::Bag4, Some(bag4))
+}
+
+fn guard_loadout(
+    loadout_builder: LoadoutBuilder,
+    _economy: Option<&trade::SiteInformation>,
+) -> LoadoutBuilder {
+    let rng = &mut rand::thread_rng();
+
+    loadout_builder
+        .with_asset_expect("common.loadout.village.guard", rng)
+        .bag(ArmorSlot::Bag1, Some(make_potion_bag(25)))
+}
+
+fn villager_loadout(
+    loadout_builder: LoadoutBuilder,
+    _economy: Option<&trade::SiteInformation>,
+) -> LoadoutBuilder {
+    let rng = &mut rand::thread_rng();
+
+    loadout_builder
+        .with_asset_expect("common.loadout.village.villager", rng)
+        .bag(ArmorSlot::Bag1, Some(make_potion_bag(10)))
 }
 
 #[derive(Copy, Clone, PartialEq)]
