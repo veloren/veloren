@@ -1,30 +1,30 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Localization for "global" English
+/// Localization for "global" Swedish
 (
     string_map: {
-        "hud.crafting": "Crafting",
-        "hud.crafting.recipes": "Recipes",
-        "hud.crafting.ingredients": "Ingredients:",
-        "hud.crafting.craft": "Craft",
-        "hud.crafting.tool_cata": "Requires:",
+        "hud.crafting": "Crafting", // TODO
+        "hud.crafting.recipes": "Recept",
+        "hud.crafting.ingredients": "Ingredienser:",
+        "hud.crafting.craft": "Craft", // TODO
+        "hud.crafting.tool_cata": "Kräver:",
         // Crafting Stations
-        "hud.crafting.req_crafting_station": "Requires:",
-        "hud.crafting.anvil": "Anvil",
-        "hud.crafting.cauldron": "Cauldron",
-        "hud.crafting.cooking_pot": "Cooking Pot",
-        "hud.crafting.crafting_bench": "Crafting Bench",
+        "hud.crafting.req_crafting_station": "Kräver:",
+        "hud.crafting.anvil": "Städ",
+        "hud.crafting.cauldron": "Kittel",
+        "hud.crafting.cooking_pot": "Kokkärl",
+        "hud.crafting.crafting_bench": "Crafting Bench", // TODO
         // Tabs
-        "hud.crafting.tabs.all": "All",
-        "hud.crafting.tabs.armor": "Armor",
-        "hud.crafting.tabs.dismantle": "Dismantle",
-        "hud.crafting.tabs.food": "Food",
-        "hud.crafting.tabs.glider": "Gliders",
-        "hud.crafting.tabs.potion": "Potions",
-        "hud.crafting.tabs.tool": "Tools",
-        "hud.crafting.tabs.utility": "Utility",
-        "hud.crafting.tabs.weapon": "Weapons",
-        "hud.crafting.tabs.bag": "Bags",
+        "hud.crafting.tabs.all": "Allt",
+        "hud.crafting.tabs.armor": "Rustning",
+        "hud.crafting.tabs.dismantle": "Plocka sönder",
+        "hud.crafting.tabs.food": "Mat",
+        "hud.crafting.tabs.glider": "Glidare",
+        "hud.crafting.tabs.potion": "Trolldrycker",
+        "hud.crafting.tabs.tool": "Verktyg",
+        "hud.crafting.tabs.utility": "Redskap",
+        "hud.crafting.tabs.weapon": "Vapen",
+        "hud.crafting.tabs.bag": "Säckar",
     },
 
 
