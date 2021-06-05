@@ -708,10 +708,17 @@ impl IcedRenderer {
                     }
                     .intersection(self.window_scissor);
 
-                    if intersection.is_valid() {
+                    if intersection.is_valid() && intersection.size().map(|s| s > 0).reduce_and() {
                         intersection
                     } else {
-                        Aabr::new_empty(Vec2::zero())
+                        // Create a aabr with width 1 and height 1, technically
+                        // it would be more correct to do it with 0,0 but that's
+                        // a validation error in wgpu so enjoy your funky pixel
+                        // in the top left of your screen
+                        Aabr {
+                            min: Vec2::zero(),
+                            max: Vec2::one(),
+                        }
                     }
                 };
                 // Not expecting this case: new_scissor == current_scissor
