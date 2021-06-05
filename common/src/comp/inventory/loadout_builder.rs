@@ -397,7 +397,7 @@ impl LoadoutBuilder {
     pub fn from_asset_expect(asset_specifier: &str) -> Self {
         let loadout = Self::new();
 
-        loadout.apply_asset_expect(asset_specifier)
+        loadout.with_asset_expect(asset_specifier)
     }
 
     /// # Usage
@@ -409,7 +409,7 @@ impl LoadoutBuilder {
     /// 2) Will panic if path to item specified in loadout file doesn't exist
     /// 3) Will panic while runs in tests and asset doesn't have "correct" form
     #[must_use]
-    pub fn apply_asset_expect(mut self, asset_specifier: &str) -> Self {
+    pub fn with_asset_expect(mut self, asset_specifier: &str) -> Self {
         let spec = LoadoutSpec::load_expect(asset_specifier).read().0.clone();
         for (key, entry) in spec {
             let item = match entry.try_to_item(asset_specifier) {
@@ -485,7 +485,7 @@ impl LoadoutBuilder {
     /// Set default armor items for the loadout. This may vary with game
     /// updates, but should be safe defaults for a new character.
     #[must_use]
-    pub fn defaults(self) -> Self { self.apply_asset_expect("common.loadout.default") }
+    pub fn defaults(self) -> Self { self.with_asset_expect("common.loadout.default") }
 
     /// Builds loadout of creature when spawned
     #[must_use]
@@ -529,45 +529,45 @@ impl LoadoutBuilder {
             match config {
                 LoadoutConfig::Gnarling => match active_tool_kind {
                     Some(ToolKind::Bow | ToolKind::Staff | ToolKind::Spear) => {
-                        builder.apply_asset_expect("common.loadout.dungeon.tier-0.gnarling")
+                        builder.with_asset_expect("common.loadout.dungeon.tier-0.gnarling")
                     },
                     _ => builder,
                 },
                 LoadoutConfig::Adlet => match active_tool_kind {
                     Some(ToolKind::Bow) => {
-                        builder.apply_asset_expect("common.loadout.dungeon.tier-1.adlet_bow")
+                        builder.with_asset_expect("common.loadout.dungeon.tier-1.adlet_bow")
                     },
                     Some(ToolKind::Spear | ToolKind::Staff) => {
-                        builder.apply_asset_expect("common.loadout.dungeon.tier-1.adlet_spear")
+                        builder.with_asset_expect("common.loadout.dungeon.tier-1.adlet_spear")
                     },
                     _ => builder,
                 },
                 LoadoutConfig::Sahagin => {
-                    builder.apply_asset_expect("common.loadout.dungeon.tier-2.sahagin")
+                    builder.with_asset_expect("common.loadout.dungeon.tier-2.sahagin")
                 },
                 LoadoutConfig::Haniwa => {
-                    builder.apply_asset_expect("common.loadout.dungeon.tier-3.haniwa")
+                    builder.with_asset_expect("common.loadout.dungeon.tier-3.haniwa")
                 },
                 LoadoutConfig::Myrmidon => {
-                    builder.apply_asset_expect("common.loadout.dungeon.tier-4.myrmidon")
+                    builder.with_asset_expect("common.loadout.dungeon.tier-4.myrmidon")
                 },
                 LoadoutConfig::Husk => {
-                    builder.apply_asset_expect("common.loadout.dungeon.tier-5.husk")
+                    builder.with_asset_expect("common.loadout.dungeon.tier-5.husk")
                 },
                 LoadoutConfig::Beastmaster => {
-                    builder.apply_asset_expect("common.loadout.dungeon.tier-5.beastmaster")
+                    builder.with_asset_expect("common.loadout.dungeon.tier-5.beastmaster")
                 },
                 LoadoutConfig::Warlord => {
-                    builder.apply_asset_expect("common.loadout.dungeon.tier-5.warlord")
+                    builder.with_asset_expect("common.loadout.dungeon.tier-5.warlord")
                 },
                 LoadoutConfig::Warlock => {
-                    builder.apply_asset_expect("common.loadout.dungeon.tier-5.warlock")
+                    builder.with_asset_expect("common.loadout.dungeon.tier-5.warlock")
                 },
                 LoadoutConfig::Villager => builder
-                    .apply_asset_expect("common.loadout.village.villager")
+                    .with_asset_expect("common.loadout.village.villager")
                     .bag(ArmorSlot::Bag1, Some(make_potion_bag(10))),
                 LoadoutConfig::Guard => builder
-                    .apply_asset_expect("common.loadout.village.guard")
+                    .with_asset_expect("common.loadout.village.guard")
                     .bag(ArmorSlot::Bag1, Some(make_potion_bag(25))),
                 LoadoutConfig::Merchant => {
                     let mut backpack =
@@ -685,7 +685,7 @@ impl LoadoutBuilder {
                         }
                     }
                     builder
-                        .apply_asset_expect("common.loadout.village.merchant")
+                        .with_asset_expect("common.loadout.village.merchant")
                         .back(Some(backpack))
                         .bag(ArmorSlot::Bag1, Some(bag1))
                         .bag(ArmorSlot::Bag2, Some(bag2))
