@@ -297,6 +297,35 @@ impl Animation for AlphaAnimation {
                             next.head.orientation =
                                 Quaternion::rotation_x(move1 * -0.6 + move2 * 0.4)
                         },
+                        "Yeti" => {
+                            next.control_l.position = Vec3::new(-1.0, 2.0, 12.0 + move2 * -10.0);
+                            next.control_r.position = Vec3::new(1.0, 2.0, -2.0);
+
+                            next.control.position = Vec3::new(
+                                4.0 + move1 * -12.0 + move2 * 20.0,
+                                (s_a.grip.0 / 1.0) + move1 * -3.0 + move2 * 5.0,
+                                (-s_a.grip.0 / 0.8) + move1 * -2.0 + move2 * 8.0,
+                            );
+                            next.head.orientation = Quaternion::rotation_x(move1 * -0.25)
+                                * Quaternion::rotation_z(move1 * -0.2 + move2 * 0.6);
+                            next.upper_torso.orientation =
+                                Quaternion::rotation_z(move1 * 0.2 + move2 * -0.4);
+                            next.lower_torso.orientation =
+                                Quaternion::rotation_z(move1 * -0.2 + move2 * 0.2);
+
+                            next.control_l.orientation =
+                                Quaternion::rotation_x(PI / 2.0 + move2 * 0.8)
+                                    * Quaternion::rotation_y(-0.0);
+                            next.control_r.orientation =
+                                Quaternion::rotation_x(PI / 2.0 + 0.2 + move2 * 0.8)
+                                    * Quaternion::rotation_y(0.0)
+                                    * Quaternion::rotation_z(0.0);
+
+                            next.control.orientation =
+                                Quaternion::rotation_x(-1.0 + move1 * -0.5 + move2 * -0.3)
+                                    * Quaternion::rotation_y(-1.8 + move1 * -0.8 + move2 * 3.0)
+                                    * Quaternion::rotation_z(move1 * -0.8 + move2 * -0.8);
+                        },
                         _ => {},
                     }
                 }

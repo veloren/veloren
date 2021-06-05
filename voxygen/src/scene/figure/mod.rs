@@ -4161,8 +4161,8 @@ impl FigureMgr {
                             anim::biped_large::ShockwaveAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
+                                    (active_tool_kind, active_tool_spec),
+                                    (second_tool_kind, second_tool_spec),
                                     time,
                                     rel_vel.magnitude(),
                                     Some(s.stage_section),
@@ -4775,7 +4775,7 @@ impl FigureMgr {
             .join()
         // Don't render dead entities
         .filter(|(_, _, _, health, _, _)| health.map_or(true, |h| !h.is_dead))
-        // Don't render player 
+        // Don't render player
         .filter(|(entity, _, _, _, _, _)| *entity != player_entity)
         {
             if let Some((bound, model, col_lights)) = self.get_model_for_render(
