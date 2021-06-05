@@ -1,18 +1,18 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Localization for "global" English
+/// Localization for "global" Swedish
 (
     string_map: {
-        "hud.social": "Other Players",
-        "hud.social.online": "Online:",
-        "hud.social.friends": "Friends",
-        "hud.social.not_yet_available": "Not yet available",
-        "hud.social.faction": "Faction",
-        "hud.social.play_online_fmt": "{nb_player} player(s) online",
-        "hud.social.name": "Name",
-        "hud.social.level": "Level",
-        "hud.social.zone": "Zone",
-        "hud.social.account": "Account",
+        "hud.social": "Andra spelare",
+        "hud.social.online": "Inloggade:",
+        "hud.social.friends": "Vänner",
+        "hud.social.not_yet_available": "Inte tillgängligt än",
+        "hud.social.faction": "Fraktion",
+        "hud.social.play_online_fmt": "{nb_player} spelare inloggade",
+        "hud.social.name": "Namn",
+        "hud.social.level": "Nivå",
+        "hud.social.zone": "Område",
+        "hud.social.account": "Konto",
     },
 
 
