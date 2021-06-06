@@ -10,7 +10,6 @@ ItemDef(
             poise_strength: 1.0,
             speed: 1.15,
             crit_chance: 0.14441861,
-            crit_mult: 1.4748102,
         )),
     )),
     quality: Moderate,

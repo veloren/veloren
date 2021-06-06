@@ -1,4 +1,5 @@
 use common::{
+    combat,
     comp::{
         self,
         skills::{GeneralSkill, Skill},
@@ -92,7 +93,7 @@ impl<'a> System<'a> for Sys {
             &mut skill_sets.restrict_mut(),
             &mut healths.restrict_mut(),
             &read_data.positions,
-            &mut energies,
+            &mut energies.restrict_mut(),
             read_data.inventories.maybe(),
         )
             .join()
@@ -126,9 +127,26 @@ impl<'a> System<'a> for Sys {
                 health.scale_maximum(stat.max_health_modifier);
             }
 
-            // Happens every tick unlike health in order to apply inventory effects
-            let max_energy_inventory_mod = energy.compute_max_energy_mod_from_inv(inventory);
-            energy.scale_maximum(stat.max_energy_modifier + max_energy_inventory_mod);
+            let (change_energy, energy_scaling) = {
+                let energy = energy.get_unchecked();
+                // Calculates energy scaling from stats and inventory
+                let new_energy_scaling =
+                    combat::compute_max_energy_mod(energy, inventory) + stat.max_energy_modifier;
+                let current_energy_scaling = energy.maximum() as f32 / energy.base_max() as f32;
+                // Only changes energy if new modifier different from old modifer
+                // TODO: Look into using wider threshold incase floating point imprecision makes
+                // this always true
+                (
+                    (current_energy_scaling - new_energy_scaling).abs() > f32::EPSILON,
+                    new_energy_scaling,
+                )
+            };
+
+            // If modifier sufficiently different, mutably access energy
+            if change_energy {
+                let mut energy = energy.get_mut_unchecked();
+                energy.scale_maximum(energy_scaling);
+            }
 
             let skillset = skill_set.get_unchecked();
             let skills_to_level = skillset

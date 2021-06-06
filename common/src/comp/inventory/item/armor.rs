@@ -41,7 +41,7 @@ pub struct Stats {
     /// Energy recovery is summed, and then added to 1.0. When attacks reward
     /// energy, it is then multiplied by this value before the energy is
     /// rewarded.
-    energy_recovery: f32,
+    energy_reward: f32,
     /// Crit power is summed, and then added to the default crit multiplier of
     /// 1.25. Damage is multiplied by this value when an attack crits.
     crit_power: f32,
@@ -55,7 +55,7 @@ impl Stats {
         protection: Protection,
         poise_resilience: Protection,
         energy_max: i32,
-        energy_recovery: f32,
+        energy_reward: f32,
         crit_power: f32,
         stealth: f32,
     ) -> Self {
@@ -63,23 +63,23 @@ impl Stats {
             protection,
             poise_resilience,
             energy_max,
-            energy_recovery,
+            energy_reward,
             crit_power,
             stealth,
         }
     }
 
-    pub fn get_protection(&self) -> Protection { self.protection }
+    pub fn protection(&self) -> Protection { self.protection }
 
-    pub fn get_poise_resilience(&self) -> Protection { self.poise_resilience }
+    pub fn poise_resilience(&self) -> Protection { self.poise_resilience }
 
-    pub fn get_energy_max(&self) -> i32 { self.energy_max }
+    pub fn energy_max(&self) -> i32 { self.energy_max }
 
-    pub fn get_energy_recovery(&self) -> f32 { self.energy_recovery }
+    pub fn energy_reward(&self) -> f32 { self.energy_reward }
 
-    pub fn get_crit_power(&self) -> f32 { self.crit_power }
+    pub fn crit_power(&self) -> f32 { self.crit_power }
 
-    pub fn get_stealth(&self) -> f32 { self.stealth }
+    pub fn stealth(&self) -> f32 { self.stealth }
 }
 
 impl Sub<Stats> for Stats {
@@ -90,7 +90,7 @@ impl Sub<Stats> for Stats {
             protection: self.protection - other.protection,
             poise_resilience: self.poise_resilience - other.poise_resilience,
             energy_max: self.energy_max - other.energy_max,
-            energy_recovery: self.energy_recovery - other.energy_recovery,
+            energy_reward: self.energy_reward - other.energy_reward,
             crit_power: self.crit_power - other.crit_power,
             stealth: self.stealth - other.stealth,
         }
@@ -141,17 +141,17 @@ pub struct Armor {
 impl Armor {
     pub fn new(kind: ArmorKind, stats: Stats) -> Self { Self { kind, stats } }
 
-    pub fn get_protection(&self) -> Protection { self.stats.protection }
+    pub fn protection(&self) -> Protection { self.stats.protection }
 
-    pub fn get_poise_resilience(&self) -> Protection { self.stats.poise_resilience }
+    pub fn poise_resilience(&self) -> Protection { self.stats.poise_resilience }
 
-    pub fn get_energy_max(&self) -> i32 { self.stats.energy_max }
+    pub fn energy_max(&self) -> i32 { self.stats.energy_max }
 
-    pub fn get_energy_recovery(&self) -> f32 { self.stats.energy_recovery }
+    pub fn energy_reward(&self) -> f32 { self.stats.energy_reward }
 
-    pub fn get_crit_power(&self) -> f32 { self.stats.crit_power }
+    pub fn crit_power(&self) -> f32 { self.stats.crit_power }
 
-    pub fn get_stealth(&self) -> f32 { self.stats.stealth }
+    pub fn stealth(&self) -> f32 { self.stats.stealth }
 
     #[cfg(test)]
     pub fn test_armor(
@@ -165,7 +165,7 @@ impl Armor {
                 protection,
                 poise_resilience,
                 energy_max: 0,
-                energy_recovery: 0.0,
+                energy_reward: 0.0,
                 crit_power: 0.0,
                 stealth: 0.0,
             },

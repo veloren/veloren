@@ -226,11 +226,7 @@ fn statblock_desc(stats: &Stats) -> String {
         stats.power * 10.0,
         stats.poise_strength * 10.0,
         stats.speed,
-    ) + &format!(
-        "Crit chance: {:0.1}%\n\nCrit damage: x{:0.1}\n\n",
-        stats.crit_chance * 100.0,
-        stats.crit_mult,
-    )
+    ) + &format!("Crit chance: {:0.1}%\n\n", stats.crit_chance * 100.0,)
 }
 
 // Compare two type, output a colored character to show comparison

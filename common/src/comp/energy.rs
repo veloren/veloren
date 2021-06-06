@@ -1,4 +1,4 @@
-use crate::comp::{self, Body, Inventory};
+use crate::comp::Body;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
@@ -66,15 +66,15 @@ impl Energy {
         self.last_change = Some((change.amount, 0.0, change.source));
     }
 
-    // This function changes the modified max energy value, not the base energy
-    // value. The modified energy value takes into account buffs and other temporary
-    // changes to max energy.
+    /// This function changes the modified max energy value, not the base energy
+    /// value. The modified energy value takes into account buffs and other
+    /// temporary changes to max energy.
     pub fn set_maximum(&mut self, amount: u32) {
         self.maximum = amount;
         self.current = self.current.min(self.maximum);
     }
 
-    // Scales the temporary max health by a modifier.
+    /// Scales the temporary max energy by a modifier.
     pub fn scale_maximum(&mut self, scaled: f32) {
         let scaled_max = (self.base_max as f32 * scaled) as u32;
         self.set_maximum(scaled_max);
@@ -101,60 +101,20 @@ impl Energy {
     pub fn update_max_energy(&mut self, body: Option<Body>, level: u16) {
         const ENERGY_PER_LEVEL: u32 = 50;
         if let Some(body) = body {
-            self.set_base_max(body.base_energy() + ENERGY_PER_LEVEL * level as u32);
-            self.set_maximum(body.base_energy() + ENERGY_PER_LEVEL * level as u32);
+            // Checks the current difference between maximum and base max
+            let current_difference = self.maximum as i32 - self.base_max as i32;
+            // Sets base max to new value based off of new level provided
+            self.base_max = body.base_energy() + ENERGY_PER_LEVEL * level as u32;
+            // Calculates new maximum by adding difference to new base max
+            let new_maximum = (self.base_max as i32 + current_difference).max(0) as u32;
+            // Sets maximum to calculated value
+            self.set_maximum(new_maximum);
+            // Awards energy
             self.change_by(EnergyChange {
                 amount: ENERGY_PER_LEVEL as i32,
                 source: EnergySource::LevelUp,
             });
         }
-    }
-
-    // This is private because max energy is based on the level
-    fn set_base_max(&mut self, amount: u32) {
-        self.base_max = amount;
-        self.current = self.current.min(self.maximum);
-    }
-
-    /// Computes the energy reward modifer from worn armor
-    pub fn compute_energy_reward_mod(inventory: Option<&Inventory>) -> f32 {
-        use comp::item::ItemKind;
-        // Starts with a value of 1.0 when summing the stats from each armor piece, and
-        // defaults to a value of 1.0 if no inventory is present
-        inventory.map_or(1.0, |inv| {
-            inv.equipped_items()
-                .filter_map(|item| {
-                    if let ItemKind::Armor(armor) = &item.kind() {
-                        Some(armor.get_energy_recovery())
-                    } else {
-                        None
-                    }
-                })
-                .fold(1.0, |a, b| a + b)
-        })
-    }
-
-    /// Computes the modifier that should be applied to max energy from the
-    /// currently equipped items
-    pub fn compute_max_energy_mod_from_inv(&self, inventory: Option<&Inventory>) -> f32 {
-        use comp::item::ItemKind;
-        // Defaults to a value of 0 if no inventory is present
-        let energy_increase = inventory.map_or(0, |inv| {
-            inv.equipped_items()
-                .filter_map(|item| {
-                    if let ItemKind::Armor(armor) = &item.kind() {
-                        Some(armor.get_energy_max())
-                    } else {
-                        None
-                    }
-                })
-                .sum()
-        });
-        // Returns the energy increase divided by base max of energy.
-        // This value is then added to the max_energy_modifier field on stats component.
-        // Adding is important here, as it ensures that a flat modifier is applied
-        // correctly.
-        energy_increase as f32 / self.base_max as f32
     }
 }
 

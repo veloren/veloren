@@ -123,10 +123,10 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                                     0
                                 };
 
-                            let energy_recovery = if let Some(energy_recovery_raw) =
+                            let energy_reward = if let Some(energy_reward_raw) =
                                 record.get(headers["Energy Reward"])
                             {
-                                energy_recovery_raw.parse().unwrap()
+                                energy_reward_raw.parse().unwrap()
                             } else {
                                 eprintln!(
                                     "Could not unwrap energy recovery value for {:?}",
@@ -162,7 +162,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                                 protection,
                                 poise_resilience,
                                 max_energy,
-                                energy_recovery,
+                                energy_reward,
                                 crit_power,
                                 stealth,
                             );
