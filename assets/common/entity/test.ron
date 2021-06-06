@@ -1,4 +1,4 @@
-{
+EntityConfig (
     /// Name of Entity
     name: Some("Paddy"),
 
@@ -8,11 +8,6 @@
     /// or RandomWith (will use random_with if available for this Body)
     // body: Humanoid(Random),
 
-    /// Loot
-    /// Can be Item (with asset_specifier for item)
-    /// or LootTable (with asset_specifier for loot table)
-    loot: LootTable("common.loot_tables.humanoids"),
-
     /// Main and second tools
     /// Can be Option<Item> (with asset_specifier for item)
     /// or Choice
@@ -20,12 +15,17 @@
     main_tool: Some(Item("common.items.weapons.axe_1h.orichalcum-0")),
     second_tool: None,
 
-    /// Loadout Config as Option<Loadout> (with asset_specifier for loadout)
-    loadout_config: Some(Loadout("common.loadout.village.merchant")),
+    /// Loadout Config (with asset_specifier for loadout)
+    loadout_config: Some("common.loadout.village.merchant"),
 
     /// Skillset Config as Option<SkillSet> (with asset_specifier for skillset)
     // skillset_config: None,
 
+    /// Loot
+    /// Can be Item (with asset_specifier for item)
+    /// or LootTable (with asset_specifier for loot table)
+    // loot: LootTable("common.loot_tables.humanoids"),
+
     /// Meta Info (level, alignment, agency, etc)
     // meta: {},
-}
+)

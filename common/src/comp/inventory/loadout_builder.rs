@@ -46,7 +46,7 @@ pub enum LoadoutPreset {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-enum ItemSpec {
+pub enum ItemSpec {
     /// One specific item.
     /// Example:
     /// Item("common.items.armor.steel.foot")
@@ -61,7 +61,7 @@ enum ItemSpec {
 }
 
 impl ItemSpec {
-    fn try_to_item(&self, asset_specifier: &str, rng: &mut impl Rng) -> Option<Item> {
+    pub fn try_to_item(&self, asset_specifier: &str, rng: &mut impl Rng) -> Option<Item> {
         match self {
             ItemSpec::Item(specifier) => Some(Item::new_from_asset_expect(&specifier)),
 
@@ -80,7 +80,7 @@ impl ItemSpec {
 
     #[cfg(test)]
     // Read everything and checks if it's loading
-    fn validate(&self, key: EquipSlot) {
+    pub fn validate(&self, key: EquipSlot) {
         match self {
             ItemSpec::Item(specifier) => std::mem::drop(Item::new_from_asset_expect(&specifier)),
             ItemSpec::Choice(items) => {

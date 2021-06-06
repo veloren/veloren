@@ -1,0 +1,8 @@
+EntityConfig (
+    name: Some("Adlet Hunter"),
+
+    main_tool: Some(Item("common.items.npc_weapons.biped_small.adlet.wooden_spear")),
+    second_tool: None,
+
+    loadout_config: Some("common.loadout.dungeon.tier-1.adlet_spear"),
+)

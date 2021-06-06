@@ -1,0 +1,8 @@
+EntityConfig (
+    name: Some("Sahagin Spearman"),
+
+    main_tool: Some(Item("common.items.npc_weapons.biped_small.sahagin.wooden_spear")),
+    second_tool: None,
+
+    loadout_config: Some("common.loadout.dungeon.tier-2.sahagin"),
+)

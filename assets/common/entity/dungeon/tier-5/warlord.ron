@@ -1,0 +1,14 @@
+EntityConfig (
+    name: Some("Cultist Warlord"),
+
+    main_tool: Some(Choice([
+        (1.0, Some(Item("common.items.weapons.axe_1h.orichalcum-0"))),
+        (2.0, Some(Item("common.items.weapons.sword.cultist"))),
+        (1.0, Some(Item("common.items.weapons.hammer.cultist_purp_2h-0"))),
+        (1.0, Some(Item("common.items.weapons.hammer_1h.orichalcum-0"))),
+        (1.0, Some(Item("common.items.weapons.bow.velorite"))),
+    ])),
+    second_tool: None,
+
+    loadout_config: Some("common.loadout.dungeon.tier-5.warlord"),
+)

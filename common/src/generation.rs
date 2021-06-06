@@ -1,7 +1,8 @@
 use crate::{
+    assets::{self, AssetExt},
     comp::{
         self, agent, humanoid,
-        inventory::loadout_builder::{LoadoutBuilder, LoadoutPreset},
+        inventory::loadout_builder::{ItemSpec, LoadoutBuilder, LoadoutPreset},
         Alignment, Body, Item,
     },
     npc::{self, NPC_NAMES},
@@ -9,10 +10,21 @@ use crate::{
     trade,
     trade::SiteInformation,
 };
+use serde::Deserialize;
 use vek::*;
 
-pub enum EntityTemplate {
-    Traveller,
+#[derive(Debug, Deserialize, Clone)]
+struct EntityConfig {
+    name: Option<String>,
+    main_tool: Option<ItemSpec>,
+    second_tool: Option<ItemSpec>,
+    loadout_config: Option<String>,
+}
+
+impl assets::Asset for EntityConfig {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
 }
 
 #[derive(Clone)]
@@ -68,6 +80,44 @@ impl EntityInfo {
             pet: None,
             trading_information: None,
         }
+    }
+
+    pub fn with_asset_expect(self, asset_specifier: &str) -> Self {
+        let config = EntityConfig::load_expect(asset_specifier).read().clone();
+
+        self.with_entity_config(config, Some(asset_specifier))
+    }
+
+    // helper function to apply config
+    fn with_entity_config(mut self, config: EntityConfig, asset_specifier: Option<&str>) -> Self {
+        let EntityConfig {
+            name,
+            main_tool,
+            second_tool,
+            loadout_config,
+        } = config;
+
+        if let Some(name) = name {
+            self = self.with_name(name);
+        }
+
+        let rng = &mut rand::thread_rng();
+        if let Some(main_tool) =
+            main_tool.and_then(|i| i.try_to_item(asset_specifier.unwrap_or("??"), rng))
+        {
+            self = self.with_main_tool(main_tool);
+        }
+        if let Some(second_tool) =
+            second_tool.and_then(|i| i.try_to_item(asset_specifier.unwrap_or("??"), rng))
+        {
+            self = self.with_main_tool(second_tool);
+        }
+
+        if let Some(loadout_config) = loadout_config {
+            self = self.with_loadout_config(&loadout_config);
+        }
+
+        self
     }
 
     pub fn do_if(mut self, cond: bool, f: impl FnOnce(Self) -> Self) -> Self {
@@ -223,4 +273,40 @@ pub fn get_npc_name<
     species: Species,
 ) -> &'a str {
     &body_data.species[&species].generic
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use assets::Error;
+
+    #[test]
+    fn test_all_entity_assets() {
+        #[derive(Clone)]
+        struct EntityList(Vec<EntityConfig>);
+        impl assets::Compound for EntityList {
+            fn load<S: assets::source::Source>(
+                cache: &assets::AssetCache<S>,
+                specifier: &str,
+            ) -> Result<Self, Error> {
+                let list = cache
+                    .load::<assets::Directory>(specifier)?
+                    .read()
+                    .iter()
+                    .map(|spec| EntityConfig::load_cloned(spec))
+                    .collect::<Result<_, Error>>()?;
+
+                Ok(Self(list))
+            }
+        }
+
+        // It just load everything that could
+        // TODO: add some checks, e.g. that Armor(Head) key correspond
+        // to Item with ItemKind Head(_)
+        let entity_configs = EntityList::load_expect_cloned("common.entity.*").0;
+        for config in entity_configs {
+            let pos = Vec3::new(0.0, 0.0, 0.0);
+            std::mem::drop(EntityInfo::at(pos).with_entity_config(config, None));
+        }
+    }
 }

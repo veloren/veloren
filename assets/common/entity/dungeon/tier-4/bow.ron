@@ -1,0 +1,8 @@
+EntityConfig (
+    name: Some("Myrmidon Marksman"),
+
+    main_tool: Some(Item("common.items.npc_weapons.biped_small.myrmidon.adlet_bow")),
+    second_tool: None,
+
+    loadout_config: Some("common.loadout.dungeon.tier-4.myrmidon"),
+)

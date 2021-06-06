@@ -1,0 +1,8 @@
+EntityConfig (
+    name: Some("Haniwa Guard"),
+
+    main_tool: Some(Item("common.items.npc_weapons.biped_small.haniwa.wooden_spear")),
+    second_tool: None,
+
+    loadout_config: Some("common.loadout.dungeon.tier-3.haniwa"),
+)

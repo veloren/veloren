@@ -1,0 +1,8 @@
+EntityConfig (
+    name: Some("Myrmidon Wizard"),
+
+    main_tool: Some(Item("common.items.npc_weapons.biped_small.myrmidon.gnoll_staff")),
+    second_tool: None,
+
+    loadout_config: Some("common.loadout.dungeon.tier-4.myrmidon"),
+)

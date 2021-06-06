@@ -1,0 +1,8 @@
+EntityConfig (
+    name: Some("Cultist Warlock"),
+
+    main_tool: Some(Item("common.items.weapons.staff.cultist_staff")),
+    second_tool: None,
+
+    loadout_config: Some("common.loadout.dungeon.tier-5.warlock"),
+)
