@@ -52,12 +52,12 @@ fn complete_player(part: &str, client: &Client) -> Vec<String> {
 }
 
 fn complete_command(part: &str) -> Vec<String> {
-    CHAT_SHORTCUTS
-        .keys()
-        .map(ToString::to_string)
-        .chain(CHAT_COMMANDS.iter().map(ToString::to_string))
-        .filter(|kwd| kwd.starts_with(part) || format!("/{}", kwd).starts_with(part))
-        .map(|c| format!("/{}", c))
+    let part = part.strip_prefix('/').unwrap_or(part);
+
+    ChatCommand::iter_with_keywords()
+        .map(|(kwd, _)| kwd)
+        .filter(|kwd| kwd.starts_with(part))
+        .map(|kwd| format!("/{}", kwd))
         .collect()
 }
 

@@ -40,7 +40,7 @@ impl ChatCommandData {
 }
 
 // Please keep this sorted alphabetically :-)
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, strum_macros::EnumIter)]
 pub enum ChatCommand {
     Adminify,
     Airship,
@@ -106,72 +106,6 @@ pub enum ChatCommand {
     World,
 }
 
-// Thank you for keeping this sorted alphabetically :-)
-pub static CHAT_COMMANDS: &[ChatCommand] = &[
-    ChatCommand::Adminify,
-    ChatCommand::Airship,
-    ChatCommand::Alias,
-    ChatCommand::ApplyBuff,
-    ChatCommand::Ban,
-    ChatCommand::Build,
-    ChatCommand::BuildAreaAdd,
-    ChatCommand::BuildAreaList,
-    ChatCommand::BuildAreaRemove,
-    ChatCommand::Campfire,
-    ChatCommand::DebugColumn,
-    ChatCommand::DisconnectAllPlayers,
-    ChatCommand::DropAll,
-    ChatCommand::Dummy,
-    ChatCommand::Explosion,
-    ChatCommand::Faction,
-    ChatCommand::GiveItem,
-    ChatCommand::Goto,
-    ChatCommand::Group,
-    ChatCommand::GroupInvite,
-    ChatCommand::GroupKick,
-    ChatCommand::GroupLeave,
-    ChatCommand::GroupPromote,
-    ChatCommand::Health,
-    ChatCommand::Help,
-    ChatCommand::Home,
-    ChatCommand::JoinFaction,
-    ChatCommand::Jump,
-    ChatCommand::Kick,
-    ChatCommand::Kill,
-    ChatCommand::KillNpcs,
-    ChatCommand::Kit,
-    ChatCommand::Lantern,
-    ChatCommand::Light,
-    ChatCommand::MakeBlock,
-    ChatCommand::MakeSprite,
-    ChatCommand::Motd,
-    ChatCommand::Object,
-    ChatCommand::PermitBuild,
-    ChatCommand::Players,
-    ChatCommand::Region,
-    ChatCommand::RemoveLights,
-    ChatCommand::RevokeBuild,
-    ChatCommand::RevokeBuildAll,
-    ChatCommand::Safezone,
-    ChatCommand::Say,
-    ChatCommand::ServerPhysics,
-    ChatCommand::SetMotd,
-    ChatCommand::Site,
-    ChatCommand::SkillPoint,
-    ChatCommand::SkillPreset,
-    ChatCommand::Spawn,
-    ChatCommand::Sudo,
-    ChatCommand::Tell,
-    ChatCommand::Time,
-    ChatCommand::Tp,
-    ChatCommand::Unban,
-    ChatCommand::Version,
-    ChatCommand::Waypoint,
-    ChatCommand::Whitelist,
-    ChatCommand::Wiring,
-    ChatCommand::World,
-];
-
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct KitManifest(pub HashMap<String, Vec<(String, u32)>>);
 impl assets::Asset for KitManifest {
@@ -189,15 +123,6 @@ impl assets::Asset for SkillPresetManifest {
 }
 
 lazy_static! {
-    pub static ref CHAT_SHORTCUTS: HashMap<char, ChatCommand> = [
-        ('f', ChatCommand::Faction),
-        ('g', ChatCommand::Group),
-        ('r', ChatCommand::Region),
-        ('s', ChatCommand::Say),
-        ('t', ChatCommand::Tell),
-        ('w', ChatCommand::World),
-    ].iter().cloned().collect();
-
     static ref ALIGNMENTS: Vec<String> = vec!["wild", "enemy", "npc", "pet"]
         .iter()
         .map(|s| s.to_string())
@@ -740,6 +665,20 @@ impl ChatCommand {
         }
     }
 
+    /// The short keyword used to invoke the command, omitting the leading '/'.
+    /// Returns None if the command doesn't have a short keyword
+    pub fn short_keyword(&self) -> Option<&'static str> {
+        Some(match self {
+            ChatCommand::Faction => "f",
+            ChatCommand::Group => "g",
+            ChatCommand::Region => "r",
+            ChatCommand::Say => "s",
+            ChatCommand::Tell => "t",
+            ChatCommand::World => "w",
+            _ => return None,
+        })
+    }
+
     /// A message that explains what the command does
     pub fn help_string(&self) -> String {
         let data = self.data();
@@ -773,6 +712,19 @@ impl ChatCommand {
             .collect::<Vec<_>>()
             .join(" ")
     }
+
+    /// Produce an iterator over all the available commands
+    pub fn iter() -> impl Iterator<Item = Self> { <Self as strum::IntoEnumIterator>::iter() }
+
+    /// Produce an iterator that first goes over all the short keywords
+    /// and their associated commands and then iterates over all the normal
+    /// keywords with their associated commands
+    pub fn iter_with_keywords() -> impl Iterator<Item = (&'static str, Self)> {
+        Self::iter()
+            // Go through all the shortcuts first
+            .filter_map(|c| c.short_keyword().map(|s| (s, c)))
+            .chain(Self::iter().map(|c| (c.keyword(), c)))
+    }
 }
 
 impl Display for ChatCommand {
@@ -785,28 +737,13 @@ impl FromStr for ChatCommand {
     type Err = ();
 
     fn from_str(keyword: &str) -> Result<ChatCommand, ()> {
-        let kwd = if let Some(stripped) = keyword.strip_prefix('/') {
-            stripped
-        } else {
-            &keyword
-        };
-        if keyword.len() == 1 {
-            if let Some(c) = keyword
-                .chars()
-                .next()
-                .as_ref()
-                .and_then(|k| CHAT_SHORTCUTS.get(k))
-            {
-                return Ok(*c);
-            }
-        } else {
-            for c in CHAT_COMMANDS {
-                if kwd == c.keyword() {
-                    return Ok(*c);
-                }
-            }
-        }
-        Err(())
+        let keyword = keyword.strip_prefix('/').unwrap_or(keyword);
+
+        Self::iter_with_keywords()
+            // Find command with matching string as keyword
+            .find_map(|(kwd, command)| (kwd == keyword).then(|| command))
+            // Return error if not found
+            .ok_or(())
     }
 }
 
