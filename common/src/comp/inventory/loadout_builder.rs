@@ -41,8 +41,8 @@ use tracing::warn;
 pub struct LoadoutBuilder(Loadout);
 
 #[derive(Copy, Clone, PartialEq, Deserialize, Serialize, Debug, EnumIter)]
-pub enum LoadoutPreset {
-    Husk,
+pub enum Preset {
+    HuskSummon,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -426,10 +426,10 @@ impl LoadoutBuilder {
     }
 
     #[must_use]
-    pub fn with_preset(mut self, preset: LoadoutPreset) -> Self {
+    pub fn with_preset(mut self, preset: Preset) -> Self {
         let rng = &mut rand::thread_rng();
         match preset {
-            LoadoutPreset::Husk => {
+            Preset::HuskSummon => {
                 self = self.with_asset_expect("common.loadout.dungeon.tier-5.husk", rng)
             },
         }
@@ -671,7 +671,7 @@ mod tests {
     // Things that will be catched - invalid assets paths
     #[test]
     fn test_loadout_presets() {
-        for preset in LoadoutPreset::iter() {
+        for preset in Preset::iter() {
             std::mem::drop(LoadoutBuilder::default().with_preset(preset));
         }
     }

@@ -1,0 +1,12 @@
+EntityConfig (
+    name: Some("Beastmaster"),
+
+    main_tool: Some(Choice([
+        (1.0, Some(Item("common.items.weapons.axe.malachite_axe-0"))),
+        (1.0, Some(Item("common.items.weapons.sword.bloodsteel-1"))),
+        (1.0, Some(Item("common.items.weapons.bow.velorite"))),
+    ])),
+    second_tool: None,
+
+    loadout_config: Some("common.loadout.dungeon.tier-5.beastmaster"),
+)

@@ -2,7 +2,7 @@ use crate::{
     assets::{self, AssetExt},
     comp::{
         self, agent, humanoid,
-        inventory::loadout_builder::{ItemSpec, LoadoutBuilder, LoadoutPreset},
+        inventory::loadout_builder::{ItemSpec, LoadoutBuilder},
         Alignment, Body, Item,
     },
     npc::{self, NPC_NAMES},
@@ -43,10 +43,7 @@ pub struct EntityInfo {
     // TODO: Properly give NPCs skills
     pub level: Option<u16>,
     pub loot_drop: Option<Item>,
-    // FIXME: using both preset and asset is silly, make it enum
-    // so it will be correct by construction
     pub loadout_config: Option<String>,
-    pub loadout_preset: Option<LoadoutPreset>,
     pub make_loadout: Option<fn(LoadoutBuilder, Option<&trade::SiteInformation>) -> LoadoutBuilder>,
     pub skillset_config: Option<String>,
     pub skillset_preset: Option<SkillSetConfig>,
@@ -73,7 +70,6 @@ impl EntityInfo {
             level: None,
             loot_drop: None,
             loadout_config: None,
-            loadout_preset: None,
             make_loadout: None,
             skillset_config: None,
             skillset_preset: None,
@@ -114,7 +110,7 @@ impl EntityInfo {
         }
 
         if let Some(loadout_config) = loadout_config {
-            self = self.with_loadout_config(&loadout_config);
+            self = self.with_loadout_config(loadout_config);
         }
 
         self
@@ -187,13 +183,8 @@ impl EntityInfo {
         self
     }
 
-    pub fn with_loadout_preset(mut self, preset: LoadoutPreset) -> Self {
-        self.loadout_preset = Some(preset);
-        self
-    }
-
-    pub fn with_loadout_config(mut self, config: &str) -> Self {
-        self.loadout_config = Some(config.to_owned());
+    pub fn with_loadout_config(mut self, config: String) -> Self {
+        self.loadout_config = Some(config);
         self
     }
 

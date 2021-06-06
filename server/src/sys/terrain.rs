@@ -197,7 +197,6 @@ impl<'a> System<'a> for Sys {
                 let EntityInfo {
                     skillset_preset,
                     main_tool,
-                    loadout_preset,
                     loadout_config,
                     make_loadout,
                     trading_information: economy,
@@ -217,20 +216,13 @@ impl<'a> System<'a> for Sys {
                     loadout_builder = loadout_builder.with_default_maintool(&body);
                 }
 
-                // If there are configs, apply them
-                match (loadout_preset, &loadout_config) {
-                    (Some(preset), Some(config)) => {
-                        loadout_builder = loadout_builder.with_preset(preset);
-                        loadout_builder = loadout_builder.with_asset_expect(&config, rng);
+                // If there is config, apply it.
+                // If not, use default equipement for this body.
+                match loadout_config {
+                    Some(asset) => {
+                        loadout_builder = loadout_builder.with_asset_expect(&asset, rng);
                     },
-                    (Some(preset), None) => {
-                        loadout_builder = loadout_builder.with_preset(preset);
-                    },
-                    (None, Some(config)) => {
-                        loadout_builder = loadout_builder.with_asset_expect(&config, rng);
-                    },
-                    // If not, use default equipement for this body
-                    (None, None) => {
+                    None => {
                         loadout_builder = loadout_builder.with_default_equipment(&body);
                     },
                 }

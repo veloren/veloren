@@ -10,7 +10,7 @@ BasicSummon(
         )),
         scale: None,
         health_scaling: 80,
-        loadout_config: Some(Husk),
+        loadout_config: Some(HuskSummon),
         skillset_config: None,
     ),
 )
