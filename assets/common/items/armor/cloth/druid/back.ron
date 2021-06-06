@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: High,
     tags: [
-        Material((
-            material: Lifecloth,
-        )),
+        Material(Lifecloth),
     ],
 )

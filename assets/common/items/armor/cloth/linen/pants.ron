@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Linen Pantalons",
+    name: "Linen Pants",
     description: "Roughly stitched, but it seems to hold.",
     kind: Armor((
         kind: Pants("Linen"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Low,
     tags: [
-        Material((
-            material: Linen,
-        )),
+        Material(Linen),
     ],
 )

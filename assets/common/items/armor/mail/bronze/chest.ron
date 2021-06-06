@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bronze Chest",
+    name: "Bronze Chestguard",
     description: "Heavy and dull, but it can take a punch.",
     kind: Armor((
         kind: Chest("Bronze"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Low,
     tags: [
-        Material((
-            material: Bronze,
-        )),
+        Material(Bronze),
     ],
 )

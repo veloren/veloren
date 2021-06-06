@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Dragonscale Belt",
+    name: "Dragonscale Sash",
     description: "Power pulses through it.",
     kind: Armor((
         kind: Belt("Dragonscale"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Legendary,
     tags: [
-        Material((
-            material: Dragonscale,
-        )),
+        Material(Dragonscale),
     ],
 )

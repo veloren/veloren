@@ -107,7 +107,7 @@ image_ids! {
         icon_utility: "voxygen.element.ui.crafting.icons.utilities",
         icon_weapon: "voxygen.element.ui.crafting.icons.weapons",
         icon_bag: "voxygen.element.items.item_bag_leather_large",
-        icon_material: "voxygen.element.ui.crafting.icons.materials",
+        icon_processed_material: "voxygen.element.ui.crafting.icons.processed_material",
 
         // Group Window
         member_frame: "voxygen.element.ui.groups.group_member_frame",

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Scale Wraps",
+    name: "Scale Fists",
     description: "Each embedded scale provides protection.",
     kind: Armor((
         kind: Hand("Scale"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Moderate,
     tags: [
-        Material((
-            material: Scale,
-        )),
+        Material(Scale),
     ],
 )

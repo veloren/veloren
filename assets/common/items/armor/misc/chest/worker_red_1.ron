@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Low,
     tags: [
-        Material((
-            material: Linen,
-        )),
+        Material(Linen),
     ],
 )

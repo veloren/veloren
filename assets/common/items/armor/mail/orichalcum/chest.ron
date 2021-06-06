@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Orichalcum Chest",
+    name: "Orichalcum Chestguard",
     description: "An ancient alloy. Myths remain of heroes who wore this metal.",
     kind: Armor((
         kind: Chest("Orichalcum"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Legendary,
     tags: [
-        Material((
-            material: Orichalcum,
-        )),
+        Material(Orichalcum),
     ],
 )

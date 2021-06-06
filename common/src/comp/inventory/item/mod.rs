@@ -28,6 +28,7 @@ use serde::{de, Deserialize, Serialize, Serializer};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{fmt, sync::Arc};
+use strum_macros::IntoStaticStr;
 use tracing::error;
 use vek::Rgb;
 
@@ -100,7 +101,8 @@ pub enum MaterialKind {
     Hide,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, IntoStaticStr)]
+#[strum(serialize_all = "snake_case")]
 pub enum Material {
     Bronze,
     Iron,
@@ -172,6 +174,7 @@ impl Material {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(transparent)]
 pub struct MaterialTag {
     material: Material,
 }
@@ -181,40 +184,7 @@ impl MaterialTag {
 }
 
 impl TagExampleInfo for MaterialTag {
-    fn name(&self) -> &'static str {
-        match self.material {
-            Material::Bronze => "bronze",
-            Material::Iron => "iron",
-            Material::Steel => "steel",
-            Material::Cobalt => "cobalt",
-            Material::Bloodsteel => "bloodsteel",
-            Material::Orichalcum => "orichalcum",
-            Material::Wood => "wood",
-            Material::Bamboo => "bamboo",
-            Material::Hardwood => "hardwood",
-            Material::Ironwood => "ironwood",
-            Material::Frostwood => "frostwood",
-            Material::Eldwood => "eldwood",
-            Material::Rock => "rock",
-            Material::Granite => "granite",
-            Material::Bone => "bone",
-            Material::Basalt => "basalt",
-            Material::Obsidian => "obsidian",
-            Material::Velorite => "velorite",
-            Material::Linen => "linen",
-            Material::Wool => "wood",
-            Material::Silk => "silk",
-            Material::Lifecloth => "lifecloth",
-            Material::Moonweave => "moonweave",
-            Material::Sunsilk => "sunsilk",
-            Material::Rawhide => "rawhide",
-            Material::Leather => "leather",
-            Material::Scale => "scale",
-            Material::Carapace => "carapace",
-            Material::Plate => "plate",
-            Material::Dragonscale => "dragonscale",
-        }
-    }
+    fn name(&self) -> &'static str { self.material.into() }
 
     fn exemplar_identifier(&self) -> &'static str { "common.items.tag_examples.placeholder" }
 }

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bloodsteel Boots",
+    name: "Bloodsteel Sabatons",
     description: "Forged to preserve life, at the cost of another.",
     kind: Armor((
         kind: Foot("Bloodsteel"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Epic,
     tags: [
-        Material((
-            material: Bloodsteel,
-        )),
+        Material(Bloodsteel),
     ],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Dragonscale Chest",
+    name: "Dragonscale Chestplate",
     description: "Power pulses through it.",
     kind: Armor((
         kind: Chest("Dragonscale"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Legendary,
     tags: [
-        Material((
-            material: Dragonscale,
-        )),
+        Material(Dragonscale),
     ],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Moonweave Cuirass",
+    name: "Moonweave Vest",
     description: "The fabric dances silently, like moonlight.",
     kind: Armor((
         kind: Chest("Moonweave"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Epic,
     tags: [
-        Material((
-            material: Moonweave,
-        )),
+        Material(Moonweave),
     ],
 )

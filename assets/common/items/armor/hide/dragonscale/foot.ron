@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Dragonscale Boots",
+    name: "Dragonscale Spurs",
     description: "Power pulses through it.",
     kind: Armor((
         kind: Foot("Dragonscale"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Legendary,
     tags: [
-        Material((
-            material: Dragonscale,
-        )),
+        Material(Dragonscale),
     ],
 )

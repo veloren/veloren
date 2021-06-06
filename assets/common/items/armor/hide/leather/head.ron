@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Leather Leather Cap",
+    name: "Leather Cap",
     description: "Swift like the wind.",
     kind: Armor((
         kind: Head("Leather"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Common,
     tags: [
-        Material((
-            material: Leather,
-        )),
+        Material(Leather),
     ],
 )

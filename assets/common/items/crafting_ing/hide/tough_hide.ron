@@ -5,5 +5,7 @@ ItemDef(
         kind: "ToughHide",
     ),
     quality: Common,
-    tags: [Material((material: Leather))],
+    tags: [
+        Material(Leather)
+        ],
 )

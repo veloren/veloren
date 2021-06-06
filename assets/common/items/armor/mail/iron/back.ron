@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Iron Cape",
+    name: "Iron Cloak",
     description: "Sturdy and unyielding, across ages of war.",
     kind: Armor((
         kind: Back("Iron"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Common,
     tags: [
-        Material((
-            material: Iron,
-        )),
+        Material(Iron),
     ],
 )

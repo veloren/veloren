@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Sunsilk Skirt",
+    name: "Sunsilk Kilt",
     description: "It radiates with the sun's power, and the grace to harness it.",
     kind: Armor((
         kind: Pants("Sunsilk"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Legendary,
     tags: [
-        Material((
-            material: Sunsilk,
-        )),
+        Material(Sunsilk),
     ],
 )

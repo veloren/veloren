@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bloodsteel cape",
+    name: "Bloodsteel Cape",
     description: "Forged to preserve life, at the cost of another.",
     kind: Armor((
         kind: Back("Bloodsteel"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Epic,
     tags: [
-        Material((
-            material: Bloodsteel,
-        )),
+        Material(Bloodsteel),
     ],
 )

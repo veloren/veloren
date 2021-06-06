@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Rawhide Chest",
+    name: "Rawhide Chestpiece",
     description: "Tightly packed pieces of leather to endure all weather.",
     kind: Armor((
         kind: Chest("Rawhide"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Low,
     tags: [
-        Material((
-            material: Rawhide,
-        )),
+        Material(Rawhide),
     ],
 )

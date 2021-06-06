@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Druid Shoulder Pad",
+    name: "Druid Shoulderpads",
     description: "Incredibly light, with the essence of nature.",
     kind: Armor((
         kind: Shoulder("Druid"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: High,
     tags: [
-        Material((
-            material: Lifecloth,
-        )),
+        Material(Lifecloth),
     ],
 )

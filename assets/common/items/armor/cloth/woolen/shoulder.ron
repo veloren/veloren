@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Woolen Shoulderpads",
+    name: "Woolen Shoulders",
     description: "Thick and ready for the snow.",
     kind: Armor((
         kind: Shoulder("Woolen"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Common,
     tags: [
-        Material((
-            material: Wool,
-        )),
+        Material(Wool),
     ],
 )

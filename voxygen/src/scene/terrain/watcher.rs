@@ -125,9 +125,8 @@ impl BlocksOfInterest {
                         Some(SpriteKind::Forge) => {
                             interactables.push((pos, Interaction::Craft(CraftingTab::Dismantle)))
                         },
-                        Some(SpriteKind::TanningRack) => {
-                            interactables.push((pos, Interaction::Craft(CraftingTab::Material)))
-                        },
+                        Some(SpriteKind::TanningRack) => interactables
+                            .push((pos, Interaction::Craft(CraftingTab::ProcessedMaterial))),
                         Some(SpriteKind::SpinningWheel) => {
                             interactables.push((pos, Interaction::Craft(CraftingTab::All)))
                         },

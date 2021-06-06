@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Silken Belt",
+    name: "Silken Sash",
     description: "Weaved with care by a skilled tailor.",
     kind: Armor((
         kind: Belt("Silken"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Moderate,
     tags: [
-        Material((
-            material: Silk,
-        )),
+        Material(Silk),
     ],
 )

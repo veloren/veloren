@@ -307,7 +307,7 @@
         inputs: [
             (Item("common.items.crafting_ing.animal_misc.lively_vine"), 1),
             (Item("common.items.crafting_ing.cloth.cotton"), 1),
-        ],		
+        ],
         craft_sprite: Some(SpinningWheel),
     ),
     "moonweave": (
@@ -1690,7 +1690,7 @@
     "tin pickaxe": (
         output: ("common.items.tool.pickaxe_stone", 1),
         inputs: [
-            (Item("common.items.crafting_ing.cloth.linen"), 1), 
+            (Item("common.items.crafting_ing.cloth.linen"), 1),
             (Item("common.items.crafting_ing.stones"), 5),
             (Item("common.items.tool.craftsman_hammer"), 0),
         ],
@@ -1699,7 +1699,7 @@
     "steel pickaxe": (
         output: ("common.items.tool.pickaxe_steel", 1),
         inputs: [
-            (Item("common.items.crafting_ing.cloth.lifecloth"), 1), 
+            (Item("common.items.crafting_ing.cloth.lifecloth"), 1),
             (Item("common.items.mineral.ingot.steel"), 5),
             (Item("common.items.tool.craftsman_hammer"), 0),
         ],
@@ -1708,42 +1708,42 @@
     "linen": (
         output: ("common.items.crafting_ing.cloth.linen", 1),
         inputs: [
-            (Tag(Material((material: Linen))), 1),
+            (Tag(Material(Linen)), 1),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
     ),
     "wool": (
         output: ("common.items.crafting_ing.cloth.wool", 1),
         inputs: [
-            (Tag(Material((material: Wool))), 1),
+            (Tag(Material(Wool)), 1),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
     ),
     "rawhide": (
         output: ("common.items.crafting_ing.leather.simple_leather", 1),
         inputs: [
-            (Tag(Material((material: Rawhide))), 1),
+            (Tag(Material(Rawhide)), 1),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
     ),
     "leather": (
         output: ("common.items.crafting_ing.leather.thick_leather", 1),
         inputs: [
-            (Tag(Material((material: Leather))), 1),
+            (Tag(Material(Leather)), 1),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
     ),
     "bronze": (
         output: ("common.items.mineral.ingot.bronze", 1),
         inputs: [
-            (Tag(Material((material: Bronze))), 1),
+            (Tag(Material(Bronze)), 1),
         ],
         craft_sprite: Some(Anvil),
     ),
     "iron": (
         output: ("common.items.mineral.ingot.iron", 1),
         inputs: [
-            (Tag(Material((material: Iron))), 1),
+            (Tag(Material(Iron)), 1),
         ],
         craft_sprite: Some(Anvil),
     ),

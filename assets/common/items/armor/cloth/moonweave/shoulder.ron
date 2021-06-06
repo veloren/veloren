@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Moonweave Shoulder Pad",
+    name: "Moonweave Shoulders",
     description: "The fabric dances silently, like moonlight.",
     kind: Armor((
         kind: Shoulder("Moonweave"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Epic,
     tags: [
-        Material((
-            material: Moonweave,
-        )),
+        Material(Moonweave),
     ],
 )

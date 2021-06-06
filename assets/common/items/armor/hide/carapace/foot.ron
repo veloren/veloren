@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Carapace Boots",
+    name: "Carapace Treads",
     description: "Shell that once shielded a beast.",
     kind: Armor((
         kind: Foot("Carapace"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: High,
     tags: [
-        Material((
-            material: Carapace,
-        )),
+        Material(Carapace),
     ],
 )

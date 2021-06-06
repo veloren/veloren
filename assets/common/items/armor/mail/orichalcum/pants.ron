@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Orichalcum Skirt",
+    name: "Orichalcum Legplates",
     description: "An ancient alloy. Myths remain of heroes who wore this metal.",
     kind: Armor((
         kind: Pants("Orichalcum"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Legendary,
     tags: [
-        Material((
-            material: Orichalcum,
-        )),
+        Material(Orichalcum),
     ],
 )

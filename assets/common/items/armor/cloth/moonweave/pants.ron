@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Moonweave Chausses",
+    name: "Moonweave Legs",
     description: "The fabric dances silently, like moonlight.",
     kind: Armor((
         kind: Pants("Moonweave"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Epic,
     tags: [
-        Material((
-            material: Moonweave,
-        )),
+        Material(Moonweave),
     ],
 )

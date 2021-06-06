@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Scale Belt",
+    name: "Scale Girdle",
     description: "Each embedded scale provides protection.",
     kind: Armor((
         kind: Belt("Scale"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Moderate,
     tags: [
-        Material((
-            material: Scale,
-        )),
+        Material(Scale),
     ],
 )

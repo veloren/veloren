@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Carapace Shoulder Pad",
+    name: "Carapace Shoulderpads",
     description: "Shell that once shielded a beast.",
     kind: Armor((
         kind: Shoulder("Carapace"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: High,
     tags: [
-        Material((
-            material: Carapace,
-        )),
+        Material(Carapace),
     ],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cobalt Shoulder Pad",
+    name: "Cobalt Shoulderguards",
     description: "Ornamental and impenetrable, the metal will never dull.",
     kind: Armor((
         kind: Shoulder("Cobalt"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: High,
     tags: [
-        Material((
-            material: Cobalt,
-        )),
+        Material(Cobalt),
     ],
 )

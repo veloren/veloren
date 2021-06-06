@@ -147,7 +147,7 @@ pub enum CraftingTab {
     Tool,
     Utility,
     Glider,
-    Material,
+    ProcessedMaterial,
 }
 impl CraftingTab {
     fn name_key(&self) -> &str {
@@ -162,7 +162,7 @@ impl CraftingTab {
             CraftingTab::Utility => "hud.crafting.tabs.utility",
             CraftingTab::Weapon => "hud.crafting.tabs.weapon",
             CraftingTab::Bag => "hud.crafting.tabs.bag",
-            CraftingTab::Material => "hud.crafting.tabs.material",
+            CraftingTab::ProcessedMaterial => "hud.crafting.tabs.processed_material",
         }
     }
 
@@ -178,7 +178,7 @@ impl CraftingTab {
             CraftingTab::Utility => imgs.icon_utility,
             CraftingTab::Weapon => imgs.icon_weapon,
             CraftingTab::Bag => imgs.icon_bag,
-            CraftingTab::Material => imgs.icon_material,
+            CraftingTab::ProcessedMaterial => imgs.icon_processed_material,
         }
     }
 
@@ -192,7 +192,7 @@ impl CraftingTab {
             },
             CraftingTab::Glider => matches!(item.kind(), ItemKind::Glider(_)),
             CraftingTab::Potion => item.tags().contains(&ItemTag::Potion),
-            CraftingTab::Material => {
+            CraftingTab::ProcessedMaterial => {
                 item.tags().contains(&ItemTag::MetalIngot)
                     | item.tags().contains(&ItemTag::Textile)
                     | item.tags().contains(&ItemTag::Leather)

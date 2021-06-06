@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Carapace Chausses",
+    name: "Carapace Leggings",
     description: "Shell that once shielded a beast.",
     kind: Armor((
         kind: Pants("Carapace"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: High,
     tags: [
-        Material((
-            material: Carapace,
-        )),
+        Material(Carapace),
     ],
 )

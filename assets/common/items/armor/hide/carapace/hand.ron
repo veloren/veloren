@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Carapace Gauntlets",
+    name: "Carapace Grips",
     description: "Shell that once shielded a beast.",
     kind: Armor((
         kind: Hand("Carapace"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: High,
     tags: [
-        Material((
-            material: Carapace,
-        )),
+        Material(Carapace),
     ],
 )

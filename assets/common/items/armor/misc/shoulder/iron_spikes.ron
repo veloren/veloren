@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Moderate,
     tags: [
-        Material((
-            material: Iron,
-        )),
+        Material(Iron),
     ],
 )

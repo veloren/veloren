@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Common,
     tags: [
-        Material((
-            material: Wool,
-        )),
+        Material(Wool),
     ],
 )

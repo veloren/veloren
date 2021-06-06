@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Epic,
     tags: [
-        Material((
-            material: Linen,
-        )),
+        Material(Linen),
     ],
 )

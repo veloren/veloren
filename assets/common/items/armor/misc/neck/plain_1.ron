@@ -13,5 +13,7 @@ ItemDef(
         ),
     )),
     quality: Moderate,
-    tags: [],
+    tags: [
+        Material(Steel)
+    ],
 )

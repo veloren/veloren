@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Druid Cuirass",
+    name: "Druid Chestguard",
     description: "Incredibly light, with the essence of nature.",
     kind: Armor((
         kind: Chest("Druid"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: High,
     tags: [
-        Material((
-            material: Lifecloth,
-        )),
+        Material(Lifecloth),
     ],
 )

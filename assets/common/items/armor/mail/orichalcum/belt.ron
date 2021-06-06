@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Legendary,
     tags: [
-        Material((
-            material: Orichalcum,
-        )),
+        Material(Orichalcum),
     ],
 )

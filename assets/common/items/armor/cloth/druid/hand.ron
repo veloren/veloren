@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Druid Gauntlets",
+    name: "Druid Handwraps",
     description: "Incredibly light, with the essence of nature.",
     kind: Armor((
         kind: Hand("Druid"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: High,
     tags: [
-        Material((
-            material: Lifecloth,
-        )),
+        Material(Lifecloth),
     ],
 )

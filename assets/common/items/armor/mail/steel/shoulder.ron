@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Steel Shoulder Pad",
+    name: "Steel Shoulders",
     description: "The metal alloy plates provide better protection and comfort.",
     kind: Armor((
         kind: Shoulder("Steel"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Moderate,
     tags: [
-        Material((
-            material: Steel,
-        )),
+        Material(Steel),
     ],
 )

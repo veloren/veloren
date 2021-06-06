@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cobalt Cuirass",
+    name: "Cobalt Chestpiece",
     description: "Ornamental and impenetrable, the metal will never dull.",
     kind: Armor((
         kind: Chest("Cobalt"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: High,
     tags: [
-        Material((
-            material: Cobalt,
-        )),
+        Material(Cobalt),
     ],
 )

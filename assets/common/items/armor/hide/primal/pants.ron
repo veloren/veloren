@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Primal Chausses",
+    name: "Primal Legs",
     description: "Smithed from hide tougher than steel.",
     kind: Armor((
         kind: Pants("Primal"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Epic,
     tags: [
-        Material((
-            material: Plate,
-        )),
+        Material(Plate),
     ],
 )

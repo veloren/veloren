@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Primal Belt",
+    name: "Primal Sash",
     description: "Smithed from hide tougher than steel.",
     kind: Armor((
         kind: Belt("Primal"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Epic,
     tags: [
-        Material((
-            material: Plate,
-        )),
+        Material(Plate),
     ],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Primal cape",
+    name: "Primal Cape",
     description: "Smithed from hide tougher than steel.",
     kind: Armor((
         kind: Back("Primal"),
@@ -14,8 +14,6 @@ ItemDef(
     )),
     quality: Epic,
     tags: [
-        Material((
-            material: Plate,
-        )),
+        Material(Plate),
     ],
 )
