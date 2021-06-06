@@ -159,8 +159,8 @@ pub fn make_potion_bag(quantity: u32) -> Item {
 // Also we are using default tools for un-specified species so
 // it's fine to have wildcards
 #[allow(clippy::too_many_lines, clippy::match_wildcard_for_single_variants)]
-fn default_main_tool(body: &Body) -> Option<Item> {
-    match body {
+fn default_main_tool(body: &Body) -> Item {
+    let maybe_tool = match body {
         Body::Golem(golem) => match golem.species {
             golem::Species::StoneGolem => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.stone_golems_fist",
@@ -332,7 +332,9 @@ fn default_main_tool(body: &Body) -> Option<Item> {
             )),
         },
         _ => None,
-    }
+    };
+
+    maybe_tool.unwrap_or_else(Item::empty)
 }
 
 impl Default for LoadoutBuilder {
@@ -374,7 +376,7 @@ impl LoadoutBuilder {
     #[must_use]
     /// Set default active mainhand weapon based on `body`
     pub fn with_default_maintool(self, body: &Body) -> Self {
-        self.active_mainhand(default_main_tool(body))
+        self.active_mainhand(Some(default_main_tool(body)))
     }
 
     #[must_use]
