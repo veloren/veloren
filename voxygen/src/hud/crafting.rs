@@ -1,4 +1,5 @@
 use super::{
+    get_quality_col,
     img_ids::{Imgs, ImgsRot},
     item_imgs::{animate_by_pulse, ItemImgs, ItemKey::Tool},
     Show, TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
@@ -24,6 +25,7 @@ use common::{
 };
 use conrod_core::{
     color, image,
+    position::Dimension,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text, TextEdit},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
@@ -52,7 +54,9 @@ widget_ids! {
         align_ing,
         scrollbar_ing,
         btn_craft,
-        recipe_names[],
+        recipe_list_btns[],
+        recipe_list_labels[],
+        recipe_list_quality_indicators[],
         recipe_img_frame[],
         recipe_img[],
         ingredients[],
@@ -274,13 +278,13 @@ impl<'a> Widget for Crafting<'a> {
         Image::new(self.imgs.crafting_window)
             .bottom_right_with_margins_on(ui.window, 308.0, 450.0)
             .color(Some(UI_MAIN))
-            .w_h(422.0, 460.0)
+            .w_h(456.0, 460.0)
             .set(state.ids.window, ui);
         // Window
         Image::new(self.imgs.crafting_frame)
             .middle_of(state.ids.window)
             .color(Some(UI_HIGHLIGHT_0))
-            .w_h(422.0, 460.0)
+            .wh_of(state.ids.window)
             .set(state.ids.window_frame, ui);
 
         // Crafting Icon
@@ -310,7 +314,7 @@ impl<'a> Widget for Crafting<'a> {
             .set(state.ids.title_main, ui);
 
         // Alignment
-        Rectangle::fill_with([136.0, 378.0], color::TRANSPARENT)
+        Rectangle::fill_with([170.0, 378.0], color::TRANSPARENT)
             .top_left_with_margins_on(state.ids.window_frame, 74.0, 5.0)
             .scroll_kids_vertically()
             .set(state.ids.align_rec, ui);
@@ -398,12 +402,6 @@ impl<'a> Widget for Crafting<'a> {
         // First available recipes, then unavailable ones, each alphabetically
         // In the triples, "name" is the recipe book key, and "recipe.output.0.name()"
         // is the display name (as stored in the item descriptors)
-        #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-        enum RecipeIngredientQuantity {
-            All,
-            Some,
-            None,
-        }
         let mut ordered_recipes: Vec<_> = self
             .client
             .recipe_book()
@@ -420,15 +418,7 @@ impl<'a> Widget for Crafting<'a> {
                 }
             })
             .map(|(name, recipe)| {
-                let at_least_some_ingredients = recipe.inputs.iter().any(|(input, amount)| {
-                    *amount > 0
-                        && self.inventory.slots().any(|slot| {
-                            slot.as_ref()
-                                .map(|item| item.matches_recipe_input(input))
-                                .unwrap_or(false)
-                        })
-                });
-                let show_craft_sprite =
+                let is_craftable =
                     self.client
                         .available_recipes()
                         .get(name.as_str())
@@ -437,81 +427,112 @@ impl<'a> Widget for Crafting<'a> {
                                 Some(cs) == self.show.craft_sprite.map(|(_, s)| s)
                             })
                         });
-                let state = if show_craft_sprite {
-                    RecipeIngredientQuantity::All
-                } else if at_least_some_ingredients {
-                    RecipeIngredientQuantity::Some
-                } else {
-                    RecipeIngredientQuantity::None
-                };
-                (name, recipe, state)
+                (name, recipe, is_craftable)
             })
             .collect();
-        ordered_recipes.sort_by_key(|(_, recipe, state)| (*state, recipe.output.0.name()));
+        ordered_recipes.sort_by_key(|(_, recipe, state)| {
+            (!state, recipe.output.0.quality(), recipe.output.0.name())
+        });
 
         // Recipe list
-        if state.ids.recipe_names.len() < self.client.recipe_book().iter().len() {
+        if state.ids.recipe_list_btns.len() < self.client.recipe_book().iter().len() {
             state.update(|state| {
-                state.ids.recipe_names.resize(
+                state.ids.recipe_list_btns.resize(
                     self.client.recipe_book().iter().len(),
                     &mut ui.widget_id_generator(),
                 )
             });
         }
-        for (i, (name, recipe, quantity)) in ordered_recipes
+        if state.ids.recipe_list_labels.len() < self.client.recipe_book().iter().len() {
+            state.update(|state| {
+                state.ids.recipe_list_labels.resize(
+                    self.client.recipe_book().iter().len(),
+                    &mut ui.widget_id_generator(),
+                )
+            });
+        }
+        if state.ids.recipe_list_quality_indicators.len() < self.client.recipe_book().iter().len() {
+            state.update(|state| {
+                state.ids.recipe_list_quality_indicators.resize(
+                    self.client.recipe_book().iter().len(),
+                    &mut ui.widget_id_generator(),
+                )
+            });
+        }
+        for (i, (name, recipe, is_craftable)) in ordered_recipes
             .into_iter()
             .filter(|(_, recipe, _)| self.show.crafting_tab.satisfies(recipe.output.0.as_ref()))
             .enumerate()
         {
-            let button = Button::image(
-                if state
-                    .selected_recipe
-                    .as_ref()
-                    .map(|s| s != name)
-                    .unwrap_or(false)
-                {
-                    self.imgs.nothing
-                } else {
-                    match state.selected_recipe {
-                        None => self.imgs.nothing,
-                        Some(_) => self.imgs.selection,
-                    }
-                },
-            );
-            // Recipe Button
-            let button = if i == 0 {
-                button.mid_top_with_margin_on(state.ids.align_rec, 2.0)
+            let button = Button::image(if state.selected_recipe.as_ref() == Some(name) {
+                self.imgs.selection
             } else {
-                button.mid_bottom_with_margin_on(state.ids.recipe_names[i - 1], -25.0)
+                self.imgs.nothing
+            })
+            .and(|button| {
+                if i == 0 {
+                    button.top_left_with_margins_on(state.ids.align_rec, 2.0, 7.0)
+                } else {
+                    button.down_from(state.ids.recipe_list_btns[i - 1], 5.0)
+                }
+            })
+            .w(157.0)
+            .hover_image(self.imgs.selection_hover)
+            .press_image(self.imgs.selection_press);
+
+            let text = Text::new(recipe.output.0.name())
+                .color(if is_craftable {
+                    TEXT_COLOR
+                } else {
+                    TEXT_GRAY_COLOR
+                })
+                .font_size(self.fonts.cyri.scale(12))
+                .font_id(self.fonts.cyri.conrod_id)
+                .w(149.0)
+                .mid_top_with_margin_on(state.ids.recipe_list_btns[i], 3.0)
+                .graphics_for(state.ids.recipe_list_btns[i])
+                .center_justify();
+
+            let text_height = match text.get_y_dimension(ui) {
+                Dimension::Absolute(y) => y,
+                _ => 0.0,
             };
-            let text_color = match quantity {
-                RecipeIngredientQuantity::All => TEXT_COLOR,
-                RecipeIngredientQuantity::Some => TEXT_GRAY_COLOR,
-                RecipeIngredientQuantity::None => TEXT_DULL_RED_COLOR,
-            };
+
             if button
-                .label(recipe.output.0.name())
-                .w_h(130.0, 20.0)
-                .hover_image(self.imgs.selection_hover)
-                .press_image(self.imgs.selection_press)
-                .label_color(text_color)
-                .label_font_size(self.fonts.cyri.scale(12))
-                .label_font_id(self.fonts.cyri.conrod_id)
-                .label_y(conrod_core::position::Relative::Scalar(2.0))
-                .set(state.ids.recipe_names[i], ui)
+                .h((text_height + 7.0).max(20.0))
+                .set(state.ids.recipe_list_btns[i], ui)
                 .was_clicked()
             {
-                if state
-                    .selected_recipe
-                    .as_ref()
-                    .map(|s| s == name)
-                    .unwrap_or(false)
-                {
+                if state.selected_recipe.as_ref() == Some(name) {
                     state.update(|s| s.selected_recipe = None);
                 } else {
                     state.update(|s| s.selected_recipe = Some(name.clone()));
                 }
             }
+            // set the text here so that the correct position of the button is retrieved
+            text.set(state.ids.recipe_list_labels[i], ui);
+
+            // Sidebar color
+            let color::Hsla(h, s, l, _) = get_quality_col(recipe.output.0.as_ref()).to_hsl();
+            let val_multiplier = if is_craftable { 0.7 } else { 0.5 };
+            // Apply conversion to hsv, multiply v by the desired amount, then revert to
+            // hsl. Conversion formulae: https://en.wikipedia.org/wiki/HSL_and_HSV#Interconversion
+            // Note that division by 0 is not possible since none of the colours are black
+            // or white
+            let quality_col = color::hsl(
+                h,
+                s * val_multiplier * f32::min(l, 1.0 - l)
+                    / f32::min(l * val_multiplier, 1.0 - l * val_multiplier),
+                l * val_multiplier,
+            );
+
+            Button::image(self.imgs.quality_indicator)
+                .image_color(quality_col)
+                .h_of(state.ids.recipe_list_btns[i])
+                .w(4.0)
+                .left_from(state.ids.recipe_list_btns[i], 1.0)
+                .graphics_for(state.ids.recipe_list_btns[i])
+                .set(state.ids.recipe_list_quality_indicators[i], ui);
         }
 
         // Selected Recipe
@@ -877,7 +898,7 @@ impl<'a> Widget for Crafting<'a> {
             {
                 events.push(Event::SearchRecipe(None));
             }
-            Rectangle::fill([114.0, 20.0])
+            Rectangle::fill([148.0, 20.0])
                 .top_left_with_margins_on(state.ids.btn_close_search, -2.0, 16.0)
                 .hsla(0.0, 0.0, 0.0, 0.7)
                 .depth(1.0)
@@ -885,7 +906,7 @@ impl<'a> Widget for Crafting<'a> {
                 .set(state.ids.input_bg_search, ui);
             if let Some(string) = TextEdit::new(key.as_str())
                 .top_left_with_margins_on(state.ids.btn_close_search, -2.0, 18.0)
-                .w_h(90.0, 20.0)
+                .w_h(124.0, 20.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .color(TEXT_COLOR)
@@ -902,7 +923,7 @@ impl<'a> Widget for Crafting<'a> {
                 .color(TEXT_COLOR)
                 .parent(state.ids.window)
                 .set(state.ids.title_rec, ui);
-            Rectangle::fill_with([114.0, 20.0], color::TRANSPARENT)
+            Rectangle::fill_with([148.0, 20.0], color::TRANSPARENT)
                 .top_left_with_margins_on(state.ids.window, 52.0, 26.0)
                 .graphics_for(state.ids.btn_open_search)
                 .set(state.ids.input_overlay_search, ui);

@@ -19,6 +19,7 @@ pub use widgets::{
     image_slider::ImageSlider,
     ingame::{Ingame, Ingameable},
     item_tooltip::{ItemTooltip, ItemTooltipManager, ItemTooltipable},
+    outlined_text::OutlinedText,
     radio_list::RadioList,
     slot,
     toggle_button::ToggleButton,
