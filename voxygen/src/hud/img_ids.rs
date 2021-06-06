@@ -96,6 +96,7 @@ image_ids! {
         crafting_icon: "voxygen.element.ui.generic.buttons.anvil",
         crafting_icon_hover: "voxygen.element.ui.generic.buttons.anvil_hover",
         crafting_icon_press: "voxygen.element.ui.generic.buttons.anvil_press",
+        quality_indicator: "voxygen.element.ui.crafting.quality_indicator",
         icon_armor: "voxygen.element.ui.crafting.icons.armors",
         icon_tools: "voxygen.element.ui.crafting.icons.crafting_tools",
         icon_dismantle: "voxygen.element.ui.crafting.icons.dismantle",

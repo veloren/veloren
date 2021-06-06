@@ -135,7 +135,7 @@ const DEBUFF_COLOR: Color = Color::Rgba(0.79, 0.19, 0.17, 1.0);
 
 // Item Quality Colors
 const QUALITY_LOW: Color = Color::Rgba(0.41, 0.41, 0.41, 1.0); // Grey - Trash, can be sold to vendors
-const QUALITY_COMMON: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0); // No Color - Crafting mats, food, starting equipment, quest items (like keys), rewards for easy quests
+const QUALITY_COMMON: Color = Color::Rgba(0.79, 1.00, 1.00, 1.0); // No Color - Crafting mats, food, starting equipment, quest items (like keys), rewards for easy quests
 const QUALITY_MODERATE: Color = Color::Rgba(0.06, 0.69, 0.12, 1.0); // Green - Quest Rewards, commonly looted items from NPCs
 const QUALITY_HIGH: Color = Color::Rgba(0.18, 0.32, 0.9, 1.0); // Blue - Dungeon rewards, boss loot, rewards for hard quests
 const QUALITY_EPIC: Color = Color::Rgba(0.58, 0.29, 0.93, 1.0); // Purple - Rewards for epic quests and very hard bosses
