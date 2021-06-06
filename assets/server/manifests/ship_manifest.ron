@@ -7,22 +7,44 @@
             offset: (-17.5, -39.0, 1.0),
             //phys_offset: (0.25, 0.25, 0.25),
             phys_offset: (0.0, 0.0, 0.0),
-            central: ("Human_Airship"),
+            central: ("airship_human.structure"),
         ),
         bone1: (
             offset: (-8.5, -2.0, -8.5),
             phys_offset: (0.0, 0.0, 0.0),
-            central: ("propeller-l"),
+            central: ("airship_human.propeller-l"),
         ),
         bone2: (
             offset: (-8.5, -2.0, -8.5),
             phys_offset: (0.0, 0.0, 0.0),
-            central: ("propeller-r"),
+            central: ("airship_human.propeller-r"),
         ),
         bone3: (
             offset: (-1.5, -11.0, -5.5),
             phys_offset: (0.0, 0.0, 0.0),
-            central: ("rudder"),
+            central: ("airship_human.rudder"),
+        ),
+    ),
+    AirBalloon: (
+        bone0: (
+            offset: (-14.5, -16.0, 0.0),
+            phys_offset: (0.0, 0.0, 0.0),
+            central: ("air_balloon.structure"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            phys_offset: (0.0, 0.0, 0.0),
+            central: ("empty"),
+        ),
+        bone2: (
+            offset: (0.0, 0.0, 0.0),
+            phys_offset: (0.0, 0.0, 0.0),
+            central: ("empty"),
+        ),
+        bone3: (
+            offset: (-1.5, -6.0, -5.0),
+            phys_offset: (0.0, 0.0, 0.0),
+            central: ("air_balloon.rudder"),
         ),
     ),
 })

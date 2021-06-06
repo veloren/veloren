@@ -149,6 +149,9 @@ struct VoxSpec<T>(String, [T; 3]);
 struct VoxSimple(String);
 
 #[derive(Deserialize)]
+struct VoxMirror(String, bool);
+
+#[derive(Deserialize)]
 struct ArmorVoxSpec {
     vox_spec: VoxSpec<f32>,
     color: Option<[u8; 3]>,
@@ -4213,7 +4216,7 @@ struct SidedQLLateralVoxSpec {
 #[derive(Deserialize)]
 struct QuadrupedLowLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
-    lateral: VoxSimple,
+    lateral: VoxMirror,
 }
 
 make_vox_spec!(
@@ -4384,7 +4387,8 @@ impl QuadrupedLowLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.front_left.lateral.0, true);
+        let latspec = &spec.front_left.lateral;
+        let lateral = graceful_load_segment_flipped(&latspec.0, !latspec.1);
 
         (lateral, Vec3::from(spec.front_left.offset))
     }
@@ -4400,7 +4404,8 @@ impl QuadrupedLowLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.front_right.lateral.0);
+        let latspec = &spec.front_right.lateral;
+        let lateral = graceful_load_segment_flipped(&latspec.0, latspec.1);
 
         (lateral, Vec3::from(spec.front_right.offset))
     }
@@ -4416,7 +4421,8 @@ impl QuadrupedLowLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.back_left.lateral.0, true);
+        let latspec = &spec.back_left.lateral;
+        let lateral = graceful_load_segment_flipped(&latspec.0, !latspec.1);
 
         (lateral, Vec3::from(spec.back_left.offset))
     }
@@ -4432,7 +4438,8 @@ impl QuadrupedLowLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.back_right.lateral.0);
+        let latspec = &spec.back_right.lateral;
+        let lateral = graceful_load_segment_flipped(&latspec.0, latspec.1);
 
         (lateral, Vec3::from(spec.back_right.offset))
     }

@@ -3,8 +3,11 @@ use crate::{
     consts::AIR_DENSITY,
     make_case_elim,
 };
+use rand::prelude::SliceRandom;
 use serde::{Deserialize, Serialize};
 use vek::Vec3;
+
+pub const ALL_BODIES: [Body; 2] = [Body::DefaultAirship, Body::AirBalloon];
 
 make_case_elim!(
     body,
@@ -12,6 +15,7 @@ make_case_elim!(
     #[repr(u32)]
     pub enum Body {
         DefaultAirship = 0,
+        AirBalloon = 1,
     }
 );
 
@@ -20,13 +24,26 @@ impl From<Body> for super::Body {
 }
 
 impl Body {
+    pub fn random() -> Self {
+        let mut rng = rand::thread_rng();
+        Self::random_with(&mut rng)
+    }
+
+    pub fn random_with(rng: &mut impl rand::Rng) -> Self { *(&ALL_BODIES).choose(rng).unwrap() }
+
     pub fn manifest_entry(&self) -> &'static str {
         match self {
             Body::DefaultAirship => "Human_Airship",
+            Body::AirBalloon => "Air_Balloon",
         }
     }
 
-    pub fn dimensions(&self) -> Vec3<f32> { Vec3::new(25.0, 50.0, 40.0) }
+    pub fn dimensions(&self) -> Vec3<f32> {
+        match self {
+            Body::DefaultAirship => Vec3::new(25.0, 50.0, 40.0),
+            Body::AirBalloon => Vec3::new(25.0, 50.0, 40.0),
+        }
+    }
 
     fn balloon_vol(&self) -> f32 {
         let spheroid_vol = |equat_d: f32, polar_d: f32| -> f32 {
@@ -52,6 +69,12 @@ impl Body {
     pub fn density(&self) -> Density { Density(AIR_DENSITY) }
 
     pub fn mass(&self) -> Mass { Mass((self.hull_vol() + self.balloon_vol()) * self.density().0) }
+
+    pub fn can_fly(&self) -> bool {
+        match self {
+            Body::DefaultAirship | Body::AirBalloon => true,
+        }
+    }
 }
 
 /// Terrain is 11.0 scale relative to small-scale voxels,
