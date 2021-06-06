@@ -11,7 +11,7 @@ use conrod_core::{
     color,
     image::Id,
     widget::{self, button, Button, Image, Rectangle, Text},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
 
 use client::{self, Client};
@@ -727,215 +727,87 @@ impl<'a> Widget for Diary<'a> {
                 //        5 1 6
                 //        3 0 4
                 //        8 2 7
-                let skill = Skill::General(HealthIncrease);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::General(HealthIncrease),
                     self.imgs.health_plus_skill,
                     state.skills_top_l[0],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.inc_health_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.inc_health"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "inc_health",
+                    state.skill_general_stat_0,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_general_stat_0, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::General(EnergyIncrease);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::General(EnergyIncrease),
                     self.imgs.stamina_plus_skill,
                     state.skills_top_l[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.inc_stam_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.inc_stam"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "inc_stam",
+                    state.skill_general_stat_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_general_stat_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
                 // Top right skills
-                let skill = Skill::UnlockGroup(Weapon(Sword));
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::UnlockGroup(Weapon(Sword)),
                     self.imgs.unlock_sword_skill,
                     state.skills_top_r[0],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.unlck_sword_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.unlck_sword"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "unlck_sword",
+                    state.skill_general_tree_0,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_general_tree_0, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::UnlockGroup(Weapon(Axe));
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::UnlockGroup(Weapon(Axe)),
                     self.imgs.unlock_axe_skill,
                     state.skills_top_r[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.unlck_axe_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.unlck_axe"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "unlck_axe",
+                    state.skill_general_tree_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_general_tree_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::UnlockGroup(Weapon(Hammer));
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::UnlockGroup(Weapon(Hammer)),
                     self.imgs.unlock_hammer_skill,
                     state.skills_top_r[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.unlck_hammer_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.unlck_hammer"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "unlck_hammer",
+                    state.skill_general_tree_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_general_tree_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::UnlockGroup(Weapon(Bow));
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::UnlockGroup(Weapon(Bow)),
                     self.imgs.unlock_bow_skill,
                     state.skills_top_r[3],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.unlck_bow_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.unlck_bow"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "unlck_bow",
+                    state.skill_general_tree_3,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_general_tree_3, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::UnlockGroup(Weapon(Staff));
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::UnlockGroup(Weapon(Staff)),
                     self.imgs.unlock_staff_skill0,
                     state.skills_top_r[4],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.unlck_staff_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.unlck_staff"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "unlck_staff",
+                    state.skill_general_tree_4,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_general_tree_4, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::UnlockGroup(Weapon(Sceptre));
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::UnlockGroup(Weapon(Sceptre)),
                     self.imgs.unlock_sceptre_skill,
                     state.skills_top_r[5],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.unlck_sceptre_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.unlck_sceptre"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "unlck_sceptre",
+                    state.skill_general_tree_5,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_general_tree_5, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
                 // Bottom left skills
                 Button::image(self.imgs.skill_dodge_skill)
                     .w_h(74.0, 74.0)
@@ -948,84 +820,36 @@ impl<'a> Widget for Diary<'a> {
                         TEXT_COLOR,
                     )
                     .set(state.skill_general_roll_0, ui);
-                let skill = Skill::Roll(RollSkill::Cost);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Roll(RollSkill::Cost),
                     self.imgs.utility_cost_skill,
                     state.skills_bot_l[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.roll_stamina_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.roll_stamina"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "roll_stamina",
+                    state.skill_general_roll_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_general_roll_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Roll(Strength);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Roll(Strength),
                     self.imgs.utility_speed_skill,
                     state.skills_bot_l[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.roll_speed_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.roll_speed"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "roll_speed",
+                    state.skill_general_roll_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_general_roll_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Roll(Duration);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Roll(Duration),
                     self.imgs.utility_duration_skill,
                     state.skills_bot_l[3],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.roll_dur_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.roll_dur"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "roll_dur",
+                    state.skill_general_roll_3,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_general_roll_3, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
                 // Bottom right skills
                 Button::image(self.imgs.skill_climbing_skill)
                     .w_h(74.0, 74.0)
@@ -1038,58 +862,26 @@ impl<'a> Widget for Diary<'a> {
                         TEXT_COLOR,
                     )
                     .set(state.skill_general_climb_0, ui);
-                let skill = Skill::Climb(ClimbSkill::Cost);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Climb(ClimbSkill::Cost),
                     self.imgs.utility_cost_skill,
                     state.skills_bot_r[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.climbing_cost_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.climbing_cost"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "climbing_cost",
+                    state.skill_general_climb_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_general_climb_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Climb(ClimbSkill::Speed);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Climb(ClimbSkill::Speed),
                     self.imgs.utility_speed_skill,
                     state.skills_bot_r[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.climbing_speed_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.climbing_speed"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "climbing_speed",
+                    state.skill_general_climb_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_general_climb_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
 
                 Button::image(self.imgs.skill_swim_skill)
                     .w_h(74.0, 74.0)
@@ -1102,32 +894,16 @@ impl<'a> Widget for Diary<'a> {
                         TEXT_COLOR,
                     )
                     .set(state.skill_general_swim_0, ui);
-                let skill = Skill::Swim(SwimSkill::Speed);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Swim(SwimSkill::Speed),
                     self.imgs.utility_speed_skill,
                     state.skills_bot_r[4],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.swim_speed_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.swim_speed"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "swim_speed",
+                    state.skill_general_swim_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_general_swim_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
             },
             SelectedSkillTree::Weapon(ToolKind::Sword) => {
                 use skills::SwordSkill::*;
@@ -1157,116 +933,46 @@ impl<'a> Widget for Diary<'a> {
                         TEXT_COLOR,
                     )
                     .set(state.skill_sword_combo_0, ui);
-                let skill = Skill::Sword(TsCombo);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Sword(TsCombo),
                     self.imgs.physical_combo_skill,
                     state.skills_top_l[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.sw_trip_str_combo_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sw_trip_str_combo"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sw_trip_str_combo",
+                    state.skill_sword_combo_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sword_combo_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sword(TsDamage);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sword(TsDamage),
                     self.imgs.physical_damage_skill,
                     state.skills_top_l[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.sw_trip_str_dmg_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sw_trip_str_dmg"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sw_trip_str_dmg",
+                    state.skill_sword_combo_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sword_combo_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sword(TsSpeed);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sword(TsSpeed),
                     self.imgs.physical_speed_skill,
                     state.skills_top_l[3],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sw_trip_str_sp_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sw_trip_str_sp"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sw_trip_str_sp",
+                    state.skill_sword_combo_3,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sword_combo_3, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sword(TsRegen);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sword(TsRegen),
                     self.imgs.physical_energy_regen_skill,
                     state.skills_top_l[4],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.sw_trip_str_reg_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sw_trip_str_reg"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sw_trip_str_reg",
+                    state.skill_sword_combo_4,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sword_combo_4, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
                 // Top right skills
                 Button::image(self.imgs.twohsword_m2)
                     .w_h(74.0, 74.0)
@@ -1279,324 +985,128 @@ impl<'a> Widget for Diary<'a> {
                         TEXT_COLOR,
                     )
                     .set(state.skill_sword_dash_0, ui);
-                let skill = Skill::Sword(DDamage);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Sword(DDamage),
                     self.imgs.physical_damage_skill,
                     state.skills_top_r[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sw_dash_dmg_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sw_dash_dmg"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sw_dash_dmg",
+                    state.skill_sword_dash_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sword_dash_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sword(DDrain);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sword(DDrain),
                     self.imgs.physical_energy_drain_skill,
                     state.skills_top_r[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sw_dash_drain_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sw_dash_drain"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sw_dash_drain",
+                    state.skill_sword_dash_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sword_dash_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sword(DCost);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sword(DCost),
                     self.imgs.physical_cost_skill,
                     state.skills_top_r[3],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sw_dash_cost_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sw_dash_cost"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sw_dash_cost",
+                    state.skill_sword_dash_3,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sword_dash_3, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sword(DSpeed);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sword(DSpeed),
                     self.imgs.physical_speed_skill,
                     state.skills_top_r[4],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sw_dash_speed_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sw_dash_speed"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sw_dash_speed",
+                    state.skill_sword_dash_4,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sword_dash_4, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sword(DInfinite);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sword(DInfinite),
                     self.imgs.physical_distance_skill,
                     state.skills_top_r[5],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.sw_dash_charge_through_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.sw_dash_charge_through"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sw_dash_charge_through",
+                    state.skill_sword_dash_5,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sword_dash_5, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sword(DScaling);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sword(DScaling),
                     self.imgs.physical_amount_skill,
                     state.skills_top_r[6],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sw_dash_scale_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sw_dash_scale"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sw_dash_scale",
+                    state.skill_sword_dash_6,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sword_dash_6, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
                 // Bottom left skills
-                let skill = Skill::Sword(UnlockSpin);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Sword(UnlockSpin),
                     self.imgs.sword_whirlwind,
                     state.skills_bot_l[0],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sw_spin_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sw_spin"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sw_spin",
+                    state.skill_sword_spin_0,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sword_spin_0, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sword(SDamage);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sword(SDamage),
                     self.imgs.physical_damage_skill,
                     state.skills_bot_l[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sw_spin_dmg_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sw_spin_dmg"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sw_spin_dmg",
+                    state.skill_sword_spin_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sword_spin_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sword(SSpeed);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sword(SSpeed),
                     self.imgs.physical_damage_skill,
                     state.skills_bot_l[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sw_spin_spd_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sw_spin_spd"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sw_spin_spd",
+                    state.skill_sword_spin_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sword_spin_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sword(SCost);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sword(SCost),
                     self.imgs.physical_cost_skill,
                     state.skills_bot_l[3],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sw_spin_cost_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sw_spin_cost"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sw_spin_cost",
+                    state.skill_sword_spin_3,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sword_spin_3, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sword(SSpins);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sword(SSpins),
                     self.imgs.physical_amount_skill,
                     state.skills_bot_l[4],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sw_spin_spins_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sw_spin_spins"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sw_spin_spins",
+                    state.skill_sword_spin_4,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sword_spin_4, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
                 // Bottom right skills
-                let skill = Skill::Sword(InterruptingAttacks);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Sword(InterruptingAttacks),
                     self.imgs.physical_damage_skill,
                     state.skills_bot_r[0],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sw_interrupt_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sw_interrupt"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sw_interrupt",
+                    state.skill_sword_passive_0,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sword_passive_0, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
             },
             SelectedSkillTree::Weapon(ToolKind::Axe) => {
                 use skills::AxeSkill::*;
@@ -1628,126 +1138,46 @@ impl<'a> Widget for Diary<'a> {
                         TEXT_COLOR,
                     )
                     .set(state.skill_axe_combo_0, ui);
-                let skill = Skill::Axe(DsCombo);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Axe(DsCombo),
                     self.imgs.physical_combo_skill,
                     state.skills_top_l[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.axe_double_strike_combo_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.axe_double_strike_combo"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "axe_double_strike_combo",
+                    state.skill_axe_combo_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_axe_combo_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Axe(DsDamage);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Axe(DsDamage),
                     self.imgs.physical_damage_skill,
                     state.skills_top_l[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.axe_double_strike_damage_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.axe_double_strike_damage"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "axe_double_strike_damage",
+                    state.skill_axe_combo_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_axe_combo_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Axe(DsSpeed);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Axe(DsSpeed),
                     self.imgs.physical_speed_skill,
                     state.skills_top_l[3],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.axe_double_strike_speed_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.axe_double_strike_speed"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "axe_double_strike_speed",
+                    state.skill_axe_combo_3,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_axe_combo_3, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Axe(DsRegen);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Axe(DsRegen),
                     self.imgs.physical_energy_regen_skill,
                     state.skills_top_l[4],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.axe_double_strike_regen_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.axe_double_strike_regen"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "axe_double_strike_regen",
+                    state.skill_axe_combo_4,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_axe_combo_4, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
                 // Top right skills
                 Button::image(self.imgs.axespin)
                     .w_h(74.0, 74.0)
@@ -1760,283 +1190,107 @@ impl<'a> Widget for Diary<'a> {
                         TEXT_COLOR,
                     )
                     .set(state.skill_axe_spin_0, ui);
-                let skill = Skill::Axe(SInfinite);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Axe(SInfinite),
                     self.imgs.physical_infinite_skill,
                     state.skills_top_r[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.axe_infinite_axe_spin_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.axe_infinite_axe_spin"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "axe_infinite_axe_spin",
+                    state.skill_axe_spin_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_axe_spin_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Axe(SDamage);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Axe(SDamage),
                     self.imgs.physical_damage_skill,
                     state.skills_top_r[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.axe_spin_damage_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.axe_spin_damage"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "axe_spin_damage",
+                    state.skill_axe_spin_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_axe_spin_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Axe(SHelicopter);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Axe(SHelicopter),
                     self.imgs.physical_helicopter_skill,
                     state.skills_top_r[3],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.axe_spin_helicopter_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.axe_spin_helicopter"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "axe_spin_helicopter",
+                    state.skill_axe_spin_3,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_axe_spin_3, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Axe(SSpeed);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Axe(SSpeed),
                     self.imgs.physical_speed_skill,
                     state.skills_top_r[4],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.axe_spin_speed_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.axe_spin_speed"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "axe_spin_speed",
+                    state.skill_axe_spin_4,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_axe_spin_4, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Axe(SCost);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Axe(SCost),
                     self.imgs.physical_cost_skill,
                     state.skills_top_r[5],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.axe_spin_cost_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.axe_spin_cost"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "axe_spin_cost",
+                    state.skill_axe_spin_5,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_axe_spin_5, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
                 // Bottom left skills
-                let skill = Skill::Axe(UnlockLeap);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Axe(UnlockLeap),
                     self.imgs.skill_axe_leap_slash,
                     state.skills_bot_l[0],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.axe_unlock_leap_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.axe_unlock_leap"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "axe_unlock_leap",
+                    state.skill_axe_leap_0,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_axe_leap_0, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Axe(LDamage);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Axe(LDamage),
                     self.imgs.physical_damage_skill,
                     state.skills_bot_l[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.axe_leap_damage_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.axe_leap_damage"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "axe_leap_damage",
+                    state.skill_axe_leap_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_axe_leap_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Axe(LKnockback);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Axe(LKnockback),
                     self.imgs.physical_knockback_skill,
                     state.skills_bot_l[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.axe_leap_knockback_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.axe_leap_knockback"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "axe_leap_knockback",
+                    state.skill_axe_leap_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_axe_leap_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Axe(LCost);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Axe(LCost),
                     self.imgs.physical_cost_skill,
                     state.skills_bot_l[3],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.axe_leap_cost_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.axe_leap_cost"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "axe_leap_cost",
+                    state.skill_axe_leap_3,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_axe_leap_3, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Axe(LDistance);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Axe(LDistance),
                     self.imgs.physical_distance_skill,
                     state.skills_bot_l[4],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.axe_leap_distance_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.axe_leap_distance"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "axe_leap_distance",
+                    state.skill_axe_leap_4,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_axe_leap_4, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
             },
             SelectedSkillTree::Weapon(ToolKind::Hammer) => {
                 use skills::HammerSkill::*;
@@ -2068,126 +1322,46 @@ impl<'a> Widget for Diary<'a> {
                         TEXT_COLOR,
                     )
                     .set(state.skill_hammer_combo_0, ui);
-                let skill = Skill::Hammer(SsKnockback);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Hammer(SsKnockback),
                     self.imgs.physical_knockback_skill,
                     state.skills_top_l[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.hmr_single_strike_knockback_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.hmr_single_strike_knockback"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "hmr_single_strike_knockback",
+                    state.skill_hammer_combo_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_hammer_combo_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Hammer(SsDamage);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Hammer(SsDamage),
                     self.imgs.physical_damage_skill,
                     state.skills_top_l[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.hmr_single_strike_damage_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.hmr_single_strike_damage"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "hmr_single_strike_damage",
+                    state.skill_hammer_combo_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_hammer_combo_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Hammer(SsSpeed);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Hammer(SsSpeed),
                     self.imgs.physical_speed_skill,
                     state.skills_top_l[3],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.hmr_single_strike_speed_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.hmr_single_strike_speed"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "hmr_single_strike_speed",
+                    state.skill_hammer_combo_3,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_hammer_combo_3, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Hammer(SsRegen);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Hammer(SsRegen),
                     self.imgs.physical_energy_regen_skill,
                     state.skills_top_l[4],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.hmr_single_strike_regen_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.hmr_single_strike_regen"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "hmr_single_strike_regen",
+                    state.skill_hammer_combo_4,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_hammer_combo_4, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
                 // Top right skills
                 Button::image(self.imgs.hammergolf)
                     .w_h(74.0, 74.0)
@@ -2202,291 +1376,107 @@ impl<'a> Widget for Diary<'a> {
                         TEXT_COLOR,
                     )
                     .set(state.skill_hammer_charged_0, ui);
-                let skill = Skill::Hammer(CKnockback);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Hammer(CKnockback),
                     self.imgs.physical_knockback_skill,
                     state.skills_top_r[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.hmr_charged_melee_knockback_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.hmr_charged_melee_knockback"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "hmr_charged_melee_knockback",
+                    state.skill_hammer_charged_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_hammer_charged_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Hammer(CDamage);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Hammer(CDamage),
                     self.imgs.physical_damage_skill,
                     state.skills_top_r[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.hmr_charged_melee_damage_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.hmr_charged_melee_damage"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "hmr_charged_melee_damage",
+                    state.skill_hammer_charged_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_hammer_charged_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Hammer(CDrain);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Hammer(CDrain),
                     self.imgs.physical_energy_drain_skill,
                     state.skills_top_r[3],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.hmr_charged_melee_nrg_drain_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.hmr_charged_melee_nrg_drain"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "hmr_charged_melee_nrg_drain",
+                    state.skill_hammer_charged_3,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_hammer_charged_3, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Hammer(CSpeed);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Hammer(CSpeed),
                     self.imgs.physical_amount_skill,
                     state.skills_top_r[4],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.hmr_charged_rate_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.hmr_charged_rate"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "hmr_charged_rate",
+                    state.skill_hammer_charged_4,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_hammer_charged_4, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
                 // Bottom left skills
-                let skill = Skill::Hammer(UnlockLeap);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Hammer(UnlockLeap),
                     self.imgs.hammerleap,
                     state.skills_bot_l[0],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.hmr_unlock_leap_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.hmr_unlock_leap"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "hmr_unlock_leap",
+                    state.skill_hammer_leap_0,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_hammer_leap_0, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Hammer(LDamage);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Hammer(LDamage),
                     self.imgs.physical_damage_skill,
                     state.skills_bot_l[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.hmr_leap_damage_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.hmr_leap_damage"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "hmr_leap_damage",
+                    state.skill_hammer_leap_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_hammer_leap_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Hammer(LKnockback);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Hammer(LKnockback),
                     self.imgs.physical_knockback_skill,
                     state.skills_bot_l[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.hmr_leap_knockback_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.hmr_leap_knockback"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "hmr_leap_knockback",
+                    state.skill_hammer_leap_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_hammer_leap_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Hammer(LCost);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Hammer(LCost),
                     self.imgs.physical_cost_skill,
                     state.skills_bot_l[3],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.hmr_leap_cost_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.hmr_leap_cost"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "hmr_leap_cost",
+                    state.skill_hammer_leap_3,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_hammer_leap_3, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Hammer(LDistance);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Hammer(LDistance),
                     self.imgs.physical_distance_skill,
                     state.skills_bot_l[4],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.hmr_leap_distance_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.hmr_leap_distance"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "hmr_leap_distance",
+                    state.skill_hammer_leap_4,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_hammer_leap_4, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Hammer(LRange);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Hammer(LRange),
                     self.imgs.physical_radius_skill,
                     state.skills_bot_l[5],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.hmr_leap_radius_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.hmr_leap_radius"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "hmr_leap_radius",
+                    state.skill_hammer_leap_5,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_hammer_leap_5, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
             },
             SelectedSkillTree::Weapon(ToolKind::Bow) => {
                 use skills::BowSkill::*;
@@ -2515,150 +1505,56 @@ impl<'a> Widget for Diary<'a> {
                         TEXT_COLOR,
                     )
                     .set(state.skill_bow_charged_0, ui);
-                let skill = Skill::Bow(CDamage);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Bow(CDamage),
                     self.imgs.physical_damage_skill,
                     state.skills_top_l[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.bow_charged_damage_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.bow_charged_damage"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "bow_charged_damage",
+                    state.skill_bow_charged_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_bow_charged_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Bow(CRegen);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Bow(CRegen),
                     self.imgs.physical_energy_regen_skill,
                     state.skills_top_l[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.bow_charged_energy_regen_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.bow_charged_energy_regen"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "bow_charged_energy_regen",
+                    state.skill_bow_charged_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_bow_charged_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Bow(CKnockback);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Bow(CKnockback),
                     self.imgs.physical_knockback_skill,
                     state.skills_top_l[3],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.bow_charged_knockback_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.bow_charged_knockback"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "bow_charged_knockback",
+                    state.skill_bow_charged_3,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_bow_charged_3, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Bow(CSpeed);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Bow(CSpeed),
                     self.imgs.physical_speed_skill,
                     state.skills_top_l[4],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.bow_charged_speed_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.bow_charged_speed"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "bow_charged_speed",
+                    state.skill_bow_charged_4,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_bow_charged_4, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Bow(CMove);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Bow(CMove),
                     self.imgs.physical_speed_skill,
                     state.skills_top_l[5],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.bow_charged_move_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.bow_charged_move"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "bow_charged_move",
+                    state.skill_bow_charged_5,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_bow_charged_5, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
                 // Top right skills
                 Button::image(self.imgs.bow_m2)
                     .w_h(74.0, 74.0)
@@ -2671,262 +1567,98 @@ impl<'a> Widget for Diary<'a> {
                         TEXT_COLOR,
                     )
                     .set(state.skill_bow_repeater_0, ui);
-                let skill = Skill::Bow(RDamage);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Bow(RDamage),
                     self.imgs.physical_damage_skill,
                     state.skills_top_r[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.bow_repeater_damage_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.bow_repeater_damage"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "bow_repeater_damage",
+                    state.skill_bow_repeater_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_bow_repeater_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Bow(RCost);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Bow(RCost),
                     self.imgs.physical_cost_skill,
                     state.skills_top_r[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.bow_repeater_cost_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.bow_repeater_cost"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "bow_repeater_cost",
+                    state.skill_bow_repeater_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_bow_repeater_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Bow(RSpeed);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Bow(RSpeed),
                     self.imgs.physical_speed_skill,
                     state.skills_top_r[3],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.bow_repeater_speed_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.bow_repeater_speed"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "bow_repeater_speed",
+                    state.skill_bow_repeater_3,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_bow_repeater_3, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
                 // Bottom left skills
-                let skill = Skill::Bow(UnlockShotgun);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Bow(UnlockShotgun),
                     self.imgs.skill_bow_jump_burst,
                     state.skills_bot_l[0],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.bow_shotgun_unlock_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.bow_shotgun_unlock"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "bow_shotgun_unlock",
+                    state.skill_bow_shotgun_0,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_bow_shotgun_0, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Bow(SDamage);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Bow(SDamage),
                     self.imgs.physical_damage_skill,
                     state.skills_bot_l[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.bow_shotgun_damage_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.bow_shotgun_damage"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "bow_shotgun_damage",
+                    state.skill_bow_shotgun_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_bow_shotgun_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Bow(SCost);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Bow(SCost),
                     self.imgs.physical_cost_skill,
                     state.skills_bot_l[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.bow_shotgun_cost_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.bow_shotgun_cost"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "bow_shotgun_cost",
+                    state.skill_bow_shotgun_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_bow_shotgun_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Bow(SArrows);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Bow(SArrows),
                     self.imgs.physical_amount_skill,
                     state.skills_bot_l[3],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.bow_shotgun_arrow_count_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.bow_shotgun_arrow_count"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "bow_shotgun_arrow_count",
+                    state.skill_bow_shotgun_3,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_bow_shotgun_3, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Bow(SSpread);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Bow(SSpread),
                     self.imgs.physical_explosion_skill,
                     state.skills_bot_l[4],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.bow_shotgun_spread_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.bow_shotgun_spread"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "bow_shotgun_spread",
+                    state.skill_bow_shotgun_4,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_bow_shotgun_4, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
                 // Bottom right skills
-                let skill = Skill::Bow(ProjSpeed);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Bow(ProjSpeed),
                     self.imgs.physical_projectile_speed_skill,
                     state.skills_bot_r[0],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.bow_projectile_speed_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.bow_projectile_speed"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "bow_projectile_speed",
+                    state.skill_bow_passive_0,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_bow_passive_0, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
             },
             SelectedSkillTree::Weapon(ToolKind::Staff) => {
                 use skills::StaffSkill::*;
@@ -2956,88 +1688,36 @@ impl<'a> Widget for Diary<'a> {
                         TEXT_COLOR,
                     )
                     .set(state.skill_staff_basic_0, ui);
-                let skill = Skill::Staff(BDamage);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Staff(BDamage),
                     self.imgs.magic_damage_skill,
                     state.skills_top_l[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.st_damage_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.st_damage"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "st_stamina_regen",
+                    state.skill_staff_basic_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_staff_basic_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Staff(BRegen);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Staff(BRegen),
                     self.imgs.magic_energy_regen_skill,
                     state.skills_top_l[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.st_stamina_regen_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.st_stamina_regen"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "st_stamina_regen",
+                    state.skill_staff_basic_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_staff_basic_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Staff(BRadius);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Staff(BRadius),
                     self.imgs.magic_radius_skill,
                     state.skills_top_l[3],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.st_explosion_radius_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.st_explosion_radius"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "st_explosion_radius",
+                    state.skill_staff_basic_3,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_staff_basic_3, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
                 // Top right skills
                 Button::image(self.imgs.flamethrower)
                     .w_h(74.0, 74.0)
@@ -3052,265 +1732,97 @@ impl<'a> Widget for Diary<'a> {
                         TEXT_COLOR,
                     )
                     .set(state.skill_staff_beam_0, ui);
-                let skill = Skill::Staff(FDamage);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Staff(FDamage),
                     self.imgs.magic_damage_skill,
                     state.skills_top_r[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.st_flamethrower_damage_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.st_flamethrower_damage"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "st_flamethrower_damage",
+                    state.skill_staff_beam_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_staff_beam_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Staff(FDrain);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Staff(FDrain),
                     self.imgs.magic_energy_drain_skill,
                     state.skills_top_r[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.st_energy_drain_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.st_energy_drain"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "st_energy_drain",
+                    state.skill_staff_beam_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_staff_beam_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Staff(FRange);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Staff(FRange),
                     self.imgs.magic_radius_skill,
                     state.skills_top_r[3],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.st_flamethrower_range_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.st_flamethrower_range"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "st_flamethrower_range",
+                    state.skill_staff_beam_3,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_staff_beam_3, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Staff(FVelocity);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Staff(FVelocity),
                     self.imgs.magic_projectile_speed_skill,
                     state.skills_top_r[4],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.st_flame_velocity_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.st_flame_velocity"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "st_flame_velocity",
+                    state.skill_staff_beam_4,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_staff_beam_4, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
                 // Bottom left skills
-                let skill = Skill::Staff(UnlockShockwave);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Staff(UnlockShockwave),
                     self.imgs.fire_aoe,
                     state.skills_bot_l[0],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.st_shockwave_unlock_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.st_shockwave_unlock"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "st_shockwave_unlock",
+                    state.skill_staff_shockwave_0,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_staff_shockwave_0, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Staff(SDamage);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Staff(SDamage),
                     self.imgs.magic_damage_skill,
                     state.skills_bot_l[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.st_shockwave_damage_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.st_shockwave_damage"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "st_shockwave_damage",
+                    state.skill_staff_shockwave_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_staff_shockwave_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Staff(SKnockback);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Staff(SKnockback),
                     self.imgs.magic_knockback_skill,
                     state.skills_bot_l[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.st_shockwave_knockback_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.st_shockwave_knockback"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "st_shockwave_knockback",
+                    state.skill_staff_shockwave_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_staff_shockwave_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Staff(SCost);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Staff(SCost),
                     self.imgs.magic_cost_skill,
                     state.skills_bot_l[3],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.st_shockwave_cost_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.st_shockwave_cost"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "st_shockwave_cost",
+                    state.skill_staff_shockwave_3,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_staff_shockwave_3, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Staff(SRange);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Staff(SRange),
                     self.imgs.magic_radius_skill,
                     state.skills_bot_l[4],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.st_shockwave_range_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.st_shockwave_range"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "st_shockwave_range",
+                    state.skill_staff_shockwave_4,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_staff_shockwave_4, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
             },
             SelectedSkillTree::Weapon(ToolKind::Sceptre) => {
                 use skills::SceptreSkill::*;
@@ -3340,120 +1852,46 @@ impl<'a> Widget for Diary<'a> {
                         TEXT_COLOR,
                     )
                     .set(state.skill_sceptre_lifesteal_0, ui);
-                let skill = Skill::Sceptre(LDamage);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Sceptre(LDamage),
                     self.imgs.magic_damage_skill,
                     state.skills_top_l[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.sc_lifesteal_damage_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_lifesteal_damage"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sc_lifesteal_damage",
+                    state.skill_sceptre_lifesteal_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sceptre_lifesteal_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sceptre(LRange);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sceptre(LRange),
                     self.imgs.magic_distance_skill,
                     state.skills_top_l[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.sc_lifesteal_range_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_lifesteal_range"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sc_lifesteal_range",
+                    state.skill_sceptre_lifesteal_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sceptre_lifesteal_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sceptre(LLifesteal);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sceptre(LLifesteal),
                     self.imgs.magic_lifesteal_skill,
                     state.skills_top_l[3],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.sc_lifesteal_lifesteal_title"),
-                    &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.sc_lifesteal_lifesteal"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sc_lifesteal_lifesteal",
+                    state.skill_sceptre_lifesteal_3,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sceptre_lifesteal_3, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sceptre(LRegen);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sceptre(LRegen),
                     self.imgs.magic_energy_regen_skill,
                     state.skills_top_l[4],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.sc_lifesteal_regen_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_lifesteal_regen"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sc_lifesteal_regen",
+                    state.skill_sceptre_lifesteal_4,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sceptre_lifesteal_4, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
                 // Top right skills
                 Button::image(self.imgs.skill_sceptre_heal)
                     .w_h(74.0, 74.0)
@@ -3466,225 +1904,87 @@ impl<'a> Widget for Diary<'a> {
                         TEXT_COLOR,
                     )
                     .set(state.skill_sceptre_heal_0, ui);
-                let skill = Skill::Sceptre(HHeal);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Sceptre(HHeal),
                     self.imgs.heal_heal_skill,
                     state.skills_top_r[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sc_heal_heal_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_heal_heal"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sc_heal_heal",
+                    state.skill_sceptre_heal_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sceptre_heal_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sceptre(HCost);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sceptre(HCost),
                     self.imgs.heal_cost_skill,
                     state.skills_top_r[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sc_heal_cost_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_heal_cost"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sc_heal_cost",
+                    state.skill_sceptre_heal_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sceptre_heal_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sceptre(HRange);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sceptre(HRange),
                     self.imgs.heal_distance_skill,
                     state.skills_top_r[3],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sc_heal_range_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_heal_range"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sc_heal_range",
+                    state.skill_sceptre_heal_3,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sceptre_heal_3, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
                 // Bottom left skills
-                let skill = Skill::Sceptre(UnlockAura);
-                if create_skill_button(
+                self.create_unlock_skill_button(
+                    Skill::Sceptre(UnlockAura),
                     self.imgs.skill_sceptre_aura,
                     state.skills_bot_l[0],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.sc_wardaura_unlock_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_wardaura_unlock"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sc_wardaura_unlock",
+                    state.skill_sceptre_aura_0,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sceptre_aura_0, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sceptre(AStrength);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sceptre(AStrength),
                     self.imgs.buff_damage_skill,
                     state.skills_bot_l[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.sc_wardaura_strength_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_wardaura_strength"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sc_wardaura_strength",
+                    state.skill_sceptre_aura_1,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sceptre_aura_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sceptre(ADuration);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sceptre(ADuration),
                     self.imgs.buff_duration_skill,
                     state.skills_bot_l[2],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.sc_wardaura_duration_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_wardaura_duration"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sc_wardaura_duration",
+                    state.skill_sceptre_aura_2,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sceptre_aura_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sceptre(ARange);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sceptre(ARange),
                     self.imgs.buff_radius_skill,
                     state.skills_bot_l[3],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.sc_wardaura_range_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_wardaura_range"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sc_wardaura_range",
+                    state.skill_sceptre_aura_3,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sceptre_aura_3, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sceptre(ACost);
-                if create_skill_button(
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sceptre(ACost),
                     self.imgs.buff_cost_skill,
                     state.skills_bot_l[4],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self
-                        .localized_strings
-                        .get("hud.skill.sc_wardaura_cost_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_wardaura_cost"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
+                    "sc_wardaura_cost",
+                    state.skill_sceptre_aura_4,
+                    ui,
+                    &mut events,
                     &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sceptre_aura_4, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                );
             },
             _ => {},
         }
@@ -3762,5 +2062,49 @@ fn add_sp_cost_tooltip<'a>(
                 .get("hud.skill.req_sp")
                 .replace("{number}", &format!("{}", skill_set.skill_cost(skill))),
         ),
+    }
+}
+
+impl<'a> Diary<'a> {
+    fn create_unlock_skill_button(
+        &mut self,
+        skill: Skill,
+        id: Id,
+        conrod_widget_id: conrod_core::widget::id::Id,
+        skill_name: &str,
+        widget_id: widget::Id,
+        ui: &mut UiCell,
+        events: &mut Vec<Event>,
+        diary_tooltip: &Tooltip,
+    ) {
+        if create_skill_button(
+            id,
+            conrod_widget_id,
+            &self.skill_set,
+            skill,
+            self.fonts,
+            &get_skill_label(skill, &self.skill_set),
+        )
+        .with_tooltip(
+            self.tooltip_manager,
+            &self
+                .localized_strings
+                .get(&format!("hud.skill.{}_title", skill_name)),
+            &add_sp_cost_tooltip(
+                &self
+                    .localized_strings
+                    .get(&format!("hud.skill.{}", skill_name)),
+                skill,
+                &self.skill_set,
+                &self.localized_strings,
+            ),
+            &diary_tooltip,
+            TEXT_COLOR,
+        )
+        .set(widget_id, ui)
+        .was_clicked()
+        {
+            events.push(Event::UnlockSkill(skill));
+        };
     }
 }
