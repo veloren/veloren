@@ -79,7 +79,11 @@ impl ItemSpec {
     }
 
     #[cfg(test)]
-    // Read everything and checks if it's loading
+    /// # Usage
+    /// Read everything and checks if it's loading
+    ///
+    /// # Panics
+    /// 1) If weights are invalid
     pub fn validate(&self, key: EquipSlot) {
         match self {
             ItemSpec::Item(specifier) => std::mem::drop(Item::new_from_asset_expect(&specifier)),
