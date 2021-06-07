@@ -36,6 +36,7 @@ impl Default for Transform {
 
 struct Voxel {
     mvp: Mat4<f32>,
+    light_dir: Vec3<f32>,
 }
 
 // TODO: use norm or remove it
@@ -43,15 +44,15 @@ struct Voxel {
 struct Vert {
     pos: Vec3<f32>,
     col: Rgb<f32>,
-    //norm: Vec3<f32>,
+    norm: Vec3<f32>,
     ao_level: u8,
 }
 impl Vert {
-    fn new(pos: Vec3<f32>, col: Rgb<f32>, _norm: Vec3<f32>, ao_level: u8) -> Self {
+    fn new(pos: Vec3<f32>, col: Rgb<f32>, norm: Vec3<f32>, ao_level: u8) -> Self {
         Vert {
             pos,
             col,
-            //norm,
+            norm,
             ao_level,
         }
     }
@@ -89,11 +90,16 @@ impl<'a> Pipeline for Voxel {
         Vert {
             pos,
             col,
-            //norm: _,
+            norm,
             ao_level,
         }: &Self::Vertex,
     ) -> ([f32; 4], Self::VsOut) {
-        let light = Rgba::from_opaque(Rgb::from(*ao_level as f32 / 4.0 + 0.25));
+        let ambiance = 0.25;
+        let diffuse = norm.dot(-self.light_dir).max(0.0);
+        let brightness = 2.5;
+        let light = Rgba::from_opaque(Rgb::from(*ao_level as f32 / 4.0))
+            * (diffuse + ambiance)
+            * brightness;
         let color = light * srgba_to_linear(Rgba::from_opaque(*col));
         let position = (self.mvp * Vec4::from_point(*pos)).into_array();
         (position, VsOut(color))
@@ -175,7 +181,11 @@ pub fn draw_vox(
         * ori_mat
         * Mat4::translation_3d([-w / 2.0, -h / 2.0, -d / 2.0]);
 
-    Voxel { mvp }.draw::<rasterizer::Triangles<_>, _>(
+    Voxel {
+        mvp,
+        light_dir: Vec3::broadcast(-1.0).normalized(),
+    }
+    .draw::<rasterizer::Triangles<_>, _>(
         &generate_mesh(segment, Vec3::from(0.0)),
         &mut color,
         Some(&mut depth),
