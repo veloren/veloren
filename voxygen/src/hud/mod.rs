@@ -806,7 +806,6 @@ pub struct Hud {
     force_chat_cursor: Option<Index>,
     tab_complete: Option<String>,
     pulse: f32,
-    _velocity: f32,
     slot_manager: slots::SlotManager,
     hotbar: hotbar::State,
     events: Vec<Event>,
@@ -925,7 +924,6 @@ impl Hud {
             force_chat_cursor: None,
             tab_complete: None,
             pulse: 0.0,
-            _velocity: 0.0,
             slot_manager,
             hotbar: hotbar_state,
             events: Vec::new(),
@@ -2040,10 +2038,6 @@ impl Hud {
 
         // Display debug window.
         if let Some(debug_info) = debug_info {
-            self._velocity = match debug_info.velocity {
-                Some(velocity) => velocity.0.magnitude(),
-                None => 0.0,
-            };
             // Alpha Version
             Text::new(&version)
                 .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
