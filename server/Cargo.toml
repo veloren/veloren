@@ -24,8 +24,8 @@ network = { package = "veloren-network", path = "../network", features = ["metri
 
 # inline_tweak = "1.0.8"
 
-specs = { git = "https://github.com/amethyst/specs.git", features = ["shred-derive"], rev = "5a9b71035007be0e3574f35184acac1cd4530496" }
-specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "b65fb220e94f5d3c9bc30074a076149763795556" }
+specs = { git = "https://github.com/amethyst/specs.git", features = ["shred-derive"], rev = "f985bec5d456f7b0dd8aae99848f9473c2cd9d46" }
+specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "8be2abcddf8f524cb5876e8dd20a7e47cfaf7573" }
 
 num_cpus = "1.0"
 tracing = "0.1"
@@ -44,7 +44,7 @@ ron = { version = "0.6", default-features = false }
 serde = { version = "1.0.110", features = ["derive"] }
 serde_json = "1.0.50"
 rand = { version = "0.8", features = ["small_rng"] }
-hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }
+hashbrown = { version = "0.11", features = ["rayon", "serde", "nightly"] }
 rayon = "1.5"
 crossbeam-channel = "0.5"
 prometheus = { version = "0.12", default-features = false}

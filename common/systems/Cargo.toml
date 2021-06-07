@@ -23,12 +23,12 @@ vek = { version = "=0.14.1", features = ["serde"] }
 ordered-float = { version = "2.0.1", default-features = false }
 
 # Data structures
-hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }
+hashbrown = { version = "0.11", features = ["rayon", "serde", "nightly"] }
 indexmap = "1.3.0"
 slab = "0.4.2"
 
 # ECS
-specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control", "derive"], rev = "5a9b71035007be0e3574f35184acac1cd4530496" }
+specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control", "derive"], rev = "f985bec5d456f7b0dd8aae99848f9473c2cd9d46" }
 
 # Tweak running code
 # inline_tweak = { version = "1.0.8", features = ["release_tweak"] }

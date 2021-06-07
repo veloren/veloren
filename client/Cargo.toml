@@ -28,9 +28,9 @@ image = { version = "0.23.12", default-features = false, features = ["png"] }
 num = "0.4"
 tracing = { version = "0.1", default-features = false }
 rayon = "1.5"
-specs = { git = "https://github.com/amethyst/specs.git", rev = "5a9b71035007be0e3574f35184acac1cd4530496" }
+specs = { git = "https://github.com/amethyst/specs.git", rev = "f985bec5d456f7b0dd8aae99848f9473c2cd9d46" }
 vek = { version = "=0.14.1", features = ["serde"] }
-hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }
+hashbrown = { version = "0.11", features = ["rayon", "serde", "nightly"] }
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "fb3dcbc4962b367253f8f2f92760ef44d2679c9a" }
 
 #TODO: put bot in a different crate

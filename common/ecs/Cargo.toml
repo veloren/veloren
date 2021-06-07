@@ -13,7 +13,7 @@ tracing = { version = "0.1", default-features = false }
 common-base = { package = "veloren-common-base", path = "../base" }
 
 # ECS
-specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control"], rev = "5a9b71035007be0e3574f35184acac1cd4530496" }
+specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control"], rev = "f985bec5d456f7b0dd8aae99848f9473c2cd9d46" }
 
 [dev-dependencies]
 #bench

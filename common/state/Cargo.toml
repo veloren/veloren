@@ -23,10 +23,10 @@ tracing = { version = "0.1", default-features = false }
 vek = { version = "=0.14.1", features = ["serde"] }
 
 # Data structures
-hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }
+hashbrown = { version = "0.11", features = ["rayon", "serde", "nightly"] }
 
 # ECS
-specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control", "derive"], rev = "5a9b71035007be0e3574f35184acac1cd4530496" }
+specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control", "derive"], rev = "f985bec5d456f7b0dd8aae99848f9473c2cd9d46" }
 
 # Plugins
 scopeguard = "1.1.0"
