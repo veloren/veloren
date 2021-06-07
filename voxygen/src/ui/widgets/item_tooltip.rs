@@ -437,7 +437,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         5
                     }
                 },
-                ItemKind::Tool(_) => 5,
+                ItemKind::Tool(_) => 4,
                 ItemKind::Consumable { .. } => 1,
                 _ => 0,
             };
@@ -465,14 +465,10 @@ impl<'a> Widget for ItemTooltip<'a> {
 
         let item_kind = util::kind_text(item.kind(), i18n).to_string();
 
-        let material_tag = item
-            .tags()
-            .iter()
-            .filter_map(|t| match t {
-                ItemTag::Material(material) => Some(material),
-                _ => None,
-            })
-            .next();
+        let material_tag = item.tags().iter().find_map(|t| match t {
+            ItemTag::Material(material) => Some(material),
+            _ => None,
+        });
 
         let subtitle = if let Some(material_tag) = material_tag {
             format!(
@@ -483,6 +479,8 @@ impl<'a> Widget for ItemTooltip<'a> {
         } else {
             item_kind
         };
+
+        let style = self.style.desc;
 
         let text_color = conrod_core::color::WHITE;
 
@@ -696,57 +694,40 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 .set(state.ids.diff_main_stat, ui);
                         }
 
-                        if diff.power.abs() > f32::EPSILON {
-                            widget::Text::new(&format!(
-                                "{} {:.1}",
-                                &power_diff.0,
-                                &diff.power * 10.0
-                            ))
-                            .align_middle_y_of(state.ids.stats[0])
-                            .right_from(state.ids.stats[0], H_PAD)
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(power_diff.1)
-                            .set(state.ids.diffs[0], ui);
-                        }
-                        if diff.speed.abs() > f32::EPSILON {
-                            widget::Text::new(&format!("{} {:.1}", &speed_diff.0, &diff.speed))
-                                .align_middle_y_of(state.ids.stats[1])
-                                .right_from(state.ids.stats[1], H_PAD)
+                        let mut diff_text = |text: String, color, id_index| {
+                            widget::Text::new(&*text)
+                                .align_middle_y_of(state.ids.stats[id_index])
+                                .right_from(state.ids.stats[id_index], H_PAD)
                                 .graphics_for(id)
                                 .parent(id)
-                                .with_style(self.style.desc)
-                                .color(speed_diff.1)
-                                .set(state.ids.diffs[1], ui);
+                                .with_style(style)
+                                .color(color)
+                                .set(state.ids.diffs[id_index], ui)
+                        };
+
+                        if diff.power.abs() > f32::EPSILON {
+                            let text = format!("{} {:.1}", &power_diff.0, &diff.power * 10.0);
+                            diff_text(text, power_diff.1, 0)
+                        }
+                        if diff.speed.abs() > f32::EPSILON {
+                            let text = format!("{} {:.1}", &speed_diff.0, &diff.speed);
+                            diff_text(text, speed_diff.1, 1)
                         }
                         if diff.poise_strength.abs() > f32::EPSILON {
-                            widget::Text::new(&format!(
+                            let text = format!(
                                 "{} {:.1}",
                                 &poise_strength_diff.0,
                                 &diff.poise_strength * 10.0
-                            ))
-                            .align_middle_y_of(state.ids.stats[2])
-                            .right_from(state.ids.stats[2], H_PAD)
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(poise_strength_diff.1)
-                            .set(state.ids.diffs[2], ui);
+                            );
+                            diff_text(text, poise_strength_diff.1, 2)
                         }
                         if diff.crit_chance.abs() > f32::EPSILON {
-                            widget::Text::new(&format!(
+                            let text = format!(
                                 "{} {:.1}%",
                                 &crit_chance_diff.0,
                                 &diff.crit_chance * 100.0
-                            ))
-                            .align_middle_y_of(state.ids.stats[3])
-                            .right_from(state.ids.stats[3], H_PAD)
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(crit_chance_diff.1)
-                            .set(state.ids.diffs[3], ui);
+                            );
+                            diff_text(text, crit_chance_diff.1, 3)
                         }
                     }
                 }
@@ -811,21 +792,6 @@ impl<'a> Widget for ItemTooltip<'a> {
                         .down_from(state.ids.item_frame, V_PAD)
                         .set(state.ids.stats[0], ui);
 
-                        // Slots
-                        if item.num_slots() > 0 {
-                            widget::Text::new(&format!(
-                                "{} : {}",
-                                i18n.get("common.stats.slots"),
-                                item.num_slots()
-                            ))
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(text_color)
-                            .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
-                            .down_from(state.ids.stats[0], V_PAD_STATS)
-                            .set(state.ids.stats[1], ui);
-                        }
                         // Max Energy
                         widget::Text::new(&format!(
                             "{} : {}",
@@ -877,6 +843,21 @@ impl<'a> Widget for ItemTooltip<'a> {
                         .color(text_color)
                         .down_from(state.ids.stats[3], V_PAD_STATS)
                         .set(state.ids.stats[4], ui);
+
+                        // Slots
+                        if item.num_slots() > 0 {
+                            widget::Text::new(&format!(
+                                "{} : {}",
+                                i18n.get("common.stats.slots"),
+                                item.num_slots()
+                            ))
+                            .graphics_for(id)
+                            .parent(id)
+                            .with_style(self.style.desc)
+                            .color(text_color)
+                            .down_from(state.ids.stats[4], V_PAD_STATS)
+                            .set(state.ids.stats[5], ui);
+                        }
                     },
                 }
 
@@ -909,75 +890,48 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 .set(state.ids.diff_main_stat, ui);
                         }
 
+                        let mut diff_text = |text: String, color, id_index| {
+                            widget::Text::new(&*text)
+                                .align_middle_y_of(state.ids.stats[id_index])
+                                .right_from(state.ids.stats[id_index], H_PAD)
+                                .graphics_for(id)
+                                .parent(id)
+                                .with_style(style)
+                                .color(color)
+                                .set(state.ids.diffs[id_index], ui)
+                        };
+
                         if diff.poise_resilience() != Protection::Normal(0.0) {
-                            widget::Text::new(&format!(
+                            let text = format!(
                                 "{} {}",
                                 &poise_res_diff.0,
                                 util::protec2string(diff.poise_resilience())
-                            ))
-                            .align_middle_y_of(state.ids.stats[0])
-                            .right_from(state.ids.stats[0], H_PAD)
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(poise_res_diff.1)
-                            .set(state.ids.diffs[0], ui);
+                            );
+                            diff_text(text, poise_res_diff.1, 0)
                         }
 
                         if diff.energy_max() != 0.0 as i32 {
-                            widget::Text::new(&format!(
-                                "{} {}",
-                                &energy_max_diff.0,
-                                diff.energy_max() / 10
-                            ))
-                            .align_middle_y_of(state.ids.stats[1])
-                            .right_from(state.ids.stats[1], H_PAD)
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(energy_max_diff.1)
-                            .set(state.ids.diffs[1], ui);
+                            let text = format!("{} {}", &energy_max_diff.0, diff.energy_max() / 10);
+                            diff_text(text, energy_max_diff.1, 1)
                         }
 
                         if diff.energy_reward() != 0.0_f32 {
-                            widget::Text::new(&format!(
+                            let text = format!(
                                 "{} {}",
                                 &energy_reward_diff.0,
                                 diff.energy_reward() * 10.0
-                            ))
-                            .align_middle_y_of(state.ids.stats[2])
-                            .right_from(state.ids.stats[2], H_PAD)
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(energy_reward_diff.1)
-                            .set(state.ids.diffs[2], ui);
+                            );
+                            diff_text(text, energy_reward_diff.1, 2)
                         }
 
                         if diff.crit_power() != 0.0_f32 {
-                            widget::Text::new(&format!(
-                                "{} {}",
-                                &crit_power_diff.0,
-                                diff.crit_power()
-                            ))
-                            .align_middle_y_of(state.ids.stats[3])
-                            .right_from(state.ids.stats[3], H_PAD)
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(crit_power_diff.1)
-                            .set(state.ids.diffs[3], ui);
+                            let text = format!("{} {}", &crit_power_diff.0, diff.crit_power());
+                            diff_text(text, crit_power_diff.1, 3)
                         }
 
                         if diff.stealth() != 0.0_f32 {
-                            widget::Text::new(&format!("{} {}", &stealth_diff.0, diff.stealth()))
-                                .align_middle_y_of(state.ids.stats[4])
-                                .right_from(state.ids.stats[4], H_PAD)
-                                .graphics_for(id)
-                                .parent(id)
-                                .with_style(self.style.desc)
-                                .color(stealth_diff.1)
-                                .set(state.ids.diffs[4], ui);
+                            let text = format!("{} {}", &stealth_diff.0, diff.stealth());
+                            diff_text(text, stealth_diff.1, 4)
                         }
                     }
                 }
@@ -1094,7 +1048,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         5
                     }
                 },
-                ItemKind::Tool(_) => 5,
+                ItemKind::Tool(_) => 4,
                 ItemKind::Consumable { .. } => 1,
                 ItemKind::ModularComponent { .. } => 1,
                 _ => 0,

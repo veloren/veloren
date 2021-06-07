@@ -73,13 +73,13 @@ pub fn kind_text<'a>(kind: &ItemKind, i18n: &'a Localization) -> Cow<'a, str> {
     }
 }
 
-pub fn material_kind_text<'a>(kind: &MaterialKind, i18n: &'a Localization) -> Cow<'a, str> {
+pub fn material_kind_text<'a>(kind: &MaterialKind, i18n: &'a Localization) -> &'a str {
     match kind {
-        MaterialKind::Metal { .. } => Cow::Borrowed(i18n.get("common.material.metal")),
-        MaterialKind::Wood { .. } => Cow::Borrowed(i18n.get("common.material.wood")),
-        MaterialKind::Stone { .. } => Cow::Borrowed(i18n.get("common.material.stone")),
-        MaterialKind::Cloth { .. } => Cow::Borrowed(i18n.get("common.material.cloth")),
-        MaterialKind::Hide { .. } => Cow::Borrowed(i18n.get("common.material.hide")),
+        MaterialKind::Metal { .. } => i18n.get("common.material.metal"),
+        MaterialKind::Wood { .. } => i18n.get("common.material.wood"),
+        MaterialKind::Stone { .. } => i18n.get("common.material.stone"),
+        MaterialKind::Cloth { .. } => i18n.get("common.material.cloth"),
+        MaterialKind::Hide { .. } => i18n.get("common.material.hide"),
     }
 }
 
@@ -190,7 +190,7 @@ fn armor_kind<'a>(armor: &Armor, i18n: &'a Localization) -> &'a str {
     kind
 }
 
-//Tool
+// Tool
 fn tool_kind<'a>(tool: &Tool, i18n: &'a Localization) -> &'a str {
     let kind = match tool.kind {
         ToolKind::Sword => i18n.get("common.weapons.sword"),
@@ -211,7 +211,7 @@ fn tool_kind<'a>(tool: &Tool, i18n: &'a Localization) -> &'a str {
     kind
 }
 
-// Output the number of hands needed to hold a tool
+/// Output the number of hands needed to hold a tool
 pub fn tool_hands<'a>(tool: &Tool, i18n: &'a Localization) -> &'a str {
     let hands = match tool.hands {
         Hands::One => i18n.get("common.hands.one"),
@@ -229,7 +229,7 @@ fn statblock_desc(stats: &Stats) -> String {
     ) + &format!("Crit chance: {:0.1}%\n\n", stats.crit_chance * 100.0,)
 }
 
-// Compare two type, output a colored character to show comparison
+/// Compare two type, output a colored character to show comparison
 pub fn comparison<T: PartialOrd>(first: T, other: T) -> (&'static str, conrod_core::Color) {
     if first == other {
         ("•", conrod_core::color::GREY)
@@ -240,7 +240,7 @@ pub fn comparison<T: PartialOrd>(first: T, other: T) -> (&'static str, conrod_co
     }
 }
 
-// Output protection as a string
+/// Output protection as a string
 pub fn protec2string(stat: Protection) -> String {
     match stat {
         Protection::Normal(a) => format!("{:.1}", a),
