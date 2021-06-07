@@ -22,7 +22,7 @@
         "hud.settings.buffs_skillbar": "Buffs at Skillbar", // TODO
         "hud.settings.buffs_mmap": "Buffs at Minimap", // TODO
         "hud.settings.toggle_bar_experience": "Visa/dölj erfarenhetsmätare",
-        "hud.settings.scrolling_combat_text": "Rullande stridstext"
+        "hud.settings.scrolling_combat_text": "Rullande stridstext",
         "hud.settings.single_damage_number": "Ett enda skadenummer",
         "hud.settings.cumulated_damage": "Sammanlagd skada",
         "hud.settings.incoming_damage": "Inkommande skada",
@@ -86,7 +86,7 @@
         "hud.settings.lossy_terrain_compression": "Destruktiv komprimering av terräng",
         "hud.settings.resolution": "Upplösning",
         "hud.settings.bit_depth": "Bitdjup",
-        "hud.settings.refresh_rate": "Uppdateringsfrekvens"
+        "hud.settings.refresh_rate": "Uppdateringsfrekvens",
         "hud.settings.lighting_rendering_mode": "Återgivning av ljussättning",
         "hud.settings.lighting_rendering_mode.ashikhmin": "Typ A - Hög",
         "hud.settings.lighting_rendering_mode.blinnphong": "Typ B - Medium",
