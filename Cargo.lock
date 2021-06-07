@@ -2235,8 +2235,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d7afe4a420e3fe79967a00898cc1f4db7c8a49a9333a29f8a4bd76a253d5cd04"
 dependencies = [
  "ahash 0.4.7",
- "rayon",
- "serde",
 ]
 
 [[package]]
@@ -2246,6 +2244,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab5ef0d4909ef3724cc8cce6ccc8572c5c817592e9285f5464f8e86f8bd3726e"
 dependencies = [
  "ahash 0.7.4",
+ "rayon",
+ "serde",
 ]
 
 [[package]]
@@ -4822,12 +4822,12 @@ checksum = "7fdf1b9db47230893d76faad238fd6097fd6d6a9245cd7a4d90dbd639536bbd2"
 
 [[package]]
 name = "shred"
-version = "0.11.1"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e3a9dff29ab65f4b7b4a5a38ca78e73b35eb8ffd7d4b5e5a77fc6936a1735eab"
+checksum = "eb0210289d693217926314867c807e0b7b42f7e23c136adb31f8697f5bf242d3"
 dependencies = [
  "arrayvec",
- "hashbrown 0.9.1",
+ "hashbrown 0.11.2",
  "mopa",
  "rayon",
  "shred-derive",
@@ -4968,11 +4968,11 @@ dependencies = [
 
 [[package]]
 name = "specs"
-version = "0.16.1"
-source = "git+https://github.com/amethyst/specs.git?rev=5a9b71035007be0e3574f35184acac1cd4530496#5a9b71035007be0e3574f35184acac1cd4530496"
+version = "0.16.2"
+source = "git+https://github.com/amethyst/specs.git?rev=f985bec5d456f7b0dd8aae99848f9473c2cd9d46#f985bec5d456f7b0dd8aae99848f9473c2cd9d46"
 dependencies = [
  "crossbeam-queue",
- "hashbrown 0.9.1",
+ "hashbrown 0.11.2",
  "hibitset",
  "log",
  "rayon",
@@ -4986,7 +4986,7 @@ dependencies = [
 [[package]]
 name = "specs-derive"
 version = "0.4.1"
-source = "git+https://github.com/amethyst/specs.git?rev=5a9b71035007be0e3574f35184acac1cd4530496#5a9b71035007be0e3574f35184acac1cd4530496"
+source = "git+https://github.com/amethyst/specs.git?rev=f985bec5d456f7b0dd8aae99848f9473c2cd9d46#f985bec5d456f7b0dd8aae99848f9473c2cd9d46"
 dependencies = [
  "proc-macro2 1.0.27",
  "quote 1.0.9",
@@ -4996,7 +4996,7 @@ dependencies = [
 [[package]]
 name = "specs-idvs"
 version = "0.1.1"
-source = "git+https://gitlab.com/veloren/specs-idvs.git?rev=b65fb220e94f5d3c9bc30074a076149763795556#b65fb220e94f5d3c9bc30074a076149763795556"
+source = "git+https://gitlab.com/veloren/specs-idvs.git?rev=8be2abcddf8f524cb5876e8dd20a7e47cfaf7573#8be2abcddf8f524cb5876e8dd20a7e47cfaf7573"
 dependencies = [
  "specs",
 ]
@@ -5732,7 +5732,7 @@ dependencies = [
  "byteorder",
  "clap",
  "futures-util",
- "hashbrown 0.9.1",
+ "hashbrown 0.11.2",
  "image",
  "num 0.4.0",
  "quinn",
@@ -5768,7 +5768,7 @@ dependencies = [
  "csv",
  "dot_vox",
  "enum-iterator",
- "hashbrown 0.9.1",
+ "hashbrown 0.11.2",
  "indexmap",
  "lazy_static",
  "num-derive",
@@ -5846,7 +5846,7 @@ version = "0.9.0"
 dependencies = [
  "bincode",
  "flate2",
- "hashbrown 0.9.1",
+ "hashbrown 0.11.2",
  "image",
  "num-traits",
  "serde",
@@ -5863,7 +5863,7 @@ name = "veloren-common-state"
 version = "0.9.0"
 dependencies = [
  "bincode",
- "hashbrown 0.9.1",
+ "hashbrown 0.11.2",
  "num_cpus",
  "rayon",
  "scopeguard",
@@ -5885,7 +5885,7 @@ dependencies = [
 name = "veloren-common-systems"
 version = "0.9.0"
 dependencies = [
- "hashbrown 0.9.1",
+ "hashbrown 0.11.2",
  "indexmap",
  "ordered-float 2.5.1",
  "rand 0.8.3",
@@ -5907,7 +5907,7 @@ dependencies = [
  "clap",
  "deunicode",
  "git2",
- "hashbrown 0.9.1",
+ "hashbrown 0.11.2",
  "ron",
  "serde",
  "tracing",
@@ -5998,7 +5998,7 @@ dependencies = [
  "chrono",
  "crossbeam-channel",
  "futures-util",
- "hashbrown 0.9.1",
+ "hashbrown 0.11.2",
  "humantime",
  "itertools 0.10.0",
  "lazy_static",
@@ -6082,7 +6082,7 @@ dependencies = [
  "gilrs",
  "glyph_brush",
  "guillotiere",
- "hashbrown 0.9.1",
+ "hashbrown 0.11.2",
  "iced_native",
  "iced_winit",
  "image",
@@ -6162,7 +6162,7 @@ dependencies = [
  "enum-iterator",
  "flate2",
  "fxhash",
- "hashbrown 0.9.1",
+ "hashbrown 0.11.2",
  "image",
  "itertools 0.10.0",
  "lazy_static",
