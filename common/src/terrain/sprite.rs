@@ -154,6 +154,25 @@ make_case_elim!(
         DungeonChest3 = 0x7F,
         DungeonChest4 = 0x80,
         DungeonChest5 = 0x81,
+        Loom = 0x82,
+        SpinningWheel = 0x83,
+        CrystalHigh = 0x84,
+        Bloodstone = 0x85,
+        Coal = 0x86,
+        Cobalt = 0x87,
+        Copper = 0x88,
+        Iron = 0x89,
+        Tin = 0x8A,
+        Silver = 0x8B,
+        Gold = 0x8C,
+        Cotton = 0x8D,
+        Moonbell = 0x8E,
+        Pyrebloom = 0x8F,
+        TanningRack = 0x90,
+        WildFlax = 0x91,
+        CrystalLow = 0x92,
+        CeilingMushroom = 0x93,
+        Orb = 0x94,
     }
 );
 
@@ -204,6 +223,9 @@ impl SpriteKind {
             SpriteKind::CraftingBench => 1.18,
             SpriteKind::Forge => 2.7,
             SpriteKind::Cauldron => 1.27,
+            SpriteKind::SpinningWheel => 1.6,
+            SpriteKind::TanningRack => 2.2,
+            SpriteKind::Loom => 1.27,
             SpriteKind::Anvil => 1.1,
             SpriteKind::CookingPot => 1.36,
             // TODO: Find suitable heights.
@@ -225,6 +247,15 @@ impl SpriteKind {
             // TODO: Figure out if this should be solid or not.
             SpriteKind::Shelf => 1.0,
             SpriteKind::Lantern => 0.9,
+            SpriteKind::CrystalHigh | SpriteKind::CrystalLow => 1.5,
+            SpriteKind::Bloodstone
+            | SpriteKind::Coal
+            | SpriteKind::Cobalt
+            | SpriteKind::Copper
+            | SpriteKind::Iron
+            | SpriteKind::Tin
+            | SpriteKind::Silver
+            | SpriteKind::Gold => 0.6,
             _ => return None,
         })
     }
@@ -243,7 +274,6 @@ impl SpriteKind {
             SpriteKind::ShortGrass => false,
             SpriteKind::Apple => true,
             SpriteKind::Mushroom => true,
-            SpriteKind::CaveMushroom => true,
             // SpriteKind::Velorite => true,
             // SpriteKind::VeloriteFrag => true,
             SpriteKind::Chest => true,
@@ -264,6 +294,10 @@ impl SpriteKind {
             SpriteKind::ChestBuried => true,
             SpriteKind::Mud => true,
             SpriteKind::Seashells => true,
+            SpriteKind::Cotton => true,
+            SpriteKind::Moonbell => true,
+            SpriteKind::Pyrebloom => true,
+            SpriteKind::WildFlax => true,
             _ => false,
         }
     }
@@ -301,6 +335,14 @@ impl SpriteKind {
             | SpriteKind::DiamondSmall
             | SpriteKind::RubySmall
             | SpriteKind::EmeraldSmall
+            | SpriteKind::Bloodstone
+            | SpriteKind::Coal
+            | SpriteKind::Cobalt
+            | SpriteKind::Copper
+            | SpriteKind::Iron
+            | SpriteKind::Tin
+            | SpriteKind::Silver
+            | SpriteKind::Gold
             | SpriteKind::SapphireSmall => Some(ToolKind::Pick),
             _ => None,
         }
@@ -357,6 +399,9 @@ impl SpriteKind {
                 | SpriteKind::Cauldron
                 | SpriteKind::Anvil
                 | SpriteKind::CookingPot
+                | SpriteKind::SpinningWheel
+                | SpriteKind::TanningRack
+                | SpriteKind::Loom
         )
     }
 }

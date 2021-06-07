@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Iron Chestguard",
+    description: "Sturdy and unyielding, across ages of war.",
+    kind: Armor((
+        kind: Chest("Iron"),
+        stats: (
+            protection: Normal(24.0),
+            poise_resilience: Normal(6.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Common,
+    tags: [
+        Material(Iron),
+    ],
+)

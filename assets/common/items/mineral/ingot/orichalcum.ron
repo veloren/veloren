@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Orichalcum Ingot",
+    description: "An ingot made of refined orichalcum.",
+    kind: Ingredient(
+        kind: "OrichalcumIngot",
+    ),
+    quality: Epic,
+    tags: [MetalIngot],
+)

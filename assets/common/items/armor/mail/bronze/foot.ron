@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Bronze Shoes",
+    description: "'Heavy and dull, but it can take a punch.",
+    kind: Armor((
+        kind: Foot("Bronze"),
+        stats: (
+            protection: Normal(4.0),
+            poise_resilience: Normal(1.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Low,
+    tags: [
+        Material(Bronze),
+    ],
+)

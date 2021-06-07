@@ -1,0 +1,22 @@
+ItemDef(
+    name: "Cooked Meat Sliver",
+    description: "Medium Rare.",
+    kind: Consumable(
+        kind: "BeastSmallCooked",
+        effect: [
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: 15.0,
+                    duration: Some((
+                            secs: 10,
+                            nanos: 0,
+                        )),
+                    ),
+                cat_ids: [Natural],
+            )),
+        ]
+    ),
+    quality: Common,
+    tags: [Food],
+)

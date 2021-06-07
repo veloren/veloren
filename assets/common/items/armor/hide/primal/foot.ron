@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Primal Boots",
+    description: "Smithed from hide tougher than steel.",
+    kind: Armor((
+        kind: Foot("Primal"),
+        stats: (
+            protection: Normal(12.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.167,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Plate),
+    ],
+)

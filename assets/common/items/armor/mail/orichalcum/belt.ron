@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Orichalcum Belt",
+    description: "An ancient alloy. Myths remain of heroes who wore this metal.",
+    kind: Armor((
+        kind: Belt("Orichalcum"),
+        stats: (
+            protection: Normal(12.0),
+            poise_resilience: Normal(3.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Legendary,
+    tags: [
+        Material(Orichalcum),
+    ],
+)

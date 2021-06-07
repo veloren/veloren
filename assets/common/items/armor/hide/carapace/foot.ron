@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Carapace Treads",
+    description: "Shell that once shielded a beast.",
+    kind: Armor((
+        kind: Foot("Carapace"),
+        stats: (
+            protection: Normal(10.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.133,
+            stealth: 0.0,
+        ),
+    )),
+    quality: High,
+    tags: [
+        Material(Carapace),
+    ],
+)

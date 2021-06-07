@@ -6,9 +6,8 @@ use specs_idvs::IdvStorage;
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Energy {
     current: u32,
-    maximum: u32,
     base_max: u32,
-    last_max: u32,
+    maximum: u32,
     pub regen_rate: f32,
     pub last_change: Option<(i32, f64, EnergySource)>,
 }
@@ -45,13 +44,14 @@ impl Energy {
             current: 0,
             maximum: 0,
             base_max: 0,
-            last_max: 0,
             regen_rate: 0.0,
             last_change: None,
         }
     }
 
     pub fn current(&self) -> u32 { self.current }
+
+    pub fn base_max(&self) -> u32 { self.base_max }
 
     pub fn maximum(&self) -> u32 { self.maximum }
 
@@ -66,12 +66,18 @@ impl Energy {
         self.last_change = Some((change.amount, 0.0, change.source));
     }
 
-    // This function changes the modified max energy value, not the base energy
-    // value. The modified energy value takes into account buffs and other temporary
-    // changes to max energy.
+    /// This function changes the modified max energy value, not the base energy
+    /// value. The modified energy value takes into account buffs and other
+    /// temporary changes to max energy.
     pub fn set_maximum(&mut self, amount: u32) {
         self.maximum = amount;
         self.current = self.current.min(self.maximum);
+    }
+
+    /// Scales the temporary max energy by a modifier.
+    pub fn scale_maximum(&mut self, scaled: f32) {
+        let scaled_max = (self.base_max as f32 * scaled) as u32;
+        self.set_maximum(scaled_max);
     }
 
     pub fn try_change_by(
@@ -92,33 +98,23 @@ impl Energy {
         }
     }
 
-    //sets last_max to base HP, then if the current is more than your base_max
-    // it'll set it to base max
-    pub fn last_set(&mut self) { self.last_max = self.maximum }
-
     pub fn update_max_energy(&mut self, body: Option<Body>, level: u16) {
+        const ENERGY_PER_LEVEL: u32 = 50;
         if let Some(body) = body {
-            self.set_base_max(body.base_energy() + 50 * level as u32);
-            self.set_maximum(body.base_energy() + 50 * level as u32);
+            // Checks the current difference between maximum and base max
+            let current_difference = self.maximum as i32 - self.base_max as i32;
+            // Sets base max to new value based off of new level provided
+            self.base_max = body.base_energy() + ENERGY_PER_LEVEL * level as u32;
+            // Calculates new maximum by adding difference to new base max
+            let new_maximum = (self.base_max as i32 + current_difference).max(0) as u32;
+            // Sets maximum to calculated value
+            self.set_maximum(new_maximum);
+            // Awards energy
             self.change_by(EnergyChange {
-                amount: 50,
+                amount: ENERGY_PER_LEVEL as i32,
                 source: EnergySource::LevelUp,
             });
         }
-    }
-
-    pub fn reset_max(&mut self) {
-        self.maximum = self.base_max;
-        if self.current > self.last_max {
-            self.current = self.last_max;
-            self.last_max = self.base_max;
-        }
-    }
-
-    // This is private because max energy is based on the level
-    fn set_base_max(&mut self, amount: u32) {
-        self.base_max = amount;
-        self.current = self.current.min(self.maximum);
     }
 }
 

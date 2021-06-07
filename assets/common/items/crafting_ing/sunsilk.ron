@@ -1,9 +1,0 @@
-ItemDef(
-    name: "Sunsilk",
-    description: "A supernaturally strong texile.",
-    kind: Ingredient(
-        kind: "Sunsilk",
-    ),
-    quality: Legendary,
-    tags: [],
-)

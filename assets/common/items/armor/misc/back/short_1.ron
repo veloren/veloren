@@ -5,9 +5,15 @@ ItemDef(
         kind: Back("Short1"),
         stats: (
             protection: Normal(0.1),
-            poise_resilience: Normal(0.2),
+            poise_resilience: Normal(0.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.0,
+            stealth: 0.0,
         ),
     )),
     quality: Common,
-    tags: [ClothItem],
+    tags: [
+        Material(Linen),
+    ],
 )

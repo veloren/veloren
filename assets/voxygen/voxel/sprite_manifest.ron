@@ -41,7 +41,6 @@ Window4: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Cacti
 LargeCactus: Some((
     variations: [
@@ -108,7 +107,6 @@ ShortFlatCactus: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Flowers
 BlueFlower: Some((
     variations: [
@@ -325,8 +323,6 @@ Sunflower: Some((
     ],
     wind_sway: 0.1,
 )),
-
-
 // Grass
 LongGrass: Some((
     variations: [
@@ -448,7 +444,6 @@ LargeGrass: Some((
     ],
     wind_sway: 0.5,
 )),
-
 // Fruit
 Apple: Some((
     variations: [
@@ -460,7 +455,6 @@ Apple: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Mushrooms
 Mushroom: Some((
     variations: [
@@ -522,44 +516,138 @@ Mushroom: Some((
     ],
     wind_sway: 0.1,
 )),
-
 // Cave Mushrooms
 CaveMushroom: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.mushrooms.mushroom-11",
+            model: "voxygen.voxel.sprite.cave.mushroom-0",
             offset: (-8.0, -8.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.mushrooms.mushroom-12",
+            model: "voxygen.voxel.sprite.cave.mushroom-1",
             offset: (-5.0, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.mushrooms.mushroom-13",
+            model: "voxygen.voxel.sprite.cave.mushroom-2",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.mushrooms.mushroom-14",
+            model: "voxygen.voxel.sprite.cave.mushroom-3",
             offset: (-2.5, -2.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.mushrooms.mushroom-15",
+            model: "voxygen.voxel.sprite.cave.mushroom-4",
             offset: (-1.5, -1.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.mushrooms.mushroom-16",
+            model: "voxygen.voxel.sprite.cave.mushroom-5",
             offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.mushroom-6",
+            offset: (-8.5, -8.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.mushroom-7",
+            offset: (-11.5, -11.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.mushroom-8",
+            offset: (-12.5, -15.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
     wind_sway: 0.0,
 )),
-
+// Ceiling Mushrooms
+CeilingMushroom: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.mushroom-0",
+            offset: (-8.0, -8.0, -22.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.mushroom-1",
+            offset: (-8.5, -8.5, -9.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.mushroom-2",
+            offset: (-11.5, -11.5, -17.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.mold-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.mold-1",
+            offset: (-5.5, -5.5, -7.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.mold-2",
+            offset: (-5.5, -5.5, -7.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.mold-3",
+            offset: (-5.5, -5.5, 2.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.mold-4",
+            offset: (-2.0, -2.0, -49.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.mold-5",
+            offset: (-2.0, -2.0, -79.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.mold-6",
+            offset: (-2.0, -2.0, -79.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Orb: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.orb-0",
+            offset: (-8.0, -8.0, -79.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.orb-1",
+            offset: (-8.0, -8.0, -20.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.orb-2",
+            offset: (-8.0, -8.0, -65.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.orb-3",
+            offset: (-8.0, -8.0, -44.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 // Lianas,
 Liana: Some((
     variations: [
@@ -574,9 +662,8 @@ Liana: Some((
             lod_axes: (0.0, 0.0, 0.5),
         ),
     ],
-    wind_sway: 0.05,
+    wind_sway: 0.0,
 )),
-
 // Velorite
 Velorite: Some((
     variations: [
@@ -643,7 +730,6 @@ VeloriteFrag: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Chests
 Chest: Some((
     variations: [
@@ -670,7 +756,6 @@ Chest: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Dungeon Chests
 DungeonChest0: Some((
     variations: [
@@ -732,7 +817,6 @@ DungeonChest5: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Welwitch
 Welwitch: Some((
     variations: [
@@ -744,7 +828,6 @@ Welwitch: Some((
     ],
     wind_sway: 0.1,
 )),
-
 // Pumpkins
 Pumpkin: Some((
     variations: [
@@ -786,7 +869,6 @@ Pumpkin: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Lingonberries
 LingonBerry: Some((
     variations: [
@@ -808,7 +890,6 @@ LingonBerry: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Leafy Plants
 LeafyPlant: Some((
     variations: [
@@ -865,7 +946,6 @@ LeafyPlant: Some((
     ],
     wind_sway: 0.4,
 )),
-
 // Ferns
 Fern: Some((
     variations: [
@@ -937,7 +1017,6 @@ Fern: Some((
     ],
     wind_sway: 0.4,
 )),
-
 // Savanna Flora
 SavannaGrass: Some((
     variations: [
@@ -1079,7 +1158,6 @@ SavannaBush: Some((
     ],
     wind_sway: 0.1,
 )),
-
 // Dead Bush
 DeadBush: Some((
     variations: [
@@ -1106,7 +1184,6 @@ DeadBush: Some((
     ],
     wind_sway: 0.1,
 )),
-
 // Blueberries
 // NOTE: Why are these commented out?
 Blueberry: None/* (
@@ -1159,7 +1236,6 @@ Blueberry: None/* (
     ],
     wind_sway: 0.0,
 )*/,
-
 // Ember
 Ember: Some((
     variations: [
@@ -1171,7 +1247,6 @@ Ember: Some((
     ],
     wind_sway: 0.8,
 )),
-
 // Corn
 Corn: Some((
     variations: [
@@ -1208,7 +1283,6 @@ Corn: Some((
     ],
     wind_sway: 0.4,
 )),
-
 // Yellow Wheat
 WheatYellow: Some((
     variations: [
@@ -1265,7 +1339,6 @@ WheatYellow: Some((
     ],
     wind_sway: 0.4,
 )),
-
 // Green Wheat
 WheatGreen: Some((
     variations: [
@@ -1322,7 +1395,6 @@ WheatGreen: Some((
     ],
     wind_sway: 0.4,
 )),
-
 // Cabbage
 Cabbage: Some((
     variations: [
@@ -1344,7 +1416,6 @@ Cabbage: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Flax
 Flax: Some((
     variations: [
@@ -1381,7 +1452,6 @@ Flax: Some((
     ],
     wind_sway: 0.4,
 )),
-
 // Carrot
 Carrot: Some((
     variations: [
@@ -1418,7 +1488,6 @@ Carrot: Some((
     ],
     wind_sway: 0.1,
 )),
-
 // Tomato
 Tomato: Some((
     variations: [
@@ -1450,7 +1519,6 @@ Tomato: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Radish
 Radish: Some((
     variations: [
@@ -1482,7 +1550,6 @@ Radish: Some((
     ],
     wind_sway: 0.1,
 )),
-
 // Turnip
 Turnip: Some((
     variations: [
@@ -1519,7 +1586,6 @@ Turnip: Some((
     ],
     wind_sway: 0.1,
 )),
-
 // Coconut
 Coconut: Some((
     variations: [
@@ -1531,7 +1597,6 @@ Coconut: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Scarecrow
 Scarecrow: Some((
     variations: [
@@ -1543,7 +1608,6 @@ Scarecrow: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Street Light
 StreetLamp: Some((
     variations: [
@@ -1566,7 +1630,6 @@ StreetLampTall: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Door
 Door: Some((
     variations: [
@@ -1578,7 +1641,6 @@ Door: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Bed
 Bed: Some((
     variations: [
@@ -1590,7 +1652,6 @@ Bed: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Bench
 Bench: Some((
     variations: [
@@ -1602,7 +1663,6 @@ Bench: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Chair
 ChairSingle: Some((
     variations: [
@@ -1634,7 +1694,6 @@ ChairDouble: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // CoatRack
 CoatRack: Some((
     variations: [
@@ -1651,7 +1710,6 @@ CoatRack: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Crate
 Crate: Some((
     variations: [
@@ -1693,7 +1751,6 @@ Crate: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // DrawerLarge
 DrawerLarge: Some((
     variations: [
@@ -1710,7 +1767,6 @@ DrawerLarge: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // DrawerMedium
 DrawerMedium: Some((
     variations: [
@@ -1727,7 +1783,6 @@ DrawerMedium: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // DrawerSmall
 DrawerSmall: Some((
     variations: [
@@ -1744,7 +1799,6 @@ DrawerSmall: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // DungeonWallDecor
 DungeonWallDecor: Some((
     variations: [
@@ -1801,7 +1855,6 @@ DungeonWallDecor: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // HangingBasket
 HangingBasket: Some((
     variations: [
@@ -1818,7 +1871,6 @@ HangingBasket: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // HangingSign
 HangingSign: Some((
     variations: [
@@ -1830,7 +1882,6 @@ HangingSign: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // WallLamp
 WallLamp: Some((
     variations: [
@@ -1842,7 +1893,6 @@ WallLamp: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // WallLampSmall
 WallLampSmall: Some((
     variations: [
@@ -1854,7 +1904,6 @@ WallLampSmall: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // WallSconce
 WallSconce: Some((
     variations: [
@@ -1866,7 +1915,6 @@ WallSconce: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Planter
 Planter: Some((
     variations: [
@@ -1908,7 +1956,6 @@ Planter: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Shelf
 Shelf: Some((
     variations: [
@@ -1925,7 +1972,6 @@ Shelf: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // TableSide
 TableSide: Some((
     variations: [
@@ -1942,7 +1988,6 @@ TableSide: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // TableDining
 TableDining: Some((
     variations: [
@@ -1959,7 +2004,6 @@ TableDining: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // TableDouble
 TableDouble: Some((
     variations: [
@@ -1972,7 +2016,6 @@ TableDouble: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // WardrobeDouble
 WardrobeDouble: Some((
     variations: [
@@ -1989,7 +2032,6 @@ WardrobeDouble: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // WardrobeSingle
 WardrobeSingle: Some((
     variations: [
@@ -2006,8 +2048,6 @@ WardrobeSingle: Some((
     ],
     wind_sway: 0.0,
 )),
-
-
 // Pot
 Pot: Some((
     variations: [
@@ -2024,7 +2064,6 @@ Pot: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Stones
 Stones: Some((
     variations: [
@@ -2046,7 +2085,6 @@ Stones: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Twigs
 Twigs: Some((
     variations: [
@@ -2068,7 +2106,6 @@ Twigs: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Drop Gate Parts
 DropGate: Some((
     variations: [
@@ -2090,7 +2127,6 @@ DropGateBottom: Some((
     ],
     wind_sway: 0.0,
 )),
-
 // Snow covered Grass
 GrassSnow: Some((
     variations: [
@@ -2147,7 +2183,6 @@ GrassSnow: Some((
     ],
     wind_sway: 0.2,
 )),
-
 // Reed
 Reed: Some((
     variations: [
@@ -2179,7 +2214,6 @@ Reed: Some((
     ],
     wind_sway: 0.3,
 )),
-
 // Beehive
 Beehive: Some((
     variations: [
@@ -2774,7 +2808,7 @@ Mud: Some((
 Amethyst: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.amethyst-0",
+            model: "voxygen.voxel.sprite.mineral.gem.amethyst-0",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2785,7 +2819,7 @@ Amethyst: Some((
 Ruby: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.ruby-0",
+            model: "voxygen.voxel.sprite.mineral.gem.ruby-0",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2796,7 +2830,7 @@ Ruby: Some((
 Diamond: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.diamond-0",
+            model: "voxygen.voxel.sprite.mineral.gem.diamond-0",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2807,7 +2841,7 @@ Diamond: Some((
 Sapphire: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.sapphire-0",
+            model: "voxygen.voxel.sprite.mineral.gem.sapphire-0",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2818,7 +2852,7 @@ Sapphire: Some((
 Emerald: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.emerald-0",
+            model: "voxygen.voxel.sprite.mineral.gem.emerald-0",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2829,7 +2863,7 @@ Emerald: Some((
 Topaz: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.topaz-0",
+            model: "voxygen.voxel.sprite.mineral.gem.topaz-0",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2840,7 +2874,7 @@ Topaz: Some((
 AmethystSmall: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.amethyst_S-0",
+            model: "voxygen.voxel.sprite.mineral.gem.amethyst_S-0",
             offset: (-3.5, -3.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2851,7 +2885,7 @@ AmethystSmall: Some((
 TopazSmall: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.topaz_S-0",
+            model: "voxygen.voxel.sprite.mineral.gem.topaz_S-0",
             offset: (-3.5, -3.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2862,7 +2896,7 @@ TopazSmall: Some((
 RubySmall: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.ruby_S-0",
+            model: "voxygen.voxel.sprite.mineral.gem.ruby_S-0",
             offset: (-3.5, -3.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2873,7 +2907,7 @@ RubySmall: Some((
 EmeraldSmall: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.emerald_S-0",
+            model: "voxygen.voxel.sprite.mineral.gem.emerald_S-0",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2884,7 +2918,7 @@ EmeraldSmall: Some((
 DiamondSmall: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.diamond_S-0",
+            model: "voxygen.voxel.sprite.mineral.gem.diamond_S-0",
             offset: (-3.5, -3.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2895,14 +2929,228 @@ DiamondSmall: Some((
 SapphireSmall: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.gem.sapphire_S-0",
+            model: "voxygen.voxel.sprite.mineral.gem.sapphire_S-0",
             offset: (-3.5, -3.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
     ],
     wind_sway: 0.0,
 )),
-
+Bloodstone: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.bloodstone",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Coal: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.coal",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Cobalt: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.cobalt",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Copper: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.copper",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Iron: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.iron",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Tin: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.tin",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Silver: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.silver",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Gold: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.gold",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+CrystalHigh: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.ceiling.green-0",
+            offset: (-8.5, -9.0, -7.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.ceiling.green-1",
+            offset: (-8.0, -8.0, -10.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.ceiling.green-2",
+            offset: (-11.5, -12.5, -9.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        )
+],
+wind_sway: 0.0,
+)),
+CrystalLow: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.floor.blue-0",
+            offset: (-8.5, -9.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.floor.blue-1",
+            offset: (-8.0, -8.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.floor.blue-2",
+            offset: (-11.5, -12.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.floor.purple-0",
+            offset: (-8.5, -9.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.floor.purple-1",
+            offset: (-8.0, -8.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.floor.purple-2",
+            offset: (-11.5, -12.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.floor.green-0",
+            offset: (-8.5, -9.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.floor.green-1",
+            offset: (-8.0, -8.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mineral.deposit.crystal.floor.green-2",
+            offset: (-11.5, -12.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        )
+],
+wind_sway: 0.0,
+)),
+Cotton: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.flowers.cotton",
+            offset: (-4.5, -4.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.4,
+)),
+Moonbell: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.flowers.moonbell",
+            offset: (-3.5, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Pyrebloom: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.flowers.pyrebloom",
+            offset: (-5.5, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+WildFlax: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.flax.flax-0",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.7),
+        ),
+        (
+            model: "voxygen.voxel.sprite.flax.flax-1",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.7),
+        ),
+        (
+            model: "voxygen.voxel.sprite.flax.flax-2",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.7),
+        ),
+        (
+            model: "voxygen.voxel.sprite.flax.flax-3",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.7),
+        ),
+        (
+            model: "voxygen.voxel.sprite.flax.flax-4",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.7),
+        ),
+        (
+            model: "voxygen.voxel.sprite.flax.flax-5",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.7),
+        ),
+    ],
+    wind_sway: 0.4,
+)),
 // Lantern
 Lantern: Some((
     variations: [
@@ -2940,8 +3188,38 @@ Cauldron: Some((
 Forge: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.forge.forge-0",
-            offset: (-20.0, -20.0, 0.0),
+            model: "voxygen.voxel.object.forge",
+            offset: (-6.5, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Loom: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.object.loom",
+            offset: (-6.0, -4.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+SpinningWheel: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.object.spinning_wheel",
+            offset: (-7.5, -5.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+TanningRack: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.object.tanning_rack",
+            offset: (-7.5, -4.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
     ],

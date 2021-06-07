@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Sunsilk Tunic",
+    description: "It radiates with the sun's power, and the grace to harness it.",
+    kind: Armor((
+        kind: Chest("Sunsilk"),
+        stats: (
+            protection: Normal(90.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 300,
+            energy_reward: 0.3,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Legendary,
+    tags: [
+        Material(Sunsilk),
+    ],
+)

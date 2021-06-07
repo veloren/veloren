@@ -112,9 +112,61 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                                 Protection::Normal(0.0)
                             };
 
+                            let max_energy =
+                                if let Some(max_energy_raw) = record.get(headers["Max Energy"]) {
+                                    max_energy_raw.parse().unwrap()
+                                } else {
+                                    eprintln!(
+                                        "Could not unwrap max energy value for {:?}",
+                                        item.item_definition_id()
+                                    );
+                                    0
+                                };
+
+                            let energy_reward = if let Some(energy_reward_raw) =
+                                record.get(headers["Energy Reward"])
+                            {
+                                energy_reward_raw.parse().unwrap()
+                            } else {
+                                eprintln!(
+                                    "Could not unwrap energy recovery value for {:?}",
+                                    item.item_definition_id()
+                                );
+                                0.0
+                            };
+
+                            let crit_power =
+                                if let Some(crit_power_raw) = record.get(headers["Crit Power"]) {
+                                    crit_power_raw.parse().unwrap()
+                                } else {
+                                    eprintln!(
+                                        "Could not unwrap crit power value for {:?}",
+                                        item.item_definition_id()
+                                    );
+                                    0.0
+                                };
+
+                            let stealth = if let Some(stealth_raw) = record.get(headers["Stealth"])
+                            {
+                                stealth_raw.parse().unwrap()
+                            } else {
+                                eprintln!(
+                                    "Could not unwrap stealth value for {:?}",
+                                    item.item_definition_id()
+                                );
+                                0.0
+                            };
+
                             let kind = armor.kind.clone();
-                            let armor =
-                                comp::item::armor::Armor::new(kind, protection, poise_resilience);
+                            let armor_stats = comp::item::armor::Stats::new(
+                                protection,
+                                poise_resilience,
+                                max_energy,
+                                energy_reward,
+                                crit_power,
+                                stealth,
+                            );
+                            let armor = comp::item::armor::Armor::new(kind, armor_stats);
                             let quality = if let Some(quality_raw) = record.get(headers["Quality"])
                             {
                                 match quality_raw {

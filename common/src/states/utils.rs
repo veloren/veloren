@@ -1,4 +1,5 @@
 use crate::{
+    combat,
     comp::{
         biped_large, biped_small,
         inventory::slot::EquipSlot,
@@ -730,22 +731,30 @@ pub fn get_hands(data: &JoinData) -> (Option<Hands>, Option<Hands>) {
     )
 }
 
+/// Returns (critical chance, critical multiplier) which is calculated from
+/// equipped weapon and equipped armor respectively
 pub fn get_crit_data(data: &JoinData, ai: AbilityInfo) -> (f32, f32) {
-    const DEFAULT_CRIT_DATA: (f32, f32) = (0.5, 1.3);
-    use HandInfo::*;
-    let slot = match ai.hand {
-        Some(TwoHanded) | Some(MainHand) => EquipSlot::ActiveMainhand,
-        Some(OffHand) => EquipSlot::ActiveOffhand,
-        None => return DEFAULT_CRIT_DATA,
-    };
-    if let Some(item) = data.inventory.equipped(slot) {
-        if let ItemKind::Tool(tool) = item.kind() {
-            let crit_chance = tool.base_crit_chance(data.msm, item.components());
-            let crit_mult = tool.base_crit_mult(data.msm, item.components());
-            return (crit_chance, crit_mult);
-        }
-    }
-    DEFAULT_CRIT_DATA
+    const DEFAULT_CRIT_CHANCE: f32 = 0.1;
+
+    let crit_chance = ai
+        .hand
+        .map(|hand| match hand {
+            HandInfo::TwoHanded | HandInfo::MainHand => EquipSlot::ActiveMainhand,
+            HandInfo::OffHand => EquipSlot::ActiveOffhand,
+        })
+        .and_then(|slot| data.inventory.equipped(slot))
+        .and_then(|item| {
+            if let ItemKind::Tool(tool) = item.kind() {
+                Some(tool.base_crit_chance(data.msm, item.components()))
+            } else {
+                None
+            }
+        })
+        .unwrap_or(DEFAULT_CRIT_CHANCE);
+
+    let crit_mult = combat::compute_crit_mult(Some(data.inventory));
+
+    (crit_chance, crit_mult)
 }
 
 pub fn handle_state_interrupt(data: &JoinData, update: &mut StateUpdate, attacks_interrupt: bool) {

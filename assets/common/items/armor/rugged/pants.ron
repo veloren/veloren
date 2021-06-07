@@ -1,13 +1,19 @@
 ItemDef(
-    name: "Rugged Commoner\'s Pants",
+    name: "Rugged Commoner's Pants",
     description: "They remind you of the old days.",
     kind: Armor((
         kind: Pants("Rugged"),
         stats: (
             protection: Normal(1.0),
-            poise_resilience: Normal(1.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.0,
+            stealth: 0.0,
         ),
     )),
     quality: Low,
-    tags: [ClothItem],
+    tags: [
+        Material(Linen),
+    ],
 )

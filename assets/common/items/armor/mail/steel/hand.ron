@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Steel Gauntlets",
+    description: "The metal alloy provides better protection and lighter weight, a quite comfortable gauntlet.",
+    kind: Armor((
+        kind: Hand("Steel"),
+        stats: (
+            protection: Normal(12.0),
+            poise_resilience: Normal(3.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Moderate,
+    tags: [
+        Material(Steel),
+    ],
+)

@@ -1,9 +1,0 @@
-ItemDef(
-    name: "Cloth Scraps",
-    description: "Looted from humanoids and their houses.",
-    kind: Ingredient(
-        kind: "ClothScraps",
-    ),
-    quality: Common,
-    tags: [BaseMaterial],
-)

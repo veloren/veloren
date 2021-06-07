@@ -228,6 +228,9 @@ pub fn default_main_tool(body: &Body) -> Option<Item> {
             quadruped_low::Species::Deadwood => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadlowbeam",
             )),
+            quadruped_low::Species::Basilisk => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.basilisk",
+            )),
             _ => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadlowbasic",
             )),
@@ -846,7 +849,7 @@ mod tests {
             // Exotic
             "common.items.npc_weapons.unique.beast_claws", // Natural
             "common.items.weapons.tool.rake",              // Farming
-            "common.items.tool.pick",                      // Pick
+            "common.items.tool.pickaxe_stone",             // Pick
             "common.items.weapons.empty.empty",            // Empty
         ];
 

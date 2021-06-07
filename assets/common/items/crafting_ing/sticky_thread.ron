@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Sticky Thread",
+    description: "A messy spider extract, but a tailor may have use for it.",
+    kind: Ingredient(
+        kind: "StickyThread",
+    ),
+    quality: Common,
+    tags: [],
+)

@@ -1,5 +1,6 @@
 [
     (1.0, LootTable("common.loot_tables.humanoids")),
-    (1.0, LootTable("common.loot_tables.armor.swift")),
+    (1.0, LootTable("common.loot_tables.armor.leather")),
     (2.0, LootTable("common.loot_tables.weapons.tier-1")),
+    (1.5, Item("common.items.crafting_ing.sticky_thread")),
 ]

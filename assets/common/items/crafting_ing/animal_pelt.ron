@@ -1,9 +1,0 @@
-ItemDef(
-    name: "Animal Pelt",
-    description: "A pelt from an animal. Becomes leather.",
-    kind: Ingredient(
-        kind: "AnimalPelt",
-    ),
-    quality: Common,
-    tags: [],
-)

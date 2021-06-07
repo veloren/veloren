@@ -1,8 +1,9 @@
 use common::{
+    combat,
     comp::{
         self,
         skills::{GeneralSkill, Skill},
-        Body, CharacterState, Combo, Energy, EnergyChange, EnergySource, Health, Poise,
+        Body, CharacterState, Combo, Energy, EnergyChange, EnergySource, Health, Inventory, Poise,
         PoiseChange, PoiseSource, Pos, SkillSet, Stats,
     },
     event::{EventBus, ServerEvent},
@@ -30,6 +31,7 @@ pub struct ReadData<'a> {
     uids: ReadStorage<'a, Uid>,
     bodies: ReadStorage<'a, Body>,
     char_states: ReadStorage<'a, CharacterState>,
+    inventories: ReadStorage<'a, Inventory>,
 }
 
 /// This system kills players, levels them up, and regenerates energy.
@@ -84,13 +86,15 @@ impl<'a> System<'a> for Sys {
         poises.set_event_emission(true);
 
         // Update stats
-        for (entity, uid, stats, mut skill_set, mut health, pos) in (
+        for (entity, uid, stats, mut skill_set, mut health, pos, mut energy, inventory) in (
             &read_data.entities,
             &read_data.uids,
             &stats,
             &mut skill_sets.restrict_mut(),
             &mut healths.restrict_mut(),
             &read_data.positions,
+            &mut energies.restrict_mut(),
+            read_data.inventories.maybe(),
         )
             .join()
         {
@@ -121,6 +125,27 @@ impl<'a> System<'a> for Sys {
             if update_max_hp {
                 let mut health = health.get_mut_unchecked();
                 health.scale_maximum(stat.max_health_modifier);
+            }
+
+            let (change_energy, energy_scaling) = {
+                let energy = energy.get_unchecked();
+                // Calculates energy scaling from stats and inventory
+                let new_energy_scaling =
+                    combat::compute_max_energy_mod(energy, inventory) + stat.max_energy_modifier;
+                let current_energy_scaling = energy.maximum() as f32 / energy.base_max() as f32;
+                // Only changes energy if new modifier different from old modifer
+                // TODO: Look into using wider threshold incase floating point imprecision makes
+                // this always true
+                (
+                    (current_energy_scaling - new_energy_scaling).abs() > f32::EPSILON,
+                    new_energy_scaling,
+                )
+            };
+
+            // If modifier sufficiently different, mutably access energy
+            if change_energy {
+                let mut energy = energy.get_mut_unchecked();
+                energy.scale_maximum(energy_scaling);
             }
 
             let skillset = skill_set.get_unchecked();

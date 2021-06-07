@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Linen Sash",
+    description: "Roughly stitched, but it seems to hold.",
+    kind: Armor((
+        kind: Belt("Linen"),
+        stats: (
+            protection: Normal(1.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 8,
+            energy_reward: 0.009,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Low,
+    tags: [
+        Material(Linen),
+    ],
+)

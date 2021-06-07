@@ -1,0 +1,15 @@
+ItemDef(
+    name: "Any leather",
+    description: "Leathers tanned from hides.",
+    kind: TagExamples(
+        item_ids: [
+            "common.items.crafting_ing.leather.rigid_leather",
+            "common.items.crafting_ing.leather.thick_leather",
+            "common.items.crafting_ing.leather.simple_leather",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)
+
+

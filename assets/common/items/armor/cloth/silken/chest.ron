@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Silken Robe",
+    description: "Weaved with care by a skilled tailor.",
+    kind: Armor((
+        kind: Chest("Silken"),
+        stats: (
+            protection: Normal(14.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 149,
+            energy_reward: 0.15,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Moderate,
+    tags: [
+        Material(Silk),
+    ],
+)

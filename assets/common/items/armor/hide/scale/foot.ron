@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Scale Sabatons",
+    description: "Each embedded scale provides protection.",
+    kind: Armor((
+        kind: Foot("Scale"),
+        stats: (
+            protection: Normal(7.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.1,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Moderate,
+    tags: [
+        Material(Scale),
+    ],
+)

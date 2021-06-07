@@ -97,6 +97,12 @@ Le client est-il à jour?"#,
         "common.stats.armor": "Armure",
         "common.stats.poise_res": "Res Impact",
         "common.stats.slots": "Emplacements",
+
+        "common.material.metal": "Metal",
+        "common.material.wood": "Bois",
+        "common.material.stone": "Pierre",
+        "common.material.cloth": "Tissu",
+        "common.material.hide": "Peau",
     },
 
 

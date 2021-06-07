@@ -1,8 +1,0 @@
-[
-    (1.0, Item("common.items.armor.steel.belt")),
-    (1.0, Item("common.items.armor.steel.chest")),
-    (1.0, Item("common.items.armor.steel.foot")),
-    (1.0, Item("common.items.armor.steel.hand")),
-    (1.0, Item("common.items.armor.steel.pants")),
-    (1.0, Item("common.items.armor.steel.shoulder")),
-]

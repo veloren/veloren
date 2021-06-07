@@ -203,7 +203,7 @@ impl Poise {
             .equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &item.kind() {
-                    Some(armor.get_poise_resilience())
+                    Some(armor.poise_resilience())
                 } else {
                     None
                 }

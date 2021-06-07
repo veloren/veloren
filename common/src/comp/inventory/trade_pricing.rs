@@ -443,7 +443,7 @@ impl TradePricing {
         }
 
         printvec("Armor", &self.armor, |i, p| match &i.kind {
-            ItemKind::Armor(a) => match a.get_protection() {
+            ItemKind::Armor(a) => match a.protection() {
                 armor::Protection::Invincible => "Invincible".into(),
                 armor::Protection::Normal(x) => format!("{:.4} prot/val", x * p),
             },

@@ -2,7 +2,7 @@ use crate::{
     client::Client,
     comp::{
         agent::{Sound, SoundKind},
-        biped_large, quadruped_low, quadruped_medium, quadruped_small,
+        biped_large, bird_large, quadruped_low, quadruped_medium, quadruped_small,
         skills::SkillGroupKind,
         theropod, PhysicsState,
     },
@@ -358,17 +358,72 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         quadruped_small::Species::Dodarock => {
                             "common.loot_tables.creature.quad_small.dodarock"
                         },
-                        _ => "common.loot_tables.creature.quad_small.default",
+                        quadruped_small::Species::Truffler | quadruped_small::Species::Fungome => {
+                            "common.loot_tables.creature.quad_small.mushroom"
+                        },
+                        quadruped_small::Species::Sheep => {
+                            "common.loot_tables.creature.quad_small.sheep"
+                        },
+                        quadruped_small::Species::Skunk
+                        | quadruped_small::Species::Quokka
+                        | quadruped_small::Species::Beaver
+                        | quadruped_small::Species::Jackalope
+                        | quadruped_small::Species::Hare => {
+                            "common.loot_tables.creature.quad_small.fur"
+                        },
+                        quadruped_small::Species::Frog
+                        | quadruped_small::Species::Axolotl
+                        | quadruped_small::Species::Gecko
+                        | quadruped_small::Species::Turtle => {
+                            "common.loot_tables.creature.quad_small.ooze"
+                        },
+                        _ => "common.loot_tables.creature.quad_small.generic",
                     }
                 },
                 Some(Body::QuadrupedMedium(quadruped_medium)) => match quadruped_medium.species {
                     quadruped_medium::Species::Frostfang | quadruped_medium::Species::Roshwalr => {
                         "common.loot_tables.creature.quad_medium.ice"
                     },
-                    _ => "common.loot_tables.creature.quad_medium.default",
+                    quadruped_medium::Species::Catoblepas => {
+                        "common.loot_tables.creature.quad_medium.catoblepas"
+                    },
+                    quadruped_medium::Species::Bear
+                    | quadruped_medium::Species::Snowleopard
+                    | quadruped_medium::Species::Tiger
+                    | quadruped_medium::Species::Lion => {
+                        "common.loot_tables.creature.quad_medium.clawed"
+                    },
+                    quadruped_medium::Species::Tarasque
+                    | quadruped_medium::Species::Bonerattler => {
+                        "common.loot_tables.creature.quad_medium.carapace"
+                    },
+                    quadruped_medium::Species::Dreadhorn => {
+                        "common.loot_tables.creature.quad_medium.dreadhorn"
+                    },
+                    quadruped_medium::Species::Mouflon
+                    | quadruped_medium::Species::Camel
+                    | quadruped_medium::Species::Deer
+                    | quadruped_medium::Species::Hirdrasil
+                    | quadruped_medium::Species::Horse
+                    | quadruped_medium::Species::Highland
+                    | quadruped_medium::Species::Zebra
+                    | quadruped_medium::Species::Donkey
+                    | quadruped_medium::Species::Antelope
+                    | quadruped_medium::Species::Kelpie
+                    | quadruped_medium::Species::Cattle
+                    | quadruped_medium::Species::Yak => {
+                        "common.loot_tables.creature.quad_medium.gentle"
+                    },
+                    _ => "common.loot_tables.creature.quad_medium.fanged",
                 },
                 Some(common::comp::Body::BirdMedium(_)) => {
                     "common.loot_tables.creature.bird_medium"
+                },
+                Some(common::comp::Body::BirdLarge(bird_large)) => match bird_large.species {
+                    bird_large::Species::Cockatrice => {
+                        "common.loot_tables.creature.bird_large.cockatrice"
+                    },
+                    _ => "common.loot_tables.creature.bird_large.phoenix",
                 },
                 Some(common::comp::Body::FishMedium(_)) => "common.loot_tables.creature.fish",
                 Some(common::comp::Body::FishSmall(_)) => "common.loot_tables.creature.fish",
@@ -388,10 +443,12 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 Some(common::comp::Body::Theropod(theropod)) => match theropod.species {
                     theropod::Species::Sandraptor
                     | theropod::Species::Snowraptor
-                    | theropod::Species::Woodraptor => {
-                        "common.loot_tables.creature.theropod.raptor"
-                    },
-                    _ => "common.loot_tables.creature.theropod.default",
+                    | theropod::Species::Woodraptor
+                    | theropod::Species::Sunlizard => "common.loot_tables.creature.theropod.raptor",
+                    theropod::Species::Archaeos
+                    | theropod::Species::Ntouka
+                    | theropod::Species::Yale => "common.loot_tables.creature.theropod.horned",
+                    _ => "common.loot_tables.creature.theropod.generic",
                 },
                 Some(common::comp::Body::Dragon(_)) => "common.loot_tables.creature.dragon",
                 Some(common::comp::Body::QuadrupedLow(quadruped_low)) => {
@@ -399,7 +456,24 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         quadruped_low::Species::Maneater => {
                             "common.loot_tables.creature.quad_low.maneater"
                         },
-                        _ => "common.loot_tables.creature.quad_low.default",
+                        quadruped_low::Species::Lavadrake
+                        | quadruped_low::Species::Rocksnapper
+                        | quadruped_low::Species::Sandshark => {
+                            "common.loot_tables.creature.quad_low.carapace"
+                        },
+                        quadruped_low::Species::Asp => {
+                            "common.loot_tables.creature.quad_low.venemous"
+                        },
+                        quadruped_low::Species::Hakulaq => {
+                            "common.loot_tables.creature.quad_low.fanged"
+                        },
+                        quadruped_low::Species::Deadwood => {
+                            "common.loot_tables.creature.quad_low.deadwood"
+                        },
+                        quadruped_low::Species::Basilisk => {
+                            "common.loot_tables.creature.quad_low.basilisk"
+                        },
+                        _ => "common.loot_tables.creature.quad_low.generic",
                     }
                 },
                 _ => "common.loot_tables.fallback",
@@ -422,9 +496,16 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     Some(common::comp::Body::Humanoid(_)) => object::Body::Pouch,
                     Some(common::comp::Body::BipedSmall(_)) => object::Body::Pouch,
                     Some(common::comp::Body::Golem(_)) => object::Body::Chest,
+                    Some(common::comp::Body::QuadrupedSmall(_)) => object::Body::SmallMeat,
+                    Some(common::comp::Body::FishMedium(_))
+                    | Some(common::comp::Body::FishSmall(_)) => object::Body::FishMeat,
+                    Some(common::comp::Body::QuadrupedMedium(_)) => object::Body::BeastMeat,
                     Some(common::comp::Body::BipedLarge(_))
-                    | Some(common::comp::Body::QuadrupedLow(_)) => object::Body::MeatDrop,
-                    _ => object::Body::Steak,
+                    | Some(common::comp::Body::QuadrupedLow(_)) => object::Body::ToughMeat,
+                    Some(common::comp::Body::BirdLarge(_))
+                    | Some(common::comp::Body::BirdMedium(_)) => object::Body::BirdMeat,
+
+                    _ => object::Body::BeastMeat,
                 })
                 .maybe_with(vel)
                 .with(item)
@@ -689,25 +770,18 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
             RadiusEffect::Attack(attack) => {
                 let energies = &ecs.read_storage::<comp::Energy>();
                 let combos = &ecs.read_storage::<comp::Combo>();
+                let inventories = &ecs.read_storage::<comp::Inventory>();
                 for (
                     entity_b,
                     pos_b,
                     health_b,
-                    (
-                        body_b_maybe,
-                        inventory_b_maybe,
-                        stats_b_maybe,
-                        ori_b_maybe,
-                        char_state_b_maybe,
-                        uid_b,
-                    ),
+                    (body_b_maybe, stats_b_maybe, ori_b_maybe, char_state_b_maybe, uid_b),
                 ) in (
                     &ecs.entities(),
                     &ecs.read_storage::<comp::Pos>(),
                     &ecs.read_storage::<comp::Health>(),
                     (
                         ecs.read_storage::<comp::Body>().maybe(),
-                        ecs.read_storage::<comp::Inventory>().maybe(),
                         ecs.read_storage::<comp::Stats>().maybe(),
                         ecs.read_storage::<comp::Ori>().maybe(),
                         ecs.read_storage::<comp::CharacterState>().maybe(),
@@ -751,12 +825,13 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                                     uid,
                                     energy: energies.get(entity),
                                     combo: combos.get(entity),
+                                    inventory: inventories.get(entity),
                                 });
 
                         let target_info = combat::TargetInfo {
                             entity: entity_b,
                             uid: *uid_b,
-                            inventory: inventory_b_maybe,
+                            inventory: inventories.get(entity_b),
                             stats: stats_b_maybe,
                             health: Some(health_b),
                             pos: pos_b.0,

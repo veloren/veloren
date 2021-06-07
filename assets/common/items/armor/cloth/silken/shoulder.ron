@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Silken Shoulders",
+    description: "Weaved with care by a skilled tailor.",
+    kind: Armor((
+        kind: Shoulder("Silken"),
+        stats: (
+            protection: Normal(9.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 99,
+            energy_reward: 0.1,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Moderate,
+    tags: [
+        Material(Silk),
+    ],
+)

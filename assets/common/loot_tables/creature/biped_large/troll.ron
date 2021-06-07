@@ -2,5 +2,5 @@
     (1.0, LootTable("common.loot_tables.food.prepared")),
     (1.0, LootTable("common.loot_tables.cave_large")),
     (1.0, LootTable("common.loot_tables.weapons.tier-2")),
-    (5.0, Item("common.items.crafting_ing.leather_troll")),
+    (5.0, Item("common.items.crafting_ing.hide.leather_troll")),
 ]

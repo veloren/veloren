@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Coal",
+    description: "A dark, combustible energy source.",
+    kind: Ingredient(
+        kind: "Coal",
+    ),
+    quality: Common,
+    tags: [],
+)

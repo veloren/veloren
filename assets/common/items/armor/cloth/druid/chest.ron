@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Druid Chestguard",
+    description: "Incredibly light, with the essence of nature.",
+    kind: Armor((
+        kind: Chest("Druid"),
+        stats: (
+            protection: Normal(18.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 198,
+            energy_reward: 0.2,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: High,
+    tags: [
+        Material(Lifecloth),
+    ],
+)

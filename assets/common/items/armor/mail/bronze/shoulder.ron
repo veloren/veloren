@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Bronze Guards",
+    description: "Heavy and dull, but it can take a punch.",
+    kind: Armor((
+        kind: Shoulder("Bronze"),
+        stats: (
+            protection: Normal(8.0),
+            poise_resilience: Normal(2.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Low,
+    tags: [
+        Material(Bronze),
+    ],
+)

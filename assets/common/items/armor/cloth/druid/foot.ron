@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Druid Kickers",
+    description: "Incredibly light, with the essence of nature.",
+    kind: Armor((
+        kind: Foot("Druid"),
+        stats: (
+            protection: Normal(6.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 66,
+            energy_reward: 0.067,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: High,
+    tags: [
+        Material(Lifecloth),
+    ],
+)

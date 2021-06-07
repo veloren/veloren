@@ -16,6 +16,7 @@ pub enum Interaction {
 #[derive(Default)]
 pub struct BlocksOfInterest {
     pub leaves: Vec<Vec3<i32>>,
+    pub drip: Vec<Vec3<i32>>,
     pub grass: Vec<Vec3<i32>>,
     pub river: Vec<Vec3<i32>>,
     pub fires: Vec<Vec3<i32>>,
@@ -41,6 +42,7 @@ impl BlocksOfInterest {
     pub fn from_chunk(chunk: &TerrainChunk) -> Self {
         span!(_guard, "from_chunk", "BlocksOfInterest::from_chunk");
         let mut leaves = Vec::new();
+        let mut drip = Vec::new();
         let mut grass = Vec::new();
         let mut river = Vec::new();
         let mut fires = Vec::new();
@@ -70,6 +72,7 @@ impl BlocksOfInterest {
             .for_each(|(pos, block)| {
                 match block.kind() {
                     BlockKind::Leaves if thread_rng().gen_range(0..16) == 0 => leaves.push(pos),
+                    BlockKind::WeakRock if thread_rng().gen_range(0..6) == 0 => drip.push(pos),
                     BlockKind::Grass => {
                         if thread_rng().gen_range(0..16) == 0 {
                             grass.push(pos);
@@ -101,6 +104,7 @@ impl BlocksOfInterest {
                         },
                         Some(SpriteKind::WallSconce) => fire_bowls.push(pos + Vec3::unit_z()),
                         Some(SpriteKind::Beehive) => beehives.push(pos),
+                        Some(SpriteKind::CrystalHigh) => fireflies.push(pos),
                         Some(SpriteKind::Reed) => {
                             reeds.push(pos);
                             fireflies.push(pos);
@@ -120,6 +124,14 @@ impl BlocksOfInterest {
                         },
                         Some(SpriteKind::Forge) => {
                             interactables.push((pos, Interaction::Craft(CraftingTab::Dismantle)))
+                        },
+                        Some(SpriteKind::TanningRack) => interactables
+                            .push((pos, Interaction::Craft(CraftingTab::ProcessedMaterial))),
+                        Some(SpriteKind::SpinningWheel) => {
+                            interactables.push((pos, Interaction::Craft(CraftingTab::All)))
+                        },
+                        Some(SpriteKind::Loom) => {
+                            interactables.push((pos, Interaction::Craft(CraftingTab::All)))
                         },
                         Some(SpriteKind::Cauldron) => {
                             interactables.push((pos, Interaction::Craft(CraftingTab::Potion)))
@@ -143,6 +155,7 @@ impl BlocksOfInterest {
 
         Self {
             leaves,
+            drip,
             grass,
             river,
             fires,

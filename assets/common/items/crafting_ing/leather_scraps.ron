@@ -1,9 +1,0 @@
-ItemDef(
-    name: "Leather Scraps",
-    description: "Looted from animals.",
-    kind: Ingredient(
-        kind: "LeatherScraps",
-    ),
-    quality: Common,
-    tags: [BaseMaterial],
-)

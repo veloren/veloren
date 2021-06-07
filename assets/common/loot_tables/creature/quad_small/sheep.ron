@@ -1,0 +1,4 @@
+[
+    (1.0, ItemQuantity("common.items.crafting_ing.cloth.wool", 2, 5)),
+    (0.25, Item("common.items.food.meat.beast_small_raw")),
+]

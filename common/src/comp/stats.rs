@@ -28,6 +28,7 @@ pub struct Stats {
     pub move_speed_modifier: f32,
     pub attack_speed_modifier: f32,
     pub friction_modifier: f32,
+    pub max_energy_modifier: f32,
 }
 
 impl Stats {
@@ -39,6 +40,7 @@ impl Stats {
             move_speed_modifier: 1.0,
             attack_speed_modifier: 1.0,
             friction_modifier: 1.0,
+            max_energy_modifier: 1.0,
         }
     }
 
@@ -52,6 +54,7 @@ impl Stats {
             move_speed_modifier: 1.0,
             attack_speed_modifier: 1.0,
             friction_modifier: 1.0,
+            max_energy_modifier: 1.0,
         }
     }
 
@@ -62,6 +65,7 @@ impl Stats {
         self.move_speed_modifier = 1.0;
         self.attack_speed_modifier = 1.0;
         self.friction_modifier = 1.0;
+        self.max_energy_modifier = 1.0;
     }
 }
 

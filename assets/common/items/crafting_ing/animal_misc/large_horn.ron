@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Large Horn",
+    description: "A huge sharp horn from an animal.",
+    kind: Ingredient(
+        kind: "LargeHorn",
+    ),
+    quality: Common,
+    tags: [],
+)

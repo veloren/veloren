@@ -147,6 +147,7 @@ pub enum CraftingTab {
     Tool,
     Utility,
     Glider,
+    ProcessedMaterial,
 }
 impl CraftingTab {
     fn name_key(&self) -> &str {
@@ -161,6 +162,7 @@ impl CraftingTab {
             CraftingTab::Utility => "hud.crafting.tabs.utility",
             CraftingTab::Weapon => "hud.crafting.tabs.weapon",
             CraftingTab::Bag => "hud.crafting.tabs.bag",
+            CraftingTab::ProcessedMaterial => "hud.crafting.tabs.processed_material",
         }
     }
 
@@ -176,6 +178,7 @@ impl CraftingTab {
             CraftingTab::Utility => imgs.icon_utility,
             CraftingTab::Weapon => imgs.icon_weapon,
             CraftingTab::Bag => imgs.icon_bag,
+            CraftingTab::ProcessedMaterial => imgs.icon_processed_material,
         }
     }
 
@@ -189,6 +192,12 @@ impl CraftingTab {
             },
             CraftingTab::Glider => matches!(item.kind(), ItemKind::Glider(_)),
             CraftingTab::Potion => item.tags().contains(&ItemTag::Potion),
+            CraftingTab::ProcessedMaterial => {
+                item.tags().contains(&ItemTag::MetalIngot)
+                    | item.tags().contains(&ItemTag::Textile)
+                    | item.tags().contains(&ItemTag::Leather)
+                    | item.tags().contains(&ItemTag::BaseMaterial)
+            },
             CraftingTab::Bag => item.tags().contains(&ItemTag::Bag),
             CraftingTab::Tool => item.tags().contains(&ItemTag::CraftingTool),
             CraftingTab::Utility => item.tags().contains(&ItemTag::Utility),
@@ -688,6 +697,10 @@ impl<'a> Widget for Crafting<'a> {
                     Some(SpriteKind::Cauldron) => "Cauldron",
                     Some(SpriteKind::CookingPot) => "CookingPot",
                     Some(SpriteKind::CraftingBench) => "CraftingBench",
+                    Some(SpriteKind::Forge) => "Forge",
+                    Some(SpriteKind::Loom) => "Loom",
+                    Some(SpriteKind::SpinningWheel) => "SpinningWheel",
+                    Some(SpriteKind::TanningRack) => "TanningRack",
                     None => "CraftsmanHammer",
                     _ => "CraftsmanHammer",
                 };
@@ -707,6 +720,10 @@ impl<'a> Widget for Crafting<'a> {
                     Some(SpriteKind::Cauldron) => "hud.crafting.cauldron",
                     Some(SpriteKind::CookingPot) => "hud.crafting.cooking_pot",
                     Some(SpriteKind::CraftingBench) => "hud.crafting.crafting_bench",
+                    Some(SpriteKind::Forge) => "hud.crafting.forge",
+                    Some(SpriteKind::Loom) => "hud.crafting.loom",
+                    Some(SpriteKind::SpinningWheel) => "hud.crafting.spinning_wheel",
+                    Some(SpriteKind::TanningRack) => "hud.crafting.tanning_rack",
                     _ => "",
                 };
                 Text::new(&self.localized_strings.get(station_name))

@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Red Linen",
+    description: "A flax fiber textile, dyed to stand out.",
+    kind: Ingredient(
+        kind: "LinenRed",
+    ),
+    quality: Low,
+    tags: [Textile],
+)

@@ -1,6 +1,5 @@
 [
     // armor
-    (3.0, LootTable("common.loot_tables.armor.cultist")),
     (0.25, Item("common.items.armor.misc.back.dungeon_purple")),
     (0.5, Item("common.items.armor.misc.ring.skull")),
     // weapons

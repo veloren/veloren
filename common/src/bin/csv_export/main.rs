@@ -36,6 +36,10 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
         "Quality",
         "Protection",
         "Poise Resilience",
+        "Max Energy",
+        "Energy Reward",
+        "Crit Power",
+        "Stealth",
         "Description",
     ])?;
 
@@ -49,14 +53,18 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                     continue;
                 }
 
-                let protection = match armor.get_protection() {
+                let protection = match armor.protection() {
                     Protection::Invincible => "Invincible".to_string(),
                     Protection::Normal(value) => value.to_string(),
                 };
-                let poise_resilience = match armor.get_poise_resilience() {
+                let poise_resilience = match armor.poise_resilience() {
                     Protection::Invincible => "Invincible".to_string(),
                     Protection::Normal(value) => value.to_string(),
                 };
+                let max_energy = armor.energy_max().to_string();
+                let energy_reward = armor.energy_reward().to_string();
+                let crit_power = armor.crit_power().to_string();
+                let stealth = armor.stealth().to_string();
 
                 wtr.write_record(&[
                     item.item_definition_id(),
@@ -65,6 +73,10 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                     &format!("{:?}", item.quality()),
                     &protection,
                     &poise_resilience,
+                    &max_energy,
+                    &energy_reward,
+                    &crit_power,
+                    &stealth,
                     item.description(),
                 ])?;
             },
@@ -139,19 +151,19 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
 
 fn get_tool_kind(kind: &ToolKind) -> String {
     match kind {
-        ToolKind::Sword | ToolKind::SwordSimple => "Sword".to_string(),
-        ToolKind::Axe | ToolKind::AxeSimple => "Axe".to_string(),
-        ToolKind::Hammer | ToolKind::HammerSimple => "Hammer".to_string(),
-        ToolKind::Bow | ToolKind::BowSimple => "Bow".to_string(),
+        ToolKind::Sword => "Sword".to_string(),
+        ToolKind::Axe => "Axe".to_string(),
+        ToolKind::Hammer => "Hammer".to_string(),
+        ToolKind::Bow => "Bow".to_string(),
         ToolKind::Dagger => "Dagger".to_string(),
-        ToolKind::Staff | ToolKind::StaffSimple => "Staff".to_string(),
+        ToolKind::Staff => "Staff".to_string(),
         ToolKind::Sceptre => "Sceptre".to_string(),
         ToolKind::Shield => "Shield".to_string(),
         ToolKind::Spear => "Spear".to_string(),
         ToolKind::Debug => "Debug".to_string(),
         ToolKind::Farming => "Farming".to_string(),
         ToolKind::Pick => "Pick".to_string(),
-        ToolKind::Unique(_) => "Unique".to_string(),
+        ToolKind::Natural => "Natural".to_string(),
         ToolKind::Empty => "Empty".to_string(),
     }
 }

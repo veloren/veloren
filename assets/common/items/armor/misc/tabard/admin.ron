@@ -1,11 +1,15 @@
 ItemDef(
-    name: "Admin\'s Tabard",
+    name: "Admin's Tabard",
     description: "With great power comes great responsibility.",
     kind: Armor((
         kind: Tabard("Admin"),
         stats: (
             protection: Invincible,
             poise_resilience: Invincible,
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.0,
+            stealth: 0.0,
         ),
     )),
     quality: Debug,

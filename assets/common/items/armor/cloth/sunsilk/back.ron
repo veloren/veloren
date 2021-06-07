@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Sunsilk Cape",
+    description: "It radiates with the sun's power, and the grace to harness it.",
+    kind: Armor((
+        kind: Back("Sunsilk"),
+        stats: (
+            protection: Normal(0.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 50,
+            energy_reward: 0.05,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Legendary,
+    tags: [
+        Material(Sunsilk),
+    ],
+)

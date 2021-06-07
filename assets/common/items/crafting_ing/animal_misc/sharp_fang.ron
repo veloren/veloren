@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Sharp Fang",
+    description: "Incredibly sharp tooth from a predatory animal.",
+    kind: Ingredient(
+        kind: "SharpFang",
+    ),
+    quality: Common,
+    tags: [],
+)

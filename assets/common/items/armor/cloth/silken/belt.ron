@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Silken Sash",
+    description: "Weaved with care by a skilled tailor.",
+    kind: Armor((
+        kind: Belt("Silken"),
+        stats: (
+            protection: Normal(2.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 25,
+            energy_reward: 0.025,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Moderate,
+    tags: [
+        Material(Silk),
+    ],
+)

@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Moonweave Shoulders",
+    description: "The fabric dances silently, like moonlight.",
+    kind: Armor((
+        kind: Shoulder("Moonweave"),
+        stats: (
+            protection: Normal(17.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 165,
+            energy_reward: 0.168,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Moonweave),
+    ],
+)

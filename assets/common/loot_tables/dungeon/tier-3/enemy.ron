@@ -1,5 +1,4 @@
 [
     (1.0, LootTable("common.loot_tables.humanoids")),
-    (1.0, LootTable("common.loot_tables.armor.steel")),
     (1.0, LootTable("common.loot_tables.weapons.tier-3")),
 ]

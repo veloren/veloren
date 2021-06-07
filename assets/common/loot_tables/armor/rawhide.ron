@@ -1,0 +1,9 @@
+[
+    (1.0, Item("common.items.armor.hide.rawhide.back")),
+    (1.0, Item("common.items.armor.hide.rawhide.belt")),
+    (1.0, Item("common.items.armor.hide.rawhide.chest")),
+    (1.0, Item("common.items.armor.hide.rawhide.foot")),
+    (1.0, Item("common.items.armor.hide.rawhide.hand")),
+    (1.0, Item("common.items.armor.hide.rawhide.pants")),
+    (1.0, Item("common.items.armor.hide.rawhide.shoulder")),
+]

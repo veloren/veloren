@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Dragonscale Leggings",
+    description: "Power pulses through it.",
+    kind: Armor((
+        kind: Pants("Dragonscale"),
+        stats: (
+            protection: Normal(28.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.4,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Legendary,
+    tags: [
+        Material(Dragonscale),
+    ],
+)

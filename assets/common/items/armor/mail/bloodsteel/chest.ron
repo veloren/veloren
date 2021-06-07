@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Bloodsteel Chest",
+    description: "Forged to preserve life, at the cost of another.",
+    kind: Armor((
+        kind: Chest("Bloodsteel"),
+        stats: (
+            protection: Normal(60.0),
+            poise_resilience: Normal(15.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Bloodsteel),
+    ],
+)

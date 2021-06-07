@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Primal Sash",
+    description: "Smithed from hide tougher than steel.",
+    kind: Armor((
+        kind: Belt("Primal"),
+        stats: (
+            protection: Normal(6.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.084,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Plate),
+    ],
+)

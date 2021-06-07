@@ -28,6 +28,7 @@ use serde::{de, Deserialize, Serialize, Serializer};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{fmt, sync::Arc};
+use strum_macros::IntoStaticStr;
 use tracing::error;
 use vek::Rgb;
 
@@ -91,12 +92,110 @@ pub trait TagExampleInfo {
     fn exemplar_identifier(&self) -> &'static str;
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum MaterialKind {
+    Metal,
+    Wood,
+    Stone,
+    Cloth,
+    Hide,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, IntoStaticStr)]
+#[strum(serialize_all = "snake_case")]
+pub enum Material {
+    Bronze,
+    Iron,
+    Steel,
+    Cobalt,
+    Bloodsteel,
+    Orichalcum,
+    Wood,
+    Bamboo,
+    Hardwood,
+    Ironwood,
+    Frostwood,
+    Eldwood,
+    Rock,
+    Granite,
+    Bone,
+    Basalt,
+    Obsidian,
+    Velorite,
+    Linen,
+    Wool,
+    Silk,
+    Lifecloth,
+    Moonweave,
+    Sunsilk,
+    Rawhide,
+    Leather,
+    Scale,
+    Carapace,
+    Plate,
+    Dragonscale,
+}
+
+impl Material {
+    pub fn material_kind(&self) -> MaterialKind {
+        match self {
+            Material::Bronze
+            | Material::Iron
+            | Material::Steel
+            | Material::Cobalt
+            | Material::Bloodsteel
+            | Material::Orichalcum => MaterialKind::Metal,
+            Material::Wood
+            | Material::Bamboo
+            | Material::Hardwood
+            | Material::Ironwood
+            | Material::Frostwood
+            | Material::Eldwood => MaterialKind::Wood,
+            Material::Rock
+            | Material::Granite
+            | Material::Bone
+            | Material::Basalt
+            | Material::Obsidian
+            | Material::Velorite => MaterialKind::Stone,
+            Material::Linen
+            | Material::Wool
+            | Material::Silk
+            | Material::Lifecloth
+            | Material::Moonweave
+            | Material::Sunsilk => MaterialKind::Cloth,
+            Material::Rawhide
+            | Material::Leather
+            | Material::Scale
+            | Material::Carapace
+            | Material::Plate
+            | Material::Dragonscale => MaterialKind::Hide,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct MaterialTag {
+    material: Material,
+}
+
+impl MaterialTag {
+    pub fn material(&self) -> &Material { &self.material }
+}
+
+impl TagExampleInfo for MaterialTag {
+    fn name(&self) -> &'static str { self.material.into() }
+
+    fn exemplar_identifier(&self) -> &'static str { "common.items.tag_examples.placeholder" }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ItemTag {
-    ClothItem,
-    LeatherItem,
-    ModularComponent(ModularComponentTag),
     MetalIngot,
+    Textile,
+    Leather,
+    Material(MaterialTag),
+    ModularComponent(ModularComponentTag),
     Cultist,
     Potion,
     Food,
@@ -109,10 +208,11 @@ pub enum ItemTag {
 impl TagExampleInfo for ItemTag {
     fn name(&self) -> &'static str {
         match self {
-            ItemTag::ClothItem => "cloth item",
-            ItemTag::LeatherItem => "leather item",
+            ItemTag::Material(material) => material.name(),
             ItemTag::ModularComponent(kind) => kind.name(),
             ItemTag::MetalIngot => "metal ingot",
+            ItemTag::Textile => "textile",
+            ItemTag::Leather => "leather",
             ItemTag::Cultist => "cultist",
             ItemTag::Potion => "potion",
             ItemTag::Food => "food",
@@ -126,10 +226,11 @@ impl TagExampleInfo for ItemTag {
     // TODO: Autogenerate these?
     fn exemplar_identifier(&self) -> &'static str {
         match self {
-            ItemTag::ClothItem => "common.items.tag_examples.cloth_item",
-            ItemTag::LeatherItem => "common.items.tag_examples.leather_item",
+            ItemTag::Material(_) => "common.items.tag_examples.placeholder",
             ItemTag::ModularComponent(tag) => tag.exemplar_identifier(),
             ItemTag::MetalIngot => "common.items.tag_examples.metal_ingot",
+            ItemTag::Textile => "common.items.tag_examples.textile",
+            ItemTag::Leather => "common.items.tag_examples.leather",
             ItemTag::Cultist => "common.items.tag_examples.cultist",
             ItemTag::Potion => "common.items.tag_examples.placeholder",
             ItemTag::Food => "common.items.tag_examples.placeholder",
@@ -706,9 +807,8 @@ impl Item {
         Some(Item::new_from_asset_expect(match block.get_sprite()? {
             SpriteKind::Apple => "common.items.food.apple",
             SpriteKind::Mushroom => "common.items.food.mushroom",
-            SpriteKind::CaveMushroom => "common.items.food.mushroom",
-            SpriteKind::Velorite => "common.items.ore.velorite",
-            SpriteKind::VeloriteFrag => "common.items.ore.veloritefrag",
+            SpriteKind::Velorite => "common.items.mineral.ore.velorite",
+            SpriteKind::VeloriteFrag => "common.items.mineral.ore.veloritefrag",
             SpriteKind::BlueFlower => "common.items.flowers.blue",
             SpriteKind::PinkFlower => "common.items.flowers.pink",
             SpriteKind::PurpleFlower => "common.items.flowers.purple",
@@ -726,18 +826,30 @@ impl Item {
             SpriteKind::VialEmpty => "common.items.crafting_ing.empty_vial",
             SpriteKind::Bowl => "common.items.crafting_ing.bowl",
             SpriteKind::PotionMinor => "common.items.consumable.potion_minor",
-            SpriteKind::Amethyst => "common.items.crafting_ing.amethyst",
-            SpriteKind::Ruby => "common.items.crafting_ing.ruby",
-            SpriteKind::Diamond => "common.items.crafting_ing.diamond",
-            SpriteKind::Sapphire => "common.items.crafting_ing.sapphire",
-            SpriteKind::Topaz => "common.items.crafting_ing.topaz",
-            SpriteKind::Emerald => "common.items.crafting_ing.emerald",
-            SpriteKind::AmethystSmall => "common.items.crafting_ing.amethyst",
-            SpriteKind::TopazSmall => "common.items.crafting_ing.topaz",
-            SpriteKind::DiamondSmall => "common.items.crafting_ing.diamond",
-            SpriteKind::RubySmall => "common.items.crafting_ing.ruby",
-            SpriteKind::EmeraldSmall => "common.items.crafting_ing.emerald",
-            SpriteKind::SapphireSmall => "common.items.crafting_ing.sapphire",
+            SpriteKind::Amethyst => "common.items.mineral.gem.amethyst",
+            SpriteKind::Ruby => "common.items.mineral.gem.ruby",
+            SpriteKind::Diamond => "common.items.mineral.gem.diamond",
+            SpriteKind::Sapphire => "common.items.mineral.gem.sapphire",
+            SpriteKind::Topaz => "common.items.mineral.gem.topaz",
+            SpriteKind::Emerald => "common.items.mineral.gem.emerald",
+            SpriteKind::AmethystSmall => "common.items.mineral.gem.amethyst",
+            SpriteKind::TopazSmall => "common.items.mineral.gem.topaz",
+            SpriteKind::DiamondSmall => "common.items.mineral.gem.diamond",
+            SpriteKind::RubySmall => "common.items.mineral.gem.ruby",
+            SpriteKind::EmeraldSmall => "common.items.mineral.gem.emerald",
+            SpriteKind::SapphireSmall => "common.items.mineral.gem.sapphire",
+            SpriteKind::Bloodstone => "common.items.mineral.ore.bloodstone",
+            SpriteKind::Coal => "common.items.mineral.ore.coal",
+            SpriteKind::Cobalt => "common.items.mineral.ore.cobalt",
+            SpriteKind::Copper => "common.items.mineral.ore.copper",
+            SpriteKind::Iron => "common.items.mineral.ore.iron",
+            SpriteKind::Tin => "common.items.mineral.ore.tin",
+            SpriteKind::Silver => "common.items.mineral.ore.silver",
+            SpriteKind::Gold => "common.items.mineral.ore.gold",
+            SpriteKind::Cotton => "common.items.crafting_ing.cotton_boll",
+            SpriteKind::Moonbell => "common.items.flowers.moonbell",
+            SpriteKind::Pyrebloom => "common.items.flowers.pyrebloom",
+            SpriteKind::WildFlax => "common.items.flowers.wild_flax",
             SpriteKind::Seashells => "common.items.crafting_ing.seashells",
             // Containers
             // IMPORTANT: Add any new container to `SpriteKind::is_container`
@@ -956,7 +1068,8 @@ mod tests {
         Item::new_from_asset_glob("common.items.npc_weapons.*")
             .expect("Failed to iterate over npc weapons.");
 
-        Item::new_from_asset_glob("common.items.ore.*").expect("Failed to iterate over ores.");
+        Item::new_from_asset_glob("common.items.mineral.*")
+            .expect("Failed to iterate over minerals.");
 
         Item::new_from_asset_glob("common.items.tag_examples.*")
             .expect("Failed to iterate over tag examples.");

@@ -174,9 +174,15 @@ impl Block {
             SpriteKind::WallLamp
             | SpriteKind::WallLampSmall
             | SpriteKind::WallSconce
-            | SpriteKind::FireBowlGround => Some(16),
-            SpriteKind::Velorite | SpriteKind::VeloriteFrag => Some(6),
-            SpriteKind::CaveMushroom | SpriteKind::CookingPot => Some(12),
+            | SpriteKind::FireBowlGround
+            | SpriteKind::Orb => Some(16),
+            SpriteKind::Velorite | SpriteKind::VeloriteFrag | SpriteKind::CeilingMushroom => {
+                Some(6)
+            },
+            SpriteKind::CaveMushroom
+            | SpriteKind::CookingPot
+            | SpriteKind::CrystalHigh
+            | SpriteKind::CrystalLow => Some(10),
             SpriteKind::Amethyst
             | SpriteKind::Ruby
             | SpriteKind::Sapphire

@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Steel Boots",
+    description: "Metal alloy boots providing a more comfortable and durable protection.",
+    kind: Armor((
+        kind: Foot("Steel"),
+        stats: (
+            protection: Normal(12.0),
+            poise_resilience: Normal(3.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Moderate,
+    tags: [
+        Material(Steel),
+    ],
+)

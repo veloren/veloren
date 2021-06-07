@@ -13,7 +13,7 @@ use common::{
     combat,
     comp::item::{
         armor::{ArmorKind, Protection},
-        Item, ItemDesc, ItemKind, MaterialStatManifest, Quality,
+        Item, ItemDesc, ItemKind, ItemTag, MaterialStatManifest, Quality,
     },
     trade::SitePrices,
 };
@@ -434,10 +434,10 @@ impl<'a> Widget for ItemTooltip<'a> {
                     if matches!(armor.kind, ArmorKind::Bag(_)) {
                         0
                     } else {
-                        1
+                        5
                     }
                 },
-                ItemKind::Tool(_) => 5,
+                ItemKind::Tool(_) => 4,
                 ItemKind::Consumable { .. } => 1,
                 _ => 0,
             };
@@ -463,7 +463,24 @@ impl<'a> Widget for ItemTooltip<'a> {
 
         let (title, desc) = (item.name().to_string(), item.description().to_string());
 
-        let subtitle = util::kind_text(item.kind(), i18n);
+        let item_kind = util::kind_text(item.kind(), i18n).to_string();
+
+        let material_tag = item.tags().iter().find_map(|t| match t {
+            ItemTag::Material(material) => Some(material),
+            _ => None,
+        });
+
+        let subtitle = if let Some(material_tag) = material_tag {
+            format!(
+                "{} ({})",
+                item_kind,
+                util::material_kind_text(&material_tag.material().material_kind(), i18n)
+            )
+        } else {
+            item_kind
+        };
+
+        let style = self.style.desc;
 
         let text_color = conrod_core::color::WHITE;
 
@@ -564,7 +581,6 @@ impl<'a> Widget for ItemTooltip<'a> {
                 let speed = tool.base_speed(self.msm, item.components());
                 let poise_str = tool.base_poise_strength(self.msm, item.components()) * 10.0;
                 let crit_chance = tool.base_crit_chance(self.msm, item.components()) * 100.0;
-                let crit_mult = tool.base_crit_mult(self.msm, item.components());
                 let combat_rating = combat::weapon_rating(&item, self.msm) * 10.0;
 
                 // Combat Rating
@@ -640,18 +656,6 @@ impl<'a> Widget for ItemTooltip<'a> {
                 .down_from(state.ids.stats[2], V_PAD_STATS)
                 .set(state.ids.stats[3], ui);
 
-                // Crit mult
-                widget::Text::new(&format!(
-                    "{} : x{:.1}",
-                    i18n.get("common.stats.crit_mult"),
-                    crit_mult
-                ))
-                .graphics_for(id)
-                .parent(id)
-                .with_style(self.style.desc)
-                .color(text_color)
-                .down_from(state.ids.stats[3], V_PAD_STATS)
-                .set(state.ids.stats[4], ui);
                 if let Some(equipped_item) = equip_slot.cloned().next() {
                     if let ItemKind::Tool(equipped_tool) = equipped_item.kind() {
                         let tool_stats = tool
@@ -675,8 +679,6 @@ impl<'a> Widget for ItemTooltip<'a> {
                             tool_stats.crit_chance,
                             equipped_tool_stats.crit_chance,
                         );
-                        let crit_mult_diff =
-                            util::comparison(tool_stats.crit_mult, equipped_tool_stats.crit_mult);
                         let equipped_combat_rating =
                             combat::weapon_rating(&equipped_item, self.msm) * 10.0;
                         let diff_main_stat =
@@ -692,70 +694,40 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 .set(state.ids.diff_main_stat, ui);
                         }
 
-                        if diff.power.abs() > f32::EPSILON {
-                            widget::Text::new(&format!(
-                                "{} {:.1}",
-                                &power_diff.0,
-                                &diff.power * 10.0
-                            ))
-                            .align_middle_y_of(state.ids.stats[0])
-                            .right_from(state.ids.stats[0], H_PAD)
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(power_diff.1)
-                            .set(state.ids.diffs[0], ui);
-                        }
-                        if diff.speed.abs() > f32::EPSILON {
-                            widget::Text::new(&format!("{} {:.1}", &speed_diff.0, &diff.speed))
-                                .align_middle_y_of(state.ids.stats[1])
-                                .right_from(state.ids.stats[1], H_PAD)
+                        let mut diff_text = |text: String, color, id_index| {
+                            widget::Text::new(&*text)
+                                .align_middle_y_of(state.ids.stats[id_index])
+                                .right_from(state.ids.stats[id_index], H_PAD)
                                 .graphics_for(id)
                                 .parent(id)
-                                .with_style(self.style.desc)
-                                .color(speed_diff.1)
-                                .set(state.ids.diffs[1], ui);
+                                .with_style(style)
+                                .color(color)
+                                .set(state.ids.diffs[id_index], ui)
+                        };
+
+                        if diff.power.abs() > f32::EPSILON {
+                            let text = format!("{} {:.1}", &power_diff.0, &diff.power * 10.0);
+                            diff_text(text, power_diff.1, 0)
+                        }
+                        if diff.speed.abs() > f32::EPSILON {
+                            let text = format!("{} {:.1}", &speed_diff.0, &diff.speed);
+                            diff_text(text, speed_diff.1, 1)
                         }
                         if diff.poise_strength.abs() > f32::EPSILON {
-                            widget::Text::new(&format!(
+                            let text = format!(
                                 "{} {:.1}",
                                 &poise_strength_diff.0,
                                 &diff.poise_strength * 10.0
-                            ))
-                            .align_middle_y_of(state.ids.stats[2])
-                            .right_from(state.ids.stats[2], H_PAD)
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(poise_strength_diff.1)
-                            .set(state.ids.diffs[2], ui);
+                            );
+                            diff_text(text, poise_strength_diff.1, 2)
                         }
                         if diff.crit_chance.abs() > f32::EPSILON {
-                            widget::Text::new(&format!(
+                            let text = format!(
                                 "{} {:.1}%",
                                 &crit_chance_diff.0,
                                 &diff.crit_chance * 100.0
-                            ))
-                            .align_middle_y_of(state.ids.stats[3])
-                            .right_from(state.ids.stats[3], H_PAD)
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(crit_chance_diff.1)
-                            .set(state.ids.diffs[3], ui);
-                        }
-                        if diff.crit_mult.abs() > f32::EPSILON {
-                            widget::Text::new(&format!(
-                                "{} {:.1}",
-                                &crit_mult_diff.0, &diff.crit_mult
-                            ))
-                            .align_middle_y_of(state.ids.stats[4])
-                            .right_from(state.ids.stats[4], H_PAD)
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(crit_mult_diff.1)
-                            .set(state.ids.diffs[4], ui);
+                            );
+                            diff_text(text, crit_chance_diff.1, 3)
                         }
                     }
                 }
@@ -780,8 +752,13 @@ impl<'a> Widget for ItemTooltip<'a> {
                     },
                     _ => {
                         // Armour
-                        let protection = armor.get_protection();
-                        let poise_res = armor.get_poise_resilience();
+                        let protection = armor.protection();
+                        let poise_res = armor.poise_resilience();
+                        let energy_max = armor.energy_max() / 10;
+                        let energy_reward = armor.energy_reward() * 10.0;
+                        let crit_power = armor.crit_power();
+                        let stealth = armor.stealth();
+
                         widget::Text::new(&util::protec2string(protection))
                             .graphics_for(id)
                             .parent(id)
@@ -815,6 +792,58 @@ impl<'a> Widget for ItemTooltip<'a> {
                         .down_from(state.ids.item_frame, V_PAD)
                         .set(state.ids.stats[0], ui);
 
+                        // Max Energy
+                        widget::Text::new(&format!(
+                            "{} : {}",
+                            i18n.get("common.stats.energy_max"),
+                            energy_max
+                        ))
+                        .graphics_for(id)
+                        .parent(id)
+                        .with_style(self.style.desc)
+                        .color(text_color)
+                        .down_from(state.ids.stats[0], V_PAD_STATS)
+                        .set(state.ids.stats[1], ui);
+
+                        // Energy Recovery
+                        widget::Text::new(&format!(
+                            "{} : {}",
+                            i18n.get("common.stats.energy_reward"),
+                            energy_reward
+                        ))
+                        .graphics_for(id)
+                        .parent(id)
+                        .with_style(self.style.desc)
+                        .color(text_color)
+                        .down_from(state.ids.stats[1], V_PAD_STATS)
+                        .set(state.ids.stats[2], ui);
+
+                        // Crit Power
+                        widget::Text::new(&format!(
+                            "{} : {}",
+                            i18n.get("common.stats.crit_power"),
+                            crit_power
+                        ))
+                        .graphics_for(id)
+                        .parent(id)
+                        .with_style(self.style.desc)
+                        .color(text_color)
+                        .down_from(state.ids.stats[2], V_PAD_STATS)
+                        .set(state.ids.stats[3], ui);
+
+                        // Stealth
+                        widget::Text::new(&format!(
+                            "{} : {}",
+                            i18n.get("common.stats.stealth"),
+                            stealth
+                        ))
+                        .graphics_for(id)
+                        .parent(id)
+                        .with_style(self.style.desc)
+                        .color(text_color)
+                        .down_from(state.ids.stats[3], V_PAD_STATS)
+                        .set(state.ids.stats[4], ui);
+
                         // Slots
                         if item.num_slots() > 0 {
                             widget::Text::new(&format!(
@@ -826,9 +855,8 @@ impl<'a> Widget for ItemTooltip<'a> {
                             .parent(id)
                             .with_style(self.style.desc)
                             .color(text_color)
-                            .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
-                            .down_from(state.ids.stats[0], V_PAD_STATS)
-                            .set(state.ids.stats[1], ui);
+                            .down_from(state.ids.stats[4], V_PAD_STATS)
+                            .set(state.ids.stats[5], ui);
                         }
                     },
                 }
@@ -836,16 +864,23 @@ impl<'a> Widget for ItemTooltip<'a> {
                 if let Some(equipped_item) = equip_slot.cloned().next() {
                     if let ItemKind::Armor(equipped_armor) = equipped_item.kind() {
                         let diff = armor.stats - equipped_armor.stats;
-                        let protection_diff = util::comparison(
-                            &armor.get_protection(),
-                            &equipped_armor.get_protection(),
-                        );
+                        let protection_diff =
+                            util::comparison(&armor.protection(), &equipped_armor.protection());
                         let poise_res_diff = util::comparison(
-                            &armor.get_poise_resilience(),
-                            &equipped_armor.get_poise_resilience(),
+                            &armor.poise_resilience(),
+                            &equipped_armor.poise_resilience(),
                         );
-
-                        if diff.get_protection() != Protection::Normal(0.0) {
+                        let energy_max_diff =
+                            util::comparison(&armor.energy_max(), &equipped_armor.energy_max());
+                        let energy_reward_diff = util::comparison(
+                            &armor.energy_reward(),
+                            &equipped_armor.energy_reward(),
+                        );
+                        let crit_power_diff =
+                            util::comparison(&armor.crit_power(), &equipped_armor.crit_power());
+                        let stealth_diff =
+                            util::comparison(&armor.stealth(), &equipped_armor.stealth());
+                        if diff.protection() != Protection::Normal(0.0) {
                             widget::Text::new(&protection_diff.0)
                                 .right_from(state.ids.main_stat_text, H_PAD)
                                 .graphics_for(id)
@@ -855,19 +890,48 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 .set(state.ids.diff_main_stat, ui);
                         }
 
-                        if diff.get_poise_resilience() != Protection::Normal(0.0) {
-                            widget::Text::new(&format!(
+                        let mut diff_text = |text: String, color, id_index| {
+                            widget::Text::new(&*text)
+                                .align_middle_y_of(state.ids.stats[id_index])
+                                .right_from(state.ids.stats[id_index], H_PAD)
+                                .graphics_for(id)
+                                .parent(id)
+                                .with_style(style)
+                                .color(color)
+                                .set(state.ids.diffs[id_index], ui)
+                        };
+
+                        if diff.poise_resilience() != Protection::Normal(0.0) {
+                            let text = format!(
                                 "{} {}",
                                 &poise_res_diff.0,
-                                util::protec2string(diff.get_poise_resilience())
-                            ))
-                            .align_middle_y_of(state.ids.stats[0])
-                            .right_from(state.ids.stats[0], H_PAD)
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(poise_res_diff.1)
-                            .set(state.ids.diffs[0], ui);
+                                util::protec2string(diff.poise_resilience())
+                            );
+                            diff_text(text, poise_res_diff.1, 0)
+                        }
+
+                        if diff.energy_max() != 0.0 as i32 {
+                            let text = format!("{} {}", &energy_max_diff.0, diff.energy_max() / 10);
+                            diff_text(text, energy_max_diff.1, 1)
+                        }
+
+                        if diff.energy_reward() != 0.0_f32 {
+                            let text = format!(
+                                "{} {}",
+                                &energy_reward_diff.0,
+                                diff.energy_reward() * 10.0
+                            );
+                            diff_text(text, energy_reward_diff.1, 2)
+                        }
+
+                        if diff.crit_power() != 0.0_f32 {
+                            let text = format!("{} {}", &crit_power_diff.0, diff.crit_power());
+                            diff_text(text, crit_power_diff.1, 3)
+                        }
+
+                        if diff.stealth() != 0.0_f32 {
+                            let text = format!("{} {}", &stealth_diff.0, diff.stealth());
+                            diff_text(text, stealth_diff.1, 4)
                         }
                     }
                 }
@@ -981,10 +1045,10 @@ impl<'a> Widget for ItemTooltip<'a> {
                     if matches!(armor.kind, ArmorKind::Bag(_)) {
                         0
                     } else {
-                        1
+                        5
                     }
                 },
-                ItemKind::Tool(_) => 5,
+                ItemKind::Tool(_) => 4,
                 ItemKind::Consumable { .. } => 1,
                 ItemKind::ModularComponent { .. } => 1,
                 _ => 0,

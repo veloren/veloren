@@ -1,0 +1,17 @@
+ItemDef(
+    name: "Steel Pickaxe",
+    description: "Strike the earth!",
+    kind: Tool((
+        kind: Pick,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.25,
+            power: 0.75,
+            poise_strength: 0.25,
+            speed: 1.3,
+            crit_chance: 0.0,
+        )),
+    )),
+    quality: Moderate,
+    tags: [CraftingTool],
+)

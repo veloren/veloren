@@ -37,7 +37,7 @@
         "common.automatic": "Auto",
         "common.random": "Random",
         "common.empty": "Empty",
-        
+
         // Settings Window title
         "common.interface_settings": "Interface Settings",
         "common.gameplay_settings": "Gameplay Settings",
@@ -99,7 +99,17 @@ Is the client up to date?"#,
         "common.stats.crit_mult": "Crit Mult",
         "common.stats.armor": "Armor",
         "common.stats.poise_res":"Stun Res",
+        "common.stats.energy_max": "Max Energy",
+        "common.stats.energy_reward": "Energy Reward",
+        "common.stats.crit_power": "Crit Power",
+        "common.stats.stealth": "Stealth",
         "common.stats.slots": "Slots",
+
+        "common.material.metal": "Metal",
+        "common.material.wood": "Wood",
+        "common.material.stone": "Stone",
+        "common.material.cloth": "Cloth",
+        "common.material.hide": "Hide",
     },
 
 

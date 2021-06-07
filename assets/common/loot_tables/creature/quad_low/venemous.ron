@@ -1,0 +1,5 @@
+[
+    (4.0, LootTable("common.loot_tables.creature.quad_low.generic")),
+    (1.0, Item("common.items.crafting_ing.animal_misc.sharp_fang")),
+    (2.0, Item("common.items.crafting_ing.animal_misc.venom_sac")),
+]

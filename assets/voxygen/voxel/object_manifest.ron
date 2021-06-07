@@ -629,20 +629,20 @@
             central: ("armor.empty"),
         )
     ),
-    MeatDrop: (
+    ToughMeat: (
         bone0: (
-            offset: (-3.5, -8.0, 0.0),
-            central: ("object.meat_drop"),
+            offset: (-4.5, -4.0, 0.0),
+            central: ("sprite.food.meat.tough_raw"),
         ),
         bone1: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
         )
     ),
-    Steak: (
+    BeastMeat: (
         bone0: (
-            offset: (-3.5, -6.0, 0.0),
-            central: ("object.steak"),
+            offset: (-6.5, -4.5, 0.0),
+            central: ("sprite.food.meat.beast_large_raw"),
         ),
         bone1: (
             offset: (0.0, 0.0, 0.0),
@@ -713,6 +713,36 @@
         bone0: (
             offset: (-4.5, -4.5, 0.0),
             central: ("object.sea_lantern"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    BirdMeat: (
+        bone0: (
+            offset: (-5.5, -3.0, 0.0),
+            central: ("sprite.food.meat.bird_raw"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    FishMeat: (
+        bone0: (
+            offset: (-5.5, -5.5, 0.0),
+            central: ("sprite.food.meat.fish_raw"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    SmallMeat: (
+        bone0: (
+            offset: (-6.5, -3.5, 0.0),
+            central: ("sprite.food.meat.beast_small_raw"),
         ),
         bone1: (
             offset: (0.0, 0.0, 0.0),

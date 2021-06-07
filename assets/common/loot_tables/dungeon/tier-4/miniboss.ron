@@ -1,6 +1,4 @@
 [
-    // armor
-    (6.0, LootTable("common.loot_tables.armor.steel")),
     // weapons
     (3.0, LootTable("common.loot_tables.weapons.tier-4")),
     // lantern

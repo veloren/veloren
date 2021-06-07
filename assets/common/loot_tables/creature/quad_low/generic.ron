@@ -1,0 +1,4 @@
+[
+    (1.0, Item("common.items.food.meat.tough_raw")),
+    (3.0, Item("common.items.crafting_ing.hide.scales")),
+]

@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Primal Legs",
+    description: "Smithed from hide tougher than steel.",
+    kind: Armor((
+        kind: Pants("Primal"),
+        stats: (
+            protection: Normal(24.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.334,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Plate),
+    ],
+)

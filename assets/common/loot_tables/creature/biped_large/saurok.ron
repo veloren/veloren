@@ -1,5 +1,5 @@
 [
-    (7.0, LootTable("common.loot_tables.materials.common")),
+    (2.0, LootTable("common.loot_tables.materials.common")),
     // Consumables
     (0.5, Item("common.items.consumable.potion_minor")),
     // Ring

@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Orichalcum Mantle",
+    description: "An ancient alloy. Myths remain of heroes who wore this armor.",
+    kind: Armor((
+        kind: Shoulder("Orichalcum"),
+        stats: (
+            protection: Normal(48.0),
+            poise_resilience: Normal(12.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Legendary,
+    tags: [
+        Material(Orichalcum),
+    ],
+)

@@ -1,9 +1,0 @@
-ItemDef(
-    name: "Soft Wool",
-    description: "Soft wool from an animal.",
-    kind: Ingredient(
-        kind: "Wool",
-    ),
-    quality: Common,
-    tags: [],
-)

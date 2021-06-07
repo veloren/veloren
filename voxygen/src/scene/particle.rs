@@ -1048,6 +1048,14 @@ impl ParticleMgr {
                 cond: |_| true,
             },
             BlockParticles {
+                blocks: |boi| &boi.drip,
+                range: 4,
+                rate: 0.004,
+                lifetime: 20.0,
+                mode: ParticleMode::Drip,
+                cond: |_| true,
+            },
+            BlockParticles {
                 blocks: |boi| &boi.fires,
                 range: 2,
                 rate: 20.0,

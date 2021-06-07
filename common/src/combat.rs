@@ -56,6 +56,7 @@ pub struct AttackerInfo<'a> {
     pub uid: Uid,
     pub energy: Option<&'a Energy>,
     pub combo: Option<&'a Combo>,
+    pub inventory: Option<&'a Inventory>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -213,11 +214,13 @@ impl Attack {
                             }
                         },
                         CombatEffect::EnergyReward(ec) => {
-                            if let Some(attacker_entity) = attacker.map(|a| a.entity) {
+                            if let Some(attacker) = attacker {
                                 emit(ServerEvent::EnergyChange {
-                                    entity: attacker_entity,
+                                    entity: attacker.entity,
                                     change: EnergyChange {
-                                        amount: *ec as i32,
+                                        amount: (*ec
+                                            * compute_energy_reward_mod(attacker.inventory))
+                                            as i32,
                                         source: EnergySource::HitEnemy,
                                     },
                                 });
@@ -348,11 +351,12 @@ impl Attack {
                         }
                     },
                     CombatEffect::EnergyReward(ec) => {
-                        if let Some(attacker_entity) = attacker.map(|a| a.entity) {
+                        if let Some(attacker) = attacker {
                             emit(ServerEvent::EnergyChange {
-                                entity: attacker_entity,
+                                entity: attacker.entity,
                                 change: EnergyChange {
-                                    amount: ec as i32,
+                                    amount: (ec * compute_energy_reward_mod(attacker.inventory))
+                                        as i32,
                                     source: EnergySource::HitEnemy,
                                 },
                             });
@@ -539,7 +543,7 @@ impl Damage {
                 .equipped_items()
                 .filter_map(|item| {
                     if let ItemKind::Armor(armor) = &item.kind() {
-                        Some(armor.get_protection())
+                        Some(armor.protection())
                     } else {
                         None
                     }
@@ -817,8 +821,10 @@ pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
     if let ItemKind::Tool(tool) = item.kind() {
         let stats = tool::Stats::from((msm, item.components(), tool));
 
-        let damage_rating =
-            stats.power * stats.speed * (1.0 + stats.crit_chance * (stats.crit_mult - 1.0));
+        // TODO: Look into changing the 0.5 to reflect armor later maybe?
+        // Since it is only for weapon though, it probably makes sense to leave
+        // independent for now
+        let damage_rating = stats.power * stats.speed * (1.0 + stats.crit_chance * 0.5);
         let poise_rating = stats.poise_strength * stats.speed;
 
         (damage_rating * DAMAGE_WEIGHT + poise_rating * POISE_WEIGHT)
@@ -893,4 +899,59 @@ pub fn combat_rating(
     // Body multiplier meant to account for an enemy being harder than equipment and
     // skills would account for. It should only not be 1.0 for non-humanoids
     combined_rating * body.combat_multiplier()
+}
+
+pub fn compute_crit_mult(inventory: Option<&Inventory>) -> f32 {
+    // Starts with a value of 1.25 when summing the stats from each armor piece, and
+    // defaults to a value of 1.25 if no inventory is equipped
+    inventory.map_or(1.25, |inv| {
+        inv.equipped_items()
+            .filter_map(|item| {
+                if let ItemKind::Armor(armor) = &item.kind() {
+                    Some(armor.crit_power())
+                } else {
+                    None
+                }
+            })
+            .fold(1.25, |a, b| a + b)
+    })
+}
+
+/// Computes the energy reward modifer from worn armor
+pub fn compute_energy_reward_mod(inventory: Option<&Inventory>) -> f32 {
+    // Starts with a value of 1.0 when summing the stats from each armor piece, and
+    // defaults to a value of 1.0 if no inventory is present
+    inventory.map_or(1.0, |inv| {
+        inv.equipped_items()
+            .filter_map(|item| {
+                if let ItemKind::Armor(armor) = &item.kind() {
+                    Some(armor.energy_reward())
+                } else {
+                    None
+                }
+            })
+            .fold(1.0, |a, b| a + b)
+    })
+}
+
+/// Computes the modifier that should be applied to max energy from the
+/// currently equipped items
+pub fn compute_max_energy_mod(energy: &Energy, inventory: Option<&Inventory>) -> f32 {
+    // Defaults to a value of 0 if no inventory is present
+    let energy_increase = inventory.map_or(0, |inv| {
+        inv.equipped_items()
+            .filter_map(|item| {
+                if let ItemKind::Armor(armor) = &item.kind() {
+                    Some(armor.energy_max())
+                } else {
+                    None
+                }
+            })
+            .sum()
+    });
+    // Returns the energy increase divided by base max of energy.
+    // This value is then added to the max_energy_modifier field on stats component.
+    // Adding is important here, as it ensures that a flat modifier is applied
+    // correctly.
+    energy_increase as f32 / energy.base_max() as f32
 }

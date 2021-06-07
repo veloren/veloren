@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Rawhide Shoulderpads",
+    description: "Tightly packed pieces of leather to endure all weather.",
+    kind: Armor((
+        kind: Shoulder("Rawhide"),
+        stats: (
+            protection: Normal(5.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.066,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Low,
+    tags: [
+        Material(Rawhide),
+    ],
+)

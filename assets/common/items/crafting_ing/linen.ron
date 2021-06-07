@@ -1,9 +1,0 @@
-ItemDef(
-    name: "Linen",
-    description: "A textile made from the fibers of a plant.",
-    kind: Ingredient(
-        kind: "Linen",
-    ),
-    quality: Low,
-    tags: [],
-)

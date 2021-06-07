@@ -1,5 +1,20 @@
 // Loot table that exists purely for price rationalisation
 [
     (1.0, Item("common.items.crafting_ing.honey")),
-    (0.5, Item("common.items.crafting_ing.icy_fang")),
+    (0.2, Item("common.items.mineral.ore.bloodstone")),
+    (1.0, Item("common.items.mineral.ore.coal")),
+    (0.4, Item("common.items.mineral.ore.cobalt")),
+    (2.5, Item("common.items.mineral.ore.copper")),
+    (0.05, Item("common.items.mineral.ore.gold")),
+    (1.2, Item("common.items.mineral.ore.iron")),
+    (0.07, Item("common.items.mineral.ore.silver")),
+    (2.5, Item("common.items.mineral.ore.tin")),
+    (1.2, Item("common.items.mineral.ore.velorite")),
+    (0.6, Item("common.items.mineral.ore.veloritefrag")),
+    (0.8, Item("common.items.mineral.gem.amethyst")),
+    (0.2, Item("common.items.mineral.gem.diamond")),
+    (0.6, Item("common.items.mineral.gem.emerald")),
+    (0.4, Item("common.items.mineral.gem.ruby")),
+    (0.4, Item("common.items.mineral.gem.sapphire")),
+    (0.9, Item("common.items.mineral.gem.topaz")),
 ]

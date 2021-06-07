@@ -2,10 +2,11 @@
     (2.0, LootTable("common.loot_tables.creature.biped_large.mindflayer")),
     // miniboss part
     // armour
-    (3.0, LootTable("common.loot_tables.armor.cultist")),
     (0.25, Item("common.items.armor.misc.back.dungeon_purple")),
     (0.5, Item("common.items.armor.misc.ring.skull")),
     // weapons
     (1.5, LootTable("common.loot_tables.weapons.cultist")),
     (1.5, LootTable("common.loot_tables.weapons.cave")),
+    (4.0, ItemQuantity("common.items.crafting_ing.hide.dragon_scale", 2, 7)),
+
 ]

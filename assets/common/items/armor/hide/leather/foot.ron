@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Leather Boots",
+    description: "Swift like the wind.",
+    kind: Armor((
+        kind: Foot("Leather"),
+        stats: (
+            protection: Normal(5.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.067,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Common,
+    tags: [
+        Material(Leather),
+    ],
+)

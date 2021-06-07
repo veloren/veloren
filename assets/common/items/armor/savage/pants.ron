@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Savage Chausses",
+    description: "Brings the fury of the barbarians.",
+    kind: Armor((
+        kind: Pants("Savage"),
+        stats: (
+            protection: Normal(20.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Moderate,
+    tags: [
+        Material(Leather),
+    ],
+)

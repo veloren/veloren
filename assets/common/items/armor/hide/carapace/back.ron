@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Carapace Cape",
+    description: "Shell that once shielded a beast.",
+    kind: Armor((
+        kind: Back("Carapace"),
+        stats: (
+            protection: Normal(5.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.067,
+            stealth: 0.0,
+        ),
+    )),
+    quality: High,
+    tags: [
+        Material(Carapace),
+    ],
+)

@@ -49,7 +49,7 @@ const float PERSISTENT_AMBIANCE = 1.0 / 32.0;// 1.0 / 80; // 1.0 / 512; // 0.001
 
 // Glow from static light sources
 // Allowed to be > 1 due to HDR
-const vec3 GLOW_COLOR = vec3(3.0, 0.9, 0.05);
+const vec3 GLOW_COLOR = vec3(0.89, 0.95, 0.52);
 
 // Calculate glow from static light sources, + some noise for flickering.
 // TODO: Optionally disable the flickering for performance?

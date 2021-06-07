@@ -524,13 +524,13 @@ impl Archetype for House {
                         && center_offset.map(|e| e % 3 == 0).reduce_and()
                         && self
                             .noise
-                            .chance(Vec3::new(center_offset.x, center_offset.y, z), 0.2)
+                            .chance(Vec3::new(center_offset.x, center_offset.y, z), 0.8)
                     {
                         let furniture = match self.noise.get(Vec3::new(
                             center_offset.x,
                             center_offset.y,
                             z + 100,
-                        )) % 8
+                        )) % 12
                         {
                             0..=1 => SpriteKind::Crate,
                             2 => SpriteKind::Bench,
@@ -539,7 +539,10 @@ impl Archetype for House {
                             5 => SpriteKind::CraftingBench,
                             6 => SpriteKind::FireBowlGround,
                             7 => SpriteKind::Cauldron,
-                            //8 => SpriteKind::Forge,
+                            8 => SpriteKind::Forge,
+                            9 => SpriteKind::Loom,
+                            10 => SpriteKind::SpinningWheel,
+                            11 => SpriteKind::TanningRack,
                             _ => unreachable!(),
                         };
 

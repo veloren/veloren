@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Moonweave Boots",
+    description: "The fabric dances silently, like moonlight.",
+    kind: Armor((
+        kind: Foot("Moonweave"),
+        stats: (
+            protection: Normal(8.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 83,
+            energy_reward: 0.084,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Moonweave),
+    ],
+)

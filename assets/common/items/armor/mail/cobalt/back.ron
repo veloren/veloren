@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Cobalt Cape",
+    description: "Ornamental and impenetrable, the metal will never dull.",
+    kind: Armor((
+        kind: Back("Cobalt"),
+        stats: (
+            protection: Normal(8.0),
+            poise_resilience: Normal(2.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: High,
+    tags: [
+        Material(Cobalt),
+    ],
+)

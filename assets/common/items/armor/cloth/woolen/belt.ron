@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Woolen Belt",
+    description: "Thick and ready for the snow.",
+    kind: Armor((
+        kind: Belt("Woolen"),
+        stats: (
+            protection: Normal(2.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 17,
+            energy_reward: 0.017,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Common,
+    tags: [
+        Material(Wool),
+    ],
+)

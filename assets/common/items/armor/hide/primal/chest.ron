@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Primal Cuirass",
+    description: "Smithed from hide tougher than steel.",
+    kind: Armor((
+        kind: Chest("Primal"),
+        stats: (
+            protection: Normal(36.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.501,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Plate),
+    ],
+)
