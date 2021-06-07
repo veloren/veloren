@@ -932,8 +932,7 @@ fn enemy_0(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
                 &comp::biped_small::Species::Gnarling,
             ),
         ))
-        .with_loot_drop(chosen.read().choose().to_item())
-        .with_skillset_preset(common::skillset_builder::SkillSetConfig::Gnarling);
+        .with_loot_drop(chosen.read().choose().to_item());
 
     match dynamic_rng.gen_range(0..5) {
         0 => gnarling.with_asset_expect("common.entity.dungeon.tier-0.bow"),
@@ -949,7 +948,6 @@ fn enemy_1(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
         .with_body(comp::Body::BipedSmall(
             comp::biped_small::Body::random_with(dynamic_rng, &comp::biped_small::Species::Adlet),
         ))
-        .with_skillset_preset(common::skillset_builder::SkillSetConfig::Adlet)
         .with_loot_drop(chosen.read().choose().to_item());
 
     match dynamic_rng.gen_range(0..5) {
@@ -966,7 +964,6 @@ fn enemy_2(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
         .with_body(comp::Body::BipedSmall(
             comp::biped_small::Body::random_with(dynamic_rng, &comp::biped_small::Species::Sahagin),
         ))
-        .with_skillset_preset(common::skillset_builder::SkillSetConfig::Sahagin)
         .with_loot_drop(chosen.read().choose().to_item());
 
     match dynamic_rng.gen_range(0..5) {
@@ -994,7 +991,6 @@ fn enemy_3(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
                         &comp::biped_small::Species::Haniwa,
                     ),
                 ))
-                .with_skillset_preset(common::skillset_builder::SkillSetConfig::Haniwa)
                 .with_loot_drop(chosen.read().choose().to_item());
 
             match dynamic_rng.gen_range(0..5) {
@@ -1015,7 +1011,6 @@ fn enemy_4(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
                 &comp::biped_small::Species::Myrmidon,
             ),
         ))
-        .with_skillset_preset(common::skillset_builder::SkillSetConfig::Myrmidon)
         .with_loot_drop(chosen.read().choose().to_item());
 
     match dynamic_rng.gen_range(0..5) {
@@ -1037,12 +1032,10 @@ fn enemy_5(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
             )),
         1 => entity
             .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
-            .with_skillset_preset(common::skillset_builder::SkillSetConfig::Warlock)
             .with_loot_drop(chosen.read().choose().to_item())
             .with_asset_expect("common.entity.dungeon.tier-5.warlock"),
         _ => entity
             .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
-            .with_skillset_preset(common::skillset_builder::SkillSetConfig::Warlord)
             .with_loot_drop(chosen.read().choose().to_item())
             .with_asset_expect("common.entity.dungeon.tier-5.warlord"),
     }
@@ -1147,9 +1140,8 @@ fn boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo
                     &comp::biped_large::Species::Mindflayer,
                 ),
             ))
-            .with_name("Mindflayer".to_string())
             .with_loot_drop(chosen.read().choose().to_item())
-            .with_skillset_preset(common::skillset_builder::SkillSetConfig::Mindflayer),
+            .with_asset_expect("common.entity.dungeon.tier-5.boss"),
     ]
 }
 
@@ -1258,7 +1250,6 @@ fn mini_boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
                 EntityInfo::at(tile_wcenter.map(|e| e as f32))
                     .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
                     .with_loot_drop(trainer_loot.read().choose().to_item())
-                    .with_skillset_preset(common::skillset_builder::SkillSetConfig::CultistAcolyte)
                     .with_asset_expect("common.entity.dungeon.tier-5.beastmaster"),
             );
             entities.resize_with(entities.len() + 2, || {

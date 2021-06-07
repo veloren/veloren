@@ -4,5 +4,6 @@ EntityConfig (
     main_tool: Some(Item("common.items.npc_weapons.biped_small.adlet.gnoll_staff")),
     second_tool: None,
 
-    loadout_config: Some("common.loadout.dungeon.tier-1.adlet_spear"),
+    loadout_asset: Some("common.loadout.dungeon.tier-1.adlet_spear"),
+    skillset_asset: None,
 )

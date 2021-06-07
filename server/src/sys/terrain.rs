@@ -195,44 +195,49 @@ impl<'a> System<'a> for Sys {
                 }
 
                 let EntityInfo {
-                    skillset_preset,
+                    skillset_asset,
                     main_tool,
-                    loadout_config,
+                    loadout_asset,
                     make_loadout,
                     trading_information: economy,
                     ..
                 } = entity;
 
-                let skill_set =
-                    SkillSetBuilder::build_skillset(&main_tool, skillset_preset).build();
+                let skill_set = {
+                    let skillset_builder = SkillSetBuilder::default();
+                    if let Some(skillset_asset) = skillset_asset {
+                        skillset_builder.with_asset_expect(&skillset_asset).build()
+                    } else {
+                        skillset_builder.build()
+                    }
+                };
 
-                let mut loadout_builder = LoadoutBuilder::new();
-                let rng = &mut rand::thread_rng();
+                let loadout = {
+                    let mut loadout_builder = LoadoutBuilder::new();
+                    let rng = &mut rand::thread_rng();
 
-                // If main tool is passed, use it. Otherwise fallback to default tool
-                if let Some(main_tool) = main_tool {
-                    loadout_builder = loadout_builder.active_mainhand(Some(main_tool));
-                } else {
-                    loadout_builder = loadout_builder.with_default_maintool(&body);
-                }
+                    // If main tool is passed, use it. Otherwise fallback to default tool
+                    if let Some(main_tool) = main_tool {
+                        loadout_builder = loadout_builder.active_mainhand(Some(main_tool));
+                    } else {
+                        loadout_builder = loadout_builder.with_default_maintool(&body);
+                    }
 
-                // If there is config, apply it.
-                // If not, use default equipement for this body.
-                match loadout_config {
-                    Some(asset) => {
+                    // If there is config, apply it.
+                    // If not, use default equipement for this body.
+                    if let Some(asset) = loadout_asset {
                         loadout_builder = loadout_builder.with_asset_expect(&asset, rng);
-                    },
-                    None => {
+                    } else {
                         loadout_builder = loadout_builder.with_default_equipment(&body);
-                    },
-                }
+                    }
 
-                // Evaluate lazy function for loadout creation
-                if let Some(make_loadout) = make_loadout {
-                    loadout_builder = loadout_builder.with_creator(make_loadout, economy.as_ref());
-                }
-
-                let loadout = loadout_builder.build();
+                    // Evaluate lazy function for loadout creation
+                    if let Some(make_loadout) = make_loadout {
+                        loadout_builder =
+                            loadout_builder.with_creator(make_loadout, economy.as_ref());
+                    }
+                    loadout_builder.build()
+                };
 
                 let health = comp::Health::new(body, entity.level.unwrap_or(0));
                 let poise = comp::Poise::new(body);

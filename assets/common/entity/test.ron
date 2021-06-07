@@ -16,10 +16,10 @@ EntityConfig (
     second_tool: None,
 
     /// Loadout Config (with asset_specifier for loadout)
-    loadout_config: Some("common.loadout.village.merchant"),
+    loadout_asset: Some("common.loadout.village.merchant"),
 
-    /// Skillset Config as Option<SkillSet> (with asset_specifier for skillset)
-    // skillset_config: None,
+    /// Skillset Config (with asset_specifier for skillset)
+    skillset_asset: Some("common.skillset.village.merchant"),
 
     /// Loot
     /// Can be Item (with asset_specifier for item)

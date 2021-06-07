@@ -952,45 +952,19 @@ impl Settlement {
                         .do_if(is_human && dynamic_rng.gen(), |entity| {
                             match dynamic_rng.gen_range(0..6) {
                                 0 => entity
-                                    .with_main_tool(Item::new_from_asset_expect(
-                                        "common.items.weapons.sword.iron-4",
-                                    ))
-                                    .with_name("Guard")
                                     .with_agent_mark(agent::Mark::Guard)
                                     .with_lazy_loadout(guard_loadout)
                                     .with_level(dynamic_rng.gen_range(10..15))
-                                    .with_skillset_preset(
-                                        common::skillset_builder::SkillSetConfig::Guard,
-                                    ),
+                                    .with_asset_expect("common.entity.village.guard"),
                                 1 | 2 => entity
-                                    .with_main_tool(Item::new_from_asset_expect(
-                                        "common.items.weapons.bow.eldwood-0",
-                                    ))
-                                    .with_name("Merchant")
                                     .with_agent_mark(agent::Mark::Merchant)
                                     .with_economy(&economy)
                                     .with_lazy_loadout(merchant_loadout)
                                     .with_level(dynamic_rng.gen_range(10..15))
-                                    .with_skillset_preset(
-                                        common::skillset_builder::SkillSetConfig::Merchant,
-                                    ),
+                                    .with_asset_expect("common.entity.village.merchant"),
                                 _ => entity
-                                    .with_main_tool(Item::new_from_asset_expect(
-                                        match dynamic_rng.gen_range(0..7) {
-                                            0 => "common.items.weapons.tool.broom",
-                                            1 => "common.items.weapons.tool.hoe",
-                                            2 => "common.items.weapons.tool.pickaxe",
-                                            3 => "common.items.weapons.tool.pitchfork",
-                                            4 => "common.items.weapons.tool.rake",
-                                            5 => "common.items.weapons.tool.shovel-0",
-                                            _ => "common.items.weapons.tool.shovel-1",
-                                            //_ => "common.items.weapons.bow.starter", TODO: Re-Add this when we have a better way of distributing npc_weapons here
-                                        },
-                                    ))
                                     .with_lazy_loadout(villager_loadout)
-                                    .with_skillset_preset(
-                                        common::skillset_builder::SkillSetConfig::Villager,
-                                    ),
+                                    .with_asset_expect("common.entity.village.villager"),
                             }
                         });
 

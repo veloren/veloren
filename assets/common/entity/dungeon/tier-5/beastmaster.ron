@@ -8,5 +8,7 @@ EntityConfig (
     ])),
     second_tool: None,
 
-    loadout_config: Some("common.loadout.dungeon.tier-5.beastmaster"),
+    loadout_asset: Some("common.loadout.dungeon.tier-5.beastmaster"),
+    // TODO: make skillset for him, I'm just too lazy
+    skillset_asset: Some("common.skillset.dungeon.tier-5.enemy"),
 )

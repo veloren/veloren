@@ -9,7 +9,7 @@
 
     Armor(Chest): Item("common.items.npc_armor.chest.leather_blue"),
     Armor(Legs): Item("common.items.npc_armor.pants.leather_blue"),
-    Armor(Shoulders): Item("common.items.armor.swift.shoulder"),
+    Armor(Shoulders): Item("common.items.armor.hide.leather.shoulder"),
 
     Armor(Back): Choice([
         (1.0, Some(Item("common.items.armor.hide.rawhide.back"))),

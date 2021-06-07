@@ -1,0 +1,9 @@
+EntityConfig (
+    name: Some("Guard"),
+
+    main_tool: Some(Item("common.items.weapons.sword.iron-4")),
+    second_tool: None,
+
+    loadout_asset: None,
+    skillset_asset: Some("common.skillset.village.guard"),
+)

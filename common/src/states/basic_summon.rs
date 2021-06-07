@@ -6,7 +6,7 @@ use crate::{
     },
     event::{LocalEvent, ServerEvent},
     outcome::Outcome,
-    skillset_builder::{SkillSetBuilder, SkillSetConfig},
+    skillset_builder::{self, SkillSetBuilder},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -74,24 +74,33 @@ impl CharacterBehavior for Data {
                         > self.static_data.cast_duration * self.summon_count
                             / self.static_data.summon_amount
                     {
-                        let body = self.static_data.summon_info.body;
+                        let SummonInfo {
+                            body,
+                            loadout_config,
+                            skillset_config,
+                            ..
+                        } = self.static_data.summon_info;
 
-                        let mut loadout_builder =
-                            LoadoutBuilder::new().with_default_maintool(&body);
+                        let loadout = {
+                            let loadout_builder =
+                                LoadoutBuilder::new().with_default_maintool(&body);
+                            if let Some(preset) = loadout_config {
+                                loadout_builder.with_preset(preset).build()
+                            } else {
+                                loadout_builder.build()
+                            }
+                        };
 
-                        if let Some(preset) = self.static_data.summon_info.loadout_config {
-                            loadout_builder = loadout_builder.with_preset(preset);
-                        }
-
-                        let loadout = loadout_builder.build();
+                        let skill_set = {
+                            let skillset_builder = SkillSetBuilder::default();
+                            if let Some(preset) = skillset_config {
+                                skillset_builder.with_preset(preset).build()
+                            } else {
+                                skillset_builder.build()
+                            }
+                        };
 
                         let stats = comp::Stats::new("Summon".to_string());
-                        let skill_set = SkillSetBuilder::build_skillset(
-                            &None,
-                            self.static_data.summon_info.skillset_config,
-                        )
-                        .build();
-
                         // Send server event to create npc
                         update.server_events.push_front(ServerEvent::CreateNpc {
                             pos: *data.pos,
@@ -179,5 +188,5 @@ pub struct SummonInfo {
     health_scaling: u16,
     // TODO: use assets for specifying skills and loadout?
     loadout_config: Option<loadout_builder::Preset>,
-    skillset_config: Option<SkillSetConfig>,
+    skillset_config: Option<skillset_builder::Preset>,
 }

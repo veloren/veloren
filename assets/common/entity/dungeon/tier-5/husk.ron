@@ -4,5 +4,6 @@ EntityConfig (
     main_tool: None,
     second_tool: None,
 
-    loadout_config: Some("common.loadout.dungeon.tier-5.husk"),
+    loadout_asset: Some("common.loadout.dungeon.tier-5.husk"),
+    skillset_asset: None,
 )

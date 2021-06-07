@@ -1,0 +1,21 @@
+([
+    Group(Weapon(Bow)),
+
+    // Charged
+    Skill((Bow(CDamage), Some(1))),
+    Skill((Bow(CRegen), Some(1))),
+    Skill((Bow(CKnockback), Some(1))),
+    Skill((Bow(CSpeed), Some(1))),
+    Skill((Bow(CMove), Some(1))),
+
+    // Repeater
+    Skill((Bow(RDamage), Some(1))),
+    Skill((Bow(RSpeed), Some(1))),
+
+    // Shotgun
+    Skill((Bow(UnlockShotgun), None)),
+    Skill((Bow(SDamage), Some(1))),
+    Skill((Bow(SSpread), Some(1))),
+    Skill((Bow(SArrows), Some(1))),
+    Skill((Bow(SCost), Some(1))),
+])

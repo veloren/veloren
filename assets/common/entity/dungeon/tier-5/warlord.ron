@@ -10,5 +10,6 @@ EntityConfig (
     ])),
     second_tool: None,
 
-    loadout_config: Some("common.loadout.dungeon.tier-5.warlord"),
+    loadout_asset: Some("common.loadout.dungeon.tier-5.warlord"),
+    skillset_asset: Some("common.skillset.dungeon.tier-5.enemy"),
 )

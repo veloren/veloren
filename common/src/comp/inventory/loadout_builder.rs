@@ -46,6 +46,14 @@ pub enum Preset {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+pub struct LoadoutSpec(HashMap<EquipSlot, ItemSpec>);
+impl assets::Asset for LoadoutSpec {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
+#[derive(Debug, Deserialize, Clone)]
 pub enum ItemSpec {
     /// One specific item.
     /// Example:
@@ -112,33 +120,15 @@ fn choose<'a>(
             WeightedError::NoItem | WeightedError::AllWeightsZero => &None,
             WeightedError::InvalidWeight => {
                 let err = format!("Negative values of probability in {}.", asset_specifier);
-                if cfg!(any(debug_assertions, test)) {
-                    panic!("{}", err);
-                } else {
-                    warn!("{}", err);
-                    &None
-                }
+                common_base::dev_panic!(err, or return &None)
             },
             WeightedError::TooMany => {
                 let err = format!("More than u32::MAX values in {}.", asset_specifier);
-                if cfg!(any(debug_assertions, test)) {
-                    panic!("{}", err);
-                } else {
-                    warn!("{}", err);
-                    &None
-                }
+                common_base::dev_panic!(err, or return &None)
             },
         },
         |(_p, itemspec)| itemspec,
     )
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct LoadoutSpec(HashMap<EquipSlot, ItemSpec>);
-impl assets::Asset for LoadoutSpec {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
 }
 
 #[must_use]

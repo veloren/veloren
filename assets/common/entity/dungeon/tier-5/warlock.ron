@@ -4,5 +4,6 @@ EntityConfig (
     main_tool: Some(Item("common.items.weapons.staff.cultist_staff")),
     second_tool: None,
 
-    loadout_config: Some("common.loadout.dungeon.tier-5.warlock"),
+    loadout_asset: Some("common.loadout.dungeon.tier-5.warlock"),
+    skillset_asset: Some("common.skillset.dungeon.tier-5.enemy"),
 )

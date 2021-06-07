@@ -1,30 +1,56 @@
-use crate::comp::{
-    item::{tool::ToolKind, Item, ItemKind},
-    skills::{
-        AxeSkill, BowSkill, HammerSkill, Skill, SkillGroupKind, SkillSet, StaffSkill, SwordSkill,
-    },
-};
+#![warn(clippy::pedantic)]
+//#![warn(clippy::nursery)]
+use crate::comp::skills::{Skill, SkillGroupKind, SkillSet};
+
+use crate::assets::{self, AssetExt};
 use serde::{Deserialize, Serialize};
 use tracing::warn;
 
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug)]
-pub enum SkillSetConfig {
-    Adlet,
-    Gnarling,
-    Sahagin,
-    Haniwa,
-    Myrmidon,
-    Guard,
-    Villager,
-    Merchant,
-    Outcast,
-    Highwayman,
-    Bandit,
-    CultistNovice,
-    CultistAcolyte,
-    Warlord,
-    Warlock,
-    Mindflayer,
+pub enum Preset {
+    Empty,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+struct SkillSetTree(Vec<SkillNode>);
+impl assets::Asset for SkillSetTree {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
+#[derive(Debug, Deserialize, Clone)]
+enum SkillNode {
+    Tree(String),
+    Skill((Skill, Option<u16>)),
+    Group(SkillGroupKind),
+}
+
+#[must_use]
+fn skills_from_asset_expect(asset_specifier: &str) -> Vec<(Skill, Option<u16>)> {
+    let nodes = SkillSetTree::load_expect(asset_specifier).read().0.clone();
+
+    skills_from_nodes(nodes)
+}
+
+#[must_use]
+fn skills_from_nodes(nodes: Vec<SkillNode>) -> Vec<(Skill, Option<u16>)> {
+    let mut skills = Vec::new();
+    for node in nodes {
+        match node {
+            SkillNode::Tree(asset) => {
+                skills.append(&mut skills_from_asset_expect(&asset));
+            },
+            SkillNode::Skill(req) => {
+                skills.push(req);
+            },
+            SkillNode::Group(group) => {
+                skills.push((Skill::UnlockGroup(group), None));
+            },
+        }
+    }
+
+    skills
 }
 
 pub struct SkillSetBuilder(SkillSet);
@@ -34,652 +60,40 @@ impl Default for SkillSetBuilder {
 }
 
 impl SkillSetBuilder {
-    pub fn build_skillset(main_tool: &Option<Item>, config: Option<SkillSetConfig>) -> Self {
-        let active_item = main_tool.as_ref().and_then(|ic| {
-            if let ItemKind::Tool(tool) = &ic.kind() {
-                Some(tool.kind)
-            } else {
-                None
-            }
-        });
+    /// Creates `SkillSetBuilder` from `asset_specifier`
+    #[must_use]
+    pub fn from_asset_expect(asset_specifier: &str) -> Self {
+        let builder = Self::default();
 
-        use SkillSetConfig::*;
-        match config {
-            Some(Adlet) => {
-                match active_item {
-                    Some(ToolKind::Bow) => {
-                        // Bow
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
-                            .with_skill(Skill::Bow(BowSkill::CDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CKnockback), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CSpeed), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CMove), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RDamage), Some(1))
-                    },
-                    _ => Self::default(),
-                }
-            },
-            Some(Gnarling) => {
-                match active_item {
-                    Some(ToolKind::Bow) => {
-                        // Bow
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
-                            .with_skill(Skill::Bow(BowSkill::CDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CKnockback), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CSpeed), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CMove), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RDamage), Some(1))
-                    },
-                    _ => Self::default(),
-                }
-            },
-            Some(Sahagin) => {
-                match active_item {
-                    Some(ToolKind::Bow) => {
-                        // Bow
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
-                            .with_skill(Skill::Bow(BowSkill::CDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CKnockback), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CSpeed), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CMove), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RDamage), Some(1))
-                    },
-                    _ => Self::default(),
-                }
-            },
-            Some(Haniwa) => {
-                match active_item {
-                    Some(ToolKind::Bow) => {
-                        // Bow
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
-                            .with_skill(Skill::Bow(BowSkill::CDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CKnockback), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CSpeed), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CMove), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RDamage), Some(1))
-                    },
-                    _ => Self::default(),
-                }
-            },
-            Some(Myrmidon) => {
-                match active_item {
-                    Some(ToolKind::Bow) => {
-                        // Bow
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
-                            .with_skill(Skill::Bow(BowSkill::CDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CKnockback), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CSpeed), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CMove), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RDamage), Some(1))
-                    },
-                    _ => Self::default(),
-                }
-            },
-            Some(Guard) => {
-                if let Some(ToolKind::Sword) = active_item {
-                    // Sword
-                    Self::default()
-                        .with_skill_group(SkillGroupKind::Weapon(ToolKind::Sword))
-                        .with_skill(Skill::Sword(SwordSkill::TsCombo), None)
-                        .with_skill(Skill::Sword(SwordSkill::TsDamage), Some(1))
-                        .with_skill(Skill::Sword(SwordSkill::TsRegen), Some(1))
-                        .with_skill(Skill::Sword(SwordSkill::TsSpeed), Some(1))
-                        .with_skill(Skill::Sword(SwordSkill::DDamage), Some(1))
-                        .with_skill(Skill::Sword(SwordSkill::DCost), Some(1))
-                        .with_skill(Skill::Sword(SwordSkill::DDrain), Some(1))
-                        .with_skill(Skill::Sword(SwordSkill::DScaling), Some(1))
-                        .with_skill(Skill::Sword(SwordSkill::DSpeed), Some(1))
-                        .with_skill(Skill::Sword(SwordSkill::DInfinite), None)
-                        .with_skill(Skill::Sword(SwordSkill::UnlockSpin), None)
-                        .with_skill(Skill::Sword(SwordSkill::SDamage), Some(1))
-                        .with_skill(Skill::Sword(SwordSkill::SSpeed), Some(1))
-                        .with_skill(Skill::Sword(SwordSkill::SSpins), Some(1))
-                        .with_skill(Skill::Sword(SwordSkill::SCost), Some(1))
-                } else {
-                    Self::default()
-                }
-            },
-            Some(Outcast) => {
-                match active_item {
-                    Some(ToolKind::Sword) => {
-                        // Sword
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Sword))
-                            .with_skill(Skill::Sword(SwordSkill::TsCombo), None)
-                            .with_skill(Skill::Sword(SwordSkill::DDamage), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::DCost), Some(1))
-                    },
-                    Some(ToolKind::Axe) => {
-                        // Axe
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Axe))
-                            .with_skill(Skill::Axe(AxeSkill::DsCombo), None)
-                            .with_skill(Skill::Axe(AxeSkill::SInfinite), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::SSpeed), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::SCost), Some(1))
-                    },
-                    Some(ToolKind::Hammer) => {
-                        // Hammer
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Hammer))
-                            .with_skill(Skill::Hammer(HammerSkill::SsKnockback), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::SsSpeed), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::CKnockback), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::CSpeed), Some(1))
-                    },
-                    Some(ToolKind::Bow) => {
-                        // Bow
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
-                            .with_skill(Skill::Bow(BowSkill::ProjSpeed), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CKnockback), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RSpeed), Some(1))
-                    },
-                    Some(ToolKind::Staff) => {
-                        // Staff
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
-                            .with_skill(Skill::Staff(StaffSkill::FDamage), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FDrain), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FVelocity), Some(1))
-                    },
-                    _ => Self::default(),
-                }
-            },
-            Some(Highwayman) => {
-                match active_item {
-                    Some(ToolKind::Sword) => {
-                        // Sword
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Sword))
-                            .with_skill(Skill::Sword(SwordSkill::TsCombo), None)
-                            .with_skill(Skill::Sword(SwordSkill::TsDamage), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::DDamage), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::UnlockSpin), None)
-                            .with_skill(Skill::Sword(SwordSkill::SSpins), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::SCost), Some(1))
-                    },
-                    Some(ToolKind::Axe) => {
-                        // Axe
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Axe))
-                            .with_skill(Skill::Axe(AxeSkill::DsCombo), None)
-                            .with_skill(Skill::Axe(AxeSkill::DsDamage), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::SInfinite), None)
-                            .with_skill(Skill::Axe(AxeSkill::SDamage), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::SSpeed), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::SCost), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::UnlockLeap), None)
-                    },
-                    Some(ToolKind::Hammer) => {
-                        // Hammer
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Hammer))
-                            .with_skill(Skill::Hammer(HammerSkill::SsKnockback), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::SsDamage), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::SsSpeed), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::CKnockback), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::UnlockLeap), None)
-                            .with_skill(Skill::Hammer(HammerSkill::LKnockback), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::LRange), Some(1))
-                    },
-                    Some(ToolKind::Bow) => {
-                        // Bow
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
-                            .with_skill(Skill::Bow(BowSkill::CDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CKnockback), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CSpeed), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CMove), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::UnlockShotgun), None)
-                            .with_skill(Skill::Bow(BowSkill::SArrows), Some(1))
-                    },
-                    Some(ToolKind::Staff) => {
-                        // Staff
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
-                            .with_skill(Skill::Staff(StaffSkill::BRegen), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::BRadius), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FDamage), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FRange), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FVelocity), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::UnlockShockwave), None)
-                    },
-                    _ => Self::default(),
-                }
-            },
-            Some(Bandit) | Some(Merchant) => {
-                match active_item {
-                    Some(ToolKind::Sword) => {
-                        // Sword
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Sword))
-                            .with_skill(Skill::Sword(SwordSkill::TsCombo), None)
-                            .with_skill(Skill::Sword(SwordSkill::TsDamage), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::DDamage), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::DCost), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::UnlockSpin), None)
-                            .with_skill(Skill::Sword(SwordSkill::SDamage), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::SSpins), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::SCost), Some(1))
-                    },
-                    Some(ToolKind::Axe) => {
-                        // Axe
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Axe))
-                            .with_skill(Skill::Axe(AxeSkill::DsCombo), None)
-                            .with_skill(Skill::Axe(AxeSkill::DsSpeed), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::DsRegen), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::SInfinite), None)
-                            .with_skill(Skill::Axe(AxeSkill::SDamage), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::UnlockLeap), None)
-                            .with_skill(Skill::Axe(AxeSkill::LKnockback), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::LCost), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::LDistance), Some(1))
-                    },
-                    Some(ToolKind::Hammer) => {
-                        // Hammer
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Hammer))
-                            .with_skill(Skill::Hammer(HammerSkill::SsKnockback), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::SsDamage), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::SsRegen), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::CKnockback), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::CDamage), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::UnlockLeap), None)
-                            .with_skill(Skill::Hammer(HammerSkill::LDamage), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::LCost), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::LDistance), Some(1))
-                    },
-                    Some(ToolKind::Bow) => {
-                        // Bow
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
-                            .with_skill(Skill::Bow(BowSkill::ProjSpeed), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CRegen), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CSpeed), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RCost), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::UnlockShotgun), None)
-                            .with_skill(Skill::Bow(BowSkill::SCost), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RCost), Some(1))
-                    },
-                    Some(ToolKind::Staff) => {
-                        // Staff
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
-                            .with_skill(Skill::Staff(StaffSkill::FDamage), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FRange), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FDrain), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::UnlockShockwave), None)
-                            .with_skill(Skill::Staff(StaffSkill::SDamage), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::SRange), Some(1))
-                    },
-                    _ => Self::default(),
-                }
-            },
-            Some(CultistNovice) => {
-                match active_item {
-                    Some(ToolKind::Sword) => {
-                        // Sword
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Sword))
-                            .with_skill(Skill::Sword(SwordSkill::TsCombo), None)
-                            .with_skill(Skill::Sword(SwordSkill::TsRegen), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::TsSpeed), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::DDamage), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::DCost), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::DDrain), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::DScaling), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::UnlockSpin), None)
-                            .with_skill(Skill::Sword(SwordSkill::SSpeed), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::SSpins), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::SCost), Some(1))
-                    },
-                    Some(ToolKind::Axe) => {
-                        // Axe
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Axe))
-                            .with_skill(Skill::Axe(AxeSkill::DsCombo), None)
-                            .with_skill(Skill::Axe(AxeSkill::SInfinite), None)
-                            .with_skill(Skill::Axe(AxeSkill::SHelicopter), None)
-                            .with_skill(Skill::Axe(AxeSkill::SDamage), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::UnlockLeap), None)
-                            .with_skill(Skill::Axe(AxeSkill::LKnockback), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::LDistance), Some(1))
-                    },
-                    Some(ToolKind::Hammer) => {
-                        // Hammer
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Hammer))
-                            .with_skill(Skill::Hammer(HammerSkill::SsKnockback), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::SsSpeed), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::SsRegen), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::CKnockback), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::CDamage), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::CDrain), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::CSpeed), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::UnlockLeap), None)
-                            .with_skill(Skill::Hammer(HammerSkill::LDamage), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::LKnockback), Some(1))
-                    },
-                    Some(ToolKind::Bow) => {
-                        // Bow
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
-                            .with_skill(Skill::Bow(BowSkill::ProjSpeed), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CKnockback), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RSpeed), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RCost), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::UnlockShotgun), None)
-                            .with_skill(Skill::Bow(BowSkill::SDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::SArrows), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::SSpread), Some(1))
-                    },
-                    Some(ToolKind::Staff) => {
-                        // Staff
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
-                            .with_skill(Skill::Staff(StaffSkill::BDamage), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::BRadius), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FDamage), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FRange), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FDrain), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FVelocity), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::UnlockShockwave), None)
-                            .with_skill(Skill::Staff(StaffSkill::SDamage), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::SRange), Some(1))
-                    },
-                    _ => Self::default(),
-                }
-            },
-            Some(CultistAcolyte) => {
-                match active_item {
-                    Some(ToolKind::Sword) => {
-                        // Sword
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Sword))
-                            .with_skill(Skill::Sword(SwordSkill::TsCombo), None)
-                            .with_skill(Skill::Sword(SwordSkill::TsDamage), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::TsSpeed), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::DDamage), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::DScaling), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::UnlockSpin), None)
-                            .with_skill(Skill::Sword(SwordSkill::SDamage), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::SSpeed), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::SSpins), Some(1))
-                    },
-                    Some(ToolKind::Axe) => {
-                        // Axe
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Axe))
-                            .with_skill(Skill::Axe(AxeSkill::DsCombo), None)
-                            .with_skill(Skill::Axe(AxeSkill::DsDamage), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::SInfinite), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::SDamage), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::SCost), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::UnlockLeap), None)
-                            .with_skill(Skill::Axe(AxeSkill::LDamage), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::LKnockback), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::LCost), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::LDistance), Some(1))
-                    },
-                    Some(ToolKind::Hammer) => {
-                        // Hammer
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Hammer))
-                            .with_skill(Skill::Hammer(HammerSkill::SsKnockback), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::SsDamage), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::SsRegen), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::CKnockback), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::CDamage), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::CDrain), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::UnlockLeap), None)
-                            .with_skill(Skill::Hammer(HammerSkill::LDamage), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::LRange), Some(1))
-                    },
-                    Some(ToolKind::Bow) => {
-                        // Bow
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
-                            .with_skill(Skill::Bow(BowSkill::CDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CKnockback), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CSpeed), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RCost), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::UnlockShotgun), None)
-                            .with_skill(Skill::Bow(BowSkill::SDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::SSpread), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::SArrows), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::SCost), Some(1))
-                    },
-                    Some(ToolKind::Staff) => {
-                        // Staff
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
-                            .with_skill(Skill::Staff(StaffSkill::BDamage), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::BRadius), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FDamage), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FRange), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FVelocity), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::UnlockShockwave), None)
-                            .with_skill(Skill::Staff(StaffSkill::SDamage), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::SKnockback), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::SRange), Some(1))
-                    },
-                    _ => Self::default(),
-                }
-            },
-            Some(Warlord) => {
-                match active_item {
-                    Some(ToolKind::Sword) => {
-                        // Sword
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Sword))
-                            .with_skill(Skill::Sword(SwordSkill::TsCombo), None)
-                            .with_skill(Skill::Sword(SwordSkill::TsDamage), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::TsRegen), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::DDamage), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::DCost), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::DDrain), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::UnlockSpin), None)
-                            .with_skill(Skill::Sword(SwordSkill::SDamage), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::SSpins), Some(2))
-                            .with_skill(Skill::Sword(SwordSkill::SCost), Some(1))
-                    },
-                    Some(ToolKind::Axe) => {
-                        // Axe
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Axe))
-                            .with_skill(Skill::Axe(AxeSkill::DsCombo), None)
-                            .with_skill(Skill::Axe(AxeSkill::DsDamage), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::DsSpeed), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::DsRegen), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::SInfinite), None)
-                            .with_skill(Skill::Axe(AxeSkill::SHelicopter), None)
-                            .with_skill(Skill::Axe(AxeSkill::SDamage), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::SSpeed), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::UnlockLeap), None)
-                            .with_skill(Skill::Axe(AxeSkill::LDamage), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::LKnockback), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::LDistance), Some(1))
-                    },
-                    Some(ToolKind::Hammer) => {
-                        // Hammer
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Hammer))
-                            .with_skill(Skill::Hammer(HammerSkill::SsKnockback), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::SsDamage), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::SsSpeed), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::SsRegen), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::CKnockback), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::CDamage), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::CDrain), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::UnlockLeap), None)
-                            .with_skill(Skill::Hammer(HammerSkill::LDamage), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::LDistance), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::LKnockback), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::LRange), Some(1))
-                    },
-                    Some(ToolKind::Bow) => {
-                        // Bow
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
-                            .with_skill(Skill::Bow(BowSkill::CDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CRegen), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CKnockback), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CSpeed), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CMove), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RSpeed), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::UnlockShotgun), None)
-                            .with_skill(Skill::Bow(BowSkill::SDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::SSpread), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::SArrows), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::SCost), Some(1))
-                    },
-                    Some(ToolKind::Staff) => {
-                        // Staff
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
-                            .with_skill(Skill::Staff(StaffSkill::BDamage), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::BRegen), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::BRadius), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FDamage), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FDrain), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FVelocity), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::UnlockShockwave), None)
-                            .with_skill(Skill::Staff(StaffSkill::SDamage), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::SKnockback), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::SCost), Some(1))
-                    },
-                    _ => Self::default(),
-                }
-            },
-            Some(Warlock) => {
-                match active_item {
-                    Some(ToolKind::Sword) => {
-                        // Sword
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Sword))
-                            .with_skill(Skill::Sword(SwordSkill::TsCombo), None)
-                            .with_skill(Skill::Sword(SwordSkill::TsDamage), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::TsRegen), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::TsSpeed), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::DDamage), Some(2))
-                            .with_skill(Skill::Sword(SwordSkill::DCost), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::DDrain), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::DScaling), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::UnlockSpin), None)
-                            .with_skill(Skill::Sword(SwordSkill::SDamage), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::SSpeed), Some(1))
-                            .with_skill(Skill::Sword(SwordSkill::SSpins), Some(2))
-                            .with_skill(Skill::Sword(SwordSkill::SCost), Some(1))
-                    },
-                    Some(ToolKind::Axe) => {
-                        // Axe
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Axe))
-                            .with_skill(Skill::Axe(AxeSkill::DsCombo), None)
-                            .with_skill(Skill::Axe(AxeSkill::DsDamage), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::DsSpeed), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::DsRegen), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::SInfinite), None)
-                            .with_skill(Skill::Axe(AxeSkill::SHelicopter), None)
-                            .with_skill(Skill::Axe(AxeSkill::SDamage), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::SSpeed), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::SCost), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::UnlockLeap), None)
-                            .with_skill(Skill::Axe(AxeSkill::LDamage), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::LKnockback), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::LCost), Some(1))
-                            .with_skill(Skill::Axe(AxeSkill::LDistance), Some(1))
-                    },
-                    Some(ToolKind::Hammer) => {
-                        // Hammer
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Hammer))
-                            .with_skill(Skill::Hammer(HammerSkill::SsKnockback), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::SsDamage), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::SsSpeed), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::SsRegen), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::CKnockback), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::CDamage), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::CDrain), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::CSpeed), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::UnlockLeap), None)
-                            .with_skill(Skill::Hammer(HammerSkill::LDamage), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::LCost), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::LDistance), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::LKnockback), Some(1))
-                            .with_skill(Skill::Hammer(HammerSkill::LRange), Some(1))
-                    },
-                    Some(ToolKind::Bow) => {
-                        // Bow
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
-                            .with_skill(Skill::Bow(BowSkill::ProjSpeed), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CRegen), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CKnockback), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CSpeed), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::CMove), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RSpeed), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::RCost), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::UnlockShotgun), None)
-                            .with_skill(Skill::Bow(BowSkill::SDamage), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::SSpread), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::SArrows), Some(1))
-                            .with_skill(Skill::Bow(BowSkill::SCost), Some(1))
-                    },
-                    Some(ToolKind::Staff) => {
-                        // Staff
-                        Self::default()
-                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
-                            .with_skill(Skill::Staff(StaffSkill::BDamage), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::BRegen), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::BRadius), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FDamage), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FRange), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FDrain), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::FVelocity), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::UnlockShockwave), None)
-                            .with_skill(Skill::Staff(StaffSkill::SDamage), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::SKnockback), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::SRange), Some(1))
-                            .with_skill(Skill::Staff(StaffSkill::SCost), Some(1))
-                    },
-                    _ => Self::default(),
-                }
-            },
-            Some(Mindflayer) => Self::default()
-                .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
-                .with_skill(Skill::Staff(StaffSkill::BDamage), Some(3))
-                .with_skill(Skill::Staff(StaffSkill::BRegen), Some(2))
-                .with_skill(Skill::Staff(StaffSkill::BRadius), Some(2))
-                .with_skill(Skill::Staff(StaffSkill::FDamage), Some(3))
-                .with_skill(Skill::Staff(StaffSkill::FRange), Some(2))
-                .with_skill(Skill::Staff(StaffSkill::FDrain), Some(2))
-                .with_skill(Skill::Staff(StaffSkill::FVelocity), Some(2))
-                .with_skill(Skill::Staff(StaffSkill::UnlockShockwave), None)
-                .with_skill(Skill::Staff(StaffSkill::SDamage), Some(2))
-                .with_skill(Skill::Staff(StaffSkill::SKnockback), Some(2))
-                .with_skill(Skill::Staff(StaffSkill::SRange), Some(2))
-                .with_skill(Skill::Staff(StaffSkill::SCost), Some(2)),
-            Some(Villager) | None => Self::default(),
+        builder.with_asset_expect(asset_specifier)
+    }
+
+    /// Applies `asset_specifier` with needed skill tree
+    #[must_use]
+    pub fn with_asset_expect(mut self, asset_specifier: &str) -> Self {
+        let tree = skills_from_asset_expect(asset_specifier);
+        for (skill, level) in tree {
+            self = self.with_skill(skill, level);
         }
+
+        self
+    }
+
+    /// Creates `SkillSetBuilder` for given preset
+    #[must_use]
+    pub fn from_preset(preset: Preset) -> Self {
+        let builder = Self::default();
+
+        builder.with_preset(preset)
+    }
+
+    /// Applies preset
+    #[must_use]
+    pub const fn with_preset(self, preset: Preset) -> Self {
+        match preset {
+            Preset::Empty => {},
+        }
+        self
     }
 
     #[must_use]
@@ -689,7 +103,6 @@ impl SkillSetBuilder {
     /// 2) If added skill already applied
     /// 3) If added skill wasn't applied at the end
     pub fn with_skill(mut self, skill: Skill, level: Option<u16>) -> Self {
-        #![warn(clippy::pedantic)]
         let group = if let Some(skill_group) = skill.skill_group_kind() {
             skill_group
         } else {
@@ -697,12 +110,7 @@ impl SkillSetBuilder {
                 "Tried to add skill: {:?} which does not have an associated skill group.",
                 skill
             );
-            if cfg!(test) {
-                panic!("{}", err);
-            } else {
-                warn!("{}", err);
-            }
-            return self;
+            common_base::dev_panic!(err, or return self);
         };
 
         let SkillSetBuilder(ref mut skill_set) = self;
@@ -711,12 +119,7 @@ impl SkillSetBuilder {
                 "Tried to add skill: {:?} with level {:?} which is already applied",
                 skill, level,
             );
-            if cfg!(test) {
-                panic!("{}", err);
-            } else {
-                warn!("{}", err);
-            }
-            return self;
+            common_base::dev_panic!(err, or return self);
         }
         for _ in 0..level.unwrap_or(1) {
             skill_set.add_skill_points(group, skill_set.skill_cost(skill));
@@ -728,26 +131,62 @@ impl SkillSetBuilder {
                  available and meets all prerequisite skills.",
                 skill
             );
-            if cfg!(test) {
-                panic!("{}", err);
-            } else {
-                warn!("{}", err);
-            }
+            common_base::dev_panic!(err);
         }
         self
     }
 
-    pub fn with_skill_group(self, skill_group: SkillGroupKind) -> Self {
-        self.with_skill(Skill::UnlockGroup(skill_group), None)
-    }
-
+    #[must_use]
     pub fn build(self) -> SkillSet { self.0 }
 }
 
+#[must_use]
 fn skill_is_applied(skill_set: &SkillSet, skill: Skill, level: Option<u16>) -> bool {
     if let Ok(applied_level) = skill_set.skill_level(skill) {
         applied_level == level
     } else {
         false
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use assets::Error;
+
+    #[test]
+    fn test_all_skillset_assets() {
+        #[derive(Clone)]
+        struct SkillSetList(Vec<SkillSetTree>);
+
+        impl assets::Compound for SkillSetList {
+            fn load<S: assets::source::Source>(
+                cache: &assets::AssetCache<S>,
+                specifier: &str,
+            ) -> Result<Self, Error> {
+                let list = cache
+                    .load::<assets::Directory>(specifier)?
+                    .read()
+                    .iter()
+                    .map(|spec| SkillSetTree::load_cloned(spec))
+                    .collect::<Result<_, Error>>()?;
+
+                Ok(Self(list))
+            }
+        }
+
+        let skillsets = SkillSetList::load_expect_cloned("common.skillset.*").0;
+        for skillset in skillsets {
+            std::mem::drop({
+                let mut skillset_builder = SkillSetBuilder::default();
+                let nodes = skillset.0;
+                let tree = skills_from_nodes(nodes);
+                for (skill, level) in tree {
+                    skillset_builder = skillset_builder.with_skill(skill, level);
+                }
+
+                skillset_builder
+            });
+        }
     }
 }

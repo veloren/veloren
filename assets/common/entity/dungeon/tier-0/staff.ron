@@ -4,5 +4,6 @@ EntityConfig (
     main_tool: Some(Item("common.items.npc_weapons.biped_small.gnarling.gnoll_staff")),
     second_tool: None,
 
-    loadout_config: Some("common.loadout.dungeon.tier-0.gnarling"),
+    loadout_asset: Some("common.loadout.dungeon.tier-0.gnarling"),
+    skillset_asset: None,
 )

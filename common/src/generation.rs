@@ -6,7 +6,6 @@ use crate::{
         Alignment, Body, Item,
     },
     npc::{self, NPC_NAMES},
-    skillset_builder::SkillSetConfig,
     trade,
     trade::SiteInformation,
 };
@@ -18,7 +17,8 @@ struct EntityConfig {
     name: Option<String>,
     main_tool: Option<ItemSpec>,
     second_tool: Option<ItemSpec>,
-    loadout_config: Option<String>,
+    loadout_asset: Option<String>,
+    skillset_asset: Option<String>,
 }
 
 impl assets::Asset for EntityConfig {
@@ -43,10 +43,9 @@ pub struct EntityInfo {
     // TODO: Properly give NPCs skills
     pub level: Option<u16>,
     pub loot_drop: Option<Item>,
-    pub loadout_config: Option<String>,
+    pub loadout_asset: Option<String>,
     pub make_loadout: Option<fn(LoadoutBuilder, Option<&trade::SiteInformation>) -> LoadoutBuilder>,
-    pub skillset_config: Option<String>,
-    pub skillset_preset: Option<SkillSetConfig>,
+    pub skillset_asset: Option<String>,
     pub pet: Option<Box<EntityInfo>>,
     // we can't use DHashMap, do we want to move that into common?
     pub trading_information: Option<trade::SiteInformation>,
@@ -69,10 +68,9 @@ impl EntityInfo {
             scale: 1.0,
             level: None,
             loot_drop: None,
-            loadout_config: None,
+            loadout_asset: None,
             make_loadout: None,
-            skillset_config: None,
-            skillset_preset: None,
+            skillset_asset: None,
             pet: None,
             trading_information: None,
         }
@@ -90,7 +88,8 @@ impl EntityInfo {
             name,
             main_tool,
             second_tool,
-            loadout_config,
+            loadout_asset,
+            skillset_asset,
         } = config;
 
         if let Some(name) = name {
@@ -109,8 +108,12 @@ impl EntityInfo {
             self = self.with_main_tool(second_tool);
         }
 
-        if let Some(loadout_config) = loadout_config {
-            self = self.with_loadout_config(loadout_config);
+        if let Some(loadout_asset) = loadout_asset {
+            self = self.with_loadout_asset(loadout_asset);
+        }
+
+        if let Some(skillset_asset) = skillset_asset {
+            self = self.with_skillset_asset(skillset_asset);
         }
 
         self
@@ -183,8 +186,8 @@ impl EntityInfo {
         self
     }
 
-    pub fn with_loadout_config(mut self, config: String) -> Self {
-        self.loadout_config = Some(config);
+    pub fn with_loadout_asset(mut self, asset: String) -> Self {
+        self.loadout_asset = Some(asset);
         self
     }
 
@@ -196,15 +199,8 @@ impl EntityInfo {
         self
     }
 
-    pub fn with_skillset_preset(mut self, preset: SkillSetConfig) -> Self {
-        self.skillset_preset = Some(preset);
-        self
-    }
-
-    // FIXME: Doesn't work for now, because skills can't be loaded from assets for
-    // now
-    pub fn with_skillset_config(mut self, config: String) -> Self {
-        self.skillset_config = Some(config);
+    pub fn with_skillset_asset(mut self, asset: String) -> Self {
+        self.skillset_asset = Some(asset);
         self
     }
 
@@ -269,6 +265,7 @@ pub fn get_npc_name<
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{comp::inventory::slot::EquipSlot, SkillSetBuilder};
     use assets::Error;
 
     #[test]
@@ -292,12 +289,35 @@ mod tests {
         }
 
         // It just load everything that could
-        // TODO: add some checks, e.g. that Armor(Head) key correspond
-        // to Item with ItemKind Head(_)
         let entity_configs = EntityList::load_expect_cloned("common.entity.*").0;
         for config in entity_configs {
-            let pos = Vec3::new(0.0, 0.0, 0.0);
-            std::mem::drop(EntityInfo::at(pos).with_entity_config(config, None));
+            let EntityConfig {
+                main_tool,
+                second_tool,
+                loadout_asset,
+                skillset_asset,
+                ..
+            } = config;
+
+            if let Some(main_tool) = main_tool {
+                main_tool.validate(EquipSlot::ActiveMainhand);
+            }
+
+            if let Some(second_tool) = second_tool {
+                second_tool.validate(EquipSlot::ActiveOffhand);
+            }
+
+            if let Some(loadout_asset) = loadout_asset {
+                let rng = &mut rand::thread_rng();
+                let builder = LoadoutBuilder::default();
+                // we need to just load it check if it exists,
+                // because all loadouts are tested in LoadoutBuilder module
+                std::mem::drop(builder.with_asset_expect(&loadout_asset, rng));
+            }
+
+            if let Some(skillset_asset) = skillset_asset {
+                std::mem::drop(SkillSetBuilder::from_asset_expect(&skillset_asset));
+            }
         }
     }
 }
