@@ -1,0 +1,35 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" Swedish
+(
+    string_map: {
+        // Map and Questlog
+        "hud.map.map_title": "Karta",
+        "hud.map.qlog_title": "Uppdrag",
+        "hud.map.topo_map": "Topografisk",
+        "hud.map.difficulty": "Svårighet",
+        "hud.map.towns": "Samhällen",
+        "hud.map.castles": "Borgar",
+        "hud.map.dungeons": "Dungeons", // TODO translate dungeon
+        "hud.map.caves": "Grottor",
+        "hud.map.cave": "Grotta",
+	    "hud.map.peaks": "Berg",
+        "hud.map.voxel_map": "Voxelkarta",
+        "hud.map.trees": "Jätteträd",
+        "hud.map.tree": "Jätteträd",
+        "hud.map.town": "Samhälle",
+        "hud.map.castle": "Borg",
+        "hud.map.dungeon": "Dungeon", // TODO
+        "hud.map.difficulty_dungeon": "Dungeon\n\Svårighet: {difficulty}", // TODO
+        "hud.map.drag": "Drag",
+        "hud.map.zoom": "Zooma",
+        "hud.map.mid_click": "Markera landmärke",
+        "hud.map.recenter": "Centrera",
+        "hud.map.marked_location": "Markerad plast",
+        "hud.map.marked_location_remove": "Klicka för att ta bort",
+    },
+
+
+    vector_map: {
+    }
+)

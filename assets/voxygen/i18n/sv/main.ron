@@ -1,0 +1,70 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" Swedish
+(
+    string_map: {
+        /// Start Main screen section
+        "main.username": "Användarnamn",
+        "main.server": "Server",
+        "main.password": "Lösenord",
+        "main.connecting": "Ansluter",
+        "main.creating_world": "Skapar värld",
+        "main.tip": "Tips:",
+
+        // Welcome notice that appears the first time Veloren is started
+        "main.notice": r#"Välkommen till alfa-versionen av Veloren!
+
+Innan du dyker in i det roliga, ber vi dig hålla några saker i åtanke:
+
+- Detta är en väldigt tidig alfa-version. Förvänta dig buggar, väldigt bristfällig spelupplevelse, ovårdad spelmekanik och saknade funktioner.
+
+- Om du har konstruktiva synpunkter eller buggar att rapportera går det bra att kontakta oss på Reddit, GitLab eller vår gemenskaps Discord-server.
+
+- Veloren har öppen källkod, publicerad under licensen GPL 3. Det innebär att du får spela, modifiera och sprida spelet vidare precis
+ som du vill (så länge dina ändringar publiceras under samma licens).
+
+- Veloren är ett projekt som drivs av en gemenskap utan vinstintresse och alla som bidrar är en volontär.
+Om du gillar det du ser, får du gärna gå med i en utvecklings- eller konstgrupp!
+
+Tack för att du tog dig tid att läsa det här meddelandet, vi hoppas du kommer gilla spelet!
+
+~ Velorens utvecklare"#,
+
+        // Login process description
+        "main.login_process": r#"Information om inloggningsproceduren:
+
+Observera att du behöver ett konto
+för att spela på vissa servrar.
+
+Du kan skaffa ett konto på
+
+https://veloren.net/account/."#,
+        "main.login.server_not_found": "Servern hittades inte",
+        "main.login.authentication_error": "Inloggningsfel på servern",
+        "main.login.internal_error": "Internt fel hos klienten (troligen på grund av att rollpersonen har raderats)",
+        "main.login.failed_auth_server_url_invalid": "Kunde inte ansluta till inloggningsservern",
+        "main.login.insecure_auth_scheme": "Inloggning kan inte ske över HTTP. Detta är osäkert! För utvecklingsskäl får HTTP användas för 'localhost' ooch felsökningsinstallationer",
+        "main.login.server_full": "Servern är full",
+        "main.login.untrusted_auth_server": "Inloggningsservern är inte betrodd",
+        "main.login.outdated_client_or_server": "ServernÄrTokig: Versionerna är förmodligen inte kompatibla, se om det finns uppdateringar tillgängliga.",
+        "main.login.timeout": "Timeout: Servern svarade inte i tid. (Överbelastad eller nätverksproblem.)",
+        "main.login.server_shut_down": "Servern stannade",
+        "main.login.network_error": "Nätverksfel",
+        "main.login.network_wrong_version": "Olika version hos server och klient, vänligen uppdatera din spelklient.",
+        "main.login.failed_sending_request": "Förfrågan till inloggningsservern misslyckades",
+        "main.login.invalid_character": "Den valda rollpersonen är ogiltig",
+        "main.login.client_crashed": "Klienten kapsejsade",
+        "main.login.not_on_whitelist": "Du måste finnas på administratörens vitlista för att få gå med",
+        "main.login.banned": "Du har blockerats med följande motivering",
+        "main.login.kicked": "Du har sparkats ut med följande motivering",
+        "main.login.select_language": "Välj ett språk",
+        "main.login.client_version": "Klientversion",
+        "main.login.server_version": "Serverversion",
+        "main.servers.select_server": "Välj en server",
+        /// End Main screen section
+    },
+
+
+    vector_map: {
+    }
+)

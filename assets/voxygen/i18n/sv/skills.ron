@@ -1,0 +1,246 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" Swedish
+(
+    string_map: {
+        "hud.rank_up": "Nytt färdighetspoäng",
+        "hud.skill.sp_available": "{number} FP tillgängliga",
+        "hud.skill.not_unlocked": "Inte upplåst än",
+        "hud.skill.req_sp": "\n\nKräver {number} FP",
+        //  Skills
+        // General
+        "hud.skill.inc_health_title": "Mer hälsa",
+        "hud.skill.inc_health": "Ökar maxhälsan med 5{SP}",
+        "hud.skill.inc_stam_title": "Ökad uthållighet",
+        "hud.skill.inc_stam": "Ökar max-uthålligheten med 5{SP}",
+        "hud.skill.unlck_sword_title": "Lås upp svärd",
+        "hud.skill.unlck_sword": "Låser upp färdighetsträdet för svärd{SP}",
+        "hud.skill.unlck_axe_title": "Lås upp yxa",
+        "hud.skill.unlck_axe": "Låser upp färdighetsträdet för yxa{SP}",
+        "hud.skill.unlck_hammer_title": "Lås upp hammare",
+        "hud.skill.unlck_hammer": "Låser upp färdighetsträdet för hammare{SP}",
+        "hud.skill.unlck_bow_title": "Lås upp pilbåge",
+        "hud.skill.unlck_bow": "Låser upp färdighetsträdet för pilbåge{SP}",
+        "hud.skill.unlck_staff_title": "Lås upp stav",
+        "hud.skill.unlck_staff": "Låser upp färdighetsträdet för stav{SP}",
+        "hud.skill.unlck_sceptre_title": "Lås upp spira",
+        "hud.skill.unlck_sceptre": "Låser upp färdighetsträdet för spira{SP}",
+        "hud.skill.dodge_title": "Ducka",
+        "hud.skill.dodge": "Rulla åt sidan genom att mittenklicka och bli immun mot närstridsattacker under tiden du rullar.",
+        "hud.skill.roll_stamina_title": "Uthållighetskostnad för rullning",
+        "hud.skill.roll_stamina": "Rullning kostar 10% mindre uthållighet{SP}",
+        "hud.skill.roll_speed_title": "Rullningshastighet",
+        "hud.skill.roll_speed": "Ralla 10% fortare{SP}",
+        "hud.skill.roll_dur_title": "Rullningstid",
+        "hud.skill.roll_dur": "Rulla 10% längre{SP}",
+        "hud.skill.climbing_title": "Klättring",
+        "hud.skill.climbing": "Hoppa högre",
+        "hud.skill.climbing_cost_title": "Kostnad för klättring",
+        "hud.skill.climbing_cost": "Klättring kostar 20% mindre energi{SP}",
+        "hud.skill.climbing_speed_title": "Klättringshastighet",
+        "hud.skill.climbing_speed": "Klättra 20% fortare{SP}",
+        "hud.skill.swim_title": "Simning",
+        "hud.skill.swim": "Förflyttelse i blöta miljöer",
+        "hud.skill.swim_speed_title": "Simningshastighet",
+        "hud.skill.swim_speed": "Simma 40% fortare{SP}",
+        // Sceptre
+        "hud.skill.sc_lifesteal_title": "Livsstjälande stråle",
+        "hud.skill.sc_lifesteal": "Sug livet ur dina fiender",
+        "hud.skill.sc_lifesteal_damage_title": "Skada",
+        "hud.skill.sc_lifesteal_damage": "Orsaka 20% större skada{SP}",
+        "hud.skill.sc_lifesteal_range_title": "Räckvidd",
+        "hud.skill.sc_lifesteal_range": "Din stråle når 20% längre{SP}",
+        "hud.skill.sc_lifesteal_lifesteal_title": "Livsstjälande",
+        "hud.skill.sc_lifesteal_lifesteal": "Omvandlar ytterligare 15% av skadan till kroppspoäng{SP}",
+        "hud.skill.sc_lifesteal_regen_title": "Engergiåterhämtning",
+        "hud.skill.sc_lifesteal_regen": "Återhämta ytterligare 20% energi{SP}",
+        "hud.skill.sc_heal_title": "Helande stråle",
+        "hud.skill.sc_heal": "Hela dina alleirade med dina fienders blod",
+        "hud.skill.sc_heal_heal_title": "Helande",
+        "hud.skill.sc_heal_heal": "Ökar din förmåga att hela andra med 20%{SP}",
+        "hud.skill.sc_heal_cost_title": "Energikostnad",
+        "hud.skill.sc_heal_cost": "Helande av andra kräver 20% mindre energi{SP}",
+        "hud.skill.sc_heal_range_title": "Räckvidd",
+        "hud.skill.sc_heal_range": "Din stråle når 20% längre{SP}",
+        "hud.skill.sc_wardaura_unlock_title": "Låser upp beskyddande aura",
+        "hud.skill.sc_wardaura_unlock": "Låter dig skydda dina vänner mot fiendeattacker{SP}",
+        "hud.skill.sc_wardaura_strength_title": "Styrka",
+        "hud.skill.sc_wardaura_strength": "Ditt skydd blir 15% starkare{SP}",
+        "hud.skill.sc_wardaura_duration_title": "Varaktighet",
+        "hud.skill.sc_wardaura_duration": "Ditt beskydd varar 20% längre{SP}",
+        "hud.skill.sc_wardaura_range_title": "Räckvidd",
+        "hud.skill.sc_wardaura_range": "Ditt beskydd når 25% längre{SP}",
+        "hud.skill.sc_wardaura_cost_title": "Energikostnad",
+        "hud.skill.sc_wardaura_cost": "Ditt beskydd kräver 15% mindre energi att upprätta{SP}",
+        // Staff
+        "hud.skill.st_shockwave_range_title" : "Chockfrontens räckvidd",
+        "hud.skill.st_shockwave_range" : "Kasta saker som tidigre var utom räckhåll, räckvidden utökas med 20%{SP}",
+        "hud.skill.st_shockwave_cost_title" : "Chockfrontens kostnad",
+        "hud.skill.st_shockwave_cost" : "Minskar energikostnaden för stt kasta hjälplösa bybor med 20%{SP}",
+        "hud.skill.st_shockwave_knockback_title" : "Chockfrontens styrka",
+        "hud.skill.st_shockwave_knockback" : "Chockfronten blir 30% mer kraftfull{SP}",
+        "hud.skill.st_shockwave_damage_title" : "Chockfrontens skada",
+        "hud.skill.st_shockwave_damage" : "Ökar skadeverkan med 30%{SP}",
+        "hud.skill.st_shockwave_unlock_title" : "Lås upp chockfront",
+        "hud.skill.st_shockwave_unlock" : "Låser upp möjligheten att slå undan fiender med eld{SP}",
+        "hud.skill.st_flamethrower_title" : "Eldkastare",
+        "hud.skill.st_flamethrower" : "Slungar eld, för välgrillade fiender",
+        "hud.skill.st_flame_velocity_title" : "Flamhastighet",
+        "hud.skill.st_flame_velocity" : "Elden sprider sig snabbt, 25% snabbare{SP}",
+        "hud.skill.st_flamethrower_range_title" : "Eldkastares räckvidd",
+        "hud.skill.st_flamethrower_range" : "När flammorna inte når, räcker de 25% längre{SP}",
+        "hud.skill.st_energy_drain_title" : "Energikostnad",
+        "hud.skill.st_energy_drain" : "Minskar energikostnaden med 20%{SP}",
+        "hud.skill.st_flamethrower_damage_title" : "Eldkastarens skadeverkan",
+        "hud.skill.st_flamethrower_damage" : "Orsakar 30% mer skada{SP}",
+        "hud.skill.st_explosion_radius_title" : "Explosionsradie",
+        "hud.skill.st_explosion_radius" : "Större är bättre, explosionsradien ökar med 15%{SP}",
+        "hud.skill.st_stamina_regen_title" : "Engergiåterhämtning",
+        "hud.skill.st_stamina_regen" : "Återhämta ytterligare 20% energi{SP}",
+        "hud.skill.st_fireball_title" : "Eldklot",
+        "hud.skill.st_fireball" : "Skjuter ett eldklot som exploderar vid träff",
+        "hud.skill.st_damage_title" : "Skada",
+        "hud.skill.st_damage" : "Orsakar 20% mer skada{SP}",
+        // Bow
+        "hud.skill.bow_projectile_speed_title" : "Projektilhastighet",
+        "hud.skill.bow_projectile_speed" : "Låter dig skjuta pilar 30% längre och snabbare{SP}",
+        "hud.skill.bow_charged_title" : "Charged Shoot", // TODO
+        "hud.skill.bow_charged" : "Because you waited longer", // TODO
+        "hud.skill.bow_charged_damage_title" : "Charged Damage", // TODO
+        "hud.skill.bow_charged_damage" : "Ökar skadeverkan med 20%{SP}",
+        "hud.skill.bow_charged_energy_regen_title" : "Energiåterhämtning",
+        "hud.skill.bow_charged_energy_regen" : "Återhämta ytterligare 20% energi{SP}",
+        "hud.skill.bow_charged_knockback_title" : "Charged Knockback", // TODO
+        "hud.skill.bow_charged_knockback" : "Knock enemies further back by 20%{SP}", // TODO
+        "hud.skill.bow_charged_speed_title" : "Charged Speed", // TODO
+        "hud.skill.bow_charged_speed" : "Increases the rate that you charge the attack by 10%{SP}", // TODO
+        "hud.skill.bow_charged_move_title" : "Charged Move Speed", // TODO
+        "hud.skill.bow_charged_move" : "Increases how fast you can shuffle while charging the attack by 10%{SP}", // TODO
+        "hud.skill.bow_repeater_title" : "Repeater", // TODO
+        "hud.skill.bow_repeater" : "Shoots faster the longer you fire for", // TODO
+        "hud.skill.bow_repeater_damage_title" : "Repeater Damage", // TODO
+        "hud.skill.bow_repeater_damage" : "Increases the damage done by 20%{SP}", // TODO
+        "hud.skill.bow_repeater_cost_title" : "Repeater Cost", // TODO
+        "hud.skill.bow_repeater_cost" : "Decreases the energy cost to become a repeater by 20%{SP}", // TODO
+        "hud.skill.bow_repeater_speed_title" : "Repeater Speed", // TODO
+        "hud.skill.bow_repeater_speed" : "Increases the rate at which you fire arrows by 20%{SP}", // TODO
+        "hud.skill.bow_shotgun_unlock_title" : "Unlocks Shotgun", // TODO
+        "hud.skill.bow_shotgun_unlock" : "Låter dig skjuta flera pilar samtidigt{SP}",
+        "hud.skill.bow_shotgun_damage_title" : "Shotgun Damage", // TODO
+        "hud.skill.bow_shotgun_damage" : "Increases the damage done by 20%{SP}", // TODO
+        "hud.skill.bow_shotgun_cost_title" : "Shotgun Cost", // TODO
+        "hud.skill.bow_shotgun_cost" : "Decreases the cost of shotgun by 20%{SP}", // TODO
+        "hud.skill.bow_shotgun_arrow_count_title" : "Shotgun Arrows", // TODO
+        "hud.skill.bow_shotgun_arrow_count" : "Increases the number of arrows in the burst by 1{SP}", // TODO
+        "hud.skill.bow_shotgun_spread_title" : "Shotgun Spread", // TODO
+        "hud.skill.bow_shotgun_spread" : "Decreases the spread of the arrows by 20%{SP}", // TODO
+        // Hammer
+        "hud.skill.hmr_leap_radius_title" : "Leap Radius", //TODO
+        "hud.skill.hmr_leap_radius" : "Increases attack radius on ground slam by 1 meter{SP}", //TODO
+        "hud.skill.hmr_leap_distance_title" : "Leap Distance", //TODO
+        "hud.skill.hmr_leap_distance" : "Increases distance of leap by 25%{SP}", //TODO
+        "hud.skill.hmr_leap_cost_title" : "Leap Cost", //TODO
+        "hud.skill.hmr_leap_cost" : "Decreases cost of leap by 25%{SP}", //TODO
+        "hud.skill.hmr_leap_knockback_title" : "Leap Knockback", //TODO
+        "hud.skill.hmr_leap_knockback" : "Increases knockback from leap by 50%{SP}", //TODO
+        "hud.skill.hmr_leap_damage_title" : "Leap Damage", //TODO
+        "hud.skill.hmr_leap_damage" : "Increases damage of leap by 40%{SP}", //TODO
+        "hud.skill.hmr_unlock_leap_title" : "Unlock Leap", //TODO
+        "hud.skill.hmr_unlock_leap" : "Unlocks a leap{SP}", //TODO
+        "hud.skill.hmr_charged_melee_title" : "Charged Melee", //TODO
+        "hud.skill.hmr_charged_melee" : "Melee but with charge", //TODO
+        "hud.skill.hmr_charged_rate_title" : "Charge Rate", //TODO
+        "hud.skill.hmr_charged_rate" : "Increases the rate that you charge the swing by 25%{SP}", //TODO
+        "hud.skill.hmr_charged_melee_nrg_drain_title" : "Charged Melee Energy Drain", //TODO
+        "hud.skill.hmr_charged_melee_nrg_drain" : "Decreases the rate energy drains when charging by 25%{SP}", //TODO
+        "hud.skill.hmr_charged_melee_damage_title" : "Charged Melee Damage", //TODO
+        "hud.skill.hmr_charged_melee_damage" : "Increases the damage of the charged swing by 25%{SP}", //TODO
+        "hud.skill.hmr_charged_melee_knockback_title" : "Charged Melee Knockback", //TODO
+        "hud.skill.hmr_charged_melee_knockback" : "Massively increases throw potential of swing by 50%{SP}", //TODO
+        "hud.skill.hmr_single_strike_title" : "Single Strike", //TODO
+        "hud.skill.hmr_single_strike" : "As single as you are", //TODO
+        "hud.skill.hmr_single_strike_regen_title" : "Single Strike Regen", //TODO
+        "hud.skill.hmr_single_strike_regen" : "Increases stamina gain with each successive strike{SP}", //TODO
+        "hud.skill.hmr_single_strike_speed_title" : "Single Strike Speed", //TODO
+        "hud.skill.hmr_single_strike_speed" : "Increases the attack speed with each successive strike{SP}", //TODO
+        "hud.skill.hmr_single_strike_damage_title" : "Single Strike Damage", //TODO
+        "hud.skill.hmr_single_strike_damage" : "Increases the damage with each successive strike{SP}", //TODO
+        "hud.skill.hmr_single_strike_knockback_title" : "Single Strike Knockback", //TODO
+        "hud.skill.hmr_single_strike_knockback" : "Increase throw potential of swings by 50%{SP}", //TODO
+        "hud.skill." : "",
+        // Sword
+        "hud.skill.sw_trip_str_title": "Trippelstöt",
+        "hud.skill.sw_trip_str": "Gör upp till tre utfall",
+        "hud.skill.sw_trip_str_combo_title": "Triple Strike Combo", //TODO
+        "hud.skill.sw_trip_str_combo": "Unlocks combo scaling on triple strike{SP}", //TODO
+        "hud.skill.sw_trip_str_dmg_title": "Triple Strike Damage", //TODO
+        "hud.skill.sw_trip_str_dmg": "Increases the damage each successive strike does{SP}", //TODO
+        "hud.skill.sw_trip_str_sp_title": "Triple Strike Speed", //TODO
+        "hud.skill.sw_trip_str_sp": "Increases attack speed gained by each successive strike{SP}", //TODO
+        "hud.skill.sw_trip_str_reg_title": "Triple Strike Regen", //TODO
+        "hud.skill.sw_trip_str_reg": "Increases stamina gain on each successive strike{SP}", //TODO
+        "hud.skill.sw_dash_title": "Språng",
+        "hud.skill.sw_dash": "Spetsa dina fiender",
+        "hud.skill.sw_dash_dmg_title": "Dash Damage", //TODO
+        "hud.skill.sw_dash_dmg":  "Increases initial damage of the dash by 20%{SP}", //TODO
+        "hud.skill.sw_dash_drain_title": "Dash Drain", //TODO
+        "hud.skill.sw_dash_drain":  "Decreases the rate energy is drained while dashing by 25%{SP}", //TODO
+        "hud.skill.sw_dash_cost_title": "Dash Cost", //TODO
+        "hud.skill.sw_dash_cost": "Decreases the initial cost of the dash by 25%{SP}", //TODO
+        "hud.skill.sw_dash_speed_title": "Dash Speed", //TODO
+        "hud.skill.sw_dash_speed": "Increases how fast you go while dashing by 30%{SP}", //TODO
+        "hud.skill.sw_dash_charge_through_title": "Charge Through", //TODO
+        "hud.skill.sw_dash_charge_through": "Allows you to charge through the first enemies you hit{SP}", //TODO
+        "hud.skill.sw_dash_scale_title": "Dash Scaling Damage", //TODO
+        "hud.skill.sw_dash_scale": "Increases the damage scaling from the dash by 20%{SP}", //TODO
+        "hud.skill.sw_spin_title": "Spin Unlock", //TODO
+        "hud.skill.sw_spin": "Unlocks the sword spin{SP}", //TODO
+        "hud.skill.sw_spin_dmg_title": "Spin Damage", //TODO
+        "hud.skill.sw_spin_dmg": "Increases the damage done by 40%{SP}", //TODO
+        "hud.skill.sw_spin_spd_title": "Spin Speed", //TODO
+        "hud.skill.sw_spin_spd": "Increase the speed at which you spin by 25%{SP}", //TODO
+        "hud.skill.sw_spin_cost_title": "Spin Cost", //TODO
+        "hud.skill.sw_spin_cost": "Decreases the energy cost of each spin by 25%{SP}", //TODO
+        "hud.skill.sw_spin_spins_title": "Spin Spins", //TODO
+        "hud.skill.sw_spin_spins": "Increases the number of times you can spin{SP}", //TODO
+        "hud.skill.sw_interrupt_title": "Interrupting Attacks", //TODO
+        "hud.skill.sw_interrupt": "Allows you to immediately cancel an attack with another attack{SP}", //TODO
+        // Axe
+        "hud.skill.axe_double_strike_title": "Dubbelhugg",
+        "hud.skill.axe_double_strike": "Fäll skurkar likt furor",
+        "hud.skill.axe_double_strike_combo_title": "Dubbelhuggskombination",
+        "hud.skill.axe_double_strike_combo": "Unlocks a second strike{SP}", //TODO
+        "hud.skill.axe_double_strike_damage_title": "Double Strike Damage", //TODO
+        "hud.skill.axe_double_strike_damage": "Increases the damage dealt in each successive strike{SP}", //TODO
+        "hud.skill.axe_double_strike_speed_title": "Double Strike Speed", //TODO
+        "hud.skill.axe_double_strike_speed": "Increases the attack speed with each successive strike{SP}", //TODO
+        "hud.skill.axe_double_strike_regen_title": "Double Strike Regen", //TODO
+        "hud.skill.axe_double_strike_regen": "Increases stamina gain with each successive strike{SP}", //TODO
+        "hud.skill.axe_spin_title": "Axe Spin", //TODO
+        "hud.skill.axe_spin": "You spin it right round ...", //TODO
+        "hud.skill.axe_infinite_axe_spin_title": "Infinite Axe Spin", //TODO
+        "hud.skill.axe_infinite_axe_spin": "Spin for as long as you have energy{SP}", //TODO
+        "hud.skill.axe_spin_damage_title": "Spin Damage", //TODO
+        "hud.skill.axe_spin_damage": "Increases the damage each spin does by 30%{SP}", //TODO
+        "hud.skill.axe_spin_helicopter_title": "Spin Helicopter", //TODO
+        "hud.skill.axe_spin_helicopter": "You fall a little slower while spinning{SP}", //TODO
+        "hud.skill.axe_spin_speed_title": "Spin Speed", //TODO
+        "hud.skill.axe_spin_speed": "Increases your spin speed by 25%{SP}", //TODO
+        "hud.skill.axe_spin_cost_title": "Spin Cost", //TODO
+        "hud.skill.axe_spin_cost": "Decreases stamina cost of spinning by 25%{SP}", //TODO
+        "hud.skill.axe_unlock_leap_title": "Unlock Leap", //TODO
+        "hud.skill.axe_unlock_leap": "Unlocks a leap spin{SP}", //TODO
+        "hud.skill.axe_leap_damage_title": "Leap Damage", //TODO
+        "hud.skill.axe_leap_damage": "Increases damage of leap by 35%{SP}", //TODO
+        "hud.skill.axe_leap_knockback_title": "Leap Knockback", //TODO
+        "hud.skill.axe_leap_knockback": "Increases knockback from leap by 40%{SP}", //TODO
+        "hud.skill.axe_leap_cost_title": "Leap Cost", //TODO
+        "hud.skill.axe_leap_cost": "Decreases cost of leap by 25%{SP}", //TODO
+        "hud.skill.axe_leap_distance_title": "Leap Distance", //TODO
+        "hud.skill.axe_leap_distance": "Increases distance of leap by 20%{SP}", //TODO
+    },
+
+
+    vector_map: {
+    }
+)

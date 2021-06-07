@@ -1,23 +1,12 @@
-/// Translation document instructions
-/// 
-/// In order to keep localization documents readible please follow the following
-/// rules:
-/// - separate the string map sections using a commentary describing the purpose
-///   of the next section
-/// - prepend multi-line strings with a commentary
-/// - append one blank lines after a multi-line strings and two after sections
-///
-/// To add a new language in Veloren, just write an additional `.ron` file in 
-/// `assets/voxygen/i18n` and that's it!
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Localization for Swedish
+/// Localization for "global" Swedish
 (
     metadata: (
         language_name: "Svenska",
         language_identifier: "sv",
     ),
     convert_utf8_to_ascii: false,
-    // Make sure that fonts contain all swedisch characters
     fonts: {
         "opensans": Font (
             asset_key: "voxygen.font.OpenSans-Regular",
@@ -40,327 +29,207 @@
             scale_ratio: 1.0,
         ),
     },
-    sub_directories: [],
+    sub_directories: [
+        "hud"
+    ],
 
     string_map: {
-        /// Start Common section
-        // Texts used in multiple locations with the same formatting
-        "common.username": "användarnamn",
-        "common.singleplayer": "En spelare",
-        "common.multiplayer": "Flera spelare",
-        "common.servers": "Servrar",
-        "common.quit": "Avsluta",
-        "common.settings": "Inställningar",
-        "common.languages": "Språk",
-        "common.interface": "Gränssnitt",
-        "common.gameplay": "Spel",
-        "common.controls": "Kontroller",
-        "common.video": "Video",
-        "common.sound": "Ljud",
-        "common.resume": "Återuppta",
-        "common.characters": "Karaktärer",
-        "common.close": "Stäng",
-        "common.yes": "Ja",
-        "common.no": "Nej",
-        "common.back": "Tillbaka",
-        "common.create": "Skapa",
-        "common.okay": "Okej",
-        "common.disclaimer": "Varning",
-        "common.cancel": "Ångra",
-        "common.none": "Ingen",
 
-        // Message when connection to the server is lost
-        "common.connection_lost": r#"Förlorade kopplingen!
-Startade servern om?
-Är klienten uppdaterad?"#,
-
-
-        "common.races.orc": "Orch",
-        "common.races.human": "Människa",
-        "common.races.dwarf": "Dvärg",
-        "common.races.elf": "Älva",
-        "common.races.undead": "Odöd",
-        "common.races.danari": "Danari",
-
-        "common.weapons.axe": "Yxa",
-        "common.weapons.sword": "Svärd",
-        "common.weapons.staff": "Stav",
-        "common.weapons.bow": "Båge",
-        "common.weapons.hammer": "Hammare",
-        /// End Common section
-
-
-        /// Start Main screen section
-        "main.connecting": "Kopplar",
-        "main.creating_world": "Skapar värld",
-
-        // Welcome notice that appears the first time Veloren is started
-        "main.notice": r#"Välkommen till alfaversionen av Veloren!
-
-Before you dive into the fun, please keep a few things in mind:
-
-- This is a very early alpha. Expect bugs, extremely unfinished gameplay, unpolished mechanics, and missing features. 
-- If you have constructive feedback or bug reports, you can contact us via Reddit, GitLab, or our community Discord server.
-- Veloren is licensed under the GPL 3 open-source licence. That means you're free to play, modify, and redistribute the game however you wish (provided derived work is also under GPL 3).
-- Veloren is a non-profit community project, and everybody working on it is a volunteer.
-If you like what you see, you're welcome to join the development or art teams!
-- 'Voxel RPG' is a genre in its own right. First-person shooters used to be called Doom clones.
-
-Like them, we're trying to build a niche. This game is not a clone, and its development will diverge from existing games in the future.
-
-Thanks for taking the time to read this notice, we hope you enjoy the game!
-
-~ Utvecklarna av Veloren"#,
-
-        // Login process description
-        "main.login_process": r#"Information om inloggningsprocessen:
-
-Put in any username. No Account needed yet.
-                                        
-Character names and appearances will be saved locally.
-
-Levels/Items are not saved yet."#,
-
-
-        /// End Main screen section
-
-
-        /// Start HUD Section
-        "hud.do_not_show_on_startup": "Visa inte detta vid start",
-        "hud.show_tips": "Visa Tips",
-        "hud.quests": "Quests",
-        "hud.you_died": "Du dog",
-        
-        "hud.press_key_to_show_keybindings_fmt": "Tryck {key} för att visa tangentbindningar",
-        "hud.press_key_to_show_debug_info_fmt": "Tryck {key} för att visa debug info",
-        "hud.press_key_to_toggle_keybindings_fmt": "Tryck {key} för att t  tangentbindningar",
-        "hud.press_key_to_toggle_debug_info_fmt": "Tryck {key} för att toggla debug info",
-
-        // Respawn message
-        "hud.press_key_to_respawn": r#"Press {key} to respawn at your Waypoint.
-
-Press Enter, type in /waypoint and confirm to set it here."#,
-
-        // Welcome message
-        "hud.welcome": r#"Welcome to the Veloren Alpha!,
-
-
-Some tips before you start:
-
-
-MOST IMPORTANTLY: To set your respawn point type /waypoint into the chat.
-
-This can also be done when you are already dead!
-
-
-Press F1 to see the available key commands.
-
-Type /help into the chat to see chat commands
-
-
-There are chests and other objects randomly spawning in the World!
-
-Right-Click to collect them.
-
-To actually use whatever you loot from those chests open your inventory with 'B'.
-
-Double click the items in your bag to use or equip them.
-
-Throw them away by clicking them once and clicking outside of the bag
-
-
-Nights can get pretty dark in Veloren.
-
-Light your lantern by typing /lantern into the chat
-
-
-Want to free your cursor to close this window? Press TAB!
-
-
-Enjoy your stay in the World of Veloren."#,
-
-        "hud.settings.general": "General",
-        "hud.settings.help_window": "Help Window",
-        "hud.settings.debug_info": "Debug Info",
-        "hud.settings.tips_on_startup": "Tips-On-Startup",
-        "hud.settings.ui_scale": "UI-Scale",
-        "hud.settings.relative_scaling": "Relative Scaling",
-        "hud.settings.custom_scaling": "Custom Scaling",
-        "hud.settings.crosshair": "Crosshair",
-        "hud.settings.transparency": "Transparency",
-        "hud.settings.hotbar": "Hotbar",
-        "hud.settings.toggle_bar_experience": "Toggle Experience Bar",
-        "hud.settings.toggle_shortcuts": "Toggle Shortcuts",
-        "hud.settings.toggle_bar_experience": "Toggle Shortcuts",
-        "hud.settings.scrolling_combat_text": "Scrolling Combat Text",
-        "hud.settings.single_damage_number": "Single Damage Numbers",
-        "hud.settings.cumulated_damage": "Cumulated Damage",
-        "hud.settings.incoming_damage": "Incoming Damage",
-        "hud.settings.cumulated_incoming_damage": "Cumulated Incoming Damage",
-        "hud.settings.energybar_numbers": "Energybar Numbers",
-        "hud.settings.values": "Values",
-        "hud.settings.percentages": "Percentages",
-        "hud.settings.chat": "Chat",
-        "hud.settings.background_transparency": "Background Transparency",
-
-        "hud.settings.pan_sensitivity": "Pan Sensitivity",
-        "hud.settings.zoom_sensitivity": "Zoom Sensitivity",
-        "hud.settings.invert_scroll_zoom": "Invert Scroll Zoom",
-        "hud.settings.invert_mouse_y_axis": "Invert Mouse Y Axis",
-        "hud.settings.invert_controller_y_axis": "Invert Controller Y Axis",
-
-        "hud.settings.view_distance": "View Distance",
-        "hud.settings.maximum_fps": "Maximum FPS",
-        "hud.settings.fov": "Field of View (deg)",
-        "hud.settings.antialiasing_mode": "AntiAliasing Mode",
-        "hud.settings.cloud_rendering_mode": "Cloud Rendering Mode",
-        "hud.settings.fluid_rendering_mode": "Fluid Rendering Mode",
-        "hud.settings.fluid_rendering_mode.cheap": "Cheap",
-        "hud.settings.fluid_rendering_mode.shiny": "Shiny",
-        "hud.settings.cloud_rendering_mode.regular": "Regular",
-
-        "hud.settings.music_volume": "Music Volume",
-        "hud.settings.sound_effect_volume": "Sound Effects Volume",
-        "hud.settings.audio_device": "Audio Device",
-
-        // Control list
-        "hud.settings.control_names": r#"Free Cursor
-Toggle Help Window
-Toggle Interface
-Toggle FPS and Debug Info
-Take Screenshot
-Toggle Nametags
-Toggle Fullscreen
-
-
-Move Forward
-Move Left
-Move Right
-Move Backwards
-
-Jump
-
-Glider
-
-Dodge
-
-Roll
-
-Climb
-
-Climb down
-
-Auto Walk
-
-Sheathe/Draw Weapons
-
-Put on/Remove Helmet
-
-Sit
-
-Mount
-
-Interact
-
-
-Basic Attack
-Secondary Attack/Block/Aim
-
-
-Skillbar Slot 1
-Skillbar Slot 2
-Skillbar Slot 3
-Skillbar Slot 4
-Skillbar Slot 5
-Skillbar Slot 6
-Skillbar Slot 7
-Skillbar Slot 8
-Skillbar Slot 9
-Skillbar Slot 10
-
-
-Pause Menu
-Settings
-Social
-Map
-Spellbook
-Character
-Questlog
-Bag
-
-
-
-Send Chat Message
-Scroll Chat
-
-
-Chat commands:  
-
-/alias [Name] - Change your Chat Name   
-/tp [Name] - Teleports you to another player    
-/jump <dx> <dy> <dz> - Offset your position 
-/goto <x> <y> <z> - Teleport to a position  
-/kill - Kill yourself   
-/pig - Spawn pig NPC    
-/wolf - Spawn wolf NPC  
-/help - Display chat commands"#,
-
-        "hud.social": "Social",
-        "hud.social.online": "Online",
-        "hud.social.friends": "Friends",
-        "hud.social.not_yet_available": "Not yet available",
-        "hud.social.Faction": "Faction",
-        "hud.social.play_online_fmt": "{nb_player} player(s) online",
-
-        "hud.spell": "Spell",
-        /// End HUD section
-
-
-        /// Start chracter selection section
-        "char_selection.delete_permanently": "Permanently delete this Character?",
-        "char_selection.change_server": "Change Server",
-        "char_selection.enter_world": "Enter World",
-        "char_selection.logout": "Logout",
-        "char_selection.create_new_charater": "Create New Character",
-        "char_selection.character_creation": "Character Creation",
-
-        "char_selection.human_default": "Human Default",
-        "char_selection.level_fmt": "Level {level_nb}",
-        "char_selection.uncanny_valley": "Uncanny Valley",
-        "char_selection.plains_of_uncertainty": "Plains of Uncertainty",
-        "char_selection.beard": "Beard",
-        "char_selection.hair_style": "Hair Style",
-        "char_selection.hair_color": "Hair Color",
-        "char_selection.chest_color": "Chest color",
-        "char_selection.eye_color": "Eye color",
-        "char_selection.skin": "Skin",
-        "char_selection.eyebrows": "Eyebrows",
-        "char_selection.accessories": "Accessories",
-
-        /// End chracter selection section
-
-
-        /// Start character window section
-        "character_window.character_name": "Character Name",
-        // Charater stats
-        "character_window.character_stats": r#"Endurance
-
-Fitness
-
-Willpower
-"#,
-
-
-        /// Start character window section
-        
-
-        /// Start Escape Menu Section
-        "esc_menu.logout": "Logout",
-        "esc_menu.quit_game": "Quit Game",
-        /// End Escape Menu Section
     },
 
     vector_map: {
-
-    },
+        "loading.tips": [
+            "Tryck 'G' för att tända din lykta.",
+            "Tryck 'F1' för att se alla standardgenvägar.",
+            "Du kan skriva /say eller /s för att endast prata med spelare i din närhet.",
+            "Du kan skriva /region eller /r to för att endast prata med spelare upp till hundra block bort.",
+            "Administratörer kan använda kommandot /build för att växla till byggläget.",
+            "Du kan skriva /group eller /g för att endast prata med spelare i din nuvarande grupp.",
+            "Använd /tell följt av ett spelarnamn och meddelande för att kommunicera direkt med en spelare.",
+            "Håll ett öga öppet för mat, kistor och andra fynd som finns utspridda över hela världen!",
+            "Inventory filled with food? Try crafting better food from it!", /// TODO translate crafting
+            "Wondering what there is to do? Try out one of the dungeons marked on the map!", /// TODO translate dungeon
+            "Glöm inte anpassa grafiken för din dator. Tryck 'N' för att öppna inställningarna.",
+            "Delad glädje är dubbel glädje! Tryck 'O' för att se vilka som spelar just nu.",
+            "Tryck 'J' för att dansa. Party!",
+            "Tryck på den vänstra Shift-tangenten för att använda din glidare och bli himlarnas härskare.",
+            "Veloren är fortfarande i Pre-Alpha-stadiet. Vi gör vårt yttersta för att förbättra spelet varje dag!",
+            "Om du vill gå med i utvecklargruppen eller bara snacka med oss får du gärna logga in på vår Discord-server.",
+            "Du kan välja att visa din hälsostatus i inställningarna.",
+            "Sitt nära en lägereld (tryck 'K') för att långsamt återhämta dig från skador.",
+            "Behöver du fler säckar eller bättre rustning för din fortsatta färd? Tryck 'C' för att öppna the crafting menu!", /// TODO translate crafting
+        ],
+        "npc.speech.villager": [
+            "Är inte detta en underbar dag?",
+            "Hur står det till idag?",
+            "Tjenixen!",
+            "Undrar vad en Catoblepa tänker på när den betar.", // Catoblepa --> Catoblepa
+            "Vad tycker du om vädret idag?",
+            "Blotta tanken av dungeons ger mig rysningar. Jag hoppas att någon kommer städa ur dem.", /// TODO translate dungeon
+            "Jag skulle vilja utforska någon grotta när jag blir starkare.",
+            "Har du sett min katt?",
+            "Har du också hört ryktet om Landhajar? Jag hörde att de bor i öknar.", // Land Shark --> Landhaj
+            "De påstår att glimrande ädelstenar av alla dess slag kan hittas i grottor.",
+            "Visst blir man lycklig av ost!",
+            "Kom in, vettja! Vi skulle just börja på en ost.",
+            "Vissa påstår att svamp skulle vara bra för hälsan. Det skulle aldrig falla mig in att äta en.",
+            "Glöm inte kexen för allt i världen!",
+            "Jag bara älskar dvärgarnas ost. Om jag bara visste hur de tillverkades …",
+            "Undrar just vad som ligger på andra sidan bergen där borta.",
+            "Jag skulle vilja konstruera min egna glidare en dag.",
+            "Skulle du vilja se min trädgård? Okej, kanske någon annan gång då.",
+            "En underbar dag för en skogspromenad!",
+            "Att vara eller inte vara? Jag tror nog jag borde bli bonde.",
+            "Visst är väl vår by den bästa i världen?",
+            "Vad tror du får Skimrande Lämningar att lysa?", /// Glowing Remains --> Skimrande Lämningar
+            "Jag tycker nog det börjar bli dags för en andra frukost!",
+            "Har du lyckats fånga en eldfluga någon gång?",
+            "Jag kan bara inte begripa var alla dessa Sauroker kommer ifrån.", // Saurok --> Saurok
+            "Jag önskar att någon kunde hålla alla vargar på avstånd från byn.",
+            "Jag hade en fantastisk dröm om ost inatt. Vad tror du det kan betyda?",
+            "Jag lämnade en ost hos min bror. Nu vet jag inte om den existerar eller inte, så jag kallar den Schrödingers ost.",
+            "Jag lämnade en ost hos min syster. Nu vet jag inte om den existerar eller inte, så jag kallar den Schrödingers ost.",
+            "Någon borde göra något åt de där sektanhängarna. Förslgsvis inte jag.", /// cultist --> sektanhängare (collectively and allies) alt. sektmedlem (individually)
+            "Jag hoppas verkligen vi får lite regn snart. Det vore bra för grödorna.",
+            "Jag älskar honung! Om det inte vore för dessa fördömda bin.",
+            "En dag skulle jag vilja se världen. Livet måste väl vara större än bara den här hålan?",
+        ],
+        "npc.speech.villager_decline_trade": [
+            "Tyvärr har jag inget till salu.",
+            "En vaddå? Tror inte jag har något av intresse för dig.",
+            "Mitt hus är mitt och jag tänker inte flytta för allt i världen.",
+        ],
+        "npc.speech.merchant_advertisement": [
+            "Kan jag fresta med någon av dessa fina varor?",
+            "Skulle du vilja köpa någonting?",
+            "Jag har gott om varor, skulle du vilja se för dig själv?"
+        ],
+        "npc.speech.merchant_busy": [
+            "Hallå där, vänta på din tur!",
+            "Ta det lugnt, jag är bara en människa.",
+            "Ser du inte att andra står före dig i kön?",
+            "Bara ett ögonblick, jag är snart klar.",
+            "Du får nöja dig med din plats i kön.",
+            "Jag är upptagen, kom igen lite senare."
+        ],
+        "npc.speech.merchant_trade_successful": [
+            "Tack för att du ville handla av mig!",
+            "Tack så mycket!",
+        ],
+        "npc.speech.merchant_trade_declined": [
+            "Kanske en annan gång, ha en bra dag!",
+            "Äsch, det får bli nästa gång istället!"
+        ],
+        "npc.speech.villager_cultist_alarm": [
+            "Se upp! Här är en sektmedlem i farten!",
+            "Till vapen! Sektanhängarna anfaller!",
+            "Hur vågar sektanhängarna angripa vår by!",
+            "Död åt sekten!",
+            "Sektens anhängare kommer inte tolereras här!",
+            "Mordiska sektanhängare!",
+            "Smaka på min svärdsegg, din smutsiga sektanhängare!",
+            "Inget kan två blodet från era händer, sektanhängare!",
+            "Tusen troglodytiska terapeuter! En sektmedlem mitt ibland oss!",
+            "Sektens ondskefulla tid är snart förbi!",
+            "Den här sektanhängaren är min",
+            "Gör dig redo för ett möte med din skapare, vidriga sektanhängare!",
+            "Jag ser en sektmedlem! Efter dem!",
+            "Jag ser en sektmedlem! Till attack!",
+            "Jag ser en sektmedlem! Låt dem inte komma undan!",
+            "Skulle den högt vördade sektmedlemmen önska spilla lite blod?",
+            "Aldrig förlåta! Aldrig förglömma! Sektanhängare, ve er!",
+            "Dö, sektanhängare!",
+            "Ert skräckvälde ska gå under!",
+            "Här är betalningen för allt ni gjort!",
+            "Vi uppskattar inte sådana som du här omkring.",
+            "Ni borde stannat kvar i ert gryt!",
+        ],
+        "npc.speech.villager_under_attack": [
+            "Hjälp, jag är under attack!",
+            "Hjälp! Jag är under attack!",
+            "Aj! Jag blir attackerad!",
+            "Aj! Jag blir attackerad! Hjälp!",
+            "Hjälp mig! Någon attackerar mig!",
+            "Någon attackerar mig! Hjälp!",
+            "Någon attackerar mig! Hjälp mig!",
+            "Hjälp!",
+            "Hjälp! Hjälp!",
+            "Hjälp! Hjälp! Hjälp!",
+            "Någon attackerar mig!",
+            "Aaahhh! Någon attackerar mig!",
+            "Aaahhh! Någon attackerar mig! Hjälp!",
+            "Hjälp! Vi blir attackerade!",
+            "Hjälp! Mördare!",
+            "Hjälp! En mördare är är i farten!",
+            "Hjälp! De försöker döda mig!",
+            "Vakter, någon attackerar mig!",
+            "Vakter! Någon attackerar mig!",
+            "Jag blir attackerad! Vakter",
+            "Hjälp! Vakter! Jag blir angripen!",
+            "Vakter! Kom fort!",
+            "Vakter! Vakter!",
+            "Vakter! En skurk angriper mig!",
+            "Vakter, slå ihjäl denna vidriga förbytare!",
+            "Vakter! Här är en mördare!",
+            "Vakter! Hjälp mig!",
+            "Du kommer inte komma undan med det här! Vakter!",
+            "Din skurk!",
+            "Hjälp mig!",
+            "Hjälp! Snälla!",
+            "Aj! Vakter, hjälp!",
+            "De kommer efter mig!",
+            "Hjälp! Hjälp! Jag blir förtryckt!",
+            "Och här ser vi tydligt hur systemet främjar våld.",
+            "Ingen fara, det här är bara en skråma!",
+            "Sluta upp med det!",
+            "Hur har jag gjort dig orätt?",
+            "Sluta attackera mig!",
+            "Hallå där, akta vart du pekar den där saken!",
+            "Din skändliga usling, försvinn med dig!",
+            "Sluta upp med det! Försvinn!",
+            "Hu har du gjort mig riktigt arg!",
+            "Hallå där! Vem tror du att du är?!",
+            "Det ska du få betala för med ditt huvud!",
+            "Snälla sluta, jag har inget av värde!",
+            "Jag kommer skicka min bror efter dig, han är ännu större än jag!",
+            "Nej, detta ska allt mamma få höra om!",
+            "Må olyckan följa i dina spår!",
+            "Gör inte om det, är du snäll.",
+            "Det var inte särskilt trevligt gjort!",
+            "Ditt vapen verkar fungera, du kan lägga det åt sidan nu!",
+            "Visa mig nåd!",
+            "Snälla, tänk på min familj!",
+            "Jag är för ung för att dö!",
+            "Kan vi inte sätta oss ner och prata istället?",
+            "Våld är aldrig lösningen!",
+            "Den här dagen blir bara bättre och bättre …",
+            "Aj, det gjorde faktiskt ont!",
+            "Ah!",
+            "Så oförskämt!",
+            "Sluta, bara sluta!",
+            "Du har dragit en svår olycka över dig!",
+            "Detta är inte roligt.",
+            "Hur vågar du?!",
+            "Det ska du allt få betala för!",
+            "Du kommer ångra dig om du forstätter så där!",
+            "Tvinga inte mig att göra dig illa!",
+            "Det måste ha skett ett missförstånd!",
+            "Du behöver inte göra det här!",
+            "Försvinn, demon!",
+            "Det gjorde riktigt ont!",
+            "Vad fick dig att göra så?",
+            "Sluta! Vid andarna, upphör nu!",
+            "Du måste ha blandat ihop mig med någon annan!",
+            "Vad har jag gjort för att förtjäna detta?",
+            "Gör inte om det.",
+            "Vakter, kasta tillbaka detta odjur i sjön!",
+            "Jag kommer sätta min tarask efter dig!",
+            "Varför just jag?",
+        ],
+        "npc.speech.villager_enemy_killed": [
+            "Min fiende är förgjord!",
+            "Äntligen lite lugn och ro!",
+            "Vad var det nu jag höll på med?",
+        ]
+    }
 )
