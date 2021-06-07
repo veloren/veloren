@@ -1712,8 +1712,12 @@ impl Client {
                 // Instead of removing players, mark them as offline because we need to
                 // remember the names of disconnected players in chat.
                 //
-                // TODO the server should re-use uids of players that log out and log back
-                // in.
+                // TODO: consider alternatives since this leads to an ever growing list as
+                // players log out and in. Keep in mind we might only want to
+                // keep only so many messages in chat the history. We could
+                // potentially use an ID that's more persistent than the Uid.
+                // One of the reasons we don't just store the string of the player name
+                // into the message is to make alias changes reflected in older messages.
 
                 if let Some(player_info) = self.player_list.get_mut(&uid) {
                     if player_info.is_online {

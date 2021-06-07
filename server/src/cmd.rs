@@ -14,7 +14,7 @@ use authc::Uuid;
 use chrono::{NaiveTime, Timelike, Utc};
 use common::{
     assets,
-    cmd::{ChatCommand, BUFF_PACK, BUFF_PARSER, CHAT_COMMANDS, CHAT_SHORTCUTS},
+    cmd::{ChatCommand, BUFF_PACK, BUFF_PARSER},
     comp::{
         self,
         aura::{Aura, AuraKind, AuraTarget},
@@ -1526,17 +1526,19 @@ fn handle_help(
         let entity_role = server.entity_admin_role(client);
 
         // Iterate through all commands you have permission to use.
-        CHAT_COMMANDS
-            .iter()
+        ChatCommand::iter()
             .filter(|cmd| cmd.needs_role() <= entity_role)
             .for_each(|cmd| {
                 message += &cmd.help_string();
                 message += "\n";
             });
         message += "Additionally, you can use the following shortcuts:";
-        for (k, v) in CHAT_SHORTCUTS.iter() {
-            message += &format!(" /{} => /{}", k, v.keyword());
-        }
+        ChatCommand::iter()
+            .filter_map(|cmd| cmd.short_keyword().map(|k| (k, cmd)))
+            .for_each(|(k, cmd)| {
+                message += &format!(" /{} => /{}", k, cmd.keyword());
+            });
+
         server.notify_client(
             client,
             ServerGeneral::server_msg(ChatType::CommandInfo, message),
