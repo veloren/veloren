@@ -33,8 +33,8 @@ impl Body {
 
     pub fn manifest_entry(&self) -> &'static str {
         match self {
-            Body::DefaultAirship => "Human_Airship",
-            Body::AirBalloon => "Air_Balloon",
+            Body::DefaultAirship => "airship_human.structure",
+            Body::AirBalloon => "air_balloon.structure",
         }
     }
 
@@ -175,5 +175,18 @@ pub mod figuredata {
         // (although figuring out how to keep the figure bones in sync with the terrain offsets seems
         // like a hard problem if they're not the same manifest)
         pub static ref VOXEL_COLLIDER_MANIFEST: AssetHandle<ShipSpec> = AssetExt::load_expect("server.manifests.ship_manifest");
+    }
+
+    #[test]
+    fn test_ship_manifest_entries() {
+        for body in super::ALL_BODIES {
+            assert!(
+                VOXEL_COLLIDER_MANIFEST
+                    .read()
+                    .colliders
+                    .get(body.manifest_entry())
+                    .is_some()
+            );
+        }
     }
 }
