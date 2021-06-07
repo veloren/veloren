@@ -12,6 +12,6 @@ ItemDef(
             crit_chance: 0.0,
         )),
     )),
-    quality: Low,
+    quality: Moderate,
     tags: [CraftingTool],
 )
