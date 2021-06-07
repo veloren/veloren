@@ -8,7 +8,7 @@ edition = "2018"
 no-assets = []
 tracy = ["common-base/tracy"]
 simd = ["vek/platform_intrinsics"]
-bin_csv = ["csv", "structopt"]
+bin_csv = ["ron", "csv", "structopt"]
 
 default = ["simd"]
 
@@ -19,7 +19,6 @@ common-base = { package = "veloren-common-base", path = "base" }
 
 # Serde
 serde = { version = "1.0.110", features = ["derive", "rc"] }
-ron = { version = "0.6", default-features = false }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 approx = "0.4.0"
@@ -47,6 +46,8 @@ dot_vox = "4.0"
 # Assets
 serde_repr = "0.1.6"
 
+# csv import
+ron = { version = "0.6", default-features = false, optional = true }
 # csv export
 csv = { version = "1.1.3", optional = true }
 structopt = { version = "0.3.13", optional = true }
