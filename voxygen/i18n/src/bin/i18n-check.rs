@@ -31,7 +31,7 @@ fn main() {
         .get_matches();
 
     // Generate paths
-    let root = veloren_i18n::find_root().expect("Failed to find root of repository");
+    let root = common_assets::find_root().expect("Failed to find root of repository");
     let asset_path = Path::new("assets/voxygen/i18n/");
 
     if let Some(code) = matches.value_of("CODE") {

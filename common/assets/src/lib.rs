@@ -128,15 +128,16 @@ impl Asset for DotVoxAsset {
     const EXTENSION: &'static str = "vox";
 }
 
-fn find_root() -> Option<PathBuf> {
+/// Return path to repository root by searching 10 directories back
+pub fn find_root() -> Option<PathBuf> {
     std::env::current_dir().map_or(None, |path| {
         // If we are in the root, push path
-        if path.join(".git").is_dir() {
+        if path.join(".git").exists() {
             return Some(path);
         }
         // Search .git directory in parent directries
         for ancestor in path.ancestors().take(10) {
-            if ancestor.join(".git").is_dir() {
+            if ancestor.join(".git").exists() {
                 return Some(ancestor.to_path_buf());
             }
         }
