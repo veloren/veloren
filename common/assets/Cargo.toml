@@ -14,5 +14,7 @@ dot_vox = "4.0"
 image = { version = "0.23.12", default-features = false, features = ["png"] }
 tracing = "0.1"
 
-[dev-dependencies]
-serial_test = "0.5"
+serial_test = {version = "0.5", optional = true}
+
+[features]
+asset_tweak = ["serial_test"]

@@ -261,6 +261,7 @@ impl Compound for Directory {
 }
 
 #[warn(clippy::pedantic)]
+#[cfg(feature = "asset_tweak")]
 pub mod asset_tweak {
     // Return path to repository by searching 10 directories back
     use super::{find_root, fs, Asset, AssetExt, Path, RonLoader};
@@ -280,8 +281,6 @@ pub mod asset_tweak {
     }
 
     #[must_use]
-    /// NOTE: Don't use it in production code, it's debug only
-    ///
     /// # Usage
     /// Create file with content which represent tweaked value
     ///
@@ -299,13 +298,11 @@ pub mod asset_tweak {
     ///
     /// # Panics
     /// 1) If given `asset_specifier` does not exists
+    /// 2) If asseet is broken
     pub fn tweak_expect<T>(specifier: &str) -> T
     where
         T: Clone + Sized + Send + Sync + 'static + DeserializeOwned,
     {
-        if cfg!(not(any(debug_assertions, test))) {
-            tracing::warn!("AssetTweaker used in release build!");
-        }
         let asset_specifier: &str = &format!("tweak.{}", specifier);
         let handle = <AssetTweakWrapper<T> as AssetExt>::load_expect(asset_specifier);
         let AssetTweakWrapper(value) = handle.read().clone();
@@ -313,11 +310,13 @@ pub mod asset_tweak {
     }
 
     #[must_use]
-    /// NOTE: Don't use it in production code, it's debug only
-    ///
     /// # Usage
-    /// Will create file "assets/tweak/{specifier}.ron" if not exists.
-    /// If exists will read a value from such file.
+    /// Will create file "assets/tweak/{specifier}.ron" if not exists
+    /// and return passed `value`.
+    /// If file exists will read a value from such file.
+    ///
+    /// In release builds (if `debug_assertions` == false) just returns passed
+    /// `value`
     ///
     /// Example if you want to tweak integer value
     /// ```no_run
@@ -338,8 +337,7 @@ pub mod asset_tweak {
     where
         T: Clone + Sized + Send + Sync + 'static + DeserializeOwned + Serialize,
     {
-        if cfg!(not(any(debug_assertions, test))) {
-            tracing::warn!("AssetTweaker used in release build!");
+        if cfg!(not(debug_assertions)) {
             return value;
         }
 
@@ -365,143 +363,140 @@ pub mod asset_tweak {
             value
         }
     }
-}
 
-#[cfg(test)]
-mod tests {
-    use super::{
-        asset_tweak::{tweak_expect, tweak_expect_or_create},
-        find_root,
-    };
-    use serial_test::serial;
-    use std::{
-        convert::AsRef,
-        fmt::Debug,
-        fs::{self, File},
-        io::Write,
-        path::Path,
-    };
+    #[cfg(test)]
+    mod tests {
+        use super::{find_root, tweak_expect, tweak_expect_or_create};
+        use serial_test::serial;
+        use std::{
+            convert::AsRef,
+            fmt::Debug,
+            fs::{self, File},
+            io::Write,
+            path::Path,
+        };
 
-    struct DirectoryGuard<P>
-    where
-        P: AsRef<Path>,
-    {
-        dir: P,
-    }
-
-    impl<P> DirectoryGuard<P>
-    where
-        P: AsRef<Path>,
-    {
-        fn create(dir: P) -> Self {
-            fs::create_dir_all(&dir).expect("failed to create directory");
-            Self { dir }
-        }
-    }
-
-    impl<P> Drop for DirectoryGuard<P>
-    where
-        P: AsRef<Path>,
-    {
-        fn drop(&mut self) { fs::remove_dir(&self.dir).expect("failed to remove directory"); }
-    }
-
-    struct FileGuard<P>
-    where
-        P: AsRef<Path> + Debug,
-    {
-        file: P,
-    }
-
-    impl<P> FileGuard<P>
-    where
-        P: AsRef<Path> + Debug,
-    {
-        fn create(file: P) -> (Self, File) {
-            let f =
-                File::create(&file).unwrap_or_else(|_| panic!("failed to create file {:?}", &file));
-            (Self { file }, f)
+        struct DirectoryGuard<P>
+        where
+            P: AsRef<Path>,
+        {
+            dir: P,
         }
 
-        fn hold(file: P) -> Self { Self { file } }
-    }
-
-    impl<P> Drop for FileGuard<P>
-    where
-        P: AsRef<Path> + Debug,
-    {
-        fn drop(&mut self) {
-            fs::remove_file(&self.file)
-                .unwrap_or_else(|_| panic!("failed to create file {:?}", &self.file));
+        impl<P> DirectoryGuard<P>
+        where
+            P: AsRef<Path>,
+        {
+            fn create(dir: P) -> Self {
+                fs::create_dir_all(&dir).expect("failed to create directory");
+                Self { dir }
+            }
         }
-    }
 
-    #[test]
-    #[serial]
-    fn test_tweaked_string() {
-        let root = find_root().expect("failed to discover repository_root");
-        let tweak_dir = root.join("assets/tweak/");
-        let _dir_guard = DirectoryGuard::create(tweak_dir.clone());
+        impl<P> Drop for DirectoryGuard<P>
+        where
+            P: AsRef<Path>,
+        {
+            fn drop(&mut self) { fs::remove_dir(&self.dir).expect("failed to remove directory"); }
+        }
 
-        // define test files
-        let from_int = tweak_dir.join("__test_int_tweak.ron");
-        let from_string = tweak_dir.join("__test_string_tweak.ron");
-        let from_map = tweak_dir.join("__test_map_tweak.ron");
+        struct FileGuard<P>
+        where
+            P: AsRef<Path> + Debug,
+        {
+            file: P,
+        }
 
-        // setup fs guards
-        let (_file_guard1, mut file1) = FileGuard::create(from_int);
-        let (_file_guard2, mut file2) = FileGuard::create(from_string);
-        let (_file_guard3, mut file3) = FileGuard::create(from_map);
+        impl<P> FileGuard<P>
+        where
+            P: AsRef<Path> + Debug,
+        {
+            fn create(file: P) -> (Self, File) {
+                let f = File::create(&file)
+                    .unwrap_or_else(|_| panic!("failed to create file {:?}", &file));
+                (Self { file }, f)
+            }
 
-        // write to file and check result
-        file1
-            .write_all(b"(5)")
-            .expect("failed to write to the file");
-        let x = tweak_expect::<i32>("__test_int_tweak");
-        assert_eq!(x, 5);
+            fn hold(file: P) -> Self { Self { file } }
+        }
 
-        // write to file and check result
-        file2
-            .write_all(br#"("Hello Zest")"#)
-            .expect("failed to write to the file");
-        let x = tweak_expect::<String>("__test_string_tweak");
-        assert_eq!(x, "Hello Zest".to_owned());
+        impl<P> Drop for FileGuard<P>
+        where
+            P: AsRef<Path> + Debug,
+        {
+            fn drop(&mut self) {
+                fs::remove_file(&self.file)
+                    .unwrap_or_else(|_| panic!("failed to create file {:?}", &self.file));
+            }
+        }
 
-        // write to file and check result
-        file3
-            .write_all(
-                br#"
+        #[test]
+        #[serial]
+        fn test_tweaked_string() {
+            let root = find_root().expect("failed to discover repository_root");
+            let tweak_dir = root.join("assets/tweak/");
+            let _dir_guard = DirectoryGuard::create(tweak_dir.clone());
+
+            // define test files
+            let from_int = tweak_dir.join("__test_int_tweak.ron");
+            let from_string = tweak_dir.join("__test_string_tweak.ron");
+            let from_map = tweak_dir.join("__test_map_tweak.ron");
+
+            // setup fs guards
+            let (_file_guard1, mut file1) = FileGuard::create(from_int);
+            let (_file_guard2, mut file2) = FileGuard::create(from_string);
+            let (_file_guard3, mut file3) = FileGuard::create(from_map);
+
+            // write to file and check result
+            file1
+                .write_all(b"(5)")
+                .expect("failed to write to the file");
+            let x = tweak_expect::<i32>("__test_int_tweak");
+            assert_eq!(x, 5);
+
+            // write to file and check result
+            file2
+                .write_all(br#"("Hello Zest")"#)
+                .expect("failed to write to the file");
+            let x = tweak_expect::<String>("__test_string_tweak");
+            assert_eq!(x, "Hello Zest".to_owned());
+
+            // write to file and check result
+            file3
+                .write_all(
+                    br#"
         ({
             "wow": 4,
             "such": 5,
         })
         "#,
-            )
-            .expect("failed to write to the file");
-        let x: std::collections::HashMap<String, i32> = tweak_expect("__test_map_tweak");
-        let mut map = std::collections::HashMap::new();
-        map.insert("wow".to_owned(), 4);
-        map.insert("such".to_owned(), 5);
-        assert_eq!(x, map);
-    }
+                )
+                .expect("failed to write to the file");
+            let x: std::collections::HashMap<String, i32> = tweak_expect("__test_map_tweak");
+            let mut map = std::collections::HashMap::new();
+            map.insert("wow".to_owned(), 4);
+            map.insert("such".to_owned(), 5);
+            assert_eq!(x, map);
+        }
 
-    #[test]
-    #[serial]
-    fn test_tweaked_create() {
-        let root = find_root().expect("failed to discover repository_root");
-        let tweak_dir = root.join("assets/tweak/");
-        let test_path1 = tweak_dir.join("__test_int_create.ron");
-        let _file_guard1 = FileGuard::hold(&test_path1);
-        let x = tweak_expect_or_create("__test_int_create", 5);
-        assert_eq!(x, 5);
-        assert!(test_path1.is_file());
+        #[test]
+        #[serial]
+        fn test_tweaked_create() {
+            let root = find_root().expect("failed to discover repository_root");
+            let tweak_dir = root.join("assets/tweak/");
+            let test_path1 = tweak_dir.join("__test_int_create.ron");
+            let _file_guard1 = FileGuard::hold(&test_path1);
+            let x = tweak_expect_or_create("__test_int_create", 5);
+            assert_eq!(x, 5);
+            assert!(test_path1.is_file());
 
-        // Test that file has stronger priority
-        let test_path2 = tweak_dir.join("__test_priority.ron");
-        let (_file_guard2, mut file) = FileGuard::create(&test_path2);
-        file.write_all(b"(10)")
-            .expect("failed to write to the file");
-        let x = tweak_expect_or_create("__test_priority", 6);
-        assert_eq!(x, 10);
+            // Test that file has stronger priority
+            let test_path2 = tweak_dir.join("__test_priority.ron");
+            let (_file_guard2, mut file) = FileGuard::create(&test_path2);
+            file.write_all(b"(10)")
+                .expect("failed to write to the file");
+            let x = tweak_expect_or_create("__test_priority", 6);
+            assert_eq!(x, 10);
+        }
     }
 }
