@@ -288,7 +288,7 @@
         ],
         craft_sprite: Some(SpinningWheel),
     ),
-    "linen": (
+    "linen_flax": (
         output: ("common.items.crafting_ing.cloth.linen", 1),
         inputs: [
             (Item("common.items.flowers.wild_flax"), 1),
