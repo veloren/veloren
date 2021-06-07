@@ -112,7 +112,7 @@ fn choose<'a>(
             WeightedError::NoItem | WeightedError::AllWeightsZero => &None,
             WeightedError::InvalidWeight => {
                 let err = format!("Negative values of probability in {}.", asset_specifier);
-                if cfg!(tests) {
+                if cfg!(any(debug_assertions, test)) {
                     panic!("{}", err);
                 } else {
                     warn!("{}", err);
@@ -121,7 +121,7 @@ fn choose<'a>(
             },
             WeightedError::TooMany => {
                 let err = format!("More than u32::MAX values in {}.", asset_specifier);
-                if cfg!(tests) {
+                if cfg!(any(debug_assertions, test)) {
                     panic!("{}", err);
                 } else {
                     warn!("{}", err);

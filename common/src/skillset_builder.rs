@@ -682,25 +682,57 @@ impl SkillSetBuilder {
         }
     }
 
+    #[must_use]
+    /// # Panics
+    /// will panic only in tests
+    /// 1) If added skill doesn't have any group
+    /// 2) If added skill already applied
+    /// 3) If added skill wasn't applied at the end
     pub fn with_skill(mut self, skill: Skill, level: Option<u16>) -> Self {
-        if let Some(skill_group) = skill.skill_group_kind() {
-            for _ in 0..level.unwrap_or(1) {
-                self.0
-                    .add_skill_points(skill_group, self.0.skill_cost(skill));
-                self.0.unlock_skill(skill);
-                if !self.0.has_skill(skill) {
-                    warn!(
-                        "Failed to add skill: {:?}. Verify that it has the appropriate skill \
-                         group available and meets all prerequisite skills.",
-                        skill
-                    );
-                }
-            }
+        #![warn(clippy::pedantic)]
+        let group = if let Some(skill_group) = skill.skill_group_kind() {
+            skill_group
         } else {
-            warn!(
+            let err = format!(
                 "Tried to add skill: {:?} which does not have an associated skill group.",
                 skill
             );
+            if cfg!(test) {
+                panic!("{}", err);
+            } else {
+                warn!("{}", err);
+            }
+            return self;
+        };
+
+        let SkillSetBuilder(ref mut skill_set) = self;
+        if skill_is_applied(skill_set, skill, level) {
+            let err = format!(
+                "Tried to add skill: {:?} with level {:?} which is already applied",
+                skill, level,
+            );
+            if cfg!(test) {
+                panic!("{}", err);
+            } else {
+                warn!("{}", err);
+            }
+            return self;
+        }
+        for _ in 0..level.unwrap_or(1) {
+            skill_set.add_skill_points(group, skill_set.skill_cost(skill));
+            skill_set.unlock_skill(skill);
+        }
+        if !skill_is_applied(skill_set, skill, level) {
+            let err = format!(
+                "Failed to add skill: {:?}. Verify that it has the appropriate skill group \
+                 available and meets all prerequisite skills.",
+                skill
+            );
+            if cfg!(test) {
+                panic!("{}", err);
+            } else {
+                warn!("{}", err);
+            }
         }
         self
     }
@@ -710,4 +742,12 @@ impl SkillSetBuilder {
     }
 
     pub fn build(self) -> SkillSet { self.0 }
+}
+
+fn skill_is_applied(skill_set: &SkillSet, skill: Skill, level: Option<u16>) -> bool {
+    if let Ok(applied_level) = skill_set.skill_level(skill) {
+        applied_level == level
+    } else {
+        false
+    }
 }
