@@ -45,8 +45,8 @@ pub struct ImageSlider<T, K> {
 struct Track {
     image_id: image::Id,
     color: Option<Color>,
-    #[allow(dead_code)]
-    src_rect: Option<Rect>,
+    // TODO: this is being set by users but we don't use it for anything here, figure out what it
+    // is supposed to be used for
     #[allow(dead_code)]
     breadth: Option<f32>,
     // Padding on the ends of the track constraining the slider to a smaller area.
@@ -58,8 +58,6 @@ struct Slider {
     hover_image_id: Option<image::Id>,
     press_image_id: Option<image::Id>,
     color: Option<Color>,
-    #[allow(dead_code)]
-    src_rect: Option<Rect>,
     length: Option<f32>,
 }
 
@@ -85,8 +83,6 @@ impl<T, K> ImageSlider<T, K> {
         pub slider_length { slider.length = Some(f32) }
         pub track_color { track.color = Some(Color) }
         pub slider_color { slider.color = Some(Color) }
-        pub track_src_rect { track.src_rect = Some(Rect) }
-        pub slider_src_rect { slider.src_rect = Some(Rect) }
     }
 
     fn new(
@@ -105,7 +101,6 @@ impl<T, K> ImageSlider<T, K> {
             track: Track {
                 image_id: track_image_id,
                 color: None,
-                src_rect: None,
                 breadth: None,
                 padding: (0.0, 0.0),
             },
@@ -114,7 +109,6 @@ impl<T, K> ImageSlider<T, K> {
                 hover_image_id: None,
                 press_image_id: None,
                 color: None,
-                src_rect: None,
                 length: None,
             },
             kind: std::marker::PhantomData,
