@@ -128,6 +128,22 @@ impl Asset for DotVoxAsset {
     const EXTENSION: &'static str = "vox";
 }
 
+fn find_root() -> Option<PathBuf> {
+    std::env::current_dir().map_or(None, |path| {
+        // If we are in the root, push path
+        if path.join(".git").is_dir() {
+            return Some(path);
+        }
+        // Search .git directory in parent directries
+        for ancestor in path.ancestors().take(10) {
+            if ancestor.join(".git").is_dir() {
+                return Some(ancestor.to_path_buf());
+            }
+        }
+        None
+    })
+}
+
 lazy_static! {
     /// Lazy static to find and cache where the asset directory is.
     /// Cases we need to account for:
@@ -154,19 +170,8 @@ lazy_static! {
         }
 
         // 3. Root of the repository
-        if let Ok(path) = std::env::current_dir() {
-            // If we are in the root, push path
-            if path.join(".git").is_dir() {
-                paths.push(path);
-            } else {
-                // Search .git directory in parent directries
-                for ancestor in path.ancestors().take(10) {
-                    if ancestor.join(".git").is_dir() {
-                        paths.push(ancestor.to_path_buf());
-                        break;
-                    }
-                }
-            }
+        if let Some(path) = find_root() {
+            paths.push(path);
         }
 
         // 4. System paths
@@ -255,9 +260,12 @@ impl Compound for Directory {
     }
 }
 
+#[warn(clippy::pedantic)]
 pub mod asset_tweak {
-    use super::{Asset, AssetExt, RonLoader};
-    use serde::{de::DeserializeOwned, Deserialize};
+    // Return path to repository by searching 10 directories back
+    use super::{find_root, fs, Asset, AssetExt, Path, RonLoader};
+    use ron::ser::{to_writer_pretty, PrettyConfig};
+    use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
     #[derive(Clone, Deserialize)]
     struct AssetTweakWrapper<T>(T);
@@ -271,45 +279,102 @@ pub mod asset_tweak {
         const EXTENSION: &'static str = "ron";
     }
 
-    /// NOTE: Don't use it in code, it's debug only
-    pub fn tweak_expect<T>(path: &str) -> T
+    #[must_use]
+    /// NOTE: Don't use it in production code, it's debug only
+    ///
+    /// # Usage
+    /// Create file with content which represent tweaked value
+    ///
+    /// Example if you want to tweak integer value
+    /// ```no_run
+    /// use veloren_common_assets::asset_tweak;
+    /// let x: i32 = asset_tweak::tweak_expect("x");
+    /// ```
+    /// File needs to look like that
+    /// ```text
+    /// assets/tweak/x.ron
+    /// (5)
+    /// ```
+    /// Note the parentheses.
+    ///
+    /// # Panics
+    /// 1) If given `asset_specifier` does not exists
+    pub fn tweak_expect<T>(asset_specifier: &str) -> T
     where
         T: Clone + Sized + Send + Sync + 'static + DeserializeOwned,
     {
-        tracing::warn!("AssetTweaker used in release build!");
-        let handle = <AssetTweakWrapper<T> as AssetExt>::load_expect(path);
+        if cfg!(not(any(debug_assertions, test))) {
+            tracing::warn!("AssetTweaker used in release build!");
+        }
+        let handle = <AssetTweakWrapper<T> as AssetExt>::load_expect(asset_specifier);
         let AssetTweakWrapper(value) = handle.read().clone();
         value
+    }
+
+    #[must_use]
+    /// NOTE: Don't use it in production code, it's debug only
+    ///
+    /// # Usage
+    /// Will create file "assets/tweak/{specifier}.ron" if not exists.
+    /// If exists will read a value from such file.
+    ///
+    /// Example if you want to tweak integer value
+    /// ```no_run
+    /// use veloren_common_assets::asset_tweak;
+    /// let x: i32 = asset_tweak::tweak_expect_or_create("x", 5);
+    /// ```
+    /// File needs to look like that
+    /// ```text
+    /// assets/tweak/x.ron
+    /// (5)
+    /// ```
+    /// Note the parentheses.
+    ///
+    /// # Panics
+    /// 1) If asset is broken
+    /// 2) filesystem errors
+    pub fn tweak_expect_or_create<T>(specifier: &str, value: T) -> T
+    where
+        T: Clone + Sized + Send + Sync + 'static + DeserializeOwned + Serialize,
+    {
+        if cfg!(not(any(debug_assertions, test))) {
+            tracing::warn!("AssetTweaker used in release build!");
+        }
+
+        let root = find_root().expect("failed to discover repository_root");
+        let tweak_dir = root.join("asset/tweak/");
+        let filename = format!("{}.ron", specifier);
+
+        if Path::new(&tweak_dir.join(&filename)).is_file() {
+            let asset_specifier: &str = &format!("tweak.{}", specifier);
+            let handle = <AssetTweakWrapper<T> as AssetExt>::load_expect(asset_specifier);
+            let AssetTweakWrapper(new_value) = handle.read().clone();
+
+            new_value
+        } else {
+            fs::create_dir(&tweak_dir).expect("failed to create directory for tweak files");
+            let f = fs::File::create(tweak_dir.join(&filename)).unwrap_or_else(|err| {
+                panic!("failed to create file {:?}. Error: {:?}", &filename, err)
+            });
+            to_writer_pretty(f, &value, PrettyConfig::new()).unwrap_or_else(|err| {
+                panic!("failed to write to file {:?}. Error: {:?}", &filename, err)
+            });
+
+            value
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::asset_tweak::tweak;
+    use super::{asset_tweak::tweak_expect, find_root};
     use std::{
         convert::AsRef,
         fmt::Debug,
         fs::{self, File},
         io::Write,
-        path::{Path, PathBuf},
+        path::Path,
     };
-
-    // Return path to repository by searching 10 directories back
-    fn find_root() -> Option<PathBuf> {
-        std::env::current_dir().map_or(None, |path| {
-            // If we are in the root, push path
-            if path.join(".git").is_dir() {
-                return Some(path);
-            }
-            // Search .git directory in parent directries
-            for ancestor in path.ancestors().take(10) {
-                if ancestor.join(".git").is_dir() {
-                    return Some(ancestor.to_path_buf());
-                }
-            }
-            None
-        })
-    }
 
     struct DirectoryGuard<P>
     where
@@ -366,13 +431,13 @@ mod tests {
     #[test]
     fn test_tweaked_string() {
         let root = find_root().expect("failed to discover repository_root");
-        let tweak_dir = root.join("assets/common/tweak/");
+        let tweak_dir = root.join("assets/tweak/");
         let _dir_guard = DirectoryGuard::create(tweak_dir.clone());
 
         // define test files
-        let from_int = tweak_dir.clone().join("int_tweak.ron");
-        let from_string = tweak_dir.clone().join("string_tweak.ron");
-        let from_map = tweak_dir.clone().join("map_tweak.ron");
+        let from_int = tweak_dir.join("int_tweak.ron");
+        let from_string = tweak_dir.join("string_tweak.ron");
+        let from_map = tweak_dir.join("map_tweak.ron");
 
         // setup fs guards
         let (_file_guard1, mut file1) = FileGuard::create(from_int);
@@ -380,20 +445,22 @@ mod tests {
         let (_file_guard3, mut file3) = FileGuard::create(from_map);
 
         // write to file and check result
-        file1.write(b"(5)").expect("failed to write to the file");
-        let x = tweak::<i32>("common.tweak.int_tweak");
+        file1
+            .write_all(b"(5)")
+            .expect("failed to write to the file");
+        let x = tweak_expect::<i32>("tweak.int_tweak");
         assert_eq!(x, 5);
 
         // write to file and check result
         file2
-            .write(br#"("Hello Zest")"#)
+            .write_all(br#"("Hello Zest")"#)
             .expect("failed to write to the file");
-        let x = tweak::<String>("common.tweak.string_tweak");
+        let x = tweak_expect::<String>("tweak.string_tweak");
         assert_eq!(x, "Hello Zest".to_owned());
 
         // write to file and check result
         file3
-            .write(
+            .write_all(
                 br#"
         ({
             "wow": 4,
@@ -402,7 +469,7 @@ mod tests {
         "#,
             )
             .expect("failed to write to the file");
-        let x: std::collections::HashMap<String, i32> = tweak("common.tweak.map_tweak");
+        let x: std::collections::HashMap<String, i32> = tweak_expect("tweak.map_tweak");
         let mut map = std::collections::HashMap::new();
         map.insert("wow".to_owned(), 4);
         map.insert("such".to_owned(), 5);
