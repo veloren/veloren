@@ -4,6 +4,6 @@ ItemDef(
     kind: Ingredient(
         kind: "CopperOre",
     ),
-    quality: Common,
+    quality: Low,
     tags: [],
 )

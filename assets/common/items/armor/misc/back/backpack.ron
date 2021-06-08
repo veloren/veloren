@@ -13,7 +13,6 @@ ItemDef(
         ),
     )),
     quality: High,
-    tags: [
-        Bag,
-    ],
+    tags: [Bag],
+    slots: 18,
 )

@@ -163,7 +163,7 @@ impl TradePricing {
             _ if name.starts_with("common.items.food.") => &self.food,
             _ if name.starts_with("common.items.utility.") => &self.other,
             _ if name.starts_with("common.items.boss_drops.") => &self.other,
-            _ if name.starts_with("common.items.ore.") => &self.ingredients,
+            _ if name.starts_with("common.items.mineral.") => &self.ingredients,
             _ if name.starts_with("common.items.flowers.") => &self.ingredients,
             _ if name.starts_with("common.items.crafting_tools.") => &self.other,
             _ if name.starts_with("common.items.lantern.") => &self.other,
@@ -186,7 +186,7 @@ impl TradePricing {
             _ if name.starts_with("common.items.food.") => &mut self.food,
             _ if name.starts_with("common.items.utility.") => &mut self.other,
             _ if name.starts_with("common.items.boss_drops.") => &mut self.other,
-            _ if name.starts_with("common.items.ore.") => &mut self.ingredients,
+            _ if name.starts_with("common.items.mineral.") => &mut self.ingredients,
             _ if name.starts_with("common.items.flowers.") => &mut self.ingredients,
             _ if name.starts_with("common.items.crafting_tools.") => &mut self.other,
             _ if name.starts_with("common.items.lantern.") => &mut self.other,
@@ -337,7 +337,9 @@ impl TradePricing {
         // (start with cheap ones to avoid changing material prices after evaluation)
         while price_sort(&result, &eqset.read(), &mut ordered_recipes) {
             ordered_recipes.retain(|e| {
-                if e.material_cost < TradePricing::UNAVAILABLE_PRICE {
+                if e.material_cost < 1e-5 {
+                    false
+                } else if e.material_cost < TradePricing::UNAVAILABLE_PRICE {
                     let actual_cost = calculate_material_cost(&result, &eqset.read(), e);
                     add(
                         &mut result.get_list_by_path_mut(&e.output),
