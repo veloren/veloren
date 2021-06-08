@@ -337,7 +337,9 @@ impl TradePricing {
         // (start with cheap ones to avoid changing material prices after evaluation)
         while price_sort(&result, &eqset.read(), &mut ordered_recipes) {
             ordered_recipes.retain(|e| {
-                if e.material_cost < TradePricing::UNAVAILABLE_PRICE {
+                if e.material_cost < 1e-5 {
+                    false
+                } else if e.material_cost < TradePricing::UNAVAILABLE_PRICE {
                     let actual_cost = calculate_material_cost(&result, &eqset.read(), e);
                     add(
                         &mut result.get_list_by_path_mut(&e.output),
