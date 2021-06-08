@@ -269,7 +269,7 @@ pub mod asset_tweak {
     use ron::ser::{to_writer_pretty, PrettyConfig};
     use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-    #[derive(Clone, Deserialize)]
+    #[derive(Clone, Deserialize, Serialize)]
     struct AssetTweakWrapper<T>(T);
 
     impl<T> Asset for AssetTweakWrapper<T>
@@ -357,9 +357,10 @@ pub mod asset_tweak {
             let f = fs::File::create(tweak_dir.join(&filename)).unwrap_or_else(|err| {
                 panic!("failed to create file {:?}. Error: {:?}", &filename, err)
             });
-            to_writer_pretty(f, &value, PrettyConfig::new()).unwrap_or_else(|err| {
-                panic!("failed to write to file {:?}. Error: {:?}", &filename, err)
-            });
+            to_writer_pretty(f, &AssetTweakWrapper(value.clone()), PrettyConfig::new())
+                .unwrap_or_else(|err| {
+                    panic!("failed to write to file {:?}. Error: {:?}", &filename, err)
+                });
 
             value
         }
@@ -485,15 +486,27 @@ pub mod asset_tweak {
         fn test_tweaked_create() {
             let root = find_root().expect("failed to discover repository_root");
             let tweak_dir = root.join("assets/tweak/");
+
             let test_path1 = tweak_dir.join("__test_int_create.ron");
             let _file_guard1 = FileGuard::hold(&test_path1);
             let x = tweak_expect_or_create("__test_int_create", 5);
             assert_eq!(x, 5);
             assert!(test_path1.is_file());
+            // Recheck it loads back correctly
+            let x = tweak_expect_or_create("__test_int_create", 5);
+            assert_eq!(x, 5);
+
+            let test_path2 = tweak_dir.join("__test_tuple_create.ron");
+            let _file_guard2 = FileGuard::hold(&test_path2);
+            let (x, y, z) = tweak_expect_or_create("__test_tuple_create", (5.0, 6.0, 7.0));
+            assert_eq!((x, y, z), (5.0, 6.0, 7.0));
+            // Recheck it loads back correctly
+            let (x, y, z) = tweak_expect_or_create("__test_tuple_create", (5.0, 6.0, 7.0));
+            assert_eq!((x, y, z), (5.0, 6.0, 7.0));
 
             // Test that file has stronger priority
-            let test_path2 = tweak_dir.join("__test_priority.ron");
-            let (_file_guard2, mut file) = FileGuard::create(&test_path2);
+            let test_path3 = tweak_dir.join("__test_priority.ron");
+            let (_file_guard3, mut file) = FileGuard::create(&test_path3);
             file.write_all(b"(10)")
                 .expect("failed to write to the file");
             let x = tweak_expect_or_create("__test_priority", 6);
