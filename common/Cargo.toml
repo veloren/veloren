@@ -9,6 +9,7 @@ no-assets = []
 tracy = ["common-base/tracy"]
 simd = ["vek/platform_intrinsics"]
 bin_csv = ["ron", "csv", "structopt"]
+bin_graphviz = ["petgraph"]
 
 default = ["simd"]
 
@@ -51,6 +52,8 @@ ron = { version = "0.6", default-features = false, optional = true }
 # csv export
 csv = { version = "1.1.3", optional = true }
 structopt = { version = "0.3.13", optional = true }
+# graphviz exporters
+petgraph = { version = "0.5.1", optional = true }
 
 # Data structures
 hashbrown = { version = "0.11", features = ["rayon", "serde", "nightly"] }
@@ -88,3 +91,7 @@ required-features = ["bin_csv"]
 [[bin]]
 name = "csv_import"
 required-features = ["bin_csv"]
+
+[[bin]]
+name = "recipe_graphviz"
+required-features = ["bin_graphviz"]

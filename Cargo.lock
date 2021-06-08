@@ -5796,6 +5796,7 @@ dependencies = [
  "num-derive",
  "num-traits",
  "ordered-float 2.5.1",
+ "petgraph 0.5.1",
  "rand 0.8.3",
  "rayon",
  "ron",
