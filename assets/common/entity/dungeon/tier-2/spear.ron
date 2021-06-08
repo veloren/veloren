@@ -1,5 +1,6 @@
 EntityConfig (
     name: Some("Sahagin Spearman"),
+    body: Some(RandomWith("sahagin")),
 
     main_tool: Some(Item("common.items.npc_weapons.biped_small.sahagin.wooden_spear")),
     second_tool: None,

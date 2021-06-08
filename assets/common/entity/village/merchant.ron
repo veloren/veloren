@@ -1,5 +1,7 @@
 EntityConfig (
     name: Some("Merchant"),
+    // body is specified outsite
+    body: None,
 
     main_tool: Some(Item("common.items.weapons.bow.eldwood-0")),
     second_tool: None,

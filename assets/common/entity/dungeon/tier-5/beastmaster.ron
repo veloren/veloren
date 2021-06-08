@@ -1,5 +1,6 @@
 EntityConfig (
     name: Some("Beastmaster"),
+    body: Some(RandomWith("humanoid")),
 
     main_tool: Some(Choice([
         (1.0, Some(Item("common.items.weapons.axe.malachite_axe-0"))),

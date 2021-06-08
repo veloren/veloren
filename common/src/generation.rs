@@ -13,8 +13,14 @@ use serde::Deserialize;
 use vek::*;
 
 #[derive(Debug, Deserialize, Clone)]
+enum BodyKind {
+    RandomWith(String),
+}
+
+#[derive(Debug, Deserialize, Clone)]
 struct EntityConfig {
     name: Option<String>,
+    body: Option<BodyKind>,
     main_tool: Option<ItemSpec>,
     second_tool: Option<ItemSpec>,
     loadout_asset: Option<String>,
@@ -86,6 +92,7 @@ impl EntityInfo {
     fn with_entity_config(mut self, config: EntityConfig, asset_specifier: Option<&str>) -> Self {
         let EntityConfig {
             name,
+            body,
             main_tool,
             second_tool,
             loadout_asset,
@@ -94,6 +101,19 @@ impl EntityInfo {
 
         if let Some(name) = name {
             self = self.with_name(name);
+        }
+
+        if let Some(body) = body {
+            match body {
+                BodyKind::RandomWith(string) => {
+                    let npc::NpcBody(_body_kind, mut body_creator) =
+                        string.parse::<npc::NpcBody>().unwrap_or_else(|err| {
+                            panic!("failed to parse body {:?}. Err: {:?}", &string, err)
+                        });
+                    let body = body_creator();
+                    self = self.with_body(body);
+                },
+            }
         }
 
         let rng = &mut rand::thread_rng();
@@ -296,7 +316,8 @@ mod tests {
                 second_tool,
                 loadout_asset,
                 skillset_asset,
-                ..
+                name: _name,
+                body,
             } = config;
 
             if let Some(main_tool) = main_tool {
@@ -305,6 +326,18 @@ mod tests {
 
             if let Some(second_tool) = second_tool {
                 second_tool.validate(EquipSlot::ActiveOffhand);
+            }
+
+            if let Some(body) = body {
+                match body {
+                    BodyKind::RandomWith(string) => {
+                        let npc::NpcBody(_body_kind, mut body_creator) =
+                            string.parse::<npc::NpcBody>().unwrap_or_else(|err| {
+                                panic!("failed to parse body {:?}. Err: {:?}", &string, err)
+                            });
+                        std::mem::drop(body_creator());
+                    },
+                }
             }
 
             if let Some(loadout_asset) = loadout_asset {

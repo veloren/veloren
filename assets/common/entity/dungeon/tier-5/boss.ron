@@ -1,5 +1,6 @@
 EntityConfig (
     name: Some("Mindflayer"),
+    body: Some(RandomWith("mindflayer")),
 
     main_tool: None,
     second_tool: None,

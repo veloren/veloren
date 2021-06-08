@@ -1,5 +1,6 @@
 EntityConfig (
     name: Some("Cultist Warlord"),
+    body: Some(RandomWith("humanoid")),
 
     main_tool: Some(Choice([
         (1.0, Some(Item("common.items.weapons.axe_1h.orichalcum-0"))),

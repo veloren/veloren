@@ -926,12 +926,6 @@ fn enemy_0(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
     let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-0.enemy");
 
     let gnarling = entity
-        .with_body(comp::Body::BipedSmall(
-            comp::biped_small::Body::random_with(
-                dynamic_rng,
-                &comp::biped_small::Species::Gnarling,
-            ),
-        ))
         .with_loot_drop(chosen.read().choose().to_item());
 
     match dynamic_rng.gen_range(0..5) {
@@ -945,9 +939,6 @@ fn enemy_1(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
     let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-1.enemy");
 
     let adlet = entity
-        .with_body(comp::Body::BipedSmall(
-            comp::biped_small::Body::random_with(dynamic_rng, &comp::biped_small::Species::Adlet),
-        ))
         .with_loot_drop(chosen.read().choose().to_item());
 
     match dynamic_rng.gen_range(0..5) {
@@ -961,9 +952,6 @@ fn enemy_2(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
     let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-2.enemy");
 
     let sahagin = entity
-        .with_body(comp::Body::BipedSmall(
-            comp::biped_small::Body::random_with(dynamic_rng, &comp::biped_small::Species::Sahagin),
-        ))
         .with_loot_drop(chosen.read().choose().to_item());
 
     match dynamic_rng.gen_range(0..5) {
@@ -985,12 +973,6 @@ fn enemy_3(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
             )),
         _ => {
             let haniwa = entity
-                .with_body(comp::Body::BipedSmall(
-                    comp::biped_small::Body::random_with(
-                        dynamic_rng,
-                        &comp::biped_small::Species::Haniwa,
-                    ),
-                ))
                 .with_loot_drop(chosen.read().choose().to_item());
 
             match dynamic_rng.gen_range(0..5) {
@@ -1005,12 +987,6 @@ fn enemy_4(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
     let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-4.enemy");
 
     let myrmidon = entity
-        .with_body(comp::Body::BipedSmall(
-            comp::biped_small::Body::random_with(
-                dynamic_rng,
-                &comp::biped_small::Species::Myrmidon,
-            ),
-        ))
         .with_loot_drop(chosen.read().choose().to_item());
 
     match dynamic_rng.gen_range(0..5) {
@@ -1031,11 +1007,9 @@ fn enemy_5(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
                 "common.items.crafting_ing.twigs",
             )),
         1 => entity
-            .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
             .with_loot_drop(chosen.read().choose().to_item())
             .with_asset_expect("common.entity.dungeon.tier-5.warlock"),
         _ => entity
-            .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
             .with_loot_drop(chosen.read().choose().to_item())
             .with_asset_expect("common.entity.dungeon.tier-5.warlord"),
     }
@@ -1308,7 +1282,6 @@ mod tests {
         boss_fallback(&mut dynamic_rng, tile_wcenter);
     }
 
-    //FIXME: it will miss items with rng branching
     #[test]
     fn test_creating_enemies() {
         let mut dynamic_rng = rand::thread_rng();
@@ -1322,7 +1295,6 @@ mod tests {
         enemy_fallback(&mut dynamic_rng, raw_entity);
     }
 
-    //FIXME: it will miss items with rng branching
     #[test]
     fn test_creating_minibosses() {
         let mut dynamic_rng = rand::thread_rng();

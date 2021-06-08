@@ -1,5 +1,6 @@
 EntityConfig (
     name: Some("Adlet Shaman"),
+    body: Some(RandomWith("adlet")),
 
     main_tool: Some(Item("common.items.npc_weapons.biped_small.adlet.gnoll_staff")),
     second_tool: None,

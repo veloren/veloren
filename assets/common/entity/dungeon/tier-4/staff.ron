@@ -1,5 +1,6 @@
 EntityConfig (
     name: Some("Myrmidon Wizard"),
+    body: Some(RandomWith("myrmidon")),
 
     main_tool: Some(Item("common.items.npc_weapons.biped_small.myrmidon.gnoll_staff")),
     second_tool: None,

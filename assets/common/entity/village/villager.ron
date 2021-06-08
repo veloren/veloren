@@ -1,5 +1,7 @@
 EntityConfig (
     name: None,
+    // body is specified outsite
+    body: None,
 
     main_tool: Some(Choice([
         (1.0, Some(Item("common.items.weapons.tool.broom"))),

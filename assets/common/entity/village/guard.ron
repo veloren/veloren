@@ -1,5 +1,7 @@
 EntityConfig (
     name: Some("Guard"),
+    // body is specified outsite
+    body: None,
 
     main_tool: Some(Item("common.items.weapons.sword.iron-4")),
     second_tool: None,

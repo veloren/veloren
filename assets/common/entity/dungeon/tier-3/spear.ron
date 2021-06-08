@@ -1,5 +1,6 @@
 EntityConfig (
     name: Some("Haniwa Guard"),
+    body: Some(RandomWith("haniwa")),
 
     main_tool: Some(Item("common.items.npc_weapons.biped_small.haniwa.wooden_spear")),
     second_tool: None,

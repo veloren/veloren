@@ -1,5 +1,6 @@
 EntityConfig (
     name: Some("Haniwa Archer"),
+    body: Some(RandomWith("haniwa")),
 
     main_tool: Some(Item("common.items.npc_weapons.biped_small.haniwa.adlet_bow")),
     second_tool: None,

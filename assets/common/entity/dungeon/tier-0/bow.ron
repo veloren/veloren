@@ -1,5 +1,6 @@
 EntityConfig (
     name: Some("Gnarling Stalker"),
+    body: Some(RandomWith("gnarling")),
 
     main_tool: Some(Item("common.items.npc_weapons.biped_small.gnarling.adlet_bow")),
     second_tool: None,

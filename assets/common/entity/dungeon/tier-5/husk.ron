@@ -1,5 +1,6 @@
 EntityConfig (
     name: Some("Cultist Husk"),
+    body: Some(RandomWith("husk")),
 
     main_tool: None,
     second_tool: None,
