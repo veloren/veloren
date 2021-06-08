@@ -15,10 +15,9 @@ fn main() {
     let mut graph = Graph::new();
     let mut nodes = HashMap::new();
     let mut add_node = |graph: &mut Graph<_, _>, node: &str| {
-        nodes
+        *nodes
             .entry(node.to_owned())
             .or_insert_with(|| graph.add_node(node.to_owned()))
-            .clone()
     };
     for (_, recipe) in recipes.iter() {
         let output = recipe.output.0.item_definition_id();
@@ -40,6 +39,8 @@ fn main() {
             graph.add_edge(in_node, out_node, ());
         }
     }
+    // you can render the dot file as a png with `dot -Tpng recipe_graph.dot >
+    // recipe_graph.png` or interactively view it with `xdot recipe_graph.dot`
     let mut f = File::create("recipe_graph.dot").unwrap();
     writeln!(f, "digraph {{").unwrap();
     writeln!(f, "rankdir = \"LR\"").unwrap();
