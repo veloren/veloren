@@ -1,5 +1,5 @@
 #![deny(clippy::clone_on_ref_ptr)]
-#![allow(clippy::expect_fun_call)]
+#![allow(clippy::expect_fun_call)] //TODO: evaluate to remove this and use `unwrap_or_else(panic!(...))` instead
 
 use hashbrown::HashMap;
 use ron::ser::{to_string_pretty, PrettyConfig};
