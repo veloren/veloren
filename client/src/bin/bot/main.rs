@@ -1,5 +1,3 @@
-#![feature(str_split_once)]
-
 #[macro_use] extern crate serde;
 
 use authc::AuthClient;
@@ -54,15 +52,13 @@ pub struct BotClient {
 
 pub fn make_client(runtime: &Arc<Runtime>, server: &str) -> Client {
     let runtime2 = Arc::clone(&runtime);
-    let view_distance: Option<u32> = None;
-    runtime.block_on(async {
-        let connection_args = ConnectionArgs::resolve(server, false)
-            .await
-            .expect("DNS resolution failed");
-        Client::new(connection_args, view_distance, runtime2, &mut None)
-            .await
-            .expect("Failed to connect to server")
-    })
+    let addr = ConnectionArgs::Tcp {
+        prefer_ipv6: false,
+        hostname: server.to_owned(),
+    };
+    runtime
+        .block_on(Client::new(addr, runtime2, &mut None))
+        .expect("Failed to connect to server")
 }
 
 impl BotClient {
@@ -84,7 +80,7 @@ impl BotClient {
         for (username, client) in self.bot_clients.iter_mut() {
             //trace!("cl {:?}: {:?}", username, client.character_list());
             trace!(?username, "tick");
-            let msgs: Result<Vec<veloren_client::Event>, veloren_client::Error> =
+            let _msgs: Result<Vec<veloren_client::Event>, veloren_client::Error> =
                 client.tick(comp::ControllerInputs::default(), self.clock.dt(), |_| {});
             /*trace!(
                 "msgs {:?}: {:?} {:?}",
@@ -131,7 +127,7 @@ impl BotClient {
                     .settings
                     .bot_logins
                     .iter()
-                    .any(|x| &*x.username == &*username)
+                    .any(|x| *x.username == *username)
                 {
                     continue;
                 }
@@ -216,9 +212,6 @@ impl BotClient {
             .cloned()
             .collect();
         for cred in creds.iter() {
-            let runtime = Arc::clone(&self.runtime);
-
-            let server = self.settings.server.clone();
             let client = match self.bot_clients.get_mut(&cred.username) {
                 Some(c) => c,
                 None => {

@@ -45,15 +45,14 @@ fn main() {
 
     let runtime = Arc::new(Runtime::new().unwrap());
     let runtime2 = Arc::clone(&runtime);
+    let addr = ConnectionArgs::Tcp {
+        prefer_ipv6: false,
+        hostname: server_addr,
+    };
 
     // Create a client.
     let mut client = runtime
-        .block_on(async {
-            let addr = ConnectionArgs::resolve(&server_addr, false)
-                .await
-                .expect("dns resolve failed");
-            Client::new(addr, None, runtime2, &mut None).await
-        })
+        .block_on(Client::new(addr, runtime2, &mut None))
         .expect("Failed to create client instance");
 
     println!("Server info: {:?}", client.server_info());
