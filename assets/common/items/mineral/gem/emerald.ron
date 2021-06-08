@@ -4,6 +4,6 @@ ItemDef(
     kind: Ingredient(
         kind: "Emerald",
     ),
-    quality: Common,
+    quality: High,
     tags: [],
 )

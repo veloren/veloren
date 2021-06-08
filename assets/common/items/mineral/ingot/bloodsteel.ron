@@ -4,6 +4,6 @@ ItemDef(
     kind: Ingredient(
         kind: "BloodsteelIngot",
     ),
-    quality: Common,
+    quality: Epic,
     tags: [MetalIngot],
 )

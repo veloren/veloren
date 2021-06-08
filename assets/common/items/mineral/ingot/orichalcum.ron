@@ -4,6 +4,6 @@ ItemDef(
     kind: Ingredient(
         kind: "OrichalcumIngot",
     ),
-    quality: Epic,
+    quality: Legendary,
     tags: [MetalIngot],
 )

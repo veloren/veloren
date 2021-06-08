@@ -184,6 +184,13 @@
         ],
         craft_sprite: Some(CookingPot),
     ),
+    "leather strips": (
+        output: ("common.items.crafting_ing.leather.leather_strips", 4),
+        inputs: [
+            (Item("common.items.crafting_ing.leather.simple_leather"), 1),
+        ],
+        craft_sprite: Some(TanningRack),
+    ),
     "simple leather": (
         output: ("common.items.crafting_ing.leather.simple_leather", 1),
         inputs: [
@@ -1690,7 +1697,7 @@
     "tin pickaxe": (
         output: ("common.items.tool.pickaxe_stone", 1),
         inputs: [
-            (Item("common.items.crafting_ing.cloth.linen"), 1),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 4),
             (Item("common.items.crafting_ing.stones"), 5),
             (Item("common.items.tool.craftsman_hammer"), 0),
         ],
@@ -1709,28 +1716,24 @@
         output: ("common.items.crafting_ing.cloth.linen", 1),
         inputs: [
             (Tag(Material(Linen)), 1),
-            (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
     ),
     "wool": (
         output: ("common.items.crafting_ing.cloth.wool", 1),
         inputs: [
             (Tag(Material(Wool)), 1),
-            (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
     ),
     "rawhide": (
         output: ("common.items.crafting_ing.leather.simple_leather", 1),
         inputs: [
             (Tag(Material(Rawhide)), 1),
-            (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
     ),
     "leather": (
         output: ("common.items.crafting_ing.leather.thick_leather", 1),
         inputs: [
             (Tag(Material(Leather)), 1),
-            (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
     ),
     "bronze": (

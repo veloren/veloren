@@ -4,6 +4,6 @@ ItemDef(
     kind: Ingredient(
         kind: "CobaltOre",
     ),
-    quality: Common,
+    quality: High,
     tags: [],
 )

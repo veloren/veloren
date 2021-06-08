@@ -4,6 +4,6 @@ ItemDef(
     kind: Ingredient(
         kind: "RigidLeather",
     ),
-    quality: Common,
+    quality: Epic,
     tags: [BaseMaterial, Leather],
 )

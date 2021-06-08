@@ -4,6 +4,6 @@ ItemDef(
     kind: Ingredient(
         kind: "BloodstoneOre",
     ),
-    quality: Common,
+    quality: Epic,
     tags: [],
 )

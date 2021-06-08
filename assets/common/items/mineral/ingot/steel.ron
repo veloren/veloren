@@ -4,6 +4,6 @@ ItemDef(
     kind: Ingredient(
         kind: "SteelIngot",
     ),
-    quality: Common,
+    quality: Moderate,
     tags: [MetalIngot],
 )

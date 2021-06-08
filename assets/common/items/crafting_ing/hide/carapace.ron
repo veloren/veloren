@@ -4,6 +4,6 @@ ItemDef(
     kind: Ingredient(
         kind: "Carapace",
     ),
-    quality: Common,
+    quality: High,
     tags: [],
 )

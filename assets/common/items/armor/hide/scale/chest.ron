@@ -4,7 +4,7 @@ ItemDef(
     kind: Armor((
         kind: Chest("Scale"),
         stats: (
-            protection: Normal(72.0),
+            protection: Normal(21.0),
             poise_resilience: Normal(0.0),
             energy_max: 0,
             energy_reward: 0.0,
