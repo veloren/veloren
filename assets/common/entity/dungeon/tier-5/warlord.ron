@@ -2,6 +2,8 @@ EntityConfig (
     name: Some("Cultist Warlord"),
     body: Some(RandomWith("humanoid")),
 
+    loot: Some(LootTable("common.loot_tables.dungeon.tier-5.enemy")),
+
     main_tool: Some(Choice([
         (1.0, Some(Item("common.items.weapons.axe_1h.orichalcum-0"))),
         (2.0, Some(Item("common.items.weapons.sword.cultist"))),

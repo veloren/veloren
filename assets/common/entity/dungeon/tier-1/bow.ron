@@ -2,6 +2,8 @@ EntityConfig (
     name: Some("Adlet Tracker"),
     body: Some(RandomWith("adlet")),
 
+    loot: Some(LootTable("common.loot_tables.dungeon.tier-1.enemy")),
+
     main_tool: Some(Item("common.items.npc_weapons.biped_small.adlet.adlet_bow")),
     second_tool: None,
 

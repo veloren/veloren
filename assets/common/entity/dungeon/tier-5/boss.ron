@@ -2,6 +2,8 @@ EntityConfig (
     name: Some("Mindflayer"),
     body: Some(RandomWith("mindflayer")),
 
+    loot: Some(LootTable("common.loot_tables.dungeon.tier-5.boss")),
+
     main_tool: None,
     second_tool: None,
 

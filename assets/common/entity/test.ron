@@ -4,8 +4,7 @@ EntityConfig (
 
     /// Body
     /// Can be Exact (Body with all fields e.g BodyType, Species, Hair color and such)
-    /// or Random (will use random if available for this Body)
-    /// or RandomWith (will use random_with if available for this Body)
+    /// or RandomWith (will generate random body or species)
     body: Some(RandomWith("humanoid")),
 
     /// Main and second tools
@@ -24,7 +23,7 @@ EntityConfig (
     /// Loot
     /// Can be Item (with asset_specifier for item)
     /// or LootTable (with asset_specifier for loot table)
-    // loot: LootTable("common.loot_tables.humanoids"),
+    loot: Some(LootTable("common.loot_tables.humanoids")),
 
     /// Meta Info (level, alignment, agency, etc)
     // meta: {},

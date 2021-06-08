@@ -1,9 +1,8 @@
 EntityConfig (
-    name: None,
-    // body is specified outsite
-    body: None,
+    name: Some("Yan Hus"),
+    body: Some(RandomWith("humanoid")),
 
-    loot: None,
+    loot: Some(LootTable("common.loot_tables.fallback")),
 
     main_tool: Some(Choice([
         (1.0, Some(Item("common.items.weapons.tool.broom"))),
@@ -12,6 +11,7 @@ EntityConfig (
         (1.0, Some(Item("common.items.weapons.tool.rake"))),
         (1.0, Some(Item("common.items.weapons.tool.shovel-0"))),
         (1.0, Some(Item("common.items.weapons.tool.shovel-1"))),
+        (1.0, Some(Item("common.items.weapons.bow.bone-1"))),
     ])),
     second_tool: None,
 

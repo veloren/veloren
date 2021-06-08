@@ -2,6 +2,8 @@ EntityConfig (
     name: Some("Haniwa Sorcerer"),
     body: Some(RandomWith("haniwa")),
 
+    loot: Some(LootTable("common.loot_tables.dungeon.tier-3.enemy")),
+
     main_tool: Some(Item("common.items.npc_weapons.biped_small.haniwa.gnoll_staff")),
     second_tool: None,
 

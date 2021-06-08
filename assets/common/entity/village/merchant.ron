@@ -3,6 +3,9 @@ EntityConfig (
     // body is specified outsite
     body: None,
 
+    // considering giving some gold/gems/materials?
+    loot: None,
+
     main_tool: Some(Item("common.items.weapons.bow.eldwood-0")),
     second_tool: None,
 

@@ -1,0 +1,12 @@
+EntityConfig (
+    name: Some("Dullahan"),
+    body: Some(RandomWith("dullahan")),
+
+    loot: Some(LootTable("common.loot_tables.dungeon.tier-4.miniboss")),
+
+    main_tool: None,
+    second_tool: None,
+
+    loadout_asset: None,
+    skillset_asset: None,
+)

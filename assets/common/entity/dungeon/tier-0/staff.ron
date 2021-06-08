@@ -2,6 +2,8 @@ EntityConfig (
     name: Some("Gnarling Shaman"),
     body: Some(RandomWith("gnarling")),
 
+    loot: Some(LootTable("common.loot_tables.dungeon.tier-0.enemy")),
+
     main_tool: Some(Item("common.items.npc_weapons.biped_small.gnarling.gnoll_staff")),
     second_tool: None,
 

@@ -1,0 +1,12 @@
+EntityConfig (
+    name: Some("Rat"),
+    body: Some(RandomWith("rat")),
+
+    loot: Some(LootTable("common.loot_tables.creature.quad_small.generic")),
+
+    main_tool: None,
+    second_tool: None,
+
+    loadout_asset: None,
+    skillset_asset: None,
+)

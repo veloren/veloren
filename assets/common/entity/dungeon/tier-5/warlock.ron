@@ -2,6 +2,8 @@ EntityConfig (
     name: Some("Cultist Warlock"),
     body: Some(RandomWith("humanoid")),
 
+    loot: Some(LootTable("common.loot_tables.dungeon.tier-5.enemy")),
+
     main_tool: Some(Item("common.items.weapons.staff.cultist_staff")),
     second_tool: None,
 

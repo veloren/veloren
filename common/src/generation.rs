@@ -5,6 +5,7 @@ use crate::{
         inventory::loadout_builder::{ItemSpec, LoadoutBuilder},
         Alignment, Body, Item,
     },
+    lottery::{LootSpec, Lottery},
     npc::{self, NPC_NAMES},
     trade,
     trade::SiteInformation,
@@ -18,9 +19,16 @@ enum BodyKind {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+enum LootKind {
+    Item(String),
+    LootTable(String),
+}
+
+#[derive(Debug, Deserialize, Clone)]
 struct EntityConfig {
     name: Option<String>,
     body: Option<BodyKind>,
+    loot: Option<LootKind>,
     main_tool: Option<ItemSpec>,
     second_tool: Option<ItemSpec>,
     loadout_asset: Option<String>,
@@ -93,6 +101,7 @@ impl EntityInfo {
         let EntityConfig {
             name,
             body,
+            loot,
             main_tool,
             second_tool,
             loadout_asset,
@@ -112,6 +121,19 @@ impl EntityInfo {
                         });
                     let body = body_creator();
                     self = self.with_body(body);
+                },
+            }
+        }
+
+        if let Some(loot) = loot {
+            match loot {
+                LootKind::Item(asset) => {
+                    self = self.with_loot_drop(Item::new_from_asset_expect(&asset));
+                },
+                LootKind::LootTable(asset) => {
+                    let table = Lottery::<LootSpec>::load_expect(&asset);
+                    let drop = table.read().choose().to_item();
+                    self = self.with_loot_drop(drop);
                 },
             }
         }
@@ -318,6 +340,7 @@ mod tests {
                 skillset_asset,
                 name: _name,
                 body,
+                loot,
             } = config;
 
             if let Some(main_tool) = main_tool {
@@ -335,7 +358,20 @@ mod tests {
                             string.parse::<npc::NpcBody>().unwrap_or_else(|err| {
                                 panic!("failed to parse body {:?}. Err: {:?}", &string, err)
                             });
-                        std::mem::drop(body_creator());
+                        let _ = body_creator();
+                    },
+                }
+            }
+
+            if let Some(loot) = loot {
+                match loot {
+                    LootKind::Item(asset) => {
+                        std::mem::drop(Item::new_from_asset_expect(&asset));
+                    },
+                    LootKind::LootTable(asset) => {
+                        // we need to just load it check if it exists,
+                        // because all loot tables are tested in Lottery module
+                        let _ = Lottery::<LootSpec>::load_expect(&asset);
                     },
                 }
             }
