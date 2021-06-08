@@ -5,5 +5,5 @@ EntityConfig (
     second_tool: None,
 
     loadout_asset: None,
-    skillset_asset: Some("common.skillset.dungeon.tier-5.mindflayer"),
+    skillset_asset: None,
 )
