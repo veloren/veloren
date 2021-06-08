@@ -388,23 +388,6 @@ pub fn list_localizations() -> Vec<LanguageMetadata> {
 /// Start hot reloading of i18n assets
 pub fn start_hot_reloading() { assets::start_hot_reloading(); }
 
-/// Return path to repository by searching 10 directories back
-pub fn find_root() -> Option<PathBuf> {
-    std::env::current_dir().map_or(None, |path| {
-        // If we are in the root, push path
-        if path.join(".git").is_dir() {
-            return Some(path);
-        }
-        // Search .git directory in parent directries
-        for ancestor in path.ancestors().take(10) {
-            if ancestor.join(".git").is_dir() {
-                return Some(ancestor.to_path_buf());
-            }
-        }
-        None
-    })
-}
-
 /// List localization directories as a `PathBuf` vector
 pub fn i18n_directories(i18n_dir: &Path) -> Vec<PathBuf> {
     fs::read_dir(i18n_dir)
@@ -416,6 +399,7 @@ pub fn i18n_directories(i18n_dir: &Path) -> Vec<PathBuf> {
 
 #[cfg(test)]
 mod tests {
+    use super::assets;
     // Test that localization list is loaded (not empty)
     #[test]
     fn test_localization_list() {
@@ -435,7 +419,7 @@ mod tests {
     fn verify_all_localizations() {
         // Generate paths
         let i18n_asset_path = std::path::Path::new("assets/voxygen/i18n/");
-        let root_dir = super::find_root().expect("Failed to discover repository root");
+        let root_dir = assets::find_root().expect("Failed to discover repository root");
         crate::verification::verify_all_localizations(&root_dir, &i18n_asset_path);
     }
 
@@ -447,7 +431,7 @@ mod tests {
         let be_verbose = true;
         // Generate paths
         let i18n_asset_path = std::path::Path::new("assets/voxygen/i18n/");
-        let root_dir = super::find_root().expect("Failed to discover repository root");
+        let root_dir = assets::find_root().expect("Failed to discover repository root");
         crate::analysis::test_all_localizations(&root_dir, &i18n_asset_path, be_verbose);
     }
 }

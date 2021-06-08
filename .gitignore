@@ -26,6 +26,7 @@ target
 # Veloren
 *.rar
 *.log
+assets/tweak/
 settings.ron
 server_settings.ron
 run.sh
