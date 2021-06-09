@@ -1353,7 +1353,7 @@ impl Hud {
                             Weapon(ToolKind::Sceptre) => &i18n.get("common.weapons.sceptre"),
                             Weapon(ToolKind::Bow) => &i18n.get("common.weapons.bow"),
                             Weapon(ToolKind::Staff) => &i18n.get("common.weapons.staff"),
-                            Weapon(ToolKind::Pick) => &i18n.get("common.tool.pick"),
+                            Weapon(ToolKind::Pick) => &i18n.get("common.tool.mining"),
                             _ => "Unknown",
                         };
                         Text::new(skill)
@@ -1378,6 +1378,7 @@ impl Hud {
                             Weapon(ToolKind::Sceptre) => self.imgs.sceptre,
                             Weapon(ToolKind::Bow) => self.imgs.bow,
                             Weapon(ToolKind::Staff) => self.imgs.staff,
+                            Weapon(ToolKind::Pick) => self.imgs.mining,
                             _ => self.imgs.swords_crossed,
                         })
                         .w_h(20.0, 20.0)

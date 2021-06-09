@@ -1175,7 +1175,7 @@ impl CharacterAbility {
                 }
             },
             Some(ToolKind::Pick) => {
-                use skills::PickSkill::*;
+                use skills::MiningSkill::*;
                 if let BasicMelee {
                     ref mut buildup_duration,
                     ref mut swing_duration,

@@ -240,7 +240,7 @@ const TREES: [&str; 8] = [
     "Sceptre",
     "Bow",
     "Fire Staff",
-    "Pickaxe",
+    "Mining",
 ];
 
 pub enum Event {
@@ -359,7 +359,7 @@ impl<'a> Widget for Diary<'a> {
                 "Sceptre" => self.imgs.sceptre,
                 "Bow" => self.imgs.bow,
                 "Fire Staff" => self.imgs.staff,
-                "Pickaxe" => self.imgs.pickaxe,
+                "Mining" => self.imgs.mining,
                 _ => self.imgs.nothing,
             });
 
@@ -508,7 +508,7 @@ impl<'a> Widget for Diary<'a> {
                 self.localized_strings.get("common.weapons.staff")
             },
             SelectedSkillTree::Weapon(ToolKind::Pick) => {
-                self.localized_strings.get("common.tool.pick")
+                self.localized_strings.get("common.tool.mining")
             },
             _ => "Unknown",
         };
@@ -1988,8 +1988,8 @@ impl<'a> Widget for Diary<'a> {
                 );
             },
             SelectedSkillTree::Weapon(ToolKind::Pick) => {
-                use skills::PickSkill::*;
-                // Pick
+                use skills::MiningSkill::*;
+                // Mining
                 Image::new(animate_by_pulse(
                     &self
                         .item_imgs
@@ -2104,7 +2104,7 @@ fn skill_tree_from_str(string: &str) -> Option<SelectedSkillTree> {
         "Sceptre" => Some(SelectedSkillTree::Weapon(ToolKind::Sceptre)),
         "Bow" => Some(SelectedSkillTree::Weapon(ToolKind::Bow)),
         "Fire Staff" => Some(SelectedSkillTree::Weapon(ToolKind::Staff)),
-        "Pickaxe" => Some(SelectedSkillTree::Weapon(ToolKind::Pick)),
+        "Mining" => Some(SelectedSkillTree::Weapon(ToolKind::Pick)),
         _ => None,
     }
 }

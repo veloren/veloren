@@ -334,13 +334,13 @@ pub fn handle_mine_block(
                                 exp: *exp_reward,
                             });
                     }
-                    use common::comp::skills::{PickSkill, Skill};
+                    use common::comp::skills::{MiningSkill, Skill};
                     use rand::Rng;
                     let mut rng = rand::thread_rng();
                     if item.item_definition_id().contains("mineral.ore.")
                         && rng.gen_bool(
                             0.05 * skillset
-                                .skill_level(Skill::Pick(PickSkill::OreGain))
+                                .skill_level(Skill::Pick(MiningSkill::OreGain))
                                 .ok()
                                 .flatten()
                                 .unwrap_or(0) as f64,
@@ -351,7 +351,7 @@ pub fn handle_mine_block(
                     if item.item_definition_id().contains("mineral.gem.")
                         && rng.gen_bool(
                             0.05 * skillset
-                                .skill_level(Skill::Pick(PickSkill::GemGain))
+                                .skill_level(Skill::Pick(MiningSkill::GemGain))
                                 .ok()
                                 .flatten()
                                 .unwrap_or(0) as f64,

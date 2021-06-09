@@ -40,7 +40,7 @@ pub fn skill_to_db_string(skill: comp::skills::Skill) -> String {
     use comp::{
         item::tool::ToolKind,
         skills::{
-            AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, PickSkill, RollSkill,
+            AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, MiningSkill, RollSkill,
             SceptreSkill, Skill::*, SkillGroupKind, StaffSkill, SwimSkill, SwordSkill,
         },
     };
@@ -135,9 +135,9 @@ pub fn skill_to_db_string(skill: comp::skills::Skill) -> String {
         Climb(ClimbSkill::Cost) => "Climb Cost",
         Climb(ClimbSkill::Speed) => "Climb Speed",
         Swim(SwimSkill::Speed) => "Swim Speed",
-        Pick(PickSkill::Speed) => "Pick Speed",
-        Pick(PickSkill::OreGain) => "Pick OreGain",
-        Pick(PickSkill::GemGain) => "Pick GemGain",
+        Pick(MiningSkill::Speed) => "Pick Speed",
+        Pick(MiningSkill::OreGain) => "Pick OreGain",
+        Pick(MiningSkill::GemGain) => "Pick GemGain",
         UnlockGroup(SkillGroupKind::Weapon(ToolKind::Sword)) => "Unlock Weapon Sword",
         UnlockGroup(SkillGroupKind::Weapon(ToolKind::Axe)) => "Unlock Weapon Axe",
         UnlockGroup(SkillGroupKind::Weapon(ToolKind::Hammer)) => "Unlock Weapon Hammer",
@@ -163,7 +163,7 @@ pub fn db_string_to_skill(skill_string: &str) -> comp::skills::Skill {
     use comp::{
         item::tool::ToolKind,
         skills::{
-            AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, PickSkill, RollSkill,
+            AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, MiningSkill, RollSkill,
             SceptreSkill, Skill::*, SkillGroupKind, StaffSkill, SwimSkill, SwordSkill,
         },
     };
@@ -258,9 +258,9 @@ pub fn db_string_to_skill(skill_string: &str) -> comp::skills::Skill {
         "Climb Cost" => Climb(ClimbSkill::Cost),
         "Climb Speed" => Climb(ClimbSkill::Speed),
         "Swim Speed" => Swim(SwimSkill::Speed),
-        "Pick Speed" => Pick(PickSkill::Speed),
-        "Pick GemGain" => Pick(PickSkill::GemGain),
-        "Pick OreGain" => Pick(PickSkill::OreGain),
+        "Pick Speed" => Pick(MiningSkill::Speed),
+        "Pick GemGain" => Pick(MiningSkill::GemGain),
+        "Pick OreGain" => Pick(MiningSkill::OreGain),
         "Unlock Weapon Sword" => UnlockGroup(SkillGroupKind::Weapon(ToolKind::Sword)),
         "Unlock Weapon Axe" => UnlockGroup(SkillGroupKind::Weapon(ToolKind::Axe)),
         "Unlock Weapon Hammer" => UnlockGroup(SkillGroupKind::Weapon(ToolKind::Hammer)),

@@ -107,7 +107,7 @@ pub enum Skill {
     Roll(RollSkill),
     Climb(ClimbSkill),
     Swim(SwimSkill),
-    Pick(PickSkill),
+    Pick(MiningSkill),
 }
 
 pub enum SkillError {
@@ -265,7 +265,7 @@ pub enum SwimSkill {
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
-pub enum PickSkill {
+pub enum MiningSkill {
     Speed,
     OreGain,
     GemGain,
