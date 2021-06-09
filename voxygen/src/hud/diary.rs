@@ -309,12 +309,14 @@ impl<'a> Widget for Diary<'a> {
         }
 
         // Title
-        Text::new(&self.localized_strings.get("hud.diary"))
-            .mid_top_with_margin_on(state.frame, 3.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(29))
-            .color(TEXT_COLOR)
-            .set(state.title, ui);
+        self.create_new_text(
+            &self.localized_strings.get("hud.diary"),
+            state.frame,
+            3.0,
+            29,
+            TEXT_COLOR,
+        )
+        .set(state.title, ui);
 
         // Content Alignment
         Rectangle::fill_with([599.0 * 2.0, 419.0 * 2.0], color::TRANSPARENT)
@@ -457,34 +459,26 @@ impl<'a> Widget for Diary<'a> {
             .mouse()
             .map_or(false, |m| m.is_over())
         {
-            Text::new(&exp_txt)
-                .mid_top_with_margin_on(state.exp_bar_frame, 47.0)
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(14))
-                .color(TEXT_COLOR)
+            self.create_new_text(&exp_txt, state.exp_bar_frame, 47.0, 14, TEXT_COLOR)
                 .graphics_for(state.exp_bar_frame)
                 .set(state.exp_bar_txt, ui);
         }
-        Text::new(&rank_txt)
-            .mid_top_with_margin_on(state.exp_bar_frame, 5.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(28))
-            .color(TEXT_COLOR)
+        self.create_new_text(&rank_txt, state.exp_bar_frame, 5.0, 28, TEXT_COLOR)
             .set(state.exp_bar_rank, ui);
-        Text::new(
+        self.create_new_text(
             &self
                 .localized_strings
                 .get("hud.skill.sp_available")
                 .replace("{number}", &available_pts_txt),
+            state.content_align,
+            700.0,
+            28,
+            if available_pts > 0 {
+                Color::Rgba(0.92, 0.76, 0.0, frame_ani)
+            } else {
+                TEXT_COLOR
+            },
         )
-        .mid_top_with_margin_on(state.content_align, 700.0)
-        .font_id(self.fonts.cyri.conrod_id)
-        .font_size(self.fonts.cyri.scale(28))
-        .color(if available_pts > 0 {
-            Color::Rgba(0.92, 0.76, 0.0, frame_ani)
-        } else {
-            TEXT_COLOR
-        })
         .set(state.available_pts_txt, ui);
         let tree_title = match sel_tab {
             SelectedSkillTree::General => self.localized_strings.get("common.weapons.general"),
@@ -508,11 +502,7 @@ impl<'a> Widget for Diary<'a> {
             },
             _ => "Unknown",
         };
-        Text::new(&tree_title)
-            .mid_top_with_margin_on(state.content_align, 2.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(34))
-            .color(TEXT_COLOR)
+        self.create_new_text(&tree_title, state.content_align, 2.0, 34, TEXT_COLOR)
             .set(state.tree_title_txt, ui);
         // Skill Trees
         // Alignment Placing
@@ -2066,6 +2056,21 @@ fn add_sp_cost_tooltip<'a>(
 }
 
 impl<'a> Diary<'a> {
+    fn create_new_text<'b>(
+        &mut self,
+        text: &'b str,
+        state: widget::Id,
+        margin: f64,
+        scale: u32,
+        color: Color,
+    ) -> Text<'b> {
+        Text::new(text)
+            .mid_top_with_margin_on(state, margin)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(scale))
+            .color(color)
+    }
+
     fn create_unlock_skill_button(
         &mut self,
         skill: Skill,
