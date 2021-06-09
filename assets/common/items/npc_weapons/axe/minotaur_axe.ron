@@ -2,7 +2,7 @@ ItemDef(
     name: "Minotaur Axe",
     description: "Placeholder",
     kind: Tool((
-        kind: Axe,
+        kind: Natural,
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.5,
