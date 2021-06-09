@@ -2610,6 +2610,7 @@ fn parse_skill_tree(skill_tree: &str) -> CmdResult<comp::skills::SkillGroupKind>
         "bow" => Ok(SkillGroupKind::Weapon(ToolKind::Bow)),
         "staff" => Ok(SkillGroupKind::Weapon(ToolKind::Staff)),
         "sceptre" => Ok(SkillGroupKind::Weapon(ToolKind::Sceptre)),
+        "pick" => Ok(SkillGroupKind::Weapon(ToolKind::Pick)),
         _ => Err(format!("{} is not a skill group!", skill_tree)),
     }
 }

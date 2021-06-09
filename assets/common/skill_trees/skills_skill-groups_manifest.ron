@@ -109,4 +109,9 @@
         Sceptre(ARange),
         Sceptre(ACost),
     ],
+    Weapon(Pick): [
+        Pick(Speed),
+        Pick(OreGain),
+        Pick(GemGain),
+    ],
 })

@@ -50,6 +50,21 @@ impl ToolKind {
             ToolKind::Empty => "empty",
         }
     }
+
+    pub fn gains_combat_xp(&self) -> bool {
+        matches!(
+            self,
+            ToolKind::Sword
+                | ToolKind::Axe
+                | ToolKind::Hammer
+                | ToolKind::Bow
+                | ToolKind::Dagger
+                | ToolKind::Staff
+                | ToolKind::Spear
+                | ToolKind::Sceptre
+                | ToolKind::Shield
+        )
+    }
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]

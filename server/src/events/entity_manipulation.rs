@@ -992,13 +992,12 @@ fn handle_exp_gain(
     // Closure to add xp pool corresponding to weapon type equipped in a particular
     // EquipSlot
     let mut add_tool_from_slot = |equip_slot| {
-        let tool_kind = inventory.equipped(equip_slot).and_then(|i| {
-            if let ItemKind::Tool(tool) = &i.kind() {
-                Some(tool.kind)
-            } else {
-                None
-            }
-        });
+        let tool_kind = inventory
+            .equipped(equip_slot)
+            .and_then(|i| match &i.kind() {
+                ItemKind::Tool(tool) if tool.kind.gains_combat_xp() => Some(tool.kind),
+                _ => None,
+            });
         if let Some(weapon) = tool_kind {
             // Only adds to xp pools if entity has that skill group available
             if skill_set.contains_skill_group(SkillGroupKind::Weapon(weapon)) {

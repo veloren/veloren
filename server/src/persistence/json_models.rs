@@ -40,8 +40,8 @@ pub fn skill_to_db_string(skill: comp::skills::Skill) -> String {
     use comp::{
         item::tool::ToolKind,
         skills::{
-            AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, RollSkill, SceptreSkill,
-            Skill::*, SkillGroupKind, StaffSkill, SwimSkill, SwordSkill,
+            AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, PickSkill, RollSkill,
+            SceptreSkill, Skill::*, SkillGroupKind, StaffSkill, SwimSkill, SwordSkill,
         },
     };
     let skill_string = match skill {
@@ -135,6 +135,9 @@ pub fn skill_to_db_string(skill: comp::skills::Skill) -> String {
         Climb(ClimbSkill::Cost) => "Climb Cost",
         Climb(ClimbSkill::Speed) => "Climb Speed",
         Swim(SwimSkill::Speed) => "Swim Speed",
+        Pick(PickSkill::Speed) => "Pick Speed",
+        Pick(PickSkill::OreGain) => "Pick OreGain",
+        Pick(PickSkill::GemGain) => "Pick GemGain",
         UnlockGroup(SkillGroupKind::Weapon(ToolKind::Sword)) => "Unlock Weapon Sword",
         UnlockGroup(SkillGroupKind::Weapon(ToolKind::Axe)) => "Unlock Weapon Axe",
         UnlockGroup(SkillGroupKind::Weapon(ToolKind::Hammer)) => "Unlock Weapon Hammer",
@@ -160,8 +163,8 @@ pub fn db_string_to_skill(skill_string: &str) -> comp::skills::Skill {
     use comp::{
         item::tool::ToolKind,
         skills::{
-            AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, RollSkill, SceptreSkill,
-            Skill::*, SkillGroupKind, StaffSkill, SwimSkill, SwordSkill,
+            AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, PickSkill, RollSkill,
+            SceptreSkill, Skill::*, SkillGroupKind, StaffSkill, SwimSkill, SwordSkill,
         },
     };
     match skill_string {
@@ -255,6 +258,9 @@ pub fn db_string_to_skill(skill_string: &str) -> comp::skills::Skill {
         "Climb Cost" => Climb(ClimbSkill::Cost),
         "Climb Speed" => Climb(ClimbSkill::Speed),
         "Swim Speed" => Swim(SwimSkill::Speed),
+        "Pick Speed" => Pick(PickSkill::Speed),
+        "Pick GemGain" => Pick(PickSkill::GemGain),
+        "Pick OreGain" => Pick(PickSkill::OreGain),
         "Unlock Weapon Sword" => UnlockGroup(SkillGroupKind::Weapon(ToolKind::Sword)),
         "Unlock Weapon Axe" => UnlockGroup(SkillGroupKind::Weapon(ToolKind::Axe)),
         "Unlock Weapon Hammer" => UnlockGroup(SkillGroupKind::Weapon(ToolKind::Hammer)),
@@ -280,12 +286,12 @@ pub fn skill_group_to_db_string(skill_group: comp::skills::SkillGroupKind) -> St
         Weapon(ToolKind::Bow) => "Weapon Bow",
         Weapon(ToolKind::Staff) => "Weapon Staff",
         Weapon(ToolKind::Sceptre) => "Weapon Sceptre",
+        Weapon(ToolKind::Pick) => "Weapon Pick",
         Weapon(ToolKind::Dagger)
         | Weapon(ToolKind::Shield)
         | Weapon(ToolKind::Spear)
         | Weapon(ToolKind::Debug)
         | Weapon(ToolKind::Farming)
-        | Weapon(ToolKind::Pick)
         | Weapon(ToolKind::Empty)
         | Weapon(ToolKind::Natural) => panic!(
             "Tried to add unsupported skill group to database: {:?}",
@@ -305,6 +311,7 @@ pub fn db_string_to_skill_group(skill_group_string: &str) -> comp::skills::Skill
         "Weapon Bow" => Weapon(ToolKind::Bow),
         "Weapon Staff" => Weapon(ToolKind::Staff),
         "Weapon Sceptre" => Weapon(ToolKind::Sceptre),
+        "Weapon Pick" => Weapon(ToolKind::Pick),
         _ => panic!(
             "Tried to convert an unsupported string from the database: {}",
             skill_group_string

@@ -238,6 +238,15 @@
         "hud.skill.axe_leap_cost": "Decreases cost of leap by 25%{SP}",
         "hud.skill.axe_leap_distance_title": "Leap Distance",
         "hud.skill.axe_leap_distance": "Increases distance of leap by 20%{SP}",
+        // Pick
+        "hud.skill.pick_strike_title": "Pickaxe Strike",
+        "hud.skill.pick_strike": "Hit rocks with the pickaxe to gain ore and gems and experience",
+        "hud.skill.pick_strike_speed_title": "Pickaxe Strike Speed",
+        "hud.skill.pick_strike_speed": "Mine rocks faster{SP}",
+        "hud.skill.pick_strike_oregain_title": "Pickaxe Strike Ore Yield",
+        "hud.skill.pick_strike_oregain": "Chance to gain extra ore (5% per level){SP}",
+        "hud.skill.pick_strike_gemgain_title": "Pickaxe Strike Gem Yield",
+        "hud.skill.pick_strike_gemgain": "Chance to gain extra gems (5% per level){SP}",
     },
 
 

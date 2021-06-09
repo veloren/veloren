@@ -207,7 +207,9 @@ impl Server {
                     handle_combo_change(&self, entity, change)
                 },
                 ServerEvent::RequestSiteInfo { entity, id } => handle_site_info(&self, entity, id),
-                ServerEvent::MineBlock { pos, tool } => handle_mine_block(self, pos, tool),
+                ServerEvent::MineBlock { entity, pos, tool } => {
+                    handle_mine_block(self, entity, pos, tool)
+                },
                 ServerEvent::TeleportTo {
                     entity,
                     target,

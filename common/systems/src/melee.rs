@@ -86,6 +86,7 @@ impl<'a> System<'a> for Sys {
                     < (rad + scale * melee_attack.range).powi(2)
                 {
                     server_emitter.emit(ServerEvent::MineBlock {
+                        entity: attacker,
                         pos: block_pos,
                         tool,
                     });

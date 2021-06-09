@@ -78,6 +78,7 @@ image_ids! {
         hammer: "voxygen.element.weapons.hammer",
         bow: "voxygen.element.weapons.bow",
         staff: "voxygen.element.weapons.staff",
+        pickaxe: "voxygen.element.weapons.pickaxe",
         lock: "voxygen.element.ui.diary.buttons.lock",
         wpn_icon_border_skills: "voxygen.element.ui.diary.buttons.border_skills",
         wpn_icon_border: "voxygen.element.ui.generic.buttons.border",
@@ -302,6 +303,10 @@ image_ids! {
         utility_radius_skill: "voxygen.element.skills.skilltree.utility_radius",
         utility_speed_skill: "voxygen.element.skills.skilltree.utility_speed",
         utility_duration_skill: "voxygen.element.skills.skilltree.utility_duration",
+
+        pickaxe_speed_skill: "voxygen.element.skills.pickaxe_speed",
+        pickaxe_oregain_skill: "voxygen.element.skills.pickaxe_oregain",
+        pickaxe_gemgain_skill: "voxygen.element.skills.pickaxe_gemgain",
 
         // Skillbar
         level_up: "voxygen.element.ui.skillbar.level_up",
