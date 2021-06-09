@@ -4,7 +4,7 @@
 (
     string_map: {
         "hud.rank_up": "Novo Ponto de Habilidade",
-        "hud.skill.sp_available": "{number} PHs disponíveis available",
+        "hud.skill.sp_available": "{number} PHs disponíveis",
         "hud.skill.not_unlocked": "Não desbloqueado",
         "hud.skill.req_sp": "\n\nRequer {number} PHs",
         //  Habilidades
@@ -16,7 +16,7 @@
         "hud.skill.unlck_sword_title": "Desbloquear Espada",
         "hud.skill.unlck_sword": "Desbloquear habilidades de espada{SP}",
         "hud.skill.unlck_axe_title": "Desbloquear Machado",
-        "hud.skill.unlck_axe": "Unlocks Desbloquear habilidades de Machado{SP}",
+        "hud.skill.unlck_axe": "Desbloquear habilidades de Machado{SP}",
         "hud.skill.unlck_hammer_title": "Desbloquear Martelo",
         "hud.skill.unlck_hammer": "Desbloquear Habilidades de Martelo{SP}",
         "hud.skill.unlck_bow_title": "Desbloquear Arco",
@@ -74,7 +74,7 @@
         "hud.skill.sc_wardaura_cost": "A utilização da Aura Protetora requer 15% menos energia{SP}",
         // Cajado
         "hud.skill.st_shockwave_range_title" : "Alcance da Onda de Choque",
-        "hud.skill.st_shockwave_range" : "arremessa coisas que antes estavam fora de alcance, aumentando-o em 20%{SP}",
+        "hud.skill.st_shockwave_range" : "Arremessa coisas que antes estavam fora de alcance, aumentando-o em 20%{SP}",
         "hud.skill.st_shockwave_cost_title" : "Custo da Onda de Choque",
         "hud.skill.st_shockwave_cost" : "Reduz custo de energia ao arremessar aldeões indefesos em 20%{SP}",
         "hud.skill.st_shockwave_knockback_title" : "Empurrão da Onda de Choque",
@@ -123,7 +123,7 @@
         "hud.skill.bow_charged_speed_title" : "Velocidade da Carga",
         "hud.skill.bow_charged_speed" : "Aumenta a velocidade de carga dos ataques em 10%{SP}",
         "hud.skill.bow_charged_projectile_speed_title" : "Velocidade de Projétil Carregado",
-        "hud.skill.bow_charged_projectile_speed" : "Aumenta a velocidade de projétil carregado em  20%{SP}",
+        "hud.skill.bow_charged_projectile_speed" : "Aumenta a velocidade de projétil carregado em 20%{SP}",
         "hud.skill.bow_charged_drain_title" : "Dreno da Carga",
         "hud.skill.bow_charged_drain" : "Reduz dreno de stamina em 15%{SP}",
         "hud.skill.bow_charged_damage_title" : "Dano da Carga",
@@ -147,7 +147,7 @@
         "hud.skill.hmr_leap_damage" : "Aumenta dano do salto em 40%{SP}",
         "hud.skill.hmr_unlock_leap_title" : "Desbloquear Salto",
         "hud.skill.hmr_unlock_leap" : "Desbloqueia o salto{SP}",
-        "hud.skill.hmr_charged_melee_title" : "Carga corpo a corpo",
+        "hud.skill.hmr_charged_melee_title" : "Carga Corpo a Corpo",
         "hud.skill.hmr_charged_melee" : "Ataque de martelo com carga",
         "hud.skill.hmr_charged_rate_title" : "Taxa de Carga",
         "hud.skill.hmr_charged_rate" : "Aumenta a taxa de carga em 25%{SP}",
