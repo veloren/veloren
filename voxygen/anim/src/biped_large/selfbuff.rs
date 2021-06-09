@@ -128,6 +128,7 @@ impl Animation for SelfBuffAnimation {
                                 -6.0 + move1 * 7.0 + tension * 0.3,
                                 -18.0 + move1 * -2.0,
                             );
+                            next.second.scale = Vec3::one() * 1.0;
 
                             next.weapon_l.orientation = Quaternion::rotation_x(-1.67 + move1 * 1.9)
                                 * Quaternion::rotation_y(move1 * 0.25 + tension2 * 0.06)

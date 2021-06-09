@@ -178,6 +178,7 @@ impl Animation for DashAnimation {
                                 -6.0 + move1 * 2.0,
                                 -18.0 + move1 * 2.0,
                             );
+                            next.second.scale = Vec3::one() * 1.0;
 
                             next.weapon_l.orientation = Quaternion::rotation_x(-1.67 + move1 * 0.4)
                                 * Quaternion::rotation_y(move1 * 0.4 + move2 * 0.2)

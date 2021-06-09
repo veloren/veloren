@@ -123,6 +123,7 @@ impl Animation for ChargeMeleeAnimation {
                                 -18.0 + move1 * 14.0 + move2 * -19.0,
                             );
                             next.torso.position = Vec3::new(0.0, move2 * 1.5, 0.0);
+                            next.second.scale = Vec3::one() * 1.0;
 
                             next.weapon_l.orientation =
                                 Quaternion::rotation_x(

@@ -449,6 +449,7 @@ impl Animation for WieldAnimation {
                                 next.shoulder_l.orientation = Quaternion::rotation_x(-0.3);
 
                                 next.shoulder_r.orientation = Quaternion::rotation_x(-0.3);
+                                next.second.scale = Vec3::one() * 1.0;
                             },
                             "Yeti" => {
                                 next.second.scale = Vec3::one() * 0.0;
