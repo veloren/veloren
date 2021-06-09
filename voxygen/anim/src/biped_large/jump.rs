@@ -29,6 +29,7 @@ impl Animation for JumpAnimation {
 
         let wave_slow = (anim_time * 0.8).sin();
         next.hold.scale = Vec3::one() * 0.0;
+        next.second.scale = Vec3::one() * 0.0;
 
         next.head.scale = Vec3::one() * 1.02;
 

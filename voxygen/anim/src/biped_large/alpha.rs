@@ -294,6 +294,7 @@ impl Animation for AlphaAnimation {
 
                             next.shoulder_r.orientation = Quaternion::rotation_x(-0.3)
                                 * Quaternion::rotation_y(move1 * -0.7 + move2 * 0.7);
+                            next.second.scale = Vec3::one() * 1.0;
                             next.head.orientation =
                                 Quaternion::rotation_x(move1 * -0.6 + move2 * 0.4)
                         },

@@ -139,6 +139,7 @@ impl Animation for RunAnimation {
         next.hand_r.scale = Vec3::one() * 1.04;
         next.hold.scale = Vec3::one() * 0.0;
         next.torso.scale = Vec3::one() / 8.0 * s_a.scaler;
+        next.second.scale = Vec3::one() * 0.0;
 
         if s_a.beast {
             next.head.position = Vec3::new(0.0, s_a.head.0, 3.0 + s_a.head.1);
