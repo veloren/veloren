@@ -28,9 +28,10 @@ use crate::{
     Server,
 };
 
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use lazy_static::lazy_static;
 use serde::Deserialize;
+use std::iter::FromIterator;
 
 pub fn handle_lantern(server: &mut Server, entity: EcsEntity, enable: bool) {
     let ecs = server.state_mut().ecs();
@@ -332,6 +333,7 @@ pub fn handle_mine_block(
                             .push(Outcome::ExpChange {
                                 uid,
                                 exp: *exp_reward,
+                                xp_pools: HashSet::from_iter(vec![SkillGroupKind::Weapon(tool)]),
                             });
                     }
                     use common::comp::skills::{MiningSkill, Skill};
