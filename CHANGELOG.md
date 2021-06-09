@@ -131,6 +131,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reworked yeti to have unique attacks
 - Widened recipe name list in crafting menu
 - Reworked animal loot tables
+- NPC hitboxes better fit their model.
 
 ### Removed
 
