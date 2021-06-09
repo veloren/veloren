@@ -12,6 +12,7 @@ use crate::{
 use common::comp::{BuffKind, Buffs, Energy, Health};
 use conrod_core::{
     color,
+    image::Id,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
@@ -230,28 +231,18 @@ impl<'a> Widget for BuffsBar<'a> {
                     let click_to_remove = format!("<{}>", &localized_strings.get("buff.remove"));
                     let desc = format!("{}\n\n{}\n\n{}", desc_txt, remaining_time, click_to_remove);
                     // Timer overlay
-                    if Button::image(match duration_percentage as u64 {
-                        875..=1000 => self.imgs.nothing, // 8/8
-                        750..=874 => self.imgs.buff_0,   // 7/8
-                        625..=749 => self.imgs.buff_1,   // 6/8
-                        500..=624 => self.imgs.buff_2,   // 5/8
-                        375..=499 => self.imgs.buff_3,   // 4/8
-                        250..=374 => self.imgs.buff_4,   //3/8
-                        125..=249 => self.imgs.buff_5,   // 2/8
-                        0..=124 => self.imgs.buff_6,     // 1/8
-                        _ => self.imgs.nothing,
-                    })
-                    .w_h(40.0, 40.0)
-                    .middle_of(*id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        title,
-                        &desc,
-                        &buffs_tooltip,
-                        BUFF_COLOR,
-                    )
-                    .set(*timer_id, ui)
-                    .was_clicked()
+                    if Button::image(self.get_duration_image(duration_percentage))
+                        .w_h(40.0, 40.0)
+                        .middle_of(*id)
+                        .with_tooltip(
+                            self.tooltip_manager,
+                            title,
+                            &desc,
+                            &buffs_tooltip,
+                            BUFF_COLOR,
+                        )
+                        .set(*timer_id, ui)
+                        .was_clicked()
                     {
                         event.push(Event::RemoveBuff(buff.kind));
                     };
@@ -310,27 +301,17 @@ impl<'a> Widget for BuffsBar<'a> {
                     let desc_txt = hud::get_buff_desc(debuff.kind, debuff.data, localized_strings);
                     let remaining_time = hud::get_buff_time(*debuff);
                     let desc = format!("{}\n\n{}", desc_txt, remaining_time);
-                    Image::new(match duration_percentage as u64 {
-                        875..=1000 => self.imgs.nothing, // 8/8
-                        750..=874 => self.imgs.buff_0,   // 7/8
-                        625..=749 => self.imgs.buff_1,   // 6/8
-                        500..=624 => self.imgs.buff_2,   // 5/8
-                        375..=499 => self.imgs.buff_3,   // 4/8
-                        250..=374 => self.imgs.buff_4,   //3/8
-                        125..=249 => self.imgs.buff_5,   // 2/8
-                        0..=124 => self.imgs.buff_6,     // 1/8
-                        _ => self.imgs.nothing,
-                    })
-                    .w_h(40.0, 40.0)
-                    .middle_of(*id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        title,
-                        &desc,
-                        &buffs_tooltip,
-                        DEBUFF_COLOR,
-                    )
-                    .set(*timer_id, ui);
+                    Image::new(self.get_duration_image(duration_percentage))
+                        .w_h(40.0, 40.0)
+                        .middle_of(*id)
+                        .with_tooltip(
+                            self.tooltip_manager,
+                            title,
+                            &desc,
+                            &buffs_tooltip,
+                            DEBUFF_COLOR,
+                        )
+                        .set(*timer_id, ui);
                 });
         }
 
@@ -412,32 +393,22 @@ impl<'a> Widget for BuffsBar<'a> {
                         desc_txt.to_string()
                     };
                     // Timer overlay
-                    if Button::image(match duration_percentage as u64 {
-                        875..=1000 => self.imgs.nothing, // 8/8
-                        750..=874 => self.imgs.buff_0,   // 7/8
-                        625..=749 => self.imgs.buff_1,   // 6/8
-                        500..=624 => self.imgs.buff_2,   // 5/8
-                        375..=499 => self.imgs.buff_3,   // 4/8
-                        250..=374 => self.imgs.buff_4,   // 3/8
-                        125..=249 => self.imgs.buff_5,   // 2/8
-                        0..=124 => self.imgs.buff_6,     // 1/8
-                        _ => self.imgs.nothing,
-                    })
-                    .w_h(40.0, 40.0)
-                    .middle_of(*id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        title,
-                        &desc,
-                        &buffs_tooltip,
-                        if buff.is_buff {
-                            BUFF_COLOR
-                        } else {
-                            DEBUFF_COLOR
-                        },
-                    )
-                    .set(*timer_id, ui)
-                    .was_clicked()
+                    if Button::image(self.get_duration_image(duration_percentage))
+                        .w_h(40.0, 40.0)
+                        .middle_of(*id)
+                        .with_tooltip(
+                            self.tooltip_manager,
+                            title,
+                            &desc,
+                            &buffs_tooltip,
+                            if buff.is_buff {
+                                BUFF_COLOR
+                            } else {
+                                DEBUFF_COLOR
+                            },
+                        )
+                        .set(*timer_id, ui)
+                        .was_clicked()
                     {
                         event.push(Event::RemoveBuff(buff.kind));
                     }
@@ -451,5 +422,21 @@ impl<'a> Widget for BuffsBar<'a> {
                 });
         }
         event
+    }
+}
+
+impl<'a> BuffsBar<'a> {
+    fn get_duration_image(&self, duration_percentage: u32) -> Id {
+        match duration_percentage as u64 {
+            875..=1000 => self.imgs.nothing, // 8/8
+            750..=874 => self.imgs.buff_0,   // 7/8
+            625..=749 => self.imgs.buff_1,   // 6/8
+            500..=624 => self.imgs.buff_2,   // 5/8
+            375..=499 => self.imgs.buff_3,   // 4/8
+            250..=374 => self.imgs.buff_4,   // 3/8
+            125..=249 => self.imgs.buff_5,   // 2/8
+            0..=124 => self.imgs.buff_6,     // 1/8
+            _ => self.imgs.nothing,
+        }
     }
 }
