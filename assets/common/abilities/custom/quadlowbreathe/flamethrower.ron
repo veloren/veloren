@@ -6,7 +6,12 @@ BasicBeam(
     tick_rate: 3.0,
     range: 15.0,
     max_angle: 22.5,
-    damage_effect: None,
+    damage_effect: Some(Buff((
+        kind: Burning,
+        dur_secs: 10.0,
+        strength: DamageFraction(0.5),
+        chance: 0.25,
+    ))),
     energy_regen: 0,
     energy_drain: 0,
     orientation_behavior: Normal,

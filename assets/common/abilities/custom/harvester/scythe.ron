@@ -1,0 +1,13 @@
+BasicMelee(
+    energy_cost: 0,
+    buildup_duration: 0.6,
+    swing_duration: 0.1,
+    recover_duration: 0.5,
+    base_damage: 60,
+    base_poise_damage: 10,
+    knockback: ( strength: 10.0, direction: Away),
+    range: 4.0,
+    max_angle: 60.0,
+    damage_effect: None,
+    damage_kind: Slashing,
+)
