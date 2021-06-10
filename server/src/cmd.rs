@@ -1615,6 +1615,8 @@ fn handle_kit(
                                     comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Debug),
                                 ),
                             );
+                        } else {
+                            warn!("Unknown item: {}", &item_id);
                         }
                     }
                     Ok(())
