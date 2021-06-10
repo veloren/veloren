@@ -128,6 +128,131 @@
         (Sceptre(ARange), 2),
         (Sceptre(ACost), 2),
     ],
+    // Just copypasta from max with random reductions
+    "middle": [
+        // General skills
+        (General(HealthIncrease), 6),
+        (General(EnergyIncrease), 4),
+        (Roll(Cost), 2),
+        (Roll(Strength), 1),
+        (Roll(Duration), 1),
+
+        // Sword
+        (UnlockGroup(Weapon(Sword)), 1),
+
+        (Sword(InterruptingAttacks), 1),
+
+        (Sword(TsCombo), 1),
+        (Sword(TsDamage), 2),
+        (Sword(TsRegen), 1),
+        (Sword(TsSpeed), 2),
+
+        (Sword(DCost), 1),
+        (Sword(DDrain), 2),
+        (Sword(DDamage), 2),
+        (Sword(DScaling), 2),
+        (Sword(DSpeed), 1),
+        (Sword(DInfinite), 1),
+
+        (Sword(UnlockSpin), 1),
+        (Sword(SDamage), 1),
+        (Sword(SSpeed), 2),
+        (Sword(SCost), 2),
+        (Sword(SSpins), 2),
+        // Axe
+        (UnlockGroup(Weapon(Axe)), 1),
+
+        (Axe(DsCombo), 1),
+        (Axe(DsDamage), 2),
+        (Axe(DsRegen), 2),
+        (Axe(DsSpeed), 1),
+
+        (Axe(SInfinite), 1),
+        (Axe(SHelicopter), 1),
+        (Axe(SDamage), 2),
+        (Axe(SSpeed), 2),
+        (Axe(SCost), 2),
+
+        (Axe(UnlockLeap), 1),
+        (Axe(LDamage), 2),
+        (Axe(LKnockback), 2),
+        (Axe(LCost), 2),
+        (Axe(LDistance), 2),
+        // Hammer
+        (UnlockGroup(Weapon(Hammer)), 1),
+
+        (Hammer(SsKnockback), 1),
+        (Hammer(SsDamage), 2),
+        (Hammer(SsRegen), 2),
+        (Hammer(SsSpeed), 2),
+
+        (Hammer(CDamage), 2),
+        (Hammer(CKnockback), 1),
+        (Hammer(CDrain), 2),
+        (Hammer(CSpeed), 2),
+
+        (Hammer(UnlockLeap), 1),
+        (Hammer(LDamage), 2),
+        (Hammer(LCost), 2),
+        (Hammer(LDistance), 1),
+        (Hammer(LKnockback), 2),
+        (Hammer(LRange), 2),
+        // Bow
+        (UnlockGroup(Weapon(Bow)), 1),
+
+        (Bow(ProjSpeed), 2),
+
+        (Bow(CDamage), 2),
+        (Bow(CKnockback), 2),
+        (Bow(CSpeed), 1),
+        (Bow(CRegen), 1),
+        (Bow(CMove), 2),
+
+        (Bow(RDamage), 3),
+        (Bow(RCost), 1),
+        (Bow(RSpeed), 2),
+
+        (Bow(UnlockShotgun), 1),
+        (Bow(SDamage), 2),
+        (Bow(SCost), 1),
+        (Bow(SArrows), 2),
+        (Bow(SSpread), 2),
+
+        // Staff
+        (UnlockGroup(Weapon(Staff)), 1),
+
+        (Staff(BDamage), 1),
+        (Staff(BRegen), 1),
+        (Staff(BRadius), 2),
+
+        (Staff(FRange), 2),
+        (Staff(FDamage), 2),
+        (Staff(FDrain), 1),
+        (Staff(FVelocity), 2),
+
+        (Staff(UnlockShockwave), 1),
+        (Staff(SDamage), 1),
+        (Staff(SKnockback), 2),
+        (Staff(SRange), 2),
+        (Staff(SCost), 2),
+        // Sceptre
+        (UnlockGroup(Weapon(Sceptre)), 1),
+
+        (Sceptre(LDamage), 2),
+        (Sceptre(LRange), 2),
+        (Sceptre(LLifesteal), 2),
+        (Sceptre(LRegen), 2),
+
+        (Sceptre(HHeal), 2),
+        (Sceptre(HCost), 2),
+        (Sceptre(HRange), 2),
+
+        (Sceptre(UnlockAura), 1),
+        (Sceptre(AStrength), 2),
+        (Sceptre(ADuration), 1),
+        (Sceptre(ARange), 2),
+        (Sceptre(ACost), 2),
+    ],
     // Basic skill preset to unlock all abilities
     "basic": [
         // General skills
@@ -135,14 +260,11 @@
         // Sword
         (UnlockGroup(Weapon(Sword)), 1),
 
-        (Sword(InterruptingAttacks), 1),
-        (Sword(DInfinite), 1),
         (Sword(UnlockSpin), 1),
 
         // Axe
         (UnlockGroup(Weapon(Axe)), 1),
 
-        (Axe(SInfinite), 1),
         (Axe(UnlockLeap), 1),
 
         // Hammer
