@@ -80,6 +80,7 @@ image_ids! {
         staff: "voxygen.element.weapons.staff",
         mining: "voxygen.element.weapons.mining",
         pickaxe: "voxygen.element.skills.pickaxe",
+        pickaxe_ico: "voxygen.element.weapons.pickaxe",
         lock: "voxygen.element.ui.diary.buttons.lock",
         wpn_icon_border_skills: "voxygen.element.ui.diary.buttons.border_skills",
         wpn_icon_border: "voxygen.element.ui.generic.buttons.border",
