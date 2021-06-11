@@ -33,6 +33,8 @@ pub struct Stage<T> {
     /// Duration of stage spent in swing (controls animation stuff, and can also
     /// be used to handle movement separately to buildup)
     pub base_swing_duration: T,
+    /// At what fraction of the swing duration to apply the melee "hit"
+    pub hit_timing: f32,
     /// Initial recover duration of stage (how long until character exits state)
     pub base_recover_duration: T,
     /// How much forward movement there is in the swing portion of the stage
@@ -53,6 +55,7 @@ impl Stage<f32> {
             range: self.range,
             angle: self.angle,
             base_buildup_duration: Duration::from_secs_f32(self.base_buildup_duration),
+            hit_timing: self.hit_timing,
             base_swing_duration: Duration::from_secs_f32(self.base_swing_duration),
             base_recover_duration: Duration::from_secs_f32(self.base_recover_duration),
             forward_movement: self.forward_movement,
@@ -112,6 +115,8 @@ pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state
     pub static_data: StaticData,
+    /// Whether the attack was executed already
+    pub exhausted: bool,
     /// Indicates what stage the combo is in
     pub stage: u32,
     /// Timer for each stage
@@ -155,8 +160,24 @@ impl CharacterBehavior for Data {
                         stage_section: StageSection::Swing,
                         ..*self
                     });
+                }
+            },
+            StageSection::Swing => {
+                if self.timer.as_secs_f32()
+                    > self.static_data.stage_data[stage_index].hit_timing
+                        * self.static_data.stage_data[stage_index]
+                            .base_swing_duration
+                            .as_secs_f32()
+                    && !self.exhausted
+                {
+                    // Swing
+                    update.character = CharacterState::ComboMelee(Data {
+                        static_data: self.static_data.clone(),
+                        timer: tick_attack_or_default(data, self.timer, None),
+                        exhausted: true,
+                        ..*self
+                    });
 
-                    // Hit attempt
                     let damage = self.static_data.stage_data[stage_index].base_damage
                         + (self
                             .static_data
@@ -177,6 +198,7 @@ impl CharacterBehavior for Data {
                         CombatEffect::Poise(poise),
                     )
                     .with_requirement(CombatRequirement::AnyDamage);
+
                     let knockback = AttackEffect::new(
                         Some(GroupTarget::OutOfGroup),
                         CombatEffect::Knockback(Knockback {
@@ -185,13 +207,17 @@ impl CharacterBehavior for Data {
                         }),
                     )
                     .with_requirement(CombatRequirement::AnyDamage);
+
                     let energy = self.static_data.max_energy_gain.min(
                         self.static_data.initial_energy_gain
                             + data.combo.counter() as f32 * self.static_data.energy_increase,
                     );
+
                     let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy))
                         .with_requirement(CombatRequirement::AnyDamage);
+
                     let buff = CombatEffect::Buff(CombatBuff::default_physical());
+
                     let damage = AttackDamage::new(
                         Damage {
                             source: DamageSource::Melee,
@@ -201,8 +227,10 @@ impl CharacterBehavior for Data {
                         Some(GroupTarget::OutOfGroup),
                     )
                     .with_effect(buff);
+
                     let (crit_chance, crit_mult) =
                         get_crit_data(data, self.static_data.ability_info);
+
                     let attack = Attack::default()
                         .with_damage(damage)
                         .with_crit(crit_chance, crit_mult)
@@ -228,10 +256,8 @@ impl CharacterBehavior for Data {
                             })
                             .filter(|(_, tool)| tool == &Some(ToolKind::Pick)),
                     });
-                }
-            },
-            StageSection::Swing => {
-                if self.timer < self.static_data.stage_data[stage_index].base_swing_duration {
+                } else if self.timer < self.static_data.stage_data[stage_index].base_swing_duration
+                {
                     handle_orientation(data, &mut update, 0.4 * self.static_data.ori_modifier);
 
                     // Forward movement

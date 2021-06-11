@@ -62,7 +62,7 @@ pub struct Data {
     pub stage_section: StageSection,
     /// Timer for each stage
     pub timer: Duration,
-    /// Whether the attack fired already
+    /// Whether the attack executed already
     pub exhausted: bool,
     /// How much the attack charged by
     pub charge_amount: f32,
