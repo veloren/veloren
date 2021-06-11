@@ -689,7 +689,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
 
         // Compare both checks, take whichever gives weaker effect, sets minimum of 0 so
         // that explosions reach a max strength on edge of entity
-        ((horiz_dist.max(vert_distance).max(0.0) / radius).min(1.0) - 1.0).powi(2)
+        ((horiz_dist.max(vert_distance).max(0.0) / radius).min(1.0) - 1.0).abs()
     }
 
     for effect in explosion.effects {

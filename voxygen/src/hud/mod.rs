@@ -3770,8 +3770,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Burning { .. } => imgs.debuff_burning_0,
         BuffKind::Crippled { .. } => imgs.debuff_crippled_0,
         BuffKind::Frozen { .. } => imgs.debuff_frozen_0,
-        // TODO: Get icon for this before merging. Anyone doing code review open a comment here.
-        BuffKind::Wet { .. } => imgs.debuff_burning_0,
+        BuffKind::Wet { .. } => imgs.debuff_wet_0,
     }
 }
 

@@ -6,33 +6,271 @@
         ("common.items.debug.velorite_bow_debug", 1),
         ("common.items.debug.admin",1),
     ],
-    "admin_cosmetics": [
-        ("common.items.debug.cultist_belt",1),
-        ("common.items.debug.cultist_boots",1),
-        ("common.items.debug.cultist_chest_blue",1),
-        ("common.items.debug.cultist_hands_blue",1),
-        ("common.items.debug.cultist_legs_blue",1),
-        ("common.items.debug.cultist_shoulder_blue",1),
-        ("common.items.debug.dungeon_purple",1),
-        ("common.items.debug.admin_back",1),
+    "consumables": [
+        ("common.items.consumable.potion_minor", 100),
+        ("common.items.consumable.potion_med", 100),
+        ("common.items.consumable.potion_big", 100),
+        ("common.items.food.apple_mushroom_curry", 100),
     ],
-    "cultist": [
-        ("common.items.armor.cultist.chest",1),
-        ("common.items.armor.cultist.pants",1),
-        ("common.items.armor.cultist.hand",1),
-        ("common.items.armor.cultist.foot",1),
-        ("common.items.armor.cultist.shoulder",1),
-        ("common.items.armor.cultist.belt",1),
+    "endgame": [
+        // Biju
         ("common.items.armor.misc.neck.plain_1",1),
         ("common.items.armor.misc.ring.skull",1),
         ("common.items.armor.misc.ring.skull",1),
-        ("common.items.armor.misc.back.dungeon_purple",1),
+
+        // Cultist weapons
         ("common.items.weapons.hammer.cultist_purp_2h-0",1),
         ("common.items.weapons.staff.cultist_staff",1),
         ("common.items.weapons.sword.cultist",1),
         ("common.items.weapons.bow.velorite",1),
         ("common.items.weapons.axe.malachite_axe-0",1),
         ("common.items.weapons.sceptre.sceptre_velorite_0",1),
+
+        // Legendaries
+        ("common.items.weapons.hammer.mjolnir",1),
+        ("common.items.weapons.staff.laevateinn",1),
+        ("common.items.weapons.staff.phoenix",1),
+        ("common.items.weapons.sword.caladbolg",1),
+        ("common.items.weapons.bow.sagitta",1),
+        ("common.items.weapons.axe.parashu",1),
+        ("common.items.weapons.sceptre.caduceus",1),
+        ("common.items.weapons.sceptre.root_evil",1),
+
+    ],
+    "tier-5": [
+         // Hide
+        ("common.items.armor.hide.dragonscale.back", 1),
+        ("common.items.armor.hide.dragonscale.belt", 1),
+        ("common.items.armor.hide.dragonscale.chest", 1),
+        ("common.items.armor.hide.dragonscale.foot", 1),
+        ("common.items.armor.hide.dragonscale.hand", 1),
+        ("common.items.armor.hide.dragonscale.pants", 1),
+        ("common.items.armor.hide.dragonscale.shoulder", 1),
+
+        // Cloth
+        ("common.items.armor.cloth.sunsilk.back", 1),
+        ("common.items.armor.cloth.sunsilk.belt", 1),
+        ("common.items.armor.cloth.sunsilk.chest", 1),
+        ("common.items.armor.cloth.sunsilk.foot", 1),
+        ("common.items.armor.cloth.sunsilk.hand", 1),
+        ("common.items.armor.cloth.sunsilk.pants", 1),
+        ("common.items.armor.cloth.sunsilk.shoulder", 1),
+
+        // Mail
+        ("common.items.armor.mail.orichalcum.back", 1),
+        ("common.items.armor.mail.orichalcum.belt", 1),
+        ("common.items.armor.mail.orichalcum.chest", 1),
+        ("common.items.armor.mail.orichalcum.foot", 1),
+        ("common.items.armor.mail.orichalcum.hand", 1),
+        ("common.items.armor.mail.orichalcum.pants", 1),
+        ("common.items.armor.mail.orichalcum.shoulder", 1),
+
+        // Weapons
+        ("common.items.weapons.sword.bloodsteel-0", 1),
+        ("common.items.weapons.axe.bloodsteel_axe-0", 1),
+        ("common.items.weapons.hammer.runic_hammer", 1),
+        ("common.items.weapons.bow.eldwood-0", 1),
+        ("common.items.weapons.staff.ruby_rod", 1),
+        ("common.items.weapons.sceptre.emerald", 1),
+
+        // Potion Kit
+        ("common.items.consumable.potion_med", 100),
+    ],
+    "tier-4": [
+         // Hide
+        ("common.items.armor.hide.primal.back", 1),
+        ("common.items.armor.hide.primal.belt", 1),
+        ("common.items.armor.hide.primal.chest", 1),
+        ("common.items.armor.hide.primal.foot", 1),
+        ("common.items.armor.hide.primal.hand", 1),
+        ("common.items.armor.hide.primal.pants", 1),
+        ("common.items.armor.hide.primal.shoulder", 1),
+
+        // Cloth
+        ("common.items.armor.cloth.moonweave.back", 1),
+        ("common.items.armor.cloth.moonweave.belt", 1),
+        ("common.items.armor.cloth.moonweave.chest", 1),
+        ("common.items.armor.cloth.moonweave.foot", 1),
+        ("common.items.armor.cloth.moonweave.hand", 1),
+        ("common.items.armor.cloth.moonweave.pants", 1),
+        ("common.items.armor.cloth.moonweave.shoulder", 1),
+
+        // Mail
+        ("common.items.armor.mail.bloodsteel.back", 1),
+        ("common.items.armor.mail.bloodsteel.belt", 1),
+        ("common.items.armor.mail.bloodsteel.chest", 1),
+        ("common.items.armor.mail.bloodsteel.foot", 1),
+        ("common.items.armor.mail.bloodsteel.hand", 1),
+        ("common.items.armor.mail.bloodsteel.pants", 1),
+        ("common.items.armor.mail.bloodsteel.shoulder", 1),
+
+        // Weapons
+        ("common.items.weapons.sword.cobalt-0", 1),
+        ("common.items.weapons.axe.cobalt_axe-0", 1),
+        ("common.items.weapons.hammer.cobalt_hammer-0", 1),
+        ("common.items.weapons.bow.frostwood-0", 1),
+        ("common.items.weapons.staff.frostwood_torch", 1),
+        ("common.items.weapons.sceptre.fork0", 1),
+
+        // Potion Kit
+        ("common.items.consumable.potion_med", 100),
+    ],
+    "tier-3": [
+         // Hide
+        ("common.items.armor.hide.carapace.back", 1),
+        ("common.items.armor.hide.carapace.belt", 1),
+        ("common.items.armor.hide.carapace.chest", 1),
+        ("common.items.armor.hide.carapace.foot", 1),
+        ("common.items.armor.hide.carapace.hand", 1),
+        ("common.items.armor.hide.carapace.pants", 1),
+        ("common.items.armor.hide.carapace.shoulder", 1),
+
+        // Cloth
+        ("common.items.armor.cloth.druid.back", 1),
+        ("common.items.armor.cloth.druid.belt", 1),
+        ("common.items.armor.cloth.druid.chest", 1),
+        ("common.items.armor.cloth.druid.foot", 1),
+        ("common.items.armor.cloth.druid.hand", 1),
+        ("common.items.armor.cloth.druid.pants", 1),
+        ("common.items.armor.cloth.druid.shoulder", 1),
+
+        // Mail
+        ("common.items.armor.mail.cobalt.back", 1),
+        ("common.items.armor.mail.cobalt.belt", 1),
+        ("common.items.armor.mail.cobalt.chest", 1),
+        ("common.items.armor.mail.cobalt.foot", 1),
+        ("common.items.armor.mail.cobalt.hand", 1),
+        ("common.items.armor.mail.cobalt.pants", 1),
+        ("common.items.armor.mail.cobalt.shoulder", 1),
+
+        // Weapons
+        ("common.items.weapons.sword.steel-0", 1),
+        ("common.items.weapons.axe.steel_axe-0", 1),
+        ("common.items.weapons.hammer.steel_hammer-0", 1),
+        ("common.items.weapons.bow.metal-0", 1),
+        ("common.items.weapons.staff.flamethrower_0", 1),
+        ("common.items.weapons.sceptre.coralline_cane", 1),
+
+        // Potion Kit
+        ("common.items.consumable.potion_med", 100),
+    ],
+    "tier-2": [
+        // Hide
+        ("common.items.armor.hide.scale.back", 1),
+        ("common.items.armor.hide.scale.belt", 1),
+        ("common.items.armor.hide.scale.chest", 1),
+        ("common.items.armor.hide.scale.foot", 1),
+        ("common.items.armor.hide.scale.hand", 1),
+        ("common.items.armor.hide.scale.pants", 1),
+        ("common.items.armor.hide.scale.shoulder", 1),
+
+        // Cloth
+        ("common.items.armor.cloth.silken.back", 1),
+        ("common.items.armor.cloth.silken.belt", 1),
+        ("common.items.armor.cloth.silken.chest", 1),
+        ("common.items.armor.cloth.silken.foot", 1),
+        ("common.items.armor.cloth.silken.hand", 1),
+        ("common.items.armor.cloth.silken.pants", 1),
+        ("common.items.armor.cloth.silken.shoulder", 1),
+
+        // Mail
+        ("common.items.armor.mail.steel.back", 1),
+        ("common.items.armor.mail.steel.belt", 1),
+        ("common.items.armor.mail.steel.chest", 1),
+        ("common.items.armor.mail.steel.foot", 1),
+        ("common.items.armor.mail.steel.hand", 1),
+        ("common.items.armor.mail.steel.pants", 1),
+        ("common.items.armor.mail.steel.shoulder", 1),
+
+        // Weapons
+        ("common.items.weapons.sword.iron-0", 1),
+        ("common.items.weapons.axe.iron_axe-0", 1),
+        ("common.items.weapons.hammer.iron_hammer-0", 1),
+        ("common.items.weapons.bow.hardwood-0", 1),
+        ("common.items.weapons.staff.heated_arm", 1),
+        ("common.items.weapons.sceptre.druids_arbor", 1),
+        
+        // Potion Kit
+        ("common.items.consumable.potion_med", 100),
+    ],
+    "tier-1": [
+        // Hide
+        ("common.items.armor.hide.leather.back", 1),
+        ("common.items.armor.hide.leather.belt", 1),
+        ("common.items.armor.hide.leather.chest", 1),
+        ("common.items.armor.hide.leather.foot", 1),
+        ("common.items.armor.hide.leather.hand", 1),
+        ("common.items.armor.hide.leather.pants", 1),
+        ("common.items.armor.hide.leather.shoulder", 1),
+
+        // Cloth
+        ("common.items.armor.cloth.woolen.back", 1),
+        ("common.items.armor.cloth.woolen.belt", 1),
+        ("common.items.armor.cloth.woolen.chest", 1),
+        ("common.items.armor.cloth.woolen.foot", 1),
+        ("common.items.armor.cloth.woolen.hand", 1),
+        ("common.items.armor.cloth.woolen.pants", 1),
+        ("common.items.armor.cloth.woolen.shoulder", 1),
+
+        // Mail
+        ("common.items.armor.mail.iron.back", 1),
+        ("common.items.armor.mail.iron.belt", 1),
+        ("common.items.armor.mail.iron.chest", 1),
+        ("common.items.armor.mail.iron.foot", 1),
+        ("common.items.armor.mail.iron.hand", 1),
+        ("common.items.armor.mail.iron.pants", 1),
+        ("common.items.armor.mail.iron.shoulder", 1),
+
+        // Weapons
+        ("common.items.weapons.sword.bronze-0", 1),
+        ("common.items.weapons.axe.bronze_axe-0", 1),
+        ("common.items.weapons.hammer.bronze_hammer-0", 1),
+        ("common.items.weapons.bow.bone-0", 1),
+        ("common.items.weapons.staff.bone_staff", 1),
+        ("common.items.weapons.sceptre.divine_gohei", 1),
+        
+        // Potion Kit
+        ("common.items.consumable.potion_minor", 100),
+    ],
+    "tier-0": [
+        // Hide
+        ("common.items.armor.hide.rawhide.back", 1),
+        ("common.items.armor.hide.rawhide.belt", 1),
+        ("common.items.armor.hide.rawhide.chest", 1),
+        ("common.items.armor.hide.rawhide.foot", 1),
+        ("common.items.armor.hide.rawhide.hand", 1),
+        ("common.items.armor.hide.rawhide.pants", 1),
+        ("common.items.armor.hide.rawhide.shoulder", 1),
+
+        // Cloth
+        ("common.items.armor.cloth.linen.back", 1),
+        ("common.items.armor.cloth.linen.belt", 1),
+        ("common.items.armor.cloth.linen.chest", 1),
+        ("common.items.armor.cloth.linen.foot", 1),
+        ("common.items.armor.cloth.linen.hand", 1),
+        ("common.items.armor.cloth.linen.pants", 1),
+        ("common.items.armor.cloth.linen.shoulder", 1),
+
+        // Mail
+        ("common.items.armor.mail.bronze.back", 1),
+        ("common.items.armor.mail.bronze.belt", 1),
+        ("common.items.armor.mail.bronze.chest", 1),
+        ("common.items.armor.mail.bronze.foot", 1),
+        ("common.items.armor.mail.bronze.hand", 1),
+        ("common.items.armor.mail.bronze.pants", 1),
+        ("common.items.armor.mail.bronze.shoulder", 1),
+
+        // weapons
+        ("common.items.weapons.sword.stone-0", 1),
+        ("common.items.weapons.axe_1h.stone-0", 1),
+        ("common.items.weapons.axe_1h.stone-1", 1),
+        ("common.items.weapons.hammer.stone_hammer-0", 1),
+        ("common.items.weapons.bow.wood-0", 1),
+        ("common.items.weapons.staff.bent_fuse", 1),
+        ("common.items.weapons.sceptre.divine_gohei", 1),
+
+        // potion kit
+        ("common.items.consumable.potion_minor", 100),
     ],
     "ferocious": [
         ("common.items.armor.ferocious.chest",1),
@@ -44,88 +282,14 @@
         ("common.items.armor.ferocious.back",1),
         ("common.items.weapons.sword.bloodsteel-1",1),
     ],
-    "consumables": [
-        ("common.items.consumable.potion_minor", 100),
-        ("common.items.consumable.potion_med", 100),
-        ("common.items.consumable.potion_big", 100),
-        ("common.items.food.apple_mushroom_curry", 100),
-    ],
-    "tier-4": [
-        ("common.items.armor.mail.steel.belt", 1),
-        ("common.items.armor.mail.steel.chest", 1),
-        ("common.items.armor.mail.steel.foot", 1),
-        ("common.items.armor.mail.steel.hand", 1),
-        ("common.items.armor.mail.steel.pants", 1),
-        ("common.items.armor.mail.steel.shoulder", 1),
-        ("common.items.weapons.sword.cobalt-0", 1),
-        ("common.items.weapons.axe.cobalt_axe-0", 1),
-        ("common.items.weapons.hammer.cobalt_hammer-0", 1),
-        ("common.items.weapons.bow.frostwood-0", 1),
-        ("common.items.weapons.staff.frostwood_torch", 1),
-        ("common.items.weapons.sceptre.fork0", 1),
-        ("common.items.consumable.potion_med", 100),
-    ],
-    "tier-3": [
-        ("common.items.armor.plate.belt", 1),
-        ("common.items.armor.plate.chest", 1),
-        ("common.items.armor.plate.foot", 1),
-        ("common.items.armor.plate.hand", 1),
-        ("common.items.armor.plate.pants", 1),
-        ("common.items.armor.plate.shoulder", 1),
-        ("common.items.weapons.sword.steel-0", 1),
-        ("common.items.weapons.axe.steel_axe-0", 1),
-        ("common.items.weapons.hammer.steel_hammer-0", 1),
-        ("common.items.weapons.bow.metal-0", 1),
-        ("common.items.weapons.staff.flamethrower_0", 1),
-        ("common.items.weapons.sceptre.coralline_cane", 1),
-        ("common.items.consumable.potion_med", 100),
-    ],
-    "tier-2": [
-        ("common.items.armor.twigs.belt", 1),
-        ("common.items.armor.twigs.chest", 1),
-        ("common.items.armor.twigs.foot", 1),
-        ("common.items.armor.twigs.hand", 1),
-        ("common.items.armor.twigs.pants", 1),
-        ("common.items.armor.twigs.shoulder", 1),
-        ("common.items.weapons.sword.iron-0", 1),
-        ("common.items.weapons.axe.iron_axe-0", 1),
-        ("common.items.weapons.hammer.iron_hammer-0", 1),
-        ("common.items.weapons.bow.hardwood-0", 1),
-        ("common.items.weapons.staff.heated_arm", 1),
-        ("common.items.weapons.sceptre.druids_arbor", 1),
-        ("common.items.consumable.potion_med", 100),
-    ],
-    "tier-1": [
-        ("common.items.armor.agile.belt", 1),
-        ("common.items.armor.agile.chest", 1),
-        ("common.items.armor.agile.foot", 1),
-        ("common.items.armor.agile.hand", 1),
-        ("common.items.armor.agile.pants", 1),
-        ("common.items.armor.agile.shoulder", 1),
-        ("common.items.weapons.sword.bronze-0", 1),
-        ("common.items.weapons.axe.bronze_axe-0", 1),
-        ("common.items.weapons.hammer.bronze_hammer-0", 1),
-        ("common.items.weapons.bow.bone-0", 1),
-        ("common.items.weapons.staff.bone_staff", 1),
-        ("common.items.weapons.sceptre.divine_gohei", 1),
-        ("common.items.consumable.potion_minor", 100),
-    ],
-    "tier-0": [
-        ("common.items.armor.cloth_purple.belt", 1),
-        ("common.items.armor.cloth_purple.chest", 1),
-        ("common.items.armor.cloth_purple.foot", 1),
-        ("common.items.armor.cloth_purple.hand", 1),
-        ("common.items.armor.cloth_purple.pants", 1),
-        ("common.items.armor.cloth_purple.shoulder", 1),
-
-        ("common.items.weapons.sword.stone-0", 1),
-        ("common.items.weapons.axe_1h.stone-0", 1),
-        ("common.items.weapons.axe_1h.stone-1", 1),
-        ("common.items.weapons.hammer.stone_hammer-0", 1),
-        ("common.items.weapons.bow.wood-0", 1),
-        ("common.items.weapons.staff.bent_fuse", 1),
-        ("common.items.weapons.sceptre.divine_gohei", 1),
-
-        ("common.items.consumable.potion_minor", 100),
+    "admin_cosmetics": [
+        ("common.items.debug.cultist_belt",1),
+        ("common.items.debug.cultist_boots",1),
+        ("common.items.debug.cultist_chest_blue",1),
+        ("common.items.debug.cultist_hands_blue",1),
+        ("common.items.debug.cultist_legs_blue",1),
+        ("common.items.debug.cultist_shoulder_blue",1),
+        ("common.items.debug.dungeon_purple",1),
+        ("common.items.debug.admin_back",1),
     ],
 })
