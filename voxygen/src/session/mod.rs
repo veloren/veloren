@@ -311,11 +311,8 @@ impl PlayState for SessionState {
                 .read_storage::<comp::CharacterState>()
                 .get(player_entity)
             {
-                let crit_frac = 0.5;
-                if cr.charge_frac() > crit_frac {
-                    let r1 = 3.0;
-                    let r2 = 5.0;
-                    fov_scaling -= r1 * cr.charge_frac() / r2;
+                if cr.charge_frac() > 0.5 {
+                    fov_scaling -= 3.0 * cr.charge_frac() / 5.0;
                 }
                 let max_dist = if let Some(dist) = self.saved_zoom_dist {
                     dist
