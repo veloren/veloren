@@ -122,7 +122,7 @@ impl CharacterBehavior for Data {
                             self.summon_count as f32 / self.static_data.summon_amount as f32;
 
                         let length = rand::thread_rng().gen_range(
-                            self.static_data.summon_distance.0..self.static_data.summon_distance.1,
+                            self.static_data.summon_distance.0..=self.static_data.summon_distance.1,
                         );
 
                         // Summon in a clockwise fashion

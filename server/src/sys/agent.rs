@@ -3286,6 +3286,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
+        // If higher than 2 blocks
         if !read_data
             .terrain
             .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * 2.0))
@@ -3294,7 +3295,7 @@ impl<'a> AgentData<'a> {
             .1
             .map_or(true, |b| b.is_some())
         {
-            // Fly to target
+            // Fly to target and land
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Fly));
@@ -3302,26 +3303,35 @@ impl<'a> AgentData<'a> {
             controller.inputs.move_dir =
                 move_dir.xy().try_normalized().unwrap_or_else(Vec2::zero) * 2.0;
             controller.inputs.move_z = move_dir.z - 0.5;
-        } else if agent.action_state.timer > 7.0 {
+        // If near a target and timer higher than 7
+        } else if agent.action_state.timer > 6.0
+            && attack_data.dist_sqrd < (3.0 * attack_data.min_attack_dist).powi(2)
+        {
+            // Cast tornadoes
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Ability(0)));
             // Reset timer
             agent.action_state.timer = 0.0;
+        // If near and in front of target and timer lower than 6
         } else if attack_data.angle < 90.0
             && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
-            && agent.action_state.timer < 6.0
+            && agent.action_state.timer < 5.0
         {
+            // Basic strike
             controller.inputs.move_dir = Vec2::zero();
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Secondary));
+            // Increase timer
             agent.action_state.timer += read_data.dt.0;
+        // If far from the target and timer lower than 6
         } else if attack_data.dist_sqrd < (3.0 * attack_data.min_attack_dist).powi(2)
-            && attack_data.dist_sqrd > (2.0 * attack_data.min_attack_dist).powi(2)
-            && attack_data.angle < 90.0
-            && agent.action_state.timer < 6.0
+            && attack_data.dist_sqrd > (1.5 * attack_data.min_attack_dist).powi(2)
+            && attack_data.angle < 60.0
+            && agent.action_state.timer < 5.0
         {
+            // Dash
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Primary));
@@ -3331,7 +3341,9 @@ impl<'a> AgentData<'a> {
                 .try_normalized()
                 .unwrap_or_else(Vec2::unit_y);
             agent.action_state.timer += read_data.dt.0;
+        // If very far from the player
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
+            // Walk to the player
             self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
             agent.action_state.timer += read_data.dt.0;
         } else {

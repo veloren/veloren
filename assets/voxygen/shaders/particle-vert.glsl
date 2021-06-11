@@ -545,12 +545,11 @@ void main() {
             );
             break;
         case TORNADO:
-            f_reflect = 0.0; // Fire doesn't reflect light, it emits it
+            f_reflect = 0.0;
             attr = Attr(
-                //vec3(sin(lifetime * 400.0) * 3.0 * percent(), cos(lifetime * 400.0) * 3.0 * percent(), lifetime * 5.0),
                 spiral_motion(vec3(0, 0, 5), abs(rand0) + abs(rand1) * percent() * 3.0, percent(), 15.0 * abs(rand2), rand3),
                 vec3((2.5 * (1 - slow_start(0.05)))),
-                vec4(1.2 + 0.5 * percent(), 1.2 + 0.5 * percent(), 1.2 + 0.5 * percent(), 2.5),
+                vec4(vec3(1.2 + 0.5 * percent()), 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;

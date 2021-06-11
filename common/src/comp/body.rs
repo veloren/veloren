@@ -473,7 +473,7 @@ impl Body {
             Body::FishMedium(_) => 250,
             Body::Dragon(_) => 5000,
             Body::BirdLarge(bird_large) => match bird_large.species {
-                bird_large::Species::Roc => 2400,
+                bird_large::Species::Roc => 2800,
                 _ => 3000,
             },
             Body::FishSmall(_) => 20,
@@ -595,7 +595,7 @@ impl Body {
             Body::FishMedium(_) => 10,
             Body::Dragon(_) => 500,
             Body::BirdLarge(bird_large) => match bird_large.species {
-                bird_large::Species::Roc => 100,
+                bird_large::Species::Roc => 110,
                 _ => 120,
             },
             Body::FishSmall(_) => 10,
