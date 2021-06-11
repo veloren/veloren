@@ -1,7 +1,7 @@
+use crate::comp::buff::{Buff, BuffChange, BuffData, BuffKind, BuffSource};
 #[cfg(not(target_arch = "wasm32"))]
 use crate::{
     comp::{
-        buff::{Buff, BuffChange, BuffData, BuffKind, BuffSource},
         inventory::{
             item::{
                 armor::Protection,
@@ -814,6 +814,7 @@ pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
     )
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
     const DAMAGE_WEIGHT: f32 = 2.0;
     const POISE_WEIGHT: f32 = 1.0;
@@ -834,6 +835,7 @@ pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn weapon_skills(inventory: &Inventory, skill_set: &SkillSet) -> f32 {
     let (mainhand, offhand) = get_weapons(inventory);
     let mainhand_skills = if let Some(tool) = mainhand {
@@ -849,6 +851,7 @@ fn weapon_skills(inventory: &Inventory, skill_set: &SkillSet) -> f32 {
     mainhand_skills.max(offhand_skills)
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn get_weapon_rating(inventory: &Inventory, msm: &MaterialStatManifest) -> f32 {
     let mainhand_rating =
         if let Some((item, _)) = equipped_item_and_tool(inventory, EquipSlot::ActiveMainhand) {
@@ -901,6 +904,7 @@ pub fn combat_rating(
     combined_rating * body.combat_multiplier()
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub fn compute_crit_mult(inventory: Option<&Inventory>) -> f32 {
     // Starts with a value of 1.25 when summing the stats from each armor piece, and
     // defaults to a value of 1.25 if no inventory is equipped
@@ -918,6 +922,7 @@ pub fn compute_crit_mult(inventory: Option<&Inventory>) -> f32 {
 }
 
 /// Computes the energy reward modifer from worn armor
+#[cfg(not(target_arch = "wasm32"))]
 pub fn compute_energy_reward_mod(inventory: Option<&Inventory>) -> f32 {
     // Starts with a value of 1.0 when summing the stats from each armor piece, and
     // defaults to a value of 1.0 if no inventory is present
@@ -936,6 +941,7 @@ pub fn compute_energy_reward_mod(inventory: Option<&Inventory>) -> f32 {
 
 /// Computes the modifier that should be applied to max energy from the
 /// currently equipped items
+#[cfg(not(target_arch = "wasm32"))]
 pub fn compute_max_energy_mod(energy: &Energy, inventory: Option<&Inventory>) -> f32 {
     // Defaults to a value of 0 if no inventory is present
     let energy_increase = inventory.map_or(0, |inv| {

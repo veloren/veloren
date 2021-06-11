@@ -12,8 +12,10 @@ mod character_state;
 pub mod compass;
 #[cfg(not(target_arch = "wasm32"))]
 mod controller;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod dialogue;
 #[cfg(not(target_arch = "wasm32"))] mod energy;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod fluid_dynamics;
 #[cfg(not(target_arch = "wasm32"))] pub mod group;
 mod health;
