@@ -1682,7 +1682,7 @@ impl<'a> Widget for Diary<'a> {
                     Skill::Staff(BDamage),
                     self.imgs.magic_damage_skill,
                     state.skills_top_l[1],
-                    "st_stamina_regen",
+                    "st_damage",
                     state.skill_staff_basic_1,
                     ui,
                     &mut events,
