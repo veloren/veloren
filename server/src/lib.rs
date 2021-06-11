@@ -300,7 +300,7 @@ impl Server {
         let map = world.get_map_data(index.as_index_ref(), &state.thread_pool());
 
         #[cfg(not(feature = "worldgen"))]
-        let (world, index) = World::generate(settings.world_seed, &state.thread_pool());
+        let (world, index) = World::generate(settings.world_seed);
         #[cfg(not(feature = "worldgen"))]
         let map = WorldMapMsg {
             dimensions_lg: Vec2::zero(),
@@ -310,6 +310,7 @@ impl Server {
             sea_level: 0.0,
             alt: Grid::new(Vec2::new(1, 1), 1),
             sites: Vec::new(),
+            pois: Vec::new(),
         };
 
         #[cfg(feature = "worldgen")]
