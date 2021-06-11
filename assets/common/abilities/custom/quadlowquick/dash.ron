@@ -13,7 +13,7 @@ DashMelee(
     buildup_duration: 0.5,
     charge_duration: 0.8,
     swing_duration: 0.1,
-    recover_duration: 0.5,
+    recover_duration: 1.0,
     charge_through: true,
     is_interruptible: false,
     damage_kind: Crushing,
