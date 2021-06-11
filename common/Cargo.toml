@@ -21,13 +21,20 @@ common-base = { package = "veloren-common-base", path = "base" }
 # Serde
 serde = { version = "1.0.110", features = ["derive", "rc"] }
 
+# Util
+enum-iterator = "0.6"
+vek = { version = "=0.14.1", features = ["serde"] }
+
+# Strum
+strum = "0.20"
+strum_macros = "0.20"
+
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 approx = "0.4.0"
 clap = "2.33"
 crossbeam-utils = "0.8.1"
 bitflags = "1.2"
 crossbeam-channel = "0.5"
-enum-iterator = "0.6"
 lazy_static = "1.4.0"
 num-derive = "0.3"
 num-traits = "0.2"
@@ -36,7 +43,6 @@ rayon = "1.5"
 roots = "0.0.6"
 spin_sleep = "1.0"
 tracing = { version = "0.1", default-features = false }
-vek = { version = "=0.14.1", features = ["serde"] }
 uuid = { version = "0.8.1", default-features = false, features = ["serde", "v4"] }
 rand = "0.8"
 
@@ -60,10 +66,6 @@ hashbrown = { version = "0.11", features = ["rayon", "serde", "nightly"] }
 slotmap = { version = "1.0", features = ["serde"] }
 indexmap = "1.3.0"
 slab = "0.4.2"
-
-# Strum
-strum = "0.20"
-strum_macros = "0.20"
 
 # ECS
 specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control", "nightly"], rev = "f985bec5d456f7b0dd8aae99848f9473c2cd9d46" }

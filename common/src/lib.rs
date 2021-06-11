@@ -17,6 +17,7 @@
 )]
 
 /// Re-exported crates
+#[cfg(not(target_arch = "wasm32"))]
 pub use uuid;
 
 // modules
@@ -31,7 +32,6 @@ pub mod character;
 #[cfg(not(target_arch = "wasm32"))] pub mod cmd;
 pub mod combat;
 pub mod comp;
-#[cfg(not(target_arch = "wasm32"))]
 pub mod consts;
 #[cfg(not(target_arch = "wasm32"))] pub mod depot;
 #[cfg(not(target_arch = "wasm32"))]
@@ -46,9 +46,7 @@ pub mod generation;
 #[cfg(not(target_arch = "wasm32"))] pub mod grid;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod lottery;
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(not(target_arch = "wasm32"))]
-pub mod npc;
+#[cfg(not(target_arch = "wasm32"))] pub mod npc;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod outcome;
 #[cfg(not(target_arch = "wasm32"))] pub mod path;
@@ -61,6 +59,7 @@ pub mod resources;
 #[cfg(not(target_arch = "wasm32"))] pub mod rtsim;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod skillset_builder;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod slowjob;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod spiral;
