@@ -2,7 +2,7 @@
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Imbris <imbrisf@gmail.com>"]
 edition = "2018"
 name = "veloren-voxygen-anim"
-version = "0.9.0"
+version = "0.10.0"
 
 [features]
 use-dyn-lib = ["libloading", "notify", "lazy_static", "tracing", "find_folder"]

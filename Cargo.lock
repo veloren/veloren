@@ -5747,7 +5747,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-client"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "async-channel",
  "authc",
@@ -5779,7 +5779,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-common"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "approx 0.4.0",
  "bitflags",
@@ -5821,7 +5821,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-common-assets"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "assets_manager",
  "dot_vox",
@@ -5835,7 +5835,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-common-base"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "directories-next",
  "tracing",
@@ -5844,7 +5844,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-common-ecs"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "float-cmp",
  "specs",
@@ -5854,7 +5854,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-common-frontend"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "termcolor",
  "tracing",
@@ -5867,7 +5867,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-common-net"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "bincode",
  "flate2",
@@ -5885,7 +5885,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-common-state"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "bincode",
  "hashbrown 0.11.2",
@@ -5908,7 +5908,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-common-systems"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "hashbrown 0.11.2",
  "indexmap",
@@ -5927,7 +5927,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-i18n"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "clap",
  "deunicode",
@@ -6016,7 +6016,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-server"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "atomicwrites",
  "authc",
@@ -6060,7 +6060,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-server-cli"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "ansi-parser",
  "clap",
@@ -6084,7 +6084,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-voxygen"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "backtrace",
  "bincode",
@@ -6154,7 +6154,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-voxygen-anim"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "bytemuck",
  "find_folder",
@@ -6168,14 +6168,14 @@ dependencies = [
 
 [[package]]
 name = "veloren-voxygen-anim-dyn"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "veloren-voxygen-anim",
 ]
 
 [[package]]
 name = "veloren-world"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "arr_macro",
  "assets_manager",

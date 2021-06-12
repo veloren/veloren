@@ -3,7 +3,7 @@ authors = ["juliancoffee <lightdarkdaughter@gmail.com>", "Marcel Märtens <marce
 edition = "2018"
 name = "veloren-common-assets"
 description = "Crate for game loading assets for veloren."
-version = "0.9.0"
+version = "0.10.0"
 
 [dependencies]
 lazy_static = "1.4.0"

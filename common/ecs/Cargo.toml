@@ -2,7 +2,7 @@
 authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
 edition = "2018"
 name = "veloren-common-ecs"
-version = "0.9.0"
+version = "0.10.0"
 
 [features]
 tracy = ["common-base/tracy"]
