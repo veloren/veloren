@@ -3,7 +3,7 @@ authors = ["juliancoffee <lightdarkdaughter@gmail.com>", "Rémy Phelipot"]
 edition = "2018"
 name = "veloren-i18n"
 description = "Crate for internalization and diagnostic of existing localizations."
-version = "0.9.0"
+version = "0.10.0"
 
 [[bin]]
 name = "i18n-check"

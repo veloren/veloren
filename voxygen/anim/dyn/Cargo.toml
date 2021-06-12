@@ -2,7 +2,7 @@
 authors = ["Imbris <imbrisf@gmail.com>"]
 edition = "2018"
 name = "veloren-voxygen-anim-dyn"
-version = "0.9.0"
+version = "0.10.0"
 
 [lib]
 # Using dylib instead of cdylib increases the size 3 -> 13 mb

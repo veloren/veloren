@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Removed
+
+### Fixed
+
+## [0.10.0] - 2021-06-12
+
+### Added
+
 - New Skills for Climbing: Climbing Speed and Climbing Cost
 - Pickaxes (can be used to collect gems and mine weak rock)
 - You can now jump out of rolls for a slight jump boost
@@ -727,7 +737,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _0.1.0 was part of the legacy engine_
 
-[unreleased]: https://gitlab.com/veloren/veloren/compare?from=v0.9.0&to=master
+[unreleased]: https://gitlab.com/veloren/veloren/compare?from=v0.10.0&to=master
+[0.9.0]: https://gitlab.com/veloren/veloren/compare?from=v0.9.0&to=v0.10.0
 [0.9.0]: https://gitlab.com/veloren/veloren/compare?from=v0.8.0&to=v0.9.0
 [0.8.0]: https://gitlab.com/veloren/veloren/compare?from=v0.7.0&to=v0.8.0
 [0.7.0]: https://gitlab.com/veloren/veloren/compare?from=v0.6.0&to=v0.7.0
