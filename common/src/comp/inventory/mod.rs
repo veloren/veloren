@@ -710,15 +710,14 @@ impl Inventory {
         let unloaded_items = from_equip
             .map(|mut from_equip| {
                 // Unload any items held inside the previously equipped item
-                let items: Vec<Item> = from_equip.drain().collect();
+                let mut items: Vec<Item> = from_equip.drain().collect();
 
                 // Attempt to put the unequipped item in the same slot that the inventory item
                 // was in - if that slot no longer exists (because a large container was
-                // swapped for a smaller one) then push the item to the first free
-                // inventory slot instead.
+                // swapped for a smaller one) then we will attempt to push it to the inventory
+                // with the rest of the unloaded items.
                 if let Err(returned) = self.insert_at(inv_slot_id, from_equip) {
-                    self.push(returned)
-                        .expect("Unable to push to inventory, no slots (bug in can_swap()?)");
+                    items.insert(0, returned);
                 }
 
                 items
@@ -778,17 +777,7 @@ impl Inventory {
             return false;
         }
 
-        // If we're swapping an equipped item with an empty inventory slot, make
-        // sure  that there will be enough space in the inventory after any
-        // slots  granted by the item being unequipped have been removed.
-        if let Some(inv_slot) = self.slot(inv_slot_id) {
-            if inv_slot.is_none() && self.free_slots_minus_equipped_item(equip_slot) == 0 {
-                // No free inventory slots after slots provided by the equipped
-                //item are discounted
-                trace!("can_swap = false, no free slots minus item");
-                return false;
-            }
-        } else {
+        if self.slot(inv_slot_id).is_none() {
             debug!(
                 "can_swap = false, tried to swap into non-existent inventory slot: {:?}",
                 inv_slot_id
