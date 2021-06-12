@@ -58,6 +58,7 @@
             "You can toggle showing your amount of health on the healthbar in the settings.",            
             "Sit near a campfire (with the 'K' key) to slowly recover from your injuries.",
             "Need more bags or better armor to continue your journey? Press 'C' to open the crafting menu!",
+            "Try jumping when rolling through creatures.",
         ],
         "npc.speech.villager": [
             "Isn't it such a lovely day?",

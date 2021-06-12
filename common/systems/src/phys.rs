@@ -333,6 +333,21 @@ impl<'a> PhysicsData<'a> {
                         };
                     }
 
+                    // Don't apply e2e pushback to entities that are in a forced movement state
+                    // (e.g. roll, leapmelee). This allows leaps to work properly (since you won't
+                    // get pushed away before delivering the hit), and allows rolling through an
+                    // enemy when trapped (e.g. with minotaur). This allows using e2e pushback to
+                    // gain speed by jumping out of a roll while in the middle of a collider, this
+                    // is an intentional combat mechanic.
+                    if let Some(cs) = char_state_maybe {
+                        if cs.is_forced_movement() {
+                            return PhysicsMetrics {
+                                entity_entity_collision_checks,
+                                entity_entity_collisions,
+                            };
+                        }
+                    }
+
                     let z_limits = calc_z_limit(char_state_maybe, collider);
 
                     // Resets touch_entities in physics
