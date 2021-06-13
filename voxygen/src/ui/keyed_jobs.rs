@@ -4,6 +4,7 @@ use std::{
     hash::Hash,
     time::{Duration, Instant},
 };
+use tracing::warn;
 
 enum KeyedJobTask<V> {
     Pending(Instant, Option<SlowJob>),
@@ -60,7 +61,9 @@ impl<K: Hash + Eq + Send + Sync + 'static + Clone, V: Send + Sync + 'static> Key
                         let fresh = now - *at < KEYEDJOBS_GC_INTERVAL;
                         if !fresh {
                             if let Some(job) = job.take() {
-                                pool.cancel(job)
+                                if let Err(e) = pool.cancel(job) {
+                                    warn!(?e, "failed to cancel job");
+                                }
                             }
                         }
                         fresh
