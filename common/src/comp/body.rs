@@ -358,6 +358,8 @@ impl Body {
                 quadruped_medium::Species::Saber => Vec3::new(2.0, 3.0, 2.0),
                 quadruped_medium::Species::Tarasque => Vec3::new(2.0, 4.0, 2.6),
                 quadruped_medium::Species::Yak => Vec3::new(2.0, 3.6, 3.0),
+                quadruped_medium::Species::Mammoth => Vec3::new(5.0, 7.0, 8.0),
+                quadruped_medium::Species::Ngoubou => Vec3::new(2.0, 3.2, 2.4),
                 _ => Vec3::new(2.0, 3.0, 2.0),
             },
             Body::QuadrupedSmall(body) => match body.species {
@@ -460,6 +462,8 @@ impl Body {
                 quadruped_medium::Species::Bear => 900,
                 quadruped_medium::Species::Moose => 800,
                 quadruped_medium::Species::Dreadhorn => 1100,
+                quadruped_medium::Species::Mammoth => 1700,
+                quadruped_medium::Species::Ngoubou => 1500,
                 _ => 700,
             },
             Body::BirdMedium(bird_medium) => match bird_medium.species {
@@ -583,6 +587,8 @@ impl Body {
                 quadruped_medium::Species::Bear => 40,
                 quadruped_medium::Species::Moose => 30,
                 quadruped_medium::Species::Dreadhorn => 50,
+                quadruped_medium::Species::Mammoth => 70,
+                quadruped_medium::Species::Ngoubou => 50,
                 _ => 20,
             },
             Body::BirdMedium(bird_medium) => match bird_medium.species {

@@ -227,6 +227,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Harvester, _) => (6.0, 11.0),
                 (Blueoni, _) => (10.5, -3.0),
                 (Redoni, _) => (10.5, -3.0),
+                (Cultistwarlord, _) => (0.5, 14.5),
             },
             jaw: match (body.species, body.body_type) {
                 (Ogre, _) => (0.0, 0.0),
@@ -247,6 +248,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Harvester, _) => (-2.0, -7.0),
                 (Blueoni, _) => (0.0, 3.5),
                 (Redoni, _) => (0.0, 3.5),
+                (Cultistwarlord, _) => (0.0, 3.5),
             },
             upper_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 27.5),
@@ -268,6 +270,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Harvester, _) => (-1.0, 18.0),
                 (Blueoni, _) => (-1.0, 26.5),
                 (Redoni, _) => (-1.0, 26.5),
+                (Cultistwarlord, _) => (-1.0, 18.5),
             },
             lower_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (1.0, -7.0),
@@ -289,6 +292,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Harvester, _) => (-1.0, -4.5),
                 (Blueoni, _) => (0.0, -8.5),
                 (Redoni, _) => (0.0, -8.5),
+                (Cultistwarlord, _) => (0.0, -1.5),
             },
             tail: match (body.species, body.body_type) {
                 (Werewolf, _) => (-5.5, -2.0),
@@ -318,6 +322,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Harvester, _) => (8.0, 1.0, -1.5),
                 (Blueoni, _) => (11.0, 2.0, -5.5),
                 (Redoni, _) => (11.0, 2.0, -5.5),
+                (Cultistwarlord, _) => (11.5, -1.0, 4.5),
             },
             hand: match (body.species, body.body_type) {
                 (Ogre, Male) => (14.5, 0.0, -4.0),
@@ -339,6 +344,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Harvester, _) => (11.5, 1.5, -5.5),
                 (Blueoni, _) => (13.5, 0.5, -8.0),
                 (Redoni, _) => (13.5, 0.5, -8.0),
+                (Cultistwarlord, _) => (11.5, -1.0, -1.0),
             },
             leg: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 0.0, -4.0),
@@ -360,6 +366,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Harvester, _) => (3.5, 1.0, -4.0),
                 (Blueoni, _) => (4.5, 2.0, -5.5),
                 (Redoni, _) => (4.5, 2.0, -5.5),
+                (Cultistwarlord, _) => (3.5, -1.0, -8.5),
             },
             foot: match (body.species, body.body_type) {
                 (Ogre, Male) => (4.0, 1.0, -12.0),
@@ -381,6 +388,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Harvester, _) => (4.5, 0.5, -9.5),
                 (Blueoni, _) => (5.0, 5.0, -12.5),
                 (Redoni, _) => (5.0, 5.0, -12.5),
+                (Cultistwarlord, _) => (3.5, 0.0, -12.5),
             },
             scaler: match (body.species, body.body_type) {
                 (Ogre, Male) => 1.12,
@@ -402,6 +410,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Harvester, _) => 1.2,
                 (Blueoni, _) => 1.2,
                 (Redoni, _) => 1.2,
+                (Cultistwarlord, _) => 1.0,
             },
             tempo: match (body.species, body.body_type) {
                 (Ogre, Male) => 0.9,
@@ -434,6 +443,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Harvester, _) => (7.5, 0.0),
                 (Blueoni, _) => (12.5, 0.0),
                 (Redoni, _) => (12.5, 0.0),
+                (Cultistwarlord, _) => (12.5, 0.0),
             },
             shl: match (body.species, body.body_type) {
                 (Dullahan, _) => (-4.75, -11.0, 8.5, 1.47, -0.2, 0.0),

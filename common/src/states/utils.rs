@@ -68,6 +68,8 @@ impl Body {
                 quadruped_medium::Species::Dreadhorn => 140.0,
                 quadruped_medium::Species::Moose => 130.0,
                 quadruped_medium::Species::Snowleopard => 160.0,
+                quadruped_medium::Species::Mammoth => 180.0,
+                quadruped_medium::Species::Ngoubou => 170.0,
             },
             Body::BipedLarge(body) => match body.species {
                 biped_large::Species::Slysaurok => 100.0,

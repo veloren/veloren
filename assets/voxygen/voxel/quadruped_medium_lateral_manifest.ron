@@ -2039,4 +2039,140 @@
             lateral: ("npc.snowleopard.male.foot_br"),
         ),
     ),
+    (Mammoth, Male): (
+        leg_fl: (
+            offset: (-4.0, -5.0, -6.0),
+            lateral: ("npc.mammoth.male.leg_fr"),
+        ),
+        leg_fr: (
+            offset: (-4.0, -5.0, -6.0),
+            lateral: ("npc.mammoth.male.leg_fr"),
+        ),
+        leg_bl: (
+            offset: (-3.5, -5.0, -5.5),
+            lateral: ("npc.mammoth.male.leg_br"),
+        ),
+        leg_br: (
+            offset: (-3.5, -5.0, -5.5),
+            lateral: ("npc.mammoth.male.leg_br"),
+        ),
+        foot_fl: (
+            offset: (-3.5, -4.5, -10.0),
+            lateral: ("npc.mammoth.male.foot_fr"),
+        ),
+        foot_fr: (
+            offset: (-3.5, -4.5, -10.0),
+            lateral: ("npc.mammoth.male.foot_fr"),
+        ),
+        foot_bl: (
+            offset: (-3.0, -4.5, -9.0),
+            lateral: ("npc.mammoth.male.foot_br"),
+        ),
+        foot_br: (
+            offset: (-3.0, -4.5, -9.0),
+            lateral: ("npc.mammoth.male.foot_br"),
+        ),
+    ),
+    (Mammoth, Female): (
+        leg_fl: (
+            offset: (-4.0, -5.0, -6.0),
+            lateral: ("npc.mammoth.male.leg_fr"),
+        ),
+        leg_fr: (
+            offset: (-4.0, -5.0, -6.0),
+            lateral: ("npc.mammoth.male.leg_fr"),
+        ),
+        leg_bl: (
+            offset: (-3.5, -5.0, -5.5),
+            lateral: ("npc.mammoth.male.leg_br"),
+        ),
+        leg_br: (
+            offset: (-3.5, -5.0, -5.5),
+            lateral: ("npc.mammoth.male.leg_br"),
+        ),
+        foot_fl: (
+            offset: (-3.5, -4.5, -10.0),
+            lateral: ("npc.mammoth.male.foot_fr"),
+        ),
+        foot_fr: (
+            offset: (-3.5, -4.5, -10.0),
+            lateral: ("npc.mammoth.male.foot_fr"),
+        ),
+        foot_bl: (
+            offset: (-3.0, -4.5, -9.0),
+            lateral: ("npc.mammoth.male.foot_br"),
+        ),
+        foot_br: (
+            offset: (-3.0, -4.5, -9.0),
+            lateral: ("npc.mammoth.male.foot_br"),
+        ),
+    ),
+    (Ngoubou, Male): (
+        leg_fl: (
+            offset: (-2.5, -4.0, -7.0),
+            lateral: ("npc.ngoubou.male.leg_fr"),
+        ),
+        leg_fr: (
+            offset: (-2.5, -4.0, -7.0),
+            lateral: ("npc.ngoubou.male.leg_fr"),
+        ),
+        leg_bl: (
+            offset: (-3.0, -4.5, -5.5),
+            lateral: ("npc.ngoubou.male.leg_br"),
+        ),
+        leg_br: (
+            offset: (-3.0, -4.5, -5.5),
+            lateral: ("npc.ngoubou.male.leg_br"),
+        ),
+        foot_fl: (
+            offset: (-2.5, -3.5, -9.0),
+            lateral: ("npc.ngoubou.male.foot_fr"),
+        ),
+        foot_fr: (
+            offset: (-2.5, -3.5, -9.0),
+            lateral: ("npc.ngoubou.male.foot_fr"),
+        ),
+        foot_bl: (
+            offset: (-2.5, -3.5, -9.0),
+            lateral: ("npc.ngoubou.male.foot_br"),
+        ),
+        foot_br: (
+            offset: (-2.5, -3.5, -9.0),
+            lateral: ("npc.ngoubou.male.foot_br"),
+        ),
+    ),
+    (Ngoubou, Female): (
+        leg_fl: (
+            offset: (-2.5, -4.0, -7.0),
+            lateral: ("npc.ngoubou.male.leg_fr"),
+        ),
+        leg_fr: (
+            offset: (-2.5, -4.0, -7.0),
+            lateral: ("npc.ngoubou.male.leg_fr"),
+        ),
+        leg_bl: (
+            offset: (-3.0, -4.5, -5.5),
+            lateral: ("npc.ngoubou.male.leg_br"),
+        ),
+        leg_br: (
+            offset: (-3.0, -4.5, -5.5),
+            lateral: ("npc.ngoubou.male.leg_br"),
+        ),
+        foot_fl: (
+            offset: (-2.5, -3.5, -9.0),
+            lateral: ("npc.ngoubou.male.foot_fr"),
+        ),
+        foot_fr: (
+            offset: (-2.5, -3.5, -9.0),
+            lateral: ("npc.ngoubou.male.foot_fr"),
+        ),
+        foot_bl: (
+            offset: (-2.5, -3.5, -9.0),
+            lateral: ("npc.ngoubou.male.foot_br"),
+        ),
+        foot_br: (
+            offset: (-2.5, -3.5, -9.0),
+            lateral: ("npc.ngoubou.male.foot_br"),
+        ),
+    ),
 })

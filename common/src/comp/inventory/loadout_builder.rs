@@ -184,7 +184,9 @@ fn default_main_tool(body: &Body) -> Item {
             quadruped_medium::Species::Tuskram
             | quadruped_medium::Species::Roshwalr
             | quadruped_medium::Species::Moose
-            | quadruped_medium::Species::Dreadhorn => Some(Item::new_from_asset_expect(
+            | quadruped_medium::Species::Dreadhorn
+            | quadruped_medium::Species::Mammoth
+            | quadruped_medium::Species::Ngoubou => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadmedcharge",
             )),
             quadruped_medium::Species::Highland
@@ -294,9 +296,9 @@ fn default_main_tool(body: &Body) -> Item {
             (biped_large::Species::Blueoni, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.axe.oni_blue_axe",
             )),
-            (biped_large::Species::Redoni, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.hammer.oni_red_hammer",
-            )),
+            (biped_large::Species::Redoni | biped_large::Species::Cultistwarlord, _) => Some(
+                Item::new_from_asset_expect("common.items.npc_weapons.hammer.oni_red_hammer"),
+            ),
         },
         Body::Object(body) => match body {
             object::Body::Crossbow => Some(Item::new_from_asset_expect(

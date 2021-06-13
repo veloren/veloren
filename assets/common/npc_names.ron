@@ -546,7 +546,15 @@
             snowleopard: (
                 keyword: "snowleopard",
                 generic: "Snow Leopard"
-            )
+            ),
+            mammoth: (
+                keyword: "mammoth",
+                generic: "Mammoth"
+            ),
+            ngoubou: (
+                keyword: "ngoubou",
+                generic: "Ngoubou"
+            ),
         )
     ),
     quadruped_small: (
@@ -885,6 +893,10 @@
             oni_red: (
                 keyword: "oni_red",
                 generic: "Red Oni"
+            ),
+            cultist_warlord: (
+                keyword: "cultist_warlord",
+                generic: "Cultist Warlord"
             ),
         )
     ),
