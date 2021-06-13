@@ -24,16 +24,15 @@
         "rustOverlay": "rustOverlay"
       },
       "locked": {
-        "lastModified": 1623594891,
-        "narHash": "sha256-JmjOTdIW0QIsMoqU6oIQx9fqH0Ims83g2jK8jmokHsI=",
+        "lastModified": 1623601923,
+        "narHash": "sha256-zQDRV3OMYKlewfp3k0ilmFNfcFDxBCCk0tbcde8HMYM=",
         "owner": "yusdacra",
         "repo": "nix-cargo-integration",
-        "rev": "5394e8fa179346854e44e05edced0b9d7dc818b7",
+        "rev": "ab922adefdeb387ce105b1bde75f62ffb971cec4",
         "type": "github"
       },
       "original": {
         "owner": "yusdacra",
-        "ref": "fix/crate2nix",
         "repo": "nix-cargo-integration",
         "type": "github"
       }
