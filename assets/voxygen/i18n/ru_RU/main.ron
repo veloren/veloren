@@ -1,0 +1,69 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for RU
+(
+    string_map: {
+        /// Start Main screen section
+        "main.username": "Никнейм",
+        "main.server": "Сервер",
+        "main.password": "Пароль",
+        "main.connecting": "Соединение",
+        "main.creating_world": "Создание мира",
+        "main.tip": "Совет:",
+
+        // Welcome notice that appears the first time Veloren is started
+        "main.notice": r#"Добро пожаловать в альфа версию Veloren!
+
+Прежде чем погрузиться в веселье, пожалуйста, имейте в виду несколько вещей:
+
+- Это очень ранняя альфа. Ожидайте ошибок, крайне незавершенного геймплея, неполированной механики и отсутствующих функций.
+
+- Если у вас есть конструктивные отзывы или сообщения об ошибках, вы можете связаться с нами через Reddit, GitLab или наш сервер разногласий сообщества.
+
+- Veloren лицензирован по лицензии GPL 3 с открытым исходным кодом. Это означает, что вы можете играть, изменять и распространять игру
+по своему усмотрению (при условии, что производная работа также находится в рамках GPL 3).
+
+- Велорен-это некоммерческий общественный проект, и все, кто работает над ним, являются добровольцами.
+Если вам нравится то, что вы видите, вы можете присоединиться к командам разработчиков или художников!
+
+Спасибо, что нашли время прочитать это уведомление, мы надеемся, что вам понравится игра!
+
+~ Разработчики Велорена"#,
+
+        // Login process description
+        "main.login_process": r#"Информация о процессе входа в систему:
+
+Обратите внимание, что вам нужна учетная
+запись для игры на серверах с поддержкой аутентификации.
+
+Вы можете создать учетную запись по адресу
+https://veloren.net/account/."#,
+        "main.login.server_not_found": "Сервер не найден",
+        "main.login.authentication_error": "Ошибка аутентификации на сервере",
+        "main.login.internal_error": "Внутренняя ошибка на клиенте (скорее всего, персонаж игрока был удален)",
+        "main.login.failed_auth_server_url_invalid": "Не удалось подключиться к серверу аутентификации",
+        "main.login.insecure_auth_scheme": "Схема аутентификации HTTP не поддерживается. Это небезопасно! В целях разработки HTTP разрешен для 'локального хоста' или отладочных сборок",
+        "main.login.server_full": "Сервер заполнен",
+        "main.login.untrusted_auth_server": "Сервер аутентификации не является доверенным",
+        "main.login.outdated_client_or_server": "ServerWentMad: Возможно, версии несовместимы, проверьте наличие обновлений.",
+        "main.login.timeout": "Тайм-аут: Сервер не ответил вовремя. (Перегрузка или проблемы с сетью).",
+        "main.login.server_shut_down": "Сервер выключен",
+        "main.login.network_error": "Ошибка сети",
+        "main.login.network_wrong_version": "Несоответствие версии сервера и клиента, пожалуйста, обновите свой игровой клиент.",
+        "main.login.failed_sending_request": "Не удалось выполнить запрос на сервер аутентификации",
+        "main.login.invalid_character": "Выбранный символ недопустим",
+        "main.login.client_crashed": "Клиент разбился",
+        "main.login.not_on_whitelist": "Вам нужна запись в Белом списке от администратора, чтобы присоединиться",
+        "main.login.banned": "Вы были забанены по следующей причине",
+        "main.login.kicked": "Вас выгнали по следующей причине",
+        "main.login.select_language": "Выберите язык",
+        "main.login.client_version": "Версия клиента",
+        "main.login.server_version": "Server Version",
+        "main.servers.select_server": "Версия сервера",
+        /// End Main screen section
+    },
+
+
+    vector_map: {
+    }
+)
