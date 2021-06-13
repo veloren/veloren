@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added a skill tree for mining, which gains xp from mining ores and gems.
 
 ### Changed
 
@@ -85,7 +86,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Meat drops from animals
 - New ores, plants and hides to be looted from the world and processed into craft ingredients
 - Added more crafting stations, loom, spinning wheel, tanning rack, forge
-- Added a skill tree for mining, which gains xp from mining ores and gems.
 
 ### Changed
 
