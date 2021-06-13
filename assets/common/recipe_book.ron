@@ -49,6 +49,14 @@
         ],
         craft_sprite: Some(Cauldron),
     ),
+    "cactus_colada": (
+        output: ("common.items.food.cactus_colada", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.empty_vial"), 1),
+            (Item("common.items.crafting_ing.cactus"), 8),
+        ],
+        craft_sprite: Some(Cauldron),
+    ),
     "collar_basic": (
         output: ("common.items.utility.collar", 1),
         inputs: [

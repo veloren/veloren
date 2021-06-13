@@ -6,4 +6,5 @@
     (1.2, Item("common.items.food.plainsalad")),
     (0.5, Item("common.items.food.sunflower_icetea")),
     (1.0, Item("common.items.food.tomatosalad")),
+    (1.4, Item("common.items.food.cactus_colada")),
 ]

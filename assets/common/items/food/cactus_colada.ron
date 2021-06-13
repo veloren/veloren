@@ -1,0 +1,22 @@
+ItemDef(
+    name: "Cactus Colada",
+    description: "Giving you that special prickle.",
+    kind: Consumable(
+        kind: "CactusColada",
+        effect: [
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: 25.0,
+                    duration: Some((
+                            secs: 15,
+                            nanos: 0,
+                        )),
+                    ),
+                cat_ids: [Natural],
+            )),
+        ]
+    ),
+    quality: Moderate,
+    tags: [Food],
+)
