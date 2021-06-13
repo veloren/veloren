@@ -215,6 +215,69 @@ impl Animation for BeamAnimation {
                                 move1 * -0.8 + move2 * 1.1 + move2shake * 0.02,
                             );
                         },
+                        "Harvester" => {
+                            next.head.orientation = Quaternion::rotation_x(
+                                move1 * 0.5 + move2 * -0.4 + move2shake * -0.02,
+                            );
+
+                            next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
+                            next.jaw.orientation =
+                                Quaternion::rotation_x(move2 * -0.5 + move2shake * -0.1);
+
+                            next.upper_torso.position = Vec3::new(
+                                0.0,
+                                s_a.upper_torso.0 + move1 * -3.0 + move2 * 3.0,
+                                s_a.upper_torso.1 + move1 * -0.4,
+                            );
+                            next.upper_torso.orientation = Quaternion::rotation_x(
+                                move1 * 0.8 + move2 * -1.1 + move2shake * -0.02,
+                            );
+                            next.lower_torso.position =
+                                Vec3::new(0.0, s_a.lower_torso.0, s_a.lower_torso.1);
+                            next.lower_torso.orientation = Quaternion::rotation_x(
+                                move1 * -0.8 + move2 * 1.1 + move2shake * 0.02,
+                            );
+
+                            next.control_l.position = Vec3::new(1.0, 2.0, 8.0);
+                            next.control_r.position = Vec3::new(1.0, 1.0, -2.0);
+
+                            next.control.position =
+                                Vec3::new(-6.0, 0.0 + s_a.grip.0 / 1.0, -s_a.grip.0 / 0.8);
+
+                            next.control_l.orientation =
+                                Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_z(PI);
+                            next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + 0.2)
+                                * Quaternion::rotation_y(-1.0);
+
+                            next.control.orientation =
+                                Quaternion::rotation_x(-1.4) * Quaternion::rotation_y(-2.8);
+
+                            next.weapon_l.position =
+                                Vec3::new(move1 * 8.0, move1 * 1.0, move1 * 6.0);
+                            next.weapon_l.orientation = Quaternion::rotation_x(move1 * 0.5)
+                                * Quaternion::rotation_y(move1 * -0.8);
+
+                            next.shoulder_l.position = Vec3::new(
+                                -s_a.shoulder.0,
+                                s_a.shoulder.1,
+                                s_a.shoulder.2 - foothorir * 1.0,
+                            );
+                            next.shoulder_l.orientation =
+                                Quaternion::rotation_y(-0.4 + move1 * 0.8)
+                                    * Quaternion::rotation_x(-0.4 + move1 * -0.2);
+                            next.shoulder_r.orientation =
+                                Quaternion::rotation_y(0.4 + move1 * -0.8)
+                                    * Quaternion::rotation_x(0.4 + move1 * -0.8);
+
+                            next.hand_r.position = Vec3::new(
+                                -s_a.grip.1 + move1 * -5.0,
+                                0.0 + move1 * 6.0,
+                                s_a.grip.0 + move1 * 13.0,
+                            );
+                            next.hand_r.orientation = Quaternion::rotation_x(move1 * -3.0)
+                                * Quaternion::rotation_y(move1 * 1.5)
+                                * Quaternion::rotation_z(move1 * -1.5);
+                        },
                         _ => {},
                     }
                 }

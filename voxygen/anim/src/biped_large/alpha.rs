@@ -327,6 +327,63 @@ impl Animation for AlphaAnimation {
                                     * Quaternion::rotation_y(-1.8 + move1 * -0.8 + move2 * 3.0)
                                     * Quaternion::rotation_z(move1 * -0.8 + move2 * -0.8);
                         },
+                        "Harvester" => {
+                            next.head.orientation =
+                                Quaternion::rotation_x(move1 * -0.25 + move2 * 0.25)
+                                    * Quaternion::rotation_z(move1 * -0.3 + move2 * 0.4);
+
+                            next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1 + move2 * -0.5);
+                            next.jaw.orientation = Quaternion::rotation_x(move2 * -0.15);
+
+                            next.upper_torso.orientation =
+                                Quaternion::rotation_x(move1 * 0.2 + move2 * -0.2)
+                                    * Quaternion::rotation_z(move1 * -1.0 + move2 * 1.0);
+
+                            next.shoulder_l.position = Vec3::new(
+                                -s_a.shoulder.0,
+                                s_a.shoulder.1,
+                                s_a.shoulder.2 - foothorir * 1.0,
+                            );
+                            next.shoulder_l.orientation =
+                                Quaternion::rotation_x(-0.4 + move1 * 1.0 + move2 * -1.0)
+                                    * Quaternion::rotation_y(move1 * -0.2);
+                            next.shoulder_r.orientation =
+                                Quaternion::rotation_y(0.4 + move1 * -0.8 + move2 * 0.8)
+                                    * Quaternion::rotation_x(0.4 + move1 * -0.4 + move2 * 0.8);
+
+                            if speed == 0.0 {
+                                next.leg_l.orientation =
+                                    Quaternion::rotation_x(move1 * 0.4 + move2 * -0.4);
+
+                                next.foot_l.position = Vec3::new(
+                                    -s_a.foot.0,
+                                    s_a.foot.1,
+                                    s_a.foot.2 + move1 * 2.0 + move2 * -2.0,
+                                );
+                                next.foot_l.orientation =
+                                    Quaternion::rotation_x(move1 * -0.6 + move2 * 0.6);
+                            }
+
+                            next.control_l.position = Vec3::new(1.0, 2.0, 8.0);
+                            next.control_r.position = Vec3::new(1.0, 1.0, -2.0);
+
+                            next.control.position = Vec3::new(
+                                -7.0 + move1 * 26.0 - move2 * 32.0,
+                                0.0 + s_a.grip.0 / 1.0 - move1 * 4.0,
+                                -s_a.grip.0 / 0.8,
+                            );
+
+                            next.control_l.orientation = Quaternion::rotation_x(PI / 2.0)
+                                * Quaternion::rotation_y(-0.0)
+                                * Quaternion::rotation_z(PI);
+                            next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + 0.2)
+                                * Quaternion::rotation_y(-1.0 + move1 * 1.0)
+                                * Quaternion::rotation_z(0.0);
+
+                            next.control.orientation = Quaternion::rotation_x(-1.4 + move1 * -0.4)
+                                * Quaternion::rotation_y(-2.8 + move1 * 3.0 + move2 * -3.0)
+                                * Quaternion::rotation_z(move1 * -1.5);
+                        },
                         _ => {},
                     }
                 }
