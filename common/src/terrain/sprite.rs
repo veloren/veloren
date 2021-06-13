@@ -298,6 +298,9 @@ impl SpriteKind {
             SpriteKind::Moonbell => true,
             SpriteKind::Pyrebloom => true,
             SpriteKind::WildFlax => true,
+            SpriteKind::RoundCactus => true,
+            SpriteKind::ShortFlatCactus => true,
+            SpriteKind::MedFlatCactus => true,
             _ => false,
         }
     }

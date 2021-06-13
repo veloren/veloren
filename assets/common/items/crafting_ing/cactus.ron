@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Cactus",
+    description: "Grows in warm and dry places.",
+    kind: Ingredient(
+        kind: "Cactus",
+    ),
+    quality: Common,
+    tags: [],
+)

@@ -851,6 +851,9 @@ impl Item {
             SpriteKind::Pyrebloom => "common.items.flowers.pyrebloom",
             SpriteKind::WildFlax => "common.items.flowers.wild_flax",
             SpriteKind::Seashells => "common.items.crafting_ing.seashells",
+            SpriteKind::RoundCactus => "common.items.crafting_ing.cactus",
+            SpriteKind::ShortFlatCactus => "common.items.crafting_ing.cactus",
+            SpriteKind::MedFlatCactus => "common.items.crafting_ing.cactus",
             // Containers
             // IMPORTANT: Add any new container to `SpriteKind::is_container`
             container
