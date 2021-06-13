@@ -207,7 +207,7 @@ fn can_swap_equipped_bag_into_empty_inv_slot(
 }
 
 #[test]
-fn can_swap_equipped_bag_into_only_empty_slot_provided_by_itself_should_return_false() {
+fn can_swap_equipped_bag_into_only_empty_slot_provided_by_itself_should_return_true() {
     let mut inv = Inventory::new_empty();
 
     inv.replace_loadout_item(EquipSlot::Armor(ArmorSlot::Bag1), Some(get_test_bag(18)));
@@ -216,7 +216,7 @@ fn can_swap_equipped_bag_into_only_empty_slot_provided_by_itself_should_return_f
 
     let result = inv.can_swap(InvSlotId::new(15, 17), EquipSlot::Armor(ArmorSlot::Bag1));
 
-    assert!(!result);
+    assert!(result);
 }
 
 #[test]
@@ -320,7 +320,7 @@ fn equip_equipping_smaller_bag_from_last_slot_of_big_bag() {
 }
 
 #[test]
-fn unequip_unequipping_bag_into_its_own_slot_with_no_other_free_slots() {
+fn unequip_unequipping_bag_into_its_own_slot_with_no_other_free_slots_returns_one_item() {
     let mut inv = Inventory::new_empty();
     let bag = get_test_bag(9);
 
@@ -335,7 +335,14 @@ fn unequip_unequipping_bag_into_its_own_slot_with_no_other_free_slots() {
 
     let result =
         inv.swap_inventory_loadout(InvSlotId::new(15, 0), EquipSlot::Armor(ArmorSlot::Bag1));
-    assert!(result.is_empty())
+
+    assert_eq!(result.len(), 1);
+    // Because the slot the bag was swapped with no longer exists as it was provided
+    // by itself, the bag is returned to the caller
+    assert_eq!(
+        result[0].item_definition_id(),
+        "common.items.testing.test_bag"
+    );
 }
 
 #[test]
@@ -456,6 +463,31 @@ fn free_after_swap_inv_item_without_slots_swapped_with_empty_equip_slot() {
 
     // 18 inv slots - 5 used slots
     assert_eq!(13, result);
+}
+
+// This test is a regression test for a bug that crashed the server when
+// swapping an equipped item providing slots with an item that does not
+// provide slots.
+#[test]
+fn backpack_crash() {
+    let mut inv = Inventory::new_empty();
+
+    let backpack = Item::new_from_asset_expect("common.items.armor.misc.back.backpack");
+    inv.loadout
+        .swap(EquipSlot::Armor(ArmorSlot::Back), Some(backpack));
+
+    fill_inv_slots(&mut inv, 35);
+
+    let cape = Item::new_from_asset_expect("common.items.armor.misc.back.admin");
+    assert!(inv.push(cape).is_ok());
+
+    let returned_items =
+        inv.swap_inventory_loadout(InvSlotId::new(9, 17), EquipSlot::Armor(ArmorSlot::Back));
+    assert_eq!(18, returned_items.len());
+    assert_eq!(
+        "common.items.armor.misc.back.backpack",
+        returned_items[0].item_definition_id()
+    );
 }
 
 fn fill_inv_slots(inv: &mut Inventory, items: u16) {
