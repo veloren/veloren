@@ -69,6 +69,9 @@
               veloren-client = oldAttrs: {
                 crateBin = lib.filter (bin: bin.name != "bot") oldAttrs.crateBin;
               };
+              veloren-i18n = oldAttrs: {
+                crateBin = lib.filter (bin: bin.name != "i18n-check") oldAttrs.crateBin;
+              };
               veloren-common = oldAttrs: {
                 # Disable `git-lfs` check here since we check it ourselves
                 # We have to include the command output here, otherwise Nix won't run it
