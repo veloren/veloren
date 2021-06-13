@@ -24,8 +24,11 @@ loot_tables: [
     (0.3, true, "common.loot_tables.food.farm_ingredients"),
     (0.4, true, "common.loot_tables.food.wild_ingredients"),
     (0.2, true, "common.loot_tables.food.prepared"),
-    // TODO: Change consumables and split them up
-    (1.0, true, "common.loot_tables.consumable.default"),
+    // Potions
+    (0.2, true, "common.loot_tables.consumable.potion"),
+    // Misc
+    (0.1, true, "common.loot_tables.consumable.throwable"),
+    (0.7, true, "common.loot_tables.consumable.misc"),
     (1.0, false, "common.loot_tables.trading"),
 ],
 // this is the amount of that good the most common item represents

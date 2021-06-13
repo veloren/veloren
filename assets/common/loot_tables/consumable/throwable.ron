@@ -1,5 +1,4 @@
 [
     // bombs
-    (0.6, Item("common.items.utility.bomb")),
-    (0.2, Item("common.items.utility.bomb_pile")),
+    (1.0, ItemQuantity("common.items.utility.bomb", 1, 3)),
 ]
