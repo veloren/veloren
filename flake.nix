@@ -79,7 +79,7 @@
                 # Declare env values here so that `common/build.rs` sees them
                 NIX_GIT_HASH = prettyRev;
                 NIX_GIT_TAG = tag;
-                crateBin = lib.filter (bin: bin.name != "csv_export" && bin.name != "csv_import") oldAttrs.crateBin;
+                crateBin = lib.filter (bin: bin.name != "csv_export" && bin.name != "csv_import" && bin.name != "recipe_graphviz") oldAttrs.crateBin;
               };
               veloren-voxygen = oldAttrs: {
                 VELOREN_USERDATA_STRATEGY = "system";
