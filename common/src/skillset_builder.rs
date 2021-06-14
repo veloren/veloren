@@ -6,10 +6,11 @@ use crate::assets::{self, AssetExt};
 use serde::{Deserialize, Serialize};
 use tracing::warn;
 
+/// `SkillSetBuilder` preset. Consider using loading from assets, when possible.
+/// When you're adding new enum variant,
+/// handle it in [`with_preset`](SkillSetBuilder::with_preset) method
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug)]
-pub enum Preset {
-    Empty,
-}
+pub enum Preset {}
 
 #[derive(Debug, Deserialize, Clone)]
 struct SkillSetTree(Vec<SkillNode>);
@@ -89,12 +90,7 @@ impl SkillSetBuilder {
 
     /// Applies preset
     #[must_use]
-    pub const fn with_preset(self, preset: Preset) -> Self {
-        match preset {
-            Preset::Empty => {},
-        }
-        self
-    }
+    pub const fn with_preset(self, _preset: Preset) -> Self { self }
 
     #[must_use]
     /// # Panics
