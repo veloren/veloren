@@ -12,10 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Entity-entity pushback is no longer applied in forced movement states like rolling and leaping.
+- Updated audio library (rodio 0.13 -> 0.14).
 
 ### Removed
 
 ### Fixed
+- Cases where no audio output could be produced before.
 
 ## [0.10.0] - 2021-06-12
 
