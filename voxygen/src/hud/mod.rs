@@ -1254,10 +1254,10 @@ impl Hud {
                             &mut self.ids.player_scts,
                             &mut ui_widgets.widget_id_generator(),
                         );
-                        let player_sct_icon_id = player_sct_id_walker.next(
+                        /*let player_sct_icon_id = player_sct_id_walker.next(
                             &mut self.ids.player_scts,
                             &mut ui_widgets.widget_id_generator(),
-                        );
+                        );*/
                         // Increase font size based on fraction of maximum Experience
                         // "flashes" by having a larger size in the first 100ms
                         let font_size_xp =
@@ -1299,13 +1299,13 @@ impl Hud {
                                     ui_widgets.win_h * (0.15 * floater.rand_offset.1 as f64) + y,
                                 )
                                 .set(player_sct_id, ui_widgets);
-                            // Exp Source Image
-                            if xp_pool.contains(&SkillGroupKind::Weapon(ToolKind::Pick)) {
+                            // Exp Source Image (TODO: fix widget id crash)
+                            /*if xp_pool.contains(&SkillGroupKind::Weapon(ToolKind::Pick)) {
                                 Image::new(self.imgs.pickaxe_ico)
                                     .w_h(font_size_xp as f64, font_size_xp as f64)
                                     .left_from(player_sct_id, 5.0)
                                     .set(player_sct_icon_id, ui_widgets);
-                            }
+                            }*/
                         }
                     }
                 }
