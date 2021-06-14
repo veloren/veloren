@@ -125,35 +125,32 @@ impl Dungeon {
                 let rpos = wpos2d - self.origin;
 
                 // Apply the dungeon entrance
-                let col_sample = if let Some(col) = get_column(offs) {
-                    col
-                } else {
-                    continue;
-                };
-                for z in entrance.get_bounds().min.z..entrance.get_bounds().max.z {
-                    let wpos = Vec3::new(offs.x, offs.y, self.alt + z + ALT_OFFSET);
-                    let spos = Vec3::new(rpos.x - TILE_SIZE / 2, rpos.y - TILE_SIZE / 2, z);
-                    if let Some(block) = entrance
-                        .get(spos)
-                        .ok()
-                        .copied()
-                        .map(|sb| {
-                            block_from_structure(
-                                index,
-                                sb,
-                                spos,
-                                self.origin,
-                                self.seed,
-                                col_sample,
-                                // TODO: Take environment into account.
-                                Block::air,
-                            )
-                        })
-                        .unwrap_or(None)
-                    {
-                        let _ = vol.set(wpos, block);
+                if let Some(col_sample) = get_column(offs) {
+                    for z in entrance.get_bounds().min.z..entrance.get_bounds().max.z {
+                        let wpos = Vec3::new(offs.x, offs.y, self.alt + z + ALT_OFFSET);
+                        let spos = Vec3::new(rpos.x - TILE_SIZE / 2, rpos.y - TILE_SIZE / 2, z);
+                        if let Some(block) = entrance
+                            .get(spos)
+                            .ok()
+                            .copied()
+                            .map(|sb| {
+                                block_from_structure(
+                                    index,
+                                    sb,
+                                    spos,
+                                    self.origin,
+                                    self.seed,
+                                    col_sample,
+                                    // TODO: Take environment into account.
+                                    Block::air,
+                                )
+                            })
+                            .unwrap_or(None)
+                        {
+                            let _ = vol.set(wpos, block);
+                        }
                     }
-                }
+                };
 
                 // Apply the dungeon internals
                 let mut z = self.alt + ALT_OFFSET;
