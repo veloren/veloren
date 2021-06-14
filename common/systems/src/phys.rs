@@ -425,16 +425,21 @@ impl<'a> PhysicsData<'a> {
                                             entity_entity_collisions += 1;
                                         }
 
-                                        // Don't apply repulsive force to projectiles or if
-                                        // we're
-                                        // colliding
-                                        // with a terrain-like entity, or if we are a
-                                        // terrain-like
-                                        // entity
+                                        // Don't apply e2e pushback to entities that are in a forced movement state
+                                        // (e.g. roll, leapmelee). This allows leaps to work properly (since you won't
+                                        // get pushed away before delivering the hit), and allows rolling through an
+                                        // enemy when trapped (e.g. with minotaur). This allows using e2e pushback to
+                                        // gain speed by jumping out of a roll while in the middle of a collider, this
+                                        // is an intentional combat mechanic.
+                                        let forced_movement = matches!(char_state_maybe, Some(cs) if cs.is_forced_movement());
+
+                                        // Don't apply repulsive force to projectiles or if we're colliding with a
+                                        // terrain-like entity, or if we are a terrain-like entity
                                         //
                                         // Don't apply force when entity is a sticky which is on the
                                         // ground (or on the wall)
-                                        if !(is_sticky && !is_mid_air)
+                                        if !forced_movement &&
+                                            !(is_sticky && !is_mid_air)
                                             && diff.magnitude_squared() > 0.0
                                             && !is_projectile
                                             && !matches!(

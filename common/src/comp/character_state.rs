@@ -2,7 +2,7 @@ use crate::{
     combat::Attack,
     comp::{tool::ToolKind, Density, Energy, InputAttr, InputKind, Ori, Pos, Vel},
     event::{LocalEvent, ServerEvent},
-    states::{behavior::JoinData, *},
+    states::{behavior::JoinData, utils::StageSection, *},
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, VecStorage};
@@ -195,6 +195,15 @@ impl CharacterState {
     }
 
     pub fn is_stunned(&self) -> bool { matches!(self, CharacterState::Stunned(_)) }
+
+    pub fn is_forced_movement(&self) -> bool {
+        matches!(self,
+            CharacterState::ComboMelee(s) if s.stage_section == StageSection::Swing)
+            || matches!(self, CharacterState::DashMelee(s) if s.stage_section == StageSection::Charge)
+            || matches!(self, CharacterState::LeapMelee(s) if s.stage_section == StageSection::Movement)
+            || matches!(self, CharacterState::SpinMelee(s) if s.stage_section == StageSection::Swing)
+            || matches!(self, CharacterState::Roll(s) if s.stage_section == StageSection::Movement)
+    }
 
     /// Compares for shallow equality (does not check internal struct equality)
     pub fn same_variant(&self, other: &Self) -> bool {
