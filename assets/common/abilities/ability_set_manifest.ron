@@ -265,10 +265,10 @@
         ],
     ),
     Custom("Bird Large Basic"): (
-        primary: "common.abilities.custom.birdlargebasic.dash",
-        secondary: "common.abilities.custom.birdlargebasic.triplestrike",
+        primary: "common.abilities.custom.birdlargebasic.triplestrike",
+        secondary: "common.abilities.custom.birdlargebasic.summontornadoes",
         abilities: [
-            (None, "common.abilities.custom.birdlargebasic.summontornadoes"),
+            (None, "common.abilities.custom.birdlargebasic.dash"),
         ],
     ),
     Custom("Tornado"): (

@@ -2,8 +2,8 @@ BasicSummon(
     buildup_duration: 0.5,
     cast_duration: 0.2,
     recover_duration: 0.2,
-    summon_amount: 6,
-    summon_distance: (1, 3),
+    summon_amount: 12,
+    summon_distance: (4, 9),
     summon_info: (
         body: Object(Tornado),
         scale: None,

@@ -423,6 +423,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     bird_large::Species::Cockatrice => {
                         "common.loot_tables.creature.bird_large.cockatrice"
                     },
+                    bird_large::Species::Roc => "common.loot_tables.creature.bird_large.roc",
                     _ => "common.loot_tables.creature.bird_large.phoenix",
                 },
                 Some(common::comp::Body::FishMedium(_)) => "common.loot_tables.creature.fish",

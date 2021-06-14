@@ -3286,6 +3286,11 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
+        const BIRD_ATTACK_RANGE: f32 = 4.0;
+        const BIRD_CHARGE_DISTANCE: f32 = 15.0;
+        let bird_attack_distance = self.body.map_or(0.0, |b| b.radius()) + BIRD_ATTACK_RANGE;
+        // Increase action timer
+        agent.action_state.timer += read_data.dt.0;
         // If higher than 2 blocks
         if !read_data
             .terrain
@@ -3303,53 +3308,44 @@ impl<'a> AgentData<'a> {
             controller.inputs.move_dir =
                 move_dir.xy().try_normalized().unwrap_or_else(Vec2::zero) * 2.0;
             controller.inputs.move_z = move_dir.z - 0.5;
-        // If near a target and timer higher than 7
-        } else if agent.action_state.timer > 6.0
-            && attack_data.dist_sqrd < (3.0 * attack_data.min_attack_dist).powi(2)
-        {
-            // Cast tornadoes
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Ability(0)));
-            // Reset timer
-            agent.action_state.timer = 0.0;
-        // If near and in front of target and timer lower than 6
-        } else if attack_data.angle < 90.0
-            && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
-            && agent.action_state.timer < 5.0
-        {
-            // Basic strike
-            controller.inputs.move_dir = Vec2::zero();
+        } else if agent.action_state.timer > 8.0 {
+            // If action timer higher than 8, make bird summon tornadoes
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Secondary));
-            // Increase timer
-            agent.action_state.timer += read_data.dt.0;
-        // If far from the target and timer lower than 6
-        } else if attack_data.dist_sqrd < (3.0 * attack_data.min_attack_dist).powi(2)
-            && attack_data.dist_sqrd > (1.5 * attack_data.min_attack_dist).powi(2)
-            && attack_data.angle < 60.0
-            && agent.action_state.timer < 5.0
+            if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
+            {
+                // Reset timer
+                agent.action_state.timer = 0.0;
+            }
+        } else if matches!(self.char_state, CharacterState::DashMelee(c) if !matches!(c.stage_section, StageSection::Recover))
         {
-            // Dash
+            // If already in dash, keep dashing if not in recover
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Ability(0)));
+        } else if matches!(self.char_state, CharacterState::ComboMelee(c) if matches!(c.stage_section, StageSection::Recover))
+        {
+            // If already in combo keep comboing if not in recover
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Primary));
-            controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
-                .xy()
-                .rotated_z(-0.47 * PI)
-                .try_normalized()
-                .unwrap_or_else(Vec2::unit_y);
-            agent.action_state.timer += read_data.dt.0;
-        // If very far from the player
-        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            // Walk to the player
-            self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
-            agent.action_state.timer += read_data.dt.0;
-        } else {
-            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
-            agent.action_state.timer += read_data.dt.0;
+        } else if attack_data.dist_sqrd > BIRD_CHARGE_DISTANCE.powi(2) {
+            // Charges at target if they are far enough away
+            if attack_data.angle < 60.0 {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+            }
+        } else if attack_data.dist_sqrd < bird_attack_distance.powi(2) {
+            // Combo melee target
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
+            agent.action_state.condition = true;
         }
+        // Make bird move towards target
+        self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
     }
 
     fn handle_minotaur_attack(
