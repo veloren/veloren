@@ -107,6 +107,7 @@ pub enum Skill {
     Roll(RollSkill),
     Climb(ClimbSkill),
     Swim(SwimSkill),
+    Pick(MiningSkill),
 }
 
 pub enum SkillError {
@@ -264,6 +265,13 @@ pub enum SwimSkill {
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MiningSkill {
+    Speed,
+    OreGain,
+    GemGain,
+}
+
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SkillGroupKind {
     General,
     Weapon(ToolKind),
@@ -344,7 +352,10 @@ impl Default for SkillSet {
     /// player
     fn default() -> Self {
         Self {
-            skill_groups: vec![SkillGroup::new(SkillGroupKind::General)],
+            skill_groups: vec![
+                SkillGroup::new(SkillGroupKind::General),
+                SkillGroup::new(SkillGroupKind::Weapon(ToolKind::Pick)),
+            ],
             skills: HashMap::new(),
             modify_health: false,
             modify_energy: false,
@@ -365,7 +376,7 @@ impl SkillSet {
     /// let mut skillset = SkillSet::default();
     /// skillset.unlock_skill_group(SkillGroupKind::Weapon(ToolKind::Sword));
     ///
-    /// assert_eq!(skillset.skill_groups.len(), 2);
+    /// assert_eq!(skillset.skill_groups.len(), 3);
     /// ```
     pub fn unlock_skill_group(&mut self, skill_group_kind: SkillGroupKind) {
         if !self.contains_skill_group(skill_group_kind) {
@@ -668,13 +679,13 @@ mod tests {
         skillset.add_skill_points(SkillGroupKind::Weapon(ToolKind::Axe), 1);
         skillset.unlock_skill(Skill::Axe(AxeSkill::UnlockLeap));
 
-        assert_eq!(skillset.skill_groups[1].available_sp, 0);
+        assert_eq!(skillset.skill_groups[2].available_sp, 0);
         assert_eq!(skillset.skills.len(), 1);
         assert!(skillset.has_skill(Skill::Axe(AxeSkill::UnlockLeap)));
 
         skillset.refund_skill(Skill::Axe(AxeSkill::UnlockLeap));
 
-        assert_eq!(skillset.skill_groups[1].available_sp, 1);
+        assert_eq!(skillset.skill_groups[2].available_sp, 1);
         assert_eq!(skillset.skills.get(&Skill::Axe(AxeSkill::UnlockLeap)), None);
     }
 
@@ -683,9 +694,9 @@ mod tests {
         let mut skillset = SkillSet::default();
         skillset.unlock_skill_group(SkillGroupKind::Weapon(ToolKind::Axe));
 
-        assert_eq!(skillset.skill_groups.len(), 2);
+        assert_eq!(skillset.skill_groups.len(), 3);
         assert_eq!(
-            skillset.skill_groups[1],
+            skillset.skill_groups[2],
             SkillGroup::new(SkillGroupKind::Weapon(ToolKind::Axe))
         );
     }
@@ -697,13 +708,13 @@ mod tests {
         skillset.unlock_skill_group(SkillGroupKind::Weapon(ToolKind::Axe));
         skillset.add_skill_points(SkillGroupKind::Weapon(ToolKind::Axe), 1);
 
-        assert_eq!(skillset.skill_groups[1].available_sp, 1);
+        assert_eq!(skillset.skill_groups[2].available_sp, 1);
         assert_eq!(skillset.skills.len(), 0);
 
         // Try unlocking a skill with enough skill points
         skillset.unlock_skill(Skill::Axe(AxeSkill::UnlockLeap));
 
-        assert_eq!(skillset.skill_groups[1].available_sp, 0);
+        assert_eq!(skillset.skill_groups[2].available_sp, 0);
         assert_eq!(skillset.skills.len(), 1);
         assert!(skillset.has_skill(Skill::Axe(AxeSkill::UnlockLeap)));
 
@@ -720,6 +731,6 @@ mod tests {
         skillset.unlock_skill_group(SkillGroupKind::Weapon(ToolKind::Axe));
         skillset.add_skill_points(SkillGroupKind::Weapon(ToolKind::Axe), 1);
 
-        assert_eq!(skillset.skill_groups[1].available_sp, 1);
+        assert_eq!(skillset.skill_groups[2].available_sp, 1);
     }
 }

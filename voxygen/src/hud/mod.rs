@@ -98,7 +98,7 @@ use conrod_core::{
     widget::{self, Button, Image, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use rand::Rng;
 use specs::{Entity as EcsEntity, Join, WorldExt};
 use std::{
@@ -211,6 +211,7 @@ widget_ids! {
         player_rank_up_icon,
         sct_exp_bgs[],
         sct_exps[],
+        sct_exp_icons[],
         sct_lvl_bg,
         sct_lvl,
         hurt_bg,
@@ -324,6 +325,7 @@ pub struct ExpFloater {
     pub exp_change: i32,
     pub timer: f32,
     pub rand_offset: (f32, f32),
+    pub xp_pools: HashSet<SkillGroupKind>,
 }
 
 pub struct SkillPointGain {
@@ -1252,7 +1254,11 @@ impl Hud {
                             &mut self.ids.player_scts,
                             &mut ui_widgets.widget_id_generator(),
                         );
-                        // Increase font size based on fraction of maximum health
+                        let player_sct_icon_id = player_sct_id_walker.next(
+                            &mut self.ids.player_scts,
+                            &mut ui_widgets.widget_id_generator(),
+                        );
+                        // Increase font size based on fraction of maximum Experience
                         // "flashes" by having a larger size in the first 100ms
                         let font_size_xp =
                             30 + ((floater.exp_change as f32 / 300.0).min(1.0) * 50.0) as u32;
@@ -1266,6 +1272,7 @@ impl Hud {
                         };
 
                         if floater.exp_change > 0 {
+                            let xp_pool = &floater.xp_pools;
                             // Don't show 0 Exp
                             Text::new(&format!("{} Exp", floater.exp_change.max(1)))
                                 .font_size(font_size_xp)
@@ -1280,12 +1287,25 @@ impl Hud {
                             Text::new(&format!("{} Exp", floater.exp_change.max(1)))
                                 .font_size(font_size_xp)
                                 .font_id(self.fonts.cyri.conrod_id)
-                                .color(Color::Rgba(0.59, 0.41, 0.67, fade))
+                                .color(
+                                    if xp_pool.contains(&SkillGroupKind::Weapon(ToolKind::Pick)) {
+                                        Color::Rgba(0.18, 0.32, 0.9, fade)
+                                    } else {
+                                        Color::Rgba(0.59, 0.41, 0.67, fade)
+                                    },
+                                )
                                 .x_y(
                                     ui_widgets.win_w * (0.5 * floater.rand_offset.0 as f64 - 0.25),
                                     ui_widgets.win_h * (0.15 * floater.rand_offset.1 as f64) + y,
                                 )
                                 .set(player_sct_id, ui_widgets);
+                            // Exp Source Image
+                            if xp_pool.contains(&SkillGroupKind::Weapon(ToolKind::Pick)) {
+                                Image::new(self.imgs.pickaxe_ico)
+                                    .w_h(font_size_xp as f64, font_size_xp as f64)
+                                    .left_from(player_sct_id, 5.0)
+                                    .set(player_sct_icon_id, ui_widgets);
+                            }
                         }
                     }
                 }
@@ -1353,6 +1373,7 @@ impl Hud {
                             Weapon(ToolKind::Sceptre) => &i18n.get("common.weapons.sceptre"),
                             Weapon(ToolKind::Bow) => &i18n.get("common.weapons.bow"),
                             Weapon(ToolKind::Staff) => &i18n.get("common.weapons.staff"),
+                            Weapon(ToolKind::Pick) => &i18n.get("common.tool.mining"),
                             _ => "Unknown",
                         };
                         Text::new(skill)
@@ -1377,6 +1398,7 @@ impl Hud {
                             Weapon(ToolKind::Sceptre) => self.imgs.sceptre,
                             Weapon(ToolKind::Bow) => self.imgs.bow,
                             Weapon(ToolKind::Staff) => self.imgs.staff,
+                            Weapon(ToolKind::Pick) => self.imgs.mining,
                             _ => self.imgs.swords_crossed,
                         })
                         .w_h(20.0, 20.0)
@@ -3657,12 +3679,15 @@ impl Hud {
 
     pub fn handle_outcome(&mut self, outcome: &Outcome) {
         match outcome {
-            Outcome::ExpChange { uid, exp } => self.floaters.exp_floaters.push(ExpFloater {
-                owner: *uid,
-                exp_change: *exp,
-                timer: 4.0,
-                rand_offset: rand::thread_rng().gen::<(f32, f32)>(),
-            }),
+            Outcome::ExpChange { uid, exp, xp_pools } => {
+                self.floaters.exp_floaters.push(ExpFloater {
+                    owner: *uid,
+                    exp_change: *exp,
+                    timer: 4.0,
+                    rand_offset: rand::thread_rng().gen::<(f32, f32)>(),
+                    xp_pools: xp_pools.clone(),
+                })
+            },
             Outcome::SkillPointGain {
                 uid,
                 skill_tree,

@@ -1,5 +1,6 @@
 use crate::{comp, uid::Uid};
-use comp::{beam, item::Reagent, poise::PoiseState};
+use comp::{beam, item::Reagent, poise::PoiseState, skills::SkillGroupKind};
+use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
 use vek::*;
 
@@ -36,6 +37,7 @@ pub enum Outcome {
     ExpChange {
         uid: Uid,
         exp: i32,
+        xp_pools: HashSet<SkillGroupKind>,
     },
     SkillPointGain {
         uid: Uid,

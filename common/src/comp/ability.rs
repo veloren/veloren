@@ -1174,6 +1174,23 @@ impl CharacterAbility {
                     _ => {},
                 }
             },
+            Some(ToolKind::Pick) => {
+                use skills::MiningSkill::*;
+                if let BasicMelee {
+                    ref mut buildup_duration,
+                    ref mut swing_duration,
+                    ref mut recover_duration,
+                    ..
+                } = self
+                {
+                    if let Ok(Some(level)) = skillset.skill_level(Pick(Speed)) {
+                        let speed = 1.1_f32.powi(level.into());
+                        *buildup_duration /= speed;
+                        *swing_duration /= speed;
+                        *recover_duration /= speed;
+                    }
+                }
+            },
             None => {
                 if let CharacterAbility::Roll {
                     ref mut energy_cost,

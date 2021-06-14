@@ -149,6 +149,11 @@ widget_ids! {
         skill_sceptre_aura_2,
         skill_sceptre_aura_3,
         skill_sceptre_aura_4,
+        pick_render,
+        skill_pick_m1,
+        skill_pick_m1_0,
+        skill_pick_m1_1,
+        skill_pick_m1_2,
         general_combat_render_0,
         general_combat_render_1,
         skill_general_stat_0,
@@ -227,7 +232,7 @@ impl<'a> Diary<'a> {
 
 pub type SelectedSkillTree = skills::SkillGroupKind;
 
-const TREES: [&str; 7] = [
+const TREES: [&str; 8] = [
     "General Combat",
     "Sword",
     "Hammer",
@@ -235,6 +240,7 @@ const TREES: [&str; 7] = [
     "Sceptre",
     "Bow",
     "Fire Staff",
+    "Mining",
 ];
 
 pub enum Event {
@@ -353,6 +359,7 @@ impl<'a> Widget for Diary<'a> {
                 "Sceptre" => self.imgs.sceptre,
                 "Bow" => self.imgs.bow,
                 "Fire Staff" => self.imgs.staff,
+                "Mining" => self.imgs.mining,
                 _ => self.imgs.nothing,
             });
 
@@ -500,6 +507,9 @@ impl<'a> Widget for Diary<'a> {
             SelectedSkillTree::Weapon(ToolKind::Staff) => {
                 self.localized_strings.get("common.weapons.staff")
             },
+            SelectedSkillTree::Weapon(ToolKind::Pick) => {
+                self.localized_strings.get("common.tool.mining")
+            },
             _ => "Unknown",
         };
         self.create_new_text(&tree_title, state.content_align, 2.0, 34, TEXT_COLOR)
@@ -531,6 +541,7 @@ impl<'a> Widget for Diary<'a> {
             SelectedSkillTree::Weapon(ToolKind::Bow) => 6,
             SelectedSkillTree::Weapon(ToolKind::Staff) => 4,
             SelectedSkillTree::Weapon(ToolKind::Sceptre) => 5,
+            SelectedSkillTree::Weapon(ToolKind::Pick) => 4,
             _ => 0,
         };
         let skills_top_r = match sel_tab {
@@ -1976,6 +1987,65 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                 );
             },
+            SelectedSkillTree::Weapon(ToolKind::Pick) => {
+                use skills::MiningSkill::*;
+                // Mining
+                Image::new(animate_by_pulse(
+                    &self
+                        .item_imgs
+                        .img_ids_or_not_found_img(Tool("example_pick".to_string())),
+                    self.pulse,
+                ))
+                .wh(art_size)
+                .middle_of(state.content_align)
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+                .set(state.pick_render, ui);
+                // Top Left skills
+                //        5 1 6
+                //        3 0 4
+                //        8 2 7
+                Button::image(self.imgs.pickaxe)
+                    .w_h(74.0, 74.0)
+                    .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &self.localized_strings.get("hud.skill.pick_strike_title"),
+                        &self.localized_strings.get("hud.skill.pick_strike"),
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_pick_m1, ui);
+                self.create_unlock_skill_button(
+                    Skill::Pick(Speed),
+                    self.imgs.pickaxe_speed_skill,
+                    state.skills_top_l[1],
+                    "pick_strike_speed",
+                    state.skill_pick_m1_0,
+                    ui,
+                    &mut events,
+                    &diary_tooltip,
+                );
+                self.create_unlock_skill_button(
+                    Skill::Pick(OreGain),
+                    self.imgs.pickaxe_oregain_skill,
+                    state.skills_top_l[2],
+                    "pick_strike_oregain",
+                    state.skill_pick_m1_1,
+                    ui,
+                    &mut events,
+                    &diary_tooltip,
+                );
+                self.create_unlock_skill_button(
+                    Skill::Pick(GemGain),
+                    self.imgs.pickaxe_gemgain_skill,
+                    state.skills_top_l[3],
+                    "pick_strike_gemgain",
+                    state.skill_pick_m1_2,
+                    ui,
+                    &mut events,
+                    &diary_tooltip,
+                );
+            },
             _ => {},
         }
 
@@ -2034,6 +2104,7 @@ fn skill_tree_from_str(string: &str) -> Option<SelectedSkillTree> {
         "Sceptre" => Some(SelectedSkillTree::Weapon(ToolKind::Sceptre)),
         "Bow" => Some(SelectedSkillTree::Weapon(ToolKind::Bow)),
         "Fire Staff" => Some(SelectedSkillTree::Weapon(ToolKind::Staff)),
+        "Mining" => Some(SelectedSkillTree::Weapon(ToolKind::Pick)),
         _ => None,
     }
 }

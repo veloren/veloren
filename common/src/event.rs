@@ -164,6 +164,7 @@ pub enum ServerEvent {
     },
     // Attempt to mine a block, turning it into an item
     MineBlock {
+        entity: EcsEntity,
         pos: Vec3<i32>,
         tool: Option<comp::tool::ToolKind>,
     },

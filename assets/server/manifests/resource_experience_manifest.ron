@@ -1,0 +1,19 @@
+ResourceExperienceManifest({
+    "common.items.mineral.gem.amethyst": 4,
+    "common.items.mineral.gem.sapphire": 8,
+    "common.items.mineral.gem.topaz": 4,
+    "common.items.mineral.gem.diamond": 25,
+    "common.items.mineral.gem.emerald": 10,
+    "common.items.mineral.gem.ruby": 12,
+
+    "common.items.mineral.ore.coal": 6,
+    "common.items.mineral.ore.gold": 25,
+    "common.items.mineral.ore.iron": 4,
+    "common.items.mineral.ore.silver": 22,
+    "common.items.mineral.ore.velorite": 8,
+    "common.items.mineral.ore.veloritefrag": 4,
+    "common.items.mineral.ore.bloodstone": 20,
+    "common.items.mineral.ore.cobalt": 15,
+    "common.items.mineral.ore.copper": 3,
+    "common.items.mineral.ore.tin": 3,
+})

@@ -3,6 +3,7 @@ use tracing::error;
 use vek::*;
 
 use common::{
+    assets,
     comp::{
         self,
         agent::{AgentEvent, Sound, MAX_LISTEN_DIST},
@@ -11,7 +12,7 @@ use common::{
         item,
         slot::Slot,
         tool::ToolKind,
-        Inventory, Pos,
+        Inventory, Pos, SkillGroupKind,
     },
     consts::{MAX_MOUNT_RANGE, SOUND_TRAVEL_DIST_PER_VOLUME},
     outcome::Outcome,
@@ -26,6 +27,11 @@ use crate::{
     state_ext::StateExt,
     Server,
 };
+
+use hashbrown::{HashMap, HashSet};
+use lazy_static::lazy_static;
+use serde::Deserialize;
+use std::iter::FromIterator;
 
 pub fn handle_lantern(server: &mut Server, entity: EcsEntity, enable: bool) {
     let ecs = server.state_mut().ecs();
@@ -281,13 +287,81 @@ fn within_mounting_range(player_position: Option<&Pos>, mount_position: Option<&
     }
 }
 
-pub fn handle_mine_block(server: &mut Server, pos: Vec3<i32>, tool: Option<ToolKind>) {
+#[derive(Deserialize)]
+struct ResourceExperienceManifest(HashMap<String, i32>);
+
+impl assets::Asset for ResourceExperienceManifest {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
+lazy_static! {
+    static ref RESOURCE_EXPERIENCE_MANIFEST: assets::AssetHandle<ResourceExperienceManifest> =
+        assets::AssetExt::load_expect("server.manifests.resource_experience_manifest");
+}
+
+pub fn handle_mine_block(
+    server: &mut Server,
+    entity: EcsEntity,
+    pos: Vec3<i32>,
+    tool: Option<ToolKind>,
+) {
     let state = server.state_mut();
     if state.can_set_block(pos) {
         let block = state.terrain().get(pos).ok().copied();
         if let Some(block) = block.filter(|b| b.mine_tool().map_or(false, |t| Some(t) == tool)) {
             // Drop item if one is recoverable from the block
-            if let Some(item) = comp::Item::try_reclaim_from_block(block) {
+            if let Some(mut item) = comp::Item::try_reclaim_from_block(block) {
+                if let Some(mut skillset) = state
+                    .ecs()
+                    .write_storage::<comp::SkillSet>()
+                    .get_mut(entity)
+                {
+                    if let (Some(tool), Some(uid), Some(exp_reward)) = (
+                        tool,
+                        state.ecs().uid_from_entity(entity),
+                        RESOURCE_EXPERIENCE_MANIFEST
+                            .read()
+                            .0
+                            .get(item.item_definition_id()),
+                    ) {
+                        skillset.change_experience(SkillGroupKind::Weapon(tool), *exp_reward);
+                        state
+                            .ecs()
+                            .write_resource::<Vec<Outcome>>()
+                            .push(Outcome::ExpChange {
+                                uid,
+                                exp: *exp_reward,
+                                xp_pools: HashSet::from_iter(vec![SkillGroupKind::Weapon(tool)]),
+                            });
+                    }
+                    use common::comp::skills::{MiningSkill, Skill};
+                    use rand::Rng;
+                    let mut rng = rand::thread_rng();
+                    if item.item_definition_id().contains("mineral.ore.")
+                        && rng.gen_bool(
+                            0.05 * skillset
+                                .skill_level(Skill::Pick(MiningSkill::OreGain))
+                                .ok()
+                                .flatten()
+                                .unwrap_or(0) as f64,
+                        )
+                    {
+                        let _ = item.increase_amount(1);
+                    }
+                    if item.item_definition_id().contains("mineral.gem.")
+                        && rng.gen_bool(
+                            0.05 * skillset
+                                .skill_level(Skill::Pick(MiningSkill::GemGain))
+                                .ok()
+                                .flatten()
+                                .unwrap_or(0) as f64,
+                        )
+                    {
+                        let _ = item.increase_amount(1);
+                    }
+                }
                 state
                     .create_object(Default::default(), comp::object::Body::Pouch)
                     .with(comp::Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)))

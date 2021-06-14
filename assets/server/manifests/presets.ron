@@ -127,6 +127,10 @@
         (Sceptre(ADuration), 2),
         (Sceptre(ARange), 2),
         (Sceptre(ACost), 2),
+        // Mining
+        (Pick(Speed), 3),
+        (Pick(OreGain), 3),
+        (Pick(GemGain), 3),
     ],
     // Just copypasta from max with random reductions
     "middle": [

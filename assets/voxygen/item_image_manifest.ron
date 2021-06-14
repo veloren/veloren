@@ -65,6 +65,10 @@
         "voxel.weapon.sceptre.wood-nature",
         (-1.0, 0.0, 0.0), (-90.0, 55.0, 0.0), 1.0,
     ),
+    Tool("example_pick"): VoxTrans(
+        "voxel.weapon.tool.pickaxe_green-0",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
     Tool("example_dagger"): VoxTrans(
         "voxel.weapon.dagger.dagger_basic-0",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
