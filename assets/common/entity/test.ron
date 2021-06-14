@@ -1,0 +1,30 @@
+EntityConfig (
+    /// Name of Entity
+    name: Some("Paddy"),
+
+    /// Body
+    /// Can be Exact (Body with all fields e.g BodyType, Species, Hair color and such)
+    /// or RandomWith (will generate random body or species)
+    body: Some(RandomWith("humanoid")),
+
+    /// Main and second tools
+    /// Can be Option<Item> (with asset_specifier for item)
+    /// or Choice
+    /// (array of pairs with weight of choosing some item and Option<Item>)
+    main_tool: Some(Item("common.items.weapons.axe_1h.orichalcum-0")),
+    second_tool: None,
+
+    /// Loadout Config (with asset_specifier for loadout)
+    loadout_asset: Some("common.loadout.village.merchant"),
+
+    /// Skillset Config (with asset_specifier for skillset)
+    skillset_asset: Some("common.skillset.village.merchant"),
+
+    /// Loot
+    /// Can be Item (with asset_specifier for item)
+    /// or LootTable (with asset_specifier for loot table)
+    loot: Some(LootTable("common.loot_tables.humanoids")),
+
+    /// Meta Info (level, alignment, agency, etc)
+    // meta: {},
+)

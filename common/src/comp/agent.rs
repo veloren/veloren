@@ -32,6 +32,12 @@ pub enum Alignment {
     Passive,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum Mark {
+    Merchant,
+    Guard,
+}
+
 impl Alignment {
     // Always attacks
     pub fn hostile_towards(self, other: Alignment) -> bool {

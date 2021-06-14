@@ -9,14 +9,10 @@ use crate::{
 };
 
 use common::{
-    assets::{AssetExt, AssetHandle},
+    assets::AssetHandle,
     astar::Astar,
-    comp::{
-        inventory::loadout_builder,
-        {self},
-    },
+    comp::{self},
     generation::{ChunkSupplement, EntityInfo},
-    lottery::{LootSpec, Lottery},
     store::{Id, Store},
     terrain::{Block, BlockKind, SpriteKind, Structure, StructuresGroup, TerrainChunkSize},
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, WriteVol},
@@ -570,7 +566,7 @@ impl Floor {
                             3 => enemy_3(dynamic_rng, raw_entity),
                             4 => enemy_4(dynamic_rng, raw_entity),
                             5 => enemy_5(dynamic_rng, raw_entity),
-                            _ => enemy_fallback(dynamic_rng, raw_entity),
+                            _ => enemy_fallback(raw_entity),
                         };
                         supplement.add_entity(
                             entity.with_alignment(comp::Alignment::Enemy).with_level(
@@ -600,13 +596,13 @@ impl Floor {
 
                         if tile_pos == boss_spawn_tile && tile_wcenter.xy() == wpos2d {
                             let entities = match room.difficulty {
-                                0 => boss_0(dynamic_rng, tile_wcenter),
-                                1 => boss_1(dynamic_rng, tile_wcenter),
-                                2 => boss_2(dynamic_rng, tile_wcenter),
-                                3 => boss_3(dynamic_rng, tile_wcenter),
-                                4 => boss_4(dynamic_rng, tile_wcenter),
-                                5 => boss_5(dynamic_rng, tile_wcenter),
-                                _ => boss_fallback(dynamic_rng, tile_wcenter),
+                                0 => boss_0(tile_wcenter),
+                                1 => boss_1(tile_wcenter),
+                                2 => boss_2(tile_wcenter),
+                                3 => boss_3(tile_wcenter),
+                                4 => boss_4(tile_wcenter),
+                                5 => boss_5(tile_wcenter),
+                                _ => boss_fallback(tile_wcenter),
                             };
 
                             for entity in entities {
@@ -643,13 +639,13 @@ impl Floor {
 
                         if tile_pos == miniboss_spawn_tile && tile_wcenter.xy() == wpos2d {
                             let entities = match room.difficulty {
-                                0 => mini_boss_0(dynamic_rng, tile_wcenter),
-                                1 => mini_boss_1(dynamic_rng, tile_wcenter),
-                                2 => mini_boss_2(dynamic_rng, tile_wcenter),
-                                3 => mini_boss_3(dynamic_rng, tile_wcenter),
-                                4 => mini_boss_4(dynamic_rng, tile_wcenter),
+                                0 => mini_boss_0(tile_wcenter),
+                                1 => mini_boss_1(tile_wcenter),
+                                2 => mini_boss_2(tile_wcenter),
+                                3 => mini_boss_3(tile_wcenter),
+                                4 => mini_boss_4(tile_wcenter),
                                 5 => mini_boss_5(dynamic_rng, tile_wcenter),
-                                _ => mini_boss_fallback(dynamic_rng, tile_wcenter),
+                                _ => mini_boss_fallback(tile_wcenter),
                             };
 
                             for entity in entities {
@@ -926,350 +922,150 @@ impl Floor {
 }
 
 fn enemy_0(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-0.enemy");
-
-    entity
-        .with_body(comp::Body::BipedSmall(
-            comp::biped_small::Body::random_with(
-                dynamic_rng,
-                &comp::biped_small::Species::Gnarling,
-            ),
-        ))
-        .with_name("Gnarling")
-        .with_loadout_config(loadout_builder::LoadoutConfig::Gnarling)
-        .with_skillset_config(common::skillset_builder::SkillSetConfig::Gnarling)
-        .with_loot_drop(chosen.read().choose().to_item())
-        .with_main_tool(comp::Item::new_from_asset_expect(
-            match dynamic_rng.gen_range(0..5) {
-                0 => "common.items.npc_weapons.biped_small.gnarling.adlet_bow",
-                1 => "common.items.npc_weapons.biped_small.gnarling.gnoll_staff",
-                _ => "common.items.npc_weapons.biped_small.gnarling.wooden_spear",
-            },
-        ))
+    match dynamic_rng.gen_range(0..5) {
+        0 => entity.with_asset_expect("common.entity.dungeon.tier-0.bow"),
+        1 => entity.with_asset_expect("common.entity.dungeon.tier-0.staff"),
+        _ => entity.with_asset_expect("common.entity.dungeon.tier-0.spear"),
+    }
 }
 
 fn enemy_1(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-1.enemy");
-
-    entity
-        .with_body(comp::Body::BipedSmall(
-            comp::biped_small::Body::random_with(dynamic_rng, &comp::biped_small::Species::Adlet),
-        ))
-        .with_name("Adlet")
-        .with_loadout_config(loadout_builder::LoadoutConfig::Adlet)
-        .with_skillset_config(common::skillset_builder::SkillSetConfig::Adlet)
-        .with_loot_drop(chosen.read().choose().to_item())
-        .with_main_tool(comp::Item::new_from_asset_expect(
-            match dynamic_rng.gen_range(0..5) {
-                0 => "common.items.npc_weapons.biped_small.adlet.adlet_bow",
-                1 => "common.items.npc_weapons.biped_small.adlet.gnoll_staff",
-                _ => "common.items.npc_weapons.biped_small.adlet.wooden_spear",
-            },
-        ))
+    match dynamic_rng.gen_range(0..5) {
+        0 => entity.with_asset_expect("common.entity.dungeon.tier-1.bow"),
+        1 => entity.with_asset_expect("common.entity.dungeon.tier-1.staff"),
+        _ => entity.with_asset_expect("common.entity.dungeon.tier-1.spear"),
+    }
 }
 
 fn enemy_2(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-2.enemy");
-
-    entity
-        .with_body(comp::Body::BipedSmall(
-            comp::biped_small::Body::random_with(dynamic_rng, &comp::biped_small::Species::Sahagin),
-        ))
-        .with_name("Sahagin")
-        .with_loadout_config(loadout_builder::LoadoutConfig::Sahagin)
-        .with_skillset_config(common::skillset_builder::SkillSetConfig::Sahagin)
-        .with_loot_drop(chosen.read().choose().to_item())
-        .with_main_tool(comp::Item::new_from_asset_expect(
-            match dynamic_rng.gen_range(0..5) {
-                0 => "common.items.npc_weapons.biped_small.sahagin.adlet_bow",
-                1 => "common.items.npc_weapons.biped_small.sahagin.gnoll_staff",
-                _ => "common.items.npc_weapons.biped_small.sahagin.wooden_spear",
-            },
-        ))
+    match dynamic_rng.gen_range(0..5) {
+        0 => entity.with_asset_expect("common.entity.dungeon.tier-2.bow"),
+        1 => entity.with_asset_expect("common.entity.dungeon.tier-2.staff"),
+        _ => entity.with_asset_expect("common.entity.dungeon.tier-2.spear"),
+    }
 }
-fn enemy_3(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-3.enemy");
 
-    match dynamic_rng.gen_range(0..4) {
+fn enemy_3(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
+    match dynamic_rng.gen_range(0..5) {
         0 => entity
             .with_body(comp::Body::Object(comp::object::Body::HaniwaSentry))
-            .with_name("Haniwa Sentry".to_string())
-            .with_loot_drop(comp::Item::new_from_asset_expect(
-                "common.items.crafting_ing.stones",
-            )),
-        _ => entity
-            .with_body(comp::Body::BipedSmall(
-                comp::biped_small::Body::random_with(
-                    dynamic_rng,
-                    &comp::biped_small::Species::Haniwa,
-                ),
-            ))
-            .with_name("Haniwa")
-            .with_loadout_config(loadout_builder::LoadoutConfig::Haniwa)
-            .with_skillset_config(common::skillset_builder::SkillSetConfig::Haniwa)
-            .with_loot_drop(chosen.read().choose().to_item())
-            .with_main_tool(comp::Item::new_from_asset_expect(
-                match dynamic_rng.gen_range(0..5) {
-                    0 => "common.items.npc_weapons.biped_small.haniwa.adlet_bow",
-                    1 => "common.items.npc_weapons.biped_small.haniwa.gnoll_staff",
-                    _ => "common.items.npc_weapons.biped_small.haniwa.wooden_spear",
-                },
-            )),
+            .with_asset_expect("common.entity.dungeon.tier-3.sentry"),
+        1 => entity.with_asset_expect("common.entity.dungeon.tier-3.bow"),
+        2 => entity.with_asset_expect("common.entity.dungeon.tier-3.staff"),
+        _ => entity.with_asset_expect("common.entity.dungeon.tier-3.spear"),
     }
 }
 fn enemy_4(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-4.enemy");
-
-    entity
-        .with_body(comp::Body::BipedSmall(
-            comp::biped_small::Body::random_with(
-                dynamic_rng,
-                &comp::biped_small::Species::Myrmidon,
-            ),
-        ))
-        .with_name("Myrmidon")
-        .with_loadout_config(loadout_builder::LoadoutConfig::Myrmidon)
-        .with_skillset_config(common::skillset_builder::SkillSetConfig::Myrmidon)
-        .with_loot_drop(chosen.read().choose().to_item())
-        .with_main_tool(comp::Item::new_from_asset_expect(
-            match dynamic_rng.gen_range(0..5) {
-                0 => "common.items.npc_weapons.biped_small.myrmidon.adlet_bow",
-                1 => "common.items.npc_weapons.biped_small.myrmidon.gnoll_staff",
-                _ => "common.items.npc_weapons.biped_small.myrmidon.wooden_spear",
-            },
-        ))
-}
-fn enemy_5(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-5.enemy");
-
-    match dynamic_rng.gen_range(0..6) {
-        0 => entity
-            .with_body(comp::Body::Object(comp::object::Body::Crossbow))
-            .with_name("Possessed Turret".to_string())
-            .with_loot_drop(comp::Item::new_from_asset_expect(
-                "common.items.crafting_ing.twigs",
-            )),
-        1 => entity
-            .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
-            .with_name("Cultist Warlock")
-            .with_loadout_config(loadout_builder::LoadoutConfig::Warlock)
-            .with_skillset_config(common::skillset_builder::SkillSetConfig::Warlock)
-            .with_loot_drop(chosen.read().choose().to_item())
-            .with_main_tool(comp::Item::new_from_asset_expect(
-                "common.items.weapons.staff.cultist_staff",
-            )),
-        _ => entity
-            .with_name("Cultist Warlord")
-            .with_loadout_config(loadout_builder::LoadoutConfig::Warlord)
-            .with_skillset_config(common::skillset_builder::SkillSetConfig::Warlord)
-            .with_loot_drop(chosen.read().choose().to_item())
-            .with_main_tool(comp::Item::new_from_asset_expect(
-                match dynamic_rng.gen_range(0..6) {
-                    0 => "common.items.weapons.axe_1h.orichalcum-0",
-                    1..=2 => "common.items.weapons.sword.cultist",
-                    3 => "common.items.weapons.hammer.cultist_purp_2h-0",
-                    4 => "common.items.weapons.hammer_1h.orichalcum-0",
-                    _ => "common.items.weapons.bow.bone-1",
-                },
-            )),
+    match dynamic_rng.gen_range(0..5) {
+        0 => entity.with_asset_expect("common.entity.dungeon.tier-4.bow"),
+        1 => entity.with_asset_expect("common.entity.dungeon.tier-4.staff"),
+        _ => entity.with_asset_expect("common.entity.dungeon.tier-4.spear"),
     }
 }
 
-fn enemy_fallback(_dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.fallback");
-
-    entity
-        .with_name("Humanoid")
-        .with_loot_drop(chosen.read().choose().to_item())
-        .with_main_tool(comp::Item::new_from_asset_expect(
-            "common.items.weapons.bow.bone-1",
-        ))
+fn enemy_5(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
+    match dynamic_rng.gen_range(0..6) {
+        0 => entity
+            .with_body(comp::Body::Object(comp::object::Body::Crossbow))
+            .with_asset_expect("common.entity.dungeon.tier-5.turret"),
+        1 => entity.with_asset_expect("common.entity.dungeon.tier-5.warlock"),
+        _ => entity.with_asset_expect("common.entity.dungeon.tier-5.warlord"),
+    }
 }
 
-fn boss_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-0.boss");
+fn enemy_fallback(entity: EntityInfo) -> EntityInfo {
+    entity.with_asset_expect("common.entity.dungeon.fallback.enemy")
+}
 
+fn boss_0(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_body(comp::Body::BipedLarge(
-                comp::biped_large::Body::random_with(
-                    dynamic_rng,
-                    &comp::biped_large::Species::Harvester,
-                ),
-            ))
-            .with_name("Harvester".to_string())
-            .with_loot_drop(chosen.read().choose().to_item()),
+            .with_asset_expect("common.entity.dungeon.tier-0.boss"),
     ]
 }
-fn boss_1(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-1.boss");
 
+fn boss_1(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_body(comp::Body::BipedLarge(
-                comp::biped_large::Body::random_with(
-                    dynamic_rng,
-                    &comp::biped_large::Species::Yeti,
-                ),
-            ))
-            .with_name("Yeti".to_string())
-            .with_loot_drop(chosen.read().choose().to_item()),
+            .with_asset_expect("common.entity.dungeon.tier-1.boss"),
     ]
 }
-fn boss_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-2.boss");
 
+fn boss_2(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_body(comp::Body::BipedLarge(
-                comp::biped_large::Body::random_with(
-                    dynamic_rng,
-                    &comp::biped_large::Species::Tidalwarrior,
-                ),
-            ))
-            .with_name("Tidal Warrior".to_string())
-            .with_loot_drop(chosen.read().choose().to_item()),
+            .with_asset_expect("common.entity.dungeon.tier-2.boss"),
     ]
 }
-fn boss_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-3.boss");
-
+fn boss_3(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     let mut entities = Vec::new();
     entities.resize_with(2, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_body(comp::Body::Golem(comp::golem::Body::random_with(
-                dynamic_rng,
-                &comp::golem::Species::ClayGolem,
-            )))
-            .with_name("Clay Golem".to_string())
-            .with_loot_drop(chosen.read().choose().to_item())
+            .with_asset_expect("common.entity.dungeon.tier-3.boss")
     });
+
     entities
 }
 
-fn boss_4(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-4.boss");
-
+fn boss_4(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_body(comp::Body::BipedLarge(
-                comp::biped_large::Body::random_with(
-                    dynamic_rng,
-                    &comp::biped_large::Species::Minotaur,
-                ),
-            ))
-            .with_name("Minotaur".to_string())
-            .with_loot_drop(chosen.read().choose().to_item()),
+            .with_asset_expect("common.entity.dungeon.tier-4.boss"),
     ]
 }
 
-fn boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-5.boss");
-
+fn boss_5(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_body(comp::Body::BipedLarge(
-                comp::biped_large::Body::random_with(
-                    dynamic_rng,
-                    &comp::biped_large::Species::Mindflayer,
-                ),
-            ))
-            .with_name("Mindflayer".to_string())
-            .with_loot_drop(chosen.read().choose().to_item())
-            .with_skillset_config(common::skillset_builder::SkillSetConfig::Mindflayer),
+            .with_asset_expect("common.entity.dungeon.tier-5.boss"),
     ]
 }
 
-fn boss_fallback(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    vec![
-        EntityInfo::at(tile_wcenter.map(|e| e as f32)).with_body(comp::Body::QuadrupedSmall(
-            comp::quadruped_small::Body::random_with(
-                dynamic_rng,
-                &comp::quadruped_small::Species::Sheep,
-            ),
-        )),
-    ]
-}
-
-fn mini_boss_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-0.miniboss");
+fn boss_fallback(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_body(comp::Body::QuadrupedLow(
-                comp::quadruped_low::Body::random_with(
-                    dynamic_rng,
-                    &comp::quadruped_low::Species::Deadwood,
-                ),
-            ))
-            .with_name("Deadwood".to_string())
-            .with_loot_drop(chosen.read().choose().to_item()),
+            .with_asset_expect("common.entity.dungeon.fallback.boss"),
     ]
 }
 
-fn mini_boss_1(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.creature.quad_small.generic");
+fn mini_boss_0(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    vec![
+        EntityInfo::at(tile_wcenter.map(|e| e as f32))
+            .with_asset_expect("common.entity.dungeon.tier-0.miniboss"),
+    ]
+}
+
+fn mini_boss_1(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     let mut entities = Vec::new();
     entities.resize_with(8, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_body(comp::Body::QuadrupedSmall(
-                comp::quadruped_small::Body::random_with(
-                    dynamic_rng,
-                    &comp::quadruped_small::Species::Rat,
-                ),
-            ))
-            .with_name("Rat".to_string())
-            .with_loot_drop(chosen.read().choose().to_item())
+            .with_asset_expect("common.entity.dungeon.tier-1.rat")
     });
     entities
 }
 
-fn mini_boss_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.creature.quad_low.fanged");
+fn mini_boss_2(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     let mut entities = Vec::new();
     entities.resize_with(6, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_body(comp::Body::QuadrupedLow(
-                comp::quadruped_low::Body::random_with(
-                    dynamic_rng,
-                    &comp::quadruped_low::Species::Hakulaq,
-                ),
-            ))
-            .with_name("Hakulaq".to_string())
-            .with_loot_drop(chosen.read().choose().to_item())
+            .with_asset_expect("common.entity.dungeon.tier-2.hakulaq")
     });
     entities
 }
 
-fn mini_boss_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen =
-        Lottery::<LootSpec>::load_expect("common.loot_tables.creature.quad_medium.carapace");
+fn mini_boss_3(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     let mut entities = Vec::new();
     entities.resize_with(3, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_body(comp::Body::QuadrupedMedium(
-                comp::quadruped_medium::Body::random_with(
-                    dynamic_rng,
-                    &comp::quadruped_medium::Species::Bonerattler,
-                ),
-            ))
-            .with_name("Bonerattler".to_string())
-            .with_loot_drop(chosen.read().choose().to_item())
+            .with_asset_expect("common.entity.dungeon.tier-3.bonerattler")
     });
     entities
 }
 
-fn mini_boss_4(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-4.miniboss");
+fn mini_boss_4(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_body(comp::Body::BipedLarge(
-                comp::biped_large::Body::random_with(
-                    dynamic_rng,
-                    &comp::biped_large::Species::Dullahan,
-                ),
-            ))
-            .with_name("Dullahan Guard".to_string())
-            .with_loot_drop(chosen.read().choose().to_item()),
+            .with_asset_expect("common.entity.dungeon.tier-4.miniboss"),
     ]
 }
 
@@ -1277,62 +1073,29 @@ fn mini_boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
     let mut entities = Vec::new();
     match dynamic_rng.gen_range(0..2) {
         0 => {
-            let trainer_loot =
-                Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-5.miniboss");
-            let hound_loot =
-                Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-5.minion");
             entities.push(
                 EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                    .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
-                    .with_name("Beastmaster".to_string())
-                    .with_loot_drop(trainer_loot.read().choose().to_item())
-                    .with_loadout_config(loadout_builder::LoadoutConfig::Beastmaster)
-                    .with_skillset_config(common::skillset_builder::SkillSetConfig::CultistAcolyte)
-                    .with_main_tool(comp::Item::new_from_asset_expect(
-                        match dynamic_rng.gen_range(0..3) {
-                            0 => "common.items.weapons.axe.malachite_axe-0",
-                            1 => "common.items.weapons.sword.bloodsteel-1",
-                            _ => "common.items.weapons.bow.velorite",
-                        },
-                    )),
+                    .with_asset_expect("common.entity.dungeon.tier-5.beastmaster"),
             );
             entities.resize_with(entities.len() + 2, || {
                 EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                    .with_body(comp::Body::QuadrupedMedium(
-                        comp::quadruped_medium::Body::random_with(
-                            dynamic_rng,
-                            &comp::quadruped_medium::Species::Darkhound,
-                        ),
-                    ))
-                    .with_name("Tamed Darkhound".to_string())
-                    .with_loot_drop(hound_loot.read().choose().to_item())
+                    .with_asset_expect("common.entity.dungeon.tier-5.hound")
             });
         },
         _ => {
-            let chosen =
-                Lottery::<LootSpec>::load_expect("common.loot_tables.dungeon.tier-5.minion");
             entities.resize_with(10, || {
                 EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                    .with_body(comp::Body::BipedSmall(
-                        comp::biped_small::Body::random_with(
-                            dynamic_rng,
-                            &comp::biped_small::Species::Husk,
-                        ),
-                    ))
-                    .with_name("Cultist Husk".to_string())
-                    .with_loot_drop(chosen.read().choose().to_item())
-                    .with_loadout_config(loadout_builder::LoadoutConfig::Husk)
+                    .with_asset_expect("common.entity.dungeon.tier-5.husk")
             });
         },
     }
     entities
 }
 
-fn mini_boss_fallback(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+fn mini_boss_fallback(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
-        EntityInfo::at(tile_wcenter.map(|e| e as f32)).with_body(comp::Body::BirdMedium(
-            comp::bird_medium::Body::random_with(dynamic_rng, &comp::bird_medium::Species::Goose),
-        )),
+        EntityInfo::at(tile_wcenter.map(|e| e as f32))
+            .with_asset_expect("common.entity.dungeon.fallback.miniboss"),
     ]
 }
 
@@ -1342,19 +1105,18 @@ mod tests {
 
     #[test]
     fn test_creating_bosses() {
-        let mut dynamic_rng = rand::thread_rng();
         let tile_wcenter = Vec3::new(0, 0, 0);
-        boss_0(&mut dynamic_rng, tile_wcenter);
-        boss_1(&mut dynamic_rng, tile_wcenter);
-        boss_2(&mut dynamic_rng, tile_wcenter);
-        boss_3(&mut dynamic_rng, tile_wcenter);
-        boss_4(&mut dynamic_rng, tile_wcenter);
-        boss_5(&mut dynamic_rng, tile_wcenter);
-        boss_fallback(&mut dynamic_rng, tile_wcenter);
+        boss_0(tile_wcenter);
+        boss_1(tile_wcenter);
+        boss_2(tile_wcenter);
+        boss_3(tile_wcenter);
+        boss_4(tile_wcenter);
+        boss_5(tile_wcenter);
+        boss_fallback(tile_wcenter);
     }
 
-    //FIXME: it will miss items with rng branching
     #[test]
+    // FIXME: Uses random, test may be not great
     fn test_creating_enemies() {
         let mut dynamic_rng = rand::thread_rng();
         let raw_entity = EntityInfo::at(Vec3::new(0.0, 0.0, 0.0));
@@ -1364,20 +1126,20 @@ mod tests {
         enemy_3(&mut dynamic_rng, raw_entity.clone());
         enemy_4(&mut dynamic_rng, raw_entity.clone());
         enemy_5(&mut dynamic_rng, raw_entity.clone());
-        enemy_fallback(&mut dynamic_rng, raw_entity);
+        enemy_fallback(raw_entity);
     }
 
-    //FIXME: it will miss items with rng branching
     #[test]
+    // FIXME: Uses random, test may be not great
     fn test_creating_minibosses() {
         let mut dynamic_rng = rand::thread_rng();
         let tile_wcenter = Vec3::new(0, 0, 0);
-        mini_boss_0(&mut dynamic_rng, tile_wcenter);
-        mini_boss_1(&mut dynamic_rng, tile_wcenter);
-        mini_boss_2(&mut dynamic_rng, tile_wcenter);
-        mini_boss_3(&mut dynamic_rng, tile_wcenter);
-        mini_boss_4(&mut dynamic_rng, tile_wcenter);
+        mini_boss_0(tile_wcenter);
+        mini_boss_1(tile_wcenter);
+        mini_boss_2(tile_wcenter);
+        mini_boss_3(tile_wcenter);
+        mini_boss_4(tile_wcenter);
         mini_boss_5(&mut dynamic_rng, tile_wcenter);
-        mini_boss_fallback(&mut dynamic_rng, tile_wcenter);
+        mini_boss_fallback(tile_wcenter);
     }
 }

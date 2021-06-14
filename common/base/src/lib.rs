@@ -23,6 +23,27 @@ macro_rules! plot {
     };
 }
 
+// Panic in debug or tests, warn in release
+#[macro_export]
+macro_rules! dev_panic {
+    ($msg:expr) => {
+        if cfg!(any(debug_assertions, test)) {
+            panic!("{}", $msg);
+        } else {
+            tracing::warn!("{}", $msg);
+        }
+    };
+
+    ($msg:expr, or return $result:expr) => {
+        if cfg!(any(debug_assertions, test)) {
+            panic!("{}", $msg);
+        } else {
+            tracing::warn!("{}", $msg);
+            return $result;
+        }
+    };
+}
+
 // https://discordapp.com/channels/676678179678715904/676685797524766720/723358438943621151
 #[macro_export]
 macro_rules! span {

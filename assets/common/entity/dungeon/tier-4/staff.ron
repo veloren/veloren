@@ -1,0 +1,12 @@
+EntityConfig (
+    name: Some("Myrmidon Wizard"),
+    body: Some(RandomWith("myrmidon")),
+
+    loot: Some(LootTable("common.loot_tables.dungeon.tier-4.enemy")),
+
+    main_tool: Some(Item("common.items.npc_weapons.biped_small.myrmidon.gnoll_staff")),
+    second_tool: None,
+
+    loadout_asset: Some("common.loadout.dungeon.tier-4.myrmidon"),
+    skillset_asset: None,
+)

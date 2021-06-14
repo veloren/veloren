@@ -1,0 +1,12 @@
+EntityConfig (
+    name: Some("Cultist Warlock"),
+    body: Some(RandomWith("humanoid")),
+
+    loot: Some(LootTable("common.loot_tables.dungeon.tier-5.enemy")),
+
+    main_tool: Some(Item("common.items.weapons.staff.cultist_staff")),
+    second_tool: None,
+
+    loadout_asset: Some("common.loadout.dungeon.tier-5.warlock"),
+    skillset_asset: Some("common.skillset.dungeon.tier-5.enemy"),
+)

@@ -1,0 +1,12 @@
+EntityConfig (
+    name: Some("Gnarling Mugger"),
+    body: Some(RandomWith("gnarling")),
+
+    loot: Some(LootTable("common.loot_tables.dungeon.tier-0.enemy")),
+
+    main_tool: Some(Item("common.items.npc_weapons.biped_small.gnarling.wooden_spear")),
+    second_tool: None,
+
+    loadout_asset: Some("common.loadout.dungeon.tier-0.gnarling"),
+    skillset_asset: None,
+)

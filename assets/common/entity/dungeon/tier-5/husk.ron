@@ -1,0 +1,12 @@
+EntityConfig (
+    name: Some("Cultist Husk"),
+    body: Some(RandomWith("husk")),
+
+    loot: Some(LootTable("common.loot_tables.dungeon.tier-5.minion")),
+
+    main_tool: None,
+    second_tool: None,
+
+    loadout_asset: Some("common.loadout.dungeon.tier-5.husk"),
+    skillset_asset: None,
+)

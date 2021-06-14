@@ -1,0 +1,12 @@
+EntityConfig (
+    name: Some("Haniwa Sentry"),
+    body: None,
+
+    loot: Some(Item("common.items.crafting_ing.stones")),
+
+    main_tool: None,
+    second_tool: None,
+
+    loadout_asset: None,
+    skillset_asset: None,
+)

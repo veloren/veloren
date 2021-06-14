@@ -1,0 +1,20 @@
+EntityConfig (
+    name: Some("Yan Hus"),
+    body: Some(RandomWith("humanoid")),
+
+    loot: Some(LootTable("common.loot_tables.fallback")),
+
+    main_tool: Some(Choice([
+        (1.0, Some(Item("common.items.weapons.tool.broom"))),
+        (1.0, Some(Item("common.items.weapons.tool.hoe"))),
+        (1.0, Some(Item("common.items.weapons.tool.pickaxe"))),
+        (1.0, Some(Item("common.items.weapons.tool.rake"))),
+        (1.0, Some(Item("common.items.weapons.tool.shovel-0"))),
+        (1.0, Some(Item("common.items.weapons.tool.shovel-1"))),
+        (1.0, Some(Item("common.items.weapons.bow.bone-1"))),
+    ])),
+    second_tool: None,
+
+    loadout_asset: None,
+    skillset_asset: None,
+)

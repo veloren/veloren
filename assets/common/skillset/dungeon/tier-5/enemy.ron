@@ -1,0 +1,8 @@
+([
+    // Just gather everything
+    Tree("common.skillset.dungeon.tier-5.sword"),
+    Tree("common.skillset.dungeon.tier-5.axe"),
+    Tree("common.skillset.dungeon.tier-5.hammer"),
+    Tree("common.skillset.dungeon.tier-5.bow"),
+    Tree("common.skillset.dungeon.tier-5.staff"),
+])

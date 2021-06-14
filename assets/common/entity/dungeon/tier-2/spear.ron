@@ -1,0 +1,12 @@
+EntityConfig (
+    name: Some("Sahagin Spearman"),
+    body: Some(RandomWith("sahagin")),
+
+    loot: Some(LootTable("common.loot_tables.dungeon.tier-2.enemy")),
+
+    main_tool: Some(Item("common.items.npc_weapons.biped_small.sahagin.wooden_spear")),
+    second_tool: None,
+
+    loadout_asset: Some("common.loadout.dungeon.tier-2.sahagin"),
+    skillset_asset: None,
+)

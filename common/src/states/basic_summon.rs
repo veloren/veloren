@@ -1,12 +1,12 @@
 use crate::{
     comp::{
         self,
-        inventory::loadout_builder::{LoadoutBuilder, LoadoutConfig},
+        inventory::loadout_builder::{self, LoadoutBuilder},
         Behavior, BehaviorCapability, CharacterState, StateUpdate,
     },
     event::{LocalEvent, ServerEvent},
     outcome::Outcome,
-    skillset_builder::{SkillSetBuilder, SkillSetConfig},
+    skillset_builder::{self, SkillSetBuilder},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -74,22 +74,34 @@ impl CharacterBehavior for Data {
                         > self.static_data.cast_duration * self.summon_count
                             / self.static_data.summon_amount
                     {
-                        let body = self.static_data.summon_info.body;
-
-                        let loadout = LoadoutBuilder::build_loadout(
+                        let SummonInfo {
                             body,
-                            None,
-                            self.static_data.summon_info.loadout_config,
-                            None,
-                        )
-                        .build();
-                        let stats = comp::Stats::new("Summon".to_string());
-                        let skill_set = SkillSetBuilder::build_skillset(
-                            &None,
-                            self.static_data.summon_info.skillset_config,
-                        )
-                        .build();
+                            loadout_config,
+                            skillset_config,
+                            ..
+                        } = self.static_data.summon_info;
 
+                        let loadout = {
+                            let loadout_builder =
+                                LoadoutBuilder::new().with_default_maintool(&body);
+                            // If preset is none, use default equipment
+                            if let Some(preset) = loadout_config {
+                                loadout_builder.with_preset(preset).build()
+                            } else {
+                                loadout_builder.with_default_equipment(&body).build()
+                            }
+                        };
+
+                        let skill_set = {
+                            let skillset_builder = SkillSetBuilder::default();
+                            if let Some(preset) = skillset_config {
+                                skillset_builder.with_preset(preset).build()
+                            } else {
+                                skillset_builder.build()
+                            }
+                        };
+
+                        let stats = comp::Stats::new("Summon".to_string());
                         // Send server event to create npc
                         update.server_events.push_front(ServerEvent::CreateNpc {
                             pos: *data.pos,
@@ -175,6 +187,7 @@ pub struct SummonInfo {
     body: comp::Body,
     scale: Option<comp::Scale>,
     health_scaling: u16,
-    loadout_config: Option<LoadoutConfig>,
-    skillset_config: Option<SkillSetConfig>,
+    // TODO: use assets for specifying skills and loadout?
+    loadout_config: Option<loadout_builder::Preset>,
+    skillset_config: Option<skillset_builder::Preset>,
 }

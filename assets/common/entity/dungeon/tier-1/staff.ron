@@ -1,0 +1,12 @@
+EntityConfig (
+    name: Some("Adlet Shaman"),
+    body: Some(RandomWith("adlet")),
+
+    loot: Some(LootTable("common.loot_tables.dungeon.tier-1.enemy")),
+
+    main_tool: Some(Item("common.items.npc_weapons.biped_small.adlet.gnoll_staff")),
+    second_tool: None,
+
+    loadout_asset: Some("common.loadout.dungeon.tier-1.adlet_spear"),
+    skillset_asset: None,
+)

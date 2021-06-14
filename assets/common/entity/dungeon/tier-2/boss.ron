@@ -1,0 +1,12 @@
+EntityConfig (
+    name: Some("Tidal Warrior"),
+    body: Some(RandomWith("tidalwarrior")),
+
+    loot: Some(LootTable("common.loot_tables.dungeon.tier-2.boss")),
+
+    main_tool: None,
+    second_tool: None,
+
+    loadout_asset: None,
+    skillset_asset: None,
+)

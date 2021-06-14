@@ -1,0 +1,21 @@
+([
+    Group(Weapon(Axe)),
+
+    // DoubleStrike
+    Skill((Axe(DsCombo), None)),
+    Skill((Axe(DsDamage), Some(1))),
+    Skill((Axe(DsSpeed), Some(1))),
+    Skill((Axe(DsRegen), Some(1))),
+
+    // Spin
+    Skill((Axe(SInfinite), None)),
+    Skill((Axe(SHelicopter), None)),
+    Skill((Axe(SDamage), Some(1))),
+    Skill((Axe(SSpeed), Some(1))),
+
+    // Leap
+    Skill((Axe(UnlockLeap), None)),
+    Skill((Axe(LDamage), Some(1))),
+    Skill((Axe(LKnockback), Some(1))),
+    Skill((Axe(LDistance), Some(1))),
+])

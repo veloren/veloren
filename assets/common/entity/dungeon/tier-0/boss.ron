@@ -1,0 +1,12 @@
+EntityConfig (
+    name: Some("Harvester"),
+    body: Some(RandomWith("harvester")),
+
+    loot: Some(LootTable("common.loot_tables.dungeon.tier-0.boss")),
+
+    main_tool: None,
+    second_tool: None,
+
+    loadout_asset: None,
+    skillset_asset: None,
+)

@@ -1005,7 +1005,7 @@ fn handle_spawn(
                 );
 
                 let body = body();
-                let loadout = LoadoutBuilder::build_loadout(body, None, None, None).build();
+                let loadout = LoadoutBuilder::from_default(&body).build();
                 let inventory = Inventory::new_with_loadout(loadout);
 
                 let mut entity_base = server

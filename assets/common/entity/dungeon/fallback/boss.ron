@@ -1,0 +1,12 @@
+EntityConfig (
+    name: Some("Crazy Sheep"),
+    body: Some(RandomWith("sheep")),
+
+    loot: Some(LootTable("common.loot_tables.fallback")),
+
+    main_tool: None,
+    second_tool: None,
+
+    loadout_asset: None,
+    skillset_asset: None,
+)
