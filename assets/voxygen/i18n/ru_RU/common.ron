@@ -1,0 +1,117 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for RUS
+(
+    string_map: {
+        // Texts used in multiple locations with the same formatting
+        "common.username": "Юзернейм",
+        "common.singleplayer": "Одиночная игра",
+        "common.multiplayer": "Онлайн игра",
+        "common.servers": "Сервера",
+        "common.quit": "Выход",
+        "common.settings": "Настройки",
+        "common.languages": "Языки",
+        "common.interface": "Интерфейс",
+        "common.gameplay": "Гемплей",
+        "common.controls": "Управление",
+        "common.video": "Графика",
+        "common.sound": "Звук",
+        "common.chat": "Чат",
+        "common.resume": "Продолжить",
+        "common.characters": "Персонажи",
+        "common.close": "Закрыть",
+        "common.yes": "Да",
+        "common.no": "Нет",
+        "common.back": "Назад",
+        "common.create": "Создание",
+        "common.okay": "Окей",
+        "common.add": "Добавить",
+        "common.accept": "Принять",
+        "common.decline": "Отказаться",
+        "common.disclaimer": "Предупреждение",
+        "common.cancel": "Отменить",
+        "common.none": "Отключены",
+        "common.error": "Ошибка",
+        "common.fatal_error": "Фатальная ошибка",
+        "common.you": "Вы",
+        "common.automatic": "Авто",
+        "common.random": "Случайно",
+        "common.empty": "Пустой",
+
+        // Settings Window title
+        "common.interface_settings": "Настройки интерфейса",
+        "common.gameplay_settings": "Настройки гемплея",
+        "common.controls_settings": "Настройки управления",
+        "common.video_settings": "Графические настройки",
+        "common.sound_settings": "Настройки звука",
+        "common.language_settings": "Настройки языка",
+        "common.chat_settings": "Настройки чата",
+
+        // Message when connection to the server is lost
+        "common.connection_lost": r#"Связь потеряна!
+Клиент обновлен до версии сервера?"#,
+
+
+        "common.species.orc": "Орк",
+        "common.species.human": "Человек",
+        "common.species.dwarf": "Дварфы",
+        "common.species.elf": "Эльфы",
+        "common.species.undead": "Нежить",
+        "common.species.danari": "Данари",
+
+        "common.weapons.axe": "Топор",
+        "common.weapons.sword": "Меч",
+        "common.weapons.staff": "Посох",
+        "common.weapons.bow": "Лук",
+        "common.weapons.hammer": "Молот",
+        "common.weapons.general": "Общий бой",
+        "common.weapons.sceptre": "Скипетр",
+        "common.weapons.shield": "Защита",
+        "common.weapons.spear": "Копье",
+        "common.weapons.hammer_simple": "Простой молот",
+        "common.weapons.sword_simple": "Простой меч",
+        "common.weapons.staff_simple": "Простой посох",
+        "common.weapons.axe_simple": "Простой топор",
+        "common.weapons.bow_simple": "Простой лук",
+        "common.weapons.unique": "Уникальный",
+        "common.tool.debug": "Дебаг",
+        "common.tool.faming": "Сельскохозяйственный инструмент",
+        "common.tool.pick": "Кирка",
+        "common.kind.modular_component": "Компонент",
+        "common.kind.glider": "Дельтаплан",
+        "common.kind.consumable": "Расходуемый",
+        "common.kind.throwable": "Можно бросить",
+        "common.kind.utility": "Полезность",
+        "common.kind.ingredient": "Ингредиент",
+        "common.kind.lantern": "Фонарь",
+        "common.hands.one": "Одноручное",
+        "common.hands.two": "Двуручное",
+
+        "common.rand_appearance": "Случайная внешность",
+        "common.rand_name": "Случайное имя",
+
+        "common.stats.combat_rating": "CR",
+        "common.stats.power": "Сила",
+        "common.stats.speed": "Скорость",
+        "common.stats.poise": "Равновесие",
+        "common.stats.crit_chance": "Крит шанс",
+        "common.stats.crit_mult": "Множитель крита",
+        "common.stats.armor": "Броня",
+        "common.stats.poise_res":"Оглушение",
+        "common.stats.energy_max": "Максимальная выносливость",
+        "common.stats.energy_reward": "Востановление выносливости",
+        "common.stats.crit_power": "Сила крита",
+        "common.stats.stealth": "Скрытность",
+        "common.stats.slots": "Слоты",
+
+        "common.material.metal": "Метал",
+        "common.material.wood": "Дерево",
+        "common.material.stone": "Камень",
+        "common.material.cloth": "Ткань",
+        "common.material.hide": "Кожа",
+    },
+
+
+    vector_map: {
+    }
+)

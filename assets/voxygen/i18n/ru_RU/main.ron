@@ -1,6 +1,6 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Localization for RU
+/// Localization for RUS
 (
     string_map: {
         /// Start Main screen section
@@ -52,14 +52,14 @@ https://veloren.net/account/."#,
         "main.login.network_wrong_version": "Несоответствие версии сервера и клиента, пожалуйста, обновите свой игровой клиент.",
         "main.login.failed_sending_request": "Не удалось выполнить запрос на сервер аутентификации",
         "main.login.invalid_character": "Выбранный символ недопустим",
-        "main.login.client_crashed": "Клиент разбился",
+        "main.login.client_crashed": "Клиент крашнулся",
         "main.login.not_on_whitelist": "Вам нужна запись в Белом списке от администратора, чтобы присоединиться",
         "main.login.banned": "Вы были забанены по следующей причине",
         "main.login.kicked": "Вас выгнали по следующей причине",
         "main.login.select_language": "Выберите язык",
         "main.login.client_version": "Версия клиента",
-        "main.login.server_version": "Server Version",
-        "main.servers.select_server": "Версия сервера",
+        "main.login.server_version": "Версия сервера",
+        "main.servers.select_server": "Выбор сервера",
         /// End Main screen section
     },
 

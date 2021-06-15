@@ -1,18 +1,6 @@
-/// Translation document instructions
-///
-/// In order to keep localization documents readible please follow the following
-/// rules:
-/// - separate the string map sections using a commentary describing the purpose
-///   of the next section
-/// - prepend multi-line strings with a commentary
-/// - append one blank lines after a multi-line strings and two after sections
-///
-/// To add a new language in Veloren, just write an additional `.ron` file in
-/// `assets/voxygen/i18n` and that's it!
-///
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Localization for "global" Russian
+/// Localization for RUS
 (
     metadata: (
         language_name: "Русский",
@@ -41,516 +29,9 @@
             scale_ratio: 1.0,
         ),
     },
-    sub_directories: [],
+   sub_directories: [],
+   
     string_map: {
-        /// Start Common section
-        // Texts used in multiple locations with the same formatting
-        "common.username": "Имя пользователя",
-        "common.singleplayer": "Одиночная игра",
-        "common.multiplayer": "Мультиплеер",
-        "common.servers": "Сервера",
-        "common.quit": "Выход",
-        "common.settings": "Настройки",
-        "common.languages": "Язык",
-        "common.interface": "Интерфейс",
-        "common.gameplay": "Геймплей",
-        "common.controls": "Управление",
-        "common.video": "Видео",
-        "common.sound": "Звук",
-        "common.languages": "Языки",
-        "common.resume": "Продолжить",
-        "common.characters": "Персонажи",
-        "common.close": "Закрыть",
-        "common.yes": "Да",
-        "common.no": "Нет",
-        "common.back": "Назад",
-        "common.create": "Создать",
-        "common.okay": "Окей",
-        "common.accept": "Принять",
-        "common.decline": "Отклонить",
-        "common.disclaimer": "Дисклеймер",
-        "common.cancel": "Отмена",
-        "common.none": "Нет",
-        "common.error": "Ошибка",
-        "common.fatal_error": "Критическая ошибка",
-        "common.you": "Вы",
-        "common.automatic": "Авто",
-        "common.random": "Случайно",
-        // Settings Window title
-        "common.interface_settings": "Настройки интерфейса",
-        "common.gameplay_settings": "Настройки геймплея",
-        "common.controls_settings": "Настройки управления",
-        "common.video_settings": "Графические настройки",
-        "common.sound_settings": "Звуковые настройки",
-        "common.language_settings": "Языковые настройки",
-
-        // Message when connection to the server is lost
-        "common.connection_lost": r#"Соединение потеряно!
-Сервер перезагрузился?
-Клиент обновлен до последней версии?"#,
-
-
-        "common.species.orc": "Орк",
-        "common.species.human": "Человек",
-        "common.species.dwarf": "Дварф",
-        "common.species.elf": "Эльф",
-        "common.species.undead": "Нежить",
-        "common.species.danari": "Данари",
-
-        "common.weapons.axe": "Топор",
-        "common.weapons.sword": "Меч",
-        "common.weapons.staff": "Посох",
-        "common.weapons.bow": "Лук",
-        "common.weapons.hammer": "Молот",
-        "common.weapons.sceptre": "Лечащий посох",
-        "common.rand_appearance": "Случайная внешность и имя",
-        /// End Common section
-
-
-        /// Start Main screen section
-        "main.username": "Имя пользователя",
-        "main.server": "Сервер",
-        "main.password": "Пароль",
-        "main.connecting": "Подключение",
-        "main.creating_world": "Создание мира",
-        "main.tip": "Совет:",
-
-        // Welcome notice that appears the first time Veloren is started
-        "main.notice": r#"Добро пожаловать в Veloren-Alpha!
-
-Прежде чем начать веселье, прими во внимание следующие вещи:
-
-- Это очень ранняя альфа. Тут есть баги, крайне незавершенный геймплей, неотполированные механики и отсутсвующие фичи.
-
-- Если у вас есть конструктивный фидбек или сообщение об ошибке, вы можете связаться с нами через Reddit, GitLab или наш Discord-сервер.
-
-- Veloren лицензирован GPL 3 open-source licence. Это означает, игра бесплатна, ее можно модифицировать и переделывать на свой вкус (при условии, что готовая работа тоже лицензирована GPL 3).
-
-- Veloren - некоммерческий проект, каждый работает над ним добровольно.
-Если тебе нравится, что ты видишь, милости просим присоединиться к команде разработчиков или художественной команде!
-
-Спасибо за прочтение, мы надеемся, вам понравится игра!
-
-~ Команда разработчиков Veloren"#,
-
-        // Login process description
-        "main.login_process": r#"Информация по входу:
-
-Обратите внимание, что теперь вам нужен аккаунт
-играть на серверах с включенной аутентификацией.
-
-Вы можете создать аккаунт тут:
-
-https://veloren.net/account/."#,
-        "main.login.server_not_found": "Сервер не найден",
-        "main.login.authentication_error": "Ошибка аутентификации на сервер",
-        "main.login.server_full": "Сервер полон",
-        "main.login.untrusted_auth_server": "Аутентификация не пройдена",
-        "main.login.outdated_client_or_server": "ServerWentMad: Возможно, версии несовместимы. Проверьте наличие обновлений.",
-        "main.login.timeout": "Timeout: Сервер не ответил вовремя. (Перегрузка или проблемы с сетью).",
-        "main.login.server_shut_down": "Сервер выключен",
-        "main.login.network_error": "Ошибка сети",
-        "main.login.failed_sending_request": "Запрос аутентификации провален",
-        "main.login.invalid_character": "Выбранный персонаж недоступен",
-        "main.login.client_crashed": "Клиент вылетел",
-        "main.login.not_on_whitelist": "Чтобы войти, необходимо быть внесенным в Вайтлист",
-        "main.login.banned": "Вы были забанены по следующей причине",
-        "main.login.kicked": "Вы были кикнуты по следующей причине",
-        "main.login.select_language": "Выбрать язык",
-
-        "main.servers.select_server": "Выбрать сервер",
-
-        /// End Main screen section
-
-
-        /// Start HUD Section
-        "hud.do_not_show_on_startup": "Не показывать это при запуске",
-        "hud.show_tips": "Показать советы",
-        "hud.quests": "Квесты",
-        "hud.you_died": "Вы мертвы",
-        "hud.waypoint_saved": "Точка спауна сохранена",
-
-        "hud.press_key_to_show_keybindings_fmt": "[{key}] Раскладка",
-        "hud.press_key_to_toggle_lantern_fmt": "[{key}] Фонарь",
-        "hud.press_key_to_show_debug_info_fmt": "Нажмите {key}, чтобы показать панель отладки",
-        "hud.press_key_to_toggle_keybindings_fmt": "Нажмите {key}, чтобы показать раскладку",
-        "hud.press_key_to_toggle_debug_info_fmt": "Нажмите {key}, чтобы включить панель отладки",
-
-        // Chat outputs
-        "hud.chat.online_msg": "[{name}] сейчас онлайн.",
-        "hud.chat.offline_msg": "[{name}] сейчас оффлайн.",
-
-        "hud.chat.default_death_msg": "[{name}] умер",
-        "hud.chat.environmental_kill_msg": "[{name}] умер от {environment}",
-        "hud.chat.fall_kill_msg": "[{name}] разбился",
-        "hud.chat.suicide_msg": "[{name}] сам стал виной своей смерти",
-
-        "hud.chat.pvp_melee_kill_msg": "[{attacker}] одолел [{victim}]",
-        "hud.chat.pvp_ranged_kill_msg": "[{attacker}] подстрелил [{victim}]",
-        "hud.chat.pvp_explosion_kill_msg": "[{attacker}] взорвал [{victim}]",
-        "hud.chat.pvp_energy_kill_msg": "[{attacker}] убил [{victim}] с помощью магии",
-        "hud.chat.pvp_buff_kill_msg": "[{attacker}] убил [{victim}]",
-
-
-        "hud.chat.npc_melee_kill_msg": "{attacker} убил [{victim}]",
-        "hud.chat.npc_ranged_kill_msg": "{attacker} подстрелил [{victim}]",
-        "hud.chat.npc_explosion_kill_msg": "{attacker} взорвал [{victim}]",
-        "hud.chat.npc_energy_kill_msg": "{attacker} убил [{victim}] с помощью магии",
-        "hud.chat.npc_other_kill_msg": "{attacker} убил [{victim}]",
-
-        "hud.chat.loot_msg": "Вы подобрали [{item}]",
-        "hud.chat.loot_fail": "Ваш инвентарь полон!",
-        "hud.chat.goodbye": "До встречи!",
-        "hud.chat.connection_lost": "Соединение потеряно. Кик через {time} секунд.",
-
-        // SCT outputs
-        "hud.sct.experience": "{amount} Опыт",
-        "hud.sct.block": "ЗАБЛОКИРОВАНО",
-
-        // Respawn message
-        "hud.press_key_to_respawn": r#"Нажмите {key}, чтобы возродиться на последнем костре, который вы посетили."#,
-
-        // Welcome message
-        "hud.welcome": r#"Добро пожаловать в Veloren-Alpha!,
-
-
-Немного советов перед тем началом игры:
-
-
-Нажмите F1, чтобы увидеть доступые команды.
-
-Напишите /help, чтобы увидеть команды чата.
-
-
-В мире есть сундуки и другие рандомно генерируемые объекты!
-
-Нажмите ПКМ, чтобы собрать их.
-
-Чтобы использовать то, что вы нашли в сундуках, откройте свой инвентарь 'B'.
-
-Двойной клик на предмет в инвентаре использует или экипирует его.
-
-Чтобы выкинуть его, кликните на предмет, а потом кликните вне инвентаря.
-
-
-Ночи в Veloren могут быть довольно темными.
-
-Зажгите свой фонарь, нажав на 'G'.
-
-
-Хотите увидеть курсор, чтобы закрыть это окно? Нажмите TAB!
-
-
-Наслаждайтесь миром Veloren."#,
-
-"hud.temp_quest_headline": r#"Пожалуйста, путешественник, помоги нам!"#,
-"hud.temp_quest_text": r#"Подземелья наполнены злыми культистами,
-которые появились вокруг наших мирных городов!
-
-
-Собери компанию, запасись едой
-и победи мерзкого лидера и его приспешников.
-
-
-Может быть ты даже сможешь получить один из их
-магических предметов?"#,
-
-
-
-        // Inventory
-        "hud.bag.inventory": "Инвентарь",
-        "hud.bag.stats_title": "Характеристики",
-        "hud.bag.exp": "Опыт",
-        "hud.bag.armor": "Броня",
-        "hud.bag.stats": "Статы",
-        "hud.bag.head": "Голова",
-        "hud.bag.neck": "Шея",
-        "hud.bag.tabard": "Накидка",
-        "hud.bag.shoulders": "Плечи",
-        "hud.bag.chest": "Нагрудник",
-        "hud.bag.hands": "Руки",
-        "hud.bag.lantern": "Фонарь",
-        "hud.bag.glider": "Глайдер",
-        "hud.bag.belt": "Пояс",
-        "hud.bag.ring": "Кольцо",
-        "hud.bag.back": "Спина",
-        "hud.bag.legs": "Ноги",
-        "hud.bag.feet": "Ботинки",
-        "hud.bag.mainhand": "Главная рука",
-        "hud.bag.offhand": "Второстепенная рука",
-
-
-        // Map and Questlog
-        "hud.map.map_title": "Карта",
-        "hud.map.qlog_title": "Квесты",
-
-        // Settings
-        "hud.settings.general": "Общие",
-        "hud.settings.none": "Нет",
-        "hud.settings.press_behavior.toggle": "Переключить",
-        "hud.settings.press_behavior.hold": "Держать",
-        "hud.settings.help_window": "Окно помощи",
-        "hud.settings.debug_info": "Панель отладки",
-        "hud.settings.tips_on_startup": "Советы на старте",
-        "hud.settings.ui_scale": "Размер интерфейса",
-        "hud.settings.relative_scaling": "Относительное масштабирование",
-        "hud.settings.custom_scaling": "Пользовательское масштабирование",
-        "hud.settings.crosshair": "Перекрестие",
-        "hud.settings.transparency": "Прозрачность",
-        "hud.settings.hotbar": "Хотбар",
-        "hud.settings.toggle_shortcuts": "Отображать ярлыки",
-        "hud.settings.buffs_skillbar": "Баффы на панели навыков",
-        "hud.settings.buffs_mmap": "Баффы на миникарте",
-        "hud.settings.toggle_bar_experience": "Отображать полоску опыта",
-        "hud.settings.scrolling_combat_text": "Боевой журнал",
-        "hud.settings.single_damage_number": "Отдельные числа урона",
-        "hud.settings.cumulated_damage": "Суммарный урон",
-        "hud.settings.incoming_damage": "Входящий урон",
-        "hud.settings.cumulated_incoming_damage": "Суммарный входящий урон",
-        "hud.settings.speech_bubble": "Текстовые облачка",
-        "hud.settings.speech_bubble_dark_mode": "Темный режим текстовых облачков",
-        "hud.settings.speech_bubble_icon": "Значок текстовых облачков",
-        "hud.settings.energybar_numbers": "Отображение полоски энергии",
-        "hud.settings.values": "Значение",
-        "hud.settings.percentages": "Проценты",
-        "hud.settings.chat": "Чат",
-        "hud.settings.background_transparency": "Прозрачность заднего фона",
-        "hud.settings.chat_character_name": "Имя персонажа в чате",
-        "hud.settings.loading_tips": "Советы при загрузке",
-
-        "hud.settings.pan_sensitivity": "Чувствительность камеры",
-        "hud.settings.zoom_sensitivity": "Чувствительность зума",
-        "hud.settings.invert_scroll_zoom": "Инвертировать прокрутку зума",
-        "hud.settings.invert_mouse_y_axis": "Инвертировать ось Y",
-        "hud.settings.enable_mouse_smoothing": "Размытие камеры",
-        "hud.settings.free_look_behavior": "Настройка свободной камеры",
-        "hud.settings.auto_walk_behavior": "Автодвижение",
-        "hud.settings.stop_auto_walk_on_input": "Остановить автодвижение на кнопку движения",
-
-        "hud.settings.view_distance": "Дальность прорисовки",
-        "hud.settings.sprites_view_distance": "Дальность прорисовки спрайтов",
-        "hud.settings.figures_view_distance": "Дальность прорисовки объектов",
-        "hud.settings.maximum_fps": "Максимум FPS",
-        "hud.settings.fov": "Поле зрения (градусы)",
-        "hud.settings.gamma": "Гамма",
-        "hud.settings.exposure": "Экспозиция",
-        "hud.settings.ambiance": "Яркость окружения",
-        "hud.settings.antialiasing_mode": "Сглаживание",
-        "hud.settings.cloud_rendering_mode": "Рендер облаков",
-        "hud.settings.fluid_rendering_mode": "Рендер жидкостей",
-        "hud.settings.fluid_rendering_mode.cheap": "Низко",
-        "hud.settings.fluid_rendering_mode.shiny": "Высоко",
-        "hud.settings.cloud_rendering_mode.minimal": "Минимально",
-        "hud.settings.cloud_rendering_mode.low": "Низко",
-        "hud.settings.cloud_rendering_mode.medium": "Средне",
-        "hud.settings.cloud_rendering_mode.high": "Высоко",
-        "hud.settings.cloud_rendering_mode.ultra": "Ультра",
-        "hud.settings.fullscreen": "Полный экран",
-        "hud.settings.fullscreen_mode": "Режим полного экрана",
-        "hud.settings.fullscreen_mode.exclusive": "Особый",
-        "hud.settings.fullscreen_mode.borderless": "Без рамок",
-        "hud.settings.particles": "Частицы",
-        "hud.settings.resolution": "Разрешение",
-        "hud.settings.bit_depth": "Разрядность",
-        "hud.settings.refresh_rate": "Частота обновления",
-        "hud.settings.save_window_size": "Сохранить размер окна",
-        "hud.settings.lighting_rendering_mode": "Режим рендера освещения",
-        "hud.settings.lighting_rendering_mode.ashikhmin": "Тип A - Высоко    ",
-        "hud.settings.lighting_rendering_mode.blinnphong": "Тип B - Средне",
-        "hud.settings.lighting_rendering_mode.lambertian": "Тип L - Низко",
-        "hud.settings.shadow_rendering_mode": "Режим рендера теней",
-        "hud.settings.shadow_rendering_mode.none": "Нет",
-        "hud.settings.shadow_rendering_mode.cheap": "Низко",
-        "hud.settings.shadow_rendering_mode.map": "Карта",
-        "hud.settings.shadow_rendering_mode.map.resolution": "Разрешение",
-        "hud.settings.lod_detail": "LoD-детали",
-        "hud.settings.save_window_size": "Сохранить размер окна",
-
-
-        "hud.settings.music_volume": "Громкость музыки",
-        "hud.settings.sound_effect_volume": "Громкость звуковых эффектов",
-        "hud.settings.audio_device": "Аудио устройство",
-
-        "hud.settings.awaitingkey": "Нажми клавишу...",
-        "hud.settings.unbound": "Ничего",
-        "hud.settings.reset_keybinds": "По-умолчанию",
-
-        "hud.social": "Другие игроки",
-        "hud.social.online": "Онлайн",
-        "hud.social.friends": "Друзья",
-        "hud.social.not_yet_available": "Пока недоступно",
-        "hud.social.faction": "Фракция",
-        "hud.social.play_online_fmt": "{nb_player} игрок(ов) онлайн",
-        "hud.social.name": "Имя",
-        "hud.social.level": "Ур.",
-        "hud.social.zone": "Зона",
-        "hud.social.account": "Аккаунт",
-
-
-        "hud.crafting": "Крафт",
-        "hud.crafting.recipes": "Рецепты",
-        "hud.crafting.ingredients": "Ингредиенты:",
-        "hud.crafting.craft": "Создать",
-        "hud.crafting.tool_cata": "Требуется:",
-
-        "hud.group": "Группа",
-        "hud.group.invite_to_join": "[{name}] пригласил вас в свою группу!",
-        "hud.group.invite": "Пригласить",
-        "hud.group.kick": "Кикнуть",
-        "hud.group.assign_leader": "Назначить лидером",
-        "hud.group.leave": "Покинуть группу",
-        "hud.group.dead" : "Мертв",
-        "hud.group.out_of_range": "Слишком далеко",
-        "hud.group.add_friend": "Добавить в друзья",
-        "hud.group.link_group": "Объединить группы",
-        "hud.group.in_menu": "В меню",
-        "hud.group.members": "Участники группы",
-
-        "hud.spell": "Заклинания",
-
-        "hud.free_look_indicator": "Свободная камера активна. Нажмите {key}, чтобы выключить",
-        "hud.auto_walk_indicator": "Автодвижение активно",
-
-        "hud.map.difficulty": "Сложность",
-        "hud.map.towns": "Города",
-        "hud.map.castles": "Замки",
-        "hud.map.dungeons": "Данжи",
-        "hud.map.caves": "Пещеры",
-        "hud.map.cave": "Пещера",
-        "hud.map.town": "Город",
-        "hud.map.castle": "Замок",
-        "hud.map.dungeon": "Данж",
-        "hud.map.difficulty_dungeon": "Сложность данжа: {difficulty}",
-        "hud.map.drag": "Перетащить",
-        "hud.map.zoom": "Зум",
-        "hud.map.recenter": "Рецентрировать",
-
-        /// End HUD section
-
-
-        /// Start GameInput section
-
-        "gameinput.primary": "Основная атака",
-        "gameinput.secondary": "Второстепенная атака/Блок/Прицел",
-       "gameinput.slot1": "Быстрый слот 1",
-        "gameinput.slot2": "Быстрый слот 2",
-        "gameinput.slot3": "Быстрый слот 3",
-        "gameinput.slot4": "Быстрый слот 4",
-        "gameinput.slot5": "Быстрый слот 5",
-        "gameinput.slot6": "Быстрый слот 6",
-        "gameinput.slot7": "Быстрый слот 7",
-        "gameinput.slot8": "Быстрый слот 8",
-        "gameinput.slot9": "Быстрый слот 9",
-        "gameinput.slot10": "Быстрый слот 10",
-        "gameinput.swaploadout": "Сменить снаряжение",
-        "gameinput.togglecursor": "Отображать курсор",
-        "gameinput.help": "Отображать окно помощи",
-        "gameinput.toggleinterface": "Отображать интерфейс",
-        "gameinput.toggledebug": "Отображать FPS и экран отладки",
-        "gameinput.screenshot": "Сделать скриншот",
-        "gameinput.toggleingameui": "Отображать неймтеги",
-        "gameinput.fullscreen": "Включить полный экран",
-        "gameinput.moveforward": "Двигаться вперед",
-        "gameinput.moveleft": "Двигаться влево",
-        "gameinput.moveright": "Двигаться вправо",
-        "gameinput.moveback": "Двигаться назад",
-        "gameinput.jump": "Прыжок",
-        "gameinput.glide": "Глайдер",
-        "gameinput.roll": "Кувырок",
-        "gameinput.climb": "Карабкаться",
-        "gameinput.climbdown": "Карабкаться вниз",
-        "gameinput.wallleap": "Прыжок от стены",
-        "gameinput.togglelantern": "Включить фонарь",
-        "gameinput.mount": "Оседлать",
-        "gameinput.enter": "Войти",
-        "gameinput.chat": "Чат",
-        "gameinput.command": "Командовать",
-        "gameinput.escape": "Выйти",
-        "gameinput.map": "Карта",
-        "gameinput.bag": "Рюкзак",
-        "gameinput.social": "Социальное",
-        "gameinput.sit": "Сесть",
-        "gameinput.spellbook": "Заклинания",
-        "gameinput.settings": "Настройки",
-        "gameinput.respawn": "Возродиться",
-        "gameinput.charge": "Зарядить",
-        "gameinput.togglewield": "Достать/убрать оружие",
-        "gameinput.interact": "Взаимодействовать",
-        "gameinput.freelook": "Свободная камера",
-        "gameinput.autowalk": "Автодвижение",
-        "gameinput.dance": "Танцевать",
-        "gameinput.select": "Выбрать объект",
-        "gameinput.acceptgroupinvite": "Принять приглашение в группу",
-        "gameinput.declinegroupinvite": "Отклонить приглашение в группу",
-        "gameinput.crafting": "Крафт",
-        "gameinput.fly": "Полет",
-        "gameinput.sneak": "Скрытность",
-        "gameinput.swimdown": "Плыть вниз",
-        "gameinput.swimup": "Плыть вверх",
-
-        /// End GameInput section
-
-
-        /// Start chracter selection section
-        "char_selection.loading_characters": "Загрузка персонажей...",
-        "char_selection.delete_permanently": "Навсегда удалить этого персонажа?",
-        "char_selection.deleting_character": "Удаление персонажа...",
-        "char_selection.change_server": "Сменить сервер",
-        "char_selection.enter_world": "Войти в мир",
-        "char_selection.logout": "Выйти в меню",
-        "char_selection.create_new_character": "Создать нового персонажа",
-        "char_selection.creating_character": "Создание персонажа...",
-        "char_selection.character_creation": "Создание персонажа",
-
-        "char_selection.human_default": "Стандартный человек",
-        "char_selection.level_fmt": "Уровень {level_nb}",
-        "char_selection.uncanny_valley": "Wilderness",
-        "char_selection.plains_of_uncertainty": "Plains of Uncertainty",
-        "char_selection.beard": "Борода",
-        "char_selection.hair_style": "Прическа",
-        "char_selection.hair_color": "Цвет волос",
-        "char_selection.eye_color": "Цвет глаз",
-        "char_selection.skin": "Кожа",
-        "char_selection.eyeshape": "Детали глаз",
-        "char_selection.accessories": "Аксессуары",
-        "char_selection.create_info_name": "Вашему персонажу необходимо имя!",
-
-        /// End chracter selection section
-
-
-        /// Start character window section
-        "character_window.character_name": "Имя персонажа",
-        // Charater stats
-        "character_window.character_stats": r#"Стойкость
-
-Выносливость
-
-Сила воли
-
-Защита
-"#,
-        /// End character window section
-
-
-        /// Start Escape Menu Section
-        "esc_menu.logout": "Выйти в меню",
-        "esc_menu.quit_game": "Выйти из игры",
-        /// End Escape Menu Section
-
-        /// Buffs and Debuffs
-        "buff.remove": "Кликните, чтобы убрать",
-        "buff.title.missing": "Отсутствует название",
-        "buff.desc.missing": "Отсутствует описание",
-        // Buffs
-        "buff.title.heal": "Лечение",
-        "buff.desc.heal": "Лечит в течении времени.",
-        "buff.title.potion": "Зелье",
-        "buff.desc.potion": "Пьем...",
-        "buff.title.saturation": "Сыт",
-        "buff.desc.saturation": "Получайте здоровье от расходников в течении времени.",
-        // Debuffs
-        "buff.title.bleed": "Кровотечение",
-        "buff.desc.bleed": "Наносит переодический урон.",
 
     },
 
@@ -558,105 +39,196 @@ https://veloren.net/account/."#,
     vector_map: {
         "loading.tips": [
             "Нажмите 'G', чтобы зажечь фонарь.",
-            "Нажмите 'F1', чтобы увидеть управление по-умолчанию.",
-            "Вы можете написать /say или /s, чтобы обратиться только к игрокам вблизи вас.",
-            "Вы можете написать /region или /r, чтобы обратиться к игрокам в нескольких сотнях блоков вокруг вас.",
-            "Вы можете написать /group или /g, чтобы обратиться к игрокам в вашей группе.",
-            "Чтобы отправить приватное сообщение, напишите /tell, а затем имя персонажа и сообщение.",
-            "NPC одного уровня могут быть разной сложности.",
-            "Осматривайтесь, чтобы найти еду, сундуки и другой лут!",
-            "Инвентарь забит едой? Попробуйте скрафтить из нее еду получше!",
-            "Думаете, чем заняться? Подземелья отмечены коричневыми метками на карте!",
-            "Не забудьте настроить графику под свою систему. Нажмите 'N', чтобы открыть настройки.",
-            "Играть с остальными веселее! Нажмите 'O', чтобы посмотреть кто онлайн.",
-            "NPC с черепом около полоски здоровья намного сильнее, по сравнению с вами.",
-            "Нажмите 'J', чтобы танцевать. Тусовка!",
-            "Нажмите 'L-Shift', чтобы открыть Глайдер и покорить небеса.",
-            "Veloren все еще пре-альфа. Мы стараемся улучшать его каждый день!",
-            "Если вы хотите присоединиться к команде разработчиков или просто пообщаться с нами, заходите на наш Дискорд-сервер.",
-            "Вы можете включить отображение чисел на полосе здоровья в настройках.",
-            "Чтобы увидеть свои характеристики нажмите на 'Статы' в инвентаре.",
+            "Нажмите 'F1', чтобы просмотреть все клавиши по умолчанию.",
+            "Вы можете ввести /tell или /s, чтобы общаться только с игроками непосредственно вокруг вас.",
+            "Вы можете ввести /region или /r, чтобы общаться только с игроками в паре сотен блоков вокруг вас.",
+            "Администраторы могут использовать команду /build для входа в режим постройки.",
+            "Вы можете ввести /group или /g, чтобы общаться только с игроками в вашей текущей группе.",
+            "Чтобы отправить личные сообщения, введите /tell, а затем имя игрока и ваше сообщение.",            
+            "Смотрите внимательно чтобы найти еду, сундуки и другие предметы, разбросанные по всему миру!",
+            "Инвентарь, заполненный едой? Попробуйте приготовить из нее еду получше!",
+            "Интересно, чем можно заняться? Попробуйте пройти одно из подземелий, отмеченных на карте!",
+            "Не забудьте настроить графику для вашей системы. Нажмите 'N', чтобы открыть настройки.",
+            "Играть с другими-это весело! Нажмите 'О', чтобы узнать, кто находится в сети.",
+            "Нажмите 'J', чтобы танцевать. Вечеринка!",
+            "Нажмите 'L-Shift', чтобы открыть свой дельтаплан и покорить небо.",
+            "Veloren все еще находится в Пре-Альфе. Мы делаем все возможное, чтобы улучшать его каждый день!",
+            "Если вы хотите присоединиться к команде разработчиков или просто пообщаться с нами, присоединяйтесь к нашему серверу Discord.",
+            "Вы можете переключить отображение количества здоровья на панели здоровья в настройках.",            
+            "Сядьте у костра (с помощью клавиши 'К'), чтобы залечить свои раны.",
+            "Вам нужно больше сумок или лучшая броня, чтобы продолжить свое путешествие? Нажмите 'C', чтобы открыть меню крафта!",
+        ],
+        "npc.speech.villager": [
+            "Хорошая погода?",
+            "Как дела?",
+            "Доброе утро!",
+            "Интересно, что думает Catoblepas когда ест траву.", /// in original Catoblepas (киса) но яб сменил на овцу в оригинале
+            "Хорошая погода, не правда ли?",
+            "Мысли об этих подземельях пугают меня. Надеюсь их кто-нибудь уничтожит",
+            "Когда я вырасту, я буду исследовать пещеры.",
+            "Вы не видели моего кота?",
+            "Вы когда-нибудь слышали о свирепых сухопутных акулах? Я слышал, они живут в пустынях",
+            "Говорят, в пещерах можно найти блестящие драгоценные камни всех видов.",
+            "Я просто помешан на сыре!",
+            "Ты не зайдешь? Мы как раз собирались съесть немного сыра",
+            "Говорят, мухоморы полезны для здоровья. Сам я их не ем.",
+            "Не забудь про печенья!",
+            "Я просто обожаю сыр дварфов. Я бы хотел научиться его готовить.",
+            "Интересно, что по ту сторону гор.",
+            "Я надеюсь сделать свой собственный дельтаплан когда-нибудь.",
+            "Хочешь, покажу тебе свой сад? Ладно, может в следующий раз.",
+            "Прекрасный день для прогулки по лесу!",
+            "Быть или не быть? Я подумываю о том чтобы стать фермером.",
+            "Тебе не кажется, что наша деревня самая лучшая?",
+            "Как ты думаешь, что заставляет Glowing Remains светься?",
+            "Время второго завтрака!",
+            "Ты когда - нибудь ловил светлячка?",
+            "I just can't understand where those Sauroks keep coming from.",
+            "Я бы хотел, чтобы кто-нибудь держал волков подальше от деревнию.",
+            "Прошлой ночью мне приснился чудесный сон о сыре. Что это значит?",
+            "Я оставила немного сыра у брата. Теперь я не знаю, съеден сыр или нет. Я называю его сыром Шредингера.",
+            "Я оставил немного сыра у сестры. Теперь я не знаю, съеден сыр или нет. Я называю его сыром Шредингера.",
+            "Кто-то должен что-то сделать с этими культистами. Желательно не я.",
+            "Надеюсь, скоро пойдет дождь. Это было бы хорошо для урожая.",
+            "Я люблю мед! И я ненавижу пчел.",
+            "Я хочу однажды увидеть мир. В жизни должно быть что-то большее, чем эта деревня.",
+        ],
+        "npc.speech.villager_decline_trade": [
+            "Извините, мне нечем торговать.",
+            "Торговля? Как будто у меня есть что-то, что может вас заинтересовать.",
+            "Мой дом принадлежит мне, я не променяю его ни на что.",
+        ],
+        "npc.speech.merchant_advertisement": [
+            "Могу ли я заинтересовать вас сделкой?",
+            "Ты хочешь со мной поторговать?",
+            "У меня много товаров, не хочешь взглянуть?"
+        ],
+        "npc.speech.merchant_busy": [
+            "Эй, подожди своей очереди.",
+            "Пожалуйста, подождите, я здесь один на всех.",
+            "Видите другого человека перед собой?",
+            "Минутку, дай мне закончить.",
+            "Не лезь вне очереди!",
+            "Я занят, зайди попозже."
+        ],
+        "npc.speech.merchant_trade_successful": [
+            "Спасибо, что торгуете со мной!",
+            "Спасибо вам!",
+        ],
+        "npc.speech.merchant_trade_declined": [
+            "Может быть, в другой раз, хорошего дня!",
+            "Жаль, тогда, может быть, в следующий раз!"
+        ],
+        "npc.speech.villager_cultist_alarm": [
+            "Берегись! На свободе разгуливает культист!",
+            "К оружию! Культисты атакуют!",
+            "Как посмели культисты напасть на нашу деревню!",
+            "Смерть культистам!",
+            "Культистов здесь не потерпят!",
+            "Кровожадный культист!",
+            "Попробуй на вкус острие моего меча, грязный культист!",
+            "Ничего не сможет смыть кровь с твоих рук, культист!",
+            "Миллиарды пузырящихся синих ракушек! Культист среди нас!",
+            "Зло этого культиста вот-вот закончится!",
+            "Этот культист мой!",
+            "Приготовься встретить своего создателя, грязный культист!",
+            "Я вижу культиста! Схватите его!",
+            "Я вижу культиста! В атаку!",
+            "Я вижу культиста! Не дайте им сбежать!",
+            "Будет ли самый почтенный культист заботиться о какой-то СМЕРТИ?!",
+            "Никогда не прощу! Никогда не забуду! Культист, сожалею!",
+            "Умри, культист!",
+            "Ваше царство террора захвачено!",
+            "Вот тебе за все, что ты сделал!",
+            "Мы не очень хорошо относимся к вашим людям здесь.",
+            "Тебе следовало оставаться под землей!",
         ],
         "npc.speech.villager_under_attack": [
-            "Помогите, меня атакуют!",
-            "Помогите, меня атакуют!",
-            "Ай! Меня атакуют!",
-            "Ай! Меня атакуют! На помощь!",
-            "Помогите мне! Меня атакуют!",
+            "Помогите, Меня атакуют!",
+            "Помогите, Меня атакуют!",
+            "Оуч, Меня атакуют!",
+            "Оуч, Меня атакуют!",
+            "Помоги мне! Меня атакуют!",
             "Меня атакуют! Помогите!",
-            "Меня атакуют!! На помощь!",
+            "Меня атакуют! Помогите мне!",
             "Помогите!",
-            "На помощь! На помощь!",
+            "Помогите! Помогите!",
             "Помогите! Помогите! Помогите!",
             "Меня атакуют!",
-            "ААА! Меня атакуют!",
-            "AAA! Меня атакуют! На помощь!",
-            "Помогите! Нас атакуют!",
-            "На помощь! Убийца!",
-            "Помогите! Здесь убийца!",
-            "На помощь! Меня пытаются убить!",
-            "Стража, меня атакуют!",
-            "Стража, на помощь!",
+            "АААААА! Меня атакуют!",
+            "АААААА! Меня атакуют! Помогите!",
+            "Помогите! Мы атакованны!",
+            "Помогите! Убийца!",
+            "Помогите! Убийца на свободе!",
+            "Помогите! Они пытаются меня убить!",
+            "Стража, Меня атакуют!",
+            "Стража! Меня атакуют!",
             "Меня атакуют! Стража!",
             "Помогите! Стража! Меня атакуют!",
-            "Стража! Cкорее!",
+            "Стража! Скорее!",
             "Стража! Стража!",
-            "Стража! На меня напали!",
-            "Стража, убейте этого мерзкого злодея",
-            "Стража! Тут убийца!",
-            "Стража! Помогите мне!",
-            "Тебе это не сойдет с рук! Охрана!",
-            "Ты враг!",
-            "Помогите!",
-            "На помощь! Пожалуйста!",
-            "Ай! Стража, помогите!",
-            "Они пришли за мной!",
-            "На помощь, на помощь, на меня напали!",
+            "Стража! Этот злодей бьёт меня!",
+            "Стража, Схватите этого негодяя!",
+            "Стража! Здесь убийца!",
+            "Стража! Помогите me!",
+            "Тебе это не сойдет с рук! Стража!",
+            "Ты изверг!",
+            "Помогите мне!",
+            "Помогите! Пожалуйста!",
+            "Ой! Стража! Помогите!",
+            "Они идут за мной!",
+            "Помогите! Помогите! Меня постигла расплата!",
             "Ах, теперь мы видим насилие, присущее системе.",
             "Это всего лишь царапина!",
-            "Прекрати!",
-            "Что я вообще тебе сделал?!",
-            "Пожалуйста, прекрати меня бить!",
-            "Эй, поаккуратнее с этой штукой!",
-            "Мерзкий негодняй, отстань!",
-            "Остановись! Уходи!",
-            "Ты злишь меня!",
-            "Ай! Кем ты себя возомнил?!",
-            "Я лишу тебя головы за это!",
-            "Остановись! У меня нет ничего ценного!",
-            "Я натравлю на тебя братьев! Они больше меня!",
-            "Нееет, я расскажу маме!",
+            "Остановитесь!",
+            "Что я тебе сделал?!",
+            "Пожалуйста, не бей!",
+            "Эй! Смотри, куда направляешь эту штуку",
+            "Гнусный негодяй, проваливай отсюда!",
+            "Прекрати! Уходи!",
+            "Ты уже достал!",
+            "Эй! Что ты возомнил о себе?!",
+            "Я тебе башку оторву!",
+            "Остановись пожалуйста. У меня ничего нет!",
+            "Я позову брата, он больше меня",
+            "Нет! Я расскажу маме!",
             "Будь ты проклят!",
-            "Пожалуйста, не надо!",
-            "Это было недружелюбно!",
-            "Хорошо, ты сильный, а теперь убери оружие!",
-            "Пощади меня!",
+            "Пожалуйста, не делай этого.",
+            "Это не приятно!",
+            "Ваше оружие работает, вы можете убрать его прямо сейчас!",
+            "Пощади!",
             "Пожалуйста, у меня семья!",
-            "Я слишком молод, чтобы умирать!",
-            "Мы можем решить все словами?",
+            "Я слишком молод чтобы умереть!",
+            "Может договоримся?",
             "Насилие не выход!",
-            "Так и знал, что день будет плохим...",
-            "Эй, больно же!",
-            "Эй!",
-            "Как некультурно!",
-            "Остановись, я прошу!",
-            "Проклятие!",
+            "Сегодня выдался плохой день...",
+            "Эй, это больно!",
+            "Ик!",
+            "Как грубо!",
+            "Остановись, прошу тебя!",
+            "Чтоб ты сдох!",
             "Это не смешно.",
             "Как ты смеешь?!",
             "Ты заплатишь за это!",
-            "Не продолжай, а то пожалеешь!",
-            "Не заставляй делать тебе больно!",
-            "Ты все неправильно понял!",
-            "Зачем ты так?!",
-            "Проваливай, вражина!",
-            "Это было больно!",
-            "Почему ты это делаешь?",
-            "Ради духов, уймись!",
-            "Ты меня с кем-то спутал!",
-            "Я не заслужил этого!",
-            "Пожалуйста, не делай так больше.",
-            "Стража, киньте этого монстра в озеро!",
-            "Я натравлю на тебя своего тараска!",
+            "Ты об этом пожалеешь!",
+            "Не заставляй меня делать тебе больно!",
+            "Произошла какая то ошибка!",
+            "Не делай этого!",
+            "Изыди, дьявол",
+            "Это очень больно!",
+            "Зачем ты это сделал?",
+            "Ради всего святого, прекрати!",
+            "Ты меня перепутал с кем то",
+            "Я не заслуживаю этого!",
+            "Пожалуйста, больше так не делай.",
+            "Стража, утопите этого монстра в озере!",
+            "Я натравлю своего tarasque на тебя!",
+            "Почему я?",
         ],
+        "npc.speech.villager_enemy_killed": [
+            "Я уничтожил врага!",
+            "Наконец-то мир!",
+            "... что же я наделал?",
+        ]
     }
 )
