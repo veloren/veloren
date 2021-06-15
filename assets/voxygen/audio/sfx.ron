@@ -831,5 +831,11 @@
                 ],
             threshold: 0.2,
         ),
+		Utterance(Angry, BipedLarge((species: Wendigo, body_type: Female))): (
+			files: [
+				"voxygen.audio.sfx.utterance.wendigo_angry",
+			],
+            threshold: 4.0,
+		),
     }
 )

@@ -21,7 +21,7 @@ use common::{
         Agent, Alignment, BehaviorCapability, BehaviorState, Body, CharacterAbility,
         CharacterState, ControlAction, ControlEvent, Controller, Energy, Health, HealthChange,
         InputKind, Inventory, InventoryAction, LightEmitter, MountState, Ori, PhysicsState, Pos,
-        Scale, SkillSet, Stats, UnresolvedChatMsg, Vel,
+        Scale, SkillSet, Stats, UnresolvedChatMsg, Vel, UtteranceKind,
     },
     consts::GRAVITY,
     effect::{BuffEffect, Effect},
@@ -1547,6 +1547,10 @@ impl<'a> AgentData<'a> {
                 .0 >= e_pos.0.distance(self.pos.0))
             .min_by_key(|(_, e_pos, _, _, _, _, _)| (e_pos.0.distance_squared(self.pos.0) * 100.0) as i32) // TODO choose target by more than just distance
             .map(|(e, _, _, _, _, _, _)| e);
+
+        if agent.target.is_none() && target.is_some() {
+            controller.push_event(ControlEvent::Utterance(UtteranceKind::Angry));
+        }
 
         agent.target = target.map(|target| Target {
             target,

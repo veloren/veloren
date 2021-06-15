@@ -96,6 +96,7 @@ use common::{
         object,
         poise::PoiseState,
         Body, CharacterAbilityType, InventoryUpdateEvent,
+        UtteranceKind,
     },
     outcome::Outcome,
     terrain::{BlockKind, TerrainChunk},
@@ -182,6 +183,7 @@ pub enum SfxEvent {
     FlameThrower,
     PoiseChange(PoiseState),
     GroundSlam,
+    Utterance(UtteranceKind, Body),
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -451,6 +453,10 @@ impl SfxMgr {
                         triggers.get_key_value(&SfxEvent::PoiseChange(PoiseState::KnockedDown));
                     audio.emit_sfx(sfx_trigger_item, *pos, None, false);
                 },
+            },
+            Outcome::Utterance { pos, kind, body } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Utterance(*kind, *body));
+                audio.emit_sfx(sfx_trigger_item, *pos, None, false);
             },
             Outcome::ExpChange { .. }
             | Outcome::ComboChange { .. }

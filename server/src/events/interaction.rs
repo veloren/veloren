@@ -6,7 +6,7 @@ use common::{
     assets,
     comp::{
         self,
-        agent::{AgentEvent, Sound, MAX_LISTEN_DIST},
+        agent::{AgentEvent, Sound, MAX_LISTEN_DIST, SoundKind},
         dialogue::Subject,
         inventory::slot::EquipSlot,
         item,
@@ -386,6 +386,7 @@ pub fn handle_sound(server: &mut Server, sound: &Sound) {
     let positions = &ecs.read_storage::<comp::Pos>();
     let agents = &mut ecs.write_storage::<comp::Agent>();
 
+    // TODO: Reduce the complexity of this problem by using spatial partitioning system
     for (agent, agent_pos) in (agents, positions).join() {
         // TODO: Use pathfinding for more dropoff around obstacles
         let agent_dist_sqrd = agent_pos.0.distance_squared(sound.pos);
@@ -401,6 +402,20 @@ pub fn handle_sound(server: &mut Server, sound: &Sound) {
             agent
                 .inbox
                 .push_back(AgentEvent::ServerSound(propagated_sound));
+        }
+
+        // Attempt to turn this sound into an outcome to be received by frontends.
+        if let Some(outcome) = match sound.kind {
+            SoundKind::Utterance(kind, body) => Some(Outcome::Utterance {
+                kind,
+                pos: sound.pos,
+                body,
+            }),
+            _ => None,
+        } {
+            ecs
+                .write_resource::<Vec<Outcome>>()
+                .push(outcome);
         }
     }
 }
