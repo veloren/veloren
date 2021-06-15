@@ -231,17 +231,14 @@ fn complete_key_versions<'a>(
                 let full_path = i18n_file.path();
                 let path = full_path.strip_prefix(root_dir).unwrap();
                 let i18n_blob = read_file_from_path(&repo, &head_ref, &path);
-                let i18n: LocalizationFragment = match from_bytes(i18n_blob.content()) {
-                    Ok(v) => v,
-                    Err(e) => {
-                        eprintln!(
+                let i18n: LocalizationFragment =
+                    from_bytes(i18n_blob.content()).unwrap_or_else(|e| {
+                        panic!(
                             "Could not parse {} RON file, skipping: {}",
                             i18n_file.path().to_string_lossy(),
                             e
-                        );
-                        continue;
-                    },
-                };
+                        )
+                    });
                 i18n_key_versions.extend(generate_key_version(&repo, &i18n, &path, &i18n_blob));
             }
         }
@@ -304,17 +301,13 @@ fn test_localization_directory(
 
     // Find the localization entry state
     let current_blob = read_file_from_path(&repo, &head_ref, &relfile);
-    let current_loc: RawLocalization = match from_bytes(current_blob.content()) {
-        Ok(v) => v,
-        Err(e) => {
-            eprintln!(
-                "Could not parse {} RON file, skipping: {}",
-                relfile.to_string_lossy(),
-                e
-            );
-            return None;
-        },
-    };
+    let current_loc: RawLocalization = from_bytes(current_blob.content()).unwrap_or_else(|e| {
+        panic!(
+            "Could not parse {} RON file, skipping: {}",
+            relfile.to_string_lossy(),
+            e
+        )
+    });
 
     // Gather state of current localization
     let mut current_i18n = gather_state(
