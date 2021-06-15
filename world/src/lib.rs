@@ -144,7 +144,7 @@ impl World {
                                 civ::SiteKind::Settlement => world_msg::SiteKind::Town,
                                 civ::SiteKind::Dungeon => world_msg::SiteKind::Dungeon {
                                     difficulty: match site.site_tmp.map(|id| &index.sites[id].kind) {
-                                        Some(site::SiteKind::Dungeon(d)) => d.difficulty(),
+                                        Some(site::SiteKind::Dungeon(d)) => d.difficulty().unwrap_or(0),
                                         _ => 0,
                                     },
                                 },

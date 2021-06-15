@@ -17,6 +17,7 @@ pub enum Primitive {
     Cone(Aabb<i32>),
     Sphere(Aabb<i32>),
     Plane(Aabr<i32>, Vec3<i32>, Vec2<f32>),
+    Sampling(Box<dyn Fn(Vec3<i32>) -> bool>),
 
     // Combinators
     And(Id<Primitive>, Id<Primitive>),
@@ -26,8 +27,10 @@ pub enum Primitive {
     Diff(Id<Primitive>, Id<Primitive>),
     // Operators
     Rotate(Id<Primitive>, Mat3<i32>),
+    Translate(Id<Primitive>, Vec3<i32>),
 }
 
+#[derive(Debug)]
 pub enum Fill {
     Block(Block),
     Brick(BlockKind, Rgb<u8>, u8),
@@ -95,6 +98,7 @@ impl Fill {
                                 .as_()
                                 .dot(*gradient) as i32)
             },
+            Primitive::Sampling(f) => f(pos),
             Primitive::And(a, b) => {
                 self.contains_at(tree, *a, pos) && self.contains_at(tree, *b, pos)
             },
@@ -112,6 +116,9 @@ impl Fill {
                 let diff = pos - (aabb.min + mat.cols.map(|x| x.reduce_min()));
                 self.contains_at(tree, *prim, aabb.min + mat.transposed() * diff)
             },
+            Primitive::Translate(prim, vec) => {
+                self.contains_at(tree, *prim, pos.map2(*vec, i32::saturating_sub))
+            }
         }
     }
 
@@ -169,6 +176,10 @@ impl Fill {
                 };
                 aabb.made_valid()
             },
+            Primitive::Sampling(_) => Aabb {
+                min: Vec3::broadcast(std::i32::MIN),
+                max: Vec3::broadcast(std::i32::MAX),
+            },
             Primitive::And(a, b) => or_zip_with(
                 self.get_bounds_inner(tree, *a),
                 self.get_bounds_inner(tree, *b),
@@ -188,6 +199,13 @@ impl Fill {
                     max: aabb.min + extent,
                 };
                 new_aabb.made_valid()
+            },
+            Primitive::Translate(prim, vec) => {
+                let aabb = self.get_bounds_inner(tree, *prim)?;
+                Aabb {
+                    min: aabb.min.map2(*vec, i32::saturating_add),
+                    max: aabb.max.map2(*vec, i32::saturating_add),
+                }
             },
         })
     }

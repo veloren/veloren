@@ -1,5 +1,5 @@
 mod gen;
-mod plot;
+pub mod plot;
 mod tile;
 
 use self::{
@@ -38,6 +38,7 @@ fn reseed(rng: &mut impl Rng) -> impl Rng { ChaChaRng::from_seed(rng.gen::<[u8; 
 #[derive(Default)]
 pub struct Site {
     pub(crate) origin: Vec2<i32>,
+    name: String,
     tiles: TileGrid,
     plots: Store<Plot>,
     plazas: Vec<Id<Plot>>,
@@ -275,11 +276,60 @@ impl Site {
             });
     }
 
-    pub fn generate(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn difficulty(&self) -> Option<u32> {
+        self.plots.iter().filter_map(|(_, plot)| {
+            if let PlotKind::Dungeon(d) = &plot.kind {
+                Some(d.difficulty())
+            } else {
+                None
+            }
+        }).max()
+    }
+
+    pub fn generate_dungeon(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
         let mut rng = reseed(rng);
 
         let mut site = Site {
             origin,
+            ..Site::default()
+        };
+
+        site.demarcate_obstacles(land);
+        let dungeon = plot::Dungeon::generate(origin, land, &mut rng);
+        site.name = dungeon.name().to_string();
+        //let size = (2.0 + rng.gen::<f32>().powf(8.0) * 3.0).round() as i32;
+        let size = 8;
+
+        let aabr = Aabr {
+            min: Vec2::broadcast(-size),
+            max: Vec2::broadcast(size),
+        };
+
+        let plot = site.create_plot(Plot {
+            kind: PlotKind::Dungeon(dungeon),
+            root_tile: aabr.center(),
+            tiles: aabr_tiles(aabr).collect(),
+            seed: rng.gen(),
+        });
+
+        site.blit_aabr(aabr, Tile {
+            kind: TileKind::Plaza,
+            plot: Some(plot),
+        });
+
+        site
+    }
+
+    pub fn generate_city(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+
+        let mut site = Site {
+            origin,
+            name: "Town".into(),
             ..Site::default()
         };
 
@@ -702,6 +752,7 @@ impl Site {
                 }
             }
         }
+        tracing::info!("{:?}: {:?}", canvas.wpos(), plots.len());
 
         let mut plots_to_render = plots.into_iter().collect::<Vec<_>>();
         plots_to_render.sort_unstable();
@@ -710,6 +761,11 @@ impl Site {
             let (prim_tree, fills) = match &self.plots[plot].kind {
                 PlotKind::House(house) => house.render_collect(self),
                 PlotKind::Castle(castle) => castle.render_collect(self),
+                PlotKind::Dungeon(dungeon) => {
+                    let (prim_tree, fills) = dungeon.render_collect(self);
+                    tracing::info!("{:?}: {:?} {:?}", dungeon.name(), prim_tree.ids().count(), fills.len());
+                    (prim_tree, fills)
+                }
                 _ => continue,
             };
 
@@ -732,7 +788,7 @@ impl Site {
     }
 }
 
-pub fn test_site() -> Site { Site::generate(&Land::empty(), &mut thread_rng(), Vec2::zero()) }
+pub fn test_site() -> Site { Site::generate_city(&Land::empty(), &mut thread_rng(), Vec2::zero()) }
 
 fn wpos_is_hazard(land: &Land, wpos: Vec2<i32>) -> Option<HazardKind> {
     if land

@@ -2,10 +2,10 @@ use super::SpawnRules;
 use crate::{
     block::block_from_structure,
     column::ColumnSample,
-    sim::WorldSim,
     site::{namegen::NameGen, BlockMask},
+    site2::{self, Primitive, Fill, Structure as SiteStructure},
     util::{attempt, Grid, RandomField, Sampler, CARDINALS, DIRS},
-    IndexRef,
+    IndexRef, Land,
 };
 
 use common::{
@@ -36,7 +36,7 @@ pub struct Dungeon {
 }
 
 pub struct GenCtx<'a, R: Rng> {
-    sim: Option<&'a WorldSim>,
+    land: &'a Land<'a>,
     rng: &'a mut R,
 }
 
@@ -64,9 +64,8 @@ lazy_static! {
 }
 
 impl Dungeon {
-    pub fn generate(wpos: Vec2<i32>, sim: Option<&WorldSim>, rng: &mut impl Rng) -> Self {
-        let mut ctx = GenCtx { sim, rng };
-
+    pub fn generate(wpos: Vec2<i32>, land: &Land, rng: &mut impl Rng) -> Self {
+        let mut ctx = GenCtx { land, rng };
         let difficulty = DUNGEON_DISTRIBUTION
             .choose_weighted(&mut ctx.rng, |pair| pair.1)
             .map(|(difficulty, _)| *difficulty)
@@ -76,7 +75,6 @@ impl Dungeon {
                     err
                 )
             });
-
         let floors = 3 + difficulty / 2;
 
         Self {
@@ -91,11 +89,7 @@ impl Dungeon {
                 }
             },
             origin: wpos - TILE_SIZE / 2,
-            alt: ctx
-                .sim
-                .and_then(|sim| sim.get_alt_approx(wpos))
-                .unwrap_or(0.0) as i32
-                + 6,
+            alt: ctx.land.get_alt_approx(wpos) as i32 + 6,
             seed: ctx.rng.gen(),
             noise: RandomField::new(ctx.rng.gen()),
             floors: (0..floors)
@@ -1162,5 +1156,272 @@ mod tests {
         mini_boss_4(tile_wcenter);
         mini_boss_5(&mut dynamic_rng, tile_wcenter);
         mini_boss_fallback(tile_wcenter);
+    }
+}
+
+pub fn spiral_staircase(
+    origin: Vec3<i32>,
+    radius: f32,
+    inner_radius: f32,
+    stretch: f32,
+) -> Box<dyn Fn(Vec3<i32>) -> bool> {
+    Box::new(move |pos: Vec3<i32>| {
+        let pos = pos + origin;
+        if (pos.xy().magnitude_squared() as f32) < inner_radius.powi(2) {
+            true
+        } else if (pos.xy().magnitude_squared() as f32) < radius.powi(2) {
+            if ((pos.x as f32).atan2(pos.y as f32) / (f32::consts::PI * 2.0) * stretch
+                + pos.z as f32)
+                .rem_euclid(stretch)
+                < 1.5
+            {
+                true
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+    })
+}
+
+pub fn wall_staircase(
+    origin: Vec3<i32>,
+    radius: f32,
+    stretch: f32,
+) -> Box<dyn Fn(Vec3<i32>) -> bool> {
+    Box::new(move |pos: Vec3<i32>| {
+        let pos = pos - origin;
+        if (pos.x.abs().max(pos.y.abs())) as f32 > 0.6 * radius {
+            if ((pos.x as f32).atan2(pos.y as f32) / (f32::consts::PI * 2.0) * stretch
+                + pos.z as f32)
+                .rem_euclid(stretch)
+                < 1.0
+            {
+                true
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+    })
+}
+
+impl SiteStructure for Dungeon {
+    fn render<F: FnMut(Primitive) -> Id<Primitive>, G: FnMut(Id<Primitive>, Fill)>(
+        &self,
+        site: &site2::Site,
+        mut prim: F,
+        mut fill: G,
+    ) {
+        //let rpos = pos - self.tile_offset * TILE_SIZE;
+        //let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));
+        //let tile_center = tile_pos * TILE_SIZE + TILE_SIZE / 2;
+        //let rtile_pos = rpos - tile_center;
+
+        //let colors = &index.colors.site.dungeon;
+
+        let vacant = Block::air(SpriteKind::Empty);
+        //let stone = Block::new(BlockKind::Rock, colors.stone.into());
+        let stone_red = Block::new(BlockKind::Rock, Rgb::new(255, 0, 0));
+        let stone_green = Block::new(BlockKind::Rock, Rgb::new(0, 255, 0));
+        let stone_blue = Block::new(BlockKind::Rock, Rgb::new(0, 0, 255));
+
+        use inline_tweak::tweak;
+        let cutout_size = tweak!(9);
+
+        let origin = self.origin.with_z(self.alt);
+        let cutout = prim(Primitive::Aabb(Aabb {
+            min: origin - Vec2::broadcast(cutout_size * 7).with_z(self.alt-1),
+            max: origin + Vec2::broadcast(cutout_size * 7).with_z(100),
+        }));
+        fill(cutout, Fill::Block(vacant));
+
+
+        let stairs_inf = prim(Primitive::Sampling(wall_staircase(
+            origin,
+            TILE_SIZE as f32 / 2.0,
+            tweak!(27.0),
+        )));
+        let bounding_box = prim(Primitive::Aabb(Aabb {
+            min: origin - Vec3::new(8, 8, self.alt-1),
+            max: origin + Vec3::new(8, 8, 400),
+        }));
+        //let stairs_inf = prim(Primitive::Sampling(Box::new(|_| true)));
+        let stairs = prim(Primitive::And(bounding_box, stairs_inf));
+        let stairs_tr1 = prim(Primitive::Translate(stairs, Vec3::unit_z()));
+        let stairs_tr2 = prim(Primitive::Translate(stairs, Vec3::broadcast(tweak!(-16))));
+        /*let stairs = prim(Primitive::Cone(Aabb {
+            min: self.origin.with_z(self.alt) - Vec3::broadcast(16),
+            max: self.origin.with_z(self.alt + 100) + Vec3::broadcast(16),
+        }));*/
+        fill(stairs, Fill::Block(stone_red));
+        fill(stairs_tr1, Fill::Block(stone_green));
+        fill(stairs_tr2, Fill::Block(stone_blue));
+
+        /*let make_staircase = move |kind: &StairsKind,
+                                   pos: Vec3<i32>,
+                                   radius: f32,
+                                   inner_radius: f32,
+                                   stretch: f32,
+                                   height_limit: i32| {
+            match kind {
+                StairsKind::Spiral => make_spiral_staircase(pos, radius, inner_radius, stretch),
+                StairsKind::WallSpiral => {
+                    make_wall_staircase(pos, radius, stretch * 3.0, height_limit)
+                },
+            }
+        };
+
+        let wall_thickness = 3.0;
+        let dist_to_wall = self
+            .nearest_wall(rpos)
+            .map(|nearest| (nearest.distance_squared(rpos) as f32).sqrt())
+            .unwrap_or(TILE_SIZE as f32);
+        let tunnel_dist =
+            1.0 - (dist_to_wall - wall_thickness).max(0.0) / (TILE_SIZE as f32 - wall_thickness);
+
+        let floor_sprite = if RandomField::new(7331).chance(Vec3::from(pos), 0.001) {
+            BlockMask::new(
+                with_sprite(
+                    match (RandomField::new(1337).get(Vec3::from(pos)) / 2) % 30 {
+                        0 => SpriteKind::Apple,
+                        1 => SpriteKind::VeloriteFrag,
+                        2 => SpriteKind::Velorite,
+                        3..=8 => SpriteKind::Mushroom,
+                        9..=15 => SpriteKind::FireBowlGround,
+                        _ => SpriteKind::ShortGrass,
+                    },
+                ),
+                1,
+            )
+        } else if let Some(Tile::Room(room)) | Some(Tile::DownStair(room)) =
+            self.tiles.get(tile_pos)
+        {
+            let room = &self.rooms[*room];
+            if RandomField::new(room.seed).chance(Vec3::from(pos), room.loot_density * 0.5) {
+                match room.difficulty {
+                    0 => BlockMask::new(with_sprite(SpriteKind::DungeonChest0), 1),
+                    1 => BlockMask::new(with_sprite(SpriteKind::DungeonChest1), 1),
+                    2 => BlockMask::new(with_sprite(SpriteKind::DungeonChest2), 1),
+                    3 => BlockMask::new(with_sprite(SpriteKind::DungeonChest3), 1),
+                    4 => BlockMask::new(with_sprite(SpriteKind::DungeonChest4), 1),
+                    5 => BlockMask::new(with_sprite(SpriteKind::DungeonChest5), 1),
+                    _ => BlockMask::new(with_sprite(SpriteKind::Chest), 1),
+                }
+            } else {
+                vacant
+            }
+        } else {
+            vacant
+        };
+
+        let tunnel_height = if self.final_level { 16.0 } else { 8.0 };
+        let pillar_thickness: i32 = 4;
+
+        move |z| match self.tiles.get(tile_pos) {
+            Some(Tile::Solid) => BlockMask::nothing(),
+            Some(Tile::Tunnel) => {
+                let light_offset: i32 = 7;
+                if (dist_to_wall - wall_thickness) as i32 == 1
+                    && rtile_pos.map(|e| e % light_offset == 0).reduce_bitxor()
+                    && z == 1
+                {
+                    let ori =
+                        Floor::relative_ori(rpos, self.nearest_wall(rpos).unwrap_or_default());
+                    let furniture = SpriteKind::WallSconce;
+                    BlockMask::new(Block::air(furniture).with_ori(ori).unwrap(), 1)
+                } else if dist_to_wall >= wall_thickness
+                    && (z as f32) < tunnel_height * (1.0 - tunnel_dist.powi(4))
+                {
+                    if z == 0 { floor_sprite } else { vacant }
+                } else {
+                    BlockMask::nothing()
+                }
+            },
+            Some(Tile::Room(room)) | Some(Tile::DownStair(room))
+                if dist_to_wall < wall_thickness
+                    || z as f32
+                        >= self.rooms[*room].height as f32 * (1.0 - tunnel_dist.powi(4)) =>
+            {
+                BlockMask::nothing()
+            },
+
+            Some(Tile::Room(room)) | Some(Tile::DownStair(room))
+                if self.rooms[*room]
+                    .pillars
+                    .map(|pillar_space| {
+                        tile_pos
+                            .map(|e| e.rem_euclid(pillar_space) == 0)
+                            .reduce_and()
+                            && rtile_pos.map(|e| e as f32).magnitude_squared()
+                                < (pillar_thickness as f32 + 0.5).powi(2)
+                    })
+                    .unwrap_or(false) =>
+            {
+                if z == 1 && rtile_pos.product() == 0 && rtile_pos.sum().abs() == pillar_thickness {
+                    let ori = Floor::relative_ori(rtile_pos, Vec2::zero());
+                    let furniture = SpriteKind::WallSconce;
+                    BlockMask::new(Block::air(furniture).with_ori(ori).unwrap(), 1)
+                } else if z < self.rooms[*room].height
+                    && rtile_pos.map(|e| e as f32).magnitude_squared()
+                        > (pillar_thickness as f32 - 0.5).powi(2)
+                {
+                    vacant
+                } else {
+                    BlockMask::nothing()
+                }
+            }
+
+            Some(Tile::Room(_)) => {
+                let light_offset = 7;
+                if z == 0 {
+                    floor_sprite
+                } else if dist_to_wall as i32 == 4
+                    && rtile_pos.map(|e| e % light_offset == 0).reduce_bitxor()
+                    && z == 1
+                {
+                    let ori = Floor::relative_ori(
+                        rpos,
+                        self.nearest_wall(rpos).unwrap_or_else(Vec2::zero),
+                    );
+                    let furniture = SpriteKind::WallSconce;
+                    BlockMask::new(Block::air(furniture).with_ori(ori).unwrap(), 1)
+                } else {
+                    vacant
+                }
+            },
+            Some(Tile::DownStair(_)) => vacant,
+            Some(Tile::UpStair(room, kind)) => {
+                let inner_radius: f32 = 0.5;
+                let stretch = 9;
+                let block = make_staircase(
+                    kind,
+                    Vec3::new(rtile_pos.x, rtile_pos.y, z),
+                    TILE_SIZE as f32 / 2.0,
+                    inner_radius,
+                    stretch as f32,
+                    self.total_depth(),
+                );
+                let furniture = SpriteKind::WallSconce;
+                let ori = Floor::relative_ori(Vec2::zero(), rtile_pos);
+                if z < self.rooms[*room].height {
+                    block.resolve_with(vacant)
+                } else if z % stretch == 0 && rtile_pos.x == 0 && rtile_pos.y == -TILE_SIZE / 2 {
+                    BlockMask::new(Block::air(furniture).with_ori(ori).unwrap(), 1)
+                } else {
+                    make_staircase(
+                        kind,
+                        Vec3::new(rtile_pos.x, rtile_pos.y, z),
+                        TILE_SIZE as f32 / 2.0,
+                        inner_radius,
+                        stretch as f32,
+                        self.total_depth(),
+                    )
+                }
+            },
+            None => BlockMask::nothing(),
+        }*/
     }
 }

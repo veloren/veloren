@@ -2493,6 +2493,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "inline_tweak"
+version = "1.0.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7033e97b20277cc0d043226d1940fa7719ff08d2305d1fc7421e53066d00eb4b"
+dependencies = [
+ "lazy_static",
+]
+
+[[package]]
 name = "inotify"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6154,6 +6163,7 @@ dependencies = [
  "fxhash",
  "hashbrown 0.11.2",
  "image",
+ "inline_tweak",
  "itertools 0.10.0",
  "lazy_static",
  "lz-fear",
