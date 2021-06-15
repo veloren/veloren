@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use tracing::warn;
 
 const VELOREN_USERDATA_ENV: &str = "VELOREN_USERDATA";
 
@@ -52,14 +53,20 @@ pub fn userdata_dir(workspace: bool, strategy: Option<&str>, manifest_dir: &str)
             }
             let exe_path = std::env::current_exe()
                 .expect("Failed to retrieve executable path!");
-            // Ensure this path exists 
-            // Ensure that the binary path is prefixed by this path
-            if !path.exists() || !exe_path.starts_with(&path) {
-                panic!("Recompile with VELOREN_USERDATA_STRATEGY set to \"system\" or \"executable\" to run the binary outside of the project folder");
+            // If this path exists
+            // and the binary path is prefixed by this path
+            // put the userdata folder there
+            if path.exists() && exe_path.starts_with(&path) {
+                path.push("userdata");
+                path
+            } else {
+                // otherwise warn and fallback to the executable strategy
+                warn!("This binary was moved to outside the project folder where it was compiled and was not compiled with VELOREN_USERDATA_STRATEGY set to \"system\" or \"executable\". Falling back the to the \"executable\" strategy (the userdata folder will be placed in the same folder as the executable)");
+                let mut path = exe_path;
+                path.pop();
+                path.push("userdata");
+                path
             }
-
-            path.push("userdata");
-            path
         })
 }
 
