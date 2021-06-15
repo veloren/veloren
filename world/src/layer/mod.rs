@@ -328,7 +328,7 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
 
             // Scatter things in caves
             if cave_depth > 40.0 && cave_depth < 80.0 {
-                if rng.gen::<f32>() < 0.2 * (cave_x.max(0.5).powf(4.0)) && !vein_condition {
+                if rng.gen::<f32>() < 0.14 * (cave_x.max(0.5).powf(4.0)) && !vein_condition {
                     let kind =
                         *Lottery::<SpriteKind>::load_expect("common.cave_scatter.shallow_floor")
                             .read()
@@ -349,7 +349,7 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                     );
                 }
             } else if cave_depth < 200.0 && cave_depth > 80.0 {
-                if rng.gen::<f32>() < 0.12 * (cave_x.max(0.5).powf(4.0)) && !vein_condition {
+                if rng.gen::<f32>() < 0.08 * (cave_x.max(0.5).powf(4.0)) && !vein_condition {
                     let kind =
                         *Lottery::<SpriteKind>::load_expect("common.cave_scatter.deep_floor")
                             .read()
@@ -370,7 +370,7 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                     );
                 }
             } else {
-                if rng.gen::<f32>() < 0.12 * (cave_x.max(0.5).powf(4.0))
+                if rng.gen::<f32>() < 0.08 * (cave_x.max(0.5).powf(4.0))
                     && cave_depth > 40.0
                     && !vein_condition
                 {
@@ -445,7 +445,7 @@ pub fn apply_caves_supplement<'a>(
                             .map_or(true, |b| b.is_fluid())
                     })
                 }) {
-                    if RandomField::new(index.seed).chance(wpos2d.into(), 0.0018)
+                    if RandomField::new(index.seed).chance(wpos2d.into(), 0.0014)
                         && cave_base < surface_z as i32 - 40
                     {
                         let is_hostile: bool;
@@ -470,7 +470,7 @@ pub fn apply_caves_supplement<'a>(
                                     };
                                     comp::quadruped_low::Body::random_with(dynamic_rng, &species)
                                         .into()
-                                } else if cave_depth < 200.0 {
+                                } else if cave_depth < 190.0 {
                                     is_hostile = true;
                                     let species = match dynamic_rng.gen_range(0..3) {
                                         0 => comp::quadruped_low::Species::Rocksnapper,

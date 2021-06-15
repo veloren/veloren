@@ -3,7 +3,7 @@ BasicRanged(
     buildup_duration: 0.5,
     recover_duration: 0.35,
     projectile: Frostball(
-        damage: 80.0,
+        damage: 120.0,
         radius: 5.0,
     ),
     projectile_body: Object(BoltFire), // TODO: Get ice projectile model

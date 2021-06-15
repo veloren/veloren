@@ -1,0 +1,17 @@
+ItemDef(
+    name: "Quad Low Generic",
+    description: "Scaly.",
+    kind: Armor((
+        kind: Chest("QuadrupedLowGeneric"),
+        stats: (
+            protection: Normal(40.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

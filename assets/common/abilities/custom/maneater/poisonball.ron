@@ -3,7 +3,7 @@ BasicRanged(
     buildup_duration: 0.8,
     recover_duration: 0.35,
     projectile: NecroticSphere(
-        damage: 130.0,
+        damage: 260.0,
         radius: 5.0,
         energy_regen: 0,
     ),
@@ -13,6 +13,6 @@ BasicRanged(
         ..Default::default()
     }),*/
     projectile_speed: 70.0,
-    num_projectiles: 1,
-    projectile_spread: 0.0,
+    num_projectiles: 3,
+    projectile_spread: 0.2,
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Quad Low Ranged",
+    name: "Asp",
     description: "testing123",
     kind: Tool((
         kind: Natural,
@@ -14,5 +14,5 @@ ItemDef(
     )),
     quality: Low,
     tags: [],
-    ability_spec: Some(Custom("Quad Low Ranged")),
+    ability_spec: Some(Custom("Asp")),
 )

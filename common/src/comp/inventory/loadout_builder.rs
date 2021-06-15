@@ -197,9 +197,12 @@ fn default_main_tool(body: &Body) -> Item {
             )),
         },
         Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
-            quadruped_low::Species::Maneater | quadruped_low::Species::Asp => Some(
-                Item::new_from_asset_expect("common.items.npc_weapons.unique.quadlowranged"),
-            ),
+            quadruped_low::Species::Maneater => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.maneater",
+            )),
+            quadruped_low::Species::Asp => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.asp",
+            )),
             quadruped_low::Species::Crocodile
             | quadruped_low::Species::Alligator
             | quadruped_low::Species::Salamander => Some(Item::new_from_asset_expect(
@@ -414,11 +417,51 @@ impl LoadoutBuilder {
             }) => self.chest(Some(Item::new_from_asset_expect(
                 "common.items.npc_armor.biped_large.harvester",
             ))),
+            Body::BipedLarge(biped_large::Body {
+                species:
+                    biped_large::Species::Ogre
+                    | biped_large::Species::Cyclops
+                    | biped_large::Species::Blueoni
+                    | biped_large::Species::Redoni
+                    | biped_large::Species::Troll
+                    | biped_large::Species::Wendigo,
+                ..
+            }) => self.chest(Some(Item::new_from_asset_expect(
+                "common.items.npc_armor.biped_large.generic",
+            ))),
             Body::Golem(golem::Body {
                 species: golem::Species::ClayGolem,
                 ..
             }) => self.chest(Some(Item::new_from_asset_expect(
                 "common.items.npc_armor.golem.claygolem",
+            ))),
+            Body::QuadrupedLow(quadruped_low::Body {
+                species:
+                    quadruped_low::Species::Basilisk
+                    | quadruped_low::Species::Asp
+                    | quadruped_low::Species::Lavadrake
+                    | quadruped_low::Species::Maneater
+                    | quadruped_low::Species::Rocksnapper
+                    | quadruped_low::Species::Sandshark,
+                ..
+            }) => self.chest(Some(Item::new_from_asset_expect(
+                "common.items.npc_armor.quadruped_low.generic",
+            ))),
+            Body::QuadrupedLow(quadruped_low::Body {
+                species: quadruped_low::Species::Tortoise,
+                ..
+            }) => self.chest(Some(Item::new_from_asset_expect(
+                "common.items.npc_armor.quadruped_low.shell",
+            ))),
+            Body::Theropod(theropod::Body {
+                species:
+                    theropod::Species::Archaeos
+                    | theropod::Species::Yale
+                    | theropod::Species::Ntouka
+                    | theropod::Species::Odonto,
+                ..
+            }) => self.chest(Some(Item::new_from_asset_expect(
+                "common.items.npc_armor.theropod.rugged",
             ))),
             _ => self,
         };
