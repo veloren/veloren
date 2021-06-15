@@ -188,7 +188,9 @@ impl ShadowMap {
         let diag_two_size = u32::checked_next_power_of_two(diag_size)
             .filter(|&e| e <= max_texture_size)
             // Limit to max texture resolution rather than error.
-            .unwrap_or(max_texture_size);
+            .unwrap_or(max_texture_size)
+            // Make sure we don't try to create a zero sized texture (divided by 4 below)
+            .max(4);
 
         let point_shadow_tex = wgpu::TextureDescriptor {
             label: None,

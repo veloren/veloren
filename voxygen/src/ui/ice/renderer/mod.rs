@@ -711,14 +711,9 @@ impl IcedRenderer {
                     if intersection.is_valid() && intersection.size().map(|s| s > 0).reduce_and() {
                         intersection
                     } else {
-                        // Create a aabr with width 1 and height 1, technically
-                        // it would be more correct to do it with 0,0 but that's
-                        // a validation error in wgpu so enjoy your funky pixel
-                        // in the top left of your screen
-                        Aabr {
-                            min: Vec2::zero(),
-                            max: Vec2::one(),
-                        }
+                        // If the intersection is invalid or zero sized we don't need to process
+                        // the content primitive
+                        return;
                     }
                 };
                 // Not expecting this case: new_scissor == current_scissor
@@ -737,8 +732,8 @@ impl IcedRenderer {
                 self.draw_commands.push(DrawCommand::Scissor(new_scissor));
 
                 // TODO: support nested clips?
-                // TODO: if last command is a clip changing back to the default replace it with
-                // this
+                // TODO: if previous command was a clip changing back to the default replace it
+                // with this
                 // TODO: cull primitives outside the current scissor
 
                 // Renderer child
