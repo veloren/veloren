@@ -95,7 +95,7 @@ num = "0.4"
 ordered-float = { version = "2.0.1", default-features = false }
 rand = "0.8"
 rayon = "1.5"
-rodio = {version = "0.13", default-features = false, features = ["vorbis"]}
+rodio = {version = "0.14", default-features = false, features = ["vorbis"]}
 ron = {version = "0.6", default-features = false}
 serde = {version = "1.0", features = [ "rc", "derive" ]}
 strum = "0.20"
