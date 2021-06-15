@@ -168,6 +168,7 @@ const FLEE_DURATION: f32 = 3.0;
 const MAX_FOLLOW_DIST: f32 = 12.0;
 const MAX_PATH_DIST: f32 = 170.0;
 const PARTIAL_PATH_DIST: f32 = 50.0;
+const SEPARATION_DIST: f32 = 20.0;
 const MAX_FLEE_DIST: f32 = 20.0;
 const SEARCH_DIST: f32 = 48.0;
 const SNEAK_COEFFICIENT: f32 = 0.25;
@@ -1986,7 +1987,7 @@ impl<'a> AgentData<'a> {
                 .push(ControlAction::basic_input(InputKind::Primary));
             controller.inputs.move_dir = Vec2::zero();
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, true, true, None);
 
             if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
                 && attack_data.dist_sqrd < 16.0f32.powi(2)
@@ -1997,7 +1998,7 @@ impl<'a> AgentData<'a> {
                     .push(ControlAction::basic_input(InputKind::Roll));
             }
         } else {
-            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, true, None);
         }
     }
 
@@ -2042,7 +2043,7 @@ impl<'a> AgentData<'a> {
                 agent.action_state.timer += read_data.dt.0;
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
             if attack_data.dist_sqrd < 32.0f32.powi(2)
                 && has_leap()
                 && has_energy(500)
@@ -2064,7 +2065,7 @@ impl<'a> AgentData<'a> {
                     .push(ControlAction::basic_input(InputKind::Roll));
             }
         } else {
-            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
     }
 
@@ -2111,7 +2112,7 @@ impl<'a> AgentData<'a> {
                 agent.action_state.timer += read_data.dt.0;
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
             if attack_data.dist_sqrd < 32.0f32.powi(2)
                 && has_leap()
                 && has_energy(500)
@@ -2133,7 +2134,7 @@ impl<'a> AgentData<'a> {
                     .push(ControlAction::basic_input(InputKind::Roll));
             }
         } else {
-            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
     }
 
@@ -2166,7 +2167,7 @@ impl<'a> AgentData<'a> {
                 agent.action_state.timer += read_data.dt.0;
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            if self.path_toward_target(agent, controller, tgt_data, read_data, true, None)
+            if self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None)
                 && can_see_tgt(
                     &*read_data.terrain,
                     self.pos,
@@ -2192,7 +2193,7 @@ impl<'a> AgentData<'a> {
                     .push(ControlAction::basic_input(InputKind::Roll));
             }
         } else {
-            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
     }
 
@@ -2266,7 +2267,7 @@ impl<'a> AgentData<'a> {
                     .actions
                     .push(ControlAction::basic_input(InputKind::Roll));
             } else {
-                self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+                self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
                 if attack_data.angle < 15.0 {
                     controller
                         .actions
@@ -2355,7 +2356,7 @@ impl<'a> AgentData<'a> {
             }
         } else {
             // If too far, move towards target
-            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
     }
 
@@ -2452,7 +2453,7 @@ impl<'a> AgentData<'a> {
                     .push(ControlAction::basic_input(InputKind::Roll));
             }
         } else {
-            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
     }
 
@@ -2577,7 +2578,7 @@ impl<'a> AgentData<'a> {
             }
         } else {
             // If too far, move towards target
-            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
     }
 
@@ -2601,7 +2602,7 @@ impl<'a> AgentData<'a> {
                     .actions
                     .push(ControlAction::basic_input(InputKind::Ability(0)));
             }
-            if self.path_toward_target(agent, controller, tgt_data, read_data, true, None)
+            if self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None)
                 && can_see_tgt(
                     &*read_data.terrain,
                     self.pos,
@@ -2620,7 +2621,7 @@ impl<'a> AgentData<'a> {
                 }
             }
         } else {
-            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
     }
 
@@ -2708,9 +2709,9 @@ impl<'a> AgentData<'a> {
                 agent.action_state.timer = 0.0;
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
         } else {
-            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
     }
 
@@ -2786,7 +2787,7 @@ impl<'a> AgentData<'a> {
                 agent.target = None;
             }
         } else {
-            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
     }
 
@@ -2823,9 +2824,9 @@ impl<'a> AgentData<'a> {
                 .unwrap_or_else(Vec2::unit_y)
                 * 0.1;
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
         } else {
-            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
     }
 
@@ -2857,9 +2858,9 @@ impl<'a> AgentData<'a> {
                 .try_normalized()
                 .unwrap_or_else(Vec2::unit_y);
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
         } else {
-            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
     }
 
@@ -2889,9 +2890,9 @@ impl<'a> AgentData<'a> {
                 agent.action_state.timer += read_data.dt.0;
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
         } else {
-            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
     }
 
@@ -2917,7 +2918,7 @@ impl<'a> AgentData<'a> {
                 .actions
                 .push(ControlAction::basic_input(InputKind::Ability(0)));
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            if self.path_toward_target(agent, controller, tgt_data, read_data, true, None)
+            if self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None)
                 && attack_data.angle < 15.0
                 && can_see_tgt(
                     &*read_data.terrain,
@@ -2931,7 +2932,7 @@ impl<'a> AgentData<'a> {
                     .push(ControlAction::basic_input(InputKind::Primary));
             }
         } else {
-            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
     }
 
@@ -2959,9 +2960,9 @@ impl<'a> AgentData<'a> {
                 agent.action_state.timer = 0.0;
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
         } else {
-            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
     }
 
@@ -3012,9 +3013,9 @@ impl<'a> AgentData<'a> {
                 agent.action_state.timer = 0.0;
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
         } else {
-            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
     }
 
@@ -3032,9 +3033,9 @@ impl<'a> AgentData<'a> {
                 .actions
                 .push(ControlAction::basic_input(InputKind::Primary));
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
         } else {
-            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
     }
 
@@ -3201,7 +3202,7 @@ impl<'a> AgentData<'a> {
                         .push(ControlAction::basic_input(InputKind::Secondary));
                 }
             } else {
-                self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+                self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             // If too far from target, throw a random number of necrotic spheres at them and
@@ -3232,9 +3233,9 @@ impl<'a> AgentData<'a> {
                     select_pos: None,
                 });
             }
-            self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
         } else {
-            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
     }
 
@@ -3351,7 +3352,7 @@ impl<'a> AgentData<'a> {
         // If further than 2.5 blocks and random chance
         else if attack_data.dist_sqrd > (2.5 * attack_data.min_attack_dist).powi(2) {
             // Walk to target
-            self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
         }
         // If energy higher than 600 and random chance
         else if self.energy.current() > 600 && thread_rng().gen_bool(0.4) {
@@ -3366,7 +3367,7 @@ impl<'a> AgentData<'a> {
                 .push(ControlAction::basic_input(InputKind::Secondary));
         } else {
             // Target is behind us. Turn around and chase target
-            self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
         }
     }
 
@@ -3466,7 +3467,7 @@ impl<'a> AgentData<'a> {
                 .push(ControlAction::basic_input(InputKind::Jump));
             controller.inputs.move_z = 1.0;
         } else if attack_data.dist_sqrd > (3.0 * attack_data.min_attack_dist).powi(2) {
-            self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
         } else if self.energy.current() > 600
             && agent.action_state.timer < 3.0
             && attack_data.angle < 15.0
@@ -3476,7 +3477,7 @@ impl<'a> AgentData<'a> {
                 .actions
                 .push(ControlAction::basic_input(InputKind::Ability(0)));
             // Move towards the target slowly
-            self.path_toward_target(agent, controller, tgt_data, read_data, true, Some(0.5));
+            self.path_toward_target(agent, controller, tgt_data, read_data, true, false, Some(0.5));
             agent.action_state.timer += read_data.dt.0;
         } else if agent.action_state.timer < 6.0
             && attack_data.angle < 90.0
@@ -3491,7 +3492,7 @@ impl<'a> AgentData<'a> {
             // Reset timer
             agent.action_state.timer = 0.0;
             // Target is behind us or the timer needs to be reset. Chase target
-            self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+            self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
         }
     }
 
@@ -3562,7 +3563,7 @@ impl<'a> AgentData<'a> {
             agent.action_state.condition = true;
         }
         // Make bird move towards target
-        self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+        self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
     }
 
     fn handle_minotaur_attack(
@@ -3629,7 +3630,7 @@ impl<'a> AgentData<'a> {
             }
         }
         // Make minotaur move towards target
-        self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+        self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
     }
 
     fn handle_clay_golem_attack(
@@ -3717,7 +3718,7 @@ impl<'a> AgentData<'a> {
             }
         }
         // Make clay golem move towards target
-        self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+        self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
     }
 
     fn handle_tidal_warrior_attack(
@@ -3799,7 +3800,7 @@ impl<'a> AgentData<'a> {
             }
         }
         // Always attempt to path towards target
-        self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+        self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
     }
 
     fn handle_yeti_attack(
@@ -3858,7 +3859,7 @@ impl<'a> AgentData<'a> {
         }
 
         // Always attempt to path towards target
-        self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+        self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
     }
 
     fn handle_harvester_attack(
@@ -3930,7 +3931,7 @@ impl<'a> AgentData<'a> {
                 .push(ControlAction::basic_input(InputKind::Ability(1)));
         }
         // Always attempt to path towards target
-        self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+        self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
     }
 
     fn follow(
@@ -4055,9 +4056,41 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
         full_path: bool,
+        separate: bool,
         speed_multiplier: Option<f32>,
     ) -> bool {
-        let pathing_pos = if full_path {
+        let pathing_pos = if separate {
+            let mut sep_vec: Vec3<f32> = Vec3::<f32>::zero();
+
+            for entity in read_data
+                .cached_spatial_grid
+                .0
+                .in_circle_aabr(self.pos.0.xy(), SEPARATION_DIST / 2.0)
+            {
+                if let (Some(alignment), Some(other_alignment)) =
+                    (self.alignment, read_data.alignments.get(entity))
+                {
+                    if Alignment::passive_towards(*alignment, *other_alignment) {
+                        let other_pos = match read_data.positions.get(entity) {
+                            Some(x) => x.0.xy(),
+                            None => continue,
+                        };
+                        if self.pos.0.xy().distance(other_pos) < SEPARATION_DIST {
+                            sep_vec += (self.pos.0.xy() - other_pos)
+                                .try_normalized()
+                                .unwrap_or_else(Vec2::zero)
+                                * (SEPARATION_DIST - self.pos.0.xy().distance(other_pos));
+                        }
+                    }
+                }
+            }
+            self.pos.0
+                + sep_vec
+                + PARTIAL_PATH_DIST
+                    * (tgt_data.pos.0 - self.pos.0)
+                        .try_normalized()
+                        .unwrap_or_else(Vec3::zero)
+        } else if full_path {
             tgt_data.pos.0
         } else {
             self.pos.0
