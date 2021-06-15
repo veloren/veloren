@@ -1400,6 +1400,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     ori_modifier: *ori_modifier as f32,
                     ability_info,
                 },
+                exhausted: false,
                 stage: 1,
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
