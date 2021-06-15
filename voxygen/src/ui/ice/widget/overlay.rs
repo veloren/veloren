@@ -1,6 +1,6 @@
 use iced::{
-    layout, mouse, Align, Clipboard, Element, Event, Hasher, Layout, Length, Point, Rectangle,
-    Size, Widget,
+    layout, mouse, Align, Clipboard, Element, Event, Hasher, Layout, Length, Padding, Point,
+    Rectangle, Size, Widget,
 };
 use std::hash::Hash;
 
@@ -10,7 +10,7 @@ use std::hash::Hash;
 /// the front widget
 /// Alignment and padding is used for the front widget
 pub struct Overlay<'a, M, R: self::Renderer> {
-    padding: u16,
+    padding: Padding,
     width: Length,
     height: Length,
     max_width: u32,
@@ -32,7 +32,7 @@ where
         U: Into<Element<'a, M, R>>,
     {
         Self {
-            padding: 0,
+            padding: Padding::ZERO,
             width: Length::Shrink,
             height: Length::Shrink,
             max_width: u32::MAX,
@@ -44,8 +44,8 @@ where
         }
     }
 
-    pub fn padding(mut self, pad: u16) -> Self {
-        self.padding = pad;
+    pub fn padding<P: Into<Padding>>(mut self, pad: P) -> Self {
+        self.padding = pad.into();
         self
     }
 
@@ -99,8 +99,6 @@ where
     fn height(&self) -> Length { self.height }
 
     fn layout(&self, renderer: &R, limits: &layout::Limits) -> layout::Node {
-        let padding = self.padding as f32;
-
         let limits = limits
             .loose()
             .max_width(self.max_width)
@@ -111,16 +109,22 @@ where
         let under = self.under.layout(renderer, &limits.loose());
         let under_size = under.size();
 
-        let limits = limits.pad(padding);
+        let limits = limits.pad(self.padding);
         let mut over = self.over.layout(renderer, &limits.loose());
         let over_size = over.size();
 
-        let size = limits.resolve(Size {
-            width: under_size.width.max(over_size.width + padding * 2.0),
-            height: under_size.height.max(over_size.height + padding * 2.0),
-        });
+        let size = limits.resolve(
+            Size {
+                width: under_size.width.max(over_size.width),
+                height: under_size.height.max(over_size.height),
+            }
+            .pad(self.padding),
+        );
 
-        over.move_to(Point::new(padding, padding));
+        over.move_to(Point::new(
+            self.padding.left.into(),
+            self.padding.top.into(),
+        ));
         over.align(self.horizontal_alignment, self.vertical_alignment, size);
 
         layout::Node::with_children(size, vec![over, under])
@@ -131,9 +135,9 @@ where
         event: Event,
         layout: Layout<'_>,
         cursor_position: Point,
-        messages: &mut Vec<M>,
         renderer: &R,
-        clipboard: Option<&dyn Clipboard>,
+        clipboard: &mut dyn Clipboard,
+        messages: &mut Vec<M>,
     ) -> iced::event::Status {
         let mut children = layout.children();
         let over_layout = children.next().unwrap();
@@ -143,9 +147,9 @@ where
             event.clone(),
             over_layout,
             cursor_position,
-            messages,
             renderer,
             clipboard,
+            messages,
         );
 
         // If mouse press check if over the overlay widget before sending to under
@@ -158,9 +162,9 @@ where
                     event,
                     children.next().unwrap(),
                     cursor_position,
-                    messages,
                     renderer,
                     clipboard,
+                    messages,
                 )
                 .merge(status)
         } else {

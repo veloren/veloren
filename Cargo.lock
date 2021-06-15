@@ -615,30 +615,11 @@ dependencies = [
 
 [[package]]
 name = "clipboard_wayland"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61bcb8cde0387fde807b9b7af66ce8bd1665ef736e46e6e47fda82ea003e6ade"
-dependencies = [
- "smithay-clipboard",
-]
-
-[[package]]
-name = "clipboard_wayland"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6f6364a9f7a66f2ac1a1a098aa1c7f6b686f2496c6ac5e5c0d773445df912747"
 dependencies = [
  "smithay-clipboard",
-]
-
-[[package]]
-name = "clipboard_x11"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "40403aa5220e5cd303d32dc4248cac8aa92bf47e3ae31e0e2481081755a63ff1"
-dependencies = [
- "thiserror",
- "x11rb",
 ]
 
 [[package]]
@@ -931,8 +912,8 @@ dependencies = [
  "lazy_static",
  "libc",
  "mach 0.3.2",
- "ndk 0.3.0",
- "ndk-glue 0.3.0",
+ "ndk",
+ "ndk-glue",
  "nix 0.20.0",
  "oboe",
  "parking_lot 0.11.1",
@@ -1052,6 +1033,20 @@ checksum = "e022feadec601fba1649cfa83586381a4ad31c6bf3a9ab7d408118b05dd9889d"
 dependencies = [
  "cast",
  "itertools 0.9.0",
+]
+
+[[package]]
+name = "crossbeam"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ae5588f6b3c3cb05239e90bd110f257254aecd01e4635400391aeae07497845"
+dependencies = [
+ "cfg-if 1.0.0",
+ "crossbeam-channel",
+ "crossbeam-deque 0.8.0",
+ "crossbeam-epoch 0.9.5",
+ "crossbeam-queue",
+ "crossbeam-utils 0.8.5",
 ]
 
 [[package]]
@@ -2386,13 +2381,13 @@ dependencies = [
 
 [[package]]
 name = "iced_core"
-version = "0.3.0"
-source = "git+https://github.com/hecrj/iced?rev=8d882d787e6b7fd7c2435f42f82933e2ed904edf#8d882d787e6b7fd7c2435f42f82933e2ed904edf"
+version = "0.4.0"
+source = "git+https://github.com/Imberflur/iced?tag=winit-0.25#18a48a5eeefd2aa6e50f5dd0751ac2e94c88a9eb"
 
 [[package]]
 name = "iced_futures"
-version = "0.2.0"
-source = "git+https://github.com/hecrj/iced?rev=8d882d787e6b7fd7c2435f42f82933e2ed904edf#8d882d787e6b7fd7c2435f42f82933e2ed904edf"
+version = "0.3.0"
+source = "git+https://github.com/Imberflur/iced?tag=winit-0.25#18a48a5eeefd2aa6e50f5dd0751ac2e94c88a9eb"
 dependencies = [
  "futures",
  "log",
@@ -2401,8 +2396,8 @@ dependencies = [
 
 [[package]]
 name = "iced_graphics"
-version = "0.1.0"
-source = "git+https://github.com/hecrj/iced?rev=8d882d787e6b7fd7c2435f42f82933e2ed904edf#8d882d787e6b7fd7c2435f42f82933e2ed904edf"
+version = "0.2.0"
+source = "git+https://github.com/Imberflur/iced?tag=winit-0.25#18a48a5eeefd2aa6e50f5dd0751ac2e94c88a9eb"
 dependencies = [
  "bytemuck",
  "glam",
@@ -2414,8 +2409,8 @@ dependencies = [
 
 [[package]]
 name = "iced_native"
-version = "0.3.0"
-source = "git+https://github.com/hecrj/iced?rev=8d882d787e6b7fd7c2435f42f82933e2ed904edf#8d882d787e6b7fd7c2435f42f82933e2ed904edf"
+version = "0.4.0"
+source = "git+https://github.com/Imberflur/iced?tag=winit-0.25#18a48a5eeefd2aa6e50f5dd0751ac2e94c88a9eb"
 dependencies = [
  "iced_core",
  "iced_futures",
@@ -2426,16 +2421,16 @@ dependencies = [
 
 [[package]]
 name = "iced_style"
-version = "0.2.0"
-source = "git+https://github.com/hecrj/iced?rev=8d882d787e6b7fd7c2435f42f82933e2ed904edf#8d882d787e6b7fd7c2435f42f82933e2ed904edf"
+version = "0.3.0"
+source = "git+https://github.com/Imberflur/iced?tag=winit-0.25#18a48a5eeefd2aa6e50f5dd0751ac2e94c88a9eb"
 dependencies = [
  "iced_core",
 ]
 
 [[package]]
 name = "iced_winit"
-version = "0.2.0"
-source = "git+https://github.com/hecrj/iced?rev=8d882d787e6b7fd7c2435f42f82933e2ed904edf#8d882d787e6b7fd7c2435f42f82933e2ed904edf"
+version = "0.3.0"
+source = "git+https://github.com/Imberflur/iced?tag=winit-0.25#18a48a5eeefd2aa6e50f5dd0751ac2e94c88a9eb"
 dependencies = [
  "iced_futures",
  "iced_graphics",
@@ -2443,7 +2438,7 @@ dependencies = [
  "log",
  "thiserror",
  "winapi 0.3.9",
- "window_clipboard 0.1.4",
+ "window_clipboard",
  "winit",
 ]
 
@@ -2637,7 +2632,7 @@ dependencies = [
 [[package]]
 name = "keyboard-keynames"
 version = "0.1.0"
-source = "git+https://gitlab.com/Frinksy/keyboard-keynames.git?rev=a97ae509cdb9dc70cf1bf0af762d2d1d3a0d6e0c#a97ae509cdb9dc70cf1bf0af762d2d1d3a0d6e0c"
+source = "git+https://gitlab.com/Frinksy/keyboard-keynames.git?rev=9ae8f89014d0b0c5b61d0e821c5aeb6140c5c0dc#9ae8f89014d0b0c5b61d0e821c5aeb6140c5c0dc"
 dependencies = [
  "libc",
  "memmap",
@@ -3029,6 +3024,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "mio-misc"
+version = "1.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ddf05411bb159cdb5801bb10002afb66cb4572be656044315e363460ce69dc2"
+dependencies = [
+ "crossbeam",
+ "crossbeam-queue",
+ "log",
+ "mio 0.7.11",
+]
+
+[[package]]
 name = "miow"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3099,40 +3106,14 @@ dependencies = [
 
 [[package]]
 name = "ndk"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5eb167c1febed0a496639034d0c76b3b74263636045db5489eee52143c246e73"
-dependencies = [
- "jni-sys",
- "ndk-sys",
- "num_enum 0.4.3",
- "thiserror",
-]
-
-[[package]]
-name = "ndk"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8794322172319b972f528bf90c6b467be0079f1fa82780ffb431088e741a73ab"
 dependencies = [
  "jni-sys",
  "ndk-sys",
- "num_enum 0.5.1",
+ "num_enum",
  "thiserror",
-]
-
-[[package]]
-name = "ndk-glue"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bdf399b8b7a39c6fb153c4ec32c72fd5fe789df24a647f229c239aa7adb15241"
-dependencies = [
- "lazy_static",
- "libc",
- "log",
- "ndk 0.2.1",
- "ndk-macro",
- "ndk-sys",
 ]
 
 [[package]]
@@ -3144,7 +3125,7 @@ dependencies = [
  "lazy_static",
  "libc",
  "log",
- "ndk 0.3.0",
+ "ndk",
  "ndk-macro",
  "ndk-sys",
 ]
@@ -3467,34 +3448,12 @@ dependencies = [
 
 [[package]]
 name = "num_enum"
-version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca565a7df06f3d4b485494f25ba05da1435950f4dc263440eda7a6fa9b8e36e4"
-dependencies = [
- "derivative",
- "num_enum_derive 0.4.3",
-]
-
-[[package]]
-name = "num_enum"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "226b45a5c2ac4dd696ed30fa6b94b057ad909c7b7fc2e0d0808192bced894066"
 dependencies = [
  "derivative",
- "num_enum_derive 0.5.1",
-]
-
-[[package]]
-name = "num_enum_derive"
-version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ffa5a33ddddfee04c0283a7653987d634e880347e96b5b2ed64de07efb59db9d"
-dependencies = [
- "proc-macro-crate",
- "proc-macro2 1.0.27",
- "quote 1.0.9",
- "syn 1.0.72",
+ "num_enum_derive",
 ]
 
 [[package]]
@@ -3574,8 +3533,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dfa187b38ae20374617b7ad418034ed3dc90ac980181d211518bd03537ae8f8d"
 dependencies = [
  "jni",
- "ndk 0.3.0",
- "ndk-glue 0.3.0",
+ "ndk",
+ "ndk-glue",
  "num-derive",
  "num-traits",
  "oboe-sys",
@@ -6147,7 +6106,7 @@ dependencies = [
  "veloren-world",
  "wgpu",
  "wgpu-profiler",
- "window_clipboard 0.2.1",
+ "window_clipboard",
  "winit",
  "winres",
 ]
@@ -6852,34 +6811,22 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
 name = "window_clipboard"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37cf16659e398a96f4ab8deff2b9db2ca0c3c5d6c1b59b1d577b7f888f0f03c6"
-dependencies = [
- "clipboard-win 4.2.1",
- "clipboard_macos",
- "clipboard_wayland 0.1.2",
- "clipboard_x11 0.2.0",
- "raw-window-handle",
-]
-
-[[package]]
-name = "window_clipboard"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "33a4518b538a45ad39d138a8c3bea8f6b4452174aeb38143d1dd643a3a838ccc"
 dependencies = [
  "clipboard-win 4.2.1",
  "clipboard_macos",
- "clipboard_wayland 0.2.0",
- "clipboard_x11 0.3.1",
+ "clipboard_wayland",
+ "clipboard_x11",
  "raw-window-handle",
 ]
 
 [[package]]
 name = "winit"
-version = "0.24.0"
-source = "git+https://gitlab.com/veloren/winit.git?branch=macos-test-spiffed#488c511802dfd95ca54f6f76a38547c93c7b02c9"
+version = "0.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "79610794594d5e86be473ef7763f604f2159cbac8c94debd00df8fb41e86c2f8"
 dependencies = [
  "bitflags",
  "cocoa",
@@ -6891,15 +6838,16 @@ dependencies = [
  "lazy_static",
  "libc",
  "log",
- "mio 0.6.23",
- "mio-extras",
- "ndk 0.2.1",
- "ndk-glue 0.2.1",
+ "mio 0.7.11",
+ "mio-misc",
+ "ndk",
+ "ndk-glue",
  "ndk-sys",
  "objc",
  "parking_lot 0.11.1",
  "percent-encoding",
  "raw-window-handle",
+ "scopeguard",
  "serde",
  "smithay-client-toolkit",
  "wayland-client 0.28.5",

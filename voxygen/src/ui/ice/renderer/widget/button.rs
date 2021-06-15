@@ -5,7 +5,7 @@ impl button::Renderer for IcedRenderer {
     // TODO: what if this gets large enough to not be copied around?
     type Style = style::button::Style;
 
-    const DEFAULT_PADDING: u16 = 0;
+    const DEFAULT_PADDING: iced::Padding = iced::Padding::ZERO;
 
     fn draw<M>(
         &mut self,

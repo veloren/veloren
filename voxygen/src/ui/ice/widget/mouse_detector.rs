@@ -48,9 +48,9 @@ where
         event: Event,
         layout: Layout<'_>,
         _cursor_position: Point,
-        _messages: &mut Vec<M>,
         _renderer: &R,
-        _clipboard: Option<&dyn Clipboard>,
+        _clipboard: &mut dyn Clipboard,
+        _messages: &mut Vec<M>,
     ) -> iced::event::Status {
         if let Event::Mouse(mouse::Event::CursorMoved {
             position: Point { x, y },

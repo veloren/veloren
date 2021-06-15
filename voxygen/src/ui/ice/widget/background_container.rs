@@ -255,17 +255,17 @@ where
         event: Event,
         layout: Layout<'_>,
         cursor_position: Point,
-        messages: &mut Vec<M>,
         renderer: &R,
-        clipboard: Option<&dyn Clipboard>,
+        clipboard: &mut dyn Clipboard,
+        messages: &mut Vec<M>,
     ) -> iced::event::Status {
         self.content.on_event(
             event,
             layout.children().next().unwrap(),
             cursor_position,
-            messages,
             renderer,
             clipboard,
+            messages,
         )
     }
 

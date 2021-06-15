@@ -44,7 +44,7 @@ anim = {package = "veloren-voxygen-anim", path = "anim"}
 i18n = {package = "veloren-i18n", path = "i18n"}
 
 # Graphics
-winit = {version = "0.24.0", features = ["serde"]}
+winit = {version = "0.25.0", features = ["serde"]}
 wgpu = { version = "=0.8.0", features = ["trace", "cross"] }
 wgpu-profiler = { git = "https://github.com/Imberflur/wgpu-profiler", tag = "wgpu-0.8" }
 bytemuck = { version="1.4", features=["derive"] }
@@ -54,11 +54,11 @@ shaderc = "0.6.2"
 conrod_core = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
 conrod_winit = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
 euc = "0.5.0"
-iced = {package = "iced_native", git = "https://github.com/hecrj/iced", rev = "8d882d787e6b7fd7c2435f42f82933e2ed904edf"}
-iced_winit = {git = "https://github.com/hecrj/iced", rev = "8d882d787e6b7fd7c2435f42f82933e2ed904edf"}
+iced = {package = "iced_native", git = "https://github.com/Imberflur/iced", tag = "winit-0.25"}
+iced_winit = {git = "https://github.com/Imberflur/iced", tag = "winit-0.25"}
 window_clipboard = "0.2"
 glyph_brush = "0.7.0"
-keyboard-keynames = { git = "https://gitlab.com/Frinksy/keyboard-keynames.git", rev = "a97ae509cdb9dc70cf1bf0af762d2d1d3a0d6e0c" }
+keyboard-keynames = { git = "https://gitlab.com/Frinksy/keyboard-keynames.git", rev = "9ae8f89014d0b0c5b61d0e821c5aeb6140c5c0dc" }
 
 # ECS
 specs = {git = "https://github.com/amethyst/specs.git", rev = "f985bec5d456f7b0dd8aae99848f9473c2cd9d46"}

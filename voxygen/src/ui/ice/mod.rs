@@ -148,7 +148,7 @@ impl IcedUi {
         root: E,
         renderer: &mut Renderer,
         pool: Option<&SlowJobPool>,
-        clipboard: Option<&Clipboard>,
+        clipboard: &mut Clipboard,
     ) -> (Vec<M>, mouse::Interaction) {
         span!(_guard, "maintain", "IcedUi::maintain");
         // Handle window resizing, dpi factor change, and scale mode changing
@@ -194,11 +194,8 @@ impl IcedUi {
             let _event_status_list = user_interface.update(
                 &self.events,
                 cursor_position,
-                match clipboard {
-                    Some(c) => Some(c),
-                    None => None,
-                },
                 &self.renderer,
+                clipboard,
                 &mut messages,
             );
             messages
