@@ -21,7 +21,7 @@ use common::{
         Agent, Alignment, BehaviorCapability, BehaviorState, Body, CharacterAbility,
         CharacterState, ControlAction, ControlEvent, Controller, Energy, Health, HealthChange,
         InputKind, Inventory, InventoryAction, LightEmitter, MountState, Ori, PhysicsState, Pos,
-        Scale, SkillSet, Stats, UnresolvedChatMsg, Vel, UtteranceKind,
+        Scale, SkillSet, Stats, UnresolvedChatMsg, UtteranceKind, Vel,
     },
     consts::GRAVITY,
     effect::{BuffEffect, Effect},

@@ -91,12 +91,11 @@ use client::Client;
 use common::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
-        beam,
+        beam, biped_large,
         item::{ItemKind, ToolKind},
         object,
         poise::PoiseState,
-        Body, CharacterAbilityType, InventoryUpdateEvent,
-        UtteranceKind,
+        Body, CharacterAbilityType, InventoryUpdateEvent, UtteranceKind,
     },
     outcome::Outcome,
     terrain::{BlockKind, TerrainChunk},
@@ -183,7 +182,29 @@ pub enum SfxEvent {
     FlameThrower,
     PoiseChange(PoiseState),
     GroundSlam,
-    Utterance(UtteranceKind, Body),
+    Utterance(UtteranceKind, VoiceKind),
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
+pub enum VoiceKind {
+    Mute,
+    Human,
+    BipedLarge,
+    Wendigo,
+    Saurok,
+}
+
+fn body_to_voice(body: &Body) -> VoiceKind {
+    match body {
+        Body::BipedLarge(body) => match body.species {
+            biped_large::Species::Wendigo => VoiceKind::Wendigo,
+            biped_large::Species::Occultsaurok
+            | biped_large::Species::Mightysaurok
+            | biped_large::Species::Slysaurok => VoiceKind::Saurok,
+            _ => VoiceKind::BipedLarge,
+        },
+        _ => VoiceKind::Mute,
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -455,8 +476,9 @@ impl SfxMgr {
                 },
             },
             Outcome::Utterance { pos, kind, body } => {
-                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Utterance(*kind, *body));
-                audio.emit_sfx(sfx_trigger_item, *pos, None, false);
+                let sfx_trigger_item =
+                    triggers.get_key_value(&SfxEvent::Utterance(*kind, body_to_voice(body)));
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.5), false);
             },
             Outcome::ExpChange { .. }
             | Outcome::ComboChange { .. }

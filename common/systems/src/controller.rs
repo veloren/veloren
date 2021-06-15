@@ -1,5 +1,8 @@
 use common::{
-    comp::{BuffChange, ControlEvent, Controller, Pos, Body, agent::{Sound, SoundKind}},
+    comp::{
+        agent::{Sound, SoundKind},
+        Body, BuffChange, ControlEvent, Controller, Pos,
+    },
     event::{EventBus, ServerEvent},
     uid::UidAllocator,
 };
@@ -7,7 +10,7 @@ use common_ecs::{Job, Origin, Phase, System};
 use specs::{
     saveload::{Marker, MarkerAllocator},
     shred::ResourceId,
-    Entities, Join, Read, SystemData, World, WriteStorage, ReadStorage,
+    Entities, Join, Read, ReadStorage, SystemData, World, WriteStorage,
 };
 use vek::*;
 
