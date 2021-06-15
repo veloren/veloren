@@ -3,7 +3,7 @@ use crate::{
     block::block_from_structure,
     column::ColumnSample,
     site::{namegen::NameGen, BlockMask},
-    site2::{self, Primitive, Fill, Structure as SiteStructure},
+    site2::{self, Fill, Primitive, Structure as SiteStructure},
     util::{attempt, Grid, RandomField, Sampler, CARDINALS, DIRS},
     IndexRef, Land,
 };
@@ -14,7 +14,9 @@ use common::{
     comp::{self},
     generation::{ChunkSupplement, EntityInfo},
     store::{Id, Store},
-    terrain::{Block, BlockKind, SpriteKind, Structure, StructuresGroup, TerrainChunkSize},
+    terrain::{
+        Block, BlockKind, SpriteKind, Structure, structure::StructureBlock, StructuresGroup, TerrainChunkSize,
+    },
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, WriteVol},
 };
 use core::{f32, hash::BuildHasherDefault};
@@ -1233,11 +1235,10 @@ impl SiteStructure for Dungeon {
 
         let origin = self.origin.with_z(self.alt);
         let cutout = prim(Primitive::Aabb(Aabb {
-            min: origin - Vec2::broadcast(cutout_size * 7).with_z(self.alt-1),
+            min: origin - Vec2::broadcast(cutout_size * 7).with_z(self.alt - 1),
             max: origin + Vec2::broadcast(cutout_size * 7).with_z(100),
         }));
         fill(cutout, Fill::Block(vacant));
-
 
         let stairs_inf = prim(Primitive::Sampling(wall_staircase(
             origin,
@@ -1245,7 +1246,7 @@ impl SiteStructure for Dungeon {
             tweak!(27.0),
         )));
         let bounding_box = prim(Primitive::Aabb(Aabb {
-            min: origin - Vec3::new(8, 8, self.alt-1),
+            min: origin - Vec3::new(8, 8, self.alt - 1),
             max: origin + Vec3::new(8, 8, 400),
         }));
         //let stairs_inf = prim(Primitive::Sampling(Box::new(|_| true)));
@@ -1259,6 +1260,24 @@ impl SiteStructure for Dungeon {
         fill(stairs, Fill::Block(stone_red));
         fill(stairs_tr1, Fill::Block(stone_green));
         fill(stairs_tr2, Fill::Block(stone_blue));
+
+        lazy_static! {
+            pub static ref ENTRANCES: AssetHandle<StructuresGroup> =
+                Structure::load_group("dungeon_entrances");
+        }
+
+        let entrances = ENTRANCES.read();
+        let entrance = entrances[self.seed as usize % entrances.len()].clone();
+
+        let entrance_aabb = prim(Primitive::Aabb(entrance.get_bounds()));
+        let entrance = prim(Primitive::Sampling(Box::new(move |pos| {
+            entrance
+                .get(pos)
+                .map_or(false, |b| !matches!(b, StructureBlock::None))
+        })));
+        let entrance = prim(Primitive::And(entrance, entrance_aabb));
+        let entrance = prim(Primitive::Translate(entrance, origin));
+        fill(entrance, Fill::Block(stone_red));
 
         /*let make_staircase = move |kind: &StairsKind,
                                    pos: Vec3<i32>,

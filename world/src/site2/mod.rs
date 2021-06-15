@@ -302,7 +302,7 @@ impl Site {
         let dungeon = plot::Dungeon::generate(origin, land, &mut rng);
         site.name = dungeon.name().to_string();
         //let size = (2.0 + rng.gen::<f32>().powf(8.0) * 3.0).round() as i32;
-        let size = 8;
+        let size = (dungeon.radius() / (2.0 * tile::TILE_SIZE as f32)).ceil() as i32;
 
         let aabr = Aabr {
             min: Vec2::broadcast(-size),
