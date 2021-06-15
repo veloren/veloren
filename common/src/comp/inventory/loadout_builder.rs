@@ -253,7 +253,12 @@ fn default_main_tool(body: &Body) -> Item {
             (biped_large::Species::Ogre, biped_large::BodyType::Female) => Some(
                 Item::new_from_asset_expect("common.items.npc_weapons.staff.ogre_staff"),
             ),
-            (biped_large::Species::Troll, _) => Some(Item::new_from_asset_expect(
+            (
+                biped_large::Species::Mountaintroll
+                | biped_large::Species::Swamptroll
+                | biped_large::Species::Cavetroll,
+                _,
+            ) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.hammer.troll_hammer",
             )),
             (biped_large::Species::Wendigo, _) => Some(Item::new_from_asset_expect(
@@ -300,6 +305,9 @@ fn default_main_tool(body: &Body) -> Item {
             object::Body::SeaLantern => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.tidal_totem",
             )),
+            object::Body::Tornado => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.tornado",
+            )),
             _ => None,
         },
         Body::BipedSmall(biped_small) => match (biped_small.species, biped_small.body_type) {
@@ -319,6 +327,9 @@ fn default_main_tool(body: &Body) -> Item {
             )),
             (bird_large::Species::Phoenix, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.birdlargefire",
+            )),
+            (bird_large::Species::Roc, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.birdlargebasic",
             )),
         },
         _ => None,

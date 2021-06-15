@@ -147,6 +147,7 @@ impl Server {
                     home_chunk,
                     drop_item,
                     rtsim_entity,
+                    projectile,
                 } => handle_create_npc(
                     self,
                     pos,
@@ -162,6 +163,7 @@ impl Server {
                     drop_item,
                     home_chunk,
                     rtsim_entity,
+                    projectile,
                 ),
                 ServerEvent::CreateShip {
                     pos,

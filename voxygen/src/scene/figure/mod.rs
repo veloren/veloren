@@ -88,11 +88,12 @@ pub struct FigureModelEntry<const N: usize> {
 }
 
 impl<const N: usize> FigureModelEntry<N> {
-    pub fn lod_model(&self, lod: usize) -> SubModel<TerrainVertex> {
+    pub fn lod_model(&self, lod: usize) -> Option<SubModel<TerrainVertex>> {
         // Note: Range doesn't impl Copy even for trivially Cloneable things
         self.model
             .opaque
-            .submodel(self.lod_vertex_ranges[lod].clone())
+            .as_ref()
+            .map(|m| m.submodel(self.lod_vertex_ranges[lod].clone()))
     }
 }
 
@@ -3480,6 +3481,70 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::BasicSummon(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                },
+
+                                StageSection::Cast => {
+                                    stage_time / s.static_data.cast_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
+
+                            anim::bird_large::SummonAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    time,
+                                    Some(s.stage_section),
+                                    state.state_time,
+                                    look_dir,
+                                    physics.on_ground,
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::DashMelee(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Charge => {
+                                    stage_time / s.static_data.charge_duration.as_secs_f32()
+                                },
+                                StageSection::Swing => {
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
+                            anim::bird_large::DashAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    rel_vel,
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.acc_vel,
+                                    Some(s.stage_section),
+                                    time,
+                                    state.state_time,
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         CharacterState::Stunned(s) => {
                             let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
@@ -5163,7 +5228,7 @@ impl FigureMgr {
                 model_entry.lod_model(0)
             };
 
-            Some((bound, model, col_lights_.texture(model_entry)))
+            Some((bound, model?, col_lights_.texture(model_entry)))
         } else {
             // trace!("Body has no saved figure");
             None
@@ -5221,9 +5286,7 @@ impl FigureColLights {
         let col_lights = renderer.figure_bind_col_light(col_lights);
         let model_len = u32::try_from(opaque.vertices().len())
             .expect("The model size for this figure does not fit in a u32!");
-        let model = renderer
-            .create_model(&opaque)
-            .expect("The model contains no vertices!");
+        let model = renderer.create_model(&opaque);
 
         vertex_ranges.iter().for_each(|range| {
             assert!(

@@ -366,20 +366,20 @@ impl Scene {
             );
 
             if let Some(model) = model {
-                figure_drawer.draw(
-                    model.lod_model(0),
-                    self.figure_state.bound(),
-                    &self.col_lights.texture(model),
-                );
+                if let Some(lod) = model.lod_model(0) {
+                    figure_drawer.draw(
+                        lod,
+                        self.figure_state.bound(),
+                        &self.col_lights.texture(model),
+                    );
+                }
             }
         }
 
         if let Some((model, state)) = &self.backdrop {
-            figure_drawer.draw(
-                model.lod_model(0),
-                state.bound(),
-                &self.col_lights.texture(model),
-            );
+            if let Some(lod) = model.lod_model(0) {
+                figure_drawer.draw(lod, state.bound(), &self.col_lights.texture(model));
+            }
         }
         drop(figure_drawer);
 

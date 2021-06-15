@@ -117,7 +117,7 @@ pub enum ServerEvent {
         pos: comp::Pos,
         stats: comp::Stats,
         skill_set: comp::SkillSet,
-        health: comp::Health,
+        health: Option<comp::Health>,
         poise: comp::Poise,
         loadout: comp::inventory::loadout::Loadout,
         body: comp::Body,
@@ -127,6 +127,7 @@ pub enum ServerEvent {
         home_chunk: Option<comp::HomeChunk>,
         drop_item: Option<Item>,
         rtsim_entity: Option<RtSimEntity>,
+        projectile: Option<comp::Projectile>,
     },
     CreateShip {
         pos: comp::Pos,

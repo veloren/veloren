@@ -264,6 +264,18 @@
             (None, "common.abilities.custom.birdlargefire.fireshockwave"),
         ],
     ),
+    Custom("Bird Large Basic"): (
+        primary: "common.abilities.custom.birdlargebasic.triplestrike",
+        secondary: "common.abilities.custom.birdlargebasic.summontornadoes",
+        abilities: [
+            (None, "common.abilities.custom.birdlargebasic.dash"),
+        ],
+    ),
+    Custom("Tornado"): (
+        primary: "common.abilities.custom.tornado.spin",
+        secondary: "common.abilities.empty.basic",
+        abilities: [],
+    ),
     Tool(Debug): (
         primary: "common.abilities.debug.forwardboost",
         secondary: "common.abilities.debug.upboost",

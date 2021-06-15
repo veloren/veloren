@@ -3,11 +3,13 @@ BasicSummon(
     cast_duration: 1.0,
     recover_duration: 0.5,
     summon_amount: 1,
+    summon_distance: (1, 1),
     summon_info: (
         body: Object(SeaLantern),
         scale: None,
-        health_scaling: 0,
+        health_scaling: Some(0),
         loadout_config: None,
         skillset_config: None,
     ),
+    duration: None,
 )

@@ -1,0 +1,18 @@
+BasicSummon(
+    buildup_duration: 0.5,
+    cast_duration: 0.2,
+    recover_duration: 0.2,
+    summon_amount: 12,
+    summon_distance: (4, 9),
+    summon_info: (
+        body: Object(Tornado),
+        scale: None,
+        health_scaling: None,
+        loadout_config: None,
+        skillset_config: None,
+    ),
+    duration: Some((
+        secs: 10,
+        nanos: 0,
+    )),
+)

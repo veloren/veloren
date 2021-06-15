@@ -203,72 +203,208 @@
             lateral: ("npc.wendigo.male.foot_r"),
         ),
     ),
-    (Troll, Male): (
+    (Cavetroll, Male): (
         shoulder_l: (
-            offset: (-5.0, -4.5, -11.0),
-            lateral: ("npc.troll.male.shoulder_l"),
+            offset: (-5.5, -4.0, -8.0),
+            lateral: ("npc.troll_cave.male.shoulder_l"),
         ),
         shoulder_r: (
-            offset: (-5.0, -4.5, -11.0),
-            lateral: ("npc.troll.male.shoulder_r"),
+            offset: (-5.5, -4.0, -8.0),
+            lateral: ("npc.troll_cave.male.shoulder_r"),
         ),
         hand_l: (
-            offset: (-3.5, -4.0, -12.0),
-            lateral: ("npc.troll.male.hand_l"),
+            offset: (-4.5, -4.0, -14.0),
+            lateral: ("npc.troll_cave.male.hand_l"),
         ),
         hand_r: (
-            offset: (-3.5, -4.0, -12.0),
-            lateral: ("npc.troll.male.hand_r"),
+            offset: (-4.5, -4.0, -14.0),
+            lateral: ("npc.troll_cave.male.hand_r"),
         ),
         leg_l: (
-            offset: (-3.0, -2.5, -4.5),
-            lateral: ("npc.troll.male.leg_l"),
+            offset: (-3.0, -3.0, -4.0),
+            lateral: ("npc.troll_cave.male.leg_l"),
         ),
         leg_r: (
-            offset: (-3.0, -2.5, -4.5),
-            lateral: ("npc.troll.male.leg_r"),
+            offset: (-3.0, -3.0, -4.0),
+            lateral: ("npc.troll_cave.male.leg_r"),
         ),
         foot_l: (
             offset: (-3.0, -5.0, -2.5),
-            lateral: ("npc.troll.male.foot_l"),
+            lateral: ("npc.troll_cave.male.foot_l"),
         ),
         foot_r: (
             offset: (-3.0, -5.0, -2.5),
-            lateral: ("npc.troll.male.foot_r"),
+            lateral: ("npc.troll_cave.male.foot_r"),
         ),
     ),
-    (Troll, Female): (
+    (Cavetroll, Female): (
         shoulder_l: (
-            offset: (-5.0, -4.5, -11.0),
-            lateral: ("npc.troll.male.shoulder_l"),
+            offset: (-5.5, -4.0, -8.0),
+            lateral: ("npc.troll_cave.male.shoulder_l"),
         ),
         shoulder_r: (
-            offset: (-5.0, -4.5, -11.0),
-            lateral: ("npc.troll.male.shoulder_r"),
+            offset: (-5.5, -4.0, -8.0),
+            lateral: ("npc.troll_cave.male.shoulder_r"),
         ),
         hand_l: (
-            offset: (-3.5, -4.0, -12.0),
-            lateral: ("npc.troll.male.hand_l"),
+            offset: (-4.5, -4.0, -14.0),
+            lateral: ("npc.troll_cave.male.hand_l"),
         ),
         hand_r: (
-            offset: (-3.5, -4.0, -12.0),
-            lateral: ("npc.troll.male.hand_r"),
+            offset: (-4.5, -4.0, -14.0),
+            lateral: ("npc.troll_cave.male.hand_r"),
         ),
         leg_l: (
-            offset: (-3.0, -2.5, -4.5),
-            lateral: ("npc.troll.male.leg_l"),
+            offset: (-3.0, -3.0, -4.0),
+            lateral: ("npc.troll_cave.male.leg_l"),
         ),
         leg_r: (
-            offset: (-3.0, -2.5, -4.5),
-            lateral: ("npc.troll.male.leg_r"),
+            offset: (-3.0, -3.0, -4.0),
+            lateral: ("npc.troll_cave.male.leg_r"),
         ),
         foot_l: (
             offset: (-3.0, -5.0, -2.5),
-            lateral: ("npc.troll.male.foot_l"),
+            lateral: ("npc.troll_cave.male.foot_l"),
         ),
         foot_r: (
             offset: (-3.0, -5.0, -2.5),
-            lateral: ("npc.troll.male.foot_r"),
+            lateral: ("npc.troll_cave.male.foot_r"),
+        ),
+    ),
+    (Mountaintroll, Male): (
+        shoulder_l: (
+            offset: (-6.5, -5.0, -8.5),
+            lateral: ("npc.troll_mountain.male.shoulder_l"),
+        ),
+        shoulder_r: (
+            offset: (-6.5, -5.0, -8.5),
+            lateral: ("npc.troll_mountain.male.shoulder_r"),
+        ),
+        hand_l: (
+            offset: (-5.0, -4.5, -14.0),
+            lateral: ("npc.troll_mountain.male.hand_l"),
+        ),
+        hand_r: (
+            offset: (-5.0, -4.5, -14.0),
+            lateral: ("npc.troll_mountain.male.hand_r"),
+        ),
+        leg_l: (
+            offset: (-3.0, -3.0, -4.0),
+            lateral: ("npc.troll_mountain.male.leg_l"),
+        ),
+        leg_r: (
+            offset: (-3.0, -3.0, -4.0),
+            lateral: ("npc.troll_mountain.male.leg_r"),
+        ),
+        foot_l: (
+            offset: (-3.0, -5.0, -2.5),
+            lateral: ("npc.troll_mountain.male.foot_l"),
+        ),
+        foot_r: (
+            offset: (-3.0, -5.0, -2.5),
+            lateral: ("npc.troll_mountain.male.foot_r"),
+        ),
+    ),
+    (Mountaintroll, Female): (
+        shoulder_l: (
+            offset: (-6.5, -5.0, -8.5),
+            lateral: ("npc.troll_mountain.male.shoulder_l"),
+        ),
+        shoulder_r: (
+            offset: (-6.5, -5.0, -8.5),
+            lateral: ("npc.troll_mountain.male.shoulder_r"),
+        ),
+        hand_l: (
+            offset: (-5.0, -4.5, -14.0),
+            lateral: ("npc.troll_mountain.male.hand_l"),
+        ),
+        hand_r: (
+            offset: (-5.0, -4.5, -14.0),
+            lateral: ("npc.troll_mountain.male.hand_r"),
+        ),
+        leg_l: (
+            offset: (-3.0, -3.0, -4.0),
+            lateral: ("npc.troll_mountain.male.leg_l"),
+        ),
+        leg_r: (
+            offset: (-3.0, -3.0, -4.0),
+            lateral: ("npc.troll_mountain.male.leg_r"),
+        ),
+        foot_l: (
+            offset: (-3.0, -5.0, -2.5),
+            lateral: ("npc.troll_mountain.male.foot_l"),
+        ),
+        foot_r: (
+            offset: (-3.0, -5.0, -2.5),
+            lateral: ("npc.troll_mountain.male.foot_r"),
+        ),
+    ),
+    (Swamptroll, Male): (
+        shoulder_l: (
+            offset: (-5.5, -5.0, -8.5),
+            lateral: ("npc.troll_swamp.male.shoulder_l"),
+        ),
+        shoulder_r: (
+            offset: (-5.5, -5.0, -8.5),
+            lateral: ("npc.troll_swamp.male.shoulder_r"),
+        ),
+        hand_l: (
+            offset: (-5.0, -4.0, -16.0),
+            lateral: ("npc.troll_swamp.male.hand_l"),
+        ),
+        hand_r: (
+            offset: (-5.0, -4.0, -16.0),
+            lateral: ("npc.troll_swamp.male.hand_r"),
+        ),
+        leg_l: (
+            offset: (-3.0, -3.0, -4.0),
+            lateral: ("npc.troll_swamp.male.leg_l"),
+        ),
+        leg_r: (
+            offset: (-3.0, -3.0, -4.0),
+            lateral: ("npc.troll_swamp.male.leg_r"),
+        ),
+        foot_l: (
+            offset: (-3.0, -5.0, -2.5),
+            lateral: ("npc.troll_swamp.male.foot_l"),
+        ),
+        foot_r: (
+            offset: (-3.0, -5.0, -2.5),
+            lateral: ("npc.troll_swamp.male.foot_r"),
+        ),
+    ),
+    (Swamptroll, Female): (
+        shoulder_l: (
+            offset: (-5.5, -5.0, -8.5),
+            lateral: ("npc.troll_swamp.male.shoulder_l"),
+        ),
+        shoulder_r: (
+            offset: (-5.5, -5.0, -8.5),
+            lateral: ("npc.troll_swamp.male.shoulder_r"),
+        ),
+        hand_l: (
+            offset: (-5.0, -4.0, -16.0),
+            lateral: ("npc.troll_swamp.male.hand_l"),
+        ),
+        hand_r: (
+            offset: (-5.0, -4.0, -16.0),
+            lateral: ("npc.troll_swamp.male.hand_r"),
+        ),
+        leg_l: (
+            offset: (-3.0, -3.0, -4.0),
+            lateral: ("npc.troll_swamp.male.leg_l"),
+        ),
+        leg_r: (
+            offset: (-3.0, -3.0, -4.0),
+            lateral: ("npc.troll_swamp.male.leg_r"),
+        ),
+        foot_l: (
+            offset: (-3.0, -5.0, -2.5),
+            lateral: ("npc.troll_swamp.male.foot_l"),
+        ),
+        foot_r: (
+            offset: (-3.0, -5.0, -2.5),
+            lateral: ("npc.troll_swamp.male.foot_r"),
         ),
     ),
     (Dullahan, Male): (

@@ -826,9 +826,17 @@
                 keyword: "wendigo",
                 generic: "Wendigo"
             ),
-            troll: (
-                keyword: "troll",
-                generic: "Troll"
+            troll_cave: (
+                keyword: "troll_cave",
+                generic: "Cave Troll"
+            ),
+            troll_mountain: (
+                keyword: "troll_mountain",
+                generic: "Mountain Troll"
+            ),
+            troll_swamp: (
+                keyword: "troll_swamp",
+                generic: "Swamp Troll"
             ),
             dullahan: (
                 keyword: "dullahan",
@@ -1079,6 +1087,10 @@
             cockatrice: (
                 keyword: "cockatrice",
                 generic: "Cockatrice"
+            ),
+            roc: (
+                keyword: "roc",
+                generic: "Roc"
             ),
         )
     ),

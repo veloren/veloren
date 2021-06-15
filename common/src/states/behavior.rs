@@ -5,6 +5,7 @@ use crate::{
         InventoryAction, Mass, Melee, Ori, PhysicsState, Pos, SkillSet, StateUpdate, Stats, Vel,
     },
     resources::DeltaTime,
+    terrain::TerrainGrid,
     uid::Uid,
 };
 use specs::{
@@ -96,6 +97,7 @@ pub struct JoinData<'a> {
     pub msm: &'a MaterialStatManifest,
     pub combo: &'a Combo,
     pub alignment: Option<&'a comp::Alignment>,
+    pub terrain: &'a TerrainGrid,
 }
 
 type RestrictedMut<'a, C> = PairedStorage<
@@ -128,6 +130,7 @@ pub struct JoinStruct<'a> {
     pub skill_set: &'a SkillSet,
     pub combo: &'a Combo,
     pub alignment: Option<&'a comp::Alignment>,
+    pub terrain: &'a TerrainGrid,
 }
 
 impl<'a> JoinData<'a> {
@@ -161,6 +164,7 @@ impl<'a> JoinData<'a> {
             msm,
             combo: j.combo,
             alignment: j.alignment,
+            terrain: j.terrain,
         }
     }
 }

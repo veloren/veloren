@@ -80,7 +80,7 @@ impl Default for BoneData {
 }
 
 pub struct FigureModel {
-    pub opaque: Model<Vertex>,
+    pub opaque: Option<Model<Vertex>>,
     /* TODO: Consider using mipmaps instead of storing multiple texture atlases for different
      * LOD levels. */
 }

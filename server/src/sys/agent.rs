@@ -116,10 +116,12 @@ pub enum Tactic {
     Mindflayer,
     BirdLargeBreathe,
     BirdLargeFire,
+    BirdLargeBasic,
     Minotaur,
     ClayGolem,
     TidalWarrior,
     Yeti,
+    Tornado,
 }
 
 #[derive(SystemData)]
@@ -1605,6 +1607,7 @@ impl<'a> AgentData<'a> {
                             "Haniwa Sentry" => Tactic::RotatingTurret,
                             "Bird Large Breathe" => Tactic::BirdLargeBreathe,
                             "Bird Large Fire" => Tactic::BirdLargeFire,
+                            "Bird Large Basic" => Tactic::BirdLargeBasic,
                             "Mindflayer" => Tactic::Mindflayer,
                             "Minotaur" => Tactic::Minotaur,
                             "Clay Golem" => Tactic::ClayGolem,
@@ -1833,6 +1836,7 @@ impl<'a> AgentData<'a> {
                 &tgt_data,
                 &read_data,
             ),
+            Tactic::Tornado => self.handle_tornado_attack(controller),
             Tactic::Mindflayer => self.handle_mindflayer_attack(
                 agent,
                 controller,
@@ -1849,6 +1853,13 @@ impl<'a> AgentData<'a> {
             ),
             // Mostly identical to BirdLargeFire but tweaked for flamethrower instead of shockwave
             Tactic::BirdLargeBreathe => self.handle_birdlarge_breathe_attack(
+                agent,
+                controller,
+                &attack_data,
+                &tgt_data,
+                &read_data,
+            ),
+            Tactic::BirdLargeBasic => self.handle_birdlarge_basic_attack(
                 agent,
                 controller,
                 &attack_data,
@@ -2906,6 +2917,12 @@ impl<'a> AgentData<'a> {
         }
     }
 
+    fn handle_tornado_attack(&self, controller: &mut Controller) {
+        controller
+            .actions
+            .push(ControlAction::basic_input(InputKind::Primary));
+    }
+
     fn handle_mindflayer_attack(
         &self,
         agent: &mut Agent,
@@ -3259,6 +3276,76 @@ impl<'a> AgentData<'a> {
             // Target is behind us or the timer needs to be reset. Chase target
             self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
         }
+    }
+
+    fn handle_birdlarge_basic_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const BIRD_ATTACK_RANGE: f32 = 4.0;
+        const BIRD_CHARGE_DISTANCE: f32 = 15.0;
+        let bird_attack_distance = self.body.map_or(0.0, |b| b.radius()) + BIRD_ATTACK_RANGE;
+        // Increase action timer
+        agent.action_state.timer += read_data.dt.0;
+        // If higher than 2 blocks
+        if !read_data
+            .terrain
+            .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * 2.0))
+            .until(Block::is_solid)
+            .cast()
+            .1
+            .map_or(true, |b| b.is_some())
+        {
+            // Fly to target and land
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Fly));
+            let move_dir = tgt_data.pos.0 - self.pos.0;
+            controller.inputs.move_dir =
+                move_dir.xy().try_normalized().unwrap_or_else(Vec2::zero) * 2.0;
+            controller.inputs.move_z = move_dir.z - 0.5;
+        } else if agent.action_state.timer > 8.0 {
+            // If action timer higher than 8, make bird summon tornadoes
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Secondary));
+            if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
+            {
+                // Reset timer
+                agent.action_state.timer = 0.0;
+            }
+        } else if matches!(self.char_state, CharacterState::DashMelee(c) if !matches!(c.stage_section, StageSection::Recover))
+        {
+            // If already in dash, keep dashing if not in recover
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Ability(0)));
+        } else if matches!(self.char_state, CharacterState::ComboMelee(c) if matches!(c.stage_section, StageSection::Recover))
+        {
+            // If already in combo keep comboing if not in recover
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
+        } else if attack_data.dist_sqrd > BIRD_CHARGE_DISTANCE.powi(2) {
+            // Charges at target if they are far enough away
+            if attack_data.angle < 60.0 {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+            }
+        } else if attack_data.dist_sqrd < bird_attack_distance.powi(2) {
+            // Combo melee target
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
+            agent.action_state.condition = true;
+        }
+        // Make bird move towards target
+        self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
     }
 
     fn handle_minotaur_attack(

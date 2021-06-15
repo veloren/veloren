@@ -103,4 +103,56 @@
             central: ("npc.cockatrice.male.tail_rear"),
         )
     ),
+    (Roc, Male): (
+        head: (
+            offset: (-4.5, -4.0, -6.0),
+            central: ("npc.roc.male.head"),
+        ),
+        beak: (
+            offset: (-3.5, 0.0, -8.0),
+            central: ("npc.roc.male.beak"),
+        ),
+        neck: (
+            offset: (-5.5, 0.0, -10.5),
+            central: ("npc.roc.male.neck"),
+        ),
+        chest: (
+            offset: (-8.5, -12.5, -13.5),
+            central: ("npc.roc.male.chest"),
+        ),
+        tail_front: (
+            offset: (-4.5, -9.0, -8.0),
+            central: ("npc.roc.male.tail_front"),
+        ),
+        tail_rear: (
+            offset: (-9.5, -28.0, -6.0),
+            central: ("npc.roc.male.tail_rear"),
+        )
+    ),
+    (Roc, Female): (
+        head: (
+            offset: (-4.5, -4.0, -6.0),
+            central: ("npc.roc.male.head"),
+        ),
+        beak: (
+            offset: (-3.5, 0.0, -8.0),
+            central: ("npc.roc.male.beak"),
+        ),
+        neck: (
+            offset: (-5.5, 0.0, -10.5),
+            central: ("npc.roc.male.neck"),
+        ),
+        chest: (
+            offset: (-8.5, -12.5, -13.5),
+            central: ("npc.roc.male.chest"),
+        ),
+        tail_front: (
+            offset: (-4.5, -9.0, -8.0),
+            central: ("npc.roc.male.tail_front"),
+        ),
+        tail_rear: (
+            offset: (-9.5, -28.0, -6.0),
+            central: ("npc.roc.male.tail_rear"),
+        )
+    ),
 })
