@@ -1,6 +1,6 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Localization for "global" English
+/// Localization for RUS
 (
     string_map: {
         "hud.rank_up": "Новый скиллпоинт",
@@ -169,11 +169,11 @@
         "hud.skill.hmr_single_strike_knockback" : "Увеличьте потенциал отбрасывания на 50%{SP}",
         "hud.skill." : "",
         // Sword
-        "hud.skill.sw_trip_str_title": "Тройное вращение",
-        "hud.skill.sw_trip_str": "Вращение на 3 оборота",
+        "hud.skill.sw_trip_str_title": "Тройной удар",
+        "hud.skill.sw_trip_str": "Атака из 3х ударов в комбо",
         "hud.skill.sw_trip_str_combo_title": "Тройной удар Комбо",
-        "hud.skill.sw_trip_str_combo": "Разблокирует комбо при тройном вращении{SP}",
-        "hud.skill.sw_trip_str_dmg_title": "Урон тройного вращения",
+        "hud.skill.sw_trip_str_combo": "Разблокирует комбо для тройного удара{SP}",
+        "hud.skill.sw_trip_str_dmg_title": "Урон тройного удара",
         "hud.skill.sw_trip_str_dmg": "Увеличивает урон, наносимый каждым последующим ударом{SP}",
         "hud.skill.sw_trip_str_sp_title": "Скорость атаки",
         "hud.skill.sw_trip_str_sp": "Увеличивает скорость атаки, получаемую при каждом последующем ударе{SP}",
