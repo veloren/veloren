@@ -1283,11 +1283,18 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         near_iter.filter_map(move |(i, j, k)| {
             let block_pos = pos.map(|e| e.floor() as i32) + Vec3::new(i, j, k);
 
+            // `near_iter` could be a few blocks too large due to being integer aligned and
+            // rounding up, so skip points outside of the tighter bounds before looking them
+            // up in the terrain (which incurs a hashmap cost for volgrids)
+            let player_aabb = Aabb {
+                min: pos + Vec3::new(-radius, -radius, z_range.start),
+                max: pos + Vec3::new(radius, radius, z_range.end),
+            };
+            if !player_aabb.contains_point(block_pos.as_() + Vec3::broadcast(0.5)) {
+                return None;
+            }
+
             if let Some(block) = terrain.get(block_pos).ok().copied().filter(hit) {
-                let player_aabb = Aabb {
-                    min: pos + Vec3::new(-radius, -radius, z_range.start),
-                    max: pos + Vec3::new(radius, radius, z_range.end),
-                };
                 let block_aabb = Aabb {
                     min: block_pos.map(|e| e as f32),
                     max: block_pos.map(|e| e as f32) + Vec3::new(1.0, 1.0, height(&block)),
