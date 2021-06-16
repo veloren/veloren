@@ -569,7 +569,7 @@ impl MainMenuUi {
             self.controls.view(&global_state.settings, dt.as_secs_f32()),
             global_state.window.renderer_mut(),
             None,
-            global_state.clipboard.as_ref(),
+            &mut global_state.clipboard,
         );
 
         messages.into_iter().for_each(|message| {

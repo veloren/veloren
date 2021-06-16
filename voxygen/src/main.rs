@@ -181,7 +181,7 @@ fn main() {
     // Create window
     let (mut window, event_loop) = Window::new(&settings).expect("Failed to create window!");
 
-    let clipboard = iced_winit::Clipboard::new(window.window());
+    let clipboard = iced_winit::Clipboard::connect(window.window());
 
     let lazy_init = SpriteRenderContext::new(window.renderer_mut());
 
