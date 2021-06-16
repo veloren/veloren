@@ -404,17 +404,17 @@ pub fn handle_sound(server: &mut Server, sound: &Sound) {
                 .inbox
                 .push_back(AgentEvent::ServerSound(propagated_sound));
         }
+    }
 
-        // Attempt to turn this sound into an outcome to be received by frontends.
-        if let Some(outcome) = match sound.kind {
-            SoundKind::Utterance(kind, body) => Some(Outcome::Utterance {
-                kind,
-                pos: sound.pos,
-                body,
-            }),
-            _ => None,
-        } {
-            ecs.write_resource::<Vec<Outcome>>().push(outcome);
-        }
+    // Attempt to turn this sound into an outcome to be received by frontends.
+    if let Some(outcome) = match sound.kind {
+        SoundKind::Utterance(kind, body) => Some(Outcome::Utterance {
+            kind,
+            pos: sound.pos,
+            body,
+        }),
+        _ => None,
+    } {
+        ecs.write_resource::<Vec<Outcome>>().push(outcome);
     }
 }

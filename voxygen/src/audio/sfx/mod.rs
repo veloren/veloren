@@ -106,7 +106,7 @@ use event_mapper::SfxEventMapper;
 use hashbrown::HashMap;
 use rand::prelude::*;
 use serde::Deserialize;
-use tracing::warn;
+use tracing::{debug, warn};
 use vek::*;
 
 /// We watch the states of nearby entities in order to emit SFX at their
@@ -186,9 +186,8 @@ pub enum SfxEvent {
     Utterance(UtteranceKind, VoiceKind),
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
 pub enum VoiceKind {
-    Mute,
     HumanFemale,
     HumanMale,
     BipedLarge,
@@ -203,8 +202,8 @@ pub enum VoiceKind {
     BigCat,
 }
 
-fn body_to_voice(body: &Body) -> VoiceKind {
-    match body {
+fn body_to_voice(body: &Body) -> Option<VoiceKind> {
+    Some(match body {
         Body::Humanoid(body) => match &body.body_type {
             humanoid::BodyType::Female => VoiceKind::HumanFemale,
             humanoid::BodyType::Male => VoiceKind::HumanMale,
@@ -232,7 +231,7 @@ fn body_to_voice(body: &Body) -> VoiceKind {
             | quadruped_medium::Species::Yak
             | quadruped_medium::Species::Moose
             | quadruped_medium::Species::Dreadhorn => VoiceKind::Cow,
-            _ => VoiceKind::Mute,
+            _ => return None,
         },
         Body::BirdMedium(_) | Body::BirdLarge(_) => VoiceKind::Bird,
         Body::BipedLarge(body) => match body.species {
@@ -243,8 +242,8 @@ fn body_to_voice(body: &Body) -> VoiceKind {
             _ => VoiceKind::BipedLarge,
         },
         Body::Theropod(_) | Body::Dragon(_) => VoiceKind::Reptile,
-        _ => VoiceKind::Mute,
-    }
+        _ => return None,
+    })
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -516,9 +515,18 @@ impl SfxMgr {
                 },
             },
             Outcome::Utterance { pos, kind, body } => {
-                let sfx_trigger_item =
-                    triggers.get_key_value(&SfxEvent::Utterance(*kind, body_to_voice(body)));
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.5), false);
+                if let Some(voice) = body_to_voice(body) {
+                    let sfx_trigger_item =
+                        triggers.get_key_value(&SfxEvent::Utterance(*kind, voice));
+                    if let Some(sfx_trigger_item) = sfx_trigger_item {
+                        audio.emit_sfx(Some(sfx_trigger_item), *pos, Some(2.5), false);
+                    } else {
+                        debug!(
+                            "No utterance sound effect exists for ({:?}, {:?})",
+                            kind, voice
+                        );
+                    }
+                }
             },
             Outcome::ExpChange { .. }
             | Outcome::ComboChange { .. }

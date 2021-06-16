@@ -15,7 +15,7 @@ use common::{
         inventory::slot::{EquipSlot, Slot},
         invite::InviteKind,
         item::{tool::ToolKind, ItemDef, ItemDesc},
-        ChatMsg, ChatType, InputKind, InventoryUpdateEvent, Pos, Vel,
+        ChatMsg, ChatType, InputKind, InventoryUpdateEvent, Pos, UtteranceKind, Vel,
     },
     consts::{MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
     outcome::Outcome,
@@ -523,6 +523,11 @@ impl PlayState for SessionState {
                                 if state {
                                     self.stop_auto_walk();
                                     self.client.borrow_mut().toggle_dance();
+                                }
+                            },
+                            GameInput::Greet => {
+                                if state {
+                                    self.client.borrow_mut().utter(UtteranceKind::Greeting);
                                 }
                             },
                             GameInput::Sneak => {
