@@ -168,7 +168,8 @@ const FLEE_DURATION: f32 = 3.0;
 const MAX_FOLLOW_DIST: f32 = 12.0;
 const MAX_PATH_DIST: f32 = 170.0;
 const PARTIAL_PATH_DIST: f32 = 50.0;
-const SEPARATION_DIST: f32 = 20.0;
+const SEPARATION_DIST: f32 = 4.0;
+const SEPARATION_BIAS: f32 = 0.8;
 const MAX_FLEE_DIST: f32 = 20.0;
 const SEARCH_DIST: f32 = 48.0;
 const SNEAK_COEFFICIENT: f32 = 0.25;
@@ -4065,29 +4066,34 @@ impl<'a> AgentData<'a> {
             for entity in read_data
                 .cached_spatial_grid
                 .0
-                .in_circle_aabr(self.pos.0.xy(), SEPARATION_DIST / 2.0)
+                .in_circle_aabr(self.pos.0.xy(), SEPARATION_DIST)
             {
                 if let (Some(alignment), Some(other_alignment)) =
                     (self.alignment, read_data.alignments.get(entity))
                 {
                     if Alignment::passive_towards(*alignment, *other_alignment) {
-                        let other_pos = match read_data.positions.get(entity) {
-                            Some(x) => x.0.xy(),
-                            None => continue,
-                        };
-                        if self.pos.0.xy().distance(other_pos) < SEPARATION_DIST {
-                            sep_vec += (self.pos.0.xy() - other_pos)
-                                .try_normalized()
-                                .unwrap_or_else(Vec2::zero)
-                                * (SEPARATION_DIST - self.pos.0.xy().distance(other_pos));
+                        if let (Some(pos), Some(body), Some(other_body)) = (
+                            read_data.positions.get(entity),
+                            self.body,
+                            read_data.bodies.get(entity),
+                        ) {
+                            if self.pos.0.xy().distance(pos.0.xy())
+                                < SEPARATION_DIST + body.radius() + other_body.radius()
+                            {
+                                sep_vec += (self.pos.0.xy() - pos.0.xy())
+                                    .try_normalized()
+                                    .unwrap_or_else(Vec2::zero)
+                                    * (((SEPARATION_DIST + body.radius() + other_body.radius())
+                                        - self.pos.0.xy().distance(pos.0.xy()))
+                                        / SEPARATION_DIST);
+                            }
                         }
                     }
                 }
             }
             self.pos.0
-                + sep_vec
                 + PARTIAL_PATH_DIST
-                    * (tgt_data.pos.0 - self.pos.0)
+                    * (sep_vec * SEPARATION_BIAS + (tgt_data.pos.0 - self.pos.0) * (1.0 - SEPARATION_BIAS))
                         .try_normalized()
                         .unwrap_or_else(Vec3::zero)
         } else if full_path {
