@@ -86,7 +86,8 @@ opt-level = 3
 overflow-checks = false
 debug-assertions = false
 lto = true
-debug = false
+debug = 1 # line tables so we can have useful backtraces
+panic = "abort" # don't need unwinding so we can skip including the landing pads for that
 
 # used for cargo bench
 [profile.bench]
