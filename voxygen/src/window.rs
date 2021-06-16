@@ -1130,7 +1130,10 @@ impl Window {
 
     pub fn is_fullscreen(&self) -> bool { self.fullscreen.enabled }
 
-    pub fn select_video_mode_rec(
+    /// Select a video mode that fits the specified requirements
+    /// Returns None if a matching video mode doesn't exist or if
+    /// the current monitor can't be retrieved
+    fn select_video_mode_rec(
         &self,
         resolution: [u16; 2],
         bit_depth: Option<u16>,
@@ -1142,15 +1145,16 @@ impl Window {
         // if a previous iteration of this method filtered the available video modes for
         // the correct resolution already, load that value, otherwise filter it
         // in this iteration
-        let correct_res = correct_res.unwrap_or_else(|| {
-            self.window
-                .current_monitor()
-                .unwrap()
+        let correct_res = match correct_res {
+            Some(correct_res) => correct_res,
+            None => self
+                .window
+                .current_monitor()?
                 .video_modes()
                 .filter(|mode| mode.size().width == resolution[0] as u32)
                 .filter(|mode| mode.size().height == resolution[1] as u32)
-                .collect()
-        });
+                .collect(),
+        };
 
         match bit_depth {
             // A bit depth is given
@@ -1270,12 +1274,12 @@ impl Window {
         }
     }
 
-    pub fn select_video_mode(
+    fn select_video_mode(
         &self,
         resolution: [u16; 2],
         bit_depth: Option<u16>,
         refresh_rate: Option<u16>,
-    ) -> VideoMode {
+    ) -> Option<VideoMode> {
         // (resolution, bit depth, refresh rate) represents a video mode
         // spec: as specified
         // max: maximum value available
@@ -1285,24 +1289,34 @@ impl Window {
         // (spec, spec, max), (spec, max, spec)
         // (spec, max, max)
         // (max, max, max)
-        self.select_video_mode_rec(resolution, bit_depth, refresh_rate, None, None, None)
-            // if there is no video mode with the specified resolution, fall back to the video mode with max resolution, bit depth and refresh rate
-            .unwrap_or_else(|| {
+        match self.select_video_mode_rec(resolution, bit_depth, refresh_rate, None, None, None) {
+            Some(mode) => Some(mode),
+            // if there is no video mode with the specified resolution,
+            // fall back to the video mode with max resolution, bit depth and refresh rate
+            None => {
                 warn!(
                     "Resolution specified in settings is incompatible with the monitor. Choosing \
                      highest resolution possible instead."
                 );
+                if let Some(monitor) = self.window.current_monitor() {
+                    let mode = monitor
+                        .video_modes()
+                        // Prefer bit depth over refresh rate
+                        .sorted_by_key(|mode| mode.refresh_rate())
+                        .sorted_by_key(|mode| mode.bit_depth())
+                        .max_by_key(|mode| mode.size().width);
 
-                self
-                    .window
-                    .current_monitor().unwrap()
-                    .video_modes()
-                    // Prefer bit depth over refresh rate
-                    .sorted_by_key(|mode| mode.refresh_rate())
-                    .sorted_by_key(|mode| mode.bit_depth())
-                    .max_by_key(|mode| mode.size().width)
-                    .expect("No video modes available!!")
-            })
+                    if mode.is_none() {
+                        warn!("Failed to select video mode, no video modes available!!")
+                    }
+
+                    mode
+                } else {
+                    warn!("Failed to select video mode, can't get the current monitor!");
+                    None
+                }
+            },
+        }
     }
 
     pub fn set_fullscreen_mode(&mut self, fullscreen: FullScreenSettings) {
@@ -1310,14 +1324,23 @@ impl Window {
         self.fullscreen = fullscreen;
         window.set_fullscreen(fullscreen.enabled.then(|| match fullscreen.mode {
             FullscreenMode::Exclusive => {
-                winit::window::Fullscreen::Exclusive(self.select_video_mode(
+                if let Some(video_mode) = self.select_video_mode(
                     fullscreen.resolution,
                     fullscreen.bit_depth,
                     fullscreen.refresh_rate,
-                ))
+                ) {
+                    winit::window::Fullscreen::Exclusive(video_mode)
+                } else {
+                    warn!(
+                        "Failed to select a video mode for exclusive fullscreen. Falling back to \
+                         borderless fullscreen."
+                    );
+                    winit::window::Fullscreen::Borderless(None)
+                }
             },
             FullscreenMode::Borderless => {
-                winit::window::Fullscreen::Borderless(window.current_monitor())
+                // None here will fullscreen on the current monitor
+                winit::window::Fullscreen::Borderless(None)
             },
         }));
     }
