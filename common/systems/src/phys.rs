@@ -1290,7 +1290,11 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
                 min: pos + Vec3::new(-radius, -radius, z_range.start),
                 max: pos + Vec3::new(radius, radius, z_range.end),
             };
-            if !player_aabb.contains_point(block_pos.as_() + Vec3::broadcast(0.5)) {
+            let block_approx = Aabb {
+                min: block_pos.as_(),
+                max: block_pos.as_() + Vec3::new(1.0, 1.0, Block::MAX_HEIGHT),
+            };
+            if !player_aabb.collides_with_aabb(block_approx) {
                 return None;
             }
 
