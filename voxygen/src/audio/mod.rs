@@ -209,7 +209,7 @@ impl AudioFrontend {
             // TODO: Should this take `underwater` into consideration?
             match self.play_sfx(sfx_file, self.listener.pos, None, false) {
                 Ok(_) => {},
-                Err(e) => warn!("Failed to play sfx. {}", e),
+                Err(e) => warn!("Failed to play sfx '{:?}'. {}", sfx_file, e),
             }
         } else {
             debug!("Missing sfx trigger config for external sfx event.",);
@@ -244,7 +244,7 @@ impl AudioFrontend {
 
             match self.play_sfx(sfx_file, position, volume, underwater) {
                 Ok(_) => {},
-                Err(e) => warn!("Failed to play sfx. {}", e),
+                Err(e) => warn!("Failed to play sfx '{:?}'. {}", sfx_file, e),
             }
         } else {
             debug!(

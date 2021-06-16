@@ -844,9 +844,15 @@
 			],
             threshold: 4.0,
 		),
-		Utterance(Angry, Saurok): (
+		Utterance(Angry, Reptile): (
 			files: [
 				"voxygen.audio.sfx.utterance.saurok_angry",
+			],
+            threshold: 4.0,
+		),
+		Utterance(Angry, Bird): (
+			files: [
+				"voxygen.audio.sfx.utterance.bird_angry",
 			],
             threshold: 4.0,
 		),

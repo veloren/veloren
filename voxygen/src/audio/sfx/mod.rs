@@ -95,7 +95,8 @@ use common::{
         item::{ItemKind, ToolKind},
         object,
         poise::PoiseState,
-        Body, CharacterAbilityType, InventoryUpdateEvent, UtteranceKind,
+        quadruped_medium, quadruped_small, Body, CharacterAbilityType, InventoryUpdateEvent,
+        UtteranceKind,
     },
     outcome::Outcome,
     terrain::{BlockKind, TerrainChunk},
@@ -191,18 +192,53 @@ pub enum VoiceKind {
     Human,
     BipedLarge,
     Wendigo,
-    Saurok,
+    Reptile,
+    Bird,
+    Critter,
+    Sheep,
+    Pig,
+    Cow,
+    Canine,
+    BigCat,
 }
 
 fn body_to_voice(body: &Body) -> VoiceKind {
     match body {
+        Body::Humanoid(_) => VoiceKind::Human,
+        Body::QuadrupedSmall(body) => match body.species {
+            quadruped_small::Species::Sheep => VoiceKind::Sheep,
+            quadruped_small::Species::Pig | quadruped_small::Species::Boar => VoiceKind::Pig,
+            _ => VoiceKind::Critter,
+        },
+        Body::QuadrupedMedium(body) => match body.species {
+            quadruped_medium::Species::Saber
+            | quadruped_medium::Species::Tiger
+            | quadruped_medium::Species::Lion
+            | quadruped_medium::Species::Frostfang
+            | quadruped_medium::Species::Snowleopard => VoiceKind::BigCat,
+            quadruped_medium::Species::Wolf
+            | quadruped_medium::Species::Roshwalr
+            | quadruped_medium::Species::Tarasque
+            | quadruped_medium::Species::Darkhound
+            | quadruped_medium::Species::Bonerattler
+            | quadruped_medium::Species::Grolgar => VoiceKind::Canine,
+            quadruped_medium::Species::Cattle
+            | quadruped_medium::Species::Catoblepas
+            | quadruped_medium::Species::Highland
+            | quadruped_medium::Species::Yak
+            | quadruped_medium::Species::Moose
+            | quadruped_medium::Species::Dreadhorn => VoiceKind::Cow,
+            _ => VoiceKind::Mute,
+        },
+        Body::BirdMedium(_) | Body::BirdLarge(_) => VoiceKind::Bird,
         Body::BipedLarge(body) => match body.species {
             biped_large::Species::Wendigo => VoiceKind::Wendigo,
             biped_large::Species::Occultsaurok
             | biped_large::Species::Mightysaurok
-            | biped_large::Species::Slysaurok => VoiceKind::Saurok,
+            | biped_large::Species::Slysaurok => VoiceKind::Reptile,
             _ => VoiceKind::BipedLarge,
         },
+        Body::Theropod(_) | Body::Dragon(_) => VoiceKind::Reptile,
         _ => VoiceKind::Mute,
     }
 }

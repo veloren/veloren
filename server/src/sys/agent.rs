@@ -945,6 +945,10 @@ impl<'a> AgentData<'a> {
                 controller.actions.push(ControlAction::Unwield);
             }
 
+            if thread_rng().gen_bool(0.001) {
+                controller.push_event(ControlEvent::Utterance(UtteranceKind::Calm));
+            }
+
             // Sit
             if thread_rng().gen::<f32>() < 0.0035 {
                 controller.actions.push(ControlAction::Sit);
@@ -990,6 +994,8 @@ impl<'a> AgentData<'a> {
                         if self.look_toward(controller, read_data, &target) {
                             controller.actions.push(ControlAction::Stand);
                             controller.actions.push(ControlAction::Talk);
+                            controller.push_event(ControlEvent::Utterance(UtteranceKind::Greeting));
+
                             match subject {
                                 Subject::Regular => {
                                     if let (

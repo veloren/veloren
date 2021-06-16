@@ -102,6 +102,7 @@ pub enum UtteranceKind {
     Angry,
     Surprised,
     Hurt,
+    Greeting,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
