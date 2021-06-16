@@ -1,5 +1,8 @@
 use super::SpriteKind;
-use crate::{comp::tool::ToolKind, make_case_elim};
+use crate::{
+    comp::{fluid_dynamics::LiquidKind, tool::ToolKind},
+    make_case_elim,
+};
 use enum_iterator::IntoEnumIterator;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
@@ -27,6 +30,7 @@ make_case_elim!(
     pub enum BlockKind {
         Air = 0x00, // Air counts as a fluid
         Water = 0x01,
+        Lava = 0x02,
         // 0x02 <= x < 0x10 are reserved for other fluids. These are 2^n aligned to allow bitwise
         // checking of common conditions. For example, `is_fluid` is just `block_kind &
         // 0x0F == 0` (this is a very common operation used in meshing that could do with
@@ -62,6 +66,15 @@ impl BlockKind {
 
     #[inline]
     pub const fn is_liquid(&self) -> bool { self.is_fluid() && !self.is_air() }
+
+    #[inline]
+    pub const fn liquid_kind(&self) -> Option<LiquidKind> {
+        Some(match self {
+            BlockKind::Water => LiquidKind::Water,
+            BlockKind::Lava => LiquidKind::Lava,
+            _ => return None,
+        })
+    }
 
     /// Determine whether the block is filled (i.e: fully solid). Right now,
     /// this is the opposite of being a fluid.

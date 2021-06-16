@@ -37,6 +37,8 @@ layout(location = 1) flat in uint f_pos_norm;
 //     ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
 // };
 
+//#define LAVA
+
 layout(std140, set = 2, binding = 0)
 uniform u_locals {
     vec3 model_offs;
@@ -78,7 +80,11 @@ void main() {
     // vec3 view_dir = normalize(-vec3(vert_pos4)/* / vert_pos4.w*/);
     vec3 view_dir = -cam_to_frag;
     // vec3 surf_color = /*srgb_to_linear*/(vec3(0.4, 0.7, 2.0));
+#ifdef LAVA
+    vec3 water_color = (1.0 - MU_LAVA);
+#else
     /*const */vec3 water_color = (1.0 - MU_WATER) * MU_SCATTER;//srgb_to_linear(vec3(0.2, 0.5, 1.0));
+#endif
     // /*const */vec3 water_color = srgb_to_linear(vec3(0.0, 0.25, 0.5));
 
     /* vec3 sun_dir = get_sun_dir(time_of_day.x);
@@ -118,7 +124,11 @@ void main() {
     // Water is transparent so both normals are valid.
     vec3 cam_norm = faceforward(f_norm, f_norm, cam_to_frag);
 
+#ifdef LAVA
+    vec3 mu = MU_LAVA;
+#else
     vec3 mu = MU_WATER;
+#endif
     // NOTE: Default intersection point is camera position, meaning if we fail to intersect we assume the whole camera is in water.
     vec3 cam_attenuation = vec3(1.0);//compute_attenuation_point(f_pos, -view_dir, mu, fluid_alt, cam_pos.xyz);
 
@@ -177,7 +187,14 @@ void main() {
     // float reflected_light_point = /*length*/(diffuse_light_point.r) + f_light * point_shadow;
     // reflected_light += k_d * (diffuse_light_point + f_light * point_shadow * shade_frac) + specular_light_point;
 
-    float passthrough = clamp(dot(cam_norm, -cam_to_frag) * 1.0 - 0.2, 0, 1);
+#ifdef LAVA
+    float opacity = 0.9;
+    emitted_light = vec3(0.1, 0, 0);
+#else
+    float opacity = 0.2;
+#endif
+
+    float passthrough = clamp(dot(cam_norm, -cam_to_frag) * 1.0 - opacity, 0, 1);
     float min_refl = min(emitted_light.r, min(emitted_light.g, emitted_light.b));
 
     vec3 surf_color = illuminate(max_light, view_dir, water_color * /* fog_color * */emitted_light, /*surf_color * */water_color * reflected_light);

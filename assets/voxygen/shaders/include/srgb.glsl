@@ -2,7 +2,9 @@
 #define SRGB_GLSL
 // Linear RGB, attenuation coefficients for water at roughly R, G, B wavelengths.
 // See https://en.wikipedia.org/wiki/Electromagnetic_absorption_by_water
+
 const vec3 MU_WATER = vec3(0.6, 0.04, 0.01);
+const vec3 MU_LAVA = vec3(0.1, 0.75, 1.0);
 
 // // NOTE: Automatic in v4.0
 // float

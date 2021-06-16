@@ -1,8 +1,8 @@
 use common::{
     comp::{
-        fluid_dynamics::Fluid, Buff, BuffCategory, BuffChange, BuffEffect, BuffId, BuffKind,
-        BuffSource, Buffs, Energy, Health, HealthChange, HealthSource, Inventory, ModifierKind,
-        PhysicsState, Stats,
+        fluid_dynamics::{LiquidKind, Fluid}, Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId,
+        BuffKind, BuffSource, Buffs, Energy, Health, HealthChange, HealthSource, Inventory,
+        ModifierKind, PhysicsState, Stats,
     },
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
@@ -45,34 +45,39 @@ impl<'a> System<'a> for Sys {
         // Set to false to avoid spamming server
         buffs.set_event_emission(false);
         stats.set_event_emission(false);
-        for (entity, mut buff_comp, energy, mut stat, health) in (
+        for (entity, mut buff_comp, energy, mut stat, health, physics_state) in (
             &read_data.entities,
             &mut buffs,
             &read_data.energies,
             &mut stats,
             &read_data.healths,
+            read_data.physics_states.maybe(),
         )
             .join()
         {
+            let in_fluid = physics_state.and_then(|p| p.in_fluid);
+
+            if matches!(in_fluid, Some(Fluid::Liquid { kind: LiquidKind::Lava, .. })) {
+                if !buff_comp.contains(BuffKind::Burning) {
+                    buff_comp.insert(Buff::new(
+                        BuffKind::Burning,
+                        BuffData::new(200.0, None),
+                        vec![BuffCategory::Natural],
+                        BuffSource::World,
+                    ));
+                }
+            }
+
             let (buff_comp_kinds, buff_comp_buffs): (
                 &HashMap<BuffKind, Vec<BuffId>>,
                 &mut HashMap<BuffId, Buff>,
             ) = buff_comp.parts();
             let mut expired_buffs = Vec::<BuffId>::new();
+
             // For each buff kind present on entity, if the buff kind queues, only ticks
             // duration of strongest buff of that kind, else it ticks durations of all buffs
             // of that kind. Any buffs whose durations expire are marked expired.
             for (kind, ids) in buff_comp_kinds.iter() {
-                // Only get the physics state component if the entity has the burning buff, as
-                // we don't need it for any other conditions yet
-                let in_fluid = if matches!(kind, BuffKind::Burning) {
-                    read_data
-                        .physics_states
-                        .get(entity)
-                        .and_then(|p| p.in_fluid)
-                } else {
-                    None
-                };
                 if kind.queues() {
                     if let Some((Some(buff), id)) =
                         ids.get(0).map(|id| (buff_comp_buffs.get_mut(id), id))
@@ -257,7 +262,7 @@ fn tick_buff(
     }
     if let Some(remaining_time) = &mut buff.time {
         // Extinguish Burning buff when in water
-        if matches!(buff.kind, BuffKind::Burning) && matches!(in_fluid, Some(Fluid::Water { .. })) {
+        if matches!(buff.kind, BuffKind::Burning) && matches!(in_fluid, Some(Fluid::Liquid { kind: LiquidKind::Water, .. })) {
             *remaining_time = Duration::default();
         }
 
