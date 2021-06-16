@@ -207,22 +207,47 @@ impl Renderer {
             ..Default::default()
         };
 
-        let (device, queue) = futures_executor::block_on(
-            adapter.request_device(
-                &wgpu::DeviceDescriptor {
-                    // TODO
-                    label: None,
-                    features: wgpu::Features::DEPTH_CLAMPING
-                        | wgpu::Features::ADDRESS_MODE_CLAMP_TO_BORDER
-                        | wgpu::Features::PUSH_CONSTANTS
-                        | (adapter.features() & wgpu_profiler::GpuProfiler::REQUIRED_WGPU_FEATURES),
-                    limits,
-                },
-                std::env::var_os("WGPU_TRACE_DIR")
-                    .as_ref()
-                    .map(|v| std::path::Path::new(v)),
-            ),
-        )?;
+        let (device, queue) = futures_executor::block_on(adapter.request_device(
+            &wgpu::DeviceDescriptor {
+                // TODO
+                label: None,
+                features: wgpu::Features::DEPTH_CLAMPING
+                    | wgpu::Features::ADDRESS_MODE_CLAMP_TO_BORDER
+                    | wgpu::Features::PUSH_CONSTANTS
+                    | (adapter.features() & wgpu_profiler::GpuProfiler::REQUIRED_WGPU_FEATURES),
+                limits,
+            },
+            std::env::var_os("WGPU_TRACE_DIR").as_ref().map(|v| {
+                let path = std::path::Path::new(v);
+                // We don't want to continue if we can't actually collect the api trace
+                if !path.exists() {
+                    panic!(
+                        "WGPU_TRACE_DIR is set to the path \"{}\" which doesn't exist",
+                        path.display()
+                    );
+                }
+                if !path.is_dir() {
+                    panic!(
+                        "WGPU_TRACE_DIR is set to the path \"{}\" which is not a directory",
+                        path.display()
+                    );
+                }
+                if path
+                    .read_dir()
+                    .expect("Could not read the directory that is specified by WGPU_TRACE_DIR")
+                    .next()
+                    .is_some()
+                {
+                    panic!(
+                        "WGPU_TRACE_DIR is set to the path \"{}\" which already contains other \
+                         files",
+                        path.display()
+                    );
+                }
+
+                path
+            }),
+        ))?;
 
         // Set error handler for wgpu errors
         // This is better for use than their default because it includes the error in
