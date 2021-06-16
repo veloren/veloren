@@ -164,9 +164,8 @@ impl<'a> Widget for Video<'a> {
             .window
             .window()
             .current_monitor()
-            .unwrap()
-            .video_modes()
-            .collect();
+            .map(|monitor| monitor.video_modes().collect())
+            .unwrap_or_default();
 
         State {
             ids: Ids::new(id_gen),
