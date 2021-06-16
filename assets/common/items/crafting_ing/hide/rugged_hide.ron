@@ -4,7 +4,7 @@ ItemDef(
     kind: Ingredient(
         kind: "RuggedHide",
     ),
-    quality: Common,
+    quality: Epic,
     tags: [
         Material(Leather)
     ],

@@ -1,0 +1,17 @@
+({
+    Armor(Shoulders): Item("common.items.armor.cultist.shoulder"),
+    Armor(Chest): Item("common.items.armor.cultist.chest"),
+    Armor(Belt): Item("common.items.armor.cultist.belt"),
+    Armor(Hands): Item("common.items.armor.cultist.hand"),
+    Armor(Legs): Item("common.items.armor.cultist.pants"),
+    Armor(Feet): Item("common.items.armor.cultist.foot"),
+
+    Armor(Back): Item("common.items.armor.misc.back.dungeon_purple"),
+
+    Lantern: Choice([
+        (1.0, Some(Item("common.items.lantern.black_0"))),
+        (2.0, None),
+    ]),
+
+    Glider: Item("common.items.glider.glider_purp"),
+})

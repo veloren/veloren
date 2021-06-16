@@ -421,6 +421,12 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     | quadruped_medium::Species::Yak => {
                         "common.loot_tables.creature.quad_medium.gentle"
                     },
+                    quadruped_medium::Species::Ngoubou => {
+                        "common.loot_tables.creature.quad_medium.horned"
+                    },
+                    quadruped_medium::Species::Mammoth => {
+                        "common.loot_tables.creature.quad_medium.mammoth"
+                    },
                     _ => "common.loot_tables.creature.quad_medium.fanged",
                 },
                 Some(common::comp::Body::BirdMedium(_)) => {

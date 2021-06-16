@@ -1,0 +1,18 @@
+ItemDef(
+    name: "Velorite Bow (bipedlarge)",
+    description: "Infused with Velorite power.",
+    kind: Tool((
+        kind: Bow,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.4,
+            power: 2.0,
+            poise_strength: 1.1,
+            speed: 1.0,
+            crit_chance: 0.140625,
+        )),
+    )),
+    quality: Epic,
+    tags: [],
+    ability_spec: Some(Custom("Bow Simple")),
+)

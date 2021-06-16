@@ -62,7 +62,7 @@ impl Animation for ShockwaveAnimation {
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
 
         match active_tool_kind {
-            Some(ToolKind::Sceptre) => {
+            Some(ToolKind::Sceptre | ToolKind::Staff) => {
                 next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
 
                 next.hand_l.position = Vec3::new(s_a.sthl.0, s_a.sthl.1, s_a.sthl.2);

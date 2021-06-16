@@ -1,0 +1,4 @@
+[
+    (1.0, ItemQuantity("common.items.crafting_ing.hide.tough_hide", 2, 3)),
+    (1.0, ItemQuantity("common.items.crafting_ing.animal_misc.large_horn", 2, 3)),
+]

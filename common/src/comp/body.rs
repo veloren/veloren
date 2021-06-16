@@ -306,7 +306,7 @@ impl Body {
                 biped_large::Species::Slysaurok => Vec3::new(4.0, 3.0, 3.4),
                 biped_large::Species::Werewolf => Vec3::new(4.0, 3.0, 3.5),
                 biped_large::Species::Harvester => Vec3::new(4.6, 3.0, 5.4),
-
+                biped_large::Species::Cultistwarlord => Vec3::new(3.0, 3.0, 4.5),
                 _ => Vec3::new(4.6, 3.0, 6.0),
             },
             Body::BipedSmall(body) => match body.species {

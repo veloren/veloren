@@ -38,7 +38,6 @@
         primary: "common.abilities.spear.doublestrike",
         secondary: "common.abilities.spear.dash",
         abilities: [],
-
     ),
     Custom("Hammer Simple"): (
         primary: "common.abilities.hammersimple.doublestrike",
@@ -53,8 +52,7 @@
     Custom("Sword Simple"): (
         primary: "common.abilities.swordsimple.doublestrike",
         secondary: "common.abilities.swordsimple.dash",
-        abilities: [
-        ],
+        abilities: [],
     ),
     Custom("Staff Simple"): (
         primary: "common.abilities.staffsimple.firebomb",

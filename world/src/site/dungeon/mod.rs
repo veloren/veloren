@@ -990,7 +990,8 @@ fn enemy_5(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
             .with_body(comp::Body::Object(comp::object::Body::Crossbow))
             .with_asset_expect("common.entity.dungeon.tier-5.turret"),
         1 => entity.with_asset_expect("common.entity.dungeon.tier-5.warlock"),
-        _ => entity.with_asset_expect("common.entity.dungeon.tier-5.warlord"),
+        2 => entity.with_asset_expect("common.entity.dungeon.tier-5.warlord"),
+        _ => entity.with_asset_expect("common.entity.dungeon.tier-5.cultist"),
     }
 }
 
