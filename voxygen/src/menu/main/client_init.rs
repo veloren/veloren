@@ -22,6 +22,7 @@ pub enum Error {
         mismatched_server_info: Option<ServerInfo>,
     },
     ClientCrashed,
+    ServerNotFound,
 }
 
 #[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
@@ -125,11 +126,10 @@ impl ClientInit {
                 tokio::time::sleep(Duration::from_secs(5)).await;
             }
 
-            // Only possibility for no last_err is aborting
-            let _ = tx.send(Msg::Done(Err(last_err.unwrap_or(Error::ClientError {
-                error: ClientError::Other("Connection attempt aborted by user".to_owned()),
-                mismatched_server_info: None,
-            }))));
+            // Parsing/host name resolution successful but no connection succeeded
+            // If last_err is None this typically means there was no server up at the input
+            // address and all the attempts timed out.
+            let _ = tx.send(Msg::Done(Err(last_err.unwrap_or(Error::ServerNotFound))));
 
             // Safe drop runtime
             tokio::task::block_in_place(move || drop(runtime2));

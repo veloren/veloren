@@ -432,6 +432,7 @@ fn get_client_msg_error(e: client_init::Error, localized_strings: &LocalizationH
             },
         },
         InitError::ClientCrashed => localization.get("main.login.client_crashed").into(),
+        InitError::ServerNotFound => localization.get("main.login.server_not_found").into(),
     }
 }
 
