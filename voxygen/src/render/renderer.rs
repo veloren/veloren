@@ -244,6 +244,7 @@ impl Renderer {
         let format = adapter
             .get_swap_chain_preferred_format(&surface)
             .expect("No supported swap chain format found");
+        info!("Using {:?} as the swapchain format", format);
 
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
