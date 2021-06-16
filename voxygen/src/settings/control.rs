@@ -123,6 +123,7 @@ impl ControlSettings {
             GameInput::Jump => KeyMouse::Key(VirtualKeyCode::Space),
             GameInput::Sit => KeyMouse::Key(VirtualKeyCode::K),
             GameInput::Dance => KeyMouse::Key(VirtualKeyCode::J),
+            GameInput::Greet => KeyMouse::Key(VirtualKeyCode::H),
             GameInput::Glide => KeyMouse::Key(VirtualKeyCode::LShift),
             GameInput::Climb => KeyMouse::Key(VirtualKeyCode::Space),
             GameInput::ClimbDown => KeyMouse::Key(VirtualKeyCode::LControl),

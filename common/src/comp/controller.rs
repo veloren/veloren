@@ -96,6 +96,15 @@ pub enum GroupManip {
     AssignLeader(Uid),
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum UtteranceKind {
+    Calm,
+    Angry,
+    Surprised,
+    Hurt,
+    Greeting,
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ControlEvent {
     //ToggleLantern,
@@ -111,6 +120,7 @@ pub enum ControlEvent {
     GroupManip(GroupManip),
     RemoveBuff(BuffKind),
     Respawn,
+    Utterance(UtteranceKind),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]

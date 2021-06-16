@@ -248,7 +248,8 @@ impl ParticleMgr {
             | Outcome::SkillPointGain { .. }
             | Outcome::ComboChange { .. }
             | Outcome::Damage { .. }
-            | Outcome::PoiseChange { .. } => {},
+            | Outcome::PoiseChange { .. }
+            | Outcome::Utterance { .. } => {},
         }
     }
 

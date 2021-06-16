@@ -68,6 +68,7 @@ pub use self::{
     controller::{
         Climb, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip, InputAttr,
         InputKind, InventoryAction, InventoryEvent, InventoryManip, MountState, Mounting,
+        UtteranceKind,
     },
     energy::{Energy, EnergyChange, EnergySource},
     fluid_dynamics::Fluid,

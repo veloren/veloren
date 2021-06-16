@@ -1,7 +1,8 @@
 //! Handles caching and retrieval of decoded `.ogg` sfx sound data, eliminating
 //! the need to decode files on each playback
-use common::assets;
-use std::{borrow::Cow, io, sync::Arc};
+use common::assets::{self, Loader};
+use rodio::{source::Buffered, Decoder, Source};
+use std::{borrow::Cow, io};
 use tracing::warn;
 
 // Implementation of sound taken from this github issue:
@@ -10,16 +11,12 @@ use tracing::warn;
 pub struct SoundLoader;
 
 #[derive(Clone)]
-pub struct OggSound(Arc<Vec<u8>>);
+pub struct OggSound(Buffered<Decoder<io::Cursor<Vec<u8>>>>);
 
-impl AsRef<[u8]> for OggSound {
-    fn as_ref(&self) -> &[u8] { &self.0 }
-}
-
-impl assets::Loader<OggSound> for SoundLoader {
+impl Loader<OggSound> for SoundLoader {
     fn load(content: Cow<[u8]>, _: &str) -> Result<OggSound, assets::BoxedError> {
-        let arc = Arc::new(content.into_owned());
-        Ok(OggSound(arc))
+        let source = Decoder::new(io::Cursor::new(content.into_owned()))?.buffered();
+        Ok(OggSound(source))
     }
 }
 
@@ -37,16 +34,13 @@ impl assets::Asset for OggSound {
 
 /// Wrapper for decoded audio data
 impl OggSound {
-    pub fn decoder(
-        self,
-    ) -> Result<rodio::Decoder<io::Cursor<OggSound>>, rodio::decoder::DecoderError> {
-        let cursor = io::Cursor::new(self);
-        rodio::Decoder::new(cursor)
-    }
+    pub fn to_source(&self) -> impl Source + Iterator<Item = i16> { self.0.clone() }
 
     pub fn empty() -> OggSound {
-        OggSound(Arc::new(
-            include_bytes!("../../../assets/voxygen/audio/null.ogg").to_vec(),
-        ))
+        SoundLoader::load(
+            Cow::Borrowed(include_bytes!("../../../assets/voxygen/audio/null.ogg")),
+            "empty",
+        )
+        .unwrap()
     }
 }

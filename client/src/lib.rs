@@ -28,7 +28,7 @@ use common::{
         skills::Skill,
         slot::Slot,
         ChatMode, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip, InputKind,
-        InventoryAction, InventoryEvent, InventoryUpdateEvent,
+        InventoryAction, InventoryEvent, InventoryUpdateEvent, UtteranceKind,
     },
     event::{EventBus, LocalEvent},
     grid::Grid,
@@ -1222,6 +1222,10 @@ impl Client {
             Some(false) => self.control_action(ControlAction::Dance),
             None => warn!("Can't toggle dance, client entity doesn't have a `CharacterState`"),
         }
+    }
+
+    pub fn utter(&mut self, kind: UtteranceKind) {
+        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Utterance(kind)));
     }
 
     pub fn toggle_sneak(&mut self) {

@@ -5,7 +5,7 @@
         //
         Campfire: (
             files: [
-				"voxygen.audio.sfx.ambient.fire",
+                "voxygen.audio.sfx.ambient.fire",
             ],
             threshold: 21.835,
         ),
@@ -829,6 +829,57 @@
                     "voxygen.audio.sfx.abilities.minotaur_smash_1",
                     "voxygen.audio.sfx.abilities.minotaur_smash_2",
                 ],
+            threshold: 0.2,
+        ),
+        Utterance(Angry, Wendigo): (
+            files: [
+                "voxygen.audio.sfx.utterance.wendigo_angry",
+            ],
+            threshold: 0.2,
+        ),
+        Utterance(Angry, BipedLarge): (
+            files: [
+                "voxygen.audio.sfx.utterance.ogre_angry",
+                "voxygen.audio.sfx.utterance.ogre_angry2",
+            ],
+            threshold: 0.2,
+        ),
+        Utterance(Angry, Reptile): (
+            files: [
+                "voxygen.audio.sfx.utterance.saurok_angry",
+            ],
+            threshold: 0.2,
+        ),
+        Utterance(Angry, Bird): (
+            files: [
+                "voxygen.audio.sfx.utterance.bird_angry",
+            ],
+            threshold: 0.2,
+        ),
+        Utterance(Calm, Pig): (
+            files: [
+                "voxygen.audio.sfx.utterance.pig_calm",
+            ],
+            threshold: 0.2,
+        ),
+        Utterance(Calm, Cow): (
+            files: [
+                "voxygen.audio.sfx.utterance.cow_calm",
+                "voxygen.audio.sfx.utterance.cow_calm2",
+                "voxygen.audio.sfx.utterance.cow_calm3",
+            ],
+            threshold: 0.2,
+        ),
+        Utterance(Calm, Sheep): (
+            files: [
+                "voxygen.audio.sfx.utterance.sheep_calm",
+            ],
+            threshold: 0.2,
+        ),
+        Utterance(Greeting, HumanMale): (
+            files: [
+                "voxygen.audio.sfx.utterance.humanmale_greeting",
+            ],
             threshold: 0.2,
         ),
     }

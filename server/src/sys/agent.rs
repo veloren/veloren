@@ -21,7 +21,7 @@ use common::{
         Agent, Alignment, BehaviorCapability, BehaviorState, Body, CharacterAbility,
         CharacterState, ControlAction, ControlEvent, Controller, Energy, Health, HealthChange,
         InputKind, Inventory, InventoryAction, LightEmitter, MountState, Ori, PhysicsState, Pos,
-        Scale, SkillSet, Stats, UnresolvedChatMsg, Vel,
+        Scale, SkillSet, Stats, UnresolvedChatMsg, UtteranceKind, Vel,
     },
     consts::GRAVITY,
     effect::{BuffEffect, Effect},
@@ -409,6 +409,14 @@ impl<'a> System<'a> for Sys {
                                                     .uid_allocator
                                                     .retrieve_entity_internal(by.id())
                                                 {
+                                                    if agent.target.is_none() {
+                                                        controller.push_event(
+                                                            ControlEvent::Utterance(
+                                                                UtteranceKind::Angry,
+                                                            ),
+                                                        );
+                                                    }
+
                                                     agent.target = Some(Target {
                                                         target: attacker,
                                                         hostile: true,
@@ -511,6 +519,12 @@ impl<'a> System<'a> for Sys {
                                                     &mut event_emitter,
                                                 );
                                             } else {
+                                                if agent.target.is_none() {
+                                                    controller.push_event(ControlEvent::Utterance(
+                                                        UtteranceKind::Angry,
+                                                    ));
+                                                }
+
                                                 agent.target = Some(Target {
                                                     target: attacker,
                                                     hostile: true,
@@ -945,6 +959,10 @@ impl<'a> AgentData<'a> {
                 controller.actions.push(ControlAction::Unwield);
             }
 
+            if thread_rng().gen::<f32>() < 0.0015 {
+                controller.push_event(ControlEvent::Utterance(UtteranceKind::Calm));
+            }
+
             // Sit
             if thread_rng().gen::<f32>() < 0.0035 {
                 controller.actions.push(ControlAction::Sit);
@@ -990,6 +1008,8 @@ impl<'a> AgentData<'a> {
                         if self.look_toward(controller, read_data, &target) {
                             controller.actions.push(ControlAction::Stand);
                             controller.actions.push(ControlAction::Talk);
+                            controller.push_event(ControlEvent::Utterance(UtteranceKind::Greeting));
+
                             match subject {
                                 Subject::Regular => {
                                     if let (
@@ -1547,6 +1567,10 @@ impl<'a> AgentData<'a> {
                 .0 >= e_pos.0.distance(self.pos.0))
             .min_by_key(|(_, e_pos, _, _, _, _, _)| (e_pos.0.distance_squared(self.pos.0) * 100.0) as i32) // TODO choose target by more than just distance
             .map(|(e, _, _, _, _, _, _)| e);
+
+        if agent.target.is_none() && target.is_some() {
+            controller.push_event(ControlEvent::Utterance(UtteranceKind::Angry));
+        }
 
         agent.target = target.map(|target| Target {
             target,

@@ -91,11 +91,12 @@ use client::Client;
 use common::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
-        beam,
+        beam, biped_large, humanoid,
         item::{ItemKind, ToolKind},
         object,
         poise::PoiseState,
-        Body, CharacterAbilityType, InventoryUpdateEvent,
+        quadruped_medium, quadruped_small, Body, CharacterAbilityType, InventoryUpdateEvent,
+        UtteranceKind,
     },
     outcome::Outcome,
     terrain::{BlockKind, TerrainChunk},
@@ -105,7 +106,7 @@ use event_mapper::SfxEventMapper;
 use hashbrown::HashMap;
 use rand::prelude::*;
 use serde::Deserialize;
-use tracing::warn;
+use tracing::{debug, warn};
 use vek::*;
 
 /// We watch the states of nearby entities in order to emit SFX at their
@@ -182,6 +183,67 @@ pub enum SfxEvent {
     FlameThrower,
     PoiseChange(PoiseState),
     GroundSlam,
+    Utterance(UtteranceKind, VoiceKind),
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
+pub enum VoiceKind {
+    HumanFemale,
+    HumanMale,
+    BipedLarge,
+    Wendigo,
+    Reptile,
+    Bird,
+    Critter,
+    Sheep,
+    Pig,
+    Cow,
+    Canine,
+    BigCat,
+}
+
+fn body_to_voice(body: &Body) -> Option<VoiceKind> {
+    Some(match body {
+        Body::Humanoid(body) => match &body.body_type {
+            humanoid::BodyType::Female => VoiceKind::HumanFemale,
+            humanoid::BodyType::Male => VoiceKind::HumanMale,
+        },
+        Body::QuadrupedSmall(body) => match body.species {
+            quadruped_small::Species::Sheep => VoiceKind::Sheep,
+            quadruped_small::Species::Pig | quadruped_small::Species::Boar => VoiceKind::Pig,
+            _ => VoiceKind::Critter,
+        },
+        Body::QuadrupedMedium(body) => match body.species {
+            quadruped_medium::Species::Saber
+            | quadruped_medium::Species::Tiger
+            | quadruped_medium::Species::Lion
+            | quadruped_medium::Species::Frostfang
+            | quadruped_medium::Species::Snowleopard => VoiceKind::BigCat,
+            quadruped_medium::Species::Wolf
+            | quadruped_medium::Species::Roshwalr
+            | quadruped_medium::Species::Tarasque
+            | quadruped_medium::Species::Darkhound
+            | quadruped_medium::Species::Bonerattler
+            | quadruped_medium::Species::Grolgar => VoiceKind::Canine,
+            quadruped_medium::Species::Cattle
+            | quadruped_medium::Species::Catoblepas
+            | quadruped_medium::Species::Highland
+            | quadruped_medium::Species::Yak
+            | quadruped_medium::Species::Moose
+            | quadruped_medium::Species::Dreadhorn => VoiceKind::Cow,
+            _ => return None,
+        },
+        Body::BirdMedium(_) | Body::BirdLarge(_) => VoiceKind::Bird,
+        Body::BipedLarge(body) => match body.species {
+            biped_large::Species::Wendigo => VoiceKind::Wendigo,
+            biped_large::Species::Occultsaurok
+            | biped_large::Species::Mightysaurok
+            | biped_large::Species::Slysaurok => VoiceKind::Reptile,
+            _ => VoiceKind::BipedLarge,
+        },
+        Body::Theropod(_) | Body::Dragon(_) => VoiceKind::Reptile,
+        _ => return None,
+    })
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -451,6 +513,20 @@ impl SfxMgr {
                         triggers.get_key_value(&SfxEvent::PoiseChange(PoiseState::KnockedDown));
                     audio.emit_sfx(sfx_trigger_item, *pos, None, false);
                 },
+            },
+            Outcome::Utterance { pos, kind, body } => {
+                if let Some(voice) = body_to_voice(body) {
+                    let sfx_trigger_item =
+                        triggers.get_key_value(&SfxEvent::Utterance(*kind, voice));
+                    if let Some(sfx_trigger_item) = sfx_trigger_item {
+                        audio.emit_sfx(Some(sfx_trigger_item), *pos, Some(2.5), false);
+                    } else {
+                        debug!(
+                            "No utterance sound effect exists for ({:?}, {:?})",
+                            kind, voice
+                        );
+                    }
+                }
             },
             Outcome::ExpChange { .. }
             | Outcome::ComboChange { .. }

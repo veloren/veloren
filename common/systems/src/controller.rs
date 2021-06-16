@@ -1,5 +1,8 @@
 use common::{
-    comp::{BuffChange, ControlEvent, Controller},
+    comp::{
+        agent::{Sound, SoundKind},
+        Body, BuffChange, ControlEvent, Controller, Pos,
+    },
     event::{EventBus, ServerEvent},
     uid::UidAllocator,
 };
@@ -7,7 +10,7 @@ use common_ecs::{Job, Origin, Phase, System};
 use specs::{
     saveload::{Marker, MarkerAllocator},
     shred::ResourceId,
-    Entities, Join, Read, SystemData, World, WriteStorage,
+    Entities, Join, Read, ReadStorage, SystemData, World, WriteStorage,
 };
 use vek::*;
 
@@ -16,6 +19,8 @@ pub struct ReadData<'a> {
     entities: Entities<'a>,
     uid_allocator: Read<'a, UidAllocator>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
+    positions: ReadStorage<'a, Pos>,
+    bodies: ReadStorage<'a, Body>,
 }
 
 #[derive(Default)]
@@ -92,6 +97,20 @@ impl<'a> System<'a> for Sys {
                         server_emitter.emit(ServerEvent::GroupManip(entity, manip))
                     },
                     ControlEvent::Respawn => server_emitter.emit(ServerEvent::Respawn(entity)),
+                    ControlEvent::Utterance(kind) => {
+                        if let (Some(pos), Some(body)) = (
+                            read_data.positions.get(entity),
+                            read_data.bodies.get(entity),
+                        ) {
+                            let sound = Sound::new(
+                                SoundKind::Utterance(kind, *body),
+                                pos.0 + Vec3::unit_z() * body.eye_height(),
+                                8.0, // TODO: Come up with a better way of determining this
+                                1.0,
+                            );
+                            server_emitter.emit(ServerEvent::Sound { sound });
+                        }
+                    },
                 }
             }
         }
