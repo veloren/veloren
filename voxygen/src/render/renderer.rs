@@ -139,6 +139,9 @@ pub struct Renderer {
     // This checks is added because windows resizes the window to 0,0 when
     // minimizing and this causes a bunch of validation errors
     is_minimized: bool,
+
+    // To remember the backend info after initialization for debug purposes
+    graphics_backend: String,
 }
 
 impl Renderer {
@@ -188,37 +191,73 @@ impl Renderer {
         ))
         .ok_or(RenderError::CouldNotFindAdapter)?;
 
+        let info = adapter.get_info();
+        info!(
+            ?info.name,
+            ?info.vendor,
+            ?info.backend,
+            ?info.device,
+            ?info.device_type,
+            "selected graphics device"
+        );
+        let graphics_backend = format!("{:?}", &info.backend);
+
         let limits = wgpu::Limits {
             max_push_constant_size: 64,
             ..Default::default()
         };
 
-        let (device, queue) = futures_executor::block_on(
-            adapter.request_device(
-                &wgpu::DeviceDescriptor {
-                    // TODO
-                    label: None,
-                    features: wgpu::Features::DEPTH_CLAMPING
-                        | wgpu::Features::ADDRESS_MODE_CLAMP_TO_BORDER
-                        | wgpu::Features::PUSH_CONSTANTS
-                        | (adapter.features() & wgpu_profiler::GpuProfiler::REQUIRED_WGPU_FEATURES),
-                    limits,
-                },
-                std::env::var_os("WGPU_TRACE_DIR")
-                    .as_ref()
-                    .map(|v| std::path::Path::new(v)),
-            ),
-        )?;
+        let (device, queue) = futures_executor::block_on(adapter.request_device(
+            &wgpu::DeviceDescriptor {
+                // TODO
+                label: None,
+                features: wgpu::Features::DEPTH_CLAMPING
+                    | wgpu::Features::ADDRESS_MODE_CLAMP_TO_BORDER
+                    | wgpu::Features::PUSH_CONSTANTS
+                    | (adapter.features() & wgpu_profiler::GpuProfiler::REQUIRED_WGPU_FEATURES),
+                limits,
+            },
+            std::env::var_os("WGPU_TRACE_DIR").as_ref().map(|v| {
+                let path = std::path::Path::new(v);
+                // We don't want to continue if we can't actually collect the api trace
+                if !path.exists() {
+                    panic!(
+                        "WGPU_TRACE_DIR is set to the path \"{}\" which doesn't exist",
+                        path.display()
+                    );
+                }
+                if !path.is_dir() {
+                    panic!(
+                        "WGPU_TRACE_DIR is set to the path \"{}\" which is not a directory",
+                        path.display()
+                    );
+                }
+                if path
+                    .read_dir()
+                    .expect("Could not read the directory that is specified by WGPU_TRACE_DIR")
+                    .next()
+                    .is_some()
+                {
+                    panic!(
+                        "WGPU_TRACE_DIR is set to the path \"{}\" which already contains other \
+                         files",
+                        path.display()
+                    );
+                }
+
+                path
+            }),
+        ))?;
 
         // Set error handler for wgpu errors
         // This is better for use than their default because it includes the error in
         // the panic message
-        device.on_uncaptured_error(|error| {
+        device.on_uncaptured_error(move |error| {
             error!("{}", &error);
             panic!(
-                "wgpu error (handling all wgpu errors as fatal): {:?}",
-                &error,
-            )
+                "wgpu error (handling all wgpu errors as fatal):\n{:?}\n{:?}",
+                &error, &info,
+            );
         });
 
         let profiler_features_enabled = device
@@ -231,19 +270,10 @@ impl Renderer {
             );
         }
 
-        let info = adapter.get_info();
-        info!(
-            ?info.name,
-            ?info.vendor,
-            ?info.backend,
-            ?info.device,
-            ?info.device_type,
-            "selected graphics device"
-        );
-
         let format = adapter
             .get_swap_chain_preferred_format(&surface)
             .expect("No supported swap chain format found");
+        info!("Using {:?} as the swapchain format", format);
 
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
@@ -401,8 +431,13 @@ impl Renderer {
             profiler_features_enabled,
 
             is_minimized: false,
+
+            graphics_backend,
         })
     }
+
+    /// Get the graphics backend being used
+    pub fn graphics_backend(&self) -> &str { &self.graphics_backend }
 
     /// Check the status of the intial pipeline creation
     /// Returns `None` if complete

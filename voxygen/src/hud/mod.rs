@@ -239,6 +239,7 @@ widget_ids! {
         num_lights,
         num_figures,
         num_particles,
+        graphics_backend,
         gpu_timings[],
 
         // Game Version
@@ -2210,6 +2211,17 @@ impl Hud {
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.num_particles, ui_widgets);
+
+            // Graphics backend
+            Text::new(&format!(
+                "Graphics backend: {}",
+                global_state.window.renderer().graphics_backend(),
+            ))
+            .color(TEXT_COLOR)
+            .down_from(self.ids.num_particles, 5.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
+            .set(self.ids.graphics_backend, ui_widgets);
 
             // GPU timing for different pipelines
             let gpu_timings = global_state.window.renderer().timings();

@@ -5,7 +5,7 @@ use super::{
         model::{DynamicModel, Model, SubModel},
         pipelines::{
             blit, clouds, debug, figure, fluid, lod_terrain, particle, shadow, skybox, sprite,
-            terrain, ui, ColLights, GlobalsBindGroup,
+            terrain, ui, ColLights, GlobalsBindGroup, ShadowTexturesBindGroup,
         },
     },
     Renderer, ShadowMap, ShadowMapRenderer,
@@ -198,6 +198,7 @@ impl<'frame> Drawer<'frame> {
             borrow: &self.borrow,
             pipelines,
             globals: self.globals,
+            shadows: &shadow.bind,
         })
     }
 
@@ -522,6 +523,7 @@ pub struct FirstPassDrawer<'pass> {
     borrow: &'pass RendererBorrow<'pass>,
     pipelines: &'pass super::Pipelines,
     globals: &'pass GlobalsBindGroup,
+    shadows: &'pass ShadowTexturesBindGroup,
 }
 
 impl<'pass> FirstPassDrawer<'pass> {
@@ -540,7 +542,10 @@ impl<'pass> FirstPassDrawer<'pass> {
         render_pass.set_pipeline(&self.pipelines.debug.pipeline);
         set_quad_index_buffer::<debug::Vertex>(&mut render_pass, &self.borrow);
 
-        DebugDrawer { render_pass }
+        DebugDrawer {
+            render_pass,
+            shadows: self.shadows,
+        }
     }
 
     pub fn draw_lod_terrain<'data: 'pass>(&mut self, model: &'data Model<lod_terrain::Vertex>) {
@@ -613,6 +618,7 @@ impl<'pass> FirstPassDrawer<'pass> {
 
 pub struct DebugDrawer<'pass_ref, 'pass: 'pass_ref> {
     render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
+    shadows: &'pass ShadowTexturesBindGroup,
 }
 
 impl<'pass_ref, 'pass: 'pass_ref> DebugDrawer<'pass_ref, 'pass> {
@@ -627,6 +633,14 @@ impl<'pass_ref, 'pass: 'pass_ref> DebugDrawer<'pass_ref, 'pass> {
     }
 }
 
+impl<'pass_ref, 'pass: 'pass_ref> Drop for DebugDrawer<'pass_ref, 'pass> {
+    fn drop(&mut self) {
+        // Maintain that the shadow bind group is set in
+        // slot 1 by default during the main pass
+        self.render_pass
+            .set_bind_group(1, &self.shadows.bind_group, &[]);
+    }
+}
 pub struct FigureDrawer<'pass_ref, 'pass: 'pass_ref> {
     render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
 }
