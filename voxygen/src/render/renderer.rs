@@ -241,9 +241,13 @@ impl Renderer {
             "selected graphics device"
         );
 
+        let format = adapter
+            .get_swap_chain_preferred_format(&surface)
+            .expect("No supported swap chain format found");
+
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
-            format: wgpu::TextureFormat::Bgra8UnormSrgb,
+            format,
             width: dims.width,
             height: dims.height,
             present_mode: mode.present_mode.into(),
