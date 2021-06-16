@@ -600,6 +600,14 @@ impl Renderer {
         Ok(())
     }
 
+    pub fn maintain(&self) {
+        if self.is_minimized {
+            self.queue.submit(std::iter::empty());
+        }
+
+        self.device.poll(wgpu::Maintain::Poll)
+    }
+
     /// Create render target views
     fn create_rt_views(
         device: &wgpu::Device,
