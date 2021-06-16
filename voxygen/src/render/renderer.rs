@@ -600,6 +600,8 @@ impl Renderer {
         Ok(())
     }
 
+    pub fn maintain(&self) { self.device.poll(wgpu::Maintain::Poll) }
+
     /// Create render target views
     fn create_rt_views(
         device: &wgpu::Device,
