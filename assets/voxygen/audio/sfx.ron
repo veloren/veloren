@@ -856,5 +856,29 @@
 			],
             threshold: 4.0,
 		),
+		Utterance(Calm, Pig): (
+			files: [
+				"voxygen.audio.sfx.utterance.pig_calm",
+			],
+            threshold: 4.0,
+		),
+		Utterance(Calm, Cow): (
+			files: [
+				"voxygen.audio.sfx.utterance.cow_calm",
+			],
+            threshold: 4.0,
+		),
+		Utterance(Calm, Sheep): (
+			files: [
+				"voxygen.audio.sfx.utterance.sheep_calm",
+			],
+            threshold: 4.0,
+		),
+		Utterance(Greeting, HumanMale): (
+			files: [
+				"voxygen.audio.sfx.utterance.humanmale_greeting",
+			],
+            threshold: 4.0,
+		),
     }
 )

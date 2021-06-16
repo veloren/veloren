@@ -409,6 +409,14 @@ impl<'a> System<'a> for Sys {
                                                     .uid_allocator
                                                     .retrieve_entity_internal(by.id())
                                                 {
+                                                    if agent.target.is_none() {
+                                                        controller.push_event(
+                                                            ControlEvent::Utterance(
+                                                                UtteranceKind::Angry,
+                                                            ),
+                                                        );
+                                                    }
+
                                                     agent.target = Some(Target {
                                                         target: attacker,
                                                         hostile: true,
@@ -511,6 +519,12 @@ impl<'a> System<'a> for Sys {
                                                     &mut event_emitter,
                                                 );
                                             } else {
+                                                if agent.target.is_none() {
+                                                    controller.push_event(ControlEvent::Utterance(
+                                                        UtteranceKind::Angry,
+                                                    ));
+                                                }
+
                                                 agent.target = Some(Target {
                                                     target: attacker,
                                                     hostile: true,
@@ -945,7 +959,7 @@ impl<'a> AgentData<'a> {
                 controller.actions.push(ControlAction::Unwield);
             }
 
-            if thread_rng().gen_bool(0.001) {
+            if thread_rng().gen::<f32>() < 0.0015 {
                 controller.push_event(ControlEvent::Utterance(UtteranceKind::Calm));
             }
 

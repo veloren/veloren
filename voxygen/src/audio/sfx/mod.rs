@@ -91,7 +91,7 @@ use client::Client;
 use common::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
-        beam, biped_large,
+        beam, biped_large, humanoid,
         item::{ItemKind, ToolKind},
         object,
         poise::PoiseState,
@@ -189,7 +189,8 @@ pub enum SfxEvent {
 #[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
 pub enum VoiceKind {
     Mute,
-    Human,
+    HumanFemale,
+    HumanMale,
     BipedLarge,
     Wendigo,
     Reptile,
@@ -204,7 +205,10 @@ pub enum VoiceKind {
 
 fn body_to_voice(body: &Body) -> VoiceKind {
     match body {
-        Body::Humanoid(_) => VoiceKind::Human,
+        Body::Humanoid(body) => match &body.body_type {
+            humanoid::BodyType::Female => VoiceKind::HumanFemale,
+            humanoid::BodyType::Male => VoiceKind::HumanMale,
+        },
         Body::QuadrupedSmall(body) => match body.species {
             quadruped_small::Species::Sheep => VoiceKind::Sheep,
             quadruped_small::Species::Pig | quadruped_small::Species::Boar => VoiceKind::Pig,

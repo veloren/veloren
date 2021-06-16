@@ -265,8 +265,8 @@ impl AudioFrontend {
     ) -> Result<(), rodio::decoder::DecoderError> {
         if self.audio_stream.is_some() {
             let sound = OggSound::load_expect(sound)
-                .cloned()
-                .decoder()?
+                .read()
+                .to_source()
                 .amplify(vol.unwrap_or(1.0));
 
             let listener = self.listener.clone();
@@ -291,9 +291,7 @@ impl AudioFrontend {
     ) {
         if self.audio_stream.is_some() {
             if let Some(channel) = self.get_ambient_channel(channel_tag, volume_multiplier) {
-                if let Ok(sound) = OggSound::load_expect(sound).cloned().decoder() {
-                    channel.play(sound);
-                }
+                channel.play(OggSound::load_expect(sound).read().to_source());
             }
         }
     }
@@ -349,9 +347,7 @@ impl AudioFrontend {
     fn play_music(&mut self, sound: &str, channel_tag: MusicChannelTag) {
         if self.music_enabled() {
             if let Some(channel) = self.get_music_channel(channel_tag) {
-                if let Ok(sound) = OggSound::load_expect(sound).cloned().decoder() {
-                    channel.play(sound, channel_tag);
-                }
+                channel.play(OggSound::load_expect(sound).read().to_source(), channel_tag);
             }
         }
     }
