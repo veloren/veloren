@@ -25,7 +25,14 @@ loot_tables: [
     (0.4, true, "common.loot_tables.food.wild_ingredients"),
     (0.2, true, "common.loot_tables.food.prepared"),
     // Potions
-    (0.2, true, "common.loot_tables.consumable.potion"),
+    //
+    // crafted from food, no need to duplicate it here.
+    // Big potions aren't crafted, but our potions
+    // from merchants are already abused
+    //
+    // Place them back we will have better situation with potions
+    // and economy.
+    //
     // Misc
     (0.1, true, "common.loot_tables.consumable.throwable"),
     (0.7, true, "common.loot_tables.consumable.misc"),

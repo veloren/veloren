@@ -2,10 +2,11 @@
 // Please keep it sorting by rarity so it's easier to reason about things
 [
     // Ores
-    (0.03, Item("common.items.mineral.ore.gold")),
-    (0.045, Item("common.items.mineral.ore.silver")),
-    (0.1, Item("common.items.mineral.ore.bloodstone")),
-    (0.2, Item("common.items.mineral.ore.cobalt")),
+    // Uncomment when bug with crafting doesn't propagating can_sell will be fixed
+    // (0.03, Item("common.items.mineral.ore.gold")),
+    // (0.045, Item("common.items.mineral.ore.silver")),
+    // (0.1, Item("common.items.mineral.ore.bloodstone")),
+    // (0.2, Item("common.items.mineral.ore.cobalt")),
     (0.25, Item("common.items.mineral.ore.coal")),
     (0.3, Item("common.items.mineral.ore.iron")),
     (0.5, Item("common.items.mineral.ore.velorite")),
@@ -14,11 +15,9 @@
     (1.5, Item("common.items.mineral.ore.tin")),
     // Animal Hide
     (0.1, Item("common.items.crafting_ing.leather.rigid_leather")),
-    (0.2, Item("common.items.crafting_ing.hide.scales")),
-    (0.4, Item("common.items.crafting_ing.leather.thick_leather")),
+    (0.4, Item("common.items.crafting_ing.hide.scales")),
     (0.7, Item("common.items.crafting_ing.hide.tough_hide")),
     (1.0, Item("common.items.crafting_ing.hide.animal_hide")),
-    (1.2, Item("common.items.crafting_ing.leather.simple_leather")),
     (1.5, Item("common.items.crafting_ing.leather.leather_strips")),
     // Mob Drops
     (0.01, Item("common.items.crafting_ing.animal_misc.phoenix_feather")),
