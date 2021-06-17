@@ -4,5 +4,5 @@
     (1.6, Item("common.items.mineral.gem.sapphire")),
     (1.2, Item("common.items.mineral.gem.emerald")),
     (0.8, Item("common.items.mineral.gem.ruby")),
-    (0.3, Item("common.items.mineral.gem.diamond")),
+    (0.4, Item("common.items.mineral.gem.diamond")),
 ]

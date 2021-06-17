@@ -2,16 +2,16 @@
 loot_tables: [
     // balance the loot tables against each other (higher= more common= smaller price)
     // Weapons
-    (16.0, true, "common.loot_tables.weapons.starter"),
-    (12.0, true, "common.loot_tables.weapons.tier-0"),
-    (6.0, true, "common.loot_tables.weapons.tier-1"),
+    (32.0, true, "common.loot_tables.weapons.starter"),
+    (16.0, true, "common.loot_tables.weapons.tier-0"),
+    (8.0, true, "common.loot_tables.weapons.tier-1"),
     (4.0, true, "common.loot_tables.weapons.tier-2"),
     (2.0, true, "common.loot_tables.weapons.tier-3"),
     (1.0, false, "common.loot_tables.weapons.tier-4"),
     (0.5, false, "common.loot_tables.weapons.tier-5"),
-    (0.05, false, "common.loot_tables.weapons.cultist"),
-    (0.05, false, "common.loot_tables.weapons.cave"),
-    (0.04, false, "common.loot_tables.weapons.legendary"),
+    (0.025, false, "common.loot_tables.weapons.cultist"),
+    (0.025, false, "common.loot_tables.weapons.cave"),
+    (0.02, false, "common.loot_tables.weapons.legendary"),
     // Armor
     (20.0, true, "common.loot_tables.armor.cloth"),
     (1.0, true, "common.loot_tables.armor.twigs"),
@@ -37,7 +37,7 @@ good_scaling: [
     (Potions, 0.0075), // common.items.consumable.potion_minor
     (Food, 0.1), // common.items.food.mushroom
     (Coin, 1.0), // common.items.utility.coins
-    (Armor, 0.05), // common.items.armor.misc.pants.worker_blue
-    (Tools, 0.10), // common.items.weapons.staff.starter_staff
-    (Ingredients, 0.15), // common.items.crafting_ing.leather_scraps
+    (Armor, 0.5), // common.items.armor.misc.pants.worker_blue
+    (Tools, 0.25), // common.items.weapons.staff.starter_staff
+    (Ingredients, 0.25), // common.items.crafting_ing.leather_scraps
 ])
