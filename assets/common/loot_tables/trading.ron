@@ -15,7 +15,7 @@
     (1.5, Item("common.items.mineral.ore.tin")),
     // Animal Hide
     (0.1, Item("common.items.crafting_ing.leather.rigid_leather")),
-    (0.4, Item("common.items.crafting_ing.hide.scales")),
+    (0.2, Item("common.items.crafting_ing.hide.scales")),
     (0.7, Item("common.items.crafting_ing.hide.tough_hide")),
     (1.0, Item("common.items.crafting_ing.hide.animal_hide")),
     (1.5, Item("common.items.crafting_ing.leather.leather_strips")),
