@@ -2,5 +2,5 @@
     (2.0, Item("common.items.crafting_ing.stones")),
     (0.5, Item("common.items.mineral.ore.veloritefrag")),
     (0.25, Item("common.items.mineral.ore.velorite")),
-    (0.25, LootTable("common.loot_tables.materials.gems")),
+    (0.15, LootTable("common.loot_tables.materials.gems")),
 ]
