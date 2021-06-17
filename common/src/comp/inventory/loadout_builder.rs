@@ -423,7 +423,7 @@ impl LoadoutBuilder {
                     | biped_large::Species::Cyclops
                     | biped_large::Species::Blueoni
                     | biped_large::Species::Redoni
-                    | biped_large::Species::Troll
+                    | biped_large::Species::Cavetroll
                     | biped_large::Species::Wendigo,
                 ..
             }) => self.chest(Some(Item::new_from_asset_expect(

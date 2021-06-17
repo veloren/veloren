@@ -149,9 +149,11 @@
         abilities: [],
     ),
     Custom("Basilisk"): (
-        primary: "common.abilities.custom.basilisk.triplestrike",
-        secondary: "common.abilities.custom.basilisk.petrify",
-        abilities: [],
+        primary: "common.abilities.custom.basilisk.petrify",
+        secondary: "common.abilities.custom.basilisk.triplestrike",
+        abilities: [
+            (None, "common.abilities.custom.basilisk.dash"),
+        ],
     ),
     Custom("Asp"): (
         primary: "common.abilities.custom.asp.singlestrike",

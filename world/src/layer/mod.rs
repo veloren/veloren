@@ -349,7 +349,7 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                     );
                 }
             } else if cave_depth < 200.0 && cave_depth > 80.0 {
-                if rng.gen::<f32>() < 0.08 * (cave_x.max(0.5).powf(4.0)) && !vein_condition {
+                if rng.gen::<f32>() < 0.065 * (cave_x.max(0.5).powf(4.0)) && !vein_condition {
                     let kind =
                         *Lottery::<SpriteKind>::load_expect("common.cave_scatter.deep_floor")
                             .read()
