@@ -1617,8 +1617,10 @@ impl<'a> AgentData<'a> {
                                 circle_time: 1,
                             },
                             "Quad Med Basic" => Tactic::QuadMedBasic,
-                            "Quad Low Ranged" => Tactic::QuadLowRanged,
-                            "Quad Low Breathe" | "Quad Low Beam" => Tactic::QuadLowBeam,
+                            "Asp" | "Maneater" => Tactic::QuadLowRanged,
+                            "Quad Low Breathe" | "Quad Low Beam" | "Basilisk" => {
+                                Tactic::QuadLowBeam
+                            },
                             "Quad Low Tail" => Tactic::TailSlap,
                             "Quad Low Quick" => Tactic::QuadLowQuick,
                             "Quad Low Basic" => Tactic::QuadLowBasic,

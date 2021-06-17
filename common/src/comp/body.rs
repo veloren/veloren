@@ -517,6 +517,7 @@ impl Body {
             Body::Theropod(theropod) => match theropod.species {
                 theropod::Species::Archaeos => 3500,
                 theropod::Species::Odonto => 3000,
+                theropod::Species::Ntouka => 3000,
                 _ => 1100,
             },
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
@@ -527,7 +528,7 @@ impl Body {
                 quadruped_low::Species::Tortoise => 900,
                 quadruped_low::Species::Rocksnapper => 1400,
                 quadruped_low::Species::Pangolin => 400,
-                quadruped_low::Species::Maneater => 700,
+                quadruped_low::Species::Maneater => 1300,
                 quadruped_low::Species::Sandshark => 900,
                 quadruped_low::Species::Hakulaq => 500,
                 quadruped_low::Species::Lavadrake => 1600,
@@ -685,7 +686,11 @@ impl Body {
     pub fn base_poise(&self) -> u32 {
         match self {
             Body::Humanoid(_) => 100,
-            Body::BipedLarge(_) => 250,
+            Body::BipedLarge(biped_large) => match biped_large.species {
+                biped_large::Species::Mindflayer => 320,
+                biped_large::Species::Minotaur => 280,
+                _ => 250,
+            },
             Body::Golem(_) => 300,
             _ => 100,
         }

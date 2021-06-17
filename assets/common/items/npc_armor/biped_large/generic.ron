@@ -1,10 +1,10 @@
 ItemDef(
-    name: "Mindflayer Armor",
-    description: "Worn by mindflayer.",
+    name: "Generic Biped Large",
+    description: "Worn by bipeds.",
     kind: Armor((
-        kind: Chest("Mindflayer"),
+        kind: Chest("GenericBipedLarge"),
         stats: (
-            protection: Normal(110.0),
+            protection: Normal(45.0),
             poise_resilience: Normal(1.0),
             energy_max: 0,
             energy_reward: 0.0,
@@ -12,6 +12,6 @@ ItemDef(
             stealth: 0.0,
         ),
     )),
-    quality: Legendary,
+    quality: Moderate,
     tags: [],
 )

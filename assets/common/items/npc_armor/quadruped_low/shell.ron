@@ -1,0 +1,17 @@
+ItemDef(
+    name: "Quad Low Shell",
+    description: "Shell.",
+    kind: Armor((
+        kind: Chest("QuadrupedLowShell"),
+        stats: (
+            protection: Normal(750.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)
