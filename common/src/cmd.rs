@@ -295,7 +295,11 @@ impl ChatCommand {
                 "Spawns an airship",
                 Some(Admin),
             ),
-            ChatCommand::Alias => cmd(vec![Any("name", Required)], "Change your alias", None),
+            ChatCommand::Alias => cmd(
+                vec![Any("name", Required)],
+                "Change your alias",
+                Some(Moderator),
+            ),
             ChatCommand::ApplyBuff => cmd(
                 vec![
                     Enum("buff", BUFFS.clone(), Required),
