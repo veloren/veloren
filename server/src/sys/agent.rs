@@ -633,11 +633,27 @@ impl<'a> AgentData<'a> {
         }
         // Interact if incoming messages
         if !agent.inbox.is_empty() {
-            if !matches!(agent.inbox.front(), Some(AgentEvent::ServerSound(_))) {
+            if matches!(
+                agent.inbox.front(),
+                Some(AgentEvent::ServerSound(_)) | Some(AgentEvent::Hurt)
+            ) {
+                let sound = agent.inbox.pop_front();
+                match sound {
+                    Some(AgentEvent::ServerSound(sound)) => {
+                        agent.sounds_heard.push(sound);
+                        agent.awareness += sound.vol;
+                    },
+                    Some(AgentEvent::Hurt) => {
+                        // Hurt utterances at random upon receiving damage
+                        if thread_rng().gen::<f32>() < 0.4 {
+                            controller.push_event(ControlEvent::Utterance(UtteranceKind::Hurt));
+                        }
+                    },
+                    //Note: this should be unreachable
+                    Some(_) | None => return,
+                }
+            } else {
                 agent.action_state.timer = 0.1;
-            } else if let Some(AgentEvent::ServerSound(sound)) = agent.inbox.pop_front() {
-                agent.sounds_heard.push(sound);
-                agent.awareness += sound.vol;
             }
         }
         if agent.action_state.timer > 0.0 {
@@ -674,6 +690,13 @@ impl<'a> AgentData<'a> {
         if self.damage < HEALING_ITEM_THRESHOLD && self.heal_self(agent, controller) {
             agent.action_state.timer = 0.01;
             return;
+        }
+
+        if let Some(AgentEvent::Hurt) = agent.inbox.pop_front() {
+            // Hurt utterances at random upon receiving damage
+            if thread_rng().gen::<f32>() < 0.4 {
+                controller.push_event(ControlEvent::Utterance(UtteranceKind::Hurt));
+            }
         }
 
         if let Some(Target {

@@ -91,12 +91,12 @@ use client::Client;
 use common::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
-        beam, biped_large, humanoid,
+        beam, biped_large, biped_small, humanoid,
         item::{ItemKind, ToolKind},
         object,
         poise::PoiseState,
-        quadruped_medium, quadruped_small, Body, CharacterAbilityType, InventoryUpdateEvent,
-        UtteranceKind,
+        quadruped_low, quadruped_medium, quadruped_small, Body, CharacterAbilityType,
+        InventoryUpdateEvent, UtteranceKind,
     },
     outcome::Outcome,
     terrain::{BlockKind, TerrainChunk},
@@ -199,7 +199,14 @@ pub enum VoiceKind {
     Pig,
     Cow,
     Canine,
-    BigCat,
+    Lion,
+    Mindflayer,
+    Marlin,
+    Maneater,
+    Adlet,
+    Antelope,
+    Alligator,
+    Saurok,
 }
 
 fn body_to_voice(body: &Body) -> Option<VoiceKind> {
@@ -207,6 +214,11 @@ fn body_to_voice(body: &Body) -> Option<VoiceKind> {
         Body::Humanoid(body) => match &body.body_type {
             humanoid::BodyType::Female => VoiceKind::HumanFemale,
             humanoid::BodyType::Male => VoiceKind::HumanMale,
+        },
+        Body::QuadrupedLow(body) => match body.species {
+            quadruped_low::Species::Maneater => VoiceKind::Maneater,
+            quadruped_low::Species::Alligator => VoiceKind::Alligator,
+            _ => return None,
         },
         Body::QuadrupedSmall(body) => match body.species {
             quadruped_small::Species::Sheep => VoiceKind::Sheep,
@@ -218,7 +230,7 @@ fn body_to_voice(body: &Body) -> Option<VoiceKind> {
             | quadruped_medium::Species::Tiger
             | quadruped_medium::Species::Lion
             | quadruped_medium::Species::Frostfang
-            | quadruped_medium::Species::Snowleopard => VoiceKind::BigCat,
+            | quadruped_medium::Species::Snowleopard => VoiceKind::Lion,
             quadruped_medium::Species::Wolf
             | quadruped_medium::Species::Roshwalr
             | quadruped_medium::Species::Tarasque
@@ -231,17 +243,24 @@ fn body_to_voice(body: &Body) -> Option<VoiceKind> {
             | quadruped_medium::Species::Yak
             | quadruped_medium::Species::Moose
             | quadruped_medium::Species::Dreadhorn => VoiceKind::Cow,
+            quadruped_medium::Species::Antelope => VoiceKind::Antelope,
             _ => return None,
         },
         Body::BirdMedium(_) | Body::BirdLarge(_) => VoiceKind::Bird,
+        Body::BipedSmall(body) => match body.species {
+            biped_small::Species::Adlet => VoiceKind::Adlet,
+            _ => return None,
+        },
         Body::BipedLarge(body) => match body.species {
             biped_large::Species::Wendigo => VoiceKind::Wendigo,
             biped_large::Species::Occultsaurok
             | biped_large::Species::Mightysaurok
-            | biped_large::Species::Slysaurok => VoiceKind::Reptile,
+            | biped_large::Species::Slysaurok => VoiceKind::Saurok,
+            biped_large::Species::Mindflayer => VoiceKind::Mindflayer,
             _ => VoiceKind::BipedLarge,
         },
         Body::Theropod(_) | Body::Dragon(_) => VoiceKind::Reptile,
+        Body::FishSmall(_) | Body::FishMedium(_) => VoiceKind::Marlin,
         _ => return None,
     })
 }
@@ -480,15 +499,15 @@ impl SfxMgr {
             },
             Outcome::Damage { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Damage);
-                audio.emit_sfx(sfx_trigger_item, *pos, None, false);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5), false);
             },
             Outcome::Block { pos, parry, .. } => {
                 if *parry {
                     let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Parry);
-                    audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), false);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5), false);
                 } else {
                     let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Block);
-                    audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), false);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5), false);
                 }
             },
             Outcome::PoiseChange { pos, state, .. } => match state {
@@ -496,22 +515,22 @@ impl SfxMgr {
                 PoiseState::Interrupted => {
                     let sfx_trigger_item =
                         triggers.get_key_value(&SfxEvent::PoiseChange(PoiseState::Interrupted));
-                    audio.emit_sfx(sfx_trigger_item, *pos, None, false);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5), false);
                 },
                 PoiseState::Stunned => {
                     let sfx_trigger_item =
                         triggers.get_key_value(&SfxEvent::PoiseChange(PoiseState::Stunned));
-                    audio.emit_sfx(sfx_trigger_item, *pos, None, false);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5), false);
                 },
                 PoiseState::Dazed => {
                     let sfx_trigger_item =
                         triggers.get_key_value(&SfxEvent::PoiseChange(PoiseState::Dazed));
-                    audio.emit_sfx(sfx_trigger_item, *pos, None, false);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5), false);
                 },
                 PoiseState::KnockedDown => {
                     let sfx_trigger_item =
                         triggers.get_key_value(&SfxEvent::PoiseChange(PoiseState::KnockedDown));
-                    audio.emit_sfx(sfx_trigger_item, *pos, None, false);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5), false);
                 },
             },
             Outcome::Utterance { pos, kind, body } => {
@@ -519,7 +538,7 @@ impl SfxMgr {
                     let sfx_trigger_item =
                         triggers.get_key_value(&SfxEvent::Utterance(*kind, voice));
                     if let Some(sfx_trigger_item) = sfx_trigger_item {
-                        audio.emit_sfx(Some(sfx_trigger_item), *pos, Some(2.5), false);
+                        audio.emit_sfx(Some(sfx_trigger_item), *pos, Some(1.5), false);
                     } else {
                         debug!(
                             "No utterance sound effect exists for ({:?}, {:?})",
