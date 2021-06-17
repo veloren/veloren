@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     comp::{
-        agent::{Sound, SoundKind},
+        agent::{Agent, AgentEvent, Sound, SoundKind},
         biped_large, bird_large, quadruped_low, quadruped_medium, quadruped_small,
         skills::SkillGroupKind,
         theropod, PhysicsState,
@@ -59,6 +59,13 @@ pub fn handle_damage(server: &Server, entity: EcsEntity, change: HealthChange) {
     let ecs = &server.state.ecs();
     if let Some(mut health) = ecs.write_storage::<Health>().get_mut(entity) {
         health.change_by(change);
+    }
+    // This if statement filters out anything under 5 damage, for DOT ticks
+    // TODO: Find a better way to separate direct damage from DOT here
+    if change.amount < -50 {
+        if let Some(agent) = ecs.write_storage::<Agent>().get_mut(entity) {
+            agent.inbox.push_front(AgentEvent::Hurt);
+        }
     }
 }
 

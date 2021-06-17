@@ -261,6 +261,7 @@ pub enum AgentEvent {
         )>,
     ),
     ServerSound(Sound),
+    Hurt,
 }
 
 #[derive(Copy, Clone, Debug)]

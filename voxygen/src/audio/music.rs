@@ -316,7 +316,7 @@ impl MusicMgr {
         // Adds a bit of randomness between plays
         let silence_between_tracks_seconds: f32 =
             if matches!(music_state, MusicState::Activity(MusicActivity::Explore)) {
-                rng.gen_range(60.0..120.0)
+                rng.gen_range(90.0..180.0)
             } else {
                 0.0
             };
