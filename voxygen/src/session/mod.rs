@@ -1032,6 +1032,9 @@ impl PlayState for SessionState {
                         // TODO: Handle result
                         self.client.borrow_mut().send_chat(msg);
                     },
+                    HudEvent::SendCommand(name, args) => {
+                        self.client.borrow_mut().send_command(name, args);
+                    },
                     HudEvent::CharacterSelection => {
                         self.client.borrow_mut().request_remove_character()
                     },

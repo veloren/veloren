@@ -808,9 +808,9 @@ impl Client {
                     //Only in game, terrain
                     ClientGeneral::TerrainChunkRequest { .. } => &mut self.terrain_stream,
                     //Always possible
-                    ClientGeneral::ChatMsg(_) | ClientGeneral::Terminate => {
-                        &mut self.general_stream
-                    },
+                    ClientGeneral::ChatMsg(_)
+                    | ClientGeneral::Command(_, _)
+                    | ClientGeneral::Terminate => &mut self.general_stream,
                 };
                 stream.send(msg)
             },
@@ -1368,6 +1368,11 @@ impl Client {
                 MAX_BYTES_CHAT_MSG
             ),
         }
+    }
+
+    /// Send a command to the server.
+    pub fn send_command(&mut self, name: String, args: Vec<String>) {
+        self.send_msg(ClientGeneral::Command(name, args));
     }
 
     /// Remove all cached terrain

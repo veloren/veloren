@@ -188,8 +188,8 @@ impl Server {
                 ServerEvent::ChunkRequest(entity, key) => {
                     requested_chunks.push((entity, key));
                 },
-                ServerEvent::ChatCmd(entity, cmd) => {
-                    chat_commands.push((entity, cmd));
+                ServerEvent::ChatCmd(entity, name, args) => {
+                    chat_commands.push((entity, name, args));
                 },
                 ServerEvent::Chat(msg) => {
                     chat_messages.push(msg);
@@ -229,8 +229,8 @@ impl Server {
             self.generate_chunk(entity, key);
         }
 
-        for (entity, cmd) in chat_commands {
-            self.process_chat_cmd(entity, cmd);
+        for (entity, name, args) in chat_commands {
+            self.process_chat_cmd(entity, name, args);
         }
 
         for msg in chat_messages {
