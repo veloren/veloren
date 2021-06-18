@@ -58,7 +58,6 @@ use common_net::{
 use common_state::State;
 use common_systems::add_local_systems;
 use comp::BuffKind;
-use futures_util::FutureExt;
 use hashbrown::{HashMap, HashSet};
 use image::DynamicImage;
 use network::{ConnectAddr, Network, Participant, Pid, Stream};
@@ -71,7 +70,7 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
-use tokio::{runtime::Runtime, select};
+use tokio::runtime::Runtime;
 use tracing::{debug, error, trace, warn};
 use vek::*;
 
@@ -2014,7 +2013,7 @@ impl Client {
         events: &mut Vec<Event>,
         msg: ServerGeneral,
     ) -> Result<(), Error> {
-        prof_span!("handle_character_screen_msg");
+        prof_span!("handle_server_character_screen_msg");
         match msg {
             ServerGeneral::CharacterListUpdate(character_list) => {
                 self.character_list.characters = character_list;
@@ -2066,34 +2065,37 @@ impl Client {
         Ok(())
     }
 
-    async fn handle_messages(
+    fn handle_messages(
         &mut self,
         frontend_events: &mut Vec<Event>,
-        cnt: &mut u64,
-    ) -> Result<(), Error> {
+    ) -> Result<u64, Error> {
+        let mut cnt = 0;
         loop {
-            let (m1, m2, m3, m4, m5) = select!(
-                msg = self.general_stream.recv().fuse() => (Some(msg), None, None, None, None),
-                msg = self.ping_stream.recv().fuse() => (None, Some(msg), None, None, None),
-                msg = self.character_screen_stream.recv().fuse() => (None, None, Some(msg), None, None),
-                msg = self.in_game_stream.recv().fuse() => (None, None, None, Some(msg), None),
-                msg = self.terrain_stream.recv().fuse() => (None, None, None, None, Some(msg)),
-            );
-            *cnt += 1;
-            if let Some(msg) = m1 {
-                self.handle_server_msg(frontend_events, msg?)?;
+            let cnt_start = cnt;
+
+            while let Some(msg) = self.general_stream.try_recv()? {
+                cnt += 1;
+                self.handle_server_msg(frontend_events, msg)?;
             }
-            if let Some(msg) = m2 {
-                self.handle_ping_msg(msg?)?;
+            while let Some(msg) = self.ping_stream.try_recv()? {
+                cnt += 1;
+                self.handle_ping_msg(msg)?;
             }
-            if let Some(msg) = m3 {
-                self.handle_server_character_screen_msg(frontend_events, msg?)?;
+            while let Some(msg) = self.character_screen_stream.try_recv()? {
+                cnt += 1;
+                self.handle_server_character_screen_msg(frontend_events, msg)?;
             }
-            if let Some(msg) = m4 {
-                self.handle_server_in_game_msg(frontend_events, msg?)?;
+            while let Some(msg) = self.in_game_stream.try_recv()? {
+                cnt += 1;
+                self.handle_server_in_game_msg(frontend_events, msg)?;
             }
-            if let Some(msg) = m5 {
-                self.handle_server_terrain_msg(msg?)?;
+            while let Some(msg) = self.terrain_stream.try_recv()? {
+                cnt += 1;
+                self.handle_server_terrain_msg(msg)?;
+            }
+
+            if cnt_start == cnt {
+                return Ok(cnt);
             }
         }
     }
@@ -2122,18 +2124,9 @@ impl Client {
             }
         }
 
-        let mut handles_msg = 0;
+        let msg_count = self.handle_messages(&mut frontend_events)?;
 
-        let runtime = Arc::clone(&self.runtime);
-        runtime.block_on(async {
-            //TIMEOUT 0.01 ms for msg handling
-            select!(
-                _ = tokio::time::sleep(std::time::Duration::from_micros(10)).fuse() => Ok(()),
-                err = self.handle_messages(&mut frontend_events, &mut handles_msg).fuse() => err,
-            )
-        })?;
-
-        if handles_msg == 0
+        if msg_count == 0
             && self.state.get_time() - self.last_server_pong > self.client_timeout.as_secs() as f64
         {
             return Err(Error::ServerTimeout);

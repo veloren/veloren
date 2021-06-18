@@ -5718,7 +5718,6 @@ dependencies = [
  "authc",
  "byteorder",
  "clap",
- "futures-util",
  "hashbrown 0.11.2",
  "image",
  "num 0.4.0",
