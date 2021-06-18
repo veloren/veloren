@@ -168,7 +168,7 @@ const FLEE_DURATION: f32 = 3.0;
 const MAX_FOLLOW_DIST: f32 = 12.0;
 const MAX_PATH_DIST: f32 = 170.0;
 const PARTIAL_PATH_DIST: f32 = 50.0;
-const SEPARATION_DIST: f32 = 4.0;
+const SEPARATION_DIST: f32 = 10.0;
 const SEPARATION_BIAS: f32 = 0.8;
 const MAX_FLEE_DIST: f32 = 20.0;
 const SEARCH_DIST: f32 = 48.0;
@@ -4050,6 +4050,7 @@ impl<'a> AgentData<'a> {
     /// multiplies the movement speed by a value less than 1.0.
     /// A `None` value implies a multiplier of 1.0.
     /// Returns `false` if the pathfinding algorithm fails to return a path
+    #[allow(clippy::too_many_arguments)]
     fn path_toward_target(
         &self,
         agent: &mut Agent,
@@ -4078,14 +4079,14 @@ impl<'a> AgentData<'a> {
                             read_data.bodies.get(entity),
                         ) {
                             if self.pos.0.xy().distance(pos.0.xy())
-                                < SEPARATION_DIST + body.radius() + other_body.radius()
+                                < body.spacing_radius() + other_body.spacing_radius()
                             {
                                 sep_vec += (self.pos.0.xy() - pos.0.xy())
                                     .try_normalized()
                                     .unwrap_or_else(Vec2::zero)
-                                    * (((SEPARATION_DIST + body.radius() + other_body.radius())
+                                    * (((body.spacing_radius() + other_body.spacing_radius())
                                         - self.pos.0.xy().distance(pos.0.xy()))
-                                        / SEPARATION_DIST);
+                                        / (body.spacing_radius() + other_body.spacing_radius()));
                             }
                         }
                     }
