@@ -13,7 +13,7 @@ variables:
   # https://docs.gitlab.com/ee/ci/yaml/#shallow-cloning
   GIT_DEPTH: 3
   GIT_CLEAN_FLAGS: -f
-  CACHE_IMAGE_TAG: 8490f4b9
+  CACHE_IMAGE_TAG: c6476744
 
 default:
   # https://docs.gitlab.com/ee/ci/pipelines/settings.html#auto-cancel-pending-pipelines
