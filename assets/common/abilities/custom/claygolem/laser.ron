@@ -10,5 +10,6 @@ BasicBeam(
     energy_regen: 50,
     energy_drain: 0,
     orientation_behavior: FromOri,
+    ori_rate: 0.1,
     specifier: ClayGolem,
 )
