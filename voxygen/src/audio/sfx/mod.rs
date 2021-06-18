@@ -207,6 +207,8 @@ pub enum VoiceKind {
     Antelope,
     Alligator,
     Saurok,
+    Cat,
+    Goat,
 }
 
 fn body_to_voice(body: &Body) -> Option<VoiceKind> {
@@ -223,6 +225,8 @@ fn body_to_voice(body: &Body) -> Option<VoiceKind> {
         Body::QuadrupedSmall(body) => match body.species {
             quadruped_small::Species::Sheep => VoiceKind::Sheep,
             quadruped_small::Species::Pig | quadruped_small::Species::Boar => VoiceKind::Pig,
+            quadruped_small::Species::Cat => VoiceKind::Cat,
+            quadruped_small::Species::Goat => VoiceKind::Goat,
             _ => VoiceKind::Critter,
         },
         Body::QuadrupedMedium(body) => match body.species {
@@ -410,7 +414,7 @@ impl SfxMgr {
             },
             Outcome::GroundSlam { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::GroundSlam);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(1.0), false);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), false);
             },
             Outcome::ProjectileShot { pos, body, .. } => {
                 match body {
