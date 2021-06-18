@@ -3505,7 +3505,7 @@ impl<'a> AgentData<'a> {
                 }
             }
         } else if attack_data.dist_sqrd < GOLEM_LASER_RANGE.powi(2) {
-            if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(10))
+            if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(5))
                 || target_speed_cross_sqd < GOLEM_TARGET_SPEED.powi(2)
                     && can_see_tgt(
                         &*read_data.terrain,
@@ -3515,7 +3515,7 @@ impl<'a> AgentData<'a> {
                     )
                     && attack_data.angle < 45.0
             {
-                // If target in range threshold and haven't been lasering for more than 10
+                // If target in range threshold and haven't been lasering for more than 5
                 // seconds already or if target is moving slow-ish, laser them
                 controller
                     .actions
