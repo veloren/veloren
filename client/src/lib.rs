@@ -43,7 +43,7 @@ use common::{
     uid::{Uid, UidAllocator},
     vol::RectVolSize,
 };
-use common_base::span;
+use common_base::{prof_span, span};
 use common_net::{
     msg::{
         self, validate_chat_msg,
@@ -760,6 +760,7 @@ impl Client {
     where
         S: Into<ClientMsg>,
     {
+        prof_span!("send_msg_err");
         let msg: ClientMsg = msg.into();
         #[cfg(debug_assertions)]
         {
@@ -1426,6 +1427,7 @@ impl Client {
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.
         if self.presence.is_some() {
+            prof_span!("handle and send inputs");
             if let Err(e) = self
                 .state
                 .ecs()
@@ -1457,21 +1459,25 @@ impl Client {
 
         // Prepare for new events
         {
+            prof_span!("Last<CharacterState> comps update");
             let ecs = self.state.ecs();
-            for (entity, _) in (&ecs.entities(), &ecs.read_storage::<comp::Body>()).join() {
-                let mut last_character_states =
-                    ecs.write_storage::<comp::Last<comp::CharacterState>>();
-                if let Some(client_character_state) =
-                    ecs.read_storage::<comp::CharacterState>().get(entity)
+            let mut last_character_states = ecs.write_storage::<comp::Last<comp::CharacterState>>();
+            for (entity, _, character_state) in (
+                &ecs.entities(),
+                &ecs.read_storage::<comp::Body>(),
+                &ecs.read_storage::<comp::CharacterState>(),
+            )
+                .join()
+            {
+                if let Some(l) = last_character_states
+                    .entry(entity)
+                    .ok()
+                    .map(|l| l.or_insert_with(|| comp::Last(character_state.clone())))
+                    // TODO: since this just updates when the variant changes we should
+                    // just store the variant to avoid the clone overhead
+                    .filter(|l| !character_state.same_variant(&l.0))
                 {
-                    if let Some(l) = last_character_states
-                        .entry(entity)
-                        .ok()
-                        .map(|l| l.or_insert_with(|| comp::Last(client_character_state.clone())))
-                        .filter(|l| !client_character_state.same_variant(&l.0))
-                    {
-                        *l = comp::Last(client_character_state.clone());
-                    }
+                    *l = comp::Last(character_state.clone());
                 }
             }
         }
@@ -1520,6 +1526,7 @@ impl Client {
             .get(self.entity())
             .cloned();
         if let (Some(pos), Some(view_distance)) = (pos, self.view_distance) {
+            prof_span!("terrain");
             let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
 
             // Remove chunks that are too far from the player.
@@ -1653,6 +1660,7 @@ impl Client {
         frontend_events: &mut Vec<Event>,
         msg: ServerGeneral,
     ) -> Result<(), Error> {
+        prof_span!("handle_server_msg");
         match msg {
             ServerGeneral::Disconnect(reason) => match reason {
                 DisconnectReason::Shutdown => return Err(Error::ServerShutdown),
@@ -1805,6 +1813,7 @@ impl Client {
         frontend_events: &mut Vec<Event>,
         msg: ServerGeneral,
     ) -> Result<(), Error> {
+        prof_span!("handle_server_in_game_msg");
         match msg {
             ServerGeneral::GroupUpdate(change_notification) => {
                 use comp::group::ChangeNotification::*;
@@ -1979,6 +1988,7 @@ impl Client {
 
     #[allow(clippy::unnecessary_wraps)]
     fn handle_server_terrain_msg(&mut self, msg: ServerGeneral) -> Result<(), Error> {
+        prof_span!("handle_server_terrain_mgs");
         match msg {
             ServerGeneral::TerrainChunkUpdate { key, chunk } => {
                 if let Some(chunk) = chunk.ok().and_then(|c| c.to_chunk()) {
@@ -2004,6 +2014,7 @@ impl Client {
         events: &mut Vec<Event>,
         msg: ServerGeneral,
     ) -> Result<(), Error> {
+        prof_span!("handle_character_screen_msg");
         match msg {
             ServerGeneral::CharacterListUpdate(character_list) => {
                 self.character_list.characters = character_list;
@@ -2034,6 +2045,7 @@ impl Client {
     }
 
     fn handle_ping_msg(&mut self, msg: PingMsg) -> Result<(), Error> {
+        prof_span!("handle_ping_msg");
         match msg {
             PingMsg::Ping => {
                 self.send_msg_err(PingMsg::Pong)?;
@@ -2088,6 +2100,7 @@ impl Client {
 
     /// Handle new server messages.
     fn handle_new_messages(&mut self) -> Result<Vec<Event>, Error> {
+        prof_span!("handle_new_messages");
         let mut frontend_events = Vec::new();
 
         // Check that we have an valid connection.
