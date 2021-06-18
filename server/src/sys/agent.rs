@@ -3477,6 +3477,9 @@ impl<'a> AgentData<'a> {
         const GOLEM_LONG_RANGE: f32 = 50.0;
         const GOLEM_TARGET_SPEED: f32 = 8.0;
         let golem_melee_range = self.body.map_or(0.0, |b| b.radius()) + GOLEM_MELEE_RANGE;
+        // Fraction of health, used for activation of shockwave
+        // If golem don't have health for some reason, assume it's full
+        let health_fraction = self.health.map_or(1.0, |h| h.fraction());
         // Magnitude squared of cross product of target velocity with golem orientation
         let target_speed_cross_sqd = agent
             .target
@@ -3517,8 +3520,9 @@ impl<'a> AgentData<'a> {
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Secondary));
-            } else {
-                // Else target moving too fast for laser, shockwave time
+            } else if health_fraction < 0.7 {
+                // Else target moving too fast for laser, shockwave time.
+                // But only if damaged enough
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Ability(0)));
@@ -3536,8 +3540,9 @@ impl<'a> AgentData<'a> {
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Ability(1)));
-            } else {
-                // Else target moving too fast for laser, shockwave time
+            } else if health_fraction < 0.7 {
+                // Else target moving too fast for laser, shockwave time.
+                // But only if damaged enough
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Ability(0)));
