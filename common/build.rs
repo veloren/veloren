@@ -55,7 +55,7 @@ fn main() {
 
     // Check if git-lfs is working
     if std::env::var("DISABLE_GIT_LFS_CHECK").is_err() && cfg!(not(feature = "no-assets")) {
-        let asset_path: PathBuf = ["..", "assets", "voxygen", "background", "bg_main.png"]
+        let asset_path: PathBuf = ["..", "assets", "voxygen", "background", "bg_main.jpg"]
             .iter()
             .collect();
         let asset_file = match File::open(&asset_path) {
