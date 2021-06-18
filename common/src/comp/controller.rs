@@ -103,6 +103,9 @@ pub enum UtteranceKind {
     Surprised,
     Hurt,
     Greeting,
+    /* Death,
+     * TODO: Wait for more post-death features (i.e. animiations) before implementing death
+     * sounds */
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

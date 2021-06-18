@@ -831,6 +831,19 @@
                 ],
             threshold: 0.2,
         ),
+        Utterance(Angry, Alligator): (
+            files: [
+                "voxygen.audio.sfx.utterance.alligator_angry1",
+                "voxygen.audio.sfx.utterance.alligator_angry2",
+            ],
+            threshold: 1.0,
+        ),
+        Utterance(Angry, Antelope): (
+            files: [
+                "voxygen.audio.sfx.utterance.antelope_angry1",
+            ],
+            threshold: 1.0,
+        ),
         Utterance(Angry, BipedLarge): (
             files: [
                 "voxygen.audio.sfx.utterance.ogre_angry1",
@@ -844,12 +857,6 @@
             ],
             threshold: 1.0,
         ),
-        Utterance(Calm, Pig): (
-            files: [
-                "voxygen.audio.sfx.utterance.pig_calm1",
-            ],
-            threshold: 1.0,
-        ),
         Utterance(Angry, Adlet): (
             files: [
                 "voxygen.audio.sfx.utterance.adlet_angry1",
@@ -857,16 +864,10 @@
             ],
             threshold: 1.0,
         ),
-        Utterance(Angry, Alligator): (
+        Utterance(Angry, Pig): (
             files: [
-                "voxygen.audio.sfx.utterance.alligator_angry1",
-                "voxygen.audio.sfx.utterance.alligator_angry2",
-            ],
-            threshold: 1.0,
-        ),
-        Utterance(Angry, Antelope): (
-            files: [
-                "voxygen.audio.sfx.utterance.antelope_angry1",
+                "voxygen.audio.sfx.utterance.pig_angry1",
+                "voxygen.audio.sfx.utterance.pig_angry2",
             ],
             threshold: 1.0,
         ),
@@ -889,11 +890,31 @@
             ],
             threshold: 1.0,
         ),
+        Utterance(Calm, Cat): (
+            files: [
+                "voxygen.audio.sfx.utterance.cat_calm1",
+                "voxygen.audio.sfx.utterance.cat_calm2",
+            ],
+            threshold: 1.0,
+        ),
         Utterance(Calm, Cow): (
             files: [
                 "voxygen.audio.sfx.utterance.cow_calm1",
                 "voxygen.audio.sfx.utterance.cow_calm2",
                 "voxygen.audio.sfx.utterance.cow_calm3",
+            ],
+            threshold: 1.0,
+        ),
+        Utterance(Calm, Goat): (
+            files: [
+                "voxygen.audio.sfx.utterance.goat_calm1",
+            ],
+            threshold: 1.0,
+        ),
+        Utterance(Calm, Pig): (
+            files: [
+                "voxygen.audio.sfx.utterance.pig_calm1",
+                "voxygen.audio.sfx.utterance.pig_calm2",
             ],
             threshold: 1.0,
         ),
@@ -919,6 +940,12 @@
         Utterance(Hurt, Antelope): (
             files: [
                 "voxygen.audio.sfx.utterance.antelope",
+            ],
+            threshold: 1.0,
+        ),
+        Utterance(Hurt, BipedLarge): (
+            files: [
+                "voxygen.audio.sfx.utterance.ogre_hurt1",
             ],
             threshold: 1.0,
         ),
