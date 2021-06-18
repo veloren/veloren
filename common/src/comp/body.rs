@@ -511,7 +511,7 @@ impl Body {
                 _ => 10000,
             },
             Body::Golem(golem) => match golem.species {
-                golem::Species::ClayGolem => 7500,
+                golem::Species::ClayGolem => 4500,
                 _ => 10000,
             },
             Body::Theropod(theropod) => match theropod.species {
@@ -676,7 +676,7 @@ impl Body {
                 _ => 1.0,
             },
             Body::Golem(g) => match g.species {
-                golem::Species::ClayGolem => 1.2,
+                golem::Species::ClayGolem => 2.0,
                 _ => 1.0,
             },
             _ => 1.0,
