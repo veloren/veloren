@@ -34,6 +34,7 @@ pub struct Colors {
     pub cave_roof: (u8, u8, u8),
     pub dirt: (u8, u8, u8),
     pub scaffold: (u8, u8, u8),
+    pub lava: (u8, u8, u8),
     pub vein: (u8, u8, u8),
 }
 
@@ -217,10 +218,7 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                     };
                     canvas.set(
                         Vec3::new(wpos2d.x, wpos2d.y, z),
-                        Block::new(
-                            kind,
-                            noisy_color(info.index().colors.layer.scaffold.into(), 8),
-                        ),
+                        Block::new(kind, noisy_color(info.index().colors.layer.lava.into(), 8)),
                     );
                 }
             }

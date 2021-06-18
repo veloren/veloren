@@ -1558,9 +1558,10 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
                 };
                 if player_aabb.collides_with_aabb(liquid_aabb) {
                     liquid = match liquid {
-                        Some((kind, max_liquid_z)) => {
-                            Some((kind.merge(block_liquid), max_liquid_z.max(liquid_aabb.max.z)))
-                        },
+                        Some((kind, max_liquid_z)) => Some((
+                            kind.merge(block_liquid),
+                            max_liquid_z.max(liquid_aabb.max.z),
+                        )),
                         None => Some((block_liquid, liquid_aabb.max.z)),
                     };
                 }

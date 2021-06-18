@@ -1,8 +1,8 @@
 use common::{
     comp::{
-        fluid_dynamics::{LiquidKind, Fluid}, Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId,
-        BuffKind, BuffSource, Buffs, Energy, Health, HealthChange, HealthSource, Inventory,
-        ModifierKind, PhysicsState, Stats,
+        fluid_dynamics::{Fluid, LiquidKind},
+        Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId, BuffKind, BuffSource, Buffs,
+        Energy, Health, HealthChange, HealthSource, Inventory, ModifierKind, PhysicsState, Stats,
     },
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
@@ -57,15 +57,20 @@ impl<'a> System<'a> for Sys {
         {
             let in_fluid = physics_state.and_then(|p| p.in_fluid);
 
-            if matches!(in_fluid, Some(Fluid::Liquid { kind: LiquidKind::Lava, .. })) {
-                if !buff_comp.contains(BuffKind::Burning) {
-                    buff_comp.insert(Buff::new(
-                        BuffKind::Burning,
-                        BuffData::new(200.0, None),
-                        vec![BuffCategory::Natural],
-                        BuffSource::World,
-                    ));
-                }
+            if matches!(
+                in_fluid,
+                Some(Fluid::Liquid {
+                    kind: LiquidKind::Lava,
+                    ..
+                })
+            ) && !buff_comp.contains(BuffKind::Burning)
+            {
+                buff_comp.insert(Buff::new(
+                    BuffKind::Burning,
+                    BuffData::new(200.0, None),
+                    vec![BuffCategory::Natural],
+                    BuffSource::World,
+                ));
             }
 
             let (buff_comp_kinds, buff_comp_buffs): (
@@ -262,7 +267,15 @@ fn tick_buff(
     }
     if let Some(remaining_time) = &mut buff.time {
         // Extinguish Burning buff when in water
-        if matches!(buff.kind, BuffKind::Burning) && matches!(in_fluid, Some(Fluid::Liquid { kind: LiquidKind::Water, .. })) {
+        if matches!(buff.kind, BuffKind::Burning)
+            && matches!(
+                in_fluid,
+                Some(Fluid::Liquid {
+                    kind: LiquidKind::Water,
+                    ..
+                })
+            )
+        {
             *remaining_time = Duration::default();
         }
 

@@ -30,13 +30,13 @@ make_case_elim!(
     pub enum BlockKind {
         Air = 0x00, // Air counts as a fluid
         Water = 0x01,
-        Lava = 0x02,
         // 0x02 <= x < 0x10 are reserved for other fluids. These are 2^n aligned to allow bitwise
         // checking of common conditions. For example, `is_fluid` is just `block_kind &
         // 0x0F == 0` (this is a very common operation used in meshing that could do with
         // being *very* fast).
         Rock = 0x10,
         WeakRock = 0x11, // Explodable
+        Lava = 0x12,
         // 0x12 <= x < 0x20 is reserved for future rocks
         Grass = 0x20, // Note: *not* the same as grass sprites
         Snow = 0x21,
@@ -181,6 +181,9 @@ impl Block {
 
     #[inline]
     pub fn get_glow(&self) -> Option<u8> {
+        if matches!(self.kind, BlockKind::Lava) {
+            return Some(24);
+        }
         match self.get_sprite()? {
             SpriteKind::StreetLamp | SpriteKind::StreetLampTall => Some(24),
             SpriteKind::Ember => Some(20),
@@ -230,7 +233,7 @@ impl Block {
     pub fn is_solid(&self) -> bool {
         self.get_sprite()
             .map(|s| s.solid_height().is_some())
-            .unwrap_or(true)
+            .unwrap_or(!matches!(self.kind, BlockKind::Lava))
     }
 
     /// Can this block be exploded? If so, what 'power' is required to do so?
