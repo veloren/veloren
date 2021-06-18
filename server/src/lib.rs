@@ -983,7 +983,7 @@ impl Server {
         );
     }
 
-    fn process_chat_cmd(&mut self, entity: EcsEntity, name: String, args: Vec<String>) {
+    fn process_command(&mut self, entity: EcsEntity, name: String, args: Vec<String>) {
         // Find the command object and run its handler.
         if let Ok(command) = name.parse::<ChatCommand>() {
             command.execute(self, entity, args);

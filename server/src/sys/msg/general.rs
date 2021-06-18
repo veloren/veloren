@@ -49,7 +49,7 @@ impl Sys {
             },
             ClientGeneral::Command(name, args) => {
                 if player.is_some() {
-                    server_emitter.emit(ServerEvent::ChatCmd(entity, name, args));
+                    server_emitter.emit(ServerEvent::Command(entity, name, args));
                 }
             },
             ClientGeneral::Terminate => {
