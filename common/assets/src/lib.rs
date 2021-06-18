@@ -110,7 +110,7 @@ impl Loader<Image> for ImageLoader {
 impl Asset for Image {
     type Loader = ImageLoader;
 
-    const EXTENSIONS: &'static [&'static str] = &["png", "jpg", "jpeg"];
+    const EXTENSIONS: &'static [&'static str] = &["png", "jpg"];
 }
 
 pub struct DotVoxAsset(pub DotVoxData);
