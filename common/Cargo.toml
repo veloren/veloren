@@ -6,7 +6,6 @@ edition = "2018"
 
 [features]
 no-assets = []
-tracy = ["common-base/tracy"]
 simd = ["vek/platform_intrinsics"]
 bin_csv = ["ron", "csv", "structopt"]
 bin_graphviz = ["petgraph"]

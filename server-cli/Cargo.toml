@@ -17,7 +17,7 @@ This package includes the official server CLI.
 [features]
 worldgen = ["server/worldgen"]
 default = ["worldgen"]
-tracy = ["common/tracy", "server/tracy", "common-net/tracy", "common-frontend/tracy"]
+tracy = ["common-frontend/tracy"]
 plugins = ["server/plugins"]
 
 [dependencies]

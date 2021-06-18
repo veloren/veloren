@@ -25,7 +25,7 @@ buildInputs = ["xorg.libxcb"]
 hot-anim = ["anim/use-dyn-lib"]
 singleplayer = ["server"]
 simd = ["vek/platform_intrinsics"]
-tracy = ["profiling", "profiling/profile-with-tracy", "common/tracy", "common-ecs/tracy", "common-frontend/tracy", "common-net/tracy", "common-systems/tracy", "common-state/tracy", "client/tracy"]
+tracy = ["profiling", "profiling/profile-with-tracy", "common-frontend/tracy"]
 plugins = ["client/plugins"]
 
 default = ["singleplayer", "native-dialog", "plugins", "simd"]

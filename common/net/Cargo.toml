@@ -5,7 +5,6 @@ name = "veloren-common-net"
 version = "0.10.0"
 
 [features]
-tracy = ["common/tracy"]
 simd = ["vek/platform_intrinsics"]
 
 default = ["simd"]

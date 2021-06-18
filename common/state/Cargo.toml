@@ -5,7 +5,6 @@ name = "veloren-common-state"
 version = "0.10.0"
 
 [features]
-tracy = ["common/tracy"]
 simd = ["vek/platform_intrinsics"]
 plugins = ["toml", "tar", "wasmer", "bincode", "plugin-api", "serde"]
 
