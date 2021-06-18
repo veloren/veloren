@@ -29,12 +29,7 @@ impl Sys {
                 if player.is_some() {
                     match validate_chat_msg(&message) {
                         Ok(()) => {
-                            if let Some(message) = message.strip_prefix('/') {
-                                if !message.is_empty() {
-                                    let argv = String::from(message);
-                                    server_emitter.emit(ServerEvent::ChatCmd(entity, argv));
-                                }
-                            } else if let Some(from) = uids.get(entity) {
+                            if let Some(from) = uids.get(entity) {
                                 const CHAT_MODE_DEFAULT: &ChatMode = &ChatMode::default();
                                 let mode = chat_modes.get(entity).unwrap_or(CHAT_MODE_DEFAULT);
                                 // Send chat message
@@ -50,6 +45,11 @@ impl Sys {
                             warn!(?len, ?max, "Received a chat message that's too long")
                         },
                     }
+                }
+            },
+            ClientGeneral::Command(name, args) => {
+                if player.is_some() {
+                    server_emitter.emit(ServerEvent::Command(entity, name, args));
                 }
             },
             ClientGeneral::Terminate => {

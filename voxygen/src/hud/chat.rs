@@ -168,6 +168,7 @@ pub struct State {
 pub enum Event {
     TabCompletionStart(String),
     SendMessage(String),
+    SendCommand(String, Vec<String>),
     Focus(Id),
     ChangeChatTab(Option<usize>),
     ShowChatTabSettings(usize),
@@ -645,7 +646,17 @@ impl<'a> Widget for Chat<'a> {
                     s.history.truncate(self.history_max);
                 }
             });
-            events.push(Event::SendMessage(msg));
+            if let Some(msg) = msg.strip_prefix('/') {
+                match msg.parse::<comma::Command>() {
+                    Ok(cmd) => events.push(Event::SendCommand(cmd.name, cmd.arguments)),
+                    Err(err) => self.new_messages.push_back(ChatMsg {
+                        chat_type: ChatType::CommandError,
+                        message: err.to_string(),
+                    }),
+                }
+            } else {
+                events.push(Event::SendMessage(msg));
+            }
         }
         events
     }

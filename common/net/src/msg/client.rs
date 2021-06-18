@@ -80,6 +80,7 @@ pub enum ClientGeneral {
     },
     //Always possible
     ChatMsg(String),
+    Command(String, Vec<String>),
     Terminate,
     RequestPlayerPhysics {
         server_authoritative: bool,
@@ -129,7 +130,9 @@ impl ClientMsg {
                             c_type == ClientType::Game && presence.is_some()
                         },
                         //Always possible
-                        ClientGeneral::ChatMsg(_) | ClientGeneral::Terminate => true,
+                        ClientGeneral::ChatMsg(_)
+                        | ClientGeneral::Command(_, _)
+                        | ClientGeneral::Terminate => true,
                     }
             },
             ClientMsg::Ping(_) => true,

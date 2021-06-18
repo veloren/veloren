@@ -140,7 +140,7 @@ pub enum ServerEvent {
     ClientDisconnect(EcsEntity, DisconnectReason),
     ClientDisconnectWithoutPersistence(EcsEntity),
     ChunkRequest(EcsEntity, Vec2<i32>),
-    ChatCmd(EcsEntity, String),
+    Command(EcsEntity, String, Vec<String>),
     /// Send a chat message to the player from an npc or other player
     Chat(comp::UnresolvedChatMsg),
     Aura {

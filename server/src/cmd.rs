@@ -52,11 +52,15 @@ use scan_fmt::{scan_fmt, scan_fmt_some};
 use tracing::{error, info, warn};
 
 pub trait ChatCommandExt {
-    fn execute(&self, server: &mut Server, entity: EcsEntity, args: String);
+    fn execute(&self, server: &mut Server, entity: EcsEntity, args: Vec<String>);
 }
 impl ChatCommandExt for ChatCommand {
     #[allow(clippy::needless_return)] // TODO: Pending review in #587
-    fn execute(&self, server: &mut Server, entity: EcsEntity, args: String) {
+    fn execute(&self, server: &mut Server, entity: EcsEntity, args: Vec<String>) {
+        // TODO: Pass arguments to commands as Vec<String>, not String, to support
+        // proper parsing.
+        let args = args.join(" ");
+
         if let Err(err) = do_command(server, entity, entity, args, self) {
             server.notify_client(
                 entity,
@@ -101,6 +105,7 @@ fn do_command(
             cmd.keyword()
         ));
     }
+
     let handler: CommandHandler = match cmd {
         ChatCommand::Adminify => handle_adminify,
         ChatCommand::Airship => handle_spawn_airship,

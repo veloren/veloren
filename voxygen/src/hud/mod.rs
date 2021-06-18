@@ -375,6 +375,7 @@ pub struct HudInfo {
 #[derive(Clone)]
 pub enum Event {
     SendMessage(String),
+    SendCommand(String, Vec<String>),
 
     CharacterSelection,
     UseSlot {
@@ -2721,6 +2722,9 @@ impl Hud {
                 },
                 chat::Event::SendMessage(message) => {
                     events.push(Event::SendMessage(message));
+                },
+                chat::Event::SendCommand(name, args) => {
+                    events.push(Event::SendCommand(name, args));
                 },
                 chat::Event::Focus(focus_id) => {
                     self.to_focus = Some(Some(focus_id));
