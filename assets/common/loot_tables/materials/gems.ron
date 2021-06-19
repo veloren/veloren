@@ -1,6 +1,6 @@
 [
-    (3.0, Item("common.items.mineral.gem.topaz")),
-    (3.0, Item("common.items.mineral.gem.amethyst")),
+    (6.0, Item("common.items.mineral.gem.topaz")),
+    (8.0, Item("common.items.mineral.gem.amethyst")),
     (1.6, Item("common.items.mineral.gem.sapphire")),
     (1.2, Item("common.items.mineral.gem.emerald")),
     (0.8, Item("common.items.mineral.gem.ruby")),
