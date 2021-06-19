@@ -70,7 +70,12 @@ impl Dungeon {
         let difficulty = DUNGEON_DISTRIBUTION
             .choose_weighted(&mut ctx.rng, |pair| pair.1)
             .map(|(difficulty, _)| *difficulty)
-            .expect("this can never fail");
+            .unwrap_or_else(|err| {
+                panic!(
+                    "Failed to choose difficulty (check instruction in config). Error: {}",
+                    err
+                )
+            });
 
         let floors = 3 + difficulty / 2;
 

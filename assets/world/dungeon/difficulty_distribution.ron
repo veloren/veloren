@@ -1,24 +1,25 @@
 /// Distribution of different dungeon levels.
 ///
 /// first number is dungeon level, integer
-/// second number is probability, any normal positive float (not a NaN, for example)
+/// second number is weight, any normal positive float (not a NaN, for example)
 ///
 /// Values are relative to each other,
-/// lesser probability means there will be less dungeons.
+/// lesser weight means there will be less dungeons of that tier.
 ///
 /// General rules:
-/// 1) Probability should not be less or equal to zero
-/// 2) Keep it synced with number of dungeon levels
-/// 3) Keep these pairs sorted from lowest to highest tier
+/// 1) Weight should not be less then zero
+/// 2) At least some of weights shouldn't be a zero
+/// 3) Keep it synced with number of dungeon levels
+/// 4) Keep these pairs sorted from lowest to highest tier
 ///
 /// Tips:
 /// 1) Set every probability to 0.0 and left one with any other number
 /// and you will have map full of dungeons of same level
 ([
-    (0, 1.0),
-    (1, 1.0),
-    (2, 1.0),
-    (3, 1.0),
-    (4, 1.0),
+    (0, 5.0),
+    (1, 4.0),
+    (2, 4.0),
+    (3, 2.0),
+    (4, 2.0),
     (5, 1.0),
 ])
