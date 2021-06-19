@@ -3477,6 +3477,9 @@ impl<'a> AgentData<'a> {
         const GOLEM_LONG_RANGE: f32 = 50.0;
         const GOLEM_TARGET_SPEED: f32 = 8.0;
         let golem_melee_range = self.body.map_or(0.0, |b| b.radius()) + GOLEM_MELEE_RANGE;
+        // Fraction of health, used for activation of shockwave
+        // If golem don't have health for some reason, assume it's full
+        let health_fraction = self.health.map_or(1.0, |h| h.fraction());
         // Magnitude squared of cross product of target velocity with golem orientation
         let target_speed_cross_sqd = agent
             .target
@@ -3502,7 +3505,7 @@ impl<'a> AgentData<'a> {
                 }
             }
         } else if attack_data.dist_sqrd < GOLEM_LASER_RANGE.powi(2) {
-            if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(10))
+            if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(5))
                 || target_speed_cross_sqd < GOLEM_TARGET_SPEED.powi(2)
                     && can_see_tgt(
                         &*read_data.terrain,
@@ -3512,13 +3515,14 @@ impl<'a> AgentData<'a> {
                     )
                     && attack_data.angle < 45.0
             {
-                // If target in range threshold and haven't been lasering for more than 10
+                // If target in range threshold and haven't been lasering for more than 5
                 // seconds already or if target is moving slow-ish, laser them
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Secondary));
-            } else {
-                // Else target moving too fast for laser, shockwave time
+            } else if health_fraction < 0.7 {
+                // Else target moving too fast for laser, shockwave time.
+                // But only if damaged enough
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Ability(0)));
@@ -3536,8 +3540,9 @@ impl<'a> AgentData<'a> {
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Ability(1)));
-            } else {
-                // Else target moving too fast for laser, shockwave time
+            } else if health_fraction < 0.7 {
+                // Else target moving too fast for laser, shockwave time.
+                // But only if damaged enough
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Ability(0)));

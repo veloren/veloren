@@ -40,6 +40,8 @@ pub struct StaticData {
     pub energy_drain: f32,
     /// Used to dictate how orientation functions in this state
     pub orientation_behavior: OrientationBehavior,
+    /// How fast enemy can rotate with beam
+    pub ori_rate: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
     /// Used to specify the beam to the frontend
@@ -61,14 +63,10 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        let ori_rate = match self.static_data.orientation_behavior {
-            OrientationBehavior::Normal => 0.6,
-            OrientationBehavior::Turret => {
-                update.ori = Ori::from(data.inputs.look_dir);
-                0.6
-            },
-            OrientationBehavior::FromOri => 0.1,
-        };
+        let ori_rate = self.static_data.ori_rate;
+        if self.static_data.orientation_behavior == OrientationBehavior::Turret {
+            update.ori = Ori::from(data.inputs.look_dir);
+        }
 
         handle_orientation(data, &mut update, ori_rate);
         handle_move(data, &mut update, 0.4);

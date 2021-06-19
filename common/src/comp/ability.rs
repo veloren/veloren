@@ -247,6 +247,7 @@ pub enum CharacterAbility {
         energy_regen: f32,
         energy_drain: f32,
         orientation_behavior: basic_beam::OrientationBehavior,
+        ori_rate: f32,
         specifier: beam::FrontendSpecifier,
     },
     BasicAura {
@@ -1651,6 +1652,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 energy_regen,
                 energy_drain,
                 orientation_behavior,
+                ori_rate,
                 specifier,
             } => CharacterState::BasicBeam(basic_beam::Data {
                 static_data: basic_beam::StaticData {
@@ -1666,6 +1668,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     energy_drain: *energy_drain,
                     ability_info,
                     orientation_behavior: *orientation_behavior,
+                    ori_rate: *ori_rate,
                     specifier: *specifier,
                 },
                 timer: Duration::default(),

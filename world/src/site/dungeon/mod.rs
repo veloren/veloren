@@ -541,7 +541,7 @@ impl Floor {
                         .map(|density| dynamic_rng.gen_range(0..density.recip() as usize) == 0)
                         .unwrap_or(false)
                         && !tile_is_pillar
-                        && !(room.boss && room.difficulty == 5)
+                        && !room.boss
                     {
                         // Randomly displace them a little
                         let raw_entity = EntityInfo::at(

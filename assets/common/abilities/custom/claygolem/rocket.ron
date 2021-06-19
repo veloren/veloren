@@ -1,11 +1,11 @@
 BasicRanged(
     energy_cost: 0,
-    buildup_duration: 0.5,
-    recover_duration: 0.8,
+    buildup_duration: 0.8,
+    recover_duration: 0.5,
     projectile: ClayRocket(
         damage: 500.0,
         knockback: 25.0,
-        radius: 10.0,
+        radius: 5.0,
     ),
     projectile_body: Object(ClayRocket),
     projectile_light: None,
