@@ -173,6 +173,7 @@ make_case_elim!(
         CrystalLow = 0x92,
         CeilingMushroom = 0x93,
         Orb = 0x94,
+        EnsnaringVines = 0x95,
     }
 );
 
@@ -256,6 +257,7 @@ impl SpriteKind {
             | SpriteKind::Tin
             | SpriteKind::Silver
             | SpriteKind::Gold => 0.6,
+            SpriteKind::EnsnaringVines => 0.1,
             _ => return None,
         })
     }

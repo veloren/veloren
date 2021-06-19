@@ -279,7 +279,8 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::HealingBeam { .. }
                 | CharacterState::Blink { .. }
                 | CharacterState::BasicSummon { .. }
-                | CharacterState::SelfBuff { .. } => {
+                | CharacterState::SelfBuff { .. }
+                | CharacterState::SpriteSummon { .. } => {
                     if energy.get_unchecked().regen_rate != 0.0 {
                         energy.get_mut_unchecked().regen_rate = 0.0
                     }

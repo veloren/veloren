@@ -13,8 +13,8 @@ use entity_manipulation::{
 use group_manip::handle_group;
 use information::handle_site_info;
 use interaction::{
-    handle_lantern, handle_mine_block, handle_mount, handle_npc_interaction, handle_possess,
-    handle_sound, handle_unmount,
+    handle_create_sprite, handle_lantern, handle_mine_block, handle_mount, handle_npc_interaction,
+    handle_possess, handle_sound, handle_unmount,
 };
 use inventory_manip::handle_inventory;
 use invite::{handle_invite, handle_invite_response};
@@ -221,6 +221,9 @@ impl Server {
                     self.state.create_safezone(range, pos).build();
                 },
                 ServerEvent::Sound { sound } => handle_sound(self, &sound),
+                ServerEvent::CreateSprite { pos, sprite } => {
+                    handle_create_sprite(self, pos, sprite)
+                },
             }
         }
 

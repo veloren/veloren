@@ -103,6 +103,8 @@ pub enum CharacterState {
     BasicSummon(basic_summon::Data),
     /// Inserts a buff on the caster
     SelfBuff(self_buff::Data),
+    /// Creates sprites around the caster
+    SpriteSummon(sprite_summon::Data),
 }
 
 impl CharacterState {
@@ -125,6 +127,9 @@ impl CharacterState {
                 | CharacterState::BasicAura(_)
                 | CharacterState::HealingBeam(_)
                 | CharacterState::SelfBuff(_)
+                | CharacterState::Blink(_)
+                | CharacterState::BasicSummon(_)
+                | CharacterState::SpriteSummon(_)
         )
     }
 
@@ -149,6 +154,9 @@ impl CharacterState {
                 | CharacterState::BasicAura(_)
                 | CharacterState::HealingBeam(_)
                 | CharacterState::SelfBuff(_)
+                | CharacterState::Blink(_)
+                | CharacterState::BasicSummon(_)
+                | CharacterState::SpriteSummon(_)
         )
     }
 
