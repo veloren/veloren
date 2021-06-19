@@ -67,6 +67,7 @@ impl<'a> Widget for EscMenu<'a> {
     fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
+        common_base::prof_span!("EscMenu::update");
         let widget::UpdateArgs { state, ui, .. } = args;
 
         Image::new(self.imgs.esc_frame)

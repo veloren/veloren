@@ -123,6 +123,7 @@ impl<'a> Widget for Buttons<'a> {
     fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
+        common_base::prof_span!("Buttons::update");
         let widget::UpdateArgs { state, ui, .. } = args;
         let invs = self.client.inventories();
         let inventory = match invs.get(self.client.entity()) {

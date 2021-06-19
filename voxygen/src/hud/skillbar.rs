@@ -226,6 +226,7 @@ impl<'a> Widget for Skillbar<'a> {
     fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
+        common_base::prof_span!("Skillbar::update");
         let widget::UpdateArgs { state, ui, .. } = args;
 
         let max_hp = self.health.base_max().max(self.health.maximum());

@@ -260,6 +260,7 @@ impl<'a> Widget for Diary<'a> {
     fn style(&self) -> Self::Style { () }
 
     fn update(mut self, args: widget::UpdateArgs<Self>) -> Self::Event {
+        common_base::prof_span!("Diary::update");
         let widget::UpdateArgs {
             id: _, state, ui, ..
         } = args;

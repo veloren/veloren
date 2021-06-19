@@ -574,6 +574,7 @@ impl<'a> Widget for Bag<'a> {
 
     #[allow(clippy::useless_format)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
+        common_base::prof_span!("Bag::update");
         let widget::UpdateArgs { state, ui, .. } = args;
         let i18n = &self.localized_strings;
         let key_layout = &self.global_state.window.key_layout;

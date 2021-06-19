@@ -99,6 +99,7 @@ impl<'a> Widget for BuffsBar<'a> {
     fn style(&self) -> Self::Style {}
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
+        common_base::prof_span!("BuffsBar::update");
         let widget::UpdateArgs { state, ui, .. } = args;
         let mut event = Vec::new();
         let localized_strings = self.localized_strings;

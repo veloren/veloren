@@ -522,6 +522,7 @@ impl<'a> Widget for Trade<'a> {
     fn style(&self) -> Self::Style {}
 
     fn update(mut self, args: widget::UpdateArgs<Self>) -> Self::Event {
+        common_base::prof_span!("Trade::update");
         let widget::UpdateArgs { mut state, ui, .. } = args;
 
         let mut event = None;

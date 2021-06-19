@@ -2065,10 +2065,7 @@ impl Client {
         Ok(())
     }
 
-    fn handle_messages(
-        &mut self,
-        frontend_events: &mut Vec<Event>,
-    ) -> Result<u64, Error> {
+    fn handle_messages(&mut self, frontend_events: &mut Vec<Event>) -> Result<u64, Error> {
         let mut cnt = 0;
         loop {
             let cnt_start = cnt;

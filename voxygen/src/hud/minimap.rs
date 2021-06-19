@@ -437,6 +437,7 @@ impl<'a> Widget for MiniMap<'a> {
     fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
+        common_base::prof_span!("Minimap::update");
         let mut events = Vec::new();
 
         let widget::UpdateArgs { state, ui, .. } = args;

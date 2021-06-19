@@ -109,6 +109,7 @@ impl<'a> Widget for Social<'a> {
     fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
+        common_base::prof_span!("Social::update");
         let widget::UpdateArgs { state, ui, .. } = args;
         let mut events = Vec::new();
         let button_tooltip = Tooltip::new({
