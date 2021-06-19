@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
-
+- Crafting Stations aren't exploadable anymore
 - Cases where no audio output could be produced before.
 - Significantly improved the performance of playing sound effects
 
