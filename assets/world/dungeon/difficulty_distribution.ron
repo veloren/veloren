@@ -10,6 +10,10 @@
 /// 1) Probability should not be less or equal to zero
 /// 2) Keep it synced with number of dungeon levels
 /// 3) Keep these pairs sorted from lowest to highest tier
+///
+/// Tips:
+/// 1) Set every probability to 0.0 and left one with any other number
+/// and you will have map full of dungeons of same level
 ([
     (0, 1.0),
     (1, 1.0),
