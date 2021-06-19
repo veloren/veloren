@@ -135,7 +135,7 @@ impl PlayState for MainMenuState {
             },
             Some(InitMsg::Done(Err(e))) => {
                 self.init = InitState::None;
-                tracing::trace!(?e, "raw Client Init error");
+                error!(?e, "Client Init failed raw error");
                 let e = get_client_msg_error(e, &global_state.i18n);
                 // Log error for possible additional use later or incase that the error
                 // displayed is cut of.
@@ -336,21 +336,26 @@ impl PlayState for MainMenuState {
     }
 }
 
-fn get_client_msg_error(e: client_init::Error, localized_strings: &LocalizationHandle) -> String {
+fn get_client_msg_error(
+    error: client_init::Error,
+    localized_strings: &LocalizationHandle,
+) -> String {
     let localization = localized_strings.read();
 
     // When a network error is received and there is a mismatch between the client
     // and server version it is almost definitely due to this mismatch rather than
     // a true networking error.
-    let net_e = |error: String, mismatched_server_info: Option<ServerInfo>| -> String {
+    let net_error = |error: String, mismatched_server_info: Option<ServerInfo>| -> String {
         if let Some(server_info) = mismatched_server_info {
             format!(
-                "{} {}: {} {}: {}",
+                "{} {}: {} ({}) {}: {} ({})",
                 localization.get("main.login.network_wrong_version"),
                 localization.get("main.login.client_version"),
-                common::util::GIT_HASH.to_string(),
+                &*common::util::GIT_HASH,
+                &*common::util::GIT_DATE,
                 localization.get("main.login.server_version"),
-                server_info.git_hash
+                server_info.git_hash,
+                server_info.git_date,
             )
         } else {
             format!(
@@ -362,7 +367,7 @@ fn get_client_msg_error(e: client_init::Error, localized_strings: &LocalizationH
     };
 
     use client::Error;
-    match e {
+    match error {
         InitError::ClientError {
             error,
             mismatched_server_info,
@@ -389,15 +394,15 @@ fn get_client_msg_error(e: client_init::Error, localized_strings: &LocalizationH
             Error::InvalidCharacter => localization.get("main.login.invalid_character").into(),
             Error::NetworkErr(NetworkError::ConnectFailed(NetworkConnectError::Handshake(
                 InitProtocolError::WrongVersion(_),
-            ))) => net_e(
+            ))) => net_error(
                 localization
                     .get("main.login.network_wrong_version")
                     .to_owned(),
                 mismatched_server_info,
             ),
-            Error::NetworkErr(e) => net_e(e.to_string(), mismatched_server_info),
-            Error::ParticipantErr(e) => net_e(e.to_string(), mismatched_server_info),
-            Error::StreamErr(e) => net_e(e.to_string(), mismatched_server_info),
+            Error::NetworkErr(e) => net_error(e.to_string(), mismatched_server_info),
+            Error::ParticipantErr(e) => net_error(e.to_string(), mismatched_server_info),
+            Error::StreamErr(e) => net_error(e.to_string(), mismatched_server_info),
             Error::HostnameLookupFailed(e) => {
                 format!("{}: {}", localization.get("main.login.server_not_found"), e)
             },
@@ -419,9 +424,7 @@ fn get_client_msg_error(e: client_init::Error, localized_strings: &LocalizationH
                 client::AuthClientError::InsecureSchema => {
                     localization.get("main.login.insecure_auth_scheme").into()
                 },
-                client::AuthClientError::ServerError(_, e) => {
-                    String::from_utf8_lossy(&e).to_string()
-                },
+                client::AuthClientError::ServerError(_, e) => String::from_utf8_lossy(&e).into(),
             },
             Error::AuthServerUrlInvalid(e) => {
                 format!(
