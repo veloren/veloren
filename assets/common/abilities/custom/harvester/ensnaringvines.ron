@@ -1,7 +1,7 @@
 SpriteSummon(
-    buildup_duration: 0.3,
-    cast_duration: 1.0,
-    recover_duration: 0.2,
+    buildup_duration: 0.6,
+    cast_duration: 0.4,
+    recover_duration: 0.3,
     sprite: EnsnaringVines,
     summon_distance: (0, 25),
 )
