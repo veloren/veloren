@@ -121,7 +121,7 @@ impl EventMapper for MovementEventMapper {
                 // update state to determine the next event. We only record the time (above) if
                 // it was dispatched
                 internal_state.event = mapped_event;
-                internal_state.on_ground = physics.on_ground;
+                internal_state.on_ground = physics.on_ground.is_some();
                 internal_state.in_water = physics.in_liquid().is_some();
                 let dt = ecs.fetch::<DeltaTime>().0;
                 internal_state.distance_travelled += vel.0.magnitude() * dt;
@@ -197,8 +197,8 @@ impl MovementEventMapper {
             || !previous_state.in_water && physics_state.in_liquid().is_some()
         {
             return SfxEvent::Swim;
-        } else if physics_state.on_ground && vel.magnitude() > 0.1
-            || !previous_state.on_ground && physics_state.on_ground
+        } else if physics_state.on_ground.is_some() && vel.magnitude() > 0.1
+            || !previous_state.on_ground && physics_state.on_ground.is_some()
         {
             return if matches!(character_state, CharacterState::Roll(_)) {
                 SfxEvent::Roll
@@ -238,7 +238,7 @@ impl MovementEventMapper {
     ) -> SfxEvent {
         if physics_state.in_liquid().is_some() && vel.magnitude() > 0.1 {
             SfxEvent::Swim
-        } else if physics_state.on_ground && vel.magnitude() > 0.1 {
+        } else if physics_state.on_ground.is_some() && vel.magnitude() > 0.1 {
             match underfoot_block_kind {
                 BlockKind::Snow => SfxEvent::Run(BlockKind::Snow),
                 BlockKind::Rock | BlockKind::WeakRock => SfxEvent::Run(BlockKind::Rock),
@@ -259,7 +259,7 @@ impl MovementEventMapper {
     ) -> SfxEvent {
         if physics_state.in_liquid().is_some() && vel.magnitude() > 0.1 {
             SfxEvent::Swim
-        } else if physics_state.on_ground && vel.magnitude() > 0.1 {
+        } else if physics_state.on_ground.is_some() && vel.magnitude() > 0.1 {
             match underfoot_block_kind {
                 BlockKind::Snow => SfxEvent::QuadRun(BlockKind::Snow),
                 BlockKind::Rock | BlockKind::WeakRock => SfxEvent::QuadRun(BlockKind::Rock),

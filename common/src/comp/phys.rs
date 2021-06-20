@@ -1,5 +1,5 @@
 use super::Fluid;
-use crate::{consts::WATER_DENSITY, uid::Uid};
+use crate::{consts::WATER_DENSITY, terrain::Block, uid::Uid};
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, NullStorage};
@@ -142,7 +142,7 @@ impl Component for Sticky {
 // PhysicsState
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PhysicsState {
-    pub on_ground: bool,
+    pub on_ground: Option<Block>,
     pub on_ceiling: bool,
     pub on_wall: Option<Vec3<f32>>,
     pub touch_entities: HashSet<Uid>,
@@ -165,7 +165,7 @@ impl PhysicsState {
 
     pub fn on_surface(&self) -> Option<Vec3<f32>> {
         self.on_ground
-            .then_some(-Vec3::unit_z())
+            .map(|_| -Vec3::unit_z())
             .or_else(|| self.on_ceiling.then_some(Vec3::unit_z()))
             .or(self.on_wall)
     }

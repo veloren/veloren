@@ -74,7 +74,7 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         // If player is on ground, end glide
-        if data.physics.on_ground
+        if data.physics.on_ground.is_some()
             && (data.vel.0 - data.physics.ground_vel).magnitude_squared() < 2_f32.powi(2)
         {
             update.character = CharacterState::GlideWield;
@@ -163,7 +163,13 @@ impl CharacterBehavior for Data {
                     let accel_factor = accel.magnitude_squared().min(1.0) / 1.0;
 
                     Quaternion::rotation_3d(
-                        PI / 2.0 * accel_factor * if data.physics.on_ground { -1.0 } else { 1.0 },
+                        PI / 2.0
+                            * accel_factor
+                            * if data.physics.on_ground.is_some() {
+                                -1.0
+                            } else {
+                                1.0
+                            },
                         ori.up()
                             .cross(accel)
                             .try_normalized()

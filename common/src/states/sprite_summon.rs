@@ -96,11 +96,9 @@ impl CharacterBehavior for Data {
                                     sprite_pos.map(|x| x as f32 + 0.5) - Vec3::unit_z() * 25.0,
                                 )
                                 .until(|b| {
+                                    // Until reaching a solid block that is not the created sprite
                                     Block::is_solid(b)
-                                        && !matches!(
-                                            b.get_sprite(),
-                                            Some(SpriteKind::EnsnaringVines)
-                                        )
+                                        && b.get_sprite() != Some(self.static_data.sprite)
                                 })
                                 .cast()
                                 .0;

@@ -337,7 +337,7 @@ impl CharacterAbility {
     pub fn requirements_paid(&self, data: &JoinData, update: &mut StateUpdate) -> bool {
         match self {
             CharacterAbility::Roll { energy_cost, .. } => {
-                data.physics.on_ground
+                data.physics.on_ground.is_some()
                     && data.vel.0.xy().magnitude_squared() > 0.5
                     && update
                         .energy
