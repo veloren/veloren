@@ -9,7 +9,7 @@ use crate::{
 };
 
 use common::{
-    assets::AssetHandle,
+    assets::{self, AssetExt, AssetHandle},
     astar::Astar,
     comp::{self},
     generation::{ChunkSupplement, EntityInfo},
@@ -20,7 +20,7 @@ use common::{
 use core::{f32, hash::BuildHasherDefault};
 use fxhash::FxHasher64;
 use lazy_static::lazy_static;
-use rand::prelude::*;
+use rand::{prelude::*, seq::SliceRandom};
 use serde::Deserialize;
 use vek::*;
 
@@ -47,13 +47,39 @@ pub struct Colors {
 
 const ALT_OFFSET: i32 = -2;
 
+#[derive(Deserialize)]
+struct DungeonDistribution(Vec<(u32, f32)>);
+impl assets::Asset for DungeonDistribution {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
+lazy_static! {
+    static ref DUNGEON_DISTRIBUTION: Vec<(u32, f32)> =
+        DungeonDistribution::load_expect("world.dungeon.difficulty_distribution")
+            .read()
+            .0
+            .clone();
+}
+
 impl Dungeon {
-    #[allow(clippy::let_and_return)] // TODO: Pending review in #587
     pub fn generate(wpos: Vec2<i32>, sim: Option<&WorldSim>, rng: &mut impl Rng) -> Self {
         let mut ctx = GenCtx { sim, rng };
-        let difficulty = ctx.rng.gen_range(0..6);
+
+        let difficulty = DUNGEON_DISTRIBUTION
+            .choose_weighted(&mut ctx.rng, |pair| pair.1)
+            .map(|(difficulty, _)| *difficulty)
+            .unwrap_or_else(|err| {
+                panic!(
+                    "Failed to choose difficulty (check instruction in config). Error: {}",
+                    err
+                )
+            });
+
         let floors = 3 + difficulty / 2;
-        let this = Self {
+
+        Self {
             name: {
                 let name = NameGen::location(ctx.rng).generate();
                 match ctx.rng.gen_range(0..5) {
@@ -81,9 +107,7 @@ impl Dungeon {
                 })
                 .collect(),
             difficulty,
-        };
-
-        this
+        }
     }
 
     pub fn name(&self) -> &str { &self.name }
