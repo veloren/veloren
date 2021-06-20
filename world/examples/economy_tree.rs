@@ -21,13 +21,13 @@ fn main() -> Result<(), std::io::Error> {
 
     let mut f = std::fs::File::create("economy.gv")?;
     writeln!(f, "digraph economy {{")?;
-    for i in good_list().iter() {
-        let color = if economy::direct_use_goods().contains(i) {
+    for i in good_list() {
+        let color = if economy::direct_use_goods().contains(&i) {
             "green"
         } else {
             "orange"
         };
-        writeln!(f, "{:?} [color=\"{}\"];", good_name(*i), color)?; // shape doubleoctagon ?
+        writeln!(f, "{:?} [color=\"{}\"];", good_name(i.into()), color)?; // shape doubleoctagon ?
     }
 
     writeln!(f)?;
@@ -42,9 +42,9 @@ fn main() -> Result<(), std::io::Error> {
     for i in o.iter() {
         for j in i.1.iter() {
             if i.0.is_some() {
-                let style = if matches!(j.0, Good::Tools)
-                    || matches!(j.0, Good::Armor)
-                    || matches!(j.0, Good::Potions)
+                let style = if matches!(j.0.into(), Good::Tools)
+                    || matches!(j.0.into(), Good::Armor)
+                    || matches!(j.0.into(), Good::Potions)
                 {
                     ", style=dashed, color=orange"
                 } else {
@@ -53,7 +53,7 @@ fn main() -> Result<(), std::io::Error> {
                 writeln!(
                     f,
                     "{:?} -> {:?} [label=\"{:.1}\"{}];",
-                    good_name(j.0),
+                    good_name(j.0.into()),
                     labor_name(i.0.unwrap()),
                     j.1,
                     style
@@ -62,7 +62,7 @@ fn main() -> Result<(), std::io::Error> {
                 writeln!(
                     f,
                     "{:?} -> Everyone [label=\"{:.1}\"];",
-                    good_name(j.0),
+                    good_name(j.0.into()),
                     j.1
                 )?;
             }
@@ -72,15 +72,13 @@ fn main() -> Result<(), std::io::Error> {
     writeln!(f)?;
     writeln!(f, "// Products")?;
     for i in p.iter() {
-        for j in i.1.iter() {
-            writeln!(
-                f,
-                "{:?} -> {:?} [label=\"{:.1}\"];",
-                labor_name(i.0),
-                good_name(j.0),
-                j.1
-            )?;
-        }
+        writeln!(
+            f,
+            "{:?} -> {:?} [label=\"{:.1}\"];",
+            labor_name(i.0),
+            good_name(i.1.0.into()),
+            i.1.1
+        )?;
     }
 
     writeln!(f, "}}")?;

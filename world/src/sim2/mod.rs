@@ -2,12 +2,12 @@ use crate::{
     sim::WorldSim,
     site::{
         economy::{
-            decay_rate, direct_use_goods, good_list, transportation_effort, Economy, Labor,
-            TradeDelivery, TradeOrder,
+            decay_rate, direct_use_goods, good_list, transportation_effort, Economy, GoodIndex,
+            GoodMap, LaborIndex, LaborMap, TradeDelivery, TradeOrder,
         },
         Site, SiteKind,
     },
-    util::{DHashMap, DHashSet, MapVec},
+    util::{DHashMap, DHashSet},
     Index,
 };
 use common::{
@@ -17,7 +17,8 @@ use common::{
         Good::{Coin, Transportation},
     },
 };
-use std::cmp::Ordering::Less;
+use lazy_static::lazy_static;
+use std::{cmp::Ordering::Less, convert::TryInto};
 use tracing::{debug, info};
 
 const MONTH: f32 = 30.0;
@@ -28,6 +29,32 @@ const HISTORY_DAYS: f32 = 500.0 * YEAR; // 500 years
 const GENERATE_CSV: bool = false;
 const INTER_SITE_TRADE: bool = true;
 
+// this is an empty replacement for https://github.com/cpetig/vergleich
+// which can be used to compare values acros runs
+mod vergleich {
+    pub struct Error {}
+    impl Error {
+        pub fn to_string(&self) -> &'static str { "" }
+    }
+    pub struct ProgramRun {}
+    impl ProgramRun {
+        pub fn new(_: &str) -> Result<Self, Error> { Ok(Self {}) }
+
+        pub fn set_epsilon(&mut self, _: f32) {}
+
+        pub fn context(&mut self, _: &str) -> Context { Context {} }
+
+        //pub fn value(&mut self, _: &str, val: f32) -> f32 { val }
+    }
+    pub struct Context {}
+    impl Context {
+        pub fn context(&mut self, _: &str) -> Context { Context {} }
+
+        pub fn value(&mut self, _: &str, val: f32) -> f32 { val }
+    }
+}
+
+/// Statistics collector (min, max, avg)
 #[derive(Debug)]
 struct EconStatistics {
     pub count: u32,
@@ -41,10 +68,14 @@ impl Default for EconStatistics {
         Self {
             count: 0,
             sum: 0.0,
-            min: 1e30,
-            max: 0.0,
+            min: f32::INFINITY,
+            max: -f32::INFINITY,
         }
     }
+}
+
+impl std::ops::AddAssign<f32> for EconStatistics {
+    fn add_assign(&mut self, rhs: f32) { self.collect(rhs); }
 }
 
 impl EconStatistics {
@@ -58,6 +89,8 @@ impl EconStatistics {
             self.min = value;
         }
     }
+
+    fn valid(&self) -> bool { self.min.is_finite() }
 }
 
 pub fn csv_entry(f: &mut std::fs::File, site: &Site) -> Result<(), std::io::Error> {
@@ -71,24 +104,24 @@ pub fn csv_entry(f: &mut std::fs::File, site: &Site) -> Result<(), std::io::Erro
         site.economy.pop
     )?;
     for g in good_list() {
-        write!(*f, "{:?},", site.economy.values[*g].unwrap_or(-1.0))?;
+        write!(*f, "{:?},", site.economy.values[g].unwrap_or(-1.0))?;
     }
     for g in good_list() {
-        write!(f, "{:?},", site.economy.labor_values[*g].unwrap_or(-1.0))?;
+        write!(f, "{:?},", site.economy.labor_values[g].unwrap_or(-1.0))?;
     }
     for g in good_list() {
-        write!(f, "{:?},", site.economy.stocks[*g])?;
+        write!(f, "{:?},", site.economy.stocks[g])?;
     }
     for g in good_list() {
-        write!(f, "{:?},", site.economy.marginal_surplus[*g])?;
+        write!(f, "{:?},", site.economy.marginal_surplus[g])?;
     }
-    for l in Labor::list() {
+    for l in LaborIndex::list() {
         write!(f, "{:?},", site.economy.labors[l] * site.economy.pop)?;
     }
-    for l in Labor::list() {
+    for l in LaborIndex::list() {
         write!(f, "{:?},", site.economy.productivity[l])?;
     }
-    for l in Labor::list() {
+    for l in LaborIndex::list() {
         write!(f, "{:?},", site.economy.yields[l])?;
     }
     writeln!(f)
@@ -113,13 +146,13 @@ fn simulate_return(index: &mut Index, world: &mut WorldSim) -> Result<(), std::i
         for g in good_list() {
             write!(f, "{:?} Surplus,", g)?;
         }
-        for l in Labor::list() {
+        for l in LaborIndex::list() {
             write!(f, "{:?} Labor,", l)?;
         }
-        for l in Labor::list() {
+        for l in LaborIndex::list() {
             write!(f, "{:?} Productivity,", l)?;
         }
-        for l in Labor::list() {
+        for l in LaborIndex::list() {
             write!(f, "{:?} Yields,", l)?;
         }
         writeln!(f)?;
@@ -129,12 +162,15 @@ fn simulate_return(index: &mut Index, world: &mut WorldSim) -> Result<(), std::i
     };
 
     tracing::info!("economy simulation start");
+    let mut vr = vergleich::ProgramRun::new("economy_compare.sqlite")
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
+    vr.set_epsilon(0.1);
     for i in 0..(HISTORY_DAYS / TICK_PERIOD) as i32 {
         if (index.time / YEAR) as i32 % 50 == 0 && (index.time % YEAR) as i32 == 0 {
             debug!("Year {}", (index.time / YEAR) as i32);
         }
 
-        tick(index, world, TICK_PERIOD);
+        tick(index, world, TICK_PERIOD, vr.context(&i.to_string()));
 
         if let Some(f) = f.as_mut() {
             if i % 5 == 0 {
@@ -165,33 +201,40 @@ fn simulate_return(index: &mut Index, world: &mut WorldSim) -> Result<(), std::i
         for site in index.sites.ids() {
             let site = &index.sites[site];
             match site.kind {
-                SiteKind::Dungeon(_) => dungeons.collect(site.economy.pop),
-                SiteKind::Settlement(_) => towns.collect(site.economy.pop),
-                SiteKind::Castle(_) => castles.collect(site.economy.pop),
+                SiteKind::Dungeon(_) => dungeons += site.economy.pop,
+                SiteKind::Settlement(_) => towns += site.economy.pop,
+                SiteKind::Castle(_) => castles += site.economy.pop,
                 SiteKind::Tree(_) => (),
                 SiteKind::Refactor(_) => (),
             }
         }
-        info!(
-            "Towns {:.0}-{:.0} avg {:.0} inhabitants",
-            towns.min,
-            towns.max,
-            towns.sum / (towns.count as f32)
-        );
-        info!(
-            "Castles {:.0}-{:.0} avg {:.0}",
-            castles.min,
-            castles.max,
-            castles.sum / (castles.count as f32)
-        );
-        info!(
-            "Dungeons {:.0}-{:.0} avg {:.0}",
-            dungeons.min,
-            dungeons.max,
-            dungeons.sum / (dungeons.count as f32)
-        );
+        if towns.valid() {
+            info!(
+                "Towns {:.0}-{:.0} avg {:.0} inhabitants",
+                towns.min,
+                towns.max,
+                towns.sum / (towns.count as f32)
+            );
+        }
+        if castles.valid() {
+            info!(
+                "Castles {:.0}-{:.0} avg {:.0}",
+                castles.min,
+                castles.max,
+                castles.sum / (castles.count as f32)
+            );
+        }
+        if dungeons.valid() {
+            info!(
+                "Dungeons {:.0}-{:.0} avg {:.0}",
+                dungeons.min,
+                dungeons.max,
+                dungeons.sum / (dungeons.count as f32)
+            );
+        }
         check_money(index);
     }
+
     Ok(())
 }
 
@@ -203,12 +246,12 @@ pub fn simulate(index: &mut Index, world: &mut WorldSim) {
 fn check_money(index: &mut Index) {
     let mut sum_stock: f32 = 0.0;
     for site in index.sites.values() {
-        sum_stock += site.economy.stocks[Coin];
+        sum_stock += site.economy.stocks[*COIN_INDEX];
     }
     let mut sum_del: f32 = 0.0;
     for v in index.trade.deliveries.values() {
         for del in v.iter() {
-            sum_del += del.amount[Coin];
+            sum_del += del.amount[*COIN_INDEX];
         }
     }
     info!(
@@ -219,15 +262,16 @@ fn check_money(index: &mut Index) {
     );
 }
 
-pub fn tick(index: &mut Index, _world: &mut WorldSim, dt: f32) {
+pub fn tick(index: &mut Index, _world: &mut WorldSim, dt: f32, mut vc: vergleich::Context) {
     let site_ids = index.sites.ids().collect::<Vec<_>>();
     for site in site_ids {
-        tick_site_economy(index, site, dt);
+        tick_site_economy(index, site, dt, vc.context(&site.id().to_string()));
     }
     if INTER_SITE_TRADE {
         for (&site, orders) in index.trade.orders.iter_mut() {
             let siteinfo = index.sites.get_mut(site);
             if siteinfo.do_economic_simulation() {
+                // let name: String = siteinfo.name().into();
                 trade_at_site(
                     site,
                     orders,
@@ -242,6 +286,12 @@ pub fn tick(index: &mut Index, _world: &mut WorldSim, dt: f32) {
     index.time += dt;
 }
 
+lazy_static! {
+    static ref COIN_INDEX: GoodIndex = Coin.try_into().unwrap_or_default();
+    static ref FOOD_INDEX: GoodIndex = Good::Food.try_into().unwrap_or_default();
+    static ref TRANSPORTATION_INDEX: GoodIndex = Transportation.try_into().unwrap_or_default();
+}
+
 /// plan the trading according to missing goods and prices at neighboring sites
 /// (1st step of trading)
 // returns wares spent (-) and procured (+)
@@ -251,8 +301,8 @@ fn plan_trade_for_site(
     site_id: &Id<Site>,
     transportation_capacity: f32,
     external_orders: &mut DHashMap<Id<Site>, Vec<TradeOrder>>,
-    potential_trade: &mut MapVec<Good, f32>,
-) -> MapVec<Good, f32> {
+    potential_trade: &mut GoodMap<f32>,
+) -> GoodMap<f32> {
     // TODO: Do we have some latency of information here (using last years
     // capacity?)
     //let total_transport_capacity = site.economy.stocks[Transportation];
@@ -264,14 +314,14 @@ fn plan_trade_for_site(
     let mut collect_capacity = transportation_capacity;
     let mut missing_dispatch: f32 = 0.0;
     let mut missing_collect: f32 = 0.0;
-    let mut result = MapVec::from_default(0.0);
+    let mut result = GoodMap::default();
     const MIN_SELL_PRICE: f32 = 1.0;
     // value+amount per good
-    let mut missing_goods: Vec<(Good, (f32, f32))> = site
+    let mut missing_goods: Vec<(GoodIndex, (f32, f32))> = site
         .economy
         .surplus
         .iter()
-        .filter(|(g, a)| (**a < 0.0 && *g != Transportation))
+        .filter(|(g, a)| (**a < 0.0 && *g != *TRANSPORTATION_INDEX))
         .map(|(g, a)| {
             (
                 g,
@@ -283,17 +333,20 @@ fn plan_trade_for_site(
         })
         .collect();
     missing_goods.sort_by(|a, b| b.1.0.partial_cmp(&a.1.0).unwrap_or(Less));
-    let mut extra_goods: MapVec<Good, f32> = MapVec::from_iter(
+    let mut extra_goods: GoodMap<f32> = GoodMap::from_iter(
         site.economy
             .surplus
             .iter()
-            .chain(core::iter::once((Coin, &site.economy.stocks[Coin])))
-            .filter(|(g, a)| (**a > 0.0 && *g != Transportation))
+            .chain(core::iter::once((
+                *COIN_INDEX,
+                &site.economy.stocks[*COIN_INDEX],
+            )))
+            .filter(|(g, a)| (**a > 0.0 && *g != *TRANSPORTATION_INDEX))
             .map(|(g, a)| (g, *a)),
         0.0,
     );
     // ratio+price per good and site
-    type GoodRatioPrice = Vec<(Good, (f32, f32))>;
+    type GoodRatioPrice = Vec<(GoodIndex, (f32, f32))>;
     let good_payment: DHashMap<Id<Site>, GoodRatioPrice> = site
         .economy
         .neighbors
@@ -322,7 +375,7 @@ fn plan_trade_for_site(
         .collect();
     // price+stock per site and good
     type SitePriceStock = Vec<(Id<Site>, (f32, f32))>;
-    let mut good_price: DHashMap<Good, SitePriceStock> = missing_goods
+    let mut good_price: DHashMap<GoodIndex, SitePriceStock> = missing_goods
         .iter()
         .map(|(g, _)| {
             (*g, {
@@ -340,11 +393,11 @@ fn plan_trade_for_site(
         .collect();
     // TODO: we need to introduce priority (according to available transportation
     // capacity)
-    let mut neighbor_orders: DHashMap<Id<Site>, MapVec<Good, f32>> = site
+    let mut neighbor_orders: DHashMap<Id<Site>, GoodMap<f32>> = site
         .economy
         .neighbors
         .iter()
-        .map(|n| (n.id, MapVec::default()))
+        .map(|n| (n.id, GoodMap::default()))
         .collect();
     if site_id.id() == 1 {
         // cut down number of lines printed
@@ -450,7 +503,7 @@ fn plan_trade_for_site(
             }
             let to = TradeOrder {
                 customer: *site_id,
-                amount: orders.clone(),
+                amount: *orders,
             };
             if let Some(o) = external_orders.get_mut(&n.id) {
                 // this is just to catch unbound growth (happened in development)
@@ -474,7 +527,8 @@ fn plan_trade_for_site(
         missing_collect,
         missing_dispatch,
     );
-    result[Transportation] = -(transportation_capacity - collect_capacity.min(dispatch_capacity)
+    result[*TRANSPORTATION_INDEX] = -(transportation_capacity
+        - collect_capacity.min(dispatch_capacity)
         + missing_collect.max(missing_dispatch));
     if site_id.id() == 1 {
         debug!("Trade {:?}", result);
@@ -493,7 +547,7 @@ fn trade_at_site(
     // TODO: rework using economy.unconsumed_stock
 
     let internal_orders = economy.get_orders();
-    let mut next_demand = MapVec::from_default(0.0);
+    let mut next_demand = GoodMap::from_default(0.0);
     for (labor, orders) in &internal_orders {
         let workers = if let Some(labor) = labor {
             economy.labors[*labor]
@@ -506,13 +560,13 @@ fn trade_at_site(
         }
     }
     //info!("Trade {} {}", site.id(), orders.len());
-    let mut total_orders: MapVec<Good, f32> = MapVec::from_default(0.0);
+    let mut total_orders: GoodMap<f32> = GoodMap::from_default(0.0);
     for i in orders.iter() {
         for (g, &a) in i.amount.iter().filter(|(_, a)| **a > 0.0) {
             total_orders[g] += a;
         }
     }
-    let order_stock_ratio: MapVec<Good, Option<f32>> = MapVec::from_iter(
+    let order_stock_ratio: GoodMap<Option<f32>> = GoodMap::from_iter(
         economy
             .stocks
             .iter()
@@ -522,7 +576,7 @@ fn trade_at_site(
         None,
     );
     debug!("trade {} {:?}", site.id(), order_stock_ratio);
-    let prices = MapVec::from_iter(
+    let prices = GoodMap::from_iter(
         economy
             .values
             .iter()
@@ -532,14 +586,14 @@ fn trade_at_site(
     for o in orders.drain(..) {
         // amount, local value (sell low value, buy high value goods first (trading
         // town's interest))
-        let mut sorted_sell: Vec<(Good, f32, f32)> = o
+        let mut sorted_sell: Vec<(GoodIndex, f32, f32)> = o
             .amount
             .iter()
             .filter(|(_, &a)| a > 0.0)
             .map(|(g, a)| (g, *a, prices[g]))
             .collect();
         sorted_sell.sort_by(|a, b| (a.2.partial_cmp(&b.2).unwrap_or(Less)));
-        let mut sorted_buy: Vec<(Good, f32, f32)> = o
+        let mut sorted_buy: Vec<(GoodIndex, f32, f32)> = o
             .amount
             .iter()
             .filter(|(_, &a)| a < 0.0)
@@ -552,7 +606,7 @@ fn trade_at_site(
             sorted_sell,
             sorted_buy
         );
-        let mut good_delivery = MapVec::from_default(0.0);
+        let mut good_delivery = GoodMap::from_default(0.0);
         for (g, amount, price) in sorted_sell.iter() {
             if let Some(order_stock_ratio) = order_stock_ratio[*g] {
                 let allocated_amount = *amount / order_stock_ratio.max(1.0);
@@ -605,8 +659,8 @@ fn trade_at_site(
         }
         let delivery = TradeDelivery {
             supplier: site,
-            prices: prices.clone(),
-            supply: MapVec::from_iter(
+            prices,
+            supply: GoodMap::from_iter(
                 economy.stocks.iter().map(|(g, a)| {
                     (g, {
                         (a - next_demand[g] - total_orders[g]).max(0.0) + good_delivery[g]
@@ -630,9 +684,13 @@ fn trade_at_site(
 }
 
 /// 3rd step of trading
-fn collect_deliveries(site: &mut Site, deliveries: &mut Vec<TradeDelivery>) {
+fn collect_deliveries(
+    site: &mut Site,
+    deliveries: &mut Vec<TradeDelivery>,
+    ctx: &mut vergleich::Context,
+) {
     // collect all the goods we shipped
-    let mut last_exports = MapVec::from_iter(
+    let mut last_exports = GoodMap::from_iter(
         site.economy
             .active_exports
             .iter()
@@ -642,8 +700,9 @@ fn collect_deliveries(site: &mut Site, deliveries: &mut Vec<TradeDelivery>) {
     );
     // TODO: properly rate benefits created by merchants (done below?)
     for mut d in deliveries.drain(..) {
+        let mut ictx = ctx.context(&format!("suppl {}", d.supplier.id()));
         for i in d.amount.iter() {
-            last_exports[i.0] -= *i.1;
+            last_exports[i.0] -= ictx.value(&format!("{:?}", i.0), *i.1);
         }
         // remember price
         if let Some(n) = site
@@ -691,7 +750,12 @@ fn collect_deliveries(site: &mut Site, deliveries: &mut Vec<TradeDelivery>) {
 /// dynamically react to environmental changes. If a product becomes available
 /// through a mechanism such as trade, an entire arm of the economy may
 /// materialise to take advantage of this.
-pub fn tick_site_economy(index: &mut Index, site_id: Id<Site>, dt: f32) {
+pub fn tick_site_economy(
+    index: &mut Index,
+    site_id: Id<Site>,
+    dt: f32,
+    mut vc: vergleich::Context,
+) {
     let site = &mut index.sites[site_id];
     if !site.do_economic_simulation() {
         return;
@@ -701,14 +765,19 @@ pub fn tick_site_economy(index: &mut Index, site_id: Id<Site>, dt: f32) {
     if INTER_SITE_TRADE {
         let deliveries = index.trade.deliveries.get_mut(&site_id);
         if let Some(deliveries) = deliveries {
-            collect_deliveries(site, deliveries);
+            collect_deliveries(site, deliveries, &mut vc);
         }
     }
 
     let orders = site.economy.get_orders();
     let productivity = site.economy.get_productivity();
 
-    let mut demand = MapVec::from_default(0.0);
+    for i in productivity.iter() {
+        vc.context("productivity")
+            .value(&std::format!("{:?}{:?}", i.0, Good::from(i.1.0)), i.1.1);
+    }
+
+    let mut demand = GoodMap::from_default(0.0);
     for (labor, orders) in &orders {
         let workers = if let Some(labor) = labor {
             site.economy.labors[*labor]
@@ -719,33 +788,49 @@ pub fn tick_site_economy(index: &mut Index, site_id: Id<Site>, dt: f32) {
             demand[*good] += *amount * workers;
         }
     }
+    if INTER_SITE_TRADE {
+        demand[*COIN_INDEX] += Economy::STARTING_COIN; // if we spend coin value increases
+    }
 
     // which labor is the merchant
     let merchant_labor = productivity
         .iter()
-        .find(|(_, v)| (**v).iter().any(|(g, _)| *g == Transportation))
+        .find(|(_, v)| v.0 == *TRANSPORTATION_INDEX)
         .map(|(l, _)| l);
 
-    let mut supply = site.economy.stocks.clone(); //MapVec::from_default(0.0);
+    let mut supply = site.economy.stocks; //GoodMap::from_default(0.0);
     for (labor, goodvec) in productivity.iter() {
-        for (output_good, _) in goodvec.iter() {
-            supply[*output_good] +=
-                site.economy.yields[labor] * site.economy.labors[labor] * site.economy.pop;
-        }
+        //for (output_good, _) in goodvec.iter() {
+        //info!("{} supply{:?}+={}", site_id.id(), Good::from(goodvec.0),
+        // site.economy.yields[labor] * site.economy.labors[labor] * site.economy.pop);
+        supply[goodvec.0] +=
+            site.economy.yields[labor] * site.economy.labors[labor] * site.economy.pop;
+        vc.context(&std::format!("{:?}-{:?}", Good::from(goodvec.0), labor))
+            .value("yields", site.economy.yields[labor]);
+        vc.context(&std::format!("{:?}-{:?}", Good::from(goodvec.0), labor))
+            .value("labors", site.economy.labors[labor]);
+        //}
+    }
+
+    for i in supply.iter() {
+        vc.context("supply")
+            .value(&std::format!("{:?}", Good::from(i.0)), *i.1);
     }
 
     let stocks = &site.economy.stocks;
-    site.economy.surplus = demand
-        .clone()
-        .map(|g, demand| supply[g] + stocks[g] - demand);
-    site.economy.marginal_surplus = demand.clone().map(|g, demand| supply[g] - demand);
+    for i in stocks.iter() {
+        vc.context("stocks")
+            .value(&std::format!("{:?}", Good::from(i.0)), *i.1);
+    }
+    site.economy.surplus = demand.map(|g, demand| supply[g] + stocks[g] - demand);
+    site.economy.marginal_surplus = demand.map(|g, demand| supply[g] - demand);
 
     // plan trading with other sites
     let mut external_orders = &mut index.trade.orders;
-    let mut potential_trade = MapVec::from_default(0.0);
+    let mut potential_trade = GoodMap::from_default(0.0);
     // use last year's generated transportation for merchants (could we do better?
     // this is in line with the other professions)
-    let transportation_capacity = site.economy.stocks[Transportation];
+    let transportation_capacity = site.economy.stocks[*TRANSPORTATION_INDEX];
     let trade = if INTER_SITE_TRADE {
         let trade = plan_trade_for_site(
             site,
@@ -754,10 +839,12 @@ pub fn tick_site_economy(index: &mut Index, site_id: Id<Site>, dt: f32) {
             &mut external_orders,
             &mut potential_trade,
         );
-        site.economy.active_exports = MapVec::from_iter(trade.iter().map(|(g, a)| (g, -*a)), 0.0); // TODO: check for availability?
+        site.economy.active_exports = GoodMap::from_iter(trade.iter().map(|(g, a)| (g, -*a)), 0.0); // TODO: check for availability?
 
         // add the wares to sell to demand and the goods to buy to supply
         for (g, a) in trade.iter() {
+            vc.context("trade")
+                .value(&std::format!("{:?}", Good::from(g)), *a);
             if *a > 0.0 {
                 supply[g] += *a;
                 assert!(supply[g] >= 0.0);
@@ -766,72 +853,87 @@ pub fn tick_site_economy(index: &mut Index, site_id: Id<Site>, dt: f32) {
                 assert!(demand[g] >= 0.0);
             }
         }
-        demand[Coin] += Economy::STARTING_COIN; // if we spend coin value increases
         trade
     } else {
-        MapVec::default()
+        GoodMap::default()
     };
 
     // Update values according to the surplus of each stock
     // Note that values are used for workforce allocation and are not the same thing
     // as price
+    // fall back to old (less wrong than other goods) coin logic
+    let old_coin_surplus = site.economy.stocks[*COIN_INDEX] - demand[*COIN_INDEX];
     let values = &mut site.economy.values;
-    site.economy
-        .surplus
-        .iter()
-        .chain(std::iter::once((
-            Coin,
-            &(site.economy.stocks[Coin] - demand[Coin]),
-        )))
-        .for_each(|(good, surplus)| {
-            // Value rationalisation
-            let val = 2.0f32.powf(1.0 - *surplus / demand[good]);
-            let smooth = 0.8;
-            values[good] = if val > 0.001 && val < 1000.0 {
-                Some(smooth * values[good].unwrap_or(val) + (1.0 - smooth) * val)
-            } else {
-                None
-            };
-        });
 
-    let all_trade_goods: DHashSet<Good> = trade
+    site.economy.surplus.iter().for_each(|(good, surplus)| {
+        let old_surplus = if good == *COIN_INDEX {
+            old_coin_surplus
+        } else {
+            *surplus
+        };
+        // Value rationalisation
+        let goodname = std::format!("{:?}", Good::from(good));
+        vc.context("old_surplus").value(&goodname, old_surplus);
+        vc.context("demand").value(&goodname, demand[good]);
+        let val = 2.0f32.powf(1.0 - old_surplus / demand[good]);
+        let smooth = 0.8;
+        values[good] = if val > 0.001 && val < 1000.0 {
+            Some(vc.context("values").value(
+                &goodname,
+                smooth * values[good].unwrap_or(val) + (1.0 - smooth) * val,
+            ))
+        } else {
+            None
+        };
+    });
+
+    let all_trade_goods: DHashSet<GoodIndex> = trade
         .iter()
-        .filter(|(_, a)| **a > 0.0)
         .chain(potential_trade.iter())
+        .filter(|(_, a)| **a > 0.0)
         .map(|(g, _)| g)
         .collect();
-    let empty_goods: DHashSet<Good> = DHashSet::default();
+    //let empty_goods: DHashSet<GoodIndex> = DHashSet::default();
     // TODO: Does avg/max/sum make most sense for labors creating more than one good
     // summing favors merchants too much (as they will provide multiple
     // goods, so we use max instead)
-    let labor_ratios: MapVec<Labor, f32> = productivity.clone().map(|labor, goodvec| {
-        let trade_boost = if Some(labor) == merchant_labor {
-            all_trade_goods.iter()
-        } else {
-            empty_goods.iter()
-        };
-        goodvec
-            .iter()
-            .map(|(g, _)| g)
-            .chain(trade_boost)
-            .map(|output_good| site.economy.values[*output_good].unwrap_or(0.0))
-            .max_by(|a, b| a.abs().partial_cmp(&b.abs()).unwrap_or(Less))
-            .unwrap_or(0.0)
-            * site.economy.productivity[labor]
-    });
+    let labor_ratios: LaborMap<f32> = LaborMap::from_iter(
+        productivity.iter().map(|(labor, goodvec)| {
+            (
+                labor,
+                if Some(labor) == merchant_labor {
+                    all_trade_goods
+                        .iter()
+                        .chain(std::iter::once(&goodvec.0))
+                        .map(|&output_good| site.economy.values[output_good].unwrap_or(0.0))
+                        .max_by(|a, b| a.abs().partial_cmp(&b.abs()).unwrap_or(Less))
+                } else {
+                    site.economy.values[goodvec.0]
+                }
+                .unwrap_or(0.0)
+                    * site.economy.productivity[labor],
+            )
+        }),
+        0.0,
+    );
     debug!(?labor_ratios);
 
     let labor_ratio_sum = labor_ratios.iter().map(|(_, r)| *r).sum::<f32>().max(0.01);
+    let mut labor_context = vc.context("labor");
     productivity.iter().for_each(|(labor, _)| {
         let smooth = 0.8;
-        site.economy.labors[labor] = smooth * site.economy.labors[labor]
-            + (1.0 - smooth)
-                * (labor_ratios[labor].max(labor_ratio_sum / 1000.0) / labor_ratio_sum);
+        site.economy.labors[labor] = labor_context.value(
+            &format!("{:?}", labor),
+            smooth * site.economy.labors[labor]
+                + (1.0 - smooth)
+                    * (labor_ratios[labor].max(labor_ratio_sum / 1000.0) / labor_ratio_sum),
+        );
         assert!(site.economy.labors[labor] >= 0.0);
     });
 
     // Production
-    let stocks_before = site.economy.stocks.clone();
+    let stocks_before = site.economy.stocks;
+    // TODO: Should we recalculate demand after labor reassignment?
 
     let direct_use = direct_use_goods();
     // Handle the stocks you can't pile (decay)
@@ -839,9 +941,9 @@ pub fn tick_site_economy(index: &mut Index, site_id: Id<Site>, dt: f32) {
         site.economy.stocks[*g] = 0.0;
     }
 
-    let mut total_labor_values = MapVec::<_, f32>::default();
+    let mut total_labor_values = GoodMap::<f32>::default();
     // TODO: trade
-    let mut total_outputs = MapVec::<_, f32>::default();
+    let mut total_outputs = GoodMap::<f32>::default();
     for (labor, orders) in orders.iter() {
         let workers = if let Some(labor) = labor {
             site.economy.labors[*labor]
@@ -886,7 +988,7 @@ pub fn tick_site_economy(index: &mut Index, site_id: Id<Site>, dt: f32) {
                 site.economy.stocks[*good] = (site.economy.stocks[*good] - used).max(0.0);
             }
         }
-        let mut produced_goods: MapVec<Good, f32> = MapVec::from_default(0.0);
+        let mut produced_goods: GoodMap<f32> = GoodMap::from_default(0.0);
         if INTER_SITE_TRADE && is_merchant {
             // TODO: replan for missing merchant productivity???
             for (g, a) in trade.iter() {
@@ -944,16 +1046,14 @@ pub fn tick_site_economy(index: &mut Index, site_id: Id<Site>, dt: f32) {
             //let workers = site.economy.labors[*labor] * site.economy.pop;
             //let final_rate = rate;
             //let yield_per_worker = labor_productivity;
-            site.economy.yields[*labor] =
-                labor_productivity * work_products.iter().map(|(_, r)| r).sum::<f32>();
+            site.economy.yields[*labor] = labor_productivity * work_products.1;
             site.economy.productivity[*labor] = labor_productivity;
             //let total_product_rate: f32 = work_products.iter().map(|(_, r)| *r).sum();
-            for (stock, rate) in work_products {
-                let total_output = labor_productivity * *rate * workers;
-                assert!(total_output >= 0.0);
-                site.economy.stocks[*stock] += total_output;
-                produced_goods[*stock] += total_output;
-            }
+            let (stock, rate) = work_products;
+            let total_output = labor_productivity * *rate * workers;
+            assert!(total_output >= 0.0);
+            site.economy.stocks[*stock] += total_output;
+            produced_goods[*stock] += total_output;
 
             let produced_amount: f32 = produced_goods.iter().map(|(_, a)| *a).sum();
             for (stock, amount) in produced_goods.iter() {
@@ -997,17 +1097,20 @@ pub fn tick_site_economy(index: &mut Index, site_id: Id<Site>, dt: f32) {
     // Births/deaths
     const NATURAL_BIRTH_RATE: f32 = 0.05;
     const DEATH_RATE: f32 = 0.005;
-    let birth_rate = if site.economy.surplus[Good::Food] > 0.0 {
+    let birth_rate = if site.economy.surplus[*FOOD_INDEX] > 0.0 {
         NATURAL_BIRTH_RATE
     } else {
         0.0
     };
-    site.economy.pop += dt / YEAR * site.economy.pop * (birth_rate - DEATH_RATE);
+    site.economy.pop += vc.value(
+        "pop",
+        dt / YEAR * site.economy.pop * (birth_rate - DEATH_RATE),
+    );
 
     // calculate the new unclaimed stock
     //let next_orders = site.economy.get_orders();
     // orders are static
-    let mut next_demand = MapVec::from_default(0.0);
+    let mut next_demand = GoodMap::from_default(0.0);
     for (labor, orders) in orders.iter() {
         let workers = if let Some(labor) = labor {
             site.economy.labors[*labor]
@@ -1019,25 +1122,26 @@ pub fn tick_site_economy(index: &mut Index, site_id: Id<Site>, dt: f32) {
             assert!(next_demand[*good] >= 0.0);
         }
     }
-    site.economy.unconsumed_stock = MapVec::from_iter(
-        site.economy
-            .stocks
-            .iter()
-            .map(|(g, a)| (g, *a - next_demand[g])),
+    let mut us = vc.context("unconsumed");
+    site.economy.unconsumed_stock = GoodMap::from_iter(
+        site.economy.stocks.iter().map(|(g, a)| {
+            (
+                g,
+                us.value(&format!("{:?}", Good::from(g)), *a - next_demand[g]),
+            )
+        }),
         0.0,
     );
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        sim,
-        util::{seed_expan, MapVec},
-    };
+    use crate::{sim, site::economy::GoodMap, util::seed_expan};
     use common::trade::Good;
     use rand::SeedableRng;
     use rand_chacha::ChaChaRng;
     use serde::{Deserialize, Serialize};
+    use std::convert::TryInto;
     use tracing::{info, Level};
     use tracing_subscriber::{
         filter::{EnvFilter, LevelFilter},
@@ -1095,7 +1199,7 @@ mod tests {
                     .chunks_per_resource
                     .iter()
                     .map(|(good, a)| ResourcesSetup {
-                        good,
+                        good: good.into(),
                         amount: *a * i.economy.natural_resources.average_yield_per_chunk[good],
                     })
                     .collect();
@@ -1131,10 +1235,10 @@ mod tests {
             }
         } else {
             let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
-            let ron_file = std::fs::File::open("economy_testinput.ron")
-                .expect("economy_testinput.ron not found");
+            let ron_file = std::fs::File::open("economy_testinput2.ron")
+                .expect("economy_testinput2.ron not found");
             let econ_testinput: Vec<EconomySetup> =
-                ron::de::from_reader(ron_file).expect("economy_testinput.ron parse error");
+                ron::de::from_reader(ron_file).expect("economy_testinput2.ron parse error");
             for i in econ_testinput.iter() {
                 let wpos = Vec2 {
                     x: i.position.0,
@@ -1159,8 +1263,10 @@ mod tests {
                     //let c = sim::SimChunk::new();
                     //settlement.economy.add_chunk(ch, distance_squared)
                     // bypass the API for now
-                    settlement.economy.natural_resources.chunks_per_resource[g.good] = g.amount;
-                    settlement.economy.natural_resources.average_yield_per_chunk[g.good] = 1.0;
+                    settlement.economy.natural_resources.chunks_per_resource
+                        [g.good.try_into().unwrap_or_default()] = g.amount;
+                    settlement.economy.natural_resources.average_yield_per_chunk
+                        [g.good.try_into().unwrap_or_default()] = 1.0;
                 }
                 index.sites.insert(settlement);
             }
@@ -1176,8 +1282,8 @@ mod tests {
                         .map(|(nid, dist)| crate::site::economy::NeighborInformation {
                             id: nid,
                             travel_distance: *dist,
-                            last_values: MapVec::from_default(0.0),
-                            last_supplies: MapVec::from_default(0.0),
+                            last_values: GoodMap::from_default(0.0),
+                            last_supplies: GoodMap::from_default(0.0),
                         })
                         .collect();
                     index
