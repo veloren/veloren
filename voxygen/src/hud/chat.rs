@@ -769,7 +769,7 @@ fn insert_killing_buff(buff: BuffKind, localized_strings: &Localization, templat
             tracing::error!("Player was killed by a positive buff!");
             localized_strings.get("hud.outcome.mysterious")
         },
-        BuffKind::Wet => {
+        BuffKind::Wet | BuffKind::Ensnared => {
             tracing::error!("Player was killed by a debuff that doesn't do damage!");
             localized_strings.get("hud.outcome.mysterious")
         },

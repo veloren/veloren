@@ -69,6 +69,10 @@ pub enum BuffKind {
     /// Strength scales the friction you ignore non-linearly. 0.5 is 50% ground
     /// friction, 1.0 is 33% ground friction.
     Wet,
+    /// Makes you move slower.
+    /// Strength scales the movement speed debuff non-linearly. 0.5 is 50%
+    /// speed, 1.0 is 33% speed.
+    Ensnared,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -91,6 +95,7 @@ impl BuffKind {
             BuffKind::Frenzied => true,
             BuffKind::Frozen => false,
             BuffKind::Wet => false,
+            BuffKind::Ensnared => false,
         }
     }
 
@@ -317,6 +322,10 @@ impl Buff {
             ),
             BuffKind::Wet => (
                 vec![BuffEffect::GroundFriction(1.0 - nn_scaling(data.strength))],
+                data.duration,
+            ),
+            BuffKind::Ensnared => (
+                vec![BuffEffect::MovementSpeed(1.0 - nn_scaling(data.strength))],
                 data.duration,
             ),
         };

@@ -592,7 +592,7 @@ pub fn handle_jump(data: &JoinData, update: &mut StateUpdate, strength: f32) -> 
         .map(|impulse| {
             update.local_events.push_front(LocalEvent::Jump(
                 data.entity,
-                strength * impulse / data.mass.0,
+                strength * impulse / data.mass.0 * data.stats.move_speed_modifier,
             ));
         })
         .is_some()

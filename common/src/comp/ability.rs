@@ -1822,7 +1822,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
-                achieved_radius: 0,
+                achieved_radius: summon_distance.0.floor() as i32 - 1,
             }),
         }
     }

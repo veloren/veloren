@@ -10,7 +10,7 @@ use common::{
     outcome::Outcome,
     resources::DeltaTime,
     states,
-    terrain::{Block, SpriteKind, TerrainGrid},
+    terrain::{Block, TerrainGrid},
     uid::Uid,
     util::{Projection, SpatialGrid},
     vol::{BaseVol, ReadVol},
@@ -1596,13 +1596,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         }
     }
     physics_state.on_wall = on_wall;
-    let fric_mod = read.stats.get(entity).map_or(1.0, |s| s.friction_modifier)
-        * physics_state
-            .on_ground
-            .map_or(1.0, |b| match b.get_sprite() {
-                Some(SpriteKind::EnsnaringVines) => 5.0,
-                _ => 1.0,
-            });
+    let fric_mod = read.stats.get(entity).map_or(1.0, |s| s.friction_modifier);
     if physics_state.on_ground.is_some() || (physics_state.on_wall.is_some() && climbing) {
         vel.0 *= (1.0 - FRIC_GROUND.min(1.0) * fric_mod).powf(dt.0 * 60.0);
         physics_state.ground_vel = ground_vel;

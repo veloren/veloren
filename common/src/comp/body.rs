@@ -659,6 +659,9 @@ impl Body {
                 Body::Object(object::Body::HaniwaSentry) => true,
                 _ => false,
             },
+            BuffKind::Ensnared => {
+                matches!(self, Body::BipedLarge(b) if matches!(b.species, biped_large::Species::Harvester))
+            },
             _ => false,
         }
     }
