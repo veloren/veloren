@@ -239,7 +239,7 @@ lazy_static! {
                 if path.is_dir(){
                     list_items(&path, &base, &mut items)?;
                 } else if let Ok(path) = path.strip_prefix(base) {
-                    let path = path.to_string_lossy().trim_end_matches(".ron").replace('/', ".");
+                    let path = path.to_string_lossy().trim_end_matches(".ron").replace('/', ".").replace('\\', ".");
                     items.push(path);
                 }
             }
