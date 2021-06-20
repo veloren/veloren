@@ -267,9 +267,9 @@ fn default_main_tool(body: &Body) -> Item {
             (biped_large::Species::Wendigo, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.wendigo_magic",
             )),
-            (biped_large::Species::Werewolf, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.beast_claws",
-            )),
+            (biped_large::Species::Werewolf | biped_large::Species::Huskbrute, _) => Some(
+                Item::new_from_asset_expect("common.items.npc_weapons.unique.beast_claws"),
+            ),
             (biped_large::Species::Cyclops, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.hammer.cyclops_hammer",
             )),
@@ -299,6 +299,9 @@ fn default_main_tool(body: &Body) -> Item {
             )),
             (biped_large::Species::Cultistwarlord, _) => Some(Item::new_from_asset_expect(
                 "common.items.weapons.sword.bipedlarge-cultist",
+            )),
+            (biped_large::Species::Cultistwarlock, _) => Some(Item::new_from_asset_expect(
+                "common.items.weapons.staff.bipedlarge-cultist_staff",
             )),
         },
         Body::Object(body) => match body {

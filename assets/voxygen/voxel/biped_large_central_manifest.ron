@@ -988,4 +988,108 @@
             central: ("armor.empty"),
         )
     ),
+    (Cultistwarlock, Male): (
+        head: (
+            offset: (-6.0, -5.5, -6.5),
+            central: ("npc.cultist_warlock.male.head"),
+        ),
+        torso_upper: (
+            offset: (-7.0, -5.5, -5.5),
+            central: ("npc.cultist_warlock.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.0, -4.5, -10.0),
+            central: ("npc.cultist_warlock.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (Cultistwarlock, Female): (
+        head: (
+            offset: (-6.0, -5.5, -6.5),
+            central: ("npc.cultist_warlock.male.head"),
+        ),
+        torso_upper: (
+            offset: (-7.0, -5.5, -5.5),
+            central: ("npc.cultist_warlock.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.0, -4.5, -10.0),
+            central: ("npc.cultist_warlock.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (Huskbrute, Male): (
+        head: (
+            offset: (-6.0, -6.0, -6.5),
+            central: ("npc.husk_brute.male.head"),
+        ),
+        torso_upper: (
+            offset: (-8.0, -8.0, -8.0),
+            central: ("npc.husk_brute.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-7.0, -6.5, -9.0),
+            central: ("npc.husk_brute.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (Huskbrute, Female): (
+        head: (
+            offset: (-6.0, -6.0, -6.5),
+            central: ("npc.husk_brute.male.head"),
+        ),
+        torso_upper: (
+            offset: (-8.0, -8.0, -8.0),
+            central: ("npc.husk_brute.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-7.0, -6.5, -9.0),
+            central: ("npc.husk_brute.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

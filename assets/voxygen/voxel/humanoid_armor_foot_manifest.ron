@@ -72,14 +72,6 @@
           vox_spec: ("armor.velorite_battlemage.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Warlord": (
-          vox_spec: ("armor.warlord.foot", (-2.5, -3.5, -2.0)),
-          color: None
-        ),
-        "Warlock": (
-          vox_spec: ("armor.warlock.foot", (-2.5, -3.5, -2.0)),
-          color: None
-        ),
         "Rawhide": (
             vox_spec: ("armor.hide.rawhide.foot", (-2.5, -3.5, -2.0)),
             color: None

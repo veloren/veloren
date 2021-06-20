@@ -418,7 +418,9 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     | quadruped_medium::Species::Antelope
                     | quadruped_medium::Species::Kelpie
                     | quadruped_medium::Species::Cattle
-                    | quadruped_medium::Species::Yak => {
+                    | quadruped_medium::Species::Yak
+                    | quadruped_medium::Species::Llama
+                    | quadruped_medium::Species::Alpaca => {
                         "common.loot_tables.creature.quad_medium.gentle"
                     },
                     quadruped_medium::Species::Ngoubou => {

@@ -230,6 +230,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Blueoni, _) => (10.5, -3.0),
                 (Redoni, _) => (10.5, -3.0),
                 (Cultistwarlord, _) => (0.5, 14.5),
+                (Cultistwarlock, _) => (0.5, 14.5),
+                (Huskbrute, _) => (8.5, 4.0),
             },
             jaw: match (body.species, body.body_type) {
                 (Ogre, _) => (0.0, 0.0),
@@ -251,6 +253,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Blueoni, _) => (0.0, 3.5),
                 (Redoni, _) => (0.0, 3.5),
                 (Cultistwarlord, _) => (0.0, 3.5),
+                (Cultistwarlock, _) => (0.0, 3.5),
+                (Huskbrute, _) => (-5.0, -5.0),
             },
             upper_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 27.5),
@@ -273,6 +277,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Blueoni, _) => (-1.0, 26.5),
                 (Redoni, _) => (-1.0, 26.5),
                 (Cultistwarlord, _) => (-1.0, 18.5),
+                (Cultistwarlock, _) => (-1.0, 18.5),
+                (Huskbrute, _) => (-1.0, 23.5),
             },
             lower_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (1.0, -7.0),
@@ -295,6 +301,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Blueoni, _) => (0.0, -8.5),
                 (Redoni, _) => (0.0, -8.5),
                 (Cultistwarlord, _) => (0.0, -1.5),
+                (Cultistwarlock, _) => (0.0, -1.5),
+                (Huskbrute, _) => (0.0, -6.5),
             },
             tail: match (body.species, body.body_type) {
                 (Werewolf, _) => (-5.5, -2.0),
@@ -325,6 +333,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Blueoni, _) => (11.0, 2.0, -5.5),
                 (Redoni, _) => (11.0, 2.0, -5.5),
                 (Cultistwarlord, _) => (11.5, -1.0, 4.5),
+                (Cultistwarlock, _) => (11.5, -1.0, 4.5),
+                (Huskbrute, _) => (10.5, 1.0, -2.5),
             },
             hand: match (body.species, body.body_type) {
                 (Ogre, Male) => (14.5, 0.0, -4.0),
@@ -347,6 +357,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Blueoni, _) => (13.5, 0.5, -8.0),
                 (Redoni, _) => (13.5, 0.5, -8.0),
                 (Cultistwarlord, _) => (11.5, -1.0, -1.0),
+                (Cultistwarlock, _) => (11.5, -1.0, -1.0),
+                (Huskbrute, _) => (12.0, 1.5, -6.0),
             },
             leg: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 0.0, -4.0),
@@ -369,6 +381,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Blueoni, _) => (4.5, 2.0, -5.5),
                 (Redoni, _) => (4.5, 2.0, -5.5),
                 (Cultistwarlord, _) => (3.5, -1.0, -8.5),
+                (Cultistwarlock, _) => (3.5, -1.0, -8.5),
+                (Huskbrute, _) => (4.0, 0.0, -5.5),
             },
             foot: match (body.species, body.body_type) {
                 (Ogre, Male) => (4.0, 1.0, -12.0),
@@ -391,6 +405,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Blueoni, _) => (5.0, 5.0, -12.5),
                 (Redoni, _) => (5.0, 5.0, -12.5),
                 (Cultistwarlord, _) => (3.5, 0.0, -12.5),
+                (Cultistwarlock, _) => (3.5, 0.0, -12.5),
+                (Huskbrute, _) => (4.5, 0.5, -12.5),
             },
             scaler: match (body.species, body.body_type) {
                 (Ogre, Male) => 1.12,
@@ -413,6 +429,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Blueoni, _) => 1.2,
                 (Redoni, _) => 1.2,
                 (Cultistwarlord, _) => 1.0,
+                (Cultistwarlock, _) => 1.0,
+                (Huskbrute, _) => 1.2,
             },
             tempo: match (body.species, body.body_type) {
                 (Ogre, Male) => 0.9,
@@ -446,6 +464,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Blueoni, _) => (12.5, 0.0),
                 (Redoni, _) => (12.5, 0.0),
                 (Cultistwarlord, _) => (8.0, 0.0),
+                (Cultistwarlock, _) => (8.0, 0.0),
+                (Huskbrute, _) => (12.5, 0.0),
             },
             shl: match (body.species, body.body_type) {
                 (Dullahan, _) => (-4.75, -11.0, 8.5, 1.47, -0.2, 0.0),

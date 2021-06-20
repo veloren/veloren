@@ -177,6 +177,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowleopard, _) => (1.5, 0.5),
                 (Mammoth, _) => (0.5, -1.5),
                 (Ngoubou, _) => (0.5, -2.5),
+                (Llama, _) => (0.5, 10.0),
+                (Alpaca, _) => (0.5, 7.5),
             },
             neck: match (body.species, body.body_type) {
                 (Grolgar, _) => (1.0, -1.0),
@@ -212,6 +214,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowleopard, _) => (0.0, 1.5),
                 (Mammoth, _) => (0.5, -0.5),
                 (Ngoubou, _) => (2.0, 1.0),
+                (Llama, _) => (2.5, 4.5),
+                (Alpaca, _) => (-1.5, 3.0),
             },
             jaw: match (body.species, body.body_type) {
                 (Grolgar, _) => (7.0, 2.0),
@@ -248,6 +252,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowleopard, _) => (3.0, -3.0),
                 (Mammoth, _) => (4.5, -3.0),
                 (Ngoubou, _) => (4.5, -4.0),
+                (Llama, _) => (4.0, -1.0),
+                (Alpaca, _) => (3.0, -2.5),
             },
             tail: match (body.species, body.body_type) {
                 (Grolgar, _) => (-11.5, -0.5),
@@ -283,6 +289,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowleopard, _) => (-10.5, 3.0),
                 (Mammoth, _) => (-13.0, -1.5),
                 (Ngoubou, _) => (-12.0, 5.5),
+                (Llama, _) => (-9.0, 6.0),
+                (Alpaca, _) => (-8.5, 3.5),
             },
             torso_front: match (body.species, body.body_type) {
                 (Grolgar, _) => (10.0, 13.0),
@@ -318,6 +326,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowleopard, _) => (1.5, 13.0),
                 (Mammoth, _) => (11.5, 20.5),
                 (Ngoubou, _) => (9.5, 16.5),
+                (Llama, _) => (7.0, 15.0),
+                (Alpaca, _) => (7.0, 11.5),
             },
             torso_back: match (body.species, body.body_type) {
                 (Grolgar, _) => (-10.0, 1.5),
@@ -353,6 +363,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowleopard, _) => (-11.0, 0.0),
                 (Mammoth, _) => (-13.0, -2.5),
                 (Ngoubou, _) => (-8.0, -2.0),
+                (Llama, _) => (-8.0, 0.0),
+                (Alpaca, _) => (-6.0, 0.0),
             },
             ears: match (body.species, body.body_type) {
                 (Grolgar, _) => (5.0, 8.0),
@@ -389,6 +401,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowleopard, _) => (1.5, 3.0),
                 (Mammoth, _) => (12.0, -3.0),
                 (Ngoubou, _) => (12.0, -3.0),
+                (Llama, _) => (1.0, 3.5),
+                (Alpaca, _) => (1.0, 2.0),
             },
             leg_f: match (body.species, body.body_type) {
                 (Grolgar, _) => (7.5, -5.5, -1.0),
@@ -424,6 +438,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowleopard, _) => (6.5, -4.0, -2.5),
                 (Mammoth, _) => (10.0, -5.0, -5.0),
                 (Ngoubou, _) => (7.5, -4.0, -1.5),
+                (Llama, _) => (5.0, -1.5, -1.0),
+                (Alpaca, _) => (3.5, -2.5, -0.5),
             },
             leg_b: match (body.species, body.body_type) {
                 (Grolgar, _) => (6.0, -6.5, -4.0),
@@ -459,6 +475,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowleopard, _) => (5.5, -5.0, -1.5),
                 (Mammoth, _) => (7.5, -7.0, -5.0),
                 (Ngoubou, _) => (4.5, -9.5, 0.0),
+                (Llama, _) => (5.0, -7.0, -2.0),
+                (Alpaca, _) => (3.5, -7.0, 0.0),
             },
             feet_f: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.0, 0.0, -4.0),
@@ -494,6 +512,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowleopard, _) => (0.5, 0.5, -4.5),
                 (Mammoth, _) => (-0.5, -0.5, -6.0),
                 (Ngoubou, _) => (-1.0, 0.5, -6.0),
+                (Llama, _) => (-0.5, 0.5, -6.0),
+                (Alpaca, _) => (0.0, -0.5, -5.0),
             },
             feet_b: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.5, -1.5, -3.0),
@@ -529,6 +549,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowleopard, _) => (0.5, 0.5, -5.5),
                 (Mammoth, _) => (0.5, -0.5, -4.5),
                 (Ngoubou, _) => (0.5, 1.0, -5.5),
+                (Llama, _) => (0.5, -1.5, -3.5),
+                (Alpaca, _) => (-0.5, -0.5, -5.5),
             },
             scaler: match (body.species, body.body_type) {
                 (Grolgar, _) => (1.05),
