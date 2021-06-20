@@ -113,6 +113,7 @@ pub(super) struct CharacterCacheKey {
     pub glider: Option<String>,
     pub hand: Option<String>,
     pub foot: Option<String>,
+    pub head: Option<String>,
 }
 
 impl CharacterCacheKey {
@@ -258,6 +259,17 @@ impl CharacterCacheKey {
                 ..
             })) = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Feet))
+                .map(|i| i.kind())
+            {
+                Some(armor.clone())
+            } else {
+                None
+            },
+            head: if let Some(ItemKind::Armor(Armor {
+                kind: ArmorKind::Head(armor),
+                ..
+            })) = inventory
+                .equipped(EquipSlot::Armor(ArmorSlot::Head))
                 .map(|i| i.kind())
             {
                 Some(armor.clone())

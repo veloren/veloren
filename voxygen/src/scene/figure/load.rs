@@ -234,7 +234,12 @@ struct HumHeadSubSpec {
 struct HumHeadSpec(HashMap<(Species, BodyType), HumHeadSubSpec>);
 
 impl HumHeadSpec {
-    fn mesh_head(&self, body: &Body, color_spec: &HumColorSpec) -> BoneMeshes {
+    fn mesh_head(
+        &self,
+        body: &Body,
+        color_spec: &HumColorSpec,
+        helmet: Option<(Segment, Vec3<i32>)>,
+    ) -> BoneMeshes {
         let spec = match self.0.get(&(body.species, body.body_type)) {
             Some(spec) => spec,
             None => {
@@ -311,6 +316,7 @@ impl HumHeadSpec {
             .maybe_add(hair)
             .maybe_add(beard)
             .maybe_add(accessory)
+            .maybe_add(helmet)
             .unify();
 
         (
@@ -373,9 +379,9 @@ make_vox_spec!(
         modular_components: HumModularComponentSpec = "voxygen.voxel.humanoid_modular_component_manifest",
         armor_lantern: HumArmorLanternSpec = "voxygen.voxel.humanoid_lantern_manifest",
         armor_glider: HumArmorGliderSpec = "voxygen.voxel.humanoid_glider_manifest",
+        armor_head: HumArmorHeadSpec = "voxygen.voxel.humanoid_armor_head_manifest",
         // TODO: Add these.
-        /* armor_head: HumArmorHeadSpec = "voxygen.voxel.humanoid_armor_head_manifest",
-        tabard: HumArmorTabardSpec = "voxygen.voxel.humanoid_armor_tabard_manifest", */
+        /* tabard: HumArmorTabardSpec = "voxygen.voxel.humanoid_armor_tabard_manifest", */
     },
     |FigureKey { body, extra }, spec| {
         const DEFAULT_LOADOUT: super::cache::CharacterCacheKey = super::cache::CharacterCacheKey {
@@ -385,6 +391,7 @@ make_vox_spec!(
             glider: None,
             hand: None,
             foot: None,
+            head: None,
         };
 
         // TODO: This is bad code, maybe this method should return Option<_>
@@ -403,6 +410,9 @@ make_vox_spec!(
                 spec.head.read().0.mesh_head(
                     body,
                     color,
+                    spec.armor_head.read().0.load_head(
+                        loadout.head.as_deref()
+                    ),
                 )
             }),
             third_person.map(|loadout| {
@@ -957,6 +967,19 @@ impl HumArmorLanternSpec {
     }
 }
 impl HumArmorHeadSpec {
+    fn load_head(&self, head: Option<&str>) -> Option<(Segment, Vec3<i32>)> {
+        match self.0.map.get(head?) {
+            Some(spec) => Some((
+                graceful_load_segment(&spec.vox_spec.0),
+                Vec3::<f32>::from(spec.vox_spec.1).as_(),
+            )),
+            None => {
+                warn!("No specification for this head: {:?}", head);
+                None
+            },
+        }
+    }
+
     /// FIXME: Either use this, or remove it.
     #[allow(dead_code)]
     fn mesh_head(&self, body: &Body, color_spec: &HumColorSpec, head: Option<&str>) -> BoneMeshes {
@@ -2516,6 +2539,7 @@ make_vox_spec!(
             glider: None,
             hand: None,
             foot: None,
+            head: None,
         };
 
         // TODO: This is bad code, maybe this method should return Option<_>
@@ -3544,6 +3568,7 @@ make_vox_spec!(
             glider: None,
             hand: None,
             foot: None,
+            head: None,
         };
 
         // TODO: This is bad code, maybe this method should return Option<_>

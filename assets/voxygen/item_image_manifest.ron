@@ -2194,6 +2194,10 @@
         "voxel.armor.misc.head.assa_mask-0",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
+    Armor(Head("Exclamation")): VoxTrans(
+        "voxel.armor.misc.head.exclamation",
+        (0.0, 15.0, 0.0), (-75.0, 135.0, 0.0), 3.0,
+    ),
     // Bags
     Armor(Bag("RedFace")): Png (
         "element.items.item_bag_red_face",
