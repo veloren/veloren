@@ -1,0 +1,45 @@
+[
+    (
+        name: "Forest Settlement",
+        position: (1, 1),
+        kind: Settlement,
+        neighbors: [
+            (1, 10),
+            (2, 10),
+        ],
+        resources: [
+            (
+                good: Terrain(Forest),
+                amount: 1000,
+            ),
+        ],
+    ),
+    (
+        name: "Moutain Peak",
+        position: (10, 10),
+        kind: Settlement,
+        neighbors: [
+            (0, 10),
+        ],
+        resources: [
+            (
+                good: Terrain(Mountain),
+                amount: 1000,
+            ),
+        ],
+    ),
+    (
+        name: "Farmer Village",
+        position: (20, 10),
+        kind: Settlement,
+        neighbors: [
+            (0, 10),
+        ],
+        resources: [
+            (
+                good: Terrain(Grassland),
+                amount: 1000,
+            ),
+        ],
+    ),
+]

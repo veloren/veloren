@@ -1,4 +1,5 @@
 pub mod fast_noise;
+pub mod map_array;
 pub mod map_vec;
 pub mod math;
 pub mod random;

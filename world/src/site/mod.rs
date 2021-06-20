@@ -151,7 +151,7 @@ impl Site {
                         .economy
                         .unconsumed_stock
                         .iter()
-                        .map(|(g, a)| (g, *a))
+                        .map(|(g, a)| (g.into(), *a))
                         .collect(),
                 };
                 s.apply_supplement(dynamic_rng, wpos2d, get_column, supplement, economy)
