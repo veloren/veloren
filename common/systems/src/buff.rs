@@ -65,12 +65,15 @@ impl<'a> System<'a> for Sys {
                 })
             ) && !buff_comp.contains(BuffKind::Burning)
             {
-                buff_comp.insert(Buff::new(
-                    BuffKind::Burning,
-                    BuffData::new(200.0, None),
-                    vec![BuffCategory::Natural],
-                    BuffSource::World,
-                ));
+                server_emitter.emit(ServerEvent::Buff {
+                    entity,
+                    buff_change: BuffChange::Add(Buff::new(
+                        BuffKind::Burning,
+                        BuffData::new(200.0, None),
+                        vec![BuffCategory::Natural],
+                        BuffSource::World,
+                    )),
+                });
             }
 
             let (buff_comp_kinds, buff_comp_buffs): (

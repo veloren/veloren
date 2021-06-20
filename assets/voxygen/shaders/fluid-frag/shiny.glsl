@@ -88,8 +88,6 @@ float wave_height(vec3 pos) {
     return pow(abs(height), 0.5) * sign(height) * 15.0;
 }
 
-//#define LAVA
-
 void main() {
     // First 3 normals are negative, next 3 are positive
     vec3 normals[6] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1));
@@ -150,12 +148,7 @@ void main() {
     vec3 norm = vec3(0, 0, 1) * nmap.z + b_norm * nmap.x + c_norm * nmap.y;
     // vec3 norm = f_norm;
 
-#ifdef LAVA
-    vec3 water_color = (1.0 - MU_LAVA);
-#else
     vec3 water_color = (1.0 - MU_WATER) * MU_SCATTER;
-#endif
-    
 #if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE == FLUID_MODE_SHINY)
     float f_alt = alt_at(f_pos.xy);
 #elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_CHEAP)
@@ -237,12 +230,7 @@ void main() {
     // vec3 water_color_direct = exp(-MU_WATER);//exp(-MU_WATER);//vec3(1.0);
     // vec3 water_color_direct = exp(-water_attenuation * (water_depth_to_light + water_depth_to_camera));
     // vec3 water_color_ambient = exp(-water_attenuation * (water_depth_to_vertical + water_depth_to_camera));
-
-#ifdef LAVA
-    vec3 mu = MU_LAVA;
-#else
     vec3 mu = MU_WATER;
-#endif
     // NOTE: Default intersection point is camera position, meaning if we fail to intersect we assume the whole camera is in water.
     vec3 cam_attenuation = compute_attenuation_point(f_pos, -view_dir, mu, fluid_alt, cam_pos.xyz);
     // float water_depth_to_vertical = max(/*f_alt - f_pos.z*/f_light, 0.0);
@@ -302,13 +290,7 @@ void main() {
     // reflected_light += point_light;
     // vec3 surf_color = srgb_to_linear(vec3(0.2, 0.5, 1.0)) * light * diffuse_light * ambient_light;
     const float REFLECTANCE = 0.5;
-#ifdef LAVA
-    //vec3 surf_color = illuminate(max_light, view_dir, water_color * emitted_light, reflect_color * REFLECTANCE + water_color * reflected_light);
-    vec3 surf_color = vec3(1, 0.25, 0);
-#else
     vec3 surf_color = illuminate(max_light, view_dir, water_color * emitted_light/* * log(1.0 - MU_WATER)*/, /*cam_attenuation * *//*water_color * */reflect_color * REFLECTANCE + water_color * reflected_light/* * log(1.0 - MU_WATER)*/);
-#endif
-    //vec3 surf_color = illuminate(max_light, view_dir, water_color * emitted_light/* * log(1.0 - MU_WATER)*/, /*cam_attenuation * *//*water_color * */reflect_color * REFLECTANCE + water_color * reflected_light/* * log(1.0 - MU_WATER)*/);
 
     // passthrough = pow(passthrough, 1.0 / (1.0 + water_depth_to_camera));
     /* surf_color = cam_attenuation.g < 0.5 ?

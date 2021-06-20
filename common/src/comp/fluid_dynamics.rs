@@ -2,7 +2,7 @@
 use super::body::{object, Body};
 use super::{Density, Ori, Vel};
 use crate::{
-    consts::{AIR_DENSITY, WATER_DENSITY},
+    consts::{AIR_DENSITY, LAVA_DENSITY, WATER_DENSITY},
     util::{Dir, Plane, Projection},
 };
 use serde::{Deserialize, Serialize};
@@ -55,7 +55,7 @@ impl Fluid {
             Self::Liquid {
                 kind: LiquidKind::Lava,
                 ..
-            } => Density(WATER_DENSITY),
+            } => Density(LAVA_DENSITY),
         }
     }
 
