@@ -26,7 +26,7 @@
             pkgs = common.pkgs;
             lib = common.lib;
 
-            gitLfsCheckFile = ./assets/voxygen/background/bg_main.png;
+            gitLfsCheckFile = ./assets/voxygen/background/bg_main.jpg;
             utils = import ./nix/utils.nix { inherit pkgs; };
 
             sourceInfo =

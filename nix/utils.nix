@@ -3,7 +3,7 @@
     let
       gitLfsCheckOutput =
         builtins.readFile (pkgs.runCommand "gitLfsCheck" { } ''
-          ([ "$(${pkgs.file}/bin/file --mime-type ${checkFile})" = "${checkFile}: image/png" ] && printf "0" || printf "1") > $out
+          ([ "$(${pkgs.file}/bin/file --mime-type ${checkFile})" = "${checkFile}: image/jpeg" ] && printf "0" || printf "1") > $out
         '');
     in
     if gitLfsCheckOutput == "0" then
