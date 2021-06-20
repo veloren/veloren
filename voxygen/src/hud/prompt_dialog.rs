@@ -83,6 +83,7 @@ impl<'a> Widget for PromptDialog<'a> {
     fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
+        common_base::prof_span!("PromptDialog::update");
         let widget::UpdateArgs { state, ui, .. } = args;
         let _localized_strings = &self.localized_strings;
         let mut event: Option<DialogOutcomeEvent> = None;

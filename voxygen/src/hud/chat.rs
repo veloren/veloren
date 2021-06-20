@@ -203,6 +203,8 @@ impl<'a> Widget for Chat<'a> {
     #[allow(clippy::redundant_clone)] // TODO: Pending review in #587
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
+        common_base::prof_span!("Chat::update");
+
         let widget::UpdateArgs { id, state, ui, .. } = args;
 
         let mut events = Vec::new();

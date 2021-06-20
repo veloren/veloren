@@ -194,6 +194,7 @@ impl<'a> Widget for Map<'a> {
 
     #[allow(clippy::useless_format)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
+        common_base::prof_span!("Map::update");
         let widget::UpdateArgs { state, ui, .. } = args;
         let zoom = self.global_state.settings.interface.map_zoom * 0.8;
         let show_difficulty = self.global_state.settings.interface.map_show_difficulty;

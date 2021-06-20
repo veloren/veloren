@@ -27,7 +27,7 @@ use common::{
     },
     vol::ReadVol,
 };
-use common_base::span;
+use common_base::{prof_span, span};
 use common_net::{
     msg::{server::InviteAnswer, PresenceKind},
     sync::WorldSyncExt,
@@ -1444,16 +1444,22 @@ impl PlayState for SessionState {
         }
 
         // Clouds
-        if let Some(mut second_pass) = drawer.second_pass() {
-            second_pass.draw_clouds();
+        {
+            prof_span!("clouds");
+            if let Some(mut second_pass) = drawer.second_pass() {
+                second_pass.draw_clouds();
+            }
         }
         // PostProcess and UI
-        let mut third_pass = drawer.third_pass();
-        third_pass.draw_postprocess();
-        // Draw the UI to the screen
-        if let Some(mut ui_drawer) = third_pass.draw_ui() {
-            self.hud.render(&mut ui_drawer);
-        }; // Note: this semicolon is needed for the third_pass borrow to be dropped before it's lifetime ends
+        {
+            prof_span!("post-process and ui");
+            let mut third_pass = drawer.third_pass();
+            third_pass.draw_postprocess();
+            // Draw the UI to the screen
+            if let Some(mut ui_drawer) = third_pass.draw_ui() {
+                self.hud.render(&mut ui_drawer);
+            }; // Note: this semicolon is needed for the third_pass borrow to be dropped before it's lifetime ends
+        }
     }
 }
 

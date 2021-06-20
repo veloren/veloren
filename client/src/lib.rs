@@ -43,7 +43,7 @@ use common::{
     uid::{Uid, UidAllocator},
     vol::RectVolSize,
 };
-use common_base::span;
+use common_base::{prof_span, span};
 use common_net::{
     msg::{
         self, validate_chat_msg,
@@ -58,7 +58,6 @@ use common_net::{
 use common_state::State;
 use common_systems::add_local_systems;
 use comp::BuffKind;
-use futures_util::FutureExt;
 use hashbrown::{HashMap, HashSet};
 use image::DynamicImage;
 use network::{ConnectAddr, Network, Participant, Pid, Stream};
@@ -71,7 +70,7 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
-use tokio::{runtime::Runtime, select};
+use tokio::runtime::Runtime;
 use tracing::{debug, error, trace, warn};
 use vek::*;
 
@@ -760,6 +759,7 @@ impl Client {
     where
         S: Into<ClientMsg>,
     {
+        prof_span!("send_msg_err");
         let msg: ClientMsg = msg.into();
         #[cfg(debug_assertions)]
         {
@@ -1426,6 +1426,7 @@ impl Client {
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.
         if self.presence.is_some() {
+            prof_span!("handle and send inputs");
             if let Err(e) = self
                 .state
                 .ecs()
@@ -1457,21 +1458,25 @@ impl Client {
 
         // Prepare for new events
         {
+            prof_span!("Last<CharacterState> comps update");
             let ecs = self.state.ecs();
-            for (entity, _) in (&ecs.entities(), &ecs.read_storage::<comp::Body>()).join() {
-                let mut last_character_states =
-                    ecs.write_storage::<comp::Last<comp::CharacterState>>();
-                if let Some(client_character_state) =
-                    ecs.read_storage::<comp::CharacterState>().get(entity)
+            let mut last_character_states = ecs.write_storage::<comp::Last<comp::CharacterState>>();
+            for (entity, _, character_state) in (
+                &ecs.entities(),
+                &ecs.read_storage::<comp::Body>(),
+                &ecs.read_storage::<comp::CharacterState>(),
+            )
+                .join()
+            {
+                if let Some(l) = last_character_states
+                    .entry(entity)
+                    .ok()
+                    .map(|l| l.or_insert_with(|| comp::Last(character_state.clone())))
+                    // TODO: since this just updates when the variant changes we should
+                    // just store the variant to avoid the clone overhead
+                    .filter(|l| !character_state.same_variant(&l.0))
                 {
-                    if let Some(l) = last_character_states
-                        .entry(entity)
-                        .ok()
-                        .map(|l| l.or_insert_with(|| comp::Last(client_character_state.clone())))
-                        .filter(|l| !client_character_state.same_variant(&l.0))
-                    {
-                        *l = comp::Last(client_character_state.clone());
-                    }
+                    *l = comp::Last(character_state.clone());
                 }
             }
         }
@@ -1520,6 +1525,7 @@ impl Client {
             .get(self.entity())
             .cloned();
         if let (Some(pos), Some(view_distance)) = (pos, self.view_distance) {
+            prof_span!("terrain");
             let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
 
             // Remove chunks that are too far from the player.
@@ -1653,6 +1659,7 @@ impl Client {
         frontend_events: &mut Vec<Event>,
         msg: ServerGeneral,
     ) -> Result<(), Error> {
+        prof_span!("handle_server_msg");
         match msg {
             ServerGeneral::Disconnect(reason) => match reason {
                 DisconnectReason::Shutdown => return Err(Error::ServerShutdown),
@@ -1805,6 +1812,7 @@ impl Client {
         frontend_events: &mut Vec<Event>,
         msg: ServerGeneral,
     ) -> Result<(), Error> {
+        prof_span!("handle_server_in_game_msg");
         match msg {
             ServerGeneral::GroupUpdate(change_notification) => {
                 use comp::group::ChangeNotification::*;
@@ -1979,6 +1987,7 @@ impl Client {
 
     #[allow(clippy::unnecessary_wraps)]
     fn handle_server_terrain_msg(&mut self, msg: ServerGeneral) -> Result<(), Error> {
+        prof_span!("handle_server_terrain_mgs");
         match msg {
             ServerGeneral::TerrainChunkUpdate { key, chunk } => {
                 if let Some(chunk) = chunk.ok().and_then(|c| c.to_chunk()) {
@@ -2004,6 +2013,7 @@ impl Client {
         events: &mut Vec<Event>,
         msg: ServerGeneral,
     ) -> Result<(), Error> {
+        prof_span!("handle_server_character_screen_msg");
         match msg {
             ServerGeneral::CharacterListUpdate(character_list) => {
                 self.character_list.characters = character_list;
@@ -2034,6 +2044,7 @@ impl Client {
     }
 
     fn handle_ping_msg(&mut self, msg: PingMsg) -> Result<(), Error> {
+        prof_span!("handle_ping_msg");
         match msg {
             PingMsg::Ping => {
                 self.send_msg_err(PingMsg::Pong)?;
@@ -2054,40 +2065,41 @@ impl Client {
         Ok(())
     }
 
-    async fn handle_messages(
-        &mut self,
-        frontend_events: &mut Vec<Event>,
-        cnt: &mut u64,
-    ) -> Result<(), Error> {
+    fn handle_messages(&mut self, frontend_events: &mut Vec<Event>) -> Result<u64, Error> {
+        let mut cnt = 0;
         loop {
-            let (m1, m2, m3, m4, m5) = select!(
-                msg = self.general_stream.recv().fuse() => (Some(msg), None, None, None, None),
-                msg = self.ping_stream.recv().fuse() => (None, Some(msg), None, None, None),
-                msg = self.character_screen_stream.recv().fuse() => (None, None, Some(msg), None, None),
-                msg = self.in_game_stream.recv().fuse() => (None, None, None, Some(msg), None),
-                msg = self.terrain_stream.recv().fuse() => (None, None, None, None, Some(msg)),
-            );
-            *cnt += 1;
-            if let Some(msg) = m1 {
-                self.handle_server_msg(frontend_events, msg?)?;
+            let cnt_start = cnt;
+
+            while let Some(msg) = self.general_stream.try_recv()? {
+                cnt += 1;
+                self.handle_server_msg(frontend_events, msg)?;
             }
-            if let Some(msg) = m2 {
-                self.handle_ping_msg(msg?)?;
+            while let Some(msg) = self.ping_stream.try_recv()? {
+                cnt += 1;
+                self.handle_ping_msg(msg)?;
             }
-            if let Some(msg) = m3 {
-                self.handle_server_character_screen_msg(frontend_events, msg?)?;
+            while let Some(msg) = self.character_screen_stream.try_recv()? {
+                cnt += 1;
+                self.handle_server_character_screen_msg(frontend_events, msg)?;
             }
-            if let Some(msg) = m4 {
-                self.handle_server_in_game_msg(frontend_events, msg?)?;
+            while let Some(msg) = self.in_game_stream.try_recv()? {
+                cnt += 1;
+                self.handle_server_in_game_msg(frontend_events, msg)?;
             }
-            if let Some(msg) = m5 {
-                self.handle_server_terrain_msg(msg?)?;
+            while let Some(msg) = self.terrain_stream.try_recv()? {
+                cnt += 1;
+                self.handle_server_terrain_msg(msg)?;
+            }
+
+            if cnt_start == cnt {
+                return Ok(cnt);
             }
         }
     }
 
     /// Handle new server messages.
     fn handle_new_messages(&mut self) -> Result<Vec<Event>, Error> {
+        prof_span!("handle_new_messages");
         let mut frontend_events = Vec::new();
 
         // Check that we have an valid connection.
@@ -2109,18 +2121,9 @@ impl Client {
             }
         }
 
-        let mut handles_msg = 0;
+        let msg_count = self.handle_messages(&mut frontend_events)?;
 
-        let runtime = Arc::clone(&self.runtime);
-        runtime.block_on(async {
-            //TIMEOUT 0.01 ms for msg handling
-            select!(
-                _ = tokio::time::sleep(std::time::Duration::from_micros(10)).fuse() => Ok(()),
-                err = self.handle_messages(&mut frontend_events, &mut handles_msg).fuse() => err,
-            )
-        })?;
-
-        if handles_msg == 0
+        if msg_count == 0
             && self.state.get_time() - self.last_server_pong > self.client_timeout.as_secs() as f64
         {
             return Err(Error::ServerTimeout);

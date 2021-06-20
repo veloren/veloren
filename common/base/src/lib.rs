@@ -6,20 +6,21 @@ pub use userdata_dir::userdata_dir;
 
 #[cfg(feature = "tracy")] pub use tracy_client;
 
+#[cfg(not(feature = "tracy"))]
 #[macro_export]
 macro_rules! plot {
     ($name:expr, $value:expr) => {
-        #[cfg(feature = "tracy")]
-        {
-            use $crate::tracy_client::{create_plot, Plot};
-            static PLOT: Plot = create_plot!($name);
-            PLOT.point($value);
-        }
-        #[cfg(not(feature = "tracy"))]
-        {
-            // type check
-            let _: f64 = $value;
-        }
+        // type check
+        let _: f64 = $value;
+    };
+}
+#[cfg(feature = "tracy")]
+#[macro_export]
+macro_rules! plot {
+    ($name:expr, $value:expr) => {
+        use $crate::tracy_client::{create_plot, Plot};
+        static PLOT: Plot = create_plot!($name);
+        PLOT.point($value);
     };
 }
 
@@ -45,6 +46,7 @@ macro_rules! dev_panic {
 }
 
 // https://discordapp.com/channels/676678179678715904/676685797524766720/723358438943621151
+#[cfg(not(feature = "tracy"))]
 #[macro_export]
 macro_rules! span {
     ($guard_name:tt, $level:ident, $name:expr, $($fields:tt)*) => {
@@ -56,12 +58,27 @@ macro_rules! span {
         let $guard_name = span.enter();
     };
     ($guard_name:tt, $name:expr) => {
-        #[cfg(not(feature = "tracy"))]
         let span = tracing::span!(tracing::Level::TRACE, $name);
-        #[cfg(not(feature = "tracy"))]
         let $guard_name = span.enter();
+    };
+    ($guard_name:tt, $no_tracy_name:expr, $tracy_name:expr) => {
+        $crate::span!($guard_name, $no_tracy_name);
+    };
+}
+
+#[cfg(feature = "tracy")]
+#[macro_export]
+macro_rules! span {
+    ($guard_name:tt, $level:ident, $name:expr, $($fields:tt)*) => {
+        let span = tracing::span!(tracing::Level::$level, $name, $($fields)*);
+        let $guard_name = span.enter();
+    };
+    ($guard_name:tt, $level:ident, $name:expr) => {
+        let span = tracing::span!(tracing::Level::$level, $name);
+        let $guard_name = span.enter();
+    };
+    ($guard_name:tt, $name:expr) => {
         // Directly use `tracy_client` to decrease overhead for better timing
-        #[cfg(feature = "tracy")]
         let $guard_name = $crate::tracy_client::Span::new(
             $name,
             "",
@@ -72,9 +89,6 @@ macro_rules! span {
         );
     };
     ($guard_name:tt, $no_tracy_name:expr, $tracy_name:expr) => {
-        #[cfg(not(feature = "tracy"))]
-        $crate::span!($guard_name, $no_tracy_name);
-        #[cfg(feature = "tracy")]
         $crate::span!($guard_name, $tracy_name);
     };
 }
@@ -87,9 +101,22 @@ pub struct ProfSpan;
 /// Like the span macro but only used when profiling and not in regular tracing
 /// operations
 #[macro_export]
+#[cfg(not(feature = "tracy"))]
 macro_rules! prof_span {
     ($guard_name:tt, $name:expr) => {
-        #[cfg(feature = "tracy")]
+        let $guard_name = $crate::ProfSpan;
+    };
+    // Shorthand for when you want the guard to just be dropped at the end of the scope instead
+    // of controlling it manually
+    ($name:expr) => {};
+}
+
+/// Like the span macro but only used when profiling and not in regular tracing
+/// operations
+#[macro_export]
+#[cfg(feature = "tracy")]
+macro_rules! prof_span {
+    ($guard_name:tt, $name:expr) => {
         let $guard_name = $crate::ProfSpan($crate::tracy_client::Span::new(
             $name,
             "",
@@ -98,8 +125,11 @@ macro_rules! prof_span {
             // No callstack since this has significant overhead
             0,
         ));
-        #[cfg(not(feature = "tracy"))]
-        let $guard_name = $crate::ProfSpan;
+    };
+    // Shorthand for when you want the guard to just be dropped at the end of the scope instead
+    // of controlling it manually
+    ($name:expr) => {
+        $crate::prof_span!(_guard, $name);
     };
 }
 

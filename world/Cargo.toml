@@ -5,7 +5,6 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"
 
 [features]
-tracy = ["common/tracy", "common-net/tracy"]
 simd = ["vek/platform_intrinsics"]
 bin_compression = ["lz-fear", "deflate", "flate2", "image/jpeg", "num-traits"]
 

@@ -5,7 +5,6 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"
 
 [features]
-tracy = ["common/tracy", "common-base/tracy", "common-state/tracy", "common-systems/tracy", "common-net/tracy", "common-frontend/tracy"]
 simd = ["vek/platform_intrinsics"]
 plugins = ["common-state/plugins"]
 bin_bot = ["common-ecs", "serde", "ron", "clap", "rustyline", "common-frontend", "async-channel"]
@@ -21,7 +20,6 @@ common-net = { package = "veloren-common-net", path = "../common/net" }
 network = { package = "veloren-network", path = "../network", features = ["compression","quic"], default-features = false }
 
 byteorder = "1.3.2"
-futures-util = "0.3.7"
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread"] }
 quinn = "0.7.2"
 image = { version = "0.23.12", default-features = false, features = ["png"] }

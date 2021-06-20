@@ -85,6 +85,7 @@ impl<'a> Widget for Popup<'a> {
 
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
+        common_base::prof_span!("Popup::update");
         let widget::UpdateArgs { state, ui, .. } = args;
 
         const FADE_IN: f32 = 0.5;
