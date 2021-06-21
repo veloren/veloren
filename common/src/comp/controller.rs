@@ -215,6 +215,20 @@ pub struct Controller {
 }
 
 impl ControllerInputs {
+    /// Sanitize inputs to avoid clients sending bad data.
+    pub fn sanitize(&mut self) {
+        self.move_dir = if self.move_dir.map(|e| e.is_finite()).reduce_and() {
+            self.move_dir / self.move_dir.magnitude().max(1.0)
+        } else {
+            Vec2::zero()
+        };
+        self.move_z = if self.move_z.is_finite() {
+            self.move_z.clamped(-1.0, 1.0)
+        } else {
+            0.0
+        };
+    }
+
     /// Updates Controller inputs with new version received from the client
     pub fn update_with_new(&mut self, new: Self) {
         self.climb = new.climb;
