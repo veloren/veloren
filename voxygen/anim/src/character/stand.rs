@@ -13,6 +13,8 @@ impl Animation for StandAnimation {
         Option<ToolKind>,
         Option<ToolKind>,
         (Option<Hands>, Option<Hands>),
+        Vec3<f32>,
+        Vec3<f32>,
         f32,
         Vec3<f32>,
     );
@@ -24,7 +26,7 @@ impl Animation for StandAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_stand")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, hands, global_time, avg_vel): Self::Dependency<'a>,
+        (active_tool_kind, second_tool_kind, hands, orientation, last_ori, global_time, avg_vel): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -33,6 +35,19 @@ impl Animation for StandAnimation {
 
         let slow = (anim_time * 1.0).sin();
         let impact = (avg_vel.z).max(-15.0);
+        let ori: Vec2<f32> = Vec2::from(orientation);
+        let last_ori = Vec2::from(last_ori);
+        let tilt = if ::vek::Vec2::new(ori, last_ori)
+            .map(|o| o.magnitude_squared())
+            .map(|m| m > 0.001 && m.is_finite())
+            .reduce_and()
+            && ori.angle_between(last_ori).is_finite()
+        {
+            ori.angle_between(last_ori).min(0.2)
+                * last_ori.determine_side(Vec2::zero(), ori).signum()
+        } else {
+            0.0
+        } * 1.3;
         let head_look = Vec2::new(
             ((global_time + anim_time) / 10.0).floor().mul(7331.0).sin() * 0.15,
             ((global_time + anim_time) / 10.0).floor().mul(1337.0).sin() * 0.07,
@@ -159,7 +174,7 @@ impl Animation for StandAnimation {
             next.lantern.position = Vec3::new(-0.5, -0.5, -2.5);
             next.lantern.orientation = next.hand_r.orientation.inverse()
                 * Quaternion::rotation_x(fast * 0.1)
-                * Quaternion::rotation_y(fast2 * 0.1);
+                * Quaternion::rotation_y(fast2 * 0.1 + tilt * 3.0);
         }
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;

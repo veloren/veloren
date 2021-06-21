@@ -807,7 +807,16 @@ impl FigureMgr {
                         // Standing
                         (true, false, false) => anim::character::StandAnimation::update_skeleton(
                             &CharacterSkeleton::new(holding_lantern),
-                            (active_tool_kind, second_tool_kind, hands, time, rel_avg_vel),
+                            (
+                                active_tool_kind,
+                                second_tool_kind,
+                                hands,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                rel_avg_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,

@@ -846,6 +846,10 @@ impl PlayState for SessionState {
                         Dir::from_unnormalized(cam_dir + aim_dir_offset).unwrap();
                 }
             }
+            self.inputs.strafing = matches!(
+                self.scene.camera().get_mode(),
+                camera::CameraMode::FirstPerson
+            );
 
             // Get the current state of movement related inputs
             let input_vec = self.key_state.dir_vec();
