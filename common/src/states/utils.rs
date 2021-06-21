@@ -307,7 +307,10 @@ pub fn handle_forced_movement(data: &JoinData, update: &mut StateUpdate, movemen
 }
 
 pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
-    let strafe_aim = update.character.is_aimed() && data.body.can_strafe();
+    // TODO: Don't always check `character.is_aimed()`, allow the frontend to
+    // control whether the player strafes during an aimed `CharacterState`.
+    let strafe_aim =
+        (update.character.is_aimed() || update.should_strafe) && data.body.can_strafe();
     if let Some(dir) = (strafe_aim || update.character.is_attack())
         .then(|| data.inputs.look_dir.to_horizontal().unwrap_or_default())
         .or_else(|| Dir::from_unnormalized(data.inputs.move_dir.into()))

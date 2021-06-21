@@ -6,7 +6,7 @@ use treeculler::Frustum;
 use vek::*;
 
 pub const NEAR_PLANE: f32 = 0.0625;
-pub const FAR_PLANE: f32 = 524288.06; // excessive precision: 524288.0625 
+pub const FAR_PLANE: f32 = 524288.06; // excessive precision: 524288.0625
 
 const FIRST_PERSON_INTERP_TIME: f32 = 0.1;
 const THIRD_PERSON_INTERP_TIME: f32 = 0.1;
@@ -415,8 +415,8 @@ impl Camera {
         self.tgt_ori.x = (self.tgt_ori.x + delta.x).rem_euclid(2.0 * PI);
         // Clamp camera pitch to the vertical limits
         self.tgt_ori.y = (self.tgt_ori.y + delta.y)
-            .min(PI / 2.0 - 0.0001)
-            .max(-PI / 2.0 + 0.0001);
+            .min(PI / 2.0 - 0.001)
+            .max(-PI / 2.0 + 0.001);
         // Wrap camera roll
         self.tgt_ori.z = (self.tgt_ori.z + delta.z).rem_euclid(2.0 * PI);
     }

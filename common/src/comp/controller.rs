@@ -199,6 +199,10 @@ pub struct ControllerInputs {
                       * limits) */
     pub look_dir: Dir,
     pub select_pos: Option<Vec3<f32>>,
+    /// Attempt to enable strafing.
+    /// Currently, setting this to false will *not* disable strafing during a
+    /// wielding character state.
+    pub strafing: bool,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
