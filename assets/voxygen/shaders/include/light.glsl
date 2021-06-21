@@ -173,7 +173,7 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
         float light_distance = sqrt(distance_2);
         vec3 light_dir = -difference / light_distance; // normalize(-difference);
         // light_dir = faceforward(light_dir, wnorm, light_dir);
-        bool is_direct = dot(-light_dir, wnorm) > 0.0;
+        bool is_direct = dot(difference, wnorm) > 0.0;
         // reflected_light += color * (distance_2 == 0.0 ? vec3(1.0) : light_reflection_factor(wnorm, cam_to_frag, light_dir, k_d, k_s, alpha));
         vec3 direct_light_dir = is_direct ? light_dir : -light_dir;
         // vec3 direct_norm_dir = is_direct ? wnorm : -wnorm;
