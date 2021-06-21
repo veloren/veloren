@@ -338,6 +338,7 @@ impl World {
         // Apply layers (paths, caves, etc.)
         let mut canvas = Canvas {
             info: CanvasInfo {
+                chunk_pos,
                 wpos: chunk_pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                 column_grid: &zcache_grid,
                 column_grid_border: grid_border,
@@ -352,6 +353,7 @@ impl World {
         layer::apply_trees_to(&mut canvas, &mut dynamic_rng);
         layer::apply_scatter_to(&mut canvas, &mut dynamic_rng);
         layer::apply_paths_to(&mut canvas);
+        layer::apply_spots_to(&mut canvas, &mut dynamic_rng);
         // layer::apply_coral_to(&mut canvas);
 
         // Apply site generation

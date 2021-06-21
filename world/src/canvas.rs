@@ -1,13 +1,14 @@
 use crate::{
-    block::ZCache,
+    block::{block_from_structure, ZCache},
     column::ColumnSample,
     index::IndexRef,
     land::Land,
+    layer::spot::Spot,
     sim::{SimChunk, WorldSim},
     util::Grid,
 };
 use common::{
-    terrain::{Block, TerrainChunk, TerrainChunkSize},
+    terrain::{Block, Structure, TerrainChunk, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, WriteVol},
 };
 use std::ops::Deref;
@@ -15,6 +16,7 @@ use vek::*;
 
 #[derive(Copy, Clone)]
 pub struct CanvasInfo<'a> {
+    pub(crate) chunk_pos: Vec2<i32>,
     pub(crate) wpos: Vec2<i32>,
     pub(crate) column_grid: &'a Grid<Option<ZCache<'a>>>,
     pub(crate) column_grid_border: i32,
@@ -40,6 +42,24 @@ impl<'a> CanvasInfo<'a> {
             .map(Option::as_ref)
             .flatten()
             .map(|zc| &zc.sample)
+    }
+
+    pub fn nearby_spots(&self) -> impl Iterator<Item = (Vec2<i32>, Spot, u32)> + '_ {
+        (-1..2)
+            .map(|x| (-1..2).map(move |y| Vec2::new(x, y)))
+            .flatten()
+            .filter_map(move |pos| {
+                let pos = self.chunk_pos + pos;
+                self.chunks.get(pos).and_then(|c| c.spot).map(|spot| {
+                    let wpos = pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| {
+                        e * sz as i32 + sz as i32 / 2
+                    });
+                    // TODO: Very dumb, not this.
+                    let seed = pos.x as u32 | (pos.y as u32).wrapping_shl(16);
+
+                    (wpos, spot, seed)
+                })
+            })
     }
 
     pub fn index(&self) -> IndexRef<'a> { self.index }
@@ -117,11 +137,19 @@ impl<'a> Canvas<'a> {
         let _ = self.chunk.map(pos - self.wpos(), f);
     }
 
-    /// Execute an operation upon each column in this canvas.
-    pub fn foreach_col(&mut self, mut f: impl FnMut(&mut Self, Vec2<i32>, &ColumnSample)) {
-        for y in 0..self.area().size().h as i32 {
-            for x in 0..self.area().size().w as i32 {
-                let wpos2d = self.wpos() + Vec2::new(x, y);
+    pub fn foreach_col_area(
+        &mut self,
+        aabr: Aabr<i32>,
+        mut f: impl FnMut(&mut Self, Vec2<i32>, &ColumnSample),
+    ) {
+        let chunk_aabr = Aabr {
+            min: self.wpos(),
+            max: self.wpos() + Vec2::from(self.area().size().map(|e| e as i32)),
+        };
+
+        for y in chunk_aabr.min.y.max(aabr.min.y)..chunk_aabr.max.y.min(aabr.max.y) {
+            for x in chunk_aabr.min.x.max(aabr.min.x)..chunk_aabr.max.x.min(aabr.max.x) {
+                let wpos2d = Vec2::new(x, y);
                 let info = self.info;
                 let col = if let Some(col) = info.col(wpos2d) {
                     col
@@ -131,6 +159,51 @@ impl<'a> Canvas<'a> {
                 f(self, wpos2d, col);
             }
         }
+    }
+
+    /// Execute an operation upon each column in this canvas.
+    pub fn foreach_col(&mut self, f: impl FnMut(&mut Self, Vec2<i32>, &ColumnSample)) {
+        self.foreach_col_area(
+            Aabr {
+                min: Vec2::broadcast(i32::MIN),
+                max: Vec2::broadcast(i32::MAX),
+            },
+            f,
+        );
+    }
+
+    /// Blit a structure on to the canvas at the given position.
+    ///
+    /// Note that this function should be called with identitical parameters by
+    /// all chunks within the bounds of the structure to avoid cut-offs
+    /// occurring at chunk borders. Deterministic RNG is advised!
+    pub fn blit_structure(&mut self, origin: Vec3<i32>, structure: &Structure, seed: u32) {
+        let aabr = Aabr {
+            min: origin.xy() + structure.get_bounds().min.xy(),
+            max: origin.xy() + structure.get_bounds().max.xy(),
+        };
+        let info = self.info();
+        self.foreach_col_area(aabr, |canvas, wpos2d, col| {
+            for z in structure.get_bounds().min.z..structure.get_bounds().max.z {
+                if let Ok(sblock) = structure.get((wpos2d - origin.xy()).with_z(z)) {
+                    let _ = canvas.map(wpos2d.with_z(origin.z + z), |block| {
+                        if let Some(block) = block_from_structure(
+                            info.index,
+                            *sblock,
+                            wpos2d.with_z(origin.z + z),
+                            wpos2d - origin.xy(),
+                            seed,
+                            col,
+                            |sprite| block.with_sprite(sprite),
+                        ) {
+                            block
+                        } else {
+                            block
+                        }
+                    });
+                }
+            }
+        });
     }
 }
 
