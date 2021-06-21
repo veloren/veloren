@@ -11,6 +11,7 @@ use vek::*;
 pub struct InterfaceSettings {
     pub toggle_debug: bool,
     pub toggle_hitboxes: bool,
+    pub toggle_chat: bool,
     pub sct: bool,
     pub sct_player_batch: bool,
     pub sct_damage_batch: bool,
@@ -46,6 +47,7 @@ impl Default for InterfaceSettings {
         Self {
             toggle_debug: false,
             toggle_hitboxes: false,
+            toggle_chat: true,
             sct: true,
             sct_player_batch: false,
             sct_damage_batch: false,

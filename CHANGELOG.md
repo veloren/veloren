@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added debug line info to release builds, enhancing the usefulness of panic backtraces
 - NPCs and animals can now make sounds in response to certain events
 - Players can press H to greet others
+- Ability to toggle chat visibility
 
 ### Changed
 - Entity-entity pushback is no longer applied in forced movement states like rolling and leaping.
