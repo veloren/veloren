@@ -2,18 +2,45 @@
 use super::body::{object, Body};
 use super::{Density, Ori, Vel};
 use crate::{
-    consts::{AIR_DENSITY, WATER_DENSITY},
+    consts::{AIR_DENSITY, LAVA_DENSITY, WATER_DENSITY},
     util::{Dir, Plane, Projection},
 };
 use serde::{Deserialize, Serialize};
 use std::f32::consts::PI;
 use vek::*;
 
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum LiquidKind {
+    Water,
+    Lava,
+}
+
+impl LiquidKind {
+    /// If an entity is in multiple overlapping liquid blocks, which one takes
+    /// precedence? (should be a rare edge case, since checkerboard patterns of
+    /// water and lava shouldn't show up in worldgen)
+    pub fn merge(self, other: LiquidKind) -> LiquidKind {
+        use LiquidKind::{Lava, Water};
+        match (self, other) {
+            (Water, Water) => Water,
+            (Water, Lava) => Lava,
+            (Lava, _) => Lava,
+        }
+    }
+}
+
 /// Fluid medium in which the entity exists
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Fluid {
-    Air { vel: Vel, elevation: f32 },
-    Water { vel: Vel, depth: f32 },
+    Air {
+        vel: Vel,
+        elevation: f32,
+    },
+    Liquid {
+        kind: LiquidKind,
+        vel: Vel,
+        depth: f32,
+    },
 }
 
 impl Fluid {
@@ -21,7 +48,14 @@ impl Fluid {
     pub fn density(&self) -> Density {
         match self {
             Self::Air { .. } => Density(AIR_DENSITY),
-            Self::Water { .. } => Density(WATER_DENSITY),
+            Self::Liquid {
+                kind: LiquidKind::Water,
+                ..
+            } => Density(WATER_DENSITY),
+            Self::Liquid {
+                kind: LiquidKind::Lava,
+                ..
+            } => Density(LAVA_DENSITY),
         }
     }
 
@@ -53,14 +87,14 @@ impl Fluid {
     pub fn flow_vel(&self) -> Vel {
         match self {
             Self::Air { vel, .. } => *vel,
-            Self::Water { vel, .. } => *vel,
+            Self::Liquid { vel, .. } => *vel,
         }
     }
 
     // Very simple but useful in reducing mental overhead
     pub fn relative_flow(&self, vel: &Vel) -> Vel { Vel(self.flow_vel().0 - vel.0) }
 
-    pub fn is_liquid(&self) -> bool { matches!(self, Fluid::Water { .. }) }
+    pub fn is_liquid(&self) -> bool { matches!(self, Fluid::Liquid { .. }) }
 
     pub fn elevation(&self) -> Option<f32> {
         match self {
@@ -71,7 +105,7 @@ impl Fluid {
 
     pub fn depth(&self) -> Option<f32> {
         match self {
-            Fluid::Water { depth, .. } => Some(*depth),
+            Fluid::Liquid { depth, .. } => Some(*depth),
             _ => None,
         }
     }

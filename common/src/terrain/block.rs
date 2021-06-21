@@ -1,5 +1,8 @@
 use super::SpriteKind;
-use crate::{comp::tool::ToolKind, make_case_elim};
+use crate::{
+    comp::{fluid_dynamics::LiquidKind, tool::ToolKind},
+    make_case_elim,
+};
 use enum_iterator::IntoEnumIterator;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
@@ -33,6 +36,7 @@ make_case_elim!(
         // being *very* fast).
         Rock = 0x10,
         WeakRock = 0x11, // Explodable
+        Lava = 0x12,
         // 0x12 <= x < 0x20 is reserved for future rocks
         Grass = 0x20, // Note: *not* the same as grass sprites
         Snow = 0x21,
@@ -62,6 +66,15 @@ impl BlockKind {
 
     #[inline]
     pub const fn is_liquid(&self) -> bool { self.is_fluid() && !self.is_air() }
+
+    #[inline]
+    pub const fn liquid_kind(&self) -> Option<LiquidKind> {
+        Some(match self {
+            BlockKind::Water => LiquidKind::Water,
+            BlockKind::Lava => LiquidKind::Lava,
+            _ => return None,
+        })
+    }
 
     /// Determine whether the block is filled (i.e: fully solid). Right now,
     /// this is the opposite of being a fluid.
@@ -168,6 +181,9 @@ impl Block {
 
     #[inline]
     pub fn get_glow(&self) -> Option<u8> {
+        if matches!(self.kind, BlockKind::Lava) {
+            return Some(24);
+        }
         match self.get_sprite()? {
             SpriteKind::StreetLamp | SpriteKind::StreetLampTall => Some(24),
             SpriteKind::Ember => Some(20),
@@ -217,7 +233,7 @@ impl Block {
     pub fn is_solid(&self) -> bool {
         self.get_sprite()
             .map(|s| s.solid_height().is_some())
-            .unwrap_or(true)
+            .unwrap_or(!matches!(self.kind, BlockKind::Lava))
     }
 
     /// Can this block be exploded? If so, what 'power' is required to do so?

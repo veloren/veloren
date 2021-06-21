@@ -1,7 +1,7 @@
 use common::{
     comp::{
         body::ship::figuredata::{VoxelCollider, VOXEL_COLLIDER_MANIFEST},
-        fluid_dynamics::{Fluid, Wings},
+        fluid_dynamics::{Fluid, LiquidKind, Wings},
         BeamSegment, Body, CharacterState, Collider, Density, Mass, Mounting, Ori, PhysicsState,
         Pos, PosVelDefer, PreviousPhysCache, Projectile, Scale, Shockwave, Stats, Sticky, Vel,
     },
@@ -905,13 +905,15 @@ impl<'a> PhysicsData<'a> {
                                 .terrain
                                 .get(pos.0.map(|e| e.floor() as i32))
                                 .ok()
-                                .and_then(|vox| vox.is_liquid().then_some(1.0))
-                                .map(|depth| Fluid::Water {
-                                    depth,
-                                    vel: Vel::zero(),
+                                .and_then(|vox| {
+                                    vox.liquid_kind().map(|kind| Fluid::Liquid {
+                                        kind,
+                                        depth: 1.0,
+                                        vel: Vel::zero(),
+                                    })
                                 })
                                 .or_else(|| match physics_state.in_fluid {
-                                    Some(Fluid::Water { .. }) | None => Some(Fluid::Air {
+                                    Some(Fluid::Liquid { .. }) | None => Some(Fluid::Air {
                                         elevation: pos.0.z,
                                         vel: Vel::default(),
                                     }),
@@ -1541,24 +1543,27 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     });
 
     // Find liquid immersion and wall collision all in one round of iteration
-    let mut max_liquid_z = None::<f32>;
+    let mut liquid = None::<(LiquidKind, f32)>;
     let mut wall_dir_collisions = [false; 4];
     near_iter.for_each(|(i, j, k)| {
         let block_pos = player_voxel_pos + Vec3::new(i, j, k);
 
         if let Some(block) = terrain.get(block_pos).ok().copied() {
             // Check for liquid blocks
-            if block.is_liquid() {
+            if let Some(block_liquid) = block.liquid_kind() {
                 let liquid_aabb = Aabb {
                     min: block_pos.map(|e| e as f32),
                     // The liquid part of a liquid block always extends 1 block high.
                     max: block_pos.map(|e| e as f32) + Vec3::one(),
                 };
                 if player_aabb.collides_with_aabb(liquid_aabb) {
-                    max_liquid_z = Some(match max_liquid_z {
-                        Some(z) => z.max(liquid_aabb.max.z),
-                        None => liquid_aabb.max.z,
-                    });
+                    liquid = match liquid {
+                        Some((kind, max_liquid_z)) => Some((
+                            kind.merge(block_liquid),
+                            max_liquid_z.max(liquid_aabb.max.z),
+                        )),
+                        None => Some((block_liquid, liquid_aabb.max.z)),
+                    };
                 }
             }
             // Check for walls
@@ -1594,23 +1599,24 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         physics_state.ground_vel = ground_vel;
     }
 
-    physics_state.in_fluid = max_liquid_z
-        .map(|max_z| max_z - pos.0.z) // NOTE: assumes min_z == 0.0
-        .map(|depth| {
-            physics_state
+    physics_state.in_fluid = liquid
+        .map(|(kind, max_z)| (kind, max_z - pos.0.z)) // NOTE: assumes min_z == 0.0
+        .map(|(kind, depth)| {
+            (kind, physics_state
                 .in_liquid()
                 // This is suboptimal because it doesn't check for true depth,
                 // so it can cause problems for situations like swimming down
                 // a river and spawning or teleporting in(/to) water
                 .map(|old_depth| (old_depth + old_pos.z - pos.0.z).max(depth))
-                .unwrap_or(depth)
+                .unwrap_or(depth))
         })
-        .map(|depth| Fluid::Water {
+        .map(|(kind, depth)| Fluid::Liquid {
+            kind,
             depth,
             vel: Vel::zero(),
         })
         .or_else(|| match physics_state.in_fluid {
-            Some(Fluid::Water { .. }) | None => Some(Fluid::Air {
+            Some(Fluid::Liquid { .. }) | None => Some(Fluid::Air {
                 elevation: pos.0.z,
                 vel: Vel::default(),
             }),

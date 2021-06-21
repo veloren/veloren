@@ -34,6 +34,7 @@ pub struct Colors {
     pub cave_roof: (u8, u8, u8),
     pub dirt: (u8, u8, u8),
     pub scaffold: (u8, u8, u8),
+    pub lava: (u8, u8, u8),
     pub vein: (u8, u8, u8),
 }
 
@@ -210,12 +211,14 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             //make pits
             for z in cave_base - pit_depth..cave_base {
                 if pit_condition && (cave_roof - cave_base) > 10 {
+                    let kind = if z < (cave_base - pit_depth) + (3 * pit_depth / 4) {
+                        BlockKind::Lava
+                    } else {
+                        BlockKind::Air
+                    };
                     canvas.set(
                         Vec3::new(wpos2d.x, wpos2d.y, z),
-                        Block::new(
-                            BlockKind::Air,
-                            noisy_color(info.index().colors.layer.scaffold.into(), 8),
-                        ),
+                        Block::new(kind, noisy_color(info.index().colors.layer.lava.into(), 8)),
                     );
                 }
             }

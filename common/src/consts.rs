@@ -13,6 +13,9 @@ pub const FRIC_GROUND: f32 = 0.15;
 // kg/m³
 pub const AIR_DENSITY: f32 = 1.225;
 pub const WATER_DENSITY: f32 = 999.1026;
+// LAVA_DENSITY is unsourced, estimated as "roughly three times higher" than
+// water
+pub const LAVA_DENSITY: f32 = 3000.0;
 pub const IRON_DENSITY: f32 = 7870.0;
 // pub const HUMAN_DENSITY: f32 = 1010.0; // real value
 pub const HUMAN_DENSITY: f32 = 990.0; // value we use to make humanoids gently float
