@@ -4,11 +4,11 @@ ItemDef(
     kind: Lantern(
         (
             kind: "Blue0",
-            color: (r: 255, g: 128, b: 26),
-            strength_thousandths: 6000,
-            flicker_thousandths: 250,
+            color: (r: 55, g: 100, b: 255),
+            strength_thousandths: 7000,
+            flicker_thousandths: 300,
         ),
     ),
-    quality: Common,
+    quality: High,
     tags: [Utility],
 )
