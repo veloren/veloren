@@ -97,6 +97,7 @@ pub enum Interface {
     ToggleHelp(bool),
     ToggleDebug(bool),
     ToggleHitboxes(bool),
+    ToggleChat(bool),
     ToggleTips(bool),
 
     CrosshairTransp(f32),
@@ -449,6 +450,9 @@ impl SettingsChange {
                     },
                     Interface::ToggleHitboxes(toggle_hitboxes) => {
                         settings.interface.toggle_hitboxes = toggle_hitboxes;
+                    },
+                    Interface::ToggleChat(toggle_chat) => {
+                        settings.interface.toggle_chat = toggle_chat;
                     },
                     Interface::ToggleTips(loading_tips) => {
                         settings.interface.loading_tips = loading_tips;

@@ -2706,43 +2706,45 @@ impl Hud {
             .retain(|m| !matches!(m.chat_type, comp::ChatType::Npc(_, _)));
 
         // Chat box
-        for event in Chat::new(
-            &mut self.new_messages,
-            &client,
-            global_state,
-            self.pulse,
-            &self.imgs,
-            &self.fonts,
-            i18n,
-        )
-        .and_then(self.force_chat_input.take(), |c, input| c.input(input))
-        .and_then(self.tab_complete.take(), |c, input| {
-            c.prepare_tab_completion(input)
-        })
-        .and_then(self.force_chat_cursor.take(), |c, pos| c.cursor_pos(pos))
-        .set(self.ids.chat, ui_widgets)
-        {
-            match event {
-                chat::Event::TabCompletionStart(input) => {
-                    self.tab_complete = Some(input);
-                },
-                chat::Event::SendMessage(message) => {
-                    events.push(Event::SendMessage(message));
-                },
-                chat::Event::SendCommand(name, args) => {
-                    events.push(Event::SendCommand(name, args));
-                },
-                chat::Event::Focus(focus_id) => {
-                    self.to_focus = Some(Some(focus_id));
-                },
-                chat::Event::ChangeChatTab(tab) => {
-                    events.push(Event::SettingsChange(ChatChange::ChangeChatTab(tab).into()));
-                },
-                chat::Event::ShowChatTabSettings(tab) => {
-                    self.show.chat_tab_settings_index = Some(tab);
-                    self.show.settings_tab = SettingsTab::Chat;
-                    self.show.settings(true);
-                },
+        if global_state.settings.interface.toggle_chat {
+            for event in Chat::new(
+                &mut self.new_messages,
+                &client,
+                global_state,
+                self.pulse,
+                &self.imgs,
+                &self.fonts,
+                i18n,
+            )
+            .and_then(self.force_chat_input.take(), |c, input| c.input(input))
+            .and_then(self.tab_complete.take(), |c, input| {
+                c.prepare_tab_completion(input)
+            })
+            .and_then(self.force_chat_cursor.take(), |c, pos| c.cursor_pos(pos))
+            .set(self.ids.chat, ui_widgets)
+            {
+                match event {
+                    chat::Event::TabCompletionStart(input) => {
+                        self.tab_complete = Some(input);
+                    },
+                    chat::Event::SendMessage(message) => {
+                        events.push(Event::SendMessage(message));
+                    },
+                    chat::Event::SendCommand(name, args) => {
+                        events.push(Event::SendCommand(name, args));
+                    },
+                    chat::Event::Focus(focus_id) => {
+                        self.to_focus = Some(Some(focus_id));
+                    },
+                    chat::Event::ChangeChatTab(tab) => {
+                        events.push(Event::SettingsChange(ChatChange::ChangeChatTab(tab).into()));
+                    },
+                    chat::Event::ShowChatTabSettings(tab) => {
+                        self.show.chat_tab_settings_index = Some(tab);
+                        self.show.settings_tab = SettingsTab::Chat;
+                        self.show.settings(true);
+                    },
+                }
             }
         }
 

@@ -216,6 +216,10 @@ impl Body {
     }
 
     pub fn can_climb(&self) -> bool { matches!(self, Body::Humanoid(_)) }
+
+    /// Returns how well a body can move backwards while strafing (0.0 = not at
+    /// all, 1.0 = same as forward)
+    pub fn reverse_move_factor(&self) -> f32 { 0.5 }
 }
 
 /// Handles updating `Components` to move player based on state of `JoinData`
@@ -257,6 +261,19 @@ fn basic_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
         * accel
         * if data.body.can_strafe() {
             data.inputs.move_dir
+                * if is_strafing(data, update) {
+                    Lerp::lerp(
+                        Vec2::from(update.ori)
+                            .try_normalized()
+                            .unwrap_or_else(Vec2::zero)
+                            .dot(data.inputs.move_dir)
+                            .max(0.0),
+                        1.0,
+                        data.body.reverse_move_factor(),
+                    )
+                } else {
+                    1.0
+                }
         } else {
             let fw = Vec2::from(update.ori);
             fw * data.inputs.move_dir.dot(fw).max(0.0)
@@ -307,11 +324,7 @@ pub fn handle_forced_movement(data: &JoinData, update: &mut StateUpdate, movemen
 }
 
 pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
-    // TODO: Don't always check `character.is_aimed()`, allow the frontend to
-    // control whether the player strafes during an aimed `CharacterState`.
-    let strafe_aim =
-        (update.character.is_aimed() || update.should_strafe) && data.body.can_strafe();
-    if let Some(dir) = (strafe_aim || update.character.is_attack())
+    if let Some(dir) = (is_strafing(data, update) || update.character.is_attack())
         .then(|| data.inputs.look_dir.to_horizontal().unwrap_or_default())
         .or_else(|| Dir::from_unnormalized(data.inputs.move_dir.into()))
     {
@@ -710,6 +723,12 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             }
         }
     }
+}
+
+pub fn is_strafing(data: &JoinData, update: &StateUpdate) -> bool {
+    // TODO: Don't always check `character.is_aimed()`, allow the frontend to
+    // control whether the player strafes during an aimed `CharacterState`.
+    (update.character.is_aimed() || update.should_strafe) && data.body.can_strafe()
 }
 
 pub fn unwrap_tool_data<'a>(data: &'a JoinData, equip_slot: EquipSlot) -> Option<&'a Tool> {

@@ -54,7 +54,11 @@ const vec3 GLOW_COLOR = vec3(0.89, 0.95, 0.52);
 // Calculate glow from static light sources, + some noise for flickering.
 // TODO: Optionally disable the flickering for performance?
 vec3 glow_light(vec3 pos) {
-    return GLOW_COLOR * (1.0 + (noise_3d(vec3(pos.xy * 0.005, tick.x * 0.5)) - 0.5) * 1.0);
+    #if (SHADOW_MODE <= SHADOW_MODE_NONE)
+        return GLOW_COLOR;
+    #else
+        return GLOW_COLOR * (1.0 + (noise_3d(vec3(pos.xy * 0.005, tick.x * 0.5)) - 0.5) * 1.0);
+    #endif
 }
 
 //vec3 get_sun_dir(float time_of_day) {
@@ -420,7 +424,7 @@ vec3 get_sky_light(vec3 dir, float time_of_day, bool with_stars) {
     // Add white dots for stars. Note these flicker and jump due to FXAA
     float star = 0.0;
     if (with_stars) {
-        vec3 star_dir = normalize(sun_dir.xyz * dir.z + cross(sun_dir.xyz, vec3(0, 1, 0)) * dir.x + vec3(0, 1, 0) * dir.y);
+        vec3 star_dir = sun_dir.xyz * dir.z + cross(sun_dir.xyz, vec3(0, 1, 0)) * dir.x + vec3(0, 1, 0) * dir.y;
         star = is_star_at(star_dir);
     }
 
@@ -485,7 +489,13 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
         pow(max(-sun_dir.z, 0.0), 0.5)
     );
 
-    vec3 sun_halo = sun_halo_color * 25 * pow(max(dot(dir, -sun_dir), 0), 20.0);
+    float sun_halo_power = 20.0;
+    #if (CLOUD_MODE == CLOUD_MODE_NONE)
+        sun_halo_power = 1000.0;
+        sun_halo_color *= 0.1;
+    #endif
+
+    vec3 sun_halo = sun_halo_color * 25 * pow(max(dot(dir, -sun_dir), 0), sun_halo_power);
     vec3 sun_surf = vec3(0);
     if (with_features) {
         float angle = 0.00035;
@@ -498,7 +508,14 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
     const vec3 MOON_HALO_COLOR = vec3(0.015, 0.015, 0.05) * 250;
 
     vec3 moon_halo_color = MOON_HALO_COLOR;
-    vec3 moon_halo = moon_halo_color * pow(max(dot(dir, -moon_dir), 0), 100.0);
+
+    float moon_halo_power = 20.0;
+    #if (CLOUD_MODE == CLOUD_MODE_NONE)
+        moon_halo_power = 2500.0;
+        moon_halo_color *= 0.1;
+    #endif
+
+    vec3 moon_halo = moon_halo_color * pow(max(dot(dir, -moon_dir), 0), moon_halo_power);
     vec3 moon_surf = vec3(0);
     if (with_features) {
         float angle = 0.00035;

@@ -37,16 +37,8 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = read_data.server_bus.emitter();
 
         for (entity, controller) in (&read_data.entities, &mut controllers).join() {
-            let mut inputs = &mut controller.inputs;
-
-            // Update `inputs.move_dir`.
-            inputs.move_dir = if inputs.move_dir.magnitude_squared() > 1.0 {
-                // Cap move_dir to 1
-                inputs.move_dir.normalized()
-            } else {
-                inputs.move_dir
-            };
-            inputs.move_z = inputs.move_z.clamped(-1.0, 1.0);
+            // Sanitize inputs to avoid clients sending bad data
+            controller.inputs.sanitize();
 
             // Process other controller events
             for event in controller.events.drain(..) {

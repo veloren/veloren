@@ -8,21 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Added a skill tree for mining, which gains xp from mining ores and gems.
 - Added debug line info to release builds, enhancing the usefulness of panic backtraces
 - NPCs and animals can now make sounds in response to certain events
 - Players can press H to greet others
+- Ability to toggle chat visibility
 
 ### Changed
+
 - Entity-entity pushback is no longer applied in forced movement states like rolling and leaping.
 - Updated audio library (rodio 0.13 -> 0.14).
 - Improve entity-terrain physics performance by reducing the number of voxel lookups.
 - Clay Golem uses shockwave only after specific fraction of health and other difficulty adjustments.
+- Made strafing slightly slower
 
 ### Removed
+
 - Enemies no more spawn in dungeon boss room
 
 ### Fixed
+
 - Crafting Stations aren't exploadable anymore
 - Cases where no audio output could be produced before.
 - Significantly improved the performance of playing sound effects
