@@ -7,8 +7,7 @@ mod tree;
 
 // Reexports
 pub use self::{
-    block_mask::BlockMask, castle::Castle, economy::Economy,
-    settlement::Settlement, tree::Tree,
+    block_mask::BlockMask, castle::Castle, economy::Economy, settlement::Settlement, tree::Tree,
 };
 
 use crate::{column::ColumnSample, site2, Canvas};
@@ -155,7 +154,8 @@ impl Site {
                 };
                 s.apply_supplement(dynamic_rng, wpos2d, get_column, supplement, economy)
             },
-            SiteKind::Dungeon(d) => {}, //d.apply_supplement(dynamic_rng, wpos2d, get_column, supplement),
+            SiteKind::Dungeon(d) => {}, /* d.apply_supplement(dynamic_rng, wpos2d, get_column,
+                                          * supplement), */
             SiteKind::Castle(c) => c.apply_supplement(dynamic_rng, wpos2d, get_column, supplement),
             SiteKind::Refactor(_) => {},
             SiteKind::Tree(_) => {},

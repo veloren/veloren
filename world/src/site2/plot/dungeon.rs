@@ -15,7 +15,8 @@ use common::{
     generation::{ChunkSupplement, EntityInfo},
     store::{Id, Store},
     terrain::{
-        Block, BlockKind, SpriteKind, Structure, structure::StructureBlock, StructuresGroup, TerrainChunkSize,
+        structure::StructureBlock, Block, BlockKind, SpriteKind, Structure, StructuresGroup,
+        TerrainChunkSize,
     },
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, WriteVol},
 };
@@ -1245,9 +1246,10 @@ impl SiteStructure for Dungeon {
             TILE_SIZE as f32 / 2.0,
             tweak!(27.0),
         )));
+        let stairs_radius = 7;
         let bounding_box = prim(Primitive::Aabb(Aabb {
-            min: origin - Vec3::new(8, 8, self.alt - 1),
-            max: origin + Vec3::new(8, 8, 400),
+            min: origin - Vec3::new(stairs_radius, stairs_radius, self.alt - 1),
+            max: origin + Vec3::new(stairs_radius, stairs_radius, 400),
         }));
         //let stairs_inf = prim(Primitive::Sampling(Box::new(|_| true)));
         let stairs = prim(Primitive::And(bounding_box, stairs_inf));
@@ -1269,7 +1271,7 @@ impl SiteStructure for Dungeon {
         let entrances = ENTRANCES.read();
         let entrance = entrances[self.seed as usize % entrances.len()].clone();
 
-        let entrance_aabb = prim(Primitive::Aabb(entrance.get_bounds()));
+        /*let entrance_aabb = prim(Primitive::Aabb(entrance.get_bounds()));
         let entrance = prim(Primitive::Sampling(Box::new(move |pos| {
             entrance
                 .get(pos)
@@ -1277,7 +1279,12 @@ impl SiteStructure for Dungeon {
         })));
         let entrance = prim(Primitive::And(entrance, entrance_aabb));
         let entrance = prim(Primitive::Translate(entrance, origin));
-        fill(entrance, Fill::Block(stone_red));
+        fill(entrance, Fill::Block(stone_red));*/
+        let entrance_prim = prim(Primitive::Prefab(entrance.clone()));
+        let entrance_prim = prim(Primitive::Translate(entrance_prim, origin));
+        let entrance_prim = prim(Primitive::Diff(entrance_prim, bounding_box));
+        //fill(entrance_prim, Fill::Block(stone_red));
+        fill(entrance_prim, Fill::Prefab(entrance, origin, self.seed));
 
         /*let make_staircase = move |kind: &StairsKind,
                                    pos: Vec3<i32>,

@@ -276,18 +276,19 @@ impl Site {
             });
     }
 
-    pub fn name(&self) -> &str {
-        &self.name
-    }
+    pub fn name(&self) -> &str { &self.name }
 
     pub fn difficulty(&self) -> Option<u32> {
-        self.plots.iter().filter_map(|(_, plot)| {
-            if let PlotKind::Dungeon(d) = &plot.kind {
-                Some(d.difficulty())
-            } else {
-                None
-            }
-        }).max()
+        self.plots
+            .iter()
+            .filter_map(|(_, plot)| {
+                if let PlotKind::Dungeon(d) = &plot.kind {
+                    Some(d.difficulty())
+                } else {
+                    None
+                }
+            })
+            .max()
     }
 
     pub fn generate_dungeon(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
@@ -763,9 +764,14 @@ impl Site {
                 PlotKind::Castle(castle) => castle.render_collect(self),
                 PlotKind::Dungeon(dungeon) => {
                     let (prim_tree, fills) = dungeon.render_collect(self);
-                    tracing::info!("{:?}: {:?} {:?}", dungeon.name(), prim_tree.ids().count(), fills.len());
+                    tracing::info!(
+                        "{:?}: {:?} {:?}",
+                        dungeon.name(),
+                        prim_tree.ids().count(),
+                        fills.len()
+                    );
                     (prim_tree, fills)
-                }
+                },
                 _ => continue,
             };
 
@@ -777,7 +783,7 @@ impl Site {
                         for z in aabb.min.z..aabb.max.z {
                             let pos = Vec3::new(x, y, z);
 
-                            if let Some(block) = fill.sample_at(&prim_tree, prim, pos) {
+                            if let Some(block) = fill.sample_at(&prim_tree, prim, pos, &canvas) {
                                 canvas.set(pos, block);
                             }
                         }

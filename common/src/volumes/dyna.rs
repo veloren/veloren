@@ -140,6 +140,7 @@ pub trait Access {
     fn idx(pos: Vec3<i32>, sz: Vec3<u32>) -> usize;
 }
 
+#[derive(Copy, Clone, Debug)]
 pub struct ColumnAccess;
 
 impl Access for ColumnAccess {

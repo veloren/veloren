@@ -1,8 +1,15 @@
 use super::*;
-use crate::util::{RandomField, Sampler};
+use crate::{
+    block::block_from_structure,
+    util::{RandomField, Sampler},
+};
 use common::{
     store::{Id, Store},
-    terrain::{Block, BlockKind},
+    terrain::{
+        structure::{Structure as PrefabStructure, StructureBlock},
+        Block, BlockKind,
+    },
+    vol::ReadVol,
 };
 use vek::*;
 
@@ -18,6 +25,7 @@ pub enum Primitive {
     Sphere(Aabb<i32>),
     Plane(Aabr<i32>, Vec3<i32>, Vec2<f32>),
     Sampling(Box<dyn Fn(Vec3<i32>) -> bool>),
+    Prefab(PrefabStructure),
 
     // Combinators
     And(Id<Primitive>, Id<Primitive>),
@@ -34,6 +42,10 @@ pub enum Primitive {
 pub enum Fill {
     Block(Block),
     Brick(BlockKind, Rgb<u8>, u8),
+    // TODO: the offset field for Prefab is a hack that breaks the compositionality of Translate,
+    // we probably need an evaluator for the primitive tree that gets which point is queried at
+    // leaf nodes given an input point to make Translate/Rotate work generally
+    Prefab(PrefabStructure, Vec3<i32>, u32),
 }
 
 impl Fill {
@@ -99,6 +111,7 @@ impl Fill {
                                 .dot(*gradient) as i32)
             },
             Primitive::Sampling(f) => f(pos),
+            Primitive::Prefab(p) => !matches!(p.get(pos), Err(_) | Ok(StructureBlock::None)),
             Primitive::And(a, b) => {
                 self.contains_at(tree, *a, pos) && self.contains_at(tree, *b, pos)
             },
@@ -118,7 +131,7 @@ impl Fill {
             },
             Primitive::Translate(prim, vec) => {
                 self.contains_at(tree, *prim, pos.map2(*vec, i32::saturating_sub))
-            }
+            },
         }
     }
 
@@ -127,6 +140,7 @@ impl Fill {
         tree: &Store<Primitive>,
         prim: Id<Primitive>,
         pos: Vec3<i32>,
+        canvas: &Canvas,
     ) -> Option<Block> {
         if self.contains_at(tree, prim, pos) {
             match self {
@@ -137,6 +151,19 @@ impl Fill {
                         .get((pos + Vec3::new(pos.z, pos.z, 0)) / Vec3::new(2, 2, 1))
                         % *range as u32) as u8,
                 )),
+                Fill::Prefab(p, tr, seed) => p.get(pos - tr).ok().and_then(|sb| {
+                    let info = canvas.info;
+                    let col_sample = info.col(info.wpos)?;
+                    block_from_structure(
+                        canvas.index,
+                        *sb,
+                        pos - tr,
+                        info.wpos,
+                        *seed,
+                        col_sample,
+                        Block::air,
+                    )
+                }),
             }
         } else {
             None
@@ -180,6 +207,7 @@ impl Fill {
                 min: Vec3::broadcast(std::i32::MIN),
                 max: Vec3::broadcast(std::i32::MAX),
             },
+            Primitive::Prefab(p) => p.get_bounds(),
             Primitive::And(a, b) => or_zip_with(
                 self.get_bounds_inner(tree, *a),
                 self.get_bounds_inner(tree, *b),
