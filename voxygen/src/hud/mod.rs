@@ -3822,7 +3822,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Crippled { .. } => imgs.debuff_crippled_0,
         BuffKind::Frozen { .. } => imgs.debuff_frozen_0,
         BuffKind::Wet { .. } => imgs.debuff_wet_0,
-        BuffKind::Ensnared { .. } => imgs.debuff_crippled_0,
+        BuffKind::Ensnared { .. } => imgs.debuff_ensnared_0,
     }
 }
 

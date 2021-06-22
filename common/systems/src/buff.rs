@@ -65,6 +65,7 @@ impl<'a> System<'a> for Sys {
                     physics_state.on_ground.and_then(|b| b.get_sprite()),
                     Some(SpriteKind::EnsnaringVines)
                 ) {
+                    // If on ensnaring vines, apply ensnared debuff
                     server_emitter.emit(ServerEvent::Buff {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
@@ -82,6 +83,7 @@ impl<'a> System<'a> for Sys {
                         ..
                     })
                 ) {
+                    // If in lava fluid, apply burning debuff
                     server_emitter.emit(ServerEvent::Buff {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
@@ -97,13 +99,13 @@ impl<'a> System<'a> for Sys {
                         kind: LiquidKind::Water,
                         ..
                     })
-                ) {
-                    if buff_comp.kinds.contains_key(&BuffKind::Burning) {
-                        server_emitter.emit(ServerEvent::Buff {
-                            entity,
-                            buff_change: BuffChange::RemoveByKind(BuffKind::Burning),
-                        });
-                    }
+                ) && buff_comp.kinds.contains_key(&BuffKind::Burning)
+                {
+                    // If in water fluid and currently burning, remove burning debuffs
+                    server_emitter.emit(ServerEvent::Buff {
+                        entity,
+                        buff_change: BuffChange::RemoveByKind(BuffKind::Burning),
+                    });
                 }
             }
 
@@ -284,12 +286,7 @@ impl<'a> System<'a> for Sys {
     }
 }
 
-fn tick_buff(
-    id: u64,
-    buff: &mut Buff,
-    dt: f32,
-    mut expire_buff: impl FnMut(u64),
-) {
+fn tick_buff(id: u64, buff: &mut Buff, dt: f32, mut expire_buff: impl FnMut(u64)) {
     // If a buff is recently applied from an aura, do not tick duration
     if buff
         .cat_ids
