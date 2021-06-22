@@ -8,6 +8,7 @@ use crate::{
     util::Grid,
 };
 use common::{
+    generation::EntityInfo,
     terrain::{Block, Structure, TerrainChunk, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, WriteVol},
 };
@@ -112,6 +113,7 @@ impl<'a> CanvasInfo<'a> {
 pub struct Canvas<'a> {
     pub(crate) info: CanvasInfo<'a>,
     pub(crate) chunk: &'a mut TerrainChunk,
+    pub(crate) entities: Vec<EntityInfo>,
 }
 
 impl<'a> Canvas<'a> {
@@ -205,6 +207,8 @@ impl<'a> Canvas<'a> {
             }
         });
     }
+
+    pub fn spawn(&mut self, entity: EntityInfo) { self.entities.push(entity); }
 }
 
 impl<'a> Deref for Canvas<'a> {

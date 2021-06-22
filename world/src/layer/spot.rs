@@ -3,7 +3,11 @@ use crate::{
     util::seed_expan,
     Canvas,
 };
-use common::terrain::{Block, BlockKind, Structure};
+use common::{
+    comp,
+    generation::EntityInfo,
+    terrain::{Block, BlockKind, Structure},
+};
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use vek::*;
@@ -11,7 +15,7 @@ use vek::*;
 #[derive(Copy, Clone, Debug)]
 pub enum Spot {
     Camp,
-    Hideout,
+    BanditCamp,
 }
 
 impl Spot {
@@ -24,7 +28,7 @@ impl Spot {
             false,
         );
         Self::generate_spots(
-            Spot::Hideout,
+            Spot::BanditCamp,
             world,
             10.0,
             |g, c| g < 0.25 && !c.near_cliffs() && !c.river.near_water(),
@@ -83,11 +87,36 @@ pub fn apply_spots_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                     },
                 );
             },
-            Spot::Hideout => {
+            Spot::BanditCamp => {
                 let structures = Structure::load_group("dungeon_entrances").read();
                 let structure = structures.choose(&mut rng).unwrap();
                 let origin = spot_wpos.with_z(canvas.land().get_alt_approx(spot_wpos) as i32);
                 canvas.blit_structure(origin, &structure, seed);
+
+                let spawn_radius = 12;
+                let avg_num = 5.0;
+
+                canvas.foreach_col_area(
+                    Aabr {
+                        min: spot_wpos - spawn_radius,
+                        max: spot_wpos + spawn_radius,
+                    },
+                    |canvas, wpos2d, col| {
+                        if dynamic_rng.gen_bool(avg_num / (spawn_radius * 2).pow(2) as f64) {
+                            if let Some(z) = (-8..8).rev().map(|z| col.alt as i32 + z).find(|z| {
+                                canvas.get(wpos2d.with_z(z + 2)).is_fluid()
+                                    && canvas.get(wpos2d.with_z(z + 1)).is_fluid()
+                                    && canvas.get(wpos2d.with_z(z + 0)).is_solid()
+                            }) {
+                                canvas.spawn(
+                                    EntityInfo::at(wpos2d.map(|e| e as f32 + 0.5).with_z(z as f32))
+                                        .with_asset_expect("common.entity.spot.bandit_camp.saurok")
+                                        .with_alignment(comp::Alignment::Enemy),
+                                );
+                            }
+                        }
+                    },
+                );
             },
         }
     }
