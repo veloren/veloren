@@ -88,12 +88,12 @@ impl CharacterBehavior for Data {
                                 data.pos.0.z.floor() as i32,
                             );
 
-                            // Check for collision in z up to 25 blocks up or down
+                            // Check for collision in z up to 10 blocks up or down
                             let obstacle_z = data
                                 .terrain
                                 .ray(
-                                    sprite_pos.map(|x| x as f32 + 0.5) + Vec3::unit_z() * 25.0,
-                                    sprite_pos.map(|x| x as f32 + 0.5) - Vec3::unit_z() * 25.0,
+                                    sprite_pos.map(|x| x as f32 + 0.5) + Vec3::unit_z() * 10.0,
+                                    sprite_pos.map(|x| x as f32 + 0.5) - Vec3::unit_z() * 10.0,
                                 )
                                 .until(|b| {
                                     // Until reaching a solid block that is not the created sprite
@@ -104,7 +104,7 @@ impl CharacterBehavior for Data {
                                 .0;
 
                             // z height relative to caster
-                            let z = sprite_pos.z + (25.5 - obstacle_z).ceil() as i32;
+                            let z = sprite_pos.z + (10.5 - obstacle_z).ceil() as i32;
 
                             // Location sprite will be created
                             let sprite_pos = Vec3::new(sprite_pos.x as i32, sprite_pos.y as i32, z);

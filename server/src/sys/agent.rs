@@ -3734,10 +3734,16 @@ impl<'a> AgentData<'a> {
                 agent.action_state.condition = true;
             }
         } else if attack_data.dist_sqrd < FIRE_BREATH_RANGE.powi(2) {
-            if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(10))
+            if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(5))
+                && can_see_tgt(
+                    &*read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                )
             {
-                // Keep breathing fire if close enough and have not been breathing for more than
-                // 10 seconds
+                // Keep breathing fire if close enough, can see target, and have not been
+                // breathing for more than 5 seconds
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Secondary));
