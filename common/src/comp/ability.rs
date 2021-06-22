@@ -301,6 +301,7 @@ pub enum CharacterAbility {
         recover_duration: f32,
         sprite: SpriteKind,
         summon_distance: (f32, f32),
+        sparseness: f64,
     },
 }
 
@@ -1811,6 +1812,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 recover_duration,
                 sprite,
                 summon_distance,
+                sparseness,
             } => CharacterState::SpriteSummon(sprite_summon::Data {
                 static_data: sprite_summon::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1818,6 +1820,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     sprite: *sprite,
                     summon_distance: *summon_distance,
+                    sparseness: *sparseness,
                     ability_info,
                 },
                 timer: Duration::default(),
