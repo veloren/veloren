@@ -1093,7 +1093,7 @@ fn mini_boss_4(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
 
 fn mini_boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     let mut entities = Vec::new();
-    match dynamic_rng.gen_range(0..2) {
+    match dynamic_rng.gen_range(0..3) {
         0 => {
             entities.push(
                 EntityInfo::at(tile_wcenter.map(|e| e as f32))
@@ -1102,6 +1102,12 @@ fn mini_boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
             entities.resize_with(entities.len() + 2, || {
                 EntityInfo::at(tile_wcenter.map(|e| e as f32))
                     .with_asset_expect("common.entity.dungeon.tier-5.hound")
+            });
+        },
+        1 => {
+            entities.resize_with(2, || {
+                EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                    .with_asset_expect("common.entity.dungeon.tier-5.husk_brute")
             });
         },
         _ => {

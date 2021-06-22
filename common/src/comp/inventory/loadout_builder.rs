@@ -175,7 +175,9 @@ fn default_main_tool(body: &Body) -> Item {
             | quadruped_medium::Species::Kelpie
             | quadruped_medium::Species::Hirdrasil
             | quadruped_medium::Species::Deer
-            | quadruped_medium::Species::Antelope => Some(Item::new_from_asset_expect(
+            | quadruped_medium::Species::Antelope
+            | quadruped_medium::Species::Llama
+            | quadruped_medium::Species::Alpaca => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadmedhoof",
             )),
             quadruped_medium::Species::Saber => Some(Item::new_from_asset_expect(
@@ -267,9 +269,9 @@ fn default_main_tool(body: &Body) -> Item {
             (biped_large::Species::Wendigo, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.wendigo_magic",
             )),
-            (biped_large::Species::Werewolf | biped_large::Species::Huskbrute, _) => Some(
-                Item::new_from_asset_expect("common.items.npc_weapons.unique.beast_claws"),
-            ),
+            (biped_large::Species::Werewolf, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.beast_claws",
+            )),
             (biped_large::Species::Cyclops, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.hammer.cyclops_hammer",
             )),
@@ -302,6 +304,9 @@ fn default_main_tool(body: &Body) -> Item {
             )),
             (biped_large::Species::Cultistwarlock, _) => Some(Item::new_from_asset_expect(
                 "common.items.weapons.staff.bipedlarge-cultist_staff",
+            )),
+            (biped_large::Species::Huskbrute, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.husk_brute",
             )),
         },
         Body::Object(body) => match body {

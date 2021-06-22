@@ -1050,6 +1050,10 @@
         vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
         color: None
     ),
+    "common.items.npc_weapons.unique.husk_brute": (
+        vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
+        color: None
+    ),
     "common.items.npc_weapons.axe.minotaur_axe": (
         vox_spec: ("weapon.axe.2haxe_minotaur", (-2.5, -9.0, -8.0)),
         color: None

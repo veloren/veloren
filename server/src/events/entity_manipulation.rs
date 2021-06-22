@@ -369,7 +369,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                             "common.loot_tables.creature.quad_small.mushroom"
                         },
                         quadruped_small::Species::Sheep => {
-                            "common.loot_tables.creature.quad_small.sheep"
+                            "common.loot_tables.creature.quad_small.wool"
                         },
                         quadruped_small::Species::Skunk
                         | quadruped_small::Species::Quokka
@@ -407,8 +407,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     quadruped_medium::Species::Dreadhorn => {
                         "common.loot_tables.creature.quad_medium.dreadhorn"
                     },
-                    quadruped_medium::Species::Mouflon
-                    | quadruped_medium::Species::Camel
+                    quadruped_medium::Species::Camel
                     | quadruped_medium::Species::Deer
                     | quadruped_medium::Species::Hirdrasil
                     | quadruped_medium::Species::Horse
@@ -418,10 +417,13 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     | quadruped_medium::Species::Antelope
                     | quadruped_medium::Species::Kelpie
                     | quadruped_medium::Species::Cattle
-                    | quadruped_medium::Species::Yak
+                    | quadruped_medium::Species::Yak => {
+                        "common.loot_tables.creature.quad_medium.gentle"
+                    },
+                    quadruped_medium::Species::Mouflon
                     | quadruped_medium::Species::Llama
                     | quadruped_medium::Species::Alpaca => {
-                        "common.loot_tables.creature.quad_medium.gentle"
+                        "common.loot_tables.creature.quad_medium.wool"
                     },
                     quadruped_medium::Species::Ngoubou => {
                         "common.loot_tables.creature.quad_medium.horned"

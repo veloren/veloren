@@ -195,7 +195,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..3) {
+                    .with_body(match rng.gen_range(0..5) {
                         0 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Mouflon,
@@ -204,6 +204,16 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                         1 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Yak,
+                        )
+                        .into(),
+                        2 => quadruped_medium::Body::random_with(
+                            rng,
+                            &quadruped_medium::Species::Llama,
+                        )
+                        .into(),
+                        3 => quadruped_medium::Body::random_with(
+                            rng,
+                            &quadruped_medium::Species::Alpaca,
                         )
                         .into(),
                         _ => quadruped_medium::Body::random_with(
@@ -916,7 +926,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                 close(c.temp, CONFIG.desert_temp + 0.2, 0.3)
                     * close(c.humidity, CONFIG.desert_hum, 0.5)
                     * BASE_DENSITY
-                    * 0.01
+                    * 0.005
             },
         },
         // Desert solitary wild

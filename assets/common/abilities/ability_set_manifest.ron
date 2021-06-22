@@ -34,6 +34,11 @@
         secondary: "common.abilities.custom.husk.triplestrike",
         abilities: [],
     ),
+    Custom("Husk Brute"): (
+        primary: "common.abilities.custom.husk_brute.singlestrike",
+        secondary: "common.abilities.custom.husk_brute.chargedmelee",
+        abilities: [],
+    ),
     Tool(Spear): (
         primary: "common.abilities.spear.doublestrike",
         secondary: "common.abilities.spear.dash",
