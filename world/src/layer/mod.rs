@@ -253,7 +253,7 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                     canvas.set(
                         Vec3::new(wpos2d.x, wpos2d.y, z),
                         Block::new(
-                            BlockKind::WeakRock,
+                            BlockKind::GlowingRock,
                             noisy_color(info.index().colors.layer.vein.into(), 16),
                         ),
                     );
@@ -265,7 +265,7 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                     canvas.set(
                         Vec3::new(wpos2d.x, wpos2d.y, z),
                         Block::new(
-                            BlockKind::WeakRock,
+                            BlockKind::GlowingRock,
                             noisy_color(info.index().colors.layer.vein.into(), 16),
                         ),
                     );

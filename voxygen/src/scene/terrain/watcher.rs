@@ -89,6 +89,9 @@ impl BlocksOfInterest {
                     {
                         river.push(pos)
                     },
+                    BlockKind::Lava if thread_rng().gen_range(0..5) == 0 => {
+                        fires.push(pos + Vec3::unit_z())
+                    },
                     BlockKind::Snow if thread_rng().gen_range(0..16) == 0 => snow.push(pos),
                     _ => match block.get_sprite() {
                         Some(SpriteKind::Ember) => {
@@ -100,7 +103,7 @@ impl BlocksOfInterest {
                         Some(SpriteKind::StreetLamp) => fire_bowls.push(pos + Vec3::unit_z() * 2),
                         Some(SpriteKind::FireBowlGround) => fire_bowls.push(pos + Vec3::unit_z()),
                         Some(SpriteKind::StreetLampTall) => {
-                            fire_bowls.push(pos + Vec3::unit_z() * 4)
+                            fire_bowls.push(pos + Vec3::unit_z() * 3);
                         },
                         Some(SpriteKind::WallSconce) => fire_bowls.push(pos + Vec3::unit_z()),
                         Some(SpriteKind::Beehive) => beehives.push(pos),
@@ -134,12 +137,14 @@ impl BlocksOfInterest {
                             interactables.push((pos, Interaction::Craft(CraftingTab::All)))
                         },
                         Some(SpriteKind::Cauldron) => {
+                            fires.push(pos);
                             interactables.push((pos, Interaction::Craft(CraftingTab::Potion)))
                         },
                         Some(SpriteKind::Anvil) => {
                             interactables.push((pos, Interaction::Craft(CraftingTab::Weapon)))
                         },
                         Some(SpriteKind::CookingPot) => {
+                            fires.push(pos);
                             interactables.push((pos, Interaction::Craft(CraftingTab::Food)))
                         },
                         _ => {},

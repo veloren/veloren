@@ -36,7 +36,7 @@ make_case_elim!(
         // being *very* fast).
         Rock = 0x10,
         WeakRock = 0x11, // Explodable
-        Lava = 0x12,
+        Lava = 0x12,     // TODO: Reevaluate whether this should be in the rock section
         GlowingRock = 0x13,
         // 0x12 <= x < 0x20 is reserved for future rocks
         Grass = 0x20, // Note: *not* the same as grass sprites
@@ -166,38 +166,40 @@ impl Block {
 
     #[inline]
     pub fn get_glow(&self) -> Option<u8> {
-        if matches!(self.kind, BlockKind::Lava | BlockKind::GlowingRock) {
-            return Some(24);
-        }
-        match self.get_sprite()? {
-            SpriteKind::StreetLamp | SpriteKind::StreetLampTall => Some(24),
-            SpriteKind::Ember => Some(20),
-            SpriteKind::WallLamp
-            | SpriteKind::WallLampSmall
-            | SpriteKind::WallSconce
-            | SpriteKind::FireBowlGround
-            | SpriteKind::Orb => Some(16),
-            SpriteKind::Velorite | SpriteKind::VeloriteFrag | SpriteKind::CeilingMushroom => {
-                Some(6)
+        match self.kind() {
+            BlockKind::Lava => Some(24),
+            BlockKind::GlowingRock => Some(12),
+            _ => match self.get_sprite()? {
+                SpriteKind::StreetLamp | SpriteKind::StreetLampTall => Some(24),
+                SpriteKind::Ember => Some(20),
+                SpriteKind::WallLamp
+                | SpriteKind::WallLampSmall
+                | SpriteKind::WallSconce
+                | SpriteKind::FireBowlGround
+                | SpriteKind::Orb => Some(16),
+                SpriteKind::Velorite
+                | SpriteKind::VeloriteFrag
+                | SpriteKind::Cauldron
+                | SpriteKind::CeilingMushroom => Some(6),
+                SpriteKind::CaveMushroom
+                | SpriteKind::CookingPot
+                | SpriteKind::CrystalHigh
+                | SpriteKind::CrystalLow => Some(10),
+                SpriteKind::Amethyst
+                | SpriteKind::Ruby
+                | SpriteKind::Sapphire
+                | SpriteKind::Diamond
+                | SpriteKind::Emerald
+                | SpriteKind::Topaz
+                | SpriteKind::AmethystSmall
+                | SpriteKind::TopazSmall
+                | SpriteKind::DiamondSmall
+                | SpriteKind::RubySmall
+                | SpriteKind::EmeraldSmall
+                | SpriteKind::SapphireSmall => Some(3),
+                SpriteKind::Lantern => Some(24),
+                _ => None,
             },
-            SpriteKind::CaveMushroom
-            | SpriteKind::CookingPot
-            | SpriteKind::CrystalHigh
-            | SpriteKind::CrystalLow => Some(10),
-            SpriteKind::Amethyst
-            | SpriteKind::Ruby
-            | SpriteKind::Sapphire
-            | SpriteKind::Diamond
-            | SpriteKind::Emerald
-            | SpriteKind::Topaz
-            | SpriteKind::AmethystSmall
-            | SpriteKind::TopazSmall
-            | SpriteKind::DiamondSmall
-            | SpriteKind::RubySmall
-            | SpriteKind::EmeraldSmall
-            | SpriteKind::SapphireSmall => Some(3),
-            SpriteKind::Lantern => Some(24),
-            _ => None,
         }
     }
 

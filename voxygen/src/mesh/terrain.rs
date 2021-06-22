@@ -1,4 +1,4 @@
-#![allow(clippy::clone_on_copy)] // TODO: fix after wgpu branch 
+#![allow(clippy::clone_on_copy)] // TODO: fix after wgpu branch
 
 use crate::{
     mesh::{
@@ -461,11 +461,12 @@ fn should_draw_greedy(
 ) -> Option<(bool, FaceKind)> {
     let from = flat_get(pos - delta);
     let to = flat_get(pos);
-    let from_opaque = from.is_opaque();
-    if from_opaque == to.is_opaque() {
+    // Don't use `is_opaque`, because it actually refers to light transmission
+    let from_filled = from.is_filled();
+    if from_filled == to.is_filled() {
         // Check the interface of liquid and non-tangible non-liquid (e.g. air).
         let from_liquid = from.is_liquid();
-        if from_liquid == to.is_liquid() || from.is_opaque() || to.is_opaque() {
+        if from_liquid == to.is_liquid() || from.is_filled() || to.is_filled() {
             None
         } else {
             // While liquid is not culled, we still try to keep a consistent orientation as
@@ -474,11 +475,11 @@ fn should_draw_greedy(
             Some((from_liquid, FaceKind::Fluid))
         }
     } else {
-        // If going from transparent to opaque, backward facing; otherwise, forward
+        // If going from unfilled to filled, backward facing; otherwise, forward
         // facing.  Also, if either from or to is fluid, set the meta accordingly.
         Some((
-            from_opaque,
-            FaceKind::Opaque(if from_opaque {
+            from_filled,
+            FaceKind::Opaque(if from_filled {
                 to.is_liquid()
             } else {
                 from.is_liquid()
