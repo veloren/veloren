@@ -158,7 +158,7 @@ impl Fill {
                         canvas.index,
                         *sb,
                         pos - tr,
-                        info.wpos,
+                        p.get_bounds().center().xy(),
                         *seed,
                         col_sample,
                         Block::air,

@@ -1169,7 +1169,7 @@ pub fn spiral_staircase(
     stretch: f32,
 ) -> Box<dyn Fn(Vec3<i32>) -> bool> {
     Box::new(move |pos: Vec3<i32>| {
-        let pos = pos + origin;
+        let pos = pos - origin;
         if (pos.xy().magnitude_squared() as f32) < inner_radius.powi(2) {
             true
         } else if (pos.xy().magnitude_squared() as f32) < radius.powi(2) {
@@ -1211,104 +1211,31 @@ pub fn wall_staircase(
     })
 }
 
-impl SiteStructure for Dungeon {
+impl Floor {
     fn render<F: FnMut(Primitive) -> Id<Primitive>, G: FnMut(Id<Primitive>, Fill)>(
         &self,
-        site: &site2::Site,
         mut prim: F,
         mut fill: G,
+        dungeon: &Dungeon,
+        floor_z: i32,
     ) {
         //let rpos = pos - self.tile_offset * TILE_SIZE;
         //let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));
         //let tile_center = tile_pos * TILE_SIZE + TILE_SIZE / 2;
         //let rtile_pos = rpos - tile_center;
-
+        let vacant = Block::air(SpriteKind::Empty);
+        let stone_red = Block::new(BlockKind::Rock, Rgb::new(255, 0, 0));
+        let stone_orange = Block::new(BlockKind::Rock, Rgb::new(255, 128, 0));
+        let stone_green = Block::new(BlockKind::Rock, Rgb::new(0, 255, 0));
+        let stone_cyan = Block::new(BlockKind::Rock, Rgb::new(0, 255, 255));
+        let stone_blue = Block::new(BlockKind::Rock, Rgb::new(0, 0, 255));
         //let colors = &index.colors.site.dungeon;
 
-        let vacant = Block::air(SpriteKind::Empty);
-        //let stone = Block::new(BlockKind::Rock, colors.stone.into());
-        let stone_red = Block::new(BlockKind::Rock, Rgb::new(255, 0, 0));
-        let stone_green = Block::new(BlockKind::Rock, Rgb::new(0, 255, 0));
-        let stone_blue = Block::new(BlockKind::Rock, Rgb::new(0, 0, 255));
-
-        use inline_tweak::tweak;
-        let cutout_size = tweak!(9);
-
-        let origin = self.origin.with_z(self.alt);
-        let cutout = prim(Primitive::Aabb(Aabb {
-            min: origin - Vec2::broadcast(cutout_size * 7).with_z(self.alt - 1),
-            max: origin + Vec2::broadcast(cutout_size * 7).with_z(100),
-        }));
-        fill(cutout, Fill::Block(vacant));
-
-        let stairs_inf = prim(Primitive::Sampling(wall_staircase(
-            origin,
-            TILE_SIZE as f32 / 2.0,
-            tweak!(27.0),
-        )));
-        let stairs_radius = 7;
-        let bounding_box = prim(Primitive::Aabb(Aabb {
-            min: origin - Vec3::new(stairs_radius, stairs_radius, self.alt - 1),
-            max: origin + Vec3::new(stairs_radius, stairs_radius, 400),
-        }));
-        //let stairs_inf = prim(Primitive::Sampling(Box::new(|_| true)));
-        let stairs = prim(Primitive::And(bounding_box, stairs_inf));
-        let stairs_tr1 = prim(Primitive::Translate(stairs, Vec3::unit_z()));
-        let stairs_tr2 = prim(Primitive::Translate(stairs, Vec3::broadcast(tweak!(-16))));
-        /*let stairs = prim(Primitive::Cone(Aabb {
-            min: self.origin.with_z(self.alt) - Vec3::broadcast(16),
-            max: self.origin.with_z(self.alt + 100) + Vec3::broadcast(16),
-        }));*/
-        fill(stairs, Fill::Block(stone_red));
-        fill(stairs_tr1, Fill::Block(stone_green));
-        fill(stairs_tr2, Fill::Block(stone_blue));
-
-        lazy_static! {
-            pub static ref ENTRANCES: AssetHandle<StructuresGroup> =
-                Structure::load_group("dungeon_entrances");
-        }
-
-        let entrances = ENTRANCES.read();
-        let entrance = entrances[self.seed as usize % entrances.len()].clone();
-
-        /*let entrance_aabb = prim(Primitive::Aabb(entrance.get_bounds()));
-        let entrance = prim(Primitive::Sampling(Box::new(move |pos| {
-            entrance
-                .get(pos)
-                .map_or(false, |b| !matches!(b, StructureBlock::None))
+        let floor_sprite = prim(Primitive::Sampling(Box::new(|pos| {
+            RandomField::new(7331).chance(Vec3::from(pos), 0.001)
         })));
-        let entrance = prim(Primitive::And(entrance, entrance_aabb));
-        let entrance = prim(Primitive::Translate(entrance, origin));
-        fill(entrance, Fill::Block(stone_red));*/
-        let entrance_prim = prim(Primitive::Prefab(entrance.clone()));
-        let entrance_prim = prim(Primitive::Translate(entrance_prim, origin));
-        let entrance_prim = prim(Primitive::Diff(entrance_prim, bounding_box));
-        //fill(entrance_prim, Fill::Block(stone_red));
-        fill(entrance_prim, Fill::Prefab(entrance, origin, self.seed));
 
-        /*let make_staircase = move |kind: &StairsKind,
-                                   pos: Vec3<i32>,
-                                   radius: f32,
-                                   inner_radius: f32,
-                                   stretch: f32,
-                                   height_limit: i32| {
-            match kind {
-                StairsKind::Spiral => make_spiral_staircase(pos, radius, inner_radius, stretch),
-                StairsKind::WallSpiral => {
-                    make_wall_staircase(pos, radius, stretch * 3.0, height_limit)
-                },
-            }
-        };
-
-        let wall_thickness = 3.0;
-        let dist_to_wall = self
-            .nearest_wall(rpos)
-            .map(|nearest| (nearest.distance_squared(rpos) as f32).sqrt())
-            .unwrap_or(TILE_SIZE as f32);
-        let tunnel_dist =
-            1.0 - (dist_to_wall - wall_thickness).max(0.0) / (TILE_SIZE as f32 - wall_thickness);
-
-        let floor_sprite = if RandomField::new(7331).chance(Vec3::from(pos), 0.001) {
+        /*let floor_sprite = if RandomField::new(7331).chance(Vec3::from(pos), 0.001) {
             BlockMask::new(
                 with_sprite(
                     match (RandomField::new(1337).get(Vec3::from(pos)) / 2) % 30 {
@@ -1341,7 +1268,113 @@ impl SiteStructure for Dungeon {
             }
         } else {
             vacant
+        };*/
+        let aabb_edges = |prim: &mut F, aabb: Aabb<_>| {
+            let f = |prim: &mut F, ret, vec| {
+                let sub = prim(Primitive::Aabb(Aabb {
+                    min: aabb.min + vec,
+                    max: aabb.max - vec,
+                }));
+                prim(Primitive::Diff(ret, sub))
+            };
+            let mut ret = prim(Primitive::Aabb(aabb));
+            ret = f(prim, ret, Vec3::new(1, 0, 0));
+            ret = f(prim, ret, Vec3::new(0, 1, 0));
+            ret = f(prim, ret, Vec3::new(0, 0, 1));
+            ret
         };
+
+        fn aabr_with_z<T>(aabr: Aabr<T>, z: std::ops::Range<T>) -> Aabb<T> {
+            Aabb {
+                min: aabr.min.with_z(z.start),
+                max: aabr.max.with_z(z.end),
+            }
+        }
+
+        let mut stairs_bb = prim(Primitive::Empty);
+        let mut stairs = prim(Primitive::Empty);
+
+        for (tile_pos, tile) in self.tiles.iter() {
+            let tile_corner = dungeon.origin + TILE_SIZE * (self.tile_offset + tile_pos);
+            let tile_aabr = Aabr {
+                min: tile_corner,
+                max: tile_corner + Vec2::broadcast(TILE_SIZE),
+            };
+            let (color, mut height, room) = match tile {
+                Tile::UpStair(room, kind) => {
+                    let center = (tile_corner + Vec2::broadcast(TILE_SIZE) / 2).with_z(floor_z);
+                    let radius = TILE_SIZE as f32 / 2.0;
+                    let aabb =
+                        aabr_with_z(tile_aabr, floor_z + 1..floor_z + self.total_depth() + 1);
+                    let bb = prim(match kind {
+                        StairsKind::Spiral => Primitive::Cylinder(aabb),
+                        StairsKind::WallSpiral => Primitive::Aabb(aabb),
+                    });
+                    let stair = prim(Primitive::Sampling(match kind {
+                        StairsKind::Spiral => spiral_staircase(center, radius, 0.5, 9.0),
+                        StairsKind::WallSpiral => wall_staircase(center, radius, 27.0),
+                    }));
+                    let stair = prim(Primitive::And(bb, stair));
+                    stairs_bb = prim(Primitive::Or(stairs_bb, bb));
+                    stairs = prim(Primitive::Or(stairs, stair));
+                    (stone_cyan, self.hollow_depth, Some(room))
+                },
+                Tile::DownStair(room) => (stone_green, self.hollow_depth, Some(room)),
+                Tile::Room(room) => (stone_blue, self.hollow_depth, Some(room)),
+                Tile::Tunnel => (stone_orange, self.hollow_depth / 2, None),
+                //Tile::Solid => (vacant, self.total_depth(), None),
+                Tile::Solid => continue,
+            };
+
+            if let Some(room) = room.map(|i| self.rooms.get(*i)) {
+                height = height.min(room.height);
+            }
+
+            let tile_air = prim(Primitive::Aabb(aabr_with_z(
+                tile_aabr,
+                floor_z..floor_z + height,
+            )));
+            fill(tile_air, Fill::Block(vacant));
+            let tile_edges =
+                aabb_edges(&mut prim, aabr_with_z(tile_aabr, floor_z..floor_z + height));
+
+            let floor_prim = prim(Primitive::Aabb(aabr_with_z(
+                tile_aabr,
+                floor_z..floor_z + 1,
+            )));
+            fill(floor_prim, Fill::Block(color));
+            let sprite_layer = prim(Primitive::Aabb(aabr_with_z(
+                tile_aabr,
+                floor_z + 1..floor_z + 2,
+            )));
+            let sprite_intersection = prim(Primitive::And(floor_sprite, sprite_layer));
+            fill(sprite_intersection, Fill::Block(stone_red));
+            fill(tile_edges, Fill::Block(Block::air(SpriteKind::Lantern)));
+        }
+
+        fill(stairs_bb, Fill::Block(vacant));
+        fill(stairs, Fill::Block(stone_red));
+        /*let make_staircase = move |kind: &StairsKind,
+                                   pos: Vec3<i32>,
+                                   radius: f32,
+                                   inner_radius: f32,
+                                   stretch: f32,
+                                   height_limit: i32| {
+            match kind {
+                StairsKind::Spiral => make_spiral_staircase(pos, radius, inner_radius, stretch),
+                StairsKind::WallSpiral => {
+                    make_wall_staircase(pos, radius, stretch * 3.0, height_limit)
+                },
+            }
+        };
+
+        let wall_thickness = 3.0;
+        let dist_to_wall = self
+            .nearest_wall(rpos)
+            .map(|nearest| (nearest.distance_squared(rpos) as f32).sqrt())
+            .unwrap_or(TILE_SIZE as f32);
+        let tunnel_dist =
+            1.0 - (dist_to_wall - wall_thickness).max(0.0) / (TILE_SIZE as f32 - wall_thickness);
 
         let tunnel_height = if self.final_level { 16.0 } else { 8.0 };
         let pillar_thickness: i32 = 4;
@@ -1449,5 +1482,35 @@ impl SiteStructure for Dungeon {
             },
             None => BlockMask::nothing(),
         }*/
+    }
+}
+
+impl SiteStructure for Dungeon {
+    fn render<F: FnMut(Primitive) -> Id<Primitive>, G: FnMut(Id<Primitive>, Fill)>(
+        &self,
+        site: &site2::Site,
+        mut prim: F,
+        mut fill: G,
+    ) {
+        let origin = (self.origin + Vec2::broadcast(TILE_SIZE / 2)).with_z(self.alt + ALT_OFFSET);
+
+        lazy_static! {
+            pub static ref ENTRANCES: AssetHandle<StructuresGroup> =
+                Structure::load_group("dungeon_entrances");
+        }
+
+        let entrances = ENTRANCES.read();
+        let entrance = entrances[self.seed as usize % entrances.len()].clone();
+
+        let entrance_prim = prim(Primitive::Prefab(entrance.clone()));
+        let entrance_prim = prim(Primitive::Translate(entrance_prim, origin));
+        fill(entrance_prim, Fill::Prefab(entrance, origin, self.seed));
+
+        let mut z = self.alt + ALT_OFFSET;
+        for floor in &self.floors {
+            z -= floor.total_depth();
+
+            floor.render(&mut prim, &mut fill, &self, z);
+        }
     }
 }

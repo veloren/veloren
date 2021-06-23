@@ -753,7 +753,6 @@ impl Site {
                 }
             }
         }
-        tracing::info!("{:?}: {:?}", canvas.wpos(), plots.len());
 
         let mut plots_to_render = plots.into_iter().collect::<Vec<_>>();
         plots_to_render.sort_unstable();
@@ -762,16 +761,7 @@ impl Site {
             let (prim_tree, fills) = match &self.plots[plot].kind {
                 PlotKind::House(house) => house.render_collect(self),
                 PlotKind::Castle(castle) => castle.render_collect(self),
-                PlotKind::Dungeon(dungeon) => {
-                    let (prim_tree, fills) = dungeon.render_collect(self);
-                    tracing::info!(
-                        "{:?}: {:?} {:?}",
-                        dungeon.name(),
-                        prim_tree.ids().count(),
-                        fills.len()
-                    );
-                    (prim_tree, fills)
-                },
+                PlotKind::Dungeon(dungeon) => dungeon.render_collect(self),
                 _ => continue,
             };
 
