@@ -1,18 +1,18 @@
 use crate::{
     block::{block_from_structure, ZCache},
-    column::ColumnSample,
+    column::{ColumnGen, ColumnSample},
     index::IndexRef,
     land::Land,
     layer::spot::Spot,
     sim::{SimChunk, WorldSim},
-    util::Grid,
+    util::{Grid, Sampler},
 };
 use common::{
     generation::EntityInfo,
     terrain::{Block, Structure, TerrainChunk, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, WriteVol},
 };
-use std::ops::Deref;
+use std::{borrow::Cow, ops::Deref};
 use vek::*;
 
 #[derive(Copy, Clone)]
@@ -37,12 +37,24 @@ impl<'a> CanvasInfo<'a> {
         .into()
     }
 
-    pub fn col(&self, pos: Vec2<i32>) -> Option<&'a ColumnSample> {
+    pub fn col(&self, wpos: Vec2<i32>) -> Option<&'a ColumnSample> {
         self.column_grid
-            .get(self.column_grid_border + pos - self.wpos())
+            .get(self.column_grid_border + wpos - self.wpos())
             .map(Option::as_ref)
             .flatten()
             .map(|zc| &zc.sample)
+    }
+
+    /// Attempt to get the data for the given column, generating it if we don't
+    /// have it.
+    ///
+    /// This function does not (currently) cache generated columns.
+    pub fn col_or_gen(&self, wpos: Vec2<i32>) -> Option<Cow<'a, ColumnSample>> {
+        self.col(wpos).map(Cow::Borrowed).or_else(|| {
+            Some(Cow::Owned(
+                ColumnGen::new(self.chunks()).get((wpos, self.index()))?,
+            ))
+        })
     }
 
     pub fn nearby_spots(&self) -> impl Iterator<Item = (Vec2<i32>, Spot, u32)> + '_ {

@@ -24,14 +24,14 @@ impl Spot {
             Spot::Camp,
             world,
             10.0,
-            |g, c| g < 0.25 && !c.near_cliffs() && !c.river.near_water(),
+            |g, c| g < 0.25 && !c.near_cliffs() && !c.river.near_water() && !c.path.0.is_way(),
             false,
         );
         Self::generate_spots(
             Spot::BanditCamp,
             world,
             10.0,
-            |g, c| g < 0.25 && !c.near_cliffs() && !c.river.near_water(),
+            |g, c| g < 0.25 && !c.near_cliffs() && !c.river.near_water() && !c.path.0.is_way(),
             false,
         );
     }
@@ -90,7 +90,12 @@ pub fn apply_spots_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
             Spot::BanditCamp => {
                 let structures = Structure::load_group("dungeon_entrances").read();
                 let structure = structures.choose(&mut rng).unwrap();
-                let origin = spot_wpos.with_z(canvas.land().get_alt_approx(spot_wpos) as i32);
+                let origin = spot_wpos.with_z(
+                    canvas
+                        .col_or_gen(spot_wpos)
+                        .map(|c| c.alt as i32)
+                        .unwrap_or(0),
+                );
                 canvas.blit_structure(origin, &structure, seed);
 
                 let spawn_radius = 12;
