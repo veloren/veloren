@@ -52,7 +52,7 @@ pub enum Fill {
     // we probably need an evaluator for the primitive tree that gets which point is queried at
     // leaf nodes given an input point to make Translate/Rotate work generally
     Prefab(PrefabStructure, Vec3<i32>, u32),
-    Sampling(Arc<dyn Fn(Vec3<i32>) -> Block>),
+    Sampling(Arc<dyn Fn(Vec3<i32>) -> Option<Block>>),
 }
 
 impl Fill {
@@ -171,7 +171,7 @@ impl Fill {
                         Block::air,
                     )
                 }),
-                Fill::Sampling(f) => Some(f(pos)),
+                Fill::Sampling(f) => f(pos),
             }
         } else {
             None

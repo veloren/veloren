@@ -1270,7 +1270,7 @@ impl Floor {
         ));
 
         let floor_sprite_fill = Fill::Sampling(Arc::new(|pos| {
-            Block::air(
+            Some(Block::air(
                 match (RandomField::new(1337).get(Vec3::from(pos)) / 2) % 30 {
                     0 => SpriteKind::Apple,
                     1 => SpriteKind::VeloriteFrag,
@@ -1279,7 +1279,7 @@ impl Floor {
                     9..=15 => SpriteKind::FireBowlGround,
                     _ => SpriteKind::ShortGrass,
                 },
-            )
+            ))
         }));
 
         let aabb_edges = |prim: &mut F, aabb: Aabb<_>| {
@@ -1308,9 +1308,9 @@ impl Floor {
         let tunnel_height = if self.final_level { 16.0 } else { 8.0 };
         let pillar_thickness: i32 = 4;
 
-        let tiles = self.tiles.clone();
-        let wall_contours = prim(Primitive::Sampling(
-            floor_aabb,
+        let tiles = Arc::new(self.tiles.clone());
+        let wall_contours = prim(Primitive::Sampling(floor_aabb, {
+            let tiles = Arc::clone(&tiles);
             Box::new(move |pos| {
                 let rpos = pos.xy() - floor_corner;
                 let dist_to_wall = tilegrid_nearest_wall(&tiles, rpos)
@@ -1321,11 +1321,32 @@ impl Floor {
                         / (TILE_SIZE as f32 - wall_thickness);
                 dist_to_wall >= wall_thickness
                     && ((pos.z - floor_z) as f32) < tunnel_height * (1.0 - tunnel_dist.powi(4))
-            }),
-        ));
+            })
+        }));
+
+        let sconces_fill = Fill::Sampling(Arc::new(move |pos| {
+            let rpos = pos.xy() - floor_corner;
+            let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));
+            let tile_center = tile_pos * TILE_SIZE + TILE_SIZE / 2;
+            let rtile_pos = rpos - tile_center;
+            let nearest = tilegrid_nearest_wall(&tiles, rpos);
+            let dist_to_wall = nearest
+                .map(|nearest| (nearest.distance_squared(rpos) as f32).sqrt())
+                .unwrap_or(TILE_SIZE as f32);
+            let ori = Floor::relative_ori(rpos, nearest.unwrap_or_default());
+            let light_offset: i32 = 7;
+            if (dist_to_wall - wall_thickness) as i32 == 1
+                && rtile_pos.map(|e| e % light_offset == 0).reduce_bitxor()
+            {
+                Block::air(SpriteKind::WallSconce).with_ori(ori)
+            } else {
+                None
+            }
+        }));
 
         let mut stairs_bb = Vec::new();
         let mut stairs = Vec::new();
+        let mut pillars = Vec::new();
         let mut boss_room_center = None;
 
         for (tile_pos, tile) in self.tiles.iter() {
@@ -1334,9 +1355,10 @@ impl Floor {
                 min: tile_corner,
                 max: tile_corner + Vec2::broadcast(TILE_SIZE),
             };
+            let tile_center = tile_corner + Vec2::broadcast(TILE_SIZE/2);
             let (mut height, room) = match tile {
                 Tile::UpStair(room, kind) => {
-                    let center = (tile_corner + Vec2::broadcast(TILE_SIZE) / 2).with_z(floor_z);
+                    let center = tile_center.with_z(floor_z);
                     let radius = TILE_SIZE as f32 / 2.0;
                     let aabb = aabr_with_z(tile_aabr, floor_z..floor_z + self.total_depth());
                     let bb = prim(match kind {
@@ -1387,6 +1409,22 @@ impl Floor {
                         _ => SpriteKind::Chest,
                     }));
                     chests = Some((chest_sprite, chest_sprite_fill));
+
+                    if room
+                        .pillars
+                        .map(|pillar_space| {
+                            tile_pos
+                                .map(|e| e.rem_euclid(pillar_space) == 0)
+                                .reduce_and()
+                        })
+                        .unwrap_or(false)
+                    {
+                        let pillar = prim(Primitive::Cylinder(Aabb {
+                            min: (tile_center - Vec2::broadcast(pillar_thickness)).with_z(floor_z),
+                            max: (tile_center + Vec2::broadcast(pillar_thickness)).with_z(floor_z + height)
+                        }));
+                        pillars.push((tile_center, pillar));
+                    }
                 }
 
                 if room.boss {
@@ -1400,6 +1438,8 @@ impl Floor {
             )));
             let tile_air = prim(Primitive::And(tile_air, wall_contours));
             fill(tile_air, Fill::Block(vacant));
+            let sconces_layer = prim(Primitive::And(tile_air, sprite_layer));
+            fill(sconces_layer, sconces_fill.clone());
             if let Some((chest_sprite, chest_sprite_fill)) = chests {
                 let chest_sprite = prim(Primitive::And(chest_sprite, wall_contours));
                 fill(chest_sprite, chest_sprite_fill);
@@ -1408,8 +1448,9 @@ impl Floor {
                 aabb_edges(&mut prim, aabr_with_z(tile_aabr, floor_z..floor_z + height));
 
             let floor_sprite = prim(Primitive::And(sprite_layer, floor_sprite));
+
             fill(floor_sprite, floor_sprite_fill.clone());
-            fill(tile_edges, Fill::Block(Block::air(SpriteKind::Lantern)));
+            //fill(tile_edges, Fill::Block(Block::air(SpriteKind::Lantern)));
         }
 
         if let Some(boss_room_center) = boss_room_center {
@@ -1424,26 +1465,22 @@ impl Floor {
             fill(magic_circle, Fill::Block(stone_purple));
         }
 
+        for (pos, pillar) in pillars.iter() {
+            if let Some(boss_room_center) = boss_room_center {
+                if pos.distance_squared(boss_room_center) < (2 * TILE_SIZE).pow(2) {
+                    continue
+                }
+            }
+            //fill(*pillar, Fill::Block(Block::new(BlockKind::Lava, [0, 0, 0])));
+            fill(*pillar, Fill::Block(stone_red));
+        }
         for stair_bb in stairs_bb.iter() {
             fill(*stair_bb, Fill::Block(vacant));
         }
         for stair in stairs.iter() {
             fill(*stair, Fill::Block(stone_red));
         }
-        /*let make_staircase = move |kind: &StairsKind,
-                                   pos: Vec3<i32>,
-                                   radius: f32,
-                                   inner_radius: f32,
-                                   stretch: f32,
-                                   height_limit: i32| {
-            match kind {
-                StairsKind::Spiral => make_spiral_staircase(pos, radius, inner_radius, stretch),
-                StairsKind::WallSpiral => {
-                    make_wall_staircase(pos, radius, stretch * 3.0, height_limit)
-                },
-            }
-        };
-
+        /*
         move |z| match self.tiles.get(tile_pos) {
             Some(Tile::Solid) => BlockMask::nothing(),
             Some(Tile::Tunnel) => {
