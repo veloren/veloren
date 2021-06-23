@@ -14,10 +14,7 @@ use common::{
     comp::{self},
     generation::{ChunkSupplement, EntityInfo},
     store::{Id, Store},
-    terrain::{
-        structure::StructureBlock, Block, BlockKind, SpriteKind, Structure, StructuresGroup,
-        TerrainChunkSize,
-    },
+    terrain::{Block, BlockKind, SpriteKind, Structure, StructuresGroup, TerrainChunkSize},
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, WriteVol},
 };
 use core::{f32, hash::BuildHasherDefault};
@@ -25,6 +22,7 @@ use fxhash::FxHasher64;
 use lazy_static::lazy_static;
 use rand::{prelude::*, seq::SliceRandom};
 use serde::Deserialize;
+use std::sync::Arc;
 use vek::*;
 
 pub struct Dungeon {
@@ -692,23 +690,7 @@ impl Floor {
     fn total_depth(&self) -> i32 { self.solid_depth + self.hollow_depth }
 
     fn nearest_wall(&self, rpos: Vec2<i32>) -> Option<Vec2<i32>> {
-        let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));
-
-        DIRS.iter()
-            .map(|dir| tile_pos + *dir)
-            .filter(|other_tile_pos| {
-                self.tiles
-                    .get(*other_tile_pos)
-                    .filter(|tile| tile.is_passable())
-                    .is_none()
-            })
-            .map(|other_tile_pos| {
-                rpos.clamped(
-                    other_tile_pos * TILE_SIZE,
-                    (other_tile_pos + 1) * TILE_SIZE - 1,
-                )
-            })
-            .min_by_key(|nearest| rpos.distance_squared(*nearest))
+        tilegrid_nearest_wall(&self.tiles, rpos)
     }
 
     // Find orientation of a position relative to another position
@@ -1162,6 +1144,26 @@ mod tests {
     }
 }
 
+pub fn tilegrid_nearest_wall(tiles: &Grid<Tile>, rpos: Vec2<i32>) -> Option<Vec2<i32>> {
+    let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));
+
+    DIRS.iter()
+        .map(|dir| tile_pos + *dir)
+        .filter(|other_tile_pos| {
+            tiles
+                .get(*other_tile_pos)
+                .filter(|tile| tile.is_passable())
+                .is_none()
+        })
+        .map(|other_tile_pos| {
+            rpos.clamped(
+                other_tile_pos * TILE_SIZE,
+                (other_tile_pos + 1) * TILE_SIZE - 1,
+            )
+        })
+        .min_by_key(|nearest| rpos.distance_squared(*nearest))
+}
+
 pub fn spiral_staircase(
     origin: Vec3<i32>,
     radius: f32,
@@ -1211,6 +1213,30 @@ pub fn wall_staircase(
     })
 }
 
+pub fn inscribed_polystar(
+    origin: Vec2<i32>,
+    radius: f32,
+    sides: usize,
+) -> Box<dyn Fn(Vec3<i32>) -> bool> {
+    Box::new(move |pos| {
+        use std::f32::consts::TAU;
+        let rpos: Vec2<f32> = pos.xy().as_() - origin.as_();
+        let is_border = rpos.magnitude_squared() > (radius - 2.0).powi(2);
+        let is_line = (0..sides).into_iter().any(|i| {
+            let f = |j: f32| {
+                let t = j * TAU / sides as f32;
+                radius * Vec2::new(t.cos(), t.sin())
+            };
+            let line = LineSegment2 {
+                start: f(i as f32),
+                end: f((i + 2) as f32),
+            };
+            line.distance_to_point(rpos) <= 1.0
+        });
+        is_border || is_line
+    })
+}
+
 impl Floor {
     fn render<F: FnMut(Primitive) -> Id<Primitive>, G: FnMut(Id<Primitive>, Fill)>(
         &self,
@@ -1219,56 +1245,43 @@ impl Floor {
         dungeon: &Dungeon,
         floor_z: i32,
     ) {
+        let floor_corner = dungeon.origin + TILE_SIZE * self.tile_offset;
+        let floor_aabb = prim(Primitive::Aabb(Aabb {
+            min: floor_corner.with_z(floor_z),
+            max: (floor_corner + TILE_SIZE * self.tiles.size())
+                .with_z(floor_z + self.total_depth()),
+        }));
         //let rpos = pos - self.tile_offset * TILE_SIZE;
         //let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));
         //let tile_center = tile_pos * TILE_SIZE + TILE_SIZE / 2;
         //let rtile_pos = rpos - tile_center;
         let vacant = Block::air(SpriteKind::Empty);
         let stone_red = Block::new(BlockKind::Rock, Rgb::new(255, 0, 0));
-        let stone_orange = Block::new(BlockKind::Rock, Rgb::new(255, 128, 0));
-        let stone_green = Block::new(BlockKind::Rock, Rgb::new(0, 255, 0));
-        let stone_cyan = Block::new(BlockKind::Rock, Rgb::new(0, 255, 255));
-        let stone_blue = Block::new(BlockKind::Rock, Rgb::new(0, 0, 255));
+        //let stone_orange = Block::new(BlockKind::Rock, Rgb::new(255, 128, 0));
+        let stone_purple = Block::new(BlockKind::Rock, Rgb::new(96, 0, 128));
+        //let stone_green = Block::new(BlockKind::Rock, Rgb::new(0, 255, 0));
+        //let stone_cyan = Block::new(BlockKind::Rock, Rgb::new(0, 255, 255));
+        //let stone_blue = Block::new(BlockKind::Rock, Rgb::new(0, 0, 255));
         //let colors = &index.colors.site.dungeon;
 
-        let floor_sprite = prim(Primitive::Sampling(Box::new(|pos| {
-            RandomField::new(7331).chance(Vec3::from(pos), 0.001)
-        })));
+        let floor_sprite = prim(Primitive::Sampling(
+            floor_aabb,
+            Box::new(|pos| RandomField::new(7331).chance(Vec3::from(pos), 0.001)),
+        ));
 
-        /*let floor_sprite = if RandomField::new(7331).chance(Vec3::from(pos), 0.001) {
-            BlockMask::new(
-                with_sprite(
-                    match (RandomField::new(1337).get(Vec3::from(pos)) / 2) % 30 {
-                        0 => SpriteKind::Apple,
-                        1 => SpriteKind::VeloriteFrag,
-                        2 => SpriteKind::Velorite,
-                        3..=8 => SpriteKind::Mushroom,
-                        9..=15 => SpriteKind::FireBowlGround,
-                        _ => SpriteKind::ShortGrass,
-                    },
-                ),
-                1,
+        let floor_sprite_fill = Fill::Sampling(Arc::new(|pos| {
+            Block::air(
+                match (RandomField::new(1337).get(Vec3::from(pos)) / 2) % 30 {
+                    0 => SpriteKind::Apple,
+                    1 => SpriteKind::VeloriteFrag,
+                    2 => SpriteKind::Velorite,
+                    3..=8 => SpriteKind::Mushroom,
+                    9..=15 => SpriteKind::FireBowlGround,
+                    _ => SpriteKind::ShortGrass,
+                },
             )
-        } else if let Some(Tile::Room(room)) | Some(Tile::DownStair(room)) =
-            self.tiles.get(tile_pos)
-        {
-            let room = &self.rooms[*room];
-            if RandomField::new(room.seed).chance(Vec3::from(pos), room.loot_density * 0.5) {
-                match room.difficulty {
-                    0 => BlockMask::new(with_sprite(SpriteKind::DungeonChest0), 1),
-                    1 => BlockMask::new(with_sprite(SpriteKind::DungeonChest1), 1),
-                    2 => BlockMask::new(with_sprite(SpriteKind::DungeonChest2), 1),
-                    3 => BlockMask::new(with_sprite(SpriteKind::DungeonChest3), 1),
-                    4 => BlockMask::new(with_sprite(SpriteKind::DungeonChest4), 1),
-                    5 => BlockMask::new(with_sprite(SpriteKind::DungeonChest5), 1),
-                    _ => BlockMask::new(with_sprite(SpriteKind::Chest), 1),
-                }
-            } else {
-                vacant
-            }
-        } else {
-            vacant
-        };*/
+        }));
+
         let aabb_edges = |prim: &mut F, aabb: Aabb<_>| {
             let f = |prim: &mut F, ret, vec| {
                 let sub = prim(Primitive::Aabb(Aabb {
@@ -1291,8 +1304,29 @@ impl Floor {
             }
         }
 
-        let mut stairs_bb = prim(Primitive::Empty);
-        let mut stairs = prim(Primitive::Empty);
+        let wall_thickness = 3.0;
+        let tunnel_height = if self.final_level { 16.0 } else { 8.0 };
+        let pillar_thickness: i32 = 4;
+
+        let tiles = self.tiles.clone();
+        let wall_contours = prim(Primitive::Sampling(
+            floor_aabb,
+            Box::new(move |pos| {
+                let rpos = pos.xy() - floor_corner;
+                let dist_to_wall = tilegrid_nearest_wall(&tiles, rpos)
+                    .map(|nearest| (nearest.distance_squared(rpos) as f32).sqrt())
+                    .unwrap_or(TILE_SIZE as f32);
+                let tunnel_dist = 1.0
+                    - (dist_to_wall - wall_thickness).max(0.0)
+                        / (TILE_SIZE as f32 - wall_thickness);
+                dist_to_wall >= wall_thickness
+                    && ((pos.z - floor_z) as f32) < tunnel_height * (1.0 - tunnel_dist.powi(4))
+            }),
+        ));
+
+        let mut stairs_bb = Vec::new();
+        let mut stairs = Vec::new();
+        let mut boss_room_center = None;
 
         for (tile_pos, tile) in self.tiles.iter() {
             let tile_corner = dungeon.origin + TILE_SIZE * (self.tile_offset + tile_pos);
@@ -1300,60 +1334,102 @@ impl Floor {
                 min: tile_corner,
                 max: tile_corner + Vec2::broadcast(TILE_SIZE),
             };
-            let (color, mut height, room) = match tile {
+            let (mut height, room) = match tile {
                 Tile::UpStair(room, kind) => {
                     let center = (tile_corner + Vec2::broadcast(TILE_SIZE) / 2).with_z(floor_z);
                     let radius = TILE_SIZE as f32 / 2.0;
-                    let aabb =
-                        aabr_with_z(tile_aabr, floor_z + 1..floor_z + self.total_depth() + 1);
+                    let aabb = aabr_with_z(tile_aabr, floor_z..floor_z + self.total_depth());
                     let bb = prim(match kind {
                         StairsKind::Spiral => Primitive::Cylinder(aabb),
                         StairsKind::WallSpiral => Primitive::Aabb(aabb),
                     });
-                    let stair = prim(Primitive::Sampling(match kind {
+                    let stair = prim(Primitive::Sampling(bb, match kind {
                         StairsKind::Spiral => spiral_staircase(center, radius, 0.5, 9.0),
                         StairsKind::WallSpiral => wall_staircase(center, radius, 27.0),
                     }));
-                    let stair = prim(Primitive::And(bb, stair));
-                    stairs_bb = prim(Primitive::Or(stairs_bb, bb));
-                    stairs = prim(Primitive::Or(stairs, stair));
-                    (stone_cyan, self.hollow_depth, Some(room))
+                    stairs_bb.push(bb);
+                    stairs.push(stair);
+                    (self.hollow_depth, Some(room))
                 },
-                Tile::DownStair(room) => (stone_green, self.hollow_depth, Some(room)),
-                Tile::Room(room) => (stone_blue, self.hollow_depth, Some(room)),
-                Tile::Tunnel => (stone_orange, self.hollow_depth / 2, None),
-                //Tile::Solid => (vacant, self.total_depth(), None),
+                Tile::DownStair(room) => (self.hollow_depth, Some(room)),
+                Tile::Room(room) => (self.hollow_depth, Some(room)),
+                Tile::Tunnel => (tunnel_height as i32, None),
                 Tile::Solid => continue,
             };
 
+            let sprite_layer = prim(Primitive::Aabb(aabr_with_z(
+                tile_aabr,
+                floor_z..floor_z + 1,
+            )));
+            let sprite_layer = prim(Primitive::And(sprite_layer, wall_contours));
+
+            let mut chests = None;
+
             if let Some(room) = room.map(|i| self.rooms.get(*i)) {
                 height = height.min(room.height);
+                if matches!(tile, Tile::Room(_) | Tile::DownStair(_)) {
+                    let seed = room.seed;
+                    let loot_density = room.loot_density;
+                    let difficulty = room.difficulty;
+                    let chest_sprite = prim(Primitive::Sampling(
+                        sprite_layer,
+                        Box::new(move |pos| {
+                            RandomField::new(seed).chance(Vec3::from(pos), loot_density * 0.5)
+                        }),
+                    ));
+                    let chest_sprite_fill = Fill::Block(Block::air(match difficulty {
+                        0 => SpriteKind::DungeonChest0,
+                        1 => SpriteKind::DungeonChest1,
+                        2 => SpriteKind::DungeonChest2,
+                        3 => SpriteKind::DungeonChest3,
+                        4 => SpriteKind::DungeonChest4,
+                        5 => SpriteKind::DungeonChest5,
+                        _ => SpriteKind::Chest,
+                    }));
+                    chests = Some((chest_sprite, chest_sprite_fill));
+                }
+
+                if room.boss {
+                    boss_room_center = Some(floor_corner + TILE_SIZE * room.area.center());
+                }
             }
 
             let tile_air = prim(Primitive::Aabb(aabr_with_z(
                 tile_aabr,
                 floor_z..floor_z + height,
             )));
+            let tile_air = prim(Primitive::And(tile_air, wall_contours));
             fill(tile_air, Fill::Block(vacant));
+            if let Some((chest_sprite, chest_sprite_fill)) = chests {
+                let chest_sprite = prim(Primitive::And(chest_sprite, wall_contours));
+                fill(chest_sprite, chest_sprite_fill);
+            }
             let tile_edges =
                 aabb_edges(&mut prim, aabr_with_z(tile_aabr, floor_z..floor_z + height));
 
-            let floor_prim = prim(Primitive::Aabb(aabr_with_z(
-                tile_aabr,
-                floor_z..floor_z + 1,
-            )));
-            fill(floor_prim, Fill::Block(color));
-            let sprite_layer = prim(Primitive::Aabb(aabr_with_z(
-                tile_aabr,
-                floor_z + 1..floor_z + 2,
-            )));
-            let sprite_intersection = prim(Primitive::And(floor_sprite, sprite_layer));
-            fill(sprite_intersection, Fill::Block(stone_red));
+            let floor_sprite = prim(Primitive::And(sprite_layer, floor_sprite));
+            fill(floor_sprite, floor_sprite_fill.clone());
             fill(tile_edges, Fill::Block(Block::air(SpriteKind::Lantern)));
         }
 
-        fill(stairs_bb, Fill::Block(vacant));
-        fill(stairs, Fill::Block(stone_red));
+        if let Some(boss_room_center) = boss_room_center {
+            let magic_circle_bb = prim(Primitive::Cylinder(Aabb {
+                min: (boss_room_center - 3 * Vec2::broadcast(TILE_SIZE) / 2).with_z(floor_z - 1),
+                max: (boss_room_center + 3 * Vec2::broadcast(TILE_SIZE) / 2).with_z(floor_z),
+            }));
+            let magic_circle = prim(Primitive::Sampling(
+                magic_circle_bb,
+                inscribed_polystar(boss_room_center, 1.4 * TILE_SIZE as f32, 7),
+            ));
+            fill(magic_circle, Fill::Block(stone_purple));
+        }
+
+        for stair_bb in stairs_bb.iter() {
+            fill(*stair_bb, Fill::Block(vacant));
+        }
+        for stair in stairs.iter() {
+            fill(*stair, Fill::Block(stone_red));
+        }
         /*let make_staircase = move |kind: &StairsKind,
                                    pos: Vec3<i32>,
                                    radius: f32,
@@ -1367,17 +1443,6 @@ impl Floor {
                 },
             }
         };
-
-        let wall_thickness = 3.0;
-        let dist_to_wall = self
-            .nearest_wall(rpos)
-            .map(|nearest| (nearest.distance_squared(rpos) as f32).sqrt())
-            .unwrap_or(TILE_SIZE as f32);
-        let tunnel_dist =
-            1.0 - (dist_to_wall - wall_thickness).max(0.0) / (TILE_SIZE as f32 - wall_thickness);
-
-        let tunnel_height = if self.final_level { 16.0 } else { 8.0 };
-        let pillar_thickness: i32 = 4;
 
         move |z| match self.tiles.get(tile_pos) {
             Some(Tile::Solid) => BlockMask::nothing(),

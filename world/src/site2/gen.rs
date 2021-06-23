@@ -11,6 +11,7 @@ use common::{
     },
     vol::ReadVol,
 };
+use std::sync::Arc;
 use vek::*;
 
 #[allow(dead_code)]
@@ -19,12 +20,17 @@ pub enum Primitive {
 
     // Shapes
     Aabb(Aabb<i32>),
-    Pyramid { aabb: Aabb<i32>, inset: i32 },
+    Pyramid {
+        aabb: Aabb<i32>,
+        inset: i32,
+    },
     Cylinder(Aabb<i32>),
     Cone(Aabb<i32>),
     Sphere(Aabb<i32>),
     Plane(Aabr<i32>, Vec3<i32>, Vec2<f32>),
-    Sampling(Box<dyn Fn(Vec3<i32>) -> bool>),
+    /// A sampling function is always a subset of another primitive to avoid
+    /// needing infinite bounds
+    Sampling(Id<Primitive>, Box<dyn Fn(Vec3<i32>) -> bool>),
     Prefab(PrefabStructure),
 
     // Combinators
@@ -38,7 +44,7 @@ pub enum Primitive {
     Translate(Id<Primitive>, Vec3<i32>),
 }
 
-#[derive(Debug)]
+#[derive(Clone)]
 pub enum Fill {
     Block(Block),
     Brick(BlockKind, Rgb<u8>, u8),
@@ -46,6 +52,7 @@ pub enum Fill {
     // we probably need an evaluator for the primitive tree that gets which point is queried at
     // leaf nodes given an input point to make Translate/Rotate work generally
     Prefab(PrefabStructure, Vec3<i32>, u32),
+    Sampling(Arc<dyn Fn(Vec3<i32>) -> Block>),
 }
 
 impl Fill {
@@ -110,7 +117,7 @@ impl Fill {
                                 .as_()
                                 .dot(*gradient) as i32)
             },
-            Primitive::Sampling(f) => f(pos),
+            Primitive::Sampling(a, f) => self.contains_at(tree, *a, pos) && f(pos),
             Primitive::Prefab(p) => !matches!(p.get(pos), Err(_) | Ok(StructureBlock::None)),
             Primitive::And(a, b) => {
                 self.contains_at(tree, *a, pos) && self.contains_at(tree, *b, pos)
@@ -164,6 +171,7 @@ impl Fill {
                         Block::air,
                     )
                 }),
+                Fill::Sampling(f) => Some(f(pos)),
             }
         } else {
             None
@@ -203,10 +211,7 @@ impl Fill {
                 };
                 aabb.made_valid()
             },
-            Primitive::Sampling(_) => Aabb {
-                min: Vec3::broadcast(std::i32::MIN),
-                max: Vec3::broadcast(std::i32::MAX),
-            },
+            Primitive::Sampling(a, _) => self.get_bounds_inner(tree, *a)?,
             Primitive::Prefab(p) => p.get_bounds(),
             Primitive::And(a, b) => or_zip_with(
                 self.get_bounds_inner(tree, *a),
