@@ -15,9 +15,11 @@ use crate::{
     util::Dir,
 };
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
+use std::{
+    ops::{Add, Div},
+    time::Duration,
+};
 use vek::*;
-
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
 
 impl Body {
@@ -219,7 +221,7 @@ impl Body {
 
     /// Returns how well a body can move backwards while strafing (0.0 = not at
     /// all, 1.0 = same as forward)
-    pub fn reverse_move_factor(&self) -> f32 { 0.5 }
+    pub fn reverse_move_factor(&self) -> f32 { 0.45 }
 }
 
 /// Handles updating `Components` to move player based on state of `JoinData`
@@ -266,7 +268,14 @@ fn basic_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
                         Vec2::from(update.ori)
                             .try_normalized()
                             .unwrap_or_else(Vec2::zero)
-                            .dot(data.inputs.move_dir)
+                            .dot(
+                                data.inputs
+                                    .move_dir
+                                    .try_normalized()
+                                    .unwrap_or_else(Vec2::zero),
+                            )
+                            .add(1.0)
+                            .div(2.0)
                             .max(0.0),
                         1.0,
                         data.body.reverse_move_factor(),
