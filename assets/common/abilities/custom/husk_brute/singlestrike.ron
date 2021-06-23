@@ -7,7 +7,7 @@ ComboMelee(
             base_poise_damage: 12,
             poise_damage_increase: 0,
             knockback: 5.0,
-            range: 2.5,
+            range: 3.5,
             angle: 60.0,
             base_buildup_duration: 0.25,
             base_swing_duration: 0.07,

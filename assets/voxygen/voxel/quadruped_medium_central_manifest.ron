@@ -1809,7 +1809,7 @@
             central: ("npc.mammoth.male.neck"),
         ),
         jaw: (
-            offset: (-3.0, 0.0, -13.0),
+            offset: (-3.0, -5.0, -13.0),
             central: ("npc.mammoth.male.jaw"),
         ),
         torso_front: (
@@ -1839,7 +1839,7 @@
             central: ("npc.mammoth.male.neck"),
         ),
         jaw: (
-            offset: (-3.0, 0.0, -13.0),
+            offset: (-3.0, -5.0, -13.0),
             central: ("npc.mammoth.male.jaw"),
         ),
         torso_front: (
@@ -1869,7 +1869,7 @@
             central: ("npc.ngoubou.male.neck"),
         ),
         jaw: (
-            offset: (-2.5, 0.0, -3.0),
+            offset: (-2.5, -7.0, -3.0),
             central: ("npc.ngoubou.male.jaw"),
         ),
         torso_front: (

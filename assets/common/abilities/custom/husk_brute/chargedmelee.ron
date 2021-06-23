@@ -7,7 +7,7 @@ ChargedMelee(
     scaled_poise_damage: 150,
     initial_knockback: 0.0,
     scaled_knockback: 0.0,
-    range: 5.0,
+    range: 3.5,
     max_angle: 45.0,
     speed: 1.0,
     charge_duration: 1.5,

@@ -79,6 +79,9 @@ impl Body {
                 biped_large::Species::Mightysaurok => 100.0,
                 biped_large::Species::Mindflayer => 90.0,
                 biped_large::Species::Minotaur => 60.0,
+                biped_large::Species::Huskbrute => 130.0,
+                biped_large::Species::Cultistwarlord => 110.0,
+                biped_large::Species::Cultistwarlock => 90.0,
                 _ => 80.0,
             },
             Body::BirdMedium(_) => 80.0,
@@ -138,7 +141,10 @@ impl Body {
         match self {
             Body::Humanoid(_) => 3.5,
             Body::QuadrupedSmall(_) => 3.0,
-            Body::QuadrupedMedium(_) => 2.8,
+            Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
+                quadruped_medium::Species::Mammoth => 2.2,
+                _ => 2.8,
+            },
             Body::BirdMedium(_) => 6.0,
             Body::FishMedium(_) => 6.0,
             Body::Dragon(_) => 1.0,

@@ -156,7 +156,7 @@ impl Animation for ShootAnimation {
                 next.control.position = Vec3::new(
                     -1.0 + move1 * 2.0,
                     6.0 + s_a.grip.0 / 1.2 + move1 * 7.0,
-                    -5.0 + -s_a.grip.0 / 2.0 + move1 * s_a.height * 2.8,
+                    -5.0 + -s_a.grip.0 / 2.0 + move1 * s_a.height * 3.4,
                 );
 
                 next.control_l.orientation =
