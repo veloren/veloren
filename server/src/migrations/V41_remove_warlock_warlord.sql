@@ -1,33 +1,31 @@
--- xx
+-- Replace all warlord and warlock sets into cultist set
 UPDATE item
-SET item_definition_id = 'common.items.armor.warlock.shoulder' WHERE item_definition_id = 'common.items.armor.cultist.shoulder';
+SET item_definition_id = 'common.items.armor.cultist.shoulder' WHERE item_definition_id = 'common.items.armor.warlock.shoulder';
 UPDATE item
-SET item_definition_id = 'common.items.armor.warlock.chest' WHERE item_definition_id = 'common.items.armor.cultist.chest';
+SET item_definition_id = 'common.items.armor.cultist.chest' WHERE item_definition_id = 'common.items.armor.warlock.chest';
 UPDATE item
-SET item_definition_id = 'common.items.armor.warlock.belt' WHERE item_definition_id = 'common.items.armor.cultist.belt';
+SET item_definition_id = 'common.items.armor.cultist.belt' WHERE item_definition_id = 'common.items.armor.warlock.belt';
 UPDATE item
-SET item_definition_id = 'common.items.armor.warlock.hand' WHERE item_definition_id = 'common.items.armor.cultist.hand';
+SET item_definition_id = 'common.items.armor.cultist.hand' WHERE item_definition_id = 'common.items.armor.warlock.hand';
 UPDATE item
-SET item_definition_id = 'common.items.armor.warlock.pants' WHERE item_definition_id = 'common.items.armor.cultist.pants';
+SET item_definition_id = 'common.items.armor.cultist.pants' WHERE item_definition_id = 'common.items.armor.warlock.pants';
 UPDATE item
-SET item_definition_id = 'common.items.armor.warlock.foot' WHERE item_definition_id = 'common.items.armor.cultist.foot';
+SET item_definition_id = 'common.items.armor.cultist.foot' WHERE item_definition_id = 'common.items.armor.warlock.foot';
 UPDATE item
-SET item_definition_id = 'common.items.armor.warlock.back' WHERE item_definition_id = 'common.items.armor.misc.back.dungeon_purple';
+SET item_definition_id = 'common.items.armor.misc.back.dungeon_purple' WHERE item_definition_id = 'common.items.armor.warlock.back';
+DELETE FROM item WHERE item_definition_id = 'common.items.armor.warlock.head';
 UPDATE item
-SET item_definition_id = 'common.items.armor.warlock.head' WHERE item_definition_id = 'common.items.armor.cultist.head';
+SET item_definition_id = 'common.items.armor.cultist.shoulder' WHERE item_definition_id = 'common.items.armor.warlord.shoulder';
 UPDATE item
-SET item_definition_id = 'common.items.armor.warlord.shoulder' WHERE item_definition_id = 'common.items.armor.cultist.shoulder';
+SET item_definition_id = 'common.items.armor.cultist.chest' WHERE item_definition_id = 'common.items.armor.warlord.chest';
 UPDATE item
-SET item_definition_id = 'common.items.armor.warlord.chest' WHERE item_definition_id = 'common.items.armor.cultist.chest';
+SET item_definition_id = 'common.items.armor.cultist.belt' WHERE item_definition_id = 'common.items.armor.warlord.belt';
 UPDATE item
-SET item_definition_id = 'common.items.armor.warlord.belt' WHERE item_definition_id = 'common.items.armor.cultist.belt';
+SET item_definition_id = 'common.items.armor.cultist.hand' WHERE item_definition_id = 'common.items.armor.warlord.hand';
 UPDATE item
-SET item_definition_id = 'common.items.armor.warlord.hand' WHERE item_definition_id = 'common.items.armor.cultist.hand';
+SET item_definition_id = 'common.items.armor.cultist.pants' WHERE item_definition_id = 'common.items.armor.warlord.pants';
 UPDATE item
-SET item_definition_id = 'common.items.armor.warlord.pants' WHERE item_definition_id = 'common.items.armor.cultist.pants';
+SET item_definition_id = 'common.items.armor.cultist.foot' WHERE item_definition_id = 'common.items.armor.warlord.foot';
 UPDATE item
-SET item_definition_id = 'common.items.armor.warlord.foot' WHERE item_definition_id = 'common.items.armor.cultist.foot';
-UPDATE item
-SET item_definition_id = 'common.items.armor.warlord.back' WHERE item_definition_id = 'common.items.armor.misc.back.dungeon_purple';
-UPDATE item
-SET item_definition_id = 'common.items.armor.warlord.head' WHERE item_definition_id = 'common.items.armor.cultist.head';
+SET item_definition_id = 'common.items.armor.misc.back.dungeon_purple' WHERE item_definition_id = 'common.items.armor.warlord.back';
+DELETE FROM item WHERE item_definition_id = 'common.items.armor.warlord.head';

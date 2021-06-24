@@ -277,7 +277,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Blueoni, _) => (-1.0, 26.5),
                 (Redoni, _) => (-1.0, 26.5),
                 (Cultistwarlord, _) => (-1.0, 18.5),
-                (Cultistwarlock, _) => (-1.0, 18.5),
+                (Cultistwarlock, _) => (-1.0, 17.5),
                 (Huskbrute, _) => (-1.0, 23.5),
             },
             lower_torso: match (body.species, body.body_type) {
@@ -301,7 +301,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Blueoni, _) => (0.0, -8.5),
                 (Redoni, _) => (0.0, -8.5),
                 (Cultistwarlord, _) => (0.0, -1.5),
-                (Cultistwarlock, _) => (1.0, -3.5),
+                (Cultistwarlock, _) => (1.0, -2.5),
                 (Huskbrute, _) => (-0.5, -7.0),
             },
             tail: match (body.species, body.body_type) {

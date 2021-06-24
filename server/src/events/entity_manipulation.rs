@@ -368,7 +368,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         quadruped_small::Species::Truffler | quadruped_small::Species::Fungome => {
                             "common.loot_tables.creature.quad_small.mushroom"
                         },
-                        quadruped_small::Species::Sheep => {
+                        quadruped_small::Species::Sheep | quadruped_small::Species::Goat => {
                             "common.loot_tables.creature.quad_small.wool"
                         },
                         quadruped_small::Species::Skunk
@@ -494,6 +494,9 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         },
                         quadruped_low::Species::Basilisk => {
                             "common.loot_tables.creature.quad_low.basilisk"
+                        },
+                        quadruped_low::Species::Salamander => {
+                            "common.loot_tables.creature.quad_low.salamander"
                         },
                         _ => "common.loot_tables.creature.quad_low.generic",
                     }

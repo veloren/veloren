@@ -2,7 +2,7 @@ EntityConfig (
     name: Some("Husk Brute"),
     body: Some(RandomWith("husk_brute")),
 
-    loot: Some(LootTable("common.loot_tables.dungeon.tier-5.minion")),
+    loot: Some(LootTable("common.loot_tables.dungeon.tier-5.miniboss")),
 
     main_tool: None,
     second_tool: None,
