@@ -4,5 +4,5 @@ SpriteSummon(
     recover_duration: 0.3,
     sprite: EnsnaringVines,
     summon_distance: (0, 25),
-    sparseness: 0.5,
+    sparseness: 0.67,
 )

@@ -70,7 +70,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Ensnared,
-                            BuffData::new(1.5, Some(Duration::from_secs_f32(1.0))),
+                            BuffData::new(1.0, Some(Duration::from_secs_f32(1.0))),
                             Vec::new(),
                             BuffSource::World,
                         )),
