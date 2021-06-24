@@ -880,7 +880,7 @@ impl<'a> Widget for Crafting<'a> {
                     // Ingredients
                     let name = match recipe_input {
                         RecipeInput::Item(_) => item_def.name().to_string(),
-                        RecipeInput::Tag(tag) => format!("Any {}", tag.name()),
+                        RecipeInput::Tag(tag) => format!("Any {} item", tag.name()),
                     };
                     let input = format!(
                         "{}x {} ({})",
