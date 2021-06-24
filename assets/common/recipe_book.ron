@@ -1729,7 +1729,7 @@
         ],
     ),
     "leather": (
-        output: ("common.items.crafting_ing.leather.simple_leather", 1),
+        output: ("common.items.crafting_ing.leather.thick_leather", 1),
         inputs: [
             (Tag(Material(Leather)), 1),
         ],
