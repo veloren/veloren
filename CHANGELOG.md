@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve entity-terrain physics performance by reducing the number of voxel lookups.
 - Clay Golem uses shockwave only after specific fraction of health and other difficulty adjustments.
 - Made strafing slightly slower
+- Food now has limited regeneration strength but longer duration.
 
 ### Removed
 
