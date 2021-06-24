@@ -598,7 +598,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         render_pass.set_pipeline(&self.pipelines.sprite.pipeline);
         set_quad_index_buffer::<sprite::Vertex>(&mut render_pass, &self.borrow);
         render_pass.set_bind_group(0, &globals.bind_group, &[]);
-        render_pass.set_bind_group(3, &col_lights.bind_group, &[]);
+        render_pass.set_bind_group(2, &col_lights.bind_group, &[]);
 
         SpriteDrawer {
             render_pass,
@@ -653,9 +653,9 @@ impl<'pass_ref, 'pass: 'pass_ref> FigureDrawer<'pass_ref, 'pass> {
         // TODO: don't rebind this every time once they are shared between figures
         col_lights: &'data ColLights<figure::Locals>,
     ) {
-        self.render_pass.set_bind_group(2, &locals.bind_group, &[]);
         self.render_pass
-            .set_bind_group(3, &col_lights.bind_group, &[]);
+            .set_bind_group(2, &col_lights.bind_group, &[]);
+        self.render_pass.set_bind_group(3, &locals.bind_group, &[]);
         self.render_pass.set_vertex_buffer(0, model.buf());
         self.render_pass
             .draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..1);
@@ -681,11 +681,11 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainDrawer<'pass_ref, 'pass> {
             .is_none()
         {
             self.render_pass
-                .set_bind_group(3, &col_lights.bind_group, &[]); // TODO: put this in slot 2
+                .set_bind_group(2, &col_lights.bind_group, &[]);
             self.col_lights = Some(col_lights);
         };
 
-        self.render_pass.set_bind_group(2, &locals.bind_group, &[]); // TODO: put this in slot 3
+        self.render_pass.set_bind_group(3, &locals.bind_group, &[]);
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
         self.render_pass
             .draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..1);
@@ -725,7 +725,7 @@ impl<'pass_ref, 'pass: 'pass_ref> SpriteDrawer<'pass_ref, 'pass> {
         instances: &'data Instances<sprite::Instance>,
     ) {
         self.render_pass
-            .set_bind_group(2, &terrain_locals.bind_group, &[]);
+            .set_bind_group(3, &terrain_locals.bind_group, &[]);
 
         self.render_pass
             .set_vertex_buffer(0, instances.buf().slice(..));

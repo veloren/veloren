@@ -263,9 +263,9 @@ impl SpritePipeline {
                 bind_group_layouts: &[
                     &layout.globals,
                     &global_layout.shadow_textures,
-                    &terrain_layout.locals,
                     // Note: mergable with globals
                     &global_layout.col_light,
+                    &terrain_layout.locals,
                 ],
             });
 
