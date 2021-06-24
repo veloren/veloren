@@ -6,6 +6,5 @@ ItemDef(
     ),
     quality: Common,
     tags: [
-        Material(Leather)
-        ],
+    ],
 )

@@ -6,6 +6,5 @@ ItemDef(
     ),
     quality: Epic,
     tags: [
-        Material(Leather)
     ],
 )

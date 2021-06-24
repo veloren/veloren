@@ -14,6 +14,6 @@ ItemDef(
     )),
     quality: Epic,
     tags: [
-        Material(Linen),
+        Material(Moonweave),
     ],
 )

@@ -14,6 +14,5 @@ ItemDef(
     )),
     quality: Moderate,
     tags: [
-        Material(Linen),
     ],
 )
