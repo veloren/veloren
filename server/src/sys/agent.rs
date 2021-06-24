@@ -122,6 +122,7 @@ pub enum Tactic {
     TidalWarrior,
     Yeti,
     Tornado,
+    Harvester,
 }
 
 #[derive(SystemData)]
@@ -280,7 +281,7 @@ impl<'a> System<'a> for Sys {
                     let is_gliding = matches!(
                         read_data.char_states.get(entity),
                         Some(CharacterState::GlideWield) | Some(CharacterState::Glide(_))
-                    ) && !physics_state.on_ground;
+                    ) && physics_state.on_ground.is_none();
 
                     if let Some(pid) = agent.position_pid_controller.as_mut() {
                         pid.add_measurement(read_data.time.0, pos.0);
@@ -295,7 +296,7 @@ impl<'a> System<'a> for Sys {
                     let traversal_config = TraversalConfig {
                         node_tolerance,
                         slow_factor,
-                        on_ground: physics_state.on_ground,
+                        on_ground: physics_state.on_ground.is_some(),
                         in_liquid: physics_state.in_liquid().is_some(),
                         min_tgt_dist: 1.0,
                         can_climb: body.map(|b| b.can_climb()).unwrap_or(false),
@@ -365,7 +366,7 @@ impl<'a> System<'a> for Sys {
                     // inputs.
 
                     // If falling fast and can glide, save yourself!
-                    if data.glider_equipped && !data.physics_state.on_ground {
+                    if data.glider_equipped && data.physics_state.on_ground.is_none() {
                         // toggle glider when vertical velocity is above some threshold (here ~
                         // glider fall vertical speed)
                         data.glider_fall(agent, controller, &read_data);
@@ -1663,6 +1664,7 @@ impl<'a> AgentData<'a> {
                             "Tidal Warrior" => Tactic::TidalWarrior,
                             "Tidal Totem" => Tactic::RadialTurret,
                             "Yeti" => Tactic::Yeti,
+                            "Harvester" => Tactic::Harvester,
                             _ => Tactic::Melee,
                         },
                         AbilitySpec::Tool(tool_kind) => tool_tactic(*tool_kind),
@@ -1755,6 +1757,18 @@ impl<'a> AgentData<'a> {
                 const SNOWBALL_SPEED: f32 = 60.0;
                 aim_projectile(
                     SNOWBALL_SPEED,
+                    Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+                    Vec3::new(
+                        tgt_data.pos.0.x,
+                        tgt_data.pos.0.y,
+                        tgt_data.pos.0.z + tgt_eye_offset,
+                    ),
+                )
+            },
+            Tactic::Harvester if matches!(self.char_state, CharacterState::BasicRanged(_)) => {
+                const PUMPKIN_SPEED: f32 = 30.0;
+                aim_projectile(
+                    PUMPKIN_SPEED,
                     Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
                     Vec3::new(
                         tgt_data.pos.0.x,
@@ -1941,6 +1955,9 @@ impl<'a> AgentData<'a> {
             ),
             Tactic::Yeti => {
                 self.handle_yeti_attack(agent, controller, &attack_data, &tgt_data, &read_data)
+            },
+            Tactic::Harvester => {
+                self.handle_harvester_attack(agent, controller, &attack_data, &tgt_data, &read_data)
             },
         }
     }
@@ -3689,6 +3706,78 @@ impl<'a> AgentData<'a> {
                 .push(ControlAction::basic_input(InputKind::Ability(1)));
         }
 
+        // Always attempt to path towards target
+        self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+    }
+
+    fn handle_harvester_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const VINE_CREATION_THRESHOLD: f32 = 0.50;
+        const FIRE_BREATH_RANGE: f32 = 20.0;
+        const MAX_PUMPKIN_RANGE: f32 = 50.0;
+        let health_fraction = self.health.map_or(0.5, |h| h.fraction());
+
+        if health_fraction < VINE_CREATION_THRESHOLD && !agent.action_state.condition {
+            // Summon vines when reach threshold of health
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Ability(0)));
+
+            if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
+            {
+                agent.action_state.condition = true;
+            }
+        } else if attack_data.dist_sqrd < FIRE_BREATH_RANGE.powi(2) {
+            if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(5))
+                && can_see_tgt(
+                    &*read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                )
+            {
+                // Keep breathing fire if close enough, can see target, and have not been
+                // breathing for more than 5 seconds
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+            } else if attack_data.in_min_range() && attack_data.angle < 60.0 {
+                // Scythe them if they're in range and angle
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+            } else if attack_data.angle < 30.0
+                && can_see_tgt(
+                    &*read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                )
+            {
+                // Start breathing fire at them if close enough, in angle, and can see target
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+            }
+        } else if attack_data.dist_sqrd < MAX_PUMPKIN_RANGE.powi(2)
+            && can_see_tgt(
+                &*read_data.terrain,
+                self.pos,
+                tgt_data.pos,
+                attack_data.dist_sqrd,
+            )
+        {
+            // Throw a pumpkin at them if close enough and can see them
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Ability(1)));
+        }
         // Always attempt to path towards target
         self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
     }

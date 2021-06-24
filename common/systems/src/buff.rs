@@ -1,11 +1,15 @@
 use common::{
     comp::{
+        buff::{
+            Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId, BuffKind, BuffSource,
+            Buffs,
+        },
         fluid_dynamics::{Fluid, LiquidKind},
-        Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId, BuffKind, BuffSource, Buffs,
         Energy, Health, HealthChange, HealthSource, Inventory, ModifierKind, PhysicsState, Stats,
     },
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
+    terrain::SpriteKind,
     Damage, DamageSource,
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -55,25 +59,54 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            let in_fluid = physics_state.and_then(|p| p.in_fluid);
-
-            if matches!(
-                in_fluid,
-                Some(Fluid::Liquid {
-                    kind: LiquidKind::Lava,
-                    ..
-                })
-            ) && !buff_comp.contains(BuffKind::Burning)
-            {
-                server_emitter.emit(ServerEvent::Buff {
-                    entity,
-                    buff_change: BuffChange::Add(Buff::new(
-                        BuffKind::Burning,
-                        BuffData::new(200.0, None),
-                        vec![BuffCategory::Natural],
-                        BuffSource::World,
-                    )),
-                });
+            // Apply buffs to entity based off of their current physics_state
+            if let Some(physics_state) = physics_state {
+                if matches!(
+                    physics_state.on_ground.and_then(|b| b.get_sprite()),
+                    Some(SpriteKind::EnsnaringVines)
+                ) {
+                    // If on ensnaring vines, apply ensnared debuff
+                    server_emitter.emit(ServerEvent::Buff {
+                        entity,
+                        buff_change: BuffChange::Add(Buff::new(
+                            BuffKind::Ensnared,
+                            BuffData::new(1.0, Some(Duration::from_secs_f32(1.0))),
+                            Vec::new(),
+                            BuffSource::World,
+                        )),
+                    });
+                }
+                if matches!(
+                    physics_state.in_fluid,
+                    Some(Fluid::Liquid {
+                        kind: LiquidKind::Lava,
+                        ..
+                    })
+                ) {
+                    // If in lava fluid, apply burning debuff
+                    server_emitter.emit(ServerEvent::Buff {
+                        entity,
+                        buff_change: BuffChange::Add(Buff::new(
+                            BuffKind::Burning,
+                            BuffData::new(200.0, None),
+                            vec![BuffCategory::Natural],
+                            BuffSource::World,
+                        )),
+                    });
+                } else if matches!(
+                    physics_state.in_fluid,
+                    Some(Fluid::Liquid {
+                        kind: LiquidKind::Water,
+                        ..
+                    })
+                ) && buff_comp.kinds.contains_key(&BuffKind::Burning)
+                {
+                    // If in water fluid and currently burning, remove burning debuffs
+                    server_emitter.emit(ServerEvent::Buff {
+                        entity,
+                        buff_change: BuffChange::RemoveByKind(BuffKind::Burning),
+                    });
+                }
             }
 
             let (buff_comp_kinds, buff_comp_buffs): (
@@ -90,14 +123,14 @@ impl<'a> System<'a> for Sys {
                     if let Some((Some(buff), id)) =
                         ids.get(0).map(|id| (buff_comp_buffs.get_mut(id), id))
                     {
-                        tick_buff(*id, buff, dt, in_fluid, |id| expired_buffs.push(id));
+                        tick_buff(*id, buff, dt, |id| expired_buffs.push(id));
                     }
                 } else {
                     for (id, buff) in buff_comp_buffs
                         .iter_mut()
                         .filter(|(i, _)| ids.iter().any(|id| id == *i))
                     {
-                        tick_buff(*id, buff, dt, in_fluid, |id| expired_buffs.push(id));
+                        tick_buff(*id, buff, dt, |id| expired_buffs.push(id));
                     }
                 }
             }
@@ -253,13 +286,7 @@ impl<'a> System<'a> for Sys {
     }
 }
 
-fn tick_buff(
-    id: u64,
-    buff: &mut Buff,
-    dt: f32,
-    in_fluid: Option<Fluid>,
-    mut expire_buff: impl FnMut(u64),
-) {
+fn tick_buff(id: u64, buff: &mut Buff, dt: f32, mut expire_buff: impl FnMut(u64)) {
     // If a buff is recently applied from an aura, do not tick duration
     if buff
         .cat_ids
@@ -269,19 +296,6 @@ fn tick_buff(
         return;
     }
     if let Some(remaining_time) = &mut buff.time {
-        // Extinguish Burning buff when in water
-        if matches!(buff.kind, BuffKind::Burning)
-            && matches!(
-                in_fluid,
-                Some(Fluid::Liquid {
-                    kind: LiquidKind::Water,
-                    ..
-                })
-            )
-        {
-            *remaining_time = Duration::default();
-        }
-
         if let Some(new_duration) = remaining_time.checked_sub(Duration::from_secs_f32(dt)) {
             // The buff still continues.
             *remaining_time = new_duration;

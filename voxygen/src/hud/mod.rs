@@ -3822,6 +3822,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Crippled { .. } => imgs.debuff_crippled_0,
         BuffKind::Frozen { .. } => imgs.debuff_frozen_0,
         BuffKind::Wet { .. } => imgs.debuff_wet_0,
+        BuffKind::Ensnared { .. } => imgs.debuff_ensnared_0,
     }
 }
 
@@ -3844,6 +3845,7 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> &str 
         BuffKind::Crippled { .. } => localized_strings.get("buff.title.crippled"),
         BuffKind::Frozen { .. } => localized_strings.get("buff.title.frozen"),
         BuffKind::Wet { .. } => localized_strings.get("buff.title.wet"),
+        BuffKind::Ensnared { .. } => localized_strings.get("buff.title.ensnared"),
     }
 }
 
@@ -3878,6 +3880,7 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
         BuffKind::Crippled { .. } => Cow::Borrowed(localized_strings.get("buff.desc.crippled")),
         BuffKind::Frozen { .. } => Cow::Borrowed(localized_strings.get("buff.desc.frozen")),
         BuffKind::Wet { .. } => Cow::Borrowed(localized_strings.get("buff.desc.wet")),
+        BuffKind::Ensnared { .. } => Cow::Borrowed(localized_strings.get("buff.desc.ensnared")),
     }
 }
 

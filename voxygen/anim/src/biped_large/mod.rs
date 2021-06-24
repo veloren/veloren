@@ -15,6 +15,7 @@ pub mod shockwave;
 pub mod shoot;
 pub mod spin;
 pub mod spinmelee;
+pub mod spritesummon;
 pub mod stunned;
 pub mod summon;
 pub mod wield;
@@ -26,7 +27,8 @@ pub use self::{
     equip::EquipAnimation, idle::IdleAnimation, jump::JumpAnimation, leapmelee::LeapAnimation,
     run::RunAnimation, selfbuff::SelfBuffAnimation, shockwave::ShockwaveAnimation,
     shoot::ShootAnimation, spin::SpinAnimation, spinmelee::SpinMeleeAnimation,
-    stunned::StunnedAnimation, summon::SummonAnimation, wield::WieldAnimation,
+    spritesummon::SpriteSummonAnimation, stunned::StunnedAnimation, summon::SummonAnimation,
+    wield::WieldAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};

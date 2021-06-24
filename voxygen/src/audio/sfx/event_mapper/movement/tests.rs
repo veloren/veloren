@@ -6,7 +6,7 @@ use common::{
         Ori, PhysicsState,
     },
     states,
-    terrain::BlockKind,
+    terrain::{Block, BlockKind},
 };
 use std::time::{Duration, Instant};
 
@@ -95,7 +95,7 @@ fn maps_idle() {
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::Idle {},
         &PhysicsState {
-            on_ground: true,
+            on_ground: Some(Block::empty()),
             ..Default::default()
         },
         &PreviousEntityState {
@@ -117,7 +117,7 @@ fn maps_run_with_sufficient_velocity() {
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::Idle {},
         &PhysicsState {
-            on_ground: true,
+            on_ground: Some(Block::empty()),
             ..Default::default()
         },
         &PreviousEntityState {
@@ -139,7 +139,7 @@ fn does_not_map_run_with_insufficient_velocity() {
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::Idle {},
         &PhysicsState {
-            on_ground: true,
+            on_ground: Some(Block::empty()),
             ..Default::default()
         },
         &PreviousEntityState {
@@ -194,7 +194,7 @@ fn maps_roll() {
             was_combo: None,
         }),
         &PhysicsState {
-            on_ground: true,
+            on_ground: Some(Block::empty()),
             ..Default::default()
         },
         &PreviousEntityState {
@@ -216,7 +216,7 @@ fn maps_land_on_ground_to_run() {
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::Idle {},
         &PhysicsState {
-            on_ground: true,
+            on_ground: Some(Block::empty()),
             ..Default::default()
         },
         &PreviousEntityState {
@@ -296,7 +296,7 @@ fn maps_glider_close_when_landing() {
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::Idle {},
         &PhysicsState {
-            on_ground: true,
+            on_ground: Some(Block::empty()),
             ..Default::default()
         },
         &PreviousEntityState {
@@ -317,7 +317,7 @@ fn maps_glider_close_when_landing() {
 fn maps_quadrupeds_running() {
     let result = MovementEventMapper::map_non_humanoid_movement_event(
         &PhysicsState {
-            on_ground: true,
+            on_ground: Some(Block::empty()),
             ..Default::default()
         },
         Vec3::new(0.5, 0.8, 0.0),

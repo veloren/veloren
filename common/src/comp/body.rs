@@ -305,6 +305,7 @@ impl Body {
                 biped_large::Species::Occultsaurok => Vec3::new(4.0, 3.0, 3.4),
                 biped_large::Species::Slysaurok => Vec3::new(4.0, 3.0, 3.4),
                 biped_large::Species::Werewolf => Vec3::new(4.0, 3.0, 3.5),
+                biped_large::Species::Harvester => Vec3::new(4.6, 3.0, 5.4),
 
                 _ => Vec3::new(4.6, 3.0, 6.0),
             },
@@ -489,7 +490,7 @@ impl Body {
                 biped_large::Species::Tidalwarrior => 16000,
                 biped_large::Species::Yeti => 12000,
                 biped_large::Species::Minotaur => 30000,
-                biped_large::Species::Harvester => 3000,
+                biped_large::Species::Harvester => 5000,
                 biped_large::Species::Blueoni => 2400,
                 biped_large::Species::Redoni => 2400,
                 _ => 1200,
@@ -608,12 +609,12 @@ impl Body {
                 biped_large::Species::Mountaintroll => 60,
                 biped_large::Species::Swamptroll => 60,
                 biped_large::Species::Dullahan => 120,
-                biped_large::Species::Yeti => 0,
-                biped_large::Species::Harvester => 80,
                 // Boss enemies have their health set, not adjusted by level.
                 biped_large::Species::Mindflayer => 0,
                 biped_large::Species::Minotaur => 0,
                 biped_large::Species::Tidalwarrior => 0,
+                biped_large::Species::Yeti => 0,
+                biped_large::Species::Harvester => 0,
                 _ => 100,
             },
             Body::BipedSmall(_) => 10,
@@ -658,6 +659,9 @@ impl Body {
                 Body::Object(object::Body::HaniwaSentry) => true,
                 _ => false,
             },
+            BuffKind::Ensnared => {
+                matches!(self, Body::BipedLarge(b) if matches!(b.species, biped_large::Species::Harvester))
+            },
             _ => false,
         }
     }
@@ -673,6 +677,7 @@ impl Body {
                 biped_large::Species::Minotaur => 3.2,
                 biped_large::Species::Tidalwarrior => 2.25,
                 biped_large::Species::Yeti => 2.0,
+                biped_large::Species::Harvester => 2.4,
                 _ => 1.0,
             },
             Body::Golem(g) => match g.species {

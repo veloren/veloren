@@ -3247,4 +3247,14 @@ CookingPot: Some((
     ],
     wind_sway: 0.0,
 )),
+EnsnaringVines: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.misc.ensnaring_vines",
+            offset: (-5.0, -6.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 )

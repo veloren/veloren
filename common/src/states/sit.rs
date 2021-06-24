@@ -16,7 +16,7 @@ impl CharacterBehavior for Data {
         handle_jump(data, &mut update, 1.0);
 
         // Try to Fall/Stand up/Move
-        if !data.physics.on_ground || data.inputs.move_dir.magnitude_squared() > 0.0 {
+        if data.physics.on_ground.is_none() || data.inputs.move_dir.magnitude_squared() > 0.0 {
             update.character = CharacterState::Idle;
         }
 

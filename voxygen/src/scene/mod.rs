@@ -469,7 +469,7 @@ impl Scene {
         let on_ground = ecs
             .read_storage::<comp::PhysicsState>()
             .get(scene_data.player_entity)
-            .map(|p| p.on_ground);
+            .map(|p| p.on_ground.is_some());
 
         let (player_height, player_eye_height) = scene_data
             .state

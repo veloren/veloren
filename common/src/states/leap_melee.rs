@@ -101,7 +101,7 @@ impl CharacterBehavior for Data {
                         timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
-                } else if data.physics.on_ground {
+                } else if data.physics.on_ground.is_some() {
                     // Transitions to swing portion of state upon hitting ground
                     update.character = CharacterState::LeapMelee(Data {
                         timer: Duration::default(),

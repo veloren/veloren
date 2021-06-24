@@ -257,6 +257,14 @@
             (None, "common.abilities.custom.yeti.snowball"),
         ],
     ),
+    Custom("Harvester"): (
+        primary: "common.abilities.custom.harvester.scythe",
+        secondary: "common.abilities.custom.harvester.firebreath",
+        abilities: [
+            (None, "common.abilities.custom.harvester.ensnaringvines"),
+            (None, "common.abilities.custom.harvester.explodingpumpkin"),
+        ],
+    ),
     Custom("Bird Large Breathe"): (
         primary: "common.abilities.custom.birdlargebreathe.firebomb",
         secondary: "common.abilities.custom.birdlargebreathe.triplestrike",

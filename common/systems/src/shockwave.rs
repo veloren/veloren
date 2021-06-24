@@ -181,7 +181,7 @@ impl<'a> System<'a> for Sys {
                         arc_strip.collides_with_circle(Disk::new(pos_b2, rad_b))
                     }
                     && (pos_b_ground - pos.0).angle_between(pos_b.0 - pos.0) < max_angle
-                    && (!shockwave.requires_ground || physics_state_b.on_ground);
+                    && (!shockwave.requires_ground || physics_state_b.on_ground.is_some());
 
                 if hit {
                     let dir = Dir::from_unnormalized(pos_b.0 - pos.0).unwrap_or(look_dir);

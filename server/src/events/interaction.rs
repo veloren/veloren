@@ -16,6 +16,7 @@ use common::{
     },
     consts::{MAX_MOUNT_RANGE, SOUND_TRAVEL_DIST_PER_VOLUME},
     outcome::Outcome,
+    terrain::{Block, SpriteKind},
     uid::Uid,
     vol::ReadVol,
 };
@@ -416,5 +417,19 @@ pub fn handle_sound(server: &mut Server, sound: &Sound) {
         _ => None,
     } {
         ecs.write_resource::<Vec<Outcome>>().push(outcome);
+    }
+}
+
+pub fn handle_create_sprite(server: &mut Server, pos: Vec3<i32>, sprite: SpriteKind) {
+    let state = server.state_mut();
+    if state.can_set_block(pos) {
+        let block = state.terrain().get(pos).ok().copied();
+        if block.map_or(false, |b| (*b).is_air()) {
+            let new_block = state
+                .get_block(pos)
+                .unwrap_or_else(|| Block::air(SpriteKind::Empty))
+                .with_sprite(sprite);
+            server.state.set_block(pos, new_block);
+        }
     }
 }

@@ -9,6 +9,7 @@ use crate::{
     },
     outcome::Outcome,
     rtsim::RtSimEntity,
+    terrain::SpriteKind,
     trade::{TradeAction, TradeId},
     uid::Uid,
     util::Dir,
@@ -180,6 +181,10 @@ pub enum ServerEvent {
     },
     Sound {
         sound: Sound,
+    },
+    CreateSprite {
+        pos: Vec3<i32>,
+        sprite: SpriteKind,
     },
 }
 

@@ -319,7 +319,8 @@ impl<'a> PhysicsData<'a> {
                     char_state_maybe,
                 )| {
                     let is_sticky = sticky.is_some();
-                    let is_mid_air = physics.on_wall.is_none() && physics.on_ground;
+                    // Code reviewers: remind me to check why on_ground was true instead of false here?
+                    let is_mid_air = physics.on_wall.is_none() && physics.on_ground.is_some();
                     let mut entity_entity_collision_checks = 0;
                     let mut entity_entity_collisions = 0;
 
@@ -753,7 +754,7 @@ impl<'a> PhysicsData<'a> {
                     // velocities or entirely broken position snapping.
                     let mut tgt_pos = pos.0 + pos_delta;
 
-                    let was_on_ground = physics_state.on_ground;
+                    let was_on_ground = physics_state.on_ground.is_some();
                     let block_snap =
                         body.map_or(false, |b| !matches!(b, Body::Object(_) | Body::Ship(_)));
                     let climbing =
@@ -879,7 +880,7 @@ impl<'a> PhysicsData<'a> {
                                     > block_rpos.xy().map(|e| e.abs()).reduce_partial_max()
                                 {
                                     if block_rpos.z > 0.0 {
-                                        physics_state.on_ground = true;
+                                        physics_state.on_ground = block.copied();
                                     } else {
                                         physics_state.on_ceiling = true;
                                     }
@@ -1068,10 +1069,11 @@ impl<'a> PhysicsData<'a> {
                                     // union in the state updates, so that the state isn't just
                                     // based on the most
                                     // recent terrain that collision was attempted with
-                                    if physics_state_delta.on_ground {
+                                    if physics_state_delta.on_ground.is_some() {
                                         physics_state.ground_vel = vel_other;
                                     }
-                                    physics_state.on_ground |= physics_state_delta.on_ground;
+                                    physics_state.on_ground =
+                                        physics_state.on_ground.or(physics_state_delta.on_ground);
                                     physics_state.on_ceiling |= physics_state_delta.on_ceiling;
                                     physics_state.on_wall = physics_state.on_wall.or_else(|| {
                                         physics_state_delta
@@ -1339,10 +1341,10 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         .is_some()
     }
 
-    physics_state.on_ground = false;
+    physics_state.on_ground = None;
     physics_state.on_ceiling = false;
 
-    let mut on_ground = false;
+    let mut on_ground = None;
     let mut on_ceiling = false;
     let mut attempts = 0; // Don't loop infinitely here
 
@@ -1360,7 +1362,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         const MAX_ATTEMPTS: usize = 16;
 
         // While the player is colliding with the terrain...
-        while let Some((_block_pos, block_aabb, block_height)) =
+        while let Some((_block_pos, block_aabb, block_height, block)) =
             (attempts < MAX_ATTEMPTS).then(|| {
                 // Calculate the player's AABB
                 let player_aabb = Aabb {
@@ -1391,12 +1393,13 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
                                 max: block_pos.map(|e| e as f32) + Vec3::new(1.0, 1.0, block.solid_height()),
                             },
                             block.solid_height(),
+                            block,
                         )
                     })
                     // Determine whether the block's AABB collides with the player's AABB
-                    .filter(|(_, block_aabb, _)| block_aabb.collides_with_aabb(player_aabb))
+                    .filter(|(_, block_aabb, _, _)| block_aabb.collides_with_aabb(player_aabb))
                     // Find the maximum of the minimum collision axes (this bit is weird, trust me that it works)
-                    .min_by_key(|(_, block_aabb, _)| {
+                    .min_by_key(|(_, block_aabb, _, _)| {
                         ordered_float::OrderedFloat((block_aabb.center() - player_aabb.center() - Vec3::unit_z() * 0.5)
                             .map(f32::abs)
                             .sum())
@@ -1428,7 +1431,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             if resolve_dir.z > 0.0
             /* && vel.0.z <= 0.0 */
             {
-                on_ground = true;
+                on_ground = Some(block).copied();
 
                 if !was_on_ground {
                     land_on_ground(entity, *vel);
@@ -1466,7 +1469,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
                 if (vel.0 * resolve_dir).xy().magnitude_squared() < 1.0f32.powi(2) {
                     pos.0 -= resolve_dir.normalized() * 0.05;
                 }
-                on_ground = true;
+                on_ground = Some(block).copied();
                 break;
             } else {
                 // Correct the velocity
@@ -1497,8 +1500,8 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         physics_state.on_ceiling = true;
     }
 
-    if on_ground {
-        physics_state.on_ground = true;
+    if on_ground.is_some() {
+        physics_state.on_ground = on_ground;
     // If the space below us is free, then "snap" to the ground
     } else if collision_with(
         pos.0 - Vec3::unit_z() * 1.1,
@@ -1519,7 +1522,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             .unwrap_or(0.0);
         vel.0.z = 0.0;
         pos.0.z = (pos.0.z - 0.1).floor() + snap_height;
-        physics_state.on_ground = true;
+        physics_state.on_ground = on_ground;
     }
 
     let player_aabb = Aabb {
@@ -1594,7 +1597,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     }
     physics_state.on_wall = on_wall;
     let fric_mod = read.stats.get(entity).map_or(1.0, |s| s.friction_modifier);
-    if physics_state.on_ground || (physics_state.on_wall.is_some() && climbing) {
+    if physics_state.on_ground.is_some() || (physics_state.on_wall.is_some() && climbing) {
         vel.0 *= (1.0 - FRIC_GROUND.min(1.0) * fric_mod).powf(dt.0 * 60.0);
         physics_state.ground_vel = ground_vel;
     }

@@ -18,7 +18,7 @@ impl CharacterBehavior for Data {
         handle_dodge_input(data, &mut update);
 
         // Try to Fall/Stand up/Move
-        if !data.physics.on_ground {
+        if data.physics.on_ground.is_none() {
             update.character = CharacterState::Idle;
         }
 

@@ -34,6 +34,8 @@
         "buff.desc.frozen": "Your movements and attacks are slowed.",
         "buff.title.wet": "Wet",
         "buff.desc.wet": "The ground rejects your feet, making it hard to stop.",
+        "buff.title.ensnared": "Ensnared",
+        "buff.desc.ensnared": "Vines grasp at your legs, impeding your movement.",
         // Buffs stats
         "buff.stat.health": "Restores {str_total} Health",
         "buff.stat.increase_max_stamina": "Raises Maximum Stamina by {strength}",

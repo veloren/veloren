@@ -800,7 +800,7 @@ impl FigureMgr {
                     }
 
                     let target_base = match (
-                        physics.on_ground,
+                        physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
                         physics.in_liquid().is_some(),                      // In water
                     ) {
@@ -1596,7 +1596,7 @@ impl FigureMgr {
                     }
 
                     let target_base = match (
-                        physics.on_ground,
+                        physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
                         physics.in_liquid().is_some(),                      // In water
                     ) {
@@ -1798,7 +1798,7 @@ impl FigureMgr {
                     }
 
                     let target_base = match (
-                        physics.on_ground,
+                        physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > 0.25, // Moving
                         physics.in_liquid().is_some(),      // In water
                     ) {
@@ -2125,7 +2125,7 @@ impl FigureMgr {
                     }
 
                     let target_base = match (
-                        physics.on_ground,
+                        physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
                         physics.in_liquid().is_some(),                      // In water
                     ) {
@@ -2484,7 +2484,7 @@ impl FigureMgr {
                     }
 
                     let target_base = match (
-                        physics.on_ground,
+                        physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
                         physics.in_liquid().is_some(),                      // In water
                     ) {
@@ -2594,7 +2594,7 @@ impl FigureMgr {
                     }
 
                     let target_base = match (
-                        physics.on_ground,
+                        physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
                         physics.in_liquid().is_some(),                      // In water
                     ) {
@@ -2683,7 +2683,7 @@ impl FigureMgr {
                     }
 
                     let target_base = match (
-                        physics.on_ground,
+                        physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
                         physics.in_liquid().is_some(),                      // In water
                     ) {
@@ -3028,7 +3028,7 @@ impl FigureMgr {
                     }
 
                     let target_base = match (
-                        physics.on_ground,
+                        physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
                         physics.in_liquid().is_some(),                      // In water
                     ) {
@@ -3123,7 +3123,7 @@ impl FigureMgr {
                     }
 
                     let target_base = match (
-                        physics.on_ground,
+                        physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
                         physics.in_liquid().is_some(),                      // In water
                     ) {
@@ -3309,7 +3309,7 @@ impl FigureMgr {
                     }
 
                     let target_base = match (
-                        physics.on_ground,
+                        physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
                         physics.in_liquid().is_some(),                      // In water
                     ) {
@@ -3396,7 +3396,7 @@ impl FigureMgr {
                                     Some(s.stage_section),
                                     state.state_time,
                                     look_dir,
-                                    physics.on_ground,
+                                    physics.on_ground.is_some(),
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -3434,7 +3434,7 @@ impl FigureMgr {
                                     Some(s.stage_section),
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
                                     state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    physics.on_ground,
+                                    physics.on_ground.is_some(),
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -3461,7 +3461,7 @@ impl FigureMgr {
                                     Some(s.stage_section),
                                     state.state_time,
                                     look_dir,
-                                    physics.on_ground,
+                                    physics.on_ground.is_some(),
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -3484,7 +3484,7 @@ impl FigureMgr {
                             };
                             anim::bird_large::ShockwaveAnimation::update_skeleton(
                                 &target_base,
-                                (Some(s.stage_section), physics.on_ground),
+                                (Some(s.stage_section), physics.on_ground.is_some()),
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -3513,7 +3513,7 @@ impl FigureMgr {
                                     Some(s.stage_section),
                                     state.state_time,
                                     look_dir,
-                                    physics.on_ground,
+                                    physics.on_ground.is_some(),
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -3637,7 +3637,7 @@ impl FigureMgr {
                     }
 
                     let target_base = match (
-                        physics.on_ground,
+                        physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
                         physics.in_liquid().is_some(),                      // In water
                     ) {
@@ -3726,7 +3726,7 @@ impl FigureMgr {
                     }
 
                     let target_base = match (
-                        physics.on_ground,
+                        physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
                         physics.in_liquid().is_some(),                      // In water
                     ) {
@@ -4274,6 +4274,34 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::SpriteSummon(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Cast => {
+                                    stage_time / s.static_data.cast_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
+                            anim::biped_large::SpriteSummonAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    (active_tool_kind, active_tool_spec),
+                                    (second_tool_kind, second_tool_spec),
+                                    time,
+                                    rel_vel.magnitude(),
+                                    Some(s.stage_section),
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         // TODO!
                         _ => target_base,
                     };
@@ -4327,7 +4355,7 @@ impl FigureMgr {
                     }
 
                     let target_base = match (
-                        physics.on_ground,
+                        physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
                         physics.in_liquid().is_some(),                      // In water
                     ) {
@@ -4581,7 +4609,7 @@ impl FigureMgr {
                     }
 
                     let target_base = match (
-                        physics.on_ground,
+                        physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
                         physics.in_liquid().is_some(),                      // In water
                     ) {
@@ -4710,7 +4738,7 @@ impl FigureMgr {
                     }
 
                     let target_base = match (
-                        physics.on_ground,
+                        physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
                         physics.in_liquid().is_some(),                      // In water
                     ) {
