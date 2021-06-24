@@ -31,13 +31,13 @@
         "buff.title.crippled": "Калічення",
         "buff.desc.crippled": "Ваші рухи дуже скуті через отримані травми.",
         // Stats
-        "buff.stat.health": "Відновлює {str_total} Здоров'я",
-        "buff.stat.increase_max_health": "Піднімає Максимальне Здоров'я на {strength}",
-        "buff.stat.increase_max_stamina": "Піднімає Максимальну Енергію на {strength}",
+        "buff.stat.health": "Відновлює {str_total} ОЗ",
+        "buff.stat.increase_max_health": "Підвищує Максимальне Здоров'я на {strength}",
+        "buff.stat.increase_max_stamina": "Підвищує Максимальну Енергію на {strength}",
         "buff.stat.invulnerability": "Дає невразливість",
         // Text
-        "buff.text.for_seconds": "протягом {dur_secs} секунд",
-        "buff.text.over_seconds": "впродовж {dur_secs} секунд",
+        "buff.text.for_seconds": "протягом {dur_secs} сек.",
+        "buff.text.over_seconds": "впродовж {dur_secs} сек.",
     },
 
 
