@@ -2,7 +2,7 @@ ItemDef(
     name: "Mushroom Curry",
     description: "Who could say no to that?",
     kind: Consumable(
-        kind: "AppleShroomCurry",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,

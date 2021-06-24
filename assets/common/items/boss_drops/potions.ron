@@ -2,7 +2,7 @@ ItemDef(
     name: "Potent Potion",
     description: "A potent healing potion.",
     kind: Consumable(
-        kind: "Potion",
+        kind: Potion,
         effect: [
             Buff((
                 kind: Potion,

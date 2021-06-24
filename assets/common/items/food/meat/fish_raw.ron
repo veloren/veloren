@@ -2,7 +2,7 @@ ItemDef(
     name: "Raw Fish",
     description: "A steak chopped from a fish, best after cooking.",
     kind: Consumable(
-        kind: "FishRaw",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,

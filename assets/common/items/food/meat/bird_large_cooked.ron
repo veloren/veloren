@@ -2,7 +2,7 @@ ItemDef(
     name: "Huge Cooked Drumstick",
     description: "Makes for a legendary meal.",
     kind: Consumable(
-        kind: "BirdLargeCooked",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,

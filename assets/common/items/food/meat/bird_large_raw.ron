@@ -2,7 +2,7 @@ ItemDef(
     name: "Huge Raw Drumstick",
     description: "It's magificent.",
     kind: Consumable(
-        kind: "BirdLargeRaw",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,

@@ -2,7 +2,7 @@ ItemDef(
     name: "Sage",
     description: "A herb commonly used in tea.",
     kind: Consumable(
-        kind: "Sage",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,

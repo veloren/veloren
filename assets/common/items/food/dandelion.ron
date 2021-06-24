@@ -2,7 +2,7 @@ ItemDef(
     name: "Dandelion",
     description: "A small, yellow flower. Uses the wind to spread its seeds.",
     kind: Consumable(
-        kind: "Dandelion",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,

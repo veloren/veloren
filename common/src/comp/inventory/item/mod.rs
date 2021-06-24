@@ -251,7 +251,7 @@ pub enum ItemKind {
     Armor(armor::Armor),
     Glider(Glider),
     Consumable {
-        kind: String,
+        kind: ConsumableKind,
         effect: Vec<Effect>,
     },
     Throwable {
@@ -268,6 +268,12 @@ pub enum ItemKind {
         /// through
         item_ids: Vec<String>,
     },
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum ConsumableKind {
+    Potion,
+    Food,
 }
 
 impl ItemKind {

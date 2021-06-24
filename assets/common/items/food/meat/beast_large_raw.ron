@@ -2,7 +2,7 @@ ItemDef(
     name: "Raw Meat Slab",
     description: "Chunk of beastly animal meat, best after cooking.",
     kind: Consumable(
-        kind: "BeastLargeRaw",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,

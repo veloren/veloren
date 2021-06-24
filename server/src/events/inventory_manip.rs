@@ -287,7 +287,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         match item.kind() {
                             ItemKind::Consumable { kind, effect, .. } => {
                                 maybe_effect = Some(effect.clone());
-                                Some(comp::InventoryUpdateEvent::Consumed(kind.clone()))
+                                Some(comp::InventoryUpdateEvent::Consumed(*kind))
                             },
                             ItemKind::Throwable { kind, .. } => {
                                 if let Some(pos) =

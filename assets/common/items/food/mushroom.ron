@@ -2,7 +2,7 @@ ItemDef(
     name: "Mushroom",
     description: "Hopefully this one is not poisonous",
     kind: Consumable(
-        kind: "Mushroom",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,

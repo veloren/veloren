@@ -9,7 +9,10 @@ use vek::Vec3;
 use crate::{
     comp::{
         inventory::{
-            item::{tool::AbilityMap, ItemDef, ItemKind, MaterialStatManifest, TagExampleInfo},
+            item::{
+                tool::AbilityMap, ConsumableKind, ItemDef, ItemKind, MaterialStatManifest,
+                TagExampleInfo,
+            },
             loadout::Loadout,
             slot::{EquipSlot, Slot, SlotError},
         },
@@ -803,7 +806,7 @@ impl Component for Inventory {
 pub enum InventoryUpdateEvent {
     Init,
     Used,
-    Consumed(String),
+    Consumed(ConsumableKind),
     Gave,
     Given,
     Swapped,

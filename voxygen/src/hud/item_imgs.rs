@@ -49,7 +49,7 @@ impl<T: ItemDesc> From<&T> for ItemKey {
             ItemKind::Glider(Glider { kind, .. }) => ItemKey::Glider(kind.clone()),
             ItemKind::Armor(Armor { kind, .. }) => ItemKey::Armor(kind.clone()),
             ItemKind::Utility { kind, .. } => ItemKey::Utility(*kind),
-            ItemKind::Consumable { kind, .. } => ItemKey::Consumable(kind.clone()),
+            ItemKind::Consumable { .. } => ItemKey::Consumable(item_definition_id.to_owned()),
             ItemKind::Throwable { kind, .. } => ItemKey::Throwable(*kind),
             ItemKind::Ingredient { kind, .. } => ItemKey::Ingredient(kind.clone()),
             ItemKind::TagExamples { item_ids } => ItemKey::TagExamples(

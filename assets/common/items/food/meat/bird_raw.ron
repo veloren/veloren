@@ -2,7 +2,7 @@ ItemDef(
     name: "Raw Bird Meat",
     description: "A hefty drumstick.",
     kind: Consumable(
-        kind: "BirdRaw",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,

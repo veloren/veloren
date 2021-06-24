@@ -2,7 +2,7 @@ ItemDef(
     name: "Raw Tough Meat",
     description: "Peculiar bit of meat, best after cooking.",
     kind: Consumable(
-        kind: "ToughRaw",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,

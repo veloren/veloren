@@ -2,7 +2,7 @@ ItemDef(
     name: "Large Potion",
     description: "",
     kind: Consumable(
-        kind: "PotionLarge",
+        kind: Potion,
         effect: [
             Buff((
                 kind: Potion,

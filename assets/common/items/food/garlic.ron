@@ -2,7 +2,7 @@ ItemDef(
     name: "Garlic",
     description: "Make sure to brush your teeth after eating.",
     kind: Consumable(
-        kind: "Garlic",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,

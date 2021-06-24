@@ -2,7 +2,7 @@ ItemDef(
     name: "Cactus Colada",
     description: "Giving you that special prickle.",
     kind: Consumable(
-        kind: "CactusColada",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,
