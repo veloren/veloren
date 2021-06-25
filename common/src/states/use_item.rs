@@ -5,8 +5,9 @@ use crate::{
             item::{ConsumableKind, ItemKind},
             slot::Slot,
         },
-        CharacterState, StateUpdate,
+        CharacterState, InventoryManip, StateUpdate,
     },
+    event::ServerEvent,
     states::behavior::{CharacterBehavior, JoinData},
 };
 use serde::{Deserialize, Serialize};
@@ -25,6 +26,10 @@ pub struct StaticData {
     pub inv_slot: Slot,
     /// Kind of item used
     pub item_kind: ItemUseKind,
+    /// Had weapon wielded
+    pub was_wielded: bool,
+    /// Was sneaking
+    pub was_sneak: bool,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -36,15 +41,22 @@ pub struct Data {
     pub timer: Duration,
     /// What section the character stage is in
     pub stage_section: StageSection,
-    /// Had weapon
-    pub was_wielded: bool,
-    /// Was sneaking
-    pub was_sneak: bool,
 }
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
+
+        match self.static_data.item_kind {
+            ItemUseKind::Consumable(ConsumableKind::Potion) => {
+                handle_orientation(data, &mut update, 1.0);
+                handle_move(data, &mut update, 1.0);
+            },
+            ItemUseKind::Consumable(ConsumableKind::Food) => {
+                handle_orientation(data, &mut update, 0.0);
+                handle_move(data, &mut update, 0.0);
+            },
+        }
 
         match self.stage_section {
             StageSection::Buildup => {
@@ -61,6 +73,11 @@ impl CharacterBehavior for Data {
                         stage_section: StageSection::Use,
                         ..*self
                     });
+                    // Create inventory manipulation event
+                    let inv_manip = InventoryManip::Use(self.static_data.inv_slot);
+                    update
+                        .server_events
+                        .push_front(ServerEvent::InventoryManip(data.entity, inv_manip));
                 }
             },
             StageSection::Use => {
@@ -88,9 +105,9 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    if self.was_wielded {
+                    if self.static_data.was_wielded {
                         update.character = CharacterState::Wielding;
-                    } else if self.was_sneak {
+                    } else if self.static_data.was_sneak {
                         update.character = CharacterState::Sneak;
                     } else {
                         update.character = CharacterState::Idle;
