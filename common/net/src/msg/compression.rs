@@ -557,7 +557,7 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageDecoding for TriPngEncoding<AVERAGE_
                 } else {
                     use BlockKind::*;
                     match kind {
-                        Air | Water | Lava => Rgb { r: 0, g: 0, b: 0 },
+                        Air | Water | Lava | GlowingRock => Rgb { r: 0, g: 0, b: 0 },
                         Rock => Rgb {
                             r: 93,
                             g: 110,

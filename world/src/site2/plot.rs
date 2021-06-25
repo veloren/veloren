@@ -1,7 +1,8 @@
 mod castle;
+pub mod dungeon;
 mod house;
 
-pub use self::{castle::Castle, house::House};
+pub use self::{castle::Castle, dungeon::Dungeon, house::House};
 
 use super::*;
 use crate::util::DHashSet;
@@ -30,4 +31,5 @@ pub enum PlotKind {
     Plaza,
     Castle(Castle),
     Road(Path<Vec2<i32>>),
+    Dungeon(Dungeon),
 }

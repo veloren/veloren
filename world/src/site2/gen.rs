@@ -1,9 +1,17 @@
 use super::*;
-use crate::util::{RandomField, Sampler};
+use crate::{
+    block::block_from_structure,
+    util::{RandomField, Sampler},
+};
 use common::{
     store::{Id, Store},
-    terrain::{Block, BlockKind},
+    terrain::{
+        structure::{Structure as PrefabStructure, StructureBlock},
+        Block, BlockKind,
+    },
+    vol::ReadVol,
 };
+use std::sync::Arc;
 use vek::*;
 
 #[allow(dead_code)]
@@ -12,11 +20,18 @@ pub enum Primitive {
 
     // Shapes
     Aabb(Aabb<i32>),
-    Pyramid { aabb: Aabb<i32>, inset: i32 },
+    Pyramid {
+        aabb: Aabb<i32>,
+        inset: i32,
+    },
     Cylinder(Aabb<i32>),
     Cone(Aabb<i32>),
     Sphere(Aabb<i32>),
     Plane(Aabr<i32>, Vec3<i32>, Vec2<f32>),
+    /// A sampling function is always a subset of another primitive to avoid
+    /// needing infinite bounds
+    Sampling(Id<Primitive>, Box<dyn Fn(Vec3<i32>) -> bool>),
+    Prefab(PrefabStructure),
 
     // Combinators
     And(Id<Primitive>, Id<Primitive>),
@@ -26,11 +41,19 @@ pub enum Primitive {
     Diff(Id<Primitive>, Id<Primitive>),
     // Operators
     Rotate(Id<Primitive>, Mat3<i32>),
+    Translate(Id<Primitive>, Vec3<i32>),
+    Scale(Id<Primitive>, Vec3<f32>),
 }
 
+#[derive(Clone)]
 pub enum Fill {
     Block(Block),
     Brick(BlockKind, Rgb<u8>, u8),
+    // TODO: the offset field for Prefab is a hack that breaks the compositionality of Translate,
+    // we probably need an evaluator for the primitive tree that gets which point is queried at
+    // leaf nodes given an input point to make Translate/Rotate work generally
+    Prefab(PrefabStructure, Vec3<i32>, u32),
+    Sampling(Arc<dyn Fn(Vec3<i32>) -> Option<Block>>),
 }
 
 impl Fill {
@@ -95,6 +118,8 @@ impl Fill {
                                 .as_()
                                 .dot(*gradient) as i32)
             },
+            Primitive::Sampling(a, f) => self.contains_at(tree, *a, pos) && f(pos),
+            Primitive::Prefab(p) => !matches!(p.get(pos), Err(_) | Ok(StructureBlock::None)),
             Primitive::And(a, b) => {
                 self.contains_at(tree, *a, pos) && self.contains_at(tree, *b, pos)
             },
@@ -112,6 +137,18 @@ impl Fill {
                 let diff = pos - (aabb.min + mat.cols.map(|x| x.reduce_min()));
                 self.contains_at(tree, *prim, aabb.min + mat.transposed() * diff)
             },
+            Primitive::Translate(prim, vec) => {
+                self.contains_at(tree, *prim, pos.map2(*vec, i32::saturating_sub))
+            },
+            Primitive::Scale(prim, vec) => {
+                let center =
+                    self.get_bounds(tree, *prim).center().as_::<f32>() - Vec3::broadcast(0.5);
+                let fpos = pos.as_::<f32>();
+                let spos = (center + ((center - fpos) / vec))
+                    .map(|x| x.round())
+                    .as_::<i32>();
+                self.contains_at(tree, *prim, spos)
+            },
         }
     }
 
@@ -120,6 +157,7 @@ impl Fill {
         tree: &Store<Primitive>,
         prim: Id<Primitive>,
         pos: Vec3<i32>,
+        canvas: &Canvas,
     ) -> Option<Block> {
         if self.contains_at(tree, prim, pos) {
             match self {
@@ -130,6 +168,20 @@ impl Fill {
                         .get((pos + Vec3::new(pos.z, pos.z, 0)) / Vec3::new(2, 2, 1))
                         % *range as u32) as u8,
                 )),
+                Fill::Prefab(p, tr, seed) => p.get(pos - tr).ok().and_then(|sb| {
+                    let info = canvas.info;
+                    let col_sample = info.col(info.wpos)?;
+                    block_from_structure(
+                        canvas.index,
+                        *sb,
+                        pos - tr,
+                        p.get_bounds().center().xy(),
+                        *seed,
+                        col_sample,
+                        Block::air,
+                    )
+                }),
+                Fill::Sampling(f) => f(pos),
             }
         } else {
             None
@@ -169,6 +221,8 @@ impl Fill {
                 };
                 aabb.made_valid()
             },
+            Primitive::Sampling(a, _) => self.get_bounds_inner(tree, *a)?,
+            Primitive::Prefab(p) => p.get_bounds(),
             Primitive::And(a, b) => or_zip_with(
                 self.get_bounds_inner(tree, *a),
                 self.get_bounds_inner(tree, *b),
@@ -188,6 +242,21 @@ impl Fill {
                     max: aabb.min + extent,
                 };
                 new_aabb.made_valid()
+            },
+            Primitive::Translate(prim, vec) => {
+                let aabb = self.get_bounds_inner(tree, *prim)?;
+                Aabb {
+                    min: aabb.min.map2(*vec, i32::saturating_add),
+                    max: aabb.max.map2(*vec, i32::saturating_add),
+                }
+            },
+            Primitive::Scale(prim, vec) => {
+                let aabb = self.get_bounds_inner(tree, *prim)?;
+                let center = aabb.center();
+                Aabb {
+                    min: center + ((aabb.min - center).as_::<f32>() * vec).as_::<i32>(),
+                    max: center + ((aabb.max - center).as_::<f32>() * vec).as_::<i32>(),
+                }
             },
         })
     }
@@ -213,4 +282,31 @@ pub trait Structure {
         self.render(site, |p| tree.insert(p), |p, f| fills.push((p, f)));
         (tree, fills)
     }
+}
+/// Extend a 2d AABR to a 3d AABB
+pub fn aabr_with_z<T>(aabr: Aabr<T>, z: std::ops::Range<T>) -> Aabb<T> {
+    Aabb {
+        min: aabr.min.with_z(z.start),
+        max: aabr.max.with_z(z.end),
+    }
+}
+
+#[allow(dead_code)]
+/// Just the corners of an AABB, good for outlining stuff when debugging
+pub fn aabb_corners<F: FnMut(Primitive) -> Id<Primitive>>(
+    prim: &mut F,
+    aabb: Aabb<i32>,
+) -> Id<Primitive> {
+    let f = |prim: &mut F, ret, vec| {
+        let sub = prim(Primitive::Aabb(Aabb {
+            min: aabb.min + vec,
+            max: aabb.max - vec,
+        }));
+        prim(Primitive::Diff(ret, sub))
+    };
+    let mut ret = prim(Primitive::Aabb(aabb));
+    ret = f(prim, ret, Vec3::new(1, 0, 0));
+    ret = f(prim, ret, Vec3::new(0, 1, 0));
+    ret = f(prim, ret, Vec3::new(0, 0, 1));
+    ret
 }

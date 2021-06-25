@@ -5,7 +5,7 @@ mod econ;
 use crate::{
     config::CONFIG,
     sim::{RiverKind, WorldSim},
-    site::{namegen::NameGen, Castle, Dungeon, Settlement, Site as WorldSite, Tree},
+    site::{namegen::NameGen, Castle, Settlement, Site as WorldSite, Tree},
     site2,
     util::{attempt, seed_expan, CARDINALS, NEIGHBORS},
     Index, Land,
@@ -193,13 +193,15 @@ impl Civs {
                 SiteKind::Settlement => {
                     WorldSite::settlement(Settlement::generate(wpos, Some(ctx.sim), &mut rng))
                 },
-                SiteKind::Dungeon => {
-                    WorldSite::dungeon(Dungeon::generate(wpos, Some(ctx.sim), &mut rng))
-                },
+                SiteKind::Dungeon => WorldSite::dungeon(site2::Site::generate_dungeon(
+                    &Land::from_sim(&ctx.sim),
+                    &mut rng,
+                    wpos,
+                )),
                 SiteKind::Castle => {
                     WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
                 },
-                SiteKind::Refactor => WorldSite::refactor(site2::Site::generate(
+                SiteKind::Refactor => WorldSite::refactor(site2::Site::generate_city(
                     &Land::from_sim(&ctx.sim),
                     &mut rng,
                     wpos,

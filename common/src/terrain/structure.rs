@@ -11,7 +11,7 @@ use vek::*;
 
 make_case_elim!(
     structure_block,
-    #[derive(Copy, Clone, PartialEq)]
+    #[derive(Copy, Clone, PartialEq, Debug)]
     #[repr(u32)]
     pub enum StructureBlock {
         None = 0,
@@ -40,12 +40,13 @@ pub enum StructureError {
     OutOfBounds,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Structure {
     center: Vec3<i32>,
     base: Arc<BaseStructure>,
 }
 
+#[derive(Debug)]
 struct BaseStructure {
     vol: Dyna<StructureBlock, ()>,
     default_kind: BlockKind,

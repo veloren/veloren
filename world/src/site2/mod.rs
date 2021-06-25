@@ -1,9 +1,9 @@
 mod gen;
-mod plot;
+pub mod plot;
 mod tile;
 
 use self::{
-    gen::{Fill, Primitive, Structure},
+    gen::{aabr_with_z, Fill, Primitive, Structure},
     plot::{Plot, PlotKind},
     tile::{HazardKind, KeepKind, Ori, RoofKind, Tile, TileGrid, TileKind, TILE_SIZE},
 };
@@ -38,6 +38,7 @@ fn reseed(rng: &mut impl Rng) -> impl Rng { ChaChaRng::from_seed(rng.gen::<[u8; 
 #[derive(Default)]
 pub struct Site {
     pub(crate) origin: Vec2<i32>,
+    name: String,
     tiles: TileGrid,
     plots: Store<Plot>,
     plazas: Vec<Id<Plot>>,
@@ -275,11 +276,60 @@ impl Site {
             });
     }
 
-    pub fn generate(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+    pub fn name(&self) -> &str { &self.name }
+
+    pub fn dungeon_difficulty(&self) -> Option<u32> {
+        self.plots
+            .iter()
+            .filter_map(|(_, plot)| {
+                if let PlotKind::Dungeon(d) = &plot.kind {
+                    Some(d.difficulty())
+                } else {
+                    None
+                }
+            })
+            .max()
+    }
+
+    pub fn generate_dungeon(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
         let mut rng = reseed(rng);
 
         let mut site = Site {
             origin,
+            ..Site::default()
+        };
+
+        site.demarcate_obstacles(land);
+        let dungeon = plot::Dungeon::generate(origin, land, &mut rng);
+        site.name = dungeon.name().to_string();
+        let size = (dungeon.radius() / tile::TILE_SIZE as f32).ceil() as i32;
+
+        let aabr = Aabr {
+            min: Vec2::broadcast(-size),
+            max: Vec2::broadcast(size),
+        };
+
+        let plot = site.create_plot(Plot {
+            kind: PlotKind::Dungeon(dungeon),
+            root_tile: aabr.center(),
+            tiles: aabr_tiles(aabr).collect(),
+            seed: rng.gen(),
+        });
+
+        site.blit_aabr(aabr, Tile {
+            kind: TileKind::Empty,
+            plot: Some(plot),
+        });
+
+        site
+    }
+
+    pub fn generate_city(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+
+        let mut site = Site {
+            origin,
+            name: "Town".into(),
             ..Site::default()
         };
 
@@ -710,6 +760,7 @@ impl Site {
             let (prim_tree, fills) = match &self.plots[plot].kind {
                 PlotKind::House(house) => house.render_collect(self),
                 PlotKind::Castle(castle) => castle.render_collect(self),
+                PlotKind::Dungeon(dungeon) => dungeon.render_collect(self),
                 _ => continue,
             };
 
@@ -721,7 +772,7 @@ impl Site {
                         for z in aabb.min.z..aabb.max.z {
                             let pos = Vec3::new(x, y, z);
 
-                            if let Some(block) = fill.sample_at(&prim_tree, prim, pos) {
+                            if let Some(block) = fill.sample_at(&prim_tree, prim, pos, &canvas) {
                                 canvas.set(pos, block);
                             }
                         }
@@ -730,9 +781,22 @@ impl Site {
             }
         }
     }
+
+    pub fn apply_supplement(
+        &self,
+        dynamic_rng: &mut impl Rng,
+        wpos2d: Vec2<i32>,
+        supplement: &mut crate::ChunkSupplement,
+    ) {
+        for (_, plot) in self.plots.iter() {
+            if let PlotKind::Dungeon(d) = &plot.kind {
+                d.apply_supplement(dynamic_rng, wpos2d, supplement);
+            }
+        }
+    }
 }
 
-pub fn test_site() -> Site { Site::generate(&Land::empty(), &mut thread_rng(), Vec2::zero()) }
+pub fn test_site() -> Site { Site::generate_city(&Land::empty(), &mut thread_rng(), Vec2::zero()) }
 
 fn wpos_is_hazard(land: &Land, wpos: Vec2<i32>) -> Option<HazardKind> {
     if land

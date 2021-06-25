@@ -2,10 +2,10 @@ use super::SpawnRules;
 use crate::{
     block::block_from_structure,
     column::ColumnSample,
-    sim::WorldSim,
     site::{namegen::NameGen, BlockMask},
+    site2::{self, aabr_with_z, Fill, Primitive, Structure as SiteStructure},
     util::{attempt, Grid, RandomField, Sampler, CARDINALS, DIRS},
-    IndexRef,
+    IndexRef, Land,
 };
 
 use common::{
@@ -22,6 +22,7 @@ use fxhash::FxHasher64;
 use lazy_static::lazy_static;
 use rand::{prelude::*, seq::SliceRandom};
 use serde::Deserialize;
+use std::sync::Arc;
 use vek::*;
 
 pub struct Dungeon {
@@ -36,7 +37,7 @@ pub struct Dungeon {
 }
 
 pub struct GenCtx<'a, R: Rng> {
-    sim: Option<&'a WorldSim>,
+    land: &'a Land<'a>,
     rng: &'a mut R,
 }
 
@@ -64,9 +65,8 @@ lazy_static! {
 }
 
 impl Dungeon {
-    pub fn generate(wpos: Vec2<i32>, sim: Option<&WorldSim>, rng: &mut impl Rng) -> Self {
-        let mut ctx = GenCtx { sim, rng };
-
+    pub fn generate(wpos: Vec2<i32>, land: &Land, rng: &mut impl Rng) -> Self {
+        let mut ctx = GenCtx { land, rng };
         let difficulty = DUNGEON_DISTRIBUTION
             .choose_weighted(&mut ctx.rng, |pair| pair.1)
             .map(|(difficulty, _)| *difficulty)
@@ -76,7 +76,6 @@ impl Dungeon {
                     err
                 )
             });
-
         let floors = 3 + difficulty / 2;
 
         Self {
@@ -91,11 +90,7 @@ impl Dungeon {
                 }
             },
             origin: wpos - TILE_SIZE / 2,
-            alt: ctx
-                .sim
-                .and_then(|sim| sim.get_alt_approx(wpos))
-                .unwrap_or(0.0) as i32
-                + 6,
+            alt: ctx.land.get_alt_approx(wpos) as i32 + 6,
             seed: ctx.rng.gen(),
             noise: RandomField::new(ctx.rng.gen()),
             floors: (0..floors)
@@ -114,7 +109,14 @@ impl Dungeon {
 
     pub fn get_origin(&self) -> Vec2<i32> { self.origin }
 
-    pub fn radius(&self) -> f32 { 200.0 }
+    pub fn radius(&self) -> f32 {
+        self.floors
+            .iter()
+            .map(|floor| (TILE_SIZE * floor.tiles.size()).magnitude_squared())
+            .max()
+            .map(|d| (d as f32).sqrt() / 2.0)
+            .unwrap_or(200.0)
+    }
 
     #[allow(clippy::needless_update)] // TODO: Pending review in #587
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
@@ -205,7 +207,6 @@ impl Dungeon {
         // NOTE: Used only for dynamic elements like chests and entities!
         dynamic_rng: &mut impl Rng,
         wpos2d: Vec2<i32>,
-        _get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
         supplement: &mut ChunkSupplement,
     ) {
         let rpos = wpos2d - self.origin;
@@ -440,7 +441,7 @@ impl Floor {
                     boss: false,
                     area,
                     height: ctx.rng.gen_range(15..20),
-                    pillars: Some(4),
+                    pillars: Some(ctx.rng.gen_range(2..=4)),
                     difficulty: self.difficulty,
                 }),
                 _ => self.create_room(Room {
@@ -452,7 +453,7 @@ impl Floor {
                     area,
                     height: ctx.rng.gen_range(10..15),
                     pillars: if ctx.rng.gen_range(0..4) == 0 {
-                        Some(4)
+                        Some(ctx.rng.gen_range(2..=4))
                     } else {
                         None
                     },
@@ -695,23 +696,7 @@ impl Floor {
     fn total_depth(&self) -> i32 { self.solid_depth + self.hollow_depth }
 
     fn nearest_wall(&self, rpos: Vec2<i32>) -> Option<Vec2<i32>> {
-        let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));
-
-        DIRS.iter()
-            .map(|dir| tile_pos + *dir)
-            .filter(|other_tile_pos| {
-                self.tiles
-                    .get(*other_tile_pos)
-                    .filter(|tile| tile.is_passable())
-                    .is_none()
-            })
-            .map(|other_tile_pos| {
-                rpos.clamped(
-                    other_tile_pos * TILE_SIZE,
-                    (other_tile_pos + 1) * TILE_SIZE - 1,
-                )
-            })
-            .min_by_key(|nearest| rpos.distance_squared(*nearest))
+        tilegrid_nearest_wall(&self.tiles, rpos)
     }
 
     // Find orientation of a position relative to another position
@@ -1169,5 +1154,479 @@ mod tests {
         mini_boss_4(tile_wcenter);
         mini_boss_5(&mut dynamic_rng, tile_wcenter);
         mini_boss_fallback(tile_wcenter);
+    }
+}
+
+pub fn tilegrid_nearest_wall(tiles: &Grid<Tile>, rpos: Vec2<i32>) -> Option<Vec2<i32>> {
+    let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));
+
+    DIRS.iter()
+        .map(|dir| tile_pos + *dir)
+        .filter(|other_tile_pos| {
+            tiles
+                .get(*other_tile_pos)
+                .filter(|tile| tile.is_passable())
+                .is_none()
+        })
+        .map(|other_tile_pos| {
+            rpos.clamped(
+                other_tile_pos * TILE_SIZE,
+                (other_tile_pos + 1) * TILE_SIZE - 1,
+            )
+        })
+        .min_by_key(|nearest| rpos.distance_squared(*nearest))
+}
+
+pub fn spiral_staircase(
+    origin: Vec3<i32>,
+    radius: f32,
+    inner_radius: f32,
+    stretch: f32,
+) -> Box<dyn Fn(Vec3<i32>) -> bool> {
+    Box::new(move |pos: Vec3<i32>| {
+        let pos = pos - origin;
+        if (pos.xy().magnitude_squared() as f32) < inner_radius.powi(2) {
+            true
+        } else if (pos.xy().magnitude_squared() as f32) < radius.powi(2) {
+            ((pos.x as f32).atan2(pos.y as f32) / (f32::consts::PI * 2.0) * stretch + pos.z as f32)
+                .rem_euclid(stretch)
+                < 1.5
+        } else {
+            false
+        }
+    })
+}
+
+pub fn wall_staircase(
+    origin: Vec3<i32>,
+    radius: f32,
+    stretch: f32,
+) -> Box<dyn Fn(Vec3<i32>) -> bool> {
+    Box::new(move |pos: Vec3<i32>| {
+        let pos = pos - origin;
+        if (pos.x.abs().max(pos.y.abs())) as f32 > 0.6 * radius {
+            ((pos.x as f32).atan2(pos.y as f32) / (f32::consts::PI * 2.0) * stretch + pos.z as f32)
+                .rem_euclid(stretch)
+                < 1.0
+        } else {
+            false
+        }
+    })
+}
+
+pub fn inscribed_polystar(
+    origin: Vec2<i32>,
+    radius: f32,
+    sides: usize,
+) -> Box<dyn Fn(Vec3<i32>) -> bool> {
+    Box::new(move |pos| {
+        use std::f32::consts::TAU;
+        let rpos: Vec2<f32> = pos.xy().as_() - origin.as_();
+        let is_border = rpos.magnitude_squared() > (radius - 2.0).powi(2);
+        let is_line = (0..sides).into_iter().any(|i| {
+            let f = |j: f32| {
+                let t = j * TAU / sides as f32;
+                radius * Vec2::new(t.cos(), t.sin())
+            };
+            let line = LineSegment2 {
+                start: f(i as f32),
+                end: f((i + 2) as f32),
+            };
+            line.distance_to_point(rpos) <= 1.0
+        });
+        is_border || is_line
+    })
+}
+
+pub fn make_wall_contours(
+    tiles: Arc<Grid<Tile>>,
+    floor_corner: Vec2<i32>,
+    floor_z: i32,
+    wall_thickness: f32,
+    tunnel_height: f32,
+) -> Box<dyn Fn(Vec3<i32>) -> bool> {
+    Box::new(move |pos| {
+        let rpos = pos.xy() - floor_corner;
+        let dist_to_wall = tilegrid_nearest_wall(&tiles, rpos)
+            .map(|nearest| (nearest.distance_squared(rpos) as f32).sqrt())
+            .unwrap_or(TILE_SIZE as f32);
+        let tunnel_dist =
+            1.0 - (dist_to_wall - wall_thickness).max(0.0) / (TILE_SIZE as f32 - wall_thickness);
+        dist_to_wall < wall_thickness
+            || ((pos.z - floor_z) as f32) >= tunnel_height * (1.0 - tunnel_dist.powi(4))
+    })
+}
+
+impl Floor {
+    fn render<F: FnMut(Primitive) -> Id<Primitive>, G: FnMut(Id<Primitive>, Fill)>(
+        &self,
+        mut prim: F,
+        mut fill: G,
+        dungeon: &Dungeon,
+        floor_z: i32,
+    ) {
+        // Calculate an AABB and corner for the AABB that covers the current floor.
+        let floor_corner = dungeon.origin + TILE_SIZE * self.tile_offset;
+        let floor_aabb = Aabb {
+            min: floor_corner.with_z(floor_z),
+            max: (floor_corner + TILE_SIZE * self.tiles.size())
+                .with_z(floor_z + self.total_depth()),
+        };
+        let floor_prim = prim(Primitive::Aabb(floor_aabb));
+
+        // Declare the various kinds of blocks that will be used as fills
+        let vacant = Block::air(SpriteKind::Empty);
+        let stone = Block::new(BlockKind::Rock, Rgb::new(150, 150, 175));
+        let stone_purple = Block::new(BlockKind::GlowingRock, Rgb::new(96, 0, 128));
+
+        // Sprites are randomly positioned and have random kinds, this primitive
+        // produces a box of dots that will later get truncated to just the
+        // floor, and the corresponding fill places the random kinds where the
+        // mask says to
+        let floor_sprite = prim(Primitive::Sampling(
+            floor_prim,
+            Box::new(|pos| RandomField::new(7331).chance(pos, 0.001)),
+        ));
+
+        let floor_sprite_fill = Fill::Sampling(Arc::new(|pos| {
+            Some(Block::air(
+                match (RandomField::new(1337).get(pos) / 2) % 30 {
+                    0 => SpriteKind::Apple,
+                    1 => SpriteKind::VeloriteFrag,
+                    2 => SpriteKind::Velorite,
+                    3..=8 => SpriteKind::Mushroom,
+                    9..=15 => SpriteKind::FireBowlGround,
+                    _ => SpriteKind::ShortGrass,
+                },
+            ))
+        }));
+
+        let wall_thickness = 3.0;
+        let tunnel_height = if self.final_level { 16.0 } else { 8.0 };
+        let pillar_thickness: i32 = 4;
+
+        // Several primitives and fills use the tile information for finding the nearest
+        // wall, a copy of the tilegrid for the floor is stored in an Arc to
+        // avoid making a copy for each primitive
+        let tiles = Arc::new(self.tiles.clone());
+
+        // The way the ceiling is curved around corners and near hallways is intricate
+        // enough that it's easiest to do with a sampling primitive, this gets
+        // masked per room so that it's more efficient to query
+        let wall_contours = prim(Primitive::Sampling(floor_prim, {
+            let tiles = Arc::clone(&tiles);
+            make_wall_contours(tiles, floor_corner, floor_z, wall_thickness, tunnel_height)
+        }));
+
+        // The surface 1 unit thicker than the walls is used to place the torches onto
+        let wall_contour_surface = prim(Primitive::Sampling(floor_prim, {
+            let tiles = Arc::clone(&tiles);
+            make_wall_contours(
+                tiles,
+                floor_corner,
+                floor_z,
+                wall_thickness + 1.0,
+                tunnel_height - 1.0,
+            )
+        }));
+
+        // The sconces use a sampling-based fill to orient them properly relative to the
+        // walls/staircases/pillars
+        let light_offset: i32 = 7;
+        let sconces_wall = Fill::Sampling(Arc::new(move |pos| {
+            let rpos = pos.xy() - floor_corner;
+            let nearest = tilegrid_nearest_wall(&tiles, rpos);
+            let ori = Floor::relative_ori(rpos, nearest.unwrap_or_default());
+            Block::air(SpriteKind::WallSconce).with_ori(ori)
+        }));
+        let sconces_inward = Fill::Sampling(Arc::new(move |pos| {
+            let rpos = pos.xy() - floor_corner;
+            let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));
+            let tile_center = tile_pos * TILE_SIZE + TILE_SIZE / 2;
+            let ori = Floor::relative_ori(rpos, tile_center);
+            Block::air(SpriteKind::WallSconce).with_ori(ori)
+        }));
+        let sconces_outward = Fill::Sampling(Arc::new(move |pos| {
+            let rpos = pos.xy() - floor_corner;
+            let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));
+            let tile_center = tile_pos * TILE_SIZE + TILE_SIZE / 2;
+            let ori = Floor::relative_ori(tile_center, rpos);
+            Block::air(SpriteKind::WallSconce).with_ori(ori)
+        }));
+
+        // The lighting mask is a grid of thin AABB planes with the same period as the
+        // tile grid, but offset by `lighting_offset`, used to space the torches
+        // on the walls/pillars/staircases
+        let lighting_mask = {
+            let mut lighting_mask_x = prim(Primitive::Empty);
+            let floor_w = floor_aabb.max.x - floor_aabb.min.x;
+            for i in 0..floor_w / light_offset {
+                let j = floor_corner.x + i * TILE_SIZE + light_offset;
+                let plane = prim(Primitive::Aabb(Aabb {
+                    min: floor_aabb.min.with_x(j - 1),
+                    max: floor_aabb.max.with_x(j),
+                }));
+                lighting_mask_x = prim(Primitive::Or(plane, lighting_mask_x));
+            }
+            let mut lighting_mask_y = prim(Primitive::Empty);
+            let floor_h = floor_aabb.max.y - floor_aabb.min.y;
+            for i in 0..floor_h / light_offset {
+                let j = floor_corner.y + i * TILE_SIZE + light_offset;
+                let plane = prim(Primitive::Aabb(Aabb {
+                    min: floor_aabb.min.with_y(j - 1),
+                    max: floor_aabb.max.with_y(j),
+                }));
+                lighting_mask_y = prim(Primitive::Or(plane, lighting_mask_y));
+            }
+            prim(Primitive::Xor(lighting_mask_x, lighting_mask_y))
+        };
+
+        // Declare collections of various disjoint primitives that need postprocessing
+        // after handling all the local information per-tile
+        let mut stairs_bb = Vec::new();
+        let mut stairs = Vec::new();
+        let mut pillars = Vec::new();
+        let mut boss_room_center = None;
+        let mut sprites = Vec::new();
+
+        // This loop processes the tile grid, carving out rooms and tunnels and
+        // collecting stair/pillar/sprite info to place afterwards
+        for (tile_pos, tile) in self.tiles.iter() {
+            let tile_corner = dungeon.origin + TILE_SIZE * (self.tile_offset + tile_pos);
+            let tile_aabr = Aabr {
+                min: tile_corner,
+                max: tile_corner + Vec2::broadcast(TILE_SIZE),
+            };
+            let tile_center = tile_corner + Vec2::broadcast(TILE_SIZE / 2);
+            let (mut height, room) = match tile {
+                Tile::UpStair(room, _) => (self.hollow_depth, Some(room)),
+                Tile::DownStair(room) => (self.hollow_depth, Some(room)),
+                Tile::Room(room) => (self.hollow_depth, Some(room)),
+                Tile::Tunnel => (tunnel_height as i32, None),
+                Tile::Solid => continue,
+            };
+
+            // Sprites are contained to the level above the floor, and not within walls
+            let sprite_layer = prim(Primitive::Aabb(aabr_with_z(
+                tile_aabr,
+                floor_z..floor_z + 1,
+            )));
+            let sprite_layer = prim(Primitive::Diff(sprite_layer, wall_contours));
+
+            // Lights are 2 units above the floor, and aligned with the `lighting_mask` grid
+            let lighting_plane = prim(Primitive::Aabb(aabr_with_z(
+                tile_aabr,
+                floor_z + 1..floor_z + 2,
+            )));
+            let lighting_plane = prim(Primitive::And(lighting_plane, lighting_mask));
+
+            let mut chests = None;
+
+            if let Some(room) = room.map(|i| self.rooms.get(*i)) {
+                height = height.min(room.height);
+                if let Tile::UpStair(_, kind) = tile {
+                    // Construct the staircase that connects this tile to the matching DownStair
+                    // tile on the floor above (or to the surface if this is the top floor), and a
+                    // hollow bounding box to place air in
+                    let center = tile_center.with_z(floor_z);
+                    let radius = TILE_SIZE as f32 / 2.0;
+                    let aabb = aabr_with_z(tile_aabr, floor_z..floor_z + self.total_depth());
+                    let bb = prim(match kind {
+                        StairsKind::Spiral => Primitive::Cylinder(aabb),
+                        StairsKind::WallSpiral => Primitive::Aabb(aabb),
+                    });
+                    let stair = prim(Primitive::Sampling(bb, match kind {
+                        StairsKind::Spiral => spiral_staircase(center, radius, 0.5, 9.0),
+                        StairsKind::WallSpiral => wall_staircase(center, radius, 27.0),
+                    }));
+                    // Construct the lights that go inside the staircase, starting above the
+                    // ceiling to avoid placing them floating in mid-air
+                    let mut lights = prim(Primitive::Empty);
+                    for i in height..self.total_depth() {
+                        if i % 9 == 0 {
+                            let mut light = prim(Primitive::Aabb(Aabb {
+                                min: aabb.min.with_z(floor_z + i),
+                                max: aabb.max.with_z(floor_z + i + 1),
+                            }));
+                            let inner = prim(Primitive::Aabb(Aabb {
+                                min: (aabb.min + Vec3::new(1, 1, 0)).with_z(floor_z + i),
+                                max: (aabb.max - Vec3::new(1, 1, 0)).with_z(floor_z + i + 1),
+                            }));
+
+                            light = prim(Primitive::Diff(light, inner));
+                            lights = prim(Primitive::Or(light, lights));
+                        }
+                    }
+                    lights = prim(Primitive::And(lights, lighting_mask));
+                    stairs_bb.push(bb);
+                    stairs.push((stair, lights));
+                }
+                if matches!(tile, Tile::Room(_) | Tile::DownStair(_)) {
+                    let seed = room.seed;
+                    let loot_density = room.loot_density;
+                    let difficulty = room.difficulty;
+                    // Place chests with a random distribution based on the room's loot density in
+                    // valid sprite locations, filled based on the room's difficulty
+                    let chest_sprite = prim(Primitive::Sampling(
+                        sprite_layer,
+                        Box::new(move |pos| RandomField::new(seed).chance(pos, loot_density * 0.5)),
+                    ));
+                    let chest_sprite_fill = Fill::Block(Block::air(match difficulty {
+                        0 => SpriteKind::DungeonChest0,
+                        1 => SpriteKind::DungeonChest1,
+                        2 => SpriteKind::DungeonChest2,
+                        3 => SpriteKind::DungeonChest3,
+                        4 => SpriteKind::DungeonChest4,
+                        5 => SpriteKind::DungeonChest5,
+                        _ => SpriteKind::Chest,
+                    }));
+                    chests = Some((chest_sprite, chest_sprite_fill));
+
+                    // If a room has pillars, the current tile aligns with the pillar spacing, and
+                    // we're not too close to a wall (i.e. the adjacent tiles are rooms and not
+                    // hallways/solid), place a pillar
+                    if room
+                        .pillars
+                        .map(|pillar_space| {
+                            tile_pos
+                                .map(|e| e.rem_euclid(pillar_space) == 0)
+                                .reduce_and()
+                        })
+                        .unwrap_or(false)
+                        && DIRS
+                            .iter()
+                            .map(|dir| tile_pos + *dir)
+                            .all(|other_tile_pos| {
+                                matches!(self.tiles.get(other_tile_pos), Some(Tile::Room(_)))
+                            })
+                    {
+                        let mut pillar = prim(Primitive::Cylinder(Aabb {
+                            min: (tile_center - Vec2::broadcast(pillar_thickness - 1))
+                                .with_z(floor_z),
+                            max: (tile_center + Vec2::broadcast(pillar_thickness))
+                                .with_z(floor_z + height),
+                        }));
+                        let base = prim(Primitive::Cylinder(Aabb {
+                            min: (tile_center - Vec2::broadcast(1 + pillar_thickness - 1))
+                                .with_z(floor_z),
+                            max: (tile_center + Vec2::broadcast(1 + pillar_thickness))
+                                .with_z(floor_z + 3),
+                        }));
+
+                        let scale = (pillar_thickness + 2) as f32 / pillar_thickness as f32;
+                        let mut lights =
+                            prim(Primitive::Scale(pillar, Vec2::broadcast(scale).with_z(1.0)));
+                        lights = prim(Primitive::And(lighting_plane, lights));
+                        // Only add the base (and shift the lights up) for boss-room pillars
+                        if room.boss {
+                            lights = prim(Primitive::Translate(lights, 3 * Vec3::unit_z()));
+                            pillar = prim(Primitive::Or(pillar, base));
+                        }
+                        pillars.push((tile_center, pillar, lights));
+                    }
+                }
+
+                // Keep track of the boss room to be able to add decorations later
+                if room.boss {
+                    boss_room_center =
+                        Some(floor_corner + TILE_SIZE * room.area.center() + TILE_SIZE / 2);
+                }
+            }
+
+            // Carve out the room's air inside the walls
+            let tile_air = prim(Primitive::Aabb(aabr_with_z(
+                tile_aabr,
+                floor_z..floor_z + height,
+            )));
+            let tile_air = prim(Primitive::Diff(tile_air, wall_contours));
+            fill(tile_air, Fill::Block(vacant));
+
+            // Place torches on the walls with the aforementioned spacing
+            let sconces_layer = prim(Primitive::And(tile_air, lighting_plane));
+            let sconces_layer = prim(Primitive::And(sconces_layer, wall_contour_surface));
+            fill(sconces_layer, sconces_wall.clone());
+
+            // Defer chest/floor sprite placement
+            if let Some((chest_sprite, chest_sprite_fill)) = chests {
+                let chest_sprite = prim(Primitive::Diff(chest_sprite, wall_contours));
+                sprites.push((chest_sprite, chest_sprite_fill));
+            }
+
+            let floor_sprite = prim(Primitive::And(sprite_layer, floor_sprite));
+            sprites.push((floor_sprite, floor_sprite_fill.clone()));
+        }
+
+        // Place a glowing purple septagonal star inscribed in a circle in the boss room
+        if let Some(boss_room_center) = boss_room_center {
+            let magic_circle_bb = prim(Primitive::Cylinder(Aabb {
+                min: (boss_room_center - 3 * Vec2::broadcast(TILE_SIZE) / 2).with_z(floor_z - 1),
+                max: (boss_room_center + 3 * Vec2::broadcast(TILE_SIZE) / 2).with_z(floor_z),
+            }));
+            let magic_circle = prim(Primitive::Sampling(
+                magic_circle_bb,
+                inscribed_polystar(boss_room_center, 1.4 * TILE_SIZE as f32, 7),
+            ));
+            fill(magic_circle, Fill::Block(stone_purple));
+        }
+
+        // Place pillars and pillar lights facing the pillars
+        for (pos, pillar, lights) in pillars.iter() {
+            // Avoid placing pillars that would cover the septagonal star
+            if let Some(boss_room_center) = boss_room_center {
+                if pos.distance_squared(boss_room_center) < (3 * TILE_SIZE / 2).pow(2) {
+                    continue;
+                }
+            }
+            fill(*lights, sconces_inward.clone());
+            fill(*pillar, Fill::Block(stone));
+        }
+        // Carve out space for the stairs
+        for stair_bb in stairs_bb.iter() {
+            fill(*stair_bb, Fill::Block(vacant));
+            // Prevent sprites from floating above the stairs
+            let stair_bb_up = prim(Primitive::Translate(*stair_bb, Vec3::unit_z()));
+            for (sprite, _) in sprites.iter_mut() {
+                *sprite = prim(Primitive::Diff(*sprite, stair_bb_up));
+            }
+        }
+        // Place the stairs themselves, and lights within the stairwells
+        for (stair, lights) in stairs.iter() {
+            fill(*lights, sconces_outward.clone());
+            fill(*stair, Fill::Block(stone));
+        }
+        // Place the sprites
+        for (sprite, sprite_fill) in sprites.into_iter() {
+            fill(sprite, sprite_fill);
+        }
+    }
+}
+
+impl SiteStructure for Dungeon {
+    fn render<F: FnMut(Primitive) -> Id<Primitive>, G: FnMut(Id<Primitive>, Fill)>(
+        &self,
+        _site: &site2::Site,
+        mut prim: F,
+        mut fill: G,
+    ) {
+        let origin = (self.origin + Vec2::broadcast(TILE_SIZE / 2)).with_z(self.alt + ALT_OFFSET);
+
+        lazy_static! {
+            pub static ref ENTRANCES: AssetHandle<StructuresGroup> =
+                Structure::load_group("dungeon_entrances");
+        }
+
+        let entrances = ENTRANCES.read();
+        let entrance = entrances[self.seed as usize % entrances.len()].clone();
+
+        let entrance_prim = prim(Primitive::Prefab(entrance.clone()));
+        let entrance_prim = prim(Primitive::Translate(entrance_prim, origin));
+        fill(entrance_prim, Fill::Prefab(entrance, origin, self.seed));
+
+        let mut z = self.alt + ALT_OFFSET;
+        for floor in &self.floors {
+            z -= floor.total_depth();
+
+            floor.render(&mut prim, &mut fill, &self, z);
+        }
     }
 }

@@ -35,7 +35,7 @@ rayon = "1.5"
 serde = { version = "1.0.110", features = ["derive"] }
 ron = { version = "0.6", default-features = false }
 assets_manager = {version = "0.4.3", features = ["ron"]}
-#inline_tweak = "1.0.2"
+# inline_tweak = "1.0.2"
 
 # compression benchmarks
 lz-fear = { version = "0.1.1", optional = true }

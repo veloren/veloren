@@ -10,7 +10,7 @@ use common::{
     vol::{BaseVol, ReadVol, RectSizedVol, WriteVol},
 };
 use vek::{Vec2, Vec3};
-use veloren_world::{index::Index, IndexOwned};
+use veloren_world::{index::Index, IndexOwned, Land};
 
 /// This exports a dungeon (structure only, no entities or sprites) to a
 /// MagicaVoxel .vox file
@@ -22,9 +22,9 @@ fn main() -> Result {
     println!("Saving into {}", export_path);
     let mut volume = ExportVol::new();
     let index = IndexOwned::new(Index::new(seed));
-    let dungeon = veloren_world::site::Dungeon::generate(
+    let dungeon = veloren_world::site2::plot::Dungeon::generate(
         volume.size_xy().map(|p| p as i32 / 2),
-        None,
+        &Land::empty(),
         &mut rand::thread_rng(),
     );
     dungeon.apply_to(index.as_index_ref(), Vec2::new(0, 0), |_| None, &mut volume);
