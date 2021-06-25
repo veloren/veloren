@@ -27,7 +27,6 @@
             scale_ratio: 1.0,
         ),
     },
-    sub_directories: [],
     string_map: {
         // Texts used in multiple locations with the same formatting
         "common.username": "jméno",

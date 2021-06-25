@@ -716,10 +716,7 @@ impl LoadoutBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        assets::{AssetExt, Error},
-        comp::{self, Body},
-    };
+    use crate::comp::{self, Body};
     use rand::thread_rng;
     use strum::IntoEnumIterator;
 
@@ -788,31 +785,13 @@ mod tests {
 
     #[test]
     fn test_all_loadout_assets() {
-        #[derive(Clone)]
-        struct LoadoutList(Vec<LoadoutSpec>);
-        impl assets::Compound for LoadoutList {
-            fn load<S: assets::source::Source>(
-                cache: &assets::AssetCache<S>,
-                specifier: &str,
-            ) -> Result<Self, Error> {
-                let list = cache
-                    .load::<assets::Directory>(specifier)?
-                    .read()
-                    .iter()
-                    .map(|spec| LoadoutSpec::load_cloned(spec))
-                    .collect::<Result<_, Error>>()?;
-
-                Ok(Self(list))
-            }
-        }
-
         // It just load everything that could
         // TODO: add some checks, e.g. that Armor(Head) key correspond
         // to Item with ItemKind Head(_)
-        let loadouts = LoadoutList::load_expect_cloned("common.loadout.*").0;
-        for loadout in loadouts {
-            let spec = loadout.0;
-            for (key, entry) in spec {
+        let loadouts = assets::load_expect_dir::<LoadoutSpec>("common.loadout", true);
+        for loadout in loadouts.iter() {
+            let spec = loadout.read();
+            for (&key, entry) in &spec.0 {
                 entry.validate(key);
             }
         }

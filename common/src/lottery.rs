@@ -111,31 +111,10 @@ impl LootSpec {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        assets::{AssetExt, Error},
-        comp::Item,
-    };
+    use crate::{assets, comp::Item};
 
     #[test]
     fn test_loot_tables() {
-        #[derive(Clone)]
-        struct LootTableList(Vec<Lottery<LootSpec>>);
-        impl assets::Compound for LootTableList {
-            fn load<S: assets::source::Source>(
-                cache: &assets::AssetCache<S>,
-                specifier: &str,
-            ) -> Result<Self, Error> {
-                let list = cache
-                    .load::<assets::Directory>(specifier)?
-                    .read()
-                    .iter()
-                    .map(|spec| Lottery::<LootSpec>::load_cloned(spec))
-                    .collect::<Result<_, Error>>()?;
-
-                Ok(LootTableList(list))
-            }
-        }
-
         fn validate_table_contents(table: Lottery<LootSpec>) {
             for (_, item) in table.iter() {
                 match item {
@@ -165,9 +144,9 @@ mod tests {
             }
         }
 
-        let loot_tables = LootTableList::load_expect_cloned("common.loot_tables.*").0;
-        for loot_table in loot_tables {
-            validate_table_contents(loot_table);
+        let loot_tables = assets::load_expect_dir::<Lottery<LootSpec>>("common.loot_tables", true);
+        for loot_table in loot_tables.iter() {
+            validate_table_contents(loot_table.cloned());
         }
     }
 }

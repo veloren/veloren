@@ -514,9 +514,10 @@ impl assets::Compound for ItemDef {
     ) -> Result<Self, Error> {
         // load from the filesystem first, but if the file doesn't exist, see if it's a
         // programmaticly-generated asset
-        let raw = cache
-            .load_owned::<RawItemDef>(specifier)
-            .or_else(|e| modular::synthesize_modular_asset(specifier).ok_or(e))?;
+        let raw = match cache.load::<RawItemDef>(specifier) {
+            Ok(handle) => handle.cloned(),
+            Err(e) => modular::synthesize_modular_asset(specifier).ok_or(e)?,
+        };
 
         let RawItemDef {
             name,
@@ -569,24 +570,6 @@ impl assets::Asset for RawItemDef {
 #[derive(Debug)]
 pub struct OperationFailure;
 
-#[derive(Clone)]
-struct ItemList(Vec<Item>);
-impl assets::Compound for ItemList {
-    fn load<S: assets::source::Source>(
-        cache: &assets::AssetCache<S>,
-        specifier: &str,
-    ) -> Result<Self, Error> {
-        let list = cache
-            .load::<assets::Directory>(specifier)?
-            .read()
-            .iter()
-            .map(|spec| Item::new_from_asset(spec))
-            .collect::<Result<_, Error>>()?;
-
-        Ok(ItemList(list))
-    }
-}
-
 impl Item {
     // TODO: consider alternatives such as default abilities that can be added to a
     // loadout when no weapon is present
@@ -634,7 +617,9 @@ impl Item {
     /// Creates a Vec containing one of each item that matches the provided
     /// asset glob pattern
     pub fn new_from_asset_glob(asset_glob: &str) -> Result<Vec<Self>, Error> {
-        Ok(ItemList::load_cloned(asset_glob)?.0)
+        let specifier = asset_glob.strip_suffix(".*").unwrap_or(asset_glob);
+        let defs = assets::load_dir::<RawItemDef>(specifier, true)?;
+        defs.ids().map(Item::new_from_asset).collect()
     }
 
     /// Creates a new instance of an `Item from the provided asset identifier if

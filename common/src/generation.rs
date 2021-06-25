@@ -308,31 +308,12 @@ pub fn get_npc_name<
 mod tests {
     use super::*;
     use crate::{comp::inventory::slot::EquipSlot, SkillSetBuilder};
-    use assets::Error;
 
     #[test]
     fn test_all_entity_assets() {
-        #[derive(Clone)]
-        struct EntityList(Vec<EntityConfig>);
-        impl assets::Compound for EntityList {
-            fn load<S: assets::source::Source>(
-                cache: &assets::AssetCache<S>,
-                specifier: &str,
-            ) -> Result<Self, Error> {
-                let list = cache
-                    .load::<assets::Directory>(specifier)?
-                    .read()
-                    .iter()
-                    .map(|spec| EntityConfig::load_cloned(spec))
-                    .collect::<Result<_, Error>>()?;
-
-                Ok(Self(list))
-            }
-        }
-
         // It just load everything that could
-        let entity_configs = EntityList::load_expect_cloned("common.entity.*").0;
-        for config in entity_configs {
+        let entity_configs = assets::load_expect_dir::<EntityConfig>("common.entity", true);
+        for config in entity_configs.iter() {
             let EntityConfig {
                 main_tool,
                 second_tool,
@@ -341,7 +322,7 @@ mod tests {
                 name: _name,
                 body,
                 loot,
-            } = config;
+            } = config.cloned();
 
             if let Some(main_tool) = main_tool {
                 main_tool.validate(EquipSlot::ActiveMainhand);

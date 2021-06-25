@@ -29,7 +29,6 @@
             scale_ratio: 1.0,
         ),
     },
-   sub_directories: [],
    
     string_map: {
 

@@ -29,13 +29,13 @@ enum SkillNode {
 
 #[must_use]
 fn skills_from_asset_expect(asset_specifier: &str) -> Vec<(Skill, Option<u16>)> {
-    let nodes = SkillSetTree::load_expect(asset_specifier).read().0.clone();
+    let nodes = SkillSetTree::load_expect(asset_specifier).read();
 
-    skills_from_nodes(nodes)
+    skills_from_nodes(&nodes.0)
 }
 
 #[must_use]
-fn skills_from_nodes(nodes: Vec<SkillNode>) -> Vec<(Skill, Option<u16>)> {
+fn skills_from_nodes(nodes: &[SkillNode]) -> Vec<(Skill, Option<u16>)> {
     let mut skills = Vec::new();
     for node in nodes {
         match node {
@@ -43,10 +43,10 @@ fn skills_from_nodes(nodes: Vec<SkillNode>) -> Vec<(Skill, Option<u16>)> {
                 skills.append(&mut skills_from_asset_expect(&asset));
             },
             SkillNode::Skill(req) => {
-                skills.push(req);
+                skills.push(*req);
             },
             SkillNode::Group(group) => {
-                skills.push((Skill::UnlockGroup(group), None));
+                skills.push((Skill::UnlockGroup(*group), None));
             },
         }
     }
@@ -148,34 +148,14 @@ fn skill_is_applied(skill_set: &SkillSet, skill: Skill, level: Option<u16>) -> b
 #[cfg(test)]
 mod tests {
     use super::*;
-    use assets::Error;
 
     #[test]
     fn test_all_skillset_assets() {
-        #[derive(Clone)]
-        struct SkillSetList(Vec<SkillSetTree>);
-
-        impl assets::Compound for SkillSetList {
-            fn load<S: assets::source::Source>(
-                cache: &assets::AssetCache<S>,
-                specifier: &str,
-            ) -> Result<Self, Error> {
-                let list = cache
-                    .load::<assets::Directory>(specifier)?
-                    .read()
-                    .iter()
-                    .map(|spec| SkillSetTree::load_cloned(spec))
-                    .collect::<Result<_, Error>>()?;
-
-                Ok(Self(list))
-            }
-        }
-
-        let skillsets = SkillSetList::load_expect_cloned("common.skillset.*").0;
-        for skillset in skillsets {
+        let skillsets = assets::load_expect_dir::<SkillSetTree>("common.skillset", true);
+        for skillset in skillsets.iter() {
             std::mem::drop({
                 let mut skillset_builder = SkillSetBuilder::default();
-                let nodes = skillset.0;
+                let nodes = &*skillset.read().0;
                 let tree = skills_from_nodes(nodes);
                 for (skill, level) in tree {
                     skillset_builder = skillset_builder.with_skill(skill, level);

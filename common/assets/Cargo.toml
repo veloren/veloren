@@ -7,7 +7,7 @@ version = "0.10.0"
 
 [dependencies]
 lazy_static = "1.4.0"
-assets_manager = {version = "0.4.2", features = ["bincode", "ron", "json", "hot-reloading"]}
+assets_manager = {version = "0.5.0", features = ["bincode", "ron", "json", "hot-reloading"]}
 ron = { version = "0.6", default-features = false }
 dot_vox = "4.0"
 image = { version = "0.23.12", default-features = false, features = ["png"] }
