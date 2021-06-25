@@ -278,7 +278,7 @@ impl Site {
 
     pub fn name(&self) -> &str { &self.name }
 
-    pub fn difficulty(&self) -> Option<u32> {
+    pub fn dungeon_difficulty(&self) -> Option<u32> {
         self.plots
             .iter()
             .filter_map(|(_, plot)| {
