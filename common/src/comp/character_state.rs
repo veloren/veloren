@@ -105,6 +105,8 @@ pub enum CharacterState {
     SelfBuff(self_buff::Data),
     /// Creates sprites around the caster
     SpriteSummon(sprite_summon::Data),
+    /// Handles logic for using an item so it is not simply instant
+    UseItem(use_item::Data),
 }
 
 impl CharacterState {

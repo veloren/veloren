@@ -836,12 +836,15 @@ pub fn tick_attack_or_default(
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub enum StageSection {
     Buildup,
-    Swing,
     Recover,
     Charge,
-    Cast,
-    Shoot,
     Movement,
+    // TODO: Consolidate these to `Action`
+    // Code reviewers: comment here to remind me to open beginner issue
+    Swing,
+    Shoot,
+    Cast,
+    Use,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
