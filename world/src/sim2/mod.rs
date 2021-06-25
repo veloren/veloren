@@ -1252,7 +1252,7 @@ mod tests {
                         crate::site::Castle::generate(wpos, None, &mut rng),
                     ),
                     common::terrain::site::SitesKind::Dungeon => crate::site::Site::dungeon(
-                        crate::site::Dungeon::generate(wpos, None, &mut rng),
+                        crate::site2::Site::generate_dungeon(&crate::Land::empty(), &mut rng, wpos),
                     ),
                     // common::terrain::site::SitesKind::Settlement |
                     _ => crate::site::Site::settlement(crate::site::Settlement::generate(
