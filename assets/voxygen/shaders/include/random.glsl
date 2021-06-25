@@ -7,27 +7,25 @@ layout(set = 0, binding = 2) uniform sampler s_noise;
 float hash(vec4 p) {
     p = fract(p * 0.3183099 + 0.1) - fract(p + 23.22121);
     p *= 17.0;
-    return (fract(p.x * p.y * p.z * p.w * (p.x + p.y + p.z + p.w)) - 0.5) * 2.0;
+    return (fract(p.x * p.y * (1.0 - p.z) * p.w * (p.x + p.y + p.z + p.w)) - 0.5) * 2.0;
 }
 
-#define M1 1597334677U     //1719413*929
-#define M2 3812015801U     //140473*2467*11
+#define M1 1597334677U  //1719413*929
+#define M2 3812015801U  //140473*2467*11
 #define M3 2741598923U
 
-float hash_one(uint q)
-{
+float hash_one(uint q) {
     uint n = ((M3 * q) ^ M2) * M1;
 
-    return float(n) * (1.0/float(0xffffffffU));
+    return float(n) * (1.0 / float(0xffffffffU));
 }
 
-float hash_fast(uvec3 q)
-{
+float hash_fast(uvec3 q) {
     q *= uvec3(M1, M2, M3);
 
     uint n = (q.x ^ q.y ^ q.z) * M1;
 
-    return float(n) * (1.0/float(0xffffffffU));
+    return float(n) * (1.0 / float(0xffffffffU));
 }
 
 // 2D, but using shifted 2D textures
@@ -51,12 +49,12 @@ float snoise3(in vec3 x) {
     //f = f * f * (3.0 - 2.0 * f);
     return mix(
         mix(
-            mix(hash_fast(p + uvec3(0,0,0)), hash_fast(p + uvec3(1,0,0)), f.x),
-            mix(hash_fast(p + uvec3(0,1,0)), hash_fast(p + uvec3(1,1,0)), f.x),
+            mix(hash_fast(p + uvec3(0, 0, 0)), hash_fast(p + uvec3(1, 0, 0)), f.x),
+            mix(hash_fast(p + uvec3(0, 1, 0)), hash_fast(p + uvec3(1, 1, 0)), f.x),
             f.y),
         mix(
-            mix(hash_fast(p + uvec3(0,0,1)), hash_fast(p + uvec3(1,0,1)), f.x),
-            mix(hash_fast(p + uvec3(0,1,1)), hash_fast(p + uvec3(1,1,1)), f.x),
+            mix(hash_fast(p + uvec3(0, 0, 1)), hash_fast(p + uvec3(1, 0, 1)), f.x),
+            mix(hash_fast(p + uvec3(0, 1, 1)), hash_fast(p + uvec3(1, 1, 1)), f.x),
             f.y),
         f.z);
 }
@@ -69,22 +67,22 @@ float snoise(in vec4 x) {
     return mix(
         mix(
             mix(
-                mix(hash(p + vec4(0,0,0,0)), hash(p + vec4(1,0,0,0)), f.x),
-                mix(hash(p + vec4(0,1,0,0)), hash(p + vec4(1,1,0,0)), f.x),
+                mix(hash(p + vec4(0, 0, 0, 0)), hash(p + vec4(1, 0, 0, 0)), f.x),
+                mix(hash(p + vec4(0, 1, 0, 0)), hash(p + vec4(1, 1, 0, 0)), f.x),
                 f.y),
             mix(
-                mix(hash(p + vec4(0,0,1,0)), hash(p + vec4(1,0,1,0)), f.x),
-                mix(hash(p + vec4(0,1,1,0)), hash(p + vec4(1,1,1,0)), f.x),
+                mix(hash(p + vec4(0, 0, 1, 0)), hash(p + vec4(1, 0, 1, 0)), f.x),
+                mix(hash(p + vec4(0, 1, 1, 0)), hash(p + vec4(1, 1, 1, 0)), f.x),
                 f.y),
             f.z),
         mix(
             mix(
-                mix(hash(p + vec4(0,0,0,1)), hash(p + vec4(1,0,0,1)), f.x),
-                mix(hash(p + vec4(0,1,0,1)), hash(p + vec4(1,1,0,1)), f.x),
+                mix(hash(p + vec4(0, 0, 0, 1)), hash(p + vec4(1, 0, 0, 1)), f.x),
+                mix(hash(p + vec4(0, 1, 0, 1)), hash(p + vec4(1, 1, 0, 1)), f.x),
                 f.y),
             mix(
-                mix(hash(p + vec4(0,0,1,1)), hash(p + vec4(1,0,1,1)), f.x),
-                mix(hash(p + vec4(0,1,1,1)), hash(p + vec4(1,1,1,1)), f.x),
+                mix(hash(p + vec4(0, 0, 1, 1)), hash(p + vec4(1, 0, 1, 1)), f.x),
+                mix(hash(p + vec4(0, 1, 1, 1)), hash(p + vec4(1, 1, 1, 1)), f.x),
                 f.y),
             f.z),
         f.w);
