@@ -1,8 +1,8 @@
 ItemDef(
-    name: "Magical Cultist Greatsword (bipedlarge)",
+    name: "Giant Cultist Warhammer",
     description: "This belonged to an evil Cult Leader.",
     kind: Tool((
-        kind: Sword,
+        kind: Hammer,
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.5,
@@ -14,5 +14,5 @@ ItemDef(
     )),
     quality: Epic,
     tags: [],
-    ability_spec: Some(Custom("Sword Simple")),
+    ability_spec: Some(Custom("Hammer Simple")),
 )

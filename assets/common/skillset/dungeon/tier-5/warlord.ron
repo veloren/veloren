@@ -1,5 +1,0 @@
-([
-    // Just gather everything
-    Tree("common.skillset.dungeon.tier-5.sword_simple"),
-    Tree("common.skillset.dungeon.tier-5.hammer"),
-])

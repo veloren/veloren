@@ -5,11 +5,11 @@ EntityConfig (
     loot: Some(LootTable("common.loot_tables.dungeon.tier-5.enemy")),
 
     main_tool: Some(Choice([
-        (1.5, Some(Item("common.items.weapons.staff.bipedlarge-cultist_staff"))),
-        (1.0, Some(Item("common.items.weapons.bow.bipedlarge-velorite"))),
+        (1.5, Some(Item("common.items.npc_weapons.staff.bipedlarge-cultist"))),
+        (1.0, Some(Item("common.items.npc_weapons.bow.bipedlarge-velorite"))),
     ])),
     second_tool: None,
 
     loadout_asset: None,
-    skillset_asset: Some("common.skillset.dungeon.tier-5.enemy"),
+    skillset_asset: None,
 )

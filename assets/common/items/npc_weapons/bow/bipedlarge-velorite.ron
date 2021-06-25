@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Velorite Bow (bipedlarge)",
+    name: "Giant Velorite Bow",
     description: "Infused with Velorite power.",
     kind: Tool((
         kind: Bow,
