@@ -37,6 +37,7 @@ make_case_elim!(
         Rock = 0x10,
         WeakRock = 0x11, // Explodable
         Lava = 0x12,
+        GlowingRock = 0x13,
         // 0x12 <= x < 0x20 is reserved for future rocks
         Grass = 0x20, // Note: *not* the same as grass sprites
         Snow = 0x21,
@@ -181,7 +182,7 @@ impl Block {
 
     #[inline]
     pub fn get_glow(&self) -> Option<u8> {
-        if matches!(self.kind, BlockKind::Lava) {
+        if matches!(self.kind, BlockKind::Lava | BlockKind::GlowingRock) {
             return Some(24);
         }
         match self.get_sprite()? {
@@ -248,6 +249,7 @@ impl Block {
             BlockKind::Grass => Some(0.5),
             BlockKind::WeakRock => Some(0.75),
             BlockKind::Snow => Some(0.1),
+            BlockKind::Lava => None,
             _ => self.get_sprite().and_then(|sprite| match sprite {
                 SpriteKind::Anvil
                 | SpriteKind::Cauldron

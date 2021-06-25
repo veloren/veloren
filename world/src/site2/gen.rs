@@ -42,6 +42,7 @@ pub enum Primitive {
     // Operators
     Rotate(Id<Primitive>, Mat3<i32>),
     Translate(Id<Primitive>, Vec3<i32>),
+    Scale(Id<Primitive>, Vec3<f32>),
 }
 
 #[derive(Clone)]
@@ -138,6 +139,15 @@ impl Fill {
             },
             Primitive::Translate(prim, vec) => {
                 self.contains_at(tree, *prim, pos.map2(*vec, i32::saturating_sub))
+            },
+            Primitive::Scale(prim, vec) => {
+                let center =
+                    self.get_bounds(tree, *prim).center().as_::<f32>() - Vec3::broadcast(0.5);
+                let fpos = pos.as_::<f32>();
+                let spos = (center + ((center - fpos) / vec))
+                    .map(|x| x.round())
+                    .as_::<i32>();
+                self.contains_at(tree, *prim, spos)
             },
         }
     }
@@ -240,6 +250,14 @@ impl Fill {
                     max: aabb.max.map2(*vec, i32::saturating_add),
                 }
             },
+            Primitive::Scale(prim, vec) => {
+                let aabb = self.get_bounds_inner(tree, *prim)?;
+                let center = aabb.center();
+                Aabb {
+                    min: center + ((aabb.min - center).as_::<f32>() * vec).as_::<i32>(),
+                    max: center + ((aabb.max - center).as_::<f32>() * vec).as_::<i32>(),
+                }
+            },
         })
     }
 
@@ -264,4 +282,24 @@ pub trait Structure {
         self.render(site, |p| tree.insert(p), |p, f| fills.push((p, f)));
         (tree, fills)
     }
+}
+
+#[allow(dead_code)]
+/// Just the corners of an AABB, good for outlining stuff when debugging
+pub fn aabb_corners<F: FnMut(Primitive) -> Id<Primitive>>(
+    prim: &mut F,
+    aabb: Aabb<i32>,
+) -> Id<Primitive> {
+    let f = |prim: &mut F, ret, vec| {
+        let sub = prim(Primitive::Aabb(Aabb {
+            min: aabb.min + vec,
+            max: aabb.max - vec,
+        }));
+        prim(Primitive::Diff(ret, sub))
+    };
+    let mut ret = prim(Primitive::Aabb(aabb));
+    ret = f(prim, ret, Vec3::new(1, 0, 0));
+    ret = f(prim, ret, Vec3::new(0, 1, 0));
+    ret = f(prim, ret, Vec3::new(0, 0, 1));
+    ret
 }

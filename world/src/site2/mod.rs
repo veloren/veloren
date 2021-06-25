@@ -318,7 +318,7 @@ impl Site {
         });
 
         site.blit_aabr(aabr, Tile {
-            kind: TileKind::Plaza,
+            kind: TileKind::Empty,
             plot: Some(plot),
         });
 
@@ -779,6 +779,19 @@ impl Site {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    pub fn apply_supplement(
+        &self,
+        dynamic_rng: &mut impl Rng,
+        wpos2d: Vec2<i32>,
+        supplement: &mut crate::ChunkSupplement,
+    ) {
+        for (_, plot) in self.plots.iter() {
+            if let PlotKind::Dungeon(d) = &plot.kind {
+                d.apply_supplement(dynamic_rng, wpos2d, supplement);
             }
         }
     }

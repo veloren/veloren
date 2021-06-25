@@ -154,8 +154,7 @@ impl Site {
                 };
                 s.apply_supplement(dynamic_rng, wpos2d, get_column, supplement, economy)
             },
-            SiteKind::Dungeon(d) => {}, /* d.apply_supplement(dynamic_rng, wpos2d, get_column, */
-            // supplement),
+            SiteKind::Dungeon(d) => d.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Castle(c) => c.apply_supplement(dynamic_rng, wpos2d, get_column, supplement),
             SiteKind::Refactor(_) => {},
             SiteKind::Tree(_) => {},
