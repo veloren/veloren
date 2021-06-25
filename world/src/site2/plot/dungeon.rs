@@ -441,7 +441,7 @@ impl Floor {
                     boss: false,
                     area,
                     height: ctx.rng.gen_range(15..20),
-                    pillars: Some(4),
+                    pillars: Some(ctx.rng.gen_range(2..=4)),
                     difficulty: self.difficulty,
                 }),
                 _ => self.create_room(Room {
@@ -453,7 +453,7 @@ impl Floor {
                     area,
                     height: ctx.rng.gen_range(10..15),
                     pillars: if ctx.rng.gen_range(0..4) == 0 {
-                        Some(4)
+                        Some(ctx.rng.gen_range(2..=4))
                     } else {
                         None
                     },
@@ -1510,15 +1510,19 @@ impl Floor {
                         let mut lights =
                             prim(Primitive::Scale(pillar, Vec2::broadcast(scale).with_z(1.0)));
                         lights = prim(Primitive::And(lighting_plane, lights));
-                        lights = prim(Primitive::Translate(lights, 3 * Vec3::unit_z()));
-                        pillar = prim(Primitive::Or(pillar, base));
+                        // Only add the base (and shift the lights up) for boss-room pillars
+                        if room.boss {
+                            lights = prim(Primitive::Translate(lights, 3 * Vec3::unit_z()));
+                            pillar = prim(Primitive::Or(pillar, base));
+                        }
                         pillars.push((tile_center, pillar, lights));
                     }
                 }
 
                 // Keep track of the boss room to be able to add decorations later
                 if room.boss {
-                    boss_room_center = Some(floor_corner + TILE_SIZE * room.area.center());
+                    boss_room_center =
+                        Some(floor_corner + TILE_SIZE * room.area.center() + TILE_SIZE / 2);
                 }
             }
 
@@ -1562,7 +1566,7 @@ impl Floor {
         for (pos, pillar, lights) in pillars.iter() {
             // Avoid placing pillars that would cover the septagonal star
             if let Some(boss_room_center) = boss_room_center {
-                if pos.distance_squared(boss_room_center) < (2 * TILE_SIZE).pow(2) {
+                if pos.distance_squared(boss_room_center) < (3 * TILE_SIZE / 2).pow(2) {
                     continue;
                 }
             }
