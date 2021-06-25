@@ -384,6 +384,48 @@ impl Animation for AlphaAnimation {
                                 * Quaternion::rotation_y(-2.8 + move1 * 3.0 + move2 * -3.0)
                                 * Quaternion::rotation_z(move1 * -1.5);
                         },
+                        "Husk Brute" => {
+                            next.shoulder_l.position =
+                                Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
+                            next.shoulder_r.position =
+                                Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
+                            next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
+                            next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);
+
+                            if mirror > 0.0 {
+                                next.shoulder_l.orientation = Quaternion::rotation_x(move1 * 1.0)
+                                    * Quaternion::rotation_y(move1 * 1.0 + move2 * -2.0);
+
+                                next.shoulder_r.orientation = Quaternion::rotation_x(move1 * -0.6);
+
+                                next.upper_torso.orientation =
+                                    Quaternion::rotation_z(move1 * 0.4 + move2 * -1.1);
+                                next.lower_torso.orientation =
+                                    Quaternion::rotation_z(move1 * -0.2 + move2 * 0.6);
+
+                                next.hand_l.orientation = Quaternion::rotation_x(move1 * 1.2)
+                                    * Quaternion::rotation_y(move1 * 1.0 + move2 * -2.0);
+
+                                next.hand_r.orientation = Quaternion::rotation_z(move1 * 1.0)
+                                    * Quaternion::rotation_y(move1 * 0.8 + move2 * -1.2);
+                            } else {
+                                next.shoulder_r.orientation = Quaternion::rotation_x(move1 * 1.0)
+                                    * Quaternion::rotation_y(move1 * -1.0 + move2 * 2.0);
+
+                                next.shoulder_l.orientation = Quaternion::rotation_x(move1 * 0.6);
+
+                                next.upper_torso.orientation =
+                                    Quaternion::rotation_z(move1 * -0.4 + move2 * 1.1);
+                                next.lower_torso.orientation =
+                                    Quaternion::rotation_z(move1 * 0.2 + move2 * -0.6);
+
+                                next.hand_r.orientation = Quaternion::rotation_x(move1 * 1.2)
+                                    * Quaternion::rotation_y(move1 * -1.0 + move2 * 2.0);
+
+                                next.hand_l.orientation = Quaternion::rotation_z(move1 * 1.0)
+                                    * Quaternion::rotation_y(move1 * -0.8 + move2 * 1.2);
+                            }
+                        },
                         _ => {},
                     }
                 }

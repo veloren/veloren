@@ -72,14 +72,6 @@
           vox_spec: ("armor.velorite_battlemage.belt", (-5.0, -3.5, 2.0)),
           color: None
         ),
-        "Warlord":(
-            vox_spec: ("armor.warlord.belt", (-4.0, -3.5, 1.0)),
-            color: None
-        ),
-        "Warlock":(
-            vox_spec: ("armor.warlock.belt", (-4.0, -3.0, 2.0)),
-            color: None
-        ),
         "Rawhide": (
             vox_spec: ("armor.hide.rawhide.belt", (-4.0, -3.5, 2.0)),
             color: None

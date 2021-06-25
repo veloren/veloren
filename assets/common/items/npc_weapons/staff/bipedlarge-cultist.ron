@@ -1,0 +1,18 @@
+ItemDef(
+    name: "Giant Cultist Staff",
+    description: "The fire gives off no heat.",
+    kind: Tool((
+        kind: Staff,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.3,
+            power: 1.6,
+            poise_strength: 1.0,
+            speed: 0.8,
+            crit_chance: 0.140625,
+        )),
+    )),
+    quality: Epic,
+    tags: [],
+    ability_spec: Some(Custom("Staff Simple")),
+)

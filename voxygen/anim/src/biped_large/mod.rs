@@ -157,6 +157,7 @@ pub struct SkeletonAttr {
     bc: (f32, f32, f32, f32, f32, f32),
     beast: bool,
     float: bool,
+    height: f32,
 }
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -199,6 +200,7 @@ impl Default for SkeletonAttr {
             bc: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
             beast: false,
             float: false,
+            height: 0.0,
         }
     }
 }
@@ -227,6 +229,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Harvester, _) => (6.0, 11.0),
                 (Blueoni, _) => (10.5, -3.0),
                 (Redoni, _) => (10.5, -3.0),
+                (Cultistwarlord, _) => (0.5, 14.5),
+                (Cultistwarlock, _) => (0.5, 11.0),
+                (Huskbrute, _) => (8.5, 4.0),
             },
             jaw: match (body.species, body.body_type) {
                 (Ogre, _) => (0.0, 0.0),
@@ -247,6 +252,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Harvester, _) => (-2.0, -7.0),
                 (Blueoni, _) => (0.0, 3.5),
                 (Redoni, _) => (0.0, 3.5),
+                (Cultistwarlord, _) => (0.0, 3.5),
+                (Cultistwarlock, _) => (0.0, 3.5),
+                (Huskbrute, _) => (-5.0, -5.0),
             },
             upper_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 27.5),
@@ -268,6 +276,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Harvester, _) => (-1.0, 18.0),
                 (Blueoni, _) => (-1.0, 26.5),
                 (Redoni, _) => (-1.0, 26.5),
+                (Cultistwarlord, _) => (-1.0, 18.5),
+                (Cultistwarlock, _) => (-1.0, 17.5),
+                (Huskbrute, _) => (-1.0, 23.5),
             },
             lower_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (1.0, -7.0),
@@ -289,6 +300,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Harvester, _) => (-1.0, -4.5),
                 (Blueoni, _) => (0.0, -8.5),
                 (Redoni, _) => (0.0, -8.5),
+                (Cultistwarlord, _) => (0.0, -1.5),
+                (Cultistwarlock, _) => (1.0, -2.5),
+                (Huskbrute, _) => (-0.5, -7.0),
             },
             tail: match (body.species, body.body_type) {
                 (Werewolf, _) => (-5.5, -2.0),
@@ -318,6 +332,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Harvester, _) => (8.0, 1.0, -1.5),
                 (Blueoni, _) => (11.0, 2.0, -5.5),
                 (Redoni, _) => (11.0, 2.0, -5.5),
+                (Cultistwarlord, _) => (11.5, -1.0, 4.5),
+                (Cultistwarlock, _) => (8.0, 0.0, 3.5),
+                (Huskbrute, _) => (10.5, 0.0, -1.5),
             },
             hand: match (body.species, body.body_type) {
                 (Ogre, Male) => (14.5, 0.0, -4.0),
@@ -339,6 +356,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Harvester, _) => (11.5, 1.5, -5.5),
                 (Blueoni, _) => (13.5, 0.5, -8.0),
                 (Redoni, _) => (13.5, 0.5, -8.0),
+                (Cultistwarlord, _) => (11.5, -1.0, -1.0),
+                (Cultistwarlock, _) => (9.5, -1.0, 1.0),
+                (Huskbrute, _) => (13.0, 0.5, -4.0),
             },
             leg: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 0.0, -4.0),
@@ -360,6 +380,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Harvester, _) => (3.5, 1.0, -4.0),
                 (Blueoni, _) => (4.5, 2.0, -5.5),
                 (Redoni, _) => (4.5, 2.0, -5.5),
+                (Cultistwarlord, _) => (3.5, -1.0, -8.5),
+                (Cultistwarlock, _) => (3.5, -1.0, -8.5),
+                (Huskbrute, _) => (4.0, 0.0, -7.5),
             },
             foot: match (body.species, body.body_type) {
                 (Ogre, Male) => (4.0, 1.0, -12.0),
@@ -381,6 +404,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Harvester, _) => (4.5, 0.5, -9.5),
                 (Blueoni, _) => (5.0, 5.0, -12.5),
                 (Redoni, _) => (5.0, 5.0, -12.5),
+                (Cultistwarlord, _) => (3.5, 0.0, -12.5),
+                (Cultistwarlock, _) => (3.5, 0.0, -10.5),
+                (Huskbrute, _) => (4.5, 0.5, -12.5),
             },
             scaler: match (body.species, body.body_type) {
                 (Ogre, Male) => 1.12,
@@ -395,13 +421,16 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Occultsaurok, _) => 1.0,
                 (Mightysaurok, _) => 1.0,
                 (Slysaurok, _) => 1.0,
-                (Mindflayer, _) => 1.5,
+                (Mindflayer, _) => 1.6,
                 (Minotaur, _) => 1.7,
                 (Tidalwarrior, _) => 1.7,
                 (Yeti, _) => 1.2,
                 (Harvester, _) => 1.2,
                 (Blueoni, _) => 1.2,
                 (Redoni, _) => 1.2,
+                (Cultistwarlord, _) => 1.0,
+                (Cultistwarlock, _) => 1.0,
+                (Huskbrute, _) => 1.2,
             },
             tempo: match (body.species, body.body_type) {
                 (Ogre, Male) => 0.9,
@@ -434,6 +463,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Harvester, _) => (7.5, 0.0),
                 (Blueoni, _) => (12.5, 0.0),
                 (Redoni, _) => (12.5, 0.0),
+                (Cultistwarlord, _) => (8.0, 0.0),
+                (Cultistwarlock, _) => (8.0, 0.0),
+                (Huskbrute, _) => (12.5, 0.0),
             },
             shl: match (body.species, body.body_type) {
                 (Dullahan, _) => (-4.75, -11.0, 8.5, 1.47, -0.2, 0.0),
@@ -494,6 +526,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             beast: matches!((body.species, body.body_type), (Werewolf, _)),
             float: matches!((body.species, body.body_type), (Mindflayer, _)),
+            height: comp::Body::BipedLarge(*body).dimensions().z,
         }
     }
 }

@@ -180,6 +180,9 @@ impl Body {
                 biped_large::Species::Mightysaurok => 400.0,
                 biped_large::Species::Mindflayer => 420.0,
                 biped_large::Species::Minotaur => 500.0,
+                biped_large::Species::Cavetroll => 600.0,
+                biped_large::Species::Mountaintroll => 600.0,
+                biped_large::Species::Swamptroll => 600.0,
                 _ => 400.0,
             },
             Body::BipedSmall(_) => 50.0,
@@ -306,7 +309,9 @@ impl Body {
                 biped_large::Species::Slysaurok => Vec3::new(4.0, 3.0, 3.4),
                 biped_large::Species::Werewolf => Vec3::new(4.0, 3.0, 3.5),
                 biped_large::Species::Harvester => Vec3::new(4.6, 3.0, 5.4),
-
+                biped_large::Species::Cultistwarlord => Vec3::new(3.0, 3.0, 4.5),
+                biped_large::Species::Cultistwarlock => Vec3::new(3.0, 3.0, 3.5),
+                biped_large::Species::Huskbrute => Vec3::new(4.6, 3.0, 5.0),
                 _ => Vec3::new(4.6, 3.0, 6.0),
             },
             Body::BipedSmall(body) => match body.species {
@@ -358,6 +363,10 @@ impl Body {
                 quadruped_medium::Species::Saber => Vec3::new(2.0, 3.0, 2.0),
                 quadruped_medium::Species::Tarasque => Vec3::new(2.0, 4.0, 2.6),
                 quadruped_medium::Species::Yak => Vec3::new(2.0, 3.6, 3.0),
+                quadruped_medium::Species::Mammoth => Vec3::new(2.0, 7.0, 8.0),
+                quadruped_medium::Species::Ngoubou => Vec3::new(2.0, 3.2, 2.4),
+                quadruped_medium::Species::Llama => Vec3::new(2.0, 2.5, 2.6),
+                quadruped_medium::Species::Alpaca => Vec3::new(2.0, 2.0, 2.0),
                 _ => Vec3::new(2.0, 3.0, 2.0),
             },
             Body::QuadrupedSmall(body) => match body.species {
@@ -459,7 +468,9 @@ impl Body {
                 quadruped_medium::Species::Panda => 900,
                 quadruped_medium::Species::Bear => 900,
                 quadruped_medium::Species::Moose => 800,
-                quadruped_medium::Species::Dreadhorn => 1100,
+                quadruped_medium::Species::Dreadhorn => 1300,
+                quadruped_medium::Species::Mammoth => 2500,
+                quadruped_medium::Species::Ngoubou => 1800,
                 _ => 700,
             },
             Body::BirdMedium(bird_medium) => match bird_medium.species {
@@ -493,6 +504,7 @@ impl Body {
                 biped_large::Species::Harvester => 5000,
                 biped_large::Species::Blueoni => 2400,
                 biped_large::Species::Redoni => 2400,
+                biped_large::Species::Huskbrute => 8000,
                 _ => 1200,
             },
             Body::BipedSmall(biped_small) => match biped_small.species {
@@ -530,7 +542,7 @@ impl Body {
                 quadruped_low::Species::Rocksnapper => 1400,
                 quadruped_low::Species::Pangolin => 400,
                 quadruped_low::Species::Maneater => 1300,
-                quadruped_low::Species::Sandshark => 900,
+                quadruped_low::Species::Sandshark => 1100,
                 quadruped_low::Species::Hakulaq => 500,
                 quadruped_low::Species::Lavadrake => 1600,
                 quadruped_low::Species::Basilisk => 2000,
@@ -583,6 +595,8 @@ impl Body {
                 quadruped_medium::Species::Bear => 40,
                 quadruped_medium::Species::Moose => 30,
                 quadruped_medium::Species::Dreadhorn => 50,
+                quadruped_medium::Species::Mammoth => 80,
+                quadruped_medium::Species::Ngoubou => 60,
                 _ => 20,
             },
             Body::BirdMedium(bird_medium) => match bird_medium.species {
@@ -609,6 +623,7 @@ impl Body {
                 biped_large::Species::Mountaintroll => 60,
                 biped_large::Species::Swamptroll => 60,
                 biped_large::Species::Dullahan => 120,
+                biped_large::Species::Huskbrute => 100,
                 // Boss enemies have their health set, not adjusted by level.
                 biped_large::Species::Mindflayer => 0,
                 biped_large::Species::Minotaur => 0,
@@ -631,7 +646,7 @@ impl Body {
                 quadruped_low::Species::Rocksnapper => 50,
                 quadruped_low::Species::Pangolin => 10,
                 quadruped_low::Species::Maneater => 30,
-                quadruped_low::Species::Sandshark => 40,
+                quadruped_low::Species::Sandshark => 45,
                 quadruped_low::Species::Hakulaq => 10,
                 quadruped_low::Species::Deadwood => 30,
                 _ => 20,
@@ -657,6 +672,11 @@ impl Body {
                 Body::Golem(g) => matches!(g.species, golem::Species::ClayGolem),
                 Body::BipedSmall(b) => matches!(b.species, biped_small::Species::Haniwa),
                 Body::Object(object::Body::HaniwaSentry) => true,
+                Body::QuadrupedLow(q) => matches!(q.species, quadruped_low::Species::Lavadrake),
+                Body::BirdLarge(b) => matches!(
+                    b.species,
+                    bird_large::Species::Phoenix | bird_large::Species::Cockatrice
+                ),
                 _ => false,
             },
             BuffKind::Ensnared => {

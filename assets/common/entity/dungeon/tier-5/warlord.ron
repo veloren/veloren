@@ -1,18 +1,15 @@
 EntityConfig (
     name: Some("Cultist Warlord"),
-    body: Some(RandomWith("humanoid")),
+    body: Some(RandomWith("cultist_warlord")),
 
     loot: Some(LootTable("common.loot_tables.dungeon.tier-5.enemy")),
 
     main_tool: Some(Choice([
-        (1.0, Some(Item("common.items.weapons.axe_1h.orichalcum-0"))),
-        (2.0, Some(Item("common.items.weapons.sword.cultist"))),
-        (1.0, Some(Item("common.items.weapons.hammer.cultist_purp_2h-0"))),
-        (1.0, Some(Item("common.items.weapons.hammer_1h.orichalcum-0"))),
-        (1.0, Some(Item("common.items.weapons.bow.velorite"))),
+        (1.5, Some(Item("common.items.npc_weapons.sword.bipedlarge-cultist"))),
+        (1.0, Some(Item("common.items.npc_weapons.hammer.bipedlarge-cultist"))),
     ])),
     second_tool: None,
 
-    loadout_asset: Some("common.loadout.dungeon.tier-5.warlord"),
-    skillset_asset: Some("common.skillset.dungeon.tier-5.enemy"),
+    loadout_asset: None,
+    skillset_asset: None,
 )

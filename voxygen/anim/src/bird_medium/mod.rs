@@ -90,7 +90,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
         use comp::bird_medium::{BodyType::*, Species::*};
         Self {
             head: match (body.species, body.body_type) {
-                (Duck, _) => (4.0, 3.0),
+                (Duck, _) => (2.0, 5.5),
                 (Chicken, Male) => (3.0, 4.5),
                 (Chicken, Female) => (3.0, 6.0),
                 (Goose, _) => (5.0, 2.5),
@@ -101,7 +101,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Parrot, _) => (0.5, 4.5),
             },
             chest: match (body.species, body.body_type) {
-                (Duck, _) => (0.0, 5.0),
+                (Duck, _) => (0.0, 6.0),
                 (Chicken, Male) => (0.0, 6.5),
                 (Chicken, Female) => (0.0, 6.5),
                 (Goose, _) => (0.0, 8.0),
@@ -112,7 +112,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Parrot, _) => (0.0, 5.0),
             },
             tail: match (body.species, body.body_type) {
-                (Duck, _) => (-3.0, 1.5),
+                (Duck, _) => (-5.0, 1.0),
                 (Chicken, Male) => (-7.5, 3.5),
                 (Chicken, Female) => (-4.5, 3.0),
                 (Goose, _) => (-5.0, 3.0),
@@ -123,7 +123,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Parrot, _) => (-8.0, -2.0),
             },
             wing: match (body.species, body.body_type) {
-                (Duck, _) => (2.75, 0.0, 1.0),
+                (Duck, _) => (3.5, -0.5, 2.0),
                 (Chicken, Male) => (3.0, -1.0, 2.5),
                 (Chicken, Female) => (3.0, -1.5, 2.5),
                 (Goose, _) => (3.75, -1.0, 2.0),
@@ -134,7 +134,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Parrot, _) => (2.0, -4.5, 3.0),
             },
             foot: match (body.species, body.body_type) {
-                (Duck, _) => (2.0, -1.5, 4.0),
+                (Duck, _) => (2.5, -2.0, 4.0),
                 (Chicken, Male) => (2.0, 0.0, 6.0),
                 (Chicken, Female) => (2.0, 0.0, 6.0),
                 (Goose, _) => (2.0, -1.5, 7.0),

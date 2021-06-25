@@ -119,9 +119,14 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..2) {
+                    .with_body(match rng.gen_range(0..3) {
                         0 => biped_large::Body::random_with(rng, &biped_large::Species::Wendigo)
                             .into(),
+                        1 => quadruped_medium::Body::random_with(
+                            rng,
+                            &quadruped_medium::Species::Mammoth,
+                        )
+                        .into(),
                         _ => biped_large::Body::random_with(
                             rng,
                             &biped_large::Species::Mountaintroll,
@@ -133,7 +138,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             group_size: 1..2,
             is_underwater: false,
             day_period: vec![Night, Morning, Noon, Evening],
-            get_density: |c, _col| close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * 0.1,
+            get_density: |c, _col| close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * 0.15,
         },
         // Tundra rock solitary ennemies
         Entry {
@@ -195,7 +200,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..3) {
+                    .with_body(match rng.gen_range(0..5) {
                         0 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Mouflon,
@@ -204,6 +209,16 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                         1 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Yak,
+                        )
+                        .into(),
+                        2 => quadruped_medium::Body::random_with(
+                            rng,
+                            &quadruped_medium::Species::Llama,
+                        )
+                        .into(),
+                        3 => quadruped_medium::Body::random_with(
+                            rng,
+                            &quadruped_medium::Species::Alpaca,
                         )
                         .into(),
                         _ => quadruped_medium::Body::random_with(
@@ -302,7 +317,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..12) {
+                    .with_body(match rng.gen_range(0..14) {
                         0 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Deer,
@@ -354,6 +369,16 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                             quadruped_small::Body::random_with(rng, &quadruped_small::Species::Goat)
                                 .into()
                         },
+                        11 => quadruped_medium::Body::random_with(
+                            rng,
+                            &quadruped_medium::Species::Llama,
+                        )
+                        .into(),
+                        12 => quadruped_medium::Body::random_with(
+                            rng,
+                            &quadruped_medium::Species::Alpaca,
+                        )
+                        .into(),
                         _ => bird_medium::Body::random_with(rng, &bird_medium::Species::Chicken)
                             .into(),
                     })
@@ -822,7 +847,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..3) {
+                    .with_body(match rng.gen_range(0..4) {
                         0 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Bonerattler,
@@ -831,6 +856,11 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                         1 => {
                             theropod::Body::random_with(rng, &theropod::Species::Sandraptor).into()
                         },
+                        2 => quadruped_medium::Body::random_with(
+                            rng,
+                            &quadruped_medium::Species::Ngoubou,
+                        )
+                        .into(),
                         _ => quadruped_low::Body::random_with(
                             rng,
                             &quadruped_low::Species::Sandshark,
@@ -916,7 +946,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                 close(c.temp, CONFIG.desert_temp + 0.2, 0.3)
                     * close(c.humidity, CONFIG.desert_hum, 0.5)
                     * BASE_DENSITY
-                    * 0.01
+                    * 0.005
             },
         },
         // Desert solitary wild

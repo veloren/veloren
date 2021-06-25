@@ -368,8 +368,8 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         quadruped_small::Species::Truffler | quadruped_small::Species::Fungome => {
                             "common.loot_tables.creature.quad_small.mushroom"
                         },
-                        quadruped_small::Species::Sheep => {
-                            "common.loot_tables.creature.quad_small.sheep"
+                        quadruped_small::Species::Sheep | quadruped_small::Species::Goat => {
+                            "common.loot_tables.creature.quad_small.wool"
                         },
                         quadruped_small::Species::Skunk
                         | quadruped_small::Species::Quokka
@@ -407,8 +407,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     quadruped_medium::Species::Dreadhorn => {
                         "common.loot_tables.creature.quad_medium.dreadhorn"
                     },
-                    quadruped_medium::Species::Mouflon
-                    | quadruped_medium::Species::Camel
+                    quadruped_medium::Species::Camel
                     | quadruped_medium::Species::Deer
                     | quadruped_medium::Species::Hirdrasil
                     | quadruped_medium::Species::Horse
@@ -420,6 +419,17 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     | quadruped_medium::Species::Cattle
                     | quadruped_medium::Species::Yak => {
                         "common.loot_tables.creature.quad_medium.gentle"
+                    },
+                    quadruped_medium::Species::Mouflon
+                    | quadruped_medium::Species::Llama
+                    | quadruped_medium::Species::Alpaca => {
+                        "common.loot_tables.creature.quad_medium.wool"
+                    },
+                    quadruped_medium::Species::Ngoubou => {
+                        "common.loot_tables.creature.quad_medium.horned"
+                    },
+                    quadruped_medium::Species::Mammoth => {
+                        "common.loot_tables.creature.quad_medium.mammoth"
                     },
                     _ => "common.loot_tables.creature.quad_medium.fanged",
                 },
@@ -484,6 +494,9 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         },
                         quadruped_low::Species::Basilisk => {
                             "common.loot_tables.creature.quad_low.basilisk"
+                        },
+                        quadruped_low::Species::Salamander => {
+                            "common.loot_tables.creature.quad_low.salamander"
                         },
                         _ => "common.loot_tables.creature.quad_low.generic",
                     }

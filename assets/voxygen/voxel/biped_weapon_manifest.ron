@@ -1050,6 +1050,10 @@
         vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
         color: None
     ),
+    "common.items.npc_weapons.unique.husk_brute": (
+        vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
+        color: None
+    ),
     "common.items.npc_weapons.axe.minotaur_axe": (
         vox_spec: ("weapon.axe.2haxe_minotaur", (-2.5, -9.0, -8.0)),
         color: None
@@ -1068,6 +1072,22 @@
     ),
     "common.items.npc_weapons.hammer.oni_red_hammer": (
         vox_spec: ("weapon.hammer.2hhammer_oni_red", (-3.0, -4.5, -12.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.sword.bipedlarge-cultist": (
+        vox_spec: ("weapon.sword.cultist", (-1.5, -4.0, -6.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.hammer.bipedlarge-cultist": (
+        vox_spec: ("weapon.hammer.cult_purp-0", (-3.5, -4.5, -5.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.bow.bipedlarge-velorite": (
+        vox_spec: ("weapon.bow.velorite", (-1.5, -4.0, -15.0)),
+        color: None
+    ),
+        "common.items.npc_weapons.staff.bipedlarge-cultist": (
+        vox_spec: ("weapon.staff.firestaff_cultist", (-2.5, -2.5, -4.0)),
         color: None
     ),
     //BIPEDSMALL

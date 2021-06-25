@@ -40,14 +40,6 @@
             vox_spec: ("armor.leather_blue.back", (-5.0, -1.0, -11.0)),
             color: None
         ),
-        "Warlord": (
-            vox_spec: ("armor.warlord.back", (-5.0, -1.0, -14.0)),
-            color: None
-        ),
-        "Warlock": (
-            vox_spec: ("armor.warlock.back", (-5.0, -1.5, -15.5)),
-            color: None
-        ),
         "Rawhide": (
             vox_spec: ("armor.hide.rawhide.back", (-4.0, -1.0, -6.0)),
             color: None

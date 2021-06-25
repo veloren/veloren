@@ -156,18 +156,19 @@ impl Animation for ShootAnimation {
                 next.control.position = Vec3::new(
                     -1.0 + move1 * 2.0,
                     6.0 + s_a.grip.0 / 1.2 + move1 * 7.0,
-                    -5.0 + -s_a.grip.0 / 2.0 + move1 * 8.0,
+                    -5.0 + -s_a.grip.0 / 2.0 + move1 * s_a.height * 3.4,
                 );
 
                 next.control_l.orientation =
-                    Quaternion::rotation_x(PI / 2.0 + move2 * 0.4) * Quaternion::rotation_y(-0.2);
+                    Quaternion::rotation_x(move1 * 0.2 + PI / 2.0 + move2 * 0.4)
+                        * Quaternion::rotation_y(-0.2);
                 next.control_r.orientation = Quaternion::rotation_x(PI / 2.2 + move1 * 0.4)
-                    * Quaternion::rotation_y(0.2)
+                    * Quaternion::rotation_y(0.4)
                     * Quaternion::rotation_z(0.0);
 
                 next.control.orientation = Quaternion::rotation_x(-0.2)
                     * Quaternion::rotation_y(1.0 + move1 * -0.4)
-                    * Quaternion::rotation_z(-0.3);
+                    * Quaternion::rotation_z(-0.1);
                 next.head.orientation = Quaternion::rotation_z(move1 * 0.25);
                 next.shoulder_l.position = Vec3::new(
                     -s_a.shoulder.0,
@@ -175,7 +176,7 @@ impl Animation for ShootAnimation {
                     s_a.shoulder.2 - foothorir * 1.0,
                 );
                 next.shoulder_l.orientation =
-                    Quaternion::rotation_x(move1 * 0.8 + 1.2 * speednorm + (footrotr * -0.2));
+                    Quaternion::rotation_x(move1 * 1.2 + 1.2 * speednorm + (footrotr * -0.2));
 
                 next.shoulder_r.position = Vec3::new(
                     s_a.shoulder.0,

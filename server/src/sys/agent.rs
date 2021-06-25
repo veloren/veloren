@@ -1637,7 +1637,7 @@ impl<'a> AgentData<'a> {
                             },
                             "Quad Med Jump" => Tactic::QuadMedJump,
                             "Quad Med Charge" => Tactic::CircleCharge {
-                                radius: 12,
+                                radius: 6,
                                 circle_time: 1,
                             },
                             "Quad Med Basic" => Tactic::QuadMedBasic,
@@ -1645,7 +1645,7 @@ impl<'a> AgentData<'a> {
                             "Quad Low Breathe" | "Quad Low Beam" | "Basilisk" => {
                                 Tactic::QuadLowBeam
                             },
-                            "Quad Low Tail" => Tactic::TailSlap,
+                            "Quad Low Tail" | "Husk Brute" => Tactic::TailSlap,
                             "Quad Low Quick" => Tactic::QuadLowQuick,
                             "Quad Low Basic" => Tactic::QuadLowBasic,
                             "Theropod Basic" | "Theropod Bird" => Tactic::Theropod,

@@ -142,14 +142,6 @@
           vox_spec: ("armor.velorite_battlemage.chest", (-7.0, -3.5, 0.5)),
           color: None
         ),
-        "Warlord": (
-          vox_spec: ("armor.warlord.chest", (-7.0, -3.5, -0.5)),
-          color: None
-        ),
-        "Warlock": (
-          vox_spec: ("armor.warlock.chest", (-7.0, -3.5, 0.5)),
-          color: None
-        ),
         "Rawhide": (
             vox_spec: ("armor.hide.rawhide.chest", (-7.0, -3.5, 2.0)),
             color: None

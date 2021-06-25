@@ -150,26 +150,6 @@
                 color: None
             )
         ),
-        "Warlord": (
-            left: (
-                vox_spec: ("armor.warlord.hand", (-3.0, -2.0, -5.0)),
-                color: None
-            ),
-            right: (
-                vox_spec: ("armor.warlord.hand", (-2.0, -2.0, -5.0)),
-                color: None
-            )
-        ),
-        "Warlock": (
-            left: (
-                vox_spec: ("armor.warlock.hand", (-4.5, -3.5, -5.0)),
-                color: None
-            ),
-            right: (
-                vox_spec: ("armor.warlock.hand", (-2.5, -3.5, -5.0)),
-                color: None
-            )
-        ),
         "Rawhide": (
             left: (
                 vox_spec: ("armor.hide.rawhide.hand", (-1.5, -1.5, -2.5)),

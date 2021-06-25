@@ -1,0 +1,18 @@
+ChargedMelee(
+    energy_cost: 0,
+    energy_drain: 0,
+    initial_damage: 50,
+    scaled_damage: 450,
+    initial_poise_damage: 50,
+    scaled_poise_damage: 150,
+    initial_knockback: 0.0,
+    scaled_knockback: 0.0,
+    range: 3.5,
+    max_angle: 45.0,
+    speed: 1.0,
+    charge_duration: 1.5,
+    swing_duration: 0.1,
+    hit_timing: 0.8,
+    recover_duration: 0.5,
+    damage_kind: Crushing,
+)
