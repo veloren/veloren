@@ -3,7 +3,7 @@ pub mod plot;
 mod tile;
 
 use self::{
-    gen::{Fill, Primitive, Structure},
+    gen::{aabr_with_z, Fill, Primitive, Structure},
     plot::{Plot, PlotKind},
     tile::{HazardKind, KeepKind, Ori, RoofKind, Tile, TileGrid, TileKind, TILE_SIZE},
 };
@@ -302,8 +302,7 @@ impl Site {
         site.demarcate_obstacles(land);
         let dungeon = plot::Dungeon::generate(origin, land, &mut rng);
         site.name = dungeon.name().to_string();
-        //let size = (2.0 + rng.gen::<f32>().powf(8.0) * 3.0).round() as i32;
-        let size = (dungeon.radius() / (2.0 * tile::TILE_SIZE as f32)).ceil() as i32;
+        let size = (dungeon.radius() / tile::TILE_SIZE as f32).ceil() as i32;
 
         let aabr = Aabr {
             min: Vec2::broadcast(-size),

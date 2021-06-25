@@ -283,6 +283,13 @@ pub trait Structure {
         (tree, fills)
     }
 }
+/// Extend a 2d AABR to a 3d AABB
+pub fn aabr_with_z<T>(aabr: Aabr<T>, z: std::ops::Range<T>) -> Aabb<T> {
+    Aabb {
+        min: aabr.min.with_z(z.start),
+        max: aabr.max.with_z(z.end),
+    }
+}
 
 #[allow(dead_code)]
 /// Just the corners of an AABB, good for outlining stuff when debugging
