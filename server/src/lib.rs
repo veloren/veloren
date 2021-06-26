@@ -68,7 +68,6 @@ use common::{
     rtsim::RtSimEntity,
     slowjob::SlowJobPool,
     terrain::{TerrainChunk, TerrainChunkSize},
-    uid::UidAllocator,
     vol::RectRasterableVol,
 };
 use common_ecs::run_now;
@@ -78,10 +77,6 @@ use common_net::{
     },
     sync::WorldSyncExt,
 };
-#[cfg(feature = "plugins")]
-use common_state::plugin::memory_manager::EcsWorld;
-#[cfg(feature = "plugins")]
-use common_state::plugin::PluginMgr;
 use common_state::{BuildAreas, State};
 use common_systems::add_local_systems;
 use metrics::{EcsSystemMetrics, PhysicsMetrics, TickMetrics};
@@ -110,6 +105,13 @@ use crate::{
     sys::terrain,
 };
 use std::sync::RwLock;
+
+#[cfg(feature = "plugins")]
+use {
+    common::uid::UidAllocator,
+    common_state::plugin::{memory_manager::EcsWorld, PluginMgr},
+};
+
 #[cfg(feature = "worldgen")]
 use world::{
     sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP},
