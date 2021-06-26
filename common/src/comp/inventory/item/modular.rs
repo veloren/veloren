@@ -229,6 +229,7 @@ fn make_recipe_def(identifier: String, toolkind: ToolKind) -> RawRecipe {
         output,
         inputs,
         craft_sprite: None,
+        is_recycling: false,
     }
 }
 
