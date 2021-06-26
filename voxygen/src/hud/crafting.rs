@@ -138,17 +138,18 @@ impl<'a> Crafting<'a> {
 #[derive(Copy, Clone, Debug, EnumIter, PartialEq)]
 pub enum CraftingTab {
     All,
+    Tool,
     Armor,
     Weapon,
-    Food,
+    ProcessedMaterial,
     Dismantle,
+    Food,
     Potion,
     Bag,
-    Tool,
     Utility,
     Glider,
-    ProcessedMaterial,
 }
+
 impl CraftingTab {
     fn name_key(&self) -> &str {
         match self {
@@ -205,10 +206,7 @@ impl CraftingTab {
                 ItemKind::Tool(_) => !item.tags().contains(&ItemTag::CraftingTool),
                 _ => false,
             },
-            CraftingTab::Dismantle => match item.kind() {
-                ItemKind::Ingredient { .. } => !item.tags().contains(&ItemTag::CraftingTool),
-                _ => false,
-            },
+            CraftingTab::Dismantle => matches!(item.kind(), ItemKind::Ingredient { .. }),
         }
     }
 }
