@@ -3,13 +3,11 @@ use crate::{
     comp::{fluid_dynamics::LiquidKind, tool::ToolKind},
     make_case_elim,
 };
-use enum_iterator::IntoEnumIterator;
-use hashbrown::HashMap;
-use lazy_static::lazy_static;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 use serde::{Deserialize, Serialize};
-use std::{convert::TryFrom, fmt, ops::Deref};
+use std::ops::Deref;
+use strum_macros::{EnumIter, EnumString, ToString};
 use vek::*;
 
 make_case_elim!(
@@ -23,8 +21,10 @@ make_case_elim!(
         PartialEq,
         Serialize,
         Deserialize,
-        IntoEnumIterator,
         FromPrimitive,
+        EnumString,
+        EnumIter,
+        ToString,
     )]
     #[repr(u8)]
     pub enum BlockKind {
@@ -86,22 +86,6 @@ impl BlockKind {
     /// fields.
     #[inline]
     pub const fn has_color(&self) -> bool { self.is_filled() }
-}
-
-impl fmt::Display for BlockKind {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{:?}", self) }
-}
-
-lazy_static! {
-    pub static ref BLOCK_KINDS: HashMap<String, BlockKind> = BlockKind::into_enum_iter()
-        .map(|bk| (bk.to_string(), bk))
-        .collect();
-}
-
-impl<'a> TryFrom<&'a str> for BlockKind {
-    type Error = ();
-
-    fn try_from(s: &'a str) -> Result<Self, Self::Error> { BLOCK_KINDS.get(s).copied().ok_or(()) }
 }
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]

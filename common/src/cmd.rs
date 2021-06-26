@@ -218,9 +218,8 @@ lazy_static! {
         buff_pack
     };
 
-    static ref BLOCK_KINDS: Vec<String> = terrain::block::BLOCK_KINDS
-        .keys()
-        .cloned()
+    static ref BLOCK_KINDS: Vec<String> = terrain::block::BlockKind::iter()
+        .map(|bk| bk.to_string())
         .collect();
 
     static ref SPRITE_KINDS: Vec<String> = terrain::sprite::SPRITE_KINDS
