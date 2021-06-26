@@ -39,8 +39,7 @@ impl Animation for StunnedAnimation {
         let movement1abs = movement1base * pullback;
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
 
-        next.chest.position =
-            Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + movement1abs * -1.5) / 11.0 * s_a.scaler;
+        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + movement1abs * -1.5);
         next.head.orientation = Quaternion::rotation_x(movement1abs * -0.2)
             * Quaternion::rotation_y(movement1 * -0.6)
             * Quaternion::rotation_z(movement1 * 0.4 + twitch * 0.2 * mirror);

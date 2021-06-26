@@ -106,7 +106,7 @@ impl Animation for ClimbAnimation {
             next.lantern.orientation =
                 Quaternion::rotation_x(smooth * -0.3) * Quaternion::rotation_y(smooth * -0.3);
 
-            next.torso.position = Vec3::new(0.0, -0.2 + smooth * -0.08, 0.4) * s_a.scaler;
+            next.torso.position = Vec3::new(0.0, -2.2 + smooth * -0.88, 4.4);
         } else {
             next.head.position = Vec3::new(0.0, -1.0 - stagnant + s_a.head.0, s_a.head.1);
             next.head.orientation = Quaternion::rotation_x(
@@ -158,7 +158,7 @@ impl Animation for ClimbAnimation {
             next.foot_r.orientation =
                 Quaternion::rotation_x(0.2 + smooth * 0.15 * (1.0 - stagnant));
 
-            next.torso.position = Vec3::new(0.0, -0.2, 0.4) * s_a.scaler;
+            next.torso.position = Vec3::new(0.0, -2.2, 4.4);
         };
 
         next

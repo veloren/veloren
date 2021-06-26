@@ -40,7 +40,7 @@ impl Animation for ShockwaveAnimation {
         next.head.orientation = Quaternion::rotation_z(move1 * -PI);
 
         next.upper_torso.position =
-            Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1 + move2 * -5.0) * s_a.scaler / 8.0;
+            Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1 + move2 * -5.0);
         next.upper_torso.orientation = Quaternion::rotation_z(move1 * -PI);
 
         next.lower_torso.position =

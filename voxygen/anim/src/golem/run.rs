@@ -79,7 +79,7 @@ impl Animation for RunAnimation {
         next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1) * 1.02;
 
         next.upper_torso.position =
-            Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1 + short * 1.0) * s_a.scaler / 8.0;
+            Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1 + short * 1.0);
         next.upper_torso.orientation = Quaternion::rotation_z(tilt * -4.0 + short * 0.40);
 
         next.lower_torso.position = Vec3::new(0.0, s_a.lower_torso.0, s_a.lower_torso.1);

@@ -133,7 +133,7 @@ impl Animation for SummonAnimation {
                             let pullback = 1.0 - move3;
                             let move1 = move1base * pullback;
                             let move2 = move2base * pullback;
-                            next.torso.position = Vec3::new(0.0, 0.0 + move1 * 1.0, move1 * -4.0);
+                            next.torso.position = Vec3::new(0.0, 0.0 + move1 * 4.7, move1 * -18.8);
                             next.upper_torso.position =
                                 Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1);
 

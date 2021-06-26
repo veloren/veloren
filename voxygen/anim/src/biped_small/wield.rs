@@ -51,8 +51,7 @@ impl Animation for WieldAnimation {
             0.0,
             s_a.chest.0,
             s_a.chest.1 + fastalt * 0.4 * speednormcancel + speednormcancel * -0.5,
-        ) * s_a.scaler
-            / 11.0;
+        );
 
         next.pants.position = Vec3::new(0.0, s_a.pants.0, s_a.pants.1);
 

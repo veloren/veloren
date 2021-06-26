@@ -43,10 +43,10 @@ impl Skeleton for DragonSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-        body: Self::Body,
+        _body: Self::Body,
     ) -> Offsets {
+        let base_mat = base_mat * Mat4::scaling_3d(1.0);
         let chest_front_mat = base_mat * Mat4::<f32>::from(self.chest_front);
-        //* Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 1.0);
         let chest_rear_mat = chest_front_mat * Mat4::<f32>::from(self.chest_rear);
         let head_lower_mat = chest_front_mat * Mat4::<f32>::from(self.head_lower);
         let wing_in_l_mat = chest_front_mat * Mat4::<f32>::from(self.wing_in_l);

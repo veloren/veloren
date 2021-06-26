@@ -49,9 +49,9 @@ impl Skeleton for TheropodSkeleton {
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
     ) -> Offsets {
-        let chest_front_mat = base_mat
-            * Mat4::<f32>::from(self.chest_front)
-            * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 1.0);
+        let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 11.0);
+
+        let chest_front_mat = base_mat * Mat4::<f32>::from(self.chest_front);
         let neck_mat = chest_front_mat * Mat4::<f32>::from(self.neck);
         let head_mat = neck_mat * Mat4::<f32>::from(self.head);
         let chest_back_mat = chest_front_mat * Mat4::<f32>::from(self.chest_back);
@@ -229,14 +229,14 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Ntouka, _) => (1.5, -1.0, -2.5),
             },
             scaler: match (body.species, body.body_type) {
-                (Archaeos, _) => (3.75),
-                (Odonto, _) => (3.75),
-                (Sandraptor, _) => (10.0),
-                (Snowraptor, _) => (10.0),
-                (Woodraptor, _) => (10.0),
-                (Sunlizard, _) => (10.0),
-                (Yale, _) => (8.75),
-                (Ntouka, _) => (3.75),
+                (Archaeos, _) => (2.93),
+                (Odonto, _) => (2.93),
+                (Sandraptor, _) => (1.1),
+                (Snowraptor, _) => (1.1),
+                (Woodraptor, _) => (1.1),
+                (Sunlizard, _) => (1.1),
+                (Yale, _) => (1.26),
+                (Ntouka, _) => (2.93),
             },
         }
     }

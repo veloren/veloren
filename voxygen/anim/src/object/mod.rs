@@ -29,13 +29,15 @@ impl Skeleton for ObjectSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-        body: Self::Body,
+        _body: Self::Body,
     ) -> Offsets {
-        let bone0_mat = base_mat * Mat4::<f32>::from(self.bone0);
+        let scale_mat = Mat4::scaling_3d(1.0 / 11.0);
+
+        let bone0_mat = base_mat * scale_mat * Mat4::<f32>::from(self.bone0);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(bone0_mat * Mat4::scaling_3d(1.0 / 11.0)),
-            make_bone(Mat4::<f32>::from(self.bone1) * Mat4::scaling_3d(1.0 / 11.0)), /* Decorellated from ori */
+            make_bone(bone0_mat),
+            make_bone(scale_mat * Mat4::<f32>::from(self.bone1)), /* Decorellated from ori */
         ];
         Offsets {
             lantern: Vec3::default(),

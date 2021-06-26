@@ -32,7 +32,7 @@ impl Animation for JumpAnimation {
 
         next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
 
-        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1) * s_a.scaler / 11.0;
+        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
 
         next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
 

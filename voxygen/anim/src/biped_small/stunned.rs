@@ -66,8 +66,7 @@ impl Animation for StunnedAnimation {
             next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
             next.head.orientation =
                 Quaternion::rotation_x(movement1 * 0.2) * Quaternion::rotation_z(movement1 * -0.3);
-            next.chest.position =
-                Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + movement1abs - 3.0) * s_a.scaler / 11.0;
+            next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + movement1abs - 3.0);
             next.chest.orientation = Quaternion::rotation_z(movement1 * 1.2);
 
             next.pants.position = Vec3::new(0.0, s_a.pants.0, s_a.pants.1);
@@ -162,13 +161,9 @@ impl Animation for StunnedAnimation {
                 _ => {},
             }
         } else {
-            next.foot_l.scale = Vec3::one() * s_a.scaler / 11.0;
-            next.foot_r.scale = Vec3::one() * s_a.scaler / 11.0;
-
-            next.chest.scale = Vec3::one() * s_a.scaler / 11.0;
             next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
 
-            next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1) * s_a.scaler / 11.0;
+            next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
             next.pants.position = Vec3::new(0.0, s_a.pants.0, s_a.pants.1);
             next.main.position = Vec3::new(2.0, -3.0, -3.0);
             next.main.orientation = Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(PI / 2.0);
@@ -176,11 +171,10 @@ impl Animation for StunnedAnimation {
             next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
             next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
             next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);
-            next.foot_l.position =
-                Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2) * s_a.scaler / 11.0;
-            next.foot_r.position =
-                Vec3::new(s_a.foot.0, s_a.foot.1, s_a.foot.2) * s_a.scaler / 11.0;
-        };
+            next.foot_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2);
+            next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1, s_a.foot.2);
+        }
+
         next
     }
 }

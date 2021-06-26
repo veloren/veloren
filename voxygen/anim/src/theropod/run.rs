@@ -86,7 +86,7 @@ impl Animation for RunAnimation {
             0.0,
             s_a.chest_front.0,
             s_a.chest_front.1 + short * 0.5 + x_tilt * 10.0 + 0.5 * speednorm,
-        ) / s_a.scaler;
+        );
         next.chest_front.orientation = Quaternion::rotation_x(short * 0.07 + x_tilt)
             * Quaternion::rotation_y(tilt * 0.8)
             * Quaternion::rotation_z(shortalt * 0.15 + tilt * -1.5);

@@ -173,7 +173,7 @@ impl Animation for AlphaAnimation {
                 if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
                     match spec.as_str() {
                         "Wendigo Magic" => {
-                            next.torso.position = Vec3::new(0.0, 0.0, move1 * -0.3);
+                            next.torso.position = Vec3::new(0.0, 0.0, move1 * -2.18);
                             next.upper_torso.orientation =
                                 Quaternion::rotation_x(move1 * -0.5 + move2 * -0.4);
                             next.lower_torso.orientation =
@@ -262,7 +262,7 @@ impl Animation for AlphaAnimation {
 
                                 next.shoulder_l.orientation = Quaternion::rotation_x(0.0);
                             };
-                            next.torso.position = Vec3::new(0.0, move2 * -2.2, move2 * -1.0);
+                            next.torso.position = Vec3::new(0.0, move2 * -10.35, move2 * -4.7);
                         },
                         "Minotaur" => {
                             next.control_l.position = Vec3::new(0.0, 4.0, 5.0);

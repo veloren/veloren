@@ -40,13 +40,12 @@ impl Animation for ShockwaveAnimation {
 
         next.head.scale = Vec3::one() * 0.98;
         next.neck.scale = Vec3::one() * 1.02;
-        next.leg_l.scale = Vec3::one() / 8.0 * 0.98;
-        next.leg_r.scale = Vec3::one() / 8.0 * 0.98;
+        next.leg_l.scale = Vec3::one() * 0.98;
+        next.leg_r.scale = Vec3::one() * 0.98;
         next.foot_l.scale = Vec3::one() * 1.02;
         next.foot_r.scale = Vec3::one() * 1.02;
 
-        next.chest.position =
-            Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + movement1abs * 1.5) * s_a.scaler / 8.0;
+        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + movement1abs * 1.5);
         next.chest.orientation = Quaternion::rotation_x(movement1abs * 1.0 + movement2abs * -1.0);
 
         next.neck.position = Vec3::new(0.0, s_a.neck.0, s_a.neck.1);
@@ -88,9 +87,9 @@ impl Animation for ShockwaveAnimation {
             next.wing_out_r.orientation =
                 Quaternion::rotation_y(0.4) * Quaternion::rotation_z(-0.2);
 
-            next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2) / 8.0;
+            next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2);
             next.leg_l.orientation = Quaternion::rotation_x(0.0);
-            next.leg_r.position = Vec3::new(s_a.leg.0, s_a.leg.1, s_a.leg.2) / 8.0;
+            next.leg_r.position = Vec3::new(s_a.leg.0, s_a.leg.1, s_a.leg.2);
             next.leg_r.orientation = Quaternion::rotation_x(0.0);
 
             next.foot_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2);

@@ -51,7 +51,7 @@ impl Animation for LeapAnimation {
         next.second.orientation = Quaternion::rotation_z(0.0);
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_z(0.0);
-        next.torso.position = Vec3::new(0.0, 0.0, 0.1) * s_a.scaler;
+        next.torso.position = Vec3::new(0.0, 0.0, 1.1);
         next.torso.orientation = Quaternion::rotation_z(0.0);
 
         match ability_info.and_then(|a| a.tool) {

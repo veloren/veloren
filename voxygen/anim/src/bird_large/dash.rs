@@ -89,8 +89,8 @@ impl Animation for DashAnimation {
 
         next.head.scale = Vec3::one() * 0.98;
         next.neck.scale = Vec3::one() * 1.02;
-        next.leg_l.scale = Vec3::one() / 8.0 * 0.98;
-        next.leg_r.scale = Vec3::one() / 8.0 * 0.98;
+        next.leg_l.scale = Vec3::one() * 0.98;
+        next.leg_r.scale = Vec3::one() * 0.98;
         next.foot_l.scale = Vec3::one() * 1.02;
         next.foot_r.scale = Vec3::one() * 1.02;
 
@@ -113,8 +113,7 @@ impl Animation for DashAnimation {
             0.0,
             s_a.chest.0,
             s_a.chest.1 + short * 0.5 + 0.5 * speednorm,
-        ) * s_a.scaler
-            / 8.0;
+        );
         next.chest.orientation =
             Quaternion::rotation_x(short * 0.07 + movement1abs * 0.8 + movement2abs * -1.2)
                 * Quaternion::rotation_y(tilt * 0.8)

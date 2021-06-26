@@ -104,7 +104,7 @@ impl Animation for DanceAnimation {
         next.lantern.orientation =
             Quaternion::rotation_x(shorte * 0.7 + 0.4) * Quaternion::rotation_y(shorte * 0.4);
 
-        next.torso.position = Vec3::new(0.0, -0.3, 0.0) * s_a.scaler;
+        next.torso.position = Vec3::new(0.0, -3.3, 0.0);
         next.torso.orientation = Quaternion::rotation_z(short * -0.2);
 
         next

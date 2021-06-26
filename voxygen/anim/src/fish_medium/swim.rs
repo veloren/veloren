@@ -52,7 +52,7 @@ impl Animation for SwimAnimation {
 
         next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
 
-        next.chest_front.position = Vec3::new(0.0, s_a.chest_front.0, s_a.chest_front.1) / 11.0;
+        next.chest_front.position = Vec3::new(0.0, s_a.chest_front.0, s_a.chest_front.1);
         next.chest_front.orientation = Quaternion::rotation_x(velocity.z.abs() * -0.005 + x_tilt)
             * Quaternion::rotation_z(fast * vel * -0.02);
 

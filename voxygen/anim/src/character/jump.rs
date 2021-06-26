@@ -205,7 +205,7 @@ impl Animation for JumpAnimation {
                 * Quaternion::rotation_y(tilt * 4.0 * slow + tilt * 3.0);
         }
 
-        next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
+        next.torso.position = Vec3::new(0.0, 0.0, 0.0);
         next.torso.orientation = Quaternion::rotation_x(0.0);
 
         match hands {

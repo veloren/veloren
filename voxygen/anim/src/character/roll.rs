@@ -109,7 +109,7 @@ impl Animation for RollAnimation {
         );
         next.foot_r.orientation = Quaternion::rotation_x(0.9 * movement1);
 
-        next.torso.position = Vec3::new(0.0, 0.0, 8.0 * movement1) / 11.0 * s_a.scaler;
+        next.torso.position = Vec3::new(0.0, 0.0, 8.0 * movement1);
         next.torso.orientation = Quaternion::rotation_x(movement1 * -0.4 + movement2 * -2.0 * PI)
             * Quaternion::rotation_z(tilt * -10.0);
 

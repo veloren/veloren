@@ -128,8 +128,7 @@ impl Animation for RunAnimation {
                 + canceler * 1.0
                 + canceler * shortalt * 2.5 * s_a.spring
                 + x_tilt * 10.0 * canceler,
-        ) * s_a.scaler
-            / 11.0;
+        );
         next.torso_front.orientation = Quaternion::rotation_x(
             ((amplitude * (short * -0.13).max(-0.2)) * s_a.spring).min(0.1)
                 + x_tilt * (canceler * 6.0).min(1.0),

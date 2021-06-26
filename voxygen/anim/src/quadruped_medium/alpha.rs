@@ -59,8 +59,7 @@ impl Animation for AlphaAnimation {
             0.0,
             s_a.torso_front.0 + movement1abs * -4.0,
             s_a.torso_front.1,
-        ) * s_a.scaler
-            / 11.0;
+        );
         next.torso_front.orientation = Quaternion::rotation_y(movement1 * -0.25 * movement2 * 0.25)
             * Quaternion::rotation_z(movement1 * 0.35 + movement2 * -0.45);
 

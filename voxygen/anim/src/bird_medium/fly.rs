@@ -30,11 +30,8 @@ impl Animation for FlyAnimation {
         let center = (anim_time * lab + PI / 2.0).sin();
         let centeroffset = (anim_time * lab + PI * 1.5).sin();
 
-        next.torso.scale = Vec3::one() / 11.0;
         next.wing_l.scale = Vec3::one() * 1.05;
         next.wing_r.scale = Vec3::one() * 1.05;
-        next.leg_l.scale = Vec3::one() / 11.0;
-        next.leg_r.scale = Vec3::one() / 11.0;
 
         next.head.position = Vec3::new(0.0, s_a.head.0 + 0.5, s_a.head.1 + center * 0.5 - 1.0);
         next.head.orientation =
@@ -44,7 +41,7 @@ impl Animation for FlyAnimation {
             0.0,
             s_a.chest.0 + centeroffset * 0.6,
             center * 0.6 + s_a.chest.1,
-        ) / 11.0;
+        );
         next.torso.orientation = Quaternion::rotation_y(center * 0.05);
 
         next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1 + centeroffset * 0.6);
@@ -56,10 +53,10 @@ impl Animation for FlyAnimation {
         next.wing_r.position = Vec3::new(s_a.wing.0, s_a.wing.1, s_a.wing.2);
         next.wing_r.orientation = Quaternion::rotation_y((-0.57 + footr * 1.2).min(0.0));
 
-        next.leg_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2) / 11.0;
+        next.leg_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2);
         next.leg_l.orientation = Quaternion::rotation_x(-1.3 + footl * 0.06);
 
-        next.leg_r.position = Vec3::new(s_a.foot.0, s_a.foot.1, s_a.foot.2) / 11.0;
+        next.leg_r.position = Vec3::new(s_a.foot.0, s_a.foot.1, s_a.foot.2);
         next.leg_r.orientation = Quaternion::rotation_x(-1.3 + footr * 0.06);
         next
     }

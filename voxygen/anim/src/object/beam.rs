@@ -33,10 +33,10 @@ impl Animation for BeamAnimation {
 
         let mut next = (*skeleton).clone();
 
-        next.bone0.position = Vec3::new(s_a.bone0.0, s_a.bone0.1, s_a.bone0.2) / 11.0;
+        next.bone0.position = Vec3::new(s_a.bone0.0, s_a.bone0.1, s_a.bone0.2);
         next.bone0.orientation = Quaternion::rotation_z(0.0);
 
-        next.bone1.position = Vec3::new(s_a.bone1.0, s_a.bone1.1, s_a.bone1.2) / 11.0;
+        next.bone1.position = Vec3::new(s_a.bone1.0, s_a.bone1.1, s_a.bone1.2);
         next.bone1.orientation = Quaternion::rotation_z(0.0);
 
         next

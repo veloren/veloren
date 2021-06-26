@@ -43,8 +43,7 @@ impl Animation for JumpAnimation {
 
         next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
 
-        next.torso_front.position =
-            Vec3::new(0.0, s_a.torso_front.0, s_a.torso_front.1) * s_a.scaler / 11.0;
+        next.torso_front.position = Vec3::new(0.0, s_a.torso_front.0, s_a.torso_front.1);
         next.torso_front.orientation = Quaternion::rotation_y(0.0);
 
         next.torso_back.position = Vec3::new(0.0, s_a.torso_back.0, s_a.torso_back.1);

@@ -232,7 +232,7 @@ impl Animation for SwimAnimation {
         } else {
             avgtotal
         };
-        next.torso.position = Vec3::new(0.0, 0.0, 1.0 - avgspeed * 0.05) * s_a.scaler;
+        next.torso.position = Vec3::new(0.0, 0.0, 11.0 - avgspeed * 0.55);
         next.torso.orientation = Quaternion::rotation_x(
             (((1.0 / switch) * PI / 2.0 + avg_vel.z * 0.12).min(PI / 2.0) - PI / 2.0)
                 + avgspeed * avg_vel.z * -0.003,

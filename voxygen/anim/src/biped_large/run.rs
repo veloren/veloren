@@ -138,7 +138,6 @@ impl Animation for RunAnimation {
         next.hand_l.scale = Vec3::one() * 1.04;
         next.hand_r.scale = Vec3::one() * 1.04;
         next.hold.scale = Vec3::one() * 0.0;
-        next.torso.scale = Vec3::one();
         next.second.scale = Vec3::one() * 0.0;
 
         if s_a.beast {
@@ -256,10 +255,9 @@ impl Animation for RunAnimation {
 
             next.torso.position = Vec3::new(
                 0.0,
-                0.0 + (short * 0.75).max(-2.0),
-                speedavg * 0.15 + (short * 0.75).max(-2.0),
-            ) / 8.0
-                * s_a.scaler;
+                0.0 + (short * 6.0).max(-16.0),
+                speedavg * 1.2 + (short * 6.0).max(-16.0),
+            );
             next.torso.orientation =
                 Quaternion::rotation_x(x_tilt + amplitude * short * 0.1 + speedavg * -0.045);
         } else {
@@ -410,7 +408,7 @@ impl Animation for RunAnimation {
                 tilt * 1.0 + side * 0.3 + side * (foothorir * 0.3),
             ) * Quaternion::rotation_z(side * 0.2);
 
-            next.torso.position = Vec3::new(0.0, 0.0, 0.0) / 8.0;
+            next.torso.position = Vec3::new(0.0, 0.0, 0.0);
             next.torso.orientation = Quaternion::rotation_x(-0.25 * speednorm);
         }
 

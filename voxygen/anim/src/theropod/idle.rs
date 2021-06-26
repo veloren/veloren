@@ -59,7 +59,7 @@ impl Animation for IdleAnimation {
         next.neck.orientation = Quaternion::rotation_x(-0.1);
 
         next.chest_front.position =
-            Vec3::new(0.0, s_a.chest_front.0, s_a.chest_front.1 + breathe * 0.3) / s_a.scaler;
+            Vec3::new(0.0, s_a.chest_front.0, s_a.chest_front.1 + breathe * 0.3);
         next.chest_front.orientation = Quaternion::rotation_x(breathe * 0.04);
 
         next.chest_back.position = Vec3::new(0.0, s_a.chest_back.0, s_a.chest_back.1);

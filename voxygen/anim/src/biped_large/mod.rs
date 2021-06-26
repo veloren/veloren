@@ -81,11 +81,10 @@ impl Skeleton for BipedLargeSkeleton {
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
     ) -> Offsets {
-        let upper_torso = Mat4::<f32>::from(self.upper_torso)
-            * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 8.0);
+        let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 8.0);
 
         let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
-        let upper_torso_mat = torso_mat * upper_torso;
+        let upper_torso_mat = torso_mat * Mat4::<f32>::from(self.upper_torso);
         let control_mat = Mat4::<f32>::from(self.control);
         let control_l_mat = Mat4::<f32>::from(self.control_l);
         let control_r_mat = Mat4::<f32>::from(self.control_r);

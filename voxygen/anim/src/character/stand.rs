@@ -177,7 +177,7 @@ impl Animation for StandAnimation {
                 * Quaternion::rotation_y(fast2 * 0.1 + tilt * 3.0);
         }
 
-        next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
+        next.torso.position = Vec3::new(0.0, 0.0, 0.0);
         next.second.scale = Vec3::one();
         next.second.scale = match hands {
             (Some(Hands::One) | None, Some(Hands::One)) => Vec3::one(),

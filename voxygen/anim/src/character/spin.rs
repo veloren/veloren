@@ -96,8 +96,9 @@ impl Animation for SpinAnimation {
                 next.torso.position = Vec3::new(
                     0.0,
                     0.0,
-                    -1.0 + 1.0 * (movement1 * 0.5 * PI).sin()
-                        + 1.0 * (movement2 * 0.5 * PI + 0.5 * PI).sin(),
+                    -11.0
+                        + 11.0 * (movement1 * 0.5 * PI).sin()
+                        + 11.0 * (movement2 * 0.5 * PI + 0.5 * PI).sin(),
                 );
                 next.torso.orientation =
                     Quaternion::rotation_z(movement1.powi(2) * -6.0 + movement2 * -1.7);

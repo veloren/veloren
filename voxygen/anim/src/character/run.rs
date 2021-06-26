@@ -275,7 +275,7 @@ impl Animation for RunAnimation {
                 * Quaternion::rotation_y(tilt * 4.0 * fast + tilt * 3.0 + fast2 * speednorm * 0.25);
         }
 
-        next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
+        next.torso.position = Vec3::new(0.0, 0.0, 0.0);
 
         match hands {
             (Some(Hands::One), _) => match active_tool_kind {

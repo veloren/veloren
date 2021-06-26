@@ -106,7 +106,7 @@ impl Animation for RunAnimation {
                 * Quaternion::rotation_y(shortalt * 0.08)
                 * Quaternion::rotation_x(-0.04 + x_tilt * 0.5);
 
-        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1) * s_a.scaler / 11.0;
+        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
         next.chest.orientation = Quaternion::rotation_z(short * 0.13 + tilt * -1.9)
             * Quaternion::rotation_y(short * 0.12 + tilt * 0.7)
             * Quaternion::rotation_x(x_tilt + s_a.lean.0);

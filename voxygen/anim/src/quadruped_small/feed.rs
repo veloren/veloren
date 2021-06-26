@@ -45,7 +45,7 @@ impl Animation for FeedAnimation {
         next.head.orientation = Quaternion::rotation_z(head_look.y)
             * Quaternion::rotation_x(slow * 0.05 + quick * 0.08 - 0.4 * s_a.feed);
 
-        next.chest.position = Vec3::new(slow * 0.02, s_a.chest.0, s_a.chest.1) / 11.0 * s_a.scaler;
+        next.chest.position = Vec3::new(slow * 0.02, s_a.chest.0, s_a.chest.1);
         next.chest.orientation =
             Quaternion::rotation_x(-0.35 * s_a.feed) * Quaternion::rotation_y(head_look.y * 0.1);
 
