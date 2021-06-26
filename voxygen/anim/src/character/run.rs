@@ -276,7 +276,6 @@ impl Animation for RunAnimation {
         }
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
-        next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
 
         match hands {
             (Some(Hands::One), _) => match active_tool_kind {

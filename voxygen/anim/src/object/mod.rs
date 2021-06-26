@@ -29,6 +29,7 @@ impl Skeleton for ObjectSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
+        body: Self::Body,
     ) -> Offsets {
         let bone0_mat = base_mat * Mat4::<f32>::from(self.bone0);
 

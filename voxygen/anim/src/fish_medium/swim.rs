@@ -47,8 +47,6 @@ impl Animation for SwimAnimation {
         let vel = (velocity.magnitude()).min(s_a.amplitude);
         let slowvel = vel * 0.1;
 
-        next.chest_front.scale = Vec3::one() / 11.0;
-
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation = Quaternion::rotation_z(slowalt * -0.1 + tilt * -2.0);
 

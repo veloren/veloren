@@ -75,7 +75,6 @@ impl Animation for RunAnimation {
         } * 1.3;
 
         next.jaw.scale = Vec3::one() * 0.98;
-        next.chest.scale = Vec3::one() * s_a.scaler / 11.0;
         next.tail_front.scale = Vec3::one() * 0.98;
         next.tail_rear.scale = Vec3::one() * 0.98;
 

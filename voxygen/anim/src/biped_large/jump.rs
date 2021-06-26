@@ -118,7 +118,6 @@ impl Animation for JumpAnimation {
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0) / 8.0 * s_a.scaler;
         next.torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-        next.torso.scale = Vec3::one() / 8.0 * s_a.scaler;
 
         next
     }

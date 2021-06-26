@@ -71,7 +71,6 @@ impl Animation for RunAnimation {
         next.leg_r.scale = Vec3::one() / 8.0 * 0.98;
         next.foot_l.scale = Vec3::one() * 1.02;
         next.foot_r.scale = Vec3::one() * 1.02;
-        next.chest.scale = Vec3::one() * s_a.scaler / 8.0;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation = Quaternion::rotation_x(-0.1 * speednorm + short * -0.05)

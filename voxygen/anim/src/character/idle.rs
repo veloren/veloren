@@ -43,7 +43,6 @@ impl Animation for IdleAnimation {
         next.back.scale = Vec3::one() * 1.02;
         next.hold.scale = Vec3::one() * 0.0;
         next.lantern.scale = Vec3::one() * 0.65;
-        next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
         next.shoulder_l.scale = Vec3::one() * 1.1;
         next.shoulder_r.scale = Vec3::one() * 1.1;
 

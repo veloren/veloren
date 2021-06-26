@@ -28,8 +28,6 @@ impl Animation for IdleAnimation {
 
         let slow = (anim_time * 3.5 + PI).sin();
 
-        next.chest.scale = Vec3::one() / 13.0;
-
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1) / 13.0;
 
         next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);

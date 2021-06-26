@@ -24,7 +24,6 @@ impl Animation for JumpAnimation {
 
         next.neck.scale = Vec3::one() * 1.02;
         next.jaw.scale = Vec3::one() * 1.02;
-        next.torso_front.scale = Vec3::one() * s_a.scaler / 11.0;
         next.leg_fl.scale = Vec3::one() * 1.02;
         next.leg_fr.scale = Vec3::one() * 1.02;
         next.leg_bl.scale = Vec3::one() * 1.02;

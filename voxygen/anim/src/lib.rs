@@ -117,6 +117,7 @@ pub trait Skeleton: Send + Sync + 'static {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; MAX_BONE_COUNT],
+        body: Self::Body,
     ) -> Offsets;
 }
 
@@ -124,10 +125,11 @@ pub fn compute_matrices<S: Skeleton>(
     skeleton: &S,
     base_mat: Mat4<f32>,
     buf: &mut [FigureBoneData; MAX_BONE_COUNT],
+    body: S::Body,
 ) -> Offsets {
     #[cfg(not(feature = "use-dyn-lib"))]
     {
-        S::compute_matrices_inner(skeleton, base_mat, buf)
+        S::compute_matrices_inner(skeleton, base_mat, buf, body)
     }
     #[cfg(feature = "use-dyn-lib")]
     {
@@ -136,7 +138,7 @@ pub fn compute_matrices<S: Skeleton>(
 
         #[allow(clippy::type_complexity)]
         let compute_fn: voxygen_dynlib::Symbol<
-            fn(&S, Mat4<f32>, &mut [FigureBoneData; MAX_BONE_COUNT]) -> Offsets,
+            fn(&S, Mat4<f32>, &mut [FigureBoneData; MAX_BONE_COUNT], S::Body) -> Offsets,
         > = unsafe { lib.get(S::COMPUTE_FN) }.unwrap_or_else(|e| {
             panic!(
                 "Trying to use: {} but had error: {:?}",
@@ -148,7 +150,7 @@ pub fn compute_matrices<S: Skeleton>(
             )
         });
 
-        compute_fn(skeleton, base_mat, buf)
+        compute_fn(skeleton, base_mat, buf, body)
     }
 }
 

@@ -64,7 +64,6 @@ impl Animation for FlyAnimation {
         next.leg_r.scale = Vec3::one() / 8.0 * 0.98;
         next.foot_l.scale = Vec3::one() * 1.02;
         next.foot_r.scale = Vec3::one() * 1.02;
-        next.chest.scale = Vec3::one() * s_a.scaler / 8.0;
 
         next.neck.position = Vec3::new(0.0, s_a.neck.0, s_a.neck.1);
         next.neck.orientation =

@@ -764,12 +764,14 @@ impl FigureMgr {
                 Some((meta.mount_transform, meta.mount_world_pos))
             })();
 
+            let body = *body;
+
             let common_params = FigureUpdateCommonParameters {
                 pos: pos.0,
                 ori,
                 scale,
                 mount_transform_pos,
-                body: Some(*body),
+                body: Some(body),
                 col,
                 dt,
                 _lpindex: lpindex,
@@ -785,7 +787,7 @@ impl FigureMgr {
                     let (model, skeleton_attr) = self.model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -807,7 +809,11 @@ impl FigureMgr {
                         .character_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, CharacterSkeleton::new(holding_lantern))
+                            FigureState::new(
+                                renderer,
+                                CharacterSkeleton::new(holding_lantern),
+                                body,
+                            )
                         });
 
                     // Average velocity relative to the current ground
@@ -1589,6 +1595,7 @@ impl FigureMgr {
                         &common_params,
                         state_animation_rate,
                         model,
+                        body,
                     );
                 },
                 Body::QuadrupedSmall(body) => {
@@ -1596,7 +1603,7 @@ impl FigureMgr {
                         self.quadruped_small_model_cache.get_or_create_model(
                             renderer,
                             &mut self.col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -1609,7 +1616,7 @@ impl FigureMgr {
                         .quadruped_small_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, QuadrupedSmallSkeleton::default())
+                            FigureState::new(renderer, QuadrupedSmallSkeleton::default(), body)
                         });
 
                     // Average velocity relative to the current ground
@@ -1777,6 +1784,7 @@ impl FigureMgr {
                         &common_params,
                         state_animation_rate,
                         model,
+                        body,
                     );
                 },
                 Body::QuadrupedMedium(body) => {
@@ -1784,7 +1792,7 @@ impl FigureMgr {
                         self.quadruped_medium_model_cache.get_or_create_model(
                             renderer,
                             &mut self.col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -1797,7 +1805,7 @@ impl FigureMgr {
                         .quadruped_medium_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, QuadrupedMediumSkeleton::default())
+                            FigureState::new(renderer, QuadrupedMediumSkeleton::default(), body)
                         });
 
                     // Average velocity relative to the current ground
@@ -2090,6 +2098,7 @@ impl FigureMgr {
                         &common_params,
                         state_animation_rate,
                         model,
+                        body,
                     );
                 },
                 Body::QuadrupedLow(body) => {
@@ -2097,7 +2106,7 @@ impl FigureMgr {
                         self.quadruped_low_model_cache.get_or_create_model(
                             renderer,
                             &mut self.col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -2110,7 +2119,7 @@ impl FigureMgr {
                         .quadruped_low_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, QuadrupedLowSkeleton::default())
+                            FigureState::new(renderer, QuadrupedLowSkeleton::default(), body)
                         });
 
                     // Average velocity relative to the current ground
@@ -2436,13 +2445,14 @@ impl FigureMgr {
                         &common_params,
                         state_animation_rate,
                         model,
+                        body,
                     );
                 },
                 Body::BirdMedium(body) => {
                     let (model, skeleton_attr) = self.bird_medium_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -2455,7 +2465,7 @@ impl FigureMgr {
                         .bird_medium_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, BirdMediumSkeleton::default())
+                            FigureState::new(renderer, BirdMediumSkeleton::default(), body)
                         });
 
                     // Average velocity relative to the current ground
@@ -2536,13 +2546,14 @@ impl FigureMgr {
                         &common_params,
                         state_animation_rate,
                         model,
+                        body,
                     );
                 },
                 Body::FishMedium(body) => {
                     let (model, skeleton_attr) = self.fish_medium_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -2555,7 +2566,7 @@ impl FigureMgr {
                         .fish_medium_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, FishMediumSkeleton::default())
+                            FigureState::new(renderer, FishMediumSkeleton::default(), body)
                         });
 
                     // Average velocity relative to the current ground
@@ -2615,13 +2626,14 @@ impl FigureMgr {
                         &common_params,
                         state_animation_rate,
                         model,
+                        body,
                     );
                 },
                 Body::BipedSmall(body) => {
                     let (model, skeleton_attr) = self.biped_small_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -2634,7 +2646,7 @@ impl FigureMgr {
                         .biped_small_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, BipedSmallSkeleton::default())
+                            FigureState::new(renderer, BipedSmallSkeleton::default(), body)
                         });
 
                     // Average velocity relative to the current ground
@@ -2949,13 +2961,14 @@ impl FigureMgr {
                         &common_params,
                         state_animation_rate,
                         model,
+                        body,
                     );
                 },
                 Body::Dragon(body) => {
                     let (model, skeleton_attr) = self.dragon_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -2963,10 +2976,9 @@ impl FigureMgr {
                         &slow_jobs,
                     );
 
-                    let state =
-                        self.states.dragon_states.entry(entity).or_insert_with(|| {
-                            FigureState::new(renderer, DragonSkeleton::default())
-                        });
+                    let state = self.states.dragon_states.entry(entity).or_insert_with(|| {
+                        FigureState::new(renderer, DragonSkeleton::default(), body)
+                    });
 
                     // Average velocity relative to the current ground
                     let rel_avg_vel = state.avg_vel - physics.ground_vel;
@@ -3033,13 +3045,14 @@ impl FigureMgr {
                         &common_params,
                         state_animation_rate,
                         model,
+                        body,
                     );
                 },
                 Body::Theropod(body) => {
                     let (model, skeleton_attr) = self.theropod_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -3051,7 +3064,9 @@ impl FigureMgr {
                         .states
                         .theropod_states
                         .entry(entity)
-                        .or_insert_with(|| FigureState::new(renderer, TheropodSkeleton::default()));
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, TheropodSkeleton::default(), body)
+                        });
 
                     // Average velocity relative to the current ground
                     let rel_avg_vel = state.avg_vel - physics.ground_vel;
@@ -3206,13 +3221,14 @@ impl FigureMgr {
                         &common_params,
                         state_animation_rate,
                         model,
+                        body,
                     );
                 },
                 Body::BirdLarge(body) => {
                     let (model, skeleton_attr) = self.bird_large_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -3225,7 +3241,7 @@ impl FigureMgr {
                         .bird_large_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, BirdLargeSkeleton::default())
+                            FigureState::new(renderer, BirdLargeSkeleton::default(), body)
                         });
 
                     let (character, last_character) = match (character, last_character) {
@@ -3517,13 +3533,14 @@ impl FigureMgr {
                         &common_params,
                         state_animation_rate,
                         model,
+                        body,
                     );
                 },
                 Body::FishSmall(body) => {
                     let (model, skeleton_attr) = self.fish_small_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -3536,7 +3553,7 @@ impl FigureMgr {
                         .fish_small_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, FishSmallSkeleton::default())
+                            FigureState::new(renderer, FishSmallSkeleton::default(), body)
                         });
 
                     // Average velocity relative to the current ground
@@ -3596,13 +3613,14 @@ impl FigureMgr {
                         &common_params,
                         state_animation_rate,
                         model,
+                        body,
                     );
                 },
                 Body::BipedLarge(body) => {
                     let (model, skeleton_attr) = self.biped_large_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -3615,7 +3633,7 @@ impl FigureMgr {
                         .biped_large_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, BipedLargeSkeleton::default())
+                            FigureState::new(renderer, BipedLargeSkeleton::default(), body)
                         });
 
                     // Average velocity relative to the current ground
@@ -4214,13 +4232,14 @@ impl FigureMgr {
                         &common_params,
                         state_animation_rate,
                         model,
+                        body,
                     );
                 },
                 Body::Golem(body) => {
                     let (model, skeleton_attr) = self.golem_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -4228,10 +4247,9 @@ impl FigureMgr {
                         &slow_jobs,
                     );
 
-                    let state =
-                        self.states.golem_states.entry(entity).or_insert_with(|| {
-                            FigureState::new(renderer, GolemSkeleton::default())
-                        });
+                    let state = self.states.golem_states.entry(entity).or_insert_with(|| {
+                        FigureState::new(renderer, GolemSkeleton::default(), body)
+                    });
 
                     // Average velocity relative to the current ground
                     let _rel_avg_vel = state.avg_vel - physics.ground_vel;
@@ -4452,13 +4470,14 @@ impl FigureMgr {
                         &common_params,
                         state_animation_rate,
                         model,
+                        body,
                     );
                 },
                 Body::Object(body) => {
                     let (model, skeleton_attr) = self.object_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -4466,10 +4485,9 @@ impl FigureMgr {
                         &slow_jobs,
                     );
 
-                    let state =
-                        self.states.object_states.entry(entity).or_insert_with(|| {
-                            FigureState::new(renderer, ObjectSkeleton::default())
-                        });
+                    let state = self.states.object_states.entry(entity).or_insert_with(|| {
+                        FigureState::new(renderer, ObjectSkeleton::default(), body)
+                    });
 
                     // Average velocity relative to the current ground
                     let _rel_avg_vel = state.avg_vel - physics.ground_vel;
@@ -4527,7 +4545,7 @@ impl FigureMgr {
                                     active_tool_kind,
                                     second_tool_kind,
                                     Some(s.stage_section),
-                                    *body,
+                                    body,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -4552,7 +4570,7 @@ impl FigureMgr {
                                     active_tool_kind,
                                     second_tool_kind,
                                     Some(s.stage_section),
-                                    *body,
+                                    body,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -4570,13 +4588,14 @@ impl FigureMgr {
                         &common_params,
                         state_animation_rate,
                         model,
+                        body,
                     );
                 },
                 Body::Ship(body) => {
                     let (model, skeleton_attr) = self.ship_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -4584,11 +4603,9 @@ impl FigureMgr {
                         &slow_jobs,
                     );
 
-                    let state = self
-                        .states
-                        .ship_states
-                        .entry(entity)
-                        .or_insert_with(|| FigureState::new(renderer, ShipSkeleton::default()));
+                    let state = self.states.ship_states.entry(entity).or_insert_with(|| {
+                        FigureState::new(renderer, ShipSkeleton::default(), body)
+                    });
 
                     // Average velocity relative to the current ground
                     let _rel_avg_vel = state.avg_vel - physics.ground_vel;
@@ -4653,6 +4670,7 @@ impl FigureMgr {
                         &common_params,
                         state_animation_rate,
                         model,
+                        body,
                     );
                 },
             }
@@ -4821,6 +4839,8 @@ impl FigureMgr {
         figure_lod_render_distance: f32,
         filter_state: impl Fn(&FigureStateMeta) -> bool,
     ) -> Option<FigureModelRef> {
+        let body = *body;
+
         let player_camera_mode = if is_player {
             camera.get_mode()
         } else {
@@ -4876,7 +4896,7 @@ impl FigureMgr {
                         state.bound(),
                         model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -4892,7 +4912,7 @@ impl FigureMgr {
                         state.bound(),
                         quadruped_small_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -4908,7 +4928,7 @@ impl FigureMgr {
                         state.bound(),
                         quadruped_medium_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -4924,7 +4944,7 @@ impl FigureMgr {
                         state.bound(),
                         quadruped_low_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -4940,7 +4960,7 @@ impl FigureMgr {
                         state.bound(),
                         bird_medium_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -4956,7 +4976,7 @@ impl FigureMgr {
                         state.bound(),
                         fish_medium_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -4972,7 +4992,7 @@ impl FigureMgr {
                         state.bound(),
                         theropod_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -4988,7 +5008,7 @@ impl FigureMgr {
                         state.bound(),
                         dragon_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5004,7 +5024,7 @@ impl FigureMgr {
                         state.bound(),
                         bird_large_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5020,7 +5040,7 @@ impl FigureMgr {
                         state.bound(),
                         fish_small_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5036,7 +5056,7 @@ impl FigureMgr {
                         state.bound(),
                         biped_large_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5052,7 +5072,7 @@ impl FigureMgr {
                         state.bound(),
                         biped_small_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5068,7 +5088,7 @@ impl FigureMgr {
                         state.bound(),
                         golem_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5084,7 +5104,7 @@ impl FigureMgr {
                         state.bound(),
                         object_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5100,7 +5120,7 @@ impl FigureMgr {
                         state.bound(),
                         ship_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5305,9 +5325,10 @@ pub struct FigureUpdateCommonParameters<'a> {
 }
 
 impl<S: Skeleton> FigureState<S> {
-    pub fn new(renderer: &mut Renderer, skeleton: S) -> Self {
+    pub fn new(renderer: &mut Renderer, skeleton: S, body: S::Body) -> Self {
         let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
-        let offsets = anim::compute_matrices(&skeleton, anim::vek::Mat4::identity(), &mut buf);
+        let offsets =
+            anim::compute_matrices(&skeleton, anim::vek::Mat4::identity(), &mut buf, body);
         let bone_consts = figure_bone_data_from_anim(&buf);
         Self {
             meta: FigureStateMeta {
@@ -5351,6 +5372,10 @@ impl<S: Skeleton> FigureState<S> {
         }: &FigureUpdateCommonParameters,
         state_animation_rate: f32,
         model: Option<&FigureModelEntry<N>>,
+        // TODO: there is the potential to drop the optional body from the common params and just
+        // use this one but we need to add a function to the skelton trait or something in order to
+        // get the mounter offset
+        skel_body: S::Body,
     ) {
         // NOTE: As long as update() always gets called after get_or_create_model(), and
         // visibility is not set again until after the model is rendered, we
@@ -5463,7 +5488,7 @@ impl<S: Skeleton> FigureState<S> {
         );
         renderer.update_consts(&mut self.meta.bound.0, &[locals]);
 
-        let offsets = anim::compute_matrices(&self.skeleton, mat, buf);
+        let offsets = anim::compute_matrices(&self.skeleton, mat, buf, skel_body);
 
         let new_bone_consts = figure_bone_data_from_anim(buf);
 

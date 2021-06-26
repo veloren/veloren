@@ -54,8 +54,11 @@ impl Skeleton for QuadrupedMediumSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
+        body: Self::Body,
     ) -> Offsets {
-        let torso_front_mat = base_mat * Mat4::<f32>::from(self.torso_front);
+        let torso_front_mat = base_mat
+            * Mat4::<f32>::from(self.torso_front)
+            * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 11.0);
         let torso_back_mat = torso_front_mat * Mat4::<f32>::from(self.torso_back);
         let neck_mat = torso_front_mat * Mat4::<f32>::from(self.neck);
         let leg_fl_mat = torso_front_mat * Mat4::<f32>::from(self.leg_fl);

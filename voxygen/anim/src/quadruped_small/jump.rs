@@ -26,7 +26,6 @@ impl Animation for JumpAnimation {
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1) * s_a.scaler / 11.0;
         next.chest.orientation = Quaternion::rotation_y(0.0);
-        next.chest.scale = Vec3::one() * s_a.scaler / 11.0;
 
         next.leg_fl.position = Vec3::new(-s_a.feet_f.0, s_a.feet_f.1, s_a.feet_f.2);
         next.leg_fl.orientation = Quaternion::rotation_x(0.0);

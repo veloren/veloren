@@ -30,8 +30,9 @@ impl Skeleton for FishSmallSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
+        body: Self::Body,
     ) -> Offsets {
-        let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
+        let chest_mat = base_mat * Mat4::<f32>::from(self.chest) * Mat4::scaling_3d(1.0 / 13.0);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
             make_bone(chest_mat),

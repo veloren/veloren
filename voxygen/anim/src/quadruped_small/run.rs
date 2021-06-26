@@ -76,7 +76,6 @@ impl Animation for RunAnimation {
             Quaternion::rotation_x(vertcancel * short * 0.2 * s_a.spring + x_tilt)
                 * Quaternion::rotation_y(tilt * 0.8)
                 * Quaternion::rotation_z(s_a.lateral * short * 0.2 + tilt * -1.5);
-        next.chest.scale = Vec3::one() / 11.0 * s_a.scaler;
 
         next.leg_fl.position = Vec3::new(
             -s_a.feet_f.0,

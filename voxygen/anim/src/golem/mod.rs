@@ -47,8 +47,11 @@ impl Skeleton for GolemSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
+        body: Self::Body,
     ) -> Offsets {
-        let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
+        let torso_mat = base_mat
+            * Mat4::<f32>::from(self.torso)
+            * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 8.0);
         let upper_torso_mat = torso_mat * Mat4::<f32>::from(self.upper_torso);
         let lower_torso_mat = upper_torso_mat * Mat4::<f32>::from(self.lower_torso);
         let leg_l_mat = lower_torso_mat * Mat4::<f32>::from(self.leg_l);

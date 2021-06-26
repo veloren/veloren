@@ -47,8 +47,10 @@ impl Skeleton for BipedSmallSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
+        body: Self::Body,
     ) -> Offsets {
         let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
+        //TODO: * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 11.0);
         let pants_mat = chest_mat * Mat4::<f32>::from(self.pants);
         let control_mat = chest_mat * Mat4::<f32>::from(self.control);
         let control_l_mat = Mat4::<f32>::from(self.control_l);

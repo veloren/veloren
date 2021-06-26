@@ -57,8 +57,13 @@ impl Skeleton for BirdLargeSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
+        body: Self::Body,
     ) -> Offsets {
-        let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
+        let chest_mat = base_mat
+            * Mat4::<f32>::from(self.chest)
+            // TODO: refactor animations so that we can apply this after the chest transform
+            // (note: this todo applies to all the other skeletons as well)
+            * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 8.0);
         let neck_mat = chest_mat * Mat4::<f32>::from(self.neck);
         let head_mat = neck_mat * Mat4::<f32>::from(self.head);
         let beak_mat = head_mat * Mat4::<f32>::from(self.beak);

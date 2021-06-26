@@ -41,7 +41,6 @@ impl Animation for IdleAnimation {
         );
         next.head.scale = Vec3::one() * 1.02;
         next.jaw.scale = Vec3::one() * 1.02;
-        next.upper_torso.scale = Vec3::one() * s_a.scaler / 8.0;
         next.hand_l.scale = Vec3::one() * 1.04;
         next.hand_r.scale = Vec3::one() * 1.04;
         next.leg_l.scale = Vec3::one() * 1.02;

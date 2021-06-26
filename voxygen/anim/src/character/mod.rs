@@ -98,8 +98,11 @@ impl Skeleton for CharacterSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
+        body: Self::Body,
     ) -> Offsets {
-        let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
+        let torso_mat = base_mat
+            * Mat4::<f32>::from(self.torso)
+            * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 11.0);
         let chest_mat = torso_mat * Mat4::<f32>::from(self.chest);
         let head_mat = chest_mat * Mat4::<f32>::from(self.head);
         let shorts_mat = chest_mat * Mat4::<f32>::from(self.shorts);

@@ -238,7 +238,6 @@ impl Animation for SwimAnimation {
                 + avgspeed * avg_vel.z * -0.003,
         ) * Quaternion::rotation_y(tilt * 2.0)
             * Quaternion::rotation_z(tilt * 3.0);
-        next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
         match hands {
             (Some(Hands::One), _) => match active_tool_kind {
                 Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {

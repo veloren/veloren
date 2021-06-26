@@ -48,8 +48,11 @@ impl Skeleton for QuadrupedLowSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
+        body: Self::Body,
     ) -> Offsets {
-        let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
+        let chest_mat = base_mat
+            * Mat4::<f32>::from(self.chest)
+            * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 11.0);
         let tail_front = chest_mat * Mat4::<f32>::from(self.tail_front);
         let head_lower_mat = chest_mat * Mat4::<f32>::from(self.head_lower);
         let head_upper_mat = head_lower_mat * Mat4::<f32>::from(self.head_upper);

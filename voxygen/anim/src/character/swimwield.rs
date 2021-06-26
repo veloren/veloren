@@ -77,7 +77,6 @@ impl Animation for SwimWieldAnimation {
         if velocity > 0.01 {
             next.torso.position = Vec3::new(0.0, 0.0, 1.0) * s_a.scaler;
             next.torso.orientation = Quaternion::rotation_x(velocity * -0.05);
-            next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
 
             next.back.position = Vec3::new(0.0, s_a.back.0, s_a.back.1);
             next.back.orientation = Quaternion::rotation_x(
@@ -93,7 +92,6 @@ impl Animation for SwimWieldAnimation {
             next.chest.position =
                 Vec3::new(0.0 + slowalt * 0.5, s_a.chest.0, s_a.chest.1 + u_slow * 0.5);
             next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
-            next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
 
             next.foot_l.position = Vec3::new(-s_a.foot.0, -2.0 + s_a.foot.1, s_a.foot.2);
 

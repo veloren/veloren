@@ -40,7 +40,6 @@ impl Animation for IdleAnimation {
                 * 0.1,
         );
         next.jaw.scale = Vec3::one() * 0.98;
-        next.chest.scale = Vec3::one() * s_a.scaler / 11.0;
         next.tail_front.scale = Vec3::one() * 0.98;
         next.tail_rear.scale = Vec3::one() * 0.98;
 

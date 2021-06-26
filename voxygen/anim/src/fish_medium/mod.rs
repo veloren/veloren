@@ -33,8 +33,10 @@ impl Skeleton for FishMediumSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
+        body: Self::Body,
     ) -> Offsets {
-        let chest_front_mat = base_mat * Mat4::<f32>::from(self.chest_front);
+        let chest_front_mat =
+            base_mat * Mat4::<f32>::from(self.chest_front) * Mat4::scaling_3d(1.0 / 11.0);
         let chest_back_mat = Mat4::<f32>::from(self.chest_back);
         let head_mat = Mat4::<f32>::from(self.head);
 

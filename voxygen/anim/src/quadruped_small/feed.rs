@@ -40,7 +40,6 @@ impl Animation for FeedAnimation {
                 .sin()
                 * 0.5,
         );
-        next.chest.scale = Vec3::one() / 11.0 * s_a.scaler;
 
         next.head.position = Vec3::new(0.0, s_a.head.0 + 1.5, s_a.head.1 + slow * 0.2);
         next.head.orientation = Quaternion::rotation_z(head_look.y)
