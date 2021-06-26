@@ -755,15 +755,30 @@ impl FigureMgr {
 
             let hands = (active_tool_hand, second_tool_hand);
 
-            // If a mountee exists, get its physical mounting offsets and its body
-            let (mountee_offsets, mountee_body) = (|| -> Option<_> {
+            // If a mountee exists, get its animated mounting transform and its position
+            let mount_transform_pos = (|| -> Option<_> {
                 let Mounting(entity) = mountings?;
                 let entity = uid_allocator.retrieve_entity_internal((*entity).into())?;
                 let body = *bodies.get(entity)?;
                 let meta = self.states.get_mut(&body, &entity)?;
-                Some((Some(meta.mountee_offset), Some(body)))
-            })()
-            .unwrap_or((None, None));
+                Some((meta.mount_transform, meta.mount_world_pos))
+            })();
+
+            let common_params = FigureUpdateCommonParameters {
+                pos: pos.0,
+                ori,
+                scale,
+                mount_transform_pos,
+                body: Some(*body),
+                col,
+                dt,
+                _lpindex: lpindex,
+                _visible: in_frustum,
+                is_player,
+                _camera: camera,
+                terrain,
+                ground_vel: physics.ground_vel,
+            };
 
             match body {
                 Body::Humanoid(body) => {
@@ -792,14 +807,7 @@ impl FigureMgr {
                         .character_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(
-                                renderer,
-                                CharacterSkeleton::new(
-                                    holding_lantern,
-                                    mountee_offsets,
-                                    mountee_body,
-                                ),
-                            )
+                            FigureState::new(renderer, CharacterSkeleton::new(holding_lantern))
                         });
 
                     // Average velocity relative to the current ground
@@ -823,11 +831,7 @@ impl FigureMgr {
                         // Standing
                         (true, false, false, false) => {
                             anim::character::StandAnimation::update_skeleton(
-                                &CharacterSkeleton::new(
-                                    holding_lantern,
-                                    mountee_offsets,
-                                    mountee_body,
-                                ),
+                                &CharacterSkeleton::new(holding_lantern),
                                 (
                                     active_tool_kind,
                                     second_tool_kind,
@@ -846,11 +850,7 @@ impl FigureMgr {
                         // Running
                         (true, true, false, false) => {
                             anim::character::RunAnimation::update_skeleton(
-                                &CharacterSkeleton::new(
-                                    holding_lantern,
-                                    mountee_offsets,
-                                    mountee_body,
-                                ),
+                                &CharacterSkeleton::new(holding_lantern),
                                 (
                                     active_tool_kind,
                                     second_tool_kind,
@@ -871,11 +871,7 @@ impl FigureMgr {
                         // In air
                         (false, _, false, false) => {
                             anim::character::JumpAnimation::update_skeleton(
-                                &CharacterSkeleton::new(
-                                    holding_lantern,
-                                    mountee_offsets,
-                                    mountee_body,
-                                ),
+                                &CharacterSkeleton::new(holding_lantern),
                                 (
                                     active_tool_kind,
                                     second_tool_kind,
@@ -893,7 +889,7 @@ impl FigureMgr {
                         },
                         // Swim
                         (_, _, true, false) => anim::character::SwimAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern, mountee_offsets, mountee_body),
+                            &CharacterSkeleton::new(holding_lantern),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -911,7 +907,7 @@ impl FigureMgr {
                         ),
                         // Mount
                         (_, _, _, true) => anim::character::MountAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern, mountee_offsets, mountee_body),
+                            &CharacterSkeleton::new(holding_lantern),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -1589,20 +1585,10 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
                     );
                 },
                 Body::QuadrupedSmall(body) => {
@@ -1787,20 +1773,10 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
                     );
                 },
                 Body::QuadrupedMedium(body) => {
@@ -2110,20 +2086,10 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
                     );
                 },
                 Body::QuadrupedLow(body) => {
@@ -2466,20 +2432,10 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
                     );
                 },
                 Body::BirdMedium(body) => {
@@ -2576,20 +2532,10 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
                     );
                 },
                 Body::FishMedium(body) => {
@@ -2665,20 +2611,10 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
                     );
                 },
                 Body::BipedSmall(body) => {
@@ -3009,20 +2945,10 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
                     );
                 },
                 Body::Dragon(body) => {
@@ -3103,20 +3029,10 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
                     );
                 },
                 Body::Theropod(body) => {
@@ -3286,20 +3202,10 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
                     );
                 },
                 Body::BirdLarge(body) => {
@@ -3607,20 +3513,10 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
                     );
                 },
                 Body::FishSmall(body) => {
@@ -3696,20 +3592,10 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
                     );
                 },
                 Body::BipedLarge(body) => {
@@ -4324,20 +4210,10 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
                     );
                 },
                 Body::Golem(body) => {
@@ -4572,20 +4448,10 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
                     );
                 },
                 Body::Object(body) => {
@@ -4700,20 +4566,10 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        true,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
                     );
                 },
                 Body::Ship(body) => {
@@ -4793,20 +4649,10 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        true,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
                     );
                 },
             }
@@ -5392,7 +5238,14 @@ impl FigureColLights {
 
 pub struct FigureStateMeta {
     lantern_offset: anim::vek::Vec3<f32>,
-    mountee_offset: anim::vek::Transform<f32, f32, f32>,
+    // Animation to be applied to mounter of this entity
+    mount_transform: anim::vek::Transform<f32, f32, f32>,
+    // Contains the position of this figure or if it is a mounter it will contain the mountee's
+    // mount_world_pos
+    // Unlike the interpolated position stored in the ecs this will be propagated along
+    // mount chains
+    // For use if it is mounted by another figure
+    mount_world_pos: anim::vek::Vec3<f32>,
     state_time: f32,
     last_ori: anim::vek::Quaternion<f32>,
     lpindex: u8,
@@ -5430,6 +5283,27 @@ impl<S> DerefMut for FigureState<S> {
     fn deref_mut(&mut self) -> &mut Self::Target { &mut self.meta }
 }
 
+/// Parameters that don't depend on the body variant or animation results and
+/// are also not mutable
+pub struct FigureUpdateCommonParameters<'a> {
+    pub pos: anim::vek::Vec3<f32>,
+    pub ori: anim::vek::Quaternion<f32>,
+    pub scale: f32,
+    pub mount_transform_pos: Option<(anim::vek::Transform<f32, f32, f32>, anim::vek::Vec3<f32>)>,
+    pub body: Option<Body>,
+    pub col: vek::Rgba<f32>,
+    pub dt: f32,
+    // TODO: evaluate unused variable
+    pub _lpindex: u8,
+    // TODO: evaluate unused variable
+    pub _visible: bool,
+    pub is_player: bool,
+    // TODO: evaluate unused variable
+    pub _camera: &'a Camera,
+    pub terrain: Option<&'a Terrain>,
+    pub ground_vel: Vec3<f32>,
+}
+
 impl<S: Skeleton> FigureState<S> {
     pub fn new(renderer: &mut Renderer, skeleton: S) -> Self {
         let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
@@ -5438,7 +5312,8 @@ impl<S: Skeleton> FigureState<S> {
         Self {
             meta: FigureStateMeta {
                 lantern_offset: offsets.lantern,
-                mountee_offset: offsets.mount_bone,
+                mount_transform: offsets.mount_bone,
+                mount_world_pos: anim::vek::Vec3::zero(),
                 state_time: 0.0,
                 last_ori: Ori::default().into(),
                 lpindex: 0,
@@ -5455,24 +5330,27 @@ impl<S: Skeleton> FigureState<S> {
         }
     }
 
-    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn update<const N: usize>(
         &mut self,
         renderer: &mut Renderer,
-        pos: anim::vek::Vec3<f32>,
-        ori: anim::vek::Quaternion<f32>,
-        scale: f32,
-        col: vek::Rgba<f32>,
-        dt: f32,
+        buf: &mut [anim::FigureBoneData; anim::MAX_BONE_COUNT],
+        FigureUpdateCommonParameters {
+            pos,
+            ori,
+            scale,
+            mount_transform_pos,
+            body,
+            col,
+            dt,
+            _lpindex,
+            _visible,
+            is_player,
+            _camera,
+            terrain,
+            ground_vel,
+        }: &FigureUpdateCommonParameters,
         state_animation_rate: f32,
         model: Option<&FigureModelEntry<N>>,
-        _lpindex: u8,
-        _visible: bool,
-        is_player: bool,
-        _camera: &Camera,
-        buf: &mut [anim::FigureBoneData; anim::MAX_BONE_COUNT],
-        terrain: Option<&Terrain>,
-        ground_vel: Vec3<f32>,
     ) {
         // NOTE: As long as update() always gets called after get_or_create_model(), and
         // visibility is not set again until after the model is rendered, we
@@ -5500,12 +5378,34 @@ impl<S: Skeleton> FigureState<S> {
         /* let radius = vek::Extent3::<f32>::from(model.bounds.half_size()).reduce_partial_max();
         let _bounds = BoundingSphere::new(pos.into_array(), scale * 0.8 * radius); */
 
-        self.last_ori = vek::Lerp::lerp(self.last_ori, ori, 15.0 * dt).normalized();
+        self.last_ori = vek::Lerp::lerp(self.last_ori, *ori, 15.0 * dt).normalized();
 
         self.state_time += dt * state_animation_rate;
 
         let mat = {
-            anim::vek::Mat4::from(ori) * anim::vek::Mat4::scaling_3d(anim::vek::Vec3::from(scale))
+            let ori_scale = anim::vek::Mat4::from(*ori)
+                * anim::vek::Mat4::scaling_3d(anim::vek::Vec3::from(*scale));
+            // NOTE: It is kind of a hack to use this entity's ori here if it is
+            // mounted on another but this happens to match the ori of the
+            // mountee so it works, change this if it causes jankiness in the future.
+            if let Some((transform, _)) = *mount_transform_pos {
+                // Note: if we had a way to compute a "default" transform of the bones then in
+                // the animations we could make use of the mountee_offset from common by
+                // computing what the offset of the mounter is from the mounted
+                // bone in its default position when the mounter has the mount
+                // offset in common applied to it. Since we don't have this
+                // right now we instead need to recreate the same effect in the
+                // animations and keep it in sync.
+                //
+                // Component of mounting offset specific to the mounter.
+                let mounter_offset = anim::vek::Mat4::translation_3d(
+                    body.map_or_else(Vec3::zero, |b| b.mounter_offset()),
+                );
+
+                anim::vek::Mat4::from(transform) * ori_scale * mounter_offset
+            } else {
+                ori_scale
+            }
         };
 
         let atlas_offs = model.allocation.rectangle.min;
@@ -5555,9 +5455,9 @@ impl<S: Skeleton> FigureState<S> {
         let locals = FigureLocals::new(
             mat,
             col.rgb(),
-            pos,
+            mount_transform_pos.map_or(*pos, |(_, pos)| pos),
             vek::Vec2::new(atlas_offs.x, atlas_offs.y),
-            is_player,
+            *is_player,
             self.last_light,
             self.last_glow,
         );
@@ -5569,17 +5469,19 @@ impl<S: Skeleton> FigureState<S> {
 
         renderer.update_consts(&mut self.meta.bound.1, &new_bone_consts[0..S::BONE_COUNT]);
         self.lantern_offset = offsets.lantern;
-        self.mountee_offset = offsets.mount_bone;
+        // TODO: compute the mount bone only when it is needed
+        self.mount_transform = offsets.mount_bone;
+        self.mount_world_pos = mount_transform_pos.map_or(*pos, |(_, pos)| pos);
 
         let smoothing = (5.0 * dt).min(1.0);
         if let Some(last_pos) = self.last_pos {
-            self.avg_vel = (1.0 - smoothing) * self.avg_vel + smoothing * (pos - last_pos) / dt;
+            self.avg_vel = (1.0 - smoothing) * self.avg_vel + smoothing * (pos - last_pos) / *dt;
         }
-        self.last_pos = Some(pos);
+        self.last_pos = Some(*pos);
 
         // Can potentially overflow
         if self.avg_vel.magnitude_squared() != 0.0 {
-            self.acc_vel += (self.avg_vel - ground_vel).magnitude() * dt;
+            self.acc_vel += (self.avg_vel - *ground_vel).magnitude() * dt;
         } else {
             self.acc_vel = 0.0;
         }

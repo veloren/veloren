@@ -7,7 +7,10 @@ use crate::{
     },
     scene::{
         camera::{self, Camera, CameraMode},
-        figure::{load_mesh, FigureColLights, FigureModelCache, FigureModelEntry, FigureState},
+        figure::{
+            load_mesh, FigureColLights, FigureModelCache, FigureModelEntry, FigureState,
+            FigureUpdateCommonParameters,
+        },
     },
     window::{Event, PressState},
 };
@@ -144,26 +147,25 @@ impl Scene {
                     col_lights
                         .create_figure(renderer, greedy.finalize(), (opaque_mesh, bounds), [range]);
                 let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
-                state.update(
-                    renderer,
-                    anim::vek::Vec3::zero(),
-                    anim::vek::Quaternion::rotation_from_to_3d(
+                let common_params = FigureUpdateCommonParameters {
+                    pos: anim::vek::Vec3::zero(),
+                    ori: anim::vek::Quaternion::rotation_from_to_3d(
                         anim::vek::Vec3::unit_y(),
                         anim::vek::Vec3::new(start_angle.sin(), -start_angle.cos(), 0.0),
                     ),
-                    1.0,
-                    Rgba::broadcast(1.0),
-                    15.0, // Want to get there immediately.
-                    1.0,
-                    Some(&model),
-                    0,
-                    true,
-                    false,
-                    &camera,
-                    &mut buf,
-                    None,
-                    Vec3::zero(),
-                );
+                    scale: 1.0,
+                    mount_transform_pos: None,
+                    body: None,
+                    col: Rgba::broadcast(1.0),
+                    dt: 15.0, // Want to get there immediately.
+                    _lpindex: 0,
+                    _visible: true,
+                    is_player: false,
+                    _camera: &camera,
+                    terrain: None,
+                    ground_vel: Vec3::zero(),
+                };
+                state.update(renderer, &mut buf, &common_params, 1.0, Some(&model));
                 (model, state)
             }),
             col_lights,
@@ -322,26 +324,27 @@ impl Scene {
                 )
                 .0;
             let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
-            self.figure_state.update(
-                renderer,
-                anim::vek::Vec3::zero(),
-                anim::vek::Quaternion::rotation_from_to_3d(
+            let common_params = FigureUpdateCommonParameters {
+                pos: anim::vek::Vec3::zero(),
+                ori: anim::vek::Quaternion::rotation_from_to_3d(
                     anim::vek::Vec3::unit_y(),
                     anim::vek::Vec3::new(self.char_ori.sin(), -self.char_ori.cos(), 0.0),
                 ),
-                1.0,
-                Rgba::broadcast(1.0),
-                scene_data.delta_time,
-                1.0,
-                model,
-                0,
-                true,
-                false,
-                &self.camera,
-                &mut buf,
-                None,
-                Vec3::zero(),
-            );
+                scale: 1.0,
+                mount_transform_pos: None,
+                body: None,
+                col: Rgba::broadcast(1.0),
+                dt: scene_data.delta_time,
+                _lpindex: 0,
+                _visible: true,
+                is_player: false,
+                _camera: &self.camera,
+                terrain: None,
+                ground_vel: Vec3::zero(),
+            };
+
+            self.figure_state
+                .update(renderer, &mut buf, &common_params, 1.0, model);
         }
     }
 

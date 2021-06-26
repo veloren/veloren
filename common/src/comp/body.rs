@@ -764,8 +764,8 @@ impl Body {
         )
     }
 
-    // Physical offset relative to the mountee
-    pub fn mounting_offset(&self) -> Vec3<f32> {
+    /// Component of the mounting offset specific to the mountee
+    pub fn mountee_offset(&self) -> Vec3<f32> {
         match self {
             Body::QuadrupedMedium(quadruped_medium) => {
                 match (quadruped_medium.species, quadruped_medium.body_type) {
@@ -815,6 +815,15 @@ impl Body {
                 ship::Body::DefaultAirship => [0.0, 0.0, 10.0],
                 ship::Body::AirBalloon => [0.0, 0.0, 5.0],
             },
+            _ => [0.0, 0.0, 0.0],
+        }
+        .into()
+    }
+
+    /// Component of the mounting offset specific to the mounter
+    pub fn mounter_offset(&self) -> Vec3<f32> {
+        match self {
+            Body::Humanoid(_) => [0.0, 0.0, 0.0],
             _ => [0.0, 0.0, 0.0],
         }
         .into()

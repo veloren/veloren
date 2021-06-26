@@ -81,9 +81,24 @@ impl Skeleton for QuadrupedMediumSkeleton {
             make_bone(leg_bl_mat * Mat4::<f32>::from(self.foot_bl)),
             make_bone(leg_br_mat * Mat4::<f32>::from(self.foot_br)),
         ];
+
+        // Offset from the mounted bone's origin.
+        // Note: This could be its own bone if we need to animate it.
+        let mount_point = Vec3::new(0.0, -7.0, 3.0);
+        let mount_position = (torso_front_mat * Vec4::from_point(mount_point))
+            .homogenized()
+            .xyz();
+        // NOTE: We apply the ori from base_mat externally so we don't need to worry
+        // about it here for now.
+        let mount_orientation = self.torso_front.orientation;
+
         Offsets {
             lantern: Vec3::default(),
-            mount_bone: self.torso_front,
+            mount_bone: Transform {
+                position: mount_position,
+                orientation: mount_orientation,
+                scale: Vec3::one(),
+            },
         }
     }
 }
