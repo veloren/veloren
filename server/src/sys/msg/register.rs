@@ -22,10 +22,7 @@ use specs::{
 use tracing::trace;
 
 #[cfg(feature = "plugins")]
-use common_state::plugin::memory_manager::EcsWorld;
-
-#[cfg(feature = "plugins")]
-use common_state::plugin::PluginMgr;
+use {common_state::plugin::memory_manager::EcsWorld, common_state::plugin::PluginMgr};
 
 #[cfg(feature = "plugins")]
 type ReadPlugin<'a> = Read<'a, PluginMgr>;
@@ -63,13 +60,13 @@ impl<'a> System<'a> for Sys {
         (
             entities,
             player_metrics,
-            health_comp,
+            _health_comp, // used by plugin feature
             uids,
             clients,
             mut players,
             mut pending_logins,
-            uid_allocator,
-            plugin_mgr,
+            _uid_allocator, // used by plugin feature
+            _plugin_mgr,    // used by plugin feature
             stats,
             mut login_provider,
             mut admins,
@@ -111,10 +108,10 @@ impl<'a> System<'a> for Sys {
                 #[cfg(feature = "plugins")]
                 let ecs_world = EcsWorld {
                     entities: &entities,
-                    health: (&health_comp).into(),
+                    health: (&_health_comp).into(),
                     uid: (&uids).into(),
                     player: (&players).into(),
-                    uid_allocator: &uid_allocator,
+                    uid_allocator: &_uid_allocator,
                 };
 
                 let (username, uuid) = match login_provider.login(
@@ -122,7 +119,7 @@ impl<'a> System<'a> for Sys {
                     #[cfg(feature = "plugins")]
                     &ecs_world,
                     #[cfg(feature = "plugins")]
-                    &plugin_mgr,
+                    &_plugin_mgr,
                     &*editable_settings.admins,
                     &*editable_settings.whitelist,
                     &*editable_settings.banlist,

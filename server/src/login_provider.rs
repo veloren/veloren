@@ -3,17 +3,18 @@ use authc::{AuthClient, AuthClientError, AuthToken, Uuid};
 use chrono::Utc;
 use common::comp::AdminRole;
 use common_net::msg::RegisterError;
-#[cfg(feature = "plugins")]
-use common_state::plugin::memory_manager::EcsWorld;
-#[cfg(feature = "plugins")]
-use common_state::plugin::PluginMgr;
 use hashbrown::HashMap;
-use plugin_api::event::{PlayerJoinEvent, PlayerJoinResult};
 use specs::Component;
 use specs_idvs::IdvStorage;
 use std::{str::FromStr, sync::Arc};
 use tokio::{runtime::Runtime, sync::oneshot};
 use tracing::{error, info};
+
+#[cfg(feature = "plugins")]
+use {
+    common_state::plugin::{memory_manager::EcsWorld, PluginMgr},
+    plugin_api::event::{PlayerJoinEvent, PlayerJoinResult},
+};
 
 fn derive_uuid(username: &str) -> Uuid {
     let mut state = 144066263297769815596495629667062367629;
