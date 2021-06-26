@@ -2,11 +2,10 @@
 // Please keep it sorting by rarity so it's easier to reason about things
 [
     // Ores
-    // Uncomment when bug with crafting doesn't propagating can_sell will be fixed
-    // (0.03, Item("common.items.mineral.ore.gold")),
-    // (0.045, Item("common.items.mineral.ore.silver")),
-    // (0.1, Item("common.items.mineral.ore.bloodstone")),
-    // (0.2, Item("common.items.mineral.ore.cobalt")),
+    (0.03, Item("common.items.mineral.ore.gold")),
+    (0.045, Item("common.items.mineral.ore.silver")),
+    (0.1, Item("common.items.mineral.ore.bloodstone")),
+    (0.2, Item("common.items.mineral.ore.cobalt")),
     (0.25, Item("common.items.mineral.ore.coal")),
     (0.3, Item("common.items.mineral.ore.iron")),
     (0.5, Item("common.items.mineral.ore.velorite")),
@@ -32,6 +31,4 @@
     (1.0, Item("common.items.food.meat.beast_small_raw")),
     (1.2, Item("common.items.food.meat.fish_raw")),
     (1.3, Item("common.items.food.meat.bird_raw")),
-    // Others
-    (1.0, Item("common.items.crafting_ing.honey")),
 ]

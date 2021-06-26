@@ -1,0 +1,17 @@
+ItemDef(
+    name: "Topaz Ring",
+    description: "A copper ring with a topaz gem.",
+    kind: Armor((
+        kind: Ring("Topaz"),
+        stats: (
+            protection: Normal(0.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 50,
+            energy_reward: 0.00,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

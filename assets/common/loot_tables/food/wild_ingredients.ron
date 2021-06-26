@@ -2,4 +2,5 @@
     (1.0, Item("common.items.food.apple")),
     (1.0, Item("common.items.food.coconut")),
     (1.5, Item("common.items.food.mushroom")),
+    (1.0, Item("common.items.crafting_ing.honey")),
 ]

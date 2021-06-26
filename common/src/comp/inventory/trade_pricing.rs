@@ -376,11 +376,18 @@ impl TradePricing {
                     false
                 } else if recipe.material_cost < Self::UNAVAILABLE_PRICE {
                     let actual_cost = result.calculate_material_cost(recipe, &eqset);
+                    let output_tradeable = recipe.input.iter().all(|(input, _)| {
+                        result
+                            .get_list_by_path(&input)
+                            .iter()
+                            .find(|(item, _, _)| item == input)
+                            .map_or(false, |(_, _, tradeable)| *tradeable)
+                    });
                     result.get_list_by_path_mut(&recipe.output).add(
                         &eqset,
                         &recipe.output,
                         (recipe.amount as f32) / actual_cost * Self::CRAFTING_FACTOR,
-                        true,
+                        output_tradeable,
                     );
                     false
                 } else {
@@ -424,7 +431,9 @@ impl TradePricing {
             Some(Self::COIN_ITEM.into())
         } else {
             let table = self.get_list(good);
-            if table.is_empty() {
+            if table.is_empty()
+                || (selling && table.iter().filter(|(_, _, can_sell)| *can_sell).count() == 0)
+            {
                 warn!("Good: {:?}, was unreachable.", good);
                 return None;
             }

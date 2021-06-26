@@ -2194,17 +2194,40 @@
     // Rings
     Armor(Ring("Scratched")): VoxTrans(
         "voxel.armor.misc.ring.scratched",
-        (0.0, 0.0, 0.0), (30.0, 0.0, 0.0), 0.9,
+        (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
     ),
     Armor(Ring("Gold")): VoxTrans(
         "voxel.armor.misc.ring.gold",
-        (0.0, 0.0, 0.0), (30.0, 0.0, 0.0), 0.9,
+        (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
+    ),
+    Armor(Ring("Topaz")): VoxTrans(
+        "voxel.armor.misc.ring.topaz",
+        (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
+    ),
+    Armor(Ring("Amethyst")): VoxTrans(
+        "voxel.armor.misc.ring.amethyst",
+        (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
+    ),
+    Armor(Ring("Sapphire")): VoxTrans(
+        "voxel.armor.misc.ring.sapphire",
+        (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
+    ),
+    Armor(Ring("Emerald")): VoxTrans(
+        "voxel.armor.misc.ring.emerald",
+        (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
+    ),
+    Armor(Ring("Ruby")): VoxTrans(
+        "voxel.armor.misc.ring.ruby",
+        (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
+    ),
+    Armor(Ring("Diamond")): VoxTrans(
+        "voxel.armor.misc.ring.diamond",
+        (0.0, 0.0, 0.0), (45.0, 20.0, 0.0), 0.9,
     ),
     Armor(Ring("Skull")): VoxTrans(
         "voxel.armor.misc.ring.skull",
-        (0.0, 0.0, 0.0), (30.0, 0.0, 0.0), 0.9,
+        (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
     ),
-
     // Necks
     Armor(Neck("Plain0")): Png(
         "element.items.neck-0",
