@@ -28,7 +28,12 @@ simd = ["vek/platform_intrinsics"]
 tracy = ["profiling", "profiling/profile-with-tracy", "common-frontend/tracy"]
 plugins = ["client/plugins"]
 
-default = ["singleplayer", "native-dialog", "plugins", "simd"]
+# We don't ship egui with published release builds so a separate feature is required that excludes it.
+# This feature has been added ahead of the egui merge to allow time for Flatpak, AUR and Nix to be updated
+# to ensure there isn't any period of time where we're shipping the egui-ui feature enabled by default.
+# This comment will be updated after MR 2253 merges.
+default-publish = ["singleplayer", "native-dialog", "plugins", "simd"]
+default = ["default-publish"]
 
 [dependencies]
 client = {package = "veloren-client", path = "../client"}
