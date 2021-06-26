@@ -61,7 +61,9 @@ coverage:
   script:
     - ln -s /dockercache/target target
     - rm -r target/release/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
-    - VELOREN_USERDATA_STRATEGY=executable cargo build --release
+    - export VELOREN_USERDATA_STRATEGY=executable
+    - cargo build --release -p veloren-voxygen --no-default-features --features default-publish
+    - cargo build --release -p veloren-server-cli
     - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
     - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
   artifacts:
@@ -79,7 +81,9 @@ coverage:
     - update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
     - ln -s /dockercache/target target
     - rm -r target/release/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
-    - VELOREN_USERDATA_STRATEGY=executable cargo build --target=x86_64-pc-windows-gnu --release
+    - export VELOREN_USERDATA_STRATEGY=executable
+    - cargo build --target=x86_64-pc-windows-gnu --release -p veloren-voxygen --no-default-features --features default-publish
+    - cargo build --target=x86_64-pc-windows-gnu --release -p veloren-server-cli
     - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
     - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
     - cp /usr/lib/gcc/x86_64-w64-mingw32/7.3-posix/libgcc_s_seh-1.dll $CI_PROJECT_DIR
@@ -107,7 +111,9 @@ coverage:
     - export RUSTFLAGS="-D warnings"
   script:
     - export MACOSX_DEPLOYMENT_TARGET="10.13"
-    - VELOREN_USERDATA_STRATEGY=executable cargo build --release
+    - export VELOREN_USERDATA_STRATEGY=executable
+    - cargo build --release -p veloren-voxygen --no-default-features --features default-publish
+    - cargo build --release -p veloren-server-cli
     - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
     - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
   artifacts:
