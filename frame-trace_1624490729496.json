@@ -1,0 +1,29 @@
+{
+"traceEvents": [
+{ "pid":1, "tid":1, "ts":1624490729402630.3, "dur":4148.4832763671875, "ph":"X", "name":"frame" },
+{ "pid":1, "tid":1, "ts":1624490729402665, "dur":160.45570373535156, "ph":"X", "name":"shadow_pass" },
+{ "pid":1, "tid":1, "ts":1624490729402665.8, "dur":149.25003051757813, "ph":"X", "name":"direcred_terrain_shadows" },
+{ "pid":1, "tid":1, "ts":1624490729402815.5, "dur":9.5367431640625, "ph":"X", "name":"direcred_figure_shadows" },
+{ "pid":1, "tid":1, "ts":1624490729402828, "dur":200.74844360351563, "ph":"X", "name":"point shadows" },
+{ "pid":1, "tid":1, "ts":1624490729402845.8, "dur":18.835067749023438, "ph":"X", "name":"point shadow face-0 pass" },
+{ "pid":1, "tid":1, "ts":1624490729402876.8, "dur":20.02716064453125, "ph":"X", "name":"point shadow face-1 pass" },
+{ "pid":1, "tid":1, "ts":1624490729402908.8, "dur":21.219253540039063, "ph":"X", "name":"point shadow face-2 pass" },
+{ "pid":1, "tid":1, "ts":1624490729402942.3, "dur":20.503997802734375, "ph":"X", "name":"point shadow face-3 pass" },
+{ "pid":1, "tid":1, "ts":1624490729402975, "dur":18.358230590820313, "ph":"X", "name":"point shadow face-4 pass" },
+{ "pid":1, "tid":1, "ts":1624490729403005.5, "dur":20.503997802734375, "ph":"X", "name":"point shadow face-5 pass" },
+{ "pid":1, "tid":1, "ts":1624490729403062.5, "dur":2062.7975463867188, "ph":"X", "name":"first_pass" },
+{ "pid":1, "tid":1, "ts":1624490729403063, "dur":51.021575927734375, "ph":"X", "name":"figures" },
+{ "pid":1, "tid":1, "ts":1624490729403114.3, "dur":1763.3438110351563, "ph":"X", "name":"terrain" },
+{ "pid":1, "tid":1, "ts":1624490729404879, "dur":56.02836608886719, "ph":"X", "name":"figures" },
+{ "pid":1, "tid":1, "ts":1624490729404936, "dur":116.58668518066406, "ph":"X", "name":"lod_terrain" },
+{ "pid":1, "tid":1, "ts":1624490729405053.5, "dur":0.2384185791015625, "ph":"X", "name":"skybox" },
+{ "pid":1, "tid":1, "ts":1624490729405055, "dur":31.232833862304688, "ph":"X", "name":"sprites" },
+{ "pid":1, "tid":1, "ts":1624490729405086.5, "dur":1.1920928955078125, "ph":"X", "name":"fluid" },
+{ "pid":1, "tid":1, "ts":1624490729405088.5, "dur":34.809112548828125, "ph":"X", "name":"particles" },
+{ "pid":1, "tid":1, "ts":1624490729405124.8, "dur":0.7152557373046875, "ph":"X", "name":"debug" },
+{ "pid":1, "tid":1, "ts":1624490729405145.3, "dur":1360.6548309326172, "ph":"X", "name":"second_pass" },
+{ "pid":1, "tid":1, "ts":1624490729406520, "dur":255.34629821777344, "ph":"X", "name":"third_pass" },
+{ "pid":1, "tid":1, "ts":1624490729406520, "dur":229.12025451660156, "ph":"X", "name":"postprocess" },
+{ "pid":1, "tid":1, "ts":1624490729406749.5, "dur":24.557113647460938, "ph":"X", "name":"ui" }
+]
+}

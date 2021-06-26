@@ -1426,6 +1426,27 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::UseItem(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+                            let item_kind = s.static_data.item_kind;
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Use => stage_time,
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
+                            anim::character::ConsumeAnimation::update_skeleton(
+                                &target_base,
+                                (time, Some(s.stage_section), Some(item_kind)),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         CharacterState::Equipping { .. } => {
                             anim::character::EquipAnimation::update_skeleton(
                                 &target_base,

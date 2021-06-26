@@ -588,14 +588,14 @@ pub fn handle_manipulate_loadout(
             // (buildup, use, recover)
             let durations = match item_kind {
                 ItemUseKind::Consumable(ConsumableKind::Potion) => (
-                    Duration::from_secs_f32(0.25),
-                    Duration::from_secs_f32(1.0),
-                    Duration::from_secs_f32(0.25),
+                    Duration::from_secs_f32(0.1),
+                    Duration::from_secs_f32(1.1),
+                    Duration::from_secs_f32(0.1),
                 ),
                 ItemUseKind::Consumable(ConsumableKind::Food) => (
                     Duration::from_secs_f32(1.0),
                     Duration::from_secs_f32(5.0),
-                    Duration::from_secs_f32(1.0),
+                    Duration::from_secs_f32(0.5),
                 ),
             };
             // If item returns a valid kind for item use, do into use item character state

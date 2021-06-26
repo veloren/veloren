@@ -177,6 +177,7 @@ impl CharacterState {
                 | CharacterState::Shockwave(_)
                 | CharacterState::BasicBeam(_)
                 | CharacterState::Stunned(_)
+                | CharacterState::UseItem(_)
                 | CharacterState::Wielding
                 | CharacterState::Talk
                 | CharacterState::HealingBeam(_)
