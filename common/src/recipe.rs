@@ -113,7 +113,6 @@ impl assets::Compound for RecipeBook {
         cache: &assets::AssetCache<S>,
         specifier: &str,
     ) -> Result<Self, assets::Error> {
-
         #[inline]
         fn load_item_def(spec: &(String, u32)) -> Result<(Arc<ItemDef>, u32), assets::Error> {
             let def = Arc::<ItemDef>::load_cloned(&spec.0)?;

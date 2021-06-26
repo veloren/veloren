@@ -185,7 +185,6 @@ impl CraftingTab {
 
     fn satisfies(self, recipe: &Recipe) -> bool {
         let (item, _count) = &recipe.output;
-        let recycling = recipe.is_recycling;
         match self {
             CraftingTab::All => true,
             CraftingTab::Food => item.tags().contains(&ItemTag::Food),
@@ -199,7 +198,8 @@ impl CraftingTab {
                 (item.tags().contains(&ItemTag::MetalIngot)
                     || item.tags().contains(&ItemTag::Textile)
                     || item.tags().contains(&ItemTag::Leather)
-                    || item.tags().contains(&ItemTag::BaseMaterial)) && !recycling
+                    || item.tags().contains(&ItemTag::BaseMaterial))
+                    && !recipe.is_recycling
             },
             CraftingTab::Bag => item.tags().contains(&ItemTag::Bag),
             CraftingTab::Tool => item.tags().contains(&ItemTag::CraftingTool),
