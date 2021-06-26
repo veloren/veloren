@@ -1,0 +1,17 @@
+ItemDef(
+    name: "Emerald Ring",
+    description: "A cobalt ring with an emerald gem.",
+    kind: Armor((
+        kind: Ring("Emerald"),
+        stats: (
+            protection: Normal(0.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 100,
+            energy_reward: 0.0,
+            crit_power: -0.025,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

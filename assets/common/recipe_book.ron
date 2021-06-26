@@ -1748,6 +1748,54 @@
         ],
         craft_sprite: Some(Anvil),
     ),
+    "diamond ring": (
+        output: ("common.items.armor.misc.ring.diamond", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.gold"), 1),
+            (Item("common.items.mineral.gem.diamond"), 1),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    "ruby ring": (
+        output: ("common.items.armor.misc.ring.ruby", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.silver"), 1),
+            (Item("common.items.mineral.gem.ruby"), 1),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    "emerald ring": (
+        output: ("common.items.armor.misc.ring.emerald", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.cobalt"), 1),
+            (Item("common.items.mineral.gem.emerald"), 1),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    "sapphire ring": (
+        output: ("common.items.armor.misc.ring.sapphire", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.iron"), 1),
+            (Item("common.items.mineral.gem.sapphire"), 1),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    "topaz ring": (
+        output: ("common.items.armor.misc.ring.topaz", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.copper"), 1),
+            (Item("common.items.mineral.gem.topaz"), 1),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    "amethyst ring": (
+        output: ("common.items.armor.misc.ring.amethyst", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.tin"), 1),
+            (Item("common.items.mineral.gem.amethyst"), 1),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
     //"metal_blade": (
     //    output: ("common.items.crafting_ing.modular.damage.sword.metal_blade", 1),
     //    inputs: [

@@ -1,14 +1,14 @@
 ItemDef(
-    name: "Gold Ring",
-    description: "A plain gold ring... almost as if it is missing a gem.",
+    name: "Sapphire Ring",
+    description: "An iron ring with a sapphire gem.",
     kind: Armor((
-        kind: Ring("Gold"),
+        kind: Ring("Sapphire"),
         stats: (
-            protection: Normal(0.5),
+            protection: Normal(0.0),
             poise_resilience: Normal(0.0),
             energy_max: 0,
             energy_reward: 0.0,
-            crit_power: 0.0,
+            crit_power: 0.05,
             stealth: 0.0,
         ),
     )),

@@ -12,12 +12,44 @@
         ("common.items.consumable.potion_big", 100),
         ("common.items.food.apple_mushroom_curry", 100),
     ],
-    "endgame": [
-        // Biju
-        ("common.items.armor.misc.neck.plain_1",1),
-        ("common.items.armor.misc.ring.skull",1),
-        ("common.items.armor.misc.ring.skull",1),
+    "jewellery": [
+        // TODO: remove duplicates and handle quantity of non-stackable items
 
+        // Necklace
+        ("common.items.armor.misc.neck.plain_1",1),
+        ("common.items.armor.misc.neck.shell",1),
+
+        // Rings
+        // With effects
+        ("common.items.armor.misc.ring.diamond",1),
+        ("common.items.armor.misc.ring.diamond",1),
+
+        ("common.items.armor.misc.ring.ruby",1),
+        ("common.items.armor.misc.ring.ruby",1),
+
+        ("common.items.armor.misc.ring.emerald",1),
+        ("common.items.armor.misc.ring.emerald",1),
+
+        ("common.items.armor.misc.ring.sapphire",1),
+        ("common.items.armor.misc.ring.sapphire",1),
+
+        ("common.items.armor.misc.ring.topaz",1),
+        ("common.items.armor.misc.ring.topaz",1),
+
+        ("common.items.armor.misc.ring.amethyst",1),
+        ("common.items.armor.misc.ring.amethyst",1),
+
+        // Without effects
+        ("common.items.armor.misc.ring.scratched",1),
+        ("common.items.armor.misc.ring.scratched",1),
+
+        ("common.items.armor.misc.ring.gold",1),
+        ("common.items.armor.misc.ring.gold",1),
+
+        ("common.items.armor.misc.ring.skull",1),
+        ("common.items.armor.misc.ring.skull",1),
+    ],
+    "endgame": [
         // Cultist weapons
         ("common.items.weapons.hammer.cultist_purp_2h-0",1),
         ("common.items.weapons.staff.cultist_staff",1),
