@@ -20,7 +20,7 @@ use common::{
         },
         Inventory,
     },
-    recipe::RecipeInput,
+    recipe::{Recipe, RecipeInput},
     terrain::SpriteKind,
 };
 use conrod_core::{
@@ -151,7 +151,7 @@ pub enum CraftingTab {
 }
 
 impl CraftingTab {
-    fn name_key(&self) -> &str {
+    fn name_key(self) -> &'static str {
         match self {
             CraftingTab::All => "hud.crafting.tabs.all",
             CraftingTab::Armor => "hud.crafting.tabs.armor",
@@ -167,7 +167,7 @@ impl CraftingTab {
         }
     }
 
-    fn img_id(&self, imgs: &Imgs) -> image::Id {
+    fn img_id(self, imgs: &Imgs) -> image::Id {
         match self {
             CraftingTab::All => imgs.icon_globe,
             CraftingTab::Armor => imgs.icon_armor,
@@ -183,7 +183,9 @@ impl CraftingTab {
         }
     }
 
-    fn satisfies(&self, item: &ItemDef) -> bool {
+    fn satisfies(self, recipe: &Recipe) -> bool {
+        let (item, _count) = &recipe.output;
+        let recycling = recipe.is_recycling;
         match self {
             CraftingTab::All => true,
             CraftingTab::Food => item.tags().contains(&ItemTag::Food),
@@ -194,10 +196,10 @@ impl CraftingTab {
             CraftingTab::Glider => matches!(item.kind(), ItemKind::Glider(_)),
             CraftingTab::Potion => item.tags().contains(&ItemTag::Potion),
             CraftingTab::ProcessedMaterial => {
-                item.tags().contains(&ItemTag::MetalIngot)
-                    | item.tags().contains(&ItemTag::Textile)
-                    | item.tags().contains(&ItemTag::Leather)
-                    | item.tags().contains(&ItemTag::BaseMaterial)
+                (item.tags().contains(&ItemTag::MetalIngot)
+                    || item.tags().contains(&ItemTag::Textile)
+                    || item.tags().contains(&ItemTag::Leather)
+                    || item.tags().contains(&ItemTag::BaseMaterial)) && !recycling
             },
             CraftingTab::Bag => item.tags().contains(&ItemTag::Bag),
             CraftingTab::Tool => item.tags().contains(&ItemTag::CraftingTool),
@@ -206,7 +208,7 @@ impl CraftingTab {
                 ItemKind::Tool(_) => !item.tags().contains(&ItemTag::CraftingTool),
                 _ => false,
             },
-            CraftingTab::Dismantle => matches!(item.kind(), ItemKind::Ingredient { .. }),
+            CraftingTab::Dismantle => recipe.is_recycling,
         }
     }
 }
@@ -469,7 +471,7 @@ impl<'a> Widget for Crafting<'a> {
         }
         for (i, (name, recipe, is_craftable)) in ordered_recipes
             .into_iter()
-            .filter(|(_, recipe, _)| self.show.crafting_tab.satisfies(recipe.output.0.as_ref()))
+            .filter(|(_, recipe, _)| self.show.crafting_tab.satisfies(&recipe))
             .enumerate()
         {
             let button = Button::image(if state.selected_recipe.as_ref() == Some(name) {
@@ -648,7 +650,7 @@ impl<'a> Widget for Crafting<'a> {
             for (row, chunk) in CraftingTab::iter()
                 .filter(|crafting_tab| match crafting_tab {
                     CraftingTab::All => false,
-                    _ => crafting_tab.satisfies(recipe.output.0.as_ref()),
+                    _ => crafting_tab.satisfies(&recipe),
                 })
                 .filter(|crafting_tab| crafting_tab != &self.show.crafting_tab)
                 .collect::<Vec<_>>()

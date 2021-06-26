@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Players can press H to greet others
 - Ability to toggle chat visibility
 - Added gem rings with various stat improvements.
+
 ### Changed
 
 - Entity-entity pushback is no longer applied in forced movement states like rolling and leaping.
@@ -34,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Crafting Stations aren't exploadable anymore
 - Cases where no audio output could be produced before.
 - Significantly improved the performance of playing sound effects
+- Dismantle and Material crafting tabs don't have duplicated recipes
 
 ## [0.10.0] - 2021-06-12
 
