@@ -30,6 +30,12 @@
         "buff.desc.burn": "Você está queimando vivo",
         "buff.title.crippled": "Manco",
         "buff.desc.crippled": "Seu movimento está reduzido pois suas pernas estão severamente feridas.",
+        "buff.title.frozen": "Congelado",
+        "buff.desc.frozen": "Seus movimentos e ataques estão mais lentos.",
+        "buff.title.wet": "Molhado",
+        "buff.desc.wet": "O chão desliza em sob seus pés, ficando difícil parar.",
+        "buff.title.ensnared": "Enredado",
+        "buff.desc.ensnared": "Trepadeiras agarram suas pernas, impedindo seus movimentos.",
         // Buffs stats
         "buff.stat.health": "Restaura {str_total} de Vida",
         "buff.stat.increase_max_stamina": "Aumenta a Stamina Máxima em {strength}",
