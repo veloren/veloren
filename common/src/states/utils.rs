@@ -576,14 +576,14 @@ pub fn handle_manipulate_loadout(
     inv_action: InventoryAction,
 ) {
     use use_item::ItemUseKind;
-    if let InventoryAction::Use(Slot::Inventory(slot)) = inv_action {
+    if let InventoryAction::Use(Slot::Inventory(inv_slot)) = inv_action {
         // If inventory action is using a slot, and slot is in the inventory
         // TODO: Do some non lazy way of handling the possibility that items equipped in
         // the loadout will have effects that are desired to be non-instantaneous
-        if let Some(item_kind) = data
+        if let Some((item_kind, item)) = data
             .inventory
-            .get(slot)
-            .and_then(|item| Option::<ItemUseKind>::from(item.kind()))
+            .get(inv_slot)
+            .and_then(|item| Option::<ItemUseKind>::from(item.kind()).zip(Some(item)))
         {
             // (buildup, use, recover)
             let durations = match item_kind {
@@ -604,8 +604,9 @@ pub fn handle_manipulate_loadout(
                     buildup_duration: durations.0,
                     use_duration: durations.1,
                     recover_duration: durations.2,
-                    inv_slot: Slot::Inventory(slot),
+                    inv_slot,
                     item_kind,
+                    item_definition_id: item.item_definition_id().to_string(),
                     was_wielded: matches!(data.character, CharacterState::Wielding),
                     was_sneak: matches!(data.character, CharacterState::Sneak),
                 },

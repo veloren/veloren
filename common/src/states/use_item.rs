@@ -1,9 +1,10 @@
 use super::utils::*;
 use crate::{
     comp::{
+        buff::{BuffChange, BuffKind},
         inventory::{
             item::{ConsumableKind, ItemKind},
-            slot::Slot,
+            slot::{InvSlotId, Slot},
         },
         CharacterState, InventoryManip, StateUpdate,
     },
@@ -14,7 +15,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 /// Separated out to condense update portions of character state
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// Buildup to item use
     pub buildup_duration: Duration,
@@ -23,7 +24,9 @@ pub struct StaticData {
     /// Recovery after item use
     pub recover_duration: Duration,
     /// Inventory slot to use item from
-    pub inv_slot: Slot,
+    pub inv_slot: InvSlotId,
+    /// Item definition id, used to verify that slot still has the correct item
+    pub item_definition_id: String,
     /// Kind of item used
     pub item_kind: ItemUseKind,
     /// Had weapon wielded
@@ -32,7 +35,7 @@ pub struct StaticData {
     pub was_sneak: bool,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state
@@ -58,48 +61,59 @@ impl CharacterBehavior for Data {
             },
         }
 
+        let use_point = match self.static_data.item_kind {
+            ItemUseKind::Consumable(ConsumableKind::Potion) => UsePoint::BuildupUse,
+            ItemUseKind::Consumable(ConsumableKind::Food) => UsePoint::UseRecover,
+        };
+
         match self.stage_section {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
                     update.character = CharacterState::UseItem(Data {
+                        static_data: self.static_data.clone(),
                         timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
                 } else {
                     // Transitions to use section of stage
                     update.character = CharacterState::UseItem(Data {
+                        static_data: self.static_data.clone(),
                         timer: Duration::default(),
                         stage_section: StageSection::Use,
-                        ..*self
                     });
-                    // Create inventory manipulation event
-                    let inv_manip = InventoryManip::Use(self.static_data.inv_slot);
-                    update
-                        .server_events
-                        .push_front(ServerEvent::InventoryManip(data.entity, inv_manip));
+                    if let UsePoint::BuildupUse = use_point {
+                        // Create inventory manipulation event
+                        use_item(data, &mut update, self);
+                    }
                 }
             },
             StageSection::Use => {
                 if self.timer < self.static_data.use_duration {
                     // Item use
                     update.character = CharacterState::UseItem(Data {
+                        static_data: self.static_data.clone(),
                         timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
                 } else {
                     // Transitions to recover section of stage
                     update.character = CharacterState::UseItem(Data {
+                        static_data: self.static_data.clone(),
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
-                        ..*self
                     });
+                    if let UsePoint::UseRecover = use_point {
+                        // Create inventory manipulation event
+                        use_item(data, &mut update, self);
+                    }
                 }
             },
             StageSection::Recover => {
                 if self.timer < self.static_data.recover_duration {
                     // Recovery
                     update.character = CharacterState::UseItem(Data {
+                        static_data: self.static_data.clone(),
                         timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
@@ -120,6 +134,17 @@ impl CharacterBehavior for Data {
             },
         }
 
+        // At end of state logic so an interrupt isn't overwritten
+        handle_state_interrupt(data, &mut update, false);
+
+        if matches!(update.character, CharacterState::Roll(_)) {
+            // Remove potion effect if left the use item state early by rolling
+            update.server_events.push_front(ServerEvent::Buff {
+                entity: data.entity,
+                buff_change: BuffChange::RemoveByKind(BuffKind::Potion),
+            });
+        }
+
         update
     }
 }
@@ -136,5 +161,30 @@ impl From<&ItemKind> for Option<ItemUseKind> {
             ItemKind::Consumable { kind, .. } => Some(ItemUseKind::Consumable(*kind)),
             _ => None,
         }
+    }
+}
+
+/// Used to control when the item is used in the state
+enum UsePoint {
+    /// Between buildup and use
+    BuildupUse,
+    /// Between use and recover
+    UseRecover,
+}
+
+fn use_item(data: &JoinData, update: &mut StateUpdate, state: &Data) {
+    // Check if the same item is in the slot
+    let item_is_same = data
+        .inventory
+        .get(state.static_data.inv_slot)
+        .map_or(false, |item| {
+            item.item_definition_id() == state.static_data.item_definition_id
+        });
+    if item_is_same {
+        // Create inventory manipulation event
+        let inv_manip = InventoryManip::Use(Slot::Inventory(state.static_data.inv_slot));
+        update
+            .server_events
+            .push_front(ServerEvent::InventoryManip(data.entity, inv_manip));
     }
 }
