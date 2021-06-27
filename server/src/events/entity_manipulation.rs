@@ -138,6 +138,21 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         }
     };
 
+    // Push an outcome
+    if state
+        .ecs()
+        .read_storage::<comp::Projectile>()
+        .get(entity)
+        .is_none()
+    {
+        if let Some(pos) = state.ecs().read_storage::<Pos>().get(entity) {
+            state
+                .ecs()
+                .write_resource::<Vec<Outcome>>()
+                .push(Outcome::Death { pos: pos.0 });
+        }
+    }
+
     // Chat message
     // If it was a player that died
     if let Some(_player) = state.ecs().read_storage::<Player>().get(entity) {

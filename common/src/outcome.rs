@@ -61,6 +61,9 @@ pub enum Outcome {
     Damage {
         pos: Vec3<f32>,
     },
+    Death {
+        pos: Vec3<f32>,
+    },
     Block {
         pos: Vec3<f32>,
         parry: bool,
@@ -90,6 +93,7 @@ impl Outcome {
             | Outcome::SkillPointGain { pos, .. }
             | Outcome::SummonedCreature { pos, .. }
             | Outcome::Damage { pos, .. }
+            | Outcome::Death { pos, .. }
             | Outcome::Block { pos, .. }
             | Outcome::PoiseChange { pos, .. }
             | Outcome::GroundSlam { pos }

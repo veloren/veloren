@@ -72,6 +72,7 @@ const int WATER = 30;
 const int ICE_SPIKES = 31;
 const int DRIP = 32;
 const int TORNADO = 33;
+const int DEATH = 34;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -553,13 +554,25 @@ void main() {
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;
+        case DEATH:
+            f_reflect = 0.0;
+            attr = Attr(
+                linear_motion(
+                    vec3(0),
+                    vec3(rand2 * 0.02, rand3 * 0.02, 2.0 + rand4 * 0.6)
+                ),
+                vec3((1.2 * (1 - slow_start(.1)))),
+                vec4(vec3(1.2 + 0.5 * percent()), 1),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
+            );
+            break;
         default:
             attr = Attr(
                 linear_motion(
                     vec3(rand0 * 0.25, rand1 * 0.25, 1.7 + rand5),
                     vec3(rand2 * 0.1, rand3 * 0.1, 1.0 + rand4 * 0.5)
                 ),
-                vec3(exp_scale(-0.2)),
+                vec3(exp_scale(-0.2)) * rand0,
                 vec4(1),
                 spin_in_axis(vec3(1,0,0),0)
             );
