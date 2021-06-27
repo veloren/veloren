@@ -13,7 +13,6 @@
 
     // Spin of death
     Skill((Sword(UnlockSpin), None)),
-    Skill((Sword(SDamage), Some(1))),
-    Skill((Sword(SSpins), Some(2))),
-    Skill((Sword(SCost), Some(1))),
+    Skill((Sword(SDamage), Some(2))),
+    Skill((Sword(SCost), Some(2))),
 ])
