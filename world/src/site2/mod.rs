@@ -2,10 +2,10 @@ mod gen;
 pub mod plot;
 mod tile;
 
-use self::{
+use self::tile::{HazardKind, KeepKind, Ori, RoofKind, Tile, TileGrid, TileKind, TILE_SIZE};
+pub use self::{
     gen::{aabr_with_z, Fill, Primitive, Structure},
     plot::{Plot, PlotKind},
-    tile::{HazardKind, KeepKind, Ori, RoofKind, Tile, TileGrid, TileKind, TILE_SIZE},
 };
 use crate::{
     site::SpawnRules,
@@ -772,7 +772,8 @@ impl Site {
                         for z in aabb.min.z..aabb.max.z {
                             let pos = Vec3::new(x, y, z);
 
-                            if let Some(block) = fill.sample_at(&prim_tree, prim, pos, &canvas) {
+                            if let Some(block) = fill.sample_at(&prim_tree, prim, pos, &canvas.info)
+                            {
                                 canvas.set(pos, block);
                             }
                         }

@@ -6,28 +6,65 @@ use std::{
 type Result = std::io::Result<()>;
 
 use common::{
-    terrain::{Block, BlockKind},
+    terrain::{Block, BlockKind, SpriteKind},
     vol::{BaseVol, ReadVol, RectSizedVol, WriteVol},
 };
+use rayon::ThreadPoolBuilder;
 use vek::{Vec2, Vec3};
-use veloren_world::{index::Index, IndexOwned, Land};
+use veloren_world::{
+    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP},
+    site2::{plot::PlotKind, Structure},
+    CanvasInfo, Land, World,
+};
 
 /// This exports a dungeon (structure only, no entities or sprites) to a
 /// MagicaVoxel .vox file
 
 fn main() -> Result {
+    common_frontend::init_stdout(None);
+    let pool = ThreadPoolBuilder::new().build().unwrap();
+    println!("Loading world");
+    let (world, index) = World::generate(
+        59686,
+        WorldOpts {
+            seed_elements: true,
+            world_file: FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into()),
+        },
+        &pool,
+    );
+    println!("Loaded world");
     let export_path = "dungeon.vox";
-    let seed = 0;
 
     println!("Saving into {}", export_path);
     let mut volume = ExportVol::new();
-    let index = IndexOwned::new(Index::new(seed));
-    let dungeon = veloren_world::site2::plot::Dungeon::generate(
-        volume.size_xy().map(|p| p as i32 / 2),
-        &Land::empty(),
-        &mut rand::thread_rng(),
-    );
-    dungeon.apply_to(index.as_index_ref(), Vec2::new(0, 0), |_| None, &mut volume);
+    let wpos = volume.size_xy().map(|p| p as i32 / 2);
+    let site =
+        veloren_world::site2::Site::generate_dungeon(&Land::empty(), &mut rand::thread_rng(), wpos);
+    CanvasInfo::with_mock_canvas_info(index.as_index_ref(), world.sim(), |canvas| {
+        for plot in site.plots() {
+            if let PlotKind::Dungeon(dungeon) = plot.kind() {
+                let (prim_tree, fills) = dungeon.render_collect(&site);
+
+                for (prim, fill) in fills {
+                    let aabb = fill.get_bounds(&prim_tree, prim);
+
+                    for x in aabb.min.x..aabb.max.x {
+                        for y in aabb.min.y..aabb.max.y {
+                            for z in aabb.min.z..aabb.max.z {
+                                let pos = Vec3::new(x, y, z);
+
+                                if let Some(block) = fill.sample_at(&prim_tree, prim, pos, &canvas)
+                                {
+                                    let _ = volume.set(pos, block);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+
     volume.write(&mut File::create(export_path)?)
 }
 
@@ -157,7 +194,9 @@ impl ExportVol {
         write_chunk(file, "RGBA", &|file| {
             file.write_all(&[220, 220, 255, 0])?; // Air
             file.write_all(&[100, 100, 100, 0])?; // Rock
-            file.write_all(&[0; 4 * (256 - 2)])
+            file.write_all(&[255, 0, 0, 0])?; // Sprite
+            file.write_all(&[255, 0, 255, 0])?; // GlowingRock
+            file.write_all(&[0; 4 * (256 - 4)])
         })?;
 
         let chunks_end = file.stream_position()?;
@@ -200,9 +239,16 @@ impl WriteVol for ExportVol {
             .entry(model_pos)
             .or_default()
             .extend_from_slice(&[rel_pos.x, rel_pos.y, rel_pos.z, match vox.kind() {
-                BlockKind::Air => 1,
+                BlockKind::Air => {
+                    if !matches!(vox.get_sprite(), Some(SpriteKind::Empty)) {
+                        3
+                    } else {
+                        1
+                    }
+                },
                 BlockKind::Rock => 2,
-                _ => 3,
+                BlockKind::GlowingRock => 4,
+                _ => 5,
             }]);
         Ok(vox)
     }

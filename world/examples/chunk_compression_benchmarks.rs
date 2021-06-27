@@ -1,3 +1,4 @@
+#![allow(clippy::type_complexity)]
 use common::{
     spiral::Spiral2d,
     terrain::{chonk::Chonk, Block, BlockKind, SpriteKind},
@@ -15,6 +16,7 @@ use common_net::msg::compression::{
 use hashbrown::HashMap;
 use image::ImageBuffer;
 use num_traits::cast::FromPrimitive;
+use rayon::ThreadPoolBuilder;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
@@ -56,8 +58,7 @@ fn do_deflate_rle(data: &[u8]) -> Vec<u8> {
 
     let mut encoder = DeflateEncoder::new(Vec::new(), CompressionOptions::rle());
     encoder.write_all(data).expect("Write error!");
-    let compressed_data = encoder.finish().expect("Failed to finish compression!");
-    compressed_data
+    encoder.finish().expect("Failed to finish compression!")
 }
 
 // Separate function so that it shows up differently on the flamegraph
@@ -66,8 +67,7 @@ fn do_deflate_flate2_zero(data: &[u8]) -> Vec<u8> {
 
     let mut encoder = DeflateEncoder::new(Vec::new(), Compression::new(0));
     encoder.write_all(data).expect("Write error!");
-    let compressed_data = encoder.finish().expect("Failed to finish compression!");
-    compressed_data
+    encoder.finish().expect("Failed to finish compression!")
 }
 
 fn do_deflate_flate2<const LEVEL: u32>(data: &[u8]) -> Vec<u8> {
@@ -75,8 +75,7 @@ fn do_deflate_flate2<const LEVEL: u32>(data: &[u8]) -> Vec<u8> {
 
     let mut encoder = DeflateEncoder::new(Vec::new(), Compression::new(LEVEL));
     encoder.write_all(data).expect("Write error!");
-    let compressed_data = encoder.finish().expect("Failed to finish compression!");
-    compressed_data
+    encoder.finish().expect("Failed to finish compression!")
 }
 
 fn chonk_to_dyna<V: Clone, S: RectVolSize, M: Clone, A: Access>(
@@ -489,6 +488,7 @@ impl VoxelImageEncoding for MixedEncodingDenseSprites {
     }
 }
 
+#[allow(clippy::many_single_char_names)]
 fn histogram_to_dictionary(histogram: &HashMap<Vec<u8>, usize>, dictionary: &mut Vec<u8>) {
     let mut tmp: Vec<(Vec<u8>, usize)> = histogram.iter().map(|(k, v)| (k.clone(), *v)).collect();
     tmp.sort_by_key(|(_, count)| *count);
@@ -507,13 +507,17 @@ fn histogram_to_dictionary(histogram: &HashMap<Vec<u8>, usize>, dictionary: &mut
 }
 
 fn main() {
+    let pool = ThreadPoolBuilder::new().build().unwrap();
     common_frontend::init_stdout(None);
     println!("Loading world");
-    let (world, index) = World::generate(59686, WorldOpts {
-        seed_elements: true,
-        world_file: FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into()),
-        ..WorldOpts::default()
-    });
+    let (world, index) = World::generate(
+        59686,
+        WorldOpts {
+            seed_elements: true,
+            world_file: FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into()),
+        },
+        &pool,
+    );
     println!("Loaded world");
     const HISTOGRAMS: bool = false;
     let mut histogram: HashMap<Vec<u8>, usize> = HashMap::new();
@@ -523,45 +527,45 @@ fn main() {
     let k = 32;
     let sz = world.sim().get_size();
 
-    let mut sites = Vec::new();
-
-    sites.push(("center", sz / 2));
-    sites.push((
-        "dungeon",
-        world
-            .civs()
-            .sites()
-            .find(|s| s.is_dungeon())
-            .map(|s| s.center.as_())
-            .unwrap(),
-    ));
-    sites.push((
-        "town",
-        world
-            .civs()
-            .sites()
-            .find(|s| s.is_settlement())
-            .map(|s| s.center.as_())
-            .unwrap(),
-    ));
-    sites.push((
-        "castle",
-        world
-            .civs()
-            .sites()
-            .find(|s| s.is_castle())
-            .map(|s| s.center.as_())
-            .unwrap(),
-    ));
-    sites.push((
-        "tree",
-        world
-            .civs()
-            .sites()
-            .find(|s| matches!(s.kind, SiteKind::Tree))
-            .map(|s| s.center.as_())
-            .unwrap(),
-    ));
+    let sites = vec![
+        ("center", sz / 2),
+        (
+            "dungeon",
+            world
+                .civs()
+                .sites()
+                .find(|s| s.is_dungeon())
+                .map(|s| s.center.as_())
+                .unwrap(),
+        ),
+        (
+            "town",
+            world
+                .civs()
+                .sites()
+                .find(|s| s.is_settlement())
+                .map(|s| s.center.as_())
+                .unwrap(),
+        ),
+        (
+            "castle",
+            world
+                .civs()
+                .sites()
+                .find(|s| s.is_castle())
+                .map(|s| s.center.as_())
+                .unwrap(),
+        ),
+        (
+            "tree",
+            world
+                .civs()
+                .sites()
+                .find(|s| matches!(s.kind, SiteKind::Tree))
+                .map(|s| s.center.as_())
+                .unwrap(),
+        ),
+    ];
 
     const SKIP_DEFLATE_2_5: bool = false;
     const SKIP_DYNA: bool = true;
@@ -600,6 +604,7 @@ fn main() {
                 let lz4chonk_pre = Instant::now();
                 let lz4_chonk = lz4_with_dictionary(&bincode::serialize(&chunk).unwrap(), &[]);
                 let lz4chonk_post = Instant::now();
+                #[allow(clippy::reversed_empty_ranges)]
                 for _ in 0..ITERS {
                     let _deflate0_chonk =
                         do_deflate_flate2_zero(&bincode::serialize(&chunk).unwrap());
@@ -1024,7 +1029,7 @@ fn main() {
                 for (name, value) in totals.iter() {
                     println!("Average {}: {}", name, *value / count as f32);
                 }
-                println!("");
+                println!();
                 for (name, time) in total_timings.iter() {
                     println!("Average {} nanos: {:02}", name, *time / count as f32);
                 }

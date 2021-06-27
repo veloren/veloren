@@ -157,7 +157,7 @@ impl Fill {
         tree: &Store<Primitive>,
         prim: Id<Primitive>,
         pos: Vec3<i32>,
-        canvas: &Canvas,
+        canvas_info: &crate::CanvasInfo,
     ) -> Option<Block> {
         if self.contains_at(tree, prim, pos) {
             match self {
@@ -169,10 +169,9 @@ impl Fill {
                         % *range as u32) as u8,
                 )),
                 Fill::Prefab(p, tr, seed) => p.get(pos - tr).ok().and_then(|sb| {
-                    let info = canvas.info;
-                    let col_sample = info.col(info.wpos)?;
+                    let col_sample = canvas_info.col(canvas_info.wpos)?;
                     block_from_structure(
-                        canvas.index,
+                        canvas_info.index,
                         *sb,
                         pos - tr,
                         p.get_bounds().center().xy(),
