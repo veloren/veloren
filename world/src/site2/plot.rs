@@ -24,6 +24,8 @@ impl Plot {
                 b.expanded_to_contain_point(*t)
             })
     }
+
+    pub fn kind(&self) -> &PlotKind { &self.kind }
 }
 
 pub enum PlotKind {

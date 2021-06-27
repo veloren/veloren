@@ -49,6 +49,44 @@ impl<'a> CanvasInfo<'a> {
     pub fn chunks(&self) -> &'a WorldSim { self.chunks }
 
     pub fn land(&self) -> Land<'_> { Land::from_sim(self.chunks) }
+
+    pub fn with_mock_canvas_info<A, F: for<'b> FnOnce(&CanvasInfo<'b>) -> A>(
+        index: IndexRef<'a>,
+        sim: &'a WorldSim,
+        f: F,
+    ) -> A {
+        let zcache_grid = Grid::populate_from(Vec2::broadcast(1), |_| None);
+        let sim_chunk = SimChunk {
+            chaos: 0.0,
+            alt: 0.0,
+            basement: 0.0,
+            water_alt: 0.0,
+            downhill: None,
+            flux: 0.0,
+            temp: 0.0,
+            humidity: 0.0,
+            rockiness: 0.0,
+            tree_density: 0.0,
+            forest_kind: crate::all::ForestKind::Palm,
+            spawn_rate: 0.0,
+            river: Default::default(),
+            surface_veg: 0.0,
+            sites: Vec::new(),
+            place: None,
+            path: Default::default(),
+            cave: Default::default(),
+            cliff_height: 0.0,
+            contains_waypoint: false,
+        };
+        f(&CanvasInfo {
+            wpos: Vec2::broadcast(0),
+            column_grid: &zcache_grid,
+            column_grid_border: 0,
+            chunks: &sim,
+            index,
+            chunk: &sim_chunk,
+        })
+    }
 }
 
 pub struct Canvas<'a> {

@@ -2,6 +2,7 @@ use image::{
     codecs::png::{CompressionType, FilterType, PngEncoder},
     ImageBuffer,
 };
+use rayon::ThreadPoolBuilder;
 use std::{fs::File, io::Write};
 use vek::*;
 use veloren_world::{
@@ -116,12 +117,16 @@ fn image_with_autorange<F: Fn(f32, f32, f32) -> [u8; 3], G: FnMut(u32, u32) -> f
 
 fn main() {
     common_frontend::init_stdout(None);
+    let pool = ThreadPoolBuilder::new().build().unwrap();
     println!("Loading world");
-    let (world, _index) = World::generate(59686, WorldOpts {
-        seed_elements: true,
-        world_file: FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into()),
-        ..WorldOpts::default()
-    });
+    let (world, _index) = World::generate(
+        59686,
+        WorldOpts {
+            seed_elements: true,
+            world_file: FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into()),
+        },
+        &pool,
+    );
     println!("Loaded world");
 
     let land = Land::from_sim(world.sim());
