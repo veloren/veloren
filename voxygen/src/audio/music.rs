@@ -191,11 +191,6 @@ impl assets::Asset for MusicTransitionManifest {
     type Loader = assets::RonLoader;
 
     const EXTENSION: &'static str = "ron";
-
-    fn default_value(id: &str, e: assets::Error) -> Result<MusicTransitionManifest, assets::Error> {
-        warn!("Error loading MusicTransitionManifest {:?}: {:?}", id, e);
-        Ok(MusicTransitionManifest::default())
-    }
 }
 
 impl Default for MusicMgr {
@@ -429,10 +424,10 @@ impl assets::Compound for SoundtrackCollection<SoundtrackItem> {
         id: &str,
     ) -> Result<Self, assets::Error> {
         let inner = || -> Result<_, assets::Error> {
-            let manifest: AssetHandle<assets::Ron<SoundtrackCollection<RawSoundtrackItem>>> =
+            let manifest: AssetHandle<SoundtrackCollection<RawSoundtrackItem>> =
                 AssetExt::load(id)?;
             let mut soundtracks = SoundtrackCollection::default();
-            for item in manifest.read().0.tracks.iter().cloned() {
+            for item in manifest.read().tracks.iter().cloned() {
                 match item {
                     RawSoundtrackItem::Individual(track) => soundtracks.tracks.push(track),
                     RawSoundtrackItem::Segmented {

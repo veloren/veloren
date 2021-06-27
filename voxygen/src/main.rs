@@ -144,7 +144,6 @@ fn main() {
     }));
 
     assets::start_hot_reloading();
-    i18n::start_hot_reloading();
 
     // Initialise watcher for animation hotreloading
     #[cfg(feature = "hot-anim")]

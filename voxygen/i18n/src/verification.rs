@@ -1,9 +1,7 @@
 use ron::de::from_reader;
 use std::{fs, path::Path};
 
-use crate::data::{
-    i18n_directories, LocalizationFragment, RawLocalization, LANG_MANIFEST_FILE, REFERENCE_LANG,
-};
+use crate::data::{i18n_directories, LocalizationFragment, LANG_MANIFEST_FILE, REFERENCE_LANG};
 
 fn verify_localization_directory(root_dir: &Path, directory_path: &Path) {
     // Walk through each file in the directory
@@ -11,10 +9,7 @@ fn verify_localization_directory(root_dir: &Path, directory_path: &Path) {
         if let Ok(file_type) = i18n_file.file_type() {
             // Skip folders and the manifest file (which does not contain the same struct we
             // want to load)
-            if file_type.is_file()
-                && i18n_file.file_name().to_string_lossy()
-                    != (LANG_MANIFEST_FILE.to_string() + ".ron")
-            {
+            if file_type.is_file() {
                 let full_path = i18n_file.path();
                 println!("-> {:?}", full_path.strip_prefix(&root_dir).unwrap());
                 let f = fs::File::open(&full_path).expect("Failed opening file");
@@ -28,6 +23,8 @@ fn verify_localization_directory(root_dir: &Path, directory_path: &Path) {
                         );
                     },
                 };
+            } else if file_type.is_dir() {
+                verify_localization_directory(root_dir, &i18n_file.path());
             }
         }
     }
@@ -60,29 +57,11 @@ pub fn verify_all_localizations(root_dir: &Path, asset_path: &Path) {
          folder is empty?"
     );
     for i18n_directory in i18n_directories {
-        // Attempt to load the manifest file
-        let manifest_path = i18n_directory.join(LANG_MANIFEST_FILE.to_string() + ".ron");
         println!(
             "verifying {:?}",
-            manifest_path.strip_prefix(&root_dir).unwrap()
+            i18n_directory.strip_prefix(&root_dir).unwrap()
         );
-        let f = fs::File::open(&manifest_path).expect("Failed opening file");
-        let raw_localization: RawLocalization = match from_reader(f) {
-            Ok(v) => v,
-            Err(e) => {
-                panic!(
-                    "Could not parse {} RON file, error: {}",
-                    i18n_directory.to_string_lossy(),
-                    e
-                );
-            },
-        };
         // Walk through each files and try to load them
         verify_localization_directory(root_dir, &i18n_directory);
-        // Walk through each subdirectories and try to load files in them
-        for sub_directory in raw_localization.sub_directories.iter() {
-            let subdir_path = &i18n_directory.join(sub_directory);
-            verify_localization_directory(root_dir, &subdir_path);
-        }
     }
 }

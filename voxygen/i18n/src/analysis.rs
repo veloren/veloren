@@ -222,7 +222,7 @@ fn complete_key_versions<'a>(
 ) {
     //TODO: review unwraps in this file
 
-    // For each file (if it's not a directory) in directory
+    // For each file in directory
     for i18n_file in root_dir.join(&lang_dir).read_dir().unwrap().flatten() {
         if let Ok(file_type) = i18n_file.file_type() {
             if file_type.is_file() {
@@ -240,6 +240,15 @@ fn complete_key_versions<'a>(
                         )
                     });
                 i18n_key_versions.extend(generate_key_version(&repo, &i18n, &path, &i18n_blob));
+            } else if file_type.is_dir() {
+                // If it's a directory, recursively check it
+                complete_key_versions(
+                    repo,
+                    head_ref,
+                    i18n_key_versions,
+                    root_dir,
+                    &i18n_file.path(),
+                );
             }
         }
     }
@@ -264,12 +273,6 @@ fn gather_state(
 
     // Gathering info about keys from language
     complete_key_versions(repo, head_ref, &mut i18n_map, root_dir, lang_dir);
-
-    // read HEAD for the subfolders
-    for sub_directory in loc.sub_directories.iter() {
-        let subdir_path = &lang_dir.join(sub_directory);
-        complete_key_versions(repo, head_ref, &mut i18n_map, root_dir, subdir_path);
-    }
 
     i18n_map
 }

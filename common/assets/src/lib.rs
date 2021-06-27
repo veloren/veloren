@@ -3,19 +3,15 @@
 use dot_vox::DotVoxData;
 use image::DynamicImage;
 use lazy_static::lazy_static;
-use std::{
-    borrow::Cow,
-    fs, io,
-    path::{Path, PathBuf},
-    sync::Arc,
-};
+use std::{borrow::Cow, path::PathBuf, sync::Arc};
 
 pub use assets_manager::{
-    asset::Ron,
+    asset::{DirLoadable, Ron},
     loader::{
         self, BincodeLoader, BytesLoader, JsonLoader, LoadFrom, Loader, RonLoader, StringLoader,
     },
-    source, Asset, AssetCache, BoxedError, Compound, Error,
+    source::{self, Source},
+    Asset, AssetCache, BoxedError, Compound, Error, SharedString,
 };
 
 lazy_static! {
@@ -28,7 +24,7 @@ pub fn start_hot_reloading() { ASSETS.enhance_hot_reloading(); }
 
 pub type AssetHandle<T> = assets_manager::Handle<'static, T>;
 pub type AssetGuard<T> = assets_manager::AssetGuard<'static, T>;
-pub type AssetDir<T> = assets_manager::DirReader<'static, T, source::FileSystem>;
+pub type AssetDirHandle<T> = assets_manager::DirHandle<'static, T, source::FileSystem>;
 
 /// The Asset trait, which is implemented by all structures that have their data
 /// stored in the filesystem.
@@ -49,6 +45,13 @@ pub trait AssetExt: Sized + Send + Sync + 'static {
         Self: Clone,
     {
         Self::load(specifier).map(AssetHandle::cloned)
+    }
+
+    fn load_or_insert_with(
+        specifier: &str,
+        default: impl FnOnce(Error) -> Self,
+    ) -> AssetHandle<Self> {
+        Self::load(specifier).unwrap_or_else(|err| Self::get_or_insert(specifier, default(err)))
     }
 
     /// Function used to load essential assets from the filesystem or the cache.
@@ -79,16 +82,31 @@ pub trait AssetExt: Sized + Send + Sync + 'static {
     }
 
     fn load_owned(specifier: &str) -> Result<Self, Error>;
+
+    fn get_or_insert(specifier: &str, default: Self) -> AssetHandle<Self>;
 }
 
-pub fn load_dir<T: Asset>(specifier: &str) -> Result<AssetDir<T>, Error> {
-    Ok(ASSETS.load_dir(specifier)?)
+pub fn load_dir<T: DirLoadable>(
+    specifier: &str,
+    recursive: bool,
+) -> Result<AssetDirHandle<T>, Error> {
+    let specifier = specifier.strip_suffix(".*").unwrap_or(specifier);
+    ASSETS.load_dir(specifier, recursive)
+}
+
+#[track_caller]
+pub fn load_expect_dir<T: DirLoadable>(specifier: &str, recursive: bool) -> AssetDirHandle<T> {
+    load_dir(specifier, recursive).expect("Failed loading directory")
 }
 
 impl<T: Compound> AssetExt for T {
     fn load(specifier: &str) -> Result<AssetHandle<Self>, Error> { ASSETS.load(specifier) }
 
     fn load_owned(specifier: &str) -> Result<Self, Error> { ASSETS.load_owned(specifier) }
+
+    fn get_or_insert(specifier: &str, default: Self) -> AssetHandle<Self> {
+        ASSETS.get_or_insert(specifier, default)
+    }
 }
 
 pub struct Image(pub Arc<DynamicImage>);
@@ -223,52 +241,19 @@ lazy_static! {
 /// Returns the actual path of the specifier with the extension.
 ///
 /// For directories, give `""` as extension.
-pub fn path_of(specifier: &str, ext: &str) -> PathBuf { ASSETS.source().path_of(specifier, ext) }
-
-fn get_dir_files(files: &mut Vec<String>, path: &Path, specifier: &str) -> io::Result<()> {
-    for entry in (fs::read_dir(path)?).flatten() {
-        let path = entry.path();
-        let maybe_stem = path.file_stem().and_then(|stem| stem.to_str());
-
-        if let Some(stem) = maybe_stem {
-            let specifier = format!("{}.{}", specifier, stem);
-
-            if path.is_dir() {
-                get_dir_files(files, &path, &specifier)?;
-            } else {
-                files.push(specifier);
-            }
-        }
-    }
-
-    Ok(())
-}
-
-pub struct Directory(Vec<String>);
-
-impl Directory {
-    pub fn iter(&self) -> impl Iterator<Item = &String> { self.0.iter() }
-}
-
-impl Compound for Directory {
-    fn load<S: source::Source>(_: &AssetCache<S>, specifier: &str) -> Result<Self, Error> {
-        let specifier = specifier.strip_suffix(".*").unwrap_or(specifier);
-        let root = ASSETS.source().path_of(specifier, "");
-        let mut files = Vec::new();
-
-        get_dir_files(&mut files, &root, specifier)?;
-
-        Ok(Directory(files))
-    }
+pub fn path_of(specifier: &str, ext: &str) -> PathBuf {
+    ASSETS
+        .source()
+        .path_of(source::DirEntry::File(specifier, ext))
 }
 
 #[warn(clippy::pedantic)]
 #[cfg(feature = "asset_tweak")]
 pub mod asset_tweak {
-    // Return path to repository by searching 10 directories back
-    use super::{find_root, fs, Asset, AssetExt, Path, RonLoader};
+    use super::{find_root, Asset, AssetExt, RonLoader};
     use ron::ser::{to_writer_pretty, PrettyConfig};
     use serde::{de::DeserializeOwned, Deserialize, Serialize};
+    use std::{fs, path::Path};
 
     #[derive(Clone, Deserialize, Serialize)]
     struct AssetTweakWrapper<T>(T);

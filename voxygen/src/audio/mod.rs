@@ -11,7 +11,7 @@ use channel::{AmbientChannel, AmbientChannelTag, MusicChannel, MusicChannelTag, 
 use fader::Fader;
 use music::MusicTransitionManifest;
 use sfx::{SfxEvent, SfxTriggerItem};
-use soundcache::OggSound;
+use soundcache::load_ogg;
 use std::time::Duration;
 use tracing::{debug, error, warn};
 
@@ -101,6 +101,15 @@ impl AudioFrontend {
 
     /// Construct in `no-audio` mode for debugging
     pub fn no_audio() -> Self {
+        let audio_manifest = "voxygen.audio.music_transition_manifest";
+        let mtm = MusicTransitionManifest::load_or_insert_with(audio_manifest, |err| {
+            warn!(
+                "Error loading MusicTransitionManifest {:?}: {:?}",
+                audio_manifest, err
+            );
+            MusicTransitionManifest::default()
+        });
+
         Self {
             // The following is for the disabled device switcher
             //device: "".to_string(),
@@ -115,9 +124,7 @@ impl AudioFrontend {
             music_volume: 1.0,
             master_volume: 1.0,
             listener: Listener::default(),
-            // This expect should be fine, since `<MusicTransitionManifest as Asset>::default_value`
-            // is specified
-            mtm: AssetExt::load_expect("voxygen.audio.music_transition_manifest"),
+            mtm,
         }
     }
 
@@ -264,10 +271,7 @@ impl AudioFrontend {
         underwater: bool,
     ) -> Result<(), rodio::decoder::DecoderError> {
         if self.audio_stream.is_some() {
-            let sound = OggSound::load_expect(sound)
-                .read()
-                .to_source()
-                .amplify(vol.unwrap_or(1.0));
+            let sound = load_ogg(sound).amplify(vol.unwrap_or(1.0));
 
             let listener = self.listener.clone();
             if let Some(channel) = self.get_sfx_channel() {
@@ -291,7 +295,7 @@ impl AudioFrontend {
     ) {
         if self.audio_stream.is_some() {
             if let Some(channel) = self.get_ambient_channel(channel_tag, volume_multiplier) {
-                channel.play(OggSound::load_expect(sound).read().to_source());
+                channel.play(load_ogg(sound));
             }
         }
     }
@@ -347,7 +351,7 @@ impl AudioFrontend {
     fn play_music(&mut self, sound: &str, channel_tag: MusicChannelTag) {
         if self.music_enabled() {
             if let Some(channel) = self.get_music_channel(channel_tag) {
-                channel.play(OggSound::load_expect(sound).read().to_source(), channel_tag);
+                channel.play(load_ogg(sound), channel_tag);
             }
         }
     }

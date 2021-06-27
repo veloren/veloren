@@ -127,8 +127,13 @@ impl AmbientMgr {
     }
 
     fn load_soundtrack_items() -> AssetHandle<AmbientCollection> {
-        // Cannot fail: A default value is always provided
-        AmbientCollection::load_expect("voxygen.audio.ambient")
+        AmbientCollection::load_or_insert_with("voxygen.audio.ambient", |error| {
+            warn!(
+                "Error reading ambience config file, ambience will not be available: {:#?}",
+                error
+            );
+            AmbientCollection::default()
+        })
     }
 }
 
@@ -136,13 +141,4 @@ impl assets::Asset for AmbientCollection {
     type Loader = assets::RonLoader;
 
     const EXTENSION: &'static str = "ron";
-
-    fn default_value(_: &str, error: assets::Error) -> Result<Self, assets::Error> {
-        warn!(
-            "Error reading ambience config file, ambience will not be available: {:#?}",
-            error
-        );
-
-        Ok(AmbientCollection::default())
-    }
 }

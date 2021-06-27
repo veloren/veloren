@@ -27,9 +27,6 @@
             scale_ratio: 0.9,
         ),
     },
-    sub_directories: [
-        "hud"
-    ],
     string_map: {
 
     },

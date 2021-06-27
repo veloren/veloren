@@ -1,9 +1,9 @@
-use crate::assets::{self, AssetExt, AssetGuard, AssetHandle};
+use crate::assets::{self, source::DirEntry, AssetExt, AssetGuard, AssetHandle};
 use deunicode::deunicode;
 use hashbrown::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
 use std::{
-    fs,
+    fs, io,
     path::{Path, PathBuf},
 };
 use tracing::warn;
@@ -52,7 +52,6 @@ pub type Fonts = HashMap<String, Font>;
 /// See `Language` for more info on each attributes
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub(crate) struct RawLocalization {
-    pub(crate) sub_directories: Vec<String>,
     pub(crate) convert_utf8_to_ascii: bool,
     pub(crate) fonts: Fonts,
     pub(crate) metadata: LanguageMetadata,
@@ -63,9 +62,6 @@ pub(crate) struct RawLocalization {
 /// Store internationalization data
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 struct Language {
-    /// A list of subdirectories to lookup for localization files
-    pub(crate) sub_directories: Vec<String>,
-
     /// A map storing the localized texts
     ///
     /// Localized content can be accessed using a String key.
@@ -127,7 +123,6 @@ impl Language {
 impl Default for Language {
     fn default() -> Self {
         Self {
-            sub_directories: Vec::default(),
             string_map: HashMap::default(),
             vector_map: HashMap::default(),
             ..Default::default()
@@ -138,7 +133,6 @@ impl Default for Language {
 impl From<RawLocalization> for Language {
     fn from(raw: RawLocalization) -> Self {
         Self {
-            sub_directories: raw.sub_directories,
             string_map: raw.string_map,
             vector_map: raw.vector_map,
             convert_utf8_to_ascii: raw.convert_utf8_to_ascii,
@@ -179,28 +173,16 @@ impl assets::Compound for Language {
 
         // Walk through files in the folder, collecting localization fragment to merge
         // inside the asked_localization
-        for localization_asset in cache.load_dir::<LocalizationFragment>(asset_key)?.iter() {
+        for localization_asset in cache
+            .load_dir::<LocalizationFragment>(asset_key, true)?
+            .iter()
+        {
             localization
                 .string_map
                 .extend(localization_asset.read().string_map.clone());
             localization
                 .vector_map
                 .extend(localization_asset.read().vector_map.clone());
-        }
-
-        // Use the localization's subdirectory list to load fragments from there
-        for sub_directory in localization.sub_directories.iter() {
-            for localization_asset in cache
-                .load_dir::<LocalizationFragment>(&[asset_key, ".", sub_directory].concat())?
-                .iter()
-            {
-                localization
-                    .string_map
-                    .extend(localization_asset.read().string_map.clone());
-                localization
-                    .vector_map
-                    .extend(localization_asset.read().vector_map.clone());
-            }
         }
 
         // Update the text if UTF-8 to ASCII conversion is enabled
@@ -353,28 +335,48 @@ impl LocalizationHandle {
     pub fn reloaded(&mut self) -> bool { self.active.reloaded() }
 }
 
+struct FindManifests;
+
+impl assets::Compound for FindManifests {
+    fn load<S: assets::Source>(_: &assets::AssetCache<S>, _: &str) -> Result<Self, assets::Error> {
+        Ok(Self)
+    }
+}
+
+impl assets::DirLoadable for FindManifests {
+    fn select_ids<S: assets::Source + ?Sized>(
+        source: &S,
+        specifier: &str,
+    ) -> io::Result<Vec<assets::SharedString>> {
+        let mut specifiers = Vec::new();
+
+        source.read_dir(specifier, &mut |entry| {
+            if let DirEntry::Directory(spec) = entry {
+                let manifest_spec = [spec, ".", LANG_MANIFEST_FILE].concat();
+                if source.exists(DirEntry::File(&manifest_spec, "ron")) {
+                    specifiers.push(manifest_spec.into());
+                }
+            }
+        })?;
+
+        Ok(specifiers)
+    }
+}
+
 #[derive(Clone, Debug)]
 struct LocalizationList(Vec<LanguageMetadata>);
 
 impl assets::Compound for LocalizationList {
-    fn load<S: assets::source::Source>(
+    fn load<S: assets::Source>(
         cache: &assets::AssetCache<S>,
         specifier: &str,
     ) -> Result<Self, assets::Error> {
         // List language directories
-        let mut languages = vec![];
-
-        let i18n_root = assets::path_of(specifier, "");
-        for i18n_entry in (std::fs::read_dir(&i18n_root)?).flatten() {
-            if let Some(i18n_key) = i18n_entry.file_name().to_str() {
-                // load the root file of all the subdirectories
-                if let Ok(localization) = cache.load::<RawLocalization>(
-                    &[specifier, ".", i18n_key, ".", LANG_MANIFEST_FILE].concat(),
-                ) {
-                    languages.push(localization.read().metadata.clone());
-                }
-            }
-        }
+        let languages = assets::load_expect_dir::<FindManifests>(specifier, false)
+            .ids()
+            .filter_map(|spec| cache.load::<RawLocalization>(spec).ok())
+            .map(|localization| localization.read().metadata.clone())
+            .collect();
 
         Ok(LocalizationList(languages))
     }
@@ -384,9 +386,6 @@ impl assets::Compound for LocalizationList {
 pub fn list_localizations() -> Vec<LanguageMetadata> {
     LocalizationList::load_expect_cloned("voxygen.i18n").0
 }
-
-/// Start hot reloading of i18n assets
-pub fn start_hot_reloading() { assets::start_hot_reloading(); }
 
 /// List localization directories as a `PathBuf` vector
 pub fn i18n_directories(i18n_dir: &Path) -> Vec<PathBuf> {

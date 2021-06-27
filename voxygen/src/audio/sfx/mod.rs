@@ -558,8 +558,14 @@ impl SfxMgr {
     }
 
     fn load_sfx_items() -> AssetHandle<SfxTriggers> {
-        // Cannot fail: A default value is always provided
-        SfxTriggers::load_expect("voxygen.audio.sfx")
+        SfxTriggers::load_or_insert_with("voxygen.audio.sfx", |error| {
+            warn!(
+                "Error reading sfx config file, sfx will not be available: {:#?}",
+                error
+            );
+
+            SfxTriggers::default()
+        })
     }
 }
 
@@ -567,13 +573,4 @@ impl assets::Asset for SfxTriggers {
     type Loader = assets::RonLoader;
 
     const EXTENSION: &'static str = "ron";
-
-    fn default_value(_: &str, error: assets::Error) -> Result<Self, assets::Error> {
-        warn!(
-            "Error reading sfx config file, sfx will not be available: {:#?}",
-            error
-        );
-
-        Ok(SfxTriggers::default())
-    }
 }
