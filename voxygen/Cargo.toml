@@ -24,6 +24,7 @@ buildInputs = ["xorg.libxcb"]
 [features]
 hot-anim = ["anim/use-dyn-lib"]
 hot-egui = ["voxygen-egui/use-dyn-lib", "egui"]
+hot-reloading = ["common/hot-reloading"]
 singleplayer = ["server"]
 simd = ["vek/platform_intrinsics"]
 tracy = ["profiling", "profiling/profile-with-tracy", "common-frontend/tracy", "client/tracy"]
@@ -32,7 +33,7 @@ egui-ui = ["voxygen-egui", "egui", "egui_wgpu_backend", "egui_winit_platform"]
 
 # We don't ship egui with published release builds so a separate feature is required that excludes it.
 default-publish = ["singleplayer", "native-dialog", "plugins", "simd"]
-default = ["default-publish", "egui-ui"]
+default = ["default-publish", "egui-ui", "hot-reloading"]
 
 [dependencies]
 client = {package = "veloren-client", path = "../client"}

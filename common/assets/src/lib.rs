@@ -21,6 +21,7 @@ lazy_static! {
         AssetCache::new(&*ASSETS_PATH).unwrap();
 }
 
+#[cfg(feature = "hot-reloading")]
 pub fn start_hot_reloading() { ASSETS.enhance_hot_reloading(); }
 
 pub type AssetHandle<T> = assets_manager::Handle<'static, T>;
