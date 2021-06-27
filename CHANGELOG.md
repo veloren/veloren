@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Players can press H to greet others
 - Ability to toggle chat visibility
 - Added gem rings with various stat improvements.
+- Animations for using consumables.
 
 ### Changed
 
