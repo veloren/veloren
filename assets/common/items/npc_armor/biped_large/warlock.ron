@@ -1,0 +1,17 @@
+ItemDef(
+    name: "Giant Warlock Chest",
+    description: "Made of darkest silk.",
+    kind: Armor((
+        kind: Chest("GiantWarlock"),
+        stats: (
+            protection: Normal(250.0),
+            poise_resilience: Normal(1.0),
+            energy_max: 1000,
+            energy_reward: 1.0,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)
