@@ -86,6 +86,12 @@
             };
             veloren-voxygen = oldAttrs: {
               VELOREN_USERDATA_STRATEGY = "system";
+              preConfigure = ''
+                substituteInPlace src/audio/soundcache.rs \
+                  --replace \
+                  "../../../assets/voxygen/audio/null.ogg" \
+                  "${./assets/voxygen/audio/null.ogg}"
+              '';
               postInstall = ''
                 if [ -f $out/bin/veloren-voxygen ]; then
                   wrapProgram $out/bin/veloren-voxygen \
@@ -93,9 +99,6 @@
                     --set LD_LIBRARY_PATH ${lib.makeLibraryPath common.runtimeLibs}
                 fi
               '';
-              patches = [
-                (import ./nix/nullOggPatch.nix { nullOgg = ./assets/voxygen/audio/null.ogg; inherit pkgs; })
-              ];
             };
             veloren-server-cli = oldAttrs: {
               VELOREN_USERDATA_STRATEGY = "system";
