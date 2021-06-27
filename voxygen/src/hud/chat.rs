@@ -163,6 +163,8 @@ pub struct State {
     tabs_last_hover_pulse: Option<f32>,
     // last chat_tab (used to see if chat tab has been changed)
     prev_chat_tab: Option<ChatTab>,
+    //whether or not a scroll action is queued
+    scroll_next: bool,
 }
 
 pub enum Event {
@@ -194,6 +196,7 @@ impl<'a> Widget for Chat<'a> {
             ids: Ids::new(id_gen),
             tabs_last_hover_pulse: None,
             prev_chat_tab: None,
+            scroll_next: false,
         }
     }
 
@@ -213,15 +216,23 @@ impl<'a> Widget for Chat<'a> {
 
         let chat_tabs = &chat_settings.chat_tabs;
         let current_chat_tab = chat_settings.chat_tab_index.and_then(|i| chat_tabs.get(i));
-
-        // Maintain scrolling.
+        // Maintain scrolling //
         if !self.new_messages.is_empty() {
+            //new messages - update chat w/ them & scroll down
             state.update(|s| s.messages.extend(self.new_messages.drain(..)));
             ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
         }
+
+        // Trigger scroll event queued from previous frame
+        if state.scroll_next {
+            ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
+            state.update(|s| s.scroll_next = false);
+        }
+
+        // Queue scroll event if switching from a different tab
         if current_chat_tab != state.prev_chat_tab.as_ref() {
             state.update(|s| s.prev_chat_tab = current_chat_tab.cloned());
-            ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
+            state.update(|s| s.scroll_next = true); //make scroll happen only once any filters to the messages have already been applied
         }
 
         // Empty old messages
