@@ -75,6 +75,10 @@ impl Protocols {
     ) -> Result<Self, NetworkConnectError> {
         let stream = net::TcpStream::connect(addr)
             .await
+            .and_then(|s| {
+                s.set_nodelay(true)?;
+                Ok(s)
+            })
             .map_err(NetworkConnectError::Io)?;
         info!(
             "Connecting Tcp to: {}",
@@ -105,6 +109,12 @@ impl Protocols {
                         continue;
                     },
                 };
+                if let Err(e) = stream.set_nodelay(true) {
+                    warn!(
+                        ?e,
+                        "Failed to set TCP_NODELAY, client may have degraded latency"
+                    );
+                }
                 let cid = cids.fetch_add(1, Ordering::Relaxed);
                 info!(?remote_addr, ?cid, "Accepting Tcp from");
                 let metrics = ProtocolMetricCache::new(&cid.to_string(), Arc::clone(&metrics));
