@@ -7,7 +7,7 @@ RepeaterRanged(
     half_speed_at: 1,
     projectile: Arrow(
         damage: 30.0,
-        knockback: 5.0,
+        knockback: 2.0,
         energy_regen: 0,
     ),
     projectile_body: Object(Arrow),
