@@ -804,11 +804,10 @@ impl Body {
                     (quadruped_medium::Species::Dreadhorn, _) => [0.2, 0.2, 3.5],
                     (quadruped_medium::Species::Moose, _) => [-0.6, -0.6, 2.1],
                     (quadruped_medium::Species::Snowleopard, _) => [-0.5, -0.5, 1.4],
-                    // TODO: Fill in these values
-                    (quadruped_medium::Species::Mammoth, _) => [0.0, 0.0, 0.0],
-                    (quadruped_medium::Species::Ngoubou, _) => [0.0, 0.0, 0.0],
-                    (quadruped_medium::Species::Llama, _) => [0.0, 0.0, 0.0],
-                    (quadruped_medium::Species::Alpaca, _) => [0.0, 0.0, 0.0],
+                    (quadruped_medium::Species::Mammoth, _) => [0.0, 4.9, 7.2],
+                    (quadruped_medium::Species::Ngoubou, _) => [0.0, 0.3, 2.0],
+                    (quadruped_medium::Species::Llama, _) => [0.0, 0.1, 1.5],
+                    (quadruped_medium::Species::Alpaca, _) => [0.0, -0.1, 1.0],
                 }
             },
             Body::Ship(ship) => match ship {

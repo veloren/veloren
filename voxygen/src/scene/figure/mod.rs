@@ -5408,11 +5408,7 @@ impl<S: Skeleton> FigureState<S> {
         self.state_time += dt * state_animation_rate;
 
         let mat = {
-            let ori_scale = anim::vek::Mat4::from(*ori)
-                * anim::vek::Mat4::scaling_3d(anim::vek::Vec3::from(*scale));
-            // NOTE: It is kind of a hack to use this entity's ori here if it is
-            // mounted on another but this happens to match the ori of the
-            // mountee so it works, change this if it causes jankiness in the future.
+            let scale_mat = anim::vek::Mat4::scaling_3d(anim::vek::Vec3::from(*scale));
             if let Some((transform, _)) = *mount_transform_pos {
                 // Note: if we had a way to compute a "default" transform of the bones then in
                 // the animations we could make use of the mountee_offset from common by
@@ -5423,13 +5419,21 @@ impl<S: Skeleton> FigureState<S> {
                 // animations and keep it in sync.
                 //
                 // Component of mounting offset specific to the mounter.
-                let mounter_offset = anim::vek::Mat4::translation_3d(
+                let mounter_offset = anim::vek::Mat4::<f32>::translation_3d(
                     body.map_or_else(Vec3::zero, |b| b.mounter_offset()),
                 );
 
-                anim::vek::Mat4::from(transform) * ori_scale * mounter_offset
+                // NOTE: It is kind of a hack to use this entity's ori here if it is
+                // mounted on another but this happens to match the ori of the
+                // mountee so it works, change this if it causes jankiness in the future.
+                let transform = anim::vek::Transform {
+                    orientation: *ori * transform.orientation,
+                    ..transform
+                };
+                anim::vek::Mat4::from(transform) * mounter_offset * scale_mat
             } else {
-                ori_scale
+                let ori_mat = anim::vek::Mat4::from(*ori);
+                ori_mat * scale_mat
             }
         };
 
