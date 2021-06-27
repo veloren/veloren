@@ -74,6 +74,14 @@ pub enum SerializedTerrainChunk {
 }
 
 impl SerializedTerrainChunk {
+    pub fn approx_len(&self) -> usize {
+        match self {
+            SerializedTerrainChunk::DeflatedChonk(data) => data.data.len(),
+            SerializedTerrainChunk::QuadPng(data) => data.data.data.len(),
+            SerializedTerrainChunk::TriPng(data) => data.data.data.len(),
+        }
+    }
+
     pub fn via_heuristic(chunk: &TerrainChunk, lossy_compression: bool) -> Self {
         if lossy_compression && (chunk.get_max_z() - chunk.get_min_z() <= 128) {
             Self::quadpng(chunk)

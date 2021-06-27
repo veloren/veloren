@@ -2123,7 +2123,9 @@ impl Client {
                 cnt += 1;
                 #[cfg(feature = "tracy")]
                 {
-                    terrain_cnt += 1;
+                    if let ServerGeneral::TerrainChunkUpdate { chunk, .. } = &msg {
+                        terrain_cnt += chunk.as_ref().map(|x| x.approx_len()).unwrap_or(0);
+                    }
                 }
                 self.handle_server_terrain_msg(msg)?;
             }

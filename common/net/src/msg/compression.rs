@@ -756,7 +756,7 @@ pub fn write_image_terrain<
 pub struct WireChonk<VIE: VoxelImageEncoding, P: PackingFormula, M: Clone, S: RectVolSize> {
     zmin: i32,
     zmax: i32,
-    data: VIE::Output,
+    pub(crate) data: VIE::Output,
     below: Block,
     above: Block,
     meta: M,
