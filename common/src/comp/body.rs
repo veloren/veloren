@@ -625,6 +625,7 @@ impl Body {
                 biped_large::Species::Dullahan => 120,
                 biped_large::Species::Huskbrute => 100,
                 // Boss enemies have their health set, not adjusted by level.
+                biped_large::Species::Huskbrute => 0,
                 biped_large::Species::Mindflayer => 0,
                 biped_large::Species::Minotaur => 0,
                 biped_large::Species::Tidalwarrior => 0,
