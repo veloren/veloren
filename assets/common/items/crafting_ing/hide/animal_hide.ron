@@ -6,6 +6,5 @@ ItemDef(
     ),
     quality: Low,
     tags: [
-        Material(Leather)
     ],
 )
