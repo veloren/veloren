@@ -238,6 +238,16 @@
         "hud.skill.axe_leap_cost": "Reduz custo do salto em 25%{SP}",
         "hud.skill.axe_leap_distance_title": "Distancia do Salto",
         "hud.skill.axe_leap_distance": "Aumenta a distância do salto em 20%{SP}",
+        // Mineração
+        "hud.skill.mining_title": "Mineração",
+        "hud.skill.pick_strike_title": "Golpe de Picareta",
+        "hud.skill.pick_strike": "Acerta rochas com a picareta para retirar minérios, gemas e experiência",
+        "hud.skill.pick_strike_speed_title": "Velocidade do Golpe de Picareta",
+        "hud.skill.pick_strike_speed": "Minera mais rápido{SP}",
+        "hud.skill.pick_strike_oregain_title": "Rendimento de Minério com a Picareta",
+        "hud.skill.pick_strike_oregain": "Change de ganhar minérios extras (5% por nível){SP}",
+        "hud.skill.pick_strike_gemgain_title": "Rendimento de Gemas com a Picareta",
+        "hud.skill.pick_strike_gemgain": "Change de ganhar gemas extras (5% por nível){SP}",
     },
 
 

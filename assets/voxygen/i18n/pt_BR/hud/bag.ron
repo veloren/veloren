@@ -24,6 +24,10 @@
         "hud.bag.feet": "Pés",
         "hud.bag.mainhand": "Mão hábil",
         "hud.bag.offhand": "Mão inábil",
+        "hud.bag.inactive_mainhand": "Mão hábil inativa",
+        "hud.bag.inactive_offhand": "Mão inábil inativa",
+        "hud.bag.swap_equipped_weapons_title": "Trocar armas equipadas",
+        "hud.bag.swap_equipped_weapons_desc": "Pressione {key}",
         "hud.bag.bag": "Mochila",
         "hud.bag.health": "Vida",
         "hud.bag.stamina": "Stamina",
@@ -35,7 +39,7 @@
         "hud.bag.stun_res_desc": "Resistência à paralisia provocada por golpes consecutivos.\nRegenera como Stamina.",
     		"hud.bag.sort_by_name": "Ordenar por Nome",
 	    	"hud.bag.sort_by_quality": "Ordenar por Qualidade",
-                "hud.bag.sort_by_category": "Ordenar por Categoria",
+            "hud.bag.sort_by_category": "Ordenar por Categoria",
     },
 
 

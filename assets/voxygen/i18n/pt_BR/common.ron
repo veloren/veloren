@@ -45,7 +45,7 @@
         "common.video_settings": "Configurações Gráficas",
         "common.sound_settings": "Configurações de Som",
         "common.language_settings": "Configurações de Idioma",
-        "common.chat_settings": "Configuraçõões de Chat",
+        "common.chat_settings": "Configurações de Chat",
 
         // Message when connection to the server is lost
         "common.connection_lost": r#"Conexão Perdida!
@@ -78,6 +78,7 @@ O cliente está atualizado?"#,
         "common.tool.debug": "Debug",
         "common.tool.faming": "Ferramenta Agrícola",
         "common.tool.pick": "Picareta",
+        "common.tool.mining": "Mineração",
         "common.kind.modular_component": "Componente Modular",
         "common.kind.glider": "Planador",
         "common.kind.consumable": "Consumível",
@@ -99,7 +100,17 @@ O cliente está atualizado?"#,
         "common.stats.crit_mult": "Multiplicador de Crit",
         "common.stats.armor": "Armadura",
         "common.stats.poise_res":"Resist Paralisia",
+        "common.stats.energy_max": "Energia Max",
+        "common.stats.energy_reward": "Captura de energia",
+        "common.stats.crit_power": "Crit Power",
+        "common.stats.stealth": "Stealth",
         "common.stats.slots": "Espaços",
+
+        "common.material.metal": "Metal",
+        "common.material.wood": "Madeira",
+        "common.material.stone": "Pedra",
+        "common.material.cloth": "Tecido",
+        "common.material.hide": "Couro",
     },
 
 
