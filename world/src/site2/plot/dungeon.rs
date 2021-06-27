@@ -187,7 +187,7 @@ impl Tile {
 pub struct Room {
     seed: u32,
     loot_density: f32,
-    enemy_density: Option<f32>,
+    fight: bool,
     miniboss: bool,
     boss: bool,
     area: Rect<i32, i32>,
@@ -252,7 +252,7 @@ impl Floor {
         let upstair_room = this.create_room(Room {
             seed: ctx.rng.gen(),
             loot_density: 0.0,
-            enemy_density: None,
+            fight: false,
             miniboss: false,
             boss: false,
             area: Rect::from((stair_tile - tile_offset - 1, Extent2::broadcast(3))),
@@ -265,7 +265,8 @@ impl Floor {
             this.create_room(Room {
                 seed: ctx.rng.gen(),
                 loot_density: 0.0,
-                enemy_density: Some((0.0002 * difficulty as f32).min(0.001)), // Minions!
+                // Our bosses are intelligent enough to summon minions if needed.
+                fight: false,
                 miniboss: false,
                 boss: true,
                 area: Rect::from((
@@ -281,7 +282,7 @@ impl Floor {
             let downstair_room = this.create_room(Room {
                 seed: ctx.rng.gen(),
                 loot_density: 0.0,
-                enemy_density: None,
+                fight: false,
                 miniboss: false,
                 boss: false,
                 area: Rect::from((new_stair_tile - tile_offset - 1, Extent2::broadcast(3))),
@@ -358,10 +359,11 @@ impl Floor {
             let mut dynamic_rng = rand::thread_rng();
 
             match dynamic_rng.gen_range(0..5) {
+                // Miniboss room
                 0 => self.create_room(Room {
                     seed: ctx.rng.gen(),
                     loot_density: 0.000025 + level as f32 * 0.00015,
-                    enemy_density: None,
+                    fight: false,
                     miniboss: true,
                     boss: false,
                     area,
@@ -369,10 +371,11 @@ impl Floor {
                     pillars: Some(ctx.rng.gen_range(2..=4)),
                     difficulty: self.difficulty,
                 }),
+                // Fight room with enemies in it
                 _ => self.create_room(Room {
                     seed: ctx.rng.gen(),
                     loot_density: 0.000025 + level as f32 * 0.00015,
-                    enemy_density: Some(0.001 + level as f32 * 0.00006),
+                    fight: true,
                     miniboss: false,
                     boss: false,
                     area,
@@ -433,7 +436,6 @@ impl Floor {
         }
     }
 
-    #[allow(clippy::match_single_binding)] // TODO: Pending review in #587
     fn apply_supplement(
         &self,
         // NOTE: Used only for dynamic elements like chests and entities!
@@ -477,79 +479,108 @@ impl Floor {
                                 .map(|e| e.div_euclid(TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2),
                         );
 
-                    let tile_is_pillar = room
-                        .pillars
-                        .map(|pillar_space| {
-                            tile_pos
+                    // Fill regular rooms
+                    if room.fight {
+                        let enemy_spawn_tile = room.area.center();
+                        // Don't spawn enemies in a pillar
+                        let enemy_tile_is_pillar = room.pillars.map_or(false, |pillar_space| {
+                            enemy_spawn_tile
                                 .map(|e| e.rem_euclid(pillar_space) == 0)
                                 .reduce_and()
-                        })
-                        .unwrap_or(false);
+                        });
+                        let enemy_spawn_tile =
+                            enemy_spawn_tile + if enemy_tile_is_pillar { 1 } else { 0 };
 
-                    if room
-                        .enemy_density
-                        .map(|density| dynamic_rng.gen_range(0..density.recip() as usize) == 0)
-                        .unwrap_or(false)
-                        && !tile_is_pillar
-                        && !room.boss
-                    {
-                        // Randomly displace them a little
-                        let raw_entity = EntityInfo::at(
-                            tile_wcenter.map(|e| e as f32)
-                                + Vec3::<u32>::iota()
-                                    .map(|e| {
-                                        (RandomField::new(room.seed.wrapping_add(10 + e))
-                                            .get(Vec3::from(tile_pos))
-                                            % 32) as i32
-                                            - 16
-                                    })
-                                    .map(|e| e as f32 / 16.0),
-                        );
+                        // Toss mobs in the center of the room
+                        if tile_pos == enemy_spawn_tile && wpos2d == tile_wcenter.xy() {
+                            let entities = match room.difficulty {
+                                0 => enemy_0(dynamic_rng, tile_wcenter),
+                                1 => enemy_1(dynamic_rng, tile_wcenter),
+                                2 => enemy_2(dynamic_rng, tile_wcenter),
+                                3 => enemy_3(dynamic_rng, tile_wcenter),
+                                4 => enemy_4(dynamic_rng, tile_wcenter),
+                                5 => enemy_5(dynamic_rng, tile_wcenter),
+                                _ => enemy_fallback(dynamic_rng, tile_wcenter),
+                            };
 
-                        let entity = match room.difficulty {
-                            0 => enemy_0(dynamic_rng, raw_entity),
-                            1 => enemy_1(dynamic_rng, raw_entity),
-                            2 => enemy_2(dynamic_rng, raw_entity),
-                            3 => enemy_3(dynamic_rng, raw_entity),
-                            4 => enemy_4(dynamic_rng, raw_entity),
-                            5 => enemy_5(dynamic_rng, raw_entity),
-                            _ => enemy_fallback(raw_entity),
-                        };
-                        supplement.add_entity(
-                            entity.with_alignment(comp::Alignment::Enemy).with_level(
-                                dynamic_rng
-                                    .gen_range(
-                                        (room.difficulty as f32).powf(1.25) + 3.0
-                                            ..(room.difficulty as f32).powf(1.5) + 4.0,
-                                    )
-                                    .round() as u16,
-                            ),
-                        );
+                            for entity in entities {
+                                supplement.add_entity(
+                                    entity
+                                        .with_level(
+                                            dynamic_rng
+                                                .gen_range(
+                                                    (room.difficulty as f32).powf(1.25) + 3.0
+                                                        ..(room.difficulty as f32).powf(1.5) + 4.0,
+                                                )
+                                                .round()
+                                                as u16,
+                                        )
+                                        .with_alignment(comp::Alignment::Enemy),
+                                );
+                            }
+                        } else {
+                            // Turrets
+                            if dynamic_rng.gen_range(0..5000) == 0 {
+                                let pos = tile_wcenter.map(|e| e as f32)
+                                    + Vec3::<u32>::iota()
+                                        .map(|e| {
+                                            (RandomField::new(room.seed.wrapping_add(10 + e))
+                                                .get(Vec3::from(tile_pos))
+                                                % 32)
+                                                as i32
+                                                - 16
+                                        })
+                                        .map(|e| e as f32 / 16.0);
+                                let turret = EntityInfo::at(pos.map(|e| e as f32))
+                                    .with_alignment(comp::Alignment::Enemy);
+                                match room.difficulty {
+                                    3 => {
+                                        let turret = turret
+                                            .with_body(comp::Body::Object(
+                                                comp::object::Body::Crossbow,
+                                            ))
+                                            .with_asset_expect(
+                                                "common.entity.dungeon.tier-3.sentry",
+                                            );
+                                        supplement.add_entity(turret);
+                                    },
+                                    5 => {
+                                        let turret = turret
+                                            .with_body(comp::Body::Object(
+                                                comp::object::Body::Crossbow,
+                                            ))
+                                            .with_asset_expect(
+                                                "common.entity.dungeon.tier-5.turret",
+                                            );
+                                        supplement.add_entity(turret);
+                                    },
+                                    _ => {},
+                                };
+                            }
+                        }
                     }
 
-                    if room.boss {
-                        let boss_spawn_tile = room.area.center();
-                        // Don't spawn the boss in a pillar
-                        let boss_tile_is_pillar = room
-                            .pillars
-                            .map(|pillar_space| {
-                                boss_spawn_tile
-                                    .map(|e| e.rem_euclid(pillar_space) == 0)
-                                    .reduce_and()
-                            })
-                            .unwrap_or(false);
-                        let boss_spawn_tile =
-                            boss_spawn_tile + if boss_tile_is_pillar { 1 } else { 0 };
+                    // Spawn miniboss (or minibosses)
+                    if room.miniboss {
+                        let miniboss_spawn_tile = room.area.center();
+                        // Don't spawn the miniboss in a pillar
+                        let miniboss_tile_is_pillar = room.pillars.map_or(false, |pillar_space| {
+                            miniboss_spawn_tile
+                                .map(|e| e.rem_euclid(pillar_space) == 0)
+                                .reduce_and()
+                        });
+                        let miniboss_spawn_tile =
+                            miniboss_spawn_tile + if miniboss_tile_is_pillar { 1 } else { 0 };
 
-                        if tile_pos == boss_spawn_tile && tile_wcenter.xy() == wpos2d {
+                        if tile_pos == miniboss_spawn_tile && tile_wcenter.xy() == wpos2d {
                             let entities = match room.difficulty {
-                                0 => boss_0(tile_wcenter),
-                                1 => boss_1(tile_wcenter),
-                                2 => boss_2(tile_wcenter),
-                                3 => boss_3(tile_wcenter),
-                                4 => boss_4(tile_wcenter),
-                                5 => boss_5(tile_wcenter),
-                                _ => boss_fallback(tile_wcenter),
+                                0 => mini_boss_0(tile_wcenter),
+                                1 => mini_boss_1(tile_wcenter),
+                                2 => mini_boss_2(tile_wcenter),
+                                3 => mini_boss_3(tile_wcenter),
+                                4 => mini_boss_4(tile_wcenter),
+                                5 => mini_boss_5(dynamic_rng, tile_wcenter),
+                                _ => mini_boss_fallback(tile_wcenter),
                             };
 
                             for entity in entities {
@@ -570,29 +601,28 @@ impl Floor {
                             }
                         }
                     }
-                    if room.miniboss {
-                        let miniboss_spawn_tile = room.area.center();
-                        // Don't spawn the miniboss in a pillar
-                        let miniboss_tile_is_pillar = room
-                            .pillars
-                            .map(|pillar_space| {
-                                miniboss_spawn_tile
-                                    .map(|e| e.rem_euclid(pillar_space) == 0)
-                                    .reduce_and()
-                            })
-                            .unwrap_or(false);
-                        let miniboss_spawn_tile =
-                            miniboss_spawn_tile + if miniboss_tile_is_pillar { 1 } else { 0 };
 
-                        if tile_pos == miniboss_spawn_tile && tile_wcenter.xy() == wpos2d {
+                    // Spawn miniboss
+                    if room.boss {
+                        let boss_spawn_tile = room.area.center();
+                        // Don't spawn the boss in a pillar
+                        let boss_tile_is_pillar = room.pillars.map_or(false, |pillar_space| {
+                            boss_spawn_tile
+                                .map(|e| e.rem_euclid(pillar_space) == 0)
+                                .reduce_and()
+                        });
+                        let boss_spawn_tile =
+                            boss_spawn_tile + if boss_tile_is_pillar { 1 } else { 0 };
+
+                        if tile_pos == boss_spawn_tile && wpos2d == tile_wcenter.xy() {
                             let entities = match room.difficulty {
-                                0 => mini_boss_0(tile_wcenter),
-                                1 => mini_boss_1(tile_wcenter),
-                                2 => mini_boss_2(tile_wcenter),
-                                3 => mini_boss_3(tile_wcenter),
-                                4 => mini_boss_4(tile_wcenter),
-                                5 => mini_boss_5(dynamic_rng, tile_wcenter),
-                                _ => mini_boss_fallback(tile_wcenter),
+                                0 => boss_0(tile_wcenter),
+                                1 => boss_1(tile_wcenter),
+                                2 => boss_2(tile_wcenter),
+                                3 => boss_3(tile_wcenter),
+                                4 => boss_4(tile_wcenter),
+                                5 => boss_5(tile_wcenter),
+                                _ => boss_fallback(tile_wcenter),
                             };
 
                             for entity in entities {
@@ -631,61 +661,105 @@ impl Floor {
     }
 }
 
-fn enemy_0(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
-    match dynamic_rng.gen_range(0..5) {
-        0 => entity.with_asset_expect("common.entity.dungeon.tier-0.bow"),
-        1 => entity.with_asset_expect("common.entity.dungeon.tier-0.staff"),
-        _ => entity.with_asset_expect("common.entity.dungeon.tier-0.spear"),
-    }
+fn enemy_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    let number = dynamic_rng.gen_range(2..=4);
+    let mut entities = Vec::new();
+    entities.resize_with(number, || {
+        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
+        match dynamic_rng.gen_range(0..=4) {
+            0 => entity.with_asset_expect("common.entity.dungeon.tier-0.bow"),
+            1 => entity.with_asset_expect("common.entity.dungeon.tier-0.staff"),
+            _ => entity.with_asset_expect("common.entity.dungeon.tier-0.spear"),
+        }
+    });
+
+    entities
 }
 
-fn enemy_1(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
-    match dynamic_rng.gen_range(0..5) {
-        0 => entity.with_asset_expect("common.entity.dungeon.tier-1.bow"),
-        1 => entity.with_asset_expect("common.entity.dungeon.tier-1.staff"),
-        _ => entity.with_asset_expect("common.entity.dungeon.tier-1.spear"),
-    }
+fn enemy_1(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    let number = dynamic_rng.gen_range(2..=4);
+    let mut entities = Vec::new();
+    entities.resize_with(number, || {
+        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
+        match dynamic_rng.gen_range(0..=4) {
+            0 => entity.with_asset_expect("common.entity.dungeon.tier-1.bow"),
+            1 => entity.with_asset_expect("common.entity.dungeon.tier-1.staff"),
+            _ => entity.with_asset_expect("common.entity.dungeon.tier-1.spear"),
+        }
+    });
+
+    entities
 }
 
-fn enemy_2(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
-    match dynamic_rng.gen_range(0..5) {
-        0 => entity.with_asset_expect("common.entity.dungeon.tier-2.bow"),
-        1 => entity.with_asset_expect("common.entity.dungeon.tier-2.staff"),
-        _ => entity.with_asset_expect("common.entity.dungeon.tier-2.spear"),
-    }
+fn enemy_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    let number = dynamic_rng.gen_range(2..=4);
+    let mut entities = Vec::new();
+    entities.resize_with(number, || {
+        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
+        match dynamic_rng.gen_range(0..=4) {
+            0 => entity.with_asset_expect("common.entity.dungeon.tier-2.bow"),
+            1 => entity.with_asset_expect("common.entity.dungeon.tier-2.staff"),
+            _ => entity.with_asset_expect("common.entity.dungeon.tier-2.spear"),
+        }
+    });
+
+    entities
 }
 
-fn enemy_3(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
-    match dynamic_rng.gen_range(0..5) {
-        0 => entity
-            .with_body(comp::Body::Object(comp::object::Body::HaniwaSentry))
-            .with_asset_expect("common.entity.dungeon.tier-3.sentry"),
-        1 => entity.with_asset_expect("common.entity.dungeon.tier-3.bow"),
-        2 => entity.with_asset_expect("common.entity.dungeon.tier-3.staff"),
-        _ => entity.with_asset_expect("common.entity.dungeon.tier-3.spear"),
-    }
-}
-fn enemy_4(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
-    match dynamic_rng.gen_range(0..5) {
-        0 => entity.with_asset_expect("common.entity.dungeon.tier-4.bow"),
-        1 => entity.with_asset_expect("common.entity.dungeon.tier-4.staff"),
-        _ => entity.with_asset_expect("common.entity.dungeon.tier-4.spear"),
-    }
+fn enemy_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    let number = dynamic_rng.gen_range(2..=4);
+    let mut entities = Vec::new();
+    entities.resize_with(number, || {
+        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
+        match dynamic_rng.gen_range(0..=4) {
+            0 => entity.with_asset_expect("common.entity.dungeon.tier-3.bow"),
+            1 => entity.with_asset_expect("common.entity.dungeon.tier-3.staff"),
+            _ => entity.with_asset_expect("common.entity.dungeon.tier-3.spear"),
+        }
+    });
+
+    entities
 }
 
-fn enemy_5(dynamic_rng: &mut impl Rng, entity: EntityInfo) -> EntityInfo {
-    match dynamic_rng.gen_range(0..6) {
-        0 => entity
-            .with_body(comp::Body::Object(comp::object::Body::Crossbow))
-            .with_asset_expect("common.entity.dungeon.tier-5.turret"),
-        1 => entity.with_asset_expect("common.entity.dungeon.tier-5.warlock"),
-        2 => entity.with_asset_expect("common.entity.dungeon.tier-5.warlord"),
-        _ => entity.with_asset_expect("common.entity.dungeon.tier-5.cultist"),
-    }
+fn enemy_4(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    let number = dynamic_rng.gen_range(2..=4);
+    let mut entities = Vec::new();
+    entities.resize_with(number, || {
+        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
+        match dynamic_rng.gen_range(0..=4) {
+            0 => entity.with_asset_expect("common.entity.dungeon.tier-4.bow"),
+            1 => entity.with_asset_expect("common.entity.dungeon.tier-4.staff"),
+            _ => entity.with_asset_expect("common.entity.dungeon.tier-4.spear"),
+        }
+    });
+
+    entities
 }
 
-fn enemy_fallback(entity: EntityInfo) -> EntityInfo {
-    entity.with_asset_expect("common.entity.dungeon.fallback.enemy")
+fn enemy_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    let number = dynamic_rng.gen_range(1..=3);
+    let mut entities = Vec::new();
+    entities.resize_with(number, || {
+        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
+        match dynamic_rng.gen_range(0..=4) {
+            0 => entity.with_asset_expect("common.entity.dungeon.tier-5.warlock"),
+            1 => entity.with_asset_expect("common.entity.dungeon.tier-5.warlord"),
+            _ => entity.with_asset_expect("common.entity.dungeon.tier-5.cultist"),
+        }
+    });
+
+    entities
+}
+
+fn enemy_fallback(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+    let number = dynamic_rng.gen_range(2..=4);
+    let mut entities = Vec::new();
+    entities.resize_with(number, || {
+        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
+        entity.with_asset_expect("common.entity.dungeon.fallback.enemy")
+    });
+
+    entities
 }
 
 fn boss_0(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
@@ -782,7 +856,7 @@ fn mini_boss_4(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
 
 fn mini_boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     let mut entities = Vec::new();
-    match dynamic_rng.gen_range(0..3) {
+    match dynamic_rng.gen_range(0..=2) {
         0 => {
             entities.push(
                 EntityInfo::at(tile_wcenter.map(|e| e as f32))
@@ -814,51 +888,6 @@ fn mini_boss_fallback(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
             .with_asset_expect("common.entity.dungeon.fallback.miniboss"),
     ]
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_creating_bosses() {
-        let tile_wcenter = Vec3::new(0, 0, 0);
-        boss_0(tile_wcenter);
-        boss_1(tile_wcenter);
-        boss_2(tile_wcenter);
-        boss_3(tile_wcenter);
-        boss_4(tile_wcenter);
-        boss_5(tile_wcenter);
-        boss_fallback(tile_wcenter);
-    }
-
-    #[test]
-    // FIXME: Uses random, test may be not great
-    fn test_creating_enemies() {
-        let mut dynamic_rng = rand::thread_rng();
-        let raw_entity = EntityInfo::at(Vec3::new(0.0, 0.0, 0.0));
-        enemy_0(&mut dynamic_rng, raw_entity.clone());
-        enemy_1(&mut dynamic_rng, raw_entity.clone());
-        enemy_2(&mut dynamic_rng, raw_entity.clone());
-        enemy_3(&mut dynamic_rng, raw_entity.clone());
-        enemy_4(&mut dynamic_rng, raw_entity.clone());
-        enemy_5(&mut dynamic_rng, raw_entity.clone());
-        enemy_fallback(raw_entity);
-    }
-
-    #[test]
-    // FIXME: Uses random, test may be not great
-    fn test_creating_minibosses() {
-        let mut dynamic_rng = rand::thread_rng();
-        let tile_wcenter = Vec3::new(0, 0, 0);
-        mini_boss_0(tile_wcenter);
-        mini_boss_1(tile_wcenter);
-        mini_boss_2(tile_wcenter);
-        mini_boss_3(tile_wcenter);
-        mini_boss_4(tile_wcenter);
-        mini_boss_5(&mut dynamic_rng, tile_wcenter);
-        mini_boss_fallback(tile_wcenter);
-    }
 }
 
 pub fn tilegrid_nearest_wall(tiles: &Grid<Tile>, rpos: Vec2<i32>) -> Option<Vec2<i32>> {
@@ -1332,5 +1361,50 @@ impl SiteStructure for Dungeon {
 
             floor.render(&mut prim, &mut fill, &self, z);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_creating_bosses() {
+        let tile_wcenter = Vec3::new(0, 0, 0);
+        boss_0(tile_wcenter);
+        boss_1(tile_wcenter);
+        boss_2(tile_wcenter);
+        boss_3(tile_wcenter);
+        boss_4(tile_wcenter);
+        boss_5(tile_wcenter);
+        boss_fallback(tile_wcenter);
+    }
+
+    #[test]
+    // FIXME: Uses random, test may be not great
+    fn test_creating_enemies() {
+        let mut dynamic_rng = rand::thread_rng();
+        let random_position = Vec3::new(0, 0, 0);
+        enemy_0(&mut dynamic_rng, random_position);
+        enemy_1(&mut dynamic_rng, random_position);
+        enemy_2(&mut dynamic_rng, random_position);
+        enemy_3(&mut dynamic_rng, random_position);
+        enemy_4(&mut dynamic_rng, random_position);
+        enemy_5(&mut dynamic_rng, random_position);
+        enemy_fallback(&mut dynamic_rng, random_position);
+    }
+
+    #[test]
+    // FIXME: Uses random, test may be not great
+    fn test_creating_minibosses() {
+        let mut dynamic_rng = rand::thread_rng();
+        let tile_wcenter = Vec3::new(0, 0, 0);
+        mini_boss_0(tile_wcenter);
+        mini_boss_1(tile_wcenter);
+        mini_boss_2(tile_wcenter);
+        mini_boss_3(tile_wcenter);
+        mini_boss_4(tile_wcenter);
+        mini_boss_5(&mut dynamic_rng, tile_wcenter);
+        mini_boss_fallback(tile_wcenter);
     }
 }
