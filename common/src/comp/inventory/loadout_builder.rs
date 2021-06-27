@@ -161,14 +161,9 @@ fn default_main_tool(body: &Body) -> Item {
             _ => None,
         },
         Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
-            quadruped_medium::Species::Wolf
-            | quadruped_medium::Species::Grolgar
-            | quadruped_medium::Species::Lion
-            | quadruped_medium::Species::Bonerattler
-            | quadruped_medium::Species::Darkhound
-            | quadruped_medium::Species::Snowleopard => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadmedquick",
-            )),
+            quadruped_medium::Species::Wolf | quadruped_medium::Species::Grolgar => Some(
+                Item::new_from_asset_expect("common.items.npc_weapons.unique.quadmedquick"),
+            ),
             quadruped_medium::Species::Donkey
             | quadruped_medium::Species::Horse
             | quadruped_medium::Species::Zebra
@@ -180,7 +175,11 @@ fn default_main_tool(body: &Body) -> Item {
             | quadruped_medium::Species::Alpaca => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadmedhoof",
             )),
-            quadruped_medium::Species::Saber => Some(Item::new_from_asset_expect(
+            quadruped_medium::Species::Saber
+            | quadruped_medium::Species::Bonerattler
+            | quadruped_medium::Species::Darkhound
+            | quadruped_medium::Species::Lion
+            | quadruped_medium::Species::Snowleopard => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadmedjump",
             )),
             quadruped_medium::Species::Tuskram
