@@ -34,7 +34,7 @@ layout(set = 0, binding = 12) restrict readonly buffer sprite_verts {
     uvec2 verts[];
 };
 
-layout (std140, set = 2, binding = 0)
+layout (std140, set = 3, binding = 0)
 uniform u_terrain_locals {
     vec3 model_offs;
     float load_time;
