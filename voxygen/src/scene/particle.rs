@@ -242,6 +242,19 @@ impl ParticleMgr {
                     )
                 });
             },
+            Outcome::Death { pos, .. } => {
+                self.particles.resize_with(self.particles.len() + 40, || {
+                    Particle::new(
+                        Duration::from_millis(400 + rng.gen_range(0..100)),
+                        time,
+                        ParticleMode::Death,
+                        *pos + Vec3::unit_z()
+                            + Vec3::<f32>::zero()
+                                .map(|_| rng.gen_range(-0.1..0.1))
+                                .normalized(),
+                    )
+                });
+            },
             Outcome::ProjectileShot { .. }
             | Outcome::Beam { .. }
             | Outcome::ExpChange { .. }

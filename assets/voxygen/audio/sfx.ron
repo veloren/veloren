@@ -777,6 +777,14 @@
                 ],
             threshold: 0.2,
         ),
+        Death: (
+            files: [
+                    "voxygen.audio.sfx.character.death_1",
+                    "voxygen.audio.sfx.character.death_2",
+                    "voxygen.audio.sfx.character.death_3",
+                ],
+            threshold: 0.2,
+        ),
         Block: (
             files: [
                     "voxygen.audio.sfx.character.block_1",

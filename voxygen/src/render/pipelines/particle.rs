@@ -84,6 +84,7 @@ pub enum ParticleMode {
     IceSpikes = 31,
     Drip = 32,
     Tornado = 33,
+    Death = 34,
 }
 
 impl ParticleMode {
