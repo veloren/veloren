@@ -8,7 +8,7 @@ use rayon::{
     iter::{IntoParallelIterator, ParallelIterator},
     ThreadPoolBuilder,
 };
-use rusqlite::{Connection, ToSql, NO_PARAMS};
+use rusqlite::{Connection, ToSql, Transaction, TransactionBehavior, NO_PARAMS};
 use std::{
     collections::{HashMap, HashSet},
     error::Error,
@@ -134,22 +134,24 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         });
     });
-    #[rustfmt::skip]
-    let mut insert_block = conn.prepare("
-        REPLACE INTO block (xcoord, ycoord, kind, r, g, b, quantity)
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
-    ")?;
-    #[rustfmt::skip]
-    let mut insert_sprite = conn.prepare("
-        REPLACE INTO sprite (xcoord, ycoord, kind, quantity)
-        VALUES (?1, ?2, ?3, ?4)
-    ")?;
-    #[rustfmt::skip]
-    let mut insert_chunk = conn.prepare("
-        REPLACE INTO chunk (xcoord, ycoord, height, start_time, end_time)
-        VALUES (?1, ?2, ?3, ?4, ?5)
-    ")?;
+    let mut tx = Transaction::new_unchecked(&conn, TransactionBehavior::Deferred)?;
+    let mut i = 0;
     while let Ok((x, y, height, start_time, end_time, block_counts, sprite_counts)) = rx.recv() {
+        #[rustfmt::skip]
+        let mut insert_block = tx.prepare_cached("
+            REPLACE INTO block (xcoord, ycoord, kind, r, g, b, quantity)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+        ")?;
+        #[rustfmt::skip]
+        let mut insert_sprite = tx.prepare_cached("
+            REPLACE INTO sprite (xcoord, ycoord, kind, quantity)
+            VALUES (?1, ?2, ?3, ?4)
+        ")?;
+        #[rustfmt::skip]
+        let mut insert_chunk = tx.prepare_cached("
+            REPLACE INTO chunk (xcoord, ycoord, height, start_time, end_time)
+            VALUES (?1, ?2, ?3, ?4, ?5)
+        ")?;
         println!("Inserting results for chunk at ({}, {})", x, y);
         for ((kind, color), count) in block_counts.iter() {
             insert_block.execute(&[
@@ -168,6 +170,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         let start_time = start_time.duration_since(UNIX_EPOCH)?.as_secs_f64();
         let end_time = end_time.duration_since(UNIX_EPOCH)?.as_secs_f64();
         insert_chunk.execute(&[&x as &dyn ToSql, &y, &height, &start_time, &end_time])?;
+        if i % 32 == 0 {
+            println!("Committing last 32 chunks");
+            drop(insert_block);
+            drop(insert_sprite);
+            drop(insert_chunk);
+            tx.commit()?;
+            tx = Transaction::new_unchecked(&conn, TransactionBehavior::Deferred)?;
+        }
+        i += 1;
     }
     Ok(())
 }
