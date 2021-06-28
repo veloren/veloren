@@ -184,12 +184,18 @@ impl Tile {
     }
 }
 
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+enum RoomKind {
+    Peaceful,
+    Fight,
+    Boss,
+    Miniboss,
+}
+
 pub struct Room {
     seed: u32,
     loot_density: f32,
-    fight: bool,
-    miniboss: bool,
-    boss: bool,
+    kind: RoomKind,
     area: Rect<i32, i32>,
     height: i32,
     pillars: Option<i32>, // Pillars with the given separation
@@ -252,9 +258,7 @@ impl Floor {
         let upstair_room = this.create_room(Room {
             seed: ctx.rng.gen(),
             loot_density: 0.0,
-            fight: false,
-            miniboss: false,
-            boss: false,
+            kind: RoomKind::Peaceful,
             area: Rect::from((stair_tile - tile_offset - 1, Extent2::broadcast(3))),
             height: STAIR_ROOM_HEIGHT,
             pillars: None,
@@ -265,10 +269,7 @@ impl Floor {
             this.create_room(Room {
                 seed: ctx.rng.gen(),
                 loot_density: 0.0,
-                // Our bosses are intelligent enough to summon minions if needed.
-                fight: false,
-                miniboss: false,
-                boss: true,
+                kind: RoomKind::Boss,
                 area: Rect::from((
                     new_stair_tile - tile_offset - MAX_WIDTH as i32 - 1,
                     Extent2::broadcast(width as i32 * 2 + 1),
@@ -282,9 +283,7 @@ impl Floor {
             let downstair_room = this.create_room(Room {
                 seed: ctx.rng.gen(),
                 loot_density: 0.0,
-                fight: false,
-                miniboss: false,
-                boss: false,
+                kind: RoomKind::Peaceful,
                 area: Rect::from((new_stair_tile - tile_offset - 1, Extent2::broadcast(3))),
                 height: STAIR_ROOM_HEIGHT,
                 pillars: None,
@@ -363,9 +362,7 @@ impl Floor {
                 0 => self.create_room(Room {
                     seed: ctx.rng.gen(),
                     loot_density: 0.000025 + level as f32 * 0.00015,
-                    fight: false,
-                    miniboss: true,
-                    boss: false,
+                    kind: RoomKind::Miniboss,
                     area,
                     height: ctx.rng.gen_range(15..20),
                     pillars: Some(ctx.rng.gen_range(2..=4)),
@@ -375,9 +372,7 @@ impl Floor {
                 _ => self.create_room(Room {
                     seed: ctx.rng.gen(),
                     loot_density: 0.000025 + level as f32 * 0.00015,
-                    fight: true,
-                    miniboss: false,
-                    boss: false,
+                    kind: RoomKind::Fight,
                     area,
                     height: ctx.rng.gen_range(10..15),
                     pillars: if ctx.rng.gen_range(0..4) == 0 {
@@ -480,7 +475,7 @@ impl Floor {
                         );
 
                     // Fill regular rooms
-                    if room.fight {
+                    if room.kind == RoomKind::Fight {
                         let enemy_spawn_tile = room.area.center();
                         // Don't spawn enemies in a pillar
                         let enemy_tile_is_pillar = room.pillars.map_or(false, |pillar_space| {
@@ -520,6 +515,7 @@ impl Floor {
                             }
                         } else {
                             // Turrets
+                            // Turret has 1/5000 chance to spawn per voxel in fight room
                             if dynamic_rng.gen_range(0..5000) == 0 {
                                 let pos = tile_wcenter.map(|e| e as f32)
                                     + Vec3::<u32>::iota()
@@ -561,7 +557,7 @@ impl Floor {
                     }
 
                     // Spawn miniboss (or minibosses)
-                    if room.miniboss {
+                    if room.kind == RoomKind::Miniboss {
                         let miniboss_spawn_tile = room.area.center();
                         // Don't spawn the miniboss in a pillar
                         let miniboss_tile_is_pillar = room.pillars.map_or(false, |pillar_space| {
@@ -603,7 +599,7 @@ impl Floor {
                     }
 
                     // Spawn miniboss
-                    if room.boss {
+                    if room.kind == RoomKind::Miniboss {
                         let boss_spawn_tile = room.area.center();
                         // Don't spawn the boss in a pillar
                         let boss_tile_is_pillar = room.pillars.map_or(false, |pillar_space| {
@@ -1251,7 +1247,7 @@ impl Floor {
                             prim(Primitive::Scale(pillar, Vec2::broadcast(scale).with_z(1.0)));
                         lights = prim(Primitive::And(lighting_plane, lights));
                         // Only add the base (and shift the lights up) for boss-room pillars
-                        if room.boss {
+                        if room.kind == RoomKind::Boss {
                             lights = prim(Primitive::Translate(lights, 3 * Vec3::unit_z()));
                             pillar = prim(Primitive::Or(pillar, base));
                         }
@@ -1260,7 +1256,7 @@ impl Floor {
                 }
 
                 // Keep track of the boss room to be able to add decorations later
-                if room.boss {
+                if room.kind == RoomKind::Boss {
                     boss_room_center =
                         Some(floor_corner + TILE_SIZE * room.area.center() + TILE_SIZE / 2);
                 }
