@@ -2279,6 +2279,10 @@
     Consumable("common.items.food.apple_mushroom_curry"): Png(
         "element.items.item_apple_curry",
     ),
+    Consumable("common.items.food.spore_corruption"): VoxTrans(
+        "voxel.sprite.spore.corruption_spore",
+        (0.0, 0.0, 0.0), (-30.0, 30.0, 20.0), 0.8,
+    ),
     Consumable("common.items.food.apple_stick"): Png(
         "element.items.item_apple_stick",
     ),
