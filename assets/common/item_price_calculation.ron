@@ -44,7 +44,7 @@ good_scaling: [
     (Potions, 0.0075), // common.items.consumable.potion_minor
     (Food, 0.1), // common.items.food.mushroom
     (Coin, 1.0), // common.items.utility.coins
-    (Armor, 0.5), // common.items.armor.misc.pants.worker_blue
+    (Armor, 1.0), // common.items.armor.misc.pants.worker_blue
     (Tools, 0.25), // common.items.weapons.staff.starter_staff
     (Ingredients, 0.25), // common.items.crafting_ing.leather_scraps
 ])
