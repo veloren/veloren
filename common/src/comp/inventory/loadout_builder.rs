@@ -595,119 +595,83 @@ impl LoadoutBuilder {
         self.with_asset_expect("common.loadout.default", rng)
     }
 
-    #[must_use]
-    pub fn active_mainhand(mut self, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::ActiveMainhand, item);
+    fn with_equipment(mut self, equip_slot: EquipSlot, item: Option<Item>) -> Self {
+        self.0.swap(equip_slot, item);
         self
     }
 
     #[must_use]
-    pub fn active_offhand(mut self, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::ActiveOffhand, item);
-        self
+    pub fn active_mainhand(self, item: Option<Item>) -> Self {
+        self.with_equipment(EquipSlot::ActiveMainhand, item)
     }
 
     #[must_use]
-    pub fn inactive_mainhand(mut self, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::InactiveMainhand, item);
-        self
+    pub fn active_offhand(self, item: Option<Item>) -> Self {
+        self.with_equipment(EquipSlot::ActiveOffhand, item)
     }
 
     #[must_use]
-    pub fn inactive_offhand(mut self, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::InactiveOffhand, item);
-        self
+    pub fn inactive_mainhand(self, item: Option<Item>) -> Self {
+        self.with_equipment(EquipSlot::InactiveMainhand, item)
     }
 
     #[must_use]
-    pub fn shoulder(mut self, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::Armor(ArmorSlot::Shoulders), item);
-        self
+    pub fn inactive_offhand(self, item: Option<Item>) -> Self {
+        self.with_equipment(EquipSlot::InactiveOffhand, item)
+    }
+
+    fn with_armor(self, armor_slot: ArmorSlot, item: Option<Item>) -> Self {
+        self.with_equipment(EquipSlot::Armor(armor_slot), item)
     }
 
     #[must_use]
-    pub fn chest(mut self, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::Armor(ArmorSlot::Chest), item);
-        self
+    pub fn shoulder(self, item: Option<Item>) -> Self {
+        self.with_armor(ArmorSlot::Shoulders, item)
     }
 
     #[must_use]
-    pub fn belt(mut self, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::Armor(ArmorSlot::Belt), item);
-        self
+    pub fn chest(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Chest, item) }
+
+    #[must_use]
+    pub fn belt(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Belt, item) }
+
+    #[must_use]
+    pub fn hands(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Hands, item) }
+
+    #[must_use]
+    pub fn pants(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Legs, item) }
+
+    #[must_use]
+    pub fn feet(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Feet, item) }
+
+    #[must_use]
+    pub fn back(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Back, item) }
+
+    #[must_use]
+    pub fn ring1(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Ring1, item) }
+
+    #[must_use]
+    pub fn ring2(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Ring2, item) }
+
+    #[must_use]
+    pub fn neck(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Neck, item) }
+
+    #[must_use]
+    pub fn lantern(self, item: Option<Item>) -> Self {
+        self.with_equipment(EquipSlot::Lantern, item)
     }
 
     #[must_use]
-    pub fn hands(mut self, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::Armor(ArmorSlot::Hands), item);
-        self
-    }
+    pub fn glider(self, item: Option<Item>) -> Self { self.with_equipment(EquipSlot::Glider, item) }
 
     #[must_use]
-    pub fn pants(mut self, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::Armor(ArmorSlot::Legs), item);
-        self
-    }
+    pub fn head(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Head, item) }
 
     #[must_use]
-    pub fn feet(mut self, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::Armor(ArmorSlot::Feet), item);
-        self
-    }
+    pub fn tabard(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Tabard, item) }
 
     #[must_use]
-    pub fn back(mut self, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::Armor(ArmorSlot::Back), item);
-        self
-    }
-
-    #[must_use]
-    pub fn ring1(mut self, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::Armor(ArmorSlot::Ring1), item);
-        self
-    }
-
-    #[must_use]
-    pub fn ring2(mut self, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::Armor(ArmorSlot::Ring2), item);
-        self
-    }
-
-    #[must_use]
-    pub fn neck(mut self, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::Armor(ArmorSlot::Neck), item);
-        self
-    }
-
-    #[must_use]
-    pub fn lantern(mut self, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::Lantern, item);
-        self
-    }
-
-    #[must_use]
-    pub fn glider(mut self, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::Glider, item);
-        self
-    }
-
-    #[must_use]
-    pub fn head(mut self, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::Armor(ArmorSlot::Head), item);
-        self
-    }
-
-    #[must_use]
-    pub fn tabard(mut self, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::Armor(ArmorSlot::Tabard), item);
-        self
-    }
-
-    #[must_use]
-    pub fn bag(mut self, which: ArmorSlot, item: Option<Item>) -> Self {
-        self.0.swap(EquipSlot::Armor(which), item);
-        self
-    }
+    pub fn bag(self, which: ArmorSlot, item: Option<Item>) -> Self { self.with_armor(which, item) }
 
     #[must_use]
     pub fn build(self) -> Loadout { self.0 }
