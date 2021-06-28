@@ -2659,6 +2659,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "kiddo"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "73e70400c6435a3f5e4d7bfb406af50bc66950cc8f24f45488d66f47bf3f5e25"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "lazy-bytes-cast"
 version = "5.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6138,11 +6147,13 @@ dependencies = [
  "csv",
  "deflate 0.9.1",
  "enum-iterator",
+ "fallible-iterator",
  "flate2",
  "fxhash",
  "hashbrown 0.11.2",
  "image",
  "itertools 0.10.0",
+ "kiddo",
  "lazy_static",
  "lz-fear",
  "minifb",
