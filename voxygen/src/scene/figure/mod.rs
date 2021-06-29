@@ -1338,27 +1338,23 @@ impl FigureMgr {
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
                             let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_buildup_duration
-                                            .as_secs_f32()
-                                },
-                                StageSection::Swing => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_swing_duration
-                                            .as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_recover_duration
-                                            .as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
+                            let stage_progress =
+                                if let Some(stage) = s.static_data.stage_data.get(stage_index) {
+                                    match s.stage_section {
+                                        StageSection::Buildup => {
+                                            stage_time / stage.base_buildup_duration.as_secs_f32()
+                                        },
+                                        StageSection::Swing => {
+                                            stage_time / stage.base_swing_duration.as_secs_f32()
+                                        },
+                                        StageSection::Recover => {
+                                            stage_time / stage.base_recover_duration.as_secs_f32()
+                                        },
+                                        _ => 0.0,
+                                    }
+                                } else {
+                                    0.0
+                                };
                             match s.stage {
                                 1 => anim::character::AlphaAnimation::update_skeleton(
                                     &target_base,
@@ -1664,27 +1660,23 @@ impl FigureMgr {
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
                             let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_buildup_duration
-                                            .as_secs_f32()
-                                },
-                                StageSection::Swing => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_swing_duration
-                                            .as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_recover_duration
-                                            .as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
+                            let stage_progress =
+                                if let Some(stage) = s.static_data.stage_data.get(stage_index) {
+                                    match s.stage_section {
+                                        StageSection::Buildup => {
+                                            stage_time / stage.base_buildup_duration.as_secs_f32()
+                                        },
+                                        StageSection::Swing => {
+                                            stage_time / stage.base_swing_duration.as_secs_f32()
+                                        },
+                                        StageSection::Recover => {
+                                            stage_time / stage.base_recover_duration.as_secs_f32()
+                                        },
+                                        _ => 0.0,
+                                    }
+                                } else {
+                                    0.0
+                                };
                             {
                                 anim::quadruped_small::AlphaAnimation::update_skeleton(
                                     &target_base,
@@ -1955,27 +1947,23 @@ impl FigureMgr {
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
                             let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_buildup_duration
-                                            .as_secs_f32()
-                                },
-                                StageSection::Swing => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_swing_duration
-                                            .as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_recover_duration
-                                            .as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
+                            let stage_progress =
+                                if let Some(stage) = s.static_data.stage_data.get(stage_index) {
+                                    match s.stage_section {
+                                        StageSection::Buildup => {
+                                            stage_time / stage.base_buildup_duration.as_secs_f32()
+                                        },
+                                        StageSection::Swing => {
+                                            stage_time / stage.base_swing_duration.as_secs_f32()
+                                        },
+                                        StageSection::Recover => {
+                                            stage_time / stage.base_recover_duration.as_secs_f32()
+                                        },
+                                        _ => 0.0,
+                                    }
+                                } else {
+                                    0.0
+                                };
                             match s.stage {
                                 1 => anim::quadruped_medium::AlphaAnimation::update_skeleton(
                                     &target_base,
@@ -2315,27 +2303,23 @@ impl FigureMgr {
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
                             let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_buildup_duration
-                                            .as_secs_f32()
-                                },
-                                StageSection::Swing => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_swing_duration
-                                            .as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_recover_duration
-                                            .as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
+                            let stage_progress =
+                                if let Some(stage) = s.static_data.stage_data.get(stage_index) {
+                                    match s.stage_section {
+                                        StageSection::Buildup => {
+                                            stage_time / stage.base_buildup_duration.as_secs_f32()
+                                        },
+                                        StageSection::Swing => {
+                                            stage_time / stage.base_swing_duration.as_secs_f32()
+                                        },
+                                        StageSection::Recover => {
+                                            stage_time / stage.base_recover_duration.as_secs_f32()
+                                        },
+                                        _ => 0.0,
+                                    }
+                                } else {
+                                    0.0
+                                };
                             match s.stage {
                                 1 => anim::quadruped_low::AlphaAnimation::update_skeleton(
                                     &target_base,
@@ -2917,27 +2901,23 @@ impl FigureMgr {
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
                             let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_buildup_duration
-                                            .as_secs_f32()
-                                },
-                                StageSection::Swing => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_swing_duration
-                                            .as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_recover_duration
-                                            .as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
+                            let stage_progress =
+                                if let Some(stage) = s.static_data.stage_data.get(stage_index) {
+                                    match s.stage_section {
+                                        StageSection::Buildup => {
+                                            stage_time / stage.base_buildup_duration.as_secs_f32()
+                                        },
+                                        StageSection::Swing => {
+                                            stage_time / stage.base_swing_duration.as_secs_f32()
+                                        },
+                                        StageSection::Recover => {
+                                            stage_time / stage.base_recover_duration.as_secs_f32()
+                                        },
+                                        _ => 0.0,
+                                    }
+                                } else {
+                                    0.0
+                                };
                             match s.stage {
                                 1 => anim::biped_small::AlphaAnimation::update_skeleton(
                                     &target_base,
@@ -3178,27 +3158,23 @@ impl FigureMgr {
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
                             let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_buildup_duration
-                                            .as_secs_f32()
-                                },
-                                StageSection::Swing => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_swing_duration
-                                            .as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_recover_duration
-                                            .as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
+                            let stage_progress =
+                                if let Some(stage) = s.static_data.stage_data.get(stage_index) {
+                                    match s.stage_section {
+                                        StageSection::Buildup => {
+                                            stage_time / stage.base_buildup_duration.as_secs_f32()
+                                        },
+                                        StageSection::Swing => {
+                                            stage_time / stage.base_swing_duration.as_secs_f32()
+                                        },
+                                        StageSection::Recover => {
+                                            stage_time / stage.base_recover_duration.as_secs_f32()
+                                        },
+                                        _ => 0.0,
+                                    }
+                                } else {
+                                    0.0
+                                };
                             match s.stage {
                                 1 => anim::theropod::AlphaAnimation::update_skeleton(
                                     &target_base,
@@ -3406,27 +3382,23 @@ impl FigureMgr {
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
                             let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_buildup_duration
-                                            .as_secs_f32()
-                                },
-                                StageSection::Swing => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_swing_duration
-                                            .as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_recover_duration
-                                            .as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
+                            let stage_progress =
+                                if let Some(stage) = s.static_data.stage_data.get(stage_index) {
+                                    match s.stage_section {
+                                        StageSection::Buildup => {
+                                            stage_time / stage.base_buildup_duration.as_secs_f32()
+                                        },
+                                        StageSection::Swing => {
+                                            stage_time / stage.base_swing_duration.as_secs_f32()
+                                        },
+                                        StageSection::Recover => {
+                                            stage_time / stage.base_recover_duration.as_secs_f32()
+                                        },
+                                        _ => 0.0,
+                                    }
+                                } else {
+                                    0.0
+                                };
 
                             anim::bird_large::AlphaAnimation::update_skeleton(
                                 &target_base,
@@ -4049,27 +4021,23 @@ impl FigureMgr {
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
                             let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_buildup_duration
-                                            .as_secs_f32()
-                                },
-                                StageSection::Swing => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_swing_duration
-                                            .as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_recover_duration
-                                            .as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
+                            let stage_progress =
+                                if let Some(stage) = s.static_data.stage_data.get(stage_index) {
+                                    match s.stage_section {
+                                        StageSection::Buildup => {
+                                            stage_time / stage.base_buildup_duration.as_secs_f32()
+                                        },
+                                        StageSection::Swing => {
+                                            stage_time / stage.base_swing_duration.as_secs_f32()
+                                        },
+                                        StageSection::Recover => {
+                                            stage_time / stage.base_recover_duration.as_secs_f32()
+                                        },
+                                        _ => 0.0,
+                                    }
+                                } else {
+                                    0.0
+                                };
                             match s.stage {
                                 1 => anim::biped_large::AlphaAnimation::update_skeleton(
                                     &target_base,
@@ -4409,27 +4377,23 @@ impl FigureMgr {
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
                             let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_buildup_duration
-                                            .as_secs_f32()
-                                },
-                                StageSection::Swing => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_swing_duration
-                                            .as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_recover_duration
-                                            .as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
+                            let stage_progress =
+                                if let Some(stage) = s.static_data.stage_data.get(stage_index) {
+                                    match s.stage_section {
+                                        StageSection::Buildup => {
+                                            stage_time / stage.base_buildup_duration.as_secs_f32()
+                                        },
+                                        StageSection::Swing => {
+                                            stage_time / stage.base_swing_duration.as_secs_f32()
+                                        },
+                                        StageSection::Recover => {
+                                            stage_time / stage.base_recover_duration.as_secs_f32()
+                                        },
+                                        _ => 0.0,
+                                    }
+                                } else {
+                                    0.0
+                                };
 
                             anim::golem::AlphaAnimation::update_skeleton(
                                 &target_base,
