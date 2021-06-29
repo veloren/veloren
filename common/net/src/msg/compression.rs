@@ -127,8 +127,9 @@ pub trait VoxelImageEncoding: Copy {
     type Workspace;
     type Output;
     fn create(width: u32, height: u32) -> Self::Workspace;
-    fn put_solid(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>);
+    fn put_solid(&self, ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>);
     fn put_sprite(
+        &self,
         ws: &mut Self::Workspace,
         x: u32,
         y: u32,
@@ -176,13 +177,14 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
     }
 
     #[inline(always)]
-    fn put_solid(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
+    fn put_solid(&self, ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
         ws.3.put_pixel(x / N, y / N, image::Rgb([rgb.r, rgb.g, rgb.b]));
     }
 
     #[inline(always)]
     fn put_sprite(
+        &self,
         ws: &mut Self::Workspace,
         x: u32,
         y: u32,
@@ -451,7 +453,7 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageEncoding for TriPngEncoding<AVERAGE_
         )
     }
 
-    fn put_solid(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
+    fn put_solid(&self, ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
         ws.1.put_pixel(x, y, image::Luma([0]));
         ws.2.put_pixel(x, y, image::Luma([0]));
@@ -461,6 +463,7 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageEncoding for TriPngEncoding<AVERAGE_
     }
 
     fn put_sprite(
+        &self,
         ws: &mut Self::Workspace,
         x: u32,
         y: u32,
@@ -666,7 +669,7 @@ pub fn image_terrain<
     P: PackingFormula,
     VIE: VoxelImageEncoding,
 >(
-    _: VIE,
+    vie: VIE,
     packing: P,
     vol: &V,
     lo: Vec3<u32>,
@@ -697,10 +700,10 @@ pub fn image_terrain<
                     .unwrap_or(&Block::empty());
                 match (block.get_color(), block.get_sprite()) {
                     (Some(rgb), None) => {
-                        VIE::put_solid(&mut image, i, j, *block, rgb);
+                        VIE::put_solid(&vie, &mut image, i, j, *block, rgb);
                     },
                     (None, Some(sprite)) => {
-                        VIE::put_sprite(&mut image, i, j, *block, sprite, block.get_ori());
+                        VIE::put_sprite(&vie, &mut image, i, j, *block, sprite, block.get_ori());
                     },
                     _ => panic!(
                         "attr being used for color vs sprite is mutually exclusive (and that's \

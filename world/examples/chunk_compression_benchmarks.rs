@@ -173,11 +173,12 @@ impl VoxelImageEncoding for PngEncoding {
         ImageBuffer::<Rgba<u8>, Vec<u8>>::new(width, height)
     }
 
-    fn put_solid(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
+    fn put_solid(&self, ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
         ws.put_pixel(x, y, image::Rgba([rgb.r, rgb.g, rgb.b, 255 - kind as u8]));
     }
 
     fn put_sprite(
+        &self,
         ws: &mut Self::Workspace,
         x: u32,
         y: u32,
@@ -223,11 +224,12 @@ impl VoxelImageEncoding for JpegEncoding {
         ImageBuffer::<Rgba<u8>, Vec<u8>>::new(width, height)
     }
 
-    fn put_solid(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
+    fn put_solid(&self, ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
         ws.put_pixel(x, y, image::Rgba([rgb.r, rgb.g, rgb.b, 255 - kind as u8]));
     }
 
     fn put_sprite(
+        &self,
         ws: &mut Self::Workspace,
         x: u32,
         y: u32,
@@ -268,7 +270,7 @@ impl VoxelImageEncoding for MixedEncoding {
         )
     }
 
-    fn put_solid(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
+    fn put_solid(&self, ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
         ws.1.put_pixel(x, y, image::Luma([0]));
         ws.2.put_pixel(x, y, image::Luma([0]));
@@ -276,6 +278,7 @@ impl VoxelImageEncoding for MixedEncoding {
     }
 
     fn put_sprite(
+        &self,
         ws: &mut Self::Workspace,
         x: u32,
         y: u32,
@@ -378,12 +381,13 @@ impl VoxelImageEncoding for MixedEncodingSparseSprites {
         )
     }
 
-    fn put_solid(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
+    fn put_solid(&self, ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
         ws.1.put_pixel(x, y, image::Rgb([rgb.r, rgb.g, rgb.b]));
     }
 
     fn put_sprite(
+        &self,
         ws: &mut Self::Workspace,
         x: u32,
         y: u32,
@@ -439,12 +443,13 @@ impl VoxelImageEncoding for MixedEncodingDenseSprites {
         )
     }
 
-    fn put_solid(ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
+    fn put_solid(&self, ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
         ws.3.put_pixel(x, y, image::Rgb([rgb.r, rgb.g, rgb.b]));
     }
 
     fn put_sprite(
+        &self,
         ws: &mut Self::Workspace,
         x: u32,
         y: u32,
@@ -485,6 +490,100 @@ impl VoxelImageEncoding for MixedEncodingDenseSprites {
         let mut jpeg = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut buf, 1);
         jpeg.encode_image(&ws.3).ok()?;
         Some((buf, indices))
+    }
+}
+
+use kiddo::KdTree;
+
+lazy_static::lazy_static! {
+    pub static ref PALETTE: HashMap<BlockKind, KdTree<f32, u8, 3>> = {
+        let ron_bytes = include_bytes!("palettes.ron");
+        let palettes: HashMap<BlockKind, Vec<Rgb<u8>>> =
+            ron::de::from_bytes(&*ron_bytes).expect("palette should parse");
+        palettes
+            .into_iter()
+            .map(|(k, v)| {
+                let mut tree = KdTree::new();
+                for (i, rgb) in v.into_iter().enumerate() {
+                    tree.add(&[rgb.r as f32, rgb.g as f32, rgb.b as f32], i as u8)
+                        .expect("kdtree insert should succeed");
+                }
+                (k, tree)
+            })
+            .collect()
+    };
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct PaletteEncoding<'a, const N: u32>(&'a HashMap<BlockKind, KdTree<f32, u8, 3>>);
+
+impl<'a, const N: u32> VoxelImageEncoding for PaletteEncoding<'a, N> {
+    #[allow(clippy::type_complexity)]
+    type Output = CompressedData<(Vec<u8>, [usize; 4])>;
+    #[allow(clippy::type_complexity)]
+    type Workspace = (
+        ImageBuffer<image::Luma<u8>, Vec<u8>>,
+        ImageBuffer<image::Luma<u8>, Vec<u8>>,
+        ImageBuffer<image::Luma<u8>, Vec<u8>>,
+        ImageBuffer<image::Luma<u8>, Vec<u8>>,
+    );
+
+    fn create(width: u32, height: u32) -> Self::Workspace {
+        (
+            ImageBuffer::new(width, height),
+            ImageBuffer::new(width, height),
+            ImageBuffer::new(width, height),
+            ImageBuffer::new(width / N, height / N),
+        )
+    }
+
+    fn put_solid(&self, ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
+        ws.0.put_pixel(x, y, image::Luma([kind as u8]));
+        let i = self.0[&kind]
+            .nearest_one(
+                &[rgb.r as f32, rgb.g as f32, rgb.b as f32],
+                &kiddo::distance::squared_euclidean,
+            )
+            .map(|(_, i)| *i)
+            .unwrap_or(0);
+        ws.3.put_pixel(x / N, y / N, image::Luma([i]));
+    }
+
+    fn put_sprite(
+        &self,
+        ws: &mut Self::Workspace,
+        x: u32,
+        y: u32,
+        kind: BlockKind,
+        sprite: SpriteKind,
+        ori: Option<u8>,
+    ) {
+        ws.0.put_pixel(x, y, image::Luma([kind as u8]));
+        ws.1.put_pixel(x, y, image::Luma([sprite as u8]));
+        ws.2.put_pixel(x, y, image::Luma([ori.unwrap_or(0)]));
+    }
+
+    fn finish(ws: &Self::Workspace) -> Option<Self::Output> {
+        let mut buf = Vec::new();
+        use image::codecs::png::{CompressionType, FilterType};
+        let mut indices = [0; 4];
+        let mut f = |x: &ImageBuffer<_, Vec<u8>>, i| {
+            let png = image::codecs::png::PngEncoder::new_with_quality(
+                &mut buf,
+                CompressionType::Rle,
+                FilterType::Up,
+            );
+            png.encode(&*x.as_raw(), x.width(), x.height(), image::ColorType::L8)
+                .ok()?;
+            indices[i] = buf.len();
+            Some(())
+        };
+        f(&ws.0, 0)?;
+        f(&ws.1, 1)?;
+        f(&ws.2, 2)?;
+        f(&ws.3, 3)?;
+
+        Some(CompressedData::compress(&(buf, indices), 1))
     }
 }
 
@@ -898,6 +997,15 @@ fn main() {
                         .unwrap();
                 let tripngconst_post = Instant::now();
 
+                let palettepng_pre = Instant::now();
+                let palettepng = image_terrain_chonk(
+                    PaletteEncoding::<4>(&PALETTE),
+                    WidePacking::<true>(),
+                    &chunk,
+                )
+                .unwrap();
+                let palettepng_post = Instant::now();
+
                 #[rustfmt::skip]
                 sizes.extend_from_slice(&[
                     ("quadpngfull", quadpngfull.data.len() as f32 / n as f32),
@@ -906,6 +1014,7 @@ fn main() {
                     ("quadpngquartwide", quadpngquartwide.data.len() as f32 / n as f32),
                     ("tripngaverage", tripngaverage.data.len() as f32 / n as f32),
                     ("tripngconst", tripngconst.data.len() as f32 / n as f32),
+                    ("palettepng", palettepng.data.len() as f32 / n as f32),
                 ]);
                 let best_idx = sizes
                     .iter()
@@ -926,6 +1035,7 @@ fn main() {
                     ("quadpngquartwide", (quadpngquartwide_post - quadpngquartwide_pre).subsec_nanos()),
                     ("tripngaverage", (tripngaverage_post - tripngaverage_pre).subsec_nanos()),
                     ("tripngconst", (tripngconst_post - tripngconst_pre).subsec_nanos()),
+                    ("palettepng", (palettepng_post - palettepng_pre).subsec_nanos()),
                 ]);
                 if false {
                     let bucket = z_buckets
@@ -964,6 +1074,15 @@ fn main() {
                         .or_insert((0, 0.0));
                     bucket.0 += 1;
                     bucket.1 += (tripngconst_post - tripngconst_pre).subsec_nanos() as f32;
+                }
+                if true {
+                    let bucket = z_buckets
+                        .entry("palettepng")
+                        .or_default()
+                        .entry(chunk.get_max_z() - chunk.get_min_z())
+                        .or_insert((0, 0.0));
+                    bucket.0 += 1;
+                    bucket.1 += (palettepng_post - palettepng_pre).subsec_nanos() as f32;
                 }
                 trace!(
                     "{} {}: uncompressed: {}, {:?} {} {:?}",

@@ -6143,6 +6143,7 @@ dependencies = [
  "arr_macro",
  "bincode",
  "bitvec",
+ "clap",
  "criterion",
  "csv",
  "deflate 0.9.1",
