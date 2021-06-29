@@ -1,0 +1,26 @@
+([
+    Group(Weapon(Sword)),
+
+    Skill((Sword(InterruptingAttacks), None)),
+
+    // TripleStrike
+    Skill((Sword(TsCombo), None)),
+    Skill((Sword(TsDamage), Some(3))),
+    Skill((Sword(TsRegen), Some(2))),
+    Skill((Sword(TsSpeed), Some(3))),
+
+    // Dash
+    Skill((Sword(DCost), Some(2))),
+    Skill((Sword(DDrain), Some(2))),
+    Skill((Sword(DDamage), Some(2))),
+    Skill((Sword(DScaling), Some(3))),
+    Skill((Sword(DSpeed), None)),
+    Skill((Sword(DInfinite), None)),
+
+    // Spin of death
+    Skill((Sword(UnlockSpin), None)),
+    Skill((Sword(SDamage), Some(2))),
+    Skill((Sword(SSpeed), Some(2))),
+    Skill((Sword(SSpins), Some(2))),
+    Skill((Sword(SCost), Some(2))),
+])
