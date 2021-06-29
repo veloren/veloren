@@ -2235,40 +2235,36 @@
         "element.items.item_bag_blue",
     ),
     // Consumables
-    Consumable("Apple"): Png(
+    Consumable("common.items.food.apple"): Png(
         "element.items.item_apple",
     ),
-    Consumable("Coconut"): Png(
+    Consumable("common.items.food.coconut"): Png(
         "element.items.item_coconut",
     ),
-    Consumable("CactusColada"): VoxTrans(
+    Consumable("common.items.food.cactus_colada"): VoxTrans(
         "voxel.object.cactus_drink",
         (-1.0, 1.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    Consumable("PotionMed"): VoxTrans(
+    Consumable("common.items.consumable.potion_med"): VoxTrans(
         "voxel.object.potion_red",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
     ),
-    Consumable("PotionMinor"): VoxTrans(
+    Consumable("common.items.consumable.potion_minor"): VoxTrans(
         "voxel.object.potion_red",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.5,
     ),
-    Consumable("PotionLarge"): VoxTrans(
+    Consumable("common.items.consumable.potion_big"): VoxTrans(
         "voxel.object.potion_red",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
     ),
-    Ingredient("PotionExp"): VoxTrans(
-        "voxel.object.potion_turq",
-        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    Consumable("common.items.boss_drops.potions"): VoxTrans(
+        "voxel.object.potion_red",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
     ),
-    Consumable("Cheese"): Png(
+    Consumable("common.items.food.cheese"): Png(
         "element.items.item_cheese",
     ),
-    Consumable("Potion"): VoxTrans(
-        "voxel.object.potion_red",
-        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.0,
-    ),
-    Consumable("Mushroom"): VoxTrans(
+    Consumable("common.items.food.mushroom"): VoxTrans(
         "voxel.sprite.mushrooms.mushroom-10",
         (0.0, 0.0, 0.0), (-50.0, 70.0, 40.0), 1.0,
     ),
@@ -2280,83 +2276,83 @@
         "voxel.sprite.velorite.velorite_1",
         (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Consumable("AppleShroomCurry"): Png(
+    Consumable("common.items.food.apple_mushroom_curry"): Png(
         "element.items.item_apple_curry",
     ),
-    Consumable("AppleStick"): Png(
+    Consumable("common.items.food.apple_stick"): Png(
         "element.items.item_apple_stick",
     ),
-    Consumable("MushroomStick"): Png(
+    Consumable("common.items.food.mushroom_stick"): Png(
         "element.items.item_shroom_stick",
     ),
-    Consumable("SunflowerTea"): Png(
+    Consumable("common.items.food.sunflower_icetea"): Png(
         "element.items.item_sunflower_tea",
     ),
-    Consumable("Carrot"): VoxTrans(
+    Consumable("common.items.food.carrot"): VoxTrans(
         "voxel.sprite.carrot.carrot",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Consumable("Tomato"): VoxTrans(
+    Consumable("common.items.food.tomato"): VoxTrans(
         "voxel.sprite.tomato.tomato",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    Consumable("Lettuce"): VoxTrans(
+    Consumable("common.items.food.lettuce"): VoxTrans(
         "voxel.sprite.cabbage.cabbage",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    Consumable("FishRaw"): VoxTrans(
+    Consumable("common.items.food.meat.fish_raw"): VoxTrans(
         "voxel.sprite.food.meat.fish_raw",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Consumable("FishCooked"): VoxTrans(
+    Consumable("common.items.food.meat.fish_cooked"): VoxTrans(
         "voxel.sprite.food.meat.fish_cooked",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Consumable("BirdRaw"): VoxTrans(
+    Consumable("common.items.food.meat.bird_raw"): VoxTrans(
         "voxel.sprite.food.meat.bird_raw",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Consumable("BirdCooked"): VoxTrans(
+    Consumable("common.items.food.meat.bird_cooked"): VoxTrans(
         "voxel.sprite.food.meat.bird_cooked",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Consumable("BirdLargeRaw"): VoxTrans(
+    Consumable("common.items.food.meat.bird_large_raw"): VoxTrans(
         "voxel.sprite.food.meat.bird_large_raw",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Consumable("BirdLargeCooked"): VoxTrans(
+    Consumable("common.items.food.meat.bird_large_cooked"): VoxTrans(
         "voxel.sprite.food.meat.bird_large_cooked",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Consumable("BeastSmallRaw"): VoxTrans(
+    Consumable("common.items.food.meat.beast_small_raw"): VoxTrans(
         "voxel.sprite.food.meat.beast_small_raw",
         (0.0, 0.0, 0.0), (-50.0, 10.0, 0.0), 1.0,
     ),
-    Consumable("BeastSmallCooked"): VoxTrans(
+    Consumable("common.items.food.meat.beast_small_cooked"): VoxTrans(
         "voxel.sprite.food.meat.beast_small_cooked",
         (0.0, 0.0, 0.0), (-50.0, 20.0, 0.0), 1.0,
     ),
-    Consumable("ToughRaw"): VoxTrans(
+    Consumable("common.items.food.meat.tough_raw"): VoxTrans(
         "voxel.sprite.food.meat.tough_raw",
         (0.0, 0.0, 0.0), (-50.0, 10.0, 0.0), 1.0,
     ),
-    Consumable("ToughCooked"): VoxTrans(
+    Consumable("common.items.food.meat.tough_cooked"): VoxTrans(
         "voxel.sprite.food.meat.tough_cooked",
         (0.0, 0.0, 0.0), (-50.0, 20.0, 0.0), 1.0,
     ),
-    Consumable("BeastLargeRaw"): VoxTrans(
+    Consumable("common.items.food.meat.beast_large_raw"): VoxTrans(
         "voxel.sprite.food.meat.beast_large_raw",
         (-1.0, 0.0, 0.0), (-80.0, 40.0, 0.0), 0.8,
     ),
-    Consumable("BeastLargeCooked"): VoxTrans(
+    Consumable("common.items.food.meat.beast_large_cooked"): VoxTrans(
         "voxel.sprite.food.meat.beast_large_cooked",
         (-1.0, 0.0, 0.0), (-80.0, 40.0, 0.0), 0.8,
     ),
-    Consumable("PlainSalad"): VoxTrans(
+    Consumable("common.items.food.plainsalad"): VoxTrans(
         "voxel.sprite.food.salad_plain",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    Consumable("TomatoSalad"): VoxTrans(
+    Consumable("common.items.food.tomatosalad"): VoxTrans(
         "voxel.sprite.food.salad_tomato",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),

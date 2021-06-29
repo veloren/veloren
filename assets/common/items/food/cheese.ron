@@ -2,7 +2,7 @@ ItemDef(
     name: "Dwarven Cheese",
     description: "Aromatic and nutritious",
     kind: Consumable(
-        kind: "Cheese",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,

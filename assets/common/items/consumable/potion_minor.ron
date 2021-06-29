@@ -2,7 +2,7 @@ ItemDef(
     name: "Minor Potion",
     description: "",
     kind: Consumable(
-        kind: "PotionMinor",
+        kind: Potion,
         effect: [
             Buff((
                 kind: Potion,

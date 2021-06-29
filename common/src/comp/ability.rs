@@ -339,7 +339,7 @@ impl CharacterAbility {
         match self {
             CharacterAbility::Roll { energy_cost, .. } => {
                 data.physics.on_ground.is_some()
-                    && data.vel.0.xy().magnitude_squared() > 0.5
+                    && data.inputs.move_dir.magnitude_squared() > 0.25
                     && update
                         .energy
                         .try_change_by(-(*energy_cost as i32), EnergySource::Ability)

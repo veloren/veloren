@@ -289,7 +289,8 @@ impl<'a> System<'a> for Sys {
                 CharacterState::Roll { .. }
                 | CharacterState::Climb { .. }
                 | CharacterState::Stunned { .. }
-                | CharacterState::BasicBlock { .. } => {},
+                | CharacterState::BasicBlock { .. }
+                | CharacterState::UseItem { .. } => {},
             }
         }
 

@@ -2,7 +2,7 @@ ItemDef(
     name: "Coltsfoot",
     description: "A daisy-like flower often used in herbal teas.",
     kind: Consumable(
-        kind: "Coltsfoot",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,

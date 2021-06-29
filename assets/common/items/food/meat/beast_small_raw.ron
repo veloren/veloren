@@ -2,7 +2,7 @@ ItemDef(
     name: "Raw Meat Sliver",
     description: "Small hunk of beastly animal meat, best after cooking.",
     kind: Consumable(
-        kind: "BeastSmallRaw",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,

@@ -2,7 +2,7 @@ ItemDef(
     name: "Sunflower Ice Tea",
     description: "Brewed from freshly shelled sunflower seeds",
     kind: Consumable(
-        kind: "SunflowerTea",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,

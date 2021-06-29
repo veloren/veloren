@@ -92,7 +92,7 @@ use common::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
         beam, biped_large, biped_small, humanoid,
-        item::{ItemKind, ToolKind},
+        item::{ConsumableKind, ItemKind, ToolKind},
         object,
         poise::PoiseState,
         quadruped_low, quadruped_medium, quadruped_small, Body, CharacterAbilityType,
@@ -276,7 +276,7 @@ pub enum SfxInventoryEvent {
     CollectedTool(ToolKind),
     CollectedItem(String),
     CollectFailed,
-    Consumed(String),
+    Consumed(ConsumableKind),
     Debug,
     Dropped,
     Given,
@@ -308,7 +308,7 @@ impl From<&InventoryUpdateEvent> for SfxEvent {
                 SfxEvent::Inventory(SfxInventoryEvent::CollectFailed)
             },
             InventoryUpdateEvent::Consumed(consumable) => {
-                SfxEvent::Inventory(SfxInventoryEvent::Consumed(consumable.clone()))
+                SfxEvent::Inventory(SfxInventoryEvent::Consumed(*consumable))
             },
             InventoryUpdateEvent::Debug => SfxEvent::Inventory(SfxInventoryEvent::Debug),
             InventoryUpdateEvent::Dropped => SfxEvent::Inventory(SfxInventoryEvent::Dropped),

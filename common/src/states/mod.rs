@@ -29,5 +29,6 @@ pub mod spin_melee;
 pub mod sprite_summon;
 pub mod stunned;
 pub mod talk;
+pub mod use_item;
 pub mod utils;
 pub mod wielding;

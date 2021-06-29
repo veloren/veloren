@@ -2,7 +2,7 @@ ItemDef(
     name: "Apple Stick",
     description: "The stick makes it easier to carry!",
     kind: Consumable(
-        kind: "AppleStick",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,

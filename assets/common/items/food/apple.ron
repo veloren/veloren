@@ -2,7 +2,7 @@ ItemDef(
     name: "Apple",
     description: "Red and juicy",
     kind: Consumable(
-        kind: "Apple",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,

@@ -2,7 +2,7 @@ ItemDef(
     name: "Cooked Meat Slab",
     description: "Medium Rare.",
     kind: Consumable(
-        kind: "BeastLargeCooked",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,

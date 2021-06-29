@@ -2,7 +2,7 @@ ItemDef(
     name: "Plain Salad",
     description: "Literally just chopped lettuce. Does this even count as a salad?",
     kind: Consumable(
-        kind: "PlainSalad",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,

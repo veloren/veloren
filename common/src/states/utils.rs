@@ -2,7 +2,7 @@ use crate::{
     combat,
     comp::{
         biped_large, biped_small,
-        inventory::slot::EquipSlot,
+        inventory::slot::{EquipSlot, Slot},
         item::{Hands, ItemKind, Tool, ToolKind},
         quadruped_low, quadruped_medium, quadruped_small,
         skills::{Skill, SwimSkill},
@@ -575,9 +575,45 @@ pub fn handle_manipulate_loadout(
     update: &mut StateUpdate,
     inv_action: InventoryAction,
 ) {
-    update
-        .server_events
-        .push_front(ServerEvent::InventoryManip(data.entity, inv_action.into()));
+    use use_item::ItemUseKind;
+    if let InventoryAction::Use(Slot::Inventory(inv_slot)) = inv_action {
+        // If inventory action is using a slot, and slot is in the inventory
+        // TODO: Do some non lazy way of handling the possibility that items equipped in
+        // the loadout will have effects that are desired to be non-instantaneous
+        if let Some((item_kind, item)) = data
+            .inventory
+            .get(inv_slot)
+            .and_then(|item| Option::<ItemUseKind>::from(item.kind()).zip(Some(item)))
+        {
+            let (buildup_duration, use_duration, recover_duration) = item_kind.durations();
+            // If item returns a valid kind for item use, do into use item character state
+            update.character = CharacterState::UseItem(use_item::Data {
+                static_data: use_item::StaticData {
+                    buildup_duration,
+                    use_duration,
+                    recover_duration,
+                    inv_slot,
+                    item_kind,
+                    item_definition_id: item.item_definition_id().to_string(),
+                    was_wielded: matches!(data.character, CharacterState::Wielding),
+                    was_sneak: matches!(data.character, CharacterState::Sneak),
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
+            });
+        } else {
+            // Else emit inventory action instantnaneously
+            update
+                .server_events
+                .push_front(ServerEvent::InventoryManip(data.entity, inv_action.into()));
+        }
+    } else {
+        // Else if inventory action is not item use, or if slot is in loadout, just do
+        // event instantaneously
+        update
+            .server_events
+            .push_front(ServerEvent::InventoryManip(data.entity, inv_action.into()));
+    }
 }
 
 /// Checks that player can wield the glider and updates `CharacterState` if so
@@ -836,12 +872,15 @@ pub fn tick_attack_or_default(
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub enum StageSection {
     Buildup,
-    Swing,
     Recover,
     Charge,
-    Cast,
-    Shoot,
     Movement,
+    // TODO: Consolidate these to `Action`
+    // Code reviewers: comment here to remind me to open beginner issue
+    Swing,
+    Shoot,
+    Cast,
+    Use,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]

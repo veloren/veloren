@@ -2,7 +2,7 @@ ItemDef(
     name: "Cooked Tough Meat",
     description: "Tastes exotic.",
     kind: Consumable(
-        kind: "ToughCooked",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,

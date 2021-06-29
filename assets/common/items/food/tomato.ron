@@ -2,7 +2,7 @@ ItemDef(
     name: "Tomato",
     description: "A red fruit. Not actually a vegetable.",
     kind: Consumable(
-        kind: "Tomato",
+        kind: Food,
         effect: [
             Buff((
                 kind: Saturation,
