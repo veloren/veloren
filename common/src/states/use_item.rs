@@ -164,6 +164,24 @@ impl From<&ItemKind> for Option<ItemUseKind> {
     }
 }
 
+impl ItemUseKind {
+    /// Returns (buildup, use, recover)
+    pub fn durations(&self) -> (Duration, Duration, Duration) {
+        match self {
+            Self::Consumable(ConsumableKind::Potion) => (
+                Duration::from_secs_f32(0.1),
+                Duration::from_secs_f32(1.1),
+                Duration::from_secs_f32(0.1),
+            ),
+            Self::Consumable(ConsumableKind::Food) => (
+                Duration::from_secs_f32(1.0),
+                Duration::from_secs_f32(5.0),
+                Duration::from_secs_f32(0.5),
+            ),
+        }
+    }
+}
+
 /// Used to control when the item is used in the state
 enum UsePoint {
     /// Between buildup and use

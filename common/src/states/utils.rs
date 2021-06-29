@@ -3,7 +3,7 @@ use crate::{
     comp::{
         biped_large, biped_small,
         inventory::slot::{EquipSlot, Slot},
-        item::{ConsumableKind, Hands, ItemKind, Tool, ToolKind},
+        item::{Hands, ItemKind, Tool, ToolKind},
         quadruped_low, quadruped_medium, quadruped_small,
         skills::{Skill, SwimSkill},
         theropod, Body, CharacterAbility, CharacterState, Density, InputAttr, InputKind,
@@ -585,25 +585,13 @@ pub fn handle_manipulate_loadout(
             .get(inv_slot)
             .and_then(|item| Option::<ItemUseKind>::from(item.kind()).zip(Some(item)))
         {
-            // (buildup, use, recover)
-            let durations = match item_kind {
-                ItemUseKind::Consumable(ConsumableKind::Potion) => (
-                    Duration::from_secs_f32(0.1),
-                    Duration::from_secs_f32(1.1),
-                    Duration::from_secs_f32(0.1),
-                ),
-                ItemUseKind::Consumable(ConsumableKind::Food) => (
-                    Duration::from_secs_f32(1.0),
-                    Duration::from_secs_f32(5.0),
-                    Duration::from_secs_f32(0.5),
-                ),
-            };
+            let (buildup_duration, use_duration, recover_duration) = item_kind.durations();
             // If item returns a valid kind for item use, do into use item character state
             update.character = CharacterState::UseItem(use_item::Data {
                 static_data: use_item::StaticData {
-                    buildup_duration: durations.0,
-                    use_duration: durations.1,
-                    recover_duration: durations.2,
+                    buildup_duration,
+                    use_duration,
+                    recover_duration,
                     inv_slot,
                     item_kind,
                     item_definition_id: item.item_definition_id().to_string(),
