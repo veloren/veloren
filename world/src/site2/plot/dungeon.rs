@@ -202,6 +202,177 @@ pub struct Room {
     difficulty: u32,
 }
 
+impl Room {
+    fn fill_fight_cell(
+        &self,
+        supplement: &mut ChunkSupplement,
+        dynamic_rng: &mut impl Rng,
+        tile_wcenter: Vec3<i32>,
+        wpos2d: Vec2<i32>,
+        tile_pos: Vec2<i32>,
+    ) {
+        let enemy_spawn_tile = self.area.center();
+        // Don't spawn enemies in a pillar
+        let enemy_tile_is_pillar = self.pillars.map_or(false, |pillar_space| {
+            enemy_spawn_tile
+                .map(|e| e.rem_euclid(pillar_space) == 0)
+                .reduce_and()
+        });
+        let enemy_spawn_tile = enemy_spawn_tile + if enemy_tile_is_pillar { 1 } else { 0 };
+
+        // Toss mobs in the center of the room
+        if tile_pos == enemy_spawn_tile && wpos2d == tile_wcenter.xy() {
+            let entities = match self.difficulty {
+                0 => enemy_0(dynamic_rng, tile_wcenter),
+                1 => enemy_1(dynamic_rng, tile_wcenter),
+                2 => enemy_2(dynamic_rng, tile_wcenter),
+                3 => enemy_3(dynamic_rng, tile_wcenter),
+                4 => enemy_4(dynamic_rng, tile_wcenter),
+                5 => enemy_5(dynamic_rng, tile_wcenter),
+                _ => enemy_fallback(dynamic_rng, tile_wcenter),
+            };
+
+            for entity in entities {
+                supplement.add_entity(
+                    entity
+                        .with_level(
+                            dynamic_rng
+                                .gen_range(
+                                    (self.difficulty as f32).powf(1.25) + 3.0
+                                        ..(self.difficulty as f32).powf(1.5) + 4.0,
+                                )
+                                .round() as u16,
+                        )
+                        .with_alignment(comp::Alignment::Enemy),
+                );
+            }
+        } else {
+            // Turrets
+            // Turret has 1/5000 chance to spawn per voxel in fight room
+            if dynamic_rng.gen_range(0..5000) == 0 {
+                let pos = tile_wcenter.map(|e| e as f32)
+                    + Vec3::<u32>::iota()
+                        .map(|e| {
+                            (RandomField::new(self.seed.wrapping_add(10 + e))
+                                .get(Vec3::from(tile_pos))
+                                % 32) as i32
+                                - 16
+                        })
+                        .map(|e| e as f32 / 16.0);
+                let turret =
+                    EntityInfo::at(pos.map(|e| e as f32)).with_alignment(comp::Alignment::Enemy);
+                match self.difficulty {
+                    3 => {
+                        let turret = turret
+                            .with_body(comp::Body::Object(comp::object::Body::Crossbow))
+                            .with_asset_expect("common.entity.dungeon.tier-3.sentry");
+                        supplement.add_entity(turret);
+                    },
+                    5 => {
+                        let turret = turret
+                            .with_body(comp::Body::Object(comp::object::Body::Crossbow))
+                            .with_asset_expect("common.entity.dungeon.tier-5.turret");
+                        supplement.add_entity(turret);
+                    },
+                    _ => {},
+                };
+            }
+        }
+    }
+
+    fn fill_miniboss_cell(
+        &self,
+        supplement: &mut ChunkSupplement,
+        dynamic_rng: &mut impl Rng,
+        tile_wcenter: Vec3<i32>,
+        wpos2d: Vec2<i32>,
+        tile_pos: Vec2<i32>,
+    ) {
+        let miniboss_spawn_tile = self.area.center();
+        // Don't spawn the miniboss in a pillar
+        let miniboss_tile_is_pillar = self.pillars.map_or(false, |pillar_space| {
+            miniboss_spawn_tile
+                .map(|e| e.rem_euclid(pillar_space) == 0)
+                .reduce_and()
+        });
+        let miniboss_spawn_tile = miniboss_spawn_tile + if miniboss_tile_is_pillar { 1 } else { 0 };
+
+        if tile_pos == miniboss_spawn_tile && tile_wcenter.xy() == wpos2d {
+            let entities = match self.difficulty {
+                0 => mini_boss_0(tile_wcenter),
+                1 => mini_boss_1(tile_wcenter),
+                2 => mini_boss_2(tile_wcenter),
+                3 => mini_boss_3(tile_wcenter),
+                4 => mini_boss_4(tile_wcenter),
+                5 => mini_boss_5(dynamic_rng, tile_wcenter),
+                _ => mini_boss_fallback(tile_wcenter),
+            };
+
+            for entity in entities {
+                supplement.add_entity(
+                    entity
+                        .with_level(
+                            dynamic_rng
+                                .gen_range(
+                                    (self.difficulty as f32).powf(1.25) + 3.0
+                                        ..(self.difficulty as f32).powf(1.5) + 4.0,
+                                )
+                                .round() as u16
+                                * 5,
+                        )
+                        .with_alignment(comp::Alignment::Enemy),
+                );
+            }
+        }
+    }
+
+    fn fill_boss_cell(
+        &self,
+        supplement: &mut ChunkSupplement,
+        dynamic_rng: &mut impl Rng,
+        tile_wcenter: Vec3<i32>,
+        wpos2d: Vec2<i32>,
+        tile_pos: Vec2<i32>,
+    ) {
+        let boss_spawn_tile = self.area.center();
+        // Don't spawn the boss in a pillar
+        let boss_tile_is_pillar = self.pillars.map_or(false, |pillar_space| {
+            boss_spawn_tile
+                .map(|e| e.rem_euclid(pillar_space) == 0)
+                .reduce_and()
+        });
+        let boss_spawn_tile = boss_spawn_tile + if boss_tile_is_pillar { 1 } else { 0 };
+
+        if tile_pos == boss_spawn_tile && wpos2d == tile_wcenter.xy() {
+            let entities = match self.difficulty {
+                0 => boss_0(tile_wcenter),
+                1 => boss_1(tile_wcenter),
+                2 => boss_2(tile_wcenter),
+                3 => boss_3(tile_wcenter),
+                4 => boss_4(tile_wcenter),
+                5 => boss_5(tile_wcenter),
+                _ => boss_fallback(tile_wcenter),
+            };
+
+            for entity in entities {
+                supplement.add_entity(
+                    entity
+                        .with_level(
+                            dynamic_rng
+                                .gen_range(
+                                    (self.difficulty as f32).powf(1.25) + 3.0
+                                        ..(self.difficulty as f32).powf(1.5) + 4.0,
+                                )
+                                .round() as u16
+                                * 5,
+                        )
+                        .with_alignment(comp::Alignment::Enemy),
+                );
+            }
+        }
+    }
+}
+
 struct Floor {
     tile_offset: Vec2<i32>,
     tiles: Grid<Tile>,
@@ -474,170 +645,29 @@ impl Floor {
                                 .map(|e| e.div_euclid(TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2),
                         );
 
-                    // Fill regular rooms
-                    if room.kind == RoomKind::Fight {
-                        let enemy_spawn_tile = room.area.center();
-                        // Don't spawn enemies in a pillar
-                        let enemy_tile_is_pillar = room.pillars.map_or(false, |pillar_space| {
-                            enemy_spawn_tile
-                                .map(|e| e.rem_euclid(pillar_space) == 0)
-                                .reduce_and()
-                        });
-                        let enemy_spawn_tile =
-                            enemy_spawn_tile + if enemy_tile_is_pillar { 1 } else { 0 };
-
-                        // Toss mobs in the center of the room
-                        if tile_pos == enemy_spawn_tile && wpos2d == tile_wcenter.xy() {
-                            let entities = match room.difficulty {
-                                0 => enemy_0(dynamic_rng, tile_wcenter),
-                                1 => enemy_1(dynamic_rng, tile_wcenter),
-                                2 => enemy_2(dynamic_rng, tile_wcenter),
-                                3 => enemy_3(dynamic_rng, tile_wcenter),
-                                4 => enemy_4(dynamic_rng, tile_wcenter),
-                                5 => enemy_5(dynamic_rng, tile_wcenter),
-                                _ => enemy_fallback(dynamic_rng, tile_wcenter),
-                            };
-
-                            for entity in entities {
-                                supplement.add_entity(
-                                    entity
-                                        .with_level(
-                                            dynamic_rng
-                                                .gen_range(
-                                                    (room.difficulty as f32).powf(1.25) + 3.0
-                                                        ..(room.difficulty as f32).powf(1.5) + 4.0,
-                                                )
-                                                .round()
-                                                as u16,
-                                        )
-                                        .with_alignment(comp::Alignment::Enemy),
-                                );
-                            }
-                        } else {
-                            // Turrets
-                            // Turret has 1/5000 chance to spawn per voxel in fight room
-                            if dynamic_rng.gen_range(0..5000) == 0 {
-                                let pos = tile_wcenter.map(|e| e as f32)
-                                    + Vec3::<u32>::iota()
-                                        .map(|e| {
-                                            (RandomField::new(room.seed.wrapping_add(10 + e))
-                                                .get(Vec3::from(tile_pos))
-                                                % 32)
-                                                as i32
-                                                - 16
-                                        })
-                                        .map(|e| e as f32 / 16.0);
-                                let turret = EntityInfo::at(pos.map(|e| e as f32))
-                                    .with_alignment(comp::Alignment::Enemy);
-                                match room.difficulty {
-                                    3 => {
-                                        let turret = turret
-                                            .with_body(comp::Body::Object(
-                                                comp::object::Body::Crossbow,
-                                            ))
-                                            .with_asset_expect(
-                                                "common.entity.dungeon.tier-3.sentry",
-                                            );
-                                        supplement.add_entity(turret);
-                                    },
-                                    5 => {
-                                        let turret = turret
-                                            .with_body(comp::Body::Object(
-                                                comp::object::Body::Crossbow,
-                                            ))
-                                            .with_asset_expect(
-                                                "common.entity.dungeon.tier-5.turret",
-                                            );
-                                        supplement.add_entity(turret);
-                                    },
-                                    _ => {},
-                                };
-                            }
-                        }
-                    }
-
-                    // Spawn miniboss (or minibosses)
-                    if room.kind == RoomKind::Miniboss {
-                        let miniboss_spawn_tile = room.area.center();
-                        // Don't spawn the miniboss in a pillar
-                        let miniboss_tile_is_pillar = room.pillars.map_or(false, |pillar_space| {
-                            miniboss_spawn_tile
-                                .map(|e| e.rem_euclid(pillar_space) == 0)
-                                .reduce_and()
-                        });
-                        let miniboss_spawn_tile =
-                            miniboss_spawn_tile + if miniboss_tile_is_pillar { 1 } else { 0 };
-
-                        if tile_pos == miniboss_spawn_tile && tile_wcenter.xy() == wpos2d {
-                            let entities = match room.difficulty {
-                                0 => mini_boss_0(tile_wcenter),
-                                1 => mini_boss_1(tile_wcenter),
-                                2 => mini_boss_2(tile_wcenter),
-                                3 => mini_boss_3(tile_wcenter),
-                                4 => mini_boss_4(tile_wcenter),
-                                5 => mini_boss_5(dynamic_rng, tile_wcenter),
-                                _ => mini_boss_fallback(tile_wcenter),
-                            };
-
-                            for entity in entities {
-                                supplement.add_entity(
-                                    entity
-                                        .with_level(
-                                            dynamic_rng
-                                                .gen_range(
-                                                    (room.difficulty as f32).powf(1.25) + 3.0
-                                                        ..(room.difficulty as f32).powf(1.5) + 4.0,
-                                                )
-                                                .round()
-                                                as u16
-                                                * 5,
-                                        )
-                                        .with_alignment(comp::Alignment::Enemy),
-                                );
-                            }
-                        }
-                    }
-
-                    // Spawn miniboss
-                    if room.kind == RoomKind::Miniboss {
-                        let boss_spawn_tile = room.area.center();
-                        // Don't spawn the boss in a pillar
-                        let boss_tile_is_pillar = room.pillars.map_or(false, |pillar_space| {
-                            boss_spawn_tile
-                                .map(|e| e.rem_euclid(pillar_space) == 0)
-                                .reduce_and()
-                        });
-                        let boss_spawn_tile =
-                            boss_spawn_tile + if boss_tile_is_pillar { 1 } else { 0 };
-
-                        if tile_pos == boss_spawn_tile && wpos2d == tile_wcenter.xy() {
-                            let entities = match room.difficulty {
-                                0 => boss_0(tile_wcenter),
-                                1 => boss_1(tile_wcenter),
-                                2 => boss_2(tile_wcenter),
-                                3 => boss_3(tile_wcenter),
-                                4 => boss_4(tile_wcenter),
-                                5 => boss_5(tile_wcenter),
-                                _ => boss_fallback(tile_wcenter),
-                            };
-
-                            for entity in entities {
-                                supplement.add_entity(
-                                    entity
-                                        .with_level(
-                                            dynamic_rng
-                                                .gen_range(
-                                                    (room.difficulty as f32).powf(1.25) + 3.0
-                                                        ..(room.difficulty as f32).powf(1.5) + 4.0,
-                                                )
-                                                .round()
-                                                as u16
-                                                * 5,
-                                        )
-                                        .with_alignment(comp::Alignment::Enemy),
-                                );
-                            }
-                        }
+                    match room.kind {
+                        RoomKind::Fight => room.fill_fight_cell(
+                            supplement,
+                            dynamic_rng,
+                            tile_wcenter,
+                            wpos2d,
+                            tile_pos,
+                        ),
+                        RoomKind::Miniboss => room.fill_miniboss_cell(
+                            supplement,
+                            dynamic_rng,
+                            tile_wcenter,
+                            wpos2d,
+                            tile_pos,
+                        ),
+                        RoomKind::Boss => room.fill_boss_cell(
+                            supplement,
+                            dynamic_rng,
+                            tile_wcenter,
+                            wpos2d,
+                            tile_pos,
+                        ),
+                        RoomKind::Peaceful => {},
                     }
                 }
             }
