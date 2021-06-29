@@ -138,12 +138,13 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         }
     };
 
-    // Push an outcome
+    // Push an outcome if entity is has a character state (entities that don't have
+    // one, we probably don't care about emitting death outcome)
     if state
         .ecs()
-        .read_storage::<comp::Projectile>()
+        .read_storage::<comp::CharacterState>()
         .get(entity)
-        .is_none()
+        .is_some()
     {
         if let Some(pos) = state.ecs().read_storage::<Pos>().get(entity) {
             state
