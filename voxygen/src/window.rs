@@ -445,11 +445,8 @@ impl KeyMouse {
             Key(Grave) => "`",
             Key(Kana) => "Kana",
             Key(Kanji) => "Kanji",
-            Key(LAlt) => "LAlt",
             Key(LBracket) => "[",
-            Key(LControl) => "LControl",
-            Key(LShift) => "LShift",
-            Key(LWin) => "LWin",
+            Key(RBracket) => "]",
             Key(Mail) => "Mail",
             Key(MediaSelect) => "MediaSelect",
             Key(MediaStop) => "MediaStop",
@@ -457,23 +454,76 @@ impl KeyMouse {
             Key(NumpadMultiply) => "Numpad *",
             Key(Mute) => "Mute",
             Key(MyComputer) => "My Computer",
-            Key(NavigateForward) => "Navigate Forward",
             Key(NavigateBackward) => "Navigate Backward",
-            Key(NextTrack) => "Next Track",
+            Key(NavigateForward) => "Navigate Forward",
             Key(NoConvert) => "Non Convert",
             Key(NumpadComma) => "Num ,",
             Key(NumpadEnter) => "Num Enter",
             Key(NumpadEquals) => "Num =",
             Key(OEM102) => "<",
             Key(Period) => ".",
-            Key(PlayPause) => "Play / Pause",
             Key(Power) => "Power",
+            Key(PlayPause) => "Play / Pause",
             Key(PrevTrack) => "Prev Track",
-            Key(RAlt) => "RAlt",
-            Key(RBracket) => "]",
-            Key(RControl) => "RControl",
-            Key(RShift) => "RShift",
-            Key(RWin) => "RWin",
+            Key(NextTrack) => "Next Track",
+            Key(LAlt) => {
+                if cfg!(macos) {
+                    "Left Option ⌥"
+                } else {
+                    // Assume Windows, Linux, BSD, etc.
+                    "Left Alt"
+                }
+            },
+            Key(RAlt) => {
+                if cfg!(macos) {
+                    "Right Option ⌥"
+                } else {
+                    // Assume Windows, Linux, BSD, etc.
+                    "Right Alt"
+                }
+            },
+            Key(LControl) => {
+                if cfg!(macos) {
+                    "Left Cmd ⌘"
+                } else {
+                    // Assume Windows, Linux, BSD, etc.
+                    "Left Ctrl"
+                }
+            },
+            Key(RControl) => {
+                if cfg!(macos) {
+                    "Right Cmd ⌘"
+                } else {
+                    // Assume Windows, Linux, BSD, etc.
+                    "Right Ctrl"
+                }
+            },
+            Key(LShift) => "Left Shift",
+            Key(RShift) => "Right Shift",
+            // Key doesn't usually have a right counterpart on modern keyboards, to omit the
+            // qualifier. The exception to this is Mac OS which doesn't usually have
+            // this key at all, so we keep the qualifier to minimise ambiguity.
+            Key(LWin) => {
+                if cfg!(windows) {
+                    "Win ⊞"
+                } else if cfg!(macos) {
+                    "Left Cmd ⌘ (Super)" // Extra qualifier because both Ctrl and Win map to Cmd on Mac
+                } else {
+                    // Assume Linux, BSD, etc.
+                    "Super"
+                }
+            },
+            // Most keyboards don't have this key, so throw in all the qualifiers
+            Key(RWin) => {
+                if cfg!(windows) {
+                    "Right Win ⊞"
+                } else if cfg!(macos) {
+                    "Right Cmd ⌘ (Super)" // Extra qualifier because both Ctrl and Win map to Cmd on Mac
+                } else {
+                    // Assume Linux, BSD, etc.
+                    "Right Super"
+                }
+            },
             Key(Semicolon) => ";",
             Key(Slash) => "/",
             Key(Sleep) => "Sleep",
@@ -499,18 +549,18 @@ impl KeyMouse {
             Key(Cut) => "Cut",
             Key(Asterisk) => "*",
             Key(Plus) => "+",
-            Mouse(MouseButton::Left) => "M1",
-            Mouse(MouseButton::Right) => "M2",
-            Mouse(MouseButton::Middle) => "M3",
+            Mouse(MouseButton::Left) => "Left Click",
+            Mouse(MouseButton::Right) => "Right Click",
+            Mouse(MouseButton::Middle) => "Middle Click",
             Mouse(MouseButton::Other(button)) => {
                 // Additional mouse buttons after middle click start at 1
-                return format!("M{}", button + 3);
+                return format!("Mouse {}", button + 3);
             },
             ScanKey(scancode) => {
                 if let Some(layout) = key_layout {
                     return layout.get_key_as_string(*scancode);
                 } else {
-                    return format!("Unknown({})", scancode);
+                    return format!("Unknown (0x{:X})", scancode);
                 }
             },
         };
