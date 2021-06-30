@@ -96,7 +96,8 @@ pub fn load_dir<T: DirLoadable>(
 
 #[track_caller]
 pub fn load_expect_dir<T: DirLoadable>(specifier: &str, recursive: bool) -> AssetDirHandle<T> {
-    load_dir(specifier, recursive).expect("Failed loading directory")
+    load_dir(specifier, recursive)
+        .unwrap_or_else(|e| panic!("Failed loading directory. error={:?}", e))
 }
 
 impl<T: Compound> AssetExt for T {
