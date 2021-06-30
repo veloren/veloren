@@ -587,74 +587,17 @@ impl Damage {
         damage_modifier: f32,
     ) -> HealthChange {
         let mut damage = self.value * damage_modifier;
-        // Critical hit damage (to be applied post-armor for melee, and pre-armor for
-        // other damage kinds
         let critdamage = if is_crit {
             damage * (crit_mult - 1.0)
         } else {
             0.0
         };
         match self.source {
-            DamageSource::Melee => {
-                // Armor
-                damage *= 1.0 - damage_reduction;
-
-                // Critical damage applies after armor for melee
-                if (damage_reduction - 1.0).abs() > f32::EPSILON {
-                    damage += critdamage;
-                }
-
-                HealthChange {
-                    amount: -damage as i32,
-                    cause: HealthSource::Damage {
-                        kind: self.source,
-                        by: uid,
-                    },
-                }
-            },
-            DamageSource::Projectile => {
-                // Critical hit
-                damage += critdamage;
-                // Armor
-                damage *= 1.0 - damage_reduction;
-
-                HealthChange {
-                    amount: -damage as i32,
-                    cause: HealthSource::Damage {
-                        kind: self.source,
-                        by: uid,
-                    },
-                }
-            },
-            DamageSource::Explosion => {
-                // Critical hit
-                damage += critdamage;
-                // Armor
-                damage *= 1.0 - damage_reduction;
-
-                HealthChange {
-                    amount: -damage as i32,
-                    cause: HealthSource::Damage {
-                        kind: self.source,
-                        by: uid,
-                    },
-                }
-            },
-            DamageSource::Shockwave => {
-                // Critical hit
-                damage += critdamage;
-                // Armor
-                damage *= 1.0 - damage_reduction;
-
-                HealthChange {
-                    amount: -damage as i32,
-                    cause: HealthSource::Damage {
-                        kind: self.source,
-                        by: uid,
-                    },
-                }
-            },
-            DamageSource::Energy => {
+            DamageSource::Melee
+            | DamageSource::Projectile
+            | DamageSource::Explosion
+            | DamageSource::Shockwave
+            | DamageSource::Energy => {
                 // Critical hit
                 damage += critdamage;
                 // Armor
@@ -678,14 +621,7 @@ impl Damage {
                     cause: HealthSource::World,
                 }
             },
-            DamageSource::Buff(_) => HealthChange {
-                amount: -damage as i32,
-                cause: HealthSource::Damage {
-                    kind: self.source,
-                    by: uid,
-                },
-            },
-            DamageSource::Other => HealthChange {
+            DamageSource::Buff(_) | DamageSource::Other => HealthChange {
                 amount: -damage as i32,
                 cause: HealthSource::Damage {
                     kind: self.source,
