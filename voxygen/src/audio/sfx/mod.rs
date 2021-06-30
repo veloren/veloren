@@ -92,7 +92,7 @@ use common::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
         beam, biped_large, biped_small, humanoid,
-        item::{ConsumableKind, ItemKind, ToolKind},
+        item::{ItemKind, ToolKind},
         object,
         poise::PoiseState,
         quadruped_low, quadruped_medium, quadruped_small, Body, CharacterAbilityType,
@@ -210,6 +210,7 @@ pub enum VoiceKind {
     Saurok,
     Cat,
     Goat,
+    Mandragora,
 }
 
 fn body_to_voice(body: &Body) -> Option<VoiceKind> {
@@ -254,6 +255,7 @@ fn body_to_voice(body: &Body) -> Option<VoiceKind> {
         Body::BirdMedium(_) | Body::BirdLarge(_) => VoiceKind::Bird,
         Body::BipedSmall(body) => match body.species {
             biped_small::Species::Adlet => VoiceKind::Adlet,
+            biped_small::Species::Mandragora => VoiceKind::Mandragora,
             _ => return None,
         },
         Body::BipedLarge(body) => match body.species {
@@ -276,7 +278,7 @@ pub enum SfxInventoryEvent {
     CollectedTool(ToolKind),
     CollectedItem(String),
     CollectFailed,
-    Consumed(ConsumableKind),
+    Consumed(String),
     Debug,
     Dropped,
     Given,
@@ -308,7 +310,7 @@ impl From<&InventoryUpdateEvent> for SfxEvent {
                 SfxEvent::Inventory(SfxInventoryEvent::CollectFailed)
             },
             InventoryUpdateEvent::Consumed(consumable) => {
-                SfxEvent::Inventory(SfxInventoryEvent::Consumed(*consumable))
+                SfxEvent::Inventory(SfxInventoryEvent::Consumed(consumable.clone()))
             },
             InventoryUpdateEvent::Debug => SfxEvent::Inventory(SfxInventoryEvent::Debug),
             InventoryUpdateEvent::Dropped => SfxEvent::Inventory(SfxInventoryEvent::Dropped),
@@ -578,4 +580,12 @@ impl assets::Asset for SfxTriggers {
     type Loader = assets::RonLoader;
 
     const EXTENSION: &'static str = "ron";
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_load_sfx_triggers() { let _ = SfxTriggers::load_expect("voxygen.audio.sfx"); }
 }

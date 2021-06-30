@@ -584,37 +584,19 @@
         //
         // Consumables
         //
-        Inventory(Consumed("Potion")): (
+        Inventory(Consumed("Minor Potion")): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.liquid",
             ],
             threshold: 0.3,
         ),
-        Inventory(Consumed("PotionMinor")): (
+        Inventory(Consumed("Medium Potion")): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.liquid",
             ],
             threshold: 0.3,
         ),
-        Inventory(Consumed("PotionMed")): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.liquid",
-            ],
-            threshold: 0.3,
-        ),
-        Inventory(Consumed("PotionLarge")): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.liquid",
-            ],
-            threshold: 0.3,
-        ),
-        Inventory(Consumed("PotionExp")): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.liquid",
-            ],
-            threshold: 0.3,
-        ),
-        Inventory(Consumed("SunflowerTea")): (
+        Inventory(Consumed("Large Potion")): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.liquid",
             ],
@@ -632,19 +614,25 @@
             ],
             threshold: 0.3,
         ),
-        Inventory(Consumed("Cheese")): (
+        Inventory(Consumed("Dwarven Cheese")): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
             threshold: 0.3,
         ),
-        Inventory(Consumed("AppleShroomCurry")): (
+        Inventory(Consumed("Sunflower Ice Tea")): (
             files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
+                "voxygen.audio.sfx.inventory.consumable.liquid",
             ],
             threshold: 0.3,
         ),
-        Inventory(Consumed("AppleStick")): (
+        Inventory(Consumed("Mushroom Curry")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.liquid",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("Apple Stick")): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
@@ -656,19 +644,13 @@
             ],
             threshold: 0.3,
         ),
-        Inventory(Consumed("MushroomStick")): (
+        Inventory(Consumed("Mushroom Stick")): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
             threshold: 0.3,
         ),
         Inventory(Consumed("Tomato")): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-        ),
-        Inventory(Consumed("Fish")): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
@@ -686,30 +668,100 @@
             ],
             threshold: 0.3,
         ),
-        Inventory(Consumed("PlainSalad")): (
+        Inventory(Consumed("Plain Salad")): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
             threshold: 0.3,
         ),
-        Inventory(Consumed("TomatoSalad")): (
+        Inventory(Consumed("Tomato Salad")): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
             threshold: 0.3,
         ),
-        Inventory(Consumed("Velorite")): (
+        Inventory(Consumed("Cactus Colada")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.liquid",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("Raw Bird Meat")): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
             threshold: 0.3,
         ),
-        Inventory(Consumed("VeloriteFrag")): (
+        Inventory(Consumed("Cooked Bird Meat")): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
             threshold: 0.3,
         ),
+        Inventory(Consumed("Raw Fish")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("Cooked Fish")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("Raw Meat Slab")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("Cooked Meat Slab")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("Raw Meat Sliver")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("Cooked Meat Sliver")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("Raw Tough Meat")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("Cooked Tough Meat")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("Huge Raw Drumstick")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("Huge Cooked Drumstick")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+
+        //
+        //Combat
+        //
         Explosion: (
             files: [
                 "voxygen.audio.sfx.abilities.explosion",
@@ -947,7 +999,7 @@
         ),
         Utterance(Hurt, Antelope): (
             files: [
-                "voxygen.audio.sfx.utterance.antelope",
+                "voxygen.audio.sfx.utterance.antelope_hurt1",
             ],
             threshold: 1.0,
         ),
@@ -969,15 +1021,21 @@
             ],
             threshold: 1.0,
         ),
-        Utterance(Hurt, Marlin): (
+        Utterance(Hurt, Mandragora): (
             files: [
-                "voxygen.audio.sfx.utterance.marlin_hurt1",
+                "voxygen.audio.sfx.utterance.mandragora_hurt1",
             ],
             threshold: 1.0,
         ),
         Utterance(Hurt, Maneater): (
             files: [
                 "voxygen.audio.sfx.utterance.maneater_hurt1",
+            ],
+            threshold: 1.0,
+        ),
+        Utterance(Hurt, Marlin): (
+            files: [
+                "voxygen.audio.sfx.utterance.marlin_hurt1",
             ],
             threshold: 1.0,
         ),
