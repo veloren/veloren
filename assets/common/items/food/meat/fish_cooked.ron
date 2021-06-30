@@ -3,7 +3,7 @@ ItemDef(
     description: "A fresh cooked seafood steak.",
     kind: Consumable(
         kind: Food,
-        effect: [
+        effects: [
             Buff((
                 kind: Saturation,
                 data: (

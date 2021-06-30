@@ -3,7 +3,7 @@ ItemDef(
     description: "Meat. The lifeblood of mankind.",
     kind: Consumable(
         kind: Food,
-        effect: [
+        effects: [
             Buff((
                 kind: Saturation,
                 data: (

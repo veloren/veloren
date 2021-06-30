@@ -427,26 +427,6 @@ impl<'a> Widget for ItemTooltip<'a> {
             ..
         } = args;
 
-        fn stats_count(item: &dyn ItemDesc) -> usize {
-            let is_bag = matches!(item.kind(), ItemKind::Armor(armor) if matches!(armor.kind, ArmorKind::Bag(_)));
-            let mut count = match item.kind() {
-                ItemKind::Armor(armor) => {
-                    if matches!(armor.kind, ArmorKind::Bag(_)) {
-                        0
-                    } else {
-                        5
-                    }
-                },
-                ItemKind::Tool(_) => 4,
-                ItemKind::Consumable { .. } => 1,
-                _ => 0,
-            };
-            if item.num_slots() != 0 && !is_bag {
-                count += 1
-            }
-            count as usize
-        }
-
         let i18n = &self.localized_strings;
 
         let inventories = self.client.inventories();
@@ -503,13 +483,13 @@ impl<'a> Widget for ItemTooltip<'a> {
         state.update(|s| {
             s.ids
                 .stats
-                .resize(stats_count(item), &mut ui.widget_id_generator())
+                .resize(util::stats_count(item), &mut ui.widget_id_generator())
         });
 
         state.update(|s| {
             s.ids
                 .diffs
-                .resize(stats_count(item), &mut ui.widget_id_generator())
+                .resize(util::stats_count(item), &mut ui.widget_id_generator())
         });
 
         // Background image frame
@@ -936,15 +916,28 @@ impl<'a> Widget for ItemTooltip<'a> {
                     }
                 }
             },
-            ItemKind::Consumable { effect, .. } => {
-                widget::Text::new(&util::consumable_desc(effect, i18n))
-                    .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
-                    .graphics_for(id)
-                    .parent(id)
-                    .with_style(self.style.desc)
-                    .color(text_color)
-                    .down_from(state.ids.item_frame, V_PAD)
-                    .set(state.ids.stats[0], ui);
+            ItemKind::Consumable { effects, .. } => {
+                for (i, desc) in util::consumable_desc(effects, i18n).iter().enumerate() {
+                    if i == 0 {
+                        widget::Text::new(desc)
+                            .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
+                            .graphics_for(id)
+                            .parent(id)
+                            .with_style(self.style.desc)
+                            .color(text_color)
+                            .down_from(state.ids.item_frame, V_PAD)
+                            .set(state.ids.stats[0], ui);
+                    } else {
+                        widget::Text::new(desc)
+                            .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
+                            .graphics_for(id)
+                            .parent(id)
+                            .with_style(self.style.desc)
+                            .color(text_color)
+                            .down_from(state.ids.stats[i - 1], V_PAD_STATS)
+                            .set(state.ids.stats[i], ui);
+                    }
+                }
             },
             ItemKind::ModularComponent(mc) => {
                 widget::Text::new(&util::modular_component_desc(
@@ -973,7 +966,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 .with_style(self.style.desc)
                 .color(conrod_core::color::GREY)
                 .down_from(
-                    if stats_count(item) > 0 {
+                    if util::stats_count(item) > 0 {
                         state.ids.stats[state.ids.stats.len() - 1]
                     } else {
                         state.ids.item_frame
@@ -997,7 +990,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 .down_from(
                     if !desc.is_empty() {
                         state.ids.desc
-                    } else if stats_count(item) > 0 {
+                    } else if util::stats_count(item) > 0 {
                         state.ids.stats[state.ids.stats.len() - 1]
                     } else {
                         state.ids.item_frame
@@ -1039,31 +1032,6 @@ impl<'a> Widget for ItemTooltip<'a> {
     fn default_x_dimension(&self, _ui: &Ui) -> Dimension { Dimension::Absolute(260.0) }
 
     fn default_y_dimension(&self, ui: &Ui) -> Dimension {
-        fn stats_count(item: &dyn ItemDesc) -> usize {
-            let mut count = match item.kind() {
-                ItemKind::Armor(armor) => {
-                    if matches!(armor.kind, ArmorKind::Bag(_)) {
-                        0
-                    } else {
-                        5
-                    }
-                },
-                ItemKind::Tool(_) => 4,
-                ItemKind::Consumable { .. } => 1,
-                ItemKind::ModularComponent { .. } => 1,
-                _ => 0,
-            };
-
-            let is_bag = match item.kind() {
-                ItemKind::Armor(armor) => matches!(armor.kind, ArmorKind::Bag(_)),
-                _ => false,
-            };
-            if item.num_slots() != 0 && !is_bag {
-                count += 1
-            }
-            count as usize
-        }
-
         let item = &self.item;
 
         let (title, desc) = (item.name().to_string(), item.description().to_string());
@@ -1082,13 +1050,13 @@ impl<'a> Widget for ItemTooltip<'a> {
         let frame_h = ICON_SIZE[1] + V_PAD;
 
         // Stats
-        let stat_h = if stats_count(self.item) > 0 {
+        let stat_h = if util::stats_count(self.item) > 0 {
             widget::Text::new(&"placeholder".to_string())
                 .with_style(self.style.desc)
                 .get_h(ui)
                 .unwrap_or(0.0)
-                * stats_count(self.item) as f64
-                + (stats_count(self.item) - 1) as f64 * V_PAD_STATS
+                * util::stats_count(self.item) as f64
+                + (util::stats_count(self.item) - 1) as f64 * V_PAD_STATS
                 + V_PAD
         } else {
             0.0

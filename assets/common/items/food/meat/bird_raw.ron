@@ -3,7 +3,7 @@ ItemDef(
     description: "A hefty drumstick.",
     kind: Consumable(
         kind: Food,
-        effect: [
+        effects: [
             Buff((
                 kind: Saturation,
                 data: (

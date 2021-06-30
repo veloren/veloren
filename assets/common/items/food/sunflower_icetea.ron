@@ -3,7 +3,7 @@ ItemDef(
     description: "Brewed from freshly shelled sunflower seeds",
     kind: Consumable(
         kind: Drink,
-        effect: [
+        effects: [
             Buff((
                 kind: Saturation,
                 data: (

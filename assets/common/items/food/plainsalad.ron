@@ -3,7 +3,7 @@ ItemDef(
     description: "Literally just chopped lettuce. Does this even count as a salad?",
     kind: Consumable(
         kind: Food,
-        effect: [
+        effects: [
             Buff((
                 kind: Saturation,
                 data: (

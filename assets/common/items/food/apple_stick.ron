@@ -3,7 +3,7 @@ ItemDef(
     description: "The stick makes it easier to carry!",
     kind: Consumable(
         kind: Food,
-        effect: [
+        effects: [
             Buff((
                 kind: Saturation,
                 data: (

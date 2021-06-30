@@ -3,7 +3,7 @@ ItemDef(
     description: "",
     kind: Consumable(
         kind: Drink,
-        effect: [
+        effects: [
             Buff((
                 kind: Potion,
                 data: (

@@ -251,7 +251,7 @@ pub enum ItemKind {
     Glider(Glider),
     Consumable {
         kind: ConsumableKind,
-        effect: Vec<Effect>,
+        effects: Vec<Effect>,
     },
     Throwable {
         kind: Throwable,

@@ -3,7 +3,7 @@ ItemDef(
     description: "Peculiar bit of meat, best after cooking.",
     kind: Consumable(
         kind: Food,
-        effect: [
+        effects: [
             Buff((
                 kind: Saturation,
                 data: (

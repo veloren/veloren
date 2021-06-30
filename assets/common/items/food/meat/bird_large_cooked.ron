@@ -3,7 +3,7 @@ ItemDef(
     description: "Makes for a legendary meal.",
     kind: Consumable(
         kind: Food,
-        effect: [
+        effects: [
             Buff((
                 kind: Saturation,
                 data: (

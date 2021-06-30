@@ -3,7 +3,7 @@ ItemDef(
     description: "Small hunk of beastly animal meat, best after cooking.",
     kind: Consumable(
         kind: Food,
-        effect: [
+        effects: [
             Buff((
                 kind: Saturation,
                 data: (

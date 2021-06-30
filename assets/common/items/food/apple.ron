@@ -3,7 +3,7 @@ ItemDef(
     description: "Red and juicy",
     kind: Consumable(
         kind: Food,
-        effect: [
+        effects: [
             Buff((
                 kind: Saturation,
                 data: (

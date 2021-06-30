@@ -3,7 +3,7 @@ ItemDef(
     description: "A vibrant green leafy vegetable. Lettuce make some salads!",
     kind: Consumable(
         kind: Food,
-        effect: [
+        effects: [
             Buff((
                 kind: Saturation,
                 data: (
