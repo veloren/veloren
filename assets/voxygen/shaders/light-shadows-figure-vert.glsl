@@ -1,4 +1,4 @@
-#version 420 core
+#version 460 core
 // #extension ARB_texture_storage : enable
 
 #define FIGURE_SHADER
