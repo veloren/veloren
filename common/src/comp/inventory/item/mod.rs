@@ -271,8 +271,9 @@ pub enum ItemKind {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ConsumableKind {
-    Potion,
+    Drink,
     Food,
+    ComplexFood,
 }
 
 impl ItemKind {

@@ -165,12 +165,16 @@ impl<'a> System<'a> for Sys {
                 let was_wielded = char_state.get_unchecked().is_wield();
                 let poise_state = poise.poise_state();
                 let pos = pos.0;
-                // Remove potion buff if knocked into poise state
+                // Remove potion/saturation buff if knocked into poise state
                 if !matches!(poise_state, PoiseState::Normal) {
                     use comp::buff::{BuffChange, BuffKind};
                     server_emitter.emit(ServerEvent::Buff {
                         entity,
                         buff_change: BuffChange::RemoveByKind(BuffKind::Potion),
+                    });
+                    server_emitter.emit(ServerEvent::Buff {
+                        entity,
+                        buff_change: BuffChange::RemoveByKind(BuffKind::Saturation),
                     });
                 }
                 match poise_state {
