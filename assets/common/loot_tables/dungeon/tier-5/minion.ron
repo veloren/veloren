@@ -1,9 +1,10 @@
 [
     // Crafting Ingredients
-    (3.0, LootTable("common.loot_tables.materials.common")),
+    (100.0, LootTable("common.loot_tables.materials.common")),
     // Food
-    (3.0, LootTable("common.loot_tables.food.wild_ingredients")),
-    (0.5, LootTable("common.loot_tables.food.prepared")),
-    // Consumables
-    (0.5, LootTable("common.loot_tables.consumable.default")),
+    (100.0, LootTable("common.loot_tables.food.wild_ingredients")),
+    (15.0, LootTable("common.loot_tables.food.prepared")),
+    // Utilities
+    (15.0, LootTable("common.loot_tables.consumable.default")),
+    (1.0, Item("common.items.food.spore_corruption")),
 ]
