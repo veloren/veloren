@@ -52,7 +52,7 @@ impl From<ControlSettingsSerde> for ControlSettings {
 /// (roll and wall jump) are both situations where you cannot glide (the other
 /// default mapping for LShift).
 #[cfg(target_os = "macos")]
-const MIDDLE_CLICK_KEY: KeyMouse = KeyMouse::Key(VirtualKeyCode::LShift);
+const MIDDLE_CLICK_KEY: KeyMouse = KeyMouse::Key(VirtualKeyCode::Grave);
 #[cfg(not(target_os = "macos"))]
 const MIDDLE_CLICK_KEY: KeyMouse = KeyMouse::Mouse(MouseButton::Middle);
 
@@ -124,22 +124,22 @@ impl ControlSettings {
             GameInput::Sit => KeyMouse::Key(VirtualKeyCode::K),
             GameInput::Dance => KeyMouse::Key(VirtualKeyCode::J),
             GameInput::Greet => KeyMouse::Key(VirtualKeyCode::H),
-            GameInput::Glide => KeyMouse::Key(VirtualKeyCode::LShift),
+            GameInput::Glide => KeyMouse::Key(VirtualKeyCode::LControl),
             GameInput::Climb => KeyMouse::Key(VirtualKeyCode::Space),
-            GameInput::ClimbDown => KeyMouse::Key(VirtualKeyCode::LControl),
+            GameInput::ClimbDown => KeyMouse::Key(VirtualKeyCode::LShift),
             GameInput::SwimUp => KeyMouse::Key(VirtualKeyCode::Space),
             GameInput::SwimDown => KeyMouse::Key(VirtualKeyCode::LShift),
             GameInput::Fly => KeyMouse::Key(VirtualKeyCode::H),
-            GameInput::Sneak => KeyMouse::Key(VirtualKeyCode::LControl),
+            GameInput::Sneak => KeyMouse::Key(VirtualKeyCode::LShift),
             GameInput::ToggleLantern => KeyMouse::Key(VirtualKeyCode::G),
             GameInput::Mount => KeyMouse::Key(VirtualKeyCode::F),
             GameInput::Map => KeyMouse::Key(VirtualKeyCode::M),
             GameInput::Bag => KeyMouse::Key(VirtualKeyCode::B),
-            GameInput::Trade => KeyMouse::Key(VirtualKeyCode::R),
+            GameInput::Trade => KeyMouse::Key(VirtualKeyCode::T),
             GameInput::Social => KeyMouse::Key(VirtualKeyCode::O),
             GameInput::Crafting => KeyMouse::Key(VirtualKeyCode::C),
             GameInput::Spellbook => KeyMouse::Key(VirtualKeyCode::P),
-            GameInput::Settings => KeyMouse::Key(VirtualKeyCode::N),
+            GameInput::Settings => KeyMouse::Key(VirtualKeyCode::F10),
             GameInput::Help => KeyMouse::Key(VirtualKeyCode::F1),
             GameInput::ToggleInterface => KeyMouse::Key(VirtualKeyCode::F2),
             GameInput::ToggleDebug => KeyMouse::Key(VirtualKeyCode::F3),
@@ -149,7 +149,7 @@ impl ControlSettings {
             GameInput::Roll => MIDDLE_CLICK_KEY,
             GameInput::Respawn => KeyMouse::Key(VirtualKeyCode::Space),
             GameInput::Interact => KeyMouse::Key(VirtualKeyCode::E),
-            GameInput::ToggleWield => KeyMouse::Key(VirtualKeyCode::T),
+            GameInput::ToggleWield => KeyMouse::Key(VirtualKeyCode::R),
             GameInput::FreeLook => KeyMouse::Key(VirtualKeyCode::L),
             GameInput::AutoWalk => KeyMouse::Key(VirtualKeyCode::Period),
             GameInput::CameraClamp => KeyMouse::Key(VirtualKeyCode::Apostrophe),
@@ -165,9 +165,9 @@ impl ControlSettings {
             GameInput::Slot9 => KeyMouse::Key(VirtualKeyCode::Key9),
             GameInput::Slot10 => KeyMouse::Key(VirtualKeyCode::Q),
             GameInput::SwapLoadout => KeyMouse::Key(VirtualKeyCode::Tab),
-            GameInput::Select => KeyMouse::Key(VirtualKeyCode::Y),
-            GameInput::AcceptGroupInvite => KeyMouse::Key(VirtualKeyCode::U),
-            GameInput::DeclineGroupInvite => KeyMouse::Key(VirtualKeyCode::I),
+            GameInput::Select => KeyMouse::Key(VirtualKeyCode::X),
+            GameInput::AcceptGroupInvite => KeyMouse::Key(VirtualKeyCode::Y),
+            GameInput::DeclineGroupInvite => KeyMouse::Key(VirtualKeyCode::N),
             GameInput::MapZoomIn => KeyMouse::Key(VirtualKeyCode::Plus),
             GameInput::MapZoomOut => KeyMouse::Key(VirtualKeyCode::Minus),
         }
