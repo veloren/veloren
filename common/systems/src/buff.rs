@@ -1,11 +1,13 @@
 use common::{
     comp::{
+        body::{object, Body},
         buff::{
             Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId, BuffKind, BuffSource,
             Buffs,
         },
         fluid_dynamics::{Fluid, LiquidKind},
-        Energy, Health, HealthChange, HealthSource, Inventory, ModifierKind, PhysicsState, Stats,
+        Energy, Health, HealthChange, HealthSource, Inventory, LightEmitter, ModifierKind,
+        PhysicsState, Stats,
     },
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
@@ -37,18 +39,42 @@ impl<'a> System<'a> for Sys {
         ReadData<'a>,
         WriteStorage<'a, Buffs>,
         WriteStorage<'a, Stats>,
+        WriteStorage<'a, Body>,
+        WriteStorage<'a, LightEmitter>,
     );
 
     const NAME: &'static str = "buff";
     const ORIGIN: Origin = Origin::Common;
     const PHASE: Phase = Phase::Create;
 
-    fn run(_job: &mut Job<Self>, (read_data, mut buffs, mut stats): Self::SystemData) {
+    fn run(
+        _job: &mut Job<Self>,
+        (read_data, mut buffs, mut stats, mut bodies, mut light_emitters): Self::SystemData,
+    ) {
         let mut server_emitter = read_data.server_bus.emitter();
         let dt = read_data.dt.0;
         // Set to false to avoid spamming server
         buffs.set_event_emission(false);
         stats.set_event_emission(false);
+        for (entity, mut body, physics_state) in
+            (&read_data.entities, &mut bodies, &read_data.physics_states).join()
+        {
+            // Put out underwater campfires. Logically belongs here since this system also
+            // removes burning, but campfires don't have healths/stats/energies/buffs, so
+            // this needs a separate loop.
+            if matches!(*body, Body::Object(object::Body::CampfireLit))
+                && matches!(
+                    physics_state.in_fluid,
+                    Some(Fluid::Liquid {
+                        kind: LiquidKind::Water,
+                        ..
+                    })
+                )
+            {
+                *body = Body::Object(object::Body::Campfire);
+                light_emitters.remove(entity);
+            }
+        }
         for (entity, mut buff_comp, energy, mut stat, health, physics_state) in (
             &read_data.entities,
             &mut buffs,
