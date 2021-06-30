@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Enemies no more spawn in dungeon boss room
+- Melee critical hit no more applies after reduction by armour
 
 ### Fixed
 
