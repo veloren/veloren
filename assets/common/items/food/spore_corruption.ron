@@ -2,7 +2,7 @@ ItemDef(
     name: "Spore of Corruption",
     description: "You feel an evil force pulsating within.\n\nIt may be unwise to hold on to it for too long...",
     kind: Consumable(
-        kind: Food,
+        kind: ComplexFood,
         effect: [
             Buff((
                 kind: Frenzied,
