@@ -35,6 +35,8 @@ docker-nightly:
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
+  tags:
+    - veloren-publish
   dependencies:
     - air-linux
   before_script:

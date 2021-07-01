@@ -3,6 +3,8 @@ code-quality:
   extends: .recompile-branch
   stage: check
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
+  tags:
+    - veloren-build
   script:
     - ln -s /dockercache/target target
     - cat ./.gitlab/scripts/code-quality.sh
@@ -12,6 +14,8 @@ security:
   extends: .recompile-branch
   stage: check
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
+  tags:
+    - veloren-build
   allow_failure: true
   script:
     - ln -s /dockercache/target target
