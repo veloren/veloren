@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 
+pub const ENERGY_PER_LEVEL: u32 = 50;
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Energy {
     current: u32,
@@ -99,7 +100,6 @@ impl Energy {
     }
 
     pub fn update_max_energy(&mut self, body: Option<Body>, level: u16) {
-        const ENERGY_PER_LEVEL: u32 = 50;
         if let Some(body) = body {
             // Checks the current difference between maximum and base max
             let current_difference = self.maximum as i32 - self.base_max as i32;

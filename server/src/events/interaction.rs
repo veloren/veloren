@@ -337,28 +337,40 @@ pub fn handle_mine_block(
                                 xp_pools: HashSet::from_iter(vec![SkillGroupKind::Weapon(tool)]),
                             });
                     }
-                    use common::comp::skills::{MiningSkill, Skill};
+                    use common::comp::skills::{self, MiningSkill, Skill};
                     use rand::Rng;
                     let mut rng = rand::thread_rng();
+                    let chance_add_ore = || {
+                        let mut chance = 0.0;
+                        skills::adjust_with_level(
+                            &skillset,
+                            Skill::Pick(MiningSkill::OreGain),
+                            |m, level| {
+                                chance = (m - 1.0) * level as f32;
+                            },
+                        );
+
+                        chance as f64
+                    };
+                    let chance_add_gem = || {
+                        let mut chance = 0.0;
+                        skills::adjust_with_level(
+                            &skillset,
+                            Skill::Pick(MiningSkill::GemGain),
+                            |m, level| {
+                                chance = (m - 1.0) * level as f32;
+                            },
+                        );
+
+                        chance as f64
+                    };
                     if item.item_definition_id().contains("mineral.ore.")
-                        && rng.gen_bool(
-                            0.05 * skillset
-                                .skill_level(Skill::Pick(MiningSkill::OreGain))
-                                .ok()
-                                .flatten()
-                                .unwrap_or(0) as f64,
-                        )
+                        && rng.gen_bool(chance_add_ore())
                     {
                         let _ = item.increase_amount(1);
                     }
                     if item.item_definition_id().contains("mineral.gem.")
-                        && rng.gen_bool(
-                            0.05 * skillset
-                                .skill_level(Skill::Pick(MiningSkill::GemGain))
-                                .ok()
-                                .flatten()
-                                .unwrap_or(0) as f64,
-                        )
+                        && rng.gen_bool(chance_add_gem())
                     {
                         let _ = item.increase_amount(1);
                     }

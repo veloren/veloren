@@ -1,6 +1,10 @@
 use crate::{
     assets::{self, Asset, AssetExt},
-    comp::item::tool::ToolKind,
+    comp::{
+        self,
+        body::{humanoid, Body},
+        item::tool::ToolKind,
+    },
 };
 use hashbrown::{HashMap, HashSet};
 use lazy_static::lazy_static;
@@ -110,6 +114,106 @@ pub enum Skill {
     Pick(MiningSkill),
 }
 
+/// Enum which returned as result from `boost` function
+/// `Number` can represent values from -inf to +inf,
+/// but it should generaly be in range -50..50
+///
+/// Number(-25) says that some value
+/// will be reduced by 25% (for example energy consumption)
+///
+/// Number(15) says that some value
+/// will be increased by 15% (for example damage)
+#[derive(Debug, Clone, Copy)]
+pub enum BoostValue {
+    Number(i16),
+    NonDescriptive,
+}
+
+impl BoostValue {
+    pub fn as_mult_maybe(self) -> Option<f32> {
+        match self {
+            Self::Number(x) => Some(1.0 + x as f32 * 0.01),
+            Self::NonDescriptive => None,
+        }
+    }
+
+    pub fn as_i16_maybe(self) -> Option<i16> {
+        match self {
+            Self::Number(x) => Some(x),
+            Self::NonDescriptive => None,
+        }
+    }
+}
+
+impl From<i16> for BoostValue {
+    fn from(number: i16) -> Self { BoostValue::Number(number) }
+}
+
+pub fn adjust_with_level(skillset: &SkillSet, skill: Skill, effect: impl FnOnce(f32, u16)) {
+    if let Ok(Some(level)) = skillset.skill_level(skill) {
+        skill
+            .boost()
+            .as_mult_maybe()
+            .map_or_else(|| invalid_skill_boost(skill), |m| effect(m, level))
+    }
+}
+
+pub fn adjust_counter_with_level(skillset: &SkillSet, skill: Skill, effect: impl FnOnce(i16, i16)) {
+    if let Ok(Some(level)) = skillset.skill_level(skill) {
+        skill
+            .boost()
+            .as_i16_maybe()
+            .map_or_else(|| invalid_skill_boost(skill), |m| effect(m, level as i16))
+    }
+}
+
+pub fn set_if_has(skillset: &SkillSet, skill: Skill, effect: impl FnOnce(f32)) {
+    if skillset.has_skill(skill) {
+        skill
+            .boost()
+            .as_mult_maybe()
+            .map_or_else(|| invalid_skill_boost(skill), |m| effect(m))
+    }
+}
+pub fn invalid_skill_boost(skill: Skill) {
+    let err_msg = format!(
+        "{:?} produced unexpected BoostValue: {:?}",
+        skill,
+        skill.boost()
+    );
+    common_base::dev_panic!(err_msg);
+}
+
+/// Returns value which corresponds to the boost given by this skill
+pub trait Boost {
+    fn boost(self) -> BoostValue;
+}
+
+impl Boost for Skill {
+    fn boost(self) -> BoostValue {
+        match self {
+            // General tree boosts
+            Skill::General(s) => s.boost(),
+            // Weapon tree boosts
+            Skill::Sword(s) => s.boost(),
+            Skill::Axe(s) => s.boost(),
+            Skill::Hammer(s) => s.boost(),
+            Skill::Bow(s) => s.boost(),
+            Skill::Staff(s) => s.boost(),
+            Skill::Sceptre(s) => s.boost(),
+
+            // Movement tree boosts
+            Skill::Roll(s) => s.boost(),
+            Skill::Climb(s) => s.boost(),
+            Skill::Swim(s) => s.boost(),
+            // Non-combat tree boosts
+            Skill::Pick(s) => s.boost(),
+            // Unlock Group has more complex semantic
+            Skill::UnlockGroup(_) => BoostValue::NonDescriptive,
+        }
+    }
+}
+
 pub enum SkillError {
     MissingSkill,
 }
@@ -138,6 +242,32 @@ pub enum SwordSkill {
     SSpins,
 }
 
+impl Boost for SwordSkill {
+    fn boost(self) -> BoostValue {
+        match self {
+            // Dash
+            Self::DDamage => 20.into(),
+            Self::DCost => (-25_i16).into(),
+            Self::DDrain => (-25_i16).into(),
+            Self::DScaling => 20.into(),
+            Self::DSpeed => 15.into(),
+            // Spin
+            Self::SDamage => 40.into(),
+            Self::SSpeed => (-20_i16).into(),
+            Self::SCost => (-25_i16).into(),
+            // Non-descriptive values
+            Self::InterruptingAttacks
+            | Self::TsCombo
+            | Self::TsDamage
+            | Self::TsRegen
+            | Self::TsSpeed
+            | Self::DInfinite
+            | Self::UnlockSpin
+            | Self::SSpins => BoostValue::NonDescriptive,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum AxeSkill {
     // Double strike upgrades
@@ -159,6 +289,30 @@ pub enum AxeSkill {
     LDistance,
 }
 
+impl Boost for AxeSkill {
+    fn boost(self) -> BoostValue {
+        match self {
+            // Spin upgrades
+            Self::SDamage => 30.into(),
+            Self::SSpeed => (-20_i16).into(),
+            Self::SCost => (-25_i16).into(),
+            // Leap upgrades
+            Self::LDamage => 35.into(),
+            Self::LKnockback => 40.into(),
+            Self::LCost => (-25_i16).into(),
+            Self::LDistance => 20.into(),
+            // Non-descriptive boosts
+            Self::UnlockLeap
+            | Self::DsCombo
+            | Self::DsDamage
+            | Self::DsSpeed
+            | Self::DsRegen
+            | Self::SInfinite
+            | Self::SHelicopter => BoostValue::NonDescriptive,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum HammerSkill {
     // Single strike upgrades
@@ -178,6 +332,30 @@ pub enum HammerSkill {
     LDistance,
     LKnockback,
     LRange,
+}
+
+impl Boost for HammerSkill {
+    fn boost(self) -> BoostValue {
+        match self {
+            // Single strike upgrades
+            Self::SsKnockback => 50.into(),
+            // Charged melee upgrades
+            Self::CDamage => 25.into(),
+            Self::CKnockback => 50.into(),
+            Self::CDrain => (-25_i16).into(),
+            Self::CSpeed => 25.into(),
+            // Leap upgrades
+            Self::LDamage => 40.into(),
+            Self::LKnockback => 50.into(),
+            Self::LCost => (-25_i16).into(),
+            Self::LDistance => 25.into(),
+            Self::LRange => 1.into(),
+            // Non-descriptive values
+            Self::UnlockLeap | Self::SsDamage | Self::SsSpeed | Self::SsRegen => {
+                BoostValue::NonDescriptive
+            },
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
@@ -202,6 +380,32 @@ pub enum BowSkill {
     SSpread,
 }
 
+impl Boost for BowSkill {
+    fn boost(self) -> BoostValue {
+        match self {
+            // Passive
+            Self::ProjSpeed => 20.into(),
+            // Charged upgrades
+            Self::CDamage => 20.into(),
+            Self::CRegen => 20.into(),
+            Self::CKnockback => 20.into(),
+            Self::CSpeed => 10.into(),
+            Self::CMove => 10.into(),
+            // Repeater upgrades
+            Self::RDamage => 20.into(),
+            Self::RCost => (-20_i16).into(),
+            Self::RSpeed => 20.into(),
+            // Shotgun upgrades
+            Self::SDamage => 20.into(),
+            Self::SCost => (-20_i16).into(),
+            Self::SArrows => 1.into(),
+            Self::SSpread => (-20_i16).into(),
+            // Non-descriptive values
+            Self::UnlockShotgun => BoostValue::NonDescriptive,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum StaffSkill {
     // Basic ranged upgrades
@@ -219,6 +423,29 @@ pub enum StaffSkill {
     SKnockback,
     SRange,
     SCost,
+}
+
+impl Boost for StaffSkill {
+    fn boost(self) -> BoostValue {
+        match self {
+            // Fireball upgrades
+            Self::BDamage => 20.into(),
+            Self::BRegen => 20.into(),
+            Self::BRadius => 15.into(),
+            // Flamethrower upgrades
+            Self::FDamage => 30.into(),
+            Self::FRange => 25.into(),
+            Self::FDrain => (-20_i16).into(),
+            Self::FVelocity => 25.into(),
+            // Shockwave upgrades
+            Self::SDamage => 30.into(),
+            Self::SKnockback => 30.into(),
+            Self::SRange => 20.into(),
+            Self::SCost => (-20_i16).into(),
+            // Non-descriptive values
+            Self::UnlockShockwave => BoostValue::NonDescriptive,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
@@ -240,10 +467,50 @@ pub enum SceptreSkill {
     ACost,
 }
 
+impl Boost for SceptreSkill {
+    fn boost(self) -> BoostValue {
+        match self {
+            // Lifesteal beam upgrades
+            Self::LDamage => 20.into(),
+            Self::LRange => 20.into(),
+            Self::LRegen => 20.into(),
+            Self::LLifesteal => 15.into(),
+            // Healing beam upgrades
+            Self::HHeal => 20.into(),
+            Self::HRange => 20.into(),
+            Self::HCost => (-20_i16).into(),
+            // Warding aura upgrades
+            Self::AStrength => 15.into(),
+            Self::ADuration => 20.into(),
+            Self::ARange => 25.into(),
+            Self::ACost => (-15_i16).into(),
+            Self::UnlockAura => BoostValue::NonDescriptive,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum GeneralSkill {
     HealthIncrease,
     EnergyIncrease,
+}
+
+impl Boost for GeneralSkill {
+    fn boost(self) -> BoostValue {
+        // NOTE: These should be used only for UI.
+        // Source of truth are corresponding systems
+        match self {
+            Self::HealthIncrease => {
+                let health_increase =
+                    (Body::Humanoid(humanoid::Body::random()).base_health_increase() / 10) as i16;
+                health_increase.into()
+            },
+            Self::EnergyIncrease => {
+                let energy_increase = (comp::energy::ENERGY_PER_LEVEL / 10) as i16;
+                energy_increase.into()
+            },
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
@@ -253,10 +520,29 @@ pub enum RollSkill {
     Duration,
 }
 
+impl Boost for RollSkill {
+    fn boost(self) -> BoostValue {
+        match self {
+            Self::Cost => (-10_i16).into(),
+            Self::Strength => 10.into(),
+            Self::Duration => 10.into(),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ClimbSkill {
     Cost,
     Speed,
+}
+
+impl Boost for ClimbSkill {
+    fn boost(self) -> BoostValue {
+        match self {
+            Self::Cost => (-20_i16).into(),
+            Self::Speed => 20.into(),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
@@ -264,11 +550,29 @@ pub enum SwimSkill {
     Speed,
 }
 
+impl Boost for SwimSkill {
+    fn boost(self) -> BoostValue {
+        match self {
+            Self::Speed => 40.into(),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MiningSkill {
     Speed,
     OreGain,
     GemGain,
+}
+
+impl Boost for MiningSkill {
+    fn boost(self) -> BoostValue {
+        match self {
+            Self::Speed => 10.into(),
+            Self::OreGain => 5.into(),
+            Self::GemGain => 5.into(),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
