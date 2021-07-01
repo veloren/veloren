@@ -4,11 +4,11 @@ ItemDef(
     kind: Armor((
         kind: Pants("Cultist"),
         stats: (
-            protection: Normal(24.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.0,
+            protection: Normal(32.0),
+            poise_resilience: Normal(4.0),
+            energy_max: 90,
+            energy_reward: 0.1,
+            crit_power: 0.08,
             stealth: 0.0,
         ),
     )),

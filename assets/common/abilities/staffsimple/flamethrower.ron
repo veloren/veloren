@@ -14,7 +14,7 @@ BasicBeam(
     ))),
     energy_regen: 0,
     energy_drain: 350,
-    orientation_behavior: Normal,
-    ori_rate: 0.6,
+    orientation_behavior: FromOri,
+    ori_rate: 0.3,
     specifier: Flamethrower,
 )

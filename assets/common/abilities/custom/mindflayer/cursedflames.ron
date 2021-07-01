@@ -2,8 +2,8 @@ BasicBeam(
     buildup_duration: 0.40,
     recover_duration: 0.50,
     beam_duration: 1.0,
-    damage: 400,
-    tick_rate: 0.9,
+    damage: 150,
+    tick_rate: 5.0,
     range: 22.0,
     max_angle: 15.0,
     damage_effect: Some(Buff((
@@ -14,7 +14,7 @@ BasicBeam(
     ))),
     energy_regen: 0,
     energy_drain: 0,
-    orientation_behavior: Normal,
-    ori_rate: 0.6,
+    orientation_behavior: FromOri,
+    ori_rate: 0.2,
     specifier: Cultist,
 )

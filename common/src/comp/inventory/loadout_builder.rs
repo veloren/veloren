@@ -161,14 +161,9 @@ fn default_main_tool(body: &Body) -> Item {
             _ => None,
         },
         Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
-            quadruped_medium::Species::Wolf
-            | quadruped_medium::Species::Grolgar
-            | quadruped_medium::Species::Lion
-            | quadruped_medium::Species::Bonerattler
-            | quadruped_medium::Species::Darkhound
-            | quadruped_medium::Species::Snowleopard => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadmedquick",
-            )),
+            quadruped_medium::Species::Wolf | quadruped_medium::Species::Grolgar => Some(
+                Item::new_from_asset_expect("common.items.npc_weapons.unique.quadmedquick"),
+            ),
             quadruped_medium::Species::Donkey
             | quadruped_medium::Species::Horse
             | quadruped_medium::Species::Zebra
@@ -180,7 +175,11 @@ fn default_main_tool(body: &Body) -> Item {
             | quadruped_medium::Species::Alpaca => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadmedhoof",
             )),
-            quadruped_medium::Species::Saber => Some(Item::new_from_asset_expect(
+            quadruped_medium::Species::Saber
+            | quadruped_medium::Species::Bonerattler
+            | quadruped_medium::Species::Darkhound
+            | quadruped_medium::Species::Lion
+            | quadruped_medium::Species::Snowleopard => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadmedjump",
             )),
             quadruped_medium::Species::Tuskram
@@ -398,88 +397,73 @@ impl LoadoutBuilder {
 
     #[must_use]
     /// Set default equipement based on `body`
-    pub fn with_default_equipment(mut self, body: &Body) -> Self {
-        self = match body {
-            Body::BipedLarge(biped_large::Body {
-                species: biped_large::Species::Mindflayer,
-                ..
-            }) => self.chest(Some(Item::new_from_asset_expect(
-                "common.items.npc_armor.biped_large.mindflayer",
-            ))),
-            Body::BipedLarge(biped_large::Body {
-                species: biped_large::Species::Minotaur,
-                ..
-            }) => self.chest(Some(Item::new_from_asset_expect(
-                "common.items.npc_armor.biped_large.minotaur",
-            ))),
-            Body::BipedLarge(biped_large::Body {
-                species: biped_large::Species::Tidalwarrior,
-                ..
-            }) => self.chest(Some(Item::new_from_asset_expect(
-                "common.items.npc_armor.biped_large.tidal_warrior",
-            ))),
-            Body::BipedLarge(biped_large::Body {
-                species: biped_large::Species::Yeti,
-                ..
-            }) => self.chest(Some(Item::new_from_asset_expect(
-                "common.items.npc_armor.biped_large.yeti",
-            ))),
-            Body::BipedLarge(biped_large::Body {
-                species: biped_large::Species::Harvester,
-                ..
-            }) => self.chest(Some(Item::new_from_asset_expect(
-                "common.items.npc_armor.biped_large.harvester",
-            ))),
-            Body::BipedLarge(biped_large::Body {
-                species:
-                    biped_large::Species::Ogre
-                    | biped_large::Species::Cyclops
-                    | biped_large::Species::Blueoni
-                    | biped_large::Species::Redoni
-                    | biped_large::Species::Cavetroll
-                    | biped_large::Species::Wendigo,
-                ..
-            }) => self.chest(Some(Item::new_from_asset_expect(
-                "common.items.npc_armor.biped_large.generic",
-            ))),
-            Body::Golem(golem::Body {
-                species: golem::Species::ClayGolem,
-                ..
-            }) => self.chest(Some(Item::new_from_asset_expect(
-                "common.items.npc_armor.golem.claygolem",
-            ))),
-            Body::QuadrupedLow(quadruped_low::Body {
-                species:
-                    quadruped_low::Species::Basilisk
-                    | quadruped_low::Species::Asp
-                    | quadruped_low::Species::Lavadrake
-                    | quadruped_low::Species::Maneater
-                    | quadruped_low::Species::Rocksnapper
-                    | quadruped_low::Species::Sandshark,
-                ..
-            }) => self.chest(Some(Item::new_from_asset_expect(
-                "common.items.npc_armor.quadruped_low.generic",
-            ))),
-            Body::QuadrupedLow(quadruped_low::Body {
-                species: quadruped_low::Species::Tortoise,
-                ..
-            }) => self.chest(Some(Item::new_from_asset_expect(
-                "common.items.npc_armor.quadruped_low.shell",
-            ))),
-            Body::Theropod(theropod::Body {
-                species:
-                    theropod::Species::Archaeos
-                    | theropod::Species::Yale
-                    | theropod::Species::Ntouka
-                    | theropod::Species::Odonto,
-                ..
-            }) => self.chest(Some(Item::new_from_asset_expect(
-                "common.items.npc_armor.theropod.rugged",
-            ))),
-            _ => self,
+    pub fn with_default_equipment(self, body: &Body) -> Self {
+        let chest = match body {
+            Body::BipedLarge(body) => match body.species {
+                biped_large::Species::Mindflayer => {
+                    Some("common.items.npc_armor.biped_large.mindflayer")
+                },
+                biped_large::Species::Minotaur => {
+                    Some("common.items.npc_armor.biped_large.minotaur")
+                },
+                biped_large::Species::Tidalwarrior => {
+                    Some("common.items.npc_armor.biped_large.tidal_warrior")
+                },
+                biped_large::Species::Yeti => Some("common.items.npc_armor.biped_large.yeti"),
+                biped_large::Species::Harvester => {
+                    Some("common.items.npc_armor.biped_large.harvester")
+                },
+                biped_large::Species::Ogre
+                | biped_large::Species::Cyclops
+                | biped_large::Species::Blueoni
+                | biped_large::Species::Redoni
+                | biped_large::Species::Cavetroll
+                | biped_large::Species::Wendigo => {
+                    Some("common.items.npc_armor.biped_large.generic")
+                },
+                biped_large::Species::Cultistwarlord => {
+                    Some("common.items.npc_armor.biped_large.warlord")
+                },
+                biped_large::Species::Cultistwarlock => {
+                    Some("common.items.npc_armor.biped_large.warlock")
+                },
+                _ => None,
+            },
+            Body::Golem(body) => match body.species {
+                golem::Species::ClayGolem => Some("common.items.npc_armor.golem.claygolem"),
+                _ => None,
+            },
+            Body::QuadrupedLow(body) => match body.species {
+                quadruped_low::Species::Basilisk
+                | quadruped_low::Species::Asp
+                | quadruped_low::Species::Lavadrake
+                | quadruped_low::Species::Maneater
+                | quadruped_low::Species::Rocksnapper
+                | quadruped_low::Species::Sandshark => {
+                    Some("common.items.npc_armor.quadruped_low.generic")
+                },
+                quadruped_low::Species::Tortoise => {
+                    Some("common.items.npc_armor.quadruped_low.shell")
+                },
+                _ => None,
+            },
+            Body::Theropod(body) => match body.species {
+                theropod::Species::Archaeos
+                | theropod::Species::Yale
+                | theropod::Species::Ntouka
+                | theropod::Species::Odonto => Some("common.items.npc_armor.theropod.rugged"),
+                _ => None,
+            },
+            _ => None,
         };
 
-        self
+        // closures can't be used here, because it moves value
+        #[allow(clippy::option_if_let_else)]
+        if let Some(chest) = chest {
+            self.chest(Some(Item::new_from_asset_expect(chest)))
+        } else {
+            self
+        }
     }
 
     #[must_use]

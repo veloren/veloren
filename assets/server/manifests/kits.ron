@@ -314,6 +314,15 @@
         ("common.items.armor.ferocious.back",1),
         ("common.items.weapons.sword.bloodsteel-1",1),
     ],
+    "cultist": [
+        ("common.items.armor.cultist.chest",1),
+        ("common.items.armor.cultist.pants",1),
+        ("common.items.armor.cultist.hand",1),
+        ("common.items.armor.cultist.foot",1),
+        ("common.items.armor.cultist.shoulder",1),
+        ("common.items.armor.cultist.belt",1),
+        ("common.items.armor.misc.back.dungeon_purple",1),
+    ],
     "admin_cosmetics": [
         ("common.items.debug.cultist_belt",1),
         ("common.items.debug.cultist_boots",1),
