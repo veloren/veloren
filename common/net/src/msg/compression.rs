@@ -123,7 +123,7 @@ impl PackingFormula for GridLtrPacking {
     }
 }
 
-pub trait VoxelImageEncoding: Copy {
+pub trait VoxelImageEncoding {
     type Workspace;
     type Output;
     fn create(width: u32, height: u32) -> Self::Workspace;
@@ -154,6 +154,37 @@ pub fn image_from_bytes<'a, I: ImageDecoder<'a>, P: 'static + Pixel<Subpixel = u
     ImageBuffer::from_raw(w, h, buf)
 }
 
+impl<'a, VIE: VoxelImageEncoding> VoxelImageEncoding for &'a VIE {
+    type Output = VIE::Output;
+    type Workspace = VIE::Workspace;
+
+    fn create(width: u32, height: u32) -> Self::Workspace { VIE::create(width, height) }
+
+    fn put_solid(&self, ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
+        (*self).put_solid(ws, x, y, kind, rgb)
+    }
+
+    fn put_sprite(
+        &self,
+        ws: &mut Self::Workspace,
+        x: u32,
+        y: u32,
+        kind: BlockKind,
+        sprite: SpriteKind,
+        ori: Option<u8>,
+    ) {
+        (*self).put_sprite(ws, x, y, kind, sprite, ori)
+    }
+
+    fn finish(ws: &Self::Workspace) -> Option<Self::Output> { VIE::finish(ws) }
+}
+impl<'a, VIE: VoxelImageDecoding> VoxelImageDecoding for &'a VIE {
+    fn start(ws: &Self::Output) -> Option<Self::Workspace> { VIE::start(ws) }
+
+    fn get_block(ws: &Self::Workspace, x: u32, y: u32, is_border: bool) -> Block {
+        VIE::get_block(ws, x, y, is_border)
+    }
+}
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct QuadPngEncoding<const RESOLUTION_DIVIDER: u32>();
 
@@ -626,7 +657,7 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageDecoding for TriPngEncoding<AVERAGE_
 }
 
 pub fn image_terrain_chonk<S: RectVolSize, M: Clone, P: PackingFormula, VIE: VoxelImageEncoding>(
-    vie: VIE,
+    vie: &VIE,
     packing: P,
     chonk: &Chonk<Block, S, M>,
 ) -> Option<VIE::Output> {
@@ -645,7 +676,7 @@ pub fn image_terrain_volgrid<
     P: PackingFormula,
     VIE: VoxelImageEncoding,
 >(
-    vie: VIE,
+    vie: &VIE,
     packing: P,
     volgrid: &VolGrid2d<Chonk<Block, S, M>>,
 ) -> Option<VIE::Output> {
@@ -669,7 +700,7 @@ pub fn image_terrain<
     P: PackingFormula,
     VIE: VoxelImageEncoding,
 >(
-    vie: VIE,
+    vie: &VIE,
     packing: P,
     vol: &V,
     lo: Vec3<u32>,
@@ -700,10 +731,10 @@ pub fn image_terrain<
                     .unwrap_or(&Block::empty());
                 match (block.get_color(), block.get_sprite()) {
                     (Some(rgb), None) => {
-                        VIE::put_solid(&vie, &mut image, i, j, *block, rgb);
+                        VIE::put_solid(vie, &mut image, i, j, *block, rgb);
                     },
                     (None, Some(sprite)) => {
-                        VIE::put_sprite(&vie, &mut image, i, j, *block, sprite, block.get_ori());
+                        VIE::put_sprite(vie, &mut image, i, j, *block, sprite, block.get_ori());
                     },
                     _ => panic!(
                         "attr being used for color vs sprite is mutually exclusive (and that's \
@@ -772,7 +803,7 @@ impl<VIE: VoxelImageEncoding + VoxelImageDecoding, P: PackingFormula, M: Clone, 
     WireChonk<VIE, P, M, S>
 {
     pub fn from_chonk(vie: VIE, packing: P, chonk: &Chonk<Block, S, M>) -> Option<Self> {
-        let data = image_terrain_chonk(vie, packing, chonk)?;
+        let data = image_terrain_chonk(&vie, packing, chonk)?;
         Some(Self {
             zmin: chonk.get_min_z(),
             zmax: chonk.get_max_z(),
@@ -791,7 +822,7 @@ impl<VIE: VoxelImageEncoding + VoxelImageDecoding, P: PackingFormula, M: Clone, 
     pub fn to_chonk(&self) -> Option<Chonk<Block, S, M>> {
         let mut chonk = Chonk::new(self.zmin, self.below, self.above, self.meta.clone());
         write_image_terrain(
-            self.vie,
+            &self.vie,
             self.packing,
             &mut chonk,
             &self.data,
