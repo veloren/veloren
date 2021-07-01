@@ -5,14 +5,14 @@ use super::{
 use crate::{
     i18n::Localization,
     ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
-    window::GameInput,
+    window::{GameInput, KeyMouse},
     GlobalState,
 };
 use client::Client;
 use common::comp::{SkillSet, Stats};
 use conrod_core::{
     widget::{self, Button, Image, Text},
-    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
 widget_ids! {
     struct Ids {
@@ -130,7 +130,6 @@ impl<'a> Widget for Buttons<'a> {
             Some(inv) => inv,
             None => return None,
         };
-        let key_layout = &self.global_state.window.key_layout;
         let localized_strings = self.localized_strings;
         let arrow_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
 
@@ -189,18 +188,13 @@ impl<'a> Widget for Buttons<'a> {
             .controls
             .get_binding(GameInput::Bag)
         {
-            Text::new(bag.display_string(key_layout).as_str())
-                .bottom_right_with_margins_on(state.ids.bag, 0.0, 0.0)
-                .font_size(10)
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(BLACK)
-                .set(state.ids.bag_text_bg, ui);
-            Text::new(bag.display_string(key_layout).as_str())
-                .bottom_right_with_margins_on(state.ids.bag_text_bg, 1.0, 1.0)
-                .font_size(10)
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.bag_text, ui);
+            self.create_new_button_with_shadow(
+                ui,
+                &bag,
+                state.ids.bag,
+                state.ids.bag_text_bg,
+                state.ids.bag_text,
+            );
         }
         if !self.show_bag {
             let space_used = inventory.populated_slots();
@@ -250,18 +244,13 @@ impl<'a> Widget for Buttons<'a> {
             .controls
             .get_binding(GameInput::Settings)
         {
-            Text::new(settings.display_string(key_layout).as_str())
-                .bottom_right_with_margins_on(state.ids.settings_button, 0.0, 0.0)
-                .font_size(10)
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(BLACK)
-                .set(state.ids.settings_text_bg, ui);
-            Text::new(settings.display_string(key_layout).as_str())
-                .bottom_right_with_margins_on(state.ids.settings_text_bg, 1.0, 1.0)
-                .font_size(10)
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.settings_text, ui);
+            self.create_new_button_with_shadow(
+                ui,
+                &settings,
+                state.ids.settings_button,
+                state.ids.settings_text_bg,
+                state.ids.settings_text,
+            );
         };
 
         // Social
@@ -288,18 +277,13 @@ impl<'a> Widget for Buttons<'a> {
             .controls
             .get_binding(GameInput::Social)
         {
-            Text::new(social.display_string(key_layout).as_str())
-                .bottom_right_with_margins_on(state.ids.social_button, 0.0, 0.0)
-                .font_size(10)
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(BLACK)
-                .set(state.ids.social_text_bg, ui);
-            Text::new(social.display_string(key_layout).as_str())
-                .bottom_right_with_margins_on(state.ids.social_text_bg, 1.0, 1.0)
-                .font_size(10)
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.social_text, ui);
+            self.create_new_button_with_shadow(
+                ui,
+                &social,
+                state.ids.social_button,
+                state.ids.social_text_bg,
+                state.ids.social_text,
+            );
         };
         // Map
         if Button::image(self.imgs.map_button)
@@ -325,18 +309,13 @@ impl<'a> Widget for Buttons<'a> {
             .controls
             .get_binding(GameInput::Map)
         {
-            Text::new(map.display_string(key_layout).as_str())
-                .bottom_right_with_margins_on(state.ids.map_button, 0.0, 0.0)
-                .font_size(10)
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(BLACK)
-                .set(state.ids.map_text_bg, ui);
-            Text::new(map.display_string(key_layout).as_str())
-                .bottom_right_with_margins_on(state.ids.map_text_bg, 1.0, 1.0)
-                .font_size(10)
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.map_text, ui);
+            self.create_new_button_with_shadow(
+                ui,
+                &map,
+                state.ids.map_button,
+                state.ids.map_text_bg,
+                state.ids.map_text,
+            );
         }
         // Diary
         let unspent_sp = self.skill_set.has_available_sp();
@@ -367,18 +346,13 @@ impl<'a> Widget for Buttons<'a> {
             .controls
             .get_binding(GameInput::Spellbook)
         {
-            Text::new(spell.display_string(key_layout).as_str())
-                .bottom_right_with_margins_on(state.ids.spellbook_button, 0.0, 0.0)
-                .font_size(10)
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(BLACK)
-                .set(state.ids.spellbook_text_bg, ui);
-            Text::new(spell.display_string(key_layout).as_str())
-                .bottom_right_with_margins_on(state.ids.spellbook_text_bg, 1.0, 1.0)
-                .font_size(10)
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.spellbook_text, ui);
+            self.create_new_button_with_shadow(
+                ui,
+                &spell,
+                state.ids.spellbook_button,
+                state.ids.spellbook_text_bg,
+                state.ids.spellbook_text,
+            );
         }
         // Unspent SP indicator
         if unspent_sp {
@@ -427,20 +401,44 @@ impl<'a> Widget for Buttons<'a> {
             .controls
             .get_binding(GameInput::Crafting)
         {
-            Text::new(crafting.display_string(key_layout).as_str())
-                .bottom_right_with_margins_on(state.ids.crafting_button, 0.0, 0.0)
-                .font_size(10)
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(BLACK)
-                .set(state.ids.crafting_text_bg, ui);
-            Text::new(crafting.display_string(key_layout).as_str())
-                .bottom_right_with_margins_on(state.ids.crafting_text_bg, 1.0, 1.0)
-                .font_size(10)
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.crafting_text, ui);
+            self.create_new_button_with_shadow(
+                ui,
+                &crafting,
+                state.ids.crafting_button,
+                state.ids.crafting_text_bg,
+                state.ids.crafting_text,
+            );
         }
 
         None
+    }
+}
+
+impl<'a> Buttons<'a> {
+    fn create_new_button_with_shadow(
+        &self,
+        ui: &mut UiCell,
+        key_mouse: &KeyMouse,
+        button_identifier: widget::Id,
+        text_background: widget::Id,
+        text: widget::Id,
+    ) {
+        let key_layout = &self.global_state.window.key_layout;
+
+        //Create shadow
+        Text::new(key_mouse.display_string(key_layout).as_str())
+            .bottom_right_with_margins_on(button_identifier, 0.0, 0.0)
+            .font_size(10)
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(BLACK)
+            .set(text_background, ui);
+
+        //Create button
+        Text::new(key_mouse.display_string(key_layout).as_str())
+            .bottom_right_with_margins_on(text_background, 1.0, 1.0)
+            .font_size(10)
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(text, ui);
     }
 }
