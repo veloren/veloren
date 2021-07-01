@@ -38,7 +38,7 @@ impl Animation for LeapAnimation {
         let (movement1, movement2, movement3, move4) = match stage_section {
             Some(StageSection::Buildup) => (anim_time, 0.0, 0.0, 0.0),
             Some(StageSection::Movement) => (1.0, anim_time.powi(2), 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, 1.0, anim_time.powf(0.75), 0.0),
+            Some(StageSection::Action) => (1.0, 1.0, anim_time.powf(0.75), 0.0),
             Some(StageSection::Recover) => (1.0, 1.0, 1.0, anim_time.powf(0.75)),
             _ => (0.0, 0.0, 0.0, 0.0),
         };

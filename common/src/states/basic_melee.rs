@@ -73,12 +73,12 @@ impl CharacterBehavior for Data {
                     // Transitions to swing section of stage
                     update.character = CharacterState::BasicMelee(Data {
                         timer: Duration::default(),
-                        stage_section: StageSection::Swing,
+                        stage_section: StageSection::Action,
                         ..*self
                     });
                 }
             },
-            StageSection::Swing => {
+            StageSection::Action => {
                 if !self.exhausted {
                     update.character = CharacterState::BasicMelee(Data {
                         timer: Duration::default(),

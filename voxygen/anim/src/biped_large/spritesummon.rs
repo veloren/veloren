@@ -60,7 +60,7 @@ impl Animation for SpriteSummonAnimation {
                                 Some(StageSection::Buildup) => {
                                     (anim_time, anim_time.powf(0.1), 0.0, 0.0)
                                 },
-                                Some(StageSection::Cast) => {
+                                Some(StageSection::Action) => {
                                     (1.0, 1.0, (anim_time.powf(4.0) * 80.0).min(1.0), 0.0)
                                 },
                                 Some(StageSection::Recover) => (1.0, 1.0, 1.0, anim_time),

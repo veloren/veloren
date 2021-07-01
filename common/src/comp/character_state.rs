@@ -209,10 +209,10 @@ impl CharacterState {
 
     pub fn is_forced_movement(&self) -> bool {
         matches!(self,
-            CharacterState::ComboMelee(s) if s.stage_section == StageSection::Swing)
+            CharacterState::ComboMelee(s) if s.stage_section == StageSection::Action)
             || matches!(self, CharacterState::DashMelee(s) if s.stage_section == StageSection::Charge)
             || matches!(self, CharacterState::LeapMelee(s) if s.stage_section == StageSection::Movement)
-            || matches!(self, CharacterState::SpinMelee(s) if s.stage_section == StageSection::Swing)
+            || matches!(self, CharacterState::SpinMelee(s) if s.stage_section == StageSection::Action)
             || matches!(self, CharacterState::Roll(s) if s.stage_section == StageSection::Movement)
     }
 

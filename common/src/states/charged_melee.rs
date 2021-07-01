@@ -115,13 +115,13 @@ impl CharacterBehavior for Data {
                 } else {
                     // Transitions to swing
                     update.character = CharacterState::ChargedMelee(Data {
-                        stage_section: StageSection::Swing,
+                        stage_section: StageSection::Action,
                         timer: Duration::default(),
                         ..*self
                     });
                 }
             },
-            StageSection::Swing => {
+            StageSection::Action => {
                 if self.timer.as_millis() as f32
                     > self.static_data.hit_timing
                         * self.static_data.swing_duration.as_millis() as f32

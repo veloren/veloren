@@ -973,7 +973,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -1064,7 +1064,7 @@ impl FigureMgr {
                                 StageSection::Charge => {
                                     stage_time / s.static_data.charge_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -1094,7 +1094,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Shoot => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.shoot_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -1151,7 +1151,7 @@ impl FigureMgr {
                                 StageSection::Charge => {
                                     stage_time / s.static_data.charge_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -1178,7 +1178,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -1206,7 +1206,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Cast => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.cast_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -1237,7 +1237,7 @@ impl FigureMgr {
                                 StageSection::Movement => {
                                     stage_time / s.static_data.movement_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -1266,7 +1266,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -1348,7 +1348,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Cast => s.timer.as_secs_f32(),
+                                StageSection::Action => s.timer.as_secs_f32(),
                                 StageSection::Recover => {
                                     stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
@@ -1377,7 +1377,7 @@ impl FigureMgr {
                                         StageSection::Buildup => {
                                             stage_time / stage.base_buildup_duration.as_secs_f32()
                                         },
-                                        StageSection::Swing => {
+                                        StageSection::Action => {
                                             stage_time / stage.base_swing_duration.as_secs_f32()
                                         },
                                         StageSection::Recover => {
@@ -1434,7 +1434,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => stage_time,
+                                StageSection::Action => stage_time,
                                 StageSection::Recover => {
                                     stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
@@ -1711,7 +1711,7 @@ impl FigureMgr {
                                         StageSection::Buildup => {
                                             stage_time / stage.base_buildup_duration.as_secs_f32()
                                         },
-                                        StageSection::Swing => {
+                                        StageSection::Action => {
                                             stage_time / stage.base_swing_duration.as_secs_f32()
                                         },
                                         StageSection::Recover => {
@@ -1900,7 +1900,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -1929,7 +1929,7 @@ impl FigureMgr {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Charge => stage_time,
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -1959,7 +1959,7 @@ impl FigureMgr {
                                 StageSection::Movement => {
                                     stage_time / s.static_data.movement_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -1989,7 +1989,7 @@ impl FigureMgr {
                                         StageSection::Buildup => {
                                             stage_time / stage.base_buildup_duration.as_secs_f32()
                                         },
-                                        StageSection::Swing => {
+                                        StageSection::Action => {
                                             stage_time / stage.base_swing_duration.as_secs_f32()
                                         },
                                         StageSection::Recover => {
@@ -2231,7 +2231,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -2261,7 +2261,7 @@ impl FigureMgr {
                                 StageSection::Charge => {
                                     stage_time / s.static_data.charge_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -2336,7 +2336,7 @@ impl FigureMgr {
                                         StageSection::Buildup => {
                                             stage_time / stage.base_buildup_duration.as_secs_f32()
                                         },
-                                        StageSection::Swing => {
+                                        StageSection::Action => {
                                             stage_time / stage.base_swing_duration.as_secs_f32()
                                         },
                                         StageSection::Recover => {
@@ -2392,7 +2392,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Cast => s.timer.as_secs_f32(),
+                                StageSection::Action => s.timer.as_secs_f32(),
                                 StageSection::Recover => {
                                     stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
@@ -2418,7 +2418,7 @@ impl FigureMgr {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Charge => stage_time,
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -2772,7 +2772,7 @@ impl FigureMgr {
                                 StageSection::Charge => {
                                     stage_time / s.static_data.charge_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -2907,7 +2907,7 @@ impl FigureMgr {
                                         StageSection::Buildup => {
                                             stage_time / stage.base_buildup_duration.as_secs_f32()
                                         },
-                                        StageSection::Swing => {
+                                        StageSection::Action => {
                                             stage_time / stage.base_swing_duration.as_secs_f32()
                                         },
                                         StageSection::Recover => {
@@ -3147,7 +3147,7 @@ impl FigureMgr {
                                         StageSection::Buildup => {
                                             stage_time / stage.base_buildup_duration.as_secs_f32()
                                         },
-                                        StageSection::Swing => {
+                                        StageSection::Action => {
                                             stage_time / stage.base_swing_duration.as_secs_f32()
                                         },
                                         StageSection::Recover => {
@@ -3194,7 +3194,7 @@ impl FigureMgr {
                                 StageSection::Charge => {
                                     stage_time / s.static_data.charge_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -3331,7 +3331,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Cast => s.timer.as_secs_f32(),
+                                StageSection::Action => s.timer.as_secs_f32(),
                                 StageSection::Recover => {
                                     stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
@@ -3362,7 +3362,7 @@ impl FigureMgr {
                                         StageSection::Buildup => {
                                             stage_time / stage.base_buildup_duration.as_secs_f32()
                                         },
-                                        StageSection::Swing => {
+                                        StageSection::Action => {
                                             stage_time / stage.base_swing_duration.as_secs_f32()
                                         },
                                         StageSection::Recover => {
@@ -3420,7 +3420,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -3443,7 +3443,7 @@ impl FigureMgr {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
 
-                                StageSection::Cast => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.cast_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -3475,7 +3475,7 @@ impl FigureMgr {
                                 StageSection::Charge => {
                                     stage_time / s.static_data.charge_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -3729,7 +3729,7 @@ impl FigureMgr {
                                 StageSection::Charge => {
                                     stage_time / s.static_data.charge_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -3760,7 +3760,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Cast => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.cast_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -3791,7 +3791,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -3951,7 +3951,7 @@ impl FigureMgr {
                                 StageSection::Charge => {
                                     stage_time / s.static_data.charge_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -3983,7 +3983,7 @@ impl FigureMgr {
                                         StageSection::Buildup => {
                                             stage_time / stage.base_buildup_duration.as_secs_f32()
                                         },
-                                        StageSection::Swing => {
+                                        StageSection::Action => {
                                             stage_time / stage.base_swing_duration.as_secs_f32()
                                         },
                                         StageSection::Recover => {
@@ -4047,7 +4047,7 @@ impl FigureMgr {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
 
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -4078,7 +4078,7 @@ impl FigureMgr {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
 
-                                StageSection::Cast => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.cast_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -4115,7 +4115,7 @@ impl FigureMgr {
                                             stage_time
                                                 / s.static_data.movement_duration.as_secs_f32()
                                         },
-                                        StageSection::Swing => {
+                                        StageSection::Action => {
                                             stage_time / s.static_data.swing_duration.as_secs_f32()
                                         },
                                         StageSection::Recover => {
@@ -4148,7 +4148,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -4176,7 +4176,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Cast => s.timer.as_secs_f32(),
+                                StageSection::Action => s.timer.as_secs_f32(),
                                 StageSection::Recover => {
                                     stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
@@ -4204,7 +4204,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Cast => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.cast_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -4329,7 +4329,7 @@ impl FigureMgr {
                                         StageSection::Buildup => {
                                             stage_time / stage.base_buildup_duration.as_secs_f32()
                                         },
-                                        StageSection::Swing => {
+                                        StageSection::Action => {
                                             stage_time / stage.base_swing_duration.as_secs_f32()
                                         },
                                         StageSection::Recover => {
@@ -4378,7 +4378,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Cast => s.timer.as_secs_f32(),
+                                StageSection::Action => s.timer.as_secs_f32(),
                                 StageSection::Recover => {
                                     stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
@@ -4400,7 +4400,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -4423,7 +4423,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Swing => {
+                                StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
@@ -4446,7 +4446,7 @@ impl FigureMgr {
                                     StageSection::Buildup => {
                                         stage_time / s.static_data.buildup_duration.as_secs_f32()
                                     },
-                                    StageSection::Swing => {
+                                    StageSection::Action => {
                                         stage_time / s.static_data.swing_duration.as_secs_f32()
                                     },
                                     StageSection::Recover => {
@@ -4563,7 +4563,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Cast => s.timer.as_secs_f32(),
+                                StageSection::Action => s.timer.as_secs_f32(),
                                 StageSection::Recover => {
                                     stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },

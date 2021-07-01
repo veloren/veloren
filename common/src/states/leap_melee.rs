@@ -107,12 +107,12 @@ impl CharacterBehavior for Data {
                     // Transitions to swing portion of state upon hitting ground
                     update.character = CharacterState::LeapMelee(Data {
                         timer: Duration::default(),
-                        stage_section: StageSection::Swing,
+                        stage_section: StageSection::Action,
                         ..*self
                     });
                 }
             },
-            StageSection::Swing => {
+            StageSection::Action => {
                 if self.timer < self.static_data.swing_duration {
                     // Swings weapons
                     update.character = CharacterState::LeapMelee(Data {

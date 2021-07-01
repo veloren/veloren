@@ -50,7 +50,7 @@ impl Animation for ChargeswingAnimation {
                 (anim_time * 18.0 * lab).sin(),
                 0.0,
             ),
-            Some(StageSection::Swing) => (1.0, anim_time.powf(0.25), 0.0, 0.0, anim_time.powi(4)),
+            Some(StageSection::Action) => (1.0, anim_time.powf(0.25), 0.0, 0.0, anim_time.powi(4)),
             Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4), 0.0, 1.0),
             _ => (0.0, 0.0, 0.0, 0.0, 0.0),
         };

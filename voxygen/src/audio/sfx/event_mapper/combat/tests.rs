@@ -147,7 +147,7 @@ fn matches_ability_stage() {
             exhausted: false,
             stage: 1,
             timer: Duration::default(),
-            stage_section: states::utils::StageSection::Swing,
+            stage_section: states::utils::StageSection::Action,
         }),
         &PreviousEntityState {
             event: SfxEvent::Idle,
@@ -160,7 +160,7 @@ fn matches_ability_stage() {
     assert_eq!(
         result,
         SfxEvent::Attack(
-            CharacterAbilityType::ComboMelee(states::utils::StageSection::Swing, 1),
+            CharacterAbilityType::ComboMelee(states::utils::StageSection::Action, 1),
             ToolKind::Sword
         )
     );
@@ -209,7 +209,7 @@ fn ignores_different_ability_stage() {
             exhausted: false,
             stage: 1,
             timer: Duration::default(),
-            stage_section: states::utils::StageSection::Swing,
+            stage_section: states::utils::StageSection::Action,
         }),
         &PreviousEntityState {
             event: SfxEvent::Idle,
@@ -222,7 +222,7 @@ fn ignores_different_ability_stage() {
     assert_ne!(
         result,
         SfxEvent::Attack(
-            CharacterAbilityType::ComboMelee(states::utils::StageSection::Swing, 2),
+            CharacterAbilityType::ComboMelee(states::utils::StageSection::Action, 2),
             ToolKind::Sword
         )
     );

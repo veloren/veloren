@@ -602,7 +602,7 @@ impl ParticleMgr {
                     if let Some(specifier) = spin.static_data.specifier {
                         match specifier {
                             states::spin_melee::FrontendSpecifier::CultistVortex => {
-                                if matches!(spin.stage_section, StageSection::Swing) {
+                                if matches!(spin.stage_section, StageSection::Action) {
                                     let range = spin.static_data.range;
                                     // Particles for vortex
                                     let heartbeats =
@@ -711,7 +711,7 @@ impl ParticleMgr {
                 CharacterState::SelfBuff(c) => {
                     use buff::BuffKind;
                     if let BuffKind::Frenzied = c.static_data.buff_kind {
-                        if matches!(c.stage_section, StageSection::Cast) {
+                        if matches!(c.stage_section, StageSection::Action) {
                             self.particles.resize_with(
                                 self.particles.len()
                                     + usize::from(

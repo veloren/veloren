@@ -69,12 +69,12 @@ impl CharacterBehavior for Data {
                     // Transitions to recover section of stage
                     update.character = CharacterState::BasicSummon(Data {
                         timer: Duration::default(),
-                        stage_section: StageSection::Cast,
+                        stage_section: StageSection::Action,
                         ..*self
                     });
                 }
             },
-            StageSection::Cast => {
+            StageSection::Action => {
                 if self.timer < self.static_data.cast_duration
                     || self.summon_count < self.static_data.summon_amount
                 {

@@ -38,7 +38,7 @@ impl Animation for DashAnimation {
         let (movement1, movement2, movement3, move4) = match stage_section {
             Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0, 0.0),
             Some(StageSection::Charge) => (1.0, anim_time, 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, 1.0, anim_time.powf(0.01), 0.0),
+            Some(StageSection::Action) => (1.0, 1.0, anim_time.powf(0.01), 0.0),
             Some(StageSection::Recover) => (1.1, 1.0, 1.0, anim_time.powi(4)),
             _ => (0.0, 0.0, 0.0, 0.0),
         };

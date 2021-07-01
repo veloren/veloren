@@ -28,7 +28,7 @@ impl Animation for SummonAnimation {
 
         let (movement1base, movement2base, movement3, twitch) = match stage_section {
             Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0, 0.0),
-            Some(StageSection::Cast) => (1.0, anim_time.min(1.0).powf(0.1), 0.0, anim_time),
+            Some(StageSection::Action) => (1.0, anim_time.min(1.0).powf(0.1), 0.0, anim_time),
             Some(StageSection::Recover) => (1.0, 1.0, anim_time.min(1.0).powi(2), 1.0),
             _ => (0.0, 0.0, 0.0, 0.0),
         };

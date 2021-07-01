@@ -69,12 +69,12 @@ impl CharacterBehavior for Data {
                     // Transition to shoot
                     update.character = CharacterState::RepeaterRanged(Data {
                         timer: Duration::default(),
-                        stage_section: StageSection::Shoot,
+                        stage_section: StageSection::Action,
                         ..*self
                     });
                 }
             },
-            StageSection::Shoot => {
+            StageSection::Action => {
                 if self.timer < self.static_data.shoot_duration {
                     // Draw projectile
                     update.character = CharacterState::RepeaterRanged(Data {
