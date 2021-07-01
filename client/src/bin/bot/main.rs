@@ -12,6 +12,7 @@ use veloren_client::{addr::ConnectionArgs, Client};
 mod settings;
 mod tui;
 
+use common::comp::body::humanoid::Body;
 use settings::Settings;
 use tui::Cmd;
 
@@ -51,13 +52,13 @@ pub struct BotClient {
 }
 
 pub fn make_client(runtime: &Arc<Runtime>, server: &str) -> Client {
-    let runtime2 = Arc::clone(&runtime);
+    let runtime_clone = Arc::clone(&runtime);
     let addr = ConnectionArgs::Tcp {
         prefer_ipv6: false,
         hostname: server.to_owned(),
     };
     runtime
-        .block_on(Client::new(addr, runtime2, &mut None))
+        .block_on(Client::new(addr, runtime_clone, &mut None))
         .expect("Failed to connect to server")
 }
 
@@ -78,16 +79,9 @@ impl BotClient {
     pub fn tick(&mut self) {
         self.clock.tick();
         for (username, client) in self.bot_clients.iter_mut() {
-            //trace!("cl {:?}: {:?}", username, client.character_list());
             trace!(?username, "tick");
             let _msgs: Result<Vec<veloren_client::Event>, veloren_client::Error> =
                 client.tick(comp::ControllerInputs::default(), self.clock.dt(), |_| {});
-            /*trace!(
-                "msgs {:?}: {:?} {:?}",
-                username,
-                msgs,
-                client.character_list()
-            );*/
         }
     }
 
@@ -176,31 +170,29 @@ impl BotClient {
             )) {
                 warn!("error logging in {:?}: {:?}", cred.username, e);
             }
-            /*let body = comp::body::biped_large::Body {
-                species: comp::body::biped_large::Species::Dullahan,
-                body_type: comp::body::biped_large::BodyType::Male,
-            };*/
-            let body = comp::body::humanoid::Body {
-                species: comp::body::humanoid::Species::Human,
-                body_type: comp::body::humanoid::BodyType::Male,
-                hair_style: 0,
-                beard: 0,
-                eyes: 0,
-                accessory: 0,
-                hair_color: 0,
-                skin: 0,
-                eye_color: 0,
-            };
+            let body = BotClient::create_default_body();
             client.create_character(
                 cred.username.clone(),
                 Some("common.items.weapons.sword.starter".to_string()),
                 body.into(),
             );
             client.load_character_list();
-            //client.create_character(cred.username.clone(),
-            // Some("common.items.debug.admin_stick".to_string()), body.into());
         }
         info!("login done");
+    }
+
+    fn create_default_body() -> Body {
+        comp::body::humanoid::Body {
+            species: comp::body::humanoid::Species::Human,
+            body_type: comp::body::humanoid::BodyType::Male,
+            hair_style: 0,
+            beard: 0,
+            eyes: 0,
+            accessory: 0,
+            hair_color: 0,
+            skin: 0,
+            eye_color: 0,
+        }
     }
 
     pub fn handle_ingame_join(&mut self, prefix: &str) {
