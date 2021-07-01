@@ -98,7 +98,14 @@ impl Skeleton for BirdLargeSkeleton {
         ];
         Offsets {
             lantern: Vec3::default(),
-            mount_bone: self.chest,
+            // TODO: see quadruped_medium for how to animate this
+            mount_bone: Transform {
+                position: common::comp::Body::BirdLarge(body)
+                    .mountee_offset()
+                    .into_tuple()
+                    .into(),
+                ..Default::default()
+            },
         }
     }
 }

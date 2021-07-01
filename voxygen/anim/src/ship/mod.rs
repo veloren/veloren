@@ -29,7 +29,7 @@ impl Skeleton for ShipSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-        _body: Self::Body,
+        body: Self::Body,
     ) -> Offsets {
         let bone0_mat = base_mat * Mat4::scaling_3d(1.0 / 11.0) * Mat4::<f32>::from(self.bone0);
 
@@ -41,7 +41,14 @@ impl Skeleton for ShipSkeleton {
         ];
         Offsets {
             lantern: Vec3::default(),
-            mount_bone: self.bone0,
+            // TODO: see quadruped_medium for how to animate this
+            mount_bone: Transform {
+                position: common::comp::Body::Ship(body)
+                    .mountee_offset()
+                    .into_tuple()
+                    .into(),
+                ..Default::default()
+            },
         }
     }
 }

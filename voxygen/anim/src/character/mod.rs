@@ -142,7 +142,14 @@ impl Skeleton for CharacterSkeleton {
         ];
         Offsets {
             lantern: (lantern_mat * Vec4::new(0.0, 0.0, -4.0, 1.0)).xyz(),
-            mount_bone: self.chest,
+            // TODO: see quadruped_medium for how to animate this
+            mount_bone: Transform {
+                position: common::comp::Body::Humanoid(body)
+                    .mountee_offset()
+                    .into_tuple()
+                    .into(),
+                ..Default::default()
+            },
         }
     }
 }

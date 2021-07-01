@@ -75,7 +75,14 @@ impl Skeleton for GolemSkeleton {
         ];
         Offsets {
             lantern: Vec3::default(),
-            mount_bone: self.torso,
+            // TODO: see quadruped_medium for how to animate this
+            mount_bone: Transform {
+                position: common::comp::Body::Golem(body)
+                    .mountee_offset()
+                    .into_tuple()
+                    .into(),
+                ..Default::default()
+            },
         }
     }
 }

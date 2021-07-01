@@ -36,7 +36,7 @@ impl Skeleton for BirdMediumSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-        _body: Self::Body,
+        body: Self::Body,
     ) -> Offsets {
         let base_mat = base_mat * Mat4::scaling_3d(1.0 / 11.0);
         let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
@@ -52,7 +52,14 @@ impl Skeleton for BirdMediumSkeleton {
         ];
         Offsets {
             lantern: Vec3::default(),
-            mount_bone: self.torso,
+            // TODO: see quadruped_medium for how to animate this
+            mount_bone: Transform {
+                position: common::comp::Body::BirdMedium(body)
+                    .mountee_offset()
+                    .into_tuple()
+                    .into(),
+                ..Default::default()
+            },
         }
     }
 }

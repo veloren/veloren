@@ -129,7 +129,14 @@ impl Skeleton for BipedLargeSkeleton {
         ];
         Offsets {
             lantern: Vec3::default(),
-            mount_bone: self.torso,
+            // TODO: see quadruped_medium for how to animate this
+            mount_bone: Transform {
+                position: common::comp::Body::BipedLarge(body)
+                    .mountee_offset()
+                    .into_tuple()
+                    .into(),
+                ..Default::default()
+            },
         }
     }
 }
