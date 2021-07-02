@@ -1,4 +1,4 @@
-use crate::{comp::tool::ToolKind, make_case_elim};
+use crate::{comp::tool::ToolKind, lottery::LootSpec, make_case_elim};
 use enum_iterator::IntoEnumIterator;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
@@ -262,68 +262,85 @@ impl SpriteKind {
         })
     }
 
+    /// What loot table does collecting this sprite draw from?
+    pub fn collectible_id(&self) -> Option<LootSpec> {
+        let item = |id: &str| LootSpec::Item(id.to_string());
+        let table = |id: &str| LootSpec::LootTable(id.to_string());
+        Some(match self {
+            SpriteKind::Apple => item("common.items.food.apple"),
+            SpriteKind::Mushroom => item("common.items.food.mushroom"),
+            SpriteKind::Velorite => item("common.items.mineral.ore.velorite"),
+            SpriteKind::VeloriteFrag => item("common.items.mineral.ore.veloritefrag"),
+            //SpriteKind::BlueFlower => item("common.items.flowers.blue"),
+            //SpriteKind::PinkFlower => item("common.items.flowers.pink"),
+            //SpriteKind::PurpleFlower => item("common.items.flowers.purple"),
+            SpriteKind::RedFlower => item("common.items.flowers.red"),
+            //SpriteKind::WhiteFlower => item("common.items.flowers.white"),
+            //SpriteKind::YellowFlower => item("common.items.flowers.yellow"),
+            SpriteKind::Sunflower => item("common.items.flowers.sunflower"),
+            //SpriteKind::LongGrass => item("common.items.grasses.long"),
+            //SpriteKind::MediumGrass => item("common.items.grasses.medium"),
+            //SpriteKind::ShortGrass => item("common.items.grasses.short"),
+            SpriteKind::Coconut => item("common.items.food.coconut"),
+            SpriteKind::Beehive => item("common.items.crafting_ing.honey"),
+            SpriteKind::Stones => item("common.items.crafting_ing.stones"),
+            SpriteKind::Twigs => item("common.items.crafting_ing.twigs"),
+            SpriteKind::VialEmpty => item("common.items.crafting_ing.empty_vial"),
+            SpriteKind::Bowl => item("common.items.crafting_ing.bowl"),
+            SpriteKind::PotionMinor => item("common.items.consumable.potion_minor"),
+            SpriteKind::Amethyst => item("common.items.mineral.gem.amethyst"),
+            SpriteKind::Ruby => item("common.items.mineral.gem.ruby"),
+            SpriteKind::Diamond => item("common.items.mineral.gem.diamond"),
+            SpriteKind::Sapphire => item("common.items.mineral.gem.sapphire"),
+            SpriteKind::Topaz => item("common.items.mineral.gem.topaz"),
+            SpriteKind::Emerald => item("common.items.mineral.gem.emerald"),
+            SpriteKind::AmethystSmall => item("common.items.mineral.gem.amethyst"),
+            SpriteKind::TopazSmall => item("common.items.mineral.gem.topaz"),
+            SpriteKind::DiamondSmall => item("common.items.mineral.gem.diamond"),
+            SpriteKind::RubySmall => item("common.items.mineral.gem.ruby"),
+            SpriteKind::EmeraldSmall => item("common.items.mineral.gem.emerald"),
+            SpriteKind::SapphireSmall => item("common.items.mineral.gem.sapphire"),
+            SpriteKind::Bloodstone => item("common.items.mineral.ore.bloodstone"),
+            SpriteKind::Coal => item("common.items.mineral.ore.coal"),
+            SpriteKind::Cobalt => item("common.items.mineral.ore.cobalt"),
+            SpriteKind::Copper => item("common.items.mineral.ore.copper"),
+            SpriteKind::Iron => item("common.items.mineral.ore.iron"),
+            SpriteKind::Tin => item("common.items.mineral.ore.tin"),
+            SpriteKind::Silver => item("common.items.mineral.ore.silver"),
+            SpriteKind::Gold => item("common.items.mineral.ore.gold"),
+            SpriteKind::Cotton => item("common.items.crafting_ing.cotton_boll"),
+            SpriteKind::Moonbell => item("common.items.flowers.moonbell"),
+            SpriteKind::Pyrebloom => item("common.items.flowers.pyrebloom"),
+            SpriteKind::WildFlax => item("common.items.flowers.wild_flax"),
+            SpriteKind::Seashells => item("common.items.crafting_ing.seashells"),
+            SpriteKind::RoundCactus => item("common.items.crafting_ing.cactus"),
+            SpriteKind::ShortFlatCactus => item("common.items.crafting_ing.cactus"),
+            SpriteKind::MedFlatCactus => item("common.items.crafting_ing.cactus"),
+            SpriteKind::DungeonChest0 => table("common.loot_tables.dungeon.tier-0.chest"),
+            SpriteKind::DungeonChest1 => table("common.loot_tables.dungeon.tier-1.chest"),
+            SpriteKind::DungeonChest2 => table("common.loot_tables.dungeon.tier-2.chest"),
+            SpriteKind::DungeonChest3 => table("common.loot_tables.dungeon.tier-3.chest"),
+            SpriteKind::DungeonChest4 => table("common.loot_tables.dungeon.tier-4.chest"),
+            SpriteKind::DungeonChest5 => table("common.loot_tables.dungeon.tier-5.chest"),
+            SpriteKind::Chest => table("common.loot_tables.sprite.chest"),
+            SpriteKind::ChestBuried => table("common.loot_tables.sprite.chest-buried"),
+            SpriteKind::Mud => table("common.loot_tables.sprite.mud"),
+            SpriteKind::Crate => table("common.loot_tables.sprite.crate"),
+            _ => return None,
+        })
+    }
+
+    /// Can this sprite be picked up to yield an item without a tool?
     pub fn is_collectible(&self) -> bool {
-        match self {
-            SpriteKind::BlueFlower => false,
-            SpriteKind::PinkFlower => false,
-            SpriteKind::PurpleFlower => false,
-            SpriteKind::RedFlower => true,
-            SpriteKind::WhiteFlower => false,
-            SpriteKind::YellowFlower => false,
-            SpriteKind::Sunflower => true,
-            SpriteKind::LongGrass => false,
-            SpriteKind::MediumGrass => false,
-            SpriteKind::ShortGrass => false,
-            SpriteKind::Apple => true,
-            SpriteKind::Mushroom => true,
-            // SpriteKind::Velorite => true,
-            // SpriteKind::VeloriteFrag => true,
-            SpriteKind::Chest => true,
-            SpriteKind::DungeonChest0 => true,
-            SpriteKind::DungeonChest1 => true,
-            SpriteKind::DungeonChest2 => true,
-            SpriteKind::DungeonChest3 => true,
-            SpriteKind::DungeonChest4 => true,
-            SpriteKind::DungeonChest5 => true,
-            SpriteKind::Coconut => true,
-            SpriteKind::Stones => true,
-            SpriteKind::Twigs => true,
-            SpriteKind::Crate => true,
-            SpriteKind::Beehive => true,
-            SpriteKind::VialEmpty => true,
-            SpriteKind::PotionMinor => true,
-            SpriteKind::Bowl => true,
-            SpriteKind::ChestBuried => true,
-            SpriteKind::Mud => true,
-            SpriteKind::Seashells => true,
-            SpriteKind::Cotton => true,
-            SpriteKind::Moonbell => true,
-            SpriteKind::Pyrebloom => true,
-            SpriteKind::WildFlax => true,
-            SpriteKind::RoundCactus => true,
-            SpriteKind::ShortFlatCactus => true,
-            SpriteKind::MedFlatCactus => true,
-            _ => false,
-        }
+        self.collectible_id().is_some() && self.mine_tool().is_none()
     }
 
     /// Is the sprite a container that will emit a mystery item?
     pub fn is_container(&self) -> bool {
-        matches!(
-            self,
-            SpriteKind::DungeonChest0
-                | SpriteKind::DungeonChest1
-                | SpriteKind::DungeonChest2
-                | SpriteKind::DungeonChest3
-                | SpriteKind::DungeonChest4
-                | SpriteKind::DungeonChest5
-                | SpriteKind::Chest
-                | SpriteKind::ChestBuried
-                | SpriteKind::Mud
-                | SpriteKind::Crate,
-        )
+        matches!(self.collectible_id(), Some(LootSpec::LootTable(_)))
     }
 
+    /// Which tool (if any) is needed to collect this sprite?
     pub fn mine_tool(&self) -> Option<ToolKind> {
         match self {
             SpriteKind::Velorite
