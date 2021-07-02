@@ -1,0 +1,58 @@
+// Loot table that exists purely for price rationalisation
+//
+// This loot table should be marked as sellable.
+// If you want to add something that merchants can buy but not sell,
+// add another loot table
+//
+// Please keep it sorted by rarity so it's easier to reason about things
+[
+    // Stones
+    (0.02, Item("common.items.mineral.gem.diamond")),
+    (0.08, Item("common.items.mineral.gem.ruby")),
+    (0.1, Item("common.items.mineral.gem.emerald")),
+    (0.2, Item("common.items.mineral.gem.sapphire")),
+    (0.25, Item("common.items.mineral.ore.velorite")),
+    (0.5, Item("common.items.mineral.ore.veloritefrag")),
+    (0.75, Item("common.items.mineral.gem.topaz")),
+    (1.0, Item("common.items.mineral.gem.amethyst")),
+    (4.0, Item("common.items.crafting_ing.stones")),
+
+    // Ores
+    (0.5, Item("common.items.mineral.ore.velorite")),
+    (0.6, Item("common.items.mineral.ore.veloritefrag")),
+    (2.5, Item("common.items.mineral.ore.copper")),
+    (2.5, Item("common.items.mineral.ore.iron")),
+    (2.5, Item("common.items.mineral.ore.tin")),
+
+    // Animal Hide
+    (2.5, Item("common.items.crafting_ing.hide.tough_hide")),
+    (4.0, Item("common.items.crafting_ing.hide.animal_hide")),
+
+    // Mob Drops
+    (0.15, Item("common.items.crafting_ing.animal_misc.grim_eyeball")),
+    (0.15, Item("common.items.crafting_ing.animal_misc.lively_vine")),
+    (0.5, Item("common.items.crafting_ing.animal_misc.raptor_feather")),
+    (1.0, Item("common.items.crafting_ing.animal_misc.icy_fang")),
+    (1.2, Item("common.items.crafting_ing.animal_misc.claw")),
+    (2.5, Item("common.items.crafting_ing.animal_misc.fur")),
+    (2.5, Item("common.items.crafting_ing.animal_misc.sharp_fang")),
+    (2.5, Item("common.items.crafting_ing.animal_misc.venom_sac")),
+    (2.5, Item("common.items.crafting_ing.animal_misc.viscous_ooze")),
+    (4.0, Item("common.items.crafting_ing.cloth.wool")),
+
+    // Junk
+    (4.0, Item("common.items.crafting_ing.bowl")),
+    (4.0, Item("common.items.crafting_ing.empty_vial")),
+
+    // Gatherables
+    (0.1, Item("common.items.crafting_ing.seashells")),
+    (0.2, Item("common.items.crafting_ing.honey")),
+    (0.2, Item("common.items.flowers.moonbell")),
+    (1.0, Item("common.items.crafting_ing.cactus")),
+    (1.0, Item("common.items.crafting_ing.cotton_boll")),
+    (1.0, Item("common.items.flowers.pyrebloom")),
+    (3.0, Item("common.items.crafting_ing.twigs")),
+    (4.0, Item("common.items.flowers.red")),
+    (4.0, Item("common.items.flowers.wild_flax")),
+    (9.0, Item("common.items.flowers.sunflower")),
+]

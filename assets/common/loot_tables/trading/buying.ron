@@ -1,0 +1,10 @@
+// Loot table that exists purely for price rationalisation
+// Put here anything that doesn't fit in anything else.
+//
+// This loot table should be marked as un-sellable.
+// If you want to add something that merchants can buy and sell,
+// add another loot table
+//
+// Please keep it sorted by rarity so it's easier to reason about things
+[
+]

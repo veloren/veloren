@@ -12,18 +12,21 @@ loot_tables: [
     (0.025, false, "common.loot_tables.weapons.cultist"),
     (0.025, false, "common.loot_tables.weapons.cave"),
     (0.02, false, "common.loot_tables.weapons.legendary"),
-    // Armor
+
+    // Non-craftable Armor
     (20.0, true, "common.loot_tables.armor.cloth"),
     (1.0, true, "common.loot_tables.armor.twigs"),
     (1.0, true, "common.loot_tables.armor.twigsflowers"),
     (1.0, true, "common.loot_tables.armor.twigsleaves"),
-    // Materials
-    (7.5, true, "common.loot_tables.materials.common"),
-    (8.0, true, "common.loot_tables.materials.underground"),
-    // Food
-    (0.3, true, "common.loot_tables.food.farm_ingredients"),
-    (0.4, true, "common.loot_tables.food.wild_ingredients"),
-    (0.2, true, "common.loot_tables.food.prepared"),
+    (0.01, false, "common.loot_tables.trading.jewellery"),
+
+    // Ingredients
+    (1.0, true, "common.loot_tables.trading.sellable_materials"),
+    (1.0, false, "common.loot_tables.trading.unsellable_materials"),
+
+    // Food Ingredients
+    (1.0, true, "common.loot_tables.trading.food"),
+
     // Potions
     //
     // crafted from food, no need to duplicate it here.
@@ -35,16 +38,17 @@ loot_tables: [
     //
     // Misc
     (0.1, true, "common.loot_tables.consumable.throwable"),
-    (0.7, true, "common.loot_tables.consumable.misc"),
-    (1.0, false, "common.loot_tables.trading"),
+    // Collections
+    (0.00001, false, "common.loot_tables.trading.collection"),
 ],
+
 // this is the amount of that good the most common item represents
 // so basically this table balances the goods against each other (higher=less valuable)
 good_scaling: [
-    (Potions, 0.0075), // common.items.consumable.potion_minor
-    (Food, 0.1), // common.items.food.mushroom
+    (Potions, 0.005), // common.items.consumable.potion_minor
+    (Food, 0.5), // common.items.food.mushroom
     (Coin, 1.0), // common.items.utility.coins
-    (Armor, 1.0), // common.items.armor.misc.pants.worker_blue
-    (Tools, 0.25), // common.items.weapons.staff.starter_staff
-    (Ingredients, 0.25), // common.items.crafting_ing.leather_scraps
+    (Armor, 0.5), // common.items.armor.misc.pants.worker_blue
+    (Tools, 0.5), // common.items.weapons.staff.starter_staff
+    (Ingredients, 0.5), // common.items.crafting_ing.leather_scraps
 ])
