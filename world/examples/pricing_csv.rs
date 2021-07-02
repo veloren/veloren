@@ -73,7 +73,7 @@ fn economy_sqlite(world: &World, index: &Index) -> Result<(), Box<dyn Error>> {
     DROP TABLE IF EXISTS site;
     CREATE TABLE site (
         xcoord INTEGER NOT NULL,
-        ycoord INTEGER NUT NULL,
+        ycoord INTEGER NOT NULL,
         name TEXT NOT NULL
     );
     CREATE UNIQUE INDEX site_position ON site(xcoord, ycoord);

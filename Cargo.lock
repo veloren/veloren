@@ -106,7 +106,7 @@ version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "01aa95c33b750236bd69526dd773d618c5c8ad5e156daad1fc760dfd4be8def3"
 dependencies = [
- "heapless",
+ "heapless 0.5.6",
  "nom 4.2.3",
 ]
 
@@ -2270,6 +2270,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "heapless"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "634bd4d29cbf24424d0a4bfcbf80c6960129dc24424752a7d1d1390607023422"
+dependencies = [
+ "as-slice",
+ "generic-array 0.14.4",
+ "hash32",
+ "stable_deref_trait",
+]
+
+[[package]]
 name = "heck"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2656,6 +2668,15 @@ checksum = "8c2352bd1d0bceb871cb9d40f24360c8133c11d7486b68b5381c1dd1a32015e3"
 dependencies = [
  "libc",
  "libloading 0.7.0",
+]
+
+[[package]]
+name = "kiddo"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "73e70400c6435a3f5e4d7bfb406af50bc66950cc8f24f45488d66f47bf3f5e25"
+dependencies = [
+ "num-traits",
 ]
 
 [[package]]
@@ -3682,6 +3703,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "pdqselect"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ec91767ecc0a0bbe558ce8c9da33c068066c57ecc8bb8477ef8c1ad3ef77c27"
+
+[[package]]
 name = "peeking_take_while"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4363,6 +4390,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "284de9dae38774e2813aaabd7e947b4a6fe9b8c58c2309f754a487cdd50de1c2"
 dependencies = [
  "petgraph 0.5.1",
+]
+
+[[package]]
+name = "rstar"
+version = "0.8.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ce61d743ebe516592df4dd542dfe823577b811299f7bee1106feb1bbb993dbac"
+dependencies = [
+ "heapless 0.6.1",
+ "num-traits",
+ "pdqselect",
+ "smallvec",
 ]
 
 [[package]]
@@ -6134,15 +6173,18 @@ dependencies = [
  "arr_macro",
  "bincode",
  "bitvec",
+ "clap",
  "criterion",
  "csv",
  "deflate 0.9.1",
  "enum-iterator",
+ "fallible-iterator",
  "flate2",
  "fxhash",
  "hashbrown 0.11.2",
  "image",
  "itertools 0.10.0",
+ "kiddo",
  "lazy_static",
  "lz-fear",
  "minifb",
@@ -6155,6 +6197,7 @@ dependencies = [
  "rand_chacha 0.3.0",
  "rayon",
  "ron",
+ "rstar",
  "rusqlite",
  "serde",
  "structopt",

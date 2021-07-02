@@ -6,7 +6,7 @@ edition = "2018"
 
 [features]
 simd = ["vek/platform_intrinsics"]
-bin_compression = ["lz-fear", "deflate", "flate2", "image/jpeg", "num-traits"]
+bin_compression = ["lz-fear", "deflate", "flate2", "image/jpeg", "num-traits", "fallible-iterator", "kiddo", "clap", "rstar"]
 
 default = ["simd"]
 
@@ -41,6 +41,10 @@ lz-fear = { version = "0.1.1", optional = true }
 deflate = { version = "0.9.1", optional = true }
 flate2 = { version = "1.0.20", optional = true }
 num-traits = { version = "0.2", optional = true }
+fallible-iterator = { version = "0.2.0", optional = true }
+kiddo = { version = "0.1.4", optional = true }
+rstar = { version = "0.8.3", optional = true }
+clap = { version = "2.33.3", optional = true }
 
 
 [dev-dependencies]
@@ -60,6 +64,10 @@ name = "tree"
 
 [[example]]
 name = "chunk_compression_benchmarks"
+required-features = ["bin_compression"]
+
+[[example]]
+name = "world_block_statistics"
 required-features = ["bin_compression"]
 
 [[example]]
