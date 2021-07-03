@@ -17,5 +17,8 @@ tracing = "0.1"
 serde = {version = "1.0", features = ["derive"], optional = true}
 serial_test = {version = "0.5", optional = true}
 
+[dev-dependencies]
+walkdir = "2.3.2"
+
 [features]
 asset_tweak = ["serial_test", "serde"]
