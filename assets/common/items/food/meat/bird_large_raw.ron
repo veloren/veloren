@@ -1,6 +1,6 @@
 ItemDef(
     name: "Huge Raw Drumstick",
-    description: "It's magificent.",
+    description: "It's magnificent.",
     kind: Consumable(
         kind: Food,
         effect: [

@@ -1,6 +1,6 @@
 ItemDef(
     name: "Dullahan Sword",
-    description: "Placehoder",
+    description: "Placeholder",
     kind: Tool((
         kind: Sword,
         hands: Two,
