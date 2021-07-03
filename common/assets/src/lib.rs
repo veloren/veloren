@@ -248,6 +248,36 @@ pub fn path_of(specifier: &str, ext: &str) -> PathBuf {
         .path_of(source::DirEntry::File(specifier, ext))
 }
 
+#[cfg(test)]
+mod tests {
+
+    use std::{ffi::OsStr, fs::File};
+    use walkdir::WalkDir;
+
+    /// Fail unless all `.ron` asset files successfully parse to `ron::Value`.
+    #[test]
+    fn parse_all_ron_files_to_value() {
+        let ext = OsStr::new("ron");
+        WalkDir::new(crate::ASSETS_PATH.as_path())
+            .into_iter()
+            .map(|ent| ent.unwrap().into_path())
+            .filter(|path| path.is_file())
+            .filter(|path| {
+                path.extension()
+                    .map(|e| ext == e.to_ascii_lowercase())
+                    .unwrap_or(false)
+            })
+            .for_each(|path| {
+                let file = File::open(&path).unwrap();
+                if let Err(err) = ron::de::from_reader::<_, ron::Value>(file) {
+                    println!("{:?}", path);
+                    println!("{:#?}", err);
+                    panic!("Parse failed");
+                }
+            });
+    }
+}
+
 #[warn(clippy::pedantic)]
 #[cfg(feature = "asset_tweak")]
 pub mod asset_tweak {

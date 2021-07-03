@@ -5823,6 +5823,7 @@ dependencies = [
  "serde",
  "serial_test",
  "tracing",
+ "walkdir 2.3.2",
 ]
 
 [[package]]
