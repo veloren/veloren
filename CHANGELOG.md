@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Usage of "stamina" replaced with "energy"
 - Glider dimensions now depend on character height
 - Glider dimensions somewhat increased overall
+- Dungeon difficulty level starts at 1 instead of 0
 
 ### Removed
 
