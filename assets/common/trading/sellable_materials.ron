@@ -30,9 +30,8 @@
 
     // Mob Drops
     (0.15, Item("common.items.crafting_ing.animal_misc.grim_eyeball")),
-    (0.15, Item("common.items.crafting_ing.animal_misc.lively_vine")),
+    (0.15, Item("common.items.crafting_ing.animal_misc.icy_fang")),
     (0.5, Item("common.items.crafting_ing.animal_misc.raptor_feather")),
-    (1.0, Item("common.items.crafting_ing.animal_misc.icy_fang")),
     (1.2, Item("common.items.crafting_ing.animal_misc.claw")),
     (2.5, Item("common.items.crafting_ing.animal_misc.fur")),
     (2.5, Item("common.items.crafting_ing.animal_misc.sharp_fang")),
@@ -48,10 +47,10 @@
     (0.1, Item("common.items.crafting_ing.seashells")),
     (0.2, Item("common.items.crafting_ing.honey")),
     (0.2, Item("common.items.flowers.moonbell")),
-    (1.0, Item("common.items.crafting_ing.cactus")),
     (1.0, Item("common.items.crafting_ing.cotton_boll")),
     (1.0, Item("common.items.flowers.pyrebloom")),
     (3.0, Item("common.items.crafting_ing.twigs")),
+    (4.0, Item("common.items.crafting_ing.cactus")),
     (4.0, Item("common.items.flowers.red")),
     (4.0, Item("common.items.flowers.wild_flax")),
     (9.0, Item("common.items.flowers.sunflower")),

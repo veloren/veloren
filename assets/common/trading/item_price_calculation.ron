@@ -3,29 +3,31 @@ loot_tables: [
     // balance the loot tables against each other (higher= more common= smaller price)
     // Weapons
     (32.0, true, "common.loot_tables.weapons.starter"),
-    (16.0, true, "common.loot_tables.weapons.tier-0"),
-    (8.0, true, "common.loot_tables.weapons.tier-1"),
-    (4.0, true, "common.loot_tables.weapons.tier-2"),
-    (2.0, true, "common.loot_tables.weapons.tier-3"),
-    (1.0, false, "common.loot_tables.weapons.tier-4"),
-    (0.5, false, "common.loot_tables.weapons.tier-5"),
     (0.025, false, "common.loot_tables.weapons.cultist"),
     (0.025, false, "common.loot_tables.weapons.cave"),
     (0.02, false, "common.loot_tables.weapons.legendary"),
+
+    // Weapons sets
+    (16.0, true, "common.loot_tables.weapons.tier-0"),
+    (8.0, true, "common.loot_tables.weapons.tier-1"),
+    (1.0, true, "common.loot_tables.weapons.tier-2"),
+    (0.125, true, "common.loot_tables.weapons.tier-3"),
+    (0.0625, false, "common.loot_tables.weapons.tier-4"),
+    (0.03, false, "common.loot_tables.weapons.tier-5"),
 
     // Non-craftable Armor
     (20.0, true, "common.loot_tables.armor.cloth"),
     (1.0, true, "common.loot_tables.armor.twigs"),
     (1.0, true, "common.loot_tables.armor.twigsflowers"),
     (1.0, true, "common.loot_tables.armor.twigsleaves"),
-    (0.01, false, "common.loot_tables.trading.jewellery"),
+    (0.01, false, "common.trading.jewellery"),
 
     // Ingredients
-    (1.0, true, "common.loot_tables.trading.sellable_materials"),
-    (1.0, false, "common.loot_tables.trading.unsellable_materials"),
+    (1.0, true, "common.trading.sellable_materials"),
+    (1.0, false, "common.trading.unsellable_materials"),
 
     // Food Ingredients
-    (1.0, true, "common.loot_tables.trading.food"),
+    (1.0, true, "common.trading.food"),
 
     // Potions
     //
@@ -39,14 +41,16 @@ loot_tables: [
     // Misc
     (0.1, true, "common.loot_tables.consumable.throwable"),
     // Collections
-    (0.00001, false, "common.loot_tables.trading.collection"),
+    (0.00001, false, "common.trading.collection"),
+    // Manual balance
+    (1.0, false, "common.trading.balance"),
 ],
 
 // this is the amount of that good the most common item represents
 // so basically this table balances the goods against each other (higher=less valuable)
 good_scaling: [
     (Potions, 0.005), // common.items.consumable.potion_minor
-    (Food, 0.5), // common.items.food.mushroom
+    (Food, 0.15), // common.items.food.mushroom
     (Coin, 1.0), // common.items.utility.coins
     (Armor, 0.5), // common.items.armor.misc.pants.worker_blue
     (Tools, 0.5), // common.items.weapons.staff.starter_staff

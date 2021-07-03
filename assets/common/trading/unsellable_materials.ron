@@ -25,6 +25,7 @@
     (0.005, Item("common.items.crafting_ing.animal_misc.phoenix_feather")),
     (0.08, Item("common.items.crafting_ing.animal_misc.large_horn")),
     (0.08, Item("common.items.crafting_ing.animal_misc.lively_vine")),
+    (0.15, Item("common.items.crafting_ing.animal_misc.lively_vine")),
     (0.225, Item("common.items.crafting_ing.sticky_thread")),
 
     // Ultra Rare drops

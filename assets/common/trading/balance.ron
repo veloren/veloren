@@ -1,0 +1,19 @@
+// Loot table that exists purely for price rationalisation
+//
+// NOTE: it shouln't be considered source of resources.
+// Place here things which have greater prices than intended.
+//
+// This loot table should be marked as un-sellable.
+// If you want to add something that merchants can buy and sell,
+// add another loot table
+//
+// Please keep it sorted by rarity so it's easier to reason about things
+[
+    // Mostly tools here because crafting turn rarity from input ingredients,
+    // and move it to output, which isn't desired
+    (1.0, Item("common.items.tool.pickaxe_steel")),
+    (20.0, Item("common.items.tool.craftsman_hammer")),
+    (20.0, Item("common.items.tool.pickaxe_stone")),
+    (20.0, Item("common.items.weapons.hammer.burnt_drumstick")),
+    (20.0, Item("common.items.weapons.sword.wood-2")),
+]
