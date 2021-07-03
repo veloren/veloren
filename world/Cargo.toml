@@ -12,6 +12,7 @@ default = ["simd"]
 
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
+common_base = { package = "veloren-common-base", path = "../common/base"}
 common-net = { package = "veloren-common-net", path = "../common/net" }
 
 bincode = "1.3.1"

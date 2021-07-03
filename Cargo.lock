@@ -6208,6 +6208,7 @@ dependencies = [
  "tracing-subscriber",
  "vek",
  "veloren-common",
+ "veloren-common-base",
  "veloren-common-frontend",
  "veloren-common-net",
 ]
