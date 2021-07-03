@@ -418,7 +418,7 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
         .map(|(i, x)| (x.to_string(), i))
         .collect();
 
-    let mut items = Vec::<(f32, LootSpec)>::new();
+    let mut items = Vec::<(f32, LootSpec<String>)>::new();
 
     for ref record in rdr.records().flatten() {
         let item = match record.get(headers["Kind"]).expect("No loot specifier") {

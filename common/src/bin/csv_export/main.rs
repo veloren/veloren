@@ -239,7 +239,7 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
 
     let loot_table = "common.loot_tables.".to_owned() + loot_table;
 
-    let loot_table = Lottery::<LootSpec>::load_expect(&loot_table).read();
+    let loot_table = Lottery::<LootSpec<String>>::load_expect(&loot_table).read();
 
     for (i, (chance, item)) in loot_table.iter().enumerate() {
         let chance = if let Some((next_chance, _)) = loot_table.iter().nth(i + 1) {

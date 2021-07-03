@@ -77,30 +77,30 @@ impl<T> Lottery<T> {
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
-pub enum LootSpec {
+pub enum LootSpec<T: AsRef<str>> {
     /// Asset specifier
-    Item(String),
+    Item(T),
     /// Asset specifier, lower range, upper range
-    ItemQuantity(String, u32, u32),
+    ItemQuantity(T, u32, u32),
     /// Loot table
-    LootTable(String),
+    LootTable(T),
 }
 
-impl LootSpec {
+impl<T: AsRef<str>> LootSpec<T> {
     pub fn to_item(&self) -> Item {
         match self {
-            Self::Item(item) => Item::new_from_asset_expect(&item),
+            Self::Item(item) => Item::new_from_asset_expect(item.as_ref()),
             Self::ItemQuantity(item, lower, upper) => {
                 let range = *lower..=*upper;
                 let quantity = thread_rng().gen_range(range);
-                let mut item = Item::new_from_asset_expect(&item);
+                let mut item = Item::new_from_asset_expect(item.as_ref());
                 // TODO: Handle multiple of an item that is unstackable
                 if item.set_amount(quantity).is_err() {
                     warn!("Tried to set quantity on non stackable item");
                 }
                 item
             },
-            Self::LootTable(table) => Lottery::<LootSpec>::load_expect(&table)
+            Self::LootTable(table) => Lottery::<LootSpec<String>>::load_expect(table.as_ref())
                 .read()
                 .choose()
                 .to_item(),
@@ -115,7 +115,7 @@ mod tests {
 
     #[test]
     fn test_loot_tables() {
-        fn validate_table_contents(table: Lottery<LootSpec>) {
+        fn validate_table_contents(table: Lottery<LootSpec<String>>) {
             for (_, item) in table.iter() {
                 match item {
                     LootSpec::Item(item) => {
@@ -137,14 +137,16 @@ mod tests {
                         Item::new_from_asset_expect(&item);
                     },
                     LootSpec::LootTable(loot_table) => {
-                        let loot_table = Lottery::<LootSpec>::load_expect_cloned(&loot_table);
+                        let loot_table =
+                            Lottery::<LootSpec<String>>::load_expect_cloned(&loot_table);
                         validate_table_contents(loot_table);
                     },
                 }
             }
         }
 
-        let loot_tables = assets::load_expect_dir::<Lottery<LootSpec>>("common.loot_tables", true);
+        let loot_tables =
+            assets::load_expect_dir::<Lottery<LootSpec<String>>>("common.loot_tables", true);
         for loot_table in loot_tables.iter() {
             validate_table_contents(loot_table.cloned());
         }
