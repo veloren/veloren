@@ -1894,3 +1894,55 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use comp::{
+        inventory::item::{Item, ItemKind},
+        tool,
+    };
+    #[test]
+    // As we have only player skills, test it with starter tools
+    // Load ability_config of each tool and try each CharacterAbility of it
+    fn test_adjusting_by_skills() {
+        let test_tools = [
+            "common.items.weapons.sword.starter",
+            "common.items.weapons.hammer.starter_hammer",
+            "common.items.weapons.bow.starter",
+            "common.items.weapons.axe.starter_axe",
+            "common.items.weapons.staff.starter_staff",
+            "common.items.weapons.sceptre.starter_sceptre",
+            "common.items.tool.pickaxe_stone",
+        ];
+
+        let dummy_skillset = skills::SkillSet::default();
+        // check non-combat abilities
+        let dummy_ability = CharacterAbility::default();
+        dummy_ability.adjusted_by_skills(&dummy_skillset, None);
+        for tool_id in test_tools {
+            let item = Item::new_from_asset_expect(tool_id);
+            let tool::AbilitySet {
+                primary,
+                secondary,
+                abilities,
+            } = &item.item_config_expect().abilities;
+
+            // It should be a tool, I swear
+            if let ItemKind::Tool(tool) = &item.kind {
+                primary
+                    .clone()
+                    .adjusted_by_skills(&dummy_skillset, Some(tool.kind));
+                secondary
+                    .clone()
+                    .adjusted_by_skills(&dummy_skillset, Some(tool.kind));
+                for entry in abilities {
+                    let (_, ability) = entry;
+                    ability
+                        .clone()
+                        .adjusted_by_skills(&dummy_skillset, Some(tool.kind));
+                }
+            }
+        }
+    }
+}
