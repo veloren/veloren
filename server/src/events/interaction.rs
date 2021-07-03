@@ -109,23 +109,20 @@ pub fn handle_mount(server: &mut Server, mounter: EcsEntity, mountee: EcsEntity)
             Some(comp::MountState::Unmounted)
         );
 
-        let within_range = within_mounting_range(
-            state.ecs().read_storage::<comp::Pos>().get(mounter),
-            state.ecs().read_storage::<comp::Pos>().get(mountee),
-        );
-        let alive = |e| {
-            state
-                .ecs()
-                .read_storage::<comp::Health>()
-                .get(e)
-                .map_or(true, |h| !h.is_dead)
+        let within_range = || {
+            let positions = state.ecs().read_storage::<comp::Pos>();
+            within_mounting_range(positions.get(mounter), positions.get(mountee))
         };
+        let healths = state.ecs().read_storage::<comp::Health>();
+        let alive = |e| healths.get(e).map_or(true, |h| !h.is_dead);
 
-        if not_mounting_yet && within_range && alive(mounter) && alive(mountee) {
-            if let (Some(mounter_uid), Some(mountee_uid)) = (
-                state.ecs().uid_from_entity(mounter),
-                state.ecs().uid_from_entity(mountee),
-            ) {
+        if not_mounting_yet && within_range() && alive(mounter) && alive(mountee) {
+            let uids = state.ecs().read_storage::<Uid>();
+            if let (Some(mounter_uid), Some(mountee_uid)) =
+                (uids.get(mounter).copied(), uids.get(mountee).copied())
+            {
+                drop(uids);
+                drop(healths);
                 // We know the entities must exist to be able to look up their UIDs, so these
                 // are guaranteed to work; hence we can ignore possible errors here.
                 state.write_component_ignore_entity_dead(
