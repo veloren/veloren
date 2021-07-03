@@ -25,7 +25,7 @@ buildInputs = ["xorg.libxcb"]
 hot-anim = ["anim/use-dyn-lib"]
 singleplayer = ["server"]
 simd = ["vek/platform_intrinsics"]
-tracy = ["profiling", "profiling/profile-with-tracy", "common-frontend/tracy"]
+tracy = ["profiling", "profiling/profile-with-tracy", "common-frontend/tracy", "client/tracy"]
 plugins = ["client/plugins"]
 
 # We don't ship egui with published release builds so a separate feature is required that excludes it.

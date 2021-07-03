@@ -74,6 +74,16 @@ use tokio::runtime::Runtime;
 use tracing::{debug, error, trace, warn};
 use vek::*;
 
+#[cfg(feature = "tracy")]
+mod tracy_plots {
+    use common_base::tracy_client::{create_plot, Plot};
+    pub static TERRAIN_SENDS: Plot = create_plot!("terrain_sends");
+    pub static TERRAIN_RECVS: Plot = create_plot!("terrain_recvs");
+    pub static INGAME_SENDS: Plot = create_plot!("ingame_sends");
+    pub static INGAME_RECVS: Plot = create_plot!("ingame_recvs");
+}
+#[cfg(feature = "tracy")] use tracy_plots::*;
+
 const PING_ROLLING_AVERAGE_SECS: usize = 10;
 
 #[derive(Debug)]
@@ -782,6 +792,8 @@ impl Client {
             ClientMsg::Type(msg) => self.register_stream.send(msg),
             ClientMsg::Register(msg) => self.register_stream.send(msg),
             ClientMsg::General(msg) => {
+                #[cfg(feature = "tracy")]
+                let (mut ingame, mut terrain) = (0.0, 0.0);
                 let stream = match msg {
                     ClientGeneral::RequestCharacterList
                     | ClientGeneral::CreateCharacter { .. }
@@ -803,15 +815,30 @@ impl Client {
                     | ClientGeneral::UnlockSkillGroup(_)
                     | ClientGeneral::RequestPlayerPhysics { .. }
                     | ClientGeneral::RequestLossyTerrainCompression { .. } => {
+                        #[cfg(feature = "tracy")]
+                        {
+                            ingame = 1.0;
+                        }
                         &mut self.in_game_stream
                     },
                     //Only in game, terrain
-                    ClientGeneral::TerrainChunkRequest { .. } => &mut self.terrain_stream,
+                    ClientGeneral::TerrainChunkRequest { .. } => {
+                        #[cfg(feature = "tracy")]
+                        {
+                            terrain = 1.0;
+                        }
+                        &mut self.terrain_stream
+                    },
                     //Always possible
                     ClientGeneral::ChatMsg(_)
                     | ClientGeneral::Command(_, _)
                     | ClientGeneral::Terminate => &mut self.general_stream,
                 };
+                #[cfg(feature = "tracy")]
+                {
+                    INGAME_SENDS.point(ingame);
+                    TERRAIN_SENDS.point(terrain);
+                }
                 stream.send(msg)
             },
             ClientMsg::Ping(msg) => self.ping_stream.send(msg),
@@ -2067,6 +2094,8 @@ impl Client {
 
     fn handle_messages(&mut self, frontend_events: &mut Vec<Event>) -> Result<u64, Error> {
         let mut cnt = 0;
+        #[cfg(feature = "tracy")]
+        let (mut terrain_cnt, mut ingame_cnt) = (0, 0);
         loop {
             let cnt_start = cnt;
 
@@ -2084,14 +2113,29 @@ impl Client {
             }
             while let Some(msg) = self.in_game_stream.try_recv()? {
                 cnt += 1;
+                #[cfg(feature = "tracy")]
+                {
+                    ingame_cnt += 1;
+                }
                 self.handle_server_in_game_msg(frontend_events, msg)?;
             }
             while let Some(msg) = self.terrain_stream.try_recv()? {
                 cnt += 1;
+                #[cfg(feature = "tracy")]
+                {
+                    if let ServerGeneral::TerrainChunkUpdate { chunk, .. } = &msg {
+                        terrain_cnt += chunk.as_ref().map(|x| x.approx_len()).unwrap_or(0);
+                    }
+                }
                 self.handle_server_terrain_msg(msg)?;
             }
 
             if cnt_start == cnt {
+                #[cfg(feature = "tracy")]
+                {
+                    TERRAIN_RECVS.point(terrain_cnt as f64);
+                    INGAME_RECVS.point(ingame_cnt as f64);
+                }
                 return Ok(cnt);
             }
         }
