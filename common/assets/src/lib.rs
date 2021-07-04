@@ -250,7 +250,6 @@ pub fn path_of(specifier: &str, ext: &str) -> PathBuf {
 
 #[cfg(test)]
 mod tests {
-
     use std::{ffi::OsStr, fs::File};
     use walkdir::WalkDir;
 
@@ -260,7 +259,10 @@ mod tests {
         let ext = OsStr::new("ron");
         WalkDir::new(crate::ASSETS_PATH.as_path())
             .into_iter()
-            .map(|ent| ent.unwrap().into_path())
+            .map(|ent| {
+                ent.expect("Failed to walk over asset directory")
+                    .into_path()
+            })
             .filter(|path| path.is_file())
             .filter(|path| {
                 path.extension()
@@ -268,7 +270,7 @@ mod tests {
                     .unwrap_or(false)
             })
             .for_each(|path| {
-                let file = File::open(&path).unwrap();
+                let file = File::open(&path).expect("Failed to open the file");
                 if let Err(err) = ron::de::from_reader::<_, ron::Value>(file) {
                     println!("{:?}", path);
                     println!("{:#?}", err);
