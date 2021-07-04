@@ -84,14 +84,14 @@ struct ProbabilityFile {
 }
 
 impl assets::Asset for ProbabilityFile {
-    type Loader = assets::LoadFrom<Vec<(f32, LootSpec)>, assets::RonLoader>;
+    type Loader = assets::LoadFrom<Vec<(f32, LootSpec<String>)>, assets::RonLoader>;
 
     const EXTENSION: &'static str = "ron";
 }
 
-impl From<Vec<(f32, LootSpec)>> for ProbabilityFile {
+impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
     #[allow(clippy::cast_precision_loss)]
-    fn from(content: Vec<(f32, LootSpec)>) -> Self {
+    fn from(content: Vec<(f32, LootSpec<String>)>) -> Self {
         Self {
             content: content
                 .into_iter()
@@ -101,7 +101,7 @@ impl From<Vec<(f32, LootSpec)>> for ProbabilityFile {
                         vec![(p0 * (a + b) as f32 / 2.0, asset)].into_iter()
                     },
                     LootSpec::LootTable(table_asset) => {
-                        let total = Lottery::<LootSpec>::load_expect(&table_asset)
+                        let total = Lottery::<LootSpec<String>>::load_expect(&table_asset)
                             .read()
                             .total();
                         Self::load_expect_cloned(&table_asset)

@@ -131,7 +131,7 @@ impl EntityInfo {
                     self = self.with_loot_drop(Item::new_from_asset_expect(&asset));
                 },
                 LootKind::LootTable(asset) => {
-                    let table = Lottery::<LootSpec>::load_expect(&asset);
+                    let table = Lottery::<LootSpec<String>>::load_expect(&asset);
                     let drop = table.read().choose().to_item();
                     self = self.with_loot_drop(drop);
                 },
@@ -352,7 +352,7 @@ mod tests {
                     LootKind::LootTable(asset) => {
                         // we need to just load it check if it exists,
                         // because all loot tables are tested in Lottery module
-                        let _ = Lottery::<LootSpec>::load_expect(&asset);
+                        let _ = Lottery::<LootSpec<String>>::load_expect(&asset);
                     },
                 }
             }

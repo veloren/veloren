@@ -374,7 +374,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         // Decide for a loot drop before turning into a lootbag
         let old_body = state.ecs().write_storage::<Body>().remove(entity);
         let lottery = || {
-            Lottery::<LootSpec>::load_expect(match old_body {
+            Lottery::<LootSpec<String>>::load_expect(match old_body {
                 Some(common::comp::Body::Humanoid(_)) => "common.loot_tables.creature.humanoid",
                 Some(common::comp::Body::QuadrupedSmall(quadruped_small)) => {
                     match quadruped_small.species {
