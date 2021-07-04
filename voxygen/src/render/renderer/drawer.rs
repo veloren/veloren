@@ -14,6 +14,8 @@ use core::{num::NonZeroU32, ops::Range};
 use std::sync::Arc;
 use vek::Aabr;
 use wgpu_profiler::scope::{ManualOwningScope, OwningScope, Scope};
+#[cfg(feature = "egui-ui")]
+use {common_base::span, egui_wgpu_backend::ScreenDescriptor, egui_winit_platform::Platform};
 
 // Currently available pipelines
 enum Pipelines<'frame> {
@@ -53,6 +55,8 @@ impl<'frame> Pipelines<'frame> {
 struct RendererBorrow<'frame> {
     queue: &'frame wgpu::Queue,
     device: &'frame wgpu::Device,
+    #[cfg(feature = "egui-ui")]
+    sc_desc: &'frame wgpu::SwapChainDescriptor,
     shadow: Option<&'frame super::Shadow>,
     pipelines: Pipelines<'frame>,
     locals: &'frame super::locals::Locals,
@@ -60,6 +64,8 @@ struct RendererBorrow<'frame> {
     mode: &'frame super::super::RenderMode,
     quad_index_buffer_u16: &'frame Buffer<u16>,
     quad_index_buffer_u32: &'frame Buffer<u32>,
+    #[cfg(feature = "egui-ui")]
+    egui_render_pass: &'frame mut egui_wgpu_backend::RenderPass,
 }
 
 pub struct Drawer<'frame> {
@@ -100,6 +106,8 @@ impl<'frame> Drawer<'frame> {
         let borrow = RendererBorrow {
             queue: &renderer.queue,
             device: &renderer.device,
+            #[cfg(feature = "egui-ui")]
+            sc_desc: &renderer.sc_desc,
             shadow,
             pipelines,
             locals: &renderer.locals,
@@ -107,6 +115,8 @@ impl<'frame> Drawer<'frame> {
             mode: &renderer.mode,
             quad_index_buffer_u16: &renderer.quad_index_buffer_u16,
             quad_index_buffer_u32: &renderer.quad_index_buffer_u32,
+            #[cfg(feature = "egui-ui")]
+            egui_render_pass: &mut renderer.egui_renderpass,
         };
 
         let encoder =
@@ -259,6 +269,48 @@ impl<'frame> Drawer<'frame> {
             render_pass,
             borrow: &self.borrow,
         }
+    }
+
+    #[cfg(feature = "egui-ui")]
+    pub fn draw_egui(&mut self, platform: &mut Platform, scale_factor: f32) {
+        span!(guard, "Draw egui");
+
+        let (_output, paint_commands) = platform.end_frame();
+
+        let paint_jobs = platform.context().tessellate(paint_commands);
+
+        let screen_descriptor = ScreenDescriptor {
+            physical_width: self.borrow.sc_desc.width,
+            physical_height: self.borrow.sc_desc.height,
+            scale_factor: scale_factor as f32,
+        };
+
+        self.borrow.egui_render_pass.update_texture(
+            self.borrow.device,
+            self.borrow.queue,
+            &platform.context().texture(),
+        );
+        self.borrow
+            .egui_render_pass
+            .update_user_textures(self.borrow.device, self.borrow.queue);
+        self.borrow.egui_render_pass.update_buffers(
+            self.borrow.device,
+            self.borrow.queue,
+            &paint_jobs,
+            &screen_descriptor,
+        );
+
+        self.borrow.egui_render_pass.execute(
+            &mut self.encoder.as_mut().unwrap(),
+            self.taking_screenshot
+                .as_ref()
+                .map_or(&self.swap_tex.view, |s| s.texture_view()),
+            &paint_jobs,
+            &screen_descriptor,
+            None,
+        );
+
+        drop(guard);
     }
 
     /// Does nothing if the shadow pipelines are not available or shadow map

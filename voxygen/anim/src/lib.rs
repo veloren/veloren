@@ -54,7 +54,6 @@ pub mod bird_large;
 pub mod bird_medium;
 pub mod character;
 pub mod dragon;
-#[cfg(feature = "use-dyn-lib")] pub mod dyn_lib;
 pub mod fish_medium;
 pub mod fish_small;
 pub mod fixture;
@@ -67,14 +66,13 @@ pub mod ship;
 pub mod theropod;
 pub mod vek;
 
-#[cfg(feature = "use-dyn-lib")]
-pub use dyn_lib::init;
-
-#[cfg(feature = "use-dyn-lib")]
-use std::ffi::CStr;
-
 use self::vek::*;
 use bytemuck::{Pod, Zeroable};
+#[cfg(feature = "use-dyn-lib")]
+use {
+    lazy_static::lazy_static, std::ffi::CStr, std::sync::Arc, std::sync::Mutex,
+    voxygen_dynlib::LoadedLib,
+};
 
 type MatRaw = [[f32; 4]; 4];
 
@@ -90,6 +88,15 @@ fn make_bone(mat: Mat4<f32>) -> FigureBoneData {
 }
 
 pub type Bone = Transform<f32, f32, f32>;
+
+#[cfg(feature = "use-dyn-lib")]
+lazy_static! {
+    static ref LIB: Arc<Mutex<Option<LoadedLib>>> =
+        voxygen_dynlib::init("veloren-voxygen-anim", "veloren-voxygen-anim-dyn", "anim");
+}
+
+#[cfg(feature = "use-dyn-lib")]
+pub fn init() { lazy_static::initialize(&LIB); }
 
 pub trait Skeleton: Send + Sync + 'static {
     type Attr;
@@ -118,10 +125,11 @@ pub fn compute_matrices<S: Skeleton>(
     }
     #[cfg(feature = "use-dyn-lib")]
     {
-        let lock = dyn_lib::LIB.lock().unwrap();
+        let lock = LIB.lock().unwrap();
         let lib = &lock.as_ref().unwrap().lib;
 
-        let compute_fn: libloading::Symbol<
+        #[allow(clippy::type_complexity)]
+        let compute_fn: voxygen_dynlib::Symbol<
             fn(&S, Mat4<f32>, &mut [FigureBoneData; MAX_BONE_COUNT]) -> Vec3<f32>,
         > = unsafe { lib.get(S::COMPUTE_FN) }.unwrap_or_else(|e| {
             panic!(
@@ -169,10 +177,11 @@ pub trait Animation {
         }
         #[cfg(feature = "use-dyn-lib")]
         {
-            let lock = dyn_lib::LIB.lock().unwrap();
+            let lock = LIB.lock().unwrap();
             let lib = &lock.as_ref().unwrap().lib;
 
-            let update_fn: libloading::Symbol<
+            #[allow(clippy::type_complexity)]
+            let update_fn: voxygen_dynlib::Symbol<
                 fn(
                     &Self::Skeleton,
                     Self::Dependency<'a>,
@@ -183,9 +192,8 @@ pub trait Animation {
             > = unsafe {
                 //let start = std::time::Instant::now();
                 // Overhead of 0.5-5 us (could use hashmap to mitigate if this is an issue)
-                let f = lib.get(Self::UPDATE_FN);
+                lib.get(Self::UPDATE_FN)
                 //println!("{}", start.elapsed().as_nanos());
-                f
             }
             .unwrap_or_else(|e| {
                 panic!(

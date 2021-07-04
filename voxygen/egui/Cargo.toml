@@ -1,22 +1,20 @@
 [package]
-authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Imbris <imbrisf@gmail.com>"]
+authors = ["Ben Wallis <atomyc@gmail.com>"]
+name = "veloren-voxygen-egui"
 edition = "2018"
-name = "veloren-voxygen-anim"
-version = "0.10.0"
+version = "0.9.0"
 
 [features]
 use-dyn-lib = ["lazy_static", "voxygen-dynlib"]
 be-dyn-lib = []
-simd = ["vek/platform_intrinsics"]
-
-default = ["simd"]
 
 [dependencies]
+client = {package = "veloren-client", path = "../../client"}
 common = {package = "veloren-common", path = "../../common"}
-# inline_tweak = "1.0.2"
-bytemuck = { version = "1.4", features=["derive"] }
-vek = {version = "=0.14.1", features = ["serde"]}
+egui = "0.12"
+egui_winit_platform = "0.8"
 voxygen-dynlib = {package = "veloren-voxygen-dynlib", path = "../dynlib", optional = true}
 
 # Hot Reloading
 lazy_static = {version = "1.4.0", optional = true}
+

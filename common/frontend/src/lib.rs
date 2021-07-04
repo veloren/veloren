@@ -61,6 +61,7 @@ where
             .add_directive("gfx_backend_vulkan=info".parse().unwrap())
             .add_directive("wgpu_core=info".parse().unwrap())
             .add_directive("wgpu_core::device=warn".parse().unwrap())
+            .add_directive("wgpu_core::swap_chain=info".parse().unwrap())
             .add_directive("veloren_network_protocol=info".parse().unwrap())
             .add_directive("quinn_proto::connection=info".parse().unwrap())
             .add_directive(

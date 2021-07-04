@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, VecStorage};
 use specs_idvs::IdvStorage;
 use std::collections::{BTreeMap, VecDeque};
+use strum_macros::Display;
 use vek::*;
 
 /// Data returned from character behavior fn's to Character Behavior System.
@@ -44,7 +45,7 @@ impl From<&JoinData<'_>> for StateUpdate {
         }
     }
 }
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Display, PartialEq, Serialize, Deserialize)]
 pub enum CharacterState {
     Idle,
     Climb(climb::Data),

@@ -13,7 +13,7 @@ pub use common_net::msg::ServerInfo;
 pub use specs::{
     join::Join,
     saveload::{Marker, MarkerAllocator},
-    Builder, DispatcherBuilder, Entity as EcsEntity, ReadStorage, WorldExt,
+    Builder, DispatcherBuilder, Entity as EcsEntity, ReadStorage, World, WorldExt,
 };
 
 use crate::addr::ConnectionArgs;

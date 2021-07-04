@@ -19,6 +19,7 @@ use std::{
     ops::{Add, Div},
     time::Duration,
 };
+use strum_macros::Display;
 use vek::*;
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
 
@@ -869,7 +870,7 @@ pub fn tick_attack_or_default(
 /// Determines what portion a state is in. Used in all attacks (eventually). Is
 /// used to control aspects of animation code, as well as logic within the
 /// character states.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Display, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub enum StageSection {
     Buildup,
     Recover,

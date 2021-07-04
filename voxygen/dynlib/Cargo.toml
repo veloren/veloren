@@ -1,0 +1,11 @@
+[package]
+name = "veloren-voxygen-dynlib"
+version = "0.1.0"
+authors = ["Ben Wallis <atomyc@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+find_folder = {version = "0.3.0"}
+libloading = {version = "0.7"}
+notify = {version = "5.0.0-pre.2"}
+tracing = "0.1"

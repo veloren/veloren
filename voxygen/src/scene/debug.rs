@@ -50,7 +50,7 @@ impl DebugShape {
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
-pub struct DebugShapeId(u64);
+pub struct DebugShapeId(pub u64);
 
 pub struct Debug {
     next_shape_id: DebugShapeId,

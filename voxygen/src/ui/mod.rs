@@ -7,6 +7,7 @@ mod widgets;
 pub mod img_ids;
 #[macro_use]
 pub mod fonts;
+#[cfg(feature = "egui-ui")] pub mod egui;
 pub mod ice;
 pub mod keyed_jobs;
 

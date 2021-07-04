@@ -1,7 +1,7 @@
 mod ui;
 
 use crate::{
-    render::Renderer,
+    render::{Drawer, GlobalsBindGroup},
     scene::simple::{self as scene, Scene},
     session::SessionState,
     settings::Settings,
@@ -20,7 +20,6 @@ pub struct CharSelectionState {
     char_selection_ui: CharSelectionUi,
     client: Rc<RefCell<Client>>,
     scene: Scene,
-    need_shadow_clear: bool,
 }
 
 impl CharSelectionState {
@@ -37,7 +36,6 @@ impl CharSelectionState {
             char_selection_ui,
             client,
             scene,
-            need_shadow_clear: false,
         }
     }
 
@@ -75,7 +73,7 @@ impl PlayState for CharSelectionState {
             .set_scale_mode(global_state.settings.interface.ui_scale);
 
         // Clear shadow textures since we don't render to them here
-        self.need_shadow_clear = true;
+        global_state.clear_shadows_next_frame = true;
     }
 
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<WinEvent>) -> PlayStateResult {
@@ -234,21 +232,9 @@ impl PlayState for CharSelectionState {
 
     fn capped_fps(&self) -> bool { true }
 
-    fn render(&mut self, renderer: &mut Renderer, _: &Settings) {
-        let mut drawer = match renderer
-            .start_recording_frame(self.scene.global_bind_group())
-            .expect("Unrecoverable render error when starting a new frame!")
-        {
-            Some(d) => d,
-            // Couldn't get swap chain texture this fime
-            None => return,
-        };
+    fn globals_bind_group(&self) -> &GlobalsBindGroup { self.scene.global_bind_group() }
 
-        if self.need_shadow_clear {
-            drawer.clear_shadows();
-            self.need_shadow_clear = false;
-        }
-
+    fn render<'a>(&'a self, drawer: &mut Drawer<'a>, _: &Settings) {
         let client = self.client.borrow();
         let (humanoid_body, loadout) =
             Self::get_humanoid_body_inventory(&self.char_selection_ui, &client);
@@ -270,4 +256,6 @@ impl PlayState for CharSelectionState {
             self.char_selection_ui.render(&mut ui_drawer);
         };
     }
+
+    fn egui_enabled(&self) -> bool { false }
 }
