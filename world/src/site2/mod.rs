@@ -758,9 +758,9 @@ impl Site {
 
         for plot in plots_to_render {
             let (prim_tree, fills) = match &self.plots[plot].kind {
-                PlotKind::House(house) => house.render_collect(self),
-                PlotKind::Castle(castle) => castle.render_collect(self),
-                PlotKind::Dungeon(dungeon) => dungeon.render_collect(self),
+                PlotKind::House(house) => house.render_collect(self, &canvas.land()),
+                PlotKind::Castle(castle) => castle.render_collect(self, &canvas.land()),
+                PlotKind::Dungeon(dungeon) => dungeon.render_collect(self, &canvas.land()),
                 _ => continue,
             };
 

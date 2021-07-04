@@ -46,6 +46,7 @@ impl Structure for Castle {
     fn render<F: FnMut(Primitive) -> Id<Primitive>, G: FnMut(Id<Primitive>, Fill)>(
         &self,
         site: &Site,
+        _land: &Land,
         mut prim: F,
         mut fill: G,
     ) {
