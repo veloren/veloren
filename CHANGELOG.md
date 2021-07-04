@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Death particles and SFX
 - Default keybindings were made more consistent
 - Adjust Yeti difficulty
+- Now most of the food gives Saturation in the process of eating
+- Mushroom Curry gives long-lasting Regeneration buff
 
 ### Removed
 
