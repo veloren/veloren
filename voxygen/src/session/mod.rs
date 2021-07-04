@@ -38,7 +38,7 @@ use crate::{
     hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, LootMessage, PromptDialogSettings},
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
-    render::Renderer,
+    render::{Drawer, GlobalsBindGroup},
     scene::{camera, terrain::Interaction, CameraMode, DebugShapeId, Scene, SceneData},
     settings::Settings,
     window::{AnalogGameInput, Event, GameInput},
@@ -46,6 +46,8 @@ use crate::{
 };
 use hashbrown::HashMap;
 use settings_change::Language::ChangeLanguage;
+#[cfg(feature = "egui-ui")]
+use voxygen_egui::EguiDebugInfo;
 
 /// The action to perform after a tick
 enum TickAction {
@@ -1022,6 +1024,19 @@ impl PlayState for SessionState {
                 self.interactable,
             );
 
+            // Maintain egui (debug interface)
+            #[cfg(feature = "egui-ui")]
+            if global_state.settings.interface.toggle_debug {
+                global_state.egui_state.maintain(
+                    &self.client.borrow(),
+                    &mut self.scene,
+                    debug_info.map(|debug_info| EguiDebugInfo {
+                        frame_time: debug_info.frame_time,
+                        ping_ms: debug_info.ping_ms,
+                    }),
+                );
+            }
+
             // Look for changes in the localization files
             if global_state.i18n.reloaded() {
                 hud_events.push(HudEvent::SettingsChange(
@@ -1401,19 +1416,13 @@ impl PlayState for SessionState {
 
     fn capped_fps(&self) -> bool { false }
 
+    fn globals_bind_group(&self) -> &GlobalsBindGroup { self.scene.global_bind_group() }
+
     /// Render the session to the screen.
     ///
     /// This method should be called once per frame.
-    fn render(&mut self, renderer: &mut Renderer, settings: &Settings) {
+    fn render<'a>(&'a self, mut drawer: &mut Drawer<'a>, settings: &Settings) {
         span!(_guard, "render", "<Session as PlayState>::render");
-        let mut drawer = match renderer
-            .start_recording_frame(self.scene.global_bind_group())
-            .expect("Unrecoverable render error when starting a new frame!")
-        {
-            Some(d) => d,
-            // Couldn't get swap chain texture this frame
-            None => return,
-        };
 
         // Render world
         {
@@ -1465,6 +1474,8 @@ impl PlayState for SessionState {
             }; // Note: this semicolon is needed for the third_pass borrow to be dropped before it's lifetime ends
         }
     }
+
+    fn egui_enabled(&self) -> bool { true }
 }
 
 /// Max distance an entity can be "targeted"

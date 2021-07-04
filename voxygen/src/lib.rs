@@ -38,10 +38,12 @@ pub use i18n;
 
 #[cfg(feature = "singleplayer")]
 use crate::singleplayer::Singleplayer;
+#[cfg(feature = "egui-ui")]
+use crate::ui::egui::EguiState;
 use crate::{
     audio::AudioFrontend,
     profile::Profile,
-    render::Renderer,
+    render::{Drawer, GlobalsBindGroup},
     settings::Settings,
     window::{Event, Window},
 };
@@ -54,6 +56,8 @@ pub struct GlobalState {
     pub settings: Settings,
     pub profile: Profile,
     pub window: Window,
+    #[cfg(feature = "egui-ui")]
+    pub egui_state: EguiState,
     pub lazy_init: scene::terrain::SpriteRenderContextLazy,
     pub audio: AudioFrontend,
     pub info_message: Option<String>,
@@ -67,6 +71,8 @@ pub struct GlobalState {
     // enter the game before confirmation of successful character load
     /// An error returned by Client that needs to be displayed by the UI
     pub client_error: Option<String>,
+    // Used to clear the shadow textures when entering a PlayState that doesn't utilise shadows
+    pub clear_shadows_next_frame: bool,
 }
 
 impl GlobalState {
@@ -136,6 +142,11 @@ pub trait PlayState {
     /// Determines whether the play state should have an enforced FPS cap
     fn capped_fps(&self) -> bool;
 
+    fn globals_bind_group(&self) -> &GlobalsBindGroup;
+
     /// Draw the play state.
-    fn render(&mut self, renderer: &mut Renderer, settings: &Settings);
+    fn render<'a>(&'a self, drawer: &mut Drawer<'a>, settings: &Settings);
+
+    /// Determines whether egui will be rendered for this play state
+    fn egui_enabled(&self) -> bool;
 }

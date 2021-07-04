@@ -1,0 +1,14 @@
+[package]
+authors = ["Imbris <imbrisf@gmail.com>"]
+edition = "2018"
+name = "veloren-voxygen-egui-dyn"
+version = "0.9.0"
+
+[lib]
+crate-type = ["dylib"]
+
+[features]
+be-dyn-lib = ["veloren-voxygen-egui/be-dyn-lib"]
+
+[dependencies]
+veloren-voxygen-egui = { path = "../" }

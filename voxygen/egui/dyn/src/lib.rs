@@ -11,4 +11,4 @@
 //! is not on by default because this causes cargo to switch the feature on in
 //! the anim crate when compiling the static lib into voxygen.
 #[cfg(feature = "be-dyn-lib")]
-pub use veloren_voxygen_anim::*;
+pub use veloren_voxygen_egui::*;

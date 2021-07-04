@@ -20,6 +20,8 @@ use common::{
 };
 use std::panic;
 use tracing::{error, info, warn};
+#[cfg(feature = "egui-ui")]
+use veloren_voxygen::ui::egui::EguiState;
 
 #[allow(clippy::manual_unwrap_or)]
 fn main() {
@@ -145,9 +147,17 @@ fn main() {
 
     assets::start_hot_reloading();
 
-    // Initialise watcher for animation hotreloading
+    // Initialise watcher for animation hot-reloading
     #[cfg(feature = "hot-anim")]
-    anim::init();
+    {
+        anim::init();
+    }
+
+    // Initialise watcher for egui hot-reloading
+    #[cfg(feature = "hot-egui")]
+    {
+        voxygen_egui::init();
+    }
 
     // Setup audio
     let mut audio = match settings.audio.output {
@@ -184,10 +194,15 @@ fn main() {
 
     let lazy_init = SpriteRenderContext::new(window.renderer_mut());
 
+    #[cfg(feature = "egui-ui")]
+    let egui_state = EguiState::new(&window);
+
     let global_state = GlobalState {
         audio,
         profile,
         window,
+        #[cfg(feature = "egui-ui")]
+        egui_state,
         lazy_init,
         clock: Clock::new(std::time::Duration::from_secs_f64(
             1.0 / get_fps(settings.graphics.max_fps) as f64,
@@ -199,6 +214,7 @@ fn main() {
         i18n,
         clipboard,
         client_error: None,
+        clear_shadows_next_frame: false,
     };
 
     run::run(global_state, event_loop);

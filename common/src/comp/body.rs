@@ -23,13 +23,14 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
+use strum_macros::Display;
 use vek::*;
 
 use super::{BuffKind, Density, Mass};
 
 make_case_elim!(
     body,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[derive(Copy, Clone, Debug, Display, PartialEq, Eq, Hash, Serialize, Deserialize)]
     #[repr(u32)]
     pub enum Body {
         Humanoid(body: humanoid::Body) = 0,

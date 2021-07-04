@@ -31,6 +31,8 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
         // Continuously run loop since we handle sleeping
         *control_flow = winit::event_loop::ControlFlow::Poll;
 
+        #[cfg(feature = "egui-ui")]
+        global_state.egui_state.platform.handle_event(&event);
         // Get events for the ui.
         if let Some(event) = ui::Event::try_from(&event, global_state.window.window()) {
             global_state.window.send_event(Event::Ui(event));
@@ -167,12 +169,36 @@ fn handle_main_events_cleared(
     let mut capped_fps = false;
 
     drop(guard);
+
+    #[cfg(feature = "egui-ui")]
+    let scale_factor = global_state.window.window().scale_factor() as f32;
+
     if let Some(last) = states.last_mut() {
-        span!(guard, "Render");
-        let renderer = global_state.window.renderer_mut();
-        // Render the screen using the global renderer
-        last.render(renderer, &global_state.settings);
         capped_fps = last.capped_fps();
+
+        span!(guard, "Render");
+
+        // Render the screen using the global renderer
+        if let Some(mut drawer) = global_state
+            .window
+            .renderer_mut()
+            .start_recording_frame(last.globals_bind_group())
+            .expect("Unrecoverable render error when starting a new frame!")
+        {
+            if global_state.clear_shadows_next_frame {
+                drawer.clear_shadows();
+            }
+
+            last.render(&mut drawer, &global_state.settings);
+
+            #[cfg(feature = "egui-ui")]
+            if last.egui_enabled() && global_state.settings.interface.toggle_debug {
+                drawer.draw_egui(&mut global_state.egui_state.platform, scale_factor);
+            }
+        };
+        if global_state.clear_shadows_next_frame {
+            global_state.clear_shadows_next_frame = false;
+        }
 
         drop(guard);
     }

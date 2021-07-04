@@ -6,8 +6,11 @@ use super::char_selection::CharSelectionState;
 #[cfg(feature = "singleplayer")]
 use crate::singleplayer::Singleplayer;
 use crate::{
-    i18n::LocalizationHandle, render::Renderer, settings::Settings, window::Event, Direction,
-    GlobalState, PlayState, PlayStateResult,
+    i18n::LocalizationHandle,
+    render::{Drawer, GlobalsBindGroup},
+    settings::Settings,
+    window::Event,
+    Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{
     addr::ConnectionArgs,
@@ -319,21 +322,17 @@ impl PlayState for MainMenuState {
 
     fn capped_fps(&self) -> bool { true }
 
-    fn render(&mut self, renderer: &mut Renderer, _: &Settings) {
-        let mut drawer = match renderer
-            .start_recording_frame(self.scene.global_bind_group())
-            .expect("Unrecoverable render error when starting a new frame!")
-        {
-            Some(d) => d,
-            // Couldn't get swap chain texture this frame
-            None => return,
-        };
+    fn globals_bind_group(&self) -> &GlobalsBindGroup { self.scene.global_bind_group() }
 
+    fn render<'a>(&'a self, drawer: &mut Drawer<'a>, _: &Settings) {
         // Draw the UI to the screen.
-        if let Some(mut ui_drawer) = drawer.third_pass().draw_ui() {
+        let mut third_pass = drawer.third_pass();
+        if let Some(mut ui_drawer) = third_pass.draw_ui() {
             self.main_menu_ui.render(&mut ui_drawer);
         };
     }
+
+    fn egui_enabled(&self) -> bool { false }
 }
 
 fn get_client_msg_error(

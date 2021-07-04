@@ -1,4 +1,3 @@
-use lazy_static::lazy_static;
 use libloading::Library;
 use notify::{immediate_watcher, EventKind, RecursiveMode, Watcher};
 use std::{
@@ -8,23 +7,16 @@ use std::{
 };
 
 use find_folder::Search;
-use std::{env, path::PathBuf};
+use std::{
+    env,
+    env::consts::{DLL_PREFIX, DLL_SUFFIX},
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 use tracing::{debug, error, info};
 
-#[cfg(target_os = "windows")]
-const COMPILED_FILE: &str = "veloren_voxygen_anim_dyn.dll";
-#[cfg(target_os = "windows")]
-const ACTIVE_FILE: &str = "veloren_voxygen_anim_dyn_active.dll";
-
-#[cfg(not(target_os = "windows"))]
-const COMPILED_FILE: &str = "libveloren_voxygen_anim_dyn.so";
-#[cfg(not(target_os = "windows"))]
-const ACTIVE_FILE: &str = "libveloren_voxygen_anim_dyn_active.so";
-
-// This option is required as `hotreload()` moves the `LoadedLib`.
-lazy_static! {
-    pub static ref LIB: Mutex<Option<LoadedLib>> = Mutex::new(Some(LoadedLib::compile_load()));
-}
+// Re-exports
+pub use libloading::Symbol;
 
 /// LoadedLib holds a loaded dynamic library and the location of library file
 /// with the appropriate OS specific name and extension i.e.
@@ -45,20 +37,20 @@ impl LoadedLib {
     ///
     /// This is necessary because the very first time you use hot reloading you
     /// wont have the library, so you can't load it until you have compiled it!
-    fn compile_load() -> Self {
+    fn compile_load(dyn_package: &str) -> Self {
         #[cfg(target_os = "macos")]
         error!("The hot reloading feature does not work on macos.");
 
         // Compile
-        if !compile() {
-            panic!("Animation compile failed.");
+        if !compile(dyn_package) {
+            panic!("{} compile failed.", dyn_package);
         } else {
-            info!("Animation compile succeeded.");
+            info!("{} compile succeeded.", dyn_package);
         }
 
-        copy(&LoadedLib::determine_path());
+        copy(&LoadedLib::determine_path(dyn_package), dyn_package);
 
-        Self::load()
+        Self::load(dyn_package)
     }
 
     /// Load a library from disk.
@@ -66,8 +58,8 @@ impl LoadedLib {
     /// Currently this is pretty fragile, it gets the path of where it thinks
     /// the dynamic library should be and tries to load it. It will panic if it
     /// is missing.
-    fn load() -> Self {
-        let lib_path = LoadedLib::determine_path();
+    fn load(dyn_package: &str) -> Self {
+        let lib_path = LoadedLib::determine_path(dyn_package);
 
         // Try to load the library.
         let lib = match unsafe { Library::new(lib_path.clone()) } {
@@ -84,7 +76,7 @@ impl LoadedLib {
 
     /// Determine the path to the dynamic library based on the path of the
     /// current executable.
-    fn determine_path() -> PathBuf {
+    fn determine_path(dyn_package: &str) -> PathBuf {
         let current_exe = env::current_exe();
 
         // If we got the current_exe, we need to go up a level and then down
@@ -109,7 +101,7 @@ impl LoadedLib {
             Err(e) => {
                 panic!(
                     "Could not determine the path of the current executable, this is needed to \
-                     hotreload the dynamic library. {:?}",
+                     hot-reload the dynamic library. {:?}",
                     e
                 );
             },
@@ -117,7 +109,7 @@ impl LoadedLib {
 
         // Determine the platform specific path and push it onto our already
         // established target/debug dir.
-        lib_path.push(ACTIVE_FILE);
+        lib_path.push(active_file(dyn_package));
 
         lib_path
     }
@@ -125,13 +117,14 @@ impl LoadedLib {
 
 /// Initialise a watcher.
 ///
-/// The assumption is that this is run from the voxygen crate's root directory
-/// as it will watch the relative path `anim` for any changes to `.rs`
-/// files. Upon noticing changes it will wait a moment and then recompile.
-pub fn init() {
-    // Make sure first compile is done by accessing the lazy_static and then
-    // immediately dropping (because we don't actually need it).
-    drop(LIB.lock());
+/// This will search for the directory named `package_source_dir` and watch the
+/// files within it for any changes.
+pub fn init(
+    package: &'static str,
+    dyn_package: &'static str,
+    package_source_dir: &'static str,
+) -> Arc<Mutex<Option<LoadedLib>>> {
+    let lib_storage = Arc::new(Mutex::new(Some(LoadedLib::compile_load(dyn_package))));
 
     // TODO: use crossbeam
     let (reload_send, reload_recv) = mpsc::channel();
@@ -139,18 +132,24 @@ pub fn init() {
     // Start watcher
     let mut watcher = immediate_watcher(move |res| event_fn(res, &reload_send)).unwrap();
 
-    // Search for the anim directory.
-    let anim_dir = Search::Kids(1)
-        .for_folder("anim")
-        .expect("Could not find the anim crate directory relative to the current directory");
+    // Search for the source directory of the package being hot-reloaded.
+    let watch_dir = Search::Kids(1)
+        .for_folder(package_source_dir)
+        .unwrap_or_else(|_| {
+            panic!(
+                "Could not find the {} crate directory relative to the current directory",
+                package_source_dir
+            )
+        });
 
-    watcher.watch(anim_dir, RecursiveMode::Recursive).unwrap();
+    watcher.watch(watch_dir, RecursiveMode::Recursive).unwrap();
 
     // Start reloader that watcher signals
     // "Debounces" events since I can't find the option to do this in the latest
     // `notify`
+    let lib_storage_clone = Arc::clone(&lib_storage);
     std::thread::Builder::new()
-        .name("voxygen_anim_watcher".into())
+        .name(format!("{}_hotreload_watcher", package))
         .spawn(move || {
             let mut modified_paths = std::collections::HashSet::new();
             while let Ok(path) = reload_recv.recv() {
@@ -162,16 +161,32 @@ pub fn init() {
 
                 info!(
                     ?modified_paths,
-                    "Hot reloading animations because files in `anim` modified."
+                    "Hot reloading {} because files in `{}` modified.", package, package_source_dir
                 );
 
-                hotreload();
+                hotreload(dyn_package, &lib_storage_clone);
             }
         })
         .unwrap();
 
     // Let the watcher live forever
     std::mem::forget(watcher);
+
+    lib_storage
+}
+
+fn compiled_file(dyn_package: &str) -> String { dyn_lib_file(dyn_package, false) }
+
+fn active_file(dyn_package: &str) -> String { dyn_lib_file(dyn_package, true) }
+
+fn dyn_lib_file(dyn_package: &str, active: bool) -> String {
+    format!(
+        "{}{}{}{}",
+        DLL_PREFIX,
+        dyn_package.replace("-", "_"),
+        if active { "_active" } else { "" },
+        DLL_SUFFIX
+    )
 }
 
 /// Event function to hotreload the dynamic library
@@ -180,8 +195,8 @@ pub fn init() {
 /// before sending them back.
 fn event_fn(res: notify::Result<notify::Event>, sender: &mpsc::Sender<String>) {
     match res {
-        Ok(event) => match event.kind {
-            EventKind::Modify(_) => {
+        Ok(event) => {
+            if let EventKind::Modify(_) = event.kind {
                 event
                     .paths
                     .iter()
@@ -189,10 +204,9 @@ fn event_fn(res: notify::Result<notify::Event>, sender: &mpsc::Sender<String>) {
                     .map(|p| p.to_string_lossy().into_owned())
                     // Signal reloader
                     .for_each(|p| { let _ = sender.send(p); });
-            },
-            _ => {},
+            }
         },
-        Err(e) => error!(?e, "Animation hotreload watcher error."),
+        Err(e) => error!(?e, "hotreload watcher error."),
     }
 }
 
@@ -200,35 +214,35 @@ fn event_fn(res: notify::Result<notify::Event>, sender: &mpsc::Sender<String>) {
 ///
 /// This will reload the dynamic library by first internally calling compile
 /// and then reloading the library.
-fn hotreload() {
+fn hotreload(dyn_package: &str, loaded_lib: &Mutex<Option<LoadedLib>>) {
     // Do nothing if recompile failed.
-    if compile() {
-        let mut lock = LIB.lock().unwrap();
+    if compile(dyn_package) {
+        let mut lock = loaded_lib.lock().unwrap();
 
         // Close lib.
         let loaded_lib = lock.take().unwrap();
         loaded_lib.lib.close().unwrap();
-        copy(&loaded_lib.lib_path);
+        copy(&loaded_lib.lib_path, dyn_package);
 
         // Open new lib.
-        *lock = Some(LoadedLib::load());
+        *lock = Some(LoadedLib::load(dyn_package));
 
-        info!("Updated animations.");
+        info!("Updated {}.", dyn_package);
     }
 }
 
-/// Recompile the anim package
+/// Recompile the dyn package
 ///
 /// Returns `false` if the compile failed.
-fn compile() -> bool {
+fn compile(dyn_package: &str) -> bool {
     let output = Command::new("cargo")
         .stderr(Stdio::inherit())
         .stdout(Stdio::inherit())
         .arg("build")
         .arg("--package")
-        .arg("veloren-voxygen-anim-dyn")
+        .arg(dyn_package)
         .arg("--features")
-        .arg("veloren-voxygen-anim-dyn/be-dyn-lib")
+        .arg(format!("{}/be-dyn-lib", dyn_package))
         .output()
         .unwrap();
 
@@ -239,10 +253,10 @@ fn compile() -> bool {
 ///
 /// We do this for all OS's although it is only strictly necessary for windows.
 /// The reason we do this is to make the code easier to understand and debug.
-fn copy(lib_path: &PathBuf) {
+fn copy(lib_path: &Path, dyn_package: &str) {
     // Use the platform specific names.
-    let lib_compiled_path = lib_path.with_file_name(COMPILED_FILE);
-    let lib_output_path = lib_path.with_file_name(ACTIVE_FILE);
+    let lib_compiled_path = lib_path.with_file_name(compiled_file(dyn_package));
+    let lib_output_path = lib_path.with_file_name(active_file(dyn_package));
 
     // Get the path to where the lib was compiled to.
     debug!(?lib_compiled_path, ?lib_output_path, "Moving.");

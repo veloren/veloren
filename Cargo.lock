@@ -258,6 +258,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c9ff149ed9780025acfdb36862d35b28856bb693ceb451259a7164442f22fdc3"
 
 [[package]]
+name = "atomic_refcell"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "681b971236e0f76b20fcafca0236b8718c9186ee778d67cd78bd5f28fd85427f"
+
+[[package]]
 name = "atomicwrites"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1438,10 +1444,45 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9ea835d29036a4087793836fa931b08837ad5e957da9e23886b29586fb9b6650"
 
 [[package]]
+name = "egui"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "788148861d80b87d28d64440a3d31cae190e50ccc3ea585597466d38428365d7"
+dependencies = [
+ "epaint",
+]
+
+[[package]]
+name = "egui_wgpu_backend"
+version = "0.8.0"
+source = "git+https://github.com/hasenbanck/egui_wgpu_backend.git?rev=63a002c6a9b6c016e45806dd065864431caab621#63a002c6a9b6c016e45806dd065864431caab621"
+dependencies = [
+ "bytemuck",
+ "epi",
+ "wgpu",
+]
+
+[[package]]
+name = "egui_winit_platform"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cd4cf17c0cd4dbcf2f8fef55a3592b9b7cfd970576c7302d8ba5c521b8560371"
+dependencies = [
+ "egui",
+ "winit",
+]
+
+[[package]]
 name = "either"
 version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
+
+[[package]]
+name = "emath"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3e73d6c8c70eadb71756fbbc3c303ab25e163b46b656886dd250de5636efea12"
 
 [[package]]
 name = "encoding_rs"
@@ -1497,6 +1538,28 @@ dependencies = [
  "proc-macro2 1.0.27",
  "quote 1.0.9",
  "syn 1.0.72",
+]
+
+[[package]]
+name = "epaint"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "80e2db640801230bdda80629bc3a063927a462f5eaf38a98da676954e78ccb99"
+dependencies = [
+ "ahash 0.7.4",
+ "atomic_refcell",
+ "emath",
+ "ordered-float 2.5.1",
+ "rusttype 0.9.2",
+]
+
+[[package]]
+name = "epi"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "59c4f6cbede1fc8f836384f85295a59199a4825940abcc3a8a29cfe2e3c37583"
+dependencies = [
+ "egui",
 ]
 
 [[package]]
@@ -6095,6 +6158,9 @@ dependencies = [
  "directories-next",
  "dispatch 0.1.4",
  "dot_vox",
+ "egui",
+ "egui_wgpu_backend",
+ "egui_winit_platform",
  "enum-iterator",
  "euc",
  "futures-executor",
@@ -6138,6 +6204,7 @@ dependencies = [
  "veloren-i18n",
  "veloren-server",
  "veloren-voxygen-anim",
+ "veloren-voxygen-egui",
  "veloren-world",
  "wgpu",
  "wgpu-profiler",
@@ -6151,13 +6218,10 @@ name = "veloren-voxygen-anim"
 version = "0.10.0"
 dependencies = [
  "bytemuck",
- "find_folder",
  "lazy_static",
- "libloading 0.7.0",
- "notify 5.0.0-pre.9",
- "tracing",
  "vek",
  "veloren-common",
+ "veloren-voxygen-dynlib",
 ]
 
 [[package]]
@@ -6165,6 +6229,35 @@ name = "veloren-voxygen-anim-dyn"
 version = "0.10.0"
 dependencies = [
  "veloren-voxygen-anim",
+]
+
+[[package]]
+name = "veloren-voxygen-dynlib"
+version = "0.1.0"
+dependencies = [
+ "find_folder",
+ "libloading 0.7.0",
+ "notify 5.0.0-pre.9",
+ "tracing",
+]
+
+[[package]]
+name = "veloren-voxygen-egui"
+version = "0.9.0"
+dependencies = [
+ "egui",
+ "egui_winit_platform",
+ "lazy_static",
+ "veloren-client",
+ "veloren-common",
+ "veloren-voxygen-dynlib",
+]
+
+[[package]]
+name = "veloren-voxygen-egui-dyn"
+version = "0.9.0"
+dependencies = [
+ "veloren-voxygen-egui",
 ]
 
 [[package]]
