@@ -14,8 +14,10 @@ use serde::Deserialize;
 use vek::*;
 
 #[derive(Debug, Deserialize, Clone)]
-enum BodyKind {
+enum BodyBuilder {
     RandomWith(String),
+    Exact(Body),
+    Uninit,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -25,9 +27,16 @@ enum LootKind {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+enum AlignmentMark {
+    Alignment(Alignment),
+    Uninit,
+}
+
+#[derive(Debug, Deserialize, Clone)]
 struct EntityConfig {
     name: Option<String>,
-    body: Option<BodyKind>,
+    body: BodyBuilder,
+    alignment: AlignmentMark,
     loot: Option<LootKind>,
     main_tool: Option<ItemSpec>,
     second_tool: Option<ItemSpec>,
@@ -101,6 +110,7 @@ impl EntityInfo {
         let EntityConfig {
             name,
             body,
+            alignment,
             loot,
             main_tool,
             second_tool,
@@ -112,17 +122,23 @@ impl EntityInfo {
             self = self.with_name(name);
         }
 
-        if let Some(body) = body {
-            match body {
-                BodyKind::RandomWith(string) => {
-                    let npc::NpcBody(_body_kind, mut body_creator) =
-                        string.parse::<npc::NpcBody>().unwrap_or_else(|err| {
-                            panic!("failed to parse body {:?}. Err: {:?}", &string, err)
-                        });
-                    let body = body_creator();
-                    self = self.with_body(body);
-                },
-            }
+        match body {
+            BodyBuilder::RandomWith(string) => {
+                let npc::NpcBody(_body_kind, mut body_creator) =
+                    string.parse::<npc::NpcBody>().unwrap_or_else(|err| {
+                        panic!("failed to parse body {:?}. Err: {:?}", &string, err)
+                    });
+                let body = body_creator();
+                self = self.with_body(body);
+            },
+            BodyBuilder::Exact(body) => {
+                self = self.with_body(body);
+            },
+            BodyBuilder::Uninit => {},
+        }
+
+        if let AlignmentMark::Alignment(alignment) = alignment {
+            self = self.with_alignment(alignment);
         }
 
         if let Some(loot) = loot {
@@ -319,9 +335,10 @@ mod tests {
                 second_tool,
                 loadout_asset,
                 skillset_asset,
-                name: _name,
                 body,
                 loot,
+                name: _name,           // can't fail if serialized, it's a boring String
+                alignment: _alignment, // can't fail if serialized, it's a boring enum
             } = config.clone();
 
             if let Some(main_tool) = main_tool {
@@ -332,16 +349,15 @@ mod tests {
                 second_tool.validate(EquipSlot::ActiveOffhand);
             }
 
-            if let Some(body) = body {
-                match body {
-                    BodyKind::RandomWith(string) => {
-                        let npc::NpcBody(_body_kind, mut body_creator) =
-                            string.parse::<npc::NpcBody>().unwrap_or_else(|err| {
-                                panic!("failed to parse body {:?}. Err: {:?}", &string, err)
-                            });
-                        let _ = body_creator();
-                    },
-                }
+            match body {
+                BodyBuilder::RandomWith(string) => {
+                    let npc::NpcBody(_body_kind, mut body_creator) =
+                        string.parse::<npc::NpcBody>().unwrap_or_else(|err| {
+                            panic!("failed to parse body {:?}. Err: {:?}", &string, err)
+                        });
+                    let _ = body_creator();
+                },
+                BodyBuilder::Exact { .. } | BodyBuilder::Uninit => {},
             }
 
             if let Some(loot) = loot {

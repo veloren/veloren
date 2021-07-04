@@ -1,6 +1,7 @@
 EntityConfig (
     name: Some("Crazy Sheep"),
-    body: Some(RandomWith("sheep")),
+    body: RandomWith("sheep"),
+    alignment: Alignment(Enemy),
 
     loot: Some(LootTable("common.loot_tables.fallback")),
 

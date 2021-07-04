@@ -1,6 +1,7 @@
 EntityConfig (
     name: Some("Rat"),
-    body: Some(RandomWith("rat")),
+    body: RandomWith("rat"),
+    alignment: Alignment(Enemy),
 
     loot: Some(LootTable("common.loot_tables.creature.quad_small.generic")),
 

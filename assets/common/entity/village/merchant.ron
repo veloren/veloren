@@ -1,7 +1,7 @@
 EntityConfig (
     name: Some("Merchant"),
-    // body is specified outsite
-    body: None,
+    body: RandomWith("humanoid"),
+    alignment: Alignment(Npc),
 
     // considering giving some gold/gems/materials?
     loot: None,

@@ -1,6 +1,7 @@
 EntityConfig (
     name: Some("Deadwood"),
-    body: Some(RandomWith("deadwood")),
+    body: RandomWith("deadwood"),
+    alignment: Alignment(Enemy),
 
     loot: Some(LootTable("common.loot_tables.dungeon.tier-0.miniboss")),
 

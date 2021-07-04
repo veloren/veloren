@@ -1,6 +1,7 @@
 EntityConfig (
     name: Some("Sahagin Sniper"),
-    body: Some(RandomWith("sahagin")),
+    body: RandomWith("sahagin"),
+    alignment: Alignment(Enemy),
 
     loot: Some(LootTable("common.loot_tables.dungeon.tier-2.enemy")),
 

@@ -1,6 +1,7 @@
 EntityConfig (
     name: Some("Tidal Warrior"),
-    body: Some(RandomWith("tidalwarrior")),
+    body: RandomWith("tidalwarrior"),
+    alignment: Alignment(Enemy),
 
     loot: Some(LootTable("common.loot_tables.dungeon.tier-2.boss")),
 

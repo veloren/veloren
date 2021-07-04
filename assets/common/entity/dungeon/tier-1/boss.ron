@@ -1,6 +1,7 @@
 EntityConfig (
     name: Some("Yeti"),
-    body: Some(RandomWith("yeti")),
+    body: RandomWith("yeti"),
+    alignment: Alignment(Enemy),
 
     loot: Some(LootTable("common.loot_tables.dungeon.tier-1.boss")),
 

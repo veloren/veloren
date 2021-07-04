@@ -1,6 +1,7 @@
 EntityConfig (
     name: Some("Cultist Husk"),
-    body: Some(RandomWith("husk")),
+    body: RandomWith("husk"),
+    alignment: Alignment(Enemy),
 
     loot: Some(LootTable("common.loot_tables.dungeon.tier-5.minion")),
 

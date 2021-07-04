@@ -9,7 +9,6 @@ use crate::{
 use common::{
     assets::{self, AssetExt, AssetHandle},
     astar::Astar,
-    comp::{self},
     generation::{ChunkSupplement, EntityInfo},
     store::{Id, Store},
     terrain::{
@@ -235,16 +234,14 @@ impl Room {
 
             for entity in entities {
                 supplement.add_entity(
-                    entity
-                        .with_level(
-                            dynamic_rng
-                                .gen_range(
-                                    (self.difficulty as f32).powf(1.25) + 3.0
-                                        ..(self.difficulty as f32).powf(1.5) + 4.0,
-                                )
-                                .round() as u16,
-                        )
-                        .with_alignment(comp::Alignment::Enemy),
+                    entity.with_level(
+                        dynamic_rng
+                            .gen_range(
+                                (self.difficulty as f32).powf(1.25) + 3.0
+                                    ..(self.difficulty as f32).powf(1.5) + 4.0,
+                            )
+                            .round() as u16,
+                    ),
                 );
             }
         } else {
@@ -260,19 +257,13 @@ impl Room {
                                 - 16
                         })
                         .map(|e| e as f32 / 16.0);
-                let turret =
-                    EntityInfo::at(pos.map(|e| e as f32)).with_alignment(comp::Alignment::Enemy);
                 match self.difficulty {
                     3 => {
-                        let turret = turret
-                            .with_body(comp::Body::Object(comp::object::Body::HaniwaSentry))
-                            .with_asset_expect("common.entity.dungeon.tier-3.sentry");
+                        let turret = turret_3(pos);
                         supplement.add_entity(turret);
                     },
                     5 => {
-                        let turret = turret
-                            .with_body(comp::Body::Object(comp::object::Body::Crossbow))
-                            .with_asset_expect("common.entity.dungeon.tier-5.turret");
+                        let turret = turret_5(pos);
                         supplement.add_entity(turret);
                     },
                     _ => {},
@@ -311,17 +302,15 @@ impl Room {
 
             for entity in entities {
                 supplement.add_entity(
-                    entity
-                        .with_level(
-                            dynamic_rng
-                                .gen_range(
-                                    (self.difficulty as f32).powf(1.25) + 3.0
-                                        ..(self.difficulty as f32).powf(1.5) + 4.0,
-                                )
-                                .round() as u16
-                                * 5,
-                        )
-                        .with_alignment(comp::Alignment::Enemy),
+                    entity.with_level(
+                        dynamic_rng
+                            .gen_range(
+                                (self.difficulty as f32).powf(1.25) + 3.0
+                                    ..(self.difficulty as f32).powf(1.5) + 4.0,
+                            )
+                            .round() as u16
+                            * 5,
+                    ),
                 );
             }
         }
@@ -357,17 +346,15 @@ impl Room {
 
             for entity in entities {
                 supplement.add_entity(
-                    entity
-                        .with_level(
-                            dynamic_rng
-                                .gen_range(
-                                    (self.difficulty as f32).powf(1.25) + 3.0
-                                        ..(self.difficulty as f32).powf(1.5) + 4.0,
-                                )
-                                .round() as u16
-                                * 5,
-                        )
-                        .with_alignment(comp::Alignment::Enemy),
+                    entity.with_level(
+                        dynamic_rng
+                            .gen_range(
+                                (self.difficulty as f32).powf(1.25) + 3.0
+                                    ..(self.difficulty as f32).powf(1.5) + 4.0,
+                            )
+                            .round() as u16
+                            * 5,
+                    ),
                 );
             }
         }
@@ -787,6 +774,14 @@ fn enemy_fallback(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<En
     });
 
     entities
+}
+
+fn turret_3(pos: Vec3<f32>) -> EntityInfo {
+    EntityInfo::at(pos).with_asset_expect("common.entity.dungeon.tier-3.sentry")
+}
+
+fn turret_5(pos: Vec3<f32>) -> EntityInfo {
+    EntityInfo::at(pos).with_asset_expect("common.entity.dungeon.tier-5.turret")
 }
 
 fn boss_0(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
@@ -1440,5 +1435,12 @@ mod tests {
         mini_boss_4(tile_wcenter);
         mini_boss_5(&mut dynamic_rng, tile_wcenter);
         mini_boss_fallback(tile_wcenter);
+    }
+
+    #[test]
+    fn test_creating_turrets() {
+        let pos = Vec3::new(0.0, 0.0, 0.0);
+        turret_3(pos);
+        turret_5(pos);
     }
 }

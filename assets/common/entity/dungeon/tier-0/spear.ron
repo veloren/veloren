@@ -1,6 +1,7 @@
 EntityConfig (
     name: Some("Gnarling Mugger"),
-    body: Some(RandomWith("gnarling")),
+    body: RandomWith("gnarling"),
+    alignment: Alignment(Enemy),
 
     loot: Some(LootTable("common.loot_tables.dungeon.tier-0.enemy")),
 

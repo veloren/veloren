@@ -1,6 +1,7 @@
 EntityConfig (
     name: Some("Possessed Turret"),
-    body: None,
+    body: Exact(Object(Crossbow)),
+    alignment: Alignment(Enemy),
 
     loot: Some(Item("common.items.crafting_ing.twigs")),
 

@@ -1,6 +1,7 @@
 EntityConfig (
     name: Some("Bonerattler"),
-    body: Some(RandomWith("bonerattler")),
+    body: RandomWith("bonerattler"),
+    alignment: Alignment(Enemy),
 
     loot: Some(LootTable("common.loot_tables.creature.quad_medium.carapace")),
 

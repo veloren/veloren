@@ -5,6 +5,7 @@ use crate::{
     trade::{PendingTrade, ReducedInventory, SiteId, SitePrices, TradeId, TradeResult},
     uid::Uid,
 };
+use serde::Deserialize;
 use specs::{Component, Entity as EcsEntity};
 use specs_idvs::IdvStorage;
 use std::{collections::VecDeque, fmt};
@@ -16,7 +17,7 @@ pub const DEFAULT_INTERACTION_TIME: f32 = 1.0;
 pub const TRADE_INTERACTION_TIME: f32 = 300.0;
 pub const MAX_LISTEN_DIST: f32 = 100.0;
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Deserialize)]
 pub enum Alignment {
     /// Wild animals and gentle giants
     Wild,

@@ -5,7 +5,11 @@ EntityConfig (
     /// Body
     /// Can be Exact (Body with all fields e.g BodyType, Species, Hair color and such)
     /// or RandomWith (will generate random body or species)
-    body: Some(RandomWith("humanoid")),
+    /// or Uninit (means it should be specified somewhere in code)
+    body: RandomWith("humanoid"),
+
+    /// Alignment, can be Uninit
+    alignment: Alignment(Enemy),
 
     /// Main and second tools
     /// Can be Option<Item> (with asset_specifier for item)

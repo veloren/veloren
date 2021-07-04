@@ -1,6 +1,7 @@
 EntityConfig (
     name: Some("Haniwa Sorcerer"),
-    body: Some(RandomWith("haniwa")),
+    body: RandomWith("haniwa"),
+    alignment: Alignment(Enemy),
 
     loot: Some(LootTable("common.loot_tables.dungeon.tier-3.enemy")),
 

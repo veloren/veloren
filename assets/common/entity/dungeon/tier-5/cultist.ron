@@ -1,6 +1,7 @@
 EntityConfig (
     name: Some("Cultist"),
-    body: Some(RandomWith("humanoid")),
+    body: RandomWith("humanoid"),
+    alignment: Alignment(Enemy),
 
     loot: Some(LootTable("common.loot_tables.dungeon.tier-5.enemy")),
 

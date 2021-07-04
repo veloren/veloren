@@ -1,6 +1,7 @@
 EntityConfig (
     name: Some("Hakulaq"),
-    body: Some(RandomWith("hakulaq")),
+    body: RandomWith("hakulaq"),
+    alignment: Alignment(Enemy),
 
     loot: Some(LootTable("common.loot_tables.creature.quad_low.fanged")),
 
