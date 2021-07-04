@@ -208,6 +208,7 @@ impl<'a> System<'a> for Sys {
                 let EntityInfo {
                     skillset_asset,
                     main_tool,
+                    second_tool,
                     loadout_asset,
                     make_loadout,
                     trading_information: economy,
@@ -232,6 +233,11 @@ impl<'a> System<'a> for Sys {
                         loadout_builder = loadout_builder.active_mainhand(Some(main_tool));
                     } else {
                         loadout_builder = loadout_builder.with_default_maintool(&body);
+                    }
+
+                    // If second tool is passed, use it as well
+                    if let Some(second_tool) = second_tool {
+                        loadout_builder = loadout_builder.active_offhand(Some(second_tool));
                     }
 
                     // If there is config, apply it.
