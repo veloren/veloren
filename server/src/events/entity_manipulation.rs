@@ -664,6 +664,11 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
             .map(|mut health| health.revive());
         state
             .ecs()
+            .write_storage::<comp::Combo>()
+            .get_mut(entity)
+            .map(|mut combo| combo.reset());
+        state
+            .ecs()
             .write_storage::<comp::Pos>()
             .get_mut(entity)
             .map(|pos| pos.0 = respawn_point);
