@@ -1038,7 +1038,7 @@ fn merchant_loadout(
     let rng = &mut rand::thread_rng();
 
     // Fill backpack with ingredients and coins
-    let backpack = ingredient_bag(economy, rng);
+    let backpack = ingredient_backpack(economy, rng);
 
     // Fill bags with stuff
     let (food_bag, potion_bag) = consumable_bags(economy, rng);
@@ -1066,7 +1066,7 @@ fn sort_bag(bag: &mut Item) {
 fn armor_bag(economy: Option<&trade::SiteInformation>) -> Item {
     #![warn(clippy::pedantic)]
 
-    let mut bag = Item::new_from_asset_expect("common.items.armor.misc.back.backpack");
+    let mut bag = Item::new_from_asset_expect("common.items.armor.misc.bag.sturdy_red_backpack");
 
     let armor_items = economy
         .and_then(|e| e.unconsumed_stock.get(&Good::Armor))
@@ -1115,10 +1115,10 @@ fn weapon_bag(economy: Option<&trade::SiteInformation>) -> Item {
     bag
 }
 
-fn ingredient_bag(economy: Option<&trade::SiteInformation>, rng: &mut impl Rng) -> Item {
+fn ingredient_backpack(economy: Option<&trade::SiteInformation>, rng: &mut impl Rng) -> Item {
     #![warn(clippy::pedantic)]
 
-    let mut bag = Item::new_from_asset_expect("common.items.armor.misc.bag.sturdy_red_backpack");
+    let mut bag = Item::new_from_asset_expect("common.items.armor.misc.back.backpack");
     let slots = bag.slots_mut();
 
     // It's safe to truncate here, because coins clamped to 3000 max
