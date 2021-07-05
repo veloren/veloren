@@ -4,7 +4,7 @@ use common::{
         item::{
             armor::{Armor, ArmorKind, Protection},
             tool::{Hands, StatKind, Stats, Tool, ToolKind},
-            Item, ItemKind, MaterialKind, MaterialStatManifest, ModularComponent,
+            Item, ItemDesc, ItemKind, MaterialKind, MaterialStatManifest, ModularComponent,
         },
         BuffKind,
     },
@@ -104,10 +104,41 @@ pub fn modular_component_desc(
     result
 }
 
-pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> String {
-    let mut description = String::new();
+pub fn stats_count(item: &dyn ItemDesc) -> usize {
+    let mut count = match item.kind() {
+        ItemKind::Armor(armor) => {
+            if matches!(armor.kind, ArmorKind::Bag(_)) {
+                0
+            } else {
+                5
+            }
+        },
+        ItemKind::Tool(_) => 4,
+        ItemKind::Consumable { effects, .. } => effects.len(),
+        ItemKind::ModularComponent { .. } => 1,
+        _ => 0,
+    };
+
+    let is_bag = match item.kind() {
+        ItemKind::Armor(armor) => matches!(armor.kind, ArmorKind::Bag(_)),
+        _ => false,
+    };
+    if item.num_slots() != 0 && !is_bag {
+        count += 1
+    }
+    count as usize
+}
+
+/// Takes N `effects` and returns N effect descriptions
+/// If effect isn't intended to have description, returns empty string
+///
+/// FIXME: handle which effects should have description in `stats_count`
+/// to not waste space in item box
+pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
+    let mut descriptions = Vec::new();
 
     for effect in effects {
+        let mut description = String::new();
         if let Effect::Buff(buff) = effect {
             let strength = buff.data.strength * 0.1;
             let dur_secs = buff.data.duration.map(|d| d.as_secs_f32());
@@ -116,13 +147,13 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> String {
             let buff_desc = match buff.kind {
                 BuffKind::Saturation | BuffKind::Regeneration | BuffKind::Potion => i18n
                     .get("buff.stat.health")
-                    .replace("{str_total}", &*format!("{:.1}", &str_total)),
+                    .replace("{str_total}", &str_total.to_string()),
                 BuffKind::IncreaseMaxEnergy => i18n
                     .get("buff.stat.increase_max_stamina")
-                    .replace("{strength}", &*format!("{:.1}", &strength)),
+                    .replace("{strength}", &strength.to_string()),
                 BuffKind::IncreaseMaxHealth => i18n
                     .get("buff.stat.increase_max_health")
-                    .replace("{strength}", &*format!("{:.1}", &strength)),
+                    .replace("{strength}", &strength.to_string()),
                 BuffKind::Invulnerability => i18n.get("buff.stat.invulnerability").to_string(),
                 BuffKind::Bleeding
                 | BuffKind::Burning
@@ -133,7 +164,7 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> String {
                 | BuffKind::Frenzied
                 | BuffKind::Frozen
                 | BuffKind::Wet
-                | BuffKind::Ensnared => continue,
+                | BuffKind::Ensnared => "".to_owned(),
             };
 
             write!(&mut description, "{}", buff_desc).unwrap();
@@ -158,19 +189,20 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> String {
                     | BuffKind::Frenzied
                     | BuffKind::Frozen
                     | BuffKind::Wet
-                    | BuffKind::Ensnared => continue,
+                    | BuffKind::Ensnared => "".to_owned(),
                 }
             } else if let BuffKind::Saturation | BuffKind::Regeneration = buff.kind {
                 i18n.get("buff.text.every_second").to_string()
             } else {
-                continue;
+                "".to_owned()
             };
 
             write!(&mut description, " {}", dur_desc).unwrap();
         }
+        descriptions.push(description);
     }
 
-    description
+    descriptions
 }
 
 // Armor

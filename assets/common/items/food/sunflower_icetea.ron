@@ -2,14 +2,14 @@ ItemDef(
     name: "Sunflower Ice Tea",
     description: "Brewed from freshly shelled sunflower seeds",
     kind: Consumable(
-        kind: Food,
-        effect: [
+        kind: Drink,
+        effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 10.0,
+                    strength: 100.0,
                     duration: Some((
-                            secs: 50,
+                            secs: 5,
                             nanos: 0,
                         )),
                     ),

@@ -1452,10 +1452,10 @@ impl<'a> AgentData<'a> {
             let mut value = 0;
             #[allow(clippy::single_match)]
             match item.kind() {
-                ItemKind::Consumable { effect, .. } => {
-                    for e in effect.iter() {
+                ItemKind::Consumable { effects, .. } => {
+                    for effect in effects.iter() {
                         use BuffKind::*;
-                        match e {
+                        match effect {
                             Effect::Health(HealthChange { amount, .. }) => {
                                 value += *amount;
                             },

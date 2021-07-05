@@ -3,13 +3,13 @@ ItemDef(
     description: "An orange root vegetable. They say it'll improve your vision!",
     kind: Consumable(
         kind: Food,
-        effect: [
+        effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 5.0,
+                    strength: 10.0,
                     duration: Some((
-                            secs: 10,
+                            secs: 5,
                             nanos: 0,
                         )),
                     ),

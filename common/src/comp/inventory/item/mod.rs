@@ -251,7 +251,7 @@ pub enum ItemKind {
     Glider(Glider),
     Consumable {
         kind: ConsumableKind,
-        effect: Vec<Effect>,
+        effects: Vec<Effect>,
     },
     Throwable {
         kind: Throwable,
@@ -271,8 +271,9 @@ pub enum ItemKind {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ConsumableKind {
-    Potion,
+    Drink,
     Food,
+    ComplexFood,
 }
 
 impl ItemKind {

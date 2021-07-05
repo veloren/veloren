@@ -12,7 +12,7 @@
         output: ("common.items.crafting_tools.mortar_pestle", 1),
         inputs: [
             (Item("common.items.crafting_ing.stones"), 6),
-            (Item("common.items.food.coconut"), 1),
+            (Item("common.items.crafting_ing.bowl"), 1),
             (Item("common.items.tool.craftsman_hammer"), 0),
         ],
         craft_sprite: Some(CraftingBench),

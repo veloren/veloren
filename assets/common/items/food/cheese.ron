@@ -3,13 +3,13 @@ ItemDef(
     description: "Aromatic and nutritious",
     kind: Consumable(
         kind: Food,
-        effect: [
+        effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 10.0,
+                    strength: 15.0,
                     duration: Some((
-                            secs: 15,
+                            secs: 10,
                             nanos: 0,
                         )),
                     ),

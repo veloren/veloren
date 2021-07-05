@@ -3,13 +3,13 @@ ItemDef(
     description: "A steak chopped from a fish, best after cooking.",
     kind: Consumable(
         kind: Food,
-        effect: [
+        effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 15.0,
+                    strength: 4.5,
                     duration: Some((
-                            secs: 3,
+                            secs: 10,
                             nanos: 0,
                         )),
                     ),

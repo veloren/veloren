@@ -1,9 +1,9 @@
 ItemDef(
     name: "Large Potion",
-    description: "",
+    description: "Precious medicine.",
     kind: Consumable(
-        kind: Potion,
-        effect: [
+        kind: Drink,
+        effects: [
             Buff((
                 kind: Potion,
                 data: (

@@ -526,8 +526,8 @@ impl TradePricing {
             }
         });
         printvec("Potions", &self.potions.entries, |i, p| {
-            if let ItemKind::Consumable { kind: _, effect } = &i.kind {
-                effect
+            if let ItemKind::Consumable { kind: _, effects } = &i.kind {
+                effects
                     .iter()
                     .map(|e| {
                         if let crate::effect::Effect::Buff(b) = e {
@@ -543,8 +543,8 @@ impl TradePricing {
             }
         });
         printvec("Food", &self.food.entries, |i, p| {
-            if let ItemKind::Consumable { kind: _, effect } = &i.kind {
-                effect
+            if let ItemKind::Consumable { kind: _, effects } = &i.kind {
+                effects
                     .iter()
                     .map(|e| {
                         if let crate::effect::Effect::Buff(b) = e {

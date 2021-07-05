@@ -51,19 +51,21 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         match self.static_data.item_kind {
-            ItemUseKind::Consumable(ConsumableKind::Potion) => {
+            ItemUseKind::Consumable(ConsumableKind::Drink) => {
                 handle_orientation(data, &mut update, 1.0);
                 handle_move(data, &mut update, 1.0);
             },
-            ItemUseKind::Consumable(ConsumableKind::Food) => {
+            ItemUseKind::Consumable(ConsumableKind::Food | ConsumableKind::ComplexFood) => {
                 handle_orientation(data, &mut update, 0.0);
                 handle_move(data, &mut update, 0.0);
             },
         }
 
         let use_point = match self.static_data.item_kind {
-            ItemUseKind::Consumable(ConsumableKind::Potion) => UsePoint::BuildupUse,
-            ItemUseKind::Consumable(ConsumableKind::Food) => UsePoint::UseRecover,
+            ItemUseKind::Consumable(ConsumableKind::Drink | ConsumableKind::Food) => {
+                UsePoint::BuildupUse
+            },
+            ItemUseKind::Consumable(ConsumableKind::ComplexFood) => UsePoint::UseRecover,
         };
 
         match self.stage_section {
@@ -138,10 +140,14 @@ impl CharacterBehavior for Data {
         handle_state_interrupt(data, &mut update, false);
 
         if matches!(update.character, CharacterState::Roll(_)) {
-            // Remove potion effect if left the use item state early by rolling
+            // Remove potion/saturation effect if left the use item state early by rolling
             update.server_events.push_front(ServerEvent::Buff {
                 entity: data.entity,
                 buff_change: BuffChange::RemoveByKind(BuffKind::Potion),
+            });
+            update.server_events.push_front(ServerEvent::Buff {
+                entity: data.entity,
+                buff_change: BuffChange::RemoveByKind(BuffKind::Saturation),
             });
         }
 
@@ -168,12 +174,17 @@ impl ItemUseKind {
     /// Returns (buildup, use, recover)
     pub fn durations(&self) -> (Duration, Duration, Duration) {
         match self {
-            Self::Consumable(ConsumableKind::Potion) => (
+            Self::Consumable(ConsumableKind::Drink) => (
                 Duration::from_secs_f32(0.1),
                 Duration::from_secs_f32(1.1),
                 Duration::from_secs_f32(0.1),
             ),
             Self::Consumable(ConsumableKind::Food) => (
+                Duration::from_secs_f32(1.0),
+                Duration::from_secs_f32(5.0),
+                Duration::from_secs_f32(0.5),
+            ),
+            Self::Consumable(ConsumableKind::ComplexFood) => (
                 Duration::from_secs_f32(1.0),
                 Duration::from_secs_f32(5.0),
                 Duration::from_secs_f32(0.5),

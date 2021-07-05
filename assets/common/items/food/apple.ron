@@ -3,13 +3,13 @@ ItemDef(
     description: "Red and juicy",
     kind: Consumable(
         kind: Food,
-        effect: [
+        effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 5.0,
+                    strength: 20.0,
                     duration: Some((
-                            secs: 20,
+                            secs: 5,
                             nanos: 0,
                         )),
                     ),

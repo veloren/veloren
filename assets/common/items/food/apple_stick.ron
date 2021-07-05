@@ -3,13 +3,13 @@ ItemDef(
     description: "The stick makes it easier to carry!",
     kind: Consumable(
         kind: Food,
-        effect: [
+        effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 10.0,
+                    strength: 50.0,
                     duration: Some((
-                            secs: 25,
+                            secs: 5,
                             nanos: 0,
                         )),
                     ),

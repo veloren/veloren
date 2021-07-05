@@ -3,13 +3,13 @@ ItemDef(
     description: "Medium Rare.",
     kind: Consumable(
         kind: Food,
-        effect: [
+        effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 19.0,
+                    strength: 15.0,
                     duration: Some((
-                            secs: 8,
+                            secs: 10,
                             nanos: 0,
                         )),
                     ),

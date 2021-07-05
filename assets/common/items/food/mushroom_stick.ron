@@ -3,13 +3,13 @@ ItemDef(
     description: "Roasted mushrooms on a stick for easy carrying",
     kind: Consumable(
         kind: Food,
-        effect: [
+        effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 10.0,
+                    strength: 40.0,
                     duration: Some((
-                            secs: 20,
+                            secs: 5,
                             nanos: 0,
                         )),
                     ),

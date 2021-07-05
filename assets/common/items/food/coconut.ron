@@ -3,13 +3,13 @@ ItemDef(
     description: "Reliable source of water and fat.\n\nNaturally growing at the top of palm trees.",
     kind: Consumable(
         kind: Food,
-        effect: [
+        effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 10.0,
+                    strength: 40.0,
                     duration: Some((
-                            secs: 20,
+                            secs: 5,
                             nanos: 0,
                         )),
                     ),
