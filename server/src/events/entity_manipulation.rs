@@ -959,6 +959,10 @@ pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::Bu
                 if !bodies
                     .get(entity)
                     .map_or(false, |body| body.immune_to(new_buff.kind))
+                    && ecs
+                        .read_component::<Health>()
+                        .get(entity)
+                        .map_or(true, |h| !h.is_dead)
                 {
                     buffs.insert(new_buff);
                 }
