@@ -152,9 +152,9 @@ pub enum BuffEffect {
     /// Gradually changes an entities max health over time
     MaxHealthChangeOverTime {
         rate: f32,
-        accumulated: f32,
         kind: ModifierKind,
         target_fraction: f32,
+        achieved_fraction: Option<f32>,
     },
     /// Modifies move speed of target
     MovementSpeed(f32),
@@ -247,9 +247,9 @@ impl Buff {
                 vec![
                     BuffEffect::MaxHealthChangeOverTime {
                         rate: -10.0,
-                        accumulated: 0.0,
                         kind: ModifierKind::Additive,
                         target_fraction: 1.0 - data.strength,
+                        achieved_fraction: None,
                     },
                     BuffEffect::HealthChangeOverTime {
                         rate: -10.0,

@@ -226,7 +226,8 @@ impl<'a> System<'a> for Sys {
                             },
                             BuffEffect::MaxHealthModifier { value, kind } => match kind {
                                 ModifierKind::Additive => {
-                                    stat.max_health_modifier += *value / (health.base_max() as f32);
+                                    stat.max_health_modifier *=
+                                        1.0 + *value / (health.base_max() as f32);
                                 },
                                 ModifierKind::Fractional => {
                                     stat.max_health_modifier *= *value;
@@ -245,31 +246,63 @@ impl<'a> System<'a> for Sys {
                             },
                             BuffEffect::MaxHealthChangeOverTime {
                                 rate,
-                                accumulated,
                                 kind,
                                 target_fraction,
+                                achieved_fraction,
                             } => {
-                                *accumulated += *rate * dt;
-                                let current_fraction = health.maximum() as f32
-                                    / (health.base_max() as f32 * stat.max_health_modifier);
-                                let progress = (1.0 - current_fraction) / (1.0 - *target_fraction);
-                                if progress > 1.0 {
-                                    stat.max_health_modifier *= *target_fraction;
-                                } else if accumulated.abs() > rate.abs() {
-                                    match kind {
+                                // Current fraction uses information from last tick, which is
+                                // necessary as buffs from this tick are not guaranteed to have
+                                // finished applying
+                                let current_fraction =
+                                    health.maximum() as f32 / health.base_max() as f32;
+
+                                // If achieved_fraction not initialized, initialize it to health
+                                // fraction
+                                if achieved_fraction.is_none() {
+                                    *achieved_fraction = Some(current_fraction)
+                                }
+
+                                if let Some(achieved_fraction) = achieved_fraction {
+                                    // Percentage change that should be applied to max_health
+                                    let health_tick = match kind {
                                         ModifierKind::Additive => {
-                                            stat.max_health_modifier = stat.max_health_modifier
-                                                * current_fraction
-                                                + *accumulated / health.maximum() as f32;
+                                            // `rate * dt` is amount of health, dividing by base max
+                                            // creates fraction
+                                            *rate * dt / health.base_max() as f32
                                         },
                                         ModifierKind::Fractional => {
-                                            stat.max_health_modifier *=
-                                                current_fraction * (1.0 - *accumulated);
+                                            // `rate * dt` is the fraction
+                                            *rate * dt
                                         },
+                                    };
+
+                                    let potential_fraction = *achieved_fraction + health_tick;
+
+                                    // Potential progress towards target fraction, if
+                                    // target_fraction ~ 1.0 then set progress to 1.0 to avoid
+                                    // divide by zero
+                                    let progress = if (1.0 - *target_fraction).abs() > f32::EPSILON
+                                    {
+                                        (1.0 - potential_fraction) / (1.0 - *target_fraction)
+                                    } else {
+                                        1.0
+                                    };
+
+                                    // Change achieved_fraction depending on what other buffs have
+                                    // occurred
+                                    if progress > 1.0 {
+                                        // If potential fraction already beyond target fraction,
+                                        // simply multiply max_health_modifier by the target
+                                        // fraction, and set achieved fraction to target_fraction
+                                        *achieved_fraction = *target_fraction;
+                                    } else {
+                                        // Else have not achieved target yet, update
+                                        // achieved_fraction
+                                        *achieved_fraction = potential_fraction;
                                     }
-                                    *accumulated = 0.0;
-                                } else {
-                                    stat.max_health_modifier *= current_fraction;
+
+                                    // Apply achieved_fraction to max_health_modifier
+                                    stat.max_health_modifier *= *achieved_fraction;
                                 }
                             },
                             BuffEffect::MovementSpeed(speed) => {
