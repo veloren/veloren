@@ -13,7 +13,7 @@ use common_net::{
     msg::ServerGeneral,
     sync::{Uid, WorldSyncExt},
 };
-use hashbrown::hash_map::Entry;
+use hashbrown::{hash_map::Entry, HashMap};
 use specs::{world::WorldExt, Entity as EcsEntity};
 use std::cmp::Ordering;
 use tracing::{error, trace};
@@ -209,7 +209,36 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
     trace!("committing trade: {:?}", trade);
     // Compute the net change in slots of each player during the trade, to detect
     // out-of-space-ness before transferring any items
-    let mut delta_slots: [isize; 2] = [0, 0];
+    let mut delta_slots: [i64; 2] = [0, 0];
+
+    // local struct used to calculate delta_slots for stackable items.
+    // Uses u128 as an intermediate value to prevent overflow.
+    #[derive(Default)]
+    struct ItemQuantities {
+        full_stacks: u64,
+        quantity_sold: u128,
+        freed_capacity: u128,
+        unusable_capacity: u128,
+    }
+
+    // local struct used to calculate delta_slots for stackable items
+    struct TradeQuantities {
+        max_stack_size: u32,
+        trade_quantities: [ItemQuantities; 2],
+    }
+
+    impl TradeQuantities {
+        fn new(max_stack_size: u32) -> Self {
+            Self {
+                max_stack_size,
+                trade_quantities: [ItemQuantities::default(), ItemQuantities::default()],
+            }
+        }
+    }
+
+    // Hashmap to compute merged stackable stacks, including overflow checks
+    // TODO: add a ComponentKey struct to compare items properly, see issue #1226
+    let mut stackable_items: HashMap<String, TradeQuantities> = HashMap::new();
     for who in [0, 1].iter().cloned() {
         for (slot, quantity) in trade.offers[who].iter() {
             let inventory = inventories.get_mut(entities[who]).expect(invmsg);
@@ -224,7 +253,9 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
                     return TradeResult::Declined;
                 },
             };
-            match item.amount().cmp(&quantity) {
+
+            // assuming the quantity is never 0
+            match item.amount().cmp(quantity) {
                 Ordering::Less => {
                     error!(
                         "PendingTrade invariant violation in trade {:?}: party {} offered more of \
@@ -234,25 +265,109 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
                     return TradeResult::Declined;
                 },
                 Ordering::Equal => {
-                    delta_slots[who] -= 1; // exact, removes the whole stack
-                    delta_slots[1 - who] += 1; // overapproximation, assumes the stack won't merge
+                    if item.is_stackable() {
+                        // Marks a full stack to remove. Can no longer accept items from the other
+                        // party, and therefore adds the remaining capacity it holds to
+                        // `unusable_capacity`.
+                        let TradeQuantities {
+                            max_stack_size,
+                            trade_quantities,
+                        } = stackable_items
+                            .entry(item.item_definition_id().to_string())
+                            .or_insert_with(|| TradeQuantities::new(item.max_amount()));
+
+                        trade_quantities[who].full_stacks += 1;
+                        trade_quantities[who].quantity_sold += *quantity as u128;
+                        trade_quantities[who].unusable_capacity +=
+                            *max_stack_size as u128 - item.amount() as u128;
+                    } else {
+                        delta_slots[who] -= 1; // exact, removes the whole stack
+                        delta_slots[1 - who] += 1; // item is not stackable, so the stacks won't merge
+                    }
                 },
                 Ordering::Greater => {
-                    // No change to delta_slots[who], since they have leftovers
-                    delta_slots[1 - who] += 1; // overapproximation, assumes the stack won't merge
+                    if item.is_stackable() {
+                        // Marks a partial stack to remove, able to accepts items from the other
+                        // party, and therefore adds the additional capacity freed after the item
+                        // exchange to `freed_capacity`.
+                        let TradeQuantities {
+                            max_stack_size: _,
+                            trade_quantities,
+                        } = stackable_items
+                            .entry(item.item_definition_id().to_string())
+                            .or_insert_with(|| TradeQuantities::new(item.max_amount()));
+
+                        trade_quantities[who].quantity_sold += *quantity as u128;
+                        trade_quantities[who].freed_capacity += *quantity as u128;
+                    } else {
+                        // unreachable in theory
+                        error!(
+                            "Inventory invariant violation in trade {:?}: party {} has a stack \
+                             larger than 1 of an unstackable item",
+                            trade, who
+                        );
+                        return TradeResult::Declined;
+                    }
                 },
             }
         }
     }
+    // at this point delta_slots only contains the slot variations for unstackable
+    // items. The following loops calculates capacity for stackable items and
+    // computes the final delta_slots in consequence.
+
+    for (
+        item_id,
+        TradeQuantities {
+            max_stack_size,
+            trade_quantities,
+        },
+    ) in stackable_items.iter()
+    {
+        for who in [0, 1].iter().cloned() {
+            // removes all exchanged full stacks.
+            delta_slots[who] -= trade_quantities[who].full_stacks as i64;
+
+            // calculates the available item capacity in the other party's inventory,
+            // substracting the unusable space calculated previously,
+            // and adding the capacity freed by the trade.
+            let other_party_capacity = inventories
+                .get_mut(entities[1 - who])
+                .expect(invmsg)
+                .slots()
+                .flatten()
+                .filter_map(|it| {
+                    if it.item_definition_id() == item_id {
+                        Some(*max_stack_size as u128 - it.amount() as u128)
+                    } else {
+                        None
+                    }
+                })
+                .sum::<u128>()
+                - trade_quantities[1 - who].unusable_capacity
+                + trade_quantities[1 - who].freed_capacity;
+
+            // checks if the capacity in remaining partial stacks of the other party is
+            // enough to contain everything, creates more stacks otherwise
+            if other_party_capacity < trade_quantities[who].quantity_sold {
+                let surplus = trade_quantities[who].quantity_sold - other_party_capacity;
+                // the total amount of exchanged slots can never exceed the max inventory size
+                // (around 4 * 2^32 slots), so the cast to i64 should be safe
+                delta_slots[1 - who] += (surplus / *max_stack_size as u128) as i64 + 1;
+            }
+        }
+    }
+
     trace!("delta_slots: {:?}", delta_slots);
     for who in [0, 1].iter().cloned() {
-        // Inventories should never exceed 2^{63} slots, so the usize -> isize
+        // Inventories should never exceed 2^{63} slots, so the usize -> i64
         // conversions here should be safe
         let inv = inventories.get_mut(entities[who]).expect(invmsg);
-        if inv.populated_slots() as isize + delta_slots[who] > inv.capacity() as isize {
+        if inv.populated_slots() as i64 + delta_slots[who] > inv.capacity() as i64 {
             return TradeResult::NotEnoughSpace;
         }
     }
+
     let mut items = [Vec::new(), Vec::new()];
     let ability_map = ecs.read_resource::<AbilityMap>();
     let msm = ecs.read_resource::<MaterialStatManifest>();
@@ -268,6 +383,7 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
             }
         }
     }
+
     for who in [0, 1].iter().cloned() {
         if let Err(leftovers) = inventories
             .get_mut(entities[1 - who])
@@ -282,5 +398,474 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
             );
         }
     }
+
     TradeResult::Completed
+}
+
+#[cfg(test)]
+mod tests {
+    use hashbrown::HashMap;
+
+    use super::*;
+    use common::{comp::slot::InvSlotId, uid::UidAllocator};
+
+    use specs::{Builder, World};
+
+    // Creates a specs World containing two Entities which have Inventory
+    // components. Left over inventory size is determined by input. Mapping to the
+    // returned Entities. Any input over the maximum default inventory size will
+    // result in maximum left over space.
+    fn create_mock_trading_world(
+        player_inv_size: usize,
+        merchant_inv_size: usize,
+    ) -> (World, EcsEntity, EcsEntity) {
+        let mut mockworld = World::new();
+        mockworld.insert(UidAllocator::new());
+        mockworld.insert(MaterialStatManifest::default());
+        mockworld.insert(AbilityMap::default());
+        mockworld.register::<Inventory>();
+        mockworld.register::<Uid>();
+        let player: EcsEntity;
+        let merchant: EcsEntity;
+
+        player = mockworld
+            .create_entity()
+            .with(Inventory::new_empty())
+            .build();
+
+        merchant = mockworld
+            .create_entity()
+            .with(Inventory::new_empty())
+            .build();
+
+        {
+            use specs::saveload::MarkerAllocator;
+            let mut uids = mockworld.write_component::<Uid>();
+            let mut uid_allocator = mockworld.write_resource::<UidAllocator>();
+            uids.insert(player, uid_allocator.allocate(player, None))
+                .expect("inserting player uid failed");
+            uids.insert(merchant, uid_allocator.allocate(merchant, None))
+                .expect("inserting merchant uid failed");
+        }
+
+        let invmsg = "inventories.get_mut().is_none() should have returned already";
+        let capmsg = "There should be enough space here";
+        let mut inventories = mockworld.write_component::<Inventory>();
+        let mut playerinv = inventories.get_mut(player).expect(invmsg);
+        if player_inv_size < playerinv.capacity() {
+            for _ in player_inv_size..playerinv.capacity() {
+                playerinv
+                    .push(common::comp::Item::new_from_asset_expect(
+                        "common.items.npc_armor.pants.plate_red",
+                    ))
+                    .expect(capmsg);
+            }
+        }
+
+        let mut merchantinv = inventories.get_mut(merchant).expect(invmsg);
+        if merchant_inv_size < merchantinv.capacity() {
+            for _ in merchant_inv_size..merchantinv.capacity() {
+                merchantinv
+                    .push(common::comp::Item::new_from_asset_expect(
+                        "common.items.armor.cloth_purple.foot",
+                    ))
+                    .expect(capmsg);
+            }
+        }
+        drop(inventories);
+
+        (mockworld, player, merchant)
+    }
+
+    fn prepare_merchant_inventory(mockworld: &World, merchant: EcsEntity) {
+        let mut inventories = mockworld.write_component::<Inventory>();
+        let invmsg = "inventories.get_mut().is_none() should have returned already";
+        let capmsg = "There should be enough space here";
+        let mut merchantinv = inventories.get_mut(merchant).expect(invmsg);
+        for _ in 0..10 {
+            merchantinv
+                .push(common::comp::Item::new_from_asset_expect(
+                    "common.items.consumable.potion_minor",
+                ))
+                .expect(capmsg);
+            merchantinv
+                .push(common::comp::Item::new_from_asset_expect(
+                    "common.items.food.meat.fish_cooked",
+                ))
+                .expect(capmsg);
+        }
+        drop(inventories);
+    }
+
+    #[test]
+    fn commit_trade_with_stackable_item_test() {
+        let (mockworld, player, merchant) = create_mock_trading_world(1, 20);
+
+        prepare_merchant_inventory(&mockworld, merchant);
+
+        let invmsg = "inventories.get_mut().is_none() should have returned already";
+        let capmsg = "There should be enough space here";
+        let mut inventories = mockworld.write_component::<Inventory>();
+
+        let mut playerinv = inventories.get_mut(player).expect(invmsg);
+        playerinv
+            .push(common::comp::Item::new_from_asset_expect(
+                "common.items.consumable.potion_minor",
+            ))
+            .expect(capmsg);
+
+        let potion =
+            common::comp::Item::new_from_asset_expect("common.items.consumable.potion_minor");
+        let merchantinv = inventories.get_mut(merchant).expect(invmsg);
+
+        let potioninvid = merchantinv
+            .get_slot_of_item(&potion)
+            .expect("expected get_slot_of_item to return");
+
+        let playerid = mockworld
+            .uid_from_entity(player)
+            .expect("mockworld.uid_from_entity(player) should have returned");
+        let merchantid = mockworld
+            .uid_from_entity(merchant)
+            .expect("mockworld.uid_from_entity(player) should have returned");
+
+        let playeroffers: HashMap<InvSlotId, u32> = HashMap::new();
+        let mut merchantoffers: HashMap<InvSlotId, u32> = HashMap::new();
+        merchantoffers.insert(potioninvid, 1);
+
+        let trade = PendingTrade {
+            parties: [playerid, merchantid],
+            accept_flags: [true, true],
+            offers: [playeroffers, merchantoffers],
+            phase: common::trade::TradePhase::Review,
+        };
+
+        drop(inventories);
+
+        let traderes = commit_trade(&mockworld, &trade);
+        assert_eq!(traderes, TradeResult::Completed);
+
+        let mut inventories = mockworld.write_component::<Inventory>();
+        let playerinv = inventories.get_mut(player).expect(invmsg);
+        let potioncount = playerinv.item_count(&(*potion));
+        assert_eq!(potioncount, 2);
+    }
+
+    #[test]
+    fn commit_trade_with_full_inventory_test() {
+        let (mockworld, player, merchant) = create_mock_trading_world(1, 20);
+
+        prepare_merchant_inventory(&mockworld, merchant);
+
+        let invmsg = "inventories.get_mut().is_none() should have returned already";
+        let capmsg = "There should be enough space here";
+        let mut inventories = mockworld.write_component::<Inventory>();
+
+        let mut playerinv = inventories.get_mut(player).expect(invmsg);
+        playerinv
+            .push(common::comp::Item::new_from_asset_expect(
+                "common.items.consumable.potion_minor",
+            ))
+            .expect(capmsg);
+
+        let fish = common::comp::Item::new_from_asset_expect("common.items.food.meat.fish_cooked");
+        let merchantinv = inventories.get_mut(merchant).expect(invmsg);
+
+        let fishinvid = merchantinv
+            .get_slot_of_item(&fish)
+            .expect("expected get_slot_of_item to return");
+
+        let playerid = mockworld
+            .uid_from_entity(player)
+            .expect("mockworld.uid_from_entity(player) should have returned");
+        let merchantid = mockworld
+            .uid_from_entity(merchant)
+            .expect("mockworld.uid_from_entity(player) should have returned");
+
+        let playeroffers: HashMap<InvSlotId, u32> = HashMap::new();
+        let mut merchantoffers: HashMap<InvSlotId, u32> = HashMap::new();
+        merchantoffers.insert(fishinvid, 1);
+        let trade = PendingTrade {
+            parties: [playerid, merchantid],
+            accept_flags: [true, true],
+            offers: [playeroffers, merchantoffers],
+            phase: common::trade::TradePhase::Review,
+        };
+
+        drop(inventories);
+
+        let traderes = commit_trade(&mockworld, &trade);
+        assert_eq!(traderes, TradeResult::NotEnoughSpace);
+    }
+
+    #[test]
+    fn commit_trade_with_empty_inventory_test() {
+        let (mockworld, player, merchant) = create_mock_trading_world(20, 20);
+
+        prepare_merchant_inventory(&mockworld, merchant);
+
+        let invmsg = "inventories.get_mut().is_none() should have returned already";
+        let mut inventories = mockworld.write_component::<Inventory>();
+
+        let fish = common::comp::Item::new_from_asset_expect("common.items.food.meat.fish_cooked");
+        let merchantinv = inventories.get_mut(merchant).expect(invmsg);
+
+        let fishinvid = merchantinv
+            .get_slot_of_item(&fish)
+            .expect("expected get_slot_of_item to return");
+
+        let playerid = mockworld
+            .uid_from_entity(player)
+            .expect("mockworld.uid_from_entity(player) should have returned");
+        let merchantid = mockworld
+            .uid_from_entity(merchant)
+            .expect("mockworld.uid_from_entity(player) should have returned");
+
+        let playeroffers: HashMap<InvSlotId, u32> = HashMap::new();
+        let mut merchantoffers: HashMap<InvSlotId, u32> = HashMap::new();
+        merchantoffers.insert(fishinvid, 1);
+        let trade = PendingTrade {
+            parties: [playerid, merchantid],
+            accept_flags: [true, true],
+            offers: [playeroffers, merchantoffers],
+            phase: common::trade::TradePhase::Review,
+        };
+
+        drop(inventories);
+
+        let traderes = commit_trade(&mockworld, &trade);
+        assert_eq!(traderes, TradeResult::Completed);
+    }
+
+    #[test]
+    fn commit_trade_with_both_full_inventories_test() {
+        let (mockworld, player, merchant) = create_mock_trading_world(2, 2);
+
+        prepare_merchant_inventory(&mockworld, merchant);
+
+        let invmsg = "inventories.get_mut().is_none() should have returned already";
+        let capmsg = "There should be enough space here";
+        let mut inventories = mockworld.write_component::<Inventory>();
+
+        let fish = common::comp::Item::new_from_asset_expect("common.items.food.meat.fish_cooked");
+        let merchantinv = inventories.get_mut(merchant).expect(invmsg);
+        let fishinvid = merchantinv
+            .get_slot_of_item(&fish)
+            .expect("expected get_slot_of_item to return");
+
+        let potion =
+            common::comp::Item::new_from_asset_expect("common.items.consumable.potion_minor");
+        let mut playerinv = inventories.get_mut(player).expect(invmsg);
+        playerinv
+            .push(common::comp::Item::new_from_asset_expect(
+                "common.items.consumable.potion_minor",
+            ))
+            .expect(capmsg);
+        let potioninvid = playerinv
+            .get_slot_of_item(&potion)
+            .expect("expected get_slot_of_item to return");
+
+        let playerid = mockworld
+            .uid_from_entity(player)
+            .expect("mockworld.uid_from_entity(player) should have returned");
+        let merchantid = mockworld
+            .uid_from_entity(merchant)
+            .expect("mockworld.uid_from_entity(player) should have returned");
+
+        let mut playeroffers: HashMap<InvSlotId, u32> = HashMap::new();
+        playeroffers.insert(potioninvid, 1);
+
+        let mut merchantoffers: HashMap<InvSlotId, u32> = HashMap::new();
+        merchantoffers.insert(fishinvid, 10);
+        let trade = PendingTrade {
+            parties: [playerid, merchantid],
+            accept_flags: [true, true],
+            offers: [playeroffers, merchantoffers],
+            phase: common::trade::TradePhase::Review,
+        };
+
+        drop(inventories);
+
+        let traderes = commit_trade(&mockworld, &trade);
+        assert_eq!(traderes, TradeResult::Completed);
+    }
+
+    #[test]
+    fn commit_trade_with_overflow() {
+        let (mockworld, player, merchant) = create_mock_trading_world(2, 20);
+
+        prepare_merchant_inventory(&mockworld, merchant);
+
+        let invmsg = "inventories.get_mut().is_none() should have returned already";
+        let capmsg = "There should be enough space here";
+        let mut inventories = mockworld.write_component::<Inventory>();
+
+        let mut playerinv = inventories.get_mut(player).expect(invmsg);
+        let mut potion =
+            common::comp::Item::new_from_asset_expect("common.items.consumable.potion_minor");
+        potion
+            .set_amount(potion.max_amount() - 2)
+            .expect("Should be below the max amount");
+        playerinv.push(potion).expect(capmsg);
+
+        let potion =
+            common::comp::Item::new_from_asset_expect("common.items.consumable.potion_minor");
+        let merchantinv = inventories.get_mut(merchant).expect(invmsg);
+
+        let potioninvid = merchantinv
+            .get_slot_of_item(&potion)
+            .expect("expected get_slot_of_item to return");
+
+        let playerid = mockworld
+            .uid_from_entity(player)
+            .expect("mockworld.uid_from_entity(player) should have returned");
+        let merchantid = mockworld
+            .uid_from_entity(merchant)
+            .expect("mockworld.uid_from_entity(player) should have returned");
+
+        let playeroffers: HashMap<InvSlotId, u32> = HashMap::new();
+        let mut merchantoffers: HashMap<InvSlotId, u32> = HashMap::new();
+        merchantoffers.insert(potioninvid, 10);
+        let trade = PendingTrade {
+            parties: [playerid, merchantid],
+            accept_flags: [true, true],
+            offers: [playeroffers, merchantoffers],
+            phase: common::trade::TradePhase::Review,
+        };
+
+        drop(inventories);
+
+        let traderes = commit_trade(&mockworld, &trade);
+        assert_eq!(traderes, TradeResult::Completed);
+
+        let mut inventories = mockworld.write_component::<Inventory>();
+        let mut playerinv = inventories.get_mut(player).expect(invmsg);
+
+        let slot1 = playerinv
+            .get_slot_of_item(&potion)
+            .expect("There should be a slot here");
+        let item1 = playerinv
+            .remove(slot1)
+            .expect("The slot should not be empty");
+
+        let slot2 = playerinv
+            .get_slot_of_item(&potion)
+            .expect("There should be a slot here");
+        let item2 = playerinv
+            .remove(slot2)
+            .expect("The slot should not be empty");
+
+        assert_eq!(item1.amount(), potion.max_amount());
+        assert_eq!(item2.amount(), 8);
+    }
+
+    #[test]
+    fn commit_trade_with_inventory_overflow_failure() {
+        let (mockworld, player, merchant) = create_mock_trading_world(2, 20);
+
+        prepare_merchant_inventory(&mockworld, merchant);
+
+        let invmsg = "inventories.get_mut().is_none() should have returned already";
+        let capmsg = "There should be enough space here";
+        let mut inventories = mockworld.write_component::<Inventory>();
+
+        let mut playerinv = inventories.get_mut(player).expect(invmsg);
+        let mut potion =
+            common::comp::Item::new_from_asset_expect("common.items.consumable.potion_minor");
+        potion
+            .set_amount(potion.max_amount() - 2)
+            .expect("Should be below the max amount");
+        playerinv.push(potion).expect(capmsg);
+        let mut potion =
+            common::comp::Item::new_from_asset_expect("common.items.consumable.potion_minor");
+        potion
+            .set_amount(potion.max_amount() - 2)
+            .expect("Should be below the max amount");
+        playerinv.push(potion).expect(capmsg);
+
+        let potion =
+            common::comp::Item::new_from_asset_expect("common.items.consumable.potion_minor");
+        let merchantinv = inventories.get_mut(merchant).expect(invmsg);
+
+        let potioninvid = merchantinv
+            .get_slot_of_item(&potion)
+            .expect("expected get_slot_of_item to return");
+
+        let playerid = mockworld
+            .uid_from_entity(player)
+            .expect("mockworld.uid_from_entity(player) should have returned");
+        let merchantid = mockworld
+            .uid_from_entity(merchant)
+            .expect("mockworld.uid_from_entity(player) should have returned");
+
+        let playeroffers: HashMap<InvSlotId, u32> = HashMap::new();
+        let mut merchantoffers: HashMap<InvSlotId, u32> = HashMap::new();
+        merchantoffers.insert(potioninvid, 5);
+        let trade = PendingTrade {
+            parties: [playerid, merchantid],
+            accept_flags: [true, true],
+            offers: [playeroffers, merchantoffers],
+            phase: common::trade::TradePhase::Review,
+        };
+
+        drop(inventories);
+
+        let traderes = commit_trade(&mockworld, &trade);
+        assert_eq!(traderes, TradeResult::NotEnoughSpace);
+    }
+
+    #[test]
+    fn commit_trade_with_inventory_overflow_success() {
+        let (mockworld, player, merchant) = create_mock_trading_world(2, 20);
+
+        prepare_merchant_inventory(&mockworld, merchant);
+
+        let invmsg = "inventories.get_mut().is_none() should have returned already";
+        let capmsg = "There should be enough space here";
+        let mut inventories = mockworld.write_component::<Inventory>();
+
+        let mut playerinv = inventories.get_mut(player).expect(invmsg);
+        let mut potion =
+            common::comp::Item::new_from_asset_expect("common.items.consumable.potion_minor");
+        potion
+            .set_amount(potion.max_amount() - 2)
+            .expect("Should be below the max amount");
+        playerinv.push(potion).expect(capmsg);
+        let mut potion =
+            common::comp::Item::new_from_asset_expect("common.items.consumable.potion_minor");
+        potion
+            .set_amount(potion.max_amount() - 2)
+            .expect("Should be below the max amount");
+        playerinv.push(potion).expect(capmsg);
+
+        let potion =
+            common::comp::Item::new_from_asset_expect("common.items.consumable.potion_minor");
+        let merchantinv = inventories.get_mut(merchant).expect(invmsg);
+
+        let potioninvid = merchantinv
+            .get_slot_of_item(&potion)
+            .expect("expected get_slot_of_item to return");
+
+        let playerid = mockworld
+            .uid_from_entity(player)
+            .expect("mockworld.uid_from_entity(player) should have returned");
+        let merchantid = mockworld
+            .uid_from_entity(merchant)
+            .expect("mockworld.uid_from_entity(player) should have returned");
+
+        let playeroffers: HashMap<InvSlotId, u32> = HashMap::new();
+        let mut merchantoffers: HashMap<InvSlotId, u32> = HashMap::new();
+        merchantoffers.insert(potioninvid, 4);
+        let trade = PendingTrade {
+            parties: [playerid, merchantid],
+            accept_flags: [true, true],
+            offers: [playeroffers, merchantoffers],
+            phase: common::trade::TradePhase::Review,
+        };
+
+        drop(inventories);
+
+        let traderes = commit_trade(&mockworld, &trade);
+        assert_eq!(traderes, TradeResult::Completed);
+    }
 }

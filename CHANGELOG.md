@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adjust Yeti difficulty
 - Now most of the food gives Saturation in the process of eating
 - Mushroom Curry gives long-lasting Regeneration buff
+- Trades now consider if items can stack in full inventories.
 
 ### Removed
 
