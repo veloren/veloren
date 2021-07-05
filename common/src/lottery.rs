@@ -146,9 +146,9 @@ mod tests {
         }
 
         let loot_tables =
-            assets::load_expect_dir::<Lottery<LootSpec<String>>>("common.loot_tables", true);
-        for loot_table in loot_tables.iter() {
-            validate_table_contents(loot_table.cloned());
+            assets::read_expect_dir::<Lottery<LootSpec<String>>>("common.loot_tables", true);
+        for loot_table in loot_tables {
+            validate_table_contents(loot_table.clone());
         }
     }
 }

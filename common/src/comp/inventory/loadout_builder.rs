@@ -736,10 +736,9 @@ mod tests {
         // It just load everything that could
         // TODO: add some checks, e.g. that Armor(Head) key correspond
         // to Item with ItemKind Head(_)
-        let loadouts = assets::load_expect_dir::<LoadoutSpec>("common.loadout", true);
-        for loadout in loadouts.iter() {
-            let spec = loadout.read();
-            for (&key, entry) in &spec.0 {
+        let loadouts = assets::read_expect_dir::<LoadoutSpec>("common.loadout", true);
+        for loadout in loadouts {
+            for (&key, entry) in &loadout.0 {
                 entry.validate(key);
             }
         }

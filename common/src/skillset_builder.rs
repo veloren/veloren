@@ -40,7 +40,7 @@ fn skills_from_nodes(nodes: &[SkillNode]) -> Vec<(Skill, Option<u16>)> {
     for node in nodes {
         match node {
             SkillNode::Tree(asset) => {
-                skills.append(&mut skills_from_asset_expect(&asset));
+                skills.append(&mut skills_from_asset_expect(asset));
             },
             SkillNode::Skill(req) => {
                 skills.push(*req);
@@ -151,11 +151,11 @@ mod tests {
 
     #[test]
     fn test_all_skillset_assets() {
-        let skillsets = assets::load_expect_dir::<SkillSetTree>("common.skillset", true);
-        for skillset in skillsets.iter() {
+        let skillsets = assets::read_expect_dir::<SkillSetTree>("common.skillset", true);
+        for skillset in skillsets {
             std::mem::drop({
                 let mut skillset_builder = SkillSetBuilder::default();
-                let nodes = &*skillset.read().0;
+                let nodes = &*skillset.0;
                 let tree = skills_from_nodes(nodes);
                 for (skill, level) in tree {
                     skillset_builder = skillset_builder.with_skill(skill, level);
