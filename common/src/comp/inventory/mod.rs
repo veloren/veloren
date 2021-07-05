@@ -327,6 +327,22 @@ impl Inventory {
         self.slots().any(|slot| slot.as_ref() == Some(item))
     }
 
+    /// Return the first slot id containing the item
+    pub fn get_slot_of_item(&self, item: &Item) -> Option<InvSlotId> {
+        self.slots_with_id()
+            .find(|&(_, it)| {
+                if let Some(it) = it {
+                    // TODO: add a ComponentKey struct to compare components, see issue #1226
+                    debug_assert!(it.components().is_empty());
+                    debug_assert!(item.components().is_empty());
+                    it.item_definition_id() == item.item_definition_id()
+                } else {
+                    false
+                }
+            })
+            .map(|(slot, _)| slot)
+    }
+
     /// Get content of a slot
     pub fn get(&self, inv_slot_id: InvSlotId) -> Option<&Item> {
         self.slot(inv_slot_id).and_then(Option::as_ref)
