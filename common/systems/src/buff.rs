@@ -278,9 +278,15 @@ impl<'a> System<'a> for Sys {
 
                                     let potential_fraction = *achieved_fraction + health_tick;
 
-                                    // Potential progress towards target fraction
-                                    let progress =
-                                        (1.0 - potential_fraction) / (1.0 - *target_fraction);
+                                    // Potential progress towards target fraction, if
+                                    // target_fraction ~ 1.0 then set progress to 1.0 to avoid
+                                    // divide by zero
+                                    let progress = if (1.0 - *target_fraction).abs() > f32::EPSILON
+                                    {
+                                        (1.0 - potential_fraction) / (1.0 - *target_fraction)
+                                    } else {
+                                        1.0
+                                    };
 
                                     // Change achieved_fraction depending on what other buffs have
                                     // occurred
