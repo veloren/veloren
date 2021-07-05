@@ -625,6 +625,7 @@ impl Item {
     pub fn new_from_asset_glob(asset_glob: &str) -> Result<Vec<Self>, Error> {
         let specifier = asset_glob.strip_suffix(".*").unwrap_or(asset_glob);
         let defs = assets::load_dir::<RawItemDef>(specifier, true)?;
+        // use ids() instead of iter() because we don't want to ignore errors
         defs.ids().map(Item::new_from_asset).collect()
     }
 
@@ -893,7 +894,8 @@ mod tests {
 
     #[test]
     fn test_assets_items() {
-        let defs = assets::load_expect_dir::<RawItemDef>("common.items", true);
+        let defs = assets::load_dir::<RawItemDef>("common.items", true)
+            .expect("Failed to access items directory");
         for item in defs.ids().map(Item::new_from_asset_expect) {
             std::mem::drop(item)
         }

@@ -372,7 +372,8 @@ impl assets::Compound for LocalizationList {
         specifier: &str,
     ) -> Result<Self, assets::Error> {
         // List language directories
-        let languages = assets::load_expect_dir::<FindManifests>(specifier, false)
+        let languages = assets::load_dir::<FindManifests>(specifier, false)
+            .unwrap_or_else(|e| panic!("Failed to get manifests from {}: {:?}", specifier, e))
             .ids()
             .filter_map(|spec| cache.load::<RawLocalization>(spec).ok())
             .map(|localization| localization.read().metadata.clone())

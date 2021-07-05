@@ -264,7 +264,7 @@ impl Room {
                 match self.difficulty {
                     3 => {
                         let turret = turret
-                            .with_body(comp::Body::Object(comp::object::Body::Crossbow))
+                            .with_body(comp::Body::Object(comp::object::Body::HaniwaSentry))
                             .with_asset_expect("common.entity.dungeon.tier-3.sentry");
                         supplement.add_entity(turret);
                     },

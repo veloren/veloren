@@ -1,3 +1,4 @@
+//#![warn(clippy::pedantic)]
 //! Load assets (images or voxel data) from files
 
 use dot_vox::DotVoxData;
@@ -86,6 +87,18 @@ pub trait AssetExt: Sized + Send + Sync + 'static {
     fn get_or_insert(specifier: &str, default: Self) -> AssetHandle<Self>;
 }
 
+/// Loads directory and all files in it
+///
+/// NOTE: If you call `.iter()` on it, all failed files will be ignored
+/// If you want to handle errors, call `.ids()` which will return
+/// iterator over assets specifiers
+///
+/// # Errors
+/// An error is returned if the given id does not match a valid readable
+/// directory.
+///
+/// When loading a directory recursively, directories that can't be read are
+/// ignored.
 pub fn load_dir<T: DirLoadable>(
     specifier: &str,
     recursive: bool,
@@ -94,10 +107,20 @@ pub fn load_dir<T: DirLoadable>(
     ASSETS.load_dir(specifier, recursive)
 }
 
+/// Loads directory and all files in it
+///
+/// # Panics
+/// 1) If can't load directory (filesystem errors)
+/// 2) If file can't be loaded (parsing problem)
 #[track_caller]
-pub fn load_expect_dir<T: DirLoadable>(specifier: &str, recursive: bool) -> AssetDirHandle<T> {
-    load_dir(specifier, recursive)
-        .unwrap_or_else(|e| panic!("Failed loading directory. error={:?}", e))
+pub fn read_expect_dir<T: DirLoadable>(
+    specifier: &str,
+    recursive: bool,
+) -> impl Iterator<Item = AssetGuard<T>> {
+    load_dir::<T>(specifier, recursive)
+        .unwrap_or_else(|e| panic!("Failed loading directory {}. error={:?}", e, specifier))
+        .ids()
+        .map(|entry| T::load_expect(entry).read())
 }
 
 impl<T: Compound> AssetExt for T {
@@ -266,8 +289,7 @@ mod tests {
             .filter(|path| path.is_file())
             .filter(|path| {
                 path.extension()
-                    .map(|e| ext == e.to_ascii_lowercase())
-                    .unwrap_or(false)
+                    .map_or(false, |e| ext == e.to_ascii_lowercase())
             })
             .for_each(|path| {
                 let file = File::open(&path).expect("Failed to open the file");
@@ -280,7 +302,6 @@ mod tests {
     }
 }
 
-#[warn(clippy::pedantic)]
 #[cfg(feature = "asset_tweak")]
 pub mod asset_tweak {
     use super::{find_root, Asset, AssetExt, RonLoader};
@@ -300,7 +321,6 @@ pub mod asset_tweak {
         const EXTENSION: &'static str = "ron";
     }
 
-    #[must_use]
     /// # Usage
     /// Create file with content which represent tweaked value
     ///
@@ -329,7 +349,6 @@ pub mod asset_tweak {
         value
     }
 
-    #[must_use]
     /// # Usage
     /// Will create file "assets/tweak/{specifier}.ron" if not exists
     /// and return passed `value`.

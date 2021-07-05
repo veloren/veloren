@@ -312,8 +312,8 @@ mod tests {
     #[test]
     fn test_all_entity_assets() {
         // It just load everything that could
-        let entity_configs = assets::load_expect_dir::<EntityConfig>("common.entity", true);
-        for config in entity_configs.iter() {
+        let entity_configs = assets::read_expect_dir::<EntityConfig>("common.entity", true);
+        for config in entity_configs {
             let EntityConfig {
                 main_tool,
                 second_tool,
@@ -322,7 +322,7 @@ mod tests {
                 name: _name,
                 body,
                 loot,
-            } = config.cloned();
+            } = config.clone();
 
             if let Some(main_tool) = main_tool {
                 main_tool.validate(EquipSlot::ActiveMainhand);
