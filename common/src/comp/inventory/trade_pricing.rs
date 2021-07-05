@@ -44,10 +44,7 @@ struct Entries {
 
 impl Entries {
     fn add(&mut self, eqset: &EqualitySet, item_name: &str, probability: f32, can_sell: bool) {
-        let canonical_itemname = eqset
-            .equivalence_class
-            .get(item_name)
-            .map_or(item_name, |i| &**i);
+        let canonical_itemname = eqset.canonical(item_name);
 
         let old = self
             .entries
@@ -66,10 +63,15 @@ impl Entries {
             }
             self.entries
                 .push((canonical_itemname.to_owned(), probability, can_sell));
-            if canonical_itemname != item_name {
-                // Add the non-canonical item so that it'll show up in merchant inventories
-                self.entries.push((item_name.to_owned(), 0.0, can_sell));
-            }
+        }
+
+        // Add the non-canonical item so that it'll show up in merchant inventories
+        // It will have infinity as its price, but it's fine,
+        // because we determine all prices based on canonical value
+        if canonical_itemname != item_name
+            && !self.entries.iter().any(|(name, _, _)| name == item_name)
+        {
+            self.entries.push((item_name.to_owned(), 0.0, can_sell));
         }
     }
 }
@@ -136,27 +138,54 @@ struct EqualitySet {
     equivalence_class: HashMap<String, String>,
 }
 
+impl EqualitySet {
+    fn canonical<'a>(&'a self, item_name: &'a str) -> &'a str {
+        let canonical_itemname = self
+            .equivalence_class
+            .get(item_name)
+            .map_or(item_name, |i| &**i);
+
+        canonical_itemname
+    }
+}
+
 impl assets::Compound for EqualitySet {
     fn load<S: assets::source::Source>(
         cache: &assets::AssetCache<S>,
         id: &str,
     ) -> Result<Self, assets::Error> {
-        let manifest = cache.load::<assets::Ron<Vec<Vec<String>>>>(id)?;
-        let mut ret = Self {
+        #[derive(Debug, Deserialize)]
+        enum EqualitySpec {
+            LootTable(String),
+            Set(Vec<String>),
+        }
+
+        let mut eqset = Self {
             equivalence_class: HashMap::new(),
         };
-        for set in &manifest.read().0 {
-            let mut iter = set.iter();
+
+        let manifest = &cache.load::<assets::Ron<Vec<EqualitySpec>>>(id)?.read().0;
+        for set in manifest {
+            let items = match set {
+                EqualitySpec::LootTable(table) => {
+                    let acc = &ProbabilityFile::load_expect(table).read().content;
+
+                    acc.iter().map(|(_p, item)| item).cloned().collect()
+                },
+                EqualitySpec::Set(xs) => xs.clone(),
+            };
+            let mut iter = items.iter();
             if let Some(first) = iter.next() {
                 let first = first.to_string();
-                ret.equivalence_class.insert(first.clone(), first.clone());
+                eqset.equivalence_class.insert(first.clone(), first.clone());
                 for item in iter {
-                    ret.equivalence_class
+                    eqset
+                        .equivalence_class
                         .insert(item.to_string(), first.clone());
                 }
             }
         }
-        Ok(ret)
+        Ok(eqset)
     }
 }
 
@@ -223,8 +252,6 @@ impl TradePricing {
     fn get_list_by_path(&self, name: &str) -> &[Entry] {
         match name {
             // Armor
-            // TODO: balance mindflayer bag price so this isn't needed
-            "common.items.crafting_ing.mindflayer_bag_damaged" => &self.armor.entries,
             _ if name.starts_with("common.items.armor.") => &self.armor.entries,
             // Tools
             _ if name.starts_with("common.items.weapons.") => &self.tools.entries,
@@ -253,8 +280,6 @@ impl TradePricing {
     fn get_list_by_path_mut(&mut self, name: &str) -> &mut Entries {
         match name {
             // Armor
-            // TODO: balance mindflayer bag price so this isn't needed
-            "common.items.crafting_ing.mindflayer_bag_damaged" => &mut self.armor,
             _ if name.starts_with("common.items.armor.") => &mut self.armor,
             // Tools
             _ if name.starts_with("common.items.weapons.") => &mut self.tools,
@@ -282,10 +307,7 @@ impl TradePricing {
 
     // look up price (inverse frequency) of an item
     fn price_lookup(&self, eqset: &EqualitySet, requested_name: &str) -> f32 {
-        let canonical_name = eqset
-            .equivalence_class
-            .get(requested_name)
-            .map_or(requested_name, |name| &**name);
+        let canonical_name = eqset.canonical(requested_name);
 
         let goods = self.get_list_by_path(canonical_name);
         // even if we multiply by INVEST_FACTOR we need to remain
@@ -326,8 +348,9 @@ impl TradePricing {
     #[allow(clippy::cast_precision_loss)]
     fn read() -> Self {
         let mut result = Self::default();
-        let price_config = TradingPriceFile::load_expect("common.item_price_calculation").read();
-        let eqset = EqualitySet::load_expect("common.item_price_equality").read();
+        let price_config =
+            TradingPriceFile::load_expect("common.trading.item_price_calculation").read();
+        let eqset = EqualitySet::load_expect("common.trading.item_price_equality").read();
         result.equality_set = eqset.clone();
         for table in &price_config.loot_tables {
             if PRICING_DEBUG {
@@ -350,22 +373,30 @@ impl TradePricing {
         let mut ordered_recipes: Vec<RememberedRecipe> = Vec::new();
         for (_, recipe) in book.iter() {
             let (ref asset_path, amount) = recipe.output;
-            ordered_recipes.push(RememberedRecipe {
-                output: asset_path.id().into(),
-                amount,
-                material_cost: Self::UNAVAILABLE_PRICE,
-                input: recipe
-                    .inputs
-                    .iter()
-                    .filter_map(|&(ref recipe_input, count)| {
-                        if let RecipeInput::Item(it) = recipe_input {
-                            Some((it.id().into(), count))
-                        } else {
-                            None
-                        }
-                    })
-                    .collect(),
-            });
+            // Trading don't know how to work with recycling yet
+            if !recipe.is_recycling {
+                ordered_recipes.push(RememberedRecipe {
+                    output: asset_path.id().into(),
+                    amount,
+                    material_cost: Self::UNAVAILABLE_PRICE,
+                    input: recipe
+                        .inputs
+                        .iter()
+                        .filter_map(|&(ref recipe_input, count)| {
+                            if let RecipeInput::Item(it) = recipe_input {
+                                // If item is not consumed in craft, ignore it
+                                if count == 0 {
+                                    None
+                                } else {
+                                    Some((it.id().into(), count))
+                                }
+                            } else {
+                                None
+                            }
+                        })
+                        .collect(),
+                });
+            }
         }
 
         // re-evaluate prices based on crafting tables
@@ -378,7 +409,7 @@ impl TradePricing {
                     let actual_cost = result.calculate_material_cost(recipe, &eqset);
                     let output_tradeable = recipe.input.iter().all(|(input, _)| {
                         result
-                            .get_list_by_path(&input)
+                            .get_list_by_path(input)
                             .iter()
                             .find(|(item, _, _)| item == input)
                             .map_or(false, |(_, _, tradeable)| *tradeable)
@@ -464,11 +495,7 @@ impl TradePricing {
         if item == Self::COIN_ITEM {
             (Good::Coin, 1.0)
         } else {
-            let item = TRADE_PRICING
-                .equality_set
-                .equivalence_class
-                .get(item)
-                .map_or(item, |i| &**i);
+            let item = TRADE_PRICING.equality_set.canonical(item);
 
             TRADE_PRICING.material_cache.get(item).copied().map_or(
                 (Good::Terrain(crate::terrain::BiomeKind::Void), 0.0),
@@ -485,20 +512,21 @@ impl TradePricing {
         use crate::comp::item::{armor, tool, Item, ItemKind};
 
         // we pass the item and the inverse of the price to the closure
-        fn printvec<F>(x: &str, e: &[(String, f32, bool)], f: F)
+        fn printvec<F>(good_kind: &str, entries: &[(String, f32, bool)], f: F)
         where
             F: Fn(&Item, f32) -> String,
         {
-            println!("\n======{:^15}======", x);
-            for i in e.iter() {
-                let it = Item::new_from_asset_expect(&i.0);
-                let price = 1.0 / i.1;
+            println!("\n======{:^15}======", good_kind);
+            for (item_id, p, can_sell) in entries.iter() {
+                let it = Item::new_from_asset_expect(item_id);
+                let price = 1.0 / p;
                 println!(
-                    "<{}>\n{:>4.2}  {:?}  {}",
-                    i.0,
+                    "<{}> {}\n{:>4.2}  {:?}  {}",
+                    item_id,
+                    if *can_sell { "+" } else { "-" },
                     price,
                     it.quality,
-                    f(&it, i.1)
+                    f(&it, *p)
                 );
             }
         }

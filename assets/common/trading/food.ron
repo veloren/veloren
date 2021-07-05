@@ -1,0 +1,24 @@
+// Loot table that exists purely for price rationalisation
+//
+// This loot table should be marked as sellable.
+// If you want to add something that merchants can buy but not sell,
+// add another loot table
+//
+// Please keep it sorted by rarity so it's easier to reason about things
+[
+    // Meats
+    (0.125, Item("common.items.food.meat.bird_large_raw")),
+    (0.5, Item("common.items.food.meat.beast_large_raw")),
+    (2.0, Item("common.items.food.meat.bird_raw")),
+    (2.0, Item("common.items.food.meat.fish_raw")),
+    (2.0, Item("common.items.food.meat.tough_raw")),
+    (4.0, Item("common.items.food.meat.beast_small_raw")),
+    // Gatherables
+    (0.25, Item("common.items.food.coconut")),
+    (0.5, Item("common.items.food.cheese")),
+    (1.0, Item("common.items.food.apple")),
+    (2.0, Item("common.items.food.carrot")),
+    (2.0, Item("common.items.food.lettuce")),
+    (2.0, Item("common.items.food.tomato")),
+    (2.0, Item("common.items.food.mushroom")),
+]

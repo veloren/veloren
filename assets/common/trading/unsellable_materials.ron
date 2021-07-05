@@ -1,0 +1,33 @@
+// Loot table that exists purely for price rationalisation
+//
+// This loot table should be marked as un-sellable.
+// If you want to add something that merchants can buy and sell,
+// add another loot table
+//
+// Please keep it sorted by rarity so it's easier to reason about things
+[
+    // High tier Ores
+    (0.025, Item("common.items.mineral.ore.gold")),
+    (0.03, Item("common.items.mineral.ore.silver")),
+    (0.1, Item("common.items.mineral.ore.bloodstone")),
+    (0.2, Item("common.items.mineral.ore.cobalt")),
+    (0.25, Item("common.items.mineral.ore.coal")),
+
+    // High tier Animal Hide
+    (0.025, Item("common.items.crafting_ing.hide.dragon_scale")),
+    (0.05, Item("common.items.crafting_ing.hide.plate")),
+    (0.05, Item("common.items.crafting_ing.hide.leather_troll")),
+    (0.05, Item("common.items.crafting_ing.hide.rugged_hide")),
+    (0.2, Item("common.items.crafting_ing.hide.carapace")),
+    (0.2, Item("common.items.crafting_ing.hide.scales")),
+
+    // High tier Mob drops
+    (0.005, Item("common.items.crafting_ing.animal_misc.phoenix_feather")),
+    (0.08, Item("common.items.crafting_ing.animal_misc.large_horn")),
+    (0.08, Item("common.items.crafting_ing.animal_misc.lively_vine")),
+    (0.15, Item("common.items.crafting_ing.animal_misc.lively_vine")),
+    (0.225, Item("common.items.crafting_ing.sticky_thread")),
+
+    // Ultra Rare drops
+    (0.0005, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
+]

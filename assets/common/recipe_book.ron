@@ -531,7 +531,6 @@
         inputs: [
             (Item("common.items.crafting_ing.leather.leather_strips"), 4),
             (Item("common.items.crafting_ing.twigs"), 10),
-            (Item("common.items.mineral.ore.veloritefrag"), 1),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,

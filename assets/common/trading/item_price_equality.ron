@@ -1,0 +1,58 @@
+[
+    // Tier-0 weapons
+    LootTable("common.loot_tables.weapons.sword.stone"),
+    LootTable("common.loot_tables.weapons.axe.stone"),
+    LootTable("common.loot_tables.weapons.hammer.stone"),
+    LootTable("common.loot_tables.weapons.bow.wood"),
+    LootTable("common.loot_tables.weapons.staff.wood"),
+
+    // Tier-1 weapons
+    LootTable("common.loot_tables.weapons.sword.bronze"),
+    LootTable("common.loot_tables.weapons.axe.bronze"),
+    LootTable("common.loot_tables.weapons.hammer.bronze"),
+    LootTable("common.loot_tables.weapons.bow.bone"),
+    LootTable("common.loot_tables.weapons.staff.bamboo"),
+    LootTable("common.loot_tables.weapons.sceptre.bamboo"),
+
+    // Tier-2 weapons
+    LootTable("common.loot_tables.weapons.sword.iron"),
+    LootTable("common.loot_tables.weapons.axe.iron"),
+    LootTable("common.loot_tables.weapons.hammer.iron"),
+    LootTable("common.loot_tables.weapons.bow.hardwood"),
+    LootTable("common.loot_tables.weapons.staff.hardwood"),
+    LootTable("common.loot_tables.weapons.sceptre.hardwood"),
+
+    // Tier-3 weapons
+    LootTable("common.loot_tables.weapons.sword.steel"),
+    LootTable("common.loot_tables.weapons.axe.steel"),
+    LootTable("common.loot_tables.weapons.hammer.steel"),
+    LootTable("common.loot_tables.weapons.bow.metal"),
+    LootTable("common.loot_tables.weapons.staff.ironwood"),
+    LootTable("common.loot_tables.weapons.sceptre.ironwood"),
+
+    // Tier-4 weapons
+    LootTable("common.loot_tables.weapons.sword.cobalt"),
+    LootTable("common.loot_tables.weapons.axe.cobalt"),
+    LootTable("common.loot_tables.weapons.hammer.cobalt"),
+    LootTable("common.loot_tables.weapons.bow.frostwood"),
+    LootTable("common.loot_tables.weapons.staff.frostwood"),
+    LootTable("common.loot_tables.weapons.sceptre.frostwood"),
+
+    // Tier-5 weapons
+    LootTable("common.loot_tables.weapons.sword.bloodsteel"),
+    LootTable("common.loot_tables.weapons.axe.bloodsteel"),
+    LootTable("common.loot_tables.weapons.hammer.bloodsteel"),
+    LootTable("common.loot_tables.weapons.bow.eldwood"),
+    LootTable("common.loot_tables.weapons.staff.eldwood"),
+    LootTable("common.loot_tables.weapons.sceptre.eldwood"),
+
+    // Legendary staves and sceptres
+    Set([
+        "common.items.weapons.staff.phoenix",
+        "common.items.weapons.staff.laevateinn",
+    ]),
+    Set([
+        "common.items.weapons.sceptre.root_evil",
+        "common.items.weapons.sceptre.caduceus",
+    ]),
+]
