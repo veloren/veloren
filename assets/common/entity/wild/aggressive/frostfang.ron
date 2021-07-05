@@ -1,0 +1,13 @@
+EntityConfig (
+    name: Some("Frostfang"),
+    body: RandomWith("frostfang"),
+    alignment: Alignment(Enemy),
+
+    loot: None,
+
+    main_tool: None,
+    second_tool: None,
+
+    loadout_asset: None,
+    skillset_asset: None,
+)

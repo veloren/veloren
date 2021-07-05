@@ -1,0 +1,13 @@
+SpawnEntry (
+    name: "Taiga forest wildlife.",
+    note: "Search for them in taiga forests.",
+    rules: [
+        Pack(
+            groups: [
+                (1, (3, 7, "common.entity.wild.aggressive.wolf")),
+            ],
+            is_underwater: false,
+            day_period: [Night, Morning, Noon, Evening],
+        ),
+    ],
+)

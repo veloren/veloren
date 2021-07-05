@@ -1,0 +1,13 @@
+EntityConfig (
+    name: Some("Snow Raptor"),
+    body: RandomWith("raptor_snow"),
+    alignment: Alignment(Enemy),
+
+    loot: None,
+
+    main_tool: None,
+    second_tool: None,
+
+    loadout_asset: None,
+    skillset_asset: None,
+)

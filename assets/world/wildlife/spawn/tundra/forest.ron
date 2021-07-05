@@ -1,0 +1,16 @@
+SpawnEntry (
+    name: "Tundra forest animals.",
+    note: "",
+    rules: [
+        Pack(
+            groups: [
+                (1, (1, 1, "common.entity.wild.aggressive.frostfang")),
+                (1, (1, 1, "common.entity.wild.aggressive.snow_leopard")),
+                (1, (1, 1, "common.entity.wild.aggressive.yale")),
+                (1, (1, 1, "common.entity.wild.aggressive.grolgar")),
+            ],
+            is_underwater: false,
+            day_period: [Night, Morning, Noon, Evening],
+        ),
+    ],
+)

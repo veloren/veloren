@@ -1,0 +1,13 @@
+EntityConfig (
+    name: Some("Eagle"),
+    body: RandomWith("eagle"),
+    alignment: Alignment(Wild),
+
+    loot: None,
+
+    main_tool: None,
+    second_tool: None,
+
+    loadout_asset: None,
+    skillset_asset: None,
+)

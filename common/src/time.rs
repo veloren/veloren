@@ -1,4 +1,6 @@
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+use serde::Deserialize;
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Deserialize, Hash)]
 pub enum DayPeriod {
     Night,
     Morning,

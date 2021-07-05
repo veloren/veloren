@@ -1,0 +1,25 @@
+SpawnEntry (
+    name: "Desert hot area wildlife.",
+    note: "",
+    rules: [
+        Pack(
+            groups: [
+                (1, (1, 1, "common.entity.wild.peaceful.camel")),
+                (1, (1, 1, "common.entity.wild.peaceful.sand_hare")),
+                (1, (1, 1, "common.entity.wild.peaceful.sand_salamander")),
+                (1, (1, 1, "common.entity.wild.peaceful.gecko")),
+            ],
+            is_underwater: false,
+            day_period: [Morning, Noon, Evening],
+        ),
+        Pack(
+            groups: [
+                (1, (1, 1, "common.entity.wild.peaceful.holladon")),
+                (1, (1, 1, "common.entity.wild.peaceful.porcupine")),
+                (1, (1, 1, "common.entity.wild.peaceful.pangolin")),
+            ],
+            is_underwater: false,
+            day_period: [Night],
+        ),
+    ],
+)

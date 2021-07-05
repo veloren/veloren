@@ -1,0 +1,13 @@
+SpawnEntry (
+    name: "Taiga water wildlife.",
+    note: "River inhabitants",
+    rules: [
+        Pack(
+            groups: [
+                (1, (1, 2, "common.entity.wild.aggressive.icepike")),
+            ],
+            is_underwater: true,
+            day_period: [Night, Morning, Noon, Evening],
+        ),
+    ],
+)
