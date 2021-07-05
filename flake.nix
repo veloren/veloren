@@ -20,6 +20,10 @@
       overrides = {
         build = common: prev: {
           runTests = !prev.release && prev.runTests;
+          rootFeatures =
+            if prev.release && common.cargoPkg.name == "veloren-voxygen"
+            then [ "default-publish" ]
+            else prev.rootFeatures;
         };
         crateOverrides = common: prev:
           let
