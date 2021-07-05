@@ -50,6 +50,9 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
+        // You should not be able to strafe while rolling
+        update.should_strafe = false;
+
         // Smooth orientation
         handle_orientation(data, &mut update, 2.5);
 
