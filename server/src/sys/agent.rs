@@ -3659,17 +3659,17 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        const ICE_SPIKES_RANGE: f32 = 20.0;
-        const ICE_BREATH_RANGE: f32 = 15.0;
+        const ICE_SPIKES_RANGE: f32 = 15.0;
+        const ICE_BREATH_RANGE: f32 = 10.0;
         const ICE_BREATH_TIMER: f32 = 10.0;
         const SNOWBALL_MAX_RANGE: f32 = 50.0;
 
         agent.action_state.counter += read_data.dt.0;
 
-        if attack_data.dist_sqrd < ICE_BREATH_RANGE.powi(2) && attack_data.angle < 60.0 {
-            if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(1))
+        if attack_data.dist_sqrd < ICE_BREATH_RANGE.powi(2) {
+            if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(2))
             {
-                // Keep using ice breath until a second has passed
+                // Keep using ice breath for 2 second
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Ability(0)));

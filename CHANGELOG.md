@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Harvester boss now has new abilities and AI
 - Death particles and SFX
 - Default keybindings were made more consistent
+- Adjust Yeti difficulty
 
 ### Removed
 
