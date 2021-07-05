@@ -1,0 +1,13 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Hungarian localization
+(
+    string_map: {
+        "esc_menu.logout": "Kijelentkezés",
+        "esc_menu.quit_game": "Kilépés a játékból",
+    },
+
+
+    vector_map: {
+    }
+)

@@ -1,0 +1,30 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Hungarian localization
+(
+    string_map: {
+        "hud.trade.trade_window": "Kereskedési ablak",
+	"hud.trade.phase1_description": "Húzd be az elcserélendő tárgyakat\n a megfelelő területre.",
+	"hud.trade.phase2_description": "A csere most lezárult,\n időt hagyva, hogy átnézd.",
+	/// Phase3 should only be visible for a few milliseconds if everything is working properly, but is included for completeness
+	"hud.trade.phase3_description": "Csere feldolgozása..",
+	"hud.trade.persons_offer": "{playername} felajánlása",
+	"hud.trade.has_accepted": "{playername}\n elfogadta",
+	"hud.trade.accept": "Elfogadás",
+	"hud.trade.decline": "Elutasítás",
+	"hud.trade.invite_sent": "Csere kérés elküldve neki: {playername}.",
+	"hud.trade.result.completed": "Csere sikeresen megtörtént.",
+	"hud.trade.result.declined": "Csere elutasítva.",
+	"hud.trade.result.nospace": "Nincs elég hely a csere befejezéséhez.",
+	"hud.trade.buy_price": "Vételár",
+	"hud.trade.sell_price": "Eladási ár",
+	"hud.trade.coin": "coin(s)",
+	"hud.trade.tooltip_hint_1": "<Shift + kattintás a hozzáadáshoz/eltávolításhoz.>",
+	"hud.trade.tooltip_hint_2": "<Ctrl ! kattintás az ezzel való automatkus kiegyenlítéshez.>",
+    },
+
+
+    vector_map: {
+    }
+)
+

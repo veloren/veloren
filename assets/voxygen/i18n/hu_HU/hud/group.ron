@@ -1,0 +1,24 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Hungarian localization
+(
+    string_map: {
+        "hud.group": "Csoport",
+        "hud.group.invite_to_join": "[{name}] meghívott a csapatába!",
+        "hud.group.invite_to_trade": "[{name}] szeretne veled kereskedni.",
+        "hud.group.invite": "Meghívás",
+        "hud.group.kick": "Kirúgás",
+        "hud.group.assign_leader": "Vezetőség átruházása",
+        "hud.group.leave": "Csoport elhagyása",
+        "hud.group.dead" : "Halott",
+        "hud.group.out_of_range": "Távol",
+        "hud.group.add_friend": "Hozzáadás barátokhoz",
+        "hud.group.link_group": "Csoportok összekapcsolása",
+        "hud.group.in_menu": "Menüben",
+        "hud.group.members": "Csoporttagok",
+    },
+
+
+    vector_map: {
+    }
+)

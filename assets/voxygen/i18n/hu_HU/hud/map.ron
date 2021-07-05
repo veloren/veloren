@@ -1,0 +1,35 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Hungarian localization
+(
+    string_map: {
+        // Map and Questlog
+        "hud.map.map_title": "Térkép",
+        "hud.map.qlog_title": "Küldetések",
+        "hud.map.topo_map": "Topográfiai",
+        "hud.map.difficulty": "Nehézség",
+        "hud.map.towns": "Városok",
+        "hud.map.castles": "Várak",
+        "hud.map.dungeons": "Kazamaták",
+        "hud.map.caves": "Barlangok",
+        "hud.map.cave": "Barlang",
+        "hud.map.peaks": "Hegyek",
+        "hud.map.voxel_map": "Voxeltérkép",
+        "hud.map.trees": "Óriás fák",
+        "hud.map.tree": "Óriás fa",
+        "hud.map.town": "Város",
+        "hud.map.castle": "Vár",
+        "hud.map.dungeon": "Kazamata",
+        "hud.map.difficulty_dungeon": "Kazamata\n\nNehézség: {difficulty}",
+        "hud.map.drag": "Húzás",
+        "hud.map.zoom": "Nagyítás",
+        "hud.map.mid_click": "Célállomás beállítása",
+        "hud.map.recenter": "Középre",
+        "hud.map.marked_location": "Megjelölt hely",
+        "hud.map.marked_location_remove": "Kattints az eltávolításhoz",      
+    },
+
+
+    vector_map: {
+    }
+)

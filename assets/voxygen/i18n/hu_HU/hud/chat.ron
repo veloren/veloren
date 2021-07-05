@@ -1,0 +1,49 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Hungarian localization
+(
+    string_map: {
+        "hud.chat.all": "Összes",
+        "hud.chat.chat_tab_hover_tooltip": "Jobb kattintás a beállításokért",
+
+        // Debuff outcomes
+        "hud.outcome.burning": "ebbe halt bele: égés",
+        "hud.outcome.curse": "ebbe halt bele: átok",
+        "hud.outcome.bleeding": "ebbe halt bele: vérzés",
+        "hud.outcome.crippled": "ebbe halt bele: bénulás",
+        "hud.outcome.frozen": "ebbe halt bele: fagyás",
+
+        // Chat outputs
+        "hud.chat.online_msg": "[{name}] belépett",
+        "hud.chat.offline_msg": "[{name}] kilépett",
+
+        "hud.chat.default_death_msg": "[{name}] meghalt",
+        "hud.chat.environmental_kill_msg": "[{name}] meghalt itt: {environment}",
+        "hud.chat.fall_kill_msg": "[{name}] belehalt az esésbe",
+        "hud.chat.suicide_msg": "[{name}] önmagának okozott sebek miatt halt meg",
+
+        "hud.chat.died_of_pvp_buff_msg": "[{victim}] {died_of_buff} ettől: [{attacker}]",
+        "hud.chat.pvp_melee_kill_msg": "[{attacker}] legyőzte őt: [{victim}]",
+        "hud.chat.pvp_ranged_kill_msg": "[{attacker}] lelőtte őt: [{victim}]",
+        "hud.chat.pvp_explosion_kill_msg": "[{attacker}] felrobbantotta őt: [{victim}]",
+        "hud.chat.pvp_energy_kill_msg": "[{attacker}] mágiával megölte őt: [{victim}]",
+
+        "hud.chat.died_of_buff_nonexistent_msg": "[{victim}] {died_of_buff}",
+
+        "hud.chat.died_of_npc_buff_msg": "[{victim}] {died_of_buff} ettől: {attacker}",
+        "hud.chat.npc_melee_kill_msg": "{attacker} megölte őt: [{victim}]",
+        "hud.chat.npc_ranged_kill_msg": "{attacker} lelőtte őt: [{victim}]",
+        "hud.chat.npc_explosion_kill_msg": "{attacker} felrobbantotta őt:[{victim}]",
+        "hud.chat.npc_energy_kill_msg": "{attacker} mágiával megölte őt: [{victim}]",
+        "hud.chat.npc_other_kill_msg": "{attacker} megölte őt: [{victim}]",
+
+        "hud.chat.loot_msg": "Felvetted ezt: [{item}]",
+        "hud.chat.loot_fail": "A hátizsákod tele van!",
+        "hud.chat.goodbye": "Viszlát!",
+        "hud.chat.connection_lost": "A kapcsolat megszakadt. Kirúgás {time} másodpercen belül.",
+    },
+
+
+    vector_map: {
+    }
+)
