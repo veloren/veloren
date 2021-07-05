@@ -131,7 +131,14 @@ impl CharacterBehavior for Data {
 
         handle_move(data, &mut update, 0.4);
 
-        let stage_index = (self.stage - 1) as usize;
+        // Index should be `self.stage - 1`, however in cases of client-server desync
+        // this can cause panics. This ensures that `self.stage - 1` is valid, and if it
+        // isn't, index of 0 is used, which is always safe.
+        let stage_index = self
+            .static_data
+            .stage_data
+            .get(self.stage as usize - 1)
+            .map_or(0, |_| self.stage as usize - 1);
 
         let speed_modifer = 1.0
             + self.static_data.max_speed_increase
