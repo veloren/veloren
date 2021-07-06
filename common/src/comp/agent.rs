@@ -423,6 +423,8 @@ pub struct PidController<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: 
     pv_samples: [(f64, Vec3<f32>); NUM_SAMPLES],
     /// The index into the ring buffer of process variables
     pv_idx: usize,
+    /// The total integral error
+    integral_error: f64,
     /// The error function, to change how the difference between the setpoint
     /// and process variables are calculated
     e: F,
@@ -452,8 +454,9 @@ impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> PidController
             ki,
             kd,
             sp,
-            pv_samples: [(time, Vec3::zero()); NUM_SAMPLES],
+            pv_samples: [(time, sp); NUM_SAMPLES],
             pv_idx: 0,
+            integral_error: 0.0,
             e,
         }
     }
@@ -463,6 +466,7 @@ impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> PidController
         self.pv_idx += 1;
         self.pv_idx %= NUM_SAMPLES;
         self.pv_samples[self.pv_idx] = (time, pv);
+        self.update_integral_err();
     }
 
     /// The amount to set the control variable to is a weighed sum of the
@@ -478,26 +482,22 @@ impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> PidController
     /// and the most recent process variable measurement
     pub fn proportional_err(&self) -> f32 { (self.e)(self.sp, self.pv_samples[self.pv_idx].1) }
 
-    /// The integral error is the error function integrated over the last
-    /// NUM_SAMPLES values. The trapezoid rule for numerical integration was
-    /// chosen because it's fairly easy to calculate and sufficiently accurate.
-    /// https://en.wikipedia.org/wiki/Trapezoidal_rule#Uniform_grid
-    pub fn integral_err(&self) -> f32 {
-        let f = |x| (self.e)(self.sp, x);
-        let (a, x0) = self.pv_samples[(self.pv_idx + 1) % NUM_SAMPLES];
-        let (b, xn) = self.pv_samples[self.pv_idx];
-        let dx = (b - a) / NUM_SAMPLES as f64;
-        let mut err = 0.0;
-        // \Sigma_{k=1}^{N-1} f(x_k)
-        for k in 1..=NUM_SAMPLES - 1 {
-            let xk = self.pv_samples[(self.pv_idx + 1 + k) % NUM_SAMPLES].1;
-            err += f(xk);
+    /// The integral error is the error function integrated over all previous
+    /// values, updated per point. The trapezoid rule for numerical integration
+    /// was chosen because it's fairly easy to calculate and sufficiently
+    /// accurate. https://en.wikipedia.org/wiki/Trapezoidal_rule#Uniform_grid
+    pub fn integral_err(&self) -> f32 { self.integral_error as f32 }
+
+    fn update_integral_err(&mut self) {
+        let f = |x| (self.e)(self.sp, x) as f64;
+        let (a, x0) = self.pv_samples[(self.pv_idx + NUM_SAMPLES - 1) % NUM_SAMPLES];
+        let (b, x1) = self.pv_samples[self.pv_idx];
+        let dx = b - a;
+        // Discard updates with too long between them, likely caused by either
+        // initialization or latency, since they're likely to be spurious
+        if dx < 5.0 {
+            self.integral_error += dx * (f(x1) + f(x0)) / 2.0;
         }
-        // (\Sigma_{k=1}^{N-1} f(x_k)) + \frac{f(x_N) + f(x_0)}{2}
-        err += (f(xn) - f(x0)) / 2.0;
-        // \Delta x * ((\Sigma_{k=1}^{N-1} f(x_k)) + \frac{f(x_N) + f(x_0)}{2})
-        err *= dx as f32;
-        err
     }
 
     /// The derivative error is the numerical derivative of the error function
@@ -520,8 +520,14 @@ pub fn pid_coefficients(body: &Body) -> (f32, f32, f32) {
     match body {
         Body::Ship(ship::Body::DefaultAirship) => {
             let kp = 1.0;
-            let ki = 1.0;
-            let kd = 1.0;
+            let ki = 0.1;
+            let kd = 1.2;
+            (kp, ki, kd)
+        },
+        Body::Ship(ship::Body::AirBalloon) => {
+            let kp = 1.0;
+            let ki = 0.1;
+            let kd = 0.8;
             (kp, ki, kd)
         },
         // default to a pure-proportional controller, which is the first step when tuning

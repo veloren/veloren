@@ -1173,14 +1173,7 @@ fn handle_spawn_airship(
         fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp - pv).z }
         let agent = comp::Agent::default()
             .with_destination(pos)
-            .with_position_pid_controller(comp::PidController::new(
-                kp,
-                ki,
-                kd,
-                Vec3::zero(),
-                0.0,
-                pure_z,
-            ));
+            .with_position_pid_controller(comp::PidController::new(kp, ki, kd, pos, 0.0, pure_z));
         builder = builder.with(agent);
     }
     builder.build();

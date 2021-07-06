@@ -157,14 +157,8 @@ pub fn handle_create_ship(
     if let Some(mut agent) = agent {
         let (kp, ki, kd) = pid_coefficients(&Body::Ship(ship));
         fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp - pv).z }
-        agent = agent.with_position_pid_controller(PidController::new(
-            kp,
-            ki,
-            kd,
-            Vec3::zero(),
-            0.0,
-            pure_z,
-        ));
+        agent =
+            agent.with_position_pid_controller(PidController::new(kp, ki, kd, pos.0, 0.0, pure_z));
         entity = entity.with(agent);
     }
     if let Some(rtsim_entity) = rtsim_entity {
