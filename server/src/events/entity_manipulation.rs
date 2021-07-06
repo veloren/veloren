@@ -24,7 +24,7 @@ use common::{
     outcome::Outcome,
     resources::Time,
     rtsim::RtSimEntity,
-    terrain::{Block, TerrainGrid},
+    terrain::{Block, BlockKind, TerrainGrid},
     uid::{Uid, UidAllocator},
     util::Dir,
     vol::ReadVol,
@@ -767,6 +767,9 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                 let mut block_change = ecs.write_resource::<BlockChange>();
                 for block_pos in touched_blocks {
                     if let Ok(block) = terrain.get(block_pos) {
+                        if matches!(block.kind(), BlockKind::Lava | BlockKind::GlowingRock) {
+                            continue;
+                        }
                         let diff2 = block_pos.map(|b| b as f32).distance_squared(pos);
                         let fade = (1.0 - diff2 / color_range.powi(2)).max(0.0);
                         if let Some(mut color) = block.get_color() {
