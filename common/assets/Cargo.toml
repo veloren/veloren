@@ -7,7 +7,7 @@ version = "0.10.0"
 
 [dependencies]
 lazy_static = "1.4.0"
-assets_manager = {version = "0.5.0", features = ["bincode", "ron", "json", "hot-reloading"]}
+assets_manager = {version = "0.5.0", features = ["bincode", "ron", "json"]}
 ron = { version = "0.6", default-features = false }
 dot_vox = "4.0"
 image = { version = "0.23.12", default-features = false, features = ["png"] }
@@ -21,4 +21,5 @@ serial_test = {version = "0.5", optional = true}
 walkdir = "2.3.2"
 
 [features]
-asset_tweak = ["serial_test", "serde"]
+hot-reloading = ["assets_manager/hot-reloading"]
+asset_tweak = ["serial_test", "serde", "hot-reloading"]

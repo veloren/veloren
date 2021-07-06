@@ -6,6 +6,7 @@ edition = "2018"
 
 [features]
 no-assets = []
+hot-reloading = ["common-assets/hot-reloading"]
 simd = ["vek/platform_intrinsics"]
 bin_csv = ["ron", "csv", "structopt"]
 bin_graphviz = ["petgraph"]
