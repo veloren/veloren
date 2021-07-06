@@ -175,6 +175,7 @@ fn make_component_def(
             } else {
                 0.0
             },
+            range: 0.5,
         },
     };
     let kind = ItemKind::ModularComponent(mc);

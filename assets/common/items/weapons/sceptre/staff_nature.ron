@@ -10,8 +10,10 @@ ItemDef(
             poise_strength: 0.5,
             speed: 1.1,
             crit_chance: 0.16491365,
+            range: 1.0,
         )),
     )),
     quality: Moderate,
     tags: [],
+    ability_spec: None,
 )
