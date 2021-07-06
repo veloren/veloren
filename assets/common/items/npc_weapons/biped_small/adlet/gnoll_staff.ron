@@ -10,9 +10,10 @@ ItemDef(
             poise_strength: 0.8,
             speed: 0.5,
             crit_chance: 0.05059524,
+            range: 1.0,
         )),
     )),
     quality: Low,
     tags: [],
-    ability_set: Some(Custom("Staff Simple")),
+    ability_spec: None,
 )

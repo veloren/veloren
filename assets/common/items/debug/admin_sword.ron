@@ -11,7 +11,7 @@ ItemDef(
                 poise_strength: 999.9,
                 speed: 1.0,
                 crit_chance: 0.5,
-                crit_mult: 2.0,
+                range: 10.0,
             )),            
         )
     ),

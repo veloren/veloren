@@ -10,7 +10,7 @@ ItemDef(
             poise_strength: 0.75,
             speed: 0.0,
             crit_chance: 0.1,
-            crit_mult: 1.0
+            range: 1.0
         ),
     )),
     quality: Common,

@@ -1,6 +1,9 @@
 use crate::{
     combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
-    comp::{tool::ToolKind, CharacterState, Melee, StateUpdate},
+    comp::{
+        tool::{Stats, ToolKind},
+        CharacterState, Melee, StateUpdate,
+    },
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -63,14 +66,15 @@ impl Stage<f32> {
         }
     }
 
-    pub fn adjusted_by_stats(mut self, power: f32, poise_strength: f32, speed: f32) -> Self {
-        self.base_damage *= power;
-        self.damage_increase *= power;
-        self.base_poise_damage *= poise_strength;
-        self.poise_damage_increase *= poise_strength;
-        self.base_buildup_duration /= speed;
-        self.base_swing_duration /= speed;
-        self.base_recover_duration /= speed;
+    pub fn adjusted_by_stats(mut self, stats: Stats) -> Self {
+        self.base_damage *= stats.power;
+        self.damage_increase *= stats.power;
+        self.base_poise_damage *= stats.poise_strength;
+        self.poise_damage_increase *= stats.poise_strength;
+        self.base_buildup_duration /= stats.speed;
+        self.base_swing_duration /= stats.speed;
+        self.base_recover_duration /= stats.speed;
+        self.range *= stats.range;
         self
     }
 

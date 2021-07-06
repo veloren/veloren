@@ -13,6 +13,7 @@ use veloren_common::{
         self,
         item::{
             armor::{ArmorKind, Protection},
+            tool::AbilitySpec,
             ItemDesc, ItemKind, ItemTag, Quality,
         },
     },
@@ -32,6 +33,7 @@ struct FakeItemDef {
     kind: ItemKind,
     quality: Quality,
     tags: Vec<ItemTag>,
+    ability_spec: Option<AbilitySpec>,
 }
 
 impl FakeItemDef {
@@ -41,6 +43,7 @@ impl FakeItemDef {
         kind: ItemKind,
         quality: Quality,
         tags: Vec<ItemTag>,
+        ability_spec: Option<AbilitySpec>,
     ) -> Self {
         Self {
             name,
@@ -48,6 +51,7 @@ impl FakeItemDef {
             kind,
             quality,
             tags,
+            ability_spec,
         }
     }
 }
@@ -206,6 +210,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                                 ItemKind::Armor(armor),
                                 quality,
                                 item.tags().to_vec(),
+                                item.ability_spec.clone(),
                             );
 
                             let pretty_config = PrettyConfig::new()
@@ -327,6 +332,15 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 .parse()
                                 .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
 
+                            let range: f32 = record
+                                .get(headers["Range"])
+                                .expect(&format!(
+                                    "Error unwrapping range for {:?}",
+                                    item.item_definition_id()
+                                ))
+                                .parse()
+                                .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
+
                             let tool = comp::item::tool::Tool::new(
                                 kind,
                                 hands,
@@ -335,6 +349,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 poise_strength,
                                 speed,
                                 crit_chance,
+                                range,
                             );
 
                             let quality = if let Some(quality_raw) = record.get(headers["Quality"])
@@ -375,6 +390,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 ItemKind::Tool(tool),
                                 quality,
                                 item.tags().to_vec(),
+                                item.ability_spec.clone(),
                             );
 
                             let pretty_config = PrettyConfig::new()

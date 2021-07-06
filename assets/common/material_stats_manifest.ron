@@ -6,7 +6,7 @@
         poise_strength: 1.75,
         speed: 1.75,
         crit_chance: 1.75,
-        crit_mult: 1.75,
+        range: 1.0,
     ),
     "common.items.mineral.ingot.bronze": (
         equip_time_secs: 1.0,
@@ -14,7 +14,7 @@
         poise_strength: 0.75,
         speed: 0.75,
         crit_chance: 0.75,
-        crit_mult: 0.75,
+        range: 1.0,
     ),
     "common.items.mineral.ingot.cobalt": (
         equip_time_secs: 1.0,
@@ -22,7 +22,7 @@
         poise_strength: 1.5,
         speed: 1.5,
         crit_chance: 1.5,
-        crit_mult: 1.5,
+        range: 1.0,
     ),
     "common.items.mineral.ingot.copper": (
         equip_time_secs: 1.0,
@@ -30,7 +30,7 @@
         poise_strength: 0.4,
         speed: 0.4,
         crit_chance: 0.4,
-        crit_mult: 0.4,
+        range: 1.0,
     ),
     "common.items.mineral.ingot.iron": (
         equip_time_secs: 1.0,
@@ -38,7 +38,7 @@
         poise_strength: 1.0,
         speed: 1.0,
         crit_chance: 1.0,
-        crit_mult: 1.0,
+        range: 1.0,
     ),
     "common.items.mineral.ingot.steel": (
         equip_time_secs: 1.0,
@@ -46,7 +46,7 @@
         poise_strength: 1.25,
         speed: 1.25,
         crit_chance: 1.25,
-        crit_mult: 1.25,
+        range: 1.0,
     ),
     "common.items.mineral.ingot.tin": (
         equip_time_secs: 1.0,
@@ -54,6 +54,6 @@
         poise_strength: 0.25,
         speed: 0.25,
         crit_chance: 0.25,
-        crit_mult: 0.25,
+        range: 1.0,
     ),
 })
