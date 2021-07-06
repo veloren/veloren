@@ -1,0 +1,119 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Hungarian localization
+(
+    string_map: {
+        // Texts used in multiple locations with the same formatting
+        "common.username": "felhasználónév",
+        "common.singleplayer": "Egyjátékos",
+        "common.multiplayer": "Többjátékos",
+        "common.servers": "Szerverek",
+        "common.quit": "Kilépés",
+        "common.settings": "Beállítások",
+        "common.languages": "Nyelvek",
+        "common.interface": "Felület",
+        "common.gameplay": "Játékmenet",
+        "common.controls": "Irányítás",
+        "common.video": "Grafika",
+        "common.sound": "Hang",
+        "common.chat": "Csevegés",
+        "common.resume": "Folytatás",
+        "common.characters": "Karakterek",
+        "common.close": "Bezárás",
+        "common.yes": "Igen",
+        "common.no": "Nem",
+        "common.back": "Vissza",
+        "common.create": "Létrehozás",
+        "common.okay": "Okés",
+        "common.add": "Hozzáadás",
+        "common.accept": "Elfogadás",
+        "common.decline": "Elutasítás",
+        "common.disclaimer": "Elutasítás",
+        "common.cancel": "Mégse",
+        "common.none": "Egyik sem",
+        "common.error": "Hiba",
+        "common.fatal_error": "Végleges hiba",
+        "common.you": "Te",
+        "common.automatic": "Automatikus",
+        "common.random": "Véletlenszerű",
+        "common.empty": "Üres",
+
+        // Settings Window title
+        "common.interface_settings": "Felület beállítások",
+        "common.gameplay_settings": "Játékmenet beállítások",
+        "common.controls_settings": "Irányítás beállítások",
+        "common.video_settings": "Grafika beállítások",
+        "common.sound_settings": "Hang beállítások",
+        "common.language_settings": "Nyelv beállítások",
+        "common.chat_settings": "Csevegés beállítások",
+
+        // Message when connection to the server is lost
+        "common.connection_lost": r#"A kapcsolat megszakadt!
+Újraindolt a szever?
+A kliens naprakész?"#,
+
+
+        "common.species.orc": "Ork",
+        "common.species.human": "Ember",
+        "common.species.dwarf": "Törpe",
+        "common.species.elf": "Tünde",
+        "common.species.undead": "Élőhalott",
+        "common.species.danari": "Danari",
+
+        "common.weapons.axe": "Fejsze",
+        "common.weapons.sword": "Kard",
+        "common.weapons.staff": "Varázsbot",
+        "common.weapons.bow": "Íj",
+        "common.weapons.hammer": "Pöröly",
+        "common.weapons.general": "Általános harc",
+        "common.weapons.sceptre": "Jogar",
+        "common.weapons.shield": "Pajzs",
+        "common.weapons.spear": "Lándzsa",
+        "common.weapons.hammer_simple": "Egyszerű pöröly",
+        "common.weapons.sword_simple": "Egyszerű kard",
+        "common.weapons.staff_simple": "Egyszerű varázsbot",
+        "common.weapons.axe_simple": "Egyszerű fejsze",
+        "common.weapons.bow_simple": "Egyszerű íj",
+        "common.weapons.unique": "Egyedi",
+        "common.tool.debug": "Hibakeresés",
+        "common.tool.faming": "Földművelési eszköz",
+        "common.tool.pick": "Csákány",
+        "common.tool.mining": "Bányászás",
+        "common.kind.modular_component": "Moduláris összetevő",
+        "common.kind.glider": "Sikló",
+        "common.kind.consumable": "Elfogyasztható",
+        "common.kind.throwable": "Eldobható",
+        "common.kind.utility": "Kellék",
+        "common.kind.ingredient": "Összetevő",
+        "common.kind.lantern": "Lámpás",
+        "common.hands.one": "Egykezes",
+        "common.hands.two": "kétkezes",
+
+        "common.rand_appearance": "Véletlenszerű megjelenés",
+        "common.rand_name": "Véletlenszerű név",
+
+        "common.stats.combat_rating": "Harci értékelés",
+        "common.stats.power": "Erő",
+        "common.stats.speed": "Sebesség",
+        "common.stats.poise": "Hatás",
+        "common.stats.crit_chance": "Kritikus találat esélye",
+        "common.stats.crit_mult": "Kritikus szorzó",
+        "common.stats.armor": "Páncél",
+        "common.stats.poise_res":"Hatásellenállás",
+        "common.stats.energy_max": "Maximum energia",
+        "common.stats.energy_reward": "Energiajutalom",
+        "common.stats.crit_power": "Kritikus erő",
+        "common.stats.stealth": "Lopakodás",
+        "common.stats.slots": "Rekeszek",
+
+        "common.material.metal": "Fém",
+        "common.material.wood": "Fa",
+        "common.material.stone": "Kő",
+        "common.material.cloth": "Ruha",
+        "common.material.hide": "Bőr",
+    },
+
+
+    vector_map: {
+    }
+)

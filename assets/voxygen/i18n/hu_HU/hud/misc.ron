@@ -1,0 +1,54 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Hungarian localization
+(
+    string_map: {
+        "hud.do_not_show_on_startup": "Ne jelenjen meg indításnál",
+        "hud.show_tips": "Tippek megjelenítése",
+        "hud.quests": "Küldetések",
+        "hud.you_died": "Meghaltál",
+        "hud.waypoint_saved": "Útpont elmentve",
+        "hud.sp_arrow_txt": "KP",
+        "hud.inventory_full": "A hátizsák tele van",
+
+        "hud.press_key_to_show_keybindings_fmt": "[{key}] Billentyű-összerendelések",
+        "hud.press_key_to_toggle_lantern_fmt": "[{key}] Lámpás",
+        "hud.press_key_to_show_debug_info_fmt": "Hibakarasési információk megjelenítéséhez nyomd meg ezt: {key}",
+        "hud.press_key_to_toggle_keybindings_fmt": "Billentyű-összerendelések megjelenítéséhez/elrejtéséhez nyomd meg ezt: {key}",
+        "hud.press_key_to_toggle_debug_info_fmt": "Hibakarasési információk megjelenítéséhez/elrejtéséhez nyomd meg ezt: {key}",
+
+        // Respawn message
+        "hud.press_key_to_respawn": r#"Nyomd meg ezt: {key}, hogy újraéledj az utolsó tábortűznél amit meglátogattál."#,
+
+        // Tutorial Button
+        "hud.tutorial_btn": r#"Bemutató"#,
+        "hud.tutorial_click_here": r#"Nyomd meg ezt a gombot: [ {key} ], hogy felszabadítsd a kurzorod, és rá tudj kattintani a gombra!"#,
+        "hud.tutorial_elements": r#"Barkácsolás"#,
+
+"hud.temp_quest_headline": r#"Üdvözlet, utazó!"#,
+"hud.temp_quest_text": r#"Hogy megkezdd az utazásod, elkezdheted átnézni ezt a falut és összegyűjteni egy kis készletet.
+
+Nyugodtan elvihetsz mindent, amire csak szükséged lehet az utazásod során! 
+
+Nézd meg a képernyő jobb alsó sarkát, ahol különböző dolgokat találsz, például a táskád, a barkácsolás menüt és a térképet.
+
+A barkácsállomások lehetővé teszik páncélok, fegyverek, ételek és még sok más elkészítését!
+
+A város körül található vadállatok nagyszerű forrásai az állatbőrnek, amiből védelmet lehet csinálni a világ veszélyei ellen.
+
+Ha készen állsz rá, próbálj még jobb felszerelést szerezni a térképeden megjelölt számos kihívásból!
+"#,
+
+        "hud.spell": "Varázslatok",
+        // Diary
+        "hud.diary": "Napló",
+
+        "hud.free_look_indicator": "Free look active. Press {key} to disable.",
+        "hud.camera_clamp_indicator": "Camera vertical clamp active. Press {key} to disable.",
+        "hud.auto_walk_indicator": "Auto walk/swim active",
+    },
+
+
+    vector_map: {
+    }
+)

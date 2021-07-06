@@ -1,0 +1,48 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Hungarian localization
+(
+    string_map: {
+        // Inventory
+        "hud.bag.inventory": "{playername} hátizsákja",
+        "hud.bag.stats_title": "{playername} statisztikái",
+        "hud.bag.exp": "Tapasztalat",
+        "hud.bag.armor": "Páncél",
+        "hud.bag.stats": "Statisztikák",
+        "hud.bag.head": "Fej",
+        "hud.bag.neck": "Nyak",
+        "hud.bag.tabard": "Kabát",
+        "hud.bag.shoulders": "Vállak",
+        "hud.bag.chest": "Mellkas",
+        "hud.bag.hands": "Kezek",
+        "hud.bag.lantern": "Lámpás",
+        "hud.bag.glider": "Sikló",
+        "hud.bag.belt": "Öv",
+        "hud.bag.ring": "Gyűrű",
+        "hud.bag.back": "Hát",
+        "hud.bag.legs": "Lábak",
+        "hud.bag.feet": "Lábfejek",
+        "hud.bag.mainhand": "Domináns kéz",
+        "hud.bag.offhand": "Másodlagos kéz",
+        "hud.bag.inactive_mainhand": "Inaktív domináns kéz",
+        "hud.bag.inactive_offhand": "Inaktív másodlagos kéz",
+        "hud.bag.swap_equipped_weapons_title": "Felszerelt fegyverek cseréje",
+        "hud.bag.swap_equipped_weapons_desc": "Nyomd meg ezt: {key}",
+        "hud.bag.bag": "Táska",
+        "hud.bag.health": "Életerő",
+        "hud.bag.stamina": "Energia",
+        "hud.bag.combat_rating": "Harci értékelés",
+        "hud.bag.protection": "Védelem",
+        "hud.bag.stun_res": "Hatásellenállás",
+        "hud.bag.combat_rating_desc": "A felszerelésből\n és a az életerőből számítva.",
+        "hud.bag.protection_desc": "Sebzéscsökkentés a páncélon keresztül",
+        "hud.bag.stun_res_desc": "Ellenállás az ellen, hogy az egymást követő ütések elkábítsanak.\n Regenerálódik mint az energia.",
+		"hud.bag.sort_by_name": "Rendezés név szerint",
+		"hud.bag.sort_by_quality": "Rendezés minőség szerint",
+		"hud.bag.sort_by_category": "Rendezés kategória szerint",
+    },
+
+
+    vector_map: {
+    }
+)

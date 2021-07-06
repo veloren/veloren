@@ -1,0 +1,70 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Hungarian localization
+(
+    string_map: {
+        /// Start Main screen section
+        "main.username": "Felhasználónév",
+        "main.server": "Szerver",
+        "main.password": "Jelszó",
+        "main.connecting": "Csatlakozás",
+        "main.creating_world": "Világ létrehozása",
+        "main.tip": "Tipp:",
+
+        // Welcome notice that appears the first time Veloren is started
+        "main.notice": r#"Üdv a Veloren alfa verziójában!
+
+Mielőtt elmerülsz a szórakozásban, tarts néhány dolgot észben:
+
+- Ez még egy nagyon korai alfa verzió. Különféle hibák, befejezetlen játékmenet és mechanika, és hiányzó funkciók várhatók.
+
+- Ha van valamilyen építő jellegű visszajelzésed, vagy hibát szeretnél bejelenteni, kapcsolatba léphetsz velünk Redditen, GitLaben, vagy a közösségi Discord-szerverünkön keresztül.
+
+- A Veloren a GPL 3 nyílt forráskódú licenc alatt van kiadva. Ez azt jelenti, hogy szabadon játszhatsz vele, módosíthatod, és terjesztheted
+ a kívánságod szerint (a származtatott munka szintén a GPL 3 alá tartozik).
+
+- A Veloren egy nonprofit közösségi projekt, és mindenki önkéntesen dolgozik rajta. 
+Ha tetszik amit látsz, nyugodtan csatlakozhatsz a fejlesztői vagy múvészeti csapathoz!
+
+Köszönjük, hogy elovastad ezt a figyelmeztetést, reméljük, élvezed majd a játékot!
+
+~ A Veloren fejlesztők"#,
+
+        // Login process description
+        "main.login_process": r#"Információ a bejelentkezési folyamatról:
+
+Felhívjuk a figyelmed, hogy szükséged van egy fiókra,
+hogy a hitelesített szervereken játssz. 
+
+A következő címen hozhatsz létre fiókot: 
+
+https://veloren.net/account/."#,
+        "main.login.server_not_found": "Szerver nem található",
+        "main.login.authentication_error": "Hitelesítési hiba a szerveren",
+        "main.login.internal_error": "Belső hiba a kliensen (leginkább, ha a játékos karakter törölve lett)",
+        "main.login.failed_auth_server_url_invalid": "Nem sikerült kapcsolódni a hitelesítő szerverhez",
+        "main.login.insecure_auth_scheme": "A HTTP hitelesítés nem támogatott. Nem biztonságos! Fejlesztői célok miatt, a HTTP csak a 'localhost'-on vagy a hibakeresési buildeknél engedélyezett.",
+        "main.login.server_full": "A szerver tele van",
+        "main.login.untrusted_auth_server": "A hitelesítési szerver nem megbízható",
+        "main.login.outdated_client_or_server": "ServerWentMad: Lehet, hogy a verziók nem kompatibilisek, ellenőrizd a frissítéseket.",
+        "main.login.timeout": "Időtúllépés: A szerver nem válaszolt időben. (Túlterhelt, vagy hálózati problémák miatt).",
+        "main.login.server_shut_down": "A szerver leállt",
+        "main.login.network_error": "Hálózati hiba",
+        "main.login.network_wrong_version": "Nem egyezik a szerver és a kliens verziója, frissítsd a játékkliensed.",
+        "main.login.failed_sending_request": "Meghiúsult a hitelesítő szerver felé irányuló kérés",
+        "main.login.invalid_character": "Érvénytelen a kiválasztott karakter",
+        "main.login.client_crashed": "A kliens összeomlott",
+        "main.login.not_on_whitelist": "Egy adminnak hozzá kell adnia a fehérlistához, hogy csatlakozhass",
+        "main.login.banned": "A következő okkal lettél kitiltva",
+        "main.login.kicked": "A következő okkal lettél kirúgva",
+        "main.login.select_language": "Nyelv kiválasztása",
+        "main.login.client_version": "Kliens verzió",
+        "main.login.server_version": "Szerver verzió",
+        "main.servers.select_server": "Szerver kiválasztása",
+        /// End Main screen section
+    },
+
+
+    vector_map: {
+    }
+)

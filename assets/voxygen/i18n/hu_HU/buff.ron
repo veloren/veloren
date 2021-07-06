@@ -1,0 +1,52 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Hungarian localization
+(
+    string_map: {
+        // Buffs
+        "buff.remove": "Kattints rá, hogy eltávolítsd",
+        "buff.title.missing": "Hiányzó cím",
+        "buff.desc.missing": "Hiányzó leírás",
+        "buff.title.heal": "Gyógyulás",
+        "buff.desc.heal": "Életerő visszatöltése idővel.",
+        "buff.title.potion": "Főzet",
+        "buff.desc.potion": "Ivás...",
+        "buff.title.saturation": "Jóllakottság",
+        "buff.desc.saturation": "Életerő visszatöltése idővel, ételekből.",
+        "buff.title.campfire_heal": "Tábortűz melletti gyógyulás",
+        "buff.desc.campfire_heal": "A tábortűz melletti pihenés {rate}% életerőt tölt vissza másodpercenként.",
+        "buff.title.invulnerability": "Sebezhetetlenség",
+        "buff.desc.invulnerability": "Nem sebezhet meg támadás.",
+        "buff.title.protectingward": "Oltalom",
+        "buff.desc.protectingward": "Valahogy védve vagy a támadásoktól.",
+        "buff.title.frenzied": "Dühöngés",
+        "buff.desc.frenzied": "Természetellenes sebesség hat át, és figyelmen kívül hagyhatod a kisebb sérüléseket.",
+        // Debuffs
+        "buff.title.bleed": "Vérzés",
+        "buff.desc.bleed": "Rendszeres kárt okoz.",
+        "buff.title.cursed": "Átkozott",
+        "buff.desc.cursed": "Meg vagy átkozva.",
+        "buff.title.burn": "Égés",
+        "buff.desc.burn": "Élve elégsz.",
+        "buff.title.crippled": "Lebénult",
+        "buff.desc.crippled": "Bénán mozogsz, mert a lábaid erősen megsérültek.",
+        "buff.title.frozen": "Fagyott",
+        "buff.desc.frozen": "A mozgásod és a támadásaid lelassulnak.",
+        "buff.title.wet": "Nedves",
+        "buff.desc.wet": "A föld elutasítja a lábad, így nehéz megállni.",
+        "buff.title.ensnared": "Behálózott",
+        "buff.desc.ensnared": "Indák ragadják meg a lábad akadályozva a mozgást.",
+        // Buffs stats
+        "buff.stat.health": "{str_total} életerőt tölt vissza",
+        "buff.stat.increase_max_stamina": "Raises Maximum Stamina by {strength}",
+        "buff.stat.increase_max_health": "Ennyivel emeli meg a maximális életerőt: {strength}",
+        "buff.stat.invulnerability": "Sebezhetetlenséget ad",
+        // Text
+        "buff.text.over_seconds": "{dur_secs} másodpercre",
+        "buff.text.for_seconds": "{dur_secs} másodpercig",
+    },
+
+
+    vector_map: {
+    }
+)

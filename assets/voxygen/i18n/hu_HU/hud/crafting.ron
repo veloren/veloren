@@ -1,0 +1,38 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Hungarian localization
+(
+    string_map: {
+        "hud.crafting": "Barkácsolás",
+        "hud.crafting.recipes": "Receptek",
+        "hud.crafting.ingredients": "Összetevők:",
+        "hud.crafting.craft": "Barkácsolás",
+        "hud.crafting.tool_cata": "Igényel:",
+        // Crafting Stations
+        "hud.crafting.req_crafting_station": "Igényel:",
+        "hud.crafting.anvil": "Üllő",
+        "hud.crafting.cauldron": "Üst",
+        "hud.crafting.cooking_pot": "Kondér",
+        "hud.crafting.crafting_bench": "Barkácsasztal",
+        "hud.crafting.forge": "Kohó",
+        "hud.crafting.loom": "Szövőszék",
+        "hud.crafting.spinning_wheel": "Rokka",
+        "hud.crafting.tanning_rack": "Cserzőállvány",
+        // Tabs
+        "hud.crafting.tabs.all": "Összes",
+        "hud.crafting.tabs.armor": "Páncél",
+        "hud.crafting.tabs.dismantle": "Szétbontás",
+        "hud.crafting.tabs.food": "Étel",
+        "hud.crafting.tabs.glider": "siklók",
+        "hud.crafting.tabs.potion": "Főzetek",
+        "hud.crafting.tabs.tool": "Eszközök",
+        "hud.crafting.tabs.utility": "Kellékek",
+        "hud.crafting.tabs.weapon": "Fegyverek",
+        "hud.crafting.tabs.bag": "Táskák",
+        "hud.crafting.tabs.processed_material": "Anyagok",
+    },
+
+
+    vector_map: {
+    }
+)

@@ -1,0 +1,22 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Hungarian localization
+(
+    string_map: {
+        "hud.social": "Más játékosok",
+        "hud.social.online": "Online:",
+        "hud.social.friends": "Barátok",
+        "hud.social.not_yet_available": "Még nem elérhető",
+        "hud.social.faction": "Faction",
+        "hud.social.play_online_fmt": "{nb_player} játékos online",
+        "hud.social.name": "Név",
+        "hud.social.level": "Szint",
+        "hud.social.zone": "Zóna",
+        "hud.social.account": "Fiók",
+    },
+
+
+    vector_map: {
+    }
+)
+
