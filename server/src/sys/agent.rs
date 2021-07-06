@@ -17,7 +17,7 @@ use common::{
             tool::{AbilitySpec, ToolKind},
             Item, ItemDesc, ItemKind,
         },
-        skills::{AxeSkill, BowSkill, HammerSkill, Skill, StaffSkill, SwordSkill},
+        skills::{AxeSkill, BowSkill, HammerSkill, Skill, StaffSkill, SwordSkill, SceptreSkill},
         Agent, Alignment, BehaviorCapability, BehaviorState, Body, CharacterAbility,
         CharacterState, ControlAction, ControlEvent, Controller, Energy, Health, HealthChange,
         InputKind, Inventory, InventoryAction, LightEmitter, MountState, Ori, PhysicsState, Pos,
@@ -99,6 +99,7 @@ pub enum Tactic {
     Sword,
     Bow,
     Staff,
+    Sceptre,
     StoneGolem,
     CircleCharge { radius: u32, circle_time: u32 },
     QuadLowRanged,
@@ -1613,6 +1614,7 @@ impl<'a> AgentData<'a> {
         let tool_tactic = |tool_kind| match tool_kind {
             ToolKind::Bow => Tactic::Bow,
             ToolKind::Staff => Tactic::Staff,
+            ToolKind::Sceptre => Tactic::Sceptre,
             ToolKind::Hammer => Tactic::Hammer,
             ToolKind::Sword | ToolKind::Spear => Tactic::Sword,
             ToolKind::Axe => Tactic::Axe,
@@ -1630,6 +1632,7 @@ impl<'a> AgentData<'a> {
                             "Axe Simple" | "Sword Simple" => Tactic::Sword,
                             "Staff Simple" => Tactic::Staff,
                             "Bow Simple" => Tactic::Bow,
+                            "Sceptre Simple" => Tactic::Sceptre,
                             "Stone Golem" => Tactic::StoneGolem,
                             "Quad Med Quick" => Tactic::CircleCharge {
                                 radius: 3,
@@ -1814,6 +1817,9 @@ impl<'a> AgentData<'a> {
             },
             Tactic::Staff => {
                 self.handle_staff_attack(agent, controller, &attack_data, &tgt_data, &read_data)
+            },
+            Tactic::Sceptre => {
+                self.handle_sceptre_attack(agent, controller, &attack_data, &tgt_data, &read_data)
             },
             Tactic::StoneGolem => self.handle_stone_golem_attack(
                 agent,
@@ -2427,6 +2433,130 @@ impl<'a> AgentData<'a> {
                     .push(ControlAction::basic_input(InputKind::Roll));
             }
         } else {
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
+        }
+    }
+
+    fn handle_sceptre_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const DESIRED_ENERGY_LEVEL: u32 = 500;
+        // Logic to use abilities
+        if attack_data.dist_sqrd > attack_data.min_attack_dist.powi(2)
+            && can_see_tgt(
+                &*read_data.terrain,
+                self.pos,
+                tgt_data.pos,
+                attack_data.dist_sqrd,
+            )
+        {
+            // If far enough away, and can see target, attempt to shoot beam
+            if self.energy.current() < DESIRED_ENERGY_LEVEL {
+                // If low on energy, use primary to attempt to regen energy
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+            } else if self
+                .skill_set
+                .has_skill(Skill::Sceptre(SceptreSkill::UnlockAura))
+                && self.energy.current() > 100
+                && thread_rng().gen_bool(0.7)
+            {
+                // Use ward if target is far enough away and have sufficient energy
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+            }
+            else {
+                // If at desired energy level but not able to ward, just attack
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+            }
+        } else if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
+            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+                && self.energy.current() > CharacterAbility::default_roll().get_energy_cost()
+                && !matches!(self.char_state, CharacterState::BasicAura(c) if !matches!(c.stage_section, StageSection::Recover))
+            {
+                // Else roll away if can roll and have enough energy, and not using beam
+                // (other attacks have interrupt handled above) unless in recover
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Roll));
+            } else { 
+                if attack_data.angle < 15.0 {
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Primary));
+                }
+            }
+        }
+        // Logic to move. Intentionally kept separate from ability logic so duplicated
+        // work is less necessary.
+        if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
+            // Attempt to move away from target if too close
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+            }
+        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
+            // Else attempt to circle target if neither too close nor too far
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                if can_see_tgt(
+                    &*read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                ) && attack_data.angle < 45.0
+                {
+                    controller.inputs.move_dir = bearing
+                        .xy()
+                        .rotated_z(thread_rng().gen_range(0.5..1.57))
+                        .try_normalized()
+                        .unwrap_or_else(Vec2::zero)
+                        * speed;
+                } else {
+                    // Unless cannot see target, then move towards them
+                    controller.inputs.move_dir =
+                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                    self.jump_if(controller, bearing.z > 1.5);
+                    controller.inputs.move_z = bearing.z;
+                }
+            }
+            // Sometimes try to roll
+            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+                && attack_data.dist_sqrd < 16.0f32.powi(2)
+                && thread_rng().gen::<f32>() < 0.01
+            {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Roll));
+            }
+        } else {
+            // If too far, move towards target
             self.path_toward_target(agent, controller, tgt_data, read_data, false, None);
         }
     }
