@@ -767,23 +767,22 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                 let mut block_change = ecs.write_resource::<BlockChange>();
                 for block_pos in touched_blocks {
                     if let Ok(block) = terrain.get(block_pos) {
-                        if matches!(block.kind(), BlockKind::Lava | BlockKind::GlowingRock) {
-                            continue;
-                        }
-                        let diff2 = block_pos.map(|b| b as f32).distance_squared(pos);
-                        let fade = (1.0 - diff2 / color_range.powi(2)).max(0.0);
-                        if let Some(mut color) = block.get_color() {
-                            let r = color[0] as f32
-                                + (fade * (color[0] as f32 * 0.5 - color[0] as f32));
-                            let g = color[1] as f32
-                                + (fade * (color[1] as f32 * 0.3 - color[1] as f32));
-                            let b = color[2] as f32
-                                + (fade * (color[2] as f32 * 0.3 - color[2] as f32));
-                            // Darken blocks, but not too much
-                            color[0] = (r as u8).max(30);
-                            color[1] = (g as u8).max(30);
-                            color[2] = (b as u8).max(30);
-                            block_change.set(block_pos, Block::new(block.kind(), color));
+                        if !matches!(block.kind(), BlockKind::Lava | BlockKind::GlowingRock) {
+                            let diff2 = block_pos.map(|b| b as f32).distance_squared(pos);
+                            let fade = (1.0 - diff2 / color_range.powi(2)).max(0.0);
+                            if let Some(mut color) = block.get_color() {
+                                let r = color[0] as f32
+                                    + (fade * (color[0] as f32 * 0.5 - color[0] as f32));
+                                let g = color[1] as f32
+                                    + (fade * (color[1] as f32 * 0.3 - color[1] as f32));
+                                let b = color[2] as f32
+                                    + (fade * (color[2] as f32 * 0.3 - color[2] as f32));
+                                // Darken blocks, but not too much
+                                color[0] = (r as u8).max(30);
+                                color[1] = (g as u8).max(30);
+                                color[2] = (b as u8).max(30);
+                                block_change.set(block_pos, Block::new(block.kind(), color));
+                            }
                         }
                     }
                 }
