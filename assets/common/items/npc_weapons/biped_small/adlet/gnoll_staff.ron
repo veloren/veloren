@@ -15,5 +15,5 @@ ItemDef(
     )),
     quality: Low,
     tags: [],
-    ability_spec: None,
+    ability_spec: Some(Custom("Staff Simple")),
 )
