@@ -5,28 +5,20 @@ compile_error!("Can't use both \"be-dyn-lib\" and \"use-dyn-lib\" features at on
 
 mod character_states;
 
+use crate::character_states::draw_char_state_group;
 use client::{Client, Join, World, WorldExt};
 use common::{
     comp,
-    comp::{Poise, PoiseState},
+    comp::{aura::AuraKind::Buff, Body, Fluid, Poise, PoiseState},
 };
 use core::mem;
 use egui::{
-    plot::{Plot, Value},
-    widgets::plot::Curve,
+    plot::{Line, Plot, Value, Values},
     CollapsingHeader, Color32, Grid, Label, ScrollArea, Slider, Ui, Window,
 };
-
-fn two_col_row(ui: &mut Ui, label: impl Into<Label>, content: impl Into<Label>) {
-    ui.label(label);
-    ui.label(content);
-    ui.end_row();
-}
-
-use crate::character_states::draw_char_state_group;
-use common::comp::{aura::AuraKind::Buff, Body, Fluid};
 use egui_winit_platform::Platform;
 use std::time::Duration;
+
 #[cfg(feature = "use-dyn-lib")]
 use {
     lazy_static::lazy_static, std::ffi::CStr, std::sync::Arc, std::sync::Mutex,
@@ -256,13 +248,14 @@ pub fn maintain_egui_inner(
         .default_width(200.0)
         .default_height(200.0)
         .show(ctx, |ui| {
-            let plot = Plot::new("Frame Time").curve(Curve::from_values_iter(
+            let line = Line::new(Values::from_values_iter(
                 egui_state
                     .frame_times
                     .iter()
                     .enumerate()
                     .map(|(i, x)| Value::new(i as f64, *x)),
             ));
+            let plot = Plot::new("Frame Time").line(line);
             ui.add(plot);
         });
 
@@ -674,6 +667,12 @@ fn body_species(body: &Body) -> String {
         Body::QuadrupedLow(body) => format!("{:?}", body.species),
         Body::Ship(body) => format!("{:?}", body),
     }
+}
+
+fn two_col_row(ui: &mut Ui, label: impl Into<Label>, content: impl Into<Label>) {
+    ui.label(label);
+    ui.label(content);
+    ui.end_row();
 }
 
 fn poise_state_label(ui: &mut Ui, poise: &Poise) {

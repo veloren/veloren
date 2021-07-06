@@ -51,8 +51,8 @@ voxygen-egui = {package = "veloren-voxygen-egui", path = "egui", optional = true
 
 # Graphics
 winit = {version = "0.25.0", features = ["serde"]}
-wgpu = { version = "=0.8.0", features = ["trace", "cross"] }
-wgpu-profiler = { git = "https://github.com/Imberflur/wgpu-profiler", tag = "wgpu-0.8" }
+wgpu = { version = "0.9.0", features = ["trace", "cross"] }
+wgpu-profiler = "0.5.0"
 bytemuck = { version="1.4", features=["derive"] }
 shaderc = "0.6.2"
 
@@ -67,9 +67,9 @@ glyph_brush = "0.7.0"
 keyboard-keynames = { git = "https://gitlab.com/Frinksy/keyboard-keynames.git", rev = "9ae8f89014d0b0c5b61d0e821c5aeb6140c5c0dc" }
 
 # EGUI
-egui = {version = "0.12", optional = true }
-egui_wgpu_backend = {git = "https://github.com/hasenbanck/egui_wgpu_backend.git", rev = "63a002c6a9b6c016e45806dd065864431caab621", optional = true }
-egui_winit_platform = {version = "0.8", optional = true }
+egui = {version = "0.13", optional = true }
+egui_wgpu_backend = { version = "0.10.0", optional = true }
+egui_winit_platform = {version = "0.9", optional = true }
 
 # ECS
 specs = {git = "https://github.com/amethyst/specs.git", rev = "f985bec5d456f7b0dd8aae99848f9473c2cd9d46"}
