@@ -91,6 +91,17 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
         return;
     };
 
+    // Disallow inventory manipulation while dead
+    if state
+        .ecs()
+        .read_storage::<comp::Health>()
+        .get(entity)
+        .map_or(false, |h| h.is_dead)
+    {
+        debug!("Can't manipulate inventory; entity is dead");
+        return;
+    }
+
     match manip {
         comp::InventoryManip::Pickup(uid) => {
             let item_entity = if let Some(item_entity) = state.ecs().entity_from_uid(uid.into()) {
@@ -112,16 +123,6 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 );
                 return;
             }
-
-            // Grab the health from the entity and check if the entity is dead.
-            let healths = state.ecs().read_storage::<comp::Health>();
-            if let Some(entity_health) = healths.get(entity) {
-                if entity_health.is_dead {
-                    debug!("Failed to pick up item as the entity is dead");
-                    return; // If dead, don't continue
-                }
-            }
-            drop(healths);
 
             // First, we remove the item, assuming picking it up will succeed (we do this to
             // avoid cloning the item, as we should not call Item::clone and it

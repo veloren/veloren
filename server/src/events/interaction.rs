@@ -49,7 +49,11 @@ pub fn handle_lantern(server: &mut Server, entity: EcsEntity, enable: bool) {
                 .ecs()
                 .write_storage::<comp::LightEmitter>()
                 .remove(entity);
-        } else {
+        } else if ecs // Only enable lantern if entity is alive
+            .read_storage::<comp::Health>()
+            .get(entity)
+            .map_or(true, |h| !h.is_dead)
+        {
             let inventory_storage = ecs.read_storage::<Inventory>();
             let lantern_opt = inventory_storage
                 .get(entity)
