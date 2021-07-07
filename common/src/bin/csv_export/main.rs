@@ -101,6 +101,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
         "Speed",
         "Crit Chance",
         "Range",
+        "Energy Efficiency",
         "Equip Time (s)",
         "Description",
     ])?;
@@ -122,6 +123,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                 let speed = tool.base_speed(&msm, &[]).to_string();
                 let crit_chance = tool.base_crit_chance(&msm, &[]).to_string();
                 let range = tool.base_range(&msm, &[]).to_string();
+                let energy_efficiency = tool.base_energy_efficiency(&msm, &[]).to_string();
                 let equip_time = tool.equip_time(&msm, &[]).as_secs_f32().to_string();
                 let kind = get_tool_kind(&tool.kind);
                 let hands = get_tool_hands(&tool);
@@ -137,6 +139,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                     &speed,
                     &crit_chance,
                     &range,
+                    &energy_efficiency,
                     &equip_time,
                     item.description(),
                 ])?;

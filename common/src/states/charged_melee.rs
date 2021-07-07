@@ -35,8 +35,6 @@ pub struct StaticData {
     pub range: f32,
     /// Max angle (45.0 will give you a 90.0 angle window)
     pub max_angle: f32,
-    /// Speed stat of the weapon
-    pub speed: f32,
     /// How long it takes to charge the weapon to max damage and knockback
     pub charge_duration: Duration,
     /// How long the weapon is swinging for
@@ -88,20 +86,14 @@ impl CharacterBehavior for Data {
 
                     // Charge the attack
                     update.character = CharacterState::ChargedMelee(Data {
-                        timer: tick_attack_or_default(
-                            data,
-                            self.timer,
-                            Some(self.static_data.speed),
-                        ),
+                        timer: tick_attack_or_default(data, self.timer, None),
                         charge_amount: charge,
                         ..*self
                     });
 
                     // Consumes energy if there's enough left and RMB is held down
                     update.energy.change_by(EnergyChange {
-                        amount: -(self.static_data.energy_drain as f32
-                            * data.dt.0
-                            * self.static_data.speed) as i32,
+                        amount: -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
                         source: EnergySource::Ability,
                     });
                 } else if input_is_pressed(data, self.static_data.ability_info.input)
@@ -109,20 +101,13 @@ impl CharacterBehavior for Data {
                 {
                     // Maintains charge
                     update.character = CharacterState::ChargedMelee(Data {
-                        timer: tick_attack_or_default(
-                            data,
-                            self.timer,
-                            Some(self.static_data.speed),
-                        ),
+                        timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
 
                     // Consumes energy if there's enough left and RMB is held down
                     update.energy.change_by(EnergyChange {
-                        amount: -(self.static_data.energy_drain as f32
-                            * data.dt.0
-                            * self.static_data.speed
-                            / 5.0) as i32,
+                        amount: -(self.static_data.energy_drain as f32 * data.dt.0 / 5.0) as i32,
                         source: EnergySource::Ability,
                     });
                 } else {

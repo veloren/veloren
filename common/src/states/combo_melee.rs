@@ -66,16 +66,23 @@ impl Stage<f32> {
         }
     }
 
-    pub fn adjusted_by_stats(mut self, stats: Stats) -> Self {
-        self.base_damage *= stats.power;
-        self.damage_increase *= stats.power;
-        self.base_poise_damage *= stats.poise_strength;
-        self.poise_damage_increase *= stats.poise_strength;
-        self.base_buildup_duration /= stats.speed;
-        self.base_swing_duration /= stats.speed;
-        self.base_recover_duration /= stats.speed;
-        self.range *= stats.range;
-        self
+    pub fn adjusted_by_stats(self, stats: Stats) -> Self {
+        Self {
+            stage: self.stage,
+            base_damage: self.base_damage * stats.power,
+            damage_increase: self.damage_increase * stats.power,
+            base_poise_damage: self.base_poise_damage * stats.poise_strength,
+            poise_damage_increase: self.poise_damage_increase * stats.poise_strength,
+            knockback: self.knockback,
+            range: self.range * stats.range,
+            angle: self.angle,
+            base_buildup_duration: self.base_buildup_duration / stats.speed,
+            base_swing_duration: self.base_swing_duration / stats.speed,
+            hit_timing: self.hit_timing,
+            base_recover_duration: self.base_recover_duration / stats.speed,
+            forward_movement: self.forward_movement,
+            damage_kind: self.damage_kind,
+        }
     }
 
     pub fn modify_strike(mut self, knockback_mult: f32) -> Self {

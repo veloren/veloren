@@ -81,6 +81,7 @@ pub struct Stats {
     pub speed: f32,
     pub crit_chance: f32,
     pub range: f32,
+    pub energy_efficiency: f32,
 }
 
 impl Stats {
@@ -92,6 +93,7 @@ impl Stats {
             speed: 0.0,
             crit_chance: 0.0,
             range: 0.0,
+            energy_efficiency: 0.0,
         }
     }
 
@@ -154,6 +156,7 @@ impl Sub<Stats> for Stats {
             speed: self.speed - other.speed,
             crit_chance: self.crit_chance - other.crit_chance,
             range: self.range - other.range,
+            energy_efficiency: self.range - other.energy_efficiency,
         }
     }
 }
@@ -232,6 +235,7 @@ impl From<(&MaterialStatManifest, &[Item], &Tool)> for Stats {
             speed: raw_stats.speed * speed,
             crit_chance: raw_stats.crit_chance,
             range: raw_stats.range,
+            energy_efficiency: raw_stats.energy_efficiency,
         }
     }
 }
@@ -257,6 +261,7 @@ impl Tool {
         speed: f32,
         crit_chance: f32,
         range: f32,
+        energy_efficiency: f32,
     ) -> Self {
         Self {
             kind,
@@ -268,6 +273,7 @@ impl Tool {
                 speed,
                 crit_chance,
                 range,
+                energy_efficiency,
             }),
         }
     }
@@ -283,6 +289,7 @@ impl Tool {
                 speed: 1.00,
                 crit_chance: 0.1,
                 range: 1.0,
+                energy_efficiency: 1.0,
             }),
         }
     }
@@ -309,6 +316,10 @@ impl Tool {
 
     pub fn base_range(&self, msm: &MaterialStatManifest, components: &[Item]) -> f32 {
         self.stats.resolve_stats(msm, components).range
+    }
+
+    pub fn base_energy_efficiency(&self, msm: &MaterialStatManifest, components: &[Item]) -> f32 {
+        self.stats.resolve_stats(msm, components).energy_efficiency
     }
 
     pub fn equip_time(&self, msm: &MaterialStatManifest, components: &[Item]) -> Duration {

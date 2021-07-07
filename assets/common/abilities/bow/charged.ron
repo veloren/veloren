@@ -7,7 +7,6 @@ ChargedRanged(
     scaled_damage: 120,
     initial_knockback: 0.0,
     scaled_knockback: 10.0,
-    speed: 1.0,
     buildup_duration: 0.2,
     charge_duration: 1.0,
     recover_duration: 0.3,

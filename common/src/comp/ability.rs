@@ -194,7 +194,6 @@ pub enum CharacterAbility {
         scaled_knockback: f32,
         range: f32,
         max_angle: f32,
-        speed: f32,
         charge_duration: f32,
         swing_duration: f32,
         hit_timing: f32,
@@ -211,7 +210,6 @@ pub enum CharacterAbility {
         scaled_damage: f32,
         initial_knockback: f32,
         scaled_knockback: f32,
-        speed: f32,
         buildup_duration: f32,
         charge_duration: f32,
         recover_duration: f32,
@@ -406,13 +404,17 @@ impl CharacterAbility {
         use CharacterAbility::*;
         match self {
             BasicMelee {
+                ref mut energy_cost,
                 ref mut buildup_duration,
                 ref mut swing_duration,
                 ref mut recover_duration,
                 ref mut base_damage,
                 ref mut base_poise_damage,
+                knockback: _,
                 ref mut range,
-                ..
+                max_angle: _,
+                damage_effect: _,
+                damage_kind: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *swing_duration /= stats.speed;
@@ -420,51 +422,72 @@ impl CharacterAbility {
                 *base_damage *= stats.power;
                 *base_poise_damage *= stats.poise_strength;
                 *range *= stats.range;
+                *energy_cost /= stats.energy_efficiency;
             },
             BasicRanged {
+                ref mut energy_cost,
                 ref mut buildup_duration,
                 ref mut recover_duration,
                 ref mut projectile,
+                projectile_body: _,
+                projectile_light: _,
                 ref mut projectile_speed,
-                ..
+                num_projectiles: _,
+                projectile_spread: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *projectile = projectile.modified_projectile(stats.power, 1_f32, 1_f32);
                 *projectile_speed *= stats.range;
+                *energy_cost /= stats.energy_efficiency;
             },
             RepeaterRanged {
+                ref mut energy_cost,
                 ref mut buildup_duration,
                 ref mut shoot_duration,
                 ref mut recover_duration,
+                max_speed: _,
+                half_speed_at: _,
                 ref mut projectile,
+                projectile_body: _,
+                projectile_light: _,
                 ref mut projectile_speed,
-                ..
             } => {
                 *buildup_duration /= stats.speed;
                 *shoot_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *projectile = projectile.modified_projectile(stats.power, 1_f32, 1_f32);
                 *projectile_speed *= stats.range;
+                *energy_cost /= stats.energy_efficiency;
             },
             Boost {
                 ref mut movement_duration,
+                only_up: _,
                 speed: ref mut boost_speed,
-                ..
+                max_exit_velocity: _,
             } => {
                 *movement_duration /= stats.speed;
                 *boost_speed *= stats.power;
             },
             DashMelee {
+                ref mut energy_cost,
                 ref mut base_damage,
                 ref mut scaled_damage,
                 ref mut base_poise_damage,
                 ref mut scaled_poise_damage,
+                base_knockback: _,
+                scaled_knockback: _,
+                ref mut range,
+                angle: _,
+                ref mut energy_drain,
+                forward_speed: _,
                 ref mut buildup_duration,
+                charge_duration: _,
                 ref mut swing_duration,
                 ref mut recover_duration,
-                ref mut range,
-                ..
+                charge_through: _,
+                is_interruptible: _,
+                damage_kind: _,
             } => {
                 *base_damage *= stats.power;
                 *scaled_damage *= stats.power;
@@ -474,29 +497,45 @@ impl CharacterAbility {
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *range *= stats.range;
+                *energy_cost /= stats.energy_efficiency;
+                *energy_drain /= stats.energy_efficiency;
             },
             BasicBlock {
                 ref mut buildup_duration,
                 ref mut recover_duration,
-                /* Block strength explicitly not modified by power, that will be a separate stat
-                 * Do we want angle to be adjusted by range? */
-                ..
+                // Do we want angle to be adjusted by range?
+                max_angle: _,
+                // Block strength explicitly not modified by power, that will be a separate stat
+                block_strength: _,
+                ref mut energy_cost,
             } => {
                 *buildup_duration /= stats.speed;
                 *recover_duration /= stats.speed;
+                *energy_cost /= stats.energy_efficiency;
             },
             Roll {
+                ref mut energy_cost,
                 ref mut buildup_duration,
                 ref mut movement_duration,
                 ref mut recover_duration,
-                ..
+                roll_strength: _,
+                immune_melee: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *movement_duration /= stats.speed;
                 *recover_duration /= stats.speed;
+                *energy_cost /= stats.energy_efficiency;
             },
             ComboMelee {
-                ref mut stage_data, ..
+                ref mut stage_data,
+                initial_energy_gain: _,
+                max_energy_gain: _,
+                energy_increase: _,
+                speed_increase: _,
+                max_speed_increase: _,
+                scales_from_combo: _,
+                is_interruptible: _,
+                ori_modifier: _,
             } => {
                 *stage_data = stage_data
                     .iter_mut()
@@ -504,13 +543,19 @@ impl CharacterAbility {
                     .collect();
             },
             LeapMelee {
+                ref mut energy_cost,
                 ref mut buildup_duration,
+                movement_duration: _,
                 ref mut swing_duration,
                 ref mut recover_duration,
                 ref mut base_damage,
                 ref mut base_poise_damage,
                 ref mut range,
-                ..
+                max_angle: _,
+                knockback: _,
+                forward_leap_strength: _,
+                vertical_leap_strength: _,
+                damage_kind: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *swing_duration /= stats.speed;
@@ -518,6 +563,7 @@ impl CharacterAbility {
                 *base_damage *= stats.power;
                 *base_poise_damage *= stats.poise_strength;
                 *range *= stats.range;
+                *energy_cost /= stats.energy_efficiency;
             },
             SpinMelee {
                 ref mut buildup_duration,
@@ -525,8 +571,18 @@ impl CharacterAbility {
                 ref mut recover_duration,
                 ref mut base_damage,
                 ref mut base_poise_damage,
+                knockback: _,
                 ref mut range,
-                ..
+                damage_effect: _,
+                ref mut energy_cost,
+                is_infinite: _,
+                movement_behavior: _,
+                is_interruptible: _,
+                forward_speed: _,
+                num_spins: _,
+                specifier: _,
+                target: _,
+                damage_kind: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *swing_duration /= stats.speed;
@@ -534,57 +590,79 @@ impl CharacterAbility {
                 *base_damage *= stats.power;
                 *base_poise_damage *= stats.poise_strength;
                 *range *= stats.range;
+                *energy_cost /= stats.energy_efficiency;
             },
             ChargedMelee {
+                ref mut energy_cost,
+                ref mut energy_drain,
                 ref mut initial_damage,
                 ref mut scaled_damage,
                 ref mut initial_poise_damage,
                 ref mut scaled_poise_damage,
-                speed: ref mut ability_speed,
-                ref mut charge_duration,
-                ref mut swing_duration,
-                ref mut recover_duration,
+                initial_knockback: _,
+                scaled_knockback: _,
                 ref mut range,
-                ..
+                max_angle: _,
+                charge_duration: _,
+                ref mut swing_duration,
+                hit_timing: _,
+                ref mut recover_duration,
+                specifier: _,
+                damage_kind: _,
             } => {
                 *initial_damage *= stats.power;
                 *scaled_damage *= stats.power;
                 *initial_poise_damage *= stats.poise_strength;
                 *scaled_poise_damage *= stats.poise_strength;
-                *ability_speed *= stats.speed;
-                *charge_duration /= stats.speed;
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *range *= stats.range;
+                *energy_cost /= stats.energy_efficiency;
+                *energy_drain /= stats.energy_efficiency;
             },
             ChargedRanged {
+                ref mut energy_cost,
+                ref mut energy_drain,
+                initial_regen: _,
+                scaled_regen: _,
                 ref mut initial_damage,
                 ref mut scaled_damage,
-                speed: ref mut ability_speed,
+                initial_knockback: _,
+                scaled_knockback: _,
                 ref mut buildup_duration,
-                ref mut charge_duration,
+                charge_duration: _,
                 ref mut recover_duration,
+                projectile_body: _,
+                projectile_light: _,
                 ref mut initial_projectile_speed,
                 ref mut scaled_projectile_speed,
-                ..
+                move_speed: _,
             } => {
                 *initial_damage *= stats.power;
                 *scaled_damage *= stats.power;
-                *ability_speed *= stats.speed;
                 *buildup_duration /= stats.speed;
-                *charge_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *initial_projectile_speed *= stats.range;
                 *scaled_projectile_speed *= stats.range;
+                *energy_cost /= stats.energy_efficiency;
+                *energy_drain /= stats.energy_efficiency;
             },
             Shockwave {
+                ref mut energy_cost,
                 ref mut buildup_duration,
                 ref mut swing_duration,
                 ref mut recover_duration,
                 ref mut damage,
                 ref mut poise_damage,
+                knockback: _,
+                shockwave_angle: _,
+                shockwave_vertical_angle: _,
+                shockwave_speed: _,
                 ref mut shockwave_duration,
-                ..
+                requires_ground: _,
+                move_efficiency: _,
+                damage_kind: _,
+                specifier: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *swing_duration /= stats.speed;
@@ -592,15 +670,22 @@ impl CharacterAbility {
                 *damage *= stats.power;
                 *poise_damage *= stats.poise_strength;
                 *shockwave_duration *= stats.range;
+                *energy_cost /= stats.energy_efficiency;
             },
             BasicBeam {
                 ref mut buildup_duration,
                 ref mut recover_duration,
+                ref mut beam_duration,
                 ref mut damage,
                 ref mut tick_rate,
                 ref mut range,
-                ref mut beam_duration,
-                ..
+                max_angle: _,
+                damage_effect: _,
+                energy_regen: _,
+                ref mut energy_drain,
+                orientation_behavior: _,
+                ori_rate: _,
+                specifier: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *recover_duration /= stats.speed;
@@ -609,40 +694,55 @@ impl CharacterAbility {
                 *range *= stats.range;
                 // Duration modified to keep velocity constant
                 *beam_duration *= stats.range;
+                *energy_drain /= stats.energy_efficiency;
             },
             BasicAura {
                 ref mut buildup_duration,
                 ref mut cast_duration,
                 ref mut recover_duration,
-                ref mut aura,
+                targets: _,
+                aura:
+                    aura::AuraBuffConstructor {
+                        kind: _,
+                        ref mut strength,
+                        duration: _,
+                        category: _,
+                    },
+                aura_duration: _,
                 ref mut range,
-                ..
+                ref mut energy_cost,
             } => {
                 *buildup_duration /= stats.speed;
                 *cast_duration /= stats.speed;
                 *recover_duration /= stats.speed;
-                aura.strength *= stats.power;
+                *strength *= stats.power;
                 *range *= stats.range;
+                *energy_cost /= stats.energy_efficiency;
             },
             HealingBeam {
                 ref mut buildup_duration,
                 ref mut recover_duration,
+                ref mut beam_duration,
                 ref mut heal,
                 ref mut tick_rate,
                 ref mut range,
-                ..
+                max_angle: _,
+                ref mut energy_cost,
+                specifier: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *heal *= stats.power;
                 *tick_rate *= stats.speed;
                 *range *= stats.range;
+                // Duration modified to keep velocity constant
+                *beam_duration *= stats.range;
+                *energy_cost /= stats.energy_efficiency;
             },
             Blink {
                 ref mut buildup_duration,
                 ref mut recover_duration,
                 ref mut max_range,
-                ..
             } => {
                 *buildup_duration /= stats.speed;
                 *recover_duration /= stats.speed;
@@ -652,41 +752,47 @@ impl CharacterAbility {
                 ref mut buildup_duration,
                 ref mut cast_duration,
                 ref mut recover_duration,
-                ref mut summon_distance,
-                ..
+                summon_amount: _,
+                summon_distance: (ref mut inner_dist, ref mut outer_dist),
+                summon_info: _,
+                duration: _,
             } => {
                 // TODO: Figure out how/if power should affect this
                 *buildup_duration /= stats.speed;
                 *cast_duration /= stats.speed;
                 *recover_duration /= stats.speed;
-                summon_distance.0 *= stats.range;
-                summon_distance.1 *= stats.range;
+                *inner_dist *= stats.range;
+                *outer_dist *= stats.range;
             },
             SelfBuff {
-                ref mut buff_strength,
                 ref mut buildup_duration,
                 ref mut cast_duration,
                 ref mut recover_duration,
-                ..
+                buff_kind: _,
+                ref mut buff_strength,
+                buff_duration: _,
+                ref mut energy_cost,
             } => {
                 *buff_strength *= stats.power;
                 *buildup_duration /= stats.speed;
                 *cast_duration /= stats.speed;
                 *recover_duration /= stats.speed;
+                *energy_cost /= stats.energy_efficiency;
             },
             SpriteSummon {
                 ref mut buildup_duration,
                 ref mut cast_duration,
                 ref mut recover_duration,
-                ref mut summon_distance,
-                ..
+                sprite: _,
+                summon_distance: (ref mut inner_dist, ref mut outer_dist),
+                sparseness: _,
             } => {
                 // TODO: Figure out how/if power should affect this
                 *buildup_duration /= stats.speed;
                 *cast_duration /= stats.speed;
                 *recover_duration /= stats.speed;
-                summon_distance.0 *= stats.range;
-                summon_distance.1 *= stats.range;
+                *inner_dist *= stats.range;
+                *outer_dist *= stats.range;
             },
         }
         self
@@ -963,7 +1069,7 @@ impl CharacterAbility {
                         ref mut scaled_damage,
                         ref mut scaled_knockback,
                         ref mut energy_drain,
-                        ref mut speed,
+                        ref mut charge_duration,
                         ..
                     } => {
                         if let Ok(Some(level)) = skillset.skill_level(Hammer(CDamage)) {
@@ -976,7 +1082,7 @@ impl CharacterAbility {
                             *energy_drain *= 0.75_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Hammer(CSpeed)) {
-                            *speed *= 1.25_f32.powi(level.into());
+                            *charge_duration /= 1.25_f32.powi(level.into());
                         }
                     },
                     LeapMelee {
@@ -1018,10 +1124,10 @@ impl CharacterAbility {
                         ref mut scaled_regen,
                         ref mut initial_knockback,
                         ref mut scaled_knockback,
-                        ref mut speed,
                         ref mut move_speed,
                         ref mut initial_projectile_speed,
                         ref mut scaled_projectile_speed,
+                        ref mut charge_duration,
                         ..
                     } => {
                         if let Ok(Some(level)) = skillset.skill_level(Bow(ProjSpeed)) {
@@ -1045,7 +1151,7 @@ impl CharacterAbility {
                             *scaled_knockback *= knockback_scaling;
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CSpeed)) {
-                            *speed *= 1.1_f32.powi(level.into());
+                            *charge_duration /= 1.1_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CMove)) {
                             *move_speed *= 1.1_f32.powi(level.into());
@@ -1560,7 +1666,6 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 scaled_poise_damage,
                 initial_knockback,
                 scaled_knockback,
-                speed,
                 charge_duration,
                 swing_duration,
                 hit_timing,
@@ -1579,7 +1684,6 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     scaled_poise_damage: *scaled_poise_damage,
                     initial_knockback: *initial_knockback,
                     scaled_knockback: *scaled_knockback,
-                    speed: *speed,
                     range: *range,
                     max_angle: *max_angle,
                     charge_duration: Duration::from_secs_f32(*charge_duration),
@@ -1604,7 +1708,6 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 scaled_damage,
                 initial_knockback,
                 scaled_knockback,
-                speed,
                 buildup_duration,
                 charge_duration,
                 recover_duration,
@@ -1623,7 +1726,6 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     scaled_regen: *scaled_regen,
                     initial_damage: *initial_damage,
                     scaled_damage: *scaled_damage,
-                    speed: *speed,
                     initial_knockback: *initial_knockback,
                     scaled_knockback: *scaled_knockback,
                     projectile_body: *projectile_body,
