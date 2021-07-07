@@ -16,7 +16,7 @@
         "common.video": "Vidéo",
         "common.sound": "Audio",
         "common.resume": "Reprendre",
-        "common.characters": "Personages",
+        "common.characters": "Personnages",
         "common.close": "Fermer",
         "common.yes": "Oui",
         "common.no": "Non",
@@ -46,8 +46,8 @@
 
         // Message when connection to the server is lost
         "common.connection_lost": r#"Connexion perdue !
-Le serveur a-t-il redémarré?
-Le client est-il à jour?"#,
+Le serveur a-t-il redémarré ?
+Le client est-il à jour ?"#,
 
 
         "common.species.orc": "Orc",
@@ -98,7 +98,7 @@ Le client est-il à jour?"#,
         "common.stats.poise_res": "Res Impact",
         "common.stats.slots": "Emplacements",
 
-        "common.material.metal": "Metal",
+        "common.material.metal": "Métal",
         "common.material.wood": "Bois",
         "common.material.stone": "Pierre",
         "common.material.cloth": "Tissu",
