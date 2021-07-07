@@ -12,7 +12,9 @@ use common::{
     comp::{self},
     generation::{ChunkSupplement, EntityInfo},
     store::{Id, Store},
-    terrain::{Block, BlockKind, SpriteKind, Structure, StructuresGroup, TerrainChunkSize},
+    terrain::{
+        BiomeKind, Block, BlockKind, SpriteKind, Structure, StructuresGroup, TerrainChunkSize,
+    },
     vol::RectVolSize,
 };
 use core::{f32, hash::BuildHasherDefault};
@@ -1364,17 +1366,27 @@ impl SiteStructure for Dungeon {
     fn render<F: FnMut(Primitive) -> Id<Primitive>, G: FnMut(Id<Primitive>, Fill)>(
         &self,
         _site: &site2::Site,
+        land: &Land,
         mut prim: F,
         mut fill: G,
     ) {
         let origin = (self.origin + Vec2::broadcast(TILE_SIZE / 2)).with_z(self.alt + ALT_OFFSET);
 
         lazy_static! {
-            pub static ref ENTRANCES: AssetHandle<StructuresGroup> =
-                Structure::load_group("dungeon_entrances");
+            pub static ref JUNGLE: AssetHandle<StructuresGroup> =
+                Structure::load_group("dungeon_entrances.jungle");
+            pub static ref GRASSLAND: AssetHandle<StructuresGroup> =
+                Structure::load_group("dungeon_entrances.grassland");
         }
 
-        let entrances = ENTRANCES.read();
+        let biome = land
+            .get_chunk_at(self.origin)
+            .map_or(BiomeKind::Void, |c| c.get_biome());
+        let entrances = match biome {
+            BiomeKind::Jungle => *JUNGLE,
+            _ => *GRASSLAND,
+        };
+        let entrances = entrances.read();
         let entrance = entrances[self.seed as usize % entrances.len()].clone();
 
         let entrance_prim = prim(Primitive::Prefab(entrance.clone()));

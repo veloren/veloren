@@ -20,19 +20,21 @@ use std::{f32, ops::Range};
 use vek::*;
 
 lazy_static! {
-    static ref OAKS: AssetHandle<StructuresGroup> = Structure::load_group("oaks");
-    static ref OAK_STUMPS: AssetHandle<StructuresGroup> = Structure::load_group("oak_stumps");
-    static ref PINES: AssetHandle<StructuresGroup> = Structure::load_group("pines");
-    static ref PALMS: AssetHandle<StructuresGroup> = Structure::load_group("palms");
-    static ref ACACIAS: AssetHandle<StructuresGroup> = Structure::load_group("acacias");
-    static ref BAOBABS: AssetHandle<StructuresGroup> = Structure::load_group("baobabs");
-    static ref FRUIT_TREES: AssetHandle<StructuresGroup> = Structure::load_group("fruit_trees");
-    static ref BIRCHES: AssetHandle<StructuresGroup> = Structure::load_group("birch");
+    static ref OAKS: AssetHandle<StructuresGroup> = Structure::load_group("trees.oaks");
+    static ref OAK_STUMPS: AssetHandle<StructuresGroup> = Structure::load_group("trees.oak_stumps");
+    static ref PINES: AssetHandle<StructuresGroup> = Structure::load_group("trees.pines");
+    static ref PALMS: AssetHandle<StructuresGroup> = Structure::load_group("trees.palms");
+    static ref ACACIAS: AssetHandle<StructuresGroup> = Structure::load_group("trees.acacias");
+    static ref BAOBABS: AssetHandle<StructuresGroup> = Structure::load_group("trees.baobabs");
+    static ref FRUIT_TREES: AssetHandle<StructuresGroup> =
+        Structure::load_group("trees.fruit_trees");
+    static ref BIRCHES: AssetHandle<StructuresGroup> = Structure::load_group("trees.birch");
     static ref MANGROVE_TREES: AssetHandle<StructuresGroup> =
-        Structure::load_group("mangrove_trees");
-    static ref QUIRKY: AssetHandle<StructuresGroup> = Structure::load_group("quirky");
-    static ref QUIRKY_DRY: AssetHandle<StructuresGroup> = Structure::load_group("quirky_dry");
-    static ref SWAMP_TREES: AssetHandle<StructuresGroup> = Structure::load_group("swamp_trees");
+        Structure::load_group("trees.mangrove_trees");
+    static ref QUIRKY: AssetHandle<StructuresGroup> = Structure::load_group("trees.quirky");
+    static ref QUIRKY_DRY: AssetHandle<StructuresGroup> = Structure::load_group("trees.quirky_dry");
+    static ref SWAMP_TREES: AssetHandle<StructuresGroup> =
+        Structure::load_group("trees.swamp_trees");
 }
 
 static MODEL_RAND: RandomPerm = RandomPerm::new(0xDB21C052);

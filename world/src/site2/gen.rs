@@ -270,15 +270,20 @@ pub trait Structure {
     fn render<F: FnMut(Primitive) -> Id<Primitive>, G: FnMut(Id<Primitive>, Fill)>(
         &self,
         site: &Site,
+        land: &Land,
         prim: F,
         fill: G,
     );
 
     // Generate a primitive tree and fills for this structure
-    fn render_collect(&self, site: &Site) -> (Store<Primitive>, Vec<(Id<Primitive>, Fill)>) {
+    fn render_collect(
+        &self,
+        site: &Site,
+        land: &Land,
+    ) -> (Store<Primitive>, Vec<(Id<Primitive>, Fill)>) {
         let mut tree = Store::default();
         let mut fills = Vec::new();
-        self.render(site, |p| tree.insert(p), |p, f| fills.push((p, f)));
+        self.render(site, land, |p| tree.insert(p), |p, f| fills.push((p, f)));
         (tree, fills)
     }
 }
