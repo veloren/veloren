@@ -11,6 +11,7 @@ ItemDef(
             speed: 0.8,
             crit_chance: 0.11666667,
             range: 1.0,
+            energy_efficiency: 1.0,
         )),
     )),
     quality: Legendary,

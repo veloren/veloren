@@ -11,6 +11,7 @@ ItemDef(
             speed: 1.1,
             crit_chance: 0.14958791,
             range: 1.0,
+            energy_efficiency: 1.0,
         )),
     )),
     quality: Common,

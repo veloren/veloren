@@ -35,8 +35,6 @@ pub struct StaticData {
     pub initial_knockback: f32,
     /// How much the knockback scales as it is charged
     pub scaled_knockback: f32,
-    /// Speed stat of the weapon
-    pub speed: f32,
     /// Projectile information
     pub projectile_body: Body,
     pub projectile_light: Option<LightEmitter>,
@@ -135,38 +133,25 @@ impl CharacterBehavior for Data {
                 {
                     // Charges
                     update.character = CharacterState::ChargedRanged(Data {
-                        timer: tick_attack_or_default(
-                            data,
-                            self.timer,
-                            Some(self.static_data.speed),
-                        ),
+                        timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
 
                     // Consumes energy if there's enough left and input is held down
                     update.energy.change_by(EnergyChange {
-                        amount: -(self.static_data.energy_drain as f32
-                            * data.dt.0
-                            * self.static_data.speed) as i32,
+                        amount: -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
                         source: EnergySource::Ability,
                     });
                 } else if input_is_pressed(data, self.static_data.ability_info.input) {
                     // Holds charge
                     update.character = CharacterState::ChargedRanged(Data {
-                        timer: tick_attack_or_default(
-                            data,
-                            self.timer,
-                            Some(self.static_data.speed),
-                        ),
+                        timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
 
                     // Consumes energy if there's enough left and RMB is held down
                     update.energy.change_by(EnergyChange {
-                        amount: -(self.static_data.energy_drain as f32
-                            * data.dt.0
-                            * self.static_data.speed
-                            / 5.0) as i32,
+                        amount: -(self.static_data.energy_drain as f32 * data.dt.0 / 5.0) as i32,
                         source: EnergySource::Ability,
                     });
                 }

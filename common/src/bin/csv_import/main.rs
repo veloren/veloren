@@ -341,6 +341,15 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 .parse()
                                 .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
 
+                            let energy_efficiency: f32 = record
+                                .get(headers["Energy Efficiency"])
+                                .expect(&format!(
+                                    "Error unwrapping energy efficiency for {:?}",
+                                    item.item_definition_id()
+                                ))
+                                .parse()
+                                .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
+
                             let tool = comp::item::tool::Tool::new(
                                 kind,
                                 hands,
@@ -350,6 +359,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 speed,
                                 crit_chance,
                                 range,
+                                energy_efficiency,
                             );
 
                             let quality = if let Some(quality_raw) = record.get(headers["Quality"])
