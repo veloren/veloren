@@ -2455,25 +2455,27 @@ impl<'a> AgentData<'a> {
                 attack_data.dist_sqrd,
             )
         {
-            // If far enough away, and can see target, attempt to shoot beam
-            if self.energy.current() < DESIRED_ENERGY_LEVEL {
-                // If low on energy, use primary to attempt to regen energy
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
-            } else if self
+            // If far enough away, and can see target, check which skill is appropriate to use
+            if self
                 .skill_set
                 .has_skill(Skill::Sceptre(SceptreSkill::UnlockAura))
-                && self.energy.current() > 100
-                && thread_rng().gen_bool(0.7)
+                && self.energy.current() > DESIRED_ENERGY_LEVEL
+                && !read_data.buffs.get(*self.entity)
+                    .iter()
+                    .any(|buff| buff.iter_kind(BuffKind::ProtectingWard)
+                        .peekable()
+                        .peek()
+                        .is_some())
+                && thread_rng().gen_bool(0.4)
             {
-                // Use ward if target is far enough away and have sufficient energy
+                // Use ward if target is far enough away, self is not buffed, and have sufficient energy
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Ability(0)));
             }
             else {
-                // If at desired energy level but not able to ward, just attack
+                // If low on energy, use primary to attempt to regen energy
+                // Or if at desired energy level but not able to ward, just attack
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Primary));
