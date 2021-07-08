@@ -80,6 +80,9 @@ widget_ids! {
         waypoint_txt,
         map_mode_btn,
         map_mode_overlay,
+        minimap_mode_btn,
+        minimap_mode_overlay,
+
     }
 }
 
@@ -1193,7 +1196,7 @@ impl<'a> Widget for Map<'a> {
             .bottom_right_with_margins_on(state.ids.map_layers[0], -36.0, 0.0)
             .with_tooltip(
                 self.tooltip_manager,
-                "Change Map Mode",
+                i18n.get("hud.map.change_map_mode"),
                 "",
                 &site_tooltip,
                 TEXT_COLOR,
@@ -1208,6 +1211,30 @@ impl<'a> Widget for Map<'a> {
             .graphics_for(state.ids.map_mode_btn)
             .middle_of(state.ids.map_mode_btn)
             .set(state.ids.map_mode_overlay, ui);
+
+        // Render voxel view on minimap
+        if Button::image(self.imgs.button)
+            .w_h(92.0, icon_size.y)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
+            .left_from(state.ids.map_mode_btn, 5.0)
+            .with_tooltip(
+                self.tooltip_manager,
+                i18n.get("hud.map.toggle_minimap_voxel"),
+                i18n.get("hud.map.zoom_minimap_explanation"),
+                &site_tooltip,
+                TEXT_COLOR,
+            )
+            .set(state.ids.minimap_mode_btn, ui)
+            .was_clicked()
+        {
+            events.push(Event::SettingsChange(MapShowVoxelMap(!show_voxel_map)));
+        };
+        Button::image(self.imgs.minimap_mode_overlay)
+            .w_h(92.0, icon_size.y)
+            .graphics_for(state.ids.minimap_mode_btn)
+            .middle_of(state.ids.minimap_mode_btn)
+            .set(state.ids.minimap_mode_overlay, ui);
 
         events
     }

@@ -16,7 +16,7 @@ use crate::{
             },
             Element, IcedRenderer, IcedUi as Ui,
         },
-        img_ids::ImageGraphic,
+        img_ids::{BlankGraphic, ImageGraphic},
     },
     window, GlobalState,
 };
@@ -116,6 +116,9 @@ image_ids_ice! {
         // Tooltips
         tt_edge: "voxygen.element.ui.generic.frames.tooltip.edge",
         tt_corner: "voxygen.element.ui.generic.frames.tooltip.corner",
+
+        <BlankGraphic>
+        nothing: (),
     }
 }
 
@@ -437,9 +440,13 @@ impl Controls {
                                         Space::new(Length::Units(16), Length::Units(16)),
                                     )
                                     .style(
-                                        style::button::Style::new(imgs.delete_button)
-                                            .hover_image(imgs.delete_button_hover)
-                                            .press_image(imgs.delete_button_press),
+                                        style::button::Style::new(if Some(i) != selected {
+                                            imgs.nothing
+                                        } else {
+                                            imgs.delete_button
+                                        })
+                                        .hover_image(imgs.delete_button_hover)
+                                        .press_image(imgs.delete_button_press),
                                     )
                                     .on_press(Message::Delete(i))
                                     .with_tooltip(
@@ -470,7 +477,7 @@ impl Controls {
                                             style::button::Style::new(if Some(i) == selected {
                                                 imgs.selection_hover
                                             } else {
-                                                imgs.selection
+                                                imgs.nothing
                                             })
                                             .hover_image(imgs.selection_hover)
                                             .press_image(imgs.selection_press),
@@ -481,7 +488,7 @@ impl Controls {
                                     )
                                     .ratio_of_image(imgs.selection),
                                 )
-                                .padding(12)
+                                .padding(2)
                                 .align_x(Align::End)
                                 .into()
                             },

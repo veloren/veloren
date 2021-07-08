@@ -241,7 +241,7 @@
         // Mining
         "hud.skill.mining_title": "Mining",
         "hud.skill.pick_strike_title": "Pickaxe Strike",
-        "hud.skill.pick_strike": "Hit rocks with the pickaxe to gain ore and gems and experience",
+        "hud.skill.pick_strike": "Hit rocks with the pickaxe to gain ore, gems and experience",
         "hud.skill.pick_strike_speed_title": "Pickaxe Strike Speed",
         "hud.skill.pick_strike_speed": "Mine rocks faster{SP}",
         "hud.skill.pick_strike_oregain_title": "Pickaxe Strike Ore Yield",
