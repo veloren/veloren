@@ -17,7 +17,7 @@ use common::{
             tool::{AbilitySpec, ToolKind},
             Item, ItemDesc, ItemKind,
         },
-        skills::{AxeSkill, BowSkill, HammerSkill, Skill, StaffSkill, SwordSkill, SceptreSkill},
+        skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
         Agent, Alignment, BehaviorCapability, BehaviorState, Body, CharacterAbility,
         CharacterState, ControlAction, ControlEvent, Controller, Energy, Health, HealthChange,
         InputKind, Inventory, InventoryAction, LightEmitter, MountState, Ori, PhysicsState, Pos,
@@ -2455,27 +2455,28 @@ impl<'a> AgentData<'a> {
                 attack_data.dist_sqrd,
             )
         {
-            // If far enough away, and can see target, check which skill is appropriate to use
+            // If far enough away, and can see target, check which skill is appropriate to
+            // use
             if self
                 .skill_set
                 .has_skill(Skill::Sceptre(SceptreSkill::UnlockAura))
                 && self.energy.current() > DESIRED_ENERGY_LEVEL
-                && !read_data.buffs.get(*self.entity)
-                    .iter()
-                    .any(|buff| buff.iter_kind(BuffKind::ProtectingWard)
+                && !read_data.buffs.get(*self.entity).iter().any(|buff| {
+                    buff.iter_kind(BuffKind::ProtectingWard)
                         .peekable()
                         .peek()
-                        .is_some())
+                        .is_some()
+                })
                 && thread_rng().gen_bool(0.4)
             {
-                // Use ward if target is far enough away, self is not buffed, and have sufficient energy
+                // Use ward if target is far enough away, self is not buffed, and have
+                // sufficient energy
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Ability(0)));
-            }
-            else {
+            } else {
                 // If low on energy, use primary to attempt to regen energy
-                // Or if at desired energy level but not able to ward, just attack
+                // Or if at desired energy level but not able/willing to ward, just attack
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Primary));
@@ -2485,17 +2486,15 @@ impl<'a> AgentData<'a> {
                 && self.energy.current() > CharacterAbility::default_roll().get_energy_cost()
                 && !matches!(self.char_state, CharacterState::BasicAura(c) if !matches!(c.stage_section, StageSection::Recover))
             {
-                // Else roll away if can roll and have enough energy, and not using beam
-                // (other attacks have interrupt handled above) unless in recover
+                // Else roll away if can roll and have enough energy, and not using beam or in
+                // recover
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Roll));
-            } else { 
-                if attack_data.angle < 15.0 {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Primary));
-                }
+            } else if attack_data.angle < 15.0 {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
             }
         }
         // Logic to move. Intentionally kept separate from ability logic so duplicated
