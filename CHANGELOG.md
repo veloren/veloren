@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ability to toggle chat visibility
 - Added gem rings with various stat improvements.
 - Animations for using consumables.
+- AI for sceptre weilders and sceptre cultists in Tier 5 dungeons
 
 ### Changed
 

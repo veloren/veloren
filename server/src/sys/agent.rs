@@ -2495,8 +2495,8 @@ impl<'a> AgentData<'a> {
                     .push(ControlAction::basic_input(InputKind::Primary));
             }
         }
-        // Logic to move. Intentionally kept separate from ability logic so duplicated
-        // work is less necessary.
+        // Logic to move. Intentionally kept separate from ability logic where possible
+        // so duplicated work is less necessary.
         if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
             // Attempt to move away from target if too close
             if let Some((bearing, speed)) = agent.chaser.chase(
@@ -2547,6 +2547,7 @@ impl<'a> AgentData<'a> {
             }
             // Sometimes try to roll
             if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+                && !matches!(self.char_state, CharacterState::BasicAura(_))
                 && attack_data.dist_sqrd < 16.0f32.powi(2)
                 && thread_rng().gen::<f32>() < 0.01
             {
