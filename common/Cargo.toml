@@ -26,8 +26,8 @@ enum-iterator = "0.6"
 vek = { version = "=0.14.1", features = ["serde"] }
 
 # Strum
-strum = "0.20"
-strum_macros = "0.20"
+strum = "0.21"
+strum_macros = "0.21"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 approx = "0.4.0"
