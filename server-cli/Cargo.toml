@@ -29,10 +29,10 @@ common-frontend = { package = "veloren-common-frontend", path = "../common/front
 
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread"] }
 num_cpus = "1.0"
-ansi-parser = "0.7"
+ansi-parser = "0.8"
 clap = "2.33"
 structopt = "0.3.13"
-crossterm = "0.19"
+crossterm = "0.20"
 lazy_static = "1"
 signal-hook = "0.3.6"
 shell-words = "1.0.0"
