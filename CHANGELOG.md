@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Animations for using consumables.
 - New danari character customizations
 - Bald hairstyles for humans and danari
+- AI for sceptre weilders and sceptre cultists in Tier 5 dungeons
 
 ### Changed
 
