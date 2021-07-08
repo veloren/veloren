@@ -1632,7 +1632,6 @@ impl<'a> AgentData<'a> {
                             "Axe Simple" | "Sword Simple" => Tactic::Sword,
                             "Staff Simple" => Tactic::Staff,
                             "Bow Simple" => Tactic::Bow,
-                            "Sceptre Simple" => Tactic::Sceptre,
                             "Stone Golem" => Tactic::StoneGolem,
                             "Quad Med Quick" => Tactic::CircleCharge {
                                 radius: 3,
@@ -2467,7 +2466,6 @@ impl<'a> AgentData<'a> {
                         .peek()
                         .is_some()
                 })
-                && thread_rng().gen_bool(0.4)
             {
                 // Use ward if target is far enough away, self is not buffed, and have
                 // sufficient energy
@@ -2482,11 +2480,11 @@ impl<'a> AgentData<'a> {
                     .push(ControlAction::basic_input(InputKind::Primary));
             }
         } else if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
-            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+            if self.body.map_or(false, |b| b.is_humanoid())
                 && self.energy.current() > CharacterAbility::default_roll().get_energy_cost()
                 && !matches!(self.char_state, CharacterState::BasicAura(c) if !matches!(c.stage_section, StageSection::Recover))
             {
-                // Else roll away if can roll and have enough energy, and not using beam or in
+                // Else roll away if can roll and have enough energy, and not using aura or in
                 // recover
                 controller
                     .actions
