@@ -171,7 +171,8 @@ impl Attack {
         attack_source: AttackSource,
         mut emit: impl FnMut(ServerEvent),
         mut emit_outcome: impl FnMut(Outcome),
-    ) {
+    ) -> bool {
+        let mut is_applied = false;
         let is_crit = thread_rng().gen::<f32>() < self.crit_chance;
         let mut accumulated_damage = 0.0;
         for damage in self
@@ -180,6 +181,7 @@ impl Attack {
             .filter(|d| d.target.map_or(true, |t| t == target_group))
             .filter(|d| !(matches!(d.target, Some(GroupTarget::OutOfGroup)) && target_dodging))
         {
+            is_applied = true;
             let damage_reduction = Attack::compute_damage_reduction(
                 &target,
                 attack_source,
@@ -340,6 +342,7 @@ impl Attack {
                     }
                 },
             }) {
+                is_applied = true;
                 match effect.effect {
                     CombatEffect::Knockback(kb) => {
                         let impulse = kb.calculate_impulse(dir);
@@ -423,6 +426,7 @@ impl Attack {
                 }
             }
         }
+        is_applied
     }
 }
 
