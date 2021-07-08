@@ -289,13 +289,13 @@ impl Species {
     pub fn num_hair_styles(self, body_type: BodyType) -> u8 {
         match (self, body_type) {
             (Species::Danari, BodyType::Female) => 4,
-            (Species::Danari, BodyType::Male) => 4,
+            (Species::Danari, BodyType::Male) => 5,
             (Species::Dwarf, BodyType::Female) => 8,
             (Species::Dwarf, BodyType::Male) => 4,
             (Species::Elf, BodyType::Female) => 21,
             (Species::Elf, BodyType::Male) => 4,
             (Species::Human, BodyType::Female) => 19,
-            (Species::Human, BodyType::Male) => 17,
+            (Species::Human, BodyType::Male) => 18,
             (Species::Orc, BodyType::Female) => 7,
             (Species::Orc, BodyType::Male) => 8,
             (Species::Undead, BodyType::Female) => 6,
@@ -305,8 +305,8 @@ impl Species {
 
     pub fn num_accessories(self, body_type: BodyType) -> u8 {
         match (self, body_type) {
-            (Species::Danari, BodyType::Female) => 1,
-            (Species::Danari, BodyType::Male) => 1,
+            (Species::Danari, BodyType::Female) => 7,
+            (Species::Danari, BodyType::Male) => 7,
             (Species::Dwarf, BodyType::Female) => 7,
             (Species::Dwarf, BodyType::Male) => 7,
             (Species::Elf, BodyType::Female) => 2,
@@ -342,7 +342,7 @@ impl Species {
     pub fn num_beards(self, body_type: BodyType) -> u8 {
         match (self, body_type) {
             (Species::Danari, BodyType::Female) => 1,
-            (Species::Danari, BodyType::Male) => 2,
+            (Species::Danari, BodyType::Male) => 16,
             (Species::Dwarf, BodyType::Female) => 1,
             (Species::Dwarf, BodyType::Male) => 20,
             (Species::Elf, BodyType::Female) => 1,

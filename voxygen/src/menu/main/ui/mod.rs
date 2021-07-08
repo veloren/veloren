@@ -11,7 +11,7 @@ use crate::{
         self,
         fonts::IcedFonts as Fonts,
         ice::{load_font, style, widget, Element, IcedUi as Ui},
-        img_ids::{ImageGraphic, VoxelGraphic},
+        img_ids::ImageGraphic,
         Graphic,
     },
     window, GlobalState,
@@ -34,10 +34,8 @@ pub const FILL_FRAC_TWO: f32 = 0.53;
 
 image_ids_ice! {
     struct Imgs {
-        <VoxelGraphic>
-        v_logo: "voxygen.element.v_logo",
-
         <ImageGraphic>
+        v_logo: "voxygen.element.v_logo",
         bg: "voxygen.background.bg_main",
         banner_top: "voxygen.element.ui.generic.frames.banner_top",
         banner_gradient_bottom: "voxygen.element.ui.generic.frames.banner_gradient_bottom",

@@ -356,6 +356,7 @@ image_ids! {
         indicator_group_down: "voxygen.element.ui.map.buttons.group_indicator_arrow_down",
         location_marker: "voxygen.element.ui.map.buttons.location_marker",
         map_mode_overlay: "voxygen.element.ui.map.buttons.map_modes",
+        minimap_mode_overlay: "voxygen.element.ui.map.buttons.minimap_modes",
 
         // MiniMap
         mmap_frame: "voxygen.element.ui.minimap.mmap",
