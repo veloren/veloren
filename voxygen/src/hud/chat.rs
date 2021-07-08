@@ -106,11 +106,11 @@ impl<'a> Chat<'a> {
     }
 
     pub fn prepare_tab_completion(mut self, input: String) -> Self {
-        if let Some(index) = input.find('\t') {
-            self.force_completions = Some(cmd::complete(&input[..index], &self.client));
+        self.force_completions = if let Some(index) = input.find('\t') {
+            Some(cmd::complete(&input[..index], &self.client))
         } else {
-            self.force_completions = None;
-        }
+            None
+        };
         self
     }
 
