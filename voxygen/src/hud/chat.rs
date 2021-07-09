@@ -222,13 +222,13 @@ impl<'a> Widget for Chat<'a> {
             state.update(|s| s.messages.extend(self.new_messages.drain(..)));
             // Prevent automatic scroll upon new messages if not already scrolled to bottom
             if Self::scrolled_to_bottom(state, ui) {
-                ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
+                ui.scroll_widget(state.ids.message_box, [0.0, f64::MAX]);
             }
         }
 
         // Trigger scroll event queued from previous frame
         if state.scroll_next {
-            ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
+            ui.scroll_widget(state.ids.message_box, [0.0, f64::MAX]);
             state.update(|s| s.scroll_next = false);
         }
 
@@ -636,7 +636,7 @@ impl<'a> Widget for Chat<'a> {
                 .set(state.ids.chat_arrow, ui)
                 .was_clicked()
         {
-            ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
+            ui.scroll_widget(state.ids.message_box, [0.0, f64::MAX]);
         }
 
         // We've started a new tab completion. Populate tab completion suggestions.
