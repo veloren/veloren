@@ -1,36 +1,20 @@
 # Template to only run if actual changes has been made to the code and not just documentation
 .recompile-branch:
   rules:
-    - if: $CI_COMMIT_REF_NAME !~ /^master$/
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       # No '-' here is *very* important: https://docs.gitlab.com/ee/ci/yaml/#complex-rule-clauses
       changes:
-        - "**/*.{glsl,rs,ron,toml,vox,png}"
+        - "**/*.{glsl,png,rs,ron,toml,vox,yml,wav}"
         - "rust-toolchain"
         - "Cargo.lock"
         - ".gitlab-ci.yml"
-        - "**/*.yml"
 
 # TODO: appears unused
 # like .recompile-branch but will run on master too
 .recompile:
   rules:
     - changes:
-        - "**/*.{glsl,rs,ron,toml,vox,png,wav}"
+        - "**/*.{glsl,png,rs,ron,toml,vox,yml,wav}"
         - "rust-toolchain"
         - "Cargo.lock"
         - ".gitlab-ci.yml"
-        - "**/*.yml"
-
-# Template to only run these after a branch has merged to master
-.post-merge:
-  stage: build
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: never
-    - if: $CI_COMMIT_REF_NAME =~ /^master$/
-      changes:
-        - "**/*.{glsl,rs,ron,toml,vox,png}"
-        - "rust-toolchain"
-        - "Cargo.lock"
-        - ".gitlab-ci.yml"
-        - "**/*.yml"

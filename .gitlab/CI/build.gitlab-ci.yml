@@ -15,7 +15,7 @@ unittests:
     max: 2
 
 benchmarks:
-  extends: .post-merge
+  extends: .release
   stage: build
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/bench:${CACHE_IMAGE_TAG}
   tags:
@@ -43,7 +43,7 @@ benchmarks:
 # Coverage is needed on master for the README.md badge to work
 # tmp remove simd as it doesnt work with tarpaulin: https://github.com/rust-lang/rust/issues/77529
 coverage:
-  extends: .post-merge
+  extends: .release
   stage: build
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/tarpaulin:${CACHE_IMAGE_TAG}
   script:
