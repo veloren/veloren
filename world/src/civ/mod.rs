@@ -364,11 +364,10 @@ impl Civs {
     pub fn sites(&self) -> impl Iterator<Item = &Site> + '_ { self.sites.values() }
 
     #[allow(dead_code)]
-    #[allow(clippy::print_literal)] // TODO: Pending review in #587
     fn display_info(&self) {
         for (id, civ) in self.civs.iter() {
             println!("# Civilisation {:?}", id);
-            println!("Name: {}", "<unnamed>");
+            println!("Name: <unnamed>");
             println!("Homeland: {:#?}", self.places.get(civ.homeland));
         }
 
