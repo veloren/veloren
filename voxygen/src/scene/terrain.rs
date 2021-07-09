@@ -748,7 +748,6 @@ impl<V: RectRasterableVol> Terrain<V> {
 
     /// Maintain terrain data. To be called once per tick.
     #[allow(clippy::for_loops_over_fallibles)] // TODO: Pending review in #587
-    #[allow(clippy::len_zero)] // TODO: Pending review in #587
     pub fn maintain(
         &mut self,
         renderer: &mut Renderer,
