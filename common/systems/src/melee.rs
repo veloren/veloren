@@ -161,7 +161,7 @@ impl<'a> System<'a> for Sys {
                         char_state: read_data.char_states.get(target),
                     };
 
-                    melee_attack.attack.apply_attack(
+                    let is_applied = melee_attack.attack.apply_attack(
                         target_group,
                         attacker_info,
                         target_info,
@@ -173,7 +173,9 @@ impl<'a> System<'a> for Sys {
                         |o| outcomes.push(o),
                     );
 
-                    melee_attack.hit_count += 1;
+                    if is_applied {
+                        melee_attack.hit_count += 1;
+                    }
                 }
             }
         }
