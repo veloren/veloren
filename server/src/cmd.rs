@@ -57,7 +57,6 @@ pub trait ChatCommandExt {
     fn execute(&self, server: &mut Server, entity: EcsEntity, args: Vec<String>);
 }
 impl ChatCommandExt for ChatCommand {
-    #[allow(clippy::needless_return)] // TODO: Pending review in #587
     fn execute(&self, server: &mut Server, entity: EcsEntity, args: Vec<String>) {
         // TODO: Pass arguments to commands as Vec<String>, not String, to support
         // proper parsing.
@@ -1636,7 +1635,6 @@ fn handle_kit(
 }
 
 #[allow(clippy::float_cmp)] // TODO: Pending review in #587
-#[allow(clippy::needless_return)] // TODO: Pending review in #587
 fn handle_object(
     server: &mut Server,
     client: EcsEntity,
