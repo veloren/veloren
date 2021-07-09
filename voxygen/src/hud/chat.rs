@@ -126,7 +126,7 @@ impl<'a> Chat<'a> {
         self
     }
 
-    fn scrolled_to_bottom(state: &State, ui: &UiCell) -> bool {
+    pub fn scrolled_to_bottom(state: &State, ui: &UiCell) -> bool {
         // Might be more efficient to cache result and update it when a scroll event has
         // occurred instead of every frame.
         if let Some(scroll) = ui
@@ -218,9 +218,12 @@ impl<'a> Widget for Chat<'a> {
         let current_chat_tab = chat_settings.chat_tab_index.and_then(|i| chat_tabs.get(i));
         // Maintain scrolling //
         if !self.new_messages.is_empty() {
-            //new messages - update chat w/ them & scroll down
+            //new messages - update chat w/ them & scroll down if at bottom of chat
             state.update(|s| s.messages.extend(self.new_messages.drain(..)));
-            ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
+            // Prevent automatic scroll upon new messages if not already scrolled to bottom
+            if Self::scrolled_to_bottom(state, ui) {
+                ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
+            }
         }
 
         // Trigger scroll event queued from previous frame
