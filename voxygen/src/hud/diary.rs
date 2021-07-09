@@ -17,7 +17,7 @@ use conrod_core::{
 use client::{self, Client};
 use common::comp::{
     item::tool::ToolKind,
-    skills::{self, Skill},
+    skills::{self, Boost, BoostValue, Skill},
     SkillSet,
 };
 
@@ -2110,15 +2110,34 @@ fn skill_tree_from_str(string: &str) -> Option<SelectedSkillTree> {
     }
 }
 
-fn add_sp_cost_tooltip<'a>(
-    tooltip: &'a str,
+/// Formats skill description, e.g.
+///
+/// "Increase max health by {boost}{SP}"
+///
+/// turns into
+///
+/// """
+///   Increase max health by 5
+///
+///   Requires 4 SP
+/// """
+fn format_skill_description<'a>(
+    raw_description: &'a str,
     skill: Skill,
     skill_set: &'a skills::SkillSet,
     localized_strings: &'a Localization,
 ) -> String {
+    let boost = skill.boost();
+    let with_values = match boost {
+        BoostValue::Number(x) => {
+            let value = x.abs();
+            raw_description.replace("{boost}", &value.to_string())
+        },
+        BoostValue::NonDescriptive => raw_description.to_owned(),
+    };
     match skill_set.skill_level(skill) {
-        Ok(level) if level == skill.max_level() => tooltip.replace("{SP}", ""),
-        _ => tooltip.replace(
+        Ok(level) if level == skill.max_level() => with_values.replace("{SP}", ""),
+        _ => with_values.replace(
             "{SP}",
             &localized_strings
                 .get("hud.skill.req_sp")
@@ -2148,7 +2167,7 @@ impl<'a> Diary<'a> {
         skill: Skill,
         id: Id,
         conrod_widget_id: conrod_core::widget::id::Id,
-        skill_name: &str,
+        skill_key: &str,
         widget_id: widget::Id,
         ui: &mut UiCell,
         events: &mut Vec<Event>,
@@ -2166,11 +2185,11 @@ impl<'a> Diary<'a> {
             self.tooltip_manager,
             &self
                 .localized_strings
-                .get(&format!("hud.skill.{}_title", skill_name)),
-            &add_sp_cost_tooltip(
+                .get(&format!("hud.skill.{}_title", skill_key)),
+            &format_skill_description(
                 &self
                     .localized_strings
-                    .get(&format!("hud.skill.{}", skill_name)),
+                    .get(&format!("hud.skill.{}", skill_key)),
                 skill,
                 &self.skill_set,
                 &self.localized_strings,

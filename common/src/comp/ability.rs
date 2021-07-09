@@ -1336,7 +1336,9 @@ impl CharacterAbility {
                             aura.strength *= 1.15_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(ADuration)) {
-                            aura.duration.map(|dur| dur * 1.2_f32.powi(level.into()));
+                            if let Some(ref mut duration) = aura.duration {
+                                *duration *= 1.2_f32.powi(level.into());
+                            }
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(ARange)) {
                             *range *= 1.25_f32.powi(level.into());
