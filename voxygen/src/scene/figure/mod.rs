@@ -4662,12 +4662,7 @@ impl FigureMgr {
                         ),
                     };
 
-                    #[allow(clippy::match_single_binding)]
-                    let target_bones = match &character {
-                        // TODO!
-                        _ => target_base,
-                    };
-
+                    let target_bones = target_base;
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,

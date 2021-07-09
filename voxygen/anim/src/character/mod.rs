@@ -228,7 +228,6 @@ impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
 }
 
 impl<'a> From<&'a Body> for SkeletonAttr {
-    #[allow(clippy::match_single_binding)] // TODO: Pending review in #587
     fn from(body: &'a Body) -> Self {
         use comp::humanoid::{BodyType::*, Species::*};
         Self {
@@ -275,75 +274,29 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Danari, Male) => (-1.5, 7.0),
                 (Danari, Female) => (-1.5, 7.0),
             },
-            chest: match (body.species, body.body_type) {
-                _ => (0.0, 8.0),
-            },
-            belt: match (body.species, body.body_type) {
-                _ => (0.0, -2.0),
-            },
-            back: match (body.species, body.body_type) {
-                _ => (-3.1, 7.25),
-            },
-            shorts: match (body.species, body.body_type) {
-                _ => (0.0, -5.0),
-            },
-            hand: match (body.species, body.body_type) {
-                _ => (7.0, -0.25, 0.5),
-            },
-            foot: match (body.species, body.body_type) {
-                _ => (3.4, 0.5, 2.0),
-            },
-            shoulder: match (body.species, body.body_type) {
-                _ => (5.0, 0.0, 5.0),
-            },
-            lantern: match (body.species, body.body_type) {
-                _ => (5.0, 2.5, 5.5),
-            },
-            shl: match (body.species, body.body_type) {
-                _ => (-0.75, -1.0, 0.5, 1.47, -0.2, 0.0),
-            },
-            shr: match (body.species, body.body_type) {
-                _ => (0.75, -1.5, -2.5, 1.47, 0.3, 0.0),
-            },
-            sc: match (body.species, body.body_type) {
-                _ => (-7.0, 7.0, 2.0, -0.1, 0.0, 0.0),
-            },
-            hhl: match (body.species, body.body_type) {
-                _ => (0.1, 0.0, 11.0, 4.71, 0.0, PI),
-            },
-            hhr: match (body.species, body.body_type) {
-                _ => (0.0, 0.0, 0.0, 4.71, 0.0, PI),
-            },
-            hc: match (body.species, body.body_type) {
-                _ => (6.0, 7.0, 1.0, -0.3, -PI / 2.0, 3.64),
-            },
-            sthl: match (body.species, body.body_type) {
-                _ => (0.0, 0.0, 6.0, 1.97, 0.0, 0.0),
-            },
-            sthr: match (body.species, body.body_type) {
-                _ => (0.0, 0.0, 0.0, 1.27, 0.2, 0.0),
-            },
-            stc: match (body.species, body.body_type) {
-                _ => (-5.0, 7.0, -2.0, -0.3, 0.15, 0.0),
-            },
-            ahl: match (body.species, body.body_type) {
-                _ => (-0.5, -1.0, 7.0, 1.17, PI, 0.0),
-            },
-            ahr: match (body.species, body.body_type) {
-                _ => (0.0, -1.0, 1.0, -2.0, 0.0, PI),
-            },
-            ac: match (body.species, body.body_type) {
-                _ => (-8.0, 11.0, 3.0, 2.0, 0.0, 0.0),
-            },
-            bhl: match (body.species, body.body_type) {
-                _ => (0.0, -4.0, 1.0, PI / 2.0, 0.0, 0.0),
-            },
-            bhr: match (body.species, body.body_type) {
-                _ => (1.0, 2.0, -2.0, PI / 2.0, 0.0, 0.0),
-            },
-            bc: match (body.species, body.body_type) {
-                _ => (-5.0, 9.0, 1.0, 0.0, 1.2, -0.6),
-            },
+            chest: (0.0, 8.0),
+            belt: (0.0, -2.0),
+            back: (-3.1, 7.25),
+            shorts: (0.0, -5.0),
+            hand: (7.0, -0.25, 0.5),
+            foot: (3.4, 0.5, 2.0),
+            shoulder: (5.0, 0.0, 5.0),
+            lantern: (5.0, 2.5, 5.5),
+            shl: (-0.75, -1.0, 0.5, 1.47, -0.2, 0.0),
+            shr: (0.75, -1.5, -2.5, 1.47, 0.3, 0.0),
+            sc: (-7.0, 7.0, 2.0, -0.1, 0.0, 0.0),
+            hhl: (0.1, 0.0, 11.0, 4.71, 0.0, PI),
+            hhr: (0.0, 0.0, 0.0, 4.71, 0.0, PI),
+            hc: (6.0, 7.0, 1.0, -0.3, -PI / 2.0, 3.64),
+            sthl: (0.0, 0.0, 6.0, 1.97, 0.0, 0.0),
+            sthr: (0.0, 0.0, 0.0, 1.27, 0.2, 0.0),
+            stc: (-5.0, 7.0, -2.0, -0.3, 0.15, 0.0),
+            ahl: (-0.5, -1.0, 7.0, 1.17, PI, 0.0),
+            ahr: (0.0, -1.0, 1.0, -2.0, 0.0, PI),
+            ac: (-8.0, 11.0, 3.0, 2.0, 0.0, 0.0),
+            bhl: (0.0, -4.0, 1.0, PI / 2.0, 0.0, 0.0),
+            bhr: (1.0, 2.0, -2.0, PI / 2.0, 0.0, 0.0),
+            bc: (-5.0, 9.0, 1.0, 0.0, 1.2, -0.6),
         }
     }
 }
