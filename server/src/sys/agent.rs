@@ -19,9 +19,9 @@ use common::{
         },
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
         Agent, Alignment, BehaviorCapability, BehaviorState, Body, CharacterAbility,
-        CharacterState, ControlAction, ControlEvent, Controller, Energy, Health, HealthChange,
-        InputKind, Inventory, InventoryAction, LightEmitter, MountState, Ori, PhysicsState, Pos,
-        Scale, SkillSet, Stats, UnresolvedChatMsg, UtteranceKind, Vel,
+        CharacterState, Combo, ControlAction, ControlEvent, Controller, Energy, Health,
+        HealthChange, InputKind, Inventory, InventoryAction, LightEmitter, MountState, Ori,
+        PhysicsState, Pos, Scale, SkillSet, Stats, UnresolvedChatMsg, UtteranceKind, Vel,
     },
     consts::GRAVITY,
     effect::{BuffEffect, Effect},
@@ -157,6 +157,7 @@ pub struct ReadData<'a> {
     world: ReadExpect<'a, Arc<world::World>>,
     rtsim_entities: ReadStorage<'a, RtSimEntity>,
     buffs: ReadStorage<'a, Buffs>,
+    combos: ReadStorage<'a, Combo>,
 }
 
 // This is 3.1 to last longer than the last damage timer (3.0 seconds)
@@ -2445,6 +2446,7 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
     ) {
         const DESIRED_ENERGY_LEVEL: u32 = 500;
+        const DESIRED_COMBO_LEVEL: u32 = 8;
         // Logic to use abilities
         if attack_data.dist_sqrd > attack_data.min_attack_dist.powi(2)
             && can_see_tgt(
@@ -2456,7 +2458,23 @@ impl<'a> AgentData<'a> {
         {
             // If far enough away, and can see target, check which skill is appropriate to
             // use
-            if self
+            if self.energy.current() > DESIRED_ENERGY_LEVEL
+                && match read_data.combos.get(*self.entity) {
+                    Some(combo) => combo.counter() >= DESIRED_COMBO_LEVEL,
+                    None => false,
+                }
+                && !read_data.buffs.get(*self.entity).iter().any(|buff| {
+                    buff.iter_kind(BuffKind::Regeneration)
+                        .peekable()
+                        .peek()
+                        .is_some()
+                })
+            {
+                // If have enough energy and combo to use healing aura, do so
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+            } else if self
                 .skill_set
                 .has_skill(Skill::Sceptre(SceptreSkill::UnlockAura))
                 && self.energy.current() > DESIRED_ENERGY_LEVEL

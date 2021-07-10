@@ -69,7 +69,7 @@ impl CharacterBehavior for Data {
                     // Creates aura
                     let targets =
                         AuraTarget::from((Some(self.static_data.targets), Some(data.uid)));
-                    let aura = self.static_data.aura.to_aura(
+                    let mut aura = self.static_data.aura.to_aura(
                         data.uid,
                         self.static_data.range,
                         Some(self.static_data.aura_duration),
@@ -80,11 +80,11 @@ impl CharacterBehavior for Data {
                         match aura.aura_kind {
                             AuraKind::Buff {
                                 kind: _,
-                                mut data,
+                                ref mut data,
                                 category: _,
                                 source: _,
                             } => {
-                                data.strength *= 1.1_f32;
+                                data.strength *= 1.0 + (combo as f32).log(2.0_f32);
                             },
                         }
                         update.server_events.push_front(ServerEvent::ComboChange {

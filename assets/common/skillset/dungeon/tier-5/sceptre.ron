@@ -9,9 +9,9 @@
 
     // Heal
     Skill((Sceptre(HHeal), Some(1))),
-    Skill((Sceptre(HCost), Some(1))),
+    Skill((Sceptre(HStrength), Some(1))),
     Skill((Sceptre(HRange), Some(1))),
-
+    Skill((Sceptre(HCost), Some(1))),
     // Ward
     Skill((Sceptre(UnlockAura), None)),
     Skill((Sceptre(AStrength), Some(1))),

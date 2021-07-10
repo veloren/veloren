@@ -1364,8 +1364,7 @@ impl CharacterAbility {
                             if let Ok(Some(level)) = skillset.skill_level(Sceptre(HHeal)) {
                                 aura.strength *= 1.15_f32.powi(level.into());
                             }
-                            if let Ok(Some(level)) = skillset.skill_level(Sceptre(ADuration)) {
-                                //TODO: make a proper healing duration ability
+                            if let Ok(Some(level)) = skillset.skill_level(Sceptre(HDuration)) {
                                 aura.duration.map(|dur| dur * 1.2_f32.powi(level.into()));
                             }
                             if let Ok(Some(level)) = skillset.skill_level(Sceptre(HRange)) {
