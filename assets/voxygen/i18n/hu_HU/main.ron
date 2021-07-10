@@ -1,6 +1,6 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Hungarian localization
+/// Localization for Hungarian
 (
     string_map: {
         /// Start Main screen section
@@ -12,55 +12,56 @@
         "main.tip": "Tipp:",
 
         // Welcome notice that appears the first time Veloren is started
-        "main.notice": r#"Üdv a Veloren alfa verziójában!
+        "main.notice": r#"Üdvözlünk a Veloren alfa verziójában!
 
-Mielőtt elmerülsz a szórakozásban, tarts néhány dolgot észben:
+Mielőtt fejest ugrasz a játékba szeretnénk felhívhi a figyelmedet pár dologra:
 
-- Ez még egy nagyon korai alfa verzió. Különféle hibák, befejezetlen játékmenet és mechanika, és hiányzó funkciók várhatók.
+- Ez egy nagyon korai alfa verzió, vagyis akadnak még benne hibák, a játékmenet és a különféle játékmechanikák még csiszolásra szorulnak, bizonyos elemek pedig még nem kerültek implementálásra.
 
-- Ha van valamilyen építő jellegű visszajelzésed, vagy hibát szeretnél bejelenteni, kapcsolatba léphetsz velünk Redditen, GitLaben, vagy a közösségi Discord-szerverünkön keresztül.
+- Ha van valamilyen építő jellegű visszajelzésed, vagy hibát szeretnél bejelenteni, nyugodtan keress fel minket Redditen, GitLab-en, vagy a közösségi Discord-szerverünkön.
 
-- A Veloren a GPL 3 nyílt forráskódú licenc alatt van kiadva. Ez azt jelenti, hogy szabadon játszhatsz vele, módosíthatod, és terjesztheted
- a kívánságod szerint (a származtatott munka szintén a GPL 3 alá tartozik).
+- A Veloren a GPL 3 nyílt forráskódú licenc alatt van kiadva. Ezt azt jelenti, hogy megkötések nélül játhatsz vele, továbbá saját igényeid szerint módosíthatod és terjesztheted (már amennyiben az új produktum is GPL 3-as licensszel rendelkezik).
 
-- A Veloren egy nonprofit közösségi projekt, és mindenki önkéntesen dolgozik rajta. 
-Ha tetszik amit látsz, nyugodtan csatlakozhatsz a fejlesztői vagy múvészeti csapathoz!
+- A Veloren egy nonprofit, közösségi projekt, a fejlesztésben részt vevő emberek pedig egytől-egyik önkéntesek.
+Ha tetszik amit látsz, örömmel várunk akár a fejlesztői, akár a művészeti csapatban!
 
-Köszönjük, hogy elovastad ezt a figyelmeztetést, reméljük, élvezed majd a játékot!
+Köszönjük, hogy szakítottál időt ezen kis értesítő elolvasására. Jó játékot kívánunk!
 
-~ A Veloren fejlesztők"#,
+~ A Veloren fejlesztői"#,
 
         // Login process description
         "main.login_process": r#"Információ a bejelentkezési folyamatról:
 
-Felhívjuk a figyelmed, hogy szükséged van egy fiókra,
-hogy a hitelesített szervereken játssz. 
+Ahhoz, hogy játszani tudj hitelesített
+szervereken előbb létre kell hoznod
+egy felhasználói fiókot.
 
-A következő címen hozhatsz létre fiókot: 
+Ezt a fiókot a következő weboldalon
+tudod létrehozni:
 
 https://veloren.net/account/."#,
         "main.login.server_not_found": "Szerver nem található",
         "main.login.authentication_error": "Hitelesítési hiba a szerveren",
-        "main.login.internal_error": "Belső hiba a kliensen (leginkább, ha a játékos karakter törölve lett)",
+        "main.login.internal_error": "Klienshiba (minden bizonnyal törölve lett a karakter)",
         "main.login.failed_auth_server_url_invalid": "Nem sikerült kapcsolódni a hitelesítő szerverhez",
-        "main.login.insecure_auth_scheme": "A HTTP hitelesítés nem támogatott. Nem biztonságos! Fejlesztői célok miatt, a HTTP csak a 'localhost'-on vagy a hibakeresési buildeknél engedélyezett.",
-        "main.login.server_full": "A szerver tele van",
-        "main.login.untrusted_auth_server": "A hitelesítési szerver nem megbízható",
-        "main.login.outdated_client_or_server": "ServerWentMad: Lehet, hogy a verziók nem kompatibilisek, ellenőrizd a frissítéseket.",
-        "main.login.timeout": "Időtúllépés: A szerver nem válaszolt időben. (Túlterhelt, vagy hálózati problémák miatt).",
-        "main.login.server_shut_down": "A szerver leállt",
+        "main.login.insecure_auth_scheme": "A HTTP hitelesítés nem támogatott, mert nem biztonságos! A fejlesztés során csak a 'localhost' és a debug build-ek esetén alkalmazunk HTTP-t.",
+        "main.login.server_full": "A szerver megtelt",
+        "main.login.untrusted_auth_server": "A hitelesítő szerver nem megbízható",
+        "main.login.outdated_client_or_server": "ServerWentMad: A játákverziók minden bizonnyal inkompatibilisek, frissítés szükséges.",
+        "main.login.timeout": "Időtúllépés: Nem válaszolt időben a szerver (vagy túlterhelés, vagy hálózati problémák miatt).",
+        "main.login.server_shut_down": "Leállt a szerver",
         "main.login.network_error": "Hálózati hiba",
-        "main.login.network_wrong_version": "Nem egyezik a szerver és a kliens verziója, frissítsd a játékkliensed.",
+        "main.login.network_wrong_version": "Nem egyezik a szerver és a kliens verziója, kérlek frissítsd a játékkliensed!",
         "main.login.failed_sending_request": "Meghiúsult a hitelesítő szerver felé irányuló kérés",
-        "main.login.invalid_character": "Érvénytelen a kiválasztott karakter",
-        "main.login.client_crashed": "A kliens összeomlott",
-        "main.login.not_on_whitelist": "Egy adminnak hozzá kell adnia a fehérlistához, hogy csatlakozhass",
-        "main.login.banned": "A következő okkal lettél kitiltva",
-        "main.login.kicked": "A következő okkal lettél kirúgva",
-        "main.login.select_language": "Nyelv kiválasztása",
+        "main.login.invalid_character": "A kiválasztott karakter nem megfelelő",
+        "main.login.client_crashed": "Összeomlott a kliens",
+        "main.login.not_on_whitelist": "Hogy csatlakozni tudj előbb meg kell kérned az egyik admint, hogy vegyen fel téged a fehér listára.",
+        "main.login.banned": "Ki lettél tiltva a következő miatt:",
+        "main.login.kicked": "Ki lettél rakva a következő miatt:",
+        "main.login.select_language": "Válassz ki egy nyelvet",
         "main.login.client_version": "Kliens verzió",
         "main.login.server_version": "Szerver verzió",
-        "main.servers.select_server": "Szerver kiválasztása",
+        "main.servers.select_server": "Válassz ki egy szervert",
         /// End Main screen section
     },
 

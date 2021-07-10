@@ -1,9 +1,9 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Hungarian localization
+/// Localization for Hungarian
 (
     string_map: {
-        "character_window.character_name": "Karakternév",
+        "character_window.character_name": "Karakter neve",
         // Character stats
         "character_window.character_stats": r#"Kitartás
 
