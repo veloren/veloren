@@ -6,7 +6,7 @@ use std::{
 };
 
 use specs::saveload::MarkerAllocator;
-use wasmer::{imports, Cranelift, Function, Instance, Memory, Module, Store, Value, JIT};
+use wasmer::{imports, Cranelift, Function, Instance, Memory, Module, Store, Universal, Value};
 
 use super::{
     errors::{PluginError, PluginModuleError},
@@ -32,7 +32,7 @@ impl PluginModule {
     /// This function takes bytes from a WASM File and compile them
     pub fn new(name: String, wasm_data: &[u8]) -> Result<Self, PluginModuleError> {
         // This is creating the engine is this case a JIT based on Cranelift
-        let engine = JIT::new(Cranelift::default()).engine();
+        let engine = Universal::new(Cranelift::default()).engine();
         // We are creating an enironnement
         let store = Store::new(&engine);
         // We are compiling the WASM file in the previously generated environement
