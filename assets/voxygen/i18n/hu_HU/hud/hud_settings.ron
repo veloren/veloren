@@ -1,6 +1,6 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Hungarian localization
+/// Localization for Hungarian
 (
     string_map: {
         // Settings
@@ -37,8 +37,8 @@
         "hud.settings.chat": "Csevegés",
         "hud.settings.background_transparency": "Háttér átlátszósága",
         "hud.settings.chat_character_name": "Karakternevek a csevegésben",
-        "hud.settings.loading_tips": "Töltőképernyő tippek",
-        "hud.settings.reset_interface": "Visszaállítás az alapértékekre",
+        "hud.settings.loading_tips": "Tippek a töltőképernyőn",
+        "hud.settings.reset_interface": "Alapértékek visszaállítása",
 
         "hud.settings.pan_sensitivity": "Egérérzékenység",
         "hud.settings.zoom_sensitivity": "Nagyítás érzékenység",
@@ -53,7 +53,7 @@
         "hud.settings.player_physics_behavior": "Játékosfizika (kísérleti)",
         "hud.settings.stop_auto_walk_on_input": "Automatikus séta abbahagyása mozgáskor",
         "hud.settings.auto_camera": "Automatikus kamera",
-        "hud.settings.reset_gameplay": "Visszaállítás az alapértékekre",
+        "hud.settings.reset_gameplay": "Alapértékek visszaállítása",
 
         "hud.settings.view_distance": "Látótóávolság",
         "hud.settings.sprites_view_distance": "Sprites View Distance",
@@ -97,9 +97,9 @@
         "hud.settings.shadow_rendering_mode.cheap": "Olcsó",
         "hud.settings.shadow_rendering_mode.map": "térkép",
         "hud.settings.shadow_rendering_mode.map.resolution": "Felbontás",
-        "hud.settings.lod_detail": "Részletességi szint",
+        "hud.settings.lod_detail": "Részletesség mértéke",
         "hud.settings.save_window_size": "Ablakméret mentése",
-        "hud.settings.reset_graphics": "Visszaállítás az alapértékekre",
+        "hud.settings.reset_graphics": "Alapértékek visszaállítása",
 
 
         "hud.settings.master_volume": "Fő hangerő",
@@ -107,30 +107,30 @@
         "hud.settings.music_volume": "Zene hangereje",
         "hud.settings.sound_effect_volume": "Effektek hangereje",
         "hud.settings.audio_device": "Hangeszköz",
-        "hud.settings.reset_sound": "Visszaállítás az alapértékekre",
+        "hud.settings.reset_sound": "Alapértékek visszaállítása",
 
-        "hud.settings.english_fallback": "Hiányzó fordítások megjelenítése angolul",
+        "hud.settings.english_fallback": "Fordítás hiányában az angol verzió jelenjen meg",
 
         "hud.settings.awaitingkey": "Nyomj meg egy gombot...",
         "hud.settings.unbound": "Nincs",
-        "hud.settings.reset_keybinds": "Visszaállítás az alapértékekre",
+        "hud.settings.reset_keybinds": "Alapértékek visszaállítása",
 
         "hud.settings.chat_tabs": "Csevegés fülek",
         "hud.settings.label": "Címke:",
         "hud.settings.delete": "Törlés",
         "hud.settings.show_all": "Összes megjelenítése",
         "hud.settings.messages": "Üzenetek",
-        "hud.settings.activity": "Aktivitás",
+        "hud.settings.activity": "Tevékenységek",
         "hud.settings.death": "Halál",
         "hud.settings.group": "Csoport",
-        "hud.settings.faction": "Faction",
+        "hud.settings.faction": "Frakció",
         "hud.settings.world": "Világ",
         "hud.settings.region": "Régió",
         "hud.settings.say": "Beszéd",
         "hud.settings.none": "Egyik sem",
         "hud.settings.all": "Összes",
         "hud.settings.group_only": "Csak csoport",
-        "hud.settings.reset_chat" : "Visszaállítás az alapértékekre",
+        "hud.settings.reset_chat" : "Alapértékek visszaállítása",
     },
 
 

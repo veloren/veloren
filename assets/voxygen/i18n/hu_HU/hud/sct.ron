@@ -1,11 +1,11 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Hungarian localization
+/// Localization for Hungarian
 (
     string_map: {
         // SCT outputs
         "hud.sct.experience": "{amount} Tapasztalat",
-        "hud.sct.block": "BLOKKOLVA",       
+        "hud.sct.block": "HÁRÍTVA",       
         },
 
 

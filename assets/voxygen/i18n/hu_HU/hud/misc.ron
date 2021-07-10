@@ -1,51 +1,51 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Hungarian localization
+/// Localization for Hungarian
 (
     string_map: {
-        "hud.do_not_show_on_startup": "Ne jelenjen meg indításnál",
+        "hud.do_not_show_on_startup": "Ne jelenjen meg indításkor",
         "hud.show_tips": "Tippek megjelenítése",
         "hud.quests": "Küldetések",
         "hud.you_died": "Meghaltál",
-        "hud.waypoint_saved": "Útpont elmentve",
+        "hud.waypoint_saved": "Tájékozódási pont elmentve",
         "hud.sp_arrow_txt": "KP",
-        "hud.inventory_full": "A hátizsák tele van",
+        "hud.inventory_full": "Túl sok a holmid",
 
         "hud.press_key_to_show_keybindings_fmt": "[{key}] Billentyű-összerendelések",
         "hud.press_key_to_toggle_lantern_fmt": "[{key}] Lámpás",
-        "hud.press_key_to_show_debug_info_fmt": "Hibakarasési információk megjelenítéséhez nyomd meg ezt: {key}",
-        "hud.press_key_to_toggle_keybindings_fmt": "Billentyű-összerendelések megjelenítéséhez/elrejtéséhez nyomd meg ezt: {key}",
-        "hud.press_key_to_toggle_debug_info_fmt": "Hibakarasési információk megjelenítéséhez/elrejtéséhez nyomd meg ezt: {key}",
+        "hud.press_key_to_show_debug_info_fmt": "A hibakarasési információk megjelenítéséhez nyomd meg a(z) '{key}' gombot",
+        "hud.press_key_to_toggle_keybindings_fmt": "A billentyű-összerendelések megjelenítéséhez/elrejtéséhez nyomd meg a(z) '{key}' gombot",
+        "hud.press_key_to_toggle_debug_info_fmt": "A hibakarasési információk megjelenítéséhez/elrejtéséhez nyomd meg a(z) '{key}' gombot",
 
         // Respawn message
-        "hud.press_key_to_respawn": r#"Nyomd meg ezt: {key}, hogy újraéledj az utolsó tábortűznél amit meglátogattál."#,
+        "hud.press_key_to_respawn": r#"A legutóbbi tábortűznél való újraéledéshez nyomd meg a(z) '{key}' gombot!"#,
 
         // Tutorial Button
-        "hud.tutorial_btn": r#"Bemutató"#,
-        "hud.tutorial_click_here": r#"Nyomd meg ezt a gombot: [ {key} ], hogy felszabadítsd a kurzorod, és rá tudj kattintani a gombra!"#,
-        "hud.tutorial_elements": r#"Barkácsolás"#,
+        "hud.tutorial_btn": r#"Bevezetés"#,
+        "hud.tutorial_click_here": r#"Tedd szabaddá a kurzorodat a(z) [ {key} ] gomb lenyomásával, majd kattints erre a gombra!"#,
+        "hud.tutorial_elements": r#"Tárgykészítés"#,
 
-"hud.temp_quest_headline": r#"Üdvözlet, utazó!"#,
-"hud.temp_quest_text": r#"Hogy megkezdd az utazásod, elkezdheted átnézni ezt a falut és összegyűjteni egy kis készletet.
+"hud.temp_quest_headline": r#"Üdvözlégy Vándor!"#,
+"hud.temp_quest_text": r#"Mielőtt útnak indulsz tégy egy kört ebben a kis városkában, és töltsd föl készleteidet!
 
-Nyugodtan elvihetsz mindent, amire csak szükséged lehet az utazásod során! 
+Nyugodtan magadhoz vehetsz bármit, amit szükségesnek ítélsz az utazáshoz! 
 
-Nézd meg a képernyő jobb alsó sarkát, ahol különböző dolgokat találsz, például a táskád, a barkácsolás menüt és a térképet.
+A képernyő jobb alsó sarkába pillantva több dolgot is találsz – például a táskádat, a tárgykészítési menüt, és a térképet.
 
-A barkácsállomások lehetővé teszik páncélok, fegyverek, ételek és még sok más elkészítését!
+A különféle kihelyezett eszközök lehetővé teszik számodra, hogy páncélzatot, fegyvereket, ételeket, s még sok egyéb mást készíts magadnak!
 
-A város körül található vadállatok nagyszerű forrásai az állatbőrnek, amiből védelmet lehet csinálni a világ veszélyei ellen.
+Számos vadállat él a városka közelében; bőrüket könnyen páncéllá alakíthatja bárki, aki meg kívánja magát óvni a világ veszélyeitől.
 
-Ha készen állsz rá, próbálj még jobb felszerelést szerezni a térképeden megjelölt számos kihívásból!
+Ha úgy érzed, hogy már készen állsz, tedd magad a próbára a térképen megjelölt számos kihívás valamelyikén, és tégy szert egyre jobb és jobb felszerelére!
 "#,
 
         "hud.spell": "Varázslatok",
         // Diary
         "hud.diary": "Napló",
 
-        "hud.free_look_indicator": "Free look active. Press {key} to disable.",
-        "hud.camera_clamp_indicator": "Camera vertical clamp active. Press {key} to disable.",
-        "hud.auto_walk_indicator": "Auto walk/swim active",
+        "hud.free_look_indicator": "Szabad nézet bekapcsolva. A kikapcsoláshoz nyomd meg a(z) {key} gombot.",
+        "hud.camera_clamp_indicator": "A kamera függőleges korlátozása bekapcsolva. A kikapcsoláshoz nyomd meg a(z) {key} gombot.",
+        "hud.auto_walk_indicator": "Automatikus járás/úszás bekapcsolva",
     },
 
 
