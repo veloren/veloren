@@ -34,6 +34,12 @@ enum AlignmentMark {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+enum Meta {
+    LoadoutAsset(String),
+    SkillSetAsset(String),
+}
+
+#[derive(Debug, Deserialize, Clone)]
 struct EntityConfig {
     name: Option<String>,
     body: BodyBuilder,
@@ -43,8 +49,7 @@ struct EntityConfig {
     main_tool: Option<ItemSpec>,
     second_tool: Option<ItemSpec>,
     // Meta fields
-    loadout_asset: Option<String>,
-    skillset_asset: Option<String>,
+    meta: Vec<Meta>,
 }
 
 impl assets::Asset for EntityConfig {
@@ -117,8 +122,7 @@ impl EntityInfo {
             loot,
             main_tool,
             second_tool,
-            loadout_asset,
-            skillset_asset,
+            meta,
         } = config;
 
         if let Some(name) = name {
@@ -168,12 +172,15 @@ impl EntityInfo {
             self = self.with_main_tool(second_tool);
         }
 
-        if let Some(loadout_asset) = loadout_asset {
-            self = self.with_loadout_asset(loadout_asset);
-        }
-
-        if let Some(skillset_asset) = skillset_asset {
-            self = self.with_skillset_asset(skillset_asset);
+        for field in meta {
+            match field {
+                Meta::LoadoutAsset(asset) => {
+                    self = self.with_loadout_asset(asset);
+                },
+                Meta::SkillSetAsset(asset) => {
+                    self = self.with_skillset_asset(asset);
+                },
+            }
         }
 
         self
@@ -335,10 +342,9 @@ mod tests {
             let EntityConfig {
                 main_tool,
                 second_tool,
-                loadout_asset,
-                skillset_asset,
-                body,
                 loot,
+                body,
+                meta,
                 name: _name,           // can't fail if serialized, it's a boring String
                 alignment: _alignment, // can't fail if serialized, it's a boring enum
             } = config.clone();
@@ -374,16 +380,19 @@ mod tests {
                 LootKind::Uninit => {},
             }
 
-            if let Some(loadout_asset) = loadout_asset {
-                let rng = &mut rand::thread_rng();
-                let builder = LoadoutBuilder::default();
-                // we need to just load it check if it exists,
-                // because all loadouts are tested in LoadoutBuilder module
-                std::mem::drop(builder.with_asset_expect(&loadout_asset, rng));
-            }
-
-            if let Some(skillset_asset) = skillset_asset {
-                std::mem::drop(SkillSetBuilder::from_asset_expect(&skillset_asset));
+            for field in meta {
+                match field {
+                    Meta::LoadoutAsset(asset) => {
+                        let rng = &mut rand::thread_rng();
+                        let builder = LoadoutBuilder::default();
+                        // we need to just load it check if it exists,
+                        // because all loadouts are tested in LoadoutBuilder module
+                        std::mem::drop(builder.with_asset_expect(&asset, rng));
+                    },
+                    Meta::SkillSetAsset(asset) => {
+                        std::mem::drop(SkillSetBuilder::from_asset_expect(&asset));
+                    },
+                }
             }
         }
     }

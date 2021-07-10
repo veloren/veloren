@@ -16,6 +16,5 @@ EntityConfig (
     ])),
     second_tool: None,
 
-    loadout_asset: None,
-    skillset_asset: None,
+    meta: [],
 )

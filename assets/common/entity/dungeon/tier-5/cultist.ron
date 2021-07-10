@@ -15,6 +15,8 @@ EntityConfig (
     ])),
     second_tool: None,
 
-    loadout_asset: Some("common.loadout.dungeon.tier-5.cultist"),
-    skillset_asset: Some("common.skillset.dungeon.tier-5.enemy"),
+    meta: [
+        LoadoutAsset("common.loadout.dungeon.tier-5.cultist"),
+        SkillSetAsset("common.skillset.dungeon.tier-5.enemy"),
+    ],
 )
