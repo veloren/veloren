@@ -24,6 +24,7 @@ enum BodyBuilder {
 enum LootKind {
     Item(String),
     LootTable(String),
+    Uninit,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -37,9 +38,11 @@ struct EntityConfig {
     name: Option<String>,
     body: BodyBuilder,
     alignment: AlignmentMark,
-    loot: Option<LootKind>,
+    loot: LootKind,
+    // TODO: replace with `hands` field to support one 2h weapon/ pair 1h weapons
     main_tool: Option<ItemSpec>,
     second_tool: Option<ItemSpec>,
+    // Meta fields
     loadout_asset: Option<String>,
     skillset_asset: Option<String>,
 }
@@ -141,17 +144,16 @@ impl EntityInfo {
             self = self.with_alignment(alignment);
         }
 
-        if let Some(loot) = loot {
-            match loot {
-                LootKind::Item(asset) => {
-                    self = self.with_loot_drop(Item::new_from_asset_expect(&asset));
-                },
-                LootKind::LootTable(asset) => {
-                    let table = Lottery::<LootSpec<String>>::load_expect(&asset);
-                    let drop = table.read().choose().to_item();
-                    self = self.with_loot_drop(drop);
-                },
-            }
+        match loot {
+            LootKind::Item(asset) => {
+                self = self.with_loot_drop(Item::new_from_asset_expect(&asset));
+            },
+            LootKind::LootTable(asset) => {
+                let table = Lottery::<LootSpec<String>>::load_expect(&asset);
+                let drop = table.read().choose().to_item();
+                self = self.with_loot_drop(drop);
+            },
+            LootKind::Uninit => {},
         }
 
         let rng = &mut rand::thread_rng();
@@ -360,17 +362,16 @@ mod tests {
                 BodyBuilder::Exact { .. } | BodyBuilder::Uninit => {},
             }
 
-            if let Some(loot) = loot {
-                match loot {
-                    LootKind::Item(asset) => {
-                        std::mem::drop(Item::new_from_asset_expect(&asset));
-                    },
-                    LootKind::LootTable(asset) => {
-                        // we need to just load it check if it exists,
-                        // because all loot tables are tested in Lottery module
-                        let _ = Lottery::<LootSpec<String>>::load_expect(&asset);
-                    },
-                }
+            match loot {
+                LootKind::Item(asset) => {
+                    std::mem::drop(Item::new_from_asset_expect(&asset));
+                },
+                LootKind::LootTable(asset) => {
+                    // we need to just load it check if it exists,
+                    // because all loot tables are tested in Lottery module
+                    let _ = Lottery::<LootSpec<String>>::load_expect(&asset);
+                },
+                LootKind::Uninit => {},
             }
 
             if let Some(loadout_asset) = loadout_asset {

@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("hakulaq"),
     alignment: Alignment(Enemy),
 
-    loot: Some(LootTable("common.loot_tables.creature.quad_low.fanged")),
+    loot: LootTable("common.loot_tables.creature.quad_low.fanged"),
 
     main_tool: None,
     second_tool: None,

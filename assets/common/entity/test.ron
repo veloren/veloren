@@ -27,7 +27,8 @@ EntityConfig (
     /// Loot
     /// Can be Item (with asset_specifier for item)
     /// or LootTable (with asset_specifier for loot table)
-    loot: Some(LootTable("common.loot_tables.humanoids")),
+    /// or Uninit (means it should be specified something in the code)
+    loot: LootTable("common.loot_tables.humanoids"),
 
     /// Meta Info (level, alignment, agency, etc)
     // meta: {},

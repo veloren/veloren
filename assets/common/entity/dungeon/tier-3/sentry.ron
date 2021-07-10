@@ -3,7 +3,7 @@ EntityConfig (
     body: Exact(Object(HaniwaSentry)),
     alignment: Alignment(Enemy),
 
-    loot: Some(Item("common.items.crafting_ing.stones")),
+    loot: Item("common.items.crafting_ing.stones"),
 
     main_tool: None,
     second_tool: None,

@@ -3,7 +3,7 @@ EntityConfig (
     body: Exact(Object(Crossbow)),
     alignment: Alignment(Enemy),
 
-    loot: Some(Item("common.items.crafting_ing.twigs")),
+    loot: Item("common.items.crafting_ing.twigs"),
 
     main_tool: None,
     second_tool: None,

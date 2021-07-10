@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("cultist_warlock"),
     alignment: Alignment(Enemy),
 
-    loot: Some(LootTable("common.loot_tables.dungeon.tier-5.enemy")),
+    loot: LootTable("common.loot_tables.dungeon.tier-5.enemy"),
 
     main_tool: Some(Choice([
         (1.5, Some(Item("common.items.npc_weapons.staff.bipedlarge-cultist"))),

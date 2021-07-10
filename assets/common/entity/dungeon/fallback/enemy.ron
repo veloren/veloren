@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
 
-    loot: Some(LootTable("common.loot_tables.fallback")),
+    loot: LootTable("common.loot_tables.fallback"),
 
     main_tool: Some(Choice([
         (1.0, Some(Item("common.items.weapons.tool.broom"))),

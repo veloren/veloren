@@ -6,7 +6,7 @@ EntityConfig (
     ))),
     alignment: Alignment(Enemy),
 
-    loot: None,
+    loot: Uninit,
 
     main_tool: None,
     second_tool: None,

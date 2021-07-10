@@ -1,19 +1,15 @@
 use crate::{column::ColumnSample, sim::SimChunk, IndexRef, CONFIG};
 use common::{
     assets::{self, AssetExt},
-    comp::{
-        fish_medium, fish_small, quadruped_low, quadruped_medium, quadruped_small, theropod,
-        Alignment,
-    },
     generation::{ChunkSupplement, EntityInfo},
     resources::TimeOfDay,
     terrain::Block,
-    time::DayPeriod::{self, Evening, Morning, Night, Noon},
+    time::DayPeriod,
     vol::{BaseVol, ReadVol, RectSizedVol, WriteVol},
 };
 use rand::prelude::*;
 use serde::Deserialize;
-use std::{f32, ops::Range};
+use std::f32;
 use vek::*;
 
 fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
@@ -172,7 +168,7 @@ pub fn wildlife_spawn_manifest() -> Vec<(&'static str, DensityFn)> {
                 }
         }),
         // River animals
-        ("world.wildlife.spawn.tropical.river", |c_, col| {
+        ("world.wildlife.spawn.tropical.river", |_c, col| {
             close(col.temp, CONFIG.tropical_temp, 0.5)
                 * if col.water_dist.map(|d| d < 10.0).unwrap_or(false) {
                     0.001
@@ -181,15 +177,12 @@ pub fn wildlife_spawn_manifest() -> Vec<(&'static str, DensityFn)> {
                 }
         }),
         // Rainforest area animals
-        (
-            "world.wildlife.spawn.tropical.rainforest_area",
-            |c, _col| {
-                close(c.temp, CONFIG.tropical_temp + 0.1, 0.4)
-                    * close(c.humidity, CONFIG.desert_hum, 0.4)
-                    * BASE_DENSITY
-                    * 2.0
-            },
-        ),
+        ("world.wildlife.spawn.tropical.rainforest", |c, _col| {
+            close(c.temp, CONFIG.tropical_temp + 0.1, 0.4)
+                * close(c.humidity, CONFIG.desert_hum, 0.4)
+                * BASE_DENSITY
+                * 2.0
+        }),
         // Rock animals
         ("world.wildlife.spawn.tropical.rock", |c, col| {
             close(c.temp, CONFIG.tropical_temp + 0.1, 0.5) * col.rock * BASE_DENSITY * 5.0
@@ -202,7 +195,7 @@ pub fn wildlife_spawn_manifest() -> Vec<(&'static str, DensityFn)> {
                 * BASE_DENSITY
                 * 0.8
         }),
-        // Hot area animals
+        // Wasteland animals
         ("world.wildlife.spawn.desert.wasteland", |c, _col| {
             close(c.temp, CONFIG.desert_temp + 0.2, 0.3)
                 * close(c.humidity, CONFIG.desert_hum, 0.5)
@@ -210,7 +203,7 @@ pub fn wildlife_spawn_manifest() -> Vec<(&'static str, DensityFn)> {
                 * 1.3
         }),
         // River animals
-        ("world.wildlife.spawn.desert.river", |_c, _col| {
+        ("world.wildlife.spawn.desert.river", |_c, col| {
             close(col.temp, CONFIG.desert_temp + 0.2, 0.3)
                 * if col.water_dist.map(|d| d < 10.0).unwrap_or(false) {
                     0.0001
@@ -218,6 +211,7 @@ pub fn wildlife_spawn_manifest() -> Vec<(&'static str, DensityFn)> {
                     0.0
                 }
         }),
+        // Hot area desert
         ("world.wildlife.spawn.desert.hot", |c, _col| {
             close(c.temp, CONFIG.desert_temp + 0.2, 0.3) * BASE_DENSITY * 3.8
         }),
@@ -264,7 +258,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             if let Some(time) = time {
                 current_day_period = DayPeriod::from(time.0)
             } else {
-                current_day_period = Noon
+                current_day_period = DayPeriod::Noon
             }
 
             let entity_group = scatter

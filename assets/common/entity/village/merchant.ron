@@ -4,7 +4,7 @@ EntityConfig (
     alignment: Alignment(Npc),
 
     // considering giving some gold/gems/materials?
-    loot: None,
+    loot: Uninit,
 
     main_tool: Some(Item("common.items.weapons.bow.eldwood-0")),
     second_tool: None,

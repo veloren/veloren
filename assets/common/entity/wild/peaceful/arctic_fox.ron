@@ -3,7 +3,7 @@ EntityConfig (
     body: Exact(QuadrupedSmall(Body(species: Fox, body_type: Female))),
     alignment: Alignment(Wild),
 
-    loot: None,
+    loot: Uninit,
 
     main_tool: None,
     second_tool: None,

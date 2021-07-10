@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("bonerattler"),
     alignment: Alignment(Enemy),
 
-    loot: Some(LootTable("common.loot_tables.creature.quad_medium.carapace")),
+    loot: LootTable("common.loot_tables.creature.quad_medium.carapace"),
 
     main_tool: None,
     second_tool: None,

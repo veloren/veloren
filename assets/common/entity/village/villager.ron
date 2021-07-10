@@ -4,7 +4,7 @@ EntityConfig (
     body: RandomWith("humanoid"),
     alignment: Alignment(Npc),
 
-    loot: None,
+    loot: Uninit,
 
     main_tool: Some(Choice([
         (1.0, Some(Item("common.items.weapons.tool.broom"))),

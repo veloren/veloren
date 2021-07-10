@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("humanoid"),
     alignment: Alignment(Npc),
 
-    loot: None,
+    loot: Uninit,
 
     main_tool: Some(Item("common.items.weapons.sword.iron-4")),
     second_tool: None,

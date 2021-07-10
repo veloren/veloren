@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("sahagin"),
     alignment: Alignment(Enemy),
 
-    loot: Some(LootTable("common.loot_tables.dungeon.tier-2.enemy")),
+    loot: LootTable("common.loot_tables.dungeon.tier-2.enemy"),
 
     main_tool: Some(Item("common.items.npc_weapons.biped_small.sahagin.wooden_spear")),
     second_tool: None,

@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("owl"),
     alignment: Alignment(Wild),
 
-    loot: None,
+    loot: Uninit,
 
     main_tool: None,
     second_tool: None,

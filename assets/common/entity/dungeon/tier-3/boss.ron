@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("claygolem"),
     alignment: Alignment(Enemy),
 
-    loot: Some(LootTable("common.loot_tables.dungeon.tier-3.boss")),
+    loot: LootTable("common.loot_tables.dungeon.tier-3.boss"),
 
     main_tool: None,
     second_tool: None,
