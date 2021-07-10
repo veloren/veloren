@@ -1,7 +1,7 @@
 use crate::{
     combat::GroupTarget,
     comp::{
-        aura::{AuraBuffConstructor, AuraChange, AuraTarget},
+        aura::{AuraBuffConstructor, AuraChange, AuraKind, AuraTarget, FrontendSpecifier},
         CharacterState, StateUpdate,
     },
     event::ServerEvent,
@@ -32,6 +32,10 @@ pub struct StaticData {
     pub range: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
+    /// Whether the aura's effect scales with the user's current combo
+    pub scales_with_combo: bool,
+    /// Used to specify aura to the frontend
+    pub specifier: FrontendSpecifier,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -71,6 +75,23 @@ impl CharacterBehavior for Data {
                         Some(self.static_data.aura_duration),
                         targets,
                     );
+                    if self.static_data.scales_with_combo {
+                        let combo = data.combo.counter();
+                        match aura.aura_kind {
+                            AuraKind::Buff {
+                                kind: _,
+                                mut data,
+                                category: _,
+                                source: _,
+                            } => {
+                                data.strength *= 1.1_f32;
+                            },
+                        }
+                        update.server_events.push_front(ServerEvent::ComboChange {
+                            entity: data.entity,
+                            change: -(combo as i32),
+                        });
+                    }
                     update.server_events.push_front(ServerEvent::Aura {
                         entity: data.entity,
                         aura_change: AuraChange::Add(aura),

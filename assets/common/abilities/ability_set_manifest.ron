@@ -79,7 +79,7 @@
     ),
     Tool(Sceptre): (
         primary: "common.abilities.sceptre.lifestealbeam",
-        secondary: "common.abilities.sceptre.healingbeam",
+        secondary: "common.abilities.sceptre.healingaura",
         abilities: [
             (Some(Sceptre(UnlockAura)), "common.abilities.sceptre.wardingaura"),
         ],

@@ -260,6 +260,8 @@ pub enum CharacterAbility {
         aura_duration: f32,
         range: f32,
         energy_cost: f32,
+        scales_with_combo: bool,
+        specifier: aura::FrontendSpecifier,
     },
     HealingBeam {
         buildup_duration: f32,
@@ -352,7 +354,6 @@ impl CharacterAbility {
             | CharacterAbility::ChargedRanged { energy_cost, .. }
             | CharacterAbility::ChargedMelee { energy_cost, .. }
             | CharacterAbility::Shockwave { energy_cost, .. }
-            | CharacterAbility::BasicAura { energy_cost, .. }
             | CharacterAbility::BasicBlock { energy_cost, .. }
             | CharacterAbility::SelfBuff { energy_cost, .. } => update
                 .energy
@@ -364,6 +365,17 @@ impl CharacterAbility {
             },
             CharacterAbility::LeapMelee { energy_cost, .. } => {
                 update.vel.0.z >= 0.0
+                    && update
+                        .energy
+                        .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                        .is_ok()
+            },
+            CharacterAbility::BasicAura {
+                energy_cost,
+                scales_with_combo,
+                ..
+            } => {
+                ((*scales_with_combo && data.combo.counter() > 0) | !*scales_with_combo)
                     && update
                         .energy
                         .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
@@ -711,6 +723,8 @@ impl CharacterAbility {
                 aura_duration: _,
                 ref mut range,
                 ref mut energy_cost,
+                scales_with_combo: _,
+                specifier: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *cast_duration /= stats.speed;
@@ -1330,21 +1344,36 @@ impl CharacterAbility {
                         ref mut aura,
                         ref mut range,
                         ref mut energy_cost,
+                        ref specifier,
                         ..
                     } => {
-                        if let Ok(Some(level)) = skillset.skill_level(Sceptre(AStrength)) {
-                            aura.strength *= 1.15_f32.powi(level.into());
-                        }
-                        if let Ok(Some(level)) = skillset.skill_level(Sceptre(ADuration)) {
-                            if let Some(ref mut duration) = aura.duration {
-                                *duration *= 1.2_f32.powi(level.into());
+                        if matches!(*specifier, aura::FrontendSpecifier::WardingAura) {
+                            if let Ok(Some(level)) = skillset.skill_level(Sceptre(AStrength)) {
+                                aura.strength *= 1.15_f32.powi(level.into());
                             }
-                        }
-                        if let Ok(Some(level)) = skillset.skill_level(Sceptre(ARange)) {
-                            *range *= 1.25_f32.powi(level.into());
-                        }
-                        if let Ok(Some(level)) = skillset.skill_level(Sceptre(ACost)) {
-                            *energy_cost *= 0.85_f32.powi(level.into());
+                            if let Ok(Some(level)) = skillset.skill_level(Sceptre(ADuration)) {
+                                aura.duration.map(|dur| dur * 1.2_f32.powi(level.into()));
+                            }
+                            if let Ok(Some(level)) = skillset.skill_level(Sceptre(ARange)) {
+                                *range *= 1.25_f32.powi(level.into());
+                            }
+                            if let Ok(Some(level)) = skillset.skill_level(Sceptre(ACost)) {
+                                *energy_cost *= 0.85_f32.powi(level.into());
+                            }
+                        } else if matches!(*specifier, aura::FrontendSpecifier::HealingAura) {
+                            if let Ok(Some(level)) = skillset.skill_level(Sceptre(HHeal)) {
+                                aura.strength *= 1.15_f32.powi(level.into());
+                            }
+                            if let Ok(Some(level)) = skillset.skill_level(Sceptre(ADuration)) {
+                                //TODO: make a proper healing duration ability
+                                aura.duration.map(|dur| dur * 1.2_f32.powi(level.into()));
+                            }
+                            if let Ok(Some(level)) = skillset.skill_level(Sceptre(HRange)) {
+                                *range *= 1.25_f32.powi(level.into());
+                            }
+                            if let Ok(Some(level)) = skillset.skill_level(Sceptre(HCost)) {
+                                *energy_cost *= 0.85_f32.powi(level.into());
+                            }
                         }
                     },
                     _ => {},
@@ -1852,6 +1881,8 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 aura_duration,
                 range,
                 energy_cost: _,
+                scales_with_combo,
+                specifier,
             } => CharacterState::BasicAura(basic_aura::Data {
                 static_data: basic_aura::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1862,6 +1893,8 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     aura_duration: Duration::from_secs_f32(*aura_duration),
                     range: *range,
                     ability_info,
+                    scales_with_combo: *scales_with_combo,
+                    specifier: *specifier,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
