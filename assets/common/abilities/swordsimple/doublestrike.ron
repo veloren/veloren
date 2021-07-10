@@ -15,6 +15,12 @@ ComboMelee(
             base_recover_duration: 0.5,
             forward_movement: 2.5,
             damage_kind: Slashing,
+            damage_effect: Some(Buff((
+                kind: Bleeding,
+                dur_secs: 10.0,
+                strength: DamageFraction(0.1),
+                chance: 0.1,
+            ))),
         ),
         (
             stage: 2,
@@ -31,6 +37,12 @@ ComboMelee(
             base_recover_duration: 0.7,
             forward_movement: 2.0,
             damage_kind: Slashing,
+            damage_effect: Some(Buff((
+                kind: Bleeding,
+                dur_secs: 10.0,
+                strength: DamageFraction(0.1),
+                chance: 0.1,
+            ))),
         ),
     ],
     initial_energy_gain: 0,

@@ -42,6 +42,8 @@ pub struct StaticData {
     pub move_efficiency: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
+    /// Adds an effect onto the main damage of the attack
+    pub damage_effect: Option<CombatEffect>,
     /// What kind of damage the attack does
     pub damage_kind: DamageKind,
     /// Used to specify the shockwave to the frontend
@@ -86,7 +88,7 @@ impl CharacterBehavior for Data {
                         CombatEffect::Knockback(self.static_data.knockback),
                     )
                     .with_requirement(CombatRequirement::AnyDamage);
-                    let damage = AttackDamage::new(
+                    let mut damage = AttackDamage::new(
                         Damage {
                             source: DamageSource::Shockwave,
                             kind: self.static_data.damage_kind,
@@ -94,6 +96,9 @@ impl CharacterBehavior for Data {
                         },
                         Some(GroupTarget::OutOfGroup),
                     );
+                    if let Some(effect) = self.static_data.damage_effect {
+                        damage = damage.with_effect(effect);
+                    }
                     let (crit_chance, crit_mult) =
                         get_crit_data(data, self.static_data.ability_info);
                     let attack = Attack::default()

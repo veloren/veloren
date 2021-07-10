@@ -122,6 +122,7 @@ pub enum CharacterAbility {
         charge_through: bool,
         is_interruptible: bool,
         damage_kind: DamageKind,
+        damage_effect: Option<CombatEffect>,
     },
     BasicBlock {
         buildup_duration: f32,
@@ -163,6 +164,7 @@ pub enum CharacterAbility {
         forward_leap_strength: f32,
         vertical_leap_strength: f32,
         damage_kind: DamageKind,
+        damage_effect: Option<CombatEffect>,
     },
     SpinMelee {
         buildup_duration: f32,
@@ -200,6 +202,7 @@ pub enum CharacterAbility {
         recover_duration: f32,
         specifier: Option<charged_melee::FrontendSpecifier>,
         damage_kind: DamageKind,
+        damage_effect: Option<CombatEffect>,
     },
     ChargedRanged {
         energy_cost: f32,
@@ -235,6 +238,7 @@ pub enum CharacterAbility {
         move_efficiency: f32,
         damage_kind: DamageKind,
         specifier: comp::shockwave::FrontendSpecifier,
+        damage_effect: Option<CombatEffect>,
     },
     BasicBeam {
         buildup_duration: f32,
@@ -413,7 +417,7 @@ impl CharacterAbility {
                 knockback: _,
                 ref mut range,
                 max_angle: _,
-                damage_effect: _,
+                ref mut damage_effect,
                 damage_kind: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -423,6 +427,15 @@ impl CharacterAbility {
                 *base_poise_damage *= stats.effect_power;
                 *range *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
+                if let Some(CombatEffect::Buff(combat::CombatBuff {
+                    kind: _,
+                    dur_secs: _,
+                    strength,
+                    chance: _,
+                })) = damage_effect
+                {
+                    *strength *= stats.buff_strength;
+                }
             },
             BasicRanged {
                 ref mut energy_cost,
@@ -488,6 +501,7 @@ impl CharacterAbility {
                 charge_through: _,
                 is_interruptible: _,
                 damage_kind: _,
+                ref mut damage_effect,
             } => {
                 *base_damage *= stats.power;
                 *scaled_damage *= stats.power;
@@ -499,6 +513,15 @@ impl CharacterAbility {
                 *range *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
                 *energy_drain /= stats.energy_efficiency;
+                if let Some(CombatEffect::Buff(combat::CombatBuff {
+                    kind: _,
+                    dur_secs: _,
+                    strength,
+                    chance: _,
+                })) = damage_effect
+                {
+                    *strength *= stats.buff_strength;
+                }
             },
             BasicBlock {
                 ref mut buildup_duration,
@@ -556,6 +579,7 @@ impl CharacterAbility {
                 forward_leap_strength: _,
                 vertical_leap_strength: _,
                 damage_kind: _,
+                ref mut damage_effect,
             } => {
                 *buildup_duration /= stats.speed;
                 *swing_duration /= stats.speed;
@@ -564,6 +588,15 @@ impl CharacterAbility {
                 *base_poise_damage *= stats.effect_power;
                 *range *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
+                if let Some(CombatEffect::Buff(combat::CombatBuff {
+                    kind: _,
+                    dur_secs: _,
+                    strength,
+                    chance: _,
+                })) = damage_effect
+                {
+                    *strength *= stats.buff_strength;
+                }
             },
             SpinMelee {
                 ref mut buildup_duration,
@@ -573,7 +606,7 @@ impl CharacterAbility {
                 ref mut base_poise_damage,
                 knockback: _,
                 ref mut range,
-                damage_effect: _,
+                ref mut damage_effect,
                 ref mut energy_cost,
                 is_infinite: _,
                 movement_behavior: _,
@@ -591,6 +624,15 @@ impl CharacterAbility {
                 *base_poise_damage *= stats.effect_power;
                 *range *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
+                if let Some(CombatEffect::Buff(combat::CombatBuff {
+                    kind: _,
+                    dur_secs: _,
+                    strength,
+                    chance: _,
+                })) = damage_effect
+                {
+                    *strength *= stats.buff_strength;
+                }
             },
             ChargedMelee {
                 ref mut energy_cost,
@@ -609,6 +651,7 @@ impl CharacterAbility {
                 ref mut recover_duration,
                 specifier: _,
                 damage_kind: _,
+                ref mut damage_effect,
             } => {
                 *initial_damage *= stats.power;
                 *scaled_damage *= stats.power;
@@ -619,6 +662,15 @@ impl CharacterAbility {
                 *range *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
                 *energy_drain /= stats.energy_efficiency;
+                if let Some(CombatEffect::Buff(combat::CombatBuff {
+                    kind: _,
+                    dur_secs: _,
+                    strength,
+                    chance: _,
+                })) = damage_effect
+                {
+                    *strength *= stats.buff_strength;
+                }
             },
             ChargedRanged {
                 ref mut energy_cost,
@@ -663,6 +715,7 @@ impl CharacterAbility {
                 move_efficiency: _,
                 damage_kind: _,
                 specifier: _,
+                ref mut damage_effect,
             } => {
                 *buildup_duration /= stats.speed;
                 *swing_duration /= stats.speed;
@@ -671,6 +724,15 @@ impl CharacterAbility {
                 *poise_damage *= stats.effect_power;
                 *shockwave_duration *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
+                if let Some(CombatEffect::Buff(combat::CombatBuff {
+                    kind: _,
+                    dur_secs: _,
+                    strength,
+                    chance: _,
+                })) = damage_effect
+                {
+                    *strength *= stats.buff_strength;
+                }
             },
             BasicBeam {
                 ref mut buildup_duration,
@@ -680,7 +742,7 @@ impl CharacterAbility {
                 ref mut tick_rate,
                 ref mut range,
                 max_angle: _,
-                damage_effect: _,
+                ref mut damage_effect,
                 energy_regen: _,
                 ref mut energy_drain,
                 orientation_behavior: _,
@@ -695,6 +757,15 @@ impl CharacterAbility {
                 // Duration modified to keep velocity constant
                 *beam_duration *= stats.range;
                 *energy_drain /= stats.energy_efficiency;
+                if let Some(CombatEffect::Buff(combat::CombatBuff {
+                    kind: _,
+                    dur_secs: _,
+                    strength,
+                    chance: _,
+                })) = damage_effect
+                {
+                    *strength *= stats.buff_strength;
+                }
             },
             BasicAura {
                 ref mut buildup_duration,
@@ -715,6 +786,8 @@ impl CharacterAbility {
                 *buildup_duration /= stats.speed;
                 *cast_duration /= stats.speed;
                 *recover_duration /= stats.speed;
+                // Do we want to make buff_strength affect this instead of power?
+                // Look into during modular weapon transition
                 *strength *= stats.power;
                 *range *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
@@ -773,6 +846,8 @@ impl CharacterAbility {
                 buff_duration: _,
                 ref mut energy_cost,
             } => {
+                // Do we want to make buff_strength affect this instead of power?
+                // Look into during modular weapon transition
                 *buff_strength *= stats.power;
                 *buildup_duration /= stats.speed;
                 *cast_duration /= stats.speed;
@@ -1486,6 +1561,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 charge_through,
                 is_interruptible,
                 damage_kind,
+                damage_effect,
             } => CharacterState::DashMelee(dash_melee::Data {
                 static_data: dash_melee::StaticData {
                     base_damage: *base_damage,
@@ -1504,6 +1580,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     is_interruptible: *is_interruptible,
+                    damage_effect: *damage_effect,
                     ability_info,
                     damage_kind: *damage_kind,
                 },
@@ -1595,6 +1672,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 forward_leap_strength,
                 vertical_leap_strength,
                 damage_kind,
+                damage_effect,
             } => CharacterState::LeapMelee(leap_melee::Data {
                 static_data: leap_melee::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1608,6 +1686,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     max_angle: *max_angle,
                     forward_leap_strength: *forward_leap_strength,
                     vertical_leap_strength: *vertical_leap_strength,
+                    damage_effect: *damage_effect,
                     ability_info,
                     damage_kind: *damage_kind,
                 },
@@ -1676,6 +1755,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 max_angle,
                 specifier,
                 damage_kind,
+                damage_effect,
             } => CharacterState::ChargedMelee(charged_melee::Data {
                 static_data: charged_melee::StaticData {
                     energy_cost: *energy_cost,
@@ -1692,6 +1772,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     hit_timing: *hit_timing,
                     recover_duration: Duration::from_secs_f32(*recover_duration),
+                    damage_effect: *damage_effect,
                     ability_info,
                     specifier: *specifier,
                     damage_kind: *damage_kind,
@@ -1788,6 +1869,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 move_efficiency,
                 damage_kind,
                 specifier,
+                damage_effect,
             } => CharacterState::Shockwave(shockwave::Data {
                 static_data: shockwave::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1802,6 +1884,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     shockwave_duration: Duration::from_secs_f32(*shockwave_duration),
                     requires_ground: *requires_ground,
                     move_efficiency: *move_efficiency,
+                    damage_effect: *damage_effect,
                     ability_info,
                     damage_kind: *damage_kind,
                     specifier: *specifier,

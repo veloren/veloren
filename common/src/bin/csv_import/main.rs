@@ -13,7 +13,7 @@ use veloren_common::{
         self,
         item::{
             armor::{ArmorKind, Protection},
-            tool::AbilitySpec,
+            tool::{AbilitySpec, Stats},
             ItemDesc, ItemKind, ItemTag, Quality,
         },
     },
@@ -255,177 +255,177 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
         .collect();
 
     for record in rdr.records() {
-        let mut items: Vec<comp::Item> = comp::Item::new_from_asset_glob("common.items.weapons.*")
+        // Does all items even outside weapons since we check if itemkind was a tool
+        // anyways
+        let items: Vec<comp::Item> = comp::Item::new_from_asset_glob("common.items.*")
             .expect("Failed to iterate over item folders!");
-        items.extend(
-            comp::Item::new_from_asset_glob("common.items.npc_weapons.*")
-                .expect("Failed to iterate over npc weapons!"),
-        );
+
         for item in items.iter() {
-            match item.kind() {
-                comp::item::ItemKind::Tool(tool) => {
-                    if let Ok(ref record) = record {
-                        if item.item_definition_id()
-                            == record.get(headers["Path"]).expect("No file path in csv?")
-                        {
-                            let kind = tool.kind;
-                            let equip_time_secs: f32 = record
-                                .get(headers["Equip Time (s)"])
-                                .expect(&format!(
-                                    "Error unwrapping equip time for {:?}",
-                                    item.item_definition_id()
-                                ))
-                                .parse()
-                                .expect(&format!("Not a u32? {:?}", item.item_definition_id()));
-                            let power: f32 = record
-                                .get(headers["Power"])
-                                .expect(&format!(
-                                    "Error unwrapping power for {:?}",
-                                    item.item_definition_id()
-                                ))
-                                .parse()
-                                .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
-                            let effect_power: f32 = record
-                                .get(headers["Effect Power"])
-                                .expect(&format!(
-                                    "Error unwrapping effect power for {:?}",
-                                    item.item_definition_id()
-                                ))
-                                .parse()
-                                .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
-
-                            let speed: f32 = record
-                                .get(headers["Speed"])
-                                .expect(&format!(
-                                    "Error unwrapping speed for {:?}",
-                                    item.item_definition_id()
-                                ))
-                                .parse()
-                                .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
-
-                            let hands = if let Some(hands_raw) = record.get(headers["Hands"]) {
-                                match hands_raw {
-                                    "One" | "1" | "1h" => comp::item::tool::Hands::One,
-                                    "Two" | "2" | "2h" => comp::item::tool::Hands::Two,
-                                    _ => {
-                                        eprintln!(
-                                            "Unknown hand variant for {:?}",
-                                            item.item_definition_id()
-                                        );
-                                        comp::item::tool::Hands::Two
-                                    },
-                                }
-                            } else {
-                                eprintln!(
-                                    "Could not unwrap hand for {:?}",
-                                    item.item_definition_id()
-                                );
-                                comp::item::tool::Hands::Two
-                            };
-
-                            let crit_chance: f32 = record
-                                .get(headers["Crit Chance"])
-                                .expect(&format!(
-                                    "Error unwrapping crit_chance for {:?}",
-                                    item.item_definition_id()
-                                ))
-                                .parse()
-                                .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
-
-                            let range: f32 = record
-                                .get(headers["Range"])
-                                .expect(&format!(
-                                    "Error unwrapping range for {:?}",
-                                    item.item_definition_id()
-                                ))
-                                .parse()
-                                .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
-
-                            let energy_efficiency: f32 = record
-                                .get(headers["Energy Efficiency"])
-                                .expect(&format!(
-                                    "Error unwrapping energy efficiency for {:?}",
-                                    item.item_definition_id()
-                                ))
-                                .parse()
-                                .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
-
-                            let tool = comp::item::tool::Tool::new(
-                                kind,
-                                hands,
-                                equip_time_secs,
-                                power,
-                                effect_power,
-                                speed,
-                                crit_chance,
-                                range,
-                                energy_efficiency,
-                            );
-
-                            let quality = if let Some(quality_raw) = record.get(headers["Quality"])
-                            {
-                                match quality_raw {
-                                    "Low" => comp::item::Quality::Low,
-                                    "Common" => comp::item::Quality::Common,
-                                    "Moderate" => comp::item::Quality::Moderate,
-                                    "High" => comp::item::Quality::High,
-                                    "Epic" => comp::item::Quality::Epic,
-                                    "Legendary" => comp::item::Quality::Legendary,
-                                    "Artifact" => comp::item::Quality::Artifact,
-                                    "Debug" => comp::item::Quality::Debug,
-                                    _ => {
-                                        eprintln!(
-                                            "Unknown quality variant for {:?}",
-                                            item.item_definition_id()
-                                        );
-                                        comp::item::Quality::Debug
-                                    },
-                                }
-                            } else {
-                                eprintln!(
-                                    "Could not unwrap quality for {:?}",
-                                    item.item_definition_id()
-                                );
-                                comp::item::Quality::Debug
-                            };
-
-                            let description = record.get(headers["Description"]).expect(&format!(
-                                "Error unwrapping description for {:?}",
+            if let comp::item::ItemKind::Tool(tool) = item.kind() {
+                if let Ok(ref record) = record {
+                    if item.item_definition_id()
+                        == record.get(headers["Path"]).expect("No file path in csv?")
+                    {
+                        let kind = tool.kind;
+                        let equip_time_secs: f32 = record
+                            .get(headers["Equip Time (s)"])
+                            .expect(&format!(
+                                "Error unwrapping equip time for {:?}",
                                 item.item_definition_id()
-                            ));
+                            ))
+                            .parse()
+                            .expect(&format!("Not a u32? {:?}", item.item_definition_id()));
+                        let power: f32 = record
+                            .get(headers["Power"])
+                            .expect(&format!(
+                                "Error unwrapping power for {:?}",
+                                item.item_definition_id()
+                            ))
+                            .parse()
+                            .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
+                        let effect_power: f32 = record
+                            .get(headers["Effect Power"])
+                            .expect(&format!(
+                                "Error unwrapping effect power for {:?}",
+                                item.item_definition_id()
+                            ))
+                            .parse()
+                            .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
 
-                            let fake_item = FakeItemDef::new(
-                                item.name().to_string(),
-                                description.to_string(),
-                                ItemKind::Tool(tool),
-                                quality,
-                                item.tags().to_vec(),
-                                item.ability_spec.clone(),
-                            );
+                        let speed: f32 = record
+                            .get(headers["Speed"])
+                            .expect(&format!(
+                                "Error unwrapping speed for {:?}",
+                                item.item_definition_id()
+                            ))
+                            .parse()
+                            .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
 
-                            let pretty_config = PrettyConfig::new()
-                                .with_depth_limit(4)
-                                .with_separate_tuple_members(true)
-                                .with_decimal_floats(true)
-                                .with_enumerate_arrays(true);
-
-                            let mut path = ASSETS_PATH.clone();
-                            for part in item.item_definition_id().split('.') {
-                                path.push(part);
+                        let hands = if let Some(hands_raw) = record.get(headers["Hands"]) {
+                            match hands_raw {
+                                "One" | "1" | "1h" => comp::item::tool::Hands::One,
+                                "Two" | "2" | "2h" => comp::item::tool::Hands::Two,
+                                _ => {
+                                    eprintln!(
+                                        "Unknown hand variant for {:?}",
+                                        item.item_definition_id()
+                                    );
+                                    comp::item::tool::Hands::Two
+                                },
                             }
-                            path.set_extension("ron");
+                        } else {
+                            eprintln!("Could not unwrap hand for {:?}", item.item_definition_id());
+                            comp::item::tool::Hands::Two
+                        };
 
-                            let path_str = path.to_str().expect("File path not unicode?!");
-                            let mut writer = File::create(path_str)?;
-                            write!(
-                                writer,
-                                "ItemDef{}",
-                                to_string_pretty(&fake_item, pretty_config)?.replace("\\'", "'")
-                            )?;
+                        let crit_chance: f32 = record
+                            .get(headers["Crit Chance"])
+                            .expect(&format!(
+                                "Error unwrapping crit_chance for {:?}",
+                                item.item_definition_id()
+                            ))
+                            .parse()
+                            .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
+
+                        let range: f32 = record
+                            .get(headers["Range"])
+                            .expect(&format!(
+                                "Error unwrapping range for {:?}",
+                                item.item_definition_id()
+                            ))
+                            .parse()
+                            .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
+
+                        let energy_efficiency: f32 = record
+                            .get(headers["Energy Efficiency"])
+                            .expect(&format!(
+                                "Error unwrapping energy efficiency for {:?}",
+                                item.item_definition_id()
+                            ))
+                            .parse()
+                            .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
+
+                        let buff_strength: f32 = record
+                            .get(headers["Buff Strength"])
+                            .expect(&format!(
+                                "Error unwrapping buff strength for {:?}",
+                                item.item_definition_id()
+                            ))
+                            .parse()
+                            .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
+
+                        let tool = comp::item::tool::Tool::new(kind, hands, Stats {
+                            equip_time_secs,
+                            power,
+                            effect_power,
+                            speed,
+                            crit_chance,
+                            range,
+                            energy_efficiency,
+                            buff_strength,
+                        });
+
+                        let quality = if let Some(quality_raw) = record.get(headers["Quality"]) {
+                            match quality_raw {
+                                "Low" => comp::item::Quality::Low,
+                                "Common" => comp::item::Quality::Common,
+                                "Moderate" => comp::item::Quality::Moderate,
+                                "High" => comp::item::Quality::High,
+                                "Epic" => comp::item::Quality::Epic,
+                                "Legendary" => comp::item::Quality::Legendary,
+                                "Artifact" => comp::item::Quality::Artifact,
+                                "Debug" => comp::item::Quality::Debug,
+                                _ => {
+                                    eprintln!(
+                                        "Unknown quality variant for {:?}",
+                                        item.item_definition_id()
+                                    );
+                                    comp::item::Quality::Debug
+                                },
+                            }
+                        } else {
+                            eprintln!(
+                                "Could not unwrap quality for {:?}",
+                                item.item_definition_id()
+                            );
+                            comp::item::Quality::Debug
+                        };
+
+                        let description = record.get(headers["Description"]).expect(&format!(
+                            "Error unwrapping description for {:?}",
+                            item.item_definition_id()
+                        ));
+
+                        let fake_item = FakeItemDef::new(
+                            item.name().to_string(),
+                            description.to_string(),
+                            ItemKind::Tool(tool),
+                            quality,
+                            item.tags().to_vec(),
+                            item.ability_spec.clone(),
+                        );
+
+                        let pretty_config = PrettyConfig::new()
+                            .with_depth_limit(4)
+                            .with_separate_tuple_members(true)
+                            .with_decimal_floats(true)
+                            .with_enumerate_arrays(true);
+
+                        let mut path = ASSETS_PATH.clone();
+                        for part in item.item_definition_id().split('.') {
+                            path.push(part);
                         }
+                        path.set_extension("ron");
+
+                        let path_str = path.to_str().expect("File path not unicode?!");
+                        let mut writer = File::create(path_str)?;
+                        write!(
+                            writer,
+                            "ItemDef{}",
+                            to_string_pretty(&fake_item, pretty_config)?.replace("\\'", "'")
+                        )?;
                     }
-                },
-                _ => println!("Skipping non-weapon item: {:?}\n", item),
+                }
             }
         }
     }

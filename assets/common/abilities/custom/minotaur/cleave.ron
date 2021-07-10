@@ -15,4 +15,10 @@ ChargedMelee(
     recover_duration: 0.5,
     specifier: Some(GroundCleave),
     damage_kind: Slashing,
+    damage_effect: Some(Buff((
+        kind: Bleeding,
+        dur_secs: 10.0,
+        strength: DamageFraction(0.1),
+        chance: 0.1,
+    ))),
 )

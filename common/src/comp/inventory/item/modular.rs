@@ -177,6 +177,7 @@ fn make_component_def(
             },
             range: 0.5,
             energy_efficiency: 0.0,
+            buff_strength: 0.0,
         },
     };
     let kind = ItemKind::ModularComponent(mc);

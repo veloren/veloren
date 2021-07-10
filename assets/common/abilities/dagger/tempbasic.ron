@@ -8,6 +8,11 @@ BasicMelee(
     knockback: ( strength: 0.0, direction: Away),
     range: 3.5,
     max_angle: 20.0,
-    damage_effect: None,
+    damage_effect: Some(Buff((
+        kind: Bleeding,
+        dur_secs: 10.0,
+        strength: DamageFraction(0.1),
+        chance: 0.1,
+    ))),
     damage_kind: Piercing,
 )

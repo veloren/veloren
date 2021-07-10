@@ -102,49 +102,47 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
         "Crit Chance",
         "Range",
         "Energy Efficiency",
+        "Buff Strength",
         "Equip Time (s)",
         "Description",
     ])?;
 
     let msm = MaterialStatManifest::default();
 
-    let mut items: Vec<comp::Item> = comp::Item::new_from_asset_glob("common.items.weapons.*")
+    // Does all items even outside weapon folder since we check if itemkind was a
+    // tool anyways
+    let items: Vec<comp::Item> = comp::Item::new_from_asset_glob("common.items.*")
         .expect("Failed to iterate over item folders!");
-    items.extend(
-        comp::Item::new_from_asset_glob("common.items.npc_weapons.*")
-            .expect("Failed to iterate over npc weapons!"),
-    );
 
     for item in items.iter() {
-        match item.kind() {
-            comp::item::ItemKind::Tool(tool) => {
-                let power = tool.base_power(&msm, &[]).to_string();
-                let effect_power = tool.base_effect_power(&msm, &[]).to_string();
-                let speed = tool.base_speed(&msm, &[]).to_string();
-                let crit_chance = tool.base_crit_chance(&msm, &[]).to_string();
-                let range = tool.base_range(&msm, &[]).to_string();
-                let energy_efficiency = tool.base_energy_efficiency(&msm, &[]).to_string();
-                let equip_time = tool.equip_time(&msm, &[]).as_secs_f32().to_string();
-                let kind = get_tool_kind(&tool.kind);
-                let hands = get_tool_hands(&tool);
+        if let comp::item::ItemKind::Tool(tool) = item.kind() {
+            let power = tool.base_power(&msm, &[]).to_string();
+            let effect_power = tool.base_effect_power(&msm, &[]).to_string();
+            let speed = tool.base_speed(&msm, &[]).to_string();
+            let crit_chance = tool.base_crit_chance(&msm, &[]).to_string();
+            let range = tool.base_range(&msm, &[]).to_string();
+            let energy_efficiency = tool.base_energy_efficiency(&msm, &[]).to_string();
+            let buff_strength = tool.base_buff_strength(&msm, &[]).to_string();
+            let equip_time = tool.equip_time(&msm, &[]).as_secs_f32().to_string();
+            let kind = get_tool_kind(&tool.kind);
+            let hands = get_tool_hands(&tool);
 
-                wtr.write_record(&[
-                    item.item_definition_id(),
-                    &kind,
-                    item.name(),
-                    &hands,
-                    &format!("{:?}", item.quality()),
-                    &power,
-                    &effect_power,
-                    &speed,
-                    &crit_chance,
-                    &range,
-                    &energy_efficiency,
-                    &equip_time,
-                    item.description(),
-                ])?;
-            },
-            _ => println!("Skipping non-weapon item: {:?}\n", item),
+            wtr.write_record(&[
+                item.item_definition_id(),
+                &kind,
+                item.name(),
+                &hands,
+                &format!("{:?}", item.quality()),
+                &power,
+                &effect_power,
+                &speed,
+                &crit_chance,
+                &range,
+                &energy_efficiency,
+                &buff_strength,
+                &equip_time,
+                item.description(),
+            ])?;
         }
     }
 

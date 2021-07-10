@@ -82,6 +82,7 @@ pub struct Stats {
     pub crit_chance: f32,
     pub range: f32,
     pub energy_efficiency: f32,
+    pub buff_strength: f32,
 }
 
 impl Stats {
@@ -94,6 +95,7 @@ impl Stats {
             crit_chance: 0.0,
             range: 0.0,
             energy_efficiency: 0.0,
+            buff_strength: 0.0,
         }
     }
 
@@ -119,6 +121,7 @@ impl AddAssign<Stats> for Stats {
         self.speed += other.speed;
         self.crit_chance += other.crit_chance;
         self.range += other.range;
+        self.buff_strength += other.buff_strength;
     }
 }
 impl MulAssign<Stats> for Stats {
@@ -129,6 +132,7 @@ impl MulAssign<Stats> for Stats {
         self.speed *= other.speed;
         self.crit_chance *= other.crit_chance;
         self.range *= other.range;
+        self.buff_strength *= other.buff_strength;
     }
 }
 impl DivAssign<usize> for Stats {
@@ -142,6 +146,7 @@ impl DivAssign<usize> for Stats {
         self.speed /= scalar as f32;
         self.crit_chance /= scalar as f32;
         self.range /= scalar as f32;
+        self.buff_strength /= scalar as f32;
     }
 }
 
@@ -157,6 +162,7 @@ impl Sub<Stats> for Stats {
             crit_chance: self.crit_chance - other.crit_chance,
             range: self.range - other.range,
             energy_efficiency: self.range - other.energy_efficiency,
+            buff_strength: self.buff_strength - other.buff_strength,
         }
     }
 }
@@ -236,6 +242,7 @@ impl From<(&MaterialStatManifest, &[Item], &Tool)> for Stats {
             crit_chance: raw_stats.crit_chance,
             range: raw_stats.range,
             energy_efficiency: raw_stats.energy_efficiency,
+            buff_strength: raw_stats.buff_strength,
         }
     }
 }
@@ -252,29 +259,11 @@ impl Tool {
     // DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING
     // Added for CSV import of stats
     #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        kind: ToolKind,
-        hands: Hands,
-        equip_time_secs: f32,
-        power: f32,
-        effect_power: f32,
-        speed: f32,
-        crit_chance: f32,
-        range: f32,
-        energy_efficiency: f32,
-    ) -> Self {
+    pub fn new(kind: ToolKind, hands: Hands, stats: Stats) -> Self {
         Self {
             kind,
             hands,
-            stats: StatKind::Direct(Stats {
-                equip_time_secs,
-                power,
-                effect_power,
-                speed,
-                crit_chance,
-                range,
-                energy_efficiency,
-            }),
+            stats: StatKind::Direct(stats),
         }
     }
 
@@ -290,6 +279,7 @@ impl Tool {
                 crit_chance: 0.1,
                 range: 1.0,
                 energy_efficiency: 1.0,
+                buff_strength: 1.0,
             }),
         }
     }
@@ -320,6 +310,10 @@ impl Tool {
 
     pub fn base_energy_efficiency(&self, msm: &MaterialStatManifest, components: &[Item]) -> f32 {
         self.stats.resolve_stats(msm, components).energy_efficiency
+    }
+
+    pub fn base_buff_strength(&self, msm: &MaterialStatManifest, components: &[Item]) -> f32 {
+        self.stats.resolve_stats(msm, components).buff_strength
     }
 
     pub fn equip_time(&self, msm: &MaterialStatManifest, components: &[Item]) -> Duration {

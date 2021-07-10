@@ -1,5 +1,5 @@
 use crate::{
-    combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
+    combat::{Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement},
     comp::{tool::ToolKind, CharacterState, EnergyChange, EnergySource, Melee, StateUpdate},
     event::LocalEvent,
     outcome::Outcome,
@@ -43,6 +43,8 @@ pub struct StaticData {
     pub hit_timing: f32,
     /// How long the state has until exiting
     pub recover_duration: Duration,
+    /// Adds an effect onto the main damage of the attack
+    pub damage_effect: Option<CombatEffect>,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
     /// Used to specify the melee attack to the frontend
@@ -148,8 +150,7 @@ impl CharacterBehavior for Data {
                         }),
                     )
                     .with_requirement(CombatRequirement::AnyDamage);
-                    let buff = CombatEffect::Buff(CombatBuff::default_physical());
-                    let damage = AttackDamage::new(
+                    let mut damage = AttackDamage::new(
                         Damage {
                             source: DamageSource::Melee,
                             kind: self.static_data.damage_kind,
@@ -157,8 +158,10 @@ impl CharacterBehavior for Data {
                                 + self.charge_amount * self.static_data.scaled_damage as f32,
                         },
                         Some(GroupTarget::OutOfGroup),
-                    )
-                    .with_effect(buff);
+                    );
+                    if let Some(effect) = self.static_data.damage_effect {
+                        damage = damage.with_effect(effect);
+                    }
                     let (crit_chance, crit_mult) =
                         get_crit_data(data, self.static_data.ability_info);
                     let attack = Attack::default()

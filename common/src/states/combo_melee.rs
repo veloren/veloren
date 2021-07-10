@@ -44,6 +44,8 @@ pub struct Stage<T> {
     pub forward_movement: f32,
     /// What kind of damage this stage of the attack does
     pub damage_kind: DamageKind,
+    /// Adds an effect onto the main damage of the attack
+    pub damage_effect: Option<CombatEffect>,
 }
 
 impl Stage<f32> {
@@ -63,10 +65,20 @@ impl Stage<f32> {
             base_recover_duration: Duration::from_secs_f32(self.base_recover_duration),
             forward_movement: self.forward_movement,
             damage_kind: self.damage_kind,
+            damage_effect: self.damage_effect,
         }
     }
 
-    pub fn adjusted_by_stats(self, stats: Stats) -> Self {
+    pub fn adjusted_by_stats(mut self, stats: Stats) -> Self {
+        if let Some(CombatEffect::Buff(CombatBuff {
+            kind: _,
+            dur_secs: _,
+            ref mut strength,
+            chance: _,
+        })) = self.damage_effect
+        {
+            *strength *= stats.buff_strength;
+        }
         Self {
             stage: self.stage,
             base_damage: self.base_damage * stats.power,
@@ -82,6 +94,7 @@ impl Stage<f32> {
             base_recover_duration: self.base_recover_duration / stats.speed,
             forward_movement: self.forward_movement,
             damage_kind: self.damage_kind,
+            damage_effect: self.damage_effect,
         }
     }
 
@@ -234,17 +247,17 @@ impl CharacterBehavior for Data {
                     let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy))
                         .with_requirement(CombatRequirement::AnyDamage);
 
-                    let buff = CombatEffect::Buff(CombatBuff::default_physical());
-
-                    let damage = AttackDamage::new(
+                    let mut damage = AttackDamage::new(
                         Damage {
                             source: DamageSource::Melee,
                             kind: self.static_data.stage_data[stage_index].damage_kind,
                             value: damage as f32,
                         },
                         Some(GroupTarget::OutOfGroup),
-                    )
-                    .with_effect(buff);
+                    );
+                    if let Some(effect) = self.static_data.stage_data[stage_index].damage_effect {
+                        damage = damage.with_effect(effect);
+                    }
 
                     let (crit_chance, crit_mult) =
                         get_crit_data(data, self.static_data.ability_info);
