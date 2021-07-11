@@ -77,7 +77,7 @@ pub enum Hands {
 pub struct Stats {
     pub equip_time_secs: f32,
     pub power: f32,
-    pub poise_strength: f32,
+    pub effect_power: f32,
     pub speed: f32,
     pub crit_chance: f32,
     pub range: f32,
@@ -89,7 +89,7 @@ impl Stats {
         Stats {
             equip_time_secs: 0.0,
             power: 0.0,
-            poise_strength: 0.0,
+            effect_power: 0.0,
             speed: 0.0,
             crit_chance: 0.0,
             range: 0.0,
@@ -115,7 +115,7 @@ impl AddAssign<Stats> for Stats {
     fn add_assign(&mut self, other: Stats) {
         self.equip_time_secs += other.equip_time_secs;
         self.power += other.power;
-        self.poise_strength += other.poise_strength;
+        self.effect_power += other.effect_power;
         self.speed += other.speed;
         self.crit_chance += other.crit_chance;
         self.range += other.range;
@@ -125,7 +125,7 @@ impl MulAssign<Stats> for Stats {
     fn mul_assign(&mut self, other: Stats) {
         self.equip_time_secs *= other.equip_time_secs;
         self.power *= other.power;
-        self.poise_strength *= other.poise_strength;
+        self.effect_power *= other.effect_power;
         self.speed *= other.speed;
         self.crit_chance *= other.crit_chance;
         self.range *= other.range;
@@ -138,7 +138,7 @@ impl DivAssign<usize> for Stats {
         // multiplying an equip_time_secs by 0, since that would be overpowered
         self.equip_time_secs = self.equip_time_secs.max(0.001);
         self.power /= scalar as f32;
-        self.poise_strength /= scalar as f32;
+        self.effect_power /= scalar as f32;
         self.speed /= scalar as f32;
         self.crit_chance /= scalar as f32;
         self.range /= scalar as f32;
@@ -152,7 +152,7 @@ impl Sub<Stats> for Stats {
         Self {
             equip_time_secs: self.equip_time_secs - other.equip_time_secs,
             power: self.power - other.power,
-            poise_strength: self.poise_strength - other.poise_strength,
+            effect_power: self.effect_power - other.effect_power,
             speed: self.speed - other.speed,
             crit_chance: self.crit_chance - other.crit_chance,
             range: self.range - other.range,
@@ -231,7 +231,7 @@ impl From<(&MaterialStatManifest, &[Item], &Tool)> for Stats {
         Self {
             equip_time_secs: raw_stats.equip_time_secs,
             power: raw_stats.power * power,
-            poise_strength: raw_stats.poise_strength * poise,
+            effect_power: raw_stats.effect_power * poise,
             speed: raw_stats.speed * speed,
             crit_chance: raw_stats.crit_chance,
             range: raw_stats.range,
@@ -257,7 +257,7 @@ impl Tool {
         hands: Hands,
         equip_time_secs: f32,
         power: f32,
-        poise_strength: f32,
+        effect_power: f32,
         speed: f32,
         crit_chance: f32,
         range: f32,
@@ -269,7 +269,7 @@ impl Tool {
             stats: StatKind::Direct(Stats {
                 equip_time_secs,
                 power,
-                poise_strength,
+                effect_power,
                 speed,
                 crit_chance,
                 range,
@@ -285,7 +285,7 @@ impl Tool {
             stats: StatKind::Direct(Stats {
                 equip_time_secs: 0.0,
                 power: 1.00,
-                poise_strength: 1.00,
+                effect_power: 1.00,
                 speed: 1.00,
                 crit_chance: 0.1,
                 range: 1.0,
@@ -299,8 +299,8 @@ impl Tool {
         self.stats.resolve_stats(msm, components).power
     }
 
-    pub fn base_poise_strength(&self, msm: &MaterialStatManifest, components: &[Item]) -> f32 {
-        self.stats.resolve_stats(msm, components).poise_strength
+    pub fn base_effect_power(&self, msm: &MaterialStatManifest, components: &[Item]) -> f32 {
+        self.stats.resolve_stats(msm, components).effect_power
     }
 
     pub fn base_speed(&self, msm: &MaterialStatManifest, components: &[Item]) -> f32 {

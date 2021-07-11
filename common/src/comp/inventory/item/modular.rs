@@ -159,7 +159,7 @@ fn make_component_def(
             } else {
                 0.0
             },
-            poise_strength: if matches!(modkind, ModularComponentKind::Damage) {
+            effect_power: if matches!(modkind, ModularComponentKind::Damage) {
                 AVERAGE_STAT_VALUE[tier] * 0.75
             } else {
                 0.0

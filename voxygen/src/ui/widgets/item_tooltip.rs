@@ -559,7 +559,7 @@ impl<'a> Widget for ItemTooltip<'a> {
             ItemKind::Tool(tool) => {
                 let power = tool.base_power(self.msm, item.components()) * 10.0;
                 let speed = tool.base_speed(self.msm, item.components());
-                let poise_str = tool.base_poise_strength(self.msm, item.components()) * 10.0;
+                let effect_power = tool.base_effect_power(self.msm, item.components()) * 10.0;
                 let crit_chance = tool.base_crit_chance(self.msm, item.components()) * 100.0;
                 let combat_rating = combat::weapon_rating(&item, self.msm) * 10.0;
 
@@ -610,11 +610,13 @@ impl<'a> Widget for ItemTooltip<'a> {
                 .down_from(state.ids.stats[0], V_PAD_STATS)
                 .set(state.ids.stats[1], ui);
 
-                // Poise
+                // Effect Power
+                // TODO: Allow effect power to have different terminology based on what it is
+                // affecting.
                 widget::Text::new(&format!(
                     "{} : {:.1}",
                     i18n.get("common.stats.poise"),
-                    poise_str
+                    effect_power
                 ))
                 .graphics_for(id)
                 .parent(id)
@@ -651,9 +653,9 @@ impl<'a> Widget for ItemTooltip<'a> {
                             util::comparison(tool_stats.power, equipped_tool_stats.power);
                         let speed_diff =
                             util::comparison(tool_stats.speed, equipped_tool_stats.speed);
-                        let poise_strength_diff = util::comparison(
-                            tool_stats.poise_strength,
-                            equipped_tool_stats.poise_strength,
+                        let effect_power_diff = util::comparison(
+                            tool_stats.effect_power,
+                            equipped_tool_stats.effect_power,
                         );
                         let crit_chance_diff = util::comparison(
                             tool_stats.crit_chance,
@@ -693,13 +695,13 @@ impl<'a> Widget for ItemTooltip<'a> {
                             let text = format!("{} {:.1}", &speed_diff.0, &diff.speed);
                             diff_text(text, speed_diff.1, 1)
                         }
-                        if diff.poise_strength.abs() > f32::EPSILON {
+                        if diff.effect_power.abs() > f32::EPSILON {
                             let text = format!(
                                 "{} {:.1}",
-                                &poise_strength_diff.0,
-                                &diff.poise_strength * 10.0
+                                &effect_power_diff.0,
+                                &diff.effect_power * 10.0
                             );
-                            diff_text(text, poise_strength_diff.1, 2)
+                            diff_text(text, effect_power_diff.1, 2)
                         }
                         if diff.crit_chance.abs() > f32::EPSILON {
                             let text = format!(

@@ -420,7 +420,7 @@ impl CharacterAbility {
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *base_damage *= stats.power;
-                *base_poise_damage *= stats.poise_strength;
+                *base_poise_damage *= stats.effect_power;
                 *range *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
             },
@@ -491,8 +491,8 @@ impl CharacterAbility {
             } => {
                 *base_damage *= stats.power;
                 *scaled_damage *= stats.power;
-                *base_poise_damage *= stats.poise_strength;
-                *scaled_poise_damage *= stats.poise_strength;
+                *base_poise_damage *= stats.effect_power;
+                *scaled_poise_damage *= stats.effect_power;
                 *buildup_duration /= stats.speed;
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
@@ -561,7 +561,7 @@ impl CharacterAbility {
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *base_damage *= stats.power;
-                *base_poise_damage *= stats.poise_strength;
+                *base_poise_damage *= stats.effect_power;
                 *range *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
             },
@@ -588,7 +588,7 @@ impl CharacterAbility {
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *base_damage *= stats.power;
-                *base_poise_damage *= stats.poise_strength;
+                *base_poise_damage *= stats.effect_power;
                 *range *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
             },
@@ -612,8 +612,8 @@ impl CharacterAbility {
             } => {
                 *initial_damage *= stats.power;
                 *scaled_damage *= stats.power;
-                *initial_poise_damage *= stats.poise_strength;
-                *scaled_poise_damage *= stats.poise_strength;
+                *initial_poise_damage *= stats.effect_power;
+                *scaled_poise_damage *= stats.effect_power;
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *range *= stats.range;
@@ -668,7 +668,7 @@ impl CharacterAbility {
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *damage *= stats.power;
-                *poise_damage *= stats.poise_strength;
+                *poise_damage *= stats.effect_power;
                 *shockwave_duration *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
             },
