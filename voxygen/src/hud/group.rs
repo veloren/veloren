@@ -375,7 +375,7 @@ impl<'a> Widget for Group<'a> {
                     (stats, skill_set, inventory, health, body)
                 {
                     let combat_rating =
-                        combat::combat_rating(inventory, health, skill_set, *body, &self.msm);
+                        combat::combat_rating(inventory, health, skill_set, *body, self.msm);
                     let char_name = stats.name.to_string();
                     let health_perc =
                         health.current() as f64 / health.base_max().max(health.maximum()) as f64;
@@ -421,7 +421,7 @@ impl<'a> Widget for Group<'a> {
                     }
                     if health.is_dead {
                         // Death Text
-                        Text::new(&self.localized_strings.get("hud.group.dead"))
+                        Text::new(self.localized_strings.get("hud.group.dead"))
                             .mid_top_with_margin_on(state.ids.member_panels_bg[i], 1.0)
                             .font_size(20)
                             .font_id(self.fonts.cyri.conrod_id)
@@ -526,7 +526,7 @@ impl<'a> Widget for Group<'a> {
                                         cur.as_secs_f32() / max.as_secs_f32() * 1000.0
                                     })
                                 }) as u32; // Percentage to determine which frame of the timer overlay is displayed
-                                let buff_img = hud::get_buff_image(buff.kind, &self.imgs);
+                                let buff_img = hud::get_buff_image(buff.kind, self.imgs);
                                 let buff_widget = Image::new(buff_img).w_h(15.0, 15.0);
                                 let buff_widget = if let Some(id) = prev_id {
                                     buff_widget.right_from(id, 1.0)
@@ -606,7 +606,7 @@ impl<'a> Widget for Group<'a> {
                             .color(Some(UI_HIGHLIGHT_0))
                             .set(state.ids.member_panels_frame[i], ui);
                         // Panel Text
-                        Text::new(&self.localized_strings.get("hud.group.out_of_range"))
+                        Text::new(self.localized_strings.get("hud.group.out_of_range"))
                             .mid_top_with_margin_on(state.ids.member_panels_bg[i], 3.0)
                             .font_size(16)
                             .font_id(self.fonts.cyri.conrod_id)
@@ -625,7 +625,7 @@ impl<'a> Widget for Group<'a> {
                     .press_image(self.imgs.button)
                     .label_color(TEXT_COLOR_GREY)
                     .image_color(TEXT_COLOR_GREY)
-                    .label(&self.localized_strings.get("hud.group.add_friend"))
+                    .label(self.localized_strings.get("hud.group.add_friend"))
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_font_size(self.fonts.cyri.scale(10))
                     .set(state.ids.btn_friend, ui)
@@ -636,7 +636,7 @@ impl<'a> Widget for Group<'a> {
                     .bottom_right_with_margins_on(state.ids.bg, 5.0, 5.0)
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
-                    .label(&self.localized_strings.get("hud.group.leave"))
+                    .label(self.localized_strings.get("hud.group.leave"))
                     .label_color(TEXT_COLOR)
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_font_size(self.fonts.cyri.scale(10))
@@ -654,7 +654,7 @@ impl<'a> Widget for Group<'a> {
                         .mid_bottom_with_margin_on(state.ids.btn_friend, -27.0)
                         .hover_image(self.imgs.button_hover)
                         .press_image(self.imgs.button_press)
-                        .label(&self.localized_strings.get("hud.group.assign_leader"))
+                        .label(self.localized_strings.get("hud.group.assign_leader"))
                         .label_color(if state.selected_member.is_some() {
                             TEXT_COLOR
                         } else {
@@ -677,7 +677,7 @@ impl<'a> Widget for Group<'a> {
                         .mid_bottom_with_margin_on(state.ids.btn_leader, -27.0)
                         .hover_image(self.imgs.button)
                         .press_image(self.imgs.button)
-                        .label(&self.localized_strings.get("hud.group.link_group"))
+                        .label(self.localized_strings.get("hud.group.link_group"))
                         .hover_image(self.imgs.button)
                         .press_image(self.imgs.button)
                         .label_color(TEXT_COLOR_GREY)
@@ -693,7 +693,7 @@ impl<'a> Widget for Group<'a> {
                         .down_from(state.ids.btn_link, 5.0)
                         .hover_image(self.imgs.button_hover)
                         .press_image(self.imgs.button_press)
-                        .label(&self.localized_strings.get("hud.group.kick"))
+                        .label(self.localized_strings.get("hud.group.kick"))
                         .label_color(if state.selected_member.is_some() {
                             TEXT_COLOR
                         } else {
@@ -735,7 +735,7 @@ impl<'a> Widget for Group<'a> {
                 // List member names
                 for (i, &uid) in group_members.iter().copied().enumerate() {
                     let selected = state.selected_member.map_or(false, |u| u == uid);
-                    let char_name = uid_to_name_text(uid, &self.client);
+                    let char_name = uid_to_name_text(uid, self.client);
                     // TODO: Do something special visually if uid == leader
                     if Button::image(if selected {
                         self.imgs.selection
@@ -784,7 +784,7 @@ impl<'a> Widget for Group<'a> {
             // TODO: add group name here too
             // Invite text
 
-            let name = uid_to_name_text(invite_uid, &self.client);
+            let name = uid_to_name_text(invite_uid, self.client);
             let invite_text = match kind {
                 InviteKind::Group => self
                     .localized_strings
@@ -816,7 +816,7 @@ impl<'a> Widget for Group<'a> {
                 .label(&format!(
                     "[{}] {}",
                     &accept_key,
-                    &self.localized_strings.get("common.accept")
+                    self.localized_strings.get("common.accept")
                 ))
                 .label_color(TEXT_COLOR)
                 .label_font_id(self.fonts.cyri.conrod_id)
@@ -841,7 +841,7 @@ impl<'a> Widget for Group<'a> {
                 .label(&format!(
                     "[{}] {}",
                     &decline_key,
-                    &self.localized_strings.get("common.decline")
+                    self.localized_strings.get("common.decline")
                 ))
                 .label_color(TEXT_COLOR)
                 .label_font_id(self.fonts.cyri.conrod_id)

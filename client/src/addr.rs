@@ -59,7 +59,7 @@ where
 {
     use crate::error::Error;
     let mut participant = None;
-    for addr in resolve(&address, prefer_ipv6)
+    for addr in resolve(address, prefer_ipv6)
         .await
         .map_err(Error::HostnameLookupFailed)?
     {

@@ -726,7 +726,7 @@ impl StateExt for State {
             if let Some(msg) = msg.take() {
                 lazy_msg = Some(client.prepare(msg));
             }
-            lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));
+            lazy_msg.as_ref().map(|msg| client.send_prepared(msg));
         }
     }
 
@@ -743,7 +743,7 @@ impl StateExt for State {
             if let Some(msg) = msg.take() {
                 lazy_msg = Some(client.prepare(msg));
             }
-            lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));
+            lazy_msg.as_ref().map(|msg| client.send_prepared(msg));
         }
     }
 

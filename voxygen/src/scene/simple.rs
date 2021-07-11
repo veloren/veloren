@@ -370,7 +370,7 @@ impl Scene {
                     figure_drawer.draw(
                         lod,
                         self.figure_state.bound(),
-                        &self.col_lights.texture(model),
+                        self.col_lights.texture(model),
                     );
                 }
             }
@@ -378,7 +378,7 @@ impl Scene {
 
         if let Some((model, state)) = &self.backdrop {
             if let Some(lod) = model.lod_model(0) {
-                figure_drawer.draw(lod, state.bound(), &self.col_lights.texture(model));
+                figure_drawer.draw(lod, state.bound(), self.col_lights.texture(model));
             }
         }
         drop(figure_drawer);

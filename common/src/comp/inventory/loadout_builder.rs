@@ -71,10 +71,10 @@ pub enum ItemSpec {
 impl ItemSpec {
     pub fn try_to_item(&self, asset_specifier: &str, rng: &mut impl Rng) -> Option<Item> {
         match self {
-            ItemSpec::Item(specifier) => Some(Item::new_from_asset_expect(&specifier)),
+            ItemSpec::Item(specifier) => Some(Item::new_from_asset_expect(specifier)),
 
             ItemSpec::Choice(items) => {
-                choose(&items, asset_specifier, rng)
+                choose(items, asset_specifier, rng)
                     .as_ref()
                     .and_then(|e| match e {
                         entry @ ItemSpec::Item { .. } => entry.try_to_item(asset_specifier, rng),
@@ -471,7 +471,7 @@ impl LoadoutBuilder {
         let rng = &mut rand::thread_rng();
         match preset {
             Preset::HuskSummon => {
-                self = self.with_asset_expect("common.loadout.dungeon.tier-5.husk", rng)
+                self = self.with_asset_expect("common.loadout.dungeon.tier-5.husk", rng);
             },
         }
 

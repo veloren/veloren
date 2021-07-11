@@ -84,7 +84,7 @@ impl CharacterBehavior for Data {
         {
             update.character = CharacterState::Idle;
             update.ori = update.ori.to_horizontal();
-        } else if !handle_climb(&data, &mut update) {
+        } else if !handle_climb(data, &mut update) {
             let air_flow = data
                 .physics
                 .in_fluid

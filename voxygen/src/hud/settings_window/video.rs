@@ -230,7 +230,7 @@ impl<'a> Widget for Video<'a> {
         }
 
         // View Distance
-        Text::new(&self.localized_strings.get("hud.settings.view_distance"))
+        Text::new(self.localized_strings.get("hud.settings.view_distance"))
             .top_left_with_margins_on(state.ids.window, 10.0, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -267,7 +267,7 @@ impl<'a> Widget for Video<'a> {
         .set(state.ids.vd_value, ui);
 
         // Max FPS
-        Text::new(&self.localized_strings.get("hud.settings.maximum_fps"))
+        Text::new(self.localized_strings.get("hud.settings.maximum_fps"))
             .down_from(state.ids.vd_slider, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -305,7 +305,7 @@ impl<'a> Widget for Video<'a> {
         let render_mode = &self.global_state.settings.graphics.render_mode;
 
         // Present Mode
-        Text::new(&self.localized_strings.get("hud.settings.present_mode"))
+        Text::new(self.localized_strings.get("hud.settings.present_mode"))
             .down_from(state.ids.vd_slider, 10.0)
             .right_from(state.ids.max_fps_value, 30.0)
             .font_size(self.fonts.cyri.scale(14))
@@ -349,7 +349,7 @@ impl<'a> Widget for Video<'a> {
         }
 
         // FOV
-        Text::new(&self.localized_strings.get("hud.settings.fov"))
+        Text::new(self.localized_strings.get("hud.settings.fov"))
             .down_from(state.ids.max_fps_slider, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -381,7 +381,7 @@ impl<'a> Widget for Video<'a> {
             .set(state.ids.fov_value, ui);
 
         // LoD detail
-        Text::new(&self.localized_strings.get("hud.settings.lod_detail"))
+        Text::new(self.localized_strings.get("hud.settings.lod_detail"))
             .down_from(state.ids.fov_slider, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -419,7 +419,7 @@ impl<'a> Widget for Video<'a> {
         .set(state.ids.lod_detail_value, ui);
 
         // Gamma
-        Text::new(&self.localized_strings.get("hud.settings.gamma"))
+        Text::new(self.localized_strings.get("hud.settings.gamma"))
             .down_from(state.ids.lod_detail_slider, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -470,7 +470,7 @@ impl<'a> Widget for Video<'a> {
             events.push(GraphicsChange::ChangeExposure(new_val as f32 / 16.0));
         }
 
-        Text::new(&self.localized_strings.get("hud.settings.exposure"))
+        Text::new(self.localized_strings.get("hud.settings.exposure"))
             .up_from(state.ids.exposure_slider, 8.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -507,7 +507,7 @@ impl<'a> Widget for Video<'a> {
         {
             events.push(GraphicsChange::ChangeAmbiance(new_val as f32));
         }
-        Text::new(&self.localized_strings.get("hud.settings.ambiance"))
+        Text::new(self.localized_strings.get("hud.settings.ambiance"))
             .up_from(state.ids.ambiance_slider, 8.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -544,7 +544,7 @@ impl<'a> Widget for Video<'a> {
             events.push(GraphicsChange::AdjustSpriteRenderDistance(new_val));
         }
         Text::new(
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.sprites_view_distance"),
         )
@@ -584,7 +584,7 @@ impl<'a> Widget for Video<'a> {
             events.push(GraphicsChange::AdjustFigureLoDRenderDistance(new_val));
         }
         Text::new(
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.figures_view_distance"),
         )
@@ -608,7 +608,7 @@ impl<'a> Widget for Video<'a> {
         .set(state.ids.figure_dist_value, ui);
 
         // AaMode
-        Text::new(&self.localized_strings.get("hud.settings.antialiasing_mode"))
+        Text::new(self.localized_strings.get("hud.settings.antialiasing_mode"))
             .down_from(state.ids.gamma_slider, 8.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -650,7 +650,7 @@ impl<'a> Widget for Video<'a> {
         }
 
         // Upscaling factor
-        Text::new(&self.localized_strings.get("hud.settings.upscale_factor"))
+        Text::new(self.localized_strings.get("hud.settings.upscale_factor"))
             .down_from(state.ids.aa_mode_list, 8.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -693,7 +693,7 @@ impl<'a> Widget for Video<'a> {
 
         // CloudMode
         Text::new(
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.cloud_rendering_mode"),
         )
@@ -712,20 +712,20 @@ impl<'a> Widget for Video<'a> {
             CloudMode::Ultra,
         ];
         let mode_label_list = [
-            &self.localized_strings.get("common.none"),
-            &self
+            self.localized_strings.get("common.none"),
+            self
                 .localized_strings
                 .get("hud.settings.cloud_rendering_mode.minimal"),
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.cloud_rendering_mode.low"),
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.cloud_rendering_mode.medium"),
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.cloud_rendering_mode.high"),
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.cloud_rendering_mode.ultra"),
         ];
@@ -749,7 +749,7 @@ impl<'a> Widget for Video<'a> {
 
         // FluidMode
         Text::new(
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.fluid_rendering_mode"),
         )
@@ -761,10 +761,10 @@ impl<'a> Widget for Video<'a> {
 
         let mode_list = [FluidMode::Cheap, FluidMode::Shiny];
         let mode_label_list = [
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.fluid_rendering_mode.cheap"),
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.fluid_rendering_mode.shiny"),
         ];
@@ -788,7 +788,7 @@ impl<'a> Widget for Video<'a> {
 
         // LightingMode
         Text::new(
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.lighting_rendering_mode"),
         )
@@ -804,13 +804,13 @@ impl<'a> Widget for Video<'a> {
             LightingMode::Lambertian,
         ];
         let mode_label_list = [
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.lighting_rendering_mode.ashikhmin"),
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.lighting_rendering_mode.blinnphong"),
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.lighting_rendering_mode.lambertian"),
         ];
@@ -834,7 +834,7 @@ impl<'a> Widget for Video<'a> {
 
         // ShadowMode
         Text::new(
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.shadow_rendering_mode"),
         )
@@ -851,13 +851,13 @@ impl<'a> Widget for Video<'a> {
             ShadowMode::Map(shadow_map_mode.unwrap_or_default()),
         ];
         let mode_label_list = [
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.shadow_rendering_mode.none"),
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.shadow_rendering_mode.cheap"),
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.shadow_rendering_mode.map"),
         ];
@@ -882,7 +882,7 @@ impl<'a> Widget for Video<'a> {
         if let Some(shadow_map_mode) = shadow_map_mode {
             // Display the shadow map mode if selected.
             Text::new(
-                &self
+                self
                     .localized_strings
                     .get("hud.settings.shadow_rendering_mode.map.resolution"),
             )
@@ -925,7 +925,7 @@ impl<'a> Widget for Video<'a> {
         }
 
         // GPU Profiler
-        Text::new(&self.localized_strings.get("hud.settings.gpu_profiler"))
+        Text::new(self.localized_strings.get("hud.settings.gpu_profiler"))
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .down_from(state.ids.shadow_mode_list, 8.0)
@@ -951,7 +951,7 @@ impl<'a> Widget for Video<'a> {
         }
 
         // Particles
-        Text::new(&self.localized_strings.get("hud.settings.particles"))
+        Text::new(self.localized_strings.get("hud.settings.particles"))
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .down_from(state.ids.gpu_profiler_label, 8.0)
@@ -975,7 +975,7 @@ impl<'a> Widget for Video<'a> {
 
         // Lossy terrain compression
         Text::new(
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.lossy_terrain_compression"),
         )
@@ -1021,7 +1021,7 @@ impl<'a> Widget for Video<'a> {
             .dedup()
             .collect();
 
-        Text::new(&self.localized_strings.get("hud.settings.resolution"))
+        Text::new(self.localized_strings.get("hud.settings.resolution"))
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .down_from(state.ids.particles_label, 8.0)
@@ -1080,7 +1080,7 @@ impl<'a> Widget for Video<'a> {
             .dedup()
             .collect();
 
-        Text::new(&self.localized_strings.get("hud.settings.bit_depth"))
+        Text::new(self.localized_strings.get("hud.settings.bit_depth"))
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .down_from(state.ids.particles_label, 8.0)
@@ -1134,7 +1134,7 @@ impl<'a> Widget for Video<'a> {
             .dedup()
             .collect();
 
-        Text::new(&self.localized_strings.get("hud.settings.refresh_rate"))
+        Text::new(self.localized_strings.get("hud.settings.refresh_rate"))
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .down_from(state.ids.particles_label, 8.0)
@@ -1174,7 +1174,7 @@ impl<'a> Widget for Video<'a> {
         }
 
         // Fullscreen
-        Text::new(&self.localized_strings.get("hud.settings.fullscreen"))
+        Text::new(self.localized_strings.get("hud.settings.fullscreen"))
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .down_from(state.ids.resolution, 8.0)
@@ -1200,7 +1200,7 @@ impl<'a> Widget for Video<'a> {
         }
 
         // Fullscreen Mode
-        Text::new(&self.localized_strings.get("hud.settings.fullscreen_mode"))
+        Text::new(self.localized_strings.get("hud.settings.fullscreen_mode"))
             .down_from(state.ids.fullscreen_label, 8.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -1242,7 +1242,7 @@ impl<'a> Widget for Video<'a> {
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .down_from(state.ids.fullscreen_mode_list, 12.0)
-            .label(&self.localized_strings.get("hud.settings.save_window_size"))
+            .label(self.localized_strings.get("hud.settings.save_window_size"))
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)
             .label_font_id(self.fonts.cyri.conrod_id)
@@ -1266,7 +1266,7 @@ impl<'a> Widget for Video<'a> {
             .press_image(self.imgs.button_press)
             .down_from(state.ids.fullscreen_mode_list, 12.0)
             .right_from(state.ids.save_window_size_button, 12.0)
-            .label(&self.localized_strings.get("hud.settings.reset_graphics"))
+            .label(self.localized_strings.get("hud.settings.reset_graphics"))
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)
             .label_font_id(self.fonts.cyri.conrod_id)

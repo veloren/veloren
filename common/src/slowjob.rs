@@ -82,7 +82,7 @@ impl Queue {
     where
         F: FnOnce() + Send + Sync + 'static,
     {
-        let internal = Arc::clone(&internal);
+        let internal = Arc::clone(internal);
         let name_cloned = name.to_owned();
         Self {
             id,

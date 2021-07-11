@@ -425,7 +425,7 @@ fn draw_graphic(
                                 border_color,
                             )),
                             Graphic::Voxel(ref segment, trans, sample_strat) => Some((
-                                renderer::draw_vox(&segment, dims, trans, sample_strat),
+                                renderer::draw_vox(segment, dims, trans, sample_strat),
                                 None,
                             )),
                             Graphic::Blank => None,
@@ -487,7 +487,7 @@ fn upload_image(renderer: &mut Renderer, aabr: Aabr<u16>, tex: &Texture, image: 
         size,
         // NOTE: Rgba texture, so each pixel is 4 bytes, ergo this cannot fail.
         // We make the cast parameters explicit for clarity.
-        bytemuck::cast_slice::<u8, [u8; 4]>(&image),
+        bytemuck::cast_slice::<u8, [u8; 4]>(image),
     );
 }
 

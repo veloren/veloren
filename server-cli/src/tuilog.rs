@@ -39,7 +39,7 @@ impl<'a> Write for TuiLog<'a> {
                 Output::TextBlock(text) => {
                     // search for newlines
                     for t in text.split_inclusive('\n') {
-                        span.content.to_mut().push_str(&t);
+                        span.content.to_mut().push_str(t);
                         if t.ends_with('\n') && span.content.len() != 0 {
                             spans.push(std::mem::replace(&mut span, Span::raw("")));
                             lines.push(std::mem::take(&mut spans));

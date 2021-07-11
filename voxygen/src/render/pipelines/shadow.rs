@@ -120,7 +120,7 @@ pub fn create_col_lights(
         &texture_info,
         &view_info,
         &sampler_info,
-        bytemuck::cast_slice(&col_lights),
+        bytemuck::cast_slice(col_lights),
     )
 }
 

@@ -8,7 +8,7 @@ trait TabComplete {
 impl TabComplete for ArgumentSpec {
     fn complete(&self, part: &str, client: &Client) -> Vec<String> {
         match self {
-            ArgumentSpec::PlayerName(_) => complete_player(part, &client),
+            ArgumentSpec::PlayerName(_) => complete_player(part, client),
             ArgumentSpec::Float(_, x, _) => {
                 if part.is_empty() {
                     vec![format!("{:.1}", x)]
@@ -25,7 +25,7 @@ impl TabComplete for ArgumentSpec {
             },
             ArgumentSpec::Any(_, _) => vec![],
             ArgumentSpec::Command(_) => complete_command(part),
-            ArgumentSpec::Message(_) => complete_player(part, &client),
+            ArgumentSpec::Message(_) => complete_player(part, client),
             ArgumentSpec::SubCommand => complete_command(part),
             ArgumentSpec::Enum(_, strings, _) => strings
                 .iter()
@@ -100,27 +100,27 @@ pub fn complete(line: &str, client: &Client) -> Vec<String> {
         } else if let Ok(cmd) = cmd.parse::<ChatCommand>() {
             if let Some(arg) = cmd.data().args.get(i - 1) {
                 // Complete ith argument
-                arg.complete(word, &client)
+                arg.complete(word, client)
             } else {
                 // Complete past the last argument
                 match cmd.data().args.last() {
                     Some(ArgumentSpec::SubCommand) => {
                         if let Some(index) = nth_word(line, cmd.data().args.len()) {
-                            complete(&line[index..], &client)
+                            complete(&line[index..], client)
                         } else {
                             vec![]
                         }
                     },
-                    Some(ArgumentSpec::Message(_)) => complete_player(word, &client),
+                    Some(ArgumentSpec::Message(_)) => complete_player(word, client),
                     _ => vec![], // End of command. Nothing to complete
                 }
             }
         } else {
             // Completing for unknown chat command
-            complete_player(word, &client)
+            complete_player(word, client)
         }
     } else {
         // Not completing a command
-        complete_player(word, &client)
+        complete_player(word, client)
     }
 }

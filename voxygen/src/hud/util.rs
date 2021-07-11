@@ -56,11 +56,11 @@ pub fn price_desc(
 
 pub fn kind_text<'a>(kind: &ItemKind, i18n: &'a Localization) -> Cow<'a, str> {
     match kind {
-        ItemKind::Armor(armor) => Cow::Borrowed(armor_kind(&armor, &i18n)),
+        ItemKind::Armor(armor) => Cow::Borrowed(armor_kind(armor, i18n)),
         ItemKind::Tool(tool) => Cow::Owned(format!(
             "{} ({})",
-            tool_kind(&tool, i18n),
-            tool_hands(&tool, i18n)
+            tool_kind(tool, i18n),
+            tool_hands(tool, i18n)
         )),
         ItemKind::ModularComponent(_mc) => Cow::Borrowed(i18n.get("common.bag.shoulders")),
         ItemKind::Glider(_glider) => Cow::Borrowed(i18n.get("common.kind.glider")),

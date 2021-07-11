@@ -316,7 +316,7 @@ impl<'a> Widget for Crafting<'a> {
         }
 
         // Title
-        Text::new(&self.localized_strings.get("hud.crafting"))
+        Text::new(self.localized_strings.get("hud.crafting"))
             .mid_top_with_margin_on(state.ids.window_frame, 9.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(20))
@@ -391,7 +391,7 @@ impl<'a> Widget for Crafting<'a> {
             })
             .with_tooltip(
                 self.tooltip_manager,
-                &self.localized_strings.get(crafting_tab.name_key()),
+                self.localized_strings.get(crafting_tab.name_key()),
                 "",
                 &tabs_tooltip,
                 TEXT_COLOR,
@@ -471,7 +471,7 @@ impl<'a> Widget for Crafting<'a> {
         }
         for (i, (name, recipe, is_craftable)) in ordered_recipes
             .into_iter()
-            .filter(|(_, recipe, _)| self.show.crafting_tab.satisfies(&recipe))
+            .filter(|(_, recipe, _)| self.show.crafting_tab.satisfies(recipe))
             .enumerate()
         {
             let button = Button::image(if state.selected_recipe.as_ref() == Some(name) {
@@ -552,7 +552,7 @@ impl<'a> Widget for Crafting<'a> {
             .and_then(|rn| self.client.recipe_book().get(rn.as_str()).map(|r| (rn, r)))
         {
             // Title
-            Text::new(&recipe.output.0.name())
+            Text::new(recipe.output.0.name())
                 .mid_top_with_margin_on(state.ids.align_ing, -22.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
@@ -582,7 +582,7 @@ impl<'a> Widget for Crafting<'a> {
                         .then_some(self.imgs.button_press)
                         .unwrap_or(self.imgs.button),
                 )
-                .label(&self.localized_strings.get("hud.crafting.craft"))
+                .label(self.localized_strings.get("hud.crafting.craft"))
                 .label_y(conrod_core::position::Relative::Scalar(1.0))
                 .label_color(can_perform.then_some(TEXT_COLOR).unwrap_or(TEXT_GRAY_COLOR))
                 .label_font_size(self.fonts.cyri.scale(12))
@@ -650,7 +650,7 @@ impl<'a> Widget for Crafting<'a> {
             for (row, chunk) in CraftingTab::iter()
                 .filter(|crafting_tab| match crafting_tab {
                     CraftingTab::All => false,
-                    _ => crafting_tab.satisfies(&recipe),
+                    _ => crafting_tab.satisfies(recipe),
                 })
                 .filter(|crafting_tab| crafting_tab != &self.show.crafting_tab)
                 .collect::<Vec<_>>()
@@ -673,7 +673,7 @@ impl<'a> Widget for Crafting<'a> {
                     };
                     icon.with_tooltip(
                         self.tooltip_manager,
-                        &self.localized_strings.get(crafting_tab.name_key()),
+                        self.localized_strings.get(crafting_tab.name_key()),
                         "",
                         &tabs_tooltip,
                         TEXT_COLOR,
@@ -684,7 +684,7 @@ impl<'a> Widget for Crafting<'a> {
             // Crafting Station Info
             if recipe.craft_sprite.is_some() {
                 Text::new(
-                    &self
+                    self
                         .localized_strings
                         .get("hud.crafting.req_crafting_station"),
                 )
@@ -727,7 +727,7 @@ impl<'a> Widget for Crafting<'a> {
                     Some(SpriteKind::TanningRack) => "hud.crafting.tanning_rack",
                     _ => "",
                 };
-                Text::new(&self.localized_strings.get(station_name))
+                Text::new(self.localized_strings.get(station_name))
                     .right_from(state.ids.req_station_img, 10.0)
                     .font_id(self.fonts.cyri.conrod_id)
                     .font_size(self.fonts.cyri.scale(14))
@@ -741,7 +741,7 @@ impl<'a> Widget for Crafting<'a> {
                     .set(state.ids.req_station_txt, ui);
             }
             // Ingredients Text
-            let mut ing_txt = Text::new(&self.localized_strings.get("hud.crafting.ingredients"))
+            let mut ing_txt = Text::new(self.localized_strings.get("hud.crafting.ingredients"))
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(18))
                 .color(TEXT_COLOR);
@@ -864,13 +864,13 @@ impl<'a> Widget for Crafting<'a> {
                 // Align "Required" Text below last ingredient
                 if *amount == 0 {
                     // Catalysts/Tools
-                    Text::new(&self.localized_strings.get("hud.crafting.tool_cata"))
+                    Text::new(self.localized_strings.get("hud.crafting.tool_cata"))
                         .down_from(state.ids.ingredient_frame[i - 1], 20.0)
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(14))
                         .color(TEXT_COLOR)
                         .set(state.ids.req_text[i], ui);
-                    Text::new(&item_def.name())
+                    Text::new(item_def.name())
                         .right_from(state.ids.ingredient_frame[i], 10.0)
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(14))
@@ -934,7 +934,7 @@ impl<'a> Widget for Crafting<'a> {
                 events.push(Event::SearchRecipe(Some(string)));
             }
         } else {
-            Text::new(&self.localized_strings.get("hud.crafting.recipes"))
+            Text::new(self.localized_strings.get("hud.crafting.recipes"))
                 .mid_top_with_margin_on(state.ids.align_rec, -22.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))

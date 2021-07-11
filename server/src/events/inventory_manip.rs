@@ -266,7 +266,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         });
                     if is_equippable {
                         if let Some(lantern) = lantern_opt {
-                            swap_lantern(&mut state.ecs().write_storage(), entity, &lantern);
+                            swap_lantern(&mut state.ecs().write_storage(), entity, lantern);
                         }
                         if let Some(pos) = state.ecs().read_storage::<comp::Pos>().get(entity) {
                             dropped_items.extend(inventory.equip(slot).into_iter().map(|x| {
@@ -557,7 +557,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             let ability_map = &state.ecs().read_resource::<AbilityMap>();
             let msm = state.ecs().read_resource::<MaterialStatManifest>();
             let item = match slot {
-                Slot::Inventory(slot) => inventory.take_half(slot, &ability_map, &msm),
+                Slot::Inventory(slot) => inventory.take_half(slot, ability_map, &msm),
                 Slot::Equip(_) => None,
             };
 

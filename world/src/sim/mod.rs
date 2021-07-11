@@ -423,7 +423,7 @@ impl WorldSim {
 
                     map.into_modern()
                 },
-                FileOpts::LoadAsset(ref specifier) => match WorldFile::load_owned(&specifier) {
+                FileOpts::LoadAsset(ref specifier) => match WorldFile::load_owned(specifier) {
                     Ok(map) => map.into_modern(),
                     Err(err) => {
                         match err {
@@ -1051,7 +1051,7 @@ impl WorldSim {
                 map_size_lg,
                 max_erosion_per_delta_t as f32,
                 n_steps,
-                &river_seed,
+                river_seed,
                 // varying conditions
                 &rock_strength_nz,
                 // initial conditions
@@ -1079,7 +1079,7 @@ impl WorldSim {
                 map_size_lg,
                 1.0f32,
                 n_small_steps,
-                &river_seed,
+                river_seed,
                 &rock_strength_nz,
                 |posi| alt[posi] as f32,
                 |posi| basement[posi] as f32,
@@ -1158,7 +1158,7 @@ impl WorldSim {
                 map_size_lg,
                 1.0f32,
                 n_post_load_steps,
-                &river_seed,
+                river_seed,
                 &rock_strength_nz,
                 |posi| alt[posi] as f32,
                 |posi| basement[posi] as f32,

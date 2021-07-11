@@ -1,3 +1,4 @@
+#![allow(clippy::nonstandard_macro_braces)] //tmp as of false positive !?
 use crate::{make_case_elim, make_proj_elim};
 use rand::{seq::SliceRandom, thread_rng, Rng};
 use serde::{Deserialize, Serialize};

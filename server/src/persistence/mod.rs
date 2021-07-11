@@ -33,6 +33,7 @@ pub type PersistedComponents = (
 // This macro is called at build-time, and produces the necessary migration info
 // for the `run_migrations` call below.
 mod embedded {
+    #![allow(clippy::nonstandard_macro_braces)] //tmp as of false positive !?
     use refinery::embed_migrations;
     embed_migrations!("./src/migrations");
 }
@@ -210,7 +211,7 @@ pub(crate) fn establish_connection(
     set_log_mode(connection, settings.sql_log_mode);
     veloren_connection.sql_log_mode = settings.sql_log_mode;
 
-    rusqlite::vtab::array::load_module(&connection).expect("Failed to load sqlite array module");
+    rusqlite::vtab::array::load_module(connection).expect("Failed to load sqlite array module");
 
     connection.set_prepared_statement_cache_capacity(100);
 

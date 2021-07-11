@@ -16,6 +16,7 @@ use tokio::runtime;
 use tracing::{trace, warn};
 
 #[derive(Debug)]
+#[allow(clippy::enum_variant_names)] //TODO: evaluate ClientError ends with Enum name
 pub enum Error {
     ClientError {
         error: ClientError,

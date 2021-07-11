@@ -255,25 +255,25 @@ impl ProtocolMetricCache {
             let finished = RemoveReason::Finished.to_str();
             let dropped = RemoveReason::Dropped.to_str();
             CacheLine {
-                smsg_it: m.smsg_it.with_label_values(&[&cid, &s]),
-                smsg_ib: m.smsg_ib.with_label_values(&[&cid, &s]),
+                smsg_it: m.smsg_it.with_label_values(&[cid, &s]),
+                smsg_ib: m.smsg_ib.with_label_values(&[cid, &s]),
                 smsg_ot: [
-                    m.smsg_ot.with_label_values(&[&cid, &s, &finished]),
-                    m.smsg_ot.with_label_values(&[&cid, &s, &dropped]),
+                    m.smsg_ot.with_label_values(&[cid, &s, finished]),
+                    m.smsg_ot.with_label_values(&[cid, &s, dropped]),
                 ],
                 smsg_ob: [
-                    m.smsg_ob.with_label_values(&[&cid, &s, &finished]),
-                    m.smsg_ob.with_label_values(&[&cid, &s, &dropped]),
+                    m.smsg_ob.with_label_values(&[cid, &s, finished]),
+                    m.smsg_ob.with_label_values(&[cid, &s, dropped]),
                 ],
-                rmsg_it: m.rmsg_it.with_label_values(&[&cid, &s]),
-                rmsg_ib: m.rmsg_ib.with_label_values(&[&cid, &s]),
+                rmsg_it: m.rmsg_it.with_label_values(&[cid, &s]),
+                rmsg_ib: m.rmsg_ib.with_label_values(&[cid, &s]),
                 rmsg_ot: [
-                    m.rmsg_ot.with_label_values(&[&cid, &s, &finished]),
-                    m.rmsg_ot.with_label_values(&[&cid, &s, &dropped]),
+                    m.rmsg_ot.with_label_values(&[cid, &s, finished]),
+                    m.rmsg_ot.with_label_values(&[cid, &s, dropped]),
                 ],
                 rmsg_ob: [
-                    m.rmsg_ob.with_label_values(&[&cid, &s, &finished]),
-                    m.rmsg_ob.with_label_values(&[&cid, &s, &dropped]),
+                    m.rmsg_ob.with_label_values(&[cid, &s, finished]),
+                    m.rmsg_ob.with_label_values(&[cid, &s, dropped]),
                 ],
             }
         })
@@ -353,24 +353,24 @@ impl Drop for ProtocolMetricCache {
         let dropped = RemoveReason::Dropped.to_str();
         for (sid, _) in self.cache.drain() {
             let s = sid.to_string();
-            let _ = m.smsg_it.remove_label_values(&[&cid, &s]);
-            let _ = m.smsg_ib.remove_label_values(&[&cid, &s]);
-            let _ = m.smsg_ot.remove_label_values(&[&cid, &s, &finished]);
-            let _ = m.smsg_ot.remove_label_values(&[&cid, &s, &dropped]);
-            let _ = m.smsg_ob.remove_label_values(&[&cid, &s, &finished]);
-            let _ = m.smsg_ob.remove_label_values(&[&cid, &s, &dropped]);
-            let _ = m.rmsg_it.remove_label_values(&[&cid, &s]);
-            let _ = m.rmsg_ib.remove_label_values(&[&cid, &s]);
-            let _ = m.rmsg_ot.remove_label_values(&[&cid, &s, &finished]);
-            let _ = m.rmsg_ot.remove_label_values(&[&cid, &s, &dropped]);
-            let _ = m.rmsg_ob.remove_label_values(&[&cid, &s, &finished]);
-            let _ = m.rmsg_ob.remove_label_values(&[&cid, &s, &dropped]);
+            let _ = m.smsg_it.remove_label_values(&[cid, &s]);
+            let _ = m.smsg_ib.remove_label_values(&[cid, &s]);
+            let _ = m.smsg_ot.remove_label_values(&[cid, &s, finished]);
+            let _ = m.smsg_ot.remove_label_values(&[cid, &s, dropped]);
+            let _ = m.smsg_ob.remove_label_values(&[cid, &s, finished]);
+            let _ = m.smsg_ob.remove_label_values(&[cid, &s, dropped]);
+            let _ = m.rmsg_it.remove_label_values(&[cid, &s]);
+            let _ = m.rmsg_ib.remove_label_values(&[cid, &s]);
+            let _ = m.rmsg_ot.remove_label_values(&[cid, &s, finished]);
+            let _ = m.rmsg_ot.remove_label_values(&[cid, &s, dropped]);
+            let _ = m.rmsg_ob.remove_label_values(&[cid, &s, finished]);
+            let _ = m.rmsg_ob.remove_label_values(&[cid, &s, dropped]);
         }
-        let _ = m.ping.remove_label_values(&[&cid]);
-        let _ = m.sdata_frames_t.remove_label_values(&[&cid]);
-        let _ = m.sdata_frames_b.remove_label_values(&[&cid]);
-        let _ = m.rdata_frames_t.remove_label_values(&[&cid]);
-        let _ = m.rdata_frames_b.remove_label_values(&[&cid]);
+        let _ = m.ping.remove_label_values(&[cid]);
+        let _ = m.sdata_frames_t.remove_label_values(&[cid]);
+        let _ = m.sdata_frames_b.remove_label_values(&[cid]);
+        let _ = m.rdata_frames_t.remove_label_values(&[cid]);
+        let _ = m.rdata_frames_b.remove_label_values(&[cid]);
     }
 }
 

@@ -82,7 +82,7 @@ impl<'a> CanvasInfo<'a> {
             wpos: Vec2::broadcast(0),
             column_grid: &zcache_grid,
             column_grid_border: 0,
-            chunks: &sim,
+            chunks: sim,
             index,
             chunk: &sim_chunk,
         })

@@ -258,7 +258,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .controls
                 .get_binding(GameInput::Respawn)
             {
-                Text::new(&localized_strings.get("hud.you_died"))
+                Text::new(localized_strings.get("hud.you_died"))
                     .middle_of(ui.window)
                     .font_size(self.fonts.cyri.scale(50))
                     .font_id(self.fonts.cyri.conrod_id)
@@ -274,7 +274,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .set(state.ids.death_message_2_bg, ui);
-                Text::new(&localized_strings.get("hud.you_died"))
+                Text::new(localized_strings.get("hud.you_died"))
                     .bottom_left_with_margins_on(state.ids.death_message_1_bg, 2.0, 2.0)
                     .font_size(self.fonts.cyri.scale(50))
                     .font_id(self.fonts.cyri.conrod_id)

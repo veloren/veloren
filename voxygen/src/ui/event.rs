@@ -18,13 +18,13 @@ impl Event {
         impl<'a> conrod_winit::WinitWindow for WindowRef<'a> {
             fn get_inner_size(&self) -> Option<(u32, u32)> {
                 Some(
-                    winit::window::Window::inner_size(&self.0)
+                    winit::window::Window::inner_size(self.0)
                         .to_logical::<u32>(self.hidpi_factor())
                         .into(),
                 )
             }
 
-            fn hidpi_factor(&self) -> f64 { winit::window::Window::scale_factor(&self.0) }
+            fn hidpi_factor(&self) -> f64 { winit::window::Window::scale_factor(self.0) }
         }
         convert_event!(event, &WindowRef(window)).map(Self)
     }

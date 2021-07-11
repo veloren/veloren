@@ -72,7 +72,7 @@ impl EventMapper for CombatEventMapper {
                 let sfx_state = self.event_history.entry(entity).or_default();
 
                 let mapped_event = inventory.map_or(SfxEvent::Idle, |inv| {
-                    Self::map_event(character, sfx_state, &inv)
+                    Self::map_event(character, sfx_state, inv)
                 });
 
                 // Check for SFX config entry for this movement

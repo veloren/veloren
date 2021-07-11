@@ -1158,7 +1158,7 @@ impl Controls {
                     TextInput::new(
                         name_input,
                         i18n.get("character_window.character_name"),
-                        &name,
+                        name,
                         Message::Name,
                     )
                     .size(25)
@@ -1568,7 +1568,7 @@ impl CharSelectionUi {
 
         let (mut messages, _) = self.ui.maintain(
             self.controls
-                .view(&global_state.settings, &client, &self.error, &i18n),
+                .view(&global_state.settings, client, &self.error, &i18n),
             global_state.window.renderer_mut(),
             None,
             &mut global_state.clipboard,

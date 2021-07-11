@@ -661,7 +661,7 @@ impl<'a> Widget for Bag<'a> {
             self.stats.name.to_string(),
             self.client.entity(),
             true,
-            &inventory,
+            inventory,
             &state.bg_ids,
         )
         .set(state.ids.inventory_scroller, ui);
@@ -699,7 +699,7 @@ impl<'a> Widget for Bag<'a> {
             let expand_btn_top = if self.show.bag_inv { 53.0 } else { 460.0 };
             if expand_btn
                 .top_right_with_margins_on(state.bg_ids.bg_frame, expand_btn_top, 37.0)
-                .with_tooltip(self.tooltip_manager, &txt, "", &bag_tooltip, TEXT_COLOR)
+                .with_tooltip(self.tooltip_manager, txt, "", &bag_tooltip, TEXT_COLOR)
                 .set(state.ids.bag_expand_btn, ui)
                 .was_clicked()
             {
@@ -772,7 +772,7 @@ impl<'a> Widget for Bag<'a> {
                 self.health,
                 self.skill_set,
                 *self.body,
-                &self.msm,
+                self.msm,
             )
             .min(999.9);
             let indicator_col = cr_color(combat_rating);
@@ -825,8 +825,8 @@ impl<'a> Widget for Bag<'a> {
                 };
                 btn.with_tooltip(
                     self.tooltip_manager,
-                    &tooltip_head,
-                    &tooltip_txt,
+                    tooltip_head,
+                    tooltip_txt,
                     &bag_tooltip,
                     TEXT_COLOR,
                 )

@@ -51,7 +51,7 @@ pub struct IndexRef<'a> {
 impl<'a> Deref for IndexRef<'a> {
     type Target = Index;
 
-    fn deref(&self) -> &Self::Target { &self.index }
+    fn deref(&self) -> &Self::Target { self.index }
 }
 
 impl Index {

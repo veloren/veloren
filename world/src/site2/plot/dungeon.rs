@@ -1397,7 +1397,7 @@ impl SiteStructure for Dungeon {
         for floor in &self.floors {
             z -= floor.total_depth();
 
-            floor.render(&mut prim, &mut fill, &self, z);
+            floor.render(&mut prim, &mut fill, self, z);
         }
     }
 }

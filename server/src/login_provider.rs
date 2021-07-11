@@ -142,7 +142,7 @@ impl LoginProvider {
                 {
                     // Plugin player join hooks execute for all players, but are only allowed to
                     // filter non-admins.
-                    match plugin_manager.execute_event(&world, &PlayerJoinEvent {
+                    match plugin_manager.execute_event(world, &PlayerJoinEvent {
                         player_name: username.clone(),
                         player_id: *uuid.as_bytes(),
                     }) {

@@ -57,7 +57,7 @@ impl Plugin {
             .map_err(PluginError::Io)?;
 
         let data = toml::de::from_slice::<PluginData>(
-            &files
+            files
                 .get(Path::new("plugin.toml"))
                 .ok_or(PluginError::NoConfig)?,
         )

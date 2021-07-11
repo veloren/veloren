@@ -41,7 +41,7 @@ fn graceful_load_vox(mesh_name: &str) -> AssetHandle<DotVoxAsset> {
     graceful_load_vox_fullspec(&full_specifier)
 }
 fn graceful_load_vox_fullspec(full_specifier: &str) -> AssetHandle<DotVoxAsset> {
-    match DotVoxAsset::load(&full_specifier) {
+    match DotVoxAsset::load(full_specifier) {
         Ok(dot_vox) => dot_vox,
         Err(_) => {
             error!(?full_specifier, "Could not load vox file for figure");
@@ -880,11 +880,11 @@ impl HumMainWeaponSpec {
                 use ModularComponentSpec::*;
                 let damagespec = match modular_components.0.get(&*damage) {
                     Some(Damage(spec)) => spec,
-                    _ => return not_found(&damage),
+                    _ => return not_found(damage),
                 };
                 let heldspec = match modular_components.0.get(&*held) {
                     Some(Held(spec)) => spec,
-                    _ => return not_found(&held),
+                    _ => return not_found(held),
                 };
                 let damage_asset = graceful_load_vox(&damagespec.0).read();
                 let held_asset = graceful_load_vox(&heldspec.0).read();
@@ -4494,7 +4494,7 @@ make_vox_spec!(
 
 impl ObjectCentralSpec {
     fn mesh_bone0(&self, obj: &object::Body) -> BoneMeshes {
-        let spec = match self.0.get(&obj) {
+        let spec = match self.0.get(obj) {
             Some(spec) => spec,
             None => {
                 error!("No specification exists for {:?}", obj);
@@ -4507,7 +4507,7 @@ impl ObjectCentralSpec {
     }
 
     fn mesh_bone1(&self, obj: &object::Body) -> BoneMeshes {
-        let spec = match self.0.get(&obj) {
+        let spec = match self.0.get(obj) {
             Some(spec) => spec,
             None => {
                 error!("No specification exists for {:?}", obj);
@@ -4525,7 +4525,7 @@ fn mesh_ship_bone<K: fmt::Debug + Eq + Hash, V, F: Fn(&V) -> &ShipCentralSubSpec
     obj: &K,
     f: F,
 ) -> BoneMeshes {
-    let spec = match map.get(&obj) {
+    let spec = match map.get(obj) {
         Some(spec) => spec,
         None => {
             error!("No specification exists for {:?}", obj);

@@ -137,7 +137,7 @@ pub fn load_character_data(
     )?;
 
     let char_waypoint = character_data.waypoint.as_ref().and_then(|x| {
-        match convert_waypoint_from_database_json(&x) {
+        match convert_waypoint_from_database_json(x) {
             Ok(w) => Some(w),
             Err(e) => {
                 warn!(
@@ -240,7 +240,7 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
     characters
         .iter()
         .map(|character_data| {
-            let char = convert_character_from_database(&character_data);
+            let char = convert_character_from_database(character_data);
 
             let db_body;
 

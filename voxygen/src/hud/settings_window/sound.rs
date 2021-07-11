@@ -106,7 +106,7 @@ impl<'a> Widget for Sound<'a> {
         let inactive_master_volume_perc =
             self.global_state.settings.audio.inactive_master_volume_perc;
         let inactive_val = format!("{:2.0}%", inactive_master_volume_perc * 100.0);
-        Text::new(&self.localized_strings.get("hud.settings.master_volume"))
+        Text::new(self.localized_strings.get("hud.settings.master_volume"))
             .top_left_with_margins_on(state.ids.window, 10.0, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -137,7 +137,7 @@ impl<'a> Widget for Sound<'a> {
             .set(state.ids.master_volume_number, ui);
         // Master Volume (inactive window) ----------------------------------
         Text::new(
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.inactive_master_volume_perc"),
         )
@@ -170,7 +170,7 @@ impl<'a> Widget for Sound<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.inactive_master_volume_number, ui);
         // Music Volume -----------------------------------------------------
-        Text::new(&self.localized_strings.get("hud.settings.music_volume"))
+        Text::new(self.localized_strings.get("hud.settings.music_volume"))
             .down_from(state.ids.inactive_master_volume_slider, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -196,7 +196,7 @@ impl<'a> Widget for Sound<'a> {
 
         // SFX Volume -------------------------------------------------------
         Text::new(
-            &self
+            self
                 .localized_strings
                 .get("hud.settings.sound_effect_volume"),
         )
@@ -227,7 +227,7 @@ impl<'a> Widget for Sound<'a> {
         // --------------------------------------------
         // let device = &self.global_state.audio.device;
         //let device_list = &self.global_state.audio.device_list;
-        //Text::new(&self.localized_strings.get("hud.settings.audio_device"
+        //Text::new(self.localized_strings.get("hud.settings.audio_device"
         // ))    .down_from(state.ids.sfx_volume_slider, 10.0)
         //    .font_size(self.fonts.cyri.scale(14))
         //    .font_id(self.fonts.cyri.conrod_id)
@@ -256,7 +256,7 @@ impl<'a> Widget for Sound<'a> {
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .down_from(state.ids.sfx_volume_slider, 12.0)
-            .label(&self.localized_strings.get("hud.settings.reset_sound"))
+            .label(self.localized_strings.get("hud.settings.reset_sound"))
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)
             .label_font_id(self.fonts.cyri.conrod_id)

@@ -295,11 +295,11 @@ impl Server {
                 },
                 ..WorldOpts::default()
             },
-            &state.thread_pool(),
+            state.thread_pool(),
         );
 
         #[cfg(feature = "worldgen")]
-        let map = world.get_map_data(index.as_index_ref(), &state.thread_pool());
+        let map = world.get_map_data(index.as_index_ref(), state.thread_pool());
 
         #[cfg(not(feature = "worldgen"))]
         let (world, index) = World::generate(settings.world_seed);
@@ -773,7 +773,7 @@ impl Server {
                             None,
                             pos,
                             &slow_jobs,
-                            Arc::clone(&world),
+                            Arc::clone(world),
                             index.clone(),
                             *ecs.read_resource::<TimeOfDay>(),
                         );
@@ -785,7 +785,7 @@ impl Server {
         let end_of_server_tick = Instant::now();
 
         // 8) Update Metrics
-        run_now::<sys::metrics::Sys>(&self.state.ecs());
+        run_now::<sys::metrics::Sys>(self.state.ecs());
 
         {
             // Report timing info
@@ -861,7 +861,7 @@ impl Server {
             )
             .send(ServerInit::GameSync {
                 // Send client their entity
-                entity_package: TrackedComps::fetch(&self.state.ecs())
+                entity_package: TrackedComps::fetch(self.state.ecs())
                     .create_entity_package(entity, None, None, None)
                     .expect(
                         "We just created this entity as marked() (using create_entity_synced) so \

@@ -443,7 +443,7 @@ impl Network {
     /// [`ListenAddr`]: crate::api::ListenAddr
     #[instrument(name="network", skip(self), fields(p = %self.local_pid))]
     pub async fn connected(&self) -> Result<Participant, NetworkError> {
-        let participant = self.connected_receiver.lock().await.recv().await?;
+        let participant = self.connected_receiver.lock().await.recv().await.ok_or(NetworkError::NetworkClosed)?;
         self.participant_disconnect_sender.lock().await.insert(
             participant.remote_pid,
             Arc::clone(&participant.a2s_disconnect_s),
@@ -1194,14 +1194,6 @@ impl<T> From<crossbeam_channel::SendError<T>> for StreamError {
 
 impl<T> From<crossbeam_channel::SendError<T>> for NetworkError {
     fn from(_err: crossbeam_channel::SendError<T>) -> Self { NetworkError::NetworkClosed }
-}
-
-impl From<std::option::NoneError> for StreamError {
-    fn from(_err: std::option::NoneError) -> Self { StreamError::StreamClosed }
-}
-
-impl From<std::option::NoneError> for NetworkError {
-    fn from(_err: std::option::NoneError) -> Self { NetworkError::NetworkClosed }
 }
 
 impl<T> From<mpsc::error::SendError<T>> for NetworkError {

@@ -181,7 +181,7 @@ impl AudioFrontend {
                     // Fade the existing channel out. It will be removed when the fade completes.
                     existing_channel.set_fader(Fader::fade_out(fade_out, music_volume));
 
-                    let mut next_music_channel = MusicChannel::new(&audio_stream);
+                    let mut next_music_channel = MusicChannel::new(audio_stream);
 
                     next_music_channel.set_fader(Fader::fade_in(fade_in, self.get_music_volume()));
 

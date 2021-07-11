@@ -1099,7 +1099,7 @@ impl Renderer {
         sampler_info: &wgpu::SamplerDescriptor,
         data: &[u8],
     ) -> Texture {
-        let tex = Texture::new_raw(&self.device, &texture_info, &view_info, &sampler_info);
+        let tex = Texture::new_raw(&self.device, texture_info, view_info, sampler_info);
 
         let size = texture_info.size;
         let block_size = texture_info.format.describe().block_size;

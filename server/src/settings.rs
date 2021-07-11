@@ -135,7 +135,7 @@ impl Settings {
 
     /// path: Directory that contains the server config directory
     pub fn singleplayer(path: &Path) -> Self {
-        let load = Self::load(&path);
+        let load = Self::load(path);
         Self {
             //BUG: theoretically another process can grab the port between here and server
             // creation, however the timewindow is quite small

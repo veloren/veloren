@@ -666,19 +666,19 @@ impl<'a> AgentData<'a> {
                     DEFAULT_INTERACTION_TIME
                 })
             {
-                self.interact(agent, controller, &read_data, event_emitter);
+                self.interact(agent, controller, read_data, event_emitter);
             } else {
                 agent.action_state.timer = 0.0;
                 agent.target = None;
                 controller.actions.push(ControlAction::Stand);
-                self.idle(agent, controller, &read_data);
+                self.idle(agent, controller, read_data);
             }
         } else if thread_rng().gen::<f32>() < 0.1 {
-            self.choose_target(agent, controller, &read_data, event_emitter);
+            self.choose_target(agent, controller, read_data, event_emitter);
         } else if agent.awareness > AWARENESS_INVESTIGATE_THRESHOLD {
             self.handle_elevated_awareness(agent, controller, read_data);
         } else {
-            self.idle(agent, controller, &read_data);
+            self.idle(agent, controller, read_data);
         }
     }
 
@@ -725,7 +725,7 @@ impl<'a> AgentData<'a> {
                     } else {
                         agent.action_state.timer = 0.0;
                         agent.target = None;
-                        self.idle(agent, controller, &read_data);
+                        self.idle(agent, controller, read_data);
                     }
 
                 // If not fleeing, attack the hostile entity!
@@ -750,7 +750,7 @@ impl<'a> AgentData<'a> {
                     } else if read_data.time.0 - selected_at > RETARGETING_THRESHOLD_SECONDS
                         && matches!(self.alignment, Some(Alignment::Enemy))
                     {
-                        self.choose_target(agent, controller, &read_data, event_emitter);
+                        self.choose_target(agent, controller, read_data, event_emitter);
                     } else {
                         // TODO Add utility for attacking vs leaving target alone
                         let target_data = TargetData {
@@ -758,7 +758,7 @@ impl<'a> AgentData<'a> {
                             body: read_data.bodies.get(target),
                             scale: read_data.scales.get(target),
                         };
-                        self.attack(agent, controller, &target_data, &read_data);
+                        self.attack(agent, controller, &target_data, read_data);
                     }
                 }
             }
@@ -1538,7 +1538,7 @@ impl<'a> AgentData<'a> {
                     && e != self.entity
                     && !e_health.is_dead
                     && !invulnerability_is_in_buffs(read_data.buffs.get(*e))
-                    && (try_owner_alignment(self.alignment, &read_data).and_then(|a| try_owner_alignment(*e_alignment, &read_data).map(|b| a.hostile_towards(*b))).unwrap_or(false) || (
+                    && (try_owner_alignment(self.alignment, read_data).and_then(|a| try_owner_alignment(*e_alignment, read_data).map(|b| a.hostile_towards(*b))).unwrap_or(false) || (
                             if let Some(rtsim_entity) = &self.rtsim_entity {
                                 if agent.behavior.can(BehaviorCapability::SPEAK) {
                                     if rtsim_entity.brain.remembers_fight_with_character(&e_stats.name) {
@@ -1800,32 +1800,32 @@ impl<'a> AgentData<'a> {
         // depending on the distance from the agent to the target
         match tactic {
             Tactic::Melee => {
-                self.handle_melee_attack(agent, controller, &attack_data, &tgt_data, &read_data)
+                self.handle_melee_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
             Tactic::Axe => {
-                self.handle_axe_attack(agent, controller, &attack_data, &tgt_data, &read_data)
+                self.handle_axe_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
             Tactic::Hammer => {
-                self.handle_hammer_attack(agent, controller, &attack_data, &tgt_data, &read_data)
+                self.handle_hammer_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
             Tactic::Sword => {
-                self.handle_sword_attack(agent, controller, &attack_data, &tgt_data, &read_data)
+                self.handle_sword_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
             Tactic::Bow => {
-                self.handle_bow_attack(agent, controller, &attack_data, &tgt_data, &read_data)
+                self.handle_bow_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
             Tactic::Staff => {
-                self.handle_staff_attack(agent, controller, &attack_data, &tgt_data, &read_data)
+                self.handle_staff_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
             Tactic::Sceptre => {
-                self.handle_sceptre_attack(agent, controller, &attack_data, &tgt_data, &read_data)
+                self.handle_sceptre_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
             Tactic::StoneGolem => self.handle_stone_golem_attack(
                 agent,
                 controller,
                 &attack_data,
-                &tgt_data,
-                &read_data,
+                tgt_data,
+                read_data,
             ),
             Tactic::CircleCharge {
                 radius,
@@ -1834,8 +1834,8 @@ impl<'a> AgentData<'a> {
                 agent,
                 controller,
                 &attack_data,
-                &tgt_data,
-                &read_data,
+                tgt_data,
+                read_data,
                 radius,
                 circle_time,
             ),
@@ -1843,126 +1843,126 @@ impl<'a> AgentData<'a> {
                 agent,
                 controller,
                 &attack_data,
-                &tgt_data,
-                &read_data,
+                tgt_data,
+                read_data,
             ),
             Tactic::TailSlap => {
-                self.handle_tail_slap_attack(agent, controller, &attack_data, &tgt_data, &read_data)
+                self.handle_tail_slap_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
             Tactic::QuadLowQuick => self.handle_quadlow_quick_attack(
                 agent,
                 controller,
                 &attack_data,
-                &tgt_data,
-                &read_data,
+                tgt_data,
+                read_data,
             ),
             Tactic::QuadLowBasic => self.handle_quadlow_basic_attack(
                 agent,
                 controller,
                 &attack_data,
-                &tgt_data,
-                &read_data,
+                tgt_data,
+                read_data,
             ),
             Tactic::QuadMedJump => self.handle_quadmed_jump_attack(
                 agent,
                 controller,
                 &attack_data,
-                &tgt_data,
-                &read_data,
+                tgt_data,
+                read_data,
             ),
             Tactic::QuadMedBasic => self.handle_quadmed_basic_attack(
                 agent,
                 controller,
                 &attack_data,
-                &tgt_data,
-                &read_data,
+                tgt_data,
+                read_data,
             ),
             Tactic::QuadLowBeam => self.handle_quadlow_beam_attack(
                 agent,
                 controller,
                 &attack_data,
-                &tgt_data,
-                &read_data,
+                tgt_data,
+                read_data,
             ),
             Tactic::Theropod => {
-                self.handle_theropod_attack(agent, controller, &attack_data, &tgt_data, &read_data)
+                self.handle_theropod_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
             Tactic::Turret => {
-                self.handle_turret_attack(agent, controller, &attack_data, &tgt_data, &read_data)
+                self.handle_turret_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
             Tactic::FixedTurret => self.handle_fixed_turret_attack(
                 agent,
                 controller,
                 &attack_data,
-                &tgt_data,
-                &read_data,
+                tgt_data,
+                read_data,
             ),
             Tactic::RotatingTurret => self.handle_rotating_turret_attack(
                 agent,
                 controller,
                 &attack_data,
-                &tgt_data,
-                &read_data,
+                tgt_data,
+                read_data,
             ),
             Tactic::Tornado => self.handle_tornado_attack(controller),
             Tactic::Mindflayer => self.handle_mindflayer_attack(
                 agent,
                 controller,
                 &attack_data,
-                &tgt_data,
-                &read_data,
+                tgt_data,
+                read_data,
             ),
             Tactic::BirdLargeFire => self.handle_birdlarge_fire_attack(
                 agent,
                 controller,
                 &attack_data,
-                &tgt_data,
-                &read_data,
+                tgt_data,
+                read_data,
             ),
             // Mostly identical to BirdLargeFire but tweaked for flamethrower instead of shockwave
             Tactic::BirdLargeBreathe => self.handle_birdlarge_breathe_attack(
                 agent,
                 controller,
                 &attack_data,
-                &tgt_data,
-                &read_data,
+                tgt_data,
+                read_data,
             ),
             Tactic::BirdLargeBasic => self.handle_birdlarge_basic_attack(
                 agent,
                 controller,
                 &attack_data,
-                &tgt_data,
-                &read_data,
+                tgt_data,
+                read_data,
             ),
             Tactic::Minotaur => {
-                self.handle_minotaur_attack(agent, controller, &attack_data, &tgt_data, &read_data)
+                self.handle_minotaur_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
             Tactic::ClayGolem => self.handle_clay_golem_attack(
                 agent,
                 controller,
                 &attack_data,
-                &tgt_data,
-                &read_data,
+                tgt_data,
+                read_data,
             ),
             Tactic::TidalWarrior => self.handle_tidal_warrior_attack(
                 agent,
                 controller,
                 &attack_data,
-                &tgt_data,
-                &read_data,
+                tgt_data,
+                read_data,
             ),
             Tactic::RadialTurret => self.handle_radial_turret_attack(
                 agent,
                 controller,
                 &attack_data,
-                &tgt_data,
-                &read_data,
+                tgt_data,
+                read_data,
             ),
             Tactic::Yeti => {
-                self.handle_yeti_attack(agent, controller, &attack_data, &tgt_data, &read_data)
+                self.handle_yeti_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
             Tactic::Harvester => {
-                self.handle_harvester_attack(agent, controller, &attack_data, &tgt_data, &read_data)
+                self.handle_harvester_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
         }
     }
@@ -3945,7 +3945,7 @@ impl<'a> AgentData<'a> {
     ) {
         // Currently this means that we are in a safezone
         if invulnerability_is_in_buffs(read_data.buffs.get(*self.entity)) {
-            self.idle(agent, controller, &read_data);
+            self.idle(agent, controller, read_data);
             return;
         }
 
@@ -3962,7 +3962,7 @@ impl<'a> AgentData<'a> {
                     self.follow(agent, controller, &read_data.terrain, &sound_pos);
                 } else {
                     // TODO: Change this to a search action instead of idle
-                    self.idle(agent, controller, &read_data);
+                    self.idle(agent, controller, read_data);
                 }
             } else if self.flees {
                 let aggro = agent.psyche.aggro;
@@ -3972,10 +3972,10 @@ impl<'a> AgentData<'a> {
                 if close_enough && (aggro <= 0.5 || (aggro <= 0.7 && loud_sound)) {
                     self.flee(agent, controller, &read_data.terrain, &sound_pos);
                 } else {
-                    self.idle(agent, controller, &read_data);
+                    self.idle(agent, controller, read_data);
                 }
             } else {
-                self.idle(agent, controller, &read_data);
+                self.idle(agent, controller, read_data);
             }
         }
     }
