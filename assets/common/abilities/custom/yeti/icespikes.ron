@@ -14,4 +14,10 @@ Shockwave(
     move_efficiency: 0.2,
     damage_kind: Piercing,
     specifier: IceSpikes,
+    damage_effect: Some(Buff((
+        kind: Bleeding,
+        dur_secs: 10.0,
+        strength: DamageFraction(0.1),
+        chance: 0.1,
+    ))),
 )

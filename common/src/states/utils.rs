@@ -836,6 +836,24 @@ pub fn get_crit_data(data: &JoinData, ai: AbilityInfo) -> (f32, f32) {
     (crit_chance, crit_mult)
 }
 
+/// Returns buff strength from the weapon used in the ability
+pub fn get_buff_strength(data: &JoinData, ai: AbilityInfo) -> f32 {
+    ai.hand
+        .map(|hand| match hand {
+            HandInfo::TwoHanded | HandInfo::MainHand => EquipSlot::ActiveMainhand,
+            HandInfo::OffHand => EquipSlot::ActiveOffhand,
+        })
+        .and_then(|slot| data.inventory.equipped(slot))
+        .and_then(|item| {
+            if let ItemKind::Tool(tool) = item.kind() {
+                Some(tool.base_buff_strength(data.msm, item.components()))
+            } else {
+                None
+            }
+        })
+        .unwrap_or(1.0)
+}
+
 pub fn handle_state_interrupt(data: &JoinData, update: &mut StateUpdate, attacks_interrupt: bool) {
     if attacks_interrupt {
         handle_ability_input(data, update);

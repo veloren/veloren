@@ -1,7 +1,7 @@
 use crate::{
     combat::{
-        Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement, Damage,
-        DamageKind, DamageSource, GroupTarget, Knockback,
+        Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageKind,
+        DamageSource, GroupTarget, Knockback,
     },
     comp::{tool::ToolKind, CharacterState, EnergyChange, EnergySource, Melee, StateUpdate},
     consts::GRAVITY,
@@ -128,12 +128,8 @@ impl CharacterBehavior for Data {
                         },
                         self.static_data.target,
                     );
-                    match self.static_data.damage_effect {
-                        Some(effect) => damage = damage.with_effect(effect),
-                        None => {
-                            let buff = CombatEffect::Buff(CombatBuff::default_physical());
-                            damage = damage.with_effect(buff);
-                        },
+                    if let Some(effect) = self.static_data.damage_effect {
+                        damage = damage.with_effect(effect);
                     }
                     let (crit_chance, crit_mult) =
                         get_crit_data(data, self.static_data.ability_info);

@@ -85,6 +85,7 @@ impl ProjectileConstructor {
         owner: Option<Uid>,
         crit_chance: f32,
         crit_mult: f32,
+        buff_strength: f32,
     ) -> Projectile {
         use ProjectileConstructor::*;
         match self {
@@ -103,7 +104,12 @@ impl ProjectileConstructor {
                 .with_requirement(CombatRequirement::AnyDamage);
                 let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
                     .with_requirement(CombatRequirement::AnyDamage);
-                let buff = CombatEffect::Buff(CombatBuff::default_physical());
+                let buff = CombatEffect::Buff(CombatBuff {
+                    kind: BuffKind::Bleeding,
+                    dur_secs: 10.0,
+                    strength: CombatBuffStrength::DamageFraction(0.1 * buff_strength),
+                    chance: 0.1,
+                });
                 let damage = AttackDamage::new(
                     Damage {
                         source: DamageSource::Projectile,
@@ -321,7 +327,7 @@ impl ProjectileConstructor {
                     CombatEffect::Buff(CombatBuff {
                         kind: BuffKind::Burning,
                         dur_secs: 5.0,
-                        strength: CombatBuffStrength::DamageFraction(0.2),
+                        strength: CombatBuffStrength::DamageFraction(0.2 * buff_strength),
                         chance: 1.0,
                     }),
                 )

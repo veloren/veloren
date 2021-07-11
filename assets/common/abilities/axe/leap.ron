@@ -12,4 +12,10 @@ LeapMelee(
     forward_leap_strength: 20.0,
     vertical_leap_strength: 8.0,
     damage_kind: Slashing,
+    damage_effect: Some(Buff((
+        kind: Bleeding,
+        dur_secs: 10.0,
+        strength: DamageFraction(0.1),
+        chance: 0.1,
+    ))),
 )

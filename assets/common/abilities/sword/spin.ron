@@ -6,7 +6,12 @@ SpinMelee(
     base_poise_damage: 13,
     knockback: ( strength: 10.0, direction: Away),
     range: 3.5,
-    damage_effect: None,
+    damage_effect: Some(Buff((
+        kind: Bleeding,
+        dur_secs: 10.0,
+        strength: DamageFraction(0.1),
+        chance: 0.1,
+    ))),
     energy_cost: 150,
     is_infinite: false,
     movement_behavior: ForwardGround,

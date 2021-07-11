@@ -30,7 +30,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(not(target_arch = "wasm32"))]
 use specs::Entity as EcsEntity;
 #[cfg(not(target_arch = "wasm32"))]
-use std::time::Duration;
+use std::{ops::MulAssign, time::Duration};
 #[cfg(not(target_arch = "wasm32"))] use vek::*;
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -705,6 +705,16 @@ impl CombatBuffStrength {
     }
 }
 
+impl MulAssign<f32> for CombatBuffStrength {
+    fn mul_assign(&mut self, mul: f32) {
+        match self {
+            Self::DamageFraction(ref mut val) | Self::Value(ref mut val) => {
+                *val *= mul;
+            },
+        }
+    }
+}
+
 #[cfg(not(target_arch = "wasm32"))]
 impl CombatBuff {
     fn to_buff(self, uid: Option<Uid>, damage: f32) -> Buff {
@@ -723,15 +733,6 @@ impl CombatBuff {
             Vec::new(),
             source,
         )
-    }
-
-    pub fn default_physical() -> Self {
-        Self {
-            kind: BuffKind::Bleeding,
-            dur_secs: 10.0,
-            strength: CombatBuffStrength::DamageFraction(0.1),
-            chance: 0.1,
-        }
     }
 }
 

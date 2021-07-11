@@ -17,4 +17,10 @@ DashMelee(
     charge_through: true,
     is_interruptible: true,
     damage_kind: Piercing,
+    damage_effect: Some(Buff((
+        kind: Bleeding,
+        dur_secs: 10.0,
+        strength: DamageFraction(0.1),
+        chance: 0.1,
+    ))),
 )

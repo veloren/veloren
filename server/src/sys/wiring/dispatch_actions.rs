@@ -110,7 +110,7 @@ fn dispatch_action_spawn_projectile(
         entity,
         dir: Dir::forward(),
         body: Body::Object(object::Body::Arrow),
-        projectile: constr.create_projectile(None, 1.0, 1.0),
+        projectile: constr.create_projectile(None, 0.0, 1.0, 1.0),
         light: None,
         speed: 5.0,
         object: None,

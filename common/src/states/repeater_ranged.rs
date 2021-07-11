@@ -90,10 +90,12 @@ impl CharacterBehavior for Data {
                     // Fire if input is pressed still
                     let (crit_chance, crit_mult) =
                         get_crit_data(data, self.static_data.ability_info);
+                    let buff_strength = get_buff_strength(data, self.static_data.ability_info);
                     let projectile = self.static_data.projectile.create_projectile(
                         Some(*data.uid),
                         crit_chance,
                         crit_mult,
+                        buff_strength,
                     );
                     update.server_events.push_front(ServerEvent::Shoot {
                         entity: data.entity,
