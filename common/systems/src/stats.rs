@@ -276,7 +276,6 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::Shockwave { .. }
                 | CharacterState::BasicBeam { .. }
                 | CharacterState::BasicAura { .. }
-                | CharacterState::HealingBeam { .. }
                 | CharacterState::Blink { .. }
                 | CharacterState::BasicSummon { .. }
                 | CharacterState::SelfBuff { .. }

@@ -826,20 +826,6 @@ impl ParticleMgr {
                         },
                     );
                 },
-                beam::FrontendSpecifier::HealingBeam => {
-                    // Emit a light when using healing
-                    lights.push(Light::new(pos.0, Rgb::new(0.1, 1.0, 0.15), 1.0));
-                    self.particles.reserve(beam_tick_count as usize);
-                    for i in 0..beam_tick_count {
-                        self.particles.push(Particle::new_directed(
-                            beam.properties.duration,
-                            time + i as f64 / 1000.0,
-                            ParticleMode::HealingBeam,
-                            pos.0,
-                            pos.0 + *ori.look_dir() * range,
-                        ));
-                    }
-                },
                 beam::FrontendSpecifier::LifestealBeam => {
                     // Emit a light when using lifesteal beam
                     lights.push(Light::new(pos.0, Rgb::new(0.8, 1.0, 0.5), 1.0));

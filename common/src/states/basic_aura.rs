@@ -1,7 +1,7 @@
 use crate::{
     combat::GroupTarget,
     comp::{
-        aura::{AuraBuffConstructor, AuraChange, AuraKind, AuraTarget, FrontendSpecifier},
+        aura::{AuraBuffConstructor, AuraChange, AuraKind, AuraTarget, Specifier},
         CharacterState, StateUpdate,
     },
     event::ServerEvent,
@@ -35,7 +35,7 @@ pub struct StaticData {
     /// Whether the aura's effect scales with the user's current combo
     pub scales_with_combo: bool,
     /// Used to specify aura to the frontend
-    pub specifier: FrontendSpecifier,
+    pub specifier: Specifier,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

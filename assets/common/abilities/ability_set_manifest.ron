@@ -191,7 +191,7 @@
         abilities: [],
     ),
     Custom("Quad Low Beam"): (
-        primary: "common.abilities.custom.quadlowbeam.healingbeam",
+        primary: "common.abilities.custom.quadlowbeam.lifestealbeam",
         secondary: "common.abilities.custom.quadlowbreathe.triplestrike",
         abilities: [
             (None, "common.abilities.custom.quadlowbreathe.dash"),

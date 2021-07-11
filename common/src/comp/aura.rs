@@ -72,7 +72,7 @@ pub enum AuraTarget {
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
-pub enum FrontendSpecifier {
+pub enum Specifier {
     WardingAura,
     HealingAura,
 }
