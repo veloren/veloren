@@ -186,7 +186,7 @@ impl<'a> Widget for LootScroller<'a> {
                     s.messages.pop_front();
                 }
             });
-            ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
+            ui.scroll_widget(state.ids.message_box, [0.0, f64::MAX]);
         }
 
         // check if it collides with other windows
@@ -359,7 +359,7 @@ impl<'a> Widget for LootScroller<'a> {
                     .and(|text| {
                         let text_width = match text.get_x_dimension(ui) {
                             Dimension::Absolute(x) => x,
-                            _ => std::f64::MAX,
+                            _ => f64::MAX,
                         }
                         .min(BOX_WIDTH - (ICON_BG_SIZE + ICON_LABEL_SPACER));
                         text.w(text_width)
