@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Some("Myrmidon Hoplite"),
+    name: Name("Myrmidon Hoplite"),
     body: RandomWith("myrmidon"),
     alignment: Alignment(Enemy),
 

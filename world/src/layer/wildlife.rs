@@ -20,7 +20,7 @@ const BASE_DENSITY: f32 = 1.0e-5; // Base wildlife density
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct SpawnEntry {
-    /// User-facing info for wiki, statistical tools.
+    /// User-facing info for wiki, statistical tools, etc.
     pub name: String,
     pub note: String,
     /// Rules describing what and when to spawn
@@ -309,7 +309,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     }) {
                         let mut entity = entity.clone();
                         entity.pos += offs_wpos2d.with_z(solid_end).map(|e| e as f32);
-                        supplement.add_entity(entity.with_automatic_name());
+                        supplement.add_entity(entity);
                     }
                 }
             }

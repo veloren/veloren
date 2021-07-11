@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Some("Dreadhorn"),
+    name: Automatic,
     body: RandomWith("dreadhorn"),
     alignment: Alignment(Enemy),
 

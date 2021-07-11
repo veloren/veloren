@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Some("Haniwa Sorcerer"),
+    name: Name("Haniwa Sorcerer"),
     body: RandomWith("haniwa"),
     alignment: Alignment(Enemy),
 

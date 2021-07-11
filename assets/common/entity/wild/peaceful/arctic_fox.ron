@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Some("Fox"),
+    name: Name("Arctic Fox"),
     body: Exact(QuadrupedSmall(Body(species: Fox, body_type: Female))),
     alignment: Alignment(Wild),
 

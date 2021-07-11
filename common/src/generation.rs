@@ -14,16 +14,16 @@ use serde::Deserialize;
 use vek::*;
 
 #[derive(Debug, Deserialize, Clone)]
-enum BodyBuilder {
-    RandomWith(String),
-    Exact(Body),
+enum NameKind {
+    Name(String),
+    Automatic,
     Uninit,
 }
 
 #[derive(Debug, Deserialize, Clone)]
-enum LootKind {
-    Item(String),
-    LootTable(String),
+enum BodyBuilder {
+    RandomWith(String),
+    Exact(Body),
     Uninit,
 }
 
@@ -34,9 +34,10 @@ enum AlignmentMark {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-enum Meta {
-    LoadoutAsset(String),
-    SkillSetAsset(String),
+enum LootKind {
+    Item(String),
+    LootTable(String),
+    Uninit,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -51,8 +52,14 @@ enum Hands {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+enum Meta {
+    LoadoutAsset(String),
+    SkillSetAsset(String),
+}
+
+#[derive(Debug, Deserialize, Clone)]
 pub struct EntityConfig {
-    name: Option<String>,
+    name: NameKind,
     body: BodyBuilder,
     alignment: AlignmentMark,
     loot: LootKind,
@@ -140,10 +147,6 @@ impl EntityInfo {
             meta,
         } = config;
 
-        if let Some(name) = name {
-            self = self.with_name(name);
-        }
-
         match body {
             BodyBuilder::RandomWith(string) => {
                 let npc::NpcBody(_body_kind, mut body_creator) =
@@ -157,6 +160,17 @@ impl EntityInfo {
                 self = self.with_body(body);
             },
             BodyBuilder::Uninit => {},
+        }
+
+        // NOTE: set name after body, as it's used with automatic name
+        match name {
+            NameKind::Name(name) => {
+                self = self.with_name(name);
+            },
+            NameKind::Automatic => {
+                self = self.with_automatic_name();
+            },
+            NameKind::Uninit => {},
         }
 
         if let AlignmentMark::Alignment(alignment) = alignment {
@@ -381,8 +395,8 @@ mod tests {
                 hands,
                 loot,
                 body,
+                name,
                 meta,
-                name: _name,           // can't fail if serialized, it's a boring String
                 alignment: _alignment, // can't fail if serialized, it's a boring enum
             } = EntityConfig::from_asset_expect(config_asset);
 
@@ -409,7 +423,16 @@ mod tests {
                         });
                     let _ = body_creator();
                 },
-                BodyBuilder::Exact { .. } | BodyBuilder::Uninit => {},
+                BodyBuilder::Uninit => {
+                    if let NameKind::Automatic = name {
+                        // there is a big chance to call automatic name
+                        // when body is yet undefined
+                        //
+                        // use .with_automatic_name() in code explicitly
+                        panic!("Used Automatic name with Uninit body in {}", config_asset);
+                    }
+                },
+                BodyBuilder::Exact { .. } => {},
             }
 
             match loot {

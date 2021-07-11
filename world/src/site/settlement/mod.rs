@@ -1022,8 +1022,7 @@ fn human(pos: Vec3<f32>, economy: &SiteInformation, dynamic_rng: &mut impl Rng) 
             .with_asset_expect("common.entity.village.merchant"),
         _ => entity
             .with_lazy_loadout(villager_loadout)
-            .with_asset_expect("common.entity.village.villager")
-            .with_automatic_name(),
+            .with_asset_expect("common.entity.village.villager"),
     }
 }
 

@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Some("Possessed Turret"),
+    name: Name("Possessed Turret"),
     body: Exact(Object(Crossbow)),
     alignment: Alignment(Enemy),
 

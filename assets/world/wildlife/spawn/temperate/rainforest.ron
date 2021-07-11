@@ -25,10 +25,10 @@ SpawnEntry (
                 (2, (1, 1, "common.entity.wild.peaceful.goose")),
                 (2, (1, 1, "common.entity.wild.peaceful.peacock")),
                 (2, (1, 1, "common.entity.wild.peaceful.skunk")),
-                (2, (1, 1, "common.entity.wild.peaceful.raccon")),
+                (2, (1, 1, "common.entity.wild.peaceful.raccoon")),
                 (2, (1, 1, "common.entity.wild.peaceful.catoblepas")),
                 (2, (1, 1, "common.entity.wild.peaceful.turtle")),
-                (2, (1, 1, "common.entity.wild.peaceful.hidrasil")),
+                (2, (1, 1, "common.entity.wild.peaceful.hirdrasil")),
                 (2, (1, 1, "common.entity.wild.peaceful.truffler")),
             ],
             is_underwater: false,
@@ -39,7 +39,7 @@ SpawnEntry (
                 // Solitary
                 (1, (1, 1, "common.entity.wild.aggressive.batfox")),
                 (5, (1, 1, "common.entity.wild.peaceful.forest_fox")),
-                (5, (1, 1, "common.entity.wild.peaceful.raccon")),
+                (5, (1, 1, "common.entity.wild.peaceful.raccoon")),
                 // Pack
                 (5, (1, 3, "common.entity.wild.peaceful.rat")),
                 (5, (1, 3, "common.entity.wild.peaceful.squirrel")),

@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Some("Harvester"),
+    name: Name("Harvester"),
     body: RandomWith("harvester"),
     alignment: Alignment(Enemy),
 

@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Some("Mindflayer"),
+    name: Name("Mindflayer"),
     body: RandomWith("mindflayer"),
     alignment: Alignment(Enemy),
 

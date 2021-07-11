@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Some("Guard"),
+    name: Name("Guard"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Npc),
 

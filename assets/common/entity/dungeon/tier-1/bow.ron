@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Some("Adlet Tracker"),
+    name: Name("Adlet Tracker"),
     body: RandomWith("adlet"),
     alignment: Alignment(Enemy),
 

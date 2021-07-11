@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Some("Cultist Warlock"),
+    name: Name("Cultist Warlock"),
     body: RandomWith("cultist_warlock"),
     alignment: Alignment(Enemy),
 

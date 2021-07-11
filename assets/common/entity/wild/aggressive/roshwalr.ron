@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Some("Roshwalr"),
+    name: Automatic,
     body: Exact(QuadrupedMedium(Body(
         species: Roshwalr,
         body_type: Male,

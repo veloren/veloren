@@ -1,6 +1,5 @@
 EntityConfig (
-    // name is specified outsite
-    name: None,
+    name: Automatic,
     body: RandomWith("humanoid"),
     alignment: Alignment(Npc),
 

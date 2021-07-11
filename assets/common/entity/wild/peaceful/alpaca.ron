@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Some("Alpaca"),
+    name: Automatic,
     body: RandomWith("alpaca"),
     alignment: Alignment(Wild),
 

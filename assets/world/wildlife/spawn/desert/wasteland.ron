@@ -14,7 +14,7 @@ SpawnEntry (
                 (20, (1, 1, "common.entity.wild.aggressive.ntouka")),
                 (20, (1, 1, "common.entity.wild.aggressive.archaeos")),
                 // Ultra_rare
-                (1, (1, 1, "common.entity.wild.agressive.roshwalr_boss")),
+                (1, (1, 1, "common.entity.wild.aggressive.roshwalr_boss")),
             ],
             is_underwater: false,
             day_period: [Night, Morning, Noon, Evening],

@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Some("Haniwa Sentry"),
+    name: Name("Haniwa Sentry"),
     body: Exact(Object(HaniwaSentry)),
     alignment: Alignment(Enemy),
 

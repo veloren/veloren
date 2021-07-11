@@ -1,0 +1,11 @@
+EntityConfig (
+    name: Name("Forest Fox"),
+    body: Exact(QuadrupedSmall(Body(species: Fox, body_type: Male))),
+    alignment: Alignment(Wild),
+
+    loot: Uninit,
+
+    hands: Uninit,
+
+    meta: [],
+)
