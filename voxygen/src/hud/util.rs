@@ -256,9 +256,11 @@ pub fn tool_hands<'a>(tool: &Tool, i18n: &'a Localization) -> &'a str {
 
 fn statblock_desc(stats: &Stats) -> String {
     format!(
+        // TODO: Change display of Effect Power based on toolkind equipped and what effect power is
+        // affecting
         "Power: {:0.1}\n\nPoise Strength: {:0.1}\n\nSpeed: {:0.1}\n\n",
         stats.power * 10.0,
-        stats.poise_strength * 10.0,
+        stats.effect_power * 10.0,
         stats.speed,
     ) + &format!("Crit chance: {:0.1}%\n\n", stats.crit_chance * 100.0,)
 }

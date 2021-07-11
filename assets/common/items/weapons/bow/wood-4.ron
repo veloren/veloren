@@ -7,7 +7,7 @@ ItemDef(
         stats: Direct((
             equip_time_secs: 0.4,
             power: 0.6,
-            poise_strength: 0.8,
+            effect_power: 0.8,
             speed: 1.2,
             crit_chance: 0.09090909,
             range: 1.0,

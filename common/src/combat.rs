@@ -757,7 +757,7 @@ pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
 #[cfg(not(target_arch = "wasm32"))]
 pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
     const DAMAGE_WEIGHT: f32 = 2.0;
-    const POISE_WEIGHT: f32 = 1.0;
+    const EFFECT_WEIGHT: f32 = 1.0;
 
     if let ItemKind::Tool(tool) = item.kind() {
         let stats = tool::Stats::from((msm, item.components(), tool));
@@ -766,10 +766,10 @@ pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
         // Since it is only for weapon though, it probably makes sense to leave
         // independent for now
         let damage_rating = stats.power * stats.speed * (1.0 + stats.crit_chance * 0.5);
-        let poise_rating = stats.poise_strength * stats.speed;
+        let effect_rating = stats.effect_power * stats.speed;
 
-        (damage_rating * DAMAGE_WEIGHT + poise_rating * POISE_WEIGHT)
-            / (DAMAGE_WEIGHT + POISE_WEIGHT)
+        (damage_rating * DAMAGE_WEIGHT + effect_rating * EFFECT_WEIGHT)
+            / (DAMAGE_WEIGHT + EFFECT_WEIGHT)
     } else {
         0.0
     }

@@ -97,7 +97,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
         "Hands",
         "Quality",
         "Power",
-        "Poise Strength",
+        "Effect Power",
         "Speed",
         "Crit Chance",
         "Range",
@@ -119,7 +119,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
         match item.kind() {
             comp::item::ItemKind::Tool(tool) => {
                 let power = tool.base_power(&msm, &[]).to_string();
-                let poise_strength = tool.base_poise_strength(&msm, &[]).to_string();
+                let effect_power = tool.base_effect_power(&msm, &[]).to_string();
                 let speed = tool.base_speed(&msm, &[]).to_string();
                 let crit_chance = tool.base_crit_chance(&msm, &[]).to_string();
                 let range = tool.base_range(&msm, &[]).to_string();
@@ -135,7 +135,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                     &hands,
                     &format!("{:?}", item.quality()),
                     &power,
-                    &poise_strength,
+                    &effect_power,
                     &speed,
                     &crit_chance,
                     &range,

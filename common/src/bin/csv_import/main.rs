@@ -285,10 +285,10 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 ))
                                 .parse()
                                 .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
-                            let poise_strength: f32 = record
-                                .get(headers["Poise Strength"])
+                            let effect_power: f32 = record
+                                .get(headers["Effect Power"])
                                 .expect(&format!(
-                                    "Error unwrapping poise power for {:?}",
+                                    "Error unwrapping effect power for {:?}",
                                     item.item_definition_id()
                                 ))
                                 .parse()
@@ -355,7 +355,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 hands,
                                 equip_time_secs,
                                 power,
-                                poise_strength,
+                                effect_power,
                                 speed,
                                 crit_chance,
                                 range,
