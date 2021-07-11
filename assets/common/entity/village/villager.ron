@@ -6,7 +6,7 @@ EntityConfig (
 
     loot: Uninit,
 
-    main_tool: Some(Choice([
+    hands: TwoHanded(Choice([
         (1.0, Some(Item("common.items.weapons.tool.broom"))),
         (1.0, Some(Item("common.items.weapons.tool.hoe"))),
         (1.0, Some(Item("common.items.weapons.tool.pickaxe"))),
@@ -14,7 +14,6 @@ EntityConfig (
         (1.0, Some(Item("common.items.weapons.tool.shovel-0"))),
         (1.0, Some(Item("common.items.weapons.tool.shovel-1"))),
     ])),
-    second_tool: None,
 
     meta: [],
 )

@@ -6,8 +6,7 @@ EntityConfig (
     // considering giving some gold/gems/materials?
     loot: Uninit,
 
-    main_tool: Some(Item("common.items.weapons.bow.eldwood-0")),
-    second_tool: None,
+    hands: TwoHanded(Item("common.items.weapons.bow.eldwood-0")),
 
     meta: [
         SkillSetAsset("common.skillset.village.merchant"),

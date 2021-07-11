@@ -5,8 +5,7 @@ EntityConfig (
 
     loot: LootTable("common.loot_tables.dungeon.tier-0.boss"),
 
-    main_tool: None,
-    second_tool: None,
+    hands: Uninit,
 
     meta: [],
 )

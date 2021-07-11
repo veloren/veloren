@@ -5,8 +5,7 @@ EntityConfig (
 
     loot: LootTable("common.loot_tables.dungeon.tier-2.enemy"),
 
-    main_tool: Some(Item("common.items.npc_weapons.biped_small.sahagin.gnoll_staff")),
-    second_tool: None,
+    hands: TwoHanded(Item("common.items.npc_weapons.biped_small.sahagin.gnoll_staff")),
 
     meta: [
         LoadoutAsset("common.loadout.dungeon.tier-2.sahagin"),

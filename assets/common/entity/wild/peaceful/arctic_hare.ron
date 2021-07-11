@@ -5,8 +5,7 @@ EntityConfig (
 
     loot: Uninit,
 
-    main_tool: None,
-    second_tool: None,
+    hands: Uninit,
 
     meta: [],
 )

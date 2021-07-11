@@ -5,8 +5,7 @@ EntityConfig (
 
     loot: Uninit,
 
-    main_tool: Some(Item("common.items.weapons.sword.iron-4")),
-    second_tool: None,
+    hands: TwoHanded(Item("common.items.weapons.sword.iron-4")),
 
     meta: [
         SkillSetAsset("common.skillset.village.guard"),

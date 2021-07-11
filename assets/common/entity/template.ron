@@ -17,12 +17,16 @@ EntityConfig (
     /// or Uninit (means it should be specified something in the code)
     loot: LootTable("common.loot_tables.humanoids"),
 
-    /// Main and second tools
-    /// Can be Option<Item> (with asset_specifier for item)
-    /// or Choice
-    /// (array of pairs with weight of choosing some item and Option<Item>)
-    main_tool: Some(Item("common.items.weapons.axe_1h.orichalcum-0")),
-    second_tool: None,
+    /// Hands:
+    /// - TwoHanded(ItemSpec) for one weapon 2h or 1h,
+    /// - Paired(ItemSpec) for two 1h weapons aka berserker mode,
+    /// - Mix {
+    ///     mainhand: ItemSpec,
+    ///     offhand: ItemSpec,
+    /// } for two different 1h weapons,
+    /// - Uninit which means that tool should be specified somewhere in code,
+    /// Where ItemSpec is taken from loadout_builder module
+    hands: TwoHanded(Item("common.items.weapons.sword.cultist")),
 
     /// Meta Info
     /// Possible fields:

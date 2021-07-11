@@ -5,8 +5,7 @@ EntityConfig (
 
     loot: LootTable("common.loot_tables.creature.quad_medium.carapace"),
 
-    main_tool: None,
-    second_tool: None,
+    hands: Uninit,
 
     meta: [],
 )

@@ -5,8 +5,7 @@ EntityConfig (
 
     loot: LootTable("common.loot_tables.dungeon.tier-5.minion"),
 
-    main_tool: None,
-    second_tool: None,
+    hands: Uninit,
 
     meta: [
         LoadoutAsset("common.loadout.dungeon.tier-5.husk"),

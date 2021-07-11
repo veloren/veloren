@@ -5,8 +5,7 @@ EntityConfig (
 
     loot: Item("common.items.crafting_ing.twigs"),
 
-    main_tool: None,
-    second_tool: None,
+    hands: Uninit,
 
     meta: [],
 )

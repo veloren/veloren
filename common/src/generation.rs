@@ -40,14 +40,23 @@ enum Meta {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-struct EntityConfig {
+enum Hands {
+    TwoHanded(ItemSpec),
+    Paired(ItemSpec),
+    Mix {
+        mainhand: ItemSpec,
+        offhand: ItemSpec,
+    },
+    Uninit,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct EntityConfig {
     name: Option<String>,
     body: BodyBuilder,
     alignment: AlignmentMark,
     loot: LootKind,
-    // TODO: replace with `hands` field to support one 2h weapon/ pair 1h weapons
-    main_tool: Option<ItemSpec>,
-    second_tool: Option<ItemSpec>,
+    hands: Hands,
     // Meta fields
     meta: Vec<Meta>,
 }
@@ -56,6 +65,13 @@ impl assets::Asset for EntityConfig {
     type Loader = assets::RonLoader;
 
     const EXTENSION: &'static str = "ron";
+}
+
+impl EntityConfig {
+    pub fn from_asset_expect(asset_specifier: &str) -> EntityConfig {
+        Self::load_owned(asset_specifier)
+            .unwrap_or_else(|e| panic!("Failed to load {}. Error: {}", asset_specifier, e))
+    }
 }
 
 #[derive(Clone)]
@@ -114,14 +130,13 @@ impl EntityInfo {
     }
 
     // helper function to apply config
-    fn with_entity_config(mut self, config: EntityConfig, asset_specifier: Option<&str>) -> Self {
+    fn with_entity_config(mut self, config: EntityConfig, config_asset: Option<&str>) -> Self {
         let EntityConfig {
             name,
             body,
             alignment,
             loot,
-            main_tool,
-            second_tool,
+            hands,
             meta,
         } = config;
 
@@ -161,15 +176,36 @@ impl EntityInfo {
         }
 
         let rng = &mut rand::thread_rng();
-        if let Some(main_tool) =
-            main_tool.and_then(|i| i.try_to_item(asset_specifier.unwrap_or("??"), rng))
-        {
-            self = self.with_main_tool(main_tool);
-        }
-        if let Some(second_tool) =
-            second_tool.and_then(|i| i.try_to_item(asset_specifier.unwrap_or("??"), rng))
-        {
-            self = self.with_main_tool(second_tool);
+        match hands {
+            Hands::TwoHanded(main_tool) => {
+                let tool = main_tool.try_to_item(config_asset.unwrap_or("??"), rng);
+                if let Some(tool) = tool {
+                    self = self.with_main_tool(tool);
+                }
+            },
+            Hands::Paired(tool) => {
+                //FIXME: very stupid code, which just tries same item two times
+                //figure out reasonable way to clone item
+                let main_tool = tool.try_to_item(config_asset.unwrap_or("??"), rng);
+                let second_tool = tool.try_to_item(config_asset.unwrap_or("??"), rng);
+                if let Some(main_tool) = main_tool {
+                    self = self.with_main_tool(main_tool);
+                }
+                if let Some(second_tool) = second_tool {
+                    self = self.with_second_tool(second_tool);
+                }
+            },
+            Hands::Mix { mainhand, offhand } => {
+                let main_tool = mainhand.try_to_item(config_asset.unwrap_or("??"), rng);
+                let second_tool = offhand.try_to_item(config_asset.unwrap_or("??"), rng);
+                if let Some(main_tool) = main_tool {
+                    self = self.with_main_tool(main_tool);
+                }
+                if let Some(second_tool) = second_tool {
+                    self = self.with_second_tool(second_tool);
+                }
+            },
+            Hands::Uninit => {},
         }
 
         for field in meta {
@@ -337,24 +373,32 @@ mod tests {
     #[test]
     fn test_all_entity_assets() {
         // It just load everything that could
-        let entity_configs = assets::read_expect_dir::<EntityConfig>("common.entity", true);
-        for config in entity_configs {
+        let entity_configs = assets::load_dir::<EntityConfig>("common.entity", true)
+            .expect("Failed to access entity directory");
+        for config_asset in entity_configs.ids() {
+            println!("{}:", config_asset);
             let EntityConfig {
-                main_tool,
-                second_tool,
+                hands,
                 loot,
                 body,
                 meta,
                 name: _name,           // can't fail if serialized, it's a boring String
                 alignment: _alignment, // can't fail if serialized, it's a boring enum
-            } = config.clone();
+            } = EntityConfig::from_asset_expect(config_asset);
 
-            if let Some(main_tool) = main_tool {
-                main_tool.validate(EquipSlot::ActiveMainhand);
-            }
-
-            if let Some(second_tool) = second_tool {
-                second_tool.validate(EquipSlot::ActiveOffhand);
+            match hands {
+                Hands::TwoHanded(main_tool) => {
+                    main_tool.validate(EquipSlot::ActiveMainhand);
+                },
+                Hands::Paired(tool) => {
+                    tool.validate(EquipSlot::ActiveMainhand);
+                    tool.validate(EquipSlot::ActiveOffhand);
+                },
+                Hands::Mix { mainhand, offhand } => {
+                    mainhand.validate(EquipSlot::ActiveMainhand);
+                    offhand.validate(EquipSlot::ActiveOffhand);
+                },
+                Hands::Uninit => {},
             }
 
             match body {
