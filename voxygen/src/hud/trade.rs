@@ -17,7 +17,7 @@ use client::Client;
 use common::{
     comp::{
         inventory::item::{MaterialStatManifest, Quality},
-        Inventory,
+        Inventory, Stats,
     },
     trade::{PendingTrade, SitePrices, TradeAction, TradePhase},
 };
@@ -169,7 +169,7 @@ impl<'a> Trade<'a> {
             (x, is_ours) if ours == is_ours => x,
             _ => check_if_us(1)?.0,
         };
-        // TODO: update in accordence with https://gitlab.com/veloren/veloren/-/issues/960
+        // TODO: update in accordance with https://gitlab.com/veloren/veloren/-/issues/960
         let inventory = inventories.get(entity)?;
 
         // Alignment for Grid
@@ -188,6 +188,13 @@ impl<'a> Trade<'a> {
             .player_list()
             .get(&uid)
             .map(|info| info.player_alias.clone())
+            .or_else(|| {
+                self.client
+                    .state()
+                    .read_storage::<Stats>()
+                    .get(entity)
+                    .map(|e| e.name.to_owned())
+            })
             .unwrap_or_else(|| format!("Player {}", who));
 
         let offer_header = self

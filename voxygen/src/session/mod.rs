@@ -15,7 +15,7 @@ use common::{
         inventory::slot::{EquipSlot, Slot},
         invite::InviteKind,
         item::{tool::ToolKind, ItemDef, ItemDesc},
-        ChatMsg, ChatType, InputKind, InventoryUpdateEvent, Pos, UtteranceKind, Vel,
+        ChatMsg, ChatType, InputKind, InventoryUpdateEvent, Pos, Stats, UtteranceKind, Vel,
     },
     consts::{MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
     outcome::Outcome,
@@ -164,7 +164,15 @@ impl SessionState {
                     };
                     let target_name = match client.player_list().get(&target) {
                         Some(info) => info.player_alias.clone(),
-                        None => format!("<entity {}>", target),
+                        None => match client.state().ecs().entity_from_uid(target.0) {
+                            Some(entity) => {
+                                let stats = client.state().read_storage::<Stats>();
+                                stats
+                                    .get(entity)
+                                    .map_or(format!("<entity {}>", target), |e| e.name.to_owned())
+                            },
+                            None => format!("<uid {}>", target),
+                        },
                     };
                     let answer_str = match answer {
                         InviteAnswer::Accepted => "accepted",
@@ -698,7 +706,13 @@ impl PlayState for SessionState {
                                                         .get(&uid)
                                                         .map(|info| info.player_alias.clone())
                                                         .unwrap_or_else(|| {
-                                                            format!("<entity {:?}>", uid)
+                                                            let stats = client
+                                                                .state()
+                                                                .read_storage::<Stats>();
+                                                            stats.get(entity).map_or(
+                                                                format!("<entity {:?}>", uid),
+                                                                |e| e.name.to_owned(),
+                                                            )
                                                         });
                                                     let msg = global_state
                                                         .i18n
