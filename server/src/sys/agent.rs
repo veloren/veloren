@@ -2459,10 +2459,10 @@ impl<'a> AgentData<'a> {
             // If far enough away, and can see target, check which skill is appropriate to
             // use
             if self.energy.current() > DESIRED_ENERGY_LEVEL
-                && match read_data.combos.get(*self.entity) {
-                    Some(combo) => combo.counter() >= DESIRED_COMBO_LEVEL,
-                    None => false,
-                }
+                && read_data
+                    .combos
+                    .get(*self.entity)
+                    .map_or(false, |c| c.counter() >= DESIRED_COMBO_LEVEL)
                 && !read_data.buffs.get(*self.entity).iter().any(|buff| {
                     buff.iter_kind(BuffKind::Regeneration)
                         .peekable()
