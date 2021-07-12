@@ -16,7 +16,7 @@ use crate::{
             },
             Element, IcedRenderer, IcedUi as Ui,
         },
-        img_ids::{BlankGraphic, ImageGraphic},
+        img_ids::ImageGraphic,
     },
     window, GlobalState,
 };
@@ -71,9 +71,9 @@ image_ids_ice! {
         selection_hover: "voxygen.element.ui.generic.frames.selection_hover",
         selection_press: "voxygen.element.ui.generic.frames.selection_press",
 
-        delete_button: "voxygen.element.ui.generic.buttons.x_red",
-        delete_button_hover: "voxygen.element.ui.generic.buttons.x_red_hover",
-        delete_button_press: "voxygen.element.ui.generic.buttons.x_red_press",
+        delete_button: "voxygen.element.ui.char_select.icons.bin",
+        delete_button_hover: "voxygen.element.ui.char_select.icons.bin_hover",
+        delete_button_press: "voxygen.element.ui.char_select.icons.bin_press",
 
         name_input: "voxygen.element.ui.generic.textbox",
 
@@ -116,9 +116,6 @@ image_ids_ice! {
         // Tooltips
         tt_edge: "voxygen.element.ui.generic.frames.tooltip.edge",
         tt_corner: "voxygen.element.ui.generic.frames.tooltip.corner",
-
-        <BlankGraphic>
-        nothing: (),
     }
 }
 
@@ -407,6 +404,7 @@ impl Controls {
                 .style(style::container::Style::color(Rgba::new(0, 0, 0, 217)))
                 .padding(12)
                 .center_x()
+                .center_y()
                 .width(Length::Fill);
 
                 let characters = {
@@ -433,31 +431,26 @@ impl Controls {
                         .enumerate()
                         .map(
                             |(i, (character_id, character, (select_button, delete_button)))| {
+                                let select_col = if Some(i) == selected {
+                                    (255, 208, 69)
+                                } else {
+                                    (255, 255, 255)
+                                };
                                 Overlay::new(
-                                    // Delete button
-                                    Button::new(
-                                        delete_button,
-                                        Space::new(Length::Units(16), Length::Units(16)),
+                                    Container::new(
+                                        // Delete button
+                                        Button::new(
+                                            delete_button,
+                                            Space::new(Length::Units(16), Length::Units(16)),
+                                        )
+                                        .style(
+                                            style::button::Style::new(imgs.delete_button)
+                                                .hover_image(imgs.delete_button_hover)
+                                                .press_image(imgs.delete_button_press),
+                                        )
+                                        .on_press(Message::Delete(i)),
                                     )
-                                    .style(
-                                        style::button::Style::new(if Some(i) != selected {
-                                            imgs.nothing
-                                        } else {
-                                            imgs.delete_button
-                                        })
-                                        .hover_image(imgs.delete_button_hover)
-                                        .press_image(imgs.delete_button_press),
-                                    )
-                                    .on_press(Message::Delete(i))
-                                    .with_tooltip(
-                                        tooltip_manager,
-                                        move || {
-                                            tooltip::text(
-                                                i18n.get("char_selection.delete_permanently"),
-                                                tooltip_style,
-                                            )
-                                        },
-                                    ),
+                                    .padding(4),
                                     // Select Button
                                     AspectRatioContainer::new(
                                         Button::new(
@@ -467,7 +460,7 @@ impl Controls {
                                                     .size(fonts.cyri.scale(26))
                                                     .into(),
                                                 Text::new(
-                                                    i18n.get("char_selection.uncanny_valley"),
+                                                    i18n.get("char_selection.uncanny_valley"), // TODO: Add actual location here
                                                 )
                                                 .into(),
                                             ]),
@@ -477,10 +470,16 @@ impl Controls {
                                             style::button::Style::new(if Some(i) == selected {
                                                 imgs.selection_hover
                                             } else {
-                                                imgs.nothing
+                                                imgs.selection
                                             })
                                             .hover_image(imgs.selection_hover)
-                                            .press_image(imgs.selection_press),
+                                            .press_image(imgs.selection_press)
+                                            .image_color(Rgba::new(
+                                                select_col.0,
+                                                select_col.1,
+                                                select_col.2,
+                                                255,
+                                            )),
                                         )
                                         .width(Length::Fill)
                                         .height(Length::Fill)
@@ -488,8 +487,9 @@ impl Controls {
                                     )
                                     .ratio_of_image(imgs.selection),
                                 )
-                                .padding(2)
+                                .padding(0)
                                 .align_x(Align::End)
+                                .align_y(Align::End)
                                 .into()
                             },
                         )

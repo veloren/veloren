@@ -488,7 +488,8 @@ impl<'a> Widget for Crafting<'a> {
             })
             .w(157.0)
             .hover_image(self.imgs.selection_hover)
-            .press_image(self.imgs.selection_press);
+            .press_image(self.imgs.selection_press)
+            .image_color(color::rgba(1.0, 0.82, 0.27, 1.0));
 
             let text = Text::new(recipe.output.0.name())
                 .color(if is_craftable {
