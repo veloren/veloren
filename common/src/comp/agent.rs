@@ -305,7 +305,7 @@ pub enum SoundKind {
     VillagerAlarm,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Target {
     pub target: EcsEntity,
     pub hostile: bool,
