@@ -317,7 +317,7 @@ impl<'a> Widget for Diary<'a> {
 
         // Title
         self.create_new_text(
-            &self.localized_strings.get("hud.diary"),
+            self.localized_strings.get("hud.diary"),
             state.frame,
             3.0,
             29,
@@ -372,7 +372,7 @@ impl<'a> Widget for Diary<'a> {
             let tooltip_txt = if !locked {
                 ""
             } else {
-                &self.localized_strings.get("hud.skill.not_unlocked")
+                self.localized_strings.get("hud.skill.not_unlocked")
             };
             img.w_h(50.0, 50.0).set(state.weapon_imgs[i.0], ui);
             // Lock Image
@@ -425,7 +425,7 @@ impl<'a> Widget for Diary<'a> {
             .with_tooltip(
                 self.tooltip_manager,
                 i.1,
-                &tooltip_txt,
+                tooltip_txt,
                 &diary_tooltip,
                 TEXT_COLOR,
             )
@@ -513,7 +513,7 @@ impl<'a> Widget for Diary<'a> {
             },
             _ => "Unknown",
         };
-        self.create_new_text(&tree_title, state.content_align, 2.0, 34, TEXT_COLOR)
+        self.create_new_text(tree_title, state.content_align, 2.0, 34, TEXT_COLOR)
             .set(state.tree_title_txt, ui);
         // Skill Trees
         // Alignment Placing
@@ -816,8 +816,8 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_bot_l[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        &self.localized_strings.get("hud.skill.dodge_title"),
-                        &self.localized_strings.get("hud.skill.dodge"),
+                        self.localized_strings.get("hud.skill.dodge_title"),
+                        self.localized_strings.get("hud.skill.dodge"),
                         &diary_tooltip,
                         TEXT_COLOR,
                     )
@@ -858,8 +858,8 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_bot_r[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        &self.localized_strings.get("hud.skill.climbing_title"),
-                        &self.localized_strings.get("hud.skill.climbing"),
+                        self.localized_strings.get("hud.skill.climbing_title"),
+                        self.localized_strings.get("hud.skill.climbing"),
                         &diary_tooltip,
                         TEXT_COLOR,
                     )
@@ -890,8 +890,8 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_bot_r[3], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        &self.localized_strings.get("hud.skill.swim_title"),
-                        &self.localized_strings.get("hud.skill.swim"),
+                        self.localized_strings.get("hud.skill.swim_title"),
+                        self.localized_strings.get("hud.skill.swim"),
                         &diary_tooltip,
                         TEXT_COLOR,
                     )
@@ -929,8 +929,8 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        &self.localized_strings.get("hud.skill.sw_trip_str_title"),
-                        &self.localized_strings.get("hud.skill.sw_trip_str"),
+                        self.localized_strings.get("hud.skill.sw_trip_str_title"),
+                        self.localized_strings.get("hud.skill.sw_trip_str"),
                         &diary_tooltip,
                         TEXT_COLOR,
                     )
@@ -981,8 +981,8 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        &self.localized_strings.get("hud.skill.sw_dash_title"),
-                        &self.localized_strings.get("hud.skill.sw_dash"),
+                        self.localized_strings.get("hud.skill.sw_dash_title"),
+                        self.localized_strings.get("hud.skill.sw_dash"),
                         &diary_tooltip,
                         TEXT_COLOR,
                     )
@@ -1132,10 +1132,9 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        &self
-                            .localized_strings
+                        self.localized_strings
                             .get("hud.skill.axe_double_strike_title"),
-                        &self.localized_strings.get("hud.skill.axe_double_strike"),
+                        self.localized_strings.get("hud.skill.axe_double_strike"),
                         &diary_tooltip,
                         TEXT_COLOR,
                     )
@@ -1186,8 +1185,8 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        &self.localized_strings.get("hud.skill.axe_spin_title"),
-                        &self.localized_strings.get("hud.skill.axe_spin"),
+                        self.localized_strings.get("hud.skill.axe_spin_title"),
+                        self.localized_strings.get("hud.skill.axe_spin"),
                         &diary_tooltip,
                         TEXT_COLOR,
                     )
@@ -1316,10 +1315,9 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        &self
-                            .localized_strings
+                        self.localized_strings
                             .get("hud.skill.hmr_single_strike_title"),
-                        &self.localized_strings.get("hud.skill.hmr_single_strike"),
+                        self.localized_strings.get("hud.skill.hmr_single_strike"),
                         &diary_tooltip,
                         TEXT_COLOR,
                     )
@@ -1370,10 +1368,9 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        &self
-                            .localized_strings
+                        self.localized_strings
                             .get("hud.skill.hmr_charged_melee_title"),
-                        &self.localized_strings.get("hud.skill.hmr_charged_melee"),
+                        self.localized_strings.get("hud.skill.hmr_charged_melee"),
                         &diary_tooltip,
                         TEXT_COLOR,
                     )
@@ -1501,8 +1498,8 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        &self.localized_strings.get("hud.skill.bow_charged_title"),
-                        &self.localized_strings.get("hud.skill.bow_charged"),
+                        self.localized_strings.get("hud.skill.bow_charged_title"),
+                        self.localized_strings.get("hud.skill.bow_charged"),
                         &diary_tooltip,
                         TEXT_COLOR,
                     )
@@ -1563,8 +1560,8 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        &self.localized_strings.get("hud.skill.bow_repeater_title"),
-                        &self.localized_strings.get("hud.skill.bow_repeater"),
+                        self.localized_strings.get("hud.skill.bow_repeater_title"),
+                        self.localized_strings.get("hud.skill.bow_repeater"),
                         &diary_tooltip,
                         TEXT_COLOR,
                     )
@@ -1684,8 +1681,8 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        &self.localized_strings.get("hud.skill.st_fireball_title"),
-                        &self.localized_strings.get("hud.skill.st_fireball"),
+                        self.localized_strings.get("hud.skill.st_fireball_title"),
+                        self.localized_strings.get("hud.skill.st_fireball"),
                         &diary_tooltip,
                         TEXT_COLOR,
                     )
@@ -1726,10 +1723,9 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        &self
-                            .localized_strings
+                        self.localized_strings
                             .get("hud.skill.st_flamethrower_title"),
-                        &self.localized_strings.get("hud.skill.st_flamethrower"),
+                        self.localized_strings.get("hud.skill.st_flamethrower"),
                         &diary_tooltip,
                         TEXT_COLOR,
                     )
@@ -1848,8 +1844,8 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        &self.localized_strings.get("hud.skill.sc_lifesteal_title"),
-                        &self.localized_strings.get("hud.skill.sc_lifesteal"),
+                        self.localized_strings.get("hud.skill.sc_lifesteal_title"),
+                        self.localized_strings.get("hud.skill.sc_lifesteal"),
                         &diary_tooltip,
                         TEXT_COLOR,
                     )
@@ -1900,8 +1896,8 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        &self.localized_strings.get("hud.skill.sc_heal_title"),
-                        &self.localized_strings.get("hud.skill.sc_heal"),
+                        self.localized_strings.get("hud.skill.sc_heal_title"),
+                        self.localized_strings.get("hud.skill.sc_heal"),
                         &diary_tooltip,
                         TEXT_COLOR,
                     )
@@ -2010,8 +2006,8 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        &self.localized_strings.get("hud.skill.pick_strike_title"),
-                        &self.localized_strings.get("hud.skill.pick_strike"),
+                        self.localized_strings.get("hud.skill.pick_strike_title"),
+                        self.localized_strings.get("hud.skill.pick_strike"),
                         &diary_tooltip,
                         TEXT_COLOR,
                     )
@@ -2176,25 +2172,23 @@ impl<'a> Diary<'a> {
         if create_skill_button(
             id,
             conrod_widget_id,
-            &self.skill_set,
+            self.skill_set,
             skill,
             self.fonts,
-            &get_skill_label(skill, &self.skill_set),
+            &get_skill_label(skill, self.skill_set),
         )
         .with_tooltip(
             self.tooltip_manager,
-            &self
-                .localized_strings
+            self.localized_strings
                 .get(&format!("hud.skill.{}_title", skill_key)),
             &format_skill_description(
-                &self
-                    .localized_strings
+                self.localized_strings
                     .get(&format!("hud.skill.{}", skill_key)),
                 skill,
-                &self.skill_set,
-                &self.localized_strings,
+                self.skill_set,
+                self.localized_strings,
             ),
-            &diary_tooltip,
+            diary_tooltip,
             TEXT_COLOR,
         )
         .set(widget_id, ui)

@@ -2620,12 +2620,12 @@ pub fn do_erosion(
     let max_uplift = uplift
         .into_par_iter()
         .cloned()
-        .max_by(|a, b| a.partial_cmp(&b).unwrap())
+        .max_by(|a, b| a.partial_cmp(b).unwrap())
         .unwrap();
     let max_g = g
         .into_par_iter()
         .cloned()
-        .max_by(|a, b| a.partial_cmp(&b).unwrap())
+        .max_by(|a, b| a.partial_cmp(b).unwrap())
         .unwrap();
     debug!("Max uplift: {:?}", max_uplift);
     debug!("Max g: {:?}", max_g);

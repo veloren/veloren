@@ -441,7 +441,7 @@ impl BParticipant {
         };
 
         let remove_c = |recv_protocols: &mut HashMap<Cid, JoinHandle<()>>, cid: &Cid| {
-            match recv_protocols.remove(&cid) {
+            match recv_protocols.remove(cid) {
                 Some(h) => {
                     h.abort();
                     debug!(?cid, "remove protocol");

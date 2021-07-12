@@ -707,7 +707,7 @@ impl Window {
         // Handle screenshots and toggling fullscreen
         if self.take_screenshot {
             self.take_screenshot = false;
-            self.take_screenshot(&settings);
+            self.take_screenshot(settings);
         }
         if self.toggle_fullscreen {
             self.toggle_fullscreen = false;

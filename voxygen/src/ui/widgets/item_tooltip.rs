@@ -351,9 +351,9 @@ impl<'a> ItemTooltip<'a> {
             image_frame,
             image: None,
             image_dims: None,
-            client: &client,
-            imgs: &imgs,
-            item_imgs: &item_imgs,
+            client,
+            imgs,
+            item_imgs,
             pulse,
             localized_strings,
         }
@@ -667,7 +667,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                             util::comparison(combat_rating, equipped_combat_rating);
 
                         if (equipped_combat_rating - combat_rating).abs() > f32::EPSILON {
-                            widget::Text::new(&diff_main_stat.0)
+                            widget::Text::new(diff_main_stat.0)
                                 .right_from(state.ids.main_stat_text, H_PAD)
                                 .graphics_for(id)
                                 .parent(id)
@@ -863,7 +863,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         let stealth_diff =
                             util::comparison(&armor.stealth(), &equipped_armor.stealth());
                         if diff.protection() != Protection::Normal(0.0) {
-                            widget::Text::new(&protection_diff.0)
+                            widget::Text::new(protection_diff.0)
                                 .right_from(state.ids.main_stat_text, H_PAD)
                                 .graphics_for(id)
                                 .parent(id)
@@ -945,7 +945,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 widget::Text::new(&util::modular_component_desc(
                     mc,
                     item.components(),
-                    &self.msm,
+                    self.msm,
                     item.description(),
                 ))
                 .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
@@ -1080,7 +1080,7 @@ impl<'a> Widget for ItemTooltip<'a> {
         let price_h: f64 = if let Some((buy, sell, _)) = util::price_desc(
             self.prices,
             item.item_definition_id(),
-            &self.localized_strings,
+            self.localized_strings,
         ) {
             //Get localized tooltip strings (gotten here because these should only show if
             // in a trade- aka if buy/sell prices are present)

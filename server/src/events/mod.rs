@@ -66,7 +66,7 @@ impl Server {
                     pos,
                     explosion,
                     owner,
-                } => handle_explosion(&self, pos, explosion, owner),
+                } => handle_explosion(self, pos, explosion, owner),
                 ServerEvent::Shoot {
                     entity,
                     dir,
@@ -87,21 +87,21 @@ impl Server {
                     ori,
                 } => handle_beam(self, properties, pos, ori),
                 ServerEvent::Knockback { entity, impulse } => {
-                    handle_knockback(&self, entity, impulse)
+                    handle_knockback(self, entity, impulse)
                 },
-                ServerEvent::Damage { entity, change } => handle_damage(&self, entity, change),
+                ServerEvent::Damage { entity, change } => handle_damage(self, entity, change),
                 ServerEvent::PoiseChange {
                     entity,
                     change,
                     kb_dir,
-                } => handle_poise(&self, entity, change, kb_dir),
+                } => handle_poise(self, entity, change, kb_dir),
                 ServerEvent::Delete(entity) => handle_delete(self, entity),
                 ServerEvent::Destroy { entity, cause } => handle_destroy(self, entity, cause),
                 ServerEvent::InventoryManip(entity, manip) => handle_inventory(self, entity, manip),
                 ServerEvent::GroupManip(entity, manip) => handle_group(self, entity, manip),
-                ServerEvent::Respawn(entity) => handle_respawn(&self, entity),
+                ServerEvent::Respawn(entity) => handle_respawn(self, entity),
                 ServerEvent::LandOnGround { entity, vel } => {
-                    handle_land_on_ground(&self, entity, vel)
+                    handle_land_on_ground(self, entity, vel)
                 },
                 ServerEvent::EnableLantern(entity) => handle_lantern(self, entity, true),
                 ServerEvent::DisableLantern(entity) => handle_lantern(self, entity, false),
@@ -203,12 +203,12 @@ impl Server {
                     buff_change,
                 } => handle_buff(self, entity, buff_change),
                 ServerEvent::EnergyChange { entity, change } => {
-                    handle_energy_change(&self, entity, change)
+                    handle_energy_change(self, entity, change)
                 },
                 ServerEvent::ComboChange { entity, change } => {
-                    handle_combo_change(&self, entity, change)
+                    handle_combo_change(self, entity, change)
                 },
-                ServerEvent::RequestSiteInfo { entity, id } => handle_site_info(&self, entity, id),
+                ServerEvent::RequestSiteInfo { entity, id } => handle_site_info(self, entity, id),
                 ServerEvent::MineBlock { entity, pos, tool } => {
                     handle_mine_block(self, entity, pos, tool)
                 },
@@ -216,7 +216,7 @@ impl Server {
                     entity,
                     target,
                     max_range,
-                } => handle_teleport_to(&self, entity, target, max_range),
+                } => handle_teleport_to(self, entity, target, max_range),
                 ServerEvent::CreateSafezone { range, pos } => {
                     self.state.create_safezone(range, pos).build();
                 },

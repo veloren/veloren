@@ -733,7 +733,7 @@ pub(super) fn initial_create_pipelines(
             sc_desc: &sc_desc,
         };
 
-        let pipelines = create_ingame_and_shadow_pipelines(needs, &pool, progress.create_tasks());
+        let pipelines = create_ingame_and_shadow_pipelines(needs, pool, progress.create_tasks());
 
         pipeline_send.send(pipelines).expect("Channel disconnected");
     });
@@ -798,11 +798,11 @@ pub(super) fn recreate_pipelines(
         };
 
         // Create interface pipelines
-        let interface = create_interface_pipelines(needs, &pool, interface_tasks);
+        let interface = create_interface_pipelines(needs, pool, interface_tasks);
 
         // Create the rest of the pipelines
         let IngameAndShadowPipelines { ingame, shadow } =
-            create_ingame_and_shadow_pipelines(needs, &pool, ingame_and_shadow_tasks);
+            create_ingame_and_shadow_pipelines(needs, pool, ingame_and_shadow_tasks);
 
         // Send them
         result_send
@@ -843,7 +843,7 @@ impl Progress {
     /// total reflects the amount of tasks that will need to be completed
     pub fn create_task(&self) -> Task {
         self.total.fetch_add(1, Ordering::Relaxed);
-        Task { progress: &self }
+        Task { progress: self }
     }
 
     /// Helper method for creating tasks to do in bulk

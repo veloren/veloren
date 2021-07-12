@@ -99,6 +99,7 @@ pub struct State {
     ids: Ids,
 }
 
+#[allow(clippy::enum_variant_names)] //think about renaming to ToogleEvent
 pub enum Event {
     ToggleBag,
     ToggleSettings,
@@ -172,7 +173,7 @@ impl<'a> Widget for Buttons<'a> {
             self.tooltip_manager,
             &localized_strings
                 .get("hud.bag.inventory")
-                .replace("{playername}", &self.stats.name.to_string().as_str()),
+                .replace("{playername}", &self.stats.name),
             "",
             &button_tooltip,
             TEXT_COLOR,
@@ -190,7 +191,7 @@ impl<'a> Widget for Buttons<'a> {
         {
             self.create_new_button_with_shadow(
                 ui,
-                &bag,
+                bag,
                 state.ids.bag,
                 state.ids.bag_text_bg,
                 state.ids.bag_text,
@@ -228,7 +229,7 @@ impl<'a> Widget for Buttons<'a> {
             .press_image(self.imgs.settings_press)
             .with_tooltip(
                 self.tooltip_manager,
-                &localized_strings.get("common.settings"),
+                localized_strings.get("common.settings"),
                 "",
                 &button_tooltip,
                 TEXT_COLOR,
@@ -246,7 +247,7 @@ impl<'a> Widget for Buttons<'a> {
         {
             self.create_new_button_with_shadow(
                 ui,
-                &settings,
+                settings,
                 state.ids.settings_button,
                 state.ids.settings_text_bg,
                 state.ids.settings_text,
@@ -261,7 +262,7 @@ impl<'a> Widget for Buttons<'a> {
             .press_image(self.imgs.social_press)
             .with_tooltip(
                 self.tooltip_manager,
-                &localized_strings.get("hud.social"),
+                localized_strings.get("hud.social"),
                 "",
                 &button_tooltip,
                 TEXT_COLOR,
@@ -279,7 +280,7 @@ impl<'a> Widget for Buttons<'a> {
         {
             self.create_new_button_with_shadow(
                 ui,
-                &social,
+                social,
                 state.ids.social_button,
                 state.ids.social_text_bg,
                 state.ids.social_text,
@@ -293,7 +294,7 @@ impl<'a> Widget for Buttons<'a> {
             .press_image(self.imgs.map_press)
             .with_tooltip(
                 self.tooltip_manager,
-                &localized_strings.get("hud.map.map_title"),
+                localized_strings.get("hud.map.map_title"),
                 "",
                 &button_tooltip,
                 TEXT_COLOR,
@@ -311,7 +312,7 @@ impl<'a> Widget for Buttons<'a> {
         {
             self.create_new_button_with_shadow(
                 ui,
-                &map,
+                map,
                 state.ids.map_button,
                 state.ids.map_text_bg,
                 state.ids.map_text,
@@ -330,7 +331,7 @@ impl<'a> Widget for Buttons<'a> {
         .press_image(self.imgs.spellbook_press)
         .with_tooltip(
             self.tooltip_manager,
-            &localized_strings.get("hud.diary"),
+            localized_strings.get("hud.diary"),
             "",
             &button_tooltip,
             TEXT_COLOR,
@@ -348,7 +349,7 @@ impl<'a> Widget for Buttons<'a> {
         {
             self.create_new_button_with_shadow(
                 ui,
-                &spell,
+                spell,
                 state.ids.spellbook_button,
                 state.ids.spellbook_text_bg,
                 state.ids.spellbook_text,
@@ -362,14 +363,14 @@ impl<'a> Widget for Buttons<'a> {
                 .mid_top_with_margin_on(state.ids.spellbook_button, -12.0 + arrow_ani as f64)
                 .color(Some(QUALITY_LEGENDARY))
                 .set(state.ids.sp_arrow, ui);
-            Text::new(&localized_strings.get("hud.sp_arrow_txt"))
+            Text::new(localized_strings.get("hud.sp_arrow_txt"))
                 .mid_top_with_margin_on(state.ids.sp_arrow, -18.0)
                 .graphics_for(state.ids.spellbook_button)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .color(BLACK)
                 .set(state.ids.sp_arrow_txt_bg, ui);
-            Text::new(&localized_strings.get("hud.sp_arrow_txt"))
+            Text::new(localized_strings.get("hud.sp_arrow_txt"))
                 .graphics_for(state.ids.spellbook_button)
                 .bottom_right_with_margins_on(state.ids.sp_arrow_txt_bg, 1.0, 1.0)
                 .font_id(self.fonts.cyri.conrod_id)
@@ -385,7 +386,7 @@ impl<'a> Widget for Buttons<'a> {
             .press_image(self.imgs.crafting_icon_press)
             .with_tooltip(
                 self.tooltip_manager,
-                &localized_strings.get("hud.crafting"),
+                localized_strings.get("hud.crafting"),
                 "",
                 &button_tooltip,
                 TEXT_COLOR,
@@ -403,7 +404,7 @@ impl<'a> Widget for Buttons<'a> {
         {
             self.create_new_button_with_shadow(
                 ui,
-                &crafting,
+                crafting,
                 state.ids.crafting_button,
                 state.ids.crafting_text_bg,
                 state.ids.crafting_text,

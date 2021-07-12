@@ -85,7 +85,7 @@ pub(in super::super) fn create_verts_buffer(
 ) -> SpriteVerts {
     // TODO: type Buffer by wgpu::BufferUsage
     SpriteVerts(Buffer::new(
-        &device,
+        device,
         wgpu::BufferUsage::STORAGE,
         mesh.vertices(),
     ))

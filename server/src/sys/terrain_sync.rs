@@ -37,8 +37,8 @@ impl<'a> System<'a> for Sys {
                 {
                     if let Err(()) = lazy_msg.prepare_and_send(
                         &network_metrics,
-                        &client,
-                        &presence,
+                        client,
+                        presence,
                         chunk_key,
                         || terrain.get_key(*chunk_key).ok_or(()),
                     ) {
@@ -58,7 +58,7 @@ impl<'a> System<'a> for Sys {
                         CompressedData::compress(&terrain_changes.modified_blocks, 1),
                     )));
                 }
-                lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));
+                lazy_msg.as_ref().map(|msg| client.send_prepared(msg));
             }
         }
     }

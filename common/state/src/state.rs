@@ -216,7 +216,7 @@ impl State {
         let num_cpu = num_cpus::get() as u64;
         let slow_limit = (num_cpu / 2 + num_cpu / 4).max(1);
         tracing::trace!(?slow_limit, "Slow Thread limit");
-        ecs.insert(SlowJobPool::new(slow_limit, Arc::clone(&thread_pool)));
+        ecs.insert(SlowJobPool::new(slow_limit, Arc::clone(thread_pool)));
 
         // TODO: only register on the server
         ecs.insert(EventBus::<ServerEvent>::default());

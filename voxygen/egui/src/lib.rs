@@ -362,7 +362,7 @@ pub fn maintain_egui_inner(
                                     ui.label("-");
                                 }
                                 if let Some(body) = body {
-                                    ui.label(body_species(&body));
+                                    ui.label(body_species(body));
                                 } else {
                                     ui.label("-");
                                 }

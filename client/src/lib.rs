@@ -723,7 +723,7 @@ impl Client {
         let token_or_username = match &self.server_info.auth_provider {
             Some(addr) => {
                 // Query whether this is a trusted auth server
-                if auth_trusted(&addr) {
+                if auth_trusted(addr) {
                     let (scheme, authority) = match addr.split_once("://") {
                         Some((s, a)) => (s, a),
                         None => return Err(Error::AuthServerUrlInvalid(addr.to_string())),

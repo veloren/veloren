@@ -115,7 +115,7 @@ fn read_file_from_path<'a>(
                 reference.name()
             )
         })
-        .to_object(&repo)
+        .to_object(repo)
         .unwrap()
         .peel_to_blob()
         .expect("Impossible to fetch the Git object")
@@ -230,7 +230,7 @@ fn complete_key_versions<'a>(
 
                 let full_path = i18n_file.path();
                 let path = full_path.strip_prefix(root_dir).unwrap();
-                let i18n_blob = read_file_from_path(&repo, &head_ref, &path);
+                let i18n_blob = read_file_from_path(repo, head_ref, path);
                 let i18n: LocalizationFragment =
                     from_bytes(i18n_blob.content()).unwrap_or_else(|e| {
                         panic!(
@@ -239,7 +239,7 @@ fn complete_key_versions<'a>(
                             e
                         )
                     });
-                i18n_key_versions.extend(generate_key_version(&repo, &i18n, &path, &i18n_blob));
+                i18n_key_versions.extend(generate_key_version(repo, &i18n, path, &i18n_blob));
             } else if file_type.is_dir() {
                 // If it's a directory, recursively check it
                 complete_key_versions(
@@ -303,7 +303,7 @@ fn test_localization_directory(
     println!("-----------------------------------");
 
     // Find the localization entry state
-    let current_blob = read_file_from_path(&repo, &head_ref, &relfile);
+    let current_blob = read_file_from_path(repo, head_ref, &relfile);
     let current_loc: RawLocalization = from_bytes(current_blob.content()).unwrap_or_else(|e| {
         panic!(
             "Could not parse {} RON file, skipping: {}",
@@ -324,12 +324,12 @@ fn test_localization_directory(
     );
 
     // Comparing with reference localization
-    fill_info(&mut current_i18n, &i18n_references, repo, &relfile);
+    fill_info(&mut current_i18n, i18n_references, repo, &relfile);
 
     let mut state_map = LocalizationAnalysis::default();
     let result = gather_results(current_i18n, &mut state_map);
     print_translation_stats(
-        &i18n_references,
+        i18n_references,
         &result,
         &mut state_map,
         be_verbose,

@@ -416,7 +416,7 @@ impl TryFrom<(&Item, &AbilityMap, &MaterialStatManifest)> for ItemConfig {
                 .cloned();
             let abilities = if let Some(set_key) = item.ability_spec() {
                 if let Some(set) = ability_map.get_ability_set(set_key) {
-                    set.clone().modified_by_tool(&tool, msm, &item.components)
+                    set.clone().modified_by_tool(tool, msm, &item.components)
                 } else {
                     error!(
                         "Custom ability set: {:?} references non-existent set, falling back to \
@@ -426,7 +426,7 @@ impl TryFrom<(&Item, &AbilityMap, &MaterialStatManifest)> for ItemConfig {
                     tool_default.unwrap_or_default()
                 }
             } else if let Some(set) = tool_default {
-                set.modified_by_tool(&tool, msm, &item.components)
+                set.modified_by_tool(tool, msm, &item.components)
             } else {
                 error!(
                     "No ability set defined for tool: {:?}, falling back to default ability set.",
@@ -781,8 +781,7 @@ impl Item {
     pub fn slots_mut(&mut self) -> &mut [InvSlot] { &mut self.slots }
 
     pub fn item_config_expect(&self) -> &ItemConfig {
-        &self
-            .item_config
+        self.item_config
             .as_ref()
             .expect("Item was expected to have an ItemConfig")
     }

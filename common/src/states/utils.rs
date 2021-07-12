@@ -687,7 +687,7 @@ fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
             })
             .map(|a| {
                 let tool = unwrap_tool_data(data, equip_slot).map(|t| t.kind);
-                a.adjusted_by_skills(&data.skill_set, tool)
+                a.adjusted_by_skills(data.skill_set, tool)
             })
             .filter(|ability| ability.requirements_paid(data, update))
         {
@@ -758,7 +758,7 @@ pub fn handle_block_input(data: &JoinData, update: &mut StateUpdate) {
 /// attempts to perform their dodge ability
 pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
     if input_is_pressed(data, InputKind::Roll) && data.body.is_humanoid() {
-        let ability = CharacterAbility::default_roll().adjusted_by_skills(&data.skill_set, None);
+        let ability = CharacterAbility::default_roll().adjusted_by_skills(data.skill_set, None);
         if ability.requirements_paid(data, update) {
             update.character = CharacterState::from((
                 &ability,
@@ -790,7 +790,7 @@ pub fn is_strafing(data: &JoinData, update: &StateUpdate) -> bool {
 
 pub fn unwrap_tool_data<'a>(data: &'a JoinData, equip_slot: EquipSlot) -> Option<&'a Tool> {
     if let Some(ItemKind::Tool(tool)) = data.inventory.equipped(equip_slot).map(|i| i.kind()) {
-        Some(&tool)
+        Some(tool)
     } else {
         None
     }

@@ -164,7 +164,7 @@ impl<'a> Widget for Social<'a> {
         Rectangle::fill_with([212.0, 42.0], color::TRANSPARENT)
             .top_left_with_margins_on(state.ids.frame, 2.0, 44.0)
             .set(state.ids.title_align, ui);
-        Text::new(&self.localized_strings.get("hud.social"))
+        Text::new(self.localized_strings.get("hud.social"))
             .middle_of(state.ids.title_align)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(20))
@@ -189,7 +189,7 @@ impl<'a> Widget for Social<'a> {
             .set(state.ids.scrollbar, ui);
 
         // Online Text
-        Text::new(&self.localized_strings.get("hud.social.online"))
+        Text::new(self.localized_strings.get("hud.social.online"))
             .bottom_left_with_margins_on(state.ids.frame, 18.0, 10.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))

@@ -80,7 +80,7 @@ impl<'a> System<'a> for Sys {
                                         client.send(ServerGeneral::TerrainChunkUpdate {
                                             key,
                                             chunk: Ok(SerializedTerrainChunk::via_heuristic(
-                                                &chunk,
+                                                chunk,
                                                 presence.lossy_terrain_compression,
                                             )),
                                         })?;

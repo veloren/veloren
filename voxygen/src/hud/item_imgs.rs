@@ -72,9 +72,9 @@ enum ImageSpec {
 impl ImageSpec {
     fn create_graphic(&self) -> Graphic {
         match self {
-            ImageSpec::Png(specifier) => Graphic::Image(graceful_load_img(&specifier), None),
+            ImageSpec::Png(specifier) => Graphic::Image(graceful_load_img(specifier), None),
             ImageSpec::Vox(specifier) => Graphic::Voxel(
-                graceful_load_segment_no_skin(&specifier),
+                graceful_load_segment_no_skin(specifier),
                 Transform {
                     stretch: false,
                     ..Default::default()
@@ -82,7 +82,7 @@ impl ImageSpec {
                 SampleStrat::None,
             ),
             ImageSpec::VoxTrans(specifier, offset, [rot_x, rot_y, rot_z], zoom) => Graphic::Voxel(
-                graceful_load_segment_no_skin(&specifier),
+                graceful_load_segment_no_skin(specifier),
                 Transform {
                     ori: Quaternion::rotation_x(rot_x * std::f32::consts::PI / 180.0)
                         .rotated_y(rot_y * std::f32::consts::PI / 180.0)
@@ -140,7 +140,7 @@ impl ItemImgs {
                 // Load new graphic
                 let graphic = spec.create_graphic();
                 // See if we already have an id we can use
-                match self.map.get(&kind) {
+                match self.map.get(kind) {
                     Some(id) => ui.replace_graphic(*id, graphic),
                     // Otherwise, generate new id and insert it into our Id -> ItemKey map
                     None => {

@@ -52,7 +52,7 @@ pub struct BotClient {
 }
 
 pub fn make_client(runtime: &Arc<Runtime>, server: &str) -> Client {
-    let runtime_clone = Arc::clone(&runtime);
+    let runtime_clone = Arc::clone(runtime);
     let addr = ConnectionArgs::Tcp {
         prefer_ipv6: false,
         hostname: server.to_owned(),

@@ -229,19 +229,17 @@ impl NetworkMetrics {
         for no in 0..5 {
             let _ = self
                 .participants_channel_ids
-                .remove_label_values(&[&remote_p, &no.to_string()]);
+                .remove_label_values(&[remote_p, &no.to_string()]);
         }
         let _ = self
             .channels_connected_total
-            .remove_label_values(&[&remote_p]);
+            .remove_label_values(&[remote_p]);
         let _ = self
             .channels_disconnected_total
-            .remove_label_values(&[&remote_p]);
-        let _ = self
-            .participants_bandwidth
-            .remove_label_values(&[&remote_p]);
-        let _ = self.streams_opened_total.remove_label_values(&[&remote_p]);
-        let _ = self.streams_closed_total.remove_label_values(&[&remote_p]);
+            .remove_label_values(&[remote_p]);
+        let _ = self.participants_bandwidth.remove_label_values(&[remote_p]);
+        let _ = self.streams_opened_total.remove_label_values(&[remote_p]);
+        let _ = self.streams_closed_total.remove_label_values(&[remote_p]);
     }
 }
 

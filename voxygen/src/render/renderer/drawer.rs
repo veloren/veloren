@@ -484,7 +484,7 @@ impl<'frame> Drop for Drawer<'frame> {
                 },
             );
             render_pass.set_pipeline(&blit.pipeline);
-            render_pass.set_bind_group(0, &screenshot.bind_group(), &[]);
+            render_pass.set_bind_group(0, screenshot.bind_group(), &[]);
             render_pass.draw(0..3, 0..1);
             drop(render_pass);
             // Issues a command to copy from the texture to a buffer and then sends the
@@ -518,7 +518,7 @@ impl<'pass> ShadowPassDrawer<'pass> {
             .scope("direcred_figure_shadows", self.borrow.device);
 
         render_pass.set_pipeline(&self.shadow_renderer.figure_directed_pipeline.pipeline);
-        set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, &self.borrow);
+        set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, self.borrow);
 
         FigureShadowDrawer { render_pass }
     }
@@ -529,7 +529,7 @@ impl<'pass> ShadowPassDrawer<'pass> {
             .scope("direcred_terrain_shadows", self.borrow.device);
 
         render_pass.set_pipeline(&self.shadow_renderer.terrain_directed_pipeline.pipeline);
-        set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, &self.borrow);
+        set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, self.borrow);
 
         TerrainShadowDrawer { render_pass }
     }
@@ -583,7 +583,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         let mut render_pass = self.render_pass.scope("skybox", self.borrow.device);
 
         render_pass.set_pipeline(&self.pipelines.skybox.pipeline);
-        set_quad_index_buffer::<skybox::Vertex>(&mut render_pass, &self.borrow);
+        set_quad_index_buffer::<skybox::Vertex>(&mut render_pass, self.borrow);
         render_pass.set_vertex_buffer(0, model.buf().slice(..));
         render_pass.draw(0..model.len() as u32, 0..1);
     }
@@ -592,7 +592,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         let mut render_pass = self.render_pass.scope("debug", self.borrow.device);
 
         render_pass.set_pipeline(&self.pipelines.debug.pipeline);
-        set_quad_index_buffer::<debug::Vertex>(&mut render_pass, &self.borrow);
+        set_quad_index_buffer::<debug::Vertex>(&mut render_pass, self.borrow);
 
         DebugDrawer {
             render_pass,
@@ -604,7 +604,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         let mut render_pass = self.render_pass.scope("lod_terrain", self.borrow.device);
 
         render_pass.set_pipeline(&self.pipelines.lod_terrain.pipeline);
-        set_quad_index_buffer::<lod_terrain::Vertex>(&mut render_pass, &self.borrow);
+        set_quad_index_buffer::<lod_terrain::Vertex>(&mut render_pass, self.borrow);
         render_pass.set_vertex_buffer(0, model.buf().slice(..));
         render_pass.draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..1);
     }
@@ -614,7 +614,7 @@ impl<'pass> FirstPassDrawer<'pass> {
 
         render_pass.set_pipeline(&self.pipelines.figure.pipeline);
         // Note: figures use the same vertex type as the terrain
-        set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, &self.borrow);
+        set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, self.borrow);
 
         FigureDrawer { render_pass }
     }
@@ -623,7 +623,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         let mut render_pass = self.render_pass.scope("terrain", self.borrow.device);
 
         render_pass.set_pipeline(&self.pipelines.terrain.pipeline);
-        set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, &self.borrow);
+        set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, self.borrow);
 
         TerrainDrawer {
             render_pass,
@@ -635,7 +635,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         let mut render_pass = self.render_pass.scope("particles", self.borrow.device);
 
         render_pass.set_pipeline(&self.pipelines.particle.pipeline);
-        set_quad_index_buffer::<particle::Vertex>(&mut render_pass, &self.borrow);
+        set_quad_index_buffer::<particle::Vertex>(&mut render_pass, self.borrow);
 
         ParticleDrawer { render_pass }
     }
@@ -648,7 +648,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         let mut render_pass = self.render_pass.scope("sprites", self.borrow.device);
 
         render_pass.set_pipeline(&self.pipelines.sprite.pipeline);
-        set_quad_index_buffer::<sprite::Vertex>(&mut render_pass, &self.borrow);
+        set_quad_index_buffer::<sprite::Vertex>(&mut render_pass, self.borrow);
         render_pass.set_bind_group(0, &globals.bind_group, &[]);
         render_pass.set_bind_group(2, &col_lights.bind_group, &[]);
 
@@ -662,7 +662,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         let mut render_pass = self.render_pass.scope("fluid", self.borrow.device);
 
         render_pass.set_pipeline(&self.pipelines.fluid.pipeline);
-        set_quad_index_buffer::<fluid::Vertex>(&mut render_pass, &self.borrow);
+        set_quad_index_buffer::<fluid::Vertex>(&mut render_pass, self.borrow);
 
         FluidDrawer { render_pass }
     }
@@ -857,7 +857,7 @@ impl<'pass> ThirdPassDrawer<'pass> {
 
         let mut render_pass = self.render_pass.scope("ui", self.borrow.device);
         render_pass.set_pipeline(&ui.pipeline);
-        set_quad_index_buffer::<ui::Vertex>(&mut render_pass, &self.borrow);
+        set_quad_index_buffer::<ui::Vertex>(&mut render_pass, self.borrow);
 
         Some(UiDrawer { render_pass })
     }

@@ -14,9 +14,9 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         handle_orientation(data, &mut update, 1.0);
-        handle_move(&data, &mut update, 1.0);
-        handle_climb(&data, &mut update);
-        attempt_input(&data, &mut update);
+        handle_move(data, &mut update, 1.0);
+        handle_climb(data, &mut update);
+        attempt_input(data, &mut update);
 
         update
     }
@@ -70,7 +70,7 @@ impl CharacterBehavior for Data {
             },
             _ => (),
         }
-        handle_manipulate_loadout(&data, &mut update, inv_action);
+        handle_manipulate_loadout(data, &mut update, inv_action);
         update
     }
 }

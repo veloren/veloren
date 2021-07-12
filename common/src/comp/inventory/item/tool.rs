@@ -427,7 +427,7 @@ impl assets::Compound for AbilityMap {
                         kind.clone(),
                         // expect cannot fail because CharacterAbility always
                         // provides a default value in case of failure
-                        set.map_ref(|s| cache.load_expect(&s).cloned()),
+                        set.map_ref(|s| cache.load_expect(s).cloned()),
                     )
                 })
                 .collect(),

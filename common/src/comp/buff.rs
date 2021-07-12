@@ -1,3 +1,4 @@
+#![allow(clippy::nonstandard_macro_braces)] //tmp as of false positive !?
 use crate::uid::Uid;
 use core::{cmp::Ordering, time::Duration};
 #[cfg(not(target_arch = "wasm32"))]
@@ -421,7 +422,7 @@ impl Buffs {
                 // Intentionally sorted in reverse so that the strongest buffs are earlier in
                 // the vector
                 buff_order
-                    .sort_by(|a, b| buffs[&b].partial_cmp(&buffs[&a]).unwrap_or(Ordering::Equal));
+                    .sort_by(|a, b| buffs[b].partial_cmp(&buffs[a]).unwrap_or(Ordering::Equal));
             }
         }
     }

@@ -1024,7 +1024,7 @@ impl PlayState for SessionState {
                 &self.client.borrow(),
                 global_state,
                 &debug_info,
-                &self.scene.camera(),
+                self.scene.camera(),
                 global_state.clock.get_stable_dt(),
                 HudInfo {
                     is_aiming,

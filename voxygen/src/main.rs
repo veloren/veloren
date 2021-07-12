@@ -50,7 +50,7 @@ fn main() {
         let panic_info_payload = panic_info.payload();
         let payload_string = panic_info_payload.downcast_ref::<String>();
         let reason = match payload_string {
-            Some(s) => &s,
+            Some(s) => s,
             None => {
                 let payload_str = panic_info_payload.downcast_ref::<&str>();
                 match payload_str {

@@ -54,15 +54,15 @@ impl LazyTerrainMessage {
                 key: *chunk_key,
                 chunk: Ok(match generate_chunk() {
                     Ok(chunk) => SerializedTerrainChunk::via_heuristic(
-                        &chunk,
+                        chunk,
                         presence.lossy_terrain_compression,
                     ),
                     Err(e) => return Err(e),
                 }),
             }));
         }
-        lazy_msg.as_ref().map(|ref msg| {
-            let _ = client.send_prepared(&msg);
+        lazy_msg.as_ref().map(|msg| {
+            let _ = client.send_prepared(msg);
             if presence.lossy_terrain_compression {
                 network_metrics.chunks_served_lossy.inc();
             } else {
@@ -326,8 +326,8 @@ impl<'a> System<'a> for Sys {
                         lazy_msg
                             .prepare_and_send::<!, _>(
                                 &network_metrics,
-                                &client,
-                                &presence,
+                                client,
+                                presence,
                                 &key,
                                 || Ok(&*chunk),
                             )

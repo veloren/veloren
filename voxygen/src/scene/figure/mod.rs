@@ -148,52 +148,52 @@ impl FigureMgrStates {
         match body {
             Body::Humanoid(_) => self
                 .character_states
-                .get_mut(&entity)
+                .get_mut(entity)
                 .map(DerefMut::deref_mut),
             Body::QuadrupedSmall(_) => self
                 .quadruped_small_states
-                .get_mut(&entity)
+                .get_mut(entity)
                 .map(DerefMut::deref_mut),
             Body::QuadrupedMedium(_) => self
                 .quadruped_medium_states
-                .get_mut(&entity)
+                .get_mut(entity)
                 .map(DerefMut::deref_mut),
             Body::QuadrupedLow(_) => self
                 .quadruped_low_states
-                .get_mut(&entity)
+                .get_mut(entity)
                 .map(DerefMut::deref_mut),
             Body::BirdMedium(_) => self
                 .bird_medium_states
-                .get_mut(&entity)
+                .get_mut(entity)
                 .map(DerefMut::deref_mut),
             Body::FishMedium(_) => self
                 .fish_medium_states
-                .get_mut(&entity)
+                .get_mut(entity)
                 .map(DerefMut::deref_mut),
             Body::Theropod(_) => self
                 .theropod_states
-                .get_mut(&entity)
+                .get_mut(entity)
                 .map(DerefMut::deref_mut),
-            Body::Dragon(_) => self.dragon_states.get_mut(&entity).map(DerefMut::deref_mut),
+            Body::Dragon(_) => self.dragon_states.get_mut(entity).map(DerefMut::deref_mut),
             Body::BirdLarge(_) => self
                 .bird_large_states
-                .get_mut(&entity)
+                .get_mut(entity)
                 .map(DerefMut::deref_mut),
             Body::FishSmall(_) => self
                 .fish_small_states
-                .get_mut(&entity)
+                .get_mut(entity)
                 .map(DerefMut::deref_mut),
             Body::BipedLarge(_) => self
                 .biped_large_states
-                .get_mut(&entity)
+                .get_mut(entity)
                 .map(DerefMut::deref_mut),
             Body::BipedSmall(_) => self
                 .biped_small_states
-                .get_mut(&entity)
+                .get_mut(entity)
                 .map(DerefMut::deref_mut),
-            Body::Golem(_) => self.golem_states.get_mut(&entity).map(DerefMut::deref_mut),
-            Body::Object(_) => self.object_states.get_mut(&entity).map(DerefMut::deref_mut),
-            Body::Ship(_) => self.ship_states.get_mut(&entity).map(DerefMut::deref_mut),
+            Body::Golem(_) => self.golem_states.get_mut(entity).map(DerefMut::deref_mut),
+            Body::Object(_) => self.object_states.get_mut(entity).map(DerefMut::deref_mut),
+            Body::Ship(_) => self.ship_states.get_mut(entity).map(DerefMut::deref_mut),
         }
     }
 
@@ -203,23 +203,21 @@ impl FigureMgrStates {
         Q: Hash + Eq,
     {
         match body {
-            Body::Humanoid(_) => self.character_states.remove(&entity).map(|e| e.meta),
-            Body::QuadrupedSmall(_) => self.quadruped_small_states.remove(&entity).map(|e| e.meta),
-            Body::QuadrupedMedium(_) => {
-                self.quadruped_medium_states.remove(&entity).map(|e| e.meta)
-            },
-            Body::QuadrupedLow(_) => self.quadruped_low_states.remove(&entity).map(|e| e.meta),
-            Body::BirdMedium(_) => self.bird_medium_states.remove(&entity).map(|e| e.meta),
-            Body::FishMedium(_) => self.fish_medium_states.remove(&entity).map(|e| e.meta),
-            Body::Theropod(_) => self.theropod_states.remove(&entity).map(|e| e.meta),
-            Body::Dragon(_) => self.dragon_states.remove(&entity).map(|e| e.meta),
-            Body::BirdLarge(_) => self.bird_large_states.remove(&entity).map(|e| e.meta),
-            Body::FishSmall(_) => self.fish_small_states.remove(&entity).map(|e| e.meta),
-            Body::BipedLarge(_) => self.biped_large_states.remove(&entity).map(|e| e.meta),
-            Body::BipedSmall(_) => self.biped_small_states.remove(&entity).map(|e| e.meta),
-            Body::Golem(_) => self.golem_states.remove(&entity).map(|e| e.meta),
-            Body::Object(_) => self.object_states.remove(&entity).map(|e| e.meta),
-            Body::Ship(_) => self.ship_states.remove(&entity).map(|e| e.meta),
+            Body::Humanoid(_) => self.character_states.remove(entity).map(|e| e.meta),
+            Body::QuadrupedSmall(_) => self.quadruped_small_states.remove(entity).map(|e| e.meta),
+            Body::QuadrupedMedium(_) => self.quadruped_medium_states.remove(entity).map(|e| e.meta),
+            Body::QuadrupedLow(_) => self.quadruped_low_states.remove(entity).map(|e| e.meta),
+            Body::BirdMedium(_) => self.bird_medium_states.remove(entity).map(|e| e.meta),
+            Body::FishMedium(_) => self.fish_medium_states.remove(entity).map(|e| e.meta),
+            Body::Theropod(_) => self.theropod_states.remove(entity).map(|e| e.meta),
+            Body::Dragon(_) => self.dragon_states.remove(entity).map(|e| e.meta),
+            Body::BirdLarge(_) => self.bird_large_states.remove(entity).map(|e| e.meta),
+            Body::FishSmall(_) => self.fish_small_states.remove(entity).map(|e| e.meta),
+            Body::BipedLarge(_) => self.biped_large_states.remove(entity).map(|e| e.meta),
+            Body::BipedSmall(_) => self.biped_small_states.remove(entity).map(|e| e.meta),
+            Body::Golem(_) => self.golem_states.remove(entity).map(|e| e.meta),
+            Body::Object(_) => self.object_states.remove(entity).map(|e| e.meta),
+            Body::Ship(_) => self.ship_states.remove(entity).map(|e| e.meta),
         }
     }
 
@@ -4998,7 +4996,7 @@ impl FigureMgr {
         if let Some((bound, model_entry)) = match body {
             Body::Humanoid(body) => character_states
                 .get(&entity)
-                .filter(|state| filter_state(&*state))
+                .filter(|state| filter_state(*state))
                 .map(move |state| {
                     (
                         state.bound(),
@@ -5014,7 +5012,7 @@ impl FigureMgr {
                 }),
             Body::QuadrupedSmall(body) => quadruped_small_states
                 .get(&entity)
-                .filter(|state| filter_state(&*state))
+                .filter(|state| filter_state(*state))
                 .map(move |state| {
                     (
                         state.bound(),
@@ -5030,7 +5028,7 @@ impl FigureMgr {
                 }),
             Body::QuadrupedMedium(body) => quadruped_medium_states
                 .get(&entity)
-                .filter(|state| filter_state(&*state))
+                .filter(|state| filter_state(*state))
                 .map(move |state| {
                     (
                         state.bound(),
@@ -5046,7 +5044,7 @@ impl FigureMgr {
                 }),
             Body::QuadrupedLow(body) => quadruped_low_states
                 .get(&entity)
-                .filter(|state| filter_state(&*state))
+                .filter(|state| filter_state(*state))
                 .map(move |state| {
                     (
                         state.bound(),
@@ -5062,7 +5060,7 @@ impl FigureMgr {
                 }),
             Body::BirdMedium(body) => bird_medium_states
                 .get(&entity)
-                .filter(|state| filter_state(&*state))
+                .filter(|state| filter_state(*state))
                 .map(move |state| {
                     (
                         state.bound(),
@@ -5078,7 +5076,7 @@ impl FigureMgr {
                 }),
             Body::FishMedium(body) => fish_medium_states
                 .get(&entity)
-                .filter(|state| filter_state(&*state))
+                .filter(|state| filter_state(*state))
                 .map(move |state| {
                     (
                         state.bound(),
@@ -5094,7 +5092,7 @@ impl FigureMgr {
                 }),
             Body::Theropod(body) => theropod_states
                 .get(&entity)
-                .filter(|state| filter_state(&*state))
+                .filter(|state| filter_state(*state))
                 .map(move |state| {
                     (
                         state.bound(),
@@ -5110,7 +5108,7 @@ impl FigureMgr {
                 }),
             Body::Dragon(body) => dragon_states
                 .get(&entity)
-                .filter(|state| filter_state(&*state))
+                .filter(|state| filter_state(*state))
                 .map(move |state| {
                     (
                         state.bound(),
@@ -5126,7 +5124,7 @@ impl FigureMgr {
                 }),
             Body::BirdLarge(body) => bird_large_states
                 .get(&entity)
-                .filter(|state| filter_state(&*state))
+                .filter(|state| filter_state(*state))
                 .map(move |state| {
                     (
                         state.bound(),
@@ -5142,7 +5140,7 @@ impl FigureMgr {
                 }),
             Body::FishSmall(body) => fish_small_states
                 .get(&entity)
-                .filter(|state| filter_state(&*state))
+                .filter(|state| filter_state(*state))
                 .map(move |state| {
                     (
                         state.bound(),
@@ -5158,7 +5156,7 @@ impl FigureMgr {
                 }),
             Body::BipedLarge(body) => biped_large_states
                 .get(&entity)
-                .filter(|state| filter_state(&*state))
+                .filter(|state| filter_state(*state))
                 .map(move |state| {
                     (
                         state.bound(),
@@ -5174,7 +5172,7 @@ impl FigureMgr {
                 }),
             Body::BipedSmall(body) => biped_small_states
                 .get(&entity)
-                .filter(|state| filter_state(&*state))
+                .filter(|state| filter_state(*state))
                 .map(move |state| {
                     (
                         state.bound(),
@@ -5190,7 +5188,7 @@ impl FigureMgr {
                 }),
             Body::Golem(body) => golem_states
                 .get(&entity)
-                .filter(|state| filter_state(&*state))
+                .filter(|state| filter_state(*state))
                 .map(move |state| {
                     (
                         state.bound(),
@@ -5206,7 +5204,7 @@ impl FigureMgr {
                 }),
             Body::Object(body) => object_states
                 .get(&entity)
-                .filter(|state| filter_state(&*state))
+                .filter(|state| filter_state(*state))
                 .map(move |state| {
                     (
                         state.bound(),
@@ -5222,7 +5220,7 @@ impl FigureMgr {
                 }),
             Body::Ship(body) => ship_states
                 .get(&entity)
-                .filter(|state| filter_state(&*state))
+                .filter(|state| filter_state(*state))
                 .map(move |state| {
                     (
                         state.bound(),

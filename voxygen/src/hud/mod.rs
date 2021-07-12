@@ -964,7 +964,7 @@ impl Hud {
         span!(_guard, "update_layout", "Hud::update_layout");
         let mut events = core::mem::take(&mut self.events);
         if global_state.settings.interface.map_show_voxel_map {
-            self.voxel_minimap.maintain(&client, &mut self.ui);
+            self.voxel_minimap.maintain(client, &mut self.ui);
         }
         let (ref mut ui_widgets, ref mut item_tooltip_manager, ref mut tooltip_manager) =
             &mut self.ui.set_widgets();
@@ -1356,13 +1356,13 @@ impl Hud {
                             .mid_top_with_margin_on(self.ids.player_rank_up, 8.0)
                             .set(self.ids.player_rank_up_txt_number, ui_widgets);
                         // Static "New Rank!" text
-                        Text::new(&i18n.get("hud.rank_up"))
+                        Text::new(i18n.get("hud.rank_up"))
                             .font_size(40)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                             .mid_bottom_with_margin_on(self.ids.player_rank_up, 20.0)
                             .set(self.ids.player_rank_up_txt_0_bg, ui_widgets);
-                        Text::new(&i18n.get("hud.rank_up"))
+                        Text::new(i18n.get("hud.rank_up"))
                             .font_size(40)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(1.0, 1.0, 1.0, fade))
@@ -1370,14 +1370,14 @@ impl Hud {
                             .set(self.ids.player_rank_up_txt_0, ui_widgets);
                         // Variable skilltree text
                         let skill = match display.skill_tree {
-                            General => &i18n.get("common.weapons.general"),
-                            Weapon(ToolKind::Hammer) => &i18n.get("common.weapons.hammer"),
-                            Weapon(ToolKind::Axe) => &i18n.get("common.weapons.axe"),
-                            Weapon(ToolKind::Sword) => &i18n.get("common.weapons.sword"),
-                            Weapon(ToolKind::Sceptre) => &i18n.get("common.weapons.sceptre"),
-                            Weapon(ToolKind::Bow) => &i18n.get("common.weapons.bow"),
-                            Weapon(ToolKind::Staff) => &i18n.get("common.weapons.staff"),
-                            Weapon(ToolKind::Pick) => &i18n.get("common.tool.mining"),
+                            General => i18n.get("common.weapons.general"),
+                            Weapon(ToolKind::Hammer) => i18n.get("common.weapons.hammer"),
+                            Weapon(ToolKind::Axe) => i18n.get("common.weapons.axe"),
+                            Weapon(ToolKind::Sword) => i18n.get("common.weapons.sword"),
+                            Weapon(ToolKind::Sceptre) => i18n.get("common.weapons.sceptre"),
+                            Weapon(ToolKind::Bow) => i18n.get("common.weapons.bow"),
+                            Weapon(ToolKind::Staff) => i18n.get("common.weapons.staff"),
+                            Weapon(ToolKind::Pick) => i18n.get("common.tool.mining"),
                             _ => "Unknown",
                         };
                         Text::new(skill)
@@ -1442,7 +1442,7 @@ impl Hud {
                             1.0
                         };
 
-                        Text::new(&i18n.get("hud.sct.block"))
+                        Text::new(i18n.get("hud.sct.block"))
                             .font_size(font_size)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(0.0, 0.0, 0.0, fade))
@@ -1451,7 +1451,7 @@ impl Hud {
                                 ui_widgets.win_h * (-0.3) + y - 3.0,
                             )
                             .set(player_sct_bg_id, ui_widgets);
-                        Text::new(&i18n.get("hud.sct.block"))
+                        Text::new(i18n.get("hud.sct.block"))
                             .font_size(font_size)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(0.69, 0.82, 0.88, fade))
@@ -1494,7 +1494,7 @@ impl Hud {
                     quality,
                     distance,
                     fonts,
-                    &i18n,
+                    i18n,
                     &global_state.settings.controls,
                     properties,
                     pulse,
@@ -1554,7 +1554,7 @@ impl Hud {
                         overitem::TEXT_COLOR,
                         pos.distance_squared(player_pos),
                         &self.fonts,
-                        &i18n,
+                        i18n,
                         &global_state.settings.controls,
                         overitem_properties,
                         self.pulse,
@@ -1579,7 +1579,7 @@ impl Hud {
                         overitem::TEXT_COLOR,
                         pos.distance_squared(player_pos),
                         &self.fonts,
-                        &i18n,
+                        i18n,
                         &global_state.settings.controls,
                         overitem_properties,
                         self.pulse,
@@ -1929,7 +1929,7 @@ impl Hud {
                         .hover_image(self.imgs.button_hover)
                         .press_image(self.imgs.button_press)
                         .bottom_left_with_margins_on(ui_widgets.window, 200.0, 120.0)
-                        .label(&i18n.get("hud.tutorial_btn"))
+                        .label(i18n.get("hud.tutorial_btn"))
                         .label_font_id(self.fonts.cyri.conrod_id)
                         .label_font_size(self.fonts.cyri.scale(18))
                         .label_color(TEXT_COLOR)
@@ -1977,8 +1977,8 @@ impl Hud {
                 Intro::Show => {
                     if self.show.intro {
                         self.show.want_grab = false;
-                        let quest_headline = &i18n.get("hud.temp_quest_headline");
-                        let quest_text = &i18n.get("hud.temp_quest_text");
+                        let quest_headline = i18n.get("hud.temp_quest_headline");
+                        let quest_text = i18n.get("hud.temp_quest_text");
                         Image::new(self.imgs.quest_bg)
                             .w_h(404.0, 858.0)
                             .middle_of(ui_widgets.window)
@@ -2017,7 +2017,7 @@ impl Hud {
                             .hover_image(self.imgs.button_hover)
                             .press_image(self.imgs.button_press)
                             .mid_bottom_with_margin_on(self.ids.q_text_bg, -80.0)
-                            .label(&i18n.get("common.close"))
+                            .label(i18n.get("common.close"))
                             .label_font_id(self.fonts.cyri.conrod_id)
                             .label_font_size(self.fonts.cyri.scale(22))
                             .label_color(TEXT_COLOR)
@@ -2041,14 +2041,14 @@ impl Hud {
                                 )
                                 .color(Some(QUALITY_LEGENDARY))
                                 .set(self.ids.tut_arrow, ui_widgets);
-                            Text::new(&i18n.get("hud.tutorial_elements"))
+                            Text::new(i18n.get("hud.tutorial_elements"))
                                 .mid_top_with_margin_on(self.ids.tut_arrow, -50.0)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .font_size(self.fonts.cyri.scale(40))
                                 .color(BLACK)
                                 .floating(true)
                                 .set(self.ids.tut_arrow_txt_bg, ui_widgets);
-                            Text::new(&i18n.get("hud.tutorial_elements"))
+                            Text::new(i18n.get("hud.tutorial_elements"))
                                 .bottom_right_with_margins_on(self.ids.tut_arrow_txt_bg, 1.0, 1.0)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .font_size(self.fonts.cyri.scale(40))
@@ -2372,8 +2372,8 @@ impl Hud {
                 &self.rot_imgs,
                 tooltip_manager,
                 i18n,
-                &player_stats,
-                &skill_set,
+                player_stats,
+                skill_set,
                 self.pulse,
             )
             .set(self.ids.buttons, ui_widgets)
@@ -2397,7 +2397,7 @@ impl Hud {
             &self.fonts,
             i18n,
             self.pulse,
-            &global_state,
+            global_state,
             tooltip_manager,
             &msm,
         )
@@ -2430,7 +2430,7 @@ impl Hud {
             &self.world_map,
             &self.fonts,
             camera.get_orientation(),
-            &global_state,
+            global_state,
             self.show.location_marker,
             &self.voxel_minimap,
         )
@@ -2450,7 +2450,7 @@ impl Hud {
                 &self.fonts,
                 &global_state.i18n,
                 &global_state.settings,
-                &prompt_dialog_settings,
+                prompt_dialog_settings,
                 &global_state.window.key_layout,
             )
             .set(self.ids.prompt_dialog, ui_widgets)
@@ -2521,10 +2521,10 @@ impl Hud {
                 &self.item_imgs,
                 &self.fonts,
                 &self.rot_imgs,
-                &health,
-                &inventory,
-                &energy,
-                &skillset,
+                health,
+                inventory,
+                energy,
+                skillset,
                 //&character_state,
                 self.pulse,
                 //&controller,
@@ -2559,12 +2559,12 @@ impl Hud {
                     &mut self.slot_manager,
                     self.pulse,
                     i18n,
-                    &player_stats,
-                    &skill_set,
-                    &health,
-                    &energy,
+                    player_stats,
+                    skill_set,
+                    health,
+                    energy,
                     &self.show,
-                    &body,
+                    body,
                     &msm,
                 )
                 .set(self.ids.bag, ui_widgets)
@@ -2637,11 +2637,11 @@ impl Hud {
                 &self.rot_imgs,
                 tooltip_manager,
                 i18n,
-                &player_buffs,
+                player_buffs,
                 self.pulse,
-                &global_state,
-                &health,
-                &energy,
+                global_state,
+                health,
+                energy,
             )
             .set(self.ids.buffs, ui_widgets)
             {
@@ -2663,7 +2663,7 @@ impl Hud {
                     &self.rot_imgs,
                     item_tooltip_manager,
                     &self.item_imgs,
-                    &inventory,
+                    inventory,
                     &msm,
                     tooltip_manager,
                     &mut self.show,
@@ -2709,7 +2709,7 @@ impl Hud {
         if global_state.settings.interface.toggle_chat {
             for event in Chat::new(
                 &mut self.new_messages,
-                &client,
+                client,
                 global_state,
                 self.pulse,
                 &self.imgs,
@@ -2778,7 +2778,7 @@ impl Hud {
         // Settings
         if let Windows::Settings = self.show.open_windows {
             for event in SettingsWindow::new(
-                &global_state,
+                global_state,
                 &self.show,
                 &self.imgs,
                 &self.fonts,
@@ -2872,7 +2872,7 @@ impl Hud {
                 for event in Diary::new(
                     &self.show,
                     client,
-                    &skill_set,
+                    skill_set,
                     &self.imgs,
                     &self.item_imgs,
                     &self.fonts,
@@ -2908,7 +2908,7 @@ impl Hud {
                 &self.fonts,
                 self.pulse,
                 i18n,
-                &global_state,
+                global_state,
                 tooltip_manager,
                 self.show.location_marker,
             )

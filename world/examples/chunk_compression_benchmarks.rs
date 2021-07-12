@@ -35,7 +35,7 @@ use veloren_world::{
 fn lz4_with_dictionary(data: &[u8], dictionary: &[u8]) -> Vec<u8> {
     let mut compressed = Vec::new();
     lz_fear::CompressionSettings::default()
-        .dictionary(0, &dictionary)
+        .dictionary(0, dictionary)
         .compress(data, &mut compressed)
         .unwrap();
     compressed

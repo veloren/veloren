@@ -62,7 +62,7 @@ impl Lod {
 
     pub fn render<'a>(&'a self, drawer: &mut FirstPassDrawer<'a>) {
         if let Some((_, model)) = self.model.as_ref() {
-            drawer.draw_lod_terrain(&model);
+            drawer.draw_lod_terrain(model);
         }
     }
 }

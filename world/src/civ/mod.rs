@@ -194,7 +194,7 @@ impl Civs {
                     WorldSite::settlement(Settlement::generate(wpos, Some(ctx.sim), &mut rng))
                 },
                 SiteKind::Dungeon => WorldSite::dungeon(site2::Site::generate_dungeon(
-                    &Land::from_sim(&ctx.sim),
+                    &Land::from_sim(ctx.sim),
                     &mut rng,
                     wpos,
                 )),
@@ -202,12 +202,12 @@ impl Civs {
                     WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
                 },
                 SiteKind::Refactor => WorldSite::refactor(site2::Site::generate_city(
-                    &Land::from_sim(&ctx.sim),
+                    &Land::from_sim(ctx.sim),
                     &mut rng,
                     wpos,
                 )),
                 SiteKind::Tree => {
-                    WorldSite::tree(Tree::generate(wpos, &Land::from_sim(&ctx.sim), &mut rng))
+                    WorldSite::tree(Tree::generate(wpos, &Land::from_sim(ctx.sim), &mut rng))
                 },
             });
             sim_site.site_tmp = Some(site);
@@ -845,7 +845,7 @@ fn find_site_loc(
         });
 
         for offset in Spiral2d::new().take((size * 2 + 1).pow(2) as usize) {
-            if loc_suitable_for_site(&ctx.sim, test_loc + offset) {
+            if loc_suitable_for_site(ctx.sim, test_loc + offset) {
                 return Some(test_loc);
             }
         }

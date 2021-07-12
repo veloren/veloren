@@ -228,7 +228,7 @@ impl<'a> System<'a> for Sys {
                             }),
                         )));
                     }
-                    lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));
+                    lazy_msg.as_ref().map(|msg| client.send_prepared(msg));
                 }
             }
         }

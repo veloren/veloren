@@ -237,7 +237,7 @@ lazy_static! {
             for entry in std::fs::read_dir(path)? {
                 let path = entry?.path();
                 if path.is_dir(){
-                    list_items(&path, &base, &mut items)?;
+                    list_items(&path, base, &mut items)?;
                 } else if let Ok(path) = path.strip_prefix(base) {
                     let path = path.to_string_lossy().trim_end_matches(".ron").replace('/', ".").replace('\\', ".");
                     items.push(path);
@@ -793,6 +793,7 @@ pub enum ArgumentSpec {
 }
 
 impl ArgumentSpec {
+    #[allow(clippy::nonstandard_macro_braces)] //tmp as of false positive !?
     pub fn usage_string(&self) -> String {
         match self {
             ArgumentSpec::PlayerName(req) => {

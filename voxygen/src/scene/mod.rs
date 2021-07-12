@@ -390,9 +390,9 @@ impl Scene {
         audio: &mut AudioFrontend,
     ) {
         span!(_guard, "handle_outcome", "Scene::handle_outcome");
-        self.particle_mgr.handle_outcome(&outcome, &scene_data);
+        self.particle_mgr.handle_outcome(outcome, scene_data);
         self.sfx_mgr
-            .handle_outcome(&outcome, audio, scene_data.client);
+            .handle_outcome(outcome, audio, scene_data.client);
 
         match outcome {
             Outcome::Explosion {
@@ -540,7 +540,7 @@ impl Scene {
 
         // Maintain the particles.
         self.particle_mgr
-            .maintain(renderer, &scene_data, &self.terrain, lights);
+            .maintain(renderer, scene_data, &self.terrain, lights);
 
         // Update light constants
         lights.extend(
@@ -576,7 +576,7 @@ impl Scene {
         );
         lights.sort_by_key(|light| light.get_pos().distance_squared(player_pos) as i32);
         lights.truncate(MAX_LIGHT_COUNT);
-        renderer.update_consts(&mut self.data.lights, &lights);
+        renderer.update_consts(&mut self.data.lights, lights);
 
         // Update event lights
         let dt = ecs.fetch::<DeltaTime>().0;
@@ -664,7 +664,7 @@ impl Scene {
         // Maintain the terrain.
         let (_visible_bounds, visible_light_volume, visible_psr_bounds) = self.terrain.maintain(
             renderer,
-            &scene_data,
+            scene_data,
             focus_pos,
             self.loaded_distance,
             &self.camera,

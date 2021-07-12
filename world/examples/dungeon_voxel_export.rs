@@ -53,8 +53,7 @@ fn main() -> Result {
                             for z in aabb.min.z..aabb.max.z {
                                 let pos = Vec3::new(x, y, z);
 
-                                if let Some(block) = fill.sample_at(&prim_tree, prim, pos, &canvas)
-                                {
+                                if let Some(block) = fill.sample_at(&prim_tree, prim, pos, canvas) {
                                     let _ = volume.set(pos, block);
                                 }
                             }
@@ -152,7 +151,7 @@ impl ExportVol {
             })?;
             write_chunk(file, "XYZI", &|file| {
                 write_i32(file, model.len() as i32 / 4)?; // Number of voxels
-                file.write_all(&model)
+                file.write_all(model)
             })?;
         }
 

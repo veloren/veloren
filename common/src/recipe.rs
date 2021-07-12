@@ -124,9 +124,7 @@ impl assets::Compound for RecipeBook {
             spec: &(RawRecipeInput, u32),
         ) -> Result<(RecipeInput, u32), assets::Error> {
             let def = match &spec.0 {
-                RawRecipeInput::Item(name) => {
-                    RecipeInput::Item(Arc::<ItemDef>::load_cloned(&name)?)
-                },
+                RawRecipeInput::Item(name) => RecipeInput::Item(Arc::<ItemDef>::load_cloned(name)?),
                 RawRecipeInput::Tag(tag) => RecipeInput::Tag(*tag),
             };
             Ok((def, spec.1))

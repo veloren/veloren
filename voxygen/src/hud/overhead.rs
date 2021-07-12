@@ -250,7 +250,7 @@ impl<'a> Widget for Overhead<'a> {
                                 cur.as_secs_f32() / max.as_secs_f32() * 1000.0
                             })
                         }) as u32; // Percentage to determine which frame of the timer overlay is displayed
-                        let buff_img = get_buff_image(buff.kind, &self.imgs);
+                        let buff_img = get_buff_image(buff.kind, self.imgs);
                         let buff_widget = Image::new(buff_img).w_h(20.0, 20.0);
                         // Sort buffs into rows of 5 slots
                         let x = i % 5;
@@ -452,9 +452,9 @@ impl<'a> Widget for Overhead<'a> {
         // Speech bubble
         if let Some(bubble) = self.bubble {
             let dark_mode = self.settings.speech_bubble_dark_mode;
-            let localizer = |s: &str, i| -> String { self.i18n.get_variation(&s, i).to_string() };
+            let localizer = |s: &str, i| -> String { self.i18n.get_variation(s, i).to_string() };
             let bubble_contents: String = bubble.message(localizer);
-            let (text_color, shadow_color) = bubble_color(&bubble, dark_mode);
+            let (text_color, shadow_color) = bubble_color(bubble, dark_mode);
             let mut text = Text::new(&bubble_contents)
                 .color(text_color)
                 .font_id(self.fonts.cyri.conrod_id)
@@ -585,7 +585,7 @@ impl<'a> Widget for Overhead<'a> {
             }
             text_shadow.set(state.ids.speech_bubble_shadow, ui);
             let icon = if self.settings.speech_bubble_icon {
-                bubble_icon(&bubble, &self.imgs)
+                bubble_icon(bubble, self.imgs)
             } else {
                 self.imgs.nothing
             };

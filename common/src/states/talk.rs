@@ -49,7 +49,7 @@ impl CharacterBehavior for Data {
 
     fn manipulate_loadout(&self, data: &JoinData, inv_action: InventoryAction) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        handle_manipulate_loadout(&data, &mut update, inv_action);
+        handle_manipulate_loadout(data, &mut update, inv_action);
         update
     }
 }

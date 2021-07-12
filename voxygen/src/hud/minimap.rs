@@ -158,7 +158,7 @@ impl VoxelMinimap {
                 && delta.y < VOXEL_MINIMAP_SIDELENGTH / TerrainChunkSize::RECT_SIZE.y
                 && !self.chunk_minimaps.contains_key(&key)
             {
-                if let Some((_, column)) = self.keyed_jobs.spawn(Some(&pool), key, || {
+                if let Some((_, column)) = self.keyed_jobs.spawn(Some(pool), key, || {
                     let arc_chunk = Arc::clone(chunk);
                     move |_| {
                         let mut layers = Vec::new();

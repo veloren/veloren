@@ -43,7 +43,7 @@ impl ShadowMap {
         {
             let (point_depth, directed_depth) = shadow_views;
 
-            let layout = shadow::ShadowLayout::new(&device);
+            let layout = shadow::ShadowLayout::new(device);
 
             Self::Enabled(ShadowMapRenderer {
                 directed_depth,
@@ -56,7 +56,7 @@ impl ShadowMap {
                 layout,
             })
         } else {
-            let (dummy_point, dummy_directed) = Self::create_dummy_shadow_tex(&device, &queue);
+            let (dummy_point, dummy_directed) = Self::create_dummy_shadow_tex(device, queue);
             Self::Disabled {
                 dummy_point,
                 dummy_directed,

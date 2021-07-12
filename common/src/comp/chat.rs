@@ -187,8 +187,8 @@ impl<G> GenericChatMsg<G> {
 
     pub fn get_group(&self) -> Option<&G> {
         match &self.chat_type {
-            ChatType::GroupMeta(g) => Some(&g),
-            ChatType::Group(_, g) => Some(&g),
+            ChatType::GroupMeta(g) => Some(g),
+            ChatType::Group(_, g) => Some(g),
             _ => None,
         }
     }
@@ -326,7 +326,7 @@ impl SpeechBubble {
     {
         match &self.message {
             SpeechBubbleMessage::Plain(m) => m.to_string(),
-            SpeechBubbleMessage::Localized(k, i) => i18n_variation(&k, *i),
+            SpeechBubbleMessage::Localized(k, i) => i18n_variation(k, *i),
         }
     }
 }

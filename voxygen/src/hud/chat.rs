@@ -107,7 +107,7 @@ impl<'a> Chat<'a> {
 
     pub fn prepare_tab_completion(mut self, input: String) -> Self {
         self.force_completions = if let Some(index) = input.find('\t') {
-            Some(cmd::complete(&input[..index], &self.client))
+            Some(cmd::complete(&input[..index], self.client))
         } else {
             None
         };
@@ -291,7 +291,7 @@ impl<'a> Widget for Chat<'a> {
                     if let Some(replacement) = &s.completions.get(s.completions_index.unwrap()) {
                         let (completed, offset) =
                             do_tab_completion(cursor, &s.input.message, replacement);
-                        force_cursor = cursor_offset_to_index(offset, &completed, &ui, &self.fonts);
+                        force_cursor = cursor_offset_to_index(offset, &completed, ui, self.fonts);
                         s.input.message = completed;
                     }
                 });
@@ -321,8 +321,8 @@ impl<'a> Widget for Chat<'a> {
                     force_cursor = cursor_offset_to_index(
                         s.input.message.len(),
                         &s.input.message,
-                        &ui,
-                        &self.fonts,
+                        ui,
+                        self.fonts,
                     );
                 } else {
                     s.input.message.clear();
@@ -350,7 +350,7 @@ impl<'a> Widget for Chat<'a> {
                 });
             }
 
-            let (color, icon) = render_chat_mode(&state.input.mode, &self.imgs);
+            let (color, icon) = render_chat_mode(&state.input.mode, self.imgs);
             Image::new(icon)
                 .w_h(CHAT_ICON_WIDTH, CHAT_ICON_HEIGHT)
                 .top_left_with_margin_on(state.ids.chat_input_bg, 2.0)
@@ -448,7 +448,7 @@ impl<'a> Widget for Chat<'a> {
             })
             .filter(|m| {
                 if let Some(chat_tab) = current_chat_tab {
-                    chat_tab.filter.satisfies(&m, &group_members)
+                    chat_tab.filter.satisfies(m, &group_members)
                 } else {
                     true
                 }
@@ -468,7 +468,7 @@ impl<'a> Widget for Chat<'a> {
             // This would be easier if conrod used the v-metrics from rusttype.
             if item.i < messages.len() {
                 let message = &messages[item.i];
-                let (color, icon) = render_chat_line(&message.chat_type, &self.imgs);
+                let (color, icon) = render_chat_line(&message.chat_type, self.imgs);
                 // For each ChatType needing localization get/set matching pre-formatted
                 // localized string. This string will be formatted with the data
                 // provided in ChatType in the client/src/mod.rs
@@ -542,7 +542,7 @@ impl<'a> Widget for Chat<'a> {
             .hover_image(self.imgs.selection_hover)
             .hover_image(self.imgs.selection_press)
             .image_color(shading)
-            .label(&self.localized_strings.get("hud.chat.all"))
+            .label(self.localized_strings.get("hud.chat.all"))
             .label_font_size(self.fonts.cyri.scale(14))
             .label_font_id(self.fonts.cyri.conrod_id)
             .label_color(TEXT_COLOR.alpha(alpha))
@@ -601,8 +601,7 @@ impl<'a> Widget for Chat<'a> {
                         .set(state.ids.chat_tab_tooltip_bg, ui);
 
                     Text::new(
-                        &self
-                            .localized_strings
+                        self.localized_strings
                             .get("hud.chat.chat_tab_hover_tooltip"),
                     )
                     .mid_top_with_margin_on(state.ids.chat_tab_tooltip_bg, 3.0)
@@ -724,7 +723,7 @@ fn cursor_offset_to_index(offset: usize, text: &str, ui: &Ui, fonts: &Fonts) -> 
     // Width and font must match that of the chat TextEdit
     let font = ui.fonts.get(fonts.opensans.conrod_id)?;
     let font_size = fonts.opensans.scale(15);
-    let infos = text::line::infos(&text, &font, font_size).wrap_by_whitespace(CHAT_BOX_INPUT_WIDTH);
+    let infos = text::line::infos(text, font, font_size).wrap_by_whitespace(CHAT_BOX_INPUT_WIDTH);
 
     cursor::index_before_char(infos, offset)
 }

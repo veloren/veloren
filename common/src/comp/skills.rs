@@ -970,7 +970,7 @@ impl Skill {
     /// note direct prerequisites)
     pub fn prerequisite_skills(&self) -> impl Iterator<Item = (Skill, Option<u16>)> {
         SKILL_PREREQUISITES
-            .get(&self)
+            .get(self)
             .into_iter()
             .flatten()
             .map(|(skill, level)| (*skill, *level))
@@ -984,12 +984,12 @@ impl Skill {
 
     /// Returns the maximum level a skill can reach, returns None if the skill
     /// doesn't level
-    pub fn max_level(&self) -> Option<u16> { SKILL_MAX_LEVEL.get(&self).copied().flatten() }
+    pub fn max_level(&self) -> Option<u16> { SKILL_MAX_LEVEL.get(self).copied().flatten() }
 
     /// Returns the skill group type for a skill from the static skill group
     /// definitions.
     pub fn skill_group_kind(&self) -> Option<SkillGroupKind> {
-        SKILL_GROUP_LOOKUP.get(&self).copied()
+        SKILL_GROUP_LOOKUP.get(self).copied()
     }
 }
 

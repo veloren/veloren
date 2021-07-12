@@ -289,7 +289,7 @@ impl Controls {
             } => screen.view(
                 &self.fonts,
                 &self.imgs,
-                &connection_state,
+                connection_state,
                 self.time,
                 &self.i18n.read(),
                 button_style,
@@ -486,7 +486,7 @@ impl MainMenuUi {
         )
         .unwrap();
 
-        let fonts = Fonts::load(&i18n.fonts(), &mut ui).expect("Impossible to load fonts");
+        let fonts = Fonts::load(i18n.fonts(), &mut ui).expect("Impossible to load fonts");
 
         let bg_img_spec = BG_IMGS.choose(&mut thread_rng()).unwrap();
 
@@ -508,7 +508,7 @@ impl MainMenuUi {
         let font = load_font(&i18n.fonts().get("cyri").unwrap().asset_key);
         self.ui.clear_fonts(font);
         self.controls.fonts =
-            Fonts::load(&i18n.fonts(), &mut self.ui).expect("Impossible to load fonts!");
+            Fonts::load(i18n.fonts(), &mut self.ui).expect("Impossible to load fonts!");
         let language_metadatas = crate::i18n::list_localizations();
         self.controls.selected_language_index = language_metadatas
             .iter()

@@ -337,7 +337,7 @@ impl World {
                     let lpos = Vec3::new(x, y, z);
                     let wpos = Vec3::from(chunk_wpos2d) + lpos;
 
-                    if let Some(block) = sampler.get_with_z_cache(wpos, Some(&z_cache)) {
+                    if let Some(block) = sampler.get_with_z_cache(wpos, Some(z_cache)) {
                         let _ = chunk.set(lpos, block);
                     }
                 });

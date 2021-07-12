@@ -284,7 +284,7 @@ impl<'a, T: ReadVol> Iterator for DefaultVolIterator<'a, T> {
     type Item = (Vec3<i32>, &'a T::Vox);
 
     fn next(&mut self) -> Option<(Vec3<i32>, &'a T::Vox)> {
-        while let Some(pos) = self.pos_iter.next() {
+        for pos in &mut self.pos_iter {
             if let Ok(vox) = self.vol.get(pos) {
                 return Some((pos, vox));
             }

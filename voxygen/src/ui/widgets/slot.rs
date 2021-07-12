@@ -605,7 +605,7 @@ where
         if state.cached_images.as_ref().map(|c| &c.0) != image_key.as_ref() {
             state.update(|state| {
                 state.cached_images = image_key.map(|key| {
-                    let image_ids = K::image_ids(&key, &image_source);
+                    let image_ids = K::image_ids(&key, image_source);
                     (key, image_ids)
                 });
             });
