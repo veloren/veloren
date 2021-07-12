@@ -125,7 +125,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
             let buff_strength = tool.base_buff_strength(&msm, &[]).to_string();
             let equip_time = tool.equip_time(&msm, &[]).as_secs_f32().to_string();
             let kind = get_tool_kind(&tool.kind);
-            let hands = get_tool_hands(&tool);
+            let hands = get_tool_hands(tool);
 
             wtr.write_record(&[
                 item.item_definition_id(),

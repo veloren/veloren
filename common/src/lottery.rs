@@ -119,7 +119,7 @@ mod tests {
             for (_, item) in table.iter() {
                 match item {
                     LootSpec::Item(item) => {
-                        Item::new_from_asset_expect(&item);
+                        Item::new_from_asset_expect(item);
                     },
                     LootSpec::ItemQuantity(item, lower, upper) => {
                         assert!(
@@ -134,11 +134,11 @@ mod tests {
                             upper,
                             lower
                         );
-                        Item::new_from_asset_expect(&item);
+                        Item::new_from_asset_expect(item);
                     },
                     LootSpec::LootTable(loot_table) => {
                         let loot_table =
-                            Lottery::<LootSpec<String>>::load_expect_cloned(&loot_table);
+                            Lottery::<LootSpec<String>>::load_expect_cloned(loot_table);
                         validate_table_contents(loot_table);
                     },
                 }

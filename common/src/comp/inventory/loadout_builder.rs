@@ -94,7 +94,7 @@ impl ItemSpec {
     /// 1) If weights are invalid
     pub fn validate(&self, key: EquipSlot) {
         match self {
-            ItemSpec::Item(specifier) => std::mem::drop(Item::new_from_asset_expect(&specifier)),
+            ItemSpec::Item(specifier) => std::mem::drop(Item::new_from_asset_expect(specifier)),
             ItemSpec::Choice(items) => {
                 for (p, entry) in items {
                     if p <= &0.0 {

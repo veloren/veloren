@@ -420,7 +420,7 @@ mod tests {
         // Generate paths
         let i18n_asset_path = std::path::Path::new("assets/voxygen/i18n/");
         let root_dir = assets::find_root().expect("Failed to discover repository root");
-        crate::verification::verify_all_localizations(&root_dir, &i18n_asset_path);
+        crate::verification::verify_all_localizations(&root_dir, i18n_asset_path);
     }
 
     // Test to verify all languages and print missing and faulty localisation
@@ -432,6 +432,6 @@ mod tests {
         // Generate paths
         let i18n_asset_path = std::path::Path::new("assets/voxygen/i18n/");
         let root_dir = assets::find_root().expect("Failed to discover repository root");
-        crate::analysis::test_all_localizations(&root_dir, &i18n_asset_path, be_verbose);
+        crate::analysis::test_all_localizations(&root_dir, i18n_asset_path, be_verbose);
     }
 }
