@@ -239,6 +239,8 @@ widget_ids! {
         num_lights,
         num_figures,
         num_particles,
+        current_biome,
+        current_site,
         graphics_backend,
         gpu_timings[],
 
@@ -2188,10 +2190,26 @@ impl Hud {
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.num_chunks, ui_widgets);
 
+            // Type of biome
+            Text::new(&format!("Biome: {:?}", client.current_biome()))
+                .color(TEXT_COLOR)
+                .down_from(self.ids.num_chunks, 5.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .set(self.ids.current_biome, ui_widgets);
+
+            // Type of site
+            Text::new(&format!("Site: {:?}", client.current_site()))
+                .color(TEXT_COLOR)
+                .down_from(self.ids.current_biome, 5.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .set(self.ids.current_site, ui_widgets);
+
             // Number of lights
             Text::new(&format!("Lights: {}", debug_info.num_lights,))
                 .color(TEXT_COLOR)
-                .down_from(self.ids.num_chunks, 5.0)
+                .down_from(self.ids.current_site, 5.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.num_lights, ui_widgets);
