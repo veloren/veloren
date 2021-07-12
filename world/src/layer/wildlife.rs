@@ -36,15 +36,18 @@ impl assets::Asset for SpawnEntry {
 impl SpawnEntry {
     pub fn from(asset_specifier: &str) -> Self { Self::load_expect(asset_specifier).read().clone() }
 
-    pub fn request(&self, requested_period: DayPeriod, underwater: bool) -> Option<&Pack> {
-        self.rules.iter().find(|pack| {
-            let time_match = pack
-                .day_period
-                .iter()
-                .any(|period| *period == requested_period);
-            let water_match = pack.is_underwater == underwater;
-            time_match && water_match
-        })
+    pub fn request(&self, requested_period: DayPeriod, underwater: bool) -> Option<Pack> {
+        self.rules
+            .iter()
+            .find(|pack| {
+                let time_match = pack
+                    .day_period
+                    .iter()
+                    .any(|period| *period == requested_period);
+                let water_match = pack.is_underwater == underwater;
+                time_match && water_match
+            })
+            .cloned()
     }
 }
 
@@ -69,9 +72,9 @@ impl Pack {
     }
 }
 
-type DensityFn = fn(&SimChunk, &ColumnSample) -> f32;
+pub type DensityFn = fn(&SimChunk, &ColumnSample) -> f32;
 
-pub fn wildlife_spawn_manifest() -> Vec<(&'static str, DensityFn)> {
+pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
     // NOTE: Order matters.
     // Place entries with more strict requirements before more general ones
     vec![
@@ -218,14 +221,6 @@ pub fn wildlife_spawn_manifest() -> Vec<(&'static str, DensityFn)> {
     ]
 }
 
-fn wildlife_spawn_entries() -> Vec<(SpawnEntry, DensityFn)> {
-    let manifest = wildlife_spawn_manifest();
-    manifest
-        .into_iter()
-        .map(|(e, f)| (SpawnEntry::from(e), f))
-        .collect()
-}
-
 #[allow(clippy::eval_order_dependence)]
 pub fn apply_wildlife_supplement<'a, R: Rng>(
     // NOTE: Used only for dynamic elements like chests and entities!
@@ -233,12 +228,12 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
     wpos2d: Vec2<i32>,
     mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
     vol: &(impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
-    _index: IndexRef,
+    index: IndexRef,
     chunk: &SimChunk,
     supplement: &mut ChunkSupplement,
     time: Option<TimeOfDay>,
 ) {
-    let scatter = wildlife_spawn_entries();
+    let scatter = &index.wildlife_spawn_handles;
 
     for y in 0..vol.size_xy().y as i32 {
         for x in 0..vol.size_xy().x as i32 {
@@ -269,6 +264,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     (density > 0.0)
                         .then(|| {
                             entry
+                                .read()
                                 .request(current_day_period, underwater)
                                 .and_then(|pack| {
                                     (dynamic_rng.gen::<f32>() < density * col_sample.spawn_rate
@@ -325,7 +321,7 @@ mod tests {
     // Checks that each entry in spawn manifest is loadable
     #[test]
     fn test_load_entries() {
-        let scatter = wildlife_spawn_manifest();
+        let scatter = spawn_manifest();
         for (entry, _) in scatter.into_iter() {
             std::mem::drop(SpawnEntry::from(entry));
         }
@@ -334,7 +330,7 @@ mod tests {
     // Check that each spawn entry has unique name
     #[test]
     fn test_name_uniqueness() {
-        let scatter = wildlife_spawn_manifest();
+        let scatter = spawn_manifest();
         let mut names = HashMap::new();
         for (entry, _) in scatter.into_iter() {
             let SpawnEntry { name, .. } = SpawnEntry::from(entry);
@@ -348,7 +344,7 @@ mod tests {
     // Quite strict rule, but otherwise may produce unexpected behaviour
     #[test]
     fn test_check_day_periods() {
-        let scatter = wildlife_spawn_manifest();
+        let scatter = spawn_manifest();
         for (entry, _) in scatter.into_iter() {
             let mut day_periods = HashSet::with_capacity(4);
             let SpawnEntry { rules, .. } = SpawnEntry::from(entry);
@@ -382,7 +378,7 @@ mod tests {
     // Checks that each entity is loadable
     #[test]
     fn test_load_entities() {
-        let scatter = wildlife_spawn_manifest();
+        let scatter = spawn_manifest();
         for (entry, _) in scatter.into_iter() {
             let SpawnEntry { rules, .. } = SpawnEntry::from(entry);
             for pack in rules {
@@ -401,7 +397,7 @@ mod tests {
     // Checks that group distribution has valid form
     #[test]
     fn test_group_choose() {
-        let scatter = wildlife_spawn_manifest();
+        let scatter = spawn_manifest();
         for (entry, _) in scatter.into_iter() {
             let SpawnEntry { rules, .. } = SpawnEntry::from(entry);
             for pack in rules {
