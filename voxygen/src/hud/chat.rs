@@ -601,8 +601,7 @@ impl<'a> Widget for Chat<'a> {
                         .set(state.ids.chat_tab_tooltip_bg, ui);
 
                     Text::new(
-                        self
-                            .localized_strings
+                        self.localized_strings
                             .get("hud.chat.chat_tab_hover_tooltip"),
                     )
                     .mid_top_with_margin_on(state.ids.chat_tab_tooltip_bg, 3.0)

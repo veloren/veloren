@@ -684,8 +684,7 @@ impl<'a> Widget for Crafting<'a> {
             // Crafting Station Info
             if recipe.craft_sprite.is_some() {
                 Text::new(
-                    self
-                        .localized_strings
+                    self.localized_strings
                         .get("hud.crafting.req_crafting_station"),
                 )
                 .top_left_with_margins_on(state.ids.align_ing, 10.0, 5.0)

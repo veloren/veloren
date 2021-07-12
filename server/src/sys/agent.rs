@@ -1820,13 +1820,9 @@ impl<'a> AgentData<'a> {
             Tactic::Sceptre => {
                 self.handle_sceptre_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
-            Tactic::StoneGolem => self.handle_stone_golem_attack(
-                agent,
-                controller,
-                &attack_data,
-                tgt_data,
-                read_data,
-            ),
+            Tactic::StoneGolem => {
+                self.handle_stone_golem_attack(agent, controller, &attack_data, tgt_data, read_data)
+            },
             Tactic::CircleCharge {
                 radius,
                 circle_time,
@@ -1905,13 +1901,9 @@ impl<'a> AgentData<'a> {
                 read_data,
             ),
             Tactic::Tornado => self.handle_tornado_attack(controller),
-            Tactic::Mindflayer => self.handle_mindflayer_attack(
-                agent,
-                controller,
-                &attack_data,
-                tgt_data,
-                read_data,
-            ),
+            Tactic::Mindflayer => {
+                self.handle_mindflayer_attack(agent, controller, &attack_data, tgt_data, read_data)
+            },
             Tactic::BirdLargeFire => self.handle_birdlarge_fire_attack(
                 agent,
                 controller,
@@ -1937,13 +1929,9 @@ impl<'a> AgentData<'a> {
             Tactic::Minotaur => {
                 self.handle_minotaur_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
-            Tactic::ClayGolem => self.handle_clay_golem_attack(
-                agent,
-                controller,
-                &attack_data,
-                tgt_data,
-                read_data,
-            ),
+            Tactic::ClayGolem => {
+                self.handle_clay_golem_attack(agent, controller, &attack_data, tgt_data, read_data)
+            },
             Tactic::TidalWarrior => self.handle_tidal_warrior_attack(
                 agent,
                 controller,

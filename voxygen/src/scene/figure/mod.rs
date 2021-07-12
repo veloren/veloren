@@ -205,9 +205,7 @@ impl FigureMgrStates {
         match body {
             Body::Humanoid(_) => self.character_states.remove(entity).map(|e| e.meta),
             Body::QuadrupedSmall(_) => self.quadruped_small_states.remove(entity).map(|e| e.meta),
-            Body::QuadrupedMedium(_) => {
-                self.quadruped_medium_states.remove(entity).map(|e| e.meta)
-            },
+            Body::QuadrupedMedium(_) => self.quadruped_medium_states.remove(entity).map(|e| e.meta),
             Body::QuadrupedLow(_) => self.quadruped_low_states.remove(entity).map(|e| e.meta),
             Body::BirdMedium(_) => self.bird_medium_states.remove(entity).map(|e| e.meta),
             Body::FishMedium(_) => self.fish_medium_states.remove(entity).map(|e| e.meta),

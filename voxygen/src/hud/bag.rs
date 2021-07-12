@@ -767,14 +767,9 @@ impl<'a> Widget for Bag<'a> {
                     .resize(STATS.len(), &mut ui.widget_id_generator())
             });
             // Stats
-            let combat_rating = combat_rating(
-                inventory,
-                self.health,
-                self.skill_set,
-                *self.body,
-                self.msm,
-            )
-            .min(999.9);
+            let combat_rating =
+                combat_rating(inventory, self.health, self.skill_set, *self.body, self.msm)
+                    .min(999.9);
             let indicator_col = cr_color(combat_rating);
             for i in STATS.iter().copied().enumerate() {
                 let btn = Button::image(match i.1 {

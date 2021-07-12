@@ -1132,8 +1132,7 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        self
-                            .localized_strings
+                        self.localized_strings
                             .get("hud.skill.axe_double_strike_title"),
                         self.localized_strings.get("hud.skill.axe_double_strike"),
                         &diary_tooltip,
@@ -1316,8 +1315,7 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        self
-                            .localized_strings
+                        self.localized_strings
                             .get("hud.skill.hmr_single_strike_title"),
                         self.localized_strings.get("hud.skill.hmr_single_strike"),
                         &diary_tooltip,
@@ -1370,8 +1368,7 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        self
-                            .localized_strings
+                        self.localized_strings
                             .get("hud.skill.hmr_charged_melee_title"),
                         self.localized_strings.get("hud.skill.hmr_charged_melee"),
                         &diary_tooltip,
@@ -1726,8 +1723,7 @@ impl<'a> Widget for Diary<'a> {
                     .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        self
-                            .localized_strings
+                        self.localized_strings
                             .get("hud.skill.st_flamethrower_title"),
                         self.localized_strings.get("hud.skill.st_flamethrower"),
                         &diary_tooltip,
@@ -2183,12 +2179,10 @@ impl<'a> Diary<'a> {
         )
         .with_tooltip(
             self.tooltip_manager,
-            self
-                .localized_strings
+            self.localized_strings
                 .get(&format!("hud.skill.{}_title", skill_key)),
             &format_skill_description(
-                self
-                    .localized_strings
+                self.localized_strings
                     .get(&format!("hud.skill.{}", skill_key)),
                 skill,
                 self.skill_set,

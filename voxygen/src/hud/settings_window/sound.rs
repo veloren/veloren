@@ -137,8 +137,7 @@ impl<'a> Widget for Sound<'a> {
             .set(state.ids.master_volume_number, ui);
         // Master Volume (inactive window) ----------------------------------
         Text::new(
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.inactive_master_volume_perc"),
         )
         .down_from(state.ids.master_volume_slider, 10.0)
@@ -196,8 +195,7 @@ impl<'a> Widget for Sound<'a> {
 
         // SFX Volume -------------------------------------------------------
         Text::new(
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.sound_effect_volume"),
         )
         .down_from(state.ids.audio_volume_slider, 10.0)

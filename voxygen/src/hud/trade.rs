@@ -566,9 +566,7 @@ impl<'a> Widget for Trade<'a> {
         event = self
             .item_pane(&mut state, ui, trade, prices, true)
             .or(event);
-        event = self
-            .accept_decline_buttons(&mut state, ui, trade)
-            .or(event);
+        event = self.accept_decline_buttons(&mut state, ui, trade).or(event);
         event = self.close_button(&mut state, ui).or(event);
 
         event

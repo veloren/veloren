@@ -424,10 +424,9 @@ fn draw_graphic(
                                 ),
                                 border_color,
                             )),
-                            Graphic::Voxel(ref segment, trans, sample_strat) => Some((
-                                renderer::draw_vox(segment, dims, trans, sample_strat),
-                                None,
-                            )),
+                            Graphic::Voxel(ref segment, trans, sample_strat) => {
+                                Some((renderer::draw_vox(segment, dims, trans, sample_strat), None))
+                            },
                             Graphic::Blank => None,
                         }
                     }

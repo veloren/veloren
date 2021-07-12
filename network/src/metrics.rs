@@ -237,9 +237,7 @@ impl NetworkMetrics {
         let _ = self
             .channels_disconnected_total
             .remove_label_values(&[remote_p]);
-        let _ = self
-            .participants_bandwidth
-            .remove_label_values(&[remote_p]);
+        let _ = self.participants_bandwidth.remove_label_values(&[remote_p]);
         let _ = self.streams_opened_total.remove_label_values(&[remote_p]);
         let _ = self.streams_closed_total.remove_label_values(&[remote_p]);
     }

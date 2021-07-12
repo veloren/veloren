@@ -781,8 +781,7 @@ impl Item {
     pub fn slots_mut(&mut self) -> &mut [InvSlot] { &mut self.slots }
 
     pub fn item_config_expect(&self) -> &ItemConfig {
-        self
-            .item_config
+        self.item_config
             .as_ref()
             .expect("Item was expected to have an ItemConfig")
     }

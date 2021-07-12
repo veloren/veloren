@@ -544,8 +544,7 @@ impl<'a> Widget for Video<'a> {
             events.push(GraphicsChange::AdjustSpriteRenderDistance(new_val));
         }
         Text::new(
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.sprites_view_distance"),
         )
         .up_from(state.ids.sprite_dist_slider, 8.0)
@@ -584,8 +583,7 @@ impl<'a> Widget for Video<'a> {
             events.push(GraphicsChange::AdjustFigureLoDRenderDistance(new_val));
         }
         Text::new(
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.figures_view_distance"),
         )
         .up_from(state.ids.figure_dist_slider, 8.0)
@@ -693,8 +691,7 @@ impl<'a> Widget for Video<'a> {
 
         // CloudMode
         Text::new(
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.cloud_rendering_mode"),
         )
         .down_from(state.ids.upscale_factor_list, 8.0)
@@ -713,20 +710,15 @@ impl<'a> Widget for Video<'a> {
         ];
         let mode_label_list = [
             self.localized_strings.get("common.none"),
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.cloud_rendering_mode.minimal"),
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.cloud_rendering_mode.low"),
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.cloud_rendering_mode.medium"),
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.cloud_rendering_mode.high"),
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.cloud_rendering_mode.ultra"),
         ];
 
@@ -749,8 +741,7 @@ impl<'a> Widget for Video<'a> {
 
         // FluidMode
         Text::new(
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.fluid_rendering_mode"),
         )
         .down_from(state.ids.cloud_mode_list, 8.0)
@@ -761,11 +752,9 @@ impl<'a> Widget for Video<'a> {
 
         let mode_list = [FluidMode::Cheap, FluidMode::Shiny];
         let mode_label_list = [
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.fluid_rendering_mode.cheap"),
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.fluid_rendering_mode.shiny"),
         ];
 
@@ -788,8 +777,7 @@ impl<'a> Widget for Video<'a> {
 
         // LightingMode
         Text::new(
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.lighting_rendering_mode"),
         )
         .down_from(state.ids.fluid_mode_list, 8.0)
@@ -804,14 +792,11 @@ impl<'a> Widget for Video<'a> {
             LightingMode::Lambertian,
         ];
         let mode_label_list = [
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.lighting_rendering_mode.ashikhmin"),
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.lighting_rendering_mode.blinnphong"),
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.lighting_rendering_mode.lambertian"),
         ];
 
@@ -834,8 +819,7 @@ impl<'a> Widget for Video<'a> {
 
         // ShadowMode
         Text::new(
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.shadow_rendering_mode"),
         )
         .down_from(state.ids.lighting_mode_list, 8.0)
@@ -851,14 +835,11 @@ impl<'a> Widget for Video<'a> {
             ShadowMode::Map(shadow_map_mode.unwrap_or_default()),
         ];
         let mode_label_list = [
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.shadow_rendering_mode.none"),
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.shadow_rendering_mode.cheap"),
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.shadow_rendering_mode.map"),
         ];
 
@@ -882,8 +863,7 @@ impl<'a> Widget for Video<'a> {
         if let Some(shadow_map_mode) = shadow_map_mode {
             // Display the shadow map mode if selected.
             Text::new(
-                self
-                    .localized_strings
+                self.localized_strings
                     .get("hud.settings.shadow_rendering_mode.map.resolution"),
             )
             .right_from(state.ids.shadow_mode_list, 10.0)
@@ -975,8 +955,7 @@ impl<'a> Widget for Video<'a> {
 
         // Lossy terrain compression
         Text::new(
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.lossy_terrain_compression"),
         )
         .font_size(self.fonts.cyri.scale(14))

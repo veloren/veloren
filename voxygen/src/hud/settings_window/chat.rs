@@ -150,8 +150,7 @@ impl<'a> Widget for Chat<'a> {
 
         // Chat Transp
         Text::new(
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.background_transparency"),
         )
         .down_from(state.ids.general_txt, 20.0)
@@ -178,8 +177,7 @@ impl<'a> Widget for Chat<'a> {
 
         // "Show character names in chat" toggle button
         Text::new(
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.chat_character_name"),
         )
         .down_from(state.ids.transp_slider, 10.0)

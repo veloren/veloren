@@ -690,8 +690,7 @@ impl<'a> Widget for Interface<'a> {
             */
         // SCT/ Scrolling Combat Text
         Text::new(
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.scrolling_combat_text"),
         )
         .top_left_with_margins_on(state.ids.window_r, 5.0, 5.0)
@@ -715,8 +714,7 @@ impl<'a> Widget for Interface<'a> {
             events.push(Sct(!self.global_state.settings.interface.sct))
         }
         Text::new(
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.scrolling_combat_text"),
         )
         .right_from(state.ids.sct_show_radio, 10.0)
@@ -739,8 +737,7 @@ impl<'a> Widget for Interface<'a> {
             .set(state.ids.sct_single_dmg_radio, ui);
 
             Text::new(
-                self
-                    .localized_strings
+                self.localized_strings
                     .get("hud.settings.single_damage_number"),
             )
             .right_from(state.ids.sct_single_dmg_radio, 10.0)
@@ -810,8 +807,7 @@ impl<'a> Widget for Interface<'a> {
                 ))
             }
             Text::new(
-                self
-                    .localized_strings
+                self.localized_strings
                     .get("hud.settings.cumulated_incoming_damage"),
             )
             .right_from(state.ids.sct_batch_inc_radio, 10.0)
@@ -852,8 +848,7 @@ impl<'a> Widget for Interface<'a> {
             events.push(SpeechBubbleDarkMode(speech_bubble_dark_mode));
         }
         Text::new(
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.speech_bubble_dark_mode"),
         )
         .right_from(state.ids.speech_bubble_dark_mode_button, 10.0)
@@ -876,8 +871,7 @@ impl<'a> Widget for Interface<'a> {
             events.push(SpeechBubbleIcon(speech_bubble_icon));
         }
         Text::new(
-            self
-                .localized_strings
+            self.localized_strings
                 .get("hud.settings.speech_bubble_icon"),
         )
         .right_from(state.ids.speech_bubble_icon_button, 10.0)
