@@ -277,6 +277,7 @@ impl<'a> Widget for Chat<'a> {
             .w_h(390.0 / (MAX_CHAT_TABS as f64), 19.0)
             .hover_image(self.imgs.selection_hover)
             .press_image(self.imgs.selection_press)
+            .image_color(color::rgba(1.0, 0.82, 0.27, 1.0))
             .label(chat_tab.label.as_str())
             .label_font_size(self.fonts.cyri.scale(12))
             .label_font_id(self.fonts.cyri.conrod_id)

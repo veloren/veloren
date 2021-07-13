@@ -519,7 +519,7 @@ impl<'a> Widget for Chat<'a> {
             .filter(|t| t <= &1.5)
         {
             let alpha = 1.0 - (time_since_hover / 1.5).powi(4);
-            let shading = color::rgba(1.0, 1.0, 1.0, (chat_settings.chat_transp + 0.1) * alpha);
+            let shading = color::rgba(1.0, 0.82, 0.27, (chat_settings.chat_transp + 0.1) * alpha);
 
             Rectangle::fill([CHAT_BOX_WIDTH, CHAT_TAB_HEIGHT])
                 .rgba(0.0, 0.0, 0.0, (chat_settings.chat_transp + 0.1) * alpha)

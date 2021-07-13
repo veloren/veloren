@@ -284,7 +284,8 @@ impl<'a> Widget for Social<'a> {
             } else {
                 self.imgs.selection_press
             })
-            .w_h(260.0, 20.0);
+            .w_h(260.0, 20.0)
+            .image_color(color::rgba(1.0, 0.82, 0.27, 1.0));
             let button = if i == 0 {
                 button.mid_top_with_margin_on(state.ids.online_align, 1.0)
             } else {

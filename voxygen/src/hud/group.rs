@@ -752,6 +752,7 @@ impl<'a> Widget for Group<'a> {
                     })
                     .hover_image(self.imgs.selection_hover)
                     .press_image(self.imgs.selection_press)
+                    .image_color(color::rgba(1.0, 0.82, 0.27, 1.0))
                     .crop_kids()
                     .label_x(Relative::Place(Place::Start(Some(4.0))))
                     .label(&char_name)

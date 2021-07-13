@@ -224,6 +224,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .w_h(230.0, 48.0)
             .hover_image(self.imgs.selection_hover)
             .press_image(self.imgs.selection_press)
+            .image_color(color::rgba(1.0, 0.82, 0.27, 1.0))
             .label(self.localized_strings.get(settings_tab.name_key()))
             .label_font_size(self.fonts.cyri.scale(tab_font_scale))
             .label_font_id(self.fonts.cyri.conrod_id)
