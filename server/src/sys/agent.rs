@@ -481,7 +481,7 @@ impl<'a> System<'a> for Sys {
                     if data.glider_equipped && data.physics_state.on_ground.is_none() {
                         // toggle glider when vertical velocity is above some
                         // threshold (here ~ glider fall vertical speed)
-                        data.glider_fall(agent, controller, &read_data);
+                        data.glider_fall(controller);
                     } else if let Some(target_info) = agent.target {
                         let Target {
                             target, hostile, ..
@@ -676,17 +676,24 @@ impl<'a> AgentData<'a> {
     // Action Nodes
     ////////////////////////////////////////
 
-    fn glider_fall(&self, agent: &mut Agent, controller: &mut Controller, read_data: &ReadData) {
-        if self.vel.0.z < -26.0 {
+    fn glider_fall(&self, controller: &mut Controller) {
+        if self.vel.0.z < -15.0 {
             controller.actions.push(ControlAction::GlideWield);
-            if let Some(Target { target, .. }) = agent.target {
-                if let Some(tgt_pos) = read_data.positions.get(target) {
-                    controller.inputs.move_dir = (self.pos.0 - tgt_pos.0)
-                        .xy()
-                        .try_normalized()
-                        .unwrap_or_else(Vec2::zero);
-                }
-            }
+
+            let flight_direction =
+                Vec3::from(self.vel.0.xy().try_normalized().unwrap_or_else(Vec2::zero));
+            let flight_ori = Quaternion::from_scalar_and_vec3((1.0, flight_direction));
+
+            let ori = self.ori.look_vec();
+            let look_dir = if ori.z > 0.0 {
+                flight_ori.rotated_x(-0.1)
+            } else {
+                flight_ori.rotated_x(0.1)
+            };
+
+            let (_, look_dir) = look_dir.into_scalar_and_vec3();
+            controller.inputs.look_dir =
+                Dir::from_unnormalized(look_dir).unwrap_or_else(Dir::forward);
         }
     }
 
