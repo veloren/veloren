@@ -266,12 +266,14 @@ impl<'a> System<'a> for Sys {
                             )
                     };
 
-                    controller.reset();
                     let event_emitter = event_bus.emitter();
 
                     // Default to looking in orientation direction
                     // (can be overridden below)
-                    controller.inputs.look_dir = ori.look_dir();
+                    if !matches!(char_state, CharacterState::LeapMelee(_)) {
+                        controller.reset();
+                        controller.inputs.look_dir = ori.look_dir();
+                    }
 
                     let scale = read_data.scales.get(entity).map_or(1.0, |Scale(s)| *s);
 
@@ -1753,6 +1755,28 @@ impl<'a> AgentData<'a> {
                     ),
                 )
             },
+            // Leap into direction of the target
+            // TODO: test with different weapons/tactics
+            Tactic::Hammer if matches!(self.char_state, CharacterState::LeapMelee(_)) => {
+                let tgt_pos = tgt_data.pos.0;
+                let self_pos = self.pos.0;
+
+                let direction_weight = 0.1;
+                let delta_x = (tgt_pos.x - self_pos.x) * direction_weight;
+                let delta_y = (tgt_pos.y - self_pos.y) * direction_weight;
+
+                Dir::from_unnormalized(Vec3::new(delta_x, delta_y, -1.0))
+            },
+            Tactic::Axe if matches!(self.char_state, CharacterState::LeapMelee(_)) => {
+                let tgt_pos = tgt_data.pos.0;
+                let self_pos = self.pos.0;
+
+                let direction_weight = 0.3;
+                let delta_x = (tgt_pos.x - self_pos.x) * direction_weight;
+                let delta_y = (tgt_pos.y - self_pos.y) * direction_weight;
+
+                Dir::from_unnormalized(Vec3::new(delta_x, delta_y, -1.0))
+            },
             _ => Dir::from_unnormalized(
                 Vec3::new(
                     tgt_data.pos.0.x,
@@ -1966,22 +1990,28 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
+        let has_leap = || self.skill_set.has_skill(Skill::Axe(AxeSkill::UnlockLeap));
+
+        let has_energy = |need| self.energy.current() > need;
+
+        let use_leap = |controller: &mut Controller| {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Ability(0)));
+        };
         if attack_data.in_min_range() && attack_data.angle < 45.0 {
             controller.inputs.move_dir = Vec2::zero();
-            if agent.action_state.timer > 6.0 {
+            if agent.action_state.timer > 5.0 {
                 controller
                     .actions
                     .push(ControlAction::CancelInput(InputKind::Secondary));
                 agent.action_state.timer = 0.0;
-            } else if agent.action_state.timer > 4.0 && self.energy.current() > 10 {
+            } else if agent.action_state.timer > 2.5 && has_energy(10) {
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Secondary));
                 agent.action_state.timer += read_data.dt.0;
-            } else if self.skill_set.has_skill(Skill::Axe(AxeSkill::UnlockLeap))
-                && self.energy.current() > 800
-                && thread_rng().gen_bool(0.5)
-            {
+            } else if has_leap() && has_energy(450) && thread_rng().gen_bool(0.5) {
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Ability(0)));
@@ -1994,6 +2024,18 @@ impl<'a> AgentData<'a> {
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+            if attack_data.dist_sqrd < 32.0f32.powi(2)
+                && has_leap()
+                && has_energy(500)
+                && can_see_tgt(
+                    &read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                )
+            {
+                use_leap(controller);
+            }
             if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
                 && attack_data.dist_sqrd < 16.0f32.powi(2)
                 && thread_rng().gen::<f32>() < 0.02
@@ -2015,6 +2057,19 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
+        let has_leap = || {
+            self.skill_set
+                .has_skill(Skill::Hammer(HammerSkill::UnlockLeap))
+        };
+
+        let has_energy = |need| self.energy.current() > need;
+
+        let use_leap = |controller: &mut Controller| {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Ability(0)));
+        };
+
         if attack_data.in_min_range() && attack_data.angle < 45.0 {
             controller.inputs.move_dir = Vec2::zero();
             if agent.action_state.timer > 4.0 {
@@ -2022,20 +2077,13 @@ impl<'a> AgentData<'a> {
                     .actions
                     .push(ControlAction::CancelInput(InputKind::Secondary));
                 agent.action_state.timer = 0.0;
-            } else if agent.action_state.timer > 2.0 {
+            } else if agent.action_state.timer > 3.0 {
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Secondary));
                 agent.action_state.timer += read_data.dt.0;
-            } else if self
-                .skill_set
-                .has_skill(Skill::Hammer(HammerSkill::UnlockLeap))
-                && self.energy.current() > 700
-                && thread_rng().gen_bool(0.9)
-            {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+            } else if has_leap() && has_energy(500) && thread_rng().gen_bool(0.9) {
+                use_leap(controller);
                 agent.action_state.timer += read_data.dt.0;
             } else {
                 controller
@@ -2044,27 +2092,18 @@ impl<'a> AgentData<'a> {
                 agent.action_state.timer += read_data.dt.0;
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            if self.path_toward_target(agent, controller, tgt_data, read_data, true, None)
+            self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+            if attack_data.dist_sqrd < 32.0f32.powi(2)
+                && has_leap()
+                && has_energy(500)
                 && can_see_tgt(
-                    &*read_data.terrain,
+                    &read_data.terrain,
                     self.pos,
                     tgt_data.pos,
                     attack_data.dist_sqrd,
                 )
-                && attack_data.angle < 45.0
             {
-                if self
-                    .skill_set
-                    .has_skill(Skill::Hammer(HammerSkill::UnlockLeap))
-                    && agent.action_state.timer > 5.0
-                {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Ability(0)));
-                    agent.action_state.timer = 0.0;
-                } else {
-                    agent.action_state.timer += read_data.dt.0;
-                }
+                use_leap(controller);
             }
             if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
                 && attack_data.dist_sqrd < 16.0f32.powi(2)
