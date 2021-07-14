@@ -607,7 +607,7 @@ fn get_max_slope(
         .into_boxed_slice()
 }
 
-//simd alternative
+// simd alternative
 #[cfg(not(feature = "simd"))]
 #[derive(Copy, Clone)]
 #[allow(non_camel_case_types)]
