@@ -14,7 +14,7 @@ use common::{
         invite::{InviteKind, InviteResponse},
         item::{
             tool::{AbilitySpec, ToolKind},
-            Item, ItemDesc, ItemKind,
+            Item, ItemDesc, ItemKind, ConsumableKind,
         },
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
         Agent, Alignment, BehaviorCapability, BehaviorState, Body, CharacterAbility,
@@ -433,12 +433,7 @@ impl<'a> System<'a> for Sys {
                                 // methinks
                                 } else if let Some(Alignment::Owned(uid)) = data.alignment {
                                     if read_data.uids.get(target) == Some(uid) {
-                                        react_as_pet(
-                                            agent,
-                                            target,
-                                            controller,
-                                            event_emitter,
-                                        );
+                                        react_as_pet(agent, target, controller, event_emitter);
                                     } else {
                                         relax(agent, controller, event_emitter);
                                     };
@@ -1322,27 +1317,29 @@ impl<'a> AgentData<'a> {
     fn heal_self(&self, _agent: &mut Agent, controller: &mut Controller) -> bool {
         let healing_value = |item: &Item| {
             let mut value = 0;
-            #[allow(clippy::single_match)]
-            match item.kind() {
-                ItemKind::Consumable { effects, .. } => {
-                    for effect in effects.iter() {
-                        use BuffKind::*;
-                        match effect {
-                            Effect::Health(HealthChange { amount, .. }) => {
-                                value += *amount;
-                            },
-                            Effect::Buff(BuffEffect { kind, data, .. })
-                                if matches!(kind, Regeneration | Saturation | Potion) =>
-                            {
-                                value += (data.strength
-                                    * data.duration.map_or(0.0, |d| d.as_secs() as f32))
-                                    as i32;
-                            }
-                            _ => {},
+
+            if let ItemKind::Consumable {
+                kind: ConsumableKind::Drink,
+                effects,
+                ..
+            } = &item.kind
+            {
+                for effect in effects.iter() {
+                    use BuffKind::*;
+                    match effect {
+                        Effect::Health(HealthChange { amount, .. }) => {
+                            value += *amount;
+                        },
+                        Effect::Buff(BuffEffect { kind, data, .. })
+                            if matches!(kind, Regeneration | Saturation | Potion) =>
+                        {
+                            value += (data.strength
+                                * data.duration.map_or(0.0, |d| d.as_secs() as f32))
+                                as i32;
                         }
+                        _ => {},
                     }
-                },
-                _ => {},
+                }
             }
             value
         };
