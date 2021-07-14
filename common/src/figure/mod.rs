@@ -119,7 +119,6 @@ impl<V: Vox + Copy> DynaUnionizer<V> {
         }
     }
 
-    #[allow(clippy::neg_multiply)] // TODO: Pending review in #587
     pub fn unify(self) -> (Dyna<V, ()>, Vec3<i32>) {
         if self.0.is_empty() {
             return (Dyna::filled(Vec3::zero(), V::empty(), ()), Vec3::zero());
@@ -137,7 +136,7 @@ impl<V: Vox + Copy> DynaUnionizer<V> {
         // Allocate new segment
         let mut combined = Dyna::filled(new_size, V::empty(), ());
         // Copy segments into combined
-        let origin = min_point.map(|e| e * -1);
+        let origin = min_point.map(|e| -e);
         for (dyna, offset) in self.0 {
             for (pos, vox) in dyna.full_vol_iter() {
                 if !vox.is_empty() {
