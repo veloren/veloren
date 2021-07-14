@@ -942,6 +942,28 @@ impl ParticleMgr {
                             },
                         );
                     },
+                    aura::AuraKind::Buff {
+                        kind: buff::BuffKind::Regeneration,
+                        ..
+                    } => {
+                        let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
+                        self.particles.resize_with(
+                            self.particles.len()
+                                + aura.radius.powi(2) as usize * usize::from(heartbeats) / 300,
+                            || {
+                                let rand_dist = aura.radius * (1.0 - rng.gen::<f32>().powi(100));
+                                let init_pos = Vec3::new(rand_dist, 0_f32, 0_f32);
+                                let max_dur = Duration::from_secs(1);
+                                Particle::new_directed(
+                                    aura.duration.map_or(max_dur, |dur| dur.min(max_dur)),
+                                    time,
+                                    ParticleMode::EnergyHealing,
+                                    pos.0,
+                                    pos.0 + init_pos,
+                                )
+                            },
+                        );
+                    },
                     _ => {},
                 }
             }

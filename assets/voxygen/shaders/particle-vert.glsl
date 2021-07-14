@@ -52,7 +52,7 @@ const int LEAF = 10;
 const int FIREFLY = 11;
 const int BEE = 12;
 const int GROUND_SHOCKWAVE = 13;
-const int HEALING_BEAM = 14;
+const int ENERGY_HEALING = 14;
 const int ENERGY_NATURE = 15;
 const int FLAMETHROWER = 16;
 const int FIRE_SHOCKWAVE = 17;
@@ -380,13 +380,14 @@ void main() {
                 spin_in_axis(vec3(1,0,0),0)
             );
             break;
-        case HEALING_BEAM:
+        case ENERGY_HEALING:
             f_reflect = 0.0;
+            float spiral_radius = start_end(1 - pow(abs(rand5), 5), 1) * length(inst_dir);
             attr = Attr(
-                spiral_motion(inst_dir, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime / inst_lifespan, 10.0, inst_time),
-                vec3((1.7 - 0.7 * abs(floor(2 * rand0 - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick.x * 10 - lifetime * 4))),
-                vec4(vec3(0.4, 1.6 + 0.3 * sin(tick.x * 10 - lifetime * 3 + 4), 1.0 + 0.15 * sin(tick.x * 5 - lifetime * 5)), 1 /*0.3*/),
-                spin_in_axis(inst_dir, tick.z)
+                spiral_motion(vec3(0, 0, rand3 + 1), spiral_radius, lifetime, abs(rand0), rand1 * 2 * PI) + vec3(0, 0, rand2),
+                vec3(6 * abs(rand4) * (1 - slow_start(2)) * pow(spiral_radius / length(inst_dir), 0.5)),
+                vec4(vec3(0, 1.7, 0.7), 1),
+                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
             );
             break;
         case LIFESTEAL_BEAM:
@@ -402,7 +403,7 @@ void main() {
             break;
         case ENERGY_NATURE:
             f_reflect = 0.0;
-            float spiral_radius = start_end(1 - pow(abs(rand5), 5), 1) * length(inst_dir);
+            spiral_radius = start_end(1 - pow(abs(rand5), 5), 1) * length(inst_dir);
             attr = Attr(
                 spiral_motion(vec3(0, 0, rand3 + 1), spiral_radius, lifetime, abs(rand0), rand1 * 2 * PI) + vec3(0, 0, rand2),
                 vec3(6 * abs(rand4) * (1 - slow_start(2)) * pow(spiral_radius / length(inst_dir), 0.5)),

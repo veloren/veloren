@@ -802,7 +802,7 @@
                 ],
             threshold: 0.2,
         ),
-        HealingBeam: (
+        SceptreBeam: (
             files: [
                     "voxygen.audio.sfx.abilities.sceptre_channeling",
                 ],
