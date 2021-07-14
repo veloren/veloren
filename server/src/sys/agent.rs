@@ -268,9 +268,12 @@ impl<'a> System<'a> for Sys {
 
                     let event_emitter = event_bus.emitter();
 
-                    // Default to looking in orientation direction
-                    // (can be overridden below)
                     if !matches!(char_state, CharacterState::LeapMelee(_)) {
+                        // Default to looking in orientation direction
+                        // (can be overridden below)
+                        //
+                        // This definetly breaks LeapMelee and
+                        // probably not only that, do we really need this?
                         controller.reset();
                         controller.inputs.look_dir = ori.look_dir();
                     }
@@ -323,8 +326,7 @@ impl<'a> System<'a> for Sys {
                         && rtsim_entity.is_some()
                         && matches!(body, Some(Body::Ship(_)))
                     {
-                        // hack (kinda): Never turn off flight for rtsim entities
-                        // that can fly at all,
+                        // hack (kinda): Never turn off flight for rtsim airships
                         // since it results in stuttering and falling back to the ground.
                         controller
                             .actions
@@ -429,8 +431,17 @@ impl<'a> System<'a> for Sys {
                                     );
                                 // Target is something worth following
                                 // methinks
-                                } else if let Some(Alignment::Owned(_)) = data.alignment {
-                                    react_as_pet(agent, target, controller, event_emitter);
+                                } else if let Some(Alignment::Owned(uid)) = data.alignment {
+                                    if read_data.uids.get(target) == Some(uid) {
+                                        react_as_pet(
+                                            agent,
+                                            target,
+                                            controller,
+                                            event_emitter,
+                                        );
+                                    } else {
+                                        relax(agent, controller, event_emitter);
+                                    };
                                 } else {
                                     idle(agent, controller, event_emitter);
                                 }
