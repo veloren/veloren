@@ -22,6 +22,7 @@ impl Component for RtSimEntity {
 pub enum RtSimEvent {
     AddMemory(Memory),
     SetMood(Memory),
+    ForgetEnemy(String),
     PrintMemories,
 }
 

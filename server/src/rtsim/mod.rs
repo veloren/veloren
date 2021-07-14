@@ -82,6 +82,12 @@ impl RtSim {
             .map(|entity| entity.brain.add_memory(memory));
     }
 
+    pub fn forget_entity_enemy(&mut self, entity: RtSimId, name: &str) {
+        if let Some(entity) = self.entities.get_mut(entity) {
+            entity.brain.forget_enemy(name);
+        }
+    }
+
     pub fn set_entity_mood(&mut self, entity: RtSimId, memory: Memory) {
         self.entities
             .get_mut(entity)

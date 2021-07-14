@@ -500,6 +500,14 @@ pub struct Brain {
 impl Brain {
     pub fn add_memory(&mut self, memory: Memory) { self.memories.push(memory); }
 
+    pub fn forget_enemy(&mut self, to_forget: &str) {
+        self.memories.retain(|memory| {
+            !matches!(
+                &memory.item,
+                MemoryItem::CharacterFight {name, ..} if name == to_forget)
+        })
+    }
+
     pub fn remembers_mood(&self) -> bool {
         self.memories
             .iter()
@@ -538,8 +546,8 @@ impl Brain {
     pub fn remembers_fight_with_character(&self, name_to_remember: &str) -> bool {
         self.memories.iter().any(|memory| {
             matches!(
-                    &memory.item,
-                    MemoryItem::CharacterFight { name, .. } if name == name_to_remember)
+                &memory.item,
+                MemoryItem::CharacterFight { name, .. } if name == name_to_remember)
         })
     }
 }

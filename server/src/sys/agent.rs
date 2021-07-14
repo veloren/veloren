@@ -14,7 +14,7 @@ use common::{
         invite::{InviteKind, InviteResponse},
         item::{
             tool::{AbilitySpec, ToolKind},
-            Item, ItemDesc, ItemKind, ConsumableKind,
+            ConsumableKind, Item, ItemDesc, ItemKind,
         },
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
         Agent, Alignment, BehaviorCapability, BehaviorState, Body, CharacterAbility,
@@ -418,6 +418,11 @@ impl<'a> System<'a> for Sys {
                             if let Some(tgt_health) = read_data.healths.get(target) {
                                 // If target is dead, leave it
                                 if tgt_health.is_dead {
+                                    if let Some(tgt_stats) =
+                                        data.rtsim_entity.and(read_data.stats.get(target))
+                                    {
+                                        rtsim_forget_enemy(&tgt_stats.name, agent);
+                                    }
                                     relax(agent, controller, event_emitter);
                                 // If the target is hostile
                                 // (either based on alignment or if
@@ -473,9 +478,8 @@ impl<'a> System<'a> for Sys {
                                     };
                                     data.attack(agent, controller, &target_data, &read_data);
                                     // Remember this encounter if an RtSim entity
-                                    if let Some(tgt_stats) = data
-                                        .rtsim_entity
-                                        .and_then(|_| read_data.stats.get(attacker))
+                                    if let Some(tgt_stats) =
+                                        data.rtsim_entity.and(read_data.stats.get(attacker))
                                     {
                                         rtsim_new_enemy(&tgt_stats.name, agent, &read_data);
                                     }
@@ -523,6 +527,9 @@ impl<'a> System<'a> for Sys {
                 match event {
                     RtSimEvent::AddMemory(memory) => {
                         rtsim.insert_entity_memory(rtsim_entity.0, memory.clone());
+                    },
+                    RtSimEvent::ForgetEnemy(name) => {
+                        rtsim.forget_entity_enemy(rtsim_entity.0, &name);
                     },
                     RtSimEvent::SetMood(memory) => {
                         rtsim.set_entity_mood(rtsim_entity.0, memory.clone());
@@ -4123,6 +4130,13 @@ fn rtsim_new_enemy(target_name: &str, agent: &mut Agent, read_data: &ReadData) {
             },
             time_to_forget: read_data.time.0 + 300.0,
         }));
+}
+
+fn rtsim_forget_enemy(target_name: &str, agent: &mut Agent) {
+    agent
+        .rtsim_controller
+        .events
+        .push(RtSimEvent::ForgetEnemy(target_name.to_owned()));
 }
 
 fn can_see_tgt(terrain: &TerrainGrid, pos: &Pos, tgt_pos: &Pos, dist_sqrd: f32) -> bool {
