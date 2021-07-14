@@ -5,7 +5,7 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"
 
 [features]
-simd = ["vek/platform_intrinsics"]
+simd = ["vek/platform_intrinsics", "packed_simd"]
 bin_compression = ["lz-fear", "deflate", "flate2", "image/jpeg", "num-traits", "fallible-iterator", "kiddo", "clap", "rstar"]
 
 default = ["simd"]
@@ -31,7 +31,7 @@ tracing = { version = "0.1", default-features = false }
 rand = "0.8"
 rand_chacha = "0.3"
 arr_macro = "0.1.2"
-packed_simd = { package = "packed_simd_2", version = "0.3.5" }
+packed_simd = { package = "packed_simd_2", version = "0.3.5", optional = true }
 rayon = "1.5"
 serde = { version = "1.0.110", features = ["derive"] }
 ron = { version = "0.6", default-features = false }
