@@ -99,15 +99,14 @@ pub enum ArgvCommand {
 )]
 pub struct ArgvApp {
     #[structopt(long, short)]
-    /// Disables the tui
-    pub basic: bool,
+    /// Enables the tui
+    pub tui: bool,
     #[structopt(long, short)]
     /// Doesn't listen on STDIN
     ///
     /// Useful if you want to send the server in background, and your kernels
     /// terminal driver will send SIGTTIN to it otherwise. (https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#Redirections) and you dont want to use `stty -tostop`
-    /// or `nohub` or `tmux` or `screen` or `<<< \"\\004\"` to the programm.
-    /// This implies `-b`.
+    /// or `nohub` or `tmux` or `screen` or `<<< \"\\004\"` to the program.
     pub non_interactive: bool,
     #[structopt(long)]
     /// Run without auth enabled
