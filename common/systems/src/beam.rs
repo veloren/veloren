@@ -91,6 +91,10 @@ impl<'a> System<'a> for Sys {
             };
             let end_time = creation_time + beam_segment.duration.as_secs_f64();
 
+            let beam_owner = beam_segment
+                .owner
+                .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid.into()));
+
             let mut rng = thread_rng();
             if rng.gen_bool(0.005) {
                 server_events.push(ServerEvent::Sound {
@@ -118,10 +122,6 @@ impl<'a> System<'a> for Sys {
             let frame_start_dist =
                 (beam_segment.speed * (time_since_creation - frame_time)).max(0.0);
             let frame_end_dist = (beam_segment.speed * time_since_creation).max(frame_start_dist);
-
-            let beam_owner = beam_segment
-                .owner
-                .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid.into()));
 
             // Group to ignore collisions with
             // Might make this more nuanced if beams are used for non damage effects

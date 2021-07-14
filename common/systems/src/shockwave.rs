@@ -85,6 +85,10 @@ impl<'a> System<'a> for Sys {
 
             let end_time = creation_time + shockwave.duration.as_secs_f64();
 
+            let shockwave_owner = shockwave
+                .owner
+                .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid.into()));
+
             let mut rng = thread_rng();
             if rng.gen_bool(0.05) {
                 server_emitter.emit(ServerEvent::Sound {
@@ -119,10 +123,6 @@ impl<'a> System<'a> for Sys {
                 start: frame_start_dist,
                 end: frame_end_dist,
             };
-
-            let shockwave_owner = shockwave
-                .owner
-                .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid.into()));
 
             // Group to ignore collisions with
             // Might make this more nuanced if shockwaves are used for non damage effects
