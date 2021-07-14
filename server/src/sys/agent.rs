@@ -1248,8 +1248,8 @@ impl<'a> AgentData<'a> {
             },
             _ => {
                 if can_speak(agent) {
-                    // No new events, continue looking towards the last interacting player for some
-                    // time
+                    // No new events, continue looking towards the last
+                    // interacting player for some time
                     if let Some(Target { target, .. }) = &agent.target {
                         self.look_toward(controller, read_data, target);
                     } else {
