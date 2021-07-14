@@ -1016,7 +1016,7 @@ fn human(pos: Vec3<f32>, economy: &SiteInformation, dynamic_rng: &mut impl Rng) 
             .with_asset_expect("common.entity.village.guard"),
         1 | 2 => entity
             .with_agent_mark(agent::Mark::Merchant)
-            .with_economy(&economy)
+            .with_economy(economy)
             .with_lazy_loadout(merchant_loadout)
             .with_level(dynamic_rng.gen_range(10..15))
             .with_asset_expect("common.entity.village.merchant"),
