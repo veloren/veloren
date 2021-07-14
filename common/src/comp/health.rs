@@ -34,6 +34,16 @@ pub enum HealthSource {
     Unknown,
 }
 
+impl HealthSource {
+    pub fn damage_by(&self) -> Option<Uid> {
+        if let HealthSource::Damage { by, .. } = self {
+            *by
+        } else {
+            None
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Health {
     current: u32,

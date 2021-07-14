@@ -72,6 +72,10 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
+            let projectile_owner = projectile
+                .owner
+                .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid.into()));
+
             let mut rng = thread_rng();
             if physics.on_surface().is_none() && rng.gen_bool(0.05) {
                 server_emitter.emit(ServerEvent::Sound {
@@ -83,12 +87,10 @@ impl<'a> System<'a> for Sys {
 
             // Hit entity
             for other in physics.touch_entities.iter().copied() {
-                let same_group = projectile
-                    .owner
+                let same_group = projectile_owner
                     // Note: somewhat inefficient since we do the lookup for every touching
                     // entity, but if we pull this out of the loop we would want to do it only
                     // if there is at least one touching entity
-                    .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid.into()))
                     .and_then(|e| read_data.groups.get(e))
                     .map_or(false, |owner_group|
                         Some(owner_group) == read_data.uid_allocator
