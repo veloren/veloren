@@ -4,7 +4,7 @@ ChargedRanged(
     initial_regen: 5,
     scaled_regen: 120,
     initial_damage: 5,
-    scaled_damage: 120,
+    scaled_damage: 140,
     initial_knockback: 0.0,
     scaled_knockback: 10.0,
     buildup_duration: 0.2,
