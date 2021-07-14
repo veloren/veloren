@@ -273,7 +273,7 @@ impl<'a> System<'a> for Sys {
                         // (can be overridden below)
                         //
                         // This definetly breaks LeapMelee and
-                        // probably not only that, do we really need this?
+                        // probably not only that, do we really need this at all?
                         controller.reset();
                         controller.inputs.look_dir = ori.look_dir();
                     }
@@ -322,12 +322,12 @@ impl<'a> System<'a> for Sys {
                         .get(entity)
                         .and_then(|rtsim_ent| rtsim.get_entity(rtsim_ent.0));
 
-                    if traversal_config.can_fly
-                        && rtsim_entity.is_some()
-                        && matches!(body, Some(Body::Ship(_)))
-                    {
-                        // hack (kinda): Never turn off flight for rtsim airships
+                    if traversal_config.can_fly && matches!(body, Some(Body::Ship(_))) {
+                        // hack (kinda): Never turn off flight airships
                         // since it results in stuttering and falling back to the ground.
+                        //
+                        // TODO: look into `controller.reset()` line above
+                        // and see if it fixes it
                         controller
                             .actions
                             .push(ControlAction::basic_input(InputKind::Fly));
