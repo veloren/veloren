@@ -41,7 +41,6 @@ static MODEL_RAND: RandomPerm = RandomPerm::new(0xDB21C052);
 static UNIT_CHOOSER: UnitChooser = UnitChooser::new(0x700F4EC7);
 static QUIRKY_RAND: RandomPerm = RandomPerm::new(0xA634460F);
 
-#[allow(clippy::if_same_then_else)]
 pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
     // TODO: Get rid of this
     enum TreeModel {

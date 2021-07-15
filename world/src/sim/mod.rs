@@ -2149,7 +2149,6 @@ pub struct RegionInfo {
 }
 
 impl SimChunk {
-    #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
     #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
     fn generate(map_size_lg: MapSizeLg, posi: usize, gen_ctx: &GenCtx, gen_cdf: &GenCdf) -> Self {
         let pos = uniform_idx_as_vec2(map_size_lg, posi);
