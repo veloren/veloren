@@ -1,5 +1,3 @@
-#![allow(clippy::branches_sharing_code)] // TODO: evaluate
-
 use crate::rtsim::{Entity as RtSimData, RtSim};
 use common::{
     comp::{
@@ -16,7 +14,7 @@ use common::{
         invite::{InviteKind, InviteResponse},
         item::{
             tool::{AbilitySpec, ToolKind},
-            Item, ItemDesc, ItemKind,
+            ConsumableKind, Item, ItemDesc, ItemKind,
         },
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
         Agent, Alignment, BehaviorCapability, BehaviorState, Body, CharacterAbility,
@@ -194,13 +192,13 @@ impl<'a> System<'a> for Sys {
     const ORIGIN: Origin = Origin::Server;
     const PHASE: Phase = Phase::Create;
 
-    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn run(
         job: &mut Job<Self>,
         (read_data, event_bus, mut agents, mut controllers, mut rtsim): Self::SystemData,
     ) {
         let rtsim = &mut *rtsim;
         job.cpu_stats.measure(ParMode::Rayon);
+
         (
             &read_data.entities,
             (&read_data.energies, read_data.healths.maybe()),
@@ -246,33 +244,41 @@ impl<'a> System<'a> for Sys {
                     agent,
                     controller,
                     light_emitter,
-                    groups,
+                    group,
                     _,
                     char_state,
                 )| {
-                    //// Hack, replace with better system when groups are more sophisticated
-                    //// Override alignment if in a group unless entity is owned already
-                    let alignment = if !matches!(
+                    // Hack, replace with better system when groups are more sophisticated
+                    // Override alignment if in a group unless entity is owned already
+                    let alignment = if matches!(
                         &read_data.alignments.get(entity),
                         &Some(Alignment::Owned(_))
                     ) {
-                        groups
+                        read_data.alignments.get(entity).copied()
+                    } else {
+                        group
                             .and_then(|g| read_data.group_manager.group_info(*g))
                             .and_then(|info| read_data.uids.get(info.leader))
                             .copied()
-                            .map(Alignment::Owned)
-                            .or(read_data.alignments.get(entity).copied())
-                    } else {
-                        read_data.alignments.get(entity).copied()
+                            .map_or_else(
+                                || read_data.alignments.get(entity).copied(),
+                                |uid| Some(Alignment::Owned(uid)),
+                            )
                     };
 
-                    controller.reset();
-                    let mut event_emitter = event_bus.emitter();
+                    let event_emitter = event_bus.emitter();
 
-                    // Default to looking in orientation direction (can be overridden below)
-                    controller.inputs.look_dir = ori.look_dir();
+                    if !matches!(char_state, CharacterState::LeapMelee(_)) {
+                        // Default to looking in orientation direction
+                        // (can be overridden below)
+                        //
+                        // This definetly breaks LeapMelee and
+                        // probably not only that, do we really need this at all?
+                        controller.reset();
+                        controller.inputs.look_dir = ori.look_dir();
+                    }
 
-                    let scale = read_data.scales.get(entity).map(|s| s.0).unwrap_or(1.0);
+                    let scale = read_data.scales.get(entity).map_or(1.0, |Scale(s)| *s);
 
                     let glider_equipped = inventory
                         .equipped(EquipSlot::Glider)
@@ -280,43 +286,48 @@ impl<'a> System<'a> for Sys {
                         .map_or(false, |item| {
                             matches!(item.kind(), comp::item::ItemKind::Glider(_))
                         });
+
                     let is_gliding = matches!(
                         read_data.char_states.get(entity),
-                        Some(CharacterState::GlideWield) | Some(CharacterState::Glide(_))
+                        Some(CharacterState::GlideWield | CharacterState::Glide(_))
                     ) && physics_state.on_ground.is_none();
 
                     if let Some(pid) = agent.position_pid_controller.as_mut() {
                         pid.add_measurement(read_data.time.0, pos.0);
                     }
 
-                    // This controls how picky NPCs are about their pathfinding. Giants are larger
-                    // and so can afford to be less precise when trying to move around
-                    // the world (especially since they would otherwise get stuck on
+                    // This controls how picky NPCs are about their pathfinding.
+                    // Giants are larger and so can afford to be less precise
+                    // when trying to move around the world
+                    // (especially since they would otherwise get stuck on
                     // obstacles that smaller entities would not).
                     let node_tolerance = scale * 1.5;
-                    let slow_factor = body.map(|b| b.base_accel() / 250.0).unwrap_or(0.0).min(1.0);
+                    let slow_factor = body.map_or(0.0, |b| b.base_accel() / 250.0).min(1.0);
                     let traversal_config = TraversalConfig {
                         node_tolerance,
                         slow_factor,
                         on_ground: physics_state.on_ground.is_some(),
                         in_liquid: physics_state.in_liquid().is_some(),
                         min_tgt_dist: 1.0,
-                        can_climb: body.map(|b| b.can_climb()).unwrap_or(false),
-                        can_fly: body.map(|b| b.fly_thrust().is_some()).unwrap_or(false),
+                        can_climb: body.map_or(false, Body::can_climb),
+                        can_fly: body.map_or(false, |b| b.fly_thrust().is_some()),
                     };
 
-                    let flees = alignment
-                        .map(|a| !matches!(a, Alignment::Enemy | Alignment::Owned(_)))
-                        .unwrap_or(true);
-                    let damage = health.map_or(1.0, |h| h.current() as f32 / h.maximum() as f32);
+                    let flees = alignment.map_or(true, |a| {
+                        !matches!(a, Alignment::Enemy | Alignment::Owned(_))
+                    });
+                    let health_fraction = health.map_or(1.0, Health::fraction);
                     let rtsim_entity = read_data
                         .rtsim_entities
                         .get(entity)
                         .and_then(|rtsim_ent| rtsim.get_entity(rtsim_ent.0));
 
-                    if traversal_config.can_fly && rtsim_entity.is_some() {
-                        // hack (kinda): Never turn off flight for rtsim entities that can fly
-                        // at all, since it results in stuttering and falling back to the ground.
+                    if traversal_config.can_fly && matches!(body, Some(Body::Ship(_))) {
+                        // hack (kinda): Never turn off flight airships
+                        // since it results in stuttering and falling back to the ground.
+                        //
+                        // TODO: look into `controller.reset()` line above
+                        // and see if it fixes it
                         controller
                             .actions
                             .push(ControlAction::basic_input(InputKind::Fly));
@@ -339,7 +350,7 @@ impl<'a> System<'a> for Sys {
                         traversal_config,
                         scale,
                         flees,
-                        damage,
+                        damage: health_fraction,
                         light_emitter,
                         glider_equipped,
                         is_gliding,
@@ -347,7 +358,6 @@ impl<'a> System<'a> for Sys {
                         char_state,
                         cached_spatial_grid: &read_data.cached_spatial_grid,
                     };
-
                     ///////////////////////////////////////////////////////////
                     // Behavior tree
                     ///////////////////////////////////////////////////////////
@@ -367,151 +377,141 @@ impl<'a> System<'a> for Sys {
                     // are the only parts of this tree that should provide
                     // inputs.
 
-                    // If falling fast and can glide, save yourself!
-                    if data.glider_equipped && data.physics_state.on_ground.is_none() {
-                        // toggle glider when vertical velocity is above some threshold (here ~
-                        // glider fall vertical speed)
-                        data.glider_fall(agent, controller, &read_data);
-                    } else if let Some(Target {
-                        target, hostile, ..
-                    }) = agent.target
-                    {
-                        if let Some(tgt_health) = read_data.healths.get(target) {
-                            // If the target is hostile (either based on alignment or if
-                            // the target just attacked
-                            if !tgt_health.is_dead {
-                                if hostile {
+                    let idle = |agent: &mut Agent, controller, mut event_emitter| {
+                        data.idle_tree(agent, controller, &read_data, &mut event_emitter);
+                    };
+
+                    let relax = |agent: &mut Agent, controller, event_emitter| {
+                        agent.target = None;
+                        idle(agent, controller, event_emitter);
+                    };
+
+                    let react_as_pet =
+                        |agent: &mut Agent, target: EcsEntity, controller, event_emitter| {
+                            if let Some(tgt_pos) = read_data.positions.get(target) {
+                                let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
+                                // If really far away drop everything and follow
+                                if dist_sqrd > (2.0 * MAX_FOLLOW_DIST).powi(2) {
+                                    agent.bearing = Vec2::zero();
+                                    data.follow(agent, controller, &read_data.terrain, tgt_pos);
+                                // Attack target's attacker
+                                } else if entity_was_attacked(target, &read_data) {
+                                    data.attack_target_attacker(agent, &read_data, controller);
+                                // Follow owner if too far away and not
+                                // fighting
+                                } else if dist_sqrd > MAX_FOLLOW_DIST.powi(2) {
+                                    data.follow(agent, controller, &read_data.terrain, tgt_pos);
+
+                                // Otherwise just idle
+                                } else {
+                                    idle(agent, controller, event_emitter);
+                                }
+                            }
+                        };
+
+                    let react_to_target =
+                        |agent: &mut Agent,
+                         target: EcsEntity,
+                         hostile: bool,
+                         controller,
+                         mut event_emitter| {
+                            if let Some(tgt_health) = read_data.healths.get(target) {
+                                // If target is dead, leave it
+                                if tgt_health.is_dead {
+                                    if let Some(tgt_stats) =
+                                        data.rtsim_entity.and(read_data.stats.get(target))
+                                    {
+                                        rtsim_forget_enemy(&tgt_stats.name, agent);
+                                    }
+                                    relax(agent, controller, event_emitter);
+                                // If the target is hostile
+                                // (either based on alignment or if
+                                // the target just attacked)
+                                } else if hostile {
                                     data.hostile_tree(
                                         agent,
                                         controller,
                                         &read_data,
                                         &mut event_emitter,
                                     );
-                                // Target is something worth following methinks
-                                } else if let Some(Alignment::Owned(_)) = data.alignment {
-                                    if let Some(tgt_pos) = read_data.positions.get(target) {
-                                        let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
-                                        // If really far away drop everything and follow
-                                        if dist_sqrd > (2.0 * MAX_FOLLOW_DIST).powi(2) {
-                                            agent.bearing = Vec2::zero();
-                                            data.follow(
-                                                agent,
-                                                controller,
-                                                &read_data.terrain,
-                                                tgt_pos,
-                                            );
-                                        } else if entity_was_attacked(target, &read_data) {
-                                            data.attack_agents_attacker(
-                                                agent, &read_data, controller,
-                                            );
-                                        // Follow owner if too far away and not
-                                        // fighting
-                                        } else if dist_sqrd > MAX_FOLLOW_DIST.powi(2) {
-                                            data.follow(
-                                                agent,
-                                                controller,
-                                                &read_data.terrain,
-                                                tgt_pos,
-                                            );
-
-                                        // Otherwise just idle
-                                        } else {
-                                            data.idle_tree(
-                                                agent,
-                                                controller,
-                                                &read_data,
-                                                &mut event_emitter,
-                                            );
-                                        }
-                                    }
+                                // Target is something worth following
+                                // methinks
+                                } else if let Some(Alignment::Owned(uid)) = data.alignment {
+                                    if read_data.uids.get(target) == Some(uid) {
+                                        react_as_pet(agent, target, controller, event_emitter);
+                                    } else {
+                                        relax(agent, controller, event_emitter);
+                                    };
                                 } else {
-                                    data.idle_tree(
-                                        agent,
-                                        controller,
-                                        &read_data,
-                                        &mut event_emitter,
-                                    );
+                                    idle(agent, controller, event_emitter);
                                 }
                             } else {
-                                agent.target = None;
-                                data.idle_tree(agent, controller, &read_data, &mut event_emitter);
+                                relax(agent, controller, event_emitter);
                             }
-                        } else {
-                            agent.target = None;
-                            data.idle_tree(agent, controller, &read_data, &mut event_emitter);
-                        }
-                    } else {
-                        // Target an entity that's attacking us if the attack was recent and we
-                        // have a health component
-                        match health {
-                            Some(health) if health.last_change.0 < DAMAGE_MEMORY_DURATION => {
-                                // TODO: Can most of this match be replaced by the function
-                                // `attack_agents_attacker`?
-                                if let Some(by) = health.last_change.1.cause.damage_by() {
-                                    if let Some(attacker) = get_entity_by_id(by.id(), &read_data) {
-                                        if let Some(tgt_pos) = read_data.positions.get(attacker) {
-                                            if should_stop_attacking(attacker, &read_data) {
-                                                agent.target = None;
-                                                data.idle_tree(
-                                                    agent,
-                                                    controller,
-                                                    &read_data,
-                                                    &mut event_emitter,
-                                                );
-                                            } else {
-                                                if agent.target.is_none() {
-                                                    controller.push_event(ControlEvent::Utterance(
-                                                        UtteranceKind::Angry,
-                                                    ));
-                                                }
+                        };
 
-                                                agent.target =
-                                                    build_target(attacker, true, read_data.time.0);
-                                                let target_data = build_target_data(
-                                                    attacker, tgt_pos, &read_data,
-                                                );
-                                                data.attack(
-                                                    agent,
-                                                    controller,
-                                                    &target_data,
-                                                    &read_data,
-                                                );
-                                                // Remember this encounter if an RtSim entity
-                                                if let Some(tgt_stats) = data
-                                                    .rtsim_entity
-                                                    .and_then(|_| read_data.stats.get(attacker))
-                                                {
-                                                    if data.rtsim_entity.is_some() {
-                                                        remember_fight(
-                                                            agent,
-                                                            tgt_stats.name.clone(),
-                                                            read_data.time.0,
-                                                        );
-                                                    }
-                                                }
-                                            }
-                                        } else {
-                                            agent.target = None;
-                                            data.idle_tree(
-                                                agent,
-                                                controller,
-                                                &read_data,
-                                                &mut event_emitter,
-                                            );
-                                        }
+                    let react_to_damage =
+                        |agent: &mut Agent, by: Uid, controller, event_emitter| {
+                            if let Some(attacker) =
+                                read_data.uid_allocator.retrieve_entity_internal(by.id())
+                            {
+                                // If the target is dead or in a safezone, remove the
+                                // target and idle.
+                                if should_stop_attacking(attacker, &read_data) {
+                                    relax(agent, controller, event_emitter);
+                                } else if let Some(tgt_pos) = read_data.positions.get(attacker) {
+                                    if agent.target.is_none() {
+                                        controller.push_event(ControlEvent::Utterance(
+                                            UtteranceKind::Angry,
+                                        ));
+                                    }
+
+                                    agent.target = Some(Target {
+                                        target: attacker,
+                                        hostile: true,
+                                        selected_at: read_data.time.0,
+                                    });
+                                    let target_data = TargetData {
+                                        pos: tgt_pos,
+                                        body: read_data.bodies.get(attacker),
+                                        scale: read_data.scales.get(attacker),
+                                    };
+                                    data.attack(agent, controller, &target_data, &read_data);
+                                    // Remember this encounter if an RtSim entity
+                                    if let Some(tgt_stats) =
+                                        data.rtsim_entity.and(read_data.stats.get(attacker))
+                                    {
+                                        rtsim_new_enemy(&tgt_stats.name, agent, &read_data);
                                     }
                                 } else {
-                                    agent.target = None;
-                                    data.idle_tree(
-                                        agent,
-                                        controller,
-                                        &read_data,
-                                        &mut event_emitter,
-                                    );
+                                    relax(agent, controller, event_emitter);
+                                }
+                            }
+                        };
+
+                    // If falling fast and can glide, save yourself!
+                    if data.glider_equipped && data.physics_state.on_ground.is_none() {
+                        // toggle glider when vertical velocity is above some
+                        // threshold (here ~ glider fall vertical speed)
+                        data.glider_fall(controller);
+                    } else if let Some(target_info) = agent.target {
+                        let Target {
+                            target, hostile, ..
+                        } = target_info;
+                        react_to_target(agent, target, hostile, controller, event_emitter);
+                    } else {
+                        // Target an entity that's attacking us if the attack
+                        // was recent and we have a health component
+                        match health {
+                            Some(health) if health.last_change.0 < DAMAGE_MEMORY_DURATION => {
+                                if let Some(by) = health.last_change.1.cause.damage_by() {
+                                    react_to_damage(agent, by, controller, event_emitter);
+                                } else {
+                                    relax(agent, controller, event_emitter);
                                 }
                             },
                             _ => {
-                                data.idle_tree(agent, controller, &read_data, &mut event_emitter);
+                                idle(agent, controller, event_emitter);
                             },
                         }
                     }
@@ -526,12 +526,15 @@ impl<'a> System<'a> for Sys {
             for event in core::mem::take(&mut agent.rtsim_controller.events) {
                 match event {
                     RtSimEvent::AddMemory(memory) => {
-                        rtsim.insert_entity_memory(rtsim_entity.0, memory.clone())
+                        rtsim.insert_entity_memory(rtsim_entity.0, memory.clone());
+                    },
+                    RtSimEvent::ForgetEnemy(name) => {
+                        rtsim.forget_entity_enemy(rtsim_entity.0, &name);
                     },
                     RtSimEvent::SetMood(memory) => {
-                        rtsim.set_entity_mood(rtsim_entity.0, memory.clone())
+                        rtsim.set_entity_mood(rtsim_entity.0, memory.clone());
                     },
-                    _ => {},
+                    RtSimEvent::PrintMemories => {},
                 }
             }
         }
@@ -658,7 +661,7 @@ impl<'a> AgentData<'a> {
                     // If the hostile entity is dead or has an invulnerability buff (eg, those
                     // applied in safezones), return to idle
                     if should_stop_attacking(target, read_data) {
-                        if agent.behavior.can(BehaviorCapability::SPEAK) {
+                        if can_speak(agent) {
                             let msg = "npc.speech.villager_enemy_killed".to_string();
                             event_emitter
                                 .emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
@@ -688,17 +691,24 @@ impl<'a> AgentData<'a> {
     // Action Nodes
     ////////////////////////////////////////
 
-    fn glider_fall(&self, agent: &mut Agent, controller: &mut Controller, read_data: &ReadData) {
-        if self.vel.0.z < -26.0 {
+    fn glider_fall(&self, controller: &mut Controller) {
+        if self.vel.0.z < -15.0 {
             controller.actions.push(ControlAction::GlideWield);
-            if let Some(Target { target, .. }) = agent.target {
-                if let Some(tgt_pos) = read_data.positions.get(target) {
-                    controller.inputs.move_dir = (self.pos.0 - tgt_pos.0)
-                        .xy()
-                        .try_normalized()
-                        .unwrap_or_else(Vec2::zero);
-                }
-            }
+
+            let flight_direction =
+                Vec3::from(self.vel.0.xy().try_normalized().unwrap_or_else(Vec2::zero));
+            let flight_ori = Quaternion::from_scalar_and_vec3((1.0, flight_direction));
+
+            let ori = self.ori.look_vec();
+            let look_dir = if ori.z > 0.0 {
+                flight_ori.rotated_x(-0.1)
+            } else {
+                flight_ori.rotated_x(0.1)
+            };
+
+            let (_, look_dir) = look_dir.into_scalar_and_vec3();
+            controller.inputs.look_dir =
+                Dir::from_unnormalized(look_dir).unwrap_or_else(Dir::forward);
         }
     }
 
@@ -1238,8 +1248,8 @@ impl<'a> AgentData<'a> {
             },
             _ => {
                 if can_speak(agent) {
-                    // No new events, continue looking towards the last interacting player for some
-                    // time
+                    // No new events, continue looking towards the last
+                    // interacting player for some time
                     if let Some(Target { target, .. }) = &agent.target {
                         self.look_toward(controller, read_data, target);
                     } else {
@@ -1314,27 +1324,29 @@ impl<'a> AgentData<'a> {
     fn heal_self(&self, _agent: &mut Agent, controller: &mut Controller) -> bool {
         let healing_value = |item: &Item| {
             let mut value = 0;
-            #[allow(clippy::single_match)]
-            match item.kind() {
-                ItemKind::Consumable { effects, .. } => {
-                    for effect in effects.iter() {
-                        use BuffKind::*;
-                        match effect {
-                            Effect::Health(HealthChange { amount, .. }) => {
-                                value += *amount;
-                            },
-                            Effect::Buff(BuffEffect { kind, data, .. })
-                                if matches!(kind, Regeneration | Saturation | Potion) =>
-                            {
-                                value += (data.strength
-                                    * data.duration.map_or(0.0, |d| d.as_secs() as f32))
-                                    as i32;
-                            }
-                            _ => {},
+
+            if let ItemKind::Consumable {
+                kind: ConsumableKind::Drink,
+                effects,
+                ..
+            } = &item.kind
+            {
+                for effect in effects.iter() {
+                    use BuffKind::*;
+                    match effect {
+                        Effect::Health(HealthChange { amount, .. }) => {
+                            value += *amount;
+                        },
+                        Effect::Buff(BuffEffect { kind, data, .. })
+                            if matches!(kind, Regeneration | Saturation | Potion) =>
+                        {
+                            value += (data.strength
+                                * data.duration.map_or(0.0, |d| d.as_secs() as f32))
+                                as i32;
                         }
+                        _ => {},
                     }
-                },
-                _ => {},
+                }
             }
             value
         };
@@ -1372,92 +1384,205 @@ impl<'a> AgentData<'a> {
     ) {
         agent.action_state.timer = 0.0;
 
-        let target = self.cached_spatial_grid.0
-            .in_circle_aabr(self.pos.0.xy(), SEARCH_DIST)
-            .filter_map(|entity| {
-                read_data.positions
-                    .get(entity)
-                    .and_then(|l| read_data.healths.get(entity).map(|r| (l, r)))
-                    .and_then(|l| read_data.stats.get(entity).map(|r| (l, r)))
-                    .and_then(|l| read_data.inventories.get(entity).map(|r| (l, r)))
-                    .map(|(((pos, health), stats), inventory)| {
-                        (entity, pos, health, stats, inventory, read_data.alignments.get(entity), read_data.char_states.get(entity))
-                    })
-            })
-        .filter(|(e, e_pos, e_health, _e_stats, _e_inventory, _e_alignment, char_state)| {
-            // Filter based on sight and hearing
+        let worth_choosing = |entity| {
+            read_data
+                .positions
+                .get(entity)
+                .and_then(|pos| read_data.healths.get(entity).map(|h| (pos, h)))
+                .and_then(|(pos, health)| {
+                    read_data
+                        .stats
+                        .get(entity)
+                        .map(|stats| (pos, health, stats))
+                })
+                .and_then(|(pos, health, stats)| {
+                    read_data
+                        .inventories
+                        .get(entity)
+                        .map(|inventory| (pos, health, stats, inventory))
+                })
+                .map(|(pos, health, stats, inventory)| {
+                    (
+                        entity,
+                        pos,
+                        health,
+                        stats,
+                        inventory,
+                        read_data.alignments.get(entity),
+                        read_data.char_states.get(entity),
+                    )
+                })
+        };
+
+        let in_search_area = |e_pos: &Pos, e_char_state: Option<&CharacterState>| {
             let mut search_dist = SEARCH_DIST;
-            let mut listen_dist = MAX_LISTEN_DIST;
-            if char_state.map_or(false, |c_s| c_s.is_stealthy()) {
+            if e_char_state.map_or(false, CharacterState::is_stealthy) {
                 // TODO: make sneak more effective based on a stat like e_stats.fitness
                 search_dist *= SNEAK_COEFFICIENT;
+            };
+            e_pos.0.distance_squared(self.pos.0) < search_dist.powi(2)
+        };
+
+        let within_view = |e_pos: &Pos| {
+            (e_pos.0 - self.pos.0)
+                .try_normalized()
+                .map_or(true, |v| v.dot(*controller.inputs.look_dir) > 0.15)
+        };
+
+        let in_listen_area = |e_pos: &Pos, e_char_state: Option<&CharacterState>| {
+            let mut listen_dist = MAX_LISTEN_DIST;
+            if e_char_state.map_or(false, CharacterState::is_stealthy) {
+                // TODO: make sneak more effective based on a stat like e_stats.fitness
                 listen_dist *= SNEAK_COEFFICIENT;
             }
-            ((self.within_range_of(search_dist, e_pos.0) && self.within_view_angle(e_pos.0, controller)) || self.within_range_of(listen_dist, e_pos.0)) // TODO implement proper sound system for agents
-                && e != self.entity
-                && !e_health.is_dead
-                && !invulnerability_is_in_buffs(read_data.buffs.get(*e))
-        })
-        .filter_map(|(e, e_pos, e_health, e_stats, e_inventory, e_alignment, _char_state)| {
-                // Hostile entities
-                try_owner_alignment(self.alignment, read_data).and_then(|a| try_owner_alignment(e_alignment, read_data).map(|b| a.hostile_towards(*b))).unwrap_or(false).then(|| (e, e_pos))
-                .or({
-                    // I'm a guard and a villager is in distress
-                    let other_is_npc = matches!(e_alignment, Some(Alignment::Npc));
-                    let remembers_damage = e_health.last_change.0 < 5.0;//DAMAGE_MEMORY_DURATION;
-                    read_data.stats.get(*self.entity).map_or(false, |stats| stats.name == "Guard" && other_is_npc && remembers_damage)
-                        .then(|| {
-                                e_health.last_change.1.cause.damage_by()
-                            })
-                            .flatten()
-                            .and_then(|attacker_uid| {
-                                get_entity_by_id(attacker_uid.id(), read_data)
-                            })
-                            .and_then(|attacker| {
-                                read_data
-                                    .positions
-                                    .get(attacker)
-                                    .map(|a_pos| (attacker, a_pos))
-                            })
-                }).or({
-                    // I remember fighting this entity
-                    self.rtsim_entity.and_then(|rtsim_entity| {
-                        rtsim_entity.brain.remembers_fight_with_character(&e_stats.name).then(|| {
-                            if can_speak(agent) {
-                                remember_fight(agent, e_stats.name.clone(), read_data.time.0);
-                                let msg = format!("{}! How dare you cross me again!", e_stats.name.clone());
-                                self.chat_general(msg, event_emitter);
-                            }
-                            (e, e_pos)
-                        })
-                    })
-                }).or({
-                    // Cultists!
-                    self.alignment.and_then(|alignment| {
-                        (matches!(alignment, Alignment::Npc) && e_inventory.equipped_items().filter(|item| item.tags().contains(&ItemTag::Cultist)).count() > 2).then(|| {
-                            if can_speak(agent) {
-                                if self.rtsim_entity.is_some() {
-                                    remember_fight(agent, e_stats.name.clone(), read_data.time.0);
-                                }
-                                let msg = "npc.speech.villager_cultist_alarm".to_string();
-                                self.chat_general(msg, event_emitter);
-                                self.emit_villager_alarm(read_data.time.0, event_emitter);
-                            }
-                            (e, e_pos)
-                        })
-                    })
+            // TODO implement proper sound system for agents
+            e_pos.0.distance_squared(self.pos.0) < listen_dist.powi(2)
+        };
+
+        let within_reach = |e_pos: &Pos, e_char_state: Option<&CharacterState>| {
+            (in_search_area(e_pos, e_char_state) && within_view(e_pos))
+                || in_listen_area(e_pos, e_char_state)
+        };
+
+        let owners_hostile = |e_alignment: Option<&Alignment>| {
+            try_owner_alignment(self.alignment, read_data).map_or(false, |owner_alignment| {
+                try_owner_alignment(e_alignment, read_data).map_or(false, |e_owner_alignment| {
+                    owner_alignment.hostile_towards(*e_owner_alignment)
                 })
             })
-            // Can we even see them?
-            .filter(|(_e, e_pos)| {
-                read_data.terrain
+        };
+
+        let guard_duty = |e_health: &Health, e_alignment: Option<&Alignment>| {
+            // I'm a guard and a villager is in distress
+            let other_is_npc = matches!(e_alignment, Some(Alignment::Npc));
+            let remembers_damage = e_health.last_change.0 < 5.0;
+            let need_help = read_data.stats.get(*self.entity).map_or(false, |stats| {
+                stats.name == "Guard" && other_is_npc && remembers_damage
+            });
+
+            let attacker_of = |health: &Health| health.last_change.1.cause.damage_by();
+
+            need_help
+                .then(|| {
+                    attacker_of(e_health)
+                        .and_then(|attacker_uid| get_entity_by_id(attacker_uid.id(), read_data))
+                        .and_then(|attacker| {
+                            read_data
+                                .positions
+                                .get(attacker)
+                                .map(|a_pos| (attacker, *a_pos))
+                        })
+                })
+                .flatten()
+        };
+
+        let rtsim_remember =
+            |target_stats: &Stats,
+             agent: &mut Agent,
+             event_emitter: &mut Emitter<'_, ServerEvent>| {
+                if let Some(rtsim_entity) = &self.rtsim_entity {
+                    if rtsim_entity
+                        .brain
+                        .remembers_fight_with_character(&target_stats.name)
+                    {
+                        rtsim_new_enemy(&target_stats.name, agent, read_data);
+                        if can_speak(agent) {
+                            let message = format!(
+                                "{}! How dare you cross me again!",
+                                target_stats.name.clone()
+                            );
+                            event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
+                                *self.uid, message,
+                            )));
+                        }
+                        true
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                }
+            };
+
+        let npc_sees_cultist =
+            |target_stats: &Stats,
+             target_inventory: &Inventory,
+             agent: &mut Agent,
+             event_emitter: &mut Emitter<'_, ServerEvent>| {
+                self.alignment.map_or(false, |alignment| {
+                    if matches!(alignment, Alignment::Npc)
+                        && target_inventory
+                            .equipped_items()
+                            .filter(|item| item.tags().contains(&ItemTag::Cultist))
+                            .count()
+                            > 2
+                    {
+                        if self.rtsim_entity.is_some() {
+                            rtsim_new_enemy(&target_stats.name, agent, read_data);
+                        }
+                        if can_speak(agent) {
+                            let message = "npc.speech.villager_cultist_alarm".to_string();
+                            event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
+                                *self.uid, message,
+                            )));
+                        }
+                        true
+                    } else {
+                        false
+                    }
+                })
+            };
+
+        let possible_target =
+            |(entity, e_pos, e_health, e_stats, e_inventory, e_alignment, e_char_state): (
+                EcsEntity,
+                &Pos,
+                &Health,
+                &Stats,
+                &Inventory,
+                Option<&Alignment>,
+                Option<&CharacterState>,
+            )| {
+                let can_target = within_reach(e_pos, e_char_state)
+                    && entity != *self.entity
+                    && !e_health.is_dead
+                    && !invulnerability_is_in_buffs(read_data.buffs.get(entity));
+
+                if !can_target {
+                    None
+                } else if owners_hostile(e_alignment) {
+                    Some((entity, *e_pos))
+                } else if let Some(villain_info) = guard_duty(e_health, e_alignment) {
+                    Some(villain_info)
+                } else if rtsim_remember(e_stats, agent, event_emitter) {
+                    Some((entity, *e_pos))
+                } else if npc_sees_cultist(e_stats, e_inventory, agent, event_emitter) {
+                    Some((entity, *e_pos))
+                } else {
+                    None
+                }
+            };
+
+        let can_see_them = |e_pos: &Pos| {
+            read_data
+                .terrain
                 .ray(self.pos.0 + Vec3::unit_z(), e_pos.0 + Vec3::unit_z())
                 .until(Block::is_opaque)
                 .cast()
-                .0 >= e_pos.0.distance(self.pos.0)
-            })
-            .min_by_key(|(_e, e_pos)| (e_pos.0.distance_squared(self.pos.0) * 100.0) as i32) // TODO choose target by more than just distance
-            .map(|(e, _e_pos)| e);
+                .0
+                >= e_pos.0.distance(self.pos.0)
+        };
+
+        // Search area
+        // TODO choose target by more than just distance
+        let common::CachedSpatialGrid(grid) = self.cached_spatial_grid;
+        let target = grid
+            .in_circle_aabr(self.pos.0.xy(), SEARCH_DIST)
+            .filter_map(worth_choosing)
+            .filter_map(possible_target)
+            .filter(|(_, e_pos)| can_see_them(e_pos))
+            .min_by_key(|(_, e_pos)| (e_pos.0.distance_squared(self.pos.0) * 100.0) as i32)
+            .map(|(e, _)| e);
 
         if agent.target.is_none() && target.is_some() {
             controller.push_event(ControlEvent::Utterance(UtteranceKind::Angry));
@@ -1644,6 +1769,28 @@ impl<'a> AgentData<'a> {
                         tgt_data.pos.0.z + tgt_eye_offset,
                     ),
                 )
+            },
+            // Leap into direction of the target
+            // TODO: test with different weapons/tactics
+            Tactic::Hammer if matches!(self.char_state, CharacterState::LeapMelee(_)) => {
+                let tgt_pos = tgt_data.pos.0;
+                let self_pos = self.pos.0;
+
+                let direction_weight = 0.1;
+                let delta_x = (tgt_pos.x - self_pos.x) * direction_weight;
+                let delta_y = (tgt_pos.y - self_pos.y) * direction_weight;
+
+                Dir::from_unnormalized(Vec3::new(delta_x, delta_y, -1.0))
+            },
+            Tactic::Axe if matches!(self.char_state, CharacterState::LeapMelee(_)) => {
+                let tgt_pos = tgt_data.pos.0;
+                let self_pos = self.pos.0;
+
+                let direction_weight = 0.3;
+                let delta_x = (tgt_pos.x - self_pos.x) * direction_weight;
+                let delta_y = (tgt_pos.y - self_pos.y) * direction_weight;
+
+                Dir::from_unnormalized(Vec3::new(delta_x, delta_y, -1.0))
             },
             _ => Dir::from_unnormalized(
                 Vec3::new(
@@ -1858,22 +2005,28 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
+        let has_leap = || self.skill_set.has_skill(Skill::Axe(AxeSkill::UnlockLeap));
+
+        let has_energy = |need| self.energy.current() > need;
+
+        let use_leap = |controller: &mut Controller| {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Ability(0)));
+        };
         if attack_data.in_min_range() && attack_data.angle < 45.0 {
             controller.inputs.move_dir = Vec2::zero();
-            if agent.action_state.timer > 6.0 {
+            if agent.action_state.timer > 5.0 {
                 controller
                     .actions
                     .push(ControlAction::CancelInput(InputKind::Secondary));
                 agent.action_state.timer = 0.0;
-            } else if agent.action_state.timer > 4.0 && self.energy.current() > 10 {
+            } else if agent.action_state.timer > 2.5 && has_energy(10) {
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Secondary));
                 agent.action_state.timer += read_data.dt.0;
-            } else if self.skill_set.has_skill(Skill::Axe(AxeSkill::UnlockLeap))
-                && self.energy.current() > 800
-                && thread_rng().gen_bool(0.5)
-            {
+            } else if has_leap() && has_energy(450) && thread_rng().gen_bool(0.5) {
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Ability(0)));
@@ -1886,6 +2039,18 @@ impl<'a> AgentData<'a> {
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+            if attack_data.dist_sqrd < 32.0f32.powi(2)
+                && has_leap()
+                && has_energy(500)
+                && can_see_tgt(
+                    &read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                )
+            {
+                use_leap(controller);
+            }
             if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
                 && attack_data.dist_sqrd < 16.0f32.powi(2)
                 && thread_rng().gen::<f32>() < 0.02
@@ -1907,6 +2072,19 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
+        let has_leap = || {
+            self.skill_set
+                .has_skill(Skill::Hammer(HammerSkill::UnlockLeap))
+        };
+
+        let has_energy = |need| self.energy.current() > need;
+
+        let use_leap = |controller: &mut Controller| {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Ability(0)));
+        };
+
         if attack_data.in_min_range() && attack_data.angle < 45.0 {
             controller.inputs.move_dir = Vec2::zero();
             if agent.action_state.timer > 4.0 {
@@ -1914,20 +2092,13 @@ impl<'a> AgentData<'a> {
                     .actions
                     .push(ControlAction::CancelInput(InputKind::Secondary));
                 agent.action_state.timer = 0.0;
-            } else if agent.action_state.timer > 2.0 {
+            } else if agent.action_state.timer > 3.0 {
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Secondary));
                 agent.action_state.timer += read_data.dt.0;
-            } else if self
-                .skill_set
-                .has_skill(Skill::Hammer(HammerSkill::UnlockLeap))
-                && self.energy.current() > 700
-                && thread_rng().gen_bool(0.9)
-            {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+            } else if has_leap() && has_energy(500) && thread_rng().gen_bool(0.9) {
+                use_leap(controller);
                 agent.action_state.timer += read_data.dt.0;
             } else {
                 controller
@@ -1936,27 +2107,18 @@ impl<'a> AgentData<'a> {
                 agent.action_state.timer += read_data.dt.0;
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            if self.path_toward_target(agent, controller, tgt_data, read_data, true, None)
+            self.path_toward_target(agent, controller, tgt_data, read_data, true, None);
+            if attack_data.dist_sqrd < 32.0f32.powi(2)
+                && has_leap()
+                && has_energy(500)
                 && can_see_tgt(
-                    &*read_data.terrain,
+                    &read_data.terrain,
                     self.pos,
                     tgt_data.pos,
                     attack_data.dist_sqrd,
                 )
-                && attack_data.angle < 45.0
             {
-                if self
-                    .skill_set
-                    .has_skill(Skill::Hammer(HammerSkill::UnlockLeap))
-                    && agent.action_state.timer > 5.0
-                {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Ability(0)));
-                    agent.action_state.timer = 0.0;
-                } else {
-                    agent.action_state.timer += read_data.dt.0;
-                }
+                use_leap(controller);
             }
             if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
                 && attack_data.dist_sqrd < 16.0f32.powi(2)
@@ -2548,6 +2710,7 @@ impl<'a> AgentData<'a> {
         }
     }
 
+    #[allow(clippy::branches_sharing_code)] //TODO: evaluate
     fn handle_quadlow_ranged_attack(
         &self,
         agent: &mut Agent,
@@ -3842,7 +4005,7 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    fn attack_agents_attacker(
+    fn attack_target_attacker(
         &self,
         agent: &mut Agent,
         read_data: &ReadData,
@@ -3955,17 +4118,25 @@ impl<'a> AgentData<'a> {
             sound: Sound::new(SoundKind::VillagerAlarm, self.pos.0, 100.0, time),
         });
     }
+}
 
-    fn within_view_angle(&self, tgt_pos: Vec3<f32>, controller: &Controller) -> bool {
-        (tgt_pos - self.pos.0)
-            .try_normalized()
-            .map(|v| v.dot(*controller.inputs.look_dir) > 0.15)
-            .unwrap_or(true)
-    }
+fn rtsim_new_enemy(target_name: &str, agent: &mut Agent, read_data: &ReadData) {
+    agent
+        .rtsim_controller
+        .events
+        .push(RtSimEvent::AddMemory(Memory {
+            item: MemoryItem::CharacterFight {
+                name: target_name.to_owned(),
+            },
+            time_to_forget: read_data.time.0 + 300.0,
+        }));
+}
 
-    fn within_range_of(&self, range: f32, their_pos: Vec3<f32>) -> bool {
-        their_pos.distance_squared(self.pos.0) < range.powi(2)
-    }
+fn rtsim_forget_enemy(target_name: &str, agent: &mut Agent) {
+    agent
+        .rtsim_controller
+        .events
+        .push(RtSimEvent::ForgetEnemy(target_name.to_owned()));
 }
 
 fn can_see_tgt(terrain: &TerrainGrid, pos: &Pos, tgt_pos: &Pos, dist_sqrd: f32) -> bool {
@@ -4086,16 +4257,6 @@ fn build_target_data<'a>(
 }
 
 fn can_speak(agent: &Agent) -> bool { agent.behavior.can(BehaviorCapability::SPEAK) }
-
-fn remember_fight(agent: &mut Agent, name: String, time: f64) {
-    agent
-        .rtsim_controller
-        .events
-        .push(RtSimEvent::AddMemory(Memory {
-            item: MemoryItem::CharacterFight { name },
-            time_to_forget: time + 300.0,
-        }));
-}
 
 fn get_entity_by_id(id: u64, read_data: &ReadData) -> Option<EcsEntity> {
     read_data.uid_allocator.retrieve_entity_internal(id)

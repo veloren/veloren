@@ -12,7 +12,7 @@ use vek::*;
 
 use super::dialogue::Subject;
 
-pub const DEFAULT_INTERACTION_TIME: f32 = 3.0;
+pub const DEFAULT_INTERACTION_TIME: f32 = 1.0;
 pub const TRADE_INTERACTION_TIME: f32 = 300.0;
 pub const MAX_LISTEN_DIST: f32 = 100.0;
 
@@ -305,7 +305,7 @@ pub enum SoundKind {
     VillagerAlarm,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Target {
     pub target: EcsEntity,
     pub hostile: bool,
