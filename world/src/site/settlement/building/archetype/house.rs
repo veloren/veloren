@@ -245,7 +245,6 @@ impl Archetype for House {
     }
 
     #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
-    #[allow(clippy::int_plus_one)] // TODO: Pending review in #587
     fn draw(
         &self,
         index: IndexRef,
@@ -335,9 +334,7 @@ impl Archetype for House {
         if let Pillar::Chimney(chimney_height) = attr.pillar {
             let chimney_top = roof_top + chimney_height;
             // Chimney shaft
-            if center_offset.map(|e| e.abs()).reduce_max() == 0
-                && profile.y >= foundation_height + 1
-            {
+            if center_offset.map(|e| e.abs()).reduce_max() == 0 && profile.y > foundation_height {
                 return if profile.y == foundation_height + 1 {
                     fire
                 } else {
