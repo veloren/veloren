@@ -36,7 +36,7 @@ const TPS: u64 = 30;
 fn main() -> io::Result<()> {
     let app = ArgvApp::from_args();
 
-    let basic = app.basic || app.command.is_some();
+    let basic = !app.tui || app.command.is_some();
     let noninteractive = app.non_interactive;
     let no_auth = app.no_auth;
     let sql_log_mode = app.sql_log_mode;

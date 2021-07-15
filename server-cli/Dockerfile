@@ -22,4 +22,3 @@ WORKDIR /opt
 
 ENV RUST_BACKTRACE=full
 ENTRYPOINT ["/opt/veloren-server-cli"]
-CMD ["-b"]
