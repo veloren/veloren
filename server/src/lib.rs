@@ -343,7 +343,7 @@ impl Server {
                 },
             };
 
-            world.find_lowest_accessible_pos(index, spawn_chunk)
+            world.find_accessible_pos(index, TerrainChunkSize::center_wpos(spawn_chunk), false)
         });
         #[cfg(not(feature = "worldgen"))]
         let spawn_point = SpawnPoint::default();

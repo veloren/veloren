@@ -52,7 +52,9 @@ use common::{
     assets,
     generation::{ChunkSupplement, EntityInfo},
     resources::TimeOfDay,
-    terrain::{Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
+    terrain::{
+        Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize, TerrainGrid,
+    },
     vol::{ReadVol, RectVolSize, WriteVol},
 };
 use common_net::msg::{world_msg, WorldMapMsg};
@@ -187,9 +189,13 @@ impl World {
 
     pub fn sample_blocks(&self) -> BlockGen { BlockGen::new(ColumnGen::new(&self.sim)) }
 
-    pub fn find_lowest_accessible_pos(&self, index: IndexRef, chunk_pos: Vec2<i32>) -> Vec3<f32> {
-        // Calculate the middle of the chunk in the world
-        let spawn_wpos = TerrainChunkSize::center_wpos(chunk_pos);
+    pub fn find_accessible_pos(
+        &self,
+        index: IndexRef,
+        spawn_wpos: Vec2<i32>,
+        ascending: bool,
+    ) -> Vec3<f32> {
+        let chunk_pos = TerrainGrid::chunk_key(spawn_wpos);
 
         // Unwrapping because generate_chunk only returns err when should_continue evals
         // to true
@@ -199,9 +205,19 @@ impl World {
         let min_z = tc.get_min_z();
         let max_z = tc.get_max_z();
 
-        let pos = Vec3::new(spawn_wpos.x, spawn_wpos.y, min_z);
+        let pos = Vec3::new(
+            spawn_wpos.x,
+            spawn_wpos.y,
+            if ascending { min_z } else { max_z },
+        );
         (0..(max_z - min_z))
-            .map(|z_diff| pos + Vec3::unit_z() * z_diff)
+            .map(|z_diff| {
+                if ascending {
+                    pos + Vec3::unit_z() * z_diff
+                } else {
+                    pos - Vec3::unit_z() * z_diff
+                }
+            })
             .find(|test_pos| {
                 let chunk_relative_xy = test_pos
                     .xy()

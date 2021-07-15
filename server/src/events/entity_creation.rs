@@ -41,9 +41,12 @@ pub fn handle_loaded_character_data(
         Option<comp::Waypoint>,
     ),
 ) {
-    server
-        .state
-        .update_character_data(entity, loaded_components);
+    server.state.update_character_data(
+        entity,
+        loaded_components,
+        &*server.world,
+        &server.index.as_index_ref(),
+    );
     sys::subscription::initialize_region_subscription(server.state.ecs(), entity);
 }
 

@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Significantly improved the performance of playing sound effects
 - Dismantle and Material crafting tabs don't have duplicated recipes
 - Campfires now despawn when underwater
+- Players no longer spawn underground if their waypoint is underground
 
 ## [0.10.0] - 2021-06-12
 
