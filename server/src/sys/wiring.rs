@@ -5,9 +5,10 @@ use common::{
     resources::EntitiesDiedLastTick,
 };
 use common_ecs::{Job, Origin, Phase, System};
+use common_state::BlockChange;
 use hashbrown::HashMap;
 use specs::{
-    join::Join, shred::ResourceId, Entities, Entity, Read, ReadStorage, SystemData, World,
+    join::Join, shred::ResourceId, Entities, Entity, Read, ReadStorage, SystemData, World, Write,
     WriteStorage,
 };
 mod compute_outputs;
@@ -28,6 +29,7 @@ pub struct WiringData<'a> {
 
     pub event_bus: Read<'a, EventBus<ServerEvent>>,
     pub entities_died_last_tick: Read<'a, EntitiesDiedLastTick>,
+    pub block_change: Write<'a, BlockChange>,
 }
 
 /// This system is responsible for handling wiring (signals and wiring systems)

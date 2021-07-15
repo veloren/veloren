@@ -1,5 +1,4 @@
-use common::comp::ProjectileConstructor;
-use core::f32;
+use common::{comp::ProjectileConstructor, terrain::Block};
 use hashbrown::HashMap;
 use specs::{Component, Entity};
 use specs_idvs::IdvStorage;
@@ -50,9 +49,9 @@ pub enum WiringActionEffect {
     SpawnProjectile {
         constr: ProjectileConstructor,
     },
-    SetBlockCollidability {
+    SetBlock {
         coords: Vec3<i32>,
-        collidable: bool,
+        block: Block,
     },
     SetLight {
         r: OutputFormula,
