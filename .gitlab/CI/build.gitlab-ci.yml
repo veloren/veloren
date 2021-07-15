@@ -97,8 +97,7 @@ coverage:
   script:
     - export MACOSX_DEPLOYMENT_TARGET="10.13"
     - export VELOREN_USERDATA_STRATEGY=executable
-    - cargo build --release -p veloren-voxygen --no-default-features --features default-publish
-    - cargo build --release -p veloren-server-cli
+    - cargo build --release --no-default-features --features default-publish
     - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
     - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
   artifacts:
