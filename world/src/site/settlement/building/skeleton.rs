@@ -73,7 +73,6 @@ impl<T> Skeleton<T> {
     }
 
     #[allow(clippy::logic_bug)] // TODO: Pending review in #587
-    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn sample_closest(
         &self,
         pos: Vec3<i32>,
@@ -123,6 +122,6 @@ impl<T> Skeleton<T> {
                     .or(Some((dist_locus, new_bm)));
             }
         });
-        min.map(|(_, bm)| bm).unwrap_or(BlockMask::nothing())
+        min.map(|(_, bm)| bm).unwrap_or_else(BlockMask::nothing)
     }
 }

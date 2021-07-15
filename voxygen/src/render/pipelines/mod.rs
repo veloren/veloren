@@ -80,7 +80,6 @@ pub struct Shadow {
 
 impl Globals {
     /// Create global consts from the provided parameters.
-    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new(
         view_mat: Mat4<f32>,
@@ -140,7 +139,7 @@ impl Globals {
             medium: [if medium.is_liquid() { 1 } else { 0 }; 4],
             select_pos: select_pos
                 .map(|sp| Vec4::from(sp) + Vec4::unit_w())
-                .unwrap_or(Vec4::zero())
+                .unwrap_or_else(Vec4::zero)
                 .into_array(),
             gamma_exposure: [gamma, exposure, 0.0, 0.0],
             ambiance,

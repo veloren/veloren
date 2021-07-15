@@ -128,7 +128,6 @@ impl Dungeon {
 
     pub fn difficulty(&self) -> u32 { self.difficulty }
 
-    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn apply_supplement<'a>(
         &'a self,
         // NOTE: Used only for dynamic elements like chests and entities!

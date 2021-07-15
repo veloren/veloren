@@ -228,7 +228,6 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
 #[allow(clippy::many_single_char_names)]
 #[allow(clippy::type_complexity)]
 #[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
-#[allow(clippy::or_fun_call)] // TODO: Pending review in #587
 pub fn generate_mesh<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>(
     vol: &'a VolGrid2d<V>,
     (range, max_texture_size, _boi): (Aabb<i32>, Vec2<u16>, &'a BlocksOfInterest),
@@ -381,7 +380,8 @@ pub fn generate_mesh<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + '
         }
     };
     let get_glow = |_: &mut (), pos: Vec3<i32>| glow(pos + range.min);
-    let get_color = |_: &mut (), pos: Vec3<i32>| flat_get(pos).get_color().unwrap_or(Rgb::zero());
+    let get_color =
+        |_: &mut (), pos: Vec3<i32>| flat_get(pos).get_color().unwrap_or_else(Rgb::zero);
     let get_opacity = |_: &mut (), pos: Vec3<i32>| !flat_get(pos).is_opaque();
     let flat_get = |pos| flat_get(pos);
     let should_draw = |_: &mut (), pos: Vec3<i32>, delta: Vec3<i32>, _uv| {

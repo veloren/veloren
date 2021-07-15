@@ -819,7 +819,6 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>) -> bool {
 }
 
 /// Attempt to search for a location that's suitable for site construction
-#[allow(clippy::or_fun_call)] // TODO: Pending review in #587
 fn find_site_loc(
     ctx: &mut GenCtx<impl Rng>,
     near: Option<(Vec2<i32>, f32)>,
@@ -833,7 +832,7 @@ fn find_site_loc(
                 origin
                     + (Vec2::new(ctx.rng.gen_range(-1.0..1.0), ctx.rng.gen_range(-1.0..1.0))
                         .try_normalized()
-                        .unwrap_or(Vec2::zero())
+                        .unwrap_or_else(Vec2::zero)
                         * ctx.rng.gen::<f32>()
                         * dist)
                         .map(|e| e as i32)
