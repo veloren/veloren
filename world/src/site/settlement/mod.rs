@@ -265,7 +265,6 @@ impl Settlement {
         }
     }
 
-    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn place_paths(&mut self, rng: &mut impl Rng) {
         const PATH_COUNT: usize = 6;
 

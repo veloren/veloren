@@ -224,7 +224,6 @@ impl World {
             + 0.5
     }
 
-    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     #[allow(clippy::eval_order_dependence)]
     #[allow(clippy::result_unit_err)]
     pub fn generate_chunk(
@@ -252,7 +251,7 @@ impl World {
                 .get(grid_border + TerrainChunkSize::RECT_SIZE.map(|e| e as i32) / 2)
                 .and_then(|zcache| zcache.as_ref())
                 .map(|zcache| zcache.sample.stone_col)
-                .unwrap_or(index.colors.deep_stone_color.into()),
+                .unwrap_or_else(|| index.colors.deep_stone_color.into()),
         );
         let water = Block::new(BlockKind::Water, Rgb::zero());
 

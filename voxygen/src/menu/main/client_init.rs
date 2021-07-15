@@ -44,7 +44,6 @@ pub struct ClientInit {
 }
 impl ClientInit {
     #[allow(clippy::op_ref)] // TODO: Pending review in #587
-    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn new(
         connection_args: ConnectionArgs,
         username: String,

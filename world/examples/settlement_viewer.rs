@@ -5,7 +5,6 @@ use veloren_world::{index::Index, site::Settlement, IndexRef};
 const W: usize = 640;
 const H: usize = 480;
 
-#[allow(clippy::or_fun_call)] // TODO: Pending review in #587
 fn main() {
     let seed = 1337;
     let index = &Index::new(seed);
@@ -32,7 +31,7 @@ fn main() {
 
                 let color = settlement
                     .get_color(index, pos.map(|e| e.floor() as i32))
-                    .unwrap_or(Rgb::new(35, 50, 20));
+                    .unwrap_or_else(|| Rgb::new(35, 50, 20));
 
                 buf[j * W + i] = u32::from_le_bytes([color.b, color.g, color.r, 255]);
             }

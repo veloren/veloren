@@ -166,7 +166,6 @@ impl assets::Asset for SpriteSpec {
 }
 
 /// Function executed by worker threads dedicated to chunk meshing.
-#[allow(clippy::or_fun_call)] // TODO: Pending review in #587
 
 /// skip_remesh is either None (do the full remesh, including recomputing the
 /// light map), or Some((light_map, glow_map)).

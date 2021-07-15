@@ -36,7 +36,6 @@ use common::{
     resources::DeltaTime,
     states::utils::StageSection,
     terrain::TerrainChunk,
-    util::Dir,
     vol::RectRasterableVol,
 };
 use common_base::span;
@@ -488,8 +487,6 @@ impl FigureMgr {
         }
     }
 
-    #[allow(clippy::or_fun_call)]
-    // TODO: Pending review in #587
     pub fn maintain(
         &mut self,
         renderer: &mut Renderer,
@@ -617,9 +614,7 @@ impl FigureMgr {
             // Velocity relative to the current ground
             let rel_vel = anim::vek::Vec3::<f32>::from(vel.0 - physics.ground_vel);
 
-            let look_dir = controller
-                .map(|c| c.inputs.look_dir)
-                .unwrap_or(Dir::default());
+            let look_dir = controller.map(|c| c.inputs.look_dir).unwrap_or_default();
             let is_player = scene_data.player_entity == entity;
             let player_camera_mode = if is_player {
                 camera_mode
@@ -723,7 +718,7 @@ impl FigureMgr {
                             (c / (1.0 + DAMAGE_FADE_COEFFICIENT * h.last_change.0)) as f32
                         })
                 })
-                .unwrap_or(vek::Rgba::broadcast(1.0))
+                .unwrap_or_else(|| vek::Rgba::broadcast(1.0))
             // Highlight targeted collectible entities
             * if item.is_some() && scene_data.target_entity.map_or(false, |e| e == entity) {
                 vek::Rgba::new(5.0, 5.0, 5.0, 1.0)
