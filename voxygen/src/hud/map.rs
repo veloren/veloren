@@ -194,7 +194,6 @@ impl<'a> Widget for Map<'a> {
 
     fn style(&self) -> Self::Style {}
 
-    #[allow(clippy::useless_format)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         common_base::prof_span!("Map::update");
         let widget::UpdateArgs { state, ui, .. } = args;
@@ -960,7 +959,7 @@ impl<'a> Widget for Map<'a> {
                         } else {
                             size as f64 / 2.5
                         };
-                        Text::new(&format!("{}", title))
+                        Text::new(&title.to_string())
                             .x_y_position_relative_to(
                                 state.ids.map_layers[0],
                                 position::Relative::Scalar(rpos.x as f64),

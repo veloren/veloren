@@ -1635,7 +1635,6 @@ fn handle_kit(
 
 #[allow(clippy::float_cmp)] // TODO: Pending review in #587
 #[allow(clippy::needless_return)] // TODO: Pending review in #587
-#[allow(clippy::useless_format)] // TODO: Pending review in #587
 fn handle_object(
     server: &mut Server,
     client: EcsEntity,
@@ -1695,7 +1694,6 @@ fn handle_object(
     }
 }
 
-#[allow(clippy::useless_format)] // TODO: Pending review in #587
 fn handle_light(
     server: &mut Server,
     client: EcsEntity,
@@ -2144,7 +2142,6 @@ fn handle_adminify(
 }
 
 #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
-#[allow(clippy::useless_format)] // TODO: Pending review in #587
 fn handle_tell(
     server: &mut Server,
     client: EcsEntity,
