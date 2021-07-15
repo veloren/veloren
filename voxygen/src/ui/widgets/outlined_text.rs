@@ -66,8 +66,7 @@ impl<'a> Widget for OutlinedText<'a> {
         }
     }
 
-    #[allow(clippy::unused_unit)] // TODO: Pending review in #587
-    fn style(&self) -> Self::Style { () }
+    fn style(&self) -> Self::Style {}
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs {

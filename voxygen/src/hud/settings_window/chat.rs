@@ -118,8 +118,7 @@ impl<'a> Widget for Chat<'a> {
         }
     }
 
-    #[allow(clippy::unused_unit)] // TODO: Pending review in #587
-    fn style(&self) -> Self::Style { () }
+    fn style(&self) -> Self::Style {}
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         common_base::prof_span!("Chat::update");
