@@ -153,20 +153,15 @@ fn dispatch_action_set_block(
     block_change: &mut Write<BlockChange>,
     pos: Option<&Pos>,
 ) {
-    let chunk_origin = match pos {
-        Some(opos) => vek::Vec3::new(
-            (opos.0.x as i32 / TerrainChunkSize::RECT_SIZE.x as i32)
-                * TerrainChunkSize::RECT_SIZE.x as i32,
-            (opos.0.y as i32 / TerrainChunkSize::RECT_SIZE.y as i32)
-                * TerrainChunkSize::RECT_SIZE.y as i32,
-            0,
-        ),
-        None => vek::Vec3::new(0, 0, 0),
-    };
-    let offset_pos = chunk_origin
-        .iter()
-        .zip(coord.iter())
-        .map(|(p, c)| p + c)
-        .collect();
+    let chunk_origin = pos
+        .map(|opos| {
+            opos.0
+                .xy()
+                .as_::<i32>()
+                .map2(TerrainChunkSize::RECT_SIZE.as_::<i32>(), |a, b| (a / b) * b)
+                .with_z(0)
+        })
+        .unwrap_or_else(vek::Vec3::zero);
+    let offset_pos = chunk_origin + coord;
     block_change.set(offset_pos, block);
 }
