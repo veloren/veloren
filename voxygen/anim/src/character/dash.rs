@@ -6,7 +6,7 @@ use common::{
     comp::item::{Hands, ToolKind},
     states::utils::{AbilityInfo, StageSection},
 };
-use std::f32::consts::PI;
+use std::f32::consts::FRAC_PI_2;
 
 pub struct DashAnimation;
 
@@ -55,7 +55,7 @@ impl Animation for DashAnimation {
             ((5.0 / (1.5 + 3.5 * ((x * 5.0).sin()).powi(2))).sqrt()) * ((x * 5.0).sin())
         }
 
-        fn shortalt(x: f32) -> f32 { (x * 5.0 + PI / 2.0).sin() }
+        fn shortalt(x: f32) -> f32 { (x * 5.0 + FRAC_PI_2).sin() }
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.second.position = Vec3::new(0.0, 0.0, 0.0);

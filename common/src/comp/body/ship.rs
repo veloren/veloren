@@ -5,6 +5,7 @@ use crate::{
 };
 use rand::prelude::SliceRandom;
 use serde::{Deserialize, Serialize};
+use std::f32::consts::FRAC_PI_6;
 use vek::Vec3;
 
 pub const ALL_BODIES: [Body; 2] = [Body::DefaultAirship, Body::AirBalloon];
@@ -46,9 +47,8 @@ impl Body {
     }
 
     fn balloon_vol(&self) -> f32 {
-        let spheroid_vol = |equat_d: f32, polar_d: f32| -> f32 {
-            (std::f32::consts::PI / 6.0) * equat_d.powi(2) * polar_d
-        };
+        let spheroid_vol =
+            |equat_d: f32, polar_d: f32| -> f32 { FRAC_PI_6 * equat_d.powi(2) * polar_d };
         let dim = self.dimensions();
         spheroid_vol(dim.z, dim.y)
     }
@@ -57,7 +57,7 @@ impl Body {
         // height from bottom of keel to deck
         let deck_height = 10_f32;
         let dim = self.dimensions();
-        (std::f32::consts::PI / 6.0) * (deck_height * 1.5).powi(2) * dim.y
+        FRAC_PI_6 * (deck_height * 1.5).powi(2) * dim.y
     }
 
     pub fn hull_density(&self) -> Density {

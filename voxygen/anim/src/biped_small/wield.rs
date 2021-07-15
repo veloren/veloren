@@ -3,7 +3,7 @@ use super::{
     BipedSmallSkeleton, SkeletonAttr,
 };
 use common::comp::item::ToolKind;
-use std::f32::consts::PI;
+use std::f32::consts::{FRAC_PI_2, PI};
 
 pub struct WieldAnimation;
 
@@ -38,7 +38,7 @@ impl Animation for WieldAnimation {
 
         let fastacc = (acc_vel * 2.0).sin();
         let fast = (anim_time * 10.0).sin();
-        let fastalt = (anim_time * 10.0 + PI / 2.0).sin();
+        let fastalt = (anim_time * 10.0 + FRAC_PI_2).sin();
         let slow = (anim_time * 2.0).sin();
 
         let speednorm = speed / 9.4;
@@ -112,9 +112,9 @@ impl Animation for WieldAnimation {
                 );
 
                 next.control_l.orientation =
-                    Quaternion::rotation_x(PI / 2.0 + slow * 0.1) * Quaternion::rotation_y(-0.3);
+                    Quaternion::rotation_x(FRAC_PI_2 + slow * 0.1) * Quaternion::rotation_y(-0.3);
                 next.control_r.orientation =
-                    Quaternion::rotation_x(PI / 2.0 + slow * 0.1 + s_a.grip.0 * 0.2)
+                    Quaternion::rotation_x(FRAC_PI_2 + slow * 0.1 + s_a.grip.0 * 0.2)
                         * Quaternion::rotation_y(0.5 + slow * 0.0 + s_a.grip.0 * 0.2);
 
                 next.control.orientation = Quaternion::rotation_x(-0.3 + 0.5 * speednorm)
@@ -135,11 +135,11 @@ impl Animation for WieldAnimation {
                         + speednorm * 2.0,
                 );
 
-                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + slow * 0.1)
+                next.control_l.orientation = Quaternion::rotation_x(FRAC_PI_2 + slow * 0.1)
                     * Quaternion::rotation_y(-0.3)
                     * Quaternion::rotation_z(-0.3);
                 next.control_r.orientation =
-                    Quaternion::rotation_x(PI / 2.0 + slow * 0.1 + s_a.grip.0 * 0.2)
+                    Quaternion::rotation_x(FRAC_PI_2 + slow * 0.1 + s_a.grip.0 * 0.2)
                         * Quaternion::rotation_y(-0.4 + slow * 0.0 + s_a.grip.0 * 0.2)
                         * Quaternion::rotation_z(-0.0);
 

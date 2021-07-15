@@ -6,7 +6,7 @@ use common::{
     comp::item::{Hands, ToolKind},
     states::utils::{AbilityInfo, StageSection},
 };
-use std::f32::consts::PI;
+use std::f32::consts::{FRAC_PI_2, FRAC_PI_4};
 
 pub struct BeamAnimation;
 
@@ -71,7 +71,7 @@ impl Animation for BeamAnimation {
                                 + (move1 * -1.4 + (move2 * 16.0).sin() * 0.07) * (1.0 - move3),
                         )
                         * Quaternion::rotation_z(
-                            (move1 * -1.7 + (move2 * 8.0 + PI / 4.0).sin() * 0.3) * (1.0 - move3),
+                            (move1 * -1.7 + (move2 * 8.0 + FRAC_PI_4).sin() * 0.3) * (1.0 - move3),
                         );
                 next.head.orientation = Quaternion::rotation_x(0.0);
 
@@ -79,12 +79,12 @@ impl Animation for BeamAnimation {
                     0.0 + (move1 * -1.0 + (move2 * 8.0).sin() * 3.5) * (1.0 - move3),
                     0.0 + (move1 * -5.0 + (move2 * 8.0).sin() * -2.0 + (move2 * 16.0).sin() * -1.5)
                         * (1.0 - move3),
-                    -4.0 + (move1 * 19.0 + (move2 * 8.0 + PI / 2.0).sin() * 3.5) * (1.0 - move3),
+                    -4.0 + (move1 * 19.0 + (move2 * 8.0 + FRAC_PI_2).sin() * 3.5) * (1.0 - move3),
                 );
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.sthr.3 + (move1 * -0.3) * (1.0 - move3))
                         * Quaternion::rotation_y(
-                            (move1 * -1.1 + (move2 * 8.0 + PI / 2.0).sin() * -0.3) * (1.0 - move3),
+                            (move1 * -1.1 + (move2 * 8.0 + FRAC_PI_2).sin() * -0.3) * (1.0 - move3),
                         )
                         * Quaternion::rotation_z((move1 * -2.8) * (1.0 - move3));
 

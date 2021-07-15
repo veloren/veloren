@@ -11,7 +11,7 @@ use conrod_core::image::Id;
 use hashbrown::HashMap;
 use image::DynamicImage;
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use std::{f32::consts::PI, sync::Arc};
 use tracing::{error, warn};
 use vek::*;
 
@@ -84,9 +84,9 @@ impl ImageSpec {
             ImageSpec::VoxTrans(specifier, offset, [rot_x, rot_y, rot_z], zoom) => Graphic::Voxel(
                 graceful_load_segment_no_skin(specifier),
                 Transform {
-                    ori: Quaternion::rotation_x(rot_x * std::f32::consts::PI / 180.0)
-                        .rotated_y(rot_y * std::f32::consts::PI / 180.0)
-                        .rotated_z(rot_z * std::f32::consts::PI / 180.0),
+                    ori: Quaternion::rotation_x(rot_x * PI / 180.0)
+                        .rotated_y(rot_y * PI / 180.0)
+                        .rotated_z(rot_z * PI / 180.0),
                     offset: Vec3::from(*offset),
                     zoom: *zoom,
                     orth: true, // TODO: Is this what we want here? @Pfau

@@ -3,7 +3,10 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::comp::item::{Hands, ToolKind};
-use std::{f32::consts::PI, ops::Mul};
+use std::{
+    f32::consts::{FRAC_PI_2, PI},
+    ops::Mul,
+};
 
 pub struct SwimAnimation;
 
@@ -190,15 +193,18 @@ impl Animation for SwimAnimation {
             },
             Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                 next.main.position = Vec3::new(2.0, -5.0, -1.0);
-                next.main.orientation = Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(1.57);
+                next.main.orientation =
+                    Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(FRAC_PI_2);
             },
             Some(ToolKind::Bow) => {
                 next.main.position = Vec3::new(0.0, -5.0, 6.0);
-                next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+                next.main.orientation =
+                    Quaternion::rotation_y(2.5) * Quaternion::rotation_z(FRAC_PI_2);
             },
             _ => {
                 next.main.position = Vec3::new(-7.0, -5.0, 15.0);
-                next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+                next.main.orientation =
+                    Quaternion::rotation_y(2.5) * Quaternion::rotation_z(FRAC_PI_2);
             },
         }
 
@@ -216,7 +222,7 @@ impl Animation for SwimAnimation {
             _ => {
                 next.second.position = Vec3::new(-7.0, -5.0, 15.0);
                 next.second.orientation =
-                    Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+                    Quaternion::rotation_y(2.5) * Quaternion::rotation_z(FRAC_PI_2);
             },
         }
 
@@ -231,7 +237,7 @@ impl Animation for SwimAnimation {
         };
         next.torso.position = Vec3::new(0.0, 0.0, 1.0 - avgspeed * 0.05) * s_a.scaler;
         next.torso.orientation = Quaternion::rotation_x(
-            (((1.0 / switch) * PI / 2.0 + avg_vel.z * 0.12).min(1.57) - PI / 2.0)
+            (((1.0 / switch) * FRAC_PI_2 + avg_vel.z * 0.12).min(FRAC_PI_2) - FRAC_PI_2)
                 + avgspeed * avg_vel.z * -0.003,
         ) * Quaternion::rotation_y(tilt * 2.0)
             * Quaternion::rotation_z(tilt * 3.0);
@@ -241,7 +247,7 @@ impl Animation for SwimAnimation {
                 Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
                     next.main.position = Vec3::new(-4.0, -5.0, 10.0);
                     next.main.orientation =
-                        Quaternion::rotation_y(2.35) * Quaternion::rotation_z(1.57);
+                        Quaternion::rotation_y(2.35) * Quaternion::rotation_z(FRAC_PI_2);
                 },
 
                 _ => {},
@@ -253,7 +259,7 @@ impl Animation for SwimAnimation {
                 Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
                     next.second.position = Vec3::new(4.0, -6.0, 10.0);
                     next.second.orientation =
-                        Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(-1.57);
+                        Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(-FRAC_PI_2);
                 },
                 _ => {},
             },

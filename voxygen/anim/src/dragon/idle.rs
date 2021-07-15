@@ -2,7 +2,7 @@ use super::{
     super::{vek::*, Animation},
     DragonSkeleton, SkeletonAttr,
 };
-use std::{f32::consts::PI, ops::Mul};
+use std::{f32::consts::FRAC_PI_2, ops::Mul};
 
 pub struct IdleAnimation;
 
@@ -25,7 +25,7 @@ impl Animation for IdleAnimation {
 
         let ultra_slow = (anim_time * 1.0).sin();
         let slow = (anim_time * 2.5).sin();
-        let slowalt = (anim_time * 2.5 + PI / 2.0).sin();
+        let slowalt = (anim_time * 2.5 + FRAC_PI_2).sin();
 
         let dragon_look = Vec2::new(
             (global_time / 2.0 + anim_time / 8.0)

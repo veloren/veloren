@@ -21,7 +21,6 @@ impl Animation for IdleAnimation {
     const UPDATE_FN: &'static [u8] = b"ship_idle\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "ship_idle")]
-    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, _second_tool_kind, _global_time, acc_vel, orientation, last_ori): Self::Dependency<'a>,

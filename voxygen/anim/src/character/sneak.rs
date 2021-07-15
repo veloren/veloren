@@ -3,7 +3,10 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::comp::item::ToolKind;
-use std::{f32::consts::PI, ops::Mul};
+use std::{
+    f32::consts::{FRAC_PI_2, FRAC_PI_4, FRAC_PI_6, PI},
+    ops::Mul,
+};
 
 pub struct SneakAnimation;
 
@@ -47,13 +50,13 @@ impl Animation for SneakAnimation {
             * ((anim_time * 7.0 * lab + PI * 0.4).sin());
 
         let short = (anim_time * lab * 7.0).sin();
-        let noisea = (anim_time * 11.0 + PI / 6.0).sin();
-        let noiseb = (anim_time * 19.0 + PI / 4.0).sin();
+        let noisea = (anim_time * 11.0 + FRAC_PI_6).sin();
+        let noiseb = (anim_time * 19.0 + FRAC_PI_4).sin();
 
         let shorte = ((5.0 / (4.0 + 1.0 * ((anim_time * lab * 7.0).sin()).powi(2))).sqrt())
             * ((anim_time * lab * 7.0).sin());
 
-        let shortalt = (anim_time * lab * 7.0 + PI / 2.0).sin();
+        let shortalt = (anim_time * lab * 7.0 + FRAC_PI_2).sin();
 
         let head_look = Vec2::new(
             (global_time + anim_time / 18.0).floor().mul(7331.0).sin() * 0.2,

@@ -6,7 +6,7 @@ use common::{
     comp::item::tool::{AbilitySpec, ToolKind},
     states::utils::StageSection,
 };
-use std::f32::consts::PI;
+use std::f32::consts::{FRAC_PI_2, FRAC_PI_3, PI};
 
 pub struct BetaAnimation;
 
@@ -105,7 +105,7 @@ impl Animation for BetaAnimation {
                 next.lower_torso.orientation =
                     Quaternion::rotation_z(move1base * -0.5 + move2 * 0.7);
                 next.control_l.orientation =
-                    Quaternion::rotation_x(PI / 2.0 + move1 * -0.5 + move2 * 1.5)
+                    Quaternion::rotation_x(FRAC_PI_2 + move1 * -0.5 + move2 * 1.5)
                         * Quaternion::rotation_y(-0.2);
                 next.control_r.orientation =
                     Quaternion::rotation_x(PI / 2.2 + move1 * -0.5 + move2 * 1.5)
@@ -131,8 +131,8 @@ impl Animation for BetaAnimation {
                 next.lower_torso.orientation = Quaternion::rotation_z(move1 * -0.6 + move2 * 1.5);
 
                 next.control_l.orientation =
-                    Quaternion::rotation_x(PI / 2.0 + move2 * 0.8) * Quaternion::rotation_y(-0.0);
-                next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + 0.2 + move2 * 0.8)
+                    Quaternion::rotation_x(FRAC_PI_2 + move2 * 0.8) * Quaternion::rotation_y(-0.0);
+                next.control_r.orientation = Quaternion::rotation_x(FRAC_PI_2 + 0.2 + move2 * 0.8)
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
 
@@ -156,8 +156,8 @@ impl Animation for BetaAnimation {
                 next.lower_torso.orientation = Quaternion::rotation_z(move1 * -1.2 + move2 * 1.0);
 
                 next.control_l.orientation =
-                    Quaternion::rotation_x(PI / 2.0 + move2 * 0.8) * Quaternion::rotation_y(-0.0);
-                next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + 0.2 + move2 * 0.8)
+                    Quaternion::rotation_x(FRAC_PI_2 + move2 * 0.8) * Quaternion::rotation_y(-0.0);
+                next.control_r.orientation = Quaternion::rotation_x(FRAC_PI_2 + 0.2 + move2 * 0.8)
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
 
@@ -188,11 +188,11 @@ impl Animation for BetaAnimation {
                             );
 
                             next.control_l.orientation =
-                                Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
+                                Quaternion::rotation_x(FRAC_PI_3 + move1 * 0.5)
                                     * Quaternion::rotation_y(-0.15)
                                     * Quaternion::rotation_z(move1 * 0.5 + move2 * -0.6);
                             next.control_r.orientation =
-                                Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
+                                Quaternion::rotation_x(FRAC_PI_3 + move1 * 0.5)
                                     * Quaternion::rotation_y(0.15)
                                     * Quaternion::rotation_z(move1 * -0.5 + move2 * 0.6);
                             next.head.orientation = Quaternion::rotation_x(move1 * 0.3);
@@ -223,11 +223,11 @@ impl Animation for BetaAnimation {
                             );
 
                             next.control_l.orientation =
-                                Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
+                                Quaternion::rotation_x(FRAC_PI_3 + move1 * 0.5)
                                     * Quaternion::rotation_y(-0.15)
                                     * Quaternion::rotation_z(move1 * 0.5 + move2 * -0.6);
                             next.control_r.orientation =
-                                Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
+                                Quaternion::rotation_x(FRAC_PI_3 + move1 * 0.5)
                                     * Quaternion::rotation_y(0.15)
                                     * Quaternion::rotation_z(move1 * -0.5 + move2 * 0.6);
                             next.head.orientation = Quaternion::rotation_x(move1 * 0.3);

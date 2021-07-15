@@ -3,7 +3,7 @@ use super::{
     BipedLargeSkeleton, SkeletonAttr,
 };
 use common::comp::item::ToolKind;
-use std::f32::consts::PI;
+use std::f32::consts::{FRAC_PI_2, PI};
 
 pub struct JumpAnimation;
 
@@ -64,23 +64,28 @@ impl Animation for JumpAnimation {
         match active_tool_kind {
             Some(ToolKind::Bow) => {
                 next.main.position = Vec3::new(-2.0, -5.0, -6.0);
-                next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+                next.main.orientation =
+                    Quaternion::rotation_y(2.5) * Quaternion::rotation_z(FRAC_PI_2);
             },
             Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                 next.main.position = Vec3::new(-6.0, -5.0, -12.0);
-                next.main.orientation = Quaternion::rotation_y(0.6) * Quaternion::rotation_z(1.57);
+                next.main.orientation =
+                    Quaternion::rotation_y(0.6) * Quaternion::rotation_z(FRAC_PI_2);
             },
             Some(ToolKind::Sword) => {
                 next.main.position = Vec3::new(-10.0, -8.0, 12.0);
-                next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+                next.main.orientation =
+                    Quaternion::rotation_y(2.5) * Quaternion::rotation_z(FRAC_PI_2);
             },
             Some(ToolKind::Hammer) | Some(ToolKind::Axe) => {
                 next.main.position = Vec3::new(-10.0, -8.0, 12.0);
-                next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+                next.main.orientation =
+                    Quaternion::rotation_y(2.5) * Quaternion::rotation_z(FRAC_PI_2);
             },
             _ => {
                 next.main.position = Vec3::new(-2.0, -5.0, -6.0);
-                next.main.orientation = Quaternion::rotation_y(0.6) * Quaternion::rotation_z(1.57);
+                next.main.orientation =
+                    Quaternion::rotation_y(0.6) * Quaternion::rotation_z(FRAC_PI_2);
             },
         }
 

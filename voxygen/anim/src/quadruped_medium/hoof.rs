@@ -3,7 +3,7 @@ use super::{
     QuadrupedMediumSkeleton, SkeletonAttr,
 };
 use common::states::utils::StageSection;
-use std::f32::consts::PI;
+use std::f32::consts::FRAC_PI_2;
 
 pub struct HoofAnimation;
 
@@ -40,7 +40,7 @@ impl Animation for HoofAnimation {
         let movement1abs = movement1base * pullback;
         let movement2abs = movement2base * pullback;
         let twitchleft = (twitch * 16.0).sin() * pullback * mirror;
-        let twitchright = (twitch * 8.0 + PI / 2.0).sin() * pullback * mirror;
+        let twitchright = (twitch * 8.0 + FRAC_PI_2).sin() * pullback * mirror;
 
         next.head.orientation = Quaternion::rotation_x(movement1abs * -0.6 + movement2abs * 0.6)
             * Quaternion::rotation_y(movement1 * 0.35 + movement2 * -0.15)

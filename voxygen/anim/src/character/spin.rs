@@ -6,7 +6,7 @@ use common::{
     comp::item::{Hands, ToolKind},
     states::utils::{AbilityInfo, StageSection},
 };
-use std::f32::consts::PI;
+use std::f32::consts::{FRAC_PI_2, PI};
 
 pub struct SpinAnimation;
 
@@ -144,7 +144,7 @@ impl Animation for SpinAnimation {
                         next.control.orientation =
                             Quaternion::rotation_x(-0.5 + s_a.sc.3 + movement1base * -1.2)
                                 * Quaternion::rotation_y(s_a.sc.4 - 0.6 + movement2base * -0.2)
-                                * Quaternion::rotation_z(s_a.sc.5 - 1.57 + movement1base * PI);
+                                * Quaternion::rotation_z(s_a.sc.5 - FRAC_PI_2 + movement1base * PI);
                     },
                     Some(ToolKind::Axe) => {
                         next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
@@ -183,7 +183,7 @@ impl Animation for SpinAnimation {
                         * Quaternion::rotation_y(-2.7 + movement1base * -1.0 + movement2base * 2.0)
                         * Quaternion::rotation_z(1.5 + movement1base * PI);
                     next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
-                    next.hand_l.orientation = Quaternion::rotation_x(1.57)
+                    next.hand_l.orientation = Quaternion::rotation_x(FRAC_PI_2)
                 },
                 Some(ToolKind::Axe) => {
                     next.control_l.position = Vec3::new(
@@ -193,9 +193,9 @@ impl Animation for SpinAnimation {
                     );
                     next.control_l.orientation = Quaternion::rotation_x(1.7 + movement2base * 1.5)
                         * Quaternion::rotation_y(-3.7)
-                        * Quaternion::rotation_z(1.5 + movement2base * 1.57);
+                        * Quaternion::rotation_z(1.5 + movement2base * FRAC_PI_2);
                     next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
-                    next.hand_l.orientation = Quaternion::rotation_x(1.57)
+                    next.hand_l.orientation = Quaternion::rotation_x(FRAC_PI_2)
                 },
 
                 _ => {},
@@ -212,7 +212,7 @@ impl Animation for SpinAnimation {
                             * Quaternion::rotation_y(-3.3 + move1 * -1.0 + move2 * 2.0)
                             * Quaternion::rotation_z(1.5 + move1 * PI);
                         next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
-                        next.hand_r.orientation = Quaternion::rotation_x(1.57)
+                        next.hand_r.orientation = Quaternion::rotation_x(FRAC_PI_2)
                     },
                     Some(ToolKind::Axe) => {
                         next.control_r.position = Vec3::new(
@@ -222,9 +222,9 @@ impl Animation for SpinAnimation {
                         );
                         next.control_r.orientation = Quaternion::rotation_x(1.7 + move2 * 1.5)
                             * Quaternion::rotation_y(-3.3)
-                            * Quaternion::rotation_z(1.5 + move2 * 1.57);
+                            * Quaternion::rotation_z(1.5 + move2 * FRAC_PI_2);
                         next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
-                        next.hand_r.orientation = Quaternion::rotation_x(1.57)
+                        next.hand_r.orientation = Quaternion::rotation_x(FRAC_PI_2)
                     },
 
                     _ => {},

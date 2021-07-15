@@ -16,7 +16,7 @@ use common::{
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use rand::prelude::*;
-use std::{f32, ops::Range};
+use std::{f32, f32::consts::TAU, ops::Range};
 use vek::*;
 
 lazy_static! {
@@ -451,7 +451,7 @@ impl ProceduralTree {
                 .cross(Vec3::<f32>::zero().map(|_| rng.gen_range(-1.0..1.0)))
                 .normalized();
             let y_axis = dir.cross(x_axis).normalized();
-            let screw_shift = rng.gen_range(0.0..f32::consts::TAU);
+            let screw_shift = rng.gen_range(0.0..TAU);
 
             let splits = rng.gen_range(config.splits.clone()).round() as usize;
             for i in 0..splits {
@@ -459,7 +459,7 @@ impl ProceduralTree {
                 let dist = Lerp::lerp(rng.gen_range(0.0..1.0), proportion, config.proportionality);
 
                 const PHI: f32 = 0.618;
-                const RAD_PER_BRANCH: f32 = f32::consts::TAU * PHI;
+                const RAD_PER_BRANCH: f32 = TAU * PHI;
                 let screw = (screw_shift + i as f32 * RAD_PER_BRANCH).sin() * x_axis
                     + (screw_shift + i as f32 * RAD_PER_BRANCH).cos() * y_axis;
 
@@ -648,10 +648,9 @@ impl Branch {
                 {
                     let rpos = pos.xy() - p;
                     let stretch = 32.0;
-                    let stair_section =
-                        ((rpos.x as f32).atan2(rpos.y as f32) / (f32::consts::PI * 2.0) * stretch
-                            + pos.z)
-                            .rem_euclid(stretch);
+                    let stair_section = ((rpos.x as f32).atan2(rpos.y as f32) / TAU * stretch
+                        + pos.z)
+                        .rem_euclid(stretch);
                     (
                         stair_section < stair_thickness,
                         stair_section >= stair_thickness

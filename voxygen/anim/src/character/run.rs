@@ -3,7 +3,10 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::comp::item::{Hands, ToolKind};
-use std::{f32::consts::PI, ops::Mul};
+use std::{
+    f32::consts::{FRAC_PI_2, FRAC_PI_4, FRAC_PI_6, PI},
+    ops::Mul,
+};
 
 pub struct RunAnimation;
 
@@ -62,8 +65,8 @@ impl Animation for RunAnimation {
             .sqrt())
             * ((acc_vel * 1.6 * lab + PI * 0.4).sin());
 
-        let noisea = (acc_vel * 11.0 + PI / 6.0).sin();
-        let noiseb = (acc_vel * 19.0 + PI / 4.0).sin();
+        let noisea = (acc_vel * 11.0 + FRAC_PI_6).sin();
+        let noiseb = (acc_vel * 19.0 + FRAC_PI_4).sin();
 
         let shorte = ((1.0 / (0.8 + 0.2 * ((acc_vel * lab * 1.6).sin()).powi(2))).sqrt())
             * ((acc_vel * lab * 1.6).sin());
@@ -80,7 +83,7 @@ impl Animation for RunAnimation {
         let footvertsl = (acc_vel * 1.6 * lab).sin();
         let footvertsr = (acc_vel * 1.6 * lab + PI * 0.5).sin();
 
-        let shortalt = (acc_vel * lab * 1.6 + PI / 2.0).sin();
+        let shortalt = (acc_vel * lab * 1.6 + FRAC_PI_2).sin();
 
         let short = ((5.0 / (1.5 + 3.5 * ((acc_vel * lab * 1.6).sin()).powi(2))).sqrt())
             * ((acc_vel * lab * 1.6).sin());

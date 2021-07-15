@@ -16,7 +16,6 @@ impl Animation for SummonAnimation {
     const UPDATE_FN: &'static [u8] = b"bird_large_summon\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_summon")]
-    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (global_time, stage_section, timer, look_dir, on_ground): Self::Dependency<'a>,
