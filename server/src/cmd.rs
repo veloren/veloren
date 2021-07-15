@@ -1944,6 +1944,7 @@ fn handle_spawn_wiring(
             inputs: HashMap::new(),
             outputs: outputs1,
         })
+        .with(comp::Density(100_f32))
         .with(comp::Sticky);
     let ent1 = builder1.build();
 
@@ -1966,6 +1967,16 @@ fn handle_spawn_wiring(
                     }],
                 },
                 WiringAction {
+                    formula: wiring::OutputFormula::Input {
+                        name: String::from("deaths_accumulated"),
+                    },
+                    threshold: 1.0,
+                    effects: vec![WiringActionEffect::SetBlock {
+                        coords: vek::Vec3::new(0, 0, pos.0.z as i32),
+                        block: Block::new(BlockKind::Water, vek::Rgb::new(0, 0, 0)),
+                    }],
+                },
+                WiringAction {
                     formula: wiring::OutputFormula::Constant { value: 1.0 },
                     threshold: 1.0,
                     effects: vec![WiringActionEffect::SetLight {
@@ -1983,7 +1994,8 @@ fn handle_spawn_wiring(
             ],
             inputs: HashMap::new(),
             outputs: HashMap::new(),
-        });
+        })
+        .with(comp::Density(100_f32));
     let ent2 = builder2.build();
 
     pos.0.x += 3.0;
@@ -1994,6 +2006,7 @@ fn handle_spawn_wiring(
             inputs: HashMap::new(),
             outputs: HashMap::new(),
         })
+        .with(comp::Density(comp::object::Body::TrainingDummy.density().0))
         .with(Circuit {
             wires: vec![
                 Wire {

@@ -6,11 +6,13 @@ use common::{
     comp::{object, Body, LightEmitter, PhysicsState, Pos, ProjectileConstructor},
     event::{Emitter, ServerEvent},
     resources::EntitiesDiedLastTick,
+    terrain::{block::Block, TerrainChunkSize},
     util::Dir,
+    vol::RectVolSize,
 };
+use common_state::BlockChange;
 use hashbrown::HashMap;
-use specs::{join::Join, Entity, Read};
-use tracing::warn;
+use specs::{join::Join, Entity, Read, Write};
 use vek::Rgb;
 
 pub fn dispatch_actions(system_data: &mut WiringData) {
@@ -21,6 +23,7 @@ pub fn dispatch_actions(system_data: &mut WiringData) {
         physics_states,
         light_emitters,
         entities_died_last_tick,
+        block_change,
         pos,
         ..
     } = system_data;
@@ -57,6 +60,7 @@ pub fn dispatch_actions(system_data: &mut WiringData) {
                             &mut light_emitter,
                             physics_state,
                             entities_died_last_tick,
+                            block_change,
                             pos,
                         );
                     })
@@ -75,13 +79,14 @@ fn dispatch_action(
     light_emitter: &mut Option<impl DerefMut<Target = LightEmitter>>,
     physics_state: Option<&PhysicsState>,
     entities_died_last_tick: &Read<EntitiesDiedLastTick>,
+    block_change: &mut Write<BlockChange>,
     pos: Option<&Pos>,
 ) {
     action_effects
         .iter()
         .for_each(|action_effect| match action_effect {
-            WiringActionEffect::SetBlockCollidability { .. } => {
-                warn!("Not implemented WiringActionEffect::SetBlockCollidability")
+            WiringActionEffect::SetBlock { coords, block } => {
+                dispatch_action_set_block(*coords, *block, block_change, pos);
             },
             WiringActionEffect::SpawnProjectile { constr } => {
                 dispatch_action_spawn_projectile(entity, constr, server_emitter)
@@ -139,4 +144,29 @@ fn dispatch_action_set_light(
 
         light_emitter.col = Rgb::new(computed_r, computed_g, computed_b);
     }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn dispatch_action_set_block(
+    coord: vek::Vec3<i32>,
+    block: Block,
+    block_change: &mut Write<BlockChange>,
+    pos: Option<&Pos>,
+) {
+    let chunk_origin = match pos {
+        Some(opos) => vek::Vec3::new(
+            (opos.0.x as i32 / TerrainChunkSize::RECT_SIZE.x as i32)
+                * TerrainChunkSize::RECT_SIZE.x as i32,
+            (opos.0.y as i32 / TerrainChunkSize::RECT_SIZE.y as i32)
+                * TerrainChunkSize::RECT_SIZE.y as i32,
+            0,
+        ),
+        None => vek::Vec3::new(0, 0, 0),
+    };
+    let offset_pos = chunk_origin
+        .iter()
+        .zip(coord.iter())
+        .map(|(p, c)| p + c)
+        .collect();
+    block_change.set(offset_pos, block);
 }
