@@ -2,7 +2,7 @@ use super::{
     super::{vek::*, Animation},
     BirdLargeSkeleton, SkeletonAttr,
 };
-use std::f32::consts::PI;
+use std::f32::consts::{FRAC_PI_2, PI};
 
 pub struct RunAnimation;
 
@@ -47,10 +47,10 @@ impl Animation for RunAnimation {
 
         //FL
         let foot1a = (mixed_vel * 1.0 * lab * speedmult + 0.0 + PI).sin() * speednorm; //1.5
-        let foot1b = (mixed_vel * 1.0 * lab * speedmult + 1.57 + PI).sin() * speednorm; //1.9
+        let foot1b = (mixed_vel * 1.0 * lab * speedmult + FRAC_PI_2 + PI).sin() * speednorm; //1.9
         //FR
         let foot2a = (mixed_vel * 1.0 * lab * speedmult).sin() * speednorm; //1.2
-        let foot2b = (mixed_vel * 1.0 * lab * speedmult + 1.57).sin() * speednorm; //1.6
+        let foot2b = (mixed_vel * 1.0 * lab * speedmult + FRAC_PI_2).sin() * speednorm; //1.6
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
         let tilt = if ::vek::Vec2::new(ori, last_ori)

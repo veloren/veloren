@@ -3,7 +3,7 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::comp::item::ToolKind;
-use std::{f32::consts::PI, ops::Mul};
+use std::{f32::consts::FRAC_PI_2, ops::Mul};
 
 pub struct SitAnimation;
 
@@ -25,8 +25,8 @@ impl Animation for SitAnimation {
         let mut next = (*skeleton).clone();
 
         let slow = (anim_time * 1.0).sin();
-        let slowa = (anim_time * 1.0 + PI / 2.0).sin();
-        let stop = (anim_time * 3.0).min(PI / 2.0).sin();
+        let slowa = (anim_time * 1.0 + FRAC_PI_2).sin();
+        let stop = (anim_time * 3.0).min(FRAC_PI_2).sin();
 
         let head_look = Vec2::new(
             (global_time * 0.05 + anim_time / 15.0)

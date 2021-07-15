@@ -3,8 +3,8 @@ use super::{
     QuadrupedLowSkeleton, SkeletonAttr,
 };
 use common::states::utils::StageSection;
+use std::f32::consts::FRAC_PI_2;
 //use std::ops::Rem;
-use std::f32::consts::PI;
 
 pub struct BreatheAnimation;
 
@@ -37,7 +37,7 @@ impl Animation for BreatheAnimation {
         let check = subtract - subtract.trunc();
         let mirror = (check - 0.5).signum();
         let twitch2 = mirror * (twitch * 20.0).sin() * pullback;
-        let twitch2alt = mirror * (twitch * 20.0 + PI / 2.0).sin() * pullback;
+        let twitch2alt = mirror * (twitch * 20.0 + FRAC_PI_2).sin() * pullback;
 
         let movement1abs = movement1base * pullback;
 

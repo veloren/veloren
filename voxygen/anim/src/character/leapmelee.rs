@@ -6,6 +6,8 @@ use common::{
     comp::item::{Hands, ToolKind},
     states::utils::{AbilityInfo, StageSection},
 };
+use std::f32::consts::FRAC_PI_2;
+
 pub struct LeapAnimation;
 
 type LeapAnimationDependency = (
@@ -23,7 +25,6 @@ impl Animation for LeapAnimation {
     const UPDATE_FN: &'static [u8] = b"character_leapmelee\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_leapmelee")]
-    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (hands, _velocity, _global_time, stage_section, ability_info): Self::Dependency<'a>,
@@ -133,7 +134,7 @@ impl Animation for LeapAnimation {
                             s_a.hc.2 + move2 * 5.0 + move3 * -10.0,
                         );
                         next.control.orientation =
-                            Quaternion::rotation_x(s_a.hc.3 + move2 * 1.57 + move3 * -2.3)
+                            Quaternion::rotation_x(s_a.hc.3 + move2 * FRAC_PI_2 + move3 * -2.3)
                                 * Quaternion::rotation_y(s_a.hc.4 + move2 * 1.3)
                                 * Quaternion::rotation_z(s_a.hc.5 + move2 * -1.0 + move3 * 0.5);
                     },
@@ -170,7 +171,7 @@ impl Animation for LeapAnimation {
                         Quaternion::rotation_x(-0.3 + move2 * 1.0 + move3 * -2.0)
                             * Quaternion::rotation_y(move2 * -0.5 + move3 * 1.9);
                     next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
-                    next.hand_l.orientation = Quaternion::rotation_x(1.57)
+                    next.hand_l.orientation = Quaternion::rotation_x(FRAC_PI_2)
                 },
                 Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {
                     next.control_l.position = Vec3::new(
@@ -181,7 +182,7 @@ impl Animation for LeapAnimation {
                     next.control_l.orientation =
                         Quaternion::rotation_x(-0.3 + move2 * 1.5 + move3 * -2.5);
                     next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
-                    next.hand_l.orientation = Quaternion::rotation_x(1.57)
+                    next.hand_l.orientation = Quaternion::rotation_x(FRAC_PI_2)
                 },
 
                 _ => {},
@@ -200,7 +201,7 @@ impl Animation for LeapAnimation {
                         next.control_r.orientation = Quaternion::rotation_x(-0.3 + move3 * -2.2)
                             * Quaternion::rotation_y(move2 * -0.5 + move3 * 1.2);
                         next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
-                        next.hand_r.orientation = Quaternion::rotation_x(1.57)
+                        next.hand_r.orientation = Quaternion::rotation_x(FRAC_PI_2)
                     },
                     Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {
                         next.control_r.position = Vec3::new(
@@ -212,7 +213,7 @@ impl Animation for LeapAnimation {
                             Quaternion::rotation_x(-0.3 + move2 * 1.5 + move3 * -2.5)
                                 * Quaternion::rotation_y(move2 * -0.75 + move3 * 0.75);
                         next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
-                        next.hand_r.orientation = Quaternion::rotation_x(1.57)
+                        next.hand_r.orientation = Quaternion::rotation_x(FRAC_PI_2)
                     },
                     _ => {},
                 }

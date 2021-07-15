@@ -23,6 +23,7 @@ use fxhash::FxHasher64;
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
+use std::f32::consts::FRAC_PI_2;
 use tracing::{debug, info, warn};
 use vek::*;
 
@@ -289,7 +290,7 @@ impl Civs {
 
         let path = (-100..100)
             .filter_map(|i: i32| {
-                let depth = (i.abs() as f32 / 100.0 * std::f32::consts::PI / 2.0).cos();
+                let depth = (i.abs() as f32 / 100.0 * FRAC_PI_2).cos();
                 vel = (vel
                     + Vec2::new(
                         ctx.rng.gen_range(-0.35..0.35),

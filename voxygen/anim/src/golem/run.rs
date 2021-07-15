@@ -2,7 +2,7 @@ use super::{
     super::{vek::*, Animation},
     GolemSkeleton, SkeletonAttr,
 };
-use std::f32::consts::PI;
+use std::f32::consts::{FRAC_PI_2, PI};
 
 pub struct RunAnimation;
 
@@ -50,7 +50,7 @@ impl Animation for RunAnimation {
             * speednorm;
 
         let short = (mixed_vel * lab * 2.0).sin() * speednorm;
-        let shortalt = (mixed_vel * lab * 2.0 + PI / 2.0).sin() * speednorm;
+        let shortalt = (mixed_vel * lab * 2.0 + FRAC_PI_2).sin() * speednorm;
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
         let tilt = if ::vek::Vec2::new(ori, last_ori)

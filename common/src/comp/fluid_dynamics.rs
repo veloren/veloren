@@ -6,7 +6,7 @@ use crate::{
     util::{Dir, Plane, Projection},
 };
 use serde::{Deserialize, Serialize};
-use std::f32::consts::PI;
+use std::f32::consts::{FRAC_PI_2, FRAC_PI_4, FRAC_PI_6, PI};
 use vek::*;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -300,7 +300,7 @@ impl Body {
                 _ => {
                     let dim = self.dimensions();
                     const CD: f32 = 2.0;
-                    CD * (PI / 6.0 * dim.x * dim.y * dim.z).powf(2.0 / 3.0)
+                    CD * (FRAC_PI_6 * dim.x * dim.y * dim.z).powf(2.0 / 3.0)
                 },
             },
 
@@ -308,7 +308,7 @@ impl Body {
                 // Airships tend to use the square of the cube root of its volume for
                 // reference area
                 let dim = self.dimensions();
-                (PI / 6.0 * dim.x * dim.y * dim.z).powf(2.0 / 3.0)
+                (FRAC_PI_6 * dim.x * dim.y * dim.z).powf(2.0 / 3.0)
             },
         }
     }
@@ -323,7 +323,7 @@ impl Body {
 pub fn angle_of_attack(ori: &Ori, rel_flow_dir: &Dir) -> f32 {
     rel_flow_dir
         .projected(&Plane::from(ori.right()))
-        .map(|flow_dir| PI / 2.0 - ori.up().angle_between(flow_dir.to_vec()))
+        .map(|flow_dir| FRAC_PI_2 - ori.up().angle_between(flow_dir.to_vec()))
         .unwrap_or(0.0)
 }
 
@@ -341,7 +341,7 @@ pub fn lift_coefficient(aspect_ratio: f32, planform_area: f32, aoa: f32) -> f32 
             // to just throw your hands up and return 0
             let aoa_s = aoa.signum();
             let c_l_max = lift_slope(aspect_ratio, None) * stall_angle;
-            let deg_45 = PI / 4.0;
+            let deg_45 = FRAC_PI_4;
             if aoa_abs < deg_45 {
                 // drop directly to 0.6 * max lift at stall angle
                 // then climb back to max at 45°

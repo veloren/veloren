@@ -2,7 +2,7 @@ use super::{
     super::{vek::*, Animation},
     QuadrupedSmallSkeleton, SkeletonAttr,
 };
-use std::{f32::consts::PI, ops::Mul};
+use std::{f32::consts::FRAC_PI_2, ops::Mul};
 
 pub struct IdleAnimation;
 
@@ -25,7 +25,7 @@ impl Animation for IdleAnimation {
 
         let slow = (anim_time * 3.5).sin();
 
-        let slow_alt = (anim_time * 3.5 + PI / 2.0).sin();
+        let slow_alt = (anim_time * 3.5 + FRAC_PI_2).sin();
 
         let head_look = Vec2::new(
             (global_time / 2.0 + anim_time / 8.0)

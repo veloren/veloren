@@ -46,7 +46,11 @@ use specs::{
     Entities, Entity as EcsEntity, Join, ParJoin, Read, ReadExpect, ReadStorage, SystemData, World,
     Write, WriteExpect, WriteStorage,
 };
-use std::{f32::consts::PI, sync::Arc, time::Duration};
+use std::{
+    f32::consts::{FRAC_PI_2, PI},
+    sync::Arc,
+    time::Duration,
+};
 use vek::*;
 
 struct AgentData<'a> {
@@ -2328,7 +2332,7 @@ impl<'a> AgentData<'a> {
                 {
                     controller.inputs.move_dir = bearing
                         .xy()
-                        .rotated_z(thread_rng().gen_range(0.5..1.57))
+                        .rotated_z(thread_rng().gen_range(0.5..FRAC_PI_2))
                         .try_normalized()
                         .unwrap_or_else(Vec2::zero)
                         * speed;
@@ -2425,7 +2429,7 @@ impl<'a> AgentData<'a> {
                 {
                     controller.inputs.move_dir = bearing
                         .xy()
-                        .rotated_z(thread_rng().gen_range(-1.57..-0.5))
+                        .rotated_z(thread_rng().gen_range(-FRAC_PI_2..-0.5))
                         .try_normalized()
                         .unwrap_or_else(Vec2::zero)
                         * speed;
@@ -2549,7 +2553,7 @@ impl<'a> AgentData<'a> {
                 {
                     controller.inputs.move_dir = bearing
                         .xy()
-                        .rotated_z(thread_rng().gen_range(0.5..1.57))
+                        .rotated_z(thread_rng().gen_range(0.5..FRAC_PI_2))
                         .try_normalized()
                         .unwrap_or_else(Vec2::zero)
                         * speed;

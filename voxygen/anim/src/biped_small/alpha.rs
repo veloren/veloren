@@ -3,7 +3,7 @@ use super::{
     BipedSmallSkeleton, SkeletonAttr,
 };
 use common::{comp::item::ToolKind, states::utils::StageSection};
-use std::f32::consts::PI;
+use std::f32::consts::{FRAC_PI_2, PI};
 
 pub struct AlphaAnimation;
 
@@ -49,7 +49,7 @@ impl Animation for AlphaAnimation {
         let speed = Vec2::<f32>::from(velocity).magnitude();
 
         let fast = (anim_time * 10.0).sin();
-        let fastalt = (anim_time * 10.0 + PI / 2.0).sin();
+        let fastalt = (anim_time * 10.0 + FRAC_PI_2).sin();
 
         let speednorm = speed / 9.4;
         let speednormcancel = 1.0 - speednorm;

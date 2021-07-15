@@ -3,7 +3,7 @@ use super::{
     BipedLargeSkeleton, SkeletonAttr,
 };
 use common::comp::item::ToolKind;
-use std::f32::consts::PI;
+use std::f32::consts::{FRAC_PI_2, FRAC_PI_4, PI};
 
 pub struct EquipAnimation;
 
@@ -15,7 +15,6 @@ impl Animation for EquipAnimation {
     const UPDATE_FN: &'static [u8] = b"biped_large_equip\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_equip")]
-    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _second_tool_kind, _velocity, _global_time): Self::Dependency<'a>,
@@ -27,9 +26,9 @@ impl Animation for EquipAnimation {
         let mut next = (*skeleton).clone();
 
         let equip_slow = 1.0 + (anim_time * 12.0 + PI).cos();
-        let equip_slowa = 1.0 + (anim_time * 12.0 + PI / 4.0).cos();
-        next.hand_l.orientation = Quaternion::rotation_y(-2.3) * Quaternion::rotation_z(-1.57);
-        next.hand_r.orientation = Quaternion::rotation_y(-2.3) * Quaternion::rotation_z(1.57);
+        let equip_slowa = 1.0 + (anim_time * 12.0 + FRAC_PI_4).cos();
+        next.hand_l.orientation = Quaternion::rotation_y(-2.3) * Quaternion::rotation_z(-FRAC_PI_2);
+        next.hand_r.orientation = Quaternion::rotation_y(-2.3) * Quaternion::rotation_z(FRAC_PI_2);
         next.control.position = Vec3::new(equip_slowa * -1.5, 0.0, equip_slow * 1.5);
 
         match active_tool_kind {
@@ -49,9 +48,9 @@ impl Animation for EquipAnimation {
                 next.hand_l.position = Vec3::new(4.0, -6.0, 0.0);
                 next.hand_r.position = Vec3::new(6.0, -6.0, 6.0);
                 next.hand_l.orientation =
-                    Quaternion::rotation_y(2.2) * Quaternion::rotation_z(1.57);
+                    Quaternion::rotation_y(2.2) * Quaternion::rotation_z(FRAC_PI_2);
                 next.hand_r.orientation =
-                    Quaternion::rotation_y(2.2) * Quaternion::rotation_z(-1.57);
+                    Quaternion::rotation_y(2.2) * Quaternion::rotation_z(-FRAC_PI_2);
             },
             Some(ToolKind::Bow) => {
                 next.hand_l.position = Vec3::new(-9.0, -5.0, -8.0);

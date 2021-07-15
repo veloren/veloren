@@ -5,6 +5,7 @@ use crate::{
 };
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
+use std::f32::consts::FRAC_PI_6;
 use vek::Vec3;
 
 make_case_elim!(
@@ -302,9 +303,7 @@ impl Body {
             Body::Bedroll => 3.0,
             Body::Bench => 100.0,
             Body::BoltFire | Body::BoltFireBig | Body::BoltNature => 1.0,
-            Body::Bomb => {
-                0.5 * IRON_DENSITY * std::f32::consts::PI / 6.0 * self.dimensions().x.powi(3)
-            },
+            Body::Bomb => 0.5 * IRON_DENSITY * FRAC_PI_6 * self.dimensions().x.powi(3),
             Body::Campfire | Body::CampfireLit => 300.0,
             Body::Carpet
             | Body::CarpetHumanRound

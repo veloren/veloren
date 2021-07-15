@@ -8,7 +8,7 @@ use crate::{
     util::{Dir, Plane, Projection},
 };
 use serde::{Deserialize, Serialize};
-use std::f32::consts::PI;
+use std::f32::consts::{FRAC_PI_2, FRAC_PI_3, PI};
 use vek::*;
 
 const PITCH_SLOW_TIME: f32 = 0.5;
@@ -53,7 +53,7 @@ impl Data {
         };
         let look_ori = Ori::from(data.inputs.look_dir);
         look_ori
-            .yawed_right(PI / 3.0 * look_ori.right().xy().dot(move_dir))
+            .yawed_right(FRAC_PI_3 * look_ori.right().xy().dot(move_dir))
             .pitched_up(PI * 0.04)
             .pitched_down(
                 data.inputs
@@ -150,7 +150,7 @@ impl CharacterBehavior for Data {
                         air_flow.0.magnitude_squared().min(40_f32.powi(2)) / 40_f32.powi(2);
 
                     Quaternion::rotation_3d(
-                        -PI / 2.0 * speed_factor,
+                        -FRAC_PI_2 * speed_factor,
                         ori.up()
                             .cross(air_flow.0)
                             .try_normalized()
@@ -163,7 +163,7 @@ impl CharacterBehavior for Data {
                     let accel_factor = accel.magnitude_squared().min(1.0) / 1.0;
 
                     Quaternion::rotation_3d(
-                        PI / 2.0
+                        FRAC_PI_2
                             * accel_factor
                             * if data.physics.on_ground.is_some() {
                                 -1.0

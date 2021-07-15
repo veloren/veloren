@@ -3,7 +3,7 @@ use common::{
     assets::{self, AssetExt, DotVoxAsset, Error},
     figure::Segment,
 };
-use std::sync::Arc;
+use std::{f32::consts::FRAC_PI_2, sync::Arc};
 use vek::*;
 
 pub enum BlankGraphic {}
@@ -48,7 +48,7 @@ impl<'a> GraphicCreator<'a> for VoxelGraphic {
         Ok(Graphic::Voxel(
             load_segment(specifier)?,
             Transform {
-                ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
+                ori: Quaternion::rotation_x(-FRAC_PI_2),
                 ..Default::default()
             },
             SampleStrat::None,
@@ -62,7 +62,7 @@ impl<'a> GraphicCreator<'a> for VoxelSsGraphic {
         Ok(Graphic::Voxel(
             load_segment(specifier.0)?,
             Transform {
-                ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
+                ori: Quaternion::rotation_x(-FRAC_PI_2),
                 ..Default::default()
             },
             SampleStrat::SuperSampling(specifier.1),
@@ -76,7 +76,7 @@ impl<'a> GraphicCreator<'a> for VoxelSs4Graphic {
         Ok(Graphic::Voxel(
             load_segment(specifier)?,
             Transform {
-                ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
+                ori: Quaternion::rotation_x(-FRAC_PI_2),
                 ..Default::default()
             },
             SampleStrat::SuperSampling(4),
@@ -90,7 +90,7 @@ impl<'a> GraphicCreator<'a> for VoxelSs9Graphic {
         Ok(Graphic::Voxel(
             load_segment(specifier)?,
             Transform {
-                ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
+                ori: Quaternion::rotation_x(-FRAC_PI_2),
                 ..Default::default()
             },
             SampleStrat::SuperSampling(9),
@@ -104,7 +104,7 @@ impl<'a> GraphicCreator<'a> for VoxelPixArtGraphic {
         Ok(Graphic::Voxel(
             load_segment(specifier)?,
             Transform {
-                ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
+                ori: Quaternion::rotation_x(-FRAC_PI_2),
                 ..Default::default()
             },
             SampleStrat::PixelCoverage,

@@ -2,7 +2,7 @@ use super::{
     super::{vek::*, Animation},
     BirdMediumSkeleton, SkeletonAttr,
 };
-use std::f32::consts::PI;
+use std::f32::consts::{FRAC_PI_2, PI};
 
 pub struct RunAnimation;
 
@@ -27,7 +27,7 @@ impl Animation for RunAnimation {
 
         let footl = (anim_time * lab + PI).sin();
         let footr = (anim_time * lab).sin();
-        let center = (anim_time * lab + PI / 2.0).sin();
+        let center = (anim_time * lab + FRAC_PI_2).sin();
         let centeroffset = (anim_time * lab + PI * 1.5).sin();
 
         next.torso.scale = Vec3::one() / 11.0;

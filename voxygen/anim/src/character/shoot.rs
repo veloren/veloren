@@ -7,7 +7,7 @@ use common::{
     states::utils::{AbilityInfo, StageSection},
     util::Dir,
 };
-use std::f32::consts::PI;
+use std::f32::consts::{FRAC_PI_2, PI};
 
 pub struct ShootAnimation;
 
@@ -29,7 +29,6 @@ impl Animation for ShootAnimation {
     const UPDATE_FN: &'static [u8] = b"character_shoot\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_shoot")]
-    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (
@@ -141,7 +140,7 @@ impl Animation for ShootAnimation {
                 next.hand_r.orientation = Quaternion::rotation_x(s_a.bhr.3);
 
                 next.hold.position = Vec3::new(0.0, -1.0 + move2 * 2.0, -5.2 + move2 * 7.0);
-                next.hold.orientation = Quaternion::rotation_x(-1.57);
+                next.hold.orientation = Quaternion::rotation_x(-FRAC_PI_2);
                 next.hold.scale = Vec3::one() * 1.0 * (1.0 - move2);
 
                 next.control.position = Vec3::new(

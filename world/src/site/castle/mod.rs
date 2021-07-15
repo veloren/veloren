@@ -19,6 +19,7 @@ use common::{
 use core::f32;
 use rand::prelude::*;
 use serde::Deserialize;
+use std::f32::consts::TAU;
 use vek::*;
 
 struct Keep {
@@ -91,7 +92,7 @@ impl Castle {
 
             towers: (0..boundary_towers)
                 .map(|i| {
-                    let angle = (i as f32 / boundary_towers as f32) * f32::consts::PI * 2.0;
+                    let angle = (i as f32 / boundary_towers as f32) * TAU;
                     let dir = Vec2::new(angle.cos(), angle.sin());
                     let dist = radius as f32 + ((angle * boundary_noise).sin() - 1.0) * 40.0;
 
@@ -128,7 +129,7 @@ impl Castle {
             evil: ctx.rng.gen(),
             keeps: (0..keep_count)
                 .map(|i| {
-                    let angle = (i as f32 / keep_count as f32) * f32::consts::PI * 2.0;
+                    let angle = (i as f32 / keep_count as f32) * TAU;
                     let dir = Vec2::new(angle.cos(), angle.sin());
                     let dist =
                         (radius as f32 + ((angle * boundary_noise).sin() - 1.0) * 40.0) * 0.3;

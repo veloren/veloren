@@ -46,6 +46,7 @@ use crate::{
 };
 use hashbrown::HashMap;
 use settings_change::Language::ChangeLanguage;
+use std::f32::consts::PI;
 #[cfg(feature = "egui-ui")]
 use voxygen_egui::EguiDebugInfo;
 
@@ -887,7 +888,7 @@ impl PlayState for SessionState {
                         + input_vec.x
                             * (3.0 - input_vec.y * 1.5 * if is_aiming { 1.5 } else { 1.0 })
                             * dt,
-                    std::f32::consts::PI * if is_aiming { 0.015 } else { 0.1 },
+                    PI * if is_aiming { 0.015 } else { 0.1 },
                     0.0,
                 ));
             }

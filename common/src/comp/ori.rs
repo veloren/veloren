@@ -2,7 +2,7 @@ use crate::util::{Dir, Plane, Projection};
 use serde::{Deserialize, Serialize};
 use specs::Component;
 use specs_idvs::IdvStorage;
-use std::f32::consts::PI;
+use std::f32::consts::FRAC_PI_2;
 use vek::{Quaternion, Vec2, Vec3};
 
 // Orientation
@@ -50,13 +50,13 @@ impl Ori {
     /// Look direction (as a Dir it is pedantically normalized)
     pub fn look_dir(&self) -> Dir { self.to_quat() * Dir::default() }
 
-    pub fn up(&self) -> Dir { self.pitched_up(PI / 2.0).look_dir() }
+    pub fn up(&self) -> Dir { self.pitched_up(FRAC_PI_2).look_dir() }
 
-    pub fn down(&self) -> Dir { self.pitched_down(PI / 2.0).look_dir() }
+    pub fn down(&self) -> Dir { self.pitched_down(FRAC_PI_2).look_dir() }
 
-    pub fn left(&self) -> Dir { self.yawed_left(PI / 2.0).look_dir() }
+    pub fn left(&self) -> Dir { self.yawed_left(FRAC_PI_2).look_dir() }
 
-    pub fn right(&self) -> Dir { self.yawed_right(PI / 2.0).look_dir() }
+    pub fn right(&self) -> Dir { self.yawed_right(FRAC_PI_2).look_dir() }
 
     pub fn slerp(ori1: Self, ori2: Self, s: f32) -> Self {
         Self(Quaternion::slerp(ori1.0, ori2.0, s).normalized())
@@ -329,6 +329,7 @@ impl Component for Ori {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::f32::consts::TAU;
 
     #[test]
     fn from_to_dir() {
@@ -341,7 +342,7 @@ mod tests {
 
         let angles = 32;
         for i in 0..angles {
-            let theta = PI * 2. * (i as f32) / (angles as f32);
+            let theta = TAU * (i as f32) / (angles as f32);
             let v = Vec3::unit_y();
             let q = Quaternion::rotation_x(theta);
             from_to(Dir::new(q * v));

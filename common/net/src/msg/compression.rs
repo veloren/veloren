@@ -8,6 +8,7 @@ use image::{ImageBuffer, ImageDecoder, Pixel};
 use num_traits::cast::FromPrimitive;
 use serde::{Deserialize, Serialize};
 use std::{
+    f64::consts::TAU,
     fmt::Debug,
     io::{Read, Write},
     marker::PhantomData,
@@ -178,6 +179,7 @@ impl<'a, VIE: VoxelImageEncoding> VoxelImageEncoding for &'a VIE {
 
     fn finish(ws: &Self::Workspace) -> Option<Self::Output> { VIE::finish(ws) }
 }
+
 impl<'a, VIE: VoxelImageDecoding> VoxelImageDecoding for &'a VIE {
     fn start(ws: &Self::Output) -> Option<Self::Workspace> { VIE::start(ws) }
 
@@ -185,6 +187,7 @@ impl<'a, VIE: VoxelImageDecoding> VoxelImageDecoding for &'a VIE {
         VIE::get_block(ws, x, y, is_border)
     }
 }
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct QuadPngEncoding<const RESOLUTION_DIVIDER: u32>();
 
@@ -270,7 +273,7 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
 /// yet)
 const fn sin(x: f64) -> f64 {
     use std::f64::consts::PI;
-    let mut x = (x - PI * 0.5) % (PI * 2.0);
+    let mut x = (x - PI * 0.5) % (TAU);
     x = if x < 0.0 { -x } else { x } - PI;
     x = if x < 0.0 { -x } else { x } - PI * 0.5;
 

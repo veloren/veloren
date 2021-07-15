@@ -26,7 +26,6 @@ impl Animation for ChargeMeleeAnimation {
     const UPDATE_FN: &'static [u8] = b"biped_large_chargemelee\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_chargemelee")]
-    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (

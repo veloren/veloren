@@ -6,7 +6,7 @@ use common::{
     comp::item::tool::{AbilitySpec, ToolKind},
     states::utils::StageSection,
 };
-use std::f32::consts::PI;
+use std::f32::consts::{FRAC_PI_2, FRAC_PI_3, PI};
 
 pub struct ShootAnimation;
 
@@ -114,7 +114,7 @@ impl Animation for ShootAnimation {
                     * Quaternion::rotation_z(move1 * 0.25);
                 next.jaw.orientation = Quaternion::rotation_x(move1 * -0.5);
 
-                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + move1 * 0.5)
+                next.control_l.orientation = Quaternion::rotation_x(FRAC_PI_2 + move1 * 0.5)
                     * Quaternion::rotation_y(move1 * -0.4);
                 next.control_r.orientation = Quaternion::rotation_x(PI / 2.5 + move1 * 0.5)
                     * Quaternion::rotation_y(0.5)
@@ -160,7 +160,7 @@ impl Animation for ShootAnimation {
                 );
 
                 next.control_l.orientation =
-                    Quaternion::rotation_x(move1 * 0.2 + PI / 2.0 + move2 * 0.4)
+                    Quaternion::rotation_x(move1 * 0.2 + FRAC_PI_2 + move2 * 0.4)
                         * Quaternion::rotation_y(-0.2);
                 next.control_r.orientation = Quaternion::rotation_x(PI / 2.2 + move1 * 0.4)
                     * Quaternion::rotation_y(0.4)
@@ -211,11 +211,11 @@ impl Animation for ShootAnimation {
                             );
 
                             next.control_l.orientation =
-                                Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
+                                Quaternion::rotation_x(FRAC_PI_3 + move1 * 0.5)
                                     * Quaternion::rotation_y(-0.15)
                                     * Quaternion::rotation_z(move1 * 0.5);
                             next.control_r.orientation =
-                                Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
+                                Quaternion::rotation_x(FRAC_PI_3 + move1 * 0.5)
                                     * Quaternion::rotation_y(0.15)
                                     * Quaternion::rotation_z(move1 * -0.5);
                             next.head.orientation = Quaternion::rotation_x(move1 * -0.3);
@@ -256,10 +256,10 @@ impl Animation for ShootAnimation {
                                     * Quaternion::rotation_z(twist);
 
                             next.arm_control_r.orientation =
-                                Quaternion::rotation_x(move1 * PI / 2.0)
-                                    * Quaternion::rotation_y(move1 * -PI / 2.0 + move2 * 2.5);
-                            //* Quaternion::rotation_y(move1 * -PI/2.0)
-                            //* Quaternion::rotation_z(move1 * -PI/2.0);
+                                Quaternion::rotation_x(move1 * FRAC_PI_2)
+                                    * Quaternion::rotation_y(move1 * -FRAC_PI_2 + move2 * 2.5);
+                            //* Quaternion::rotation_y(move1 * -FRAC_PI_2)
+                            //* Quaternion::rotation_z(move1 * -FRAC_PI_2);
                             next.arm_control_r.position =
                                 Vec3::new(0.0, move1 * 10.0 + move2 * -10.0, 0.0);
                         },
@@ -277,8 +277,8 @@ impl Animation for ShootAnimation {
                                 Vec3::new(-7.0, 0.0 + s_a.grip.0 / 1.0, -s_a.grip.0 / 0.8);
 
                             next.control_l.orientation =
-                                Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_z(PI);
-                            next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + 0.2)
+                                Quaternion::rotation_x(FRAC_PI_2) * Quaternion::rotation_z(PI);
+                            next.control_r.orientation = Quaternion::rotation_x(FRAC_PI_2 + 0.2)
                                 * Quaternion::rotation_y(-1.0)
                                 * Quaternion::rotation_z(0.0);
 
@@ -317,9 +317,10 @@ impl Animation for ShootAnimation {
                                 s_a.shoulder.1,
                                 s_a.shoulder.2,
                             );
-                            next.shoulder_r.orientation = Quaternion::rotation_y(move1 * -PI / 2.0)
-                                * Quaternion::rotation_x(move2 * 2.0)
-                                * Quaternion::rotation_z(move1 * -PI / 2.0);
+                            next.shoulder_r.orientation =
+                                Quaternion::rotation_y(move1 * -FRAC_PI_2)
+                                    * Quaternion::rotation_x(move2 * 2.0)
+                                    * Quaternion::rotation_z(move1 * -FRAC_PI_2);
 
                             next.hand_r.position = Vec3::new(
                                 -s_a.grip.1 + move1 * -2.0 + move2 * 8.0,

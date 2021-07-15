@@ -2,6 +2,7 @@ use super::{
     super::{vek::*, Animation},
     BipedSmallSkeleton, SkeletonAttr,
 };
+use std::f32::consts::FRAC_PI_2;
 
 pub struct IdleAnimation;
 
@@ -36,7 +37,7 @@ impl Animation for IdleAnimation {
             Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + slow * 0.3) * s_a.scaler / 11.0;
         next.pants.position = Vec3::new(0.0, s_a.pants.0, s_a.pants.1);
         next.main.position = Vec3::new(2.0, -3.0, -3.0);
-        next.main.orientation = Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(1.57);
+        next.main.orientation = Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(FRAC_PI_2);
 
         next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
         next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2 + slow * -0.1);

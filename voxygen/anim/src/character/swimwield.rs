@@ -3,7 +3,10 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::comp::item::{Hands, ToolKind};
-use std::{f32::consts::PI, ops::Mul};
+use std::{
+    f32::consts::{FRAC_PI_2, FRAC_PI_4, FRAC_PI_6, PI},
+    ops::Mul,
+};
 
 pub struct SwimWieldAnimation;
 
@@ -22,7 +25,6 @@ impl Animation for SwimWieldAnimation {
     const UPDATE_FN: &'static [u8] = b"character_swimwield\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_swimwield")]
-    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (active_tool_kind, second_tool_kind, hands, velocity, global_time): Self::Dependency<'a>,
@@ -56,8 +58,8 @@ impl Animation for SwimWieldAnimation {
         let u_slowalt = (anim_time * 3.0 + PI).cos();
         let short = ((5.0 / (1.5 + 3.5 * ((anim_time * lab * 16.0).sin()).powi(2))).sqrt())
             * ((anim_time * lab * 16.0).sin());
-        let noisea = (anim_time * 11.0 + PI / 6.0).sin();
-        let noiseb = (anim_time * 19.0 + PI / 4.0).sin();
+        let noisea = (anim_time * 11.0 + FRAC_PI_6).sin();
+        let noiseb = (anim_time * 19.0 + FRAC_PI_4).sin();
 
         next.foot_l.position = Vec3::new(
             -s_a.foot.0,
@@ -198,12 +200,12 @@ impl Animation for SwimWieldAnimation {
                         * Quaternion::rotation_z(PI - 0.2);
                 }
                 next.hand_l.position = Vec3::new(-0.5, 0.0, 4.0);
-                next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0)
+                next.hand_l.orientation = Quaternion::rotation_x(FRAC_PI_2)
                     * Quaternion::rotation_z(0.0)
                     * Quaternion::rotation_y(0.0);
                 next.hand_l.scale = Vec3::one() * 1.04;
                 next.hand_r.position = Vec3::new(0.5, 0.0, -2.5);
-                next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0)
+                next.hand_r.orientation = Quaternion::rotation_x(FRAC_PI_2)
                     * Quaternion::rotation_z(0.0)
                     * Quaternion::rotation_y(0.0);
                 next.hand_r.scale = Vec3::one() * 1.04;
@@ -224,8 +226,8 @@ impl Animation for SwimWieldAnimation {
                 next.hand_r.scale = Vec3::one() * 1.04;
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0)
-                    * Quaternion::rotation_y(-1.57)
-                    * Quaternion::rotation_z(1.57);
+                    * Quaternion::rotation_y(-FRAC_PI_2)
+                    * Quaternion::rotation_z(FRAC_PI_2);
 
                 next.control.position = Vec3::new(6.0, 7.0, 1.0);
                 next.control.orientation = Quaternion::rotation_x(0.3 + u_slow * 0.15)
@@ -244,7 +246,7 @@ impl Animation for SwimWieldAnimation {
                 next.hand_r.scale = Vec3::one() * 1.04;
                 next.main.position = Vec3::new(12.0, 8.4, 13.2);
                 next.main.orientation = Quaternion::rotation_x(-0.3)
-                    * Quaternion::rotation_y(3.14 + 0.3)
+                    * Quaternion::rotation_y(PI + 0.3)
                     * Quaternion::rotation_z(0.9);
 
                 next.control.position = Vec3::new(-14.0, 1.8, 3.0);
