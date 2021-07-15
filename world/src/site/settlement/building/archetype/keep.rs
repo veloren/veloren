@@ -108,7 +108,6 @@ impl Archetype for Keep {
         )
     }
 
-    #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
     fn draw(
         &self,
         index: IndexRef,

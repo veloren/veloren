@@ -60,7 +60,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
     type Sample = Option<ColumnSample<'a>>;
 
     #[allow(clippy::float_cmp)] // TODO: Pending review in #587
-    #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
     #[allow(clippy::nonminimal_bool)] // TODO: Pending review in #587
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn get(&self, (wpos, index): Self::Index) -> Option<ColumnSample<'a>> {
@@ -337,11 +336,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                             } else {
                                 let neighbor_pos =
                                     river_chunk_idx.map(|e| e as f64) * neighbor_coef;
-                                if dist.y == 0.0 {
-                                    -(wposf - neighbor_pos).magnitude()
-                                } else {
-                                    -(wposf - neighbor_pos).magnitude()
-                                }
+                                -(wposf - neighbor_pos).magnitude()
                             };
                             (Reverse((dist.x, dist.y)), downhill_height)
                         });

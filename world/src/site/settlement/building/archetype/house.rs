@@ -244,7 +244,6 @@ impl Archetype for House {
         (this, skel)
     }
 
-    #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
     fn draw(
         &self,
         index: IndexRef,
@@ -455,9 +454,9 @@ impl Archetype for House {
                     if bound_offset.x == bound_offset.y || profile.y == ceil_height {
                         // Support beams
                         return log;
-                    } else if !attr.storey_fill.has_lower() && profile.y < ceil_height {
-                        return EMPTY;
-                    } else if !attr.storey_fill.has_upper() {
+                    } else if !attr.storey_fill.has_lower() && profile.y < ceil_height
+                        || !attr.storey_fill.has_upper()
+                    {
                         return EMPTY;
                     } else {
                         let (frame_bounds, frame_borders) = if profile.y >= ceil_height {
