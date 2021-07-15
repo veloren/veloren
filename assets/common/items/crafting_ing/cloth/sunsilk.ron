@@ -1,6 +1,6 @@
 ItemDef(
     name: "Sunsilk",
-    description: "A supernaturally strong texile.",
+    description: "A supernaturally strong textile.",
     kind: Ingredient(
         kind: "Sunsilk",
     ),

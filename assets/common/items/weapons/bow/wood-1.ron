@@ -1,6 +1,6 @@
 ItemDef(
     name: "Flatbow",
-    description: "The bow looks stangely flat...",
+    description: "The bow looks strangely flat...",
     kind: Tool((
         kind: Bow,
         hands: Two,
