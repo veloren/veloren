@@ -3478,7 +3478,15 @@ impl<'a> AgentData<'a> {
                 .actions
                 .push(ControlAction::basic_input(InputKind::Ability(0)));
             // Move towards the target slowly
-            self.path_toward_target(agent, controller, tgt_data, read_data, true, false, Some(0.5));
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data,
+                read_data,
+                true,
+                false,
+                Some(0.5),
+            );
             agent.action_state.timer += read_data.dt.0;
         } else if agent.action_state.timer < 6.0
             && attack_data.angle < 90.0
@@ -4094,7 +4102,8 @@ impl<'a> AgentData<'a> {
             }
             self.pos.0
                 + PARTIAL_PATH_DIST
-                    * (sep_vec * SEPARATION_BIAS + (tgt_data.pos.0 - self.pos.0) * (1.0 - SEPARATION_BIAS))
+                    * (sep_vec * SEPARATION_BIAS
+                        + (tgt_data.pos.0 - self.pos.0) * (1.0 - SEPARATION_BIAS))
                         .try_normalized()
                         .unwrap_or_else(Vec3::zero)
         } else if full_path {

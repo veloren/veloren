@@ -413,24 +413,26 @@ impl Body {
     }
 
     // How far away other entities should try to be. Will be added uppon the other
-    // entitys spacing_radius. So an entity with 2.0 and an entity with 3.0 will lead
-    // to that both entities will try to keep 5.0 units away from each other.
+    // entitys spacing_radius. So an entity with 2.0 and an entity with 3.0 will
+    // lead to that both entities will try to keep 5.0 units away from each
+    // other.
     pub fn spacing_radius(&self) -> f32 {
-        self.radius() + match self {
-            Body::QuadrupedSmall(body) => match body.species {
-                quadruped_small::Species::Rat => 0.0,
-                _ => 2.0,
-            },
-            Body::QuadrupedLow(body) => match body.species {
-                quadruped_low::Species::Hakulaq => 0.0,
+        self.radius()
+            + match self {
+                Body::QuadrupedSmall(body) => match body.species {
+                    quadruped_small::Species::Rat => 0.0,
+                    _ => 2.0,
+                },
+                Body::QuadrupedLow(body) => match body.species {
+                    quadruped_low::Species::Hakulaq => 0.0,
+                    _ => 2.0,
+                },
+                Body::BipedSmall(body) => match body.species {
+                    biped_small::Species::Husk => 3.0,
+                    _ => 2.0,
+                },
                 _ => 2.0,
             }
-            Body::BipedSmall(body) => match body.species {
-                biped_small::Species::Husk => 3.0,
-                _ => 2.0,
-            }
-            _ => 2.0,
-        }
     }
 
     pub fn height(&self) -> f32 { self.dimensions().z }
