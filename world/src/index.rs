@@ -20,7 +20,7 @@ pub struct Index {
     pub noise: Noise,
     pub sites: Store<Site>,
     pub trade: TradeInformation,
-    pub wildlife_spawn_handles: Vec<(AssetHandle<SpawnEntry>, DensityFn)>,
+    pub wildlife_spawns: Vec<(AssetHandle<SpawnEntry>, DensityFn)>,
     colors: AssetHandle<Arc<Colors>>,
 }
 
@@ -60,7 +60,7 @@ impl Index {
     /// NOTE: Panics if the color manifest cannot be loaded.
     pub fn new(seed: u32) -> Self {
         let colors = Arc::<Colors>::load_expect(WORLD_COLORS_MANIFEST);
-        let wildlife_spawn_handles = wildlife::spawn_manifest()
+        let wildlife_spawns = wildlife::spawn_manifest()
             .into_iter()
             .map(|(e, f)| (SpawnEntry::load_expect(e), f))
             .collect();
@@ -71,7 +71,7 @@ impl Index {
             noise: Noise::new(seed),
             sites: Store::default(),
             trade: Default::default(),
-            wildlife_spawn_handles,
+            wildlife_spawns,
             colors,
         }
     }

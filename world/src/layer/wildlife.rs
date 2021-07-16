@@ -12,6 +12,10 @@ use serde::Deserialize;
 use std::f32;
 use vek::*;
 
+type Weight = u32;
+type Min = u8;
+type Max = u8;
+
 fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
     (1.0 - (x - tgt).abs() / falloff).max(0.0).powf(0.125)
 }
@@ -52,9 +56,45 @@ impl SpawnEntry {
 }
 
 /// Dataset of animals to spawn
+///
+/// Example:
+/// ```text
+///        Pack(
+///            groups: [
+///                (3, (1, 2, "common.entity.wild.aggressive.frostfang")),
+///                (1, (1, 1, "common.entity.wild.aggressive.snow_leopard")),
+///                (1, (1, 1, "common.entity.wild.aggressive.yale")),
+///                (1, (1, 1, "common.entity.wild.aggressive.grolgar")),
+///            ],
+///            is_underwater: false,
+///            day_period: [Night, Morning, Noon, Evening],
+///        ),
+/// ```
+/// Groups:
+/// ```text
+///                (3, (1, 2, "common.entity.wild.aggressive.frostfang")),
+/// ```
+/// (3, ...) means that it has x3 chance to spawn (3/6 when every other has
+/// 1/6).
+///
+/// (.., (1, 2, ...)) is `1..=2` group size which means that it has
+/// chance to spawn as single mob or in pair
+///
+/// (..., (..., "common.entity.wild.aggressive.frostfang")) corresponds
+/// to `assets/common/entity/wild/aggressive/frostfang.ron` file with
+/// EntityConfig
+///
+/// Underwater:
+/// `is_underwater: false` means mobs from this pack can't be spawned underwater
+/// in rivers, lakes or ocean
+///
+/// Day period:
+/// `day_period: [Night, Morning, Noon, Evening]`
+/// means that mobs from this pack may be spawned in any day period without
+/// exception
 #[derive(Clone, Debug, Deserialize)]
 pub struct Pack {
-    pub groups: Vec<(u32, (u8, u8, String))>,
+    pub groups: Vec<(Weight, (Min, Max, String))>,
     pub is_underwater: bool,
     pub day_period: Vec<DayPeriod>,
 }
@@ -76,7 +116,8 @@ pub type DensityFn = fn(&SimChunk, &ColumnSample) -> f32;
 
 pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
     // NOTE: Order matters.
-    // Place entries with more strict requirements before more general ones
+    // Entries with more specific requirements
+    // and overall scarcity should come first, where possible.
     vec![
         // **Tundra**
         // Rock animals
@@ -233,7 +274,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
     supplement: &mut ChunkSupplement,
     time: Option<TimeOfDay>,
 ) {
-    let scatter = &index.wildlife_spawn_handles;
+    let scatter = &index.wildlife_spawns;
 
     for y in 0..vol.size_xy().y as i32 {
         for x in 0..vol.size_xy().x as i32 {
