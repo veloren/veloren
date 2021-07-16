@@ -14,7 +14,7 @@ DashMelee(
     charge_duration: 3.0,
     swing_duration: 0.35,
     recover_duration: 1.2,
-    charge_through: true,
+    charge_through: false,
     is_interruptible: true,
     damage_kind: Slashing,
     damage_effect: Some(Buff((
