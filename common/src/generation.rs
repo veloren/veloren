@@ -383,6 +383,115 @@ pub fn get_npc_name<
 mod tests {
     use super::*;
     use crate::{comp::inventory::slot::EquipSlot, SkillSetBuilder};
+    use hashbrown::HashMap;
+
+    #[derive(Debug, Eq, Hash, PartialEq)]
+    enum MetaId {
+        LoadoutAsset,
+        SkillSetAsset,
+    }
+
+    impl Meta {
+        fn id(&self) -> MetaId {
+            match self {
+                Meta::LoadoutAsset(_) => MetaId::LoadoutAsset,
+                Meta::SkillSetAsset(_) => MetaId::SkillSetAsset,
+            }
+        }
+    }
+
+    fn validate_hands(hands: Hands, _config_asset: &str) {
+        match hands {
+            Hands::TwoHanded(main_tool) => {
+                main_tool.validate(EquipSlot::ActiveMainhand);
+            },
+            Hands::Paired(tool) => {
+                tool.validate(EquipSlot::ActiveMainhand);
+                tool.validate(EquipSlot::ActiveOffhand);
+            },
+            Hands::Mix { mainhand, offhand } => {
+                mainhand.validate(EquipSlot::ActiveMainhand);
+                offhand.validate(EquipSlot::ActiveOffhand);
+            },
+            Hands::Uninit => {},
+        }
+    }
+
+    fn validate_body_and_name(body: BodyBuilder, name: NameKind, config_asset: &str) {
+        match body {
+            BodyBuilder::RandomWith(string) => {
+                let npc::NpcBody(_body_kind, mut body_creator) =
+                    string.parse::<npc::NpcBody>().unwrap_or_else(|err| {
+                        panic!(
+                            "failed to parse body {:?} in {}. Err: {:?}",
+                            &string, config_asset, err
+                        )
+                    });
+                let _ = body_creator();
+            },
+            BodyBuilder::Uninit => {
+                if let NameKind::Automatic = name {
+                    // there is a big chance to call automatic name
+                    // when body is yet undefined
+                    //
+                    // use .with_automatic_name() in code explicitly
+                    panic!("Used Automatic name with Uninit body in {}", config_asset);
+                }
+            },
+            BodyBuilder::Exact { .. } => {},
+        }
+    }
+
+    fn validate_loot(loot: LootKind, config_asset: &str) {
+        match loot {
+            LootKind::Item(asset) => {
+                if let Err(e) = Item::new_from_asset(&asset) {
+                    panic!(
+                        "Unable to parse loot item ({}) in {}. Err: {:?}",
+                        asset, config_asset, e
+                    );
+                }
+            },
+            LootKind::LootTable(asset) => {
+                // we need to just load it check if it exists,
+                // because all loot tables are tested in Lottery module
+                if let Err(e) = Lottery::<LootSpec<String>>::load(&asset) {
+                    panic!(
+                        "Unable to parse loot table ({}) in {}. Err: {:?}",
+                        asset, config_asset, e
+                    );
+                }
+            },
+            LootKind::Uninit => {},
+        }
+    }
+
+    fn validate_meta(meta: Vec<Meta>, config_asset: &str) {
+        let mut meta_counter = HashMap::new();
+        for field in meta {
+            meta_counter
+                .entry(field.id())
+                .and_modify(|c| *c += 1)
+                .or_insert(1);
+            match field {
+                Meta::LoadoutAsset(asset) => {
+                    let rng = &mut rand::thread_rng();
+                    let builder = LoadoutBuilder::default();
+                    // we need to just load it check if it exists,
+                    // because all loadouts are tested in LoadoutBuilder module
+                    std::mem::drop(builder.with_asset_expect(&asset, rng));
+                },
+                Meta::SkillSetAsset(asset) => {
+                    std::mem::drop(SkillSetBuilder::from_asset_expect(&asset));
+                },
+            }
+        }
+        for (meta_id, counter) in meta_counter {
+            if counter > 1 {
+                panic!("Duplicate {:?} in {}", meta_id, config_asset);
+            }
+        }
+    }
 
     #[test]
     fn test_all_entity_assets() {
@@ -390,77 +499,31 @@ mod tests {
         let entity_configs = assets::load_dir::<EntityConfig>("common.entity", true)
             .expect("Failed to access entity directory");
         for config_asset in entity_configs.ids() {
+            // print asset name so we don't need to find errors everywhere
+            // it'll be ignored by default so you'll see it only in case of errors
+            //
+            // TODO:
+            // 1) Add try_validate() for loadout_builder::ItemSpec which will return
+            // Result and we will happily panic in validate_hands() with name of
+            // config_asset.
+            // 2) Add try_from_asset() for LoadoutBuilder and
+            // SkillSet builder which will return Result and we will happily
+            // panic in validate_meta() with the name of config_asset
             println!("{}:", config_asset);
+
             let EntityConfig {
                 hands,
-                loot,
                 body,
                 name,
+                loot,
                 meta,
                 alignment: _alignment, // can't fail if serialized, it's a boring enum
             } = EntityConfig::from_asset_expect(config_asset);
 
-            match hands {
-                Hands::TwoHanded(main_tool) => {
-                    main_tool.validate(EquipSlot::ActiveMainhand);
-                },
-                Hands::Paired(tool) => {
-                    tool.validate(EquipSlot::ActiveMainhand);
-                    tool.validate(EquipSlot::ActiveOffhand);
-                },
-                Hands::Mix { mainhand, offhand } => {
-                    mainhand.validate(EquipSlot::ActiveMainhand);
-                    offhand.validate(EquipSlot::ActiveOffhand);
-                },
-                Hands::Uninit => {},
-            }
-
-            match body {
-                BodyBuilder::RandomWith(string) => {
-                    let npc::NpcBody(_body_kind, mut body_creator) =
-                        string.parse::<npc::NpcBody>().unwrap_or_else(|err| {
-                            panic!("failed to parse body {:?}. Err: {:?}", &string, err)
-                        });
-                    let _ = body_creator();
-                },
-                BodyBuilder::Uninit => {
-                    if let NameKind::Automatic = name {
-                        // there is a big chance to call automatic name
-                        // when body is yet undefined
-                        //
-                        // use .with_automatic_name() in code explicitly
-                        panic!("Used Automatic name with Uninit body in {}", config_asset);
-                    }
-                },
-                BodyBuilder::Exact { .. } => {},
-            }
-
-            match loot {
-                LootKind::Item(asset) => {
-                    std::mem::drop(Item::new_from_asset_expect(&asset));
-                },
-                LootKind::LootTable(asset) => {
-                    // we need to just load it check if it exists,
-                    // because all loot tables are tested in Lottery module
-                    let _ = Lottery::<LootSpec<String>>::load_expect(&asset);
-                },
-                LootKind::Uninit => {},
-            }
-
-            for field in meta {
-                match field {
-                    Meta::LoadoutAsset(asset) => {
-                        let rng = &mut rand::thread_rng();
-                        let builder = LoadoutBuilder::default();
-                        // we need to just load it check if it exists,
-                        // because all loadouts are tested in LoadoutBuilder module
-                        std::mem::drop(builder.with_asset_expect(&asset, rng));
-                    },
-                    Meta::SkillSetAsset(asset) => {
-                        std::mem::drop(SkillSetBuilder::from_asset_expect(&asset));
-                    },
-                }
-            }
+            validate_hands(hands, config_asset);
+            validate_body_and_name(body, name, config_asset);
+            validate_loot(loot, config_asset);
+            validate_meta(meta, config_asset);
         }
     }
 }
