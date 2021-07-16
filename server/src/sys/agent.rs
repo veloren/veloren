@@ -271,9 +271,7 @@ impl<'a> System<'a> for Sys {
 
                     let event_emitter = event_bus.emitter();
 
-                    if !matches!(char_state, CharacterState::LeapMelee(_))
-                        | !matches!(char_state, CharacterState::ChargedMelee(_))
-                    {
+                    if !matches!(char_state, CharacterState::LeapMelee(_)) {
                         // Default to looking in orientation direction
                         // (can be overridden below)
                         //
@@ -2653,32 +2651,33 @@ impl<'a> AgentData<'a> {
         radius: u32,
         circle_time: u32,
     ) {
-        if agent.action_state.timer >= circle_time as f32 {
+        if agent.action_state.counter >= circle_time as f32 {
             // if circle charge is in progress and time hasn't expired, continue charging
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Secondary));
         }
         if attack_data.in_min_range() {
-            // set timer and counter to zero if in minimum range
-            agent.action_state.timer = 0.0;
-            agent.action_state.counter = 0.0;
-            if thread_rng().gen_bool(0.5) {
-                // choose whether to melee attack
+            if agent.action_state.counter > 0.0 {
+                // set timer and rotation counter to zero if in minimum range
+                agent.action_state.counter = 0.0;
+                agent.action_state.int_counter = 0;
+            } else {
+                // melee attack
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Primary));
                 controller.inputs.move_dir = Vec2::zero();
             }
-        } else if attack_data.dist_sqrd < (radius as f32 * attack_data.min_attack_dist).powi(2) {
+        } else if attack_data.dist_sqrd < (radius as f32 + attack_data.min_attack_dist).powi(2) {
             // if in range to charge, circle, then charge
-            if agent.action_state.timer == 0.0 {
+            if agent.action_state.int_counter == 0 {
                 // if you haven't chosen a direction to go in, choose now
-                agent.action_state.counter = 1.0 + thread_rng().gen_bool(0.5) as i32 as f32;
+                agent.action_state.int_counter = 1 + thread_rng().gen_bool(0.5) as u8;
             }
-            if agent.action_state.timer < circle_time as f32 {
+            if agent.action_state.counter < circle_time as f32 {
                 // circle if circle timer not ready
-                let move_dir = match agent.action_state.counter as i32 {
+                let move_dir = match agent.action_state.int_counter {
                     1 =>
                     // circle left if counter is 1
                     {
@@ -2715,10 +2714,11 @@ impl<'a> AgentData<'a> {
                     .map_or(true, |b| b.is_some());
                 if obstacle {
                     // if obstacle detected, stop circling
-                    agent.action_state.timer = circle_time as f32;
+                    agent.action_state.counter = circle_time as f32;
                 }
                 controller.inputs.move_dir = move_dir;
-                agent.action_state.timer += read_data.dt.0;
+                // use counter as timer since timer may be modified in other parts of the code
+                agent.action_state.counter += read_data.dt.0;
             }
             // activating charge once circle timer expires is handled above
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
