@@ -359,7 +359,7 @@ struct HumArmorLanternSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Deserialize)]
 struct HumArmorGliderSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Deserialize)]
-struct HumArmorHeadSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
+struct HumArmorHeadSpec(ArmorVoxSpecMap<(Species, String), ArmorVoxSpec>);
 #[derive(Deserialize)]
 struct HumArmorTabardSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 
@@ -411,6 +411,7 @@ make_vox_spec!(
                     body,
                     color,
                     spec.armor_head.read().0.load_head(
+                        body,
                         loadout.head.as_deref()
                     ),
                 )
@@ -967,8 +968,8 @@ impl HumArmorLanternSpec {
     }
 }
 impl HumArmorHeadSpec {
-    fn load_head(&self, head: Option<&str>) -> Option<(Segment, Vec3<i32>)> {
-        match self.0.map.get(head?) {
+    fn load_head(&self, body: &Body, head: Option<&str>) -> Option<(Segment, Vec3<i32>)> {
+        match self.0.map.get(&(body.species, head?.to_string())) {
             Some(spec) => Some((
                 graceful_load_segment(&spec.vox_spec.0),
                 Vec3::<f32>::from(spec.vox_spec.1).as_(),
@@ -978,48 +979,6 @@ impl HumArmorHeadSpec {
                 None
             },
         }
-    }
-
-    /// FIXME: Either use this, or remove it.
-    #[allow(dead_code)]
-    fn mesh_head(&self, body: &Body, color_spec: &HumColorSpec, head: Option<&str>) -> BoneMeshes {
-        let spec = if let Some(head) = head {
-            match self.0.map.get(head) {
-                Some(spec) => spec,
-                None => {
-                    error!(?head, "No head specification exists");
-                    return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0));
-                },
-            }
-        } else {
-            &self.0.default
-        };
-
-        let color = |mat_segment| {
-            color_spec.color_segment(
-                mat_segment,
-                body.species.skin_color(body.skin),
-                color_spec.hair_color(body.species, body.hair_color),
-                body.species.eye_color(body.eye_color),
-            )
-        };
-
-        let bare_head = graceful_load_mat_segment("armor.empty");
-
-        let mut head_armor = graceful_load_mat_segment(&spec.vox_spec.0);
-
-        if let Some(color) = spec.color {
-            let head_color = Vec3::from(color);
-            head_armor = head_armor.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(head_color)));
-        }
-
-        let head = DynaUnionizer::new()
-            .add(color(bare_head), Vec3::new(0, 0, 0))
-            .add(color(head_armor), Vec3::new(0, 0, 0))
-            .unify()
-            .0;
-
-        (head, Vec3::from(spec.vox_spec.1))
     }
 }
 impl HumArmorTabardSpec {

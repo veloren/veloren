@@ -4,9 +4,29 @@
         color: None
     ),
     map: {
-        "Exclamation": (
+        (Danari, "Exclamation"): (
             vox_spec: ("armor.misc.head.exclamation", (-10.0, -10.0, 20.0)),
             color: None
-        ),   
+        ),
+        (Dwarf, "Exclamation"): (
+            vox_spec: ("armor.misc.head.exclamation", (-13.0, -10.0, 18.0)),
+            color: None
+        ),
+        (Human, "Exclamation"): (
+            vox_spec: ("armor.misc.head.exclamation", (-12.0, -11.0, 18.0)),
+            color: None
+        ),
+        (Orc, "Exclamation"): (
+            vox_spec: ("armor.misc.head.exclamation", (-11.0, -12.0, 18.0)),
+            color: None
+        ),
+        (Undead, "Exclamation"): (
+            vox_spec: ("armor.misc.head.exclamation", (-14.0, -11.0, 18.0)),
+            color: None
+        ),
+        (Elf, "Exclamation"): (
+            vox_spec: ("armor.misc.head.exclamation", (-11.0, -11.0, 18.0)),
+            color: None
+        ),
     }
 ))
