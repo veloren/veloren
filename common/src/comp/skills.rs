@@ -478,8 +478,9 @@ pub enum SceptreSkill {
     LRegen,
     // Healing beam upgrades
     HHeal,
-    HCost,
     HRange,
+    HDuration,
+    HCost,
     // Warding aura upgrades
     UnlockAura,
     AStrength,
@@ -499,6 +500,7 @@ impl Boost for SceptreSkill {
             // Healing beam upgrades
             Self::HHeal => 20.into(),
             Self::HRange => 20.into(),
+            Self::HDuration => 20.into(),
             Self::HCost => (-20_i16).into(),
             // Warding aura upgrades
             Self::AStrength => 15.into(),

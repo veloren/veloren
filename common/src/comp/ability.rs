@@ -264,17 +264,8 @@ pub enum CharacterAbility {
         aura_duration: f32,
         range: f32,
         energy_cost: f32,
-    },
-    HealingBeam {
-        buildup_duration: f32,
-        recover_duration: f32,
-        beam_duration: f32,
-        heal: f32,
-        tick_rate: f32,
-        range: f32,
-        max_angle: f32,
-        energy_cost: f32,
-        specifier: beam::FrontendSpecifier,
+        scales_with_combo: bool,
+        specifier: aura::Specifier,
     },
     Blink {
         buildup_duration: f32,
@@ -356,7 +347,6 @@ impl CharacterAbility {
             | CharacterAbility::ChargedRanged { energy_cost, .. }
             | CharacterAbility::ChargedMelee { energy_cost, .. }
             | CharacterAbility::Shockwave { energy_cost, .. }
-            | CharacterAbility::BasicAura { energy_cost, .. }
             | CharacterAbility::BasicBlock { energy_cost, .. }
             | CharacterAbility::SelfBuff { energy_cost, .. } => update
                 .energy
@@ -373,7 +363,17 @@ impl CharacterAbility {
                         .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                         .is_ok()
             },
-            CharacterAbility::HealingBeam { .. } => data.combo.counter() > 0,
+            CharacterAbility::BasicAura {
+                energy_cost,
+                scales_with_combo,
+                ..
+            } => {
+                ((*scales_with_combo && data.combo.counter() > 0) | !*scales_with_combo)
+                    && update
+                        .energy
+                        .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                        .is_ok()
+            },
             CharacterAbility::ComboMelee { .. }
             | CharacterAbility::Boost { .. }
             | CharacterAbility::BasicBeam { .. }
@@ -782,6 +782,8 @@ impl CharacterAbility {
                 aura_duration: _,
                 ref mut range,
                 ref mut energy_cost,
+                scales_with_combo: _,
+                specifier: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *cast_duration /= stats.speed;
@@ -790,26 +792,6 @@ impl CharacterAbility {
                 // Look into during modular weapon transition
                 *strength *= stats.power;
                 *range *= stats.range;
-                *energy_cost /= stats.energy_efficiency;
-            },
-            HealingBeam {
-                ref mut buildup_duration,
-                ref mut recover_duration,
-                ref mut beam_duration,
-                ref mut heal,
-                ref mut tick_rate,
-                ref mut range,
-                max_angle: _,
-                ref mut energy_cost,
-                specifier: _,
-            } => {
-                *buildup_duration /= stats.speed;
-                *recover_duration /= stats.speed;
-                *heal *= stats.power;
-                *tick_rate *= stats.speed;
-                *range *= stats.range;
-                // Duration modified to keep velocity constant
-                *beam_duration *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
             },
             Blink {
@@ -886,7 +868,6 @@ impl CharacterAbility {
             | ChargedMelee { energy_cost, .. }
             | ChargedRanged { energy_cost, .. }
             | Shockwave { energy_cost, .. }
-            | HealingBeam { energy_cost, .. }
             | BasicAura { energy_cost, .. }
             | BasicBlock { energy_cost, .. }
             | SelfBuff { energy_cost, .. } => *energy_cost as u32,
@@ -1381,45 +1362,39 @@ impl CharacterAbility {
                             *lifesteal *= 1.15_f32.powi(level.into());
                         }
                     },
-                    HealingBeam {
-                        ref mut heal,
-                        ref mut energy_cost,
-                        ref mut range,
-                        ref mut beam_duration,
-                        ..
-                    } => {
-                        if let Ok(Some(level)) = skillset.skill_level(Sceptre(HHeal)) {
-                            *heal *= 1.2_f32.powi(level.into());
-                        }
-                        if let Ok(Some(level)) = skillset.skill_level(Sceptre(HRange)) {
-                            let range_mod = 1.2_f32.powi(level.into());
-                            *range *= range_mod;
-                            // Duration modified to keep velocity constant
-                            *beam_duration *= range_mod;
-                        }
-                        if let Ok(Some(level)) = skillset.skill_level(Sceptre(HCost)) {
-                            *energy_cost *= 0.8_f32.powi(level.into());
-                        }
-                    },
                     BasicAura {
                         ref mut aura,
                         ref mut range,
                         ref mut energy_cost,
+                        ref specifier,
                         ..
                     } => {
-                        if let Ok(Some(level)) = skillset.skill_level(Sceptre(AStrength)) {
-                            aura.strength *= 1.15_f32.powi(level.into());
-                        }
-                        if let Ok(Some(level)) = skillset.skill_level(Sceptre(ADuration)) {
-                            if let Some(ref mut duration) = aura.duration {
-                                *duration *= 1.2_f32.powi(level.into());
+                        if matches!(*specifier, aura::Specifier::WardingAura) {
+                            if let Ok(Some(level)) = skillset.skill_level(Sceptre(AStrength)) {
+                                aura.strength *= 1.15_f32.powi(level.into());
                             }
-                        }
-                        if let Ok(Some(level)) = skillset.skill_level(Sceptre(ARange)) {
-                            *range *= 1.25_f32.powi(level.into());
-                        }
-                        if let Ok(Some(level)) = skillset.skill_level(Sceptre(ACost)) {
-                            *energy_cost *= 0.85_f32.powi(level.into());
+                            if let Ok(Some(level)) = skillset.skill_level(Sceptre(ADuration)) {
+                                aura.duration.map(|dur| dur * 1.2_f32.powi(level.into()));
+                            }
+                            if let Ok(Some(level)) = skillset.skill_level(Sceptre(ARange)) {
+                                *range *= 1.25_f32.powi(level.into());
+                            }
+                            if let Ok(Some(level)) = skillset.skill_level(Sceptre(ACost)) {
+                                *energy_cost *= 0.85_f32.powi(level.into());
+                            }
+                        } else if matches!(*specifier, aura::Specifier::HealingAura) {
+                            if let Ok(Some(level)) = skillset.skill_level(Sceptre(HHeal)) {
+                                aura.strength *= 1.15_f32.powi(level.into());
+                            }
+                            if let Ok(Some(level)) = skillset.skill_level(Sceptre(HDuration)) {
+                                aura.duration.map(|dur| dur * 1.2_f32.powi(level.into()));
+                            }
+                            if let Ok(Some(level)) = skillset.skill_level(Sceptre(HRange)) {
+                                *range *= 1.25_f32.powi(level.into());
+                            }
+                            if let Ok(Some(level)) = skillset.skill_level(Sceptre(HCost)) {
+                                *energy_cost *= 0.85_f32.powi(level.into());
+                            }
                         }
                     },
                     _ => {},
@@ -1935,6 +1910,8 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 aura_duration,
                 range,
                 energy_cost: _,
+                scales_with_combo,
+                specifier,
             } => CharacterState::BasicAura(basic_aura::Data {
                 static_data: basic_aura::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1945,31 +1922,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     aura_duration: Duration::from_secs_f32(*aura_duration),
                     range: *range,
                     ability_info,
-                },
-                timer: Duration::default(),
-                stage_section: StageSection::Buildup,
-            }),
-            CharacterAbility::HealingBeam {
-                buildup_duration,
-                recover_duration,
-                beam_duration,
-                heal,
-                tick_rate,
-                range,
-                max_angle,
-                energy_cost,
-                specifier,
-            } => CharacterState::HealingBeam(healing_beam::Data {
-                static_data: healing_beam::StaticData {
-                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
-                    recover_duration: Duration::from_secs_f32(*recover_duration),
-                    beam_duration: Duration::from_secs_f32(*beam_duration),
-                    heal: *heal,
-                    tick_rate: *tick_rate,
-                    range: *range,
-                    max_angle: *max_angle,
-                    energy_cost: *energy_cost,
-                    ability_info,
+                    scales_with_combo: *scales_with_combo,
                     specifier: *specifier,
                 },
                 timer: Duration::default(),

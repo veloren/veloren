@@ -494,7 +494,7 @@ image_ids! {
         snake_arrow_0: "voxygen.element.skills.snake",
         skill_sceptre_lifesteal: "voxygen.element.skills.lifesteal",
         sword_whirlwind: "voxygen.element.skills.sword_whirlwind",
-        skill_sceptre_heal: "voxygen.element.skills.heal_0",
+        skill_sceptre_heal: "voxygen.element.skills.heal_aoe",
         hammerleap: "voxygen.element.skills.skill_hammerleap",
         skill_axe_leap_slash: "voxygen.element.skills.skill_axe_leap_slash",
         skill_bow_jump_burst: "voxygen.element.skills.skill_bow_jump_burst",

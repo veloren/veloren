@@ -826,20 +826,6 @@ impl ParticleMgr {
                         },
                     );
                 },
-                beam::FrontendSpecifier::HealingBeam => {
-                    // Emit a light when using healing
-                    lights.push(Light::new(pos.0, Rgb::new(0.1, 1.0, 0.15), 1.0));
-                    self.particles.reserve(beam_tick_count as usize);
-                    for i in 0..beam_tick_count {
-                        self.particles.push(Particle::new_directed(
-                            beam.properties.duration,
-                            time + i as f64 / 1000.0,
-                            ParticleMode::HealingBeam,
-                            pos.0,
-                            pos.0 + *ori.look_dir() * range,
-                        ));
-                    }
-                },
                 beam::FrontendSpecifier::LifestealBeam => {
                     // Emit a light when using lifesteal beam
                     lights.push(Light::new(pos.0, Rgb::new(0.8, 1.0, 0.5), 1.0));
@@ -950,6 +936,28 @@ impl ParticleMgr {
                                     aura.duration.map_or(max_dur, |dur| dur.min(max_dur)),
                                     time,
                                     ParticleMode::EnergyNature,
+                                    pos.0,
+                                    pos.0 + init_pos,
+                                )
+                            },
+                        );
+                    },
+                    aura::AuraKind::Buff {
+                        kind: buff::BuffKind::Regeneration,
+                        ..
+                    } => {
+                        let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
+                        self.particles.resize_with(
+                            self.particles.len()
+                                + aura.radius.powi(2) as usize * usize::from(heartbeats) / 300,
+                            || {
+                                let rand_dist = aura.radius * (1.0 - rng.gen::<f32>().powi(100));
+                                let init_pos = Vec3::new(rand_dist, 0_f32, 0_f32);
+                                let max_dur = Duration::from_secs(1);
+                                Particle::new_directed(
+                                    aura.duration.map_or(max_dur, |dur| dur.min(max_dur)),
+                                    time,
+                                    ParticleMode::EnergyHealing,
                                     pos.0,
                                     pos.0 + init_pos,
                                 )

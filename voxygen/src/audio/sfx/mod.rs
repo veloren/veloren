@@ -175,7 +175,7 @@ pub enum SfxEvent {
     Parry,
     Block,
     BreakBlock,
-    HealingBeam,
+    SceptreBeam,
     SkillPointGain,
     ArrowHit,
     ArrowMiss,
@@ -479,9 +479,9 @@ impl SfxMgr {
                 audio.emit_sfx(sfx_trigger_item, *pos, None, false);
             },
             Outcome::Beam { pos, specifier } => match specifier {
-                beam::FrontendSpecifier::LifestealBeam | beam::FrontendSpecifier::HealingBeam => {
+                beam::FrontendSpecifier::LifestealBeam => {
                     if thread_rng().gen_bool(0.5) {
-                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::HealingBeam);
+                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::SceptreBeam);
                         audio.emit_sfx(sfx_trigger_item, *pos, None, false);
                     };
                 },

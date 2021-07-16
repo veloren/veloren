@@ -64,7 +64,7 @@ pub enum ParticleMode {
     Firefly = 11,
     Bee = 12,
     GroundShockwave = 13,
-    HealingBeam = 14,
+    EnergyHealing = 14,
     EnergyNature = 15,
     FlameThrower = 16,
     FireShockwave = 17,

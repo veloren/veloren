@@ -1,7 +1,7 @@
 use crate::{
     combat::GroupTarget,
     comp::{
-        aura::{AuraBuffConstructor, AuraChange, AuraTarget},
+        aura::{AuraBuffConstructor, AuraChange, AuraKind, AuraTarget, Specifier},
         CharacterState, StateUpdate,
     },
     event::ServerEvent,
@@ -32,6 +32,10 @@ pub struct StaticData {
     pub range: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
+    /// Whether the aura's effect scales with the user's current combo
+    pub scales_with_combo: bool,
+    /// Used to specify aura to the frontend
+    pub specifier: Specifier,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -65,12 +69,29 @@ impl CharacterBehavior for Data {
                     // Creates aura
                     let targets =
                         AuraTarget::from((Some(self.static_data.targets), Some(data.uid)));
-                    let aura = self.static_data.aura.to_aura(
+                    let mut aura = self.static_data.aura.to_aura(
                         data.uid,
                         self.static_data.range,
                         Some(self.static_data.aura_duration),
                         targets,
                     );
+                    if self.static_data.scales_with_combo {
+                        let combo = data.combo.counter();
+                        match aura.aura_kind {
+                            AuraKind::Buff {
+                                kind: _,
+                                ref mut data,
+                                category: _,
+                                source: _,
+                            } => {
+                                data.strength *= 1.0 + (combo as f32).log(2.0_f32);
+                            },
+                        }
+                        update.server_events.push_front(ServerEvent::ComboChange {
+                            entity: data.entity,
+                            change: -(combo as i32),
+                        });
+                    }
                     update.server_events.push_front(ServerEvent::Aura {
                         entity: data.entity,
                         aura_change: AuraChange::Add(aura),

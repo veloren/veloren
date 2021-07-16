@@ -71,6 +71,12 @@ pub enum AuraTarget {
     All,
 }
 
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub enum Specifier {
+    WardingAura,
+    HealingAura,
+}
+
 impl From<(Option<GroupTarget>, Option<&Uid>)> for AuraTarget {
     fn from((target, uid): (Option<GroupTarget>, Option<&Uid>)) -> Self {
         match (target, uid) {

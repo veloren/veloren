@@ -11,5 +11,5 @@ BasicBeam(
     energy_drain: 0,
     orientation_behavior: Normal,
     ori_rate: 0.3,
-    specifier: HealingBeam,
+    specifier: LifestealBeam,
 )

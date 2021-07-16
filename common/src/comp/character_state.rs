@@ -93,11 +93,6 @@ pub enum CharacterState {
     BasicBeam(basic_beam::Data),
     /// Creates an aura that persists as long as you are actively casting
     BasicAura(basic_aura::Data),
-    /// A directed beam that heals targets in range. This is separate from basic
-    /// beam as a large amount of functionality needed to be special cased
-    /// specifically for the healing beam. There was also functionality present
-    /// on basic beam which was unnecessary for the healing beam.
-    HealingBeam(healing_beam::Data),
     /// A short teleport that targets either a position or entity
     Blink(blink::Data),
     /// Summons creatures that fight for the caster
@@ -128,7 +123,6 @@ impl CharacterState {
                 | CharacterState::Shockwave(_)
                 | CharacterState::BasicBeam(_)
                 | CharacterState::BasicAura(_)
-                | CharacterState::HealingBeam(_)
                 | CharacterState::SelfBuff(_)
                 | CharacterState::Blink(_)
                 | CharacterState::BasicSummon(_)
@@ -155,7 +149,6 @@ impl CharacterState {
                 | CharacterState::Shockwave(_)
                 | CharacterState::BasicBeam(_)
                 | CharacterState::BasicAura(_)
-                | CharacterState::HealingBeam(_)
                 | CharacterState::SelfBuff(_)
                 | CharacterState::Blink(_)
                 | CharacterState::BasicSummon(_)
@@ -181,7 +174,6 @@ impl CharacterState {
                 | CharacterState::UseItem(_)
                 | CharacterState::Wielding
                 | CharacterState::Talk
-                | CharacterState::HealingBeam(_)
         )
     }
 

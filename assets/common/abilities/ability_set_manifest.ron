@@ -79,7 +79,7 @@
     ),
     Tool(Sceptre): (
         primary: "common.abilities.sceptre.lifestealbeam",
-        secondary: "common.abilities.sceptre.healingbeam",
+        secondary: "common.abilities.sceptre.healingaura",
         abilities: [
             (Some(Sceptre(UnlockAura)), "common.abilities.sceptre.wardingaura"),
         ],
@@ -191,7 +191,7 @@
         abilities: [],
     ),
     Custom("Quad Low Beam"): (
-        primary: "common.abilities.custom.quadlowbeam.healingbeam",
+        primary: "common.abilities.custom.quadlowbeam.lifestealbeam",
         secondary: "common.abilities.custom.quadlowbreathe.triplestrike",
         abilities: [
             (None, "common.abilities.custom.quadlowbreathe.dash"),

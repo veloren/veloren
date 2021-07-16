@@ -144,6 +144,7 @@ widget_ids! {
         skill_sceptre_heal_1,
         skill_sceptre_heal_2,
         skill_sceptre_heal_3,
+        skill_sceptre_heal_4,
         skill_sceptre_aura_0,
         skill_sceptre_aura_1,
         skill_sceptre_aura_2,
@@ -551,7 +552,7 @@ impl<'a> Widget for Diary<'a> {
             SelectedSkillTree::Weapon(ToolKind::Hammer) => 5,
             SelectedSkillTree::Weapon(ToolKind::Bow) => 4,
             SelectedSkillTree::Weapon(ToolKind::Staff) => 5,
-            SelectedSkillTree::Weapon(ToolKind::Sceptre) => 4,
+            SelectedSkillTree::Weapon(ToolKind::Sceptre) => 5,
             _ => 0,
         };
         let skills_bot_l = match sel_tab {
@@ -1912,10 +1913,10 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                 );
                 self.create_unlock_skill_button(
-                    Skill::Sceptre(HCost),
-                    self.imgs.heal_cost_skill,
+                    Skill::Sceptre(HDuration),
+                    self.imgs.heal_duration_skill,
                     state.skills_top_r[2],
-                    "sc_heal_cost",
+                    "sc_heal_duration",
                     state.skill_sceptre_heal_2,
                     ui,
                     &mut events,
@@ -1923,10 +1924,20 @@ impl<'a> Widget for Diary<'a> {
                 );
                 self.create_unlock_skill_button(
                     Skill::Sceptre(HRange),
-                    self.imgs.heal_distance_skill,
+                    self.imgs.heal_radius_skill,
                     state.skills_top_r[3],
                     "sc_heal_range",
                     state.skill_sceptre_heal_3,
+                    ui,
+                    &mut events,
+                    &diary_tooltip,
+                );
+                self.create_unlock_skill_button(
+                    Skill::Sceptre(HCost),
+                    self.imgs.heal_cost_skill,
+                    state.skills_top_r[4],
+                    "sc_heal_cost",
+                    state.skill_sceptre_heal_4,
                     ui,
                     &mut events,
                     &diary_tooltip,
