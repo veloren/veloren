@@ -3,7 +3,7 @@ use crate::{
     presence::Presence, rtsim::RtSim, settings::Settings, SpawnPoint, Tick,
 };
 use common::{
-    comp::{self, agent, bird_medium, Alignment, BehaviorCapability, Pos},
+    comp::{self, agent, bird_medium, Alignment, BehaviorCapability, Pos, RepositionOnChunkLoad},
     event::{EventBus, ServerEvent},
     generation::{get_npc_name, EntityInfo},
     npc::NPC_NAMES,
@@ -14,7 +14,7 @@ use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{SerializedTerrainChunk, ServerGeneral};
 use common_state::TerrainChanges;
 use comp::Behavior;
-use specs::{Join, Read, ReadExpect, ReadStorage, Write, WriteExpect};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteExpect, WriteStorage};
 use std::sync::Arc;
 use vek::*;
 
@@ -93,9 +93,11 @@ impl<'a> System<'a> for Sys {
         WriteExpect<'a, TerrainGrid>,
         Write<'a, TerrainChanges>,
         WriteExpect<'a, RtSim>,
-        ReadStorage<'a, Pos>,
+        WriteStorage<'a, Pos>,
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Client>,
+        Entities<'a>,
+        WriteStorage<'a, RepositionOnChunkLoad>,
     );
 
     const NAME: &'static str = "terrain";
@@ -114,9 +116,11 @@ impl<'a> System<'a> for Sys {
             mut terrain,
             mut terrain_changes,
             mut rtsim,
-            positions,
+            mut positions,
             presences,
             clients,
+            entities,
+            mut reposition_on_load,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_event_bus.emitter();
@@ -303,6 +307,20 @@ impl<'a> System<'a> for Sys {
                     range: Some(100.0),
                     pos: Pos(spawn_point.0),
                 });
+            }
+        }
+
+        for (entity, pos) in (&entities, &mut positions).join() {
+            if reposition_on_load.get(entity).is_some() {
+                // If the player is in the new chunk and is marked as needing repositioning once
+                // the chunk loads (e.g. from having just logged in), reposition them
+                let chunk_pos = terrain.pos_key(pos.0.map(|e| e as i32));
+                if let Some((_, chunk)) = new_chunks.iter().find(|(key, _)| *key == chunk_pos) {
+                    pos.0 = chunk
+                        .find_accessible_pos(pos.0.xy().as_::<i32>(), false)
+                        .as_::<f32>();
+                    reposition_on_load.remove(entity);
+                }
             }
         }
 

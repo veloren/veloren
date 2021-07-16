@@ -97,13 +97,7 @@ pub trait StateExt {
     fn initialize_character_data(&mut self, entity: EcsEntity, character_id: CharacterId);
     /// Update the components associated with the entity's current character.
     /// Performed after loading component data from the database
-    fn update_character_data(
-        &mut self,
-        entity: EcsEntity,
-        components: PersistedComponents,
-        world: &world::World,
-        index: &world::IndexRef,
-    );
+    fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents);
     /// Iterates over registered clients and send each `ServerMsg`
     fn send_chat(&self, msg: comp::UnresolvedChatMsg);
     fn notify_players(&self, msg: ServerGeneral);
@@ -486,13 +480,7 @@ impl StateExt for State {
         }
     }
 
-    fn update_character_data(
-        &mut self,
-        entity: EcsEntity,
-        components: PersistedComponents,
-        world: &world::World,
-        index: &world::IndexRef,
-    ) {
+    fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents) {
         let (body, stats, skill_set, inventory, waypoint) = components;
 
         if let Some(player_uid) = self.read_component_copied::<Uid>(entity) {
@@ -537,13 +525,9 @@ impl StateExt for State {
             );
 
             if let Some(waypoint) = waypoint {
-                // Avoid spawning the player in terrain by finding the highest solid point in
-                // their waypoint's column to spawn them at
-                let spawn_pos =
-                    world.find_accessible_pos(*index, waypoint.get_pos().xy().as_::<i32>(), false);
-
+                self.write_component_ignore_entity_dead(entity, comp::RepositionOnChunkLoad);
                 self.write_component_ignore_entity_dead(entity, waypoint);
-                self.write_component_ignore_entity_dead(entity, comp::Pos(spawn_pos));
+                self.write_component_ignore_entity_dead(entity, comp::Pos(waypoint.get_pos()));
                 self.write_component_ignore_entity_dead(entity, comp::Vel(Vec3::zero()));
                 self.write_component_ignore_entity_dead(entity, comp::ForceUpdate);
             }

@@ -202,42 +202,8 @@ impl World {
         let (tc, _cs) = self
             .generate_chunk(index, chunk_pos, || false, None)
             .unwrap();
-        let min_z = tc.get_min_z();
-        let max_z = tc.get_max_z();
 
-        let pos = Vec3::new(
-            spawn_wpos.x,
-            spawn_wpos.y,
-            if ascending { min_z } else { max_z },
-        );
-        (0..(max_z - min_z))
-            .map(|z_diff| {
-                if ascending {
-                    pos + Vec3::unit_z() * z_diff
-                } else {
-                    pos - Vec3::unit_z() * z_diff
-                }
-            })
-            .find(|test_pos| {
-                let chunk_relative_xy = test_pos
-                    .xy()
-                    .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e.rem_euclid(sz as i32));
-                tc.get(
-                    Vec3::new(chunk_relative_xy.x, chunk_relative_xy.y, test_pos.z)
-                        - Vec3::unit_z(),
-                )
-                .map_or(false, |b| b.is_filled())
-                    && (0..3).all(|z| {
-                        tc.get(
-                            Vec3::new(chunk_relative_xy.x, chunk_relative_xy.y, test_pos.z)
-                                + Vec3::unit_z() * z,
-                        )
-                        .map_or(true, |b| !b.is_solid())
-                    })
-            })
-            .unwrap_or(pos)
-            .map(|e| e as f32)
-            + 0.5
+        tc.find_accessible_pos(spawn_wpos, ascending)
     }
 
     #[allow(clippy::eval_order_dependence)]
