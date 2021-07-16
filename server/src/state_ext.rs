@@ -1,6 +1,10 @@
 use crate::{
-    client::Client, persistence::PersistedComponents, presence::Presence, settings::Settings,
-    sys::sentinel::DeletedEntities, wiring, SpawnPoint,
+    client::Client,
+    persistence::PersistedComponents,
+    presence::{Presence, RepositionOnChunkLoad},
+    settings::Settings,
+    sys::sentinel::DeletedEntities,
+    wiring, SpawnPoint,
 };
 use common::{
     character::CharacterId,
@@ -525,6 +529,7 @@ impl StateExt for State {
             );
 
             if let Some(waypoint) = waypoint {
+                self.write_component_ignore_entity_dead(entity, RepositionOnChunkLoad);
                 self.write_component_ignore_entity_dead(entity, waypoint);
                 self.write_component_ignore_entity_dead(entity, comp::Pos(waypoint.get_pos()));
                 self.write_component_ignore_entity_dead(entity, comp::Vel(Vec3::zero()));

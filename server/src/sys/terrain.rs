@@ -1,9 +1,14 @@
 use crate::{
-    chunk_generator::ChunkGenerator, client::Client, metrics::NetworkRequestMetrics,
-    presence::Presence, rtsim::RtSim, settings::Settings, SpawnPoint, Tick,
+    chunk_generator::ChunkGenerator,
+    client::Client,
+    metrics::NetworkRequestMetrics,
+    presence::{Presence, RepositionOnChunkLoad},
+    rtsim::RtSim,
+    settings::Settings,
+    SpawnPoint, Tick,
 };
 use common::{
-    comp::{self, agent, bird_medium, Alignment, BehaviorCapability, Pos},
+    comp::{self, agent, bird_medium, Alignment, BehaviorCapability, ForceUpdate, Pos},
     event::{EventBus, ServerEvent},
     generation::{get_npc_name, EntityInfo},
     npc::NPC_NAMES,
@@ -14,7 +19,7 @@ use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{SerializedTerrainChunk, ServerGeneral};
 use common_state::TerrainChanges;
 use comp::Behavior;
-use specs::{Join, Read, ReadExpect, ReadStorage, Write, WriteExpect};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteExpect, WriteStorage};
 use std::sync::Arc;
 use vek::*;
 
@@ -93,9 +98,12 @@ impl<'a> System<'a> for Sys {
         WriteExpect<'a, TerrainGrid>,
         Write<'a, TerrainChanges>,
         WriteExpect<'a, RtSim>,
-        ReadStorage<'a, Pos>,
+        WriteStorage<'a, Pos>,
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Client>,
+        Entities<'a>,
+        WriteStorage<'a, RepositionOnChunkLoad>,
+        WriteStorage<'a, ForceUpdate>,
     );
 
     const NAME: &'static str = "terrain";
@@ -114,9 +122,12 @@ impl<'a> System<'a> for Sys {
             mut terrain,
             mut terrain_changes,
             mut rtsim,
-            positions,
+            mut positions,
             presences,
             clients,
+            entities,
+            mut reposition_on_load,
+            mut force_update,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_event_bus.emitter();
@@ -304,6 +315,24 @@ impl<'a> System<'a> for Sys {
                     pos: Pos(spawn_point.0),
                 });
             }
+        }
+
+        let mut repositioned = Vec::new();
+        for (entity, pos, _) in (&entities, &mut positions, &reposition_on_load).join() {
+            // If an entity is marked as needing repositioning once the chunk loads (e.g.
+            // from having just logged in), reposition them.
+
+            let chunk_pos = terrain.pos_key(pos.0.map(|e| e as i32));
+            if let Some(chunk) = terrain.get_key(chunk_pos) {
+                pos.0 = chunk
+                    .find_accessible_pos(pos.0.xy().as_::<i32>(), false)
+                    .as_::<f32>();
+                repositioned.push(entity);
+                let _ = force_update.insert(entity, ForceUpdate);
+            }
+        }
+        for entity in repositioned {
+            reposition_on_load.remove(entity);
         }
 
         // Send the chunk to all nearby players.

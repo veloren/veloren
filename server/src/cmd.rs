@@ -676,9 +676,11 @@ fn handle_site(
             })
             .ok_or_else(|| "Site not found".to_string())?;
 
-        let site_pos = server
-            .world
-            .find_lowest_accessible_pos(server.index.as_index_ref(), site.center);
+        let site_pos = server.world.find_accessible_pos(
+            server.index.as_index_ref(),
+            TerrainChunkSize::center_wpos(site.center),
+            false,
+        );
 
         position_mut(server, target, "target", |current_pos| {
             current_pos.0 = site_pos

@@ -1,7 +1,7 @@
 use common_net::msg::PresenceKind;
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
-use specs::{Component, DerefFlaggedStorage};
+use specs::{Component, DerefFlaggedStorage, NullStorage};
 use specs_idvs::IdvStorage;
 use vek::*;
 
@@ -39,4 +39,11 @@ pub struct RegionSubscription {
 
 impl Component for RegionSubscription {
     type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+}
+
+#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
+pub struct RepositionOnChunkLoad;
+
+impl Component for RepositionOnChunkLoad {
+    type Storage = NullStorage<Self>;
 }
