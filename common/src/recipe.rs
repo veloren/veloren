@@ -15,12 +15,15 @@ use std::sync::Arc;
 pub enum RecipeInput {
     Item(Arc<ItemDef>),
     Tag(ItemTag),
+    TagSameItem(ItemTag, u32),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Recipe {
     pub output: (Arc<ItemDef>, u32),
-    pub inputs: Vec<(RecipeInput, u32)>,
+    /// Input required for recipe, amount of input needed, whether input should
+    /// be tracked as a modular component
+    pub inputs: Vec<(RecipeInput, u32, bool)>,
     pub craft_sprite: Option<SpriteKind>,
 }
 
@@ -45,7 +48,7 @@ impl Recipe {
         self.inputs
             .iter()
             .enumerate()
-            .for_each(|(i, (input, mut required))| {
+            .for_each(|(i, (input, mut required, _is_component))| {
                 // Check used for recipes that have an input that is not consumed, e.g.
                 // craftsman hammer
                 let mut contains_any = false;
@@ -100,10 +103,10 @@ impl Recipe {
         }
     }
 
-    pub fn inputs(&self) -> impl ExactSizeIterator<Item = (&RecipeInput, u32)> {
+    pub fn inputs(&self) -> impl ExactSizeIterator<Item = (&RecipeInput, u32, bool)> {
         self.inputs
             .iter()
-            .map(|(item_def, amount)| (item_def, *amount))
+            .map(|(item_def, amount, is_mod_comp)| (item_def, *amount, *is_mod_comp))
     }
 
     /// Determine whether the inventory contains the ingredients for a recipe.
@@ -124,7 +127,7 @@ impl Recipe {
         // The inputs to a recipe that have missing items, and the amount missing
         let mut missing = Vec::<(&RecipeInput, u32)>::new();
 
-        for (i, (input, mut needed)) in self.inputs().enumerate() {
+        for (i, (input, mut needed, _)) in self.inputs().enumerate() {
             let mut contains_any = false;
             // Checks through every slot, filtering to only those that contain items that
             // can satisfy the input
@@ -213,12 +216,13 @@ impl RecipeBook {
 pub enum RawRecipeInput {
     Item(String),
     Tag(ItemTag),
+    TagSameItem(ItemTag),
 }
 
 #[derive(Clone, Deserialize)]
 pub(crate) struct RawRecipe {
     pub(crate) output: (String, u32),
-    pub(crate) inputs: Vec<(RawRecipeInput, u32)>,
+    pub(crate) inputs: Vec<(RawRecipeInput, u32, bool)>,
     pub(crate) craft_sprite: Option<SpriteKind>,
 }
 
@@ -245,13 +249,14 @@ impl assets::Compound for RecipeBook {
 
         #[inline]
         fn load_recipe_input(
-            spec: &(RawRecipeInput, u32),
-        ) -> Result<(RecipeInput, u32), assets::Error> {
-            let def = match &spec.0 {
+            (input, amount, is_mod_comp): &(RawRecipeInput, u32, bool),
+        ) -> Result<(RecipeInput, u32, bool), assets::Error> {
+            let def = match &input {
                 RawRecipeInput::Item(name) => RecipeInput::Item(Arc::<ItemDef>::load_cloned(name)?),
                 RawRecipeInput::Tag(tag) => RecipeInput::Tag(*tag),
+                RawRecipeInput::TagSameItem(tag) => RecipeInput::TagSameItem(*tag, *amount),
             };
-            Ok((def, spec.1))
+            Ok((def, *amount, *is_mod_comp))
         }
 
         let mut raw = cache.load::<RawRecipeBook>(specifier)?.cloned();
@@ -259,9 +264,9 @@ impl assets::Compound for RecipeBook {
         // Avoid showing purple-question-box recipes until the assets are added
         // (the `if false` is needed because commenting out the call will add a warning
         // that there are no other uses of append_modular_recipes)
-        if false {
-            modular::append_modular_recipes(&mut raw);
-        }
+        // if false {
+        modular::append_modular_recipes(&mut raw);
+        // }
 
         let recipes = raw
             .0

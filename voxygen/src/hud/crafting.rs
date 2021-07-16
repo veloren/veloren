@@ -465,10 +465,11 @@ impl<'a> Widget for Crafting<'a> {
                         .iter()
                         .all(|&substring| output_name.contains(substring))
                 },
-                SearchFilter::Input => recipe.inputs().any(|(input, _)| {
+                SearchFilter::Input => recipe.inputs().any(|(input, _, _)| {
                     let input_name = match input {
                         RecipeInput::Item(def) => def.name.as_str(),
                         RecipeInput::Tag(tag) => tag.name(),
+                        RecipeInput::TagSameItem(tag, _) => tag.name(),
                     }
                     .to_lowercase();
                     search_keys
@@ -903,25 +904,27 @@ impl<'a> Widget for Crafting<'a> {
             };
 
             // Widget generation for every ingredient
-            for (i, (recipe_input, amount)) in recipe.inputs.iter().enumerate() {
+            for (i, (recipe_input, amount, _)) in recipe.inputs.iter().enumerate() {
                 let item_def = match recipe_input {
                     RecipeInput::Item(item_def) => Arc::clone(item_def),
-                    RecipeInput::Tag(tag) => Arc::<ItemDef>::load_expect_cloned(
-                        &self
-                            .inventory
-                            .slots()
-                            .filter_map(|slot| {
-                                slot.as_ref().and_then(|item| {
-                                    if item.matches_recipe_input(recipe_input) {
-                                        Some(item.item_definition_id().to_string())
-                                    } else {
-                                        None
-                                    }
+                    RecipeInput::Tag(tag) | RecipeInput::TagSameItem(tag, _) => {
+                        Arc::<ItemDef>::load_expect_cloned(
+                            &self
+                                .inventory
+                                .slots()
+                                .filter_map(|slot| {
+                                    slot.as_ref().and_then(|item| {
+                                        if item.matches_recipe_input(recipe_input) {
+                                            Some(item.item_definition_id().to_string())
+                                        } else {
+                                            None
+                                        }
+                                    })
                                 })
-                            })
-                            .next()
-                            .unwrap_or_else(|| tag.exemplar_identifier().to_string()),
-                    ),
+                                .next()
+                                .unwrap_or_else(|| tag.exemplar_identifier().to_string()),
+                        )
+                    },
                 };
 
                 // Grey color for images and text if their amount is too low to craft the item
@@ -1020,7 +1023,9 @@ impl<'a> Widget for Crafting<'a> {
                     // Ingredients
                     let name = match recipe_input {
                         RecipeInput::Item(_) => item_def.name().to_string(),
-                        RecipeInput::Tag(tag) => format!("Any {} item", tag.name()),
+                        RecipeInput::Tag(tag) | RecipeInput::TagSameItem(tag, _) => {
+                            format!("Any {} item", tag.name())
+                        },
                     };
                     let input = format!(
                         "{}x {} ({})",

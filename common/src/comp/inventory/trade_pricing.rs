@@ -533,7 +533,7 @@ impl TradePricing {
                 input: recipe
                     .inputs
                     .iter()
-                    .filter_map(|&(ref recipe_input, count)| {
+                    .filter_map(|&(ref recipe_input, count, _)| {
                         if let RecipeInput::Item(it) = recipe_input {
                             // If item is not consumed in craft, ignore it
                             if count == 0 {

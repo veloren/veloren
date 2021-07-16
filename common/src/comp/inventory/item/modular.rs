@@ -230,7 +230,7 @@ fn make_recipe_def(identifier: String, toolkind: ToolKind) -> RawRecipe {
             toolkind,
             modkind,
         }));
-        inputs.push((input, 1));
+        inputs.push((input, 1, true));
     }
     RawRecipe {
         output,

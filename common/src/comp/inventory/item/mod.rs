@@ -812,6 +812,9 @@ impl Item {
         match recipe_input {
             RecipeInput::Item(item_def) => self.is_same_item_def(item_def),
             RecipeInput::Tag(tag) => self.item_def.tags.contains(tag),
+            RecipeInput::TagSameItem(tag, amount) => {
+                self.item_def.tags.contains(tag) && u32::from(self.amount) >= *amount
+            },
         }
     }
 
