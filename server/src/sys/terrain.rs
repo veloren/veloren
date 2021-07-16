@@ -1,9 +1,14 @@
 use crate::{
-    chunk_generator::ChunkGenerator, client::Client, metrics::NetworkRequestMetrics,
-    presence::Presence, rtsim::RtSim, settings::Settings, SpawnPoint, Tick,
+    chunk_generator::ChunkGenerator,
+    client::Client,
+    metrics::NetworkRequestMetrics,
+    presence::{Presence, RepositionOnChunkLoad},
+    rtsim::RtSim,
+    settings::Settings,
+    SpawnPoint, Tick,
 };
 use common::{
-    comp::{self, agent, bird_medium, Alignment, BehaviorCapability, Pos, RepositionOnChunkLoad},
+    comp::{self, agent, bird_medium, Alignment, BehaviorCapability, ForceUpdate, Pos},
     event::{EventBus, ServerEvent},
     generation::{get_npc_name, EntityInfo},
     npc::NPC_NAMES,
@@ -98,6 +103,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Client>,
         Entities<'a>,
         WriteStorage<'a, RepositionOnChunkLoad>,
+        WriteStorage<'a, ForceUpdate>,
     );
 
     const NAME: &'static str = "terrain";
@@ -121,6 +127,7 @@ impl<'a> System<'a> for Sys {
             clients,
             entities,
             mut reposition_on_load,
+            mut force_update,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_event_bus.emitter();
@@ -310,18 +317,22 @@ impl<'a> System<'a> for Sys {
             }
         }
 
-        for (entity, pos) in (&entities, &mut positions).join() {
-            if reposition_on_load.get(entity).is_some() {
-                // If the player is in the new chunk and is marked as needing repositioning once
-                // the chunk loads (e.g. from having just logged in), reposition them
-                let chunk_pos = terrain.pos_key(pos.0.map(|e| e as i32));
-                if let Some((_, chunk)) = new_chunks.iter().find(|(key, _)| *key == chunk_pos) {
-                    pos.0 = chunk
-                        .find_accessible_pos(pos.0.xy().as_::<i32>(), false)
-                        .as_::<f32>();
-                    reposition_on_load.remove(entity);
-                }
+        let mut repositioned = Vec::new();
+        for (entity, pos, _) in (&entities, &mut positions, &reposition_on_load).join() {
+            // If an entity is marked as needing repositioning once the chunk loads (e.g.
+            // from having just logged in), reposition them.
+
+            let chunk_pos = terrain.pos_key(pos.0.map(|e| e as i32));
+            if let Some(chunk) = terrain.get_key(chunk_pos) {
+                pos.0 = chunk
+                    .find_accessible_pos(pos.0.xy().as_::<i32>(), false)
+                    .as_::<f32>();
+                repositioned.push(entity);
+                let _ = force_update.insert(entity, ForceUpdate);
             }
+        }
+        for entity in repositioned {
+            reposition_on_load.remove(entity);
         }
 
         // Send the chunk to all nearby players.

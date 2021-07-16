@@ -45,10 +45,3 @@ impl Component for WaypointArea {
 impl Default for WaypointArea {
     fn default() -> Self { Self(5.0) }
 }
-
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
-pub struct RepositionOnChunkLoad;
-
-impl Component for RepositionOnChunkLoad {
-    type Storage = IdvStorage<Self>;
-}

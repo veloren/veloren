@@ -50,7 +50,7 @@ use crate::{
     connection_handler::ConnectionHandler,
     data_dir::DataDir,
     login_provider::LoginProvider,
-    presence::{Presence, RegionSubscription},
+    presence::{Presence, RegionSubscription, RepositionOnChunkLoad},
     rtsim::RtSim,
     state_ext::StateExt,
     sys::sentinel::{DeletedEntities, TrackedComps},
@@ -250,6 +250,7 @@ impl Server {
         state.ecs_mut().register::<wiring::Circuit>();
         state.ecs_mut().register::<comp::HomeChunk>();
         state.ecs_mut().register::<login_provider::PendingLogin>();
+        state.ecs_mut().register::<RepositionOnChunkLoad>();
 
         //Alias validator
         let banned_words_paths = &settings.banned_words_files;

@@ -80,7 +80,7 @@ pub use self::{
         slot, Inventory, InventoryUpdate, InventoryUpdateEvent,
     },
     last::Last,
-    location::{RepositionOnChunkLoad, Waypoint, WaypointArea},
+    location::{Waypoint, WaypointArea},
     misc::Object,
     ori::Ori,
     phys::{
