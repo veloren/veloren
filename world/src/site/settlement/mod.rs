@@ -913,7 +913,7 @@ impl Settlement {
                         match dynamic_rng.gen_range(0..=4) {
                             0 => barnyard(entity_wpos, dynamic_rng),
                             1 => bird(entity_wpos, dynamic_rng),
-                            _ => human(entity_wpos, &economy, dynamic_rng),
+                            _ => humanoid(entity_wpos, &economy, dynamic_rng),
                         }
                     };
 
@@ -975,6 +975,7 @@ impl Settlement {
 }
 
 fn barnyard(pos: Vec3<f32>, dynamic_rng: &mut impl Rng) -> EntityInfo {
+    //TODO: use Lottery instead of ad-hoc RNG system
     let species = match dynamic_rng.gen_range(0..5) {
         0 => quadruped_small::Species::Pig,
         1 => quadruped_small::Species::Sheep,
@@ -991,6 +992,7 @@ fn barnyard(pos: Vec3<f32>, dynamic_rng: &mut impl Rng) -> EntityInfo {
 }
 
 fn bird(pos: Vec3<f32>, dynamic_rng: &mut impl Rng) -> EntityInfo {
+    //TODO: use Lottery instead of ad-hoc RNG system
     let species = match dynamic_rng.gen_range(0..4) {
         0 => bird_medium::Species::Duck,
         1 => bird_medium::Species::Chicken,
@@ -1006,7 +1008,7 @@ fn bird(pos: Vec3<f32>, dynamic_rng: &mut impl Rng) -> EntityInfo {
         .with_automatic_name()
 }
 
-fn human(pos: Vec3<f32>, economy: &SiteInformation, dynamic_rng: &mut impl Rng) -> EntityInfo {
+fn humanoid(pos: Vec3<f32>, economy: &SiteInformation, dynamic_rng: &mut impl Rng) -> EntityInfo {
     let entity = EntityInfo::at(pos);
     match dynamic_rng.gen_range(0..12) {
         0 => entity
