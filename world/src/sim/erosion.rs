@@ -13,7 +13,7 @@ use itertools::izip;
 use noise::NoiseFn;
 use num::{Float, Zero};
 use ordered_float::NotNan;
-use packed_simd::m32;
+#[cfg(feature = "simd")] use packed_simd::m32;
 use rayon::prelude::*;
 use std::{
     cmp::{Ordering, Reverse},
@@ -605,6 +605,20 @@ fn get_max_slope(
         })
         .collect::<Vec<_>>()
         .into_boxed_slice()
+}
+
+// simd alternative
+#[cfg(not(feature = "simd"))]
+#[derive(Copy, Clone)]
+#[allow(non_camel_case_types)]
+struct m32(u32);
+#[cfg(not(feature = "simd"))]
+impl m32 {
+    #[inline]
+    fn new(x: bool) -> Self { if x { Self(u32::MAX) } else { Self(u32::MIN) } }
+
+    #[inline]
+    fn test(&self) -> bool { self.0 != 0 }
 }
 
 /// Erode all chunks by amount.

@@ -6,11 +6,8 @@ unittests:
     GIT_DEPTH: 9999999999999
   script:
     - ln -s /dockercache/target target
-    - rm -r target/debug/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
-    - cargo test --package veloren-i18n --lib test_all_localizations -- --nocapture --ignored
-    - cargo test --package veloren-common-assets asset_tweak::tests --features asset_tweak --lib
-    - rm -r target/debug/incremental* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
-    - cargo test
+    - cat ./.gitlab/scripts/unittest.sh
+    - source ./.gitlab/scripts/unittest.sh
   retry:
     max: 2
 
@@ -23,12 +20,8 @@ benchmarks:
   script:
     - unset DISABLE_GIT_LFS_CHECK
     - ln -s /dockercache/target target
-    - ls -la target/*
-    - rm -r target/debug/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
-    - rm -r target/release/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
-    - rm -r target/debug/incremental/* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
-    - rm -r target/release/incremental/* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
-    - cargo bench || exit 0 #temp fix
+    - cat ./.gitlab/scripts/benchmark.sh
+    - source ./.gitlab/scripts/benchmark.sh
     - TAGUUID="Z$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)" || echo "ignore this returncode, dont ask me why, it works"
     - echo $TAGUUID
     - echo 'SET veloren.timestamp = "'"$(git show --no-patch --no-notes --pretty='%cd' HEAD)"'";' > upload.sql
@@ -48,11 +41,8 @@ coverage:
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/tarpaulin:${CACHE_IMAGE_TAG}
   script:
     - ln -s /dockercache/target target
-    - rm -r target/debug/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
-    - find ./* -name "Cargo.toml" -exec sed -i 's/, "simd"]/]/g' {} \;
-    - find ./* -name "Cargo.toml" -exec sed -i 's/"simd"]/]/g' {} \;
-    - sed -i 's/vek /#vek /g' ./Cargo.toml;
-    - cargo tarpaulin -v -- --test-threads=2
+    - cat ./.gitlab/scripts/coverage.sh
+    - source ./.gitlab/scripts/coverage.sh
   retry:
     max: 2
 
@@ -61,10 +51,8 @@ coverage:
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/release-linux:${CACHE_IMAGE_TAG}
   script:
     - ln -s /dockercache/target target
-    - rm -r target/release/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
-    - export VELOREN_USERDATA_STRATEGY=executable
-    - cargo build --release -p veloren-voxygen --no-default-features --features default-publish
-    - cargo build --release -p veloren-server-cli
+    - cat ./.gitlab/scripts/linux.sh
+    - source ./.gitlab/scripts/linux.sh
     - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
     - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
   artifacts:
@@ -78,13 +66,9 @@ coverage:
 .twindows:
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/release-windows:${CACHE_IMAGE_TAG}
   script:
-    - update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
-    - update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
     - ln -s /dockercache/target target
-    - rm -r target/release/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
-    - export VELOREN_USERDATA_STRATEGY=executable
-    - cargo build --target=x86_64-pc-windows-gnu --release -p veloren-voxygen --no-default-features --features default-publish
-    - cargo build --target=x86_64-pc-windows-gnu --release -p veloren-server-cli
+    - cat ./.gitlab/scripts/windows.sh
+    - source ./.gitlab/scripts/windows.sh
     - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
     - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
     - cp /usr/lib/gcc/x86_64-w64-mingw32/7.3-posix/libgcc_s_seh-1.dll $CI_PROJECT_DIR
@@ -113,8 +97,7 @@ coverage:
   script:
     - export MACOSX_DEPLOYMENT_TARGET="10.13"
     - export VELOREN_USERDATA_STRATEGY=executable
-    - cargo build --release -p veloren-voxygen --no-default-features --features default-publish
-    - cargo build --release -p veloren-server-cli
+    - cargo build --release --no-default-features --features default-publish
     - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
     - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
   artifacts:

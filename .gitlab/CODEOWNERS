@@ -1,3 +1,4 @@
 */Cargo.toml @xMAC94x
 Cargo.toml @xMAC94x
 rust-toolchain @xMAC94x
+.gitlab/scripts/* @xMAC94x
