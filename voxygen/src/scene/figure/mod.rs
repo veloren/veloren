@@ -405,8 +405,6 @@ impl FigureMgr {
         self.golem_model_cache.clean(&mut self.col_lights, tick);
     }
 
-    #[allow(clippy::redundant_pattern_matching)]
-    // TODO: Pending review in #587
     pub fn update_lighting(&mut self, scene_data: &SceneData) {
         span!(_guard, "update_lighting", "FigureManager::update_lighting");
         let ecs = scene_data.state.ecs();
@@ -419,7 +417,7 @@ impl FigureMgr {
         {
             // Add LightAnimation for objects with a LightEmitter
             let mut anim_storage = ecs.write_storage::<LightAnimation>();
-            if let None = anim_storage.get_mut(entity) {
+            if anim_storage.get_mut(entity).is_none() {
                 let anim = LightAnimation {
                     offset: body
                         .map(|b| b.default_light_offset())
