@@ -72,7 +72,6 @@ impl<T> Skeleton<T> {
         bounds
     }
 
-    #[allow(clippy::logic_bug)] // TODO: Pending review in #587
     pub fn sample_closest(
         &self,
         pos: Vec3<i32>,
@@ -109,18 +108,10 @@ impl<T> Skeleton<T> {
             };
             let dist = bound_offset.reduce_max();
             let dist_locus = dist - branch.locus;
-            if !is_child
-                || match ori {
-                    Ori::East => (pos.x - node.x) * branch.len.signum() >= 0,
-                    Ori::North => (pos.y - node.y) * branch.len.signum() >= 0,
-                }
-                || true
-            {
-                let new_bm = f(pos, dist, bound_offset, center_offset, ori, branch);
-                min = min
-                    .map(|(_, bm)| (dist_locus, bm.resolve_with(new_bm)))
-                    .or(Some((dist_locus, new_bm)));
-            }
+            let new_bm = f(pos, dist, bound_offset, center_offset, ori, branch);
+            min = min
+                .map(|(_, bm)| (dist_locus, bm.resolve_with(new_bm)))
+                .or(Some((dist_locus, new_bm)));
         });
         min.map(|(_, bm)| bm).unwrap_or_else(BlockMask::nothing)
     }
