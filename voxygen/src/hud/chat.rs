@@ -202,7 +202,6 @@ impl<'a> Widget for Chat<'a> {
 
     fn style(&self) -> Self::Style {}
 
-    #[allow(clippy::redundant_clone)] // TODO: Pending review in #587
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         common_base::prof_span!("Chat::update");
@@ -379,11 +378,10 @@ impl<'a> Widget for Chat<'a> {
                 .w(CHAT_BOX_WIDTH)
                 .set(state.ids.chat_input_bg, ui);
 
-            if let Some(str) = text_edit
+            if let Some(mut input) = text_edit
                 .right_from(state.ids.chat_input_icon, 1.0)
                 .set(state.ids.chat_input, ui)
             {
-                let mut input = str.to_owned();
                 input.retain(|c| c != '\n');
                 if let Ok(()) = validate_chat_msg(&input) {
                     state.update(|s| s.input.message = input);
