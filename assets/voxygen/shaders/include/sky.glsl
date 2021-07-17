@@ -24,8 +24,8 @@ const vec3 SKY_DAY_BOT = vec3(0.1, 0.2, 0.3);
 const vec3 DAY_LIGHT   = vec3(3.8, 3.0, 1.8);
 const vec3 SUN_HALO_DAY = vec3(0.25, 0.25, 0.001);
 
-const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
-const vec3 SKY_DUSK_MID = vec3(0.75, 0.1, 0.15);
+const vec3 SKY_DUSK_TOP = vec3(1.06, 0.1, 0.20);
+const vec3 SKY_DUSK_MID = vec3(2.5, 0.3, 0.1);
 const vec3 SKY_DUSK_BOT = vec3(0.0, 0.1, 0.23);
 const vec3 DUSK_LIGHT   = vec3(8.0, 1.5, 0.15);
 const vec3 SUN_HALO_DUSK = vec3(10.2, 3.0, 0.1);
@@ -111,6 +111,20 @@ float cloud_shadow(vec3 pos, vec3 light_dir) {
     #endif
 }
 
+float magnetosphere = sin(time_of_day.x / (3600 * 24));
+#if (CLOUD_MODE <= CLOUD_MODE_LOW)
+    const vec3 magnetosphere_tint = vec3(1);
+#else
+    float _magnetosphere2 = pow(magnetosphere, 2) * 2 - 1;
+    float _magnetosphere3 = pow(_magnetosphere2, 2) * 2 - 1;
+    vec3 _magnetosphere_change = vec3(1.0) + vec3(
+        (magnetosphere + 1.0) * 2.0,
+        (-_magnetosphere2 + 1.0) * 2.0,
+        (-_magnetosphere3 + 1.0) * 1.0
+    ) * 0.4;
+    vec3 magnetosphere_tint = _magnetosphere_change / length(_magnetosphere_change);
+#endif
+
 float get_sun_brightness(/*vec3 sun_dir*/) {
     return max(-sun_dir.z + 0.5, 0.0);
 }
@@ -122,7 +136,7 @@ float get_moon_brightness(/*vec3 moon_dir*/) {
 vec3 get_sun_color(/*vec3 sun_dir*/) {
     return mix(
         mix(
-            DUSK_LIGHT,
+            DUSK_LIGHT * magnetosphere_tint,
             NIGHT_LIGHT,
             max(sun_dir.z, 0)
         ),
@@ -131,12 +145,11 @@ vec3 get_sun_color(/*vec3 sun_dir*/) {
     );
 }
 
-
 // Average sky colour (i.e: perfectly scattered light from the sky)
 vec3 get_sky_color(/*vec3 sun_dir*/) {
     return mix(
         mix(
-            (SKY_DUSK_TOP + SKY_DUSK_MID) / 2,
+            (SKY_DUSK_TOP + SKY_DUSK_MID) / 2 * magnetosphere_tint,
             (SKY_NIGHT_TOP + SKY_NIGHT_MID) / 2,
             max(sun_dir.z, 0)
         ),
@@ -430,7 +443,7 @@ vec3 get_sky_light(vec3 dir, float time_of_day, bool with_stars) {
 
     vec3 sky_top = mix(
         mix(
-            SKY_DUSK_TOP,
+            SKY_DUSK_TOP * magnetosphere_tint,
             SKY_NIGHT_TOP,
             pow(max(sun_dir.z, 0.0), 0.2)
         ) + star,
@@ -439,7 +452,8 @@ vec3 get_sky_light(vec3 dir, float time_of_day, bool with_stars) {
     );
 
     vec3 sky_mid = mix(
-        mix( SKY_DUSK_MID,
+        mix(
+            SKY_DUSK_MID * magnetosphere_tint,
             SKY_NIGHT_MID,
             pow(max(sun_dir.z, 0.0), 0.1)
         ),
@@ -449,7 +463,7 @@ vec3 get_sky_light(vec3 dir, float time_of_day, bool with_stars) {
 
     vec3 sky_bot = mix(
         mix(
-            SKY_DUSK_BOT,
+            SKY_DUSK_BOT * magnetosphere_tint,
             SKY_NIGHT_BOT,
             pow(max(sun_dir.z, 0.0), 0.2)
         ),
@@ -467,7 +481,7 @@ vec3 get_sky_light(vec3 dir, float time_of_day, bool with_stars) {
         max(dir.z, 0)
     );
 
-    return sky_color;
+    return sky_color * magnetosphere_tint;
 }
 
 vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float quality, bool with_features, float refractionIndex) {
@@ -484,7 +498,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
     const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 50.0;
 
     vec3 sun_halo_color = mix(
-        SUN_HALO_DUSK,
+        SUN_HALO_DUSK * magnetosphere_tint,
         SUN_HALO_DAY,
         pow(max(-sun_dir.z, 0.0), 0.5)
     );
