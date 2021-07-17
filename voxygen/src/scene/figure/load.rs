@@ -234,7 +234,12 @@ struct HumHeadSubSpec {
 struct HumHeadSpec(HashMap<(Species, BodyType), HumHeadSubSpec>);
 
 impl HumHeadSpec {
-    fn mesh_head(&self, body: &Body, color_spec: &HumColorSpec) -> BoneMeshes {
+    fn mesh_head(
+        &self,
+        body: &Body,
+        color_spec: &HumColorSpec,
+        helmet: Option<(Segment, Vec3<i32>)>,
+    ) -> BoneMeshes {
         let spec = match self.0.get(&(body.species, body.body_type)) {
             Some(spec) => spec,
             None => {
@@ -311,6 +316,7 @@ impl HumHeadSpec {
             .maybe_add(hair)
             .maybe_add(beard)
             .maybe_add(accessory)
+            .maybe_add(helmet)
             .unify();
 
         (
@@ -353,7 +359,7 @@ struct HumArmorLanternSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Deserialize)]
 struct HumArmorGliderSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Deserialize)]
-struct HumArmorHeadSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
+struct HumArmorHeadSpec(ArmorVoxSpecMap<(Species, String), ArmorVoxSpec>);
 #[derive(Deserialize)]
 struct HumArmorTabardSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 
@@ -373,9 +379,9 @@ make_vox_spec!(
         modular_components: HumModularComponentSpec = "voxygen.voxel.humanoid_modular_component_manifest",
         armor_lantern: HumArmorLanternSpec = "voxygen.voxel.humanoid_lantern_manifest",
         armor_glider: HumArmorGliderSpec = "voxygen.voxel.humanoid_glider_manifest",
+        armor_head: HumArmorHeadSpec = "voxygen.voxel.humanoid_armor_head_manifest",
         // TODO: Add these.
-        /* armor_head: HumArmorHeadSpec = "voxygen.voxel.humanoid_armor_head_manifest",
-        tabard: HumArmorTabardSpec = "voxygen.voxel.humanoid_armor_tabard_manifest", */
+        /* tabard: HumArmorTabardSpec = "voxygen.voxel.humanoid_armor_tabard_manifest", */
     },
     |FigureKey { body, extra }, spec| {
         const DEFAULT_LOADOUT: super::cache::CharacterCacheKey = super::cache::CharacterCacheKey {
@@ -385,6 +391,7 @@ make_vox_spec!(
             glider: None,
             hand: None,
             foot: None,
+            head: None,
         };
 
         // TODO: This is bad code, maybe this method should return Option<_>
@@ -403,6 +410,10 @@ make_vox_spec!(
                 spec.head.read().0.mesh_head(
                     body,
                     color,
+                    spec.armor_head.read().0.load_head(
+                        body,
+                        loadout.head.as_deref()
+                    ),
                 )
             }),
             third_person.map(|loadout| {
@@ -957,46 +968,17 @@ impl HumArmorLanternSpec {
     }
 }
 impl HumArmorHeadSpec {
-    /// FIXME: Either use this, or remove it.
-    #[allow(dead_code)]
-    fn mesh_head(&self, body: &Body, color_spec: &HumColorSpec, head: Option<&str>) -> BoneMeshes {
-        let spec = if let Some(head) = head {
-            match self.0.map.get(head) {
-                Some(spec) => spec,
-                None => {
-                    error!(?head, "No head specification exists");
-                    return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0));
-                },
-            }
-        } else {
-            &self.0.default
-        };
-
-        let color = |mat_segment| {
-            color_spec.color_segment(
-                mat_segment,
-                body.species.skin_color(body.skin),
-                color_spec.hair_color(body.species, body.hair_color),
-                body.species.eye_color(body.eye_color),
-            )
-        };
-
-        let bare_head = graceful_load_mat_segment("armor.empty");
-
-        let mut head_armor = graceful_load_mat_segment(&spec.vox_spec.0);
-
-        if let Some(color) = spec.color {
-            let head_color = Vec3::from(color);
-            head_armor = head_armor.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(head_color)));
+    fn load_head(&self, body: &Body, head: Option<&str>) -> Option<(Segment, Vec3<i32>)> {
+        match self.0.map.get(&(body.species, head?.to_string())) {
+            Some(spec) => Some((
+                graceful_load_segment(&spec.vox_spec.0),
+                Vec3::<f32>::from(spec.vox_spec.1).as_(),
+            )),
+            None => {
+                warn!("No specification for this head: {:?}", head);
+                None
+            },
         }
-
-        let head = DynaUnionizer::new()
-            .add(color(bare_head), Vec3::new(0, 0, 0))
-            .add(color(head_armor), Vec3::new(0, 0, 0))
-            .unify()
-            .0;
-
-        (head, Vec3::from(spec.vox_spec.1))
     }
 }
 impl HumArmorTabardSpec {
@@ -2516,6 +2498,7 @@ make_vox_spec!(
             glider: None,
             hand: None,
             foot: None,
+            head: None,
         };
 
         // TODO: This is bad code, maybe this method should return Option<_>
@@ -3544,6 +3527,7 @@ make_vox_spec!(
             glider: None,
             hand: None,
             foot: None,
+            head: None,
         };
 
         // TODO: This is bad code, maybe this method should return Option<_>
