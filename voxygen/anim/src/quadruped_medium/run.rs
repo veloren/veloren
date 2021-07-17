@@ -2,10 +2,7 @@ use super::{
     super::{vek::*, Animation},
     QuadrupedMediumSkeleton, SkeletonAttr,
 };
-use std::{
-    f32::consts::{FRAC_PI_2, FRAC_PI_4, PI},
-    ops::Mul,
-};
+use std::{f32::consts::PI, ops::Mul};
 
 pub struct RunAnimation;
 
@@ -58,10 +55,10 @@ impl Animation for RunAnimation {
         );
 
         let speedadjust = if speed < 5.0 { 0.0 } else { speed / 24.0 };
-        let shift1 = speedadjust - FRAC_PI_2 - speedadjust * PI * 3.0 / 4.0;
-        let shift2 = speedadjust + FRAC_PI_2 + speedadjust * FRAC_PI_2;
-        let shift3 = speedadjust + FRAC_PI_4 - speedadjust * FRAC_PI_4;
-        let shift4 = speedadjust - PI * 3.0 / 4.0 + speedadjust * FRAC_PI_2;
+        let shift1 = speedadjust - PI / 2.0 - speedadjust * PI * 3.0 / 4.0;
+        let shift2 = speedadjust + PI / 2.0 + speedadjust * PI / 2.0;
+        let shift3 = speedadjust + PI / 4.0 - speedadjust * PI / 4.0;
+        let shift4 = speedadjust - PI * 3.0 / 4.0 + speedadjust * PI / 2.0;
 
         //FL
         let foot1a = (mixed_vel * (1.0) * lab * speedmult + 0.0 + canceler * 0.05 + shift1).sin(); //1.5
@@ -71,11 +68,10 @@ impl Animation for RunAnimation {
         let foot2b = (mixed_vel * (1.0) * lab * speedmult + 1.1 + shift2).sin(); //1.0
         //BL
         let foot3a = (mixed_vel * (1.0) * lab * speedmult + shift3).sin(); //0.0
-        let foot3b = (mixed_vel * (1.0) * lab * speedmult + FRAC_PI_2 + shift3).sin(); //0.4
+        let foot3b = (mixed_vel * (1.0) * lab * speedmult + 1.57 + shift3).sin(); //0.4
         //BR
         let foot4a = (mixed_vel * (1.0) * lab * speedmult + 0.0 + canceler * 0.05 + shift4).sin(); //0.3
-        let foot4b =
-            (mixed_vel * (1.0) * lab * speedmult + FRAC_PI_2 + canceler * 0.05 + shift4).sin(); //0.7
+        let foot4b = (mixed_vel * (1.0) * lab * speedmult + 1.57 + canceler * 0.05 + shift4).sin(); //0.7
         //
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);

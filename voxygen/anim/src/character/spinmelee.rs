@@ -6,7 +6,7 @@ use common::{
     comp::item::{Hands, ToolKind},
     states::utils::{AbilityInfo, StageSection},
 };
-use std::f32::consts::{FRAC_PI_2, PI, TAU};
+use std::f32::consts::PI;
 
 pub struct SpinMeleeAnimation;
 
@@ -25,6 +25,7 @@ impl Animation for SpinMeleeAnimation {
     const UPDATE_FN: &'static [u8] = b"character_spinmelee\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_spinmelee")]
+    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (hands, _velocity, _global_time, stage_section, ability_info): Self::Dependency<'a>,
@@ -49,7 +50,7 @@ impl Animation for SpinMeleeAnimation {
         next.second.orientation = Quaternion::rotation_z(0.0);
         match ability_info.and_then(|a| a.tool) {
             Some(ToolKind::Sword) => {
-                next.torso.orientation = Quaternion::rotation_z(movement2 * TAU);
+                next.torso.orientation = Quaternion::rotation_z(movement2 * PI * 2.0);
 
                 next.chest.position = Vec3::new(
                     0.0,
@@ -121,7 +122,7 @@ impl Animation for SpinMeleeAnimation {
                         s_a.sc.2 + move1 * 2.0 + move2 * 10.0,
                     );
                     next.control.orientation = Quaternion::rotation_x(s_a.sc.3 + move1 * -PI / 2.5)
-                        * Quaternion::rotation_z(s_a.sc.5 + move1 * -FRAC_PI_2);
+                        * Quaternion::rotation_z(s_a.sc.5 + move1 * -PI / 2.0);
                 },
                 Some(ToolKind::Axe) => {
                     next.main.position = Vec3::new(0.0, 0.0, 0.0);

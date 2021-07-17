@@ -3,7 +3,6 @@ use super::{
     BipedLargeSkeleton, SkeletonAttr,
 };
 use common::comp::item::ToolKind;
-use std::f32::consts::FRAC_PI_2;
 
 pub struct ChargeAnimation;
 
@@ -35,8 +34,7 @@ impl Animation for ChargeAnimation {
 
         let foot = ((5.0 / (0.2 + 4.8 * ((anim_time * lab * 8.0).sin()).powi(2))).sqrt())
             * ((anim_time * lab * 8.0).sin());
-        let foote = ((5.0 / (0.5 + 4.5 * ((anim_time * lab * 8.0 + FRAC_PI_2).sin()).powi(2)))
-            .sqrt())
+        let foote = ((5.0 / (0.5 + 4.5 * ((anim_time * lab * 8.0 + 1.57).sin()).powi(2))).sqrt())
             * ((anim_time * lab * 8.0).sin());
         let stress = ((5.0 / (0.5 + 4.5 * ((anim_time * lab * 20.0).cos()).powi(2))).sqrt())
             * ((anim_time * lab * 20.0).cos());
@@ -101,7 +99,7 @@ impl Animation for ChargeAnimation {
                 next.hand_r.orientation = Quaternion::rotation_x(s_a.bhr.3);
 
                 next.hold.position = Vec3::new(0.0, -1.0, -15.2);
-                next.hold.orientation = Quaternion::rotation_x(-FRAC_PI_2);
+                next.hold.orientation = Quaternion::rotation_x(-1.57);
                 next.hold.scale = Vec3::one() * 1.0;
 
                 next.control.position = Vec3::new(

@@ -3,7 +3,7 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::{comp::item::ToolKind, util::Dir};
-use std::f32::consts::FRAC_PI_2;
+use std::f32::consts::PI;
 
 pub struct TalkAnimation;
 
@@ -15,6 +15,7 @@ impl Animation for TalkAnimation {
     const UPDATE_FN: &'static [u8] = b"character_talk\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_talk")]
+    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, _second_tool_kind, _velocity, _global_time, look_dir): Self::Dependency<
@@ -28,8 +29,8 @@ impl Animation for TalkAnimation {
         let mut next = (*skeleton).clone();
 
         let slowa = (anim_time * 6.0).sin();
-        let slowb = (anim_time * 4.0 + FRAC_PI_2).sin();
-        let slowc = (anim_time * 12.0 + FRAC_PI_2).sin();
+        let slowb = (anim_time * 4.0 + PI / 2.0).sin();
+        let slowc = (anim_time * 12.0 + PI / 2.0).sin();
 
         next.head.orientation = Quaternion::rotation_x(slowc * 0.035 + look_dir.z * 0.7);
         next.hand_l.position = Vec3::new(

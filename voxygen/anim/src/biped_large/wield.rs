@@ -3,10 +3,7 @@ use super::{
     BipedLargeSkeleton, SkeletonAttr,
 };
 use common::comp::item::tool::{AbilitySpec, ToolKind};
-use std::{
-    f32::consts::{FRAC_PI_2, FRAC_PI_3, PI},
-    ops::Mul,
-};
+use std::{f32::consts::PI, ops::Mul};
 
 pub struct WieldAnimation;
 
@@ -93,7 +90,7 @@ impl Animation for WieldAnimation {
 
         let short = (acc_vel * lab).sin() * speednorm;
 
-        let shortalt = (anim_time * lab * 16.0 + FRAC_PI_2).sin();
+        let shortalt = (anim_time * lab * 16.0 + PI / 2.0).sin();
         next.second.position = Vec3::new(0.0, 0.0, 0.0);
         next.second.orientation = Quaternion::rotation_x(0.0);
 
@@ -177,7 +174,7 @@ impl Animation for WieldAnimation {
                     next.second.scale = Vec3::one() * 0.0;
 
                     next.control_l.orientation =
-                        Quaternion::rotation_x(FRAC_PI_2) * Quaternion::rotation_y(-0.2);
+                        Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(-0.2);
                     next.control_r.orientation =
                         Quaternion::rotation_x(PI / 2.2) * Quaternion::rotation_y(0.2);
 
@@ -195,7 +192,7 @@ impl Animation for WieldAnimation {
                     );
 
                     next.control_l.orientation =
-                        Quaternion::rotation_x(FRAC_PI_2) * Quaternion::rotation_y(-0.2);
+                        Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(-0.2);
                     next.control_r.orientation = Quaternion::rotation_x(PI / 2.2)
                         * Quaternion::rotation_y(0.2)
                         * Quaternion::rotation_z(0.0);
@@ -215,8 +212,8 @@ impl Animation for WieldAnimation {
                     );
 
                     next.control_l.orientation =
-                        Quaternion::rotation_x(FRAC_PI_2) * Quaternion::rotation_y(-0.0);
-                    next.control_r.orientation = Quaternion::rotation_x(FRAC_PI_2 + 0.2)
+                        Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(-0.0);
+                    next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + 0.2)
                         * Quaternion::rotation_y(0.0)
                         * Quaternion::rotation_z(0.0);
 
@@ -234,7 +231,7 @@ impl Animation for WieldAnimation {
                     );
 
                     next.control_l.orientation =
-                        Quaternion::rotation_x(FRAC_PI_2) * Quaternion::rotation_y(-0.5);
+                        Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(-0.5);
                     next.control_r.orientation = Quaternion::rotation_x(PI / 2.5)
                         * Quaternion::rotation_y(0.5)
                         * Quaternion::rotation_z(0.0);
@@ -249,19 +246,19 @@ impl Animation for WieldAnimation {
                                 next.control_l.position = Vec3::new(-9.0, 19.0, -13.0);
                                 next.control_r.position = Vec3::new(9.0, 19.0, -13.0);
 
-                                next.control_l.orientation = Quaternion::rotation_x(FRAC_PI_3)
+                                next.control_l.orientation = Quaternion::rotation_x(PI / 3.0)
                                     * Quaternion::rotation_y(-0.15);
-                                next.control_r.orientation = Quaternion::rotation_x(FRAC_PI_3)
-                                    * Quaternion::rotation_y(0.15);
+                                next.control_r.orientation =
+                                    Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_y(0.15);
                             },
                             "Tidal Warrior" => {
                                 next.hand_l.position = Vec3::new(-14.0, 2.0, -4.0);
                                 next.hand_r.position = Vec3::new(14.0, 2.0, -4.0);
 
-                                next.hand_l.orientation = Quaternion::rotation_x(FRAC_PI_3)
+                                next.hand_l.orientation = Quaternion::rotation_x(PI / 3.0)
                                     * Quaternion::rotation_z(-0.35);
-                                next.hand_r.orientation = Quaternion::rotation_x(FRAC_PI_3)
-                                    * Quaternion::rotation_z(0.35);
+                                next.hand_r.orientation =
+                                    Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_z(0.35);
                             },
                             "Beast Claws" => {
                                 next.shoulder_l.position =
@@ -441,12 +438,10 @@ impl Animation for WieldAnimation {
                                 next.weapon_l.position = Vec3::new(-12.0, -6.0, -18.0);
                                 next.weapon_r.position = Vec3::new(12.0, -6.0, -18.0);
 
-                                next.weapon_l.orientation =
-                                    Quaternion::rotation_x(-FRAC_PI_2 - 0.1);
-                                next.weapon_r.orientation =
-                                    Quaternion::rotation_x(-FRAC_PI_2 - 0.1);
+                                next.weapon_l.orientation = Quaternion::rotation_x(-1.57 - 0.1);
+                                next.weapon_r.orientation = Quaternion::rotation_x(-1.57 - 0.1);
 
-                                next.control_l.orientation = Quaternion::rotation_x(FRAC_PI_2);
+                                next.control_l.orientation = Quaternion::rotation_x(1.57);
                                 next.control_r.orientation = Quaternion::rotation_x(1.57);
 
                                 next.control.orientation =
@@ -486,11 +481,10 @@ impl Animation for WieldAnimation {
                                 );
 
                                 next.control_l.orientation =
-                                    Quaternion::rotation_x(FRAC_PI_2) * Quaternion::rotation_z(PI);
-                                next.control_r.orientation =
-                                    Quaternion::rotation_x(FRAC_PI_2 + 0.2)
-                                        * Quaternion::rotation_y(-1.0)
-                                        * Quaternion::rotation_z(0.0);
+                                    Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_z(PI);
+                                next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + 0.2)
+                                    * Quaternion::rotation_y(-1.0)
+                                    * Quaternion::rotation_z(0.0);
 
                                 next.control.orientation =
                                     Quaternion::rotation_x(-1.4) * Quaternion::rotation_y(-2.8);
@@ -510,13 +504,13 @@ impl Animation for WieldAnimation {
                                         Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
                                     next.hand_l.orientation =
                                         Quaternion::rotation_x(1.4 + slow * 0.1)
-                                            * Quaternion::rotation_z(-FRAC_PI_2);
+                                            * Quaternion::rotation_z(-PI / 2.0);
 
                                     next.hand_r.position =
                                         Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);
                                     next.hand_r.orientation =
                                         Quaternion::rotation_x(1.4 - slow * 0.1)
-                                            * Quaternion::rotation_z(FRAC_PI_2);
+                                            * Quaternion::rotation_z(PI / 2.0);
 
                                     next.shoulder_l.position =
                                         Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);

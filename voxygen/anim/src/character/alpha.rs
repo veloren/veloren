@@ -23,6 +23,7 @@ impl Animation for AlphaAnimation {
     const UPDATE_FN: &'static [u8] = b"character_alpha\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_alpha")]
+    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (hands, stage_section, ability_info): Self::Dependency<'a>,

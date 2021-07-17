@@ -50,7 +50,6 @@ use world::util::Sampler;
 
 use crate::{client::Client, login_provider::LoginProvider, wiring};
 use scan_fmt::{scan_fmt, scan_fmt_some};
-use std::f32::consts::PI;
 use tracing::{error, info, warn};
 
 pub trait ChatCommandExt {
@@ -1151,7 +1150,7 @@ fn handle_spawn_airship(
     let mut pos = position(server, target, "target")?;
     pos.0.z += 50.0;
     const DESTINATION_RADIUS: f32 = 2000.0;
-    let angle = angle.map(|a| a * PI / 180.0);
+    let angle = angle.map(|a| a * std::f32::consts::PI / 180.0);
     let destination = angle.map(|a| {
         pos.0
             + Vec3::new(

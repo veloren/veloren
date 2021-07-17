@@ -3,10 +3,7 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::comp::item::ToolKind;
-use std::{
-    f32::consts::{FRAC_PI_2, FRAC_PI_4, FRAC_PI_6},
-    ops::Mul,
-};
+use std::{f32::consts::PI, ops::Mul};
 
 pub struct DanceAnimation;
 
@@ -32,12 +29,12 @@ impl Animation for DanceAnimation {
         let lab: f32 = 1.0;
         let short = ((5.0 / (3.0 + 2.0 * ((anim_time * lab * 6.0).sin()).powi(2))).sqrt())
             * ((anim_time * lab * 6.0).sin());
-        let noisea = (anim_time * 11.0 + FRAC_PI_6).sin();
-        let noiseb = (anim_time * 19.0 + FRAC_PI_4).sin();
+        let noisea = (anim_time * 11.0 + PI / 6.0).sin();
+        let noiseb = (anim_time * 19.0 + PI / 4.0).sin();
 
         let shorte = (anim_time * lab * 6.0).sin();
 
-        let shortealt = (anim_time * lab * 6.0 + FRAC_PI_2).sin();
+        let shortealt = (anim_time * lab * 6.0 + PI / 2.0).sin();
 
         let foot = ((5.0 / (1.0 + (4.0) * ((anim_time * lab * 8.0).sin()).powi(2))).sqrt())
             * ((anim_time * lab * 8.0).sin());

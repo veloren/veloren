@@ -3,7 +3,7 @@ use super::{
     BipedSmallSkeleton, SkeletonAttr,
 };
 use common::{comp::item::ToolKind, states::utils::StageSection};
-use std::f32::consts::FRAC_PI_2;
+use std::f32::consts::PI;
 
 pub struct ShootAnimation;
 
@@ -49,7 +49,7 @@ impl Animation for ShootAnimation {
         let speed = Vec2::<f32>::from(velocity).magnitude();
 
         let fast = (anim_time * 10.0).sin();
-        let fastalt = (anim_time * 10.0 + FRAC_PI_2).sin();
+        let fastalt = (anim_time * 10.0 + PI / 2.0).sin();
 
         let speednorm = speed / 9.4;
         let speednormcancel = 1.0 - speednorm;
@@ -104,8 +104,8 @@ impl Animation for ShootAnimation {
                 );
 
                 next.control_l.orientation =
-                    Quaternion::rotation_x(FRAC_PI_2) * Quaternion::rotation_y(-0.3);
-                next.control_r.orientation = Quaternion::rotation_x(FRAC_PI_2 + s_a.grip.0 * 0.2)
+                    Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(-0.3);
+                next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + s_a.grip.0 * 0.2)
                     * Quaternion::rotation_y(0.5 + s_a.grip.0 * 0.2);
 
                 next.control.orientation = Quaternion::rotation_x(-0.3 + move1abs * 0.4)
@@ -133,11 +133,11 @@ impl Animation for ShootAnimation {
                     -2.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + move1abs * 5.0,
                 );
 
-                next.control_l.orientation = Quaternion::rotation_x(FRAC_PI_2 + move1abs * 0.8)
+                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + move1abs * 0.8)
                     * Quaternion::rotation_y(-0.3)
                     * Quaternion::rotation_z(-0.3);
                 next.control_r.orientation =
-                    Quaternion::rotation_x(FRAC_PI_2 + s_a.grip.0 * 0.2 + move1abs * 0.8)
+                    Quaternion::rotation_x(PI / 2.0 + s_a.grip.0 * 0.2 + move1abs * 0.8)
                         * Quaternion::rotation_y(-0.4 + s_a.grip.0 * 0.2 + move1abs * 0.8)
                         * Quaternion::rotation_z(-0.0);
 

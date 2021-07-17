@@ -2,10 +2,7 @@ use super::{
     super::{vek::*, Animation},
     BipedSmallSkeleton, SkeletonAttr,
 };
-use std::{
-    f32::consts::{FRAC_PI_2, PI},
-    ops::Mul,
-};
+use std::{f32::consts::PI, ops::Mul};
 
 pub struct RunAnimation;
 
@@ -54,7 +51,7 @@ impl Animation for RunAnimation {
         let footvertsl = (acc_vel * 1.4 * lab).sin();
         let footvertsr = (acc_vel * 1.4 * lab + PI * 0.5).sin();
 
-        let shortalt = (acc_vel * lab * 1.4 + FRAC_PI_2).sin();
+        let shortalt = (acc_vel * lab * 1.4 + PI / 2.0).sin();
 
         let short = ((5.0 / (1.5 + 3.5 * ((acc_vel * lab * 1.4).sin()).powi(2))).sqrt())
             * ((acc_vel * lab * 1.4).sin());

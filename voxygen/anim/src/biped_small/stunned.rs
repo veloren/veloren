@@ -3,7 +3,7 @@ use super::{
     BipedSmallSkeleton, SkeletonAttr,
 };
 use common::{comp::item::ToolKind, states::utils::StageSection};
-use std::f32::consts::{FRAC_PI_2, PI};
+use std::f32::consts::PI;
 
 pub struct StunnedAnimation;
 
@@ -119,9 +119,9 @@ impl Animation for StunnedAnimation {
                     );
 
                     next.control_l.orientation =
-                        Quaternion::rotation_x(FRAC_PI_2) * Quaternion::rotation_y(-0.3);
+                        Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(-0.3);
                     next.control_r.orientation =
-                        Quaternion::rotation_x(FRAC_PI_2 + s_a.grip.0 * 0.2)
+                        Quaternion::rotation_x(PI / 2.0 + s_a.grip.0 * 0.2)
                             * Quaternion::rotation_y(0.5 + s_a.grip.0 * 0.2);
 
                     next.control.orientation = Quaternion::rotation_x(-0.3 + 0.5 * speednorm)
@@ -138,11 +138,11 @@ impl Animation for StunnedAnimation {
                         -2.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + speednorm * 2.0,
                     );
 
-                    next.control_l.orientation = Quaternion::rotation_x(FRAC_PI_2)
+                    next.control_l.orientation = Quaternion::rotation_x(PI / 2.0)
                         * Quaternion::rotation_y(-0.3)
                         * Quaternion::rotation_z(-0.3);
                     next.control_r.orientation =
-                        Quaternion::rotation_x(FRAC_PI_2 + s_a.grip.0 * 0.2)
+                        Quaternion::rotation_x(PI / 2.0 + s_a.grip.0 * 0.2)
                             * Quaternion::rotation_y(-0.4 + s_a.grip.0 * 0.2)
                             * Quaternion::rotation_z(-0.0);
 
@@ -171,8 +171,7 @@ impl Animation for StunnedAnimation {
             next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1) * s_a.scaler / 11.0;
             next.pants.position = Vec3::new(0.0, s_a.pants.0, s_a.pants.1);
             next.main.position = Vec3::new(2.0, -3.0, -3.0);
-            next.main.orientation =
-                Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(FRAC_PI_2);
+            next.main.orientation = Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(1.57);
 
             next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
             next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);

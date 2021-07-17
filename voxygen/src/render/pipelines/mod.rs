@@ -16,7 +16,6 @@ use super::{Consts, Texture};
 use crate::scene::camera::CameraMode;
 use bytemuck::{Pod, Zeroable};
 use common::terrain::BlockKind;
-use std::f32::consts::TAU;
 use vek::*;
 
 // TODO: auto insert these into shaders
@@ -151,7 +150,7 @@ impl Globals {
     }
 
     fn get_angle_rad(time_of_day: f64) -> f32 {
-        const TIME_FACTOR: f32 = TAU / (3600.0 * 24.0);
+        const TIME_FACTOR: f32 = (std::f32::consts::PI * 2.0) / (3600.0 * 24.0);
         time_of_day as f32 * TIME_FACTOR
     }
 

@@ -3,10 +3,7 @@ use super::{
     BipedLargeSkeleton, SkeletonAttr,
 };
 use common::comp::item::ToolKind;
-use std::{
-    f32::consts::{FRAC_PI_2, FRAC_PI_4, PI},
-    ops::Mul,
-};
+use std::{f32::consts::PI, ops::Mul};
 
 pub struct RunAnimation;
 
@@ -86,10 +83,10 @@ impl Animation for RunAnimation {
         );
 
         let speedadjust = if speed < 5.0 { 0.0 } else { speed / 21.0 };
-        let shift1 = speedadjust - FRAC_PI_2 - speedadjust * PI * 3.0 / 4.0;
-        let shift2 = speedadjust + FRAC_PI_2 + speedadjust * FRAC_PI_2;
-        let shift3 = speedadjust + FRAC_PI_4 - speedadjust * FRAC_PI_4;
-        let shift4 = speedadjust - PI * 3.0 / 4.0 + speedadjust * FRAC_PI_2;
+        let shift1 = speedadjust - PI / 2.0 - speedadjust * PI * 3.0 / 4.0;
+        let shift2 = speedadjust + PI / 2.0 + speedadjust * PI / 2.0;
+        let shift3 = speedadjust + PI / 4.0 - speedadjust * PI / 4.0;
+        let shift4 = speedadjust - PI * 3.0 / 4.0 + speedadjust * PI / 2.0;
 
         //FL
         let foot1a = (acc_vel * lab * speedmult + 0.0 + canceler * 0.05 + shift1).sin();
