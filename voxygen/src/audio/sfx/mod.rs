@@ -211,6 +211,7 @@ pub enum VoiceKind {
     Cat,
     Goat,
     Mandragora,
+    Asp,
 }
 
 fn body_to_voice(body: &Body) -> Option<VoiceKind> {
@@ -222,6 +223,7 @@ fn body_to_voice(body: &Body) -> Option<VoiceKind> {
         Body::QuadrupedLow(body) => match body.species {
             quadruped_low::Species::Maneater => VoiceKind::Maneater,
             quadruped_low::Species::Alligator => VoiceKind::Alligator,
+            quadruped_low::Species::Asp => VoiceKind::Asp,
             _ => return None,
         },
         Body::QuadrupedSmall(body) => match body.species {

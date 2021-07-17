@@ -1045,5 +1045,24 @@
             ],
             threshold: 1.0,
         ),
+        Utterance(Angry, Asp): (
+            files: [
+                "voxygen.audio.sfx.utterance.asp_angry1",
+                "voxygen.audio.sfx.utterance.asp_angry2",
+            ],
+            threshold: 1.0,
+        ),
+        Utterance(Calm, Asp): (
+            files: [
+                "voxygen.audio.sfx.utterance.asp_calm1",
+            ],
+            threshold: 1.0,
+        ),
+        Utterance(Hurt, Asp): (
+            files: [
+                "voxygen.audio.sfx.utterance.asp_hurt1",
+            ],
+            threshold: 1.0,
+        ),
     }
 )
