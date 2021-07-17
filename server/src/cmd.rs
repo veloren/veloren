@@ -441,7 +441,6 @@ fn handle_drop_all(
     Ok(())
 }
 
-#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 fn handle_give_item(
     server: &mut Server,
     _client: EcsEntity,
@@ -1750,7 +1749,6 @@ fn handle_light(
     Ok(())
 }
 
-#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 fn handle_lantern(
     server: &mut Server,
     client: EcsEntity,
@@ -2046,7 +2044,6 @@ fn handle_spawn_wiring(
     Ok(())
 }
 
-#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 fn handle_adminify(
     server: &mut Server,
     client: EcsEntity,
@@ -2100,7 +2097,7 @@ fn handle_adminify(
         // permissions) by someone with a higher role than the person doing the
         // ban.  So if we change how bans work, we should change how things work
         // here, too, for consistency.
-        if desired_role > Some(client_real_role.into()) {
+        if desired_role > Some(client_real_role) {
             return Err(
                 "Cannot assign someone a temporary role higher than your own permanent one".into(),
             );
@@ -2157,7 +2154,6 @@ fn handle_adminify(
     }
 }
 
-#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 fn handle_tell(
     server: &mut Server,
     client: EcsEntity,
