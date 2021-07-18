@@ -166,7 +166,7 @@ impl State {
 
         // Register common unsynced components
         ecs.register::<comp::PreviousPhysCache>();
-        ecs.register::<comp::PosVelDefer>();
+        ecs.register::<comp::PosVelOriDefer>();
 
         // Register client-local components
         // TODO: only register on the client

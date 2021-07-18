@@ -84,7 +84,7 @@ pub use self::{
     misc::Object,
     ori::Ori,
     phys::{
-        Collider, Density, ForceUpdate, Mass, PhysicsState, Pos, PosVelDefer, PreviousPhysCache,
+        Collider, Density, ForceUpdate, Mass, PhysicsState, Pos, PosVelOriDefer, PreviousPhysCache,
         Scale, Sticky, Vel,
     },
     player::DisconnectReason,

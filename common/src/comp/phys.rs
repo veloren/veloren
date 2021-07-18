@@ -1,4 +1,4 @@
-use super::Fluid;
+use super::{Fluid, Ori};
 use crate::{consts::WATER_DENSITY, terrain::Block, uid::Uid};
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
@@ -31,12 +31,13 @@ impl Component for Vel {
 
 /// Used to defer writes to Pos/Vel in nested join loops
 #[derive(Copy, Clone, Debug)]
-pub struct PosVelDefer {
+pub struct PosVelOriDefer {
     pub pos: Option<Pos>,
     pub vel: Option<Vel>,
+    pub ori: Option<Ori>,
 }
 
-impl Component for PosVelDefer {
+impl Component for PosVelOriDefer {
     // TODO: why not regular vec storage????
     type Storage = IdvStorage<Self>;
 }
