@@ -11,7 +11,7 @@ pub use self::{
     run::RunAnimation, stunned::StunnedAnimation,
 };
 
-use super::{make_bone, vek::*, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
 use common::comp::{self};
 use core::convert::TryFrom;
 
@@ -40,8 +40,11 @@ impl Skeleton for QuadrupedSmallSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> Vec3<f32> {
-        let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
+        body: Self::Body,
+    ) -> Offsets {
+        let chest_mat = base_mat
+            * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 11.0)
+            * Mat4::<f32>::from(self.chest);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
             make_bone(chest_mat * Mat4::<f32>::from(self.head)),
@@ -52,7 +55,17 @@ impl Skeleton for QuadrupedSmallSkeleton {
             make_bone(chest_mat * Mat4::<f32>::from(self.leg_br)),
             make_bone(chest_mat * Mat4::<f32>::from(self.tail)),
         ];
-        Vec3::default()
+        Offsets {
+            lantern: Vec3::default(),
+            // TODO: see quadruped_medium for how to animate this
+            mount_bone: Transform {
+                position: common::comp::Body::QuadrupedSmall(body)
+                    .mountee_offset()
+                    .into_tuple()
+                    .into(),
+                ..Default::default()
+            },
+        }
     }
 }
 

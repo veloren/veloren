@@ -232,13 +232,12 @@ impl Animation for SwimAnimation {
         } else {
             avgtotal
         };
-        next.torso.position = Vec3::new(0.0, 0.0, 1.0 - avgspeed * 0.05) * s_a.scaler;
+        next.torso.position = Vec3::new(0.0, 0.0, 11.0 - avgspeed * 0.55);
         next.torso.orientation = Quaternion::rotation_x(
             (((1.0 / switch) * PI / 2.0 + avg_vel.z * 0.12).min(PI / 2.0) - PI / 2.0)
                 + avgspeed * avg_vel.z * -0.003,
         ) * Quaternion::rotation_y(tilt * 2.0)
             * Quaternion::rotation_z(tilt * 3.0);
-        next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
         match hands {
             (Some(Hands::One), _) => match active_tool_kind {
                 Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {

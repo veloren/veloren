@@ -31,11 +31,12 @@ use common::{
         inventory::slot::EquipSlot,
         item::{Hands, ItemKind, ToolKind},
         Body, CharacterState, Controller, Health, Inventory, Item, Last, LightAnimation,
-        LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
+        LightEmitter, Mounting, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
     },
     resources::DeltaTime,
     states::utils::StageSection,
     terrain::TerrainChunk,
+    uid::UidAllocator,
     vol::RectRasterableVol,
 };
 use common_base::span;
@@ -48,7 +49,7 @@ use core::{
 };
 use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
-use specs::{Entity as EcsEntity, Join, LazyUpdate, WorldExt};
+use specs::{saveload::MarkerAllocator, Entity as EcsEntity, Join, LazyUpdate, WorldExt};
 use treeculler::{BVol, BoundingSphere};
 use vek::*;
 
@@ -572,6 +573,10 @@ impl FigureMgr {
 
         let mut update_buf = [Default::default(); anim::MAX_BONE_COUNT];
 
+        let uid_allocator = ecs.read_resource::<UidAllocator>();
+
+        let bodies = ecs.read_storage::<Body>();
+
         for (
             i,
             (
@@ -589,6 +594,7 @@ impl FigureMgr {
                 inventory,
                 item,
                 light_emitter,
+                mountings,
             ),
         ) in (
             &ecs.entities(),
@@ -605,6 +611,7 @@ impl FigureMgr {
             ecs.read_storage::<Inventory>().maybe(),
             ecs.read_storage::<Item>().maybe(),
             ecs.read_storage::<LightEmitter>().maybe(),
+            ecs.read_storage::<Mounting>().maybe(),
         )
             .join()
             .enumerate()
@@ -687,7 +694,7 @@ impl FigureMgr {
             // shadow correctly until their next update.  For now, we treat this
             // as an acceptable tradeoff.
             let radius = scale.unwrap_or(&Scale(1.0)).0 * 2.0;
-            let (in_frustum, lpindex) = if let Some(mut meta) = state {
+            let (in_frustum, lpindex) = if let Some(ref mut meta) = state {
                 let (in_frustum, lpindex) = BoundingSphere::new(pos.0.into_array(), radius)
                     .coherent_test_against_frustum(frustum, meta.lpindex);
                 let in_frustum = in_frustum || matches!(body, Body::Ship(_));
@@ -748,12 +755,39 @@ impl FigureMgr {
 
             let hands = (active_tool_hand, second_tool_hand);
 
+            // If a mountee exists, get its animated mounting transform and its position
+            let mount_transform_pos = (|| -> Option<_> {
+                let Mounting(entity) = mountings?;
+                let entity = uid_allocator.retrieve_entity_internal((*entity).into())?;
+                let body = *bodies.get(entity)?;
+                let meta = self.states.get_mut(&body, &entity)?;
+                Some((meta.mount_transform, meta.mount_world_pos))
+            })();
+
+            let body = *body;
+
+            let common_params = FigureUpdateCommonParameters {
+                pos: pos.0,
+                ori,
+                scale,
+                mount_transform_pos,
+                body: Some(body),
+                col,
+                dt,
+                _lpindex: lpindex,
+                _visible: in_frustum,
+                is_player,
+                _camera: camera,
+                terrain,
+                ground_vel: physics.ground_vel,
+            };
+
             match body {
                 Body::Humanoid(body) => {
                     let (model, skeleton_attr) = self.model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -775,7 +809,11 @@ impl FigureMgr {
                         .character_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, CharacterSkeleton::new(holding_lantern))
+                            FigureState::new(
+                                renderer,
+                                CharacterSkeleton::new(holding_lantern),
+                                body,
+                            )
                         });
 
                     // Average velocity relative to the current ground
@@ -794,62 +832,69 @@ impl FigureMgr {
                         physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
                         physics.in_liquid().is_some(),                      // In water
+                        mountings.is_some(),
                     ) {
                         // Standing
-                        (true, false, false) => anim::character::StandAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern),
-                            (
-                                active_tool_kind,
-                                second_tool_kind,
-                                hands,
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
-                                rel_avg_vel,
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
+                        (true, false, false, false) => {
+                            anim::character::StandAnimation::update_skeleton(
+                                &CharacterSkeleton::new(holding_lantern),
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    hands,
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    time,
+                                    rel_avg_vel,
+                                ),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         // Running
-                        (true, true, false) => anim::character::RunAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern),
-                            (
-                                active_tool_kind,
-                                second_tool_kind,
-                                hands,
-                                rel_vel,
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
-                                rel_avg_vel,
-                                state.acc_vel,
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
+                        (true, true, false, false) => {
+                            anim::character::RunAnimation::update_skeleton(
+                                &CharacterSkeleton::new(holding_lantern),
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    hands,
+                                    rel_vel,
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    time,
+                                    rel_avg_vel,
+                                    state.acc_vel,
+                                ),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         // In air
-                        (false, _, false) => anim::character::JumpAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern),
-                            (
-                                active_tool_kind,
-                                second_tool_kind,
-                                hands,
-                                rel_vel,
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
+                        (false, _, false, false) => {
+                            anim::character::JumpAnimation::update_skeleton(
+                                &CharacterSkeleton::new(holding_lantern),
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    hands,
+                                    rel_vel,
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    time,
+                                ),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         // Swim
-                        (_, _, true) => anim::character::SwimAnimation::update_skeleton(
+                        (_, _, true, false) => anim::character::SwimAnimation::update_skeleton(
                             &CharacterSkeleton::new(holding_lantern),
                             (
                                 active_tool_kind,
@@ -861,6 +906,24 @@ impl FigureMgr {
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
                                 rel_avg_vel,
+                            ),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                        // Mount
+                        (_, _, _, true) => anim::character::MountAnimation::update_skeleton(
+                            &CharacterSkeleton::new(holding_lantern),
+                            (
+                                active_tool_kind,
+                                second_tool_kind,
+                                hands,
+                                time,
+                                rel_vel,
+                                rel_avg_vel,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                             ),
                             state.state_time,
                             &mut state_animation_rate,
@@ -1528,20 +1591,11 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
+                        body,
                     );
                 },
                 Body::QuadrupedSmall(body) => {
@@ -1549,7 +1603,7 @@ impl FigureMgr {
                         self.quadruped_small_model_cache.get_or_create_model(
                             renderer,
                             &mut self.col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -1562,7 +1616,7 @@ impl FigureMgr {
                         .quadruped_small_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, QuadrupedSmallSkeleton::default())
+                            FigureState::new(renderer, QuadrupedSmallSkeleton::default(), body)
                         });
 
                     // Average velocity relative to the current ground
@@ -1726,20 +1780,11 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
+                        body,
                     );
                 },
                 Body::QuadrupedMedium(body) => {
@@ -1747,7 +1792,7 @@ impl FigureMgr {
                         self.quadruped_medium_model_cache.get_or_create_model(
                             renderer,
                             &mut self.col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -1760,7 +1805,7 @@ impl FigureMgr {
                         .quadruped_medium_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, QuadrupedMediumSkeleton::default())
+                            FigureState::new(renderer, QuadrupedMediumSkeleton::default(), body)
                         });
 
                     // Average velocity relative to the current ground
@@ -2049,20 +2094,11 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
+                        body,
                     );
                 },
                 Body::QuadrupedLow(body) => {
@@ -2070,7 +2106,7 @@ impl FigureMgr {
                         self.quadruped_low_model_cache.get_or_create_model(
                             renderer,
                             &mut self.col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -2083,7 +2119,7 @@ impl FigureMgr {
                         .quadruped_low_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, QuadrupedLowSkeleton::default())
+                            FigureState::new(renderer, QuadrupedLowSkeleton::default(), body)
                         });
 
                     // Average velocity relative to the current ground
@@ -2405,27 +2441,18 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
+                        body,
                     );
                 },
                 Body::BirdMedium(body) => {
                     let (model, skeleton_attr) = self.bird_medium_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -2438,7 +2465,7 @@ impl FigureMgr {
                         .bird_medium_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, BirdMediumSkeleton::default())
+                            FigureState::new(renderer, BirdMediumSkeleton::default(), body)
                         });
 
                     // Average velocity relative to the current ground
@@ -2515,27 +2542,18 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
+                        body,
                     );
                 },
                 Body::FishMedium(body) => {
                     let (model, skeleton_attr) = self.fish_medium_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -2548,7 +2566,7 @@ impl FigureMgr {
                         .fish_medium_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, FishMediumSkeleton::default())
+                            FigureState::new(renderer, FishMediumSkeleton::default(), body)
                         });
 
                     // Average velocity relative to the current ground
@@ -2604,27 +2622,18 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
+                        body,
                     );
                 },
                 Body::BipedSmall(body) => {
                     let (model, skeleton_attr) = self.biped_small_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -2637,7 +2646,7 @@ impl FigureMgr {
                         .biped_small_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, BipedSmallSkeleton::default())
+                            FigureState::new(renderer, BipedSmallSkeleton::default(), body)
                         });
 
                     // Average velocity relative to the current ground
@@ -2948,27 +2957,18 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
+                        body,
                     );
                 },
                 Body::Dragon(body) => {
                     let (model, skeleton_attr) = self.dragon_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -2976,10 +2976,9 @@ impl FigureMgr {
                         &slow_jobs,
                     );
 
-                    let state =
-                        self.states.dragon_states.entry(entity).or_insert_with(|| {
-                            FigureState::new(renderer, DragonSkeleton::default())
-                        });
+                    let state = self.states.dragon_states.entry(entity).or_insert_with(|| {
+                        FigureState::new(renderer, DragonSkeleton::default(), body)
+                    });
 
                     // Average velocity relative to the current ground
                     let rel_avg_vel = state.avg_vel - physics.ground_vel;
@@ -3042,27 +3041,18 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
+                        body,
                     );
                 },
                 Body::Theropod(body) => {
                     let (model, skeleton_attr) = self.theropod_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -3074,7 +3064,9 @@ impl FigureMgr {
                         .states
                         .theropod_states
                         .entry(entity)
-                        .or_insert_with(|| FigureState::new(renderer, TheropodSkeleton::default()));
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, TheropodSkeleton::default(), body)
+                        });
 
                     // Average velocity relative to the current ground
                     let rel_avg_vel = state.avg_vel - physics.ground_vel;
@@ -3225,27 +3217,18 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
+                        body,
                     );
                 },
                 Body::BirdLarge(body) => {
                     let (model, skeleton_attr) = self.bird_large_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -3258,7 +3241,7 @@ impl FigureMgr {
                         .bird_large_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, BirdLargeSkeleton::default())
+                            FigureState::new(renderer, BirdLargeSkeleton::default(), body)
                         });
 
                     let (character, last_character) = match (character, last_character) {
@@ -3546,27 +3529,18 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
+                        body,
                     );
                 },
                 Body::FishSmall(body) => {
                     let (model, skeleton_attr) = self.fish_small_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -3579,7 +3553,7 @@ impl FigureMgr {
                         .fish_small_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, FishSmallSkeleton::default())
+                            FigureState::new(renderer, FishSmallSkeleton::default(), body)
                         });
 
                     // Average velocity relative to the current ground
@@ -3635,27 +3609,18 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
+                        body,
                     );
                 },
                 Body::BipedLarge(body) => {
                     let (model, skeleton_attr) = self.biped_large_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -3668,7 +3633,7 @@ impl FigureMgr {
                         .biped_large_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, BipedLargeSkeleton::default())
+                            FigureState::new(renderer, BipedLargeSkeleton::default(), body)
                         });
 
                     // Average velocity relative to the current ground
@@ -4263,27 +4228,18 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
+                        body,
                     );
                 },
                 Body::Golem(body) => {
                     let (model, skeleton_attr) = self.golem_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -4291,10 +4247,9 @@ impl FigureMgr {
                         &slow_jobs,
                     );
 
-                    let state =
-                        self.states.golem_states.entry(entity).or_insert_with(|| {
-                            FigureState::new(renderer, GolemSkeleton::default())
-                        });
+                    let state = self.states.golem_states.entry(entity).or_insert_with(|| {
+                        FigureState::new(renderer, GolemSkeleton::default(), body)
+                    });
 
                     // Average velocity relative to the current ground
                     let _rel_avg_vel = state.avg_vel - physics.ground_vel;
@@ -4511,27 +4466,18 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        in_frustum,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
+                        body,
                     );
                 },
                 Body::Object(body) => {
                     let (model, skeleton_attr) = self.object_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -4539,10 +4485,9 @@ impl FigureMgr {
                         &slow_jobs,
                     );
 
-                    let state =
-                        self.states.object_states.entry(entity).or_insert_with(|| {
-                            FigureState::new(renderer, ObjectSkeleton::default())
-                        });
+                    let state = self.states.object_states.entry(entity).or_insert_with(|| {
+                        FigureState::new(renderer, ObjectSkeleton::default(), body)
+                    });
 
                     // Average velocity relative to the current ground
                     let _rel_avg_vel = state.avg_vel - physics.ground_vel;
@@ -4600,7 +4545,7 @@ impl FigureMgr {
                                     active_tool_kind,
                                     second_tool_kind,
                                     Some(s.stage_section),
-                                    *body,
+                                    body,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -4625,7 +4570,7 @@ impl FigureMgr {
                                     active_tool_kind,
                                     second_tool_kind,
                                     Some(s.stage_section),
-                                    *body,
+                                    body,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -4639,27 +4584,18 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        true,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
+                        body,
                     );
                 },
                 Body::Ship(body) => {
                     let (model, skeleton_attr) = self.ship_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
-                        *body,
+                        body,
                         inventory,
                         tick,
                         player_camera_mode,
@@ -4667,11 +4603,9 @@ impl FigureMgr {
                         &slow_jobs,
                     );
 
-                    let state = self
-                        .states
-                        .ship_states
-                        .entry(entity)
-                        .or_insert_with(|| FigureState::new(renderer, ShipSkeleton::default()));
+                    let state = self.states.ship_states.entry(entity).or_insert_with(|| {
+                        FigureState::new(renderer, ShipSkeleton::default(), body)
+                    });
 
                     // Average velocity relative to the current ground
                     let _rel_avg_vel = state.avg_vel - physics.ground_vel;
@@ -4732,20 +4666,11 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
-                        pos.0,
-                        ori,
-                        scale,
-                        col,
-                        dt,
+                        &mut update_buf,
+                        &common_params,
                         state_animation_rate,
                         model,
-                        lpindex,
-                        true,
-                        is_player,
-                        camera,
-                        &mut update_buf,
-                        terrain,
-                        physics.ground_vel,
+                        body,
                     );
                 },
             }
@@ -4914,6 +4839,8 @@ impl FigureMgr {
         figure_lod_render_distance: f32,
         filter_state: impl Fn(&FigureStateMeta) -> bool,
     ) -> Option<FigureModelRef> {
+        let body = *body;
+
         let player_camera_mode = if is_player {
             camera.get_mode()
         } else {
@@ -4969,7 +4896,7 @@ impl FigureMgr {
                         state.bound(),
                         model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -4985,7 +4912,7 @@ impl FigureMgr {
                         state.bound(),
                         quadruped_small_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5001,7 +4928,7 @@ impl FigureMgr {
                         state.bound(),
                         quadruped_medium_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5017,7 +4944,7 @@ impl FigureMgr {
                         state.bound(),
                         quadruped_low_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5033,7 +4960,7 @@ impl FigureMgr {
                         state.bound(),
                         bird_medium_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5049,7 +4976,7 @@ impl FigureMgr {
                         state.bound(),
                         fish_medium_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5065,7 +4992,7 @@ impl FigureMgr {
                         state.bound(),
                         theropod_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5081,7 +5008,7 @@ impl FigureMgr {
                         state.bound(),
                         dragon_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5097,7 +5024,7 @@ impl FigureMgr {
                         state.bound(),
                         bird_large_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5113,7 +5040,7 @@ impl FigureMgr {
                         state.bound(),
                         fish_small_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5129,7 +5056,7 @@ impl FigureMgr {
                         state.bound(),
                         biped_large_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5145,7 +5072,7 @@ impl FigureMgr {
                         state.bound(),
                         biped_small_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5161,7 +5088,7 @@ impl FigureMgr {
                         state.bound(),
                         golem_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5177,7 +5104,7 @@ impl FigureMgr {
                         state.bound(),
                         object_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5193,7 +5120,7 @@ impl FigureMgr {
                         state.bound(),
                         ship_model_cache.get_model(
                             col_lights,
-                            *body,
+                            body,
                             inventory,
                             tick,
                             player_camera_mode,
@@ -5331,6 +5258,14 @@ impl FigureColLights {
 
 pub struct FigureStateMeta {
     lantern_offset: anim::vek::Vec3<f32>,
+    // Animation to be applied to mounter of this entity
+    mount_transform: anim::vek::Transform<f32, f32, f32>,
+    // Contains the position of this figure or if it is a mounter it will contain the mountee's
+    // mount_world_pos
+    // Unlike the interpolated position stored in the ecs this will be propagated along
+    // mount chains
+    // For use if it is mounted by another figure
+    mount_world_pos: anim::vek::Vec3<f32>,
     state_time: f32,
     last_ori: anim::vek::Quaternion<f32>,
     lpindex: u8,
@@ -5368,15 +5303,38 @@ impl<S> DerefMut for FigureState<S> {
     fn deref_mut(&mut self) -> &mut Self::Target { &mut self.meta }
 }
 
+/// Parameters that don't depend on the body variant or animation results and
+/// are also not mutable
+pub struct FigureUpdateCommonParameters<'a> {
+    pub pos: anim::vek::Vec3<f32>,
+    pub ori: anim::vek::Quaternion<f32>,
+    pub scale: f32,
+    pub mount_transform_pos: Option<(anim::vek::Transform<f32, f32, f32>, anim::vek::Vec3<f32>)>,
+    pub body: Option<Body>,
+    pub col: vek::Rgba<f32>,
+    pub dt: f32,
+    // TODO: evaluate unused variable
+    pub _lpindex: u8,
+    // TODO: evaluate unused variable
+    pub _visible: bool,
+    pub is_player: bool,
+    // TODO: evaluate unused variable
+    pub _camera: &'a Camera,
+    pub terrain: Option<&'a Terrain>,
+    pub ground_vel: Vec3<f32>,
+}
+
 impl<S: Skeleton> FigureState<S> {
-    pub fn new(renderer: &mut Renderer, skeleton: S) -> Self {
+    pub fn new(renderer: &mut Renderer, skeleton: S, body: S::Body) -> Self {
         let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
-        let lantern_offset =
-            anim::compute_matrices(&skeleton, anim::vek::Mat4::identity(), &mut buf);
+        let offsets =
+            anim::compute_matrices(&skeleton, anim::vek::Mat4::identity(), &mut buf, body);
         let bone_consts = figure_bone_data_from_anim(&buf);
         Self {
             meta: FigureStateMeta {
-                lantern_offset,
+                lantern_offset: offsets.lantern,
+                mount_transform: offsets.mount_bone,
+                mount_world_pos: anim::vek::Vec3::zero(),
                 state_time: 0.0,
                 last_ori: Ori::default().into(),
                 lpindex: 0,
@@ -5393,24 +5351,31 @@ impl<S: Skeleton> FigureState<S> {
         }
     }
 
-    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn update<const N: usize>(
         &mut self,
         renderer: &mut Renderer,
-        pos: anim::vek::Vec3<f32>,
-        ori: anim::vek::Quaternion<f32>,
-        scale: f32,
-        col: vek::Rgba<f32>,
-        dt: f32,
+        buf: &mut [anim::FigureBoneData; anim::MAX_BONE_COUNT],
+        FigureUpdateCommonParameters {
+            pos,
+            ori,
+            scale,
+            mount_transform_pos,
+            body,
+            col,
+            dt,
+            _lpindex,
+            _visible,
+            is_player,
+            _camera,
+            terrain,
+            ground_vel,
+        }: &FigureUpdateCommonParameters,
         state_animation_rate: f32,
         model: Option<&FigureModelEntry<N>>,
-        _lpindex: u8,
-        _visible: bool,
-        is_player: bool,
-        _camera: &Camera,
-        buf: &mut [anim::FigureBoneData; anim::MAX_BONE_COUNT],
-        terrain: Option<&Terrain>,
-        ground_vel: Vec3<f32>,
+        // TODO: there is the potential to drop the optional body from the common params and just
+        // use this one but we need to add a function to the skelton trait or something in order to
+        // get the mounter offset
+        skel_body: S::Body,
     ) {
         // NOTE: As long as update() always gets called after get_or_create_model(), and
         // visibility is not set again until after the model is rendered, we
@@ -5438,12 +5403,38 @@ impl<S: Skeleton> FigureState<S> {
         /* let radius = vek::Extent3::<f32>::from(model.bounds.half_size()).reduce_partial_max();
         let _bounds = BoundingSphere::new(pos.into_array(), scale * 0.8 * radius); */
 
-        self.last_ori = vek::Lerp::lerp(self.last_ori, ori, 15.0 * dt).normalized();
+        self.last_ori = vek::Lerp::lerp(self.last_ori, *ori, 15.0 * dt).normalized();
 
         self.state_time += dt * state_animation_rate;
 
         let mat = {
-            anim::vek::Mat4::from(ori) * anim::vek::Mat4::scaling_3d(anim::vek::Vec3::from(scale))
+            let scale_mat = anim::vek::Mat4::scaling_3d(anim::vek::Vec3::from(*scale));
+            if let Some((transform, _)) = *mount_transform_pos {
+                // Note: if we had a way to compute a "default" transform of the bones then in
+                // the animations we could make use of the mountee_offset from common by
+                // computing what the offset of the mounter is from the mounted
+                // bone in its default position when the mounter has the mount
+                // offset in common applied to it. Since we don't have this
+                // right now we instead need to recreate the same effect in the
+                // animations and keep it in sync.
+                //
+                // Component of mounting offset specific to the mounter.
+                let mounter_offset = anim::vek::Mat4::<f32>::translation_3d(
+                    body.map_or_else(Vec3::zero, |b| b.mounter_offset()),
+                );
+
+                // NOTE: It is kind of a hack to use this entity's ori here if it is
+                // mounted on another but this happens to match the ori of the
+                // mountee so it works, change this if it causes jankiness in the future.
+                let transform = anim::vek::Transform {
+                    orientation: *ori * transform.orientation,
+                    ..transform
+                };
+                anim::vek::Mat4::from(transform) * mounter_offset * scale_mat
+            } else {
+                let ori_mat = anim::vek::Mat4::from(*ori);
+                ori_mat * scale_mat
+            }
         };
 
         let atlas_offs = model.allocation.rectangle.min;
@@ -5493,30 +5484,33 @@ impl<S: Skeleton> FigureState<S> {
         let locals = FigureLocals::new(
             mat,
             col.rgb(),
-            pos,
+            mount_transform_pos.map_or(*pos, |(_, pos)| pos),
             vek::Vec2::new(atlas_offs.x, atlas_offs.y),
-            is_player,
+            *is_player,
             self.last_light,
             self.last_glow,
         );
         renderer.update_consts(&mut self.meta.bound.0, &[locals]);
 
-        let lantern_offset = anim::compute_matrices(&self.skeleton, mat, buf);
+        let offsets = anim::compute_matrices(&self.skeleton, mat, buf, skel_body);
 
         let new_bone_consts = figure_bone_data_from_anim(buf);
 
         renderer.update_consts(&mut self.meta.bound.1, &new_bone_consts[0..S::BONE_COUNT]);
-        self.lantern_offset = lantern_offset;
+        self.lantern_offset = offsets.lantern;
+        // TODO: compute the mount bone only when it is needed
+        self.mount_transform = offsets.mount_bone;
+        self.mount_world_pos = mount_transform_pos.map_or(*pos, |(_, pos)| pos);
 
         let smoothing = (5.0 * dt).min(1.0);
         if let Some(last_pos) = self.last_pos {
-            self.avg_vel = (1.0 - smoothing) * self.avg_vel + smoothing * (pos - last_pos) / dt;
+            self.avg_vel = (1.0 - smoothing) * self.avg_vel + smoothing * (pos - last_pos) / *dt;
         }
-        self.last_pos = Some(pos);
+        self.last_pos = Some(*pos);
 
         // Can potentially overflow
         if self.avg_vel.magnitude_squared() != 0.0 {
-            self.acc_vel += (self.avg_vel - ground_vel).magnitude() * dt;
+            self.acc_vel += (self.avg_vel - *ground_vel).magnitude() * dt;
         } else {
             self.acc_vel = 0.0;
         }

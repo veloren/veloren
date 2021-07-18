@@ -62,7 +62,6 @@ impl Animation for IdleAnimation {
         next.hand_r.scale = Vec3::one() * 1.04;
         next.lower_torso.scale = Vec3::one() * 1.02;
         next.hold.scale = Vec3::one() * 0.0;
-        next.torso.scale = Vec3::one() / 8.0 * s_a.scaler;
         next.second.scale = Vec3::one() * 0.0;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + torso * 0.2);
@@ -137,7 +136,7 @@ impl Animation for IdleAnimation {
 
         next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1, s_a.foot.2);
 
-        next.torso.position = Vec3::new(0.0, 0.0, 0.0) / 8.0 * s_a.scaler;
+        next.torso.position = Vec3::new(0.0, 0.0, 0.0);
 
         if s_a.float {
             next.upper_torso.position = Vec3::new(

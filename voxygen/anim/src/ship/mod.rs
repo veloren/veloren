@@ -3,7 +3,7 @@ pub mod idle;
 // Reexports
 pub use self::idle::IdleAnimation;
 
-use super::{make_bone, vek::*, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
 use common::comp::{self};
 use core::convert::TryFrom;
 
@@ -29,16 +29,27 @@ impl Skeleton for ShipSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> Vec3<f32> {
-        let bone0_mat = base_mat * Mat4::<f32>::from(self.bone0);
+        body: Self::Body,
+    ) -> Offsets {
+        let bone0_mat = base_mat * Mat4::scaling_3d(1.0 / 11.0) * Mat4::<f32>::from(self.bone0);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(bone0_mat * Mat4::scaling_3d(1.0 / 11.0)),
-            make_bone(bone0_mat * Mat4::<f32>::from(self.bone1) * Mat4::scaling_3d(1.0 / 11.0)), /* Decorellated from ori */
-            make_bone(bone0_mat * Mat4::<f32>::from(self.bone2) * Mat4::scaling_3d(1.0 / 11.0)), /* Decorellated from ori */
-            make_bone(bone0_mat * Mat4::<f32>::from(self.bone3) * Mat4::scaling_3d(1.0 / 11.0)), /* Decorellated from ori */
+            make_bone(bone0_mat),
+            make_bone(bone0_mat * Mat4::<f32>::from(self.bone1)),
+            make_bone(bone0_mat * Mat4::<f32>::from(self.bone2)),
+            make_bone(bone0_mat * Mat4::<f32>::from(self.bone3)),
         ];
-        Vec3::unit_z() * 0.5
+        Offsets {
+            lantern: Vec3::default(),
+            // TODO: see quadruped_medium for how to animate this
+            mount_bone: Transform {
+                position: common::comp::Body::Ship(body)
+                    .mountee_offset()
+                    .into_tuple()
+                    .into(),
+                ..Default::default()
+            },
+        }
     }
 }
 

@@ -53,7 +53,6 @@ impl Animation for IdleAnimation {
 
         next.neck.scale = Vec3::one() * 1.02;
         next.jaw.scale = Vec3::one() * 1.02;
-        next.torso_front.scale = Vec3::one() * s_a.scaler / 11.0;
         next.leg_fl.scale = Vec3::one() * 1.02;
         next.leg_fr.scale = Vec3::one() * 1.02;
         next.leg_bl.scale = Vec3::one() * 1.02;
@@ -79,7 +78,7 @@ impl Animation for IdleAnimation {
             Quaternion::rotation_z(0.0 + slow * 0.2 + tailmove.x) * Quaternion::rotation_x(0.0);
 
         next.torso_front.position =
-            Vec3::new(0.0, s_a.torso_front.0, s_a.torso_front.1 + slower * 0.3) * s_a.scaler / 11.0;
+            Vec3::new(0.0, s_a.torso_front.0, s_a.torso_front.1 + slower * 0.3);
         next.torso_front.orientation = Quaternion::rotation_y(slow * 0.02);
 
         next.torso_back.position =

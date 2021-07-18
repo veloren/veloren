@@ -12,7 +12,7 @@ pub use self::{
     shockwave::ShockwaveAnimation, shoot::ShootAnimation, spinmelee::SpinMeleeAnimation,
 };
 
-use super::{make_bone, vek::*, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
 use common::comp::{self};
 use core::convert::TryFrom;
 
@@ -47,7 +47,10 @@ impl Skeleton for GolemSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> Vec3<f32> {
+        body: Self::Body,
+    ) -> Offsets {
+        let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 8.0);
+
         let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
         let upper_torso_mat = torso_mat * Mat4::<f32>::from(self.upper_torso);
         let lower_torso_mat = upper_torso_mat * Mat4::<f32>::from(self.lower_torso);
@@ -70,7 +73,17 @@ impl Skeleton for GolemSkeleton {
             make_bone(leg_l_mat * Mat4::<f32>::from(self.foot_l)),
             make_bone(leg_r_mat * Mat4::<f32>::from(self.foot_r)),
         ];
-        Vec3::default()
+        Offsets {
+            lantern: Vec3::default(),
+            // TODO: see quadruped_medium for how to animate this
+            mount_bone: Transform {
+                position: common::comp::Body::Golem(body)
+                    .mountee_offset()
+                    .into_tuple()
+                    .into(),
+                ..Default::default()
+            },
+        }
     }
 }
 

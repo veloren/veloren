@@ -60,7 +60,6 @@ impl Animation for StandAnimation {
         next.back.scale = Vec3::one() * 1.02;
         next.hold.scale = Vec3::one() * 0.0;
         next.lantern.scale = Vec3::one() * 0.65;
-        next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
         next.shoulder_l.scale = Vec3::one() * 1.1;
         next.shoulder_r.scale = Vec3::one() * 1.1;
 
@@ -178,7 +177,7 @@ impl Animation for StandAnimation {
                 * Quaternion::rotation_y(fast2 * 0.1 + tilt * 3.0);
         }
 
-        next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
+        next.torso.position = Vec3::new(0.0, 0.0, 0.0);
         next.second.scale = Vec3::one();
         next.second.scale = match hands {
             (Some(Hands::One) | None, Some(Hands::One)) => Vec3::one(),

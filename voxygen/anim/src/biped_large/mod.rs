@@ -31,7 +31,7 @@ pub use self::{
     wield::WieldAnimation,
 };
 
-use super::{make_bone, vek::*, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
 use common::comp::{self};
 use core::{convert::TryFrom, f32::consts::PI};
 
@@ -79,11 +79,12 @@ impl Skeleton for BipedLargeSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> Vec3<f32> {
-        let upper_torso = Mat4::<f32>::from(self.upper_torso);
+        body: Self::Body,
+    ) -> Offsets {
+        let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 8.0);
 
         let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
-        let upper_torso_mat = torso_mat * upper_torso;
+        let upper_torso_mat = torso_mat * Mat4::<f32>::from(self.upper_torso);
         let control_mat = Mat4::<f32>::from(self.control);
         let control_l_mat = Mat4::<f32>::from(self.control_l);
         let control_r_mat = Mat4::<f32>::from(self.control_r);
@@ -126,7 +127,17 @@ impl Skeleton for BipedLargeSkeleton {
             // FIXME: Should this be control_l_mat?
             make_bone(upper_torso_mat * control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
         ];
-        Vec3::default()
+        Offsets {
+            lantern: Vec3::default(),
+            // TODO: see quadruped_medium for how to animate this
+            mount_bone: Transform {
+                position: common::comp::Body::BipedLarge(body)
+                    .mountee_offset()
+                    .into_tuple()
+                    .into(),
+                ..Default::default()
+            },
+        }
     }
 }
 

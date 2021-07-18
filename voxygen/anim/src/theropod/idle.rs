@@ -47,7 +47,6 @@ impl Animation for IdleAnimation {
         next.hand_r.scale = Vec3::one() * 0.98;
         next.tail_front.scale = Vec3::one() * 1.02;
         next.tail_back.scale = Vec3::one() * 0.98;
-        next.chest_front.scale = Vec3::one() / s_a.scaler;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + breathe * 0.3);
         next.head.orientation = Quaternion::rotation_x(head_look.y + breathe * 0.1 - 0.1)
@@ -60,7 +59,7 @@ impl Animation for IdleAnimation {
         next.neck.orientation = Quaternion::rotation_x(-0.1);
 
         next.chest_front.position =
-            Vec3::new(0.0, s_a.chest_front.0, s_a.chest_front.1 + breathe * 0.3) / s_a.scaler;
+            Vec3::new(0.0, s_a.chest_front.0, s_a.chest_front.1 + breathe * 0.3);
         next.chest_front.orientation = Quaternion::rotation_x(breathe * 0.04);
 
         next.chest_back.position = Vec3::new(0.0, s_a.chest_back.0, s_a.chest_back.1);

@@ -66,9 +66,11 @@ impl<'a> System<'a> for Sys {
                         let ori = orientations.get(entity).copied();
                         let vel = velocities.get(entity).copied();
                         if let (Some(pos), Some(ori), Some(vel)) = (pos, ori, vel) {
-                            let mounting_offset =
-                                body.map_or(Vec3::unit_z(), Body::mounting_offset);
-                            let _ = positions.insert(mounter, Pos(pos.0 + mounting_offset));
+                            let mounter_body = bodies.get(mounter);
+                            let mounting_offset = body.map_or(Vec3::unit_z(), Body::mountee_offset)
+                                + mounter_body.map_or(Vec3::zero(), Body::mounter_offset);
+                            let _ = positions
+                                .insert(mounter, Pos(pos.0 + ori.to_quat() * mounting_offset));
                             let _ = orientations.insert(mounter, ori);
                             let _ = velocities.insert(mounter, vel);
                         }

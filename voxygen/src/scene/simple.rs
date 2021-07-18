@@ -7,7 +7,10 @@ use crate::{
     },
     scene::{
         camera::{self, Camera, CameraMode},
-        figure::{load_mesh, FigureColLights, FigureModelCache, FigureModelEntry, FigureState},
+        figure::{
+            load_mesh, FigureColLights, FigureModelCache, FigureModelEntry, FigureState,
+            FigureUpdateCommonParameters,
+        },
     },
     window::{Event, PressState},
 };
@@ -68,7 +71,7 @@ pub struct Scene {
     col_lights: FigureColLights,
     backdrop: Option<(FigureModelEntry<1>, FigureState<FixtureSkeleton>)>,
     figure_model_cache: FigureModelCache,
-    figure_state: FigureState<CharacterSkeleton>,
+    figure_state: Option<FigureState<CharacterSkeleton>>,
 
     //turning_camera: bool,
     turning_character: bool,
@@ -126,10 +129,10 @@ impl Scene {
             map_bounds,
 
             figure_model_cache: FigureModelCache::new(),
-            figure_state: FigureState::new(renderer, CharacterSkeleton::default()),
+            figure_state: None,
 
             backdrop: backdrop.map(|specifier| {
-                let mut state = FigureState::new(renderer, FixtureSkeleton::default());
+                let mut state = FigureState::new(renderer, FixtureSkeleton::default(), ());
                 let mut greedy = FigureModel::make_greedy();
                 let mut opaque_mesh = Mesh::new();
                 let (segment, offset) = load_mesh(specifier, Vec3::new(-55.0, -49.5, -2.0));
@@ -144,26 +147,25 @@ impl Scene {
                     col_lights
                         .create_figure(renderer, greedy.finalize(), (opaque_mesh, bounds), [range]);
                 let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
-                state.update(
-                    renderer,
-                    anim::vek::Vec3::zero(),
-                    anim::vek::Quaternion::rotation_from_to_3d(
+                let common_params = FigureUpdateCommonParameters {
+                    pos: anim::vek::Vec3::zero(),
+                    ori: anim::vek::Quaternion::rotation_from_to_3d(
                         anim::vek::Vec3::unit_y(),
                         anim::vek::Vec3::new(start_angle.sin(), -start_angle.cos(), 0.0),
                     ),
-                    1.0,
-                    Rgba::broadcast(1.0),
-                    15.0, // Want to get there immediately.
-                    1.0,
-                    Some(&model),
-                    0,
-                    true,
-                    false,
-                    &camera,
-                    &mut buf,
-                    None,
-                    Vec3::zero(),
-                );
+                    scale: 1.0,
+                    mount_transform_pos: None,
+                    body: None,
+                    col: Rgba::broadcast(1.0),
+                    dt: 15.0, // Want to get there immediately.
+                    _lpindex: 0,
+                    _visible: true,
+                    is_player: false,
+                    _camera: &camera,
+                    terrain: None,
+                    ground_vel: Vec3::zero(),
+                };
+                state.update(renderer, &mut buf, &common_params, 1.0, Some(&model), ());
                 (model, state)
             }),
             col_lights,
@@ -292,8 +294,11 @@ impl Scene {
         let hands = (active_tool_hand, second_tool_hand);
 
         if let Some(body) = scene_data.body {
+            let figure_state = self.figure_state.get_or_insert_with(|| {
+                FigureState::new(renderer, CharacterSkeleton::default(), body)
+            });
             let tgt_skeleton = IdleAnimation::update_skeleton(
-                self.figure_state.skeleton_mut(),
+                figure_state.skeleton_mut(),
                 (
                     active_tool_kind,
                     second_tool_kind,
@@ -305,8 +310,8 @@ impl Scene {
                 &SkeletonAttr::from(&body),
             );
             let dt_lerp = (scene_data.delta_time * 15.0).min(1.0);
-            *self.figure_state.skeleton_mut() =
-                anim::vek::Lerp::lerp(&*self.figure_state.skeleton_mut(), &tgt_skeleton, dt_lerp);
+            *figure_state.skeleton_mut() =
+                anim::vek::Lerp::lerp(&*figure_state.skeleton_mut(), &tgt_skeleton, dt_lerp);
 
             let model = self
                 .figure_model_cache
@@ -322,26 +327,26 @@ impl Scene {
                 )
                 .0;
             let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
-            self.figure_state.update(
-                renderer,
-                anim::vek::Vec3::zero(),
-                anim::vek::Quaternion::rotation_from_to_3d(
+            let common_params = FigureUpdateCommonParameters {
+                pos: anim::vek::Vec3::zero(),
+                ori: anim::vek::Quaternion::rotation_from_to_3d(
                     anim::vek::Vec3::unit_y(),
                     anim::vek::Vec3::new(self.char_ori.sin(), -self.char_ori.cos(), 0.0),
                 ),
-                1.0,
-                Rgba::broadcast(1.0),
-                scene_data.delta_time,
-                1.0,
-                model,
-                0,
-                true,
-                false,
-                &self.camera,
-                &mut buf,
-                None,
-                Vec3::zero(),
-            );
+                scale: 1.0,
+                mount_transform_pos: None,
+                body: None,
+                col: Rgba::broadcast(1.0),
+                dt: scene_data.delta_time,
+                _lpindex: 0,
+                _visible: true,
+                is_player: false,
+                _camera: &self.camera,
+                terrain: None,
+                ground_vel: Vec3::zero(),
+            };
+
+            figure_state.update(renderer, &mut buf, &common_params, 1.0, model, body);
         }
     }
 
@@ -365,13 +370,9 @@ impl Scene {
                 None,
             );
 
-            if let Some(model) = model {
+            if let Some((model, figure_state)) = model.zip(self.figure_state.as_ref()) {
                 if let Some(lod) = model.lod_model(0) {
-                    figure_drawer.draw(
-                        lod,
-                        self.figure_state.bound(),
-                        self.col_lights.texture(model),
-                    );
+                    figure_drawer.draw(lod, figure_state.bound(), self.col_lights.texture(model));
                 }
             }
         }

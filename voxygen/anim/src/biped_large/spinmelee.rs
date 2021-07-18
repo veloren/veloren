@@ -113,7 +113,7 @@ impl Animation for SpinMeleeAnimation {
                 next.upper_torso.orientation = Quaternion::rotation_x(move1 * -0.5);
 
                 next.lower_torso.orientation = Quaternion::rotation_x(move1 * 0.8);
-                next.torso.position = Vec3::new(0.0, 0.0, move1 * 0.8);
+                next.torso.position = Vec3::new(0.0, 0.0, move1 * 6.4);
             },
 
             _ => {},

@@ -11,7 +11,7 @@ pub use self::{
     jump::JumpAnimation, run::RunAnimation,
 };
 
-use super::{make_bone, vek::*, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
 use common::comp::{self};
 use core::convert::TryFrom;
 
@@ -47,7 +47,10 @@ impl Skeleton for TheropodSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> Vec3<f32> {
+        body: Self::Body,
+    ) -> Offsets {
+        let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 11.0);
+
         let chest_front_mat = base_mat * Mat4::<f32>::from(self.chest_front);
         let neck_mat = chest_front_mat * Mat4::<f32>::from(self.neck);
         let head_mat = neck_mat * Mat4::<f32>::from(self.head);
@@ -71,7 +74,17 @@ impl Skeleton for TheropodSkeleton {
             make_bone(leg_l_mat * Mat4::<f32>::from(self.foot_l)),
             make_bone(leg_r_mat * Mat4::<f32>::from(self.foot_r)),
         ];
-        Vec3::default()
+        Offsets {
+            lantern: Vec3::default(),
+            // TODO: see quadruped_medium for how to animate this
+            mount_bone: Transform {
+                position: common::comp::Body::Theropod(body)
+                    .mountee_offset()
+                    .into_tuple()
+                    .into(),
+                ..Default::default()
+            },
+        }
     }
 }
 
@@ -223,14 +236,14 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Ntouka, _) => (1.5, -1.0, -2.5),
             },
             scaler: match (body.species, body.body_type) {
-                (Archaeos, _) => (3.75),
-                (Odonto, _) => (3.75),
-                (Sandraptor, _) => (10.0),
-                (Snowraptor, _) => (10.0),
-                (Woodraptor, _) => (10.0),
-                (Sunlizard, _) => (10.0),
-                (Yale, _) => (8.75),
-                (Ntouka, _) => (3.75),
+                (Archaeos, _) => (2.93),
+                (Odonto, _) => (2.93),
+                (Sandraptor, _) => (1.1),
+                (Snowraptor, _) => (1.1),
+                (Woodraptor, _) => (1.1),
+                (Sunlizard, _) => (1.1),
+                (Yale, _) => (1.26),
+                (Ntouka, _) => (2.93),
             },
         }
     }

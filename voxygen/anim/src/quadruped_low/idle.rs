@@ -40,7 +40,6 @@ impl Animation for IdleAnimation {
                 * 0.1,
         );
         next.jaw.scale = Vec3::one() * 0.98;
-        next.chest.scale = Vec3::one() * s_a.scaler / 11.0;
         next.tail_front.scale = Vec3::one() * 0.98;
         next.tail_rear.scale = Vec3::one() * 0.98;
 
@@ -57,7 +56,7 @@ impl Animation for IdleAnimation {
         next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
         next.jaw.orientation = Quaternion::rotation_x(slow * 0.05 - 0.05);
 
-        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1) * s_a.scaler / 11.0;
+        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
         next.chest.orientation = Quaternion::rotation_y(slow * 0.03);
 
         next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);

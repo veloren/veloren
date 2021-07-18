@@ -79,7 +79,7 @@ impl Animation for AlphaAnimation {
             next.hand_r.orientation =
                 Quaternion::rotation_y(0.0) * Quaternion::rotation_x(move1 * -1.0 + move2 * 1.8);
         };
-        next.torso.position = Vec3::new(0.0, move1 * 0.7, move1 * -0.3);
+        next.torso.position = Vec3::new(0.0, move1 * 3.7, move1 * -1.6);
         next
     }
 }

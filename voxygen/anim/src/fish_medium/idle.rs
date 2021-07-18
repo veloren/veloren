@@ -30,14 +30,13 @@ impl Animation for IdleAnimation {
         let slowalt = (anim_time * 3.5 + PI + 0.2).sin();
 
         next.jaw.scale = Vec3::one() * 0.98;
-        next.chest_front.scale = Vec3::one() / 11.0;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation = Quaternion::rotation_z(slowalt * -0.1);
 
         next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
 
-        next.chest_front.position = Vec3::new(0.0, s_a.chest_front.0, s_a.chest_front.1) / 11.0;
+        next.chest_front.position = Vec3::new(0.0, s_a.chest_front.0, s_a.chest_front.1);
         next.chest_front.orientation = Quaternion::rotation_x(0.0);
 
         next.chest_back.position = Vec3::new(0.0, s_a.chest_back.0, s_a.chest_back.1);

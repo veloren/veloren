@@ -79,8 +79,7 @@ impl Animation for FeedAnimation {
             0.0,
             s_a.torso_front.0,
             s_a.torso_front.1 + slower * 0.3 + transition * -6.0,
-        ) * s_a.scaler
-            / 11.0;
+        );
         next.torso_front.orientation =
             Quaternion::rotation_x(transition * -0.7) * Quaternion::rotation_y(slow * 0.02);
 

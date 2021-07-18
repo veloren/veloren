@@ -253,7 +253,7 @@ impl Animation for StaggeredAnimation {
             );
             next.foot_l.orientation = Quaternion::rotation_z(movement1 * 0.6);
         };
-        next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
+        next.torso.position = Vec3::new(0.0, 0.0, 0.0);
         next.torso.orientation = Quaternion::rotation_z(0.0);
 
         if let (None, Some(Hands::Two)) = hands {

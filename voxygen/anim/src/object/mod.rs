@@ -5,7 +5,7 @@ pub mod shoot;
 // Reexports
 pub use self::{beam::BeamAnimation, idle::IdleAnimation, shoot::ShootAnimation};
 
-use super::{make_bone, vek::*, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
 use common::comp::{self};
 use core::convert::TryFrom;
 
@@ -29,14 +29,27 @@ impl Skeleton for ObjectSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> Vec3<f32> {
-        let bone0_mat = base_mat * Mat4::<f32>::from(self.bone0);
+        body: Self::Body,
+    ) -> Offsets {
+        let scale_mat = Mat4::scaling_3d(1.0 / 11.0);
+
+        let bone0_mat = base_mat * scale_mat * Mat4::<f32>::from(self.bone0);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(bone0_mat * Mat4::scaling_3d(1.0 / 11.0)),
-            make_bone(Mat4::<f32>::from(self.bone1) * Mat4::scaling_3d(1.0 / 11.0)), /* Decorellated from ori */
+            make_bone(bone0_mat),
+            make_bone(scale_mat * Mat4::<f32>::from(self.bone1)), /* Decorellated from ori */
         ];
-        Vec3::unit_z() * 0.5
+        Offsets {
+            lantern: Vec3::default(),
+            // TODO: see quadruped_medium for how to animate this
+            mount_bone: Transform {
+                position: common::comp::Body::Object(body)
+                    .mountee_offset()
+                    .into_tuple()
+                    .into(),
+                ..Default::default()
+            },
+        }
     }
 }
 

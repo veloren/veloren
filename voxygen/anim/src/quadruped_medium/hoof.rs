@@ -57,8 +57,7 @@ impl Animation for HoofAnimation {
             0.0,
             s_a.torso_front.0 + movement1abs * -6.0,
             s_a.torso_front.1 + movement1abs * 9.0,
-        ) * s_a.scaler
-            / 11.0;
+        );
         next.torso_front.orientation = Quaternion::rotation_x(movement1abs * 1.2);
 
         next.torso_back.orientation = Quaternion::rotation_x(movement1abs * -0.8);

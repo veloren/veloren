@@ -16,7 +16,7 @@ pub use self::{
     run::RunAnimation, stunned::StunnedAnimation,
 };
 
-use super::{make_bone, vek::*, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
 use common::comp::{self};
 use core::convert::TryFrom;
 
@@ -38,6 +38,7 @@ skeleton_impls!(struct QuadrupedMediumSkeleton {
     + foot_fr,
     + foot_bl,
     + foot_br,
+    mount,
 });
 
 impl Skeleton for QuadrupedMediumSkeleton {
@@ -53,7 +54,10 @@ impl Skeleton for QuadrupedMediumSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> Vec3<f32> {
+        body: Self::Body,
+    ) -> Offsets {
+        let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 11.0);
+
         let torso_front_mat = base_mat * Mat4::<f32>::from(self.torso_front);
         let torso_back_mat = torso_front_mat * Mat4::<f32>::from(self.torso_back);
         let neck_mat = torso_front_mat * Mat4::<f32>::from(self.neck);
@@ -80,7 +84,32 @@ impl Skeleton for QuadrupedMediumSkeleton {
             make_bone(leg_bl_mat * Mat4::<f32>::from(self.foot_bl)),
             make_bone(leg_br_mat * Mat4::<f32>::from(self.foot_br)),
         ];
-        Vec3::default()
+
+        use comp::quadruped_medium::Species::*;
+        let (mount_bone_mat, mount_bone_ori) = match (body.species, body.body_type) {
+            (Mammoth, _) => (
+                head_mat,
+                self.torso_front.orientation * self.neck.orientation * self.head.orientation,
+            ),
+            _ => (torso_front_mat, self.torso_front.orientation),
+        };
+        // Offset from the mounted bone's origin.
+        // Note: This could be its own bone if we need to animate it independently.
+        let mount_position = (mount_bone_mat * Vec4::from_point(mount_point(&body)))
+            .homogenized()
+            .xyz();
+        // NOTE: We apply the ori from base_mat externally so we don't need to worry
+        // about it here for now.
+        let mount_orientation = mount_bone_ori;
+
+        Offsets {
+            lantern: Vec3::default(),
+            mount_bone: Transform {
+                position: mount_position,
+                orientation: mount_orientation,
+                scale: Vec3::one(),
+            },
+        }
     }
 }
 
@@ -152,7 +181,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Frostfang, _) => (1.0, -2.0),
                 (Mouflon, _) => (0.5, 1.5),
                 (Catoblepas, _) => (-1.0, -6.5),
-                (Bonerattler, _) => (1.0, 2.5),
+                (Bonerattler, _) => (0.0, 1.5),
                 (Deer, Male) => (1.5, 3.5),
                 (Deer, Female) => (1.5, 3.5),
                 (Hirdrasil, _) => (0.0, 5.0),
@@ -191,7 +220,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Frostfang, _) => (0.5, 1.5),
                 (Mouflon, _) => (-1.0, 1.0),
                 (Catoblepas, _) => (19.5, -2.0),
-                (Bonerattler, _) => (9.0, -0.5),
+                (Bonerattler, _) => (7.0, -0.5),
                 (Deer, _) => (-2.5, 1.0),
                 (Hirdrasil, _) => (-1.0, 0.5),
                 (Roshwalr, _) => (0.0, 1.0),
@@ -303,7 +332,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Frostfang, _) => (9.0, 11.5),
                 (Mouflon, _) => (11.0, 14.0),
                 (Catoblepas, _) => (7.5, 19.5),
-                (Bonerattler, _) => (6.0, 12.5),
+                (Bonerattler, _) => (6.0, 11.0),
                 (Deer, _) => (11.0, 13.5),
                 (Hirdrasil, _) => (11.0, 14.5),
                 (Roshwalr, _) => (6.0, 12.5),
@@ -415,7 +444,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Frostfang, _) => (5.5, -5.5, -2.0),
                 (Mouflon, _) => (4.0, -5.0, -4.0),
                 (Catoblepas, _) => (7.0, 2.0, -5.0),
-                (Bonerattler, _) => (5.5, 5.0, -4.0),
+                (Bonerattler, _) => (5.5, 5.0, -2.5),
                 (Deer, _) => (3.5, -4.5, -3.5),
                 (Hirdrasil, _) => (4.5, -5.0, -2.5),
                 (Roshwalr, _) => (8.0, -2.5, -2.5),
@@ -452,7 +481,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Frostfang, _) => (3.5, -4.5, -2.0),
                 (Mouflon, _) => (3.5, -8.0, -3.5),
                 (Catoblepas, _) => (6.0, -2.5, -2.5),
-                (Bonerattler, _) => (6.0, -8.0, -4.0),
+                (Bonerattler, _) => (6.0, -8.0, -2.5),
                 (Deer, _) => (3.0, -6.5, -3.5),
                 (Hirdrasil, _) => (4.0, -6.5, -3.0),
                 (Roshwalr, _) => (7.0, -7.0, -2.5),
@@ -654,4 +683,46 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
         }
     }
+}
+
+fn mount_point(body: &Body) -> Vec3<f32> {
+    use comp::quadruped_medium::{BodyType::*, Species::*};
+    match (body.species, body.body_type) {
+        (Grolgar, _) => (0.0, -6.0, 6.0),
+        (Saber, _) => (0.0, -12.0, 4.0),
+        (Tuskram, _) => (0.0, -17.0, 2.0),
+        (Lion, _) => (0.0, -8.0, 4.0),
+        (Tarasque, _) => (0.0, -6.0, 4.0),
+        (Tiger, _) => (0.0, -8.0, 4.0),
+        (Wolf, _) => (0.0, -7.0, 3.0),
+        (Frostfang, _) => (0.0, -3.0, 4.0),
+        (Mouflon, _) => (0.0, -8.0, 2.0),
+        (Catoblepas, _) => (0.0, -8.0, 2.0),
+        (Bonerattler, _) => (0.0, -1.0, 4.0),
+        (Deer, _) => (0.0, -9.0, 3.0),
+        (Hirdrasil, _) => (0.0, -11.0, 3.0),
+        (Roshwalr, _) => (0.0, -1.0, 7.0),
+        (Donkey, _) => (0.0, -5.0, 2.0),
+        (Camel, _) => (0.0, -13.0, 5.0),
+        (Zebra, _) => (0.0, -6.0, 3.0),
+        (Antelope, _) => (0.0, -8.0, 3.0),
+        (Kelpie, _) => (0.0, -6.0, 3.0),
+        (Horse, _) => (0.0, -8.0, 3.0),
+        (Barghest, _) => (0.0, -8.0, 5.0),
+        (Cattle, Male) => (0.0, -3.0, 8.0),
+        (Cattle, Female) => (0.0, -2.0, 6.0),
+        (Darkhound, _) => (0.0, -2.0, 3.0),
+        (Highland, _) => (0.0, -3.0, 8.0),
+        (Yak, _) => (0.0, -8.0, 9.0),
+        (Panda, _) => (0.0, -10.0, 5.0),
+        (Bear, _) => (0.0, -11.0, 6.0),
+        (Dreadhorn, _) => (0.0, 0.0, 10.0),
+        (Moose, _) => (0.0, -9.0, 6.0),
+        (Snowleopard, _) => (0.0, -9.0, 4.0),
+        (Mammoth, _) => (0.0, 5.0, 8.0),
+        (Ngoubou, _) => (0.0, -7.0, 6.0),
+        (Llama, _) => (0.0, -6.0, 5.0),
+        (Alpaca, _) => (0.0, -9.0, 3.0),
+    }
+    .into()
 }

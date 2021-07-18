@@ -43,7 +43,6 @@ impl Animation for IdleAnimation {
         next.back.scale = Vec3::one() * 1.02;
         next.hold.scale = Vec3::one() * 0.0;
         next.lantern.scale = Vec3::one() * 0.65;
-        next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
         next.shoulder_l.scale = Vec3::one() * 1.1;
         next.shoulder_r.scale = Vec3::one() * 1.1;
 
@@ -136,7 +135,7 @@ impl Animation for IdleAnimation {
         next.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
         next.lantern.orientation = Quaternion::rotation_x(0.1) * Quaternion::rotation_y(0.1);
 
-        next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
+        next.torso.position = Vec3::new(0.0, 0.0, 0.0);
 
         next.second.scale = match hands {
             (Some(Hands::One), Some(Hands::One)) => Vec3::one(),

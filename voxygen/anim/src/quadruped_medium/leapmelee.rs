@@ -56,8 +56,7 @@ impl Animation for LeapMeleeAnimation {
             0.0,
             s_a.torso_front.0 + movement1abs * -4.0,
             s_a.torso_front.1,
-        ) * s_a.scaler
-            / 11.0;
+        );
         next.torso_front.orientation =
             Quaternion::rotation_x(movement1abs * 0.3 + movement2abs * -0.3 + movement3abs * 0.3)
                 * Quaternion::rotation_y(twitch1abs * -0.1);

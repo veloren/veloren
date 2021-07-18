@@ -13,6 +13,7 @@ pub mod gliding;
 pub mod idle;
 pub mod jump;
 pub mod leapmelee;
+pub mod mount;
 pub mod repeater;
 pub mod roll;
 pub mod run;
@@ -36,13 +37,14 @@ pub use self::{
     chargeswing::ChargeswingAnimation, climb::ClimbAnimation, consume::ConsumeAnimation,
     dance::DanceAnimation, dash::DashAnimation, equip::EquipAnimation,
     glidewield::GlideWieldAnimation, gliding::GlidingAnimation, idle::IdleAnimation,
-    jump::JumpAnimation, leapmelee::LeapAnimation, repeater::RepeaterAnimation,
-    roll::RollAnimation, run::RunAnimation, shockwave::ShockwaveAnimation, shoot::ShootAnimation,
-    sit::SitAnimation, sneak::SneakAnimation, spin::SpinAnimation, spinmelee::SpinMeleeAnimation,
-    staggered::StaggeredAnimation, stand::StandAnimation, stunned::StunnedAnimation,
-    swim::SwimAnimation, swimwield::SwimWieldAnimation, talk::TalkAnimation, wield::WieldAnimation,
+    jump::JumpAnimation, leapmelee::LeapAnimation, mount::MountAnimation,
+    repeater::RepeaterAnimation, roll::RollAnimation, run::RunAnimation,
+    shockwave::ShockwaveAnimation, shoot::ShootAnimation, sit::SitAnimation, sneak::SneakAnimation,
+    spin::SpinAnimation, spinmelee::SpinMeleeAnimation, staggered::StaggeredAnimation,
+    stand::StandAnimation, stunned::StunnedAnimation, swim::SwimAnimation,
+    swimwield::SwimWieldAnimation, talk::TalkAnimation, wield::WieldAnimation,
 };
-use super::{make_bone, vek::*, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
 use common::comp;
 use core::{convert::TryFrom, f32::consts::PI};
 
@@ -96,7 +98,13 @@ impl Skeleton for CharacterSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-    ) -> Vec3<f32> {
+        body: Self::Body,
+    ) -> Offsets {
+        // TODO: extract scaler from body to it's own method so we can call that
+        // directly instead of going through SkeletonAttr? (note todo also
+        // appiles to other body variant animations)
+        let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 11.0);
+
         let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
         let chest_mat = torso_mat * Mat4::<f32>::from(self.chest);
         let head_mat = chest_mat * Mat4::<f32>::from(self.head);
@@ -132,7 +140,17 @@ impl Skeleton for CharacterSkeleton {
             // FIXME: Should this be control_l_mat?
             make_bone(control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
         ];
-        (lantern_mat * Vec4::new(0.0, 0.0, -4.0, 1.0)).xyz()
+        Offsets {
+            lantern: (lantern_mat * Vec4::new(0.0, 0.0, -4.0, 1.0)).xyz(),
+            // TODO: see quadruped_medium for how to animate this
+            mount_bone: Transform {
+                position: common::comp::Body::Humanoid(body)
+                    .mountee_offset()
+                    .into_tuple()
+                    .into(),
+                ..Default::default()
+            },
+        }
     }
 }
 
