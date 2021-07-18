@@ -11,6 +11,7 @@ pub use self::{
 use crate::{
     column::ColumnSample,
     util::{FastNoise, RandomField, Sampler, RandomPerm},
+    config::CONFIG,
     Canvas, IndexRef,
 };
 use common::{
@@ -584,20 +585,21 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
         // How common should they be? (0.0 - 1.0)
         let common = 0.15;
         // Range of heights for the caverns
-        let height_range = 48.0..300.0;
+        let height_range = 16.0..250.0;
         // Minimum distance below the surface
         let surface_clearance = 64.0;
 
         let cavern_avg_height = Lerp::lerp(
             height_range.start,
             height_range.end,
-            info.index().noise.cave_nz.get((wpos2d.map(|e| e as f64) / 128.0).into_array()) as f32 * 0.5 + 0.5,
+            info.index().noise.cave_nz.get((wpos2d.map(|e| e as f64) / 300.0).into_array()) as f32 * 0.5 + 0.5,
         );
 
-        let cavern_avg_alt = alt * 0.25 - height_range.end - surface_clearance;
+        let cavern_avg_alt = CONFIG.sea_level.min(alt * 0.25) - height_range.end - surface_clearance;
 
         let cavern_nz = info.index().noise.cave_nz.get((wpos2d.map(|e| e as f64) / scale).into_array()) as f32;
-        let cavern_height = ((cavern_nz * 0.5 + 0.5 - (1.0 - common)).max(0.0) / common).powf(common * 2.0) * cavern_avg_height;
+        let cavern = ((cavern_nz * 0.5 + 0.5 - (1.0 - common)).max(0.0) / common).powf(common * 2.0);
+        let cavern_height = cavern * cavern_avg_height;
 
         // Stalagtites
         let stalagtite = info.index().noise.cave_nz
@@ -605,16 +607,17 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             .sub(0.5)
             .max(0.0)
             .mul((cavern_height as f64 - 5.0).mul(0.15).clamped(0.0, 1.0))
-            .mul(32.0 + cavern_avg_height as f64 * 0.85);
+            .mul(32.0 + cavern_avg_height as f64);
 
-        let rugged = 0.25; // How bumpy should the floor be relative to the ceiling?
-        let cavern_bottom = (cavern_avg_alt - cavern_height * rugged) as i32;
+        let hill = info.index().noise.cave_nz.get((wpos2d.map(|e| e as f64) / 96.0).into_array()) as f32 * cavern * 24.0;
+        let rugged = 0.4; // How bumpy should the floor be relative to the ceiling?
+        let cavern_bottom = (cavern_avg_alt - cavern_height * rugged + hill) as i32;
         let cavern_avg_bottom = (cavern_avg_alt - ((height_range.start + height_range.end) * 0.5) * rugged) as i32;
         let cavern_top = (cavern_avg_alt + cavern_height) as i32;
         let cavern_avg_top = (cavern_avg_alt + cavern_avg_height) as i32;
 
         // Stalagmites rise up to meet stalagtites
-        let stalagmite = stalagtite * 0.3;
+        let stalagmite = stalagtite;
 
         let floor = stalagmite as i32;
 
@@ -716,7 +719,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                 }
             } else if let Some(mushroom_block) = get_mushroom(wpos, dynamic_rng) {
                 mushroom_block
-            } else if z < cavern_avg_bottom as i32 + 16 {
+            } else if z < cavern_avg_bottom as i32 + 4 {
                 Block::water(SpriteKind::Empty)
             } else if z == cavern_bottom + floor && dynamic_rng.gen_bool(0.005) && on_ground {
                 Block::air(*[CrystalLow, CaveMushroom].choose(dynamic_rng).unwrap())
