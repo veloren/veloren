@@ -148,6 +148,9 @@ void main() {
     max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, /*time_of_day.x*//*-cam_to_frag*/sun_view_dir/*view_dir*/, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, /*vec3(0.0)*/k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
     emitted_light *= not_underground;
     reflected_light *= not_underground;
+
+    // Global illumination when underground (silly)
+    emitted_light += (1.0 - not_underground) * 0.05;
     // reflected_light *= f_light * point_shadow * shade_frac;
     // emitted_light *= f_light * point_shadow * max(shade_frac, MIN_SHADOW);
     // max_light *= f_light * point_shadow * shade_frac;

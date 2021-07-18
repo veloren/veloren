@@ -260,6 +260,9 @@ void main() {
     max_light += get_sun_diffuse2(sun_info, moon_info, norm, /*time_of_day.x*/sun_view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, vec3(k_d), /*vec3(f_light * point_shadow)*//*reflect_color*/k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
     emitted_light *= not_underground;
     reflected_light *= not_underground;
+
+    // Global illumination when underground (silly)
+    emitted_light += (1.0 - not_underground) * 0.05;
     // Apply cloud layer to sky
     // reflected_light *= /*water_color_direct * */reflect_color * f_light * point_shadow * shade_frac;
     // emitted_light *= /*water_color_direct*//*ambient_attenuation * */f_light * point_shadow * max(shade_frac, MIN_SHADOW);
