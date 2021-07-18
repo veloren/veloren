@@ -6,6 +6,7 @@ use common::{
     comp::item::{Hands, ToolKind},
     states::utils::{AbilityInfo, StageSection},
 };
+use core::f32::consts::PI;
 
 pub struct BetaAnimation;
 
@@ -73,7 +74,7 @@ impl Animation for BetaAnimation {
                         * Quaternion::rotation_y(
                             s_a.sc.4 + (0.4 + move1 * 1.5 + move2 * -2.5) * pullback,
                         )
-                        * Quaternion::rotation_z(s_a.sc.5 + (1.67 + move2 * 1.57) * pullback);
+                        * Quaternion::rotation_z(s_a.sc.5 + (1.67 + move2 * PI / 2.0) * pullback);
                 },
                 _ => {},
             },
@@ -89,7 +90,7 @@ impl Animation for BetaAnimation {
                         * Quaternion::rotation_y(-3.7 + move1 * -0.75 + move2 * 1.0)
                         * Quaternion::rotation_z(3.69);
                     next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
-                    next.hand_l.orientation = Quaternion::rotation_x(1.57)
+                    next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0)
                 },
 
                 _ => {},
@@ -106,7 +107,7 @@ impl Animation for BetaAnimation {
                             * Quaternion::rotation_y(-2.3 + move1 * -2.3 + move2 * 1.0)
                             * Quaternion::rotation_z(3.69);
                         next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
-                        next.hand_r.orientation = Quaternion::rotation_x(1.57)
+                        next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0)
                     },
 
                     _ => {},

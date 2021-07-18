@@ -3,7 +3,7 @@ use super::{
     BipedSmallSkeleton, SkeletonAttr,
 };
 use common::states::utils::StageSection;
-use std::f32::consts::{FRAC_PI_2, PI};
+use std::f32::consts::PI;
 
 pub struct DashAnimation;
 
@@ -47,7 +47,7 @@ impl Animation for DashAnimation {
         let speed = Vec2::<f32>::from(velocity).magnitude();
 
         let fast = (anim_time * 10.0).sin();
-        let fastalt = (anim_time * 10.0 + FRAC_PI_2).sin();
+        let fastalt = (anim_time * 10.0 + PI / 2.0).sin();
 
         let speednorm = speed / 9.4;
         let speednormcancel = 1.0 - speednorm;

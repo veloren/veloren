@@ -7,7 +7,7 @@ use common::{
     states::utils::{AbilityInfo, StageSection},
     util::Dir,
 };
-use std::f32::consts::{FRAC_PI_2, PI};
+use core::f32::consts::PI;
 
 pub struct ShootAnimation;
 
@@ -140,7 +140,7 @@ impl Animation for ShootAnimation {
                 next.hand_r.orientation = Quaternion::rotation_x(s_a.bhr.3);
 
                 next.hold.position = Vec3::new(0.0, -1.0 + move2 * 2.0, -5.2 + move2 * 7.0);
-                next.hold.orientation = Quaternion::rotation_x(-FRAC_PI_2);
+                next.hold.orientation = Quaternion::rotation_x(-PI / 2.0);
                 next.hold.scale = Vec3::one() * 1.0 * (1.0 - move2);
 
                 next.control.position = Vec3::new(

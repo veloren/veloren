@@ -8,7 +8,6 @@ use image::{ImageBuffer, ImageDecoder, Pixel};
 use num_traits::cast::FromPrimitive;
 use serde::{Deserialize, Serialize};
 use std::{
-    f64::consts::TAU,
     fmt::Debug,
     io::{Read, Write},
     marker::PhantomData,
@@ -273,7 +272,7 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
 /// yet)
 const fn sin(x: f64) -> f64 {
     use std::f64::consts::PI;
-    let mut x = (x - PI * 0.5) % (TAU);
+    let mut x = (x - PI * 0.5) % (PI * 2.0);
     x = if x < 0.0 { -x } else { x } - PI;
     x = if x < 0.0 { -x } else { x } - PI * 0.5;
 

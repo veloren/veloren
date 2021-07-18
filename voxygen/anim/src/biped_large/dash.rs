@@ -6,7 +6,7 @@ use common::{
     comp::item::tool::{AbilitySpec, ToolKind},
     states::utils::StageSection,
 };
-use std::f32::consts::{FRAC_PI_2, FRAC_PI_3, PI};
+use core::f32::consts::PI;
 
 pub struct DashAnimation;
 
@@ -114,7 +114,7 @@ impl Animation for DashAnimation {
                 next.lower_torso.orientation = Quaternion::rotation_x(move2 * 0.2 + move3 * -0.2)
                     * Quaternion::rotation_z(move1 * -0.8 + move3 * 0.7);
                 next.control_l.orientation =
-                    Quaternion::rotation_x(FRAC_PI_2 + move1 * -0.5 + move2 * 1.5)
+                    Quaternion::rotation_x(PI / 2.0 + move1 * -0.5 + move2 * 1.5)
                         * Quaternion::rotation_y(-0.2);
                 next.control_r.orientation =
                     Quaternion::rotation_x(PI / 2.2 + move1 * -0.5 + move2 * 1.5)
@@ -143,9 +143,9 @@ impl Animation for DashAnimation {
                     * Quaternion::rotation_x(move1 * 0.4 + move3 * -0.7 + footrotr * 0.1)
                     * Quaternion::rotation_z(move1 * -0.6 + move3 * 1.6);
 
-                next.control_l.orientation = Quaternion::rotation_x(FRAC_PI_2 + move3 * 0.3)
+                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + move3 * 0.3)
                     * Quaternion::rotation_y(move1 * 0.7);
-                next.control_r.orientation = Quaternion::rotation_x(FRAC_PI_2 + 0.2 + move3 * -0.2)
+                next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + 0.2 + move3 * -0.2)
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
 
@@ -187,8 +187,8 @@ impl Animation for DashAnimation {
                                 * Quaternion::rotation_y(move1 * 0.6 + move2 * -0.6)
                                 * Quaternion::rotation_z(move3 * -0.5);
 
-                            next.control_l.orientation = Quaternion::rotation_x(FRAC_PI_2);
-                            next.control_r.orientation = Quaternion::rotation_x(FRAC_PI_2);
+                            next.control_l.orientation = Quaternion::rotation_x(PI / 2.0);
+                            next.control_r.orientation = Quaternion::rotation_x(PI / 2.0);
 
                             next.control.orientation =
                                 Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
@@ -200,7 +200,7 @@ impl Animation for DashAnimation {
                             next.head.orientation =
                                 Quaternion::rotation_x(0.0) * Quaternion::rotation_z(move1 * -0.3);
                             next.upper_torso.orientation = Quaternion::rotation_x(move1 * -0.1)
-                                * Quaternion::rotation_z(move1 * FRAC_PI_2);
+                                * Quaternion::rotation_z(move1 * PI / 2.0);
                             next.lower_torso.orientation = Quaternion::rotation_x(move1 * 0.1)
                                 * Quaternion::rotation_x(move1 * -0.1)
                                 * Quaternion::rotation_z(move1 * -0.2);
@@ -208,13 +208,13 @@ impl Animation for DashAnimation {
                             next.hand_l.position = Vec3::new(-14.0, 2.0 + motion * 1.5, -4.0);
 
                             next.hand_l.orientation =
-                                Quaternion::rotation_x(FRAC_PI_3 + move1 * 1.0)
+                                Quaternion::rotation_x(PI / 3.0 + move1 * 1.0)
                                     * Quaternion::rotation_y(0.0)
                                     * Quaternion::rotation_z(-0.35 + motion * -0.6);
                             next.hand_r.position = Vec3::new(14.0, 2.0 + motion * -1.5, -4.0);
 
                             next.hand_r.orientation =
-                                Quaternion::rotation_x(FRAC_PI_3 + move1 * 1.0)
+                                Quaternion::rotation_x(PI / 3.0 + move1 * 1.0)
                                     * Quaternion::rotation_y(0.0)
                                     * Quaternion::rotation_z(0.35 + motion * 0.6);
 

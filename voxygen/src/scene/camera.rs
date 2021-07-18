@@ -2,7 +2,6 @@ use common::{terrain::TerrainGrid, vol::ReadVol};
 use common_base::span;
 use core::{f32::consts::PI, fmt::Debug};
 use num::traits::{real::Real, FloatConst};
-use std::f32::consts::FRAC_PI_2;
 use treeculler::Frustum;
 use vek::*;
 
@@ -63,7 +62,7 @@ fn clamp_and_modulate(ori: Vec3<f32>) -> Vec3<f32> {
         // Wrap camera yaw
         x: ori.x.rem_euclid(2.0 * PI),
         // Clamp camera pitch to the vertical limits
-        y: ori.y.min(FRAC_PI_2 - 0.0001).max(-FRAC_PI_2 + 0.0001),
+        y: ori.y.min(PI / 2.0 - 0.0001).max(-PI / 2.0 + 0.0001),
         // Wrap camera roll
         z: ori.z.rem_euclid(2.0 * PI),
     }
@@ -125,7 +124,7 @@ fn clamp_and_modulate(ori: Vec3<f32>) -> Vec3<f32> {
 ///     case) the change in the integer representation of the mantissa at z=n/2:
 ///
 ///     ```ignore
-///     e = floor(ln(near/(far - near))/std::f32::consts::LN_2)
+///     e = floor(ln(near/(far - near))/ln(2))
 ///     db/dz = 2^(2-e) / ((1 / far - 1 / near) * (far)^2)
 ///     ```
 ///
@@ -380,7 +379,7 @@ impl Camera {
             * Mat4::rotation_z(self.ori.z)
             * Mat4::rotation_x(self.ori.y)
             * Mat4::rotation_y(self.ori.x)
-            * Mat4::rotation_3d(FRAC_PI_2, -Vec4::unit_x())
+            * Mat4::rotation_3d(PI / 2.0, -Vec4::unit_x())
             * Mat4::translation_3d(-self.focus.map(|e| e.fract()));
         self.dependents.view_mat_inv = self.dependents.view_mat.inverted();
 
@@ -416,8 +415,8 @@ impl Camera {
         self.tgt_ori.x = (self.tgt_ori.x + delta.x).rem_euclid(2.0 * PI);
         // Clamp camera pitch to the vertical limits
         self.tgt_ori.y = (self.tgt_ori.y + delta.y)
-            .min(FRAC_PI_2 - 0.001)
-            .max(-FRAC_PI_2 + 0.001);
+            .min(PI / 2.0 - 0.001)
+            .max(-PI / 2.0 + 0.001);
         // Wrap camera roll
         self.tgt_ori.z = (self.tgt_ori.z + delta.z).rem_euclid(2.0 * PI);
     }

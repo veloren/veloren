@@ -6,7 +6,7 @@ use common::{
     comp::item::{AbilitySpec, ToolKind},
     states::utils::StageSection,
 };
-use std::f32::consts::{FRAC_PI_2, FRAC_PI_3, PI};
+use core::f32::consts::PI;
 
 pub struct BeamAnimation;
 
@@ -103,7 +103,7 @@ impl Animation for BeamAnimation {
                 next.jaw.orientation = Quaternion::rotation_x(0.0);
 
                 next.control_l.orientation =
-                    Quaternion::rotation_x(FRAC_PI_2) * Quaternion::rotation_y(-0.5);
+                    Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(-0.5);
                 next.control_r.orientation = Quaternion::rotation_x(PI / 2.5 + move1 * 0.4)
                     * Quaternion::rotation_y(0.5)
                     * Quaternion::rotation_z(move1 * 1.2 + move2shake * 0.5);
@@ -138,13 +138,13 @@ impl Animation for BeamAnimation {
                                 next.hand_l.position = Vec3::new(-14.0 + move1 * 3.0, 2.0, -4.0);
 
                                 next.hand_l.orientation =
-                                    Quaternion::rotation_x(FRAC_PI_3 + move2shake * -0.07)
+                                    Quaternion::rotation_x(PI / 3.0 + move2shake * -0.07)
                                         * Quaternion::rotation_y(move1 * -0.5)
                                         * Quaternion::rotation_z(-0.35 + move2shake * 0.07);
                                 next.hand_r.position = Vec3::new(14.0 + move1 - 3.0, 2.0, -4.0);
 
                                 next.hand_r.orientation =
-                                    Quaternion::rotation_x(FRAC_PI_3 + move2shake * 0.07)
+                                    Quaternion::rotation_x(PI / 3.0 + move2shake * 0.07)
                                         * Quaternion::rotation_y(move1 * -0.5)
                                         * Quaternion::rotation_z(0.35 - move2shake * 0.07);
 
@@ -158,13 +158,13 @@ impl Animation for BeamAnimation {
                                 next.hand_l.position = Vec3::new(-14.0 + move1 * 3.0, 2.0, -4.0);
 
                                 next.hand_l.orientation =
-                                    Quaternion::rotation_x(FRAC_PI_3 + move2shake * 0.07)
+                                    Quaternion::rotation_x(PI / 3.0 + move2shake * 0.07)
                                         * Quaternion::rotation_y(move1 * 0.5)
                                         * Quaternion::rotation_z(-0.35 + move2shake * 0.07);
                                 next.hand_r.position = Vec3::new(14.0 + move1 - 3.0, 2.0, -4.0);
 
                                 next.hand_r.orientation =
-                                    Quaternion::rotation_x(FRAC_PI_3 + move2shake * -0.07)
+                                    Quaternion::rotation_x(PI / 3.0 + move2shake * -0.07)
                                         * Quaternion::rotation_y(move1 * 0.5)
                                         * Quaternion::rotation_z(0.35 - move2shake * -0.07);
 
@@ -182,14 +182,14 @@ impl Animation for BeamAnimation {
                                 Quaternion::rotation_x(move2 * -0.5 + move2shake * -0.1);
                             next.control_l.position = Vec3::new(-0.5, 4.0, 1.0);
                             next.control_r.position = Vec3::new(-0.5, 4.0, 1.0);
-                            next.control_l.orientation = Quaternion::rotation_x(FRAC_PI_2);
-                            next.control_r.orientation = Quaternion::rotation_x(FRAC_PI_2);
+                            next.control_l.orientation = Quaternion::rotation_x(PI / 2.0);
+                            next.control_r.orientation = Quaternion::rotation_x(PI / 2.0);
 
                             next.weapon_l.position = Vec3::new(-12.0, -1.0, -15.0);
                             next.weapon_r.position = Vec3::new(12.0, -1.0, -15.0);
 
-                            next.weapon_l.orientation = Quaternion::rotation_x(-FRAC_PI_2 - 0.1);
-                            next.weapon_r.orientation = Quaternion::rotation_x(-FRAC_PI_2 - 0.1);
+                            next.weapon_l.orientation = Quaternion::rotation_x(-PI / 2.0 - 0.1);
+                            next.weapon_r.orientation = Quaternion::rotation_x(-PI / 2.0 - 0.1);
 
                             next.arm_control_r.orientation =
                                 Quaternion::rotation_x(move1 * 1.1 + move2 * -1.6)
@@ -245,8 +245,8 @@ impl Animation for BeamAnimation {
                                 Vec3::new(-6.0, 0.0 + s_a.grip.0 / 1.0, -s_a.grip.0 / 0.8);
 
                             next.control_l.orientation =
-                                Quaternion::rotation_x(FRAC_PI_2) * Quaternion::rotation_z(PI);
-                            next.control_r.orientation = Quaternion::rotation_x(FRAC_PI_2 + 0.2)
+                                Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_z(PI);
+                            next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + 0.2)
                                 * Quaternion::rotation_y(-1.0);
 
                             next.control.orientation =

@@ -6,7 +6,7 @@ use common::{
     comp::item::{Hands, ToolKind},
     states::utils::{AbilityInfo, StageSection},
 };
-use std::f32::consts::FRAC_PI_2;
+use core::f32::consts::PI;
 
 pub struct RepeaterAnimation;
 
@@ -58,8 +58,7 @@ impl Animation for RepeaterAnimation {
             next.main.orientation = Quaternion::rotation_y(0.0) * Quaternion::rotation_z(0.0);
 
             next.hold.position = Vec3::new(0.0, -1.0 + move3 * 2.0, -5.2);
-            next.hold.orientation =
-                Quaternion::rotation_x(-FRAC_PI_2) * Quaternion::rotation_z(0.0);
+            next.hold.orientation = Quaternion::rotation_x(-PI / 2.0) * Quaternion::rotation_z(0.0);
             next.hold.scale = Vec3::one() * (1.0);
             if speed < 0.5 {
                 next.foot_l.position = Vec3::new(

@@ -6,6 +6,8 @@ use common::{
     comp::item::{Hands, ToolKind},
     states::utils::{AbilityInfo, StageSection},
 };
+use core::f32::consts::PI;
+
 pub struct ChargeswingAnimation;
 
 type ChargeswingAnimationDependency = (
@@ -24,7 +26,6 @@ impl Animation for ChargeswingAnimation {
     const UPDATE_FN: &'static [u8] = b"character_chargeswing\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_chargeswing")]
-    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (hands, _velocity, _global_time, stage_section, ability_info): Self::Dependency<'a>,
@@ -126,7 +127,7 @@ impl Animation for ChargeswingAnimation {
                         * Quaternion::rotation_y(tension * 0.07 + move1 * -1.2 + slowrise * 0.5)
                         * Quaternion::rotation_z(move2 * 1.0);
                     next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
-                    next.hand_l.orientation = Quaternion::rotation_x(1.57)
+                    next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0)
                 },
 
                 _ => {},
@@ -150,7 +151,7 @@ impl Animation for ChargeswingAnimation {
                             )
                             * Quaternion::rotation_z(move2 * 1.0);
                         next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
-                        next.hand_r.orientation = Quaternion::rotation_x(1.57)
+                        next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0)
                     },
                     _ => {},
                 }

@@ -16,7 +16,6 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use std::{
-    f32::consts::PI,
     ops::{Add, Div},
     time::Duration,
 };
@@ -353,7 +352,7 @@ pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, efficiency:
     {
         let rate = {
             let angle = update.ori.look_dir().angle_between(*dir);
-            data.body.base_ori_rate() * efficiency * PI / angle
+            data.body.base_ori_rate() * efficiency * std::f32::consts::PI / angle
         };
         update.ori = update
             .ori

@@ -3,7 +3,7 @@ use super::{
     BipedLargeSkeleton, SkeletonAttr,
 };
 use common::{comp::item::ToolKind, states::utils::StageSection};
-use std::f32::consts::{FRAC_PI_2, PI};
+use core::f32::consts::PI;
 
 pub struct BlinkAnimation;
 
@@ -91,7 +91,7 @@ impl Animation for BlinkAnimation {
                     -11.0 + -s_a.grip.0 / 2.0,
                 );
 
-                next.control_l.orientation = Quaternion::rotation_x(FRAC_PI_2 - move1 * -0.8)
+                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 - move1 * -0.8)
                     * Quaternion::rotation_y(-0.5 + move1 * -0.0)
                     * Quaternion::rotation_z(move1 * 0.0);
                 next.control_r.orientation = Quaternion::rotation_x(PI / 2.5 + move1 * 0.7)

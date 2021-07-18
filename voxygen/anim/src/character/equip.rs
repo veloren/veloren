@@ -3,7 +3,7 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::comp::item::ToolKind;
-use std::f32::consts::{FRAC_PI_4, PI};
+use core::f32::consts::PI;
 
 pub struct EquipAnimation;
 
@@ -25,9 +25,9 @@ impl Animation for EquipAnimation {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
         let equip_slow = 1.0 + (anim_time * 12.0 + PI).cos();
-        let equip_slowa = 1.0 + (anim_time * 12.0 + FRAC_PI_4).cos();
-        next.hand_l.orientation = Quaternion::rotation_y(-2.3) * Quaternion::rotation_z(1.57);
-        next.hand_r.orientation = Quaternion::rotation_y(-2.3) * Quaternion::rotation_z(1.57);
+        let equip_slowa = 1.0 + (anim_time * 12.0 + PI / 4.0).cos();
+        next.hand_l.orientation = Quaternion::rotation_y(-2.3) * Quaternion::rotation_z(PI / 2.0);
+        next.hand_r.orientation = Quaternion::rotation_y(-2.3) * Quaternion::rotation_z(PI / 2.0);
         next.control.position = Vec3::new(equip_slowa * -1.5, 0.0, equip_slow * 1.5);
 
         match active_tool_kind {

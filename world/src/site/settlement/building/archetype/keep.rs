@@ -10,7 +10,6 @@ use common::{
 };
 use rand::prelude::*;
 use serde::Deserialize;
-use std::f32::consts::TAU;
 use vek::*;
 
 #[derive(Deserialize)]
@@ -177,7 +176,8 @@ impl Archetype for Keep {
             if (pos.xy().magnitude_squared() as f32) < inner_radius.powi(2) {
                 stone
             } else if (pos.xy().magnitude_squared() as f32) < radius.powi(2) {
-                if ((pos.x as f32).atan2(pos.y as f32) / TAU * stretch + pos.z as f32)
+                if ((pos.x as f32).atan2(pos.y as f32) / (std::f32::consts::PI * 2.0) * stretch
+                    + pos.z as f32)
                     .rem_euclid(stretch)
                     < 1.5
                 {

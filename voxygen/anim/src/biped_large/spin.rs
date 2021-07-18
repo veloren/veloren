@@ -3,7 +3,7 @@ use super::{
     BipedLargeSkeleton, SkeletonAttr,
 };
 use common::{comp::item::ToolKind, states::utils::StageSection};
-use std::f32::consts::{FRAC_PI_2, TAU};
+use core::f32::consts::PI;
 
 pub struct SpinAnimation;
 
@@ -42,7 +42,7 @@ impl Animation for SpinAnimation {
         let foot = ((5.0 / (1.1 + 3.9 * ((anim_time * lab * 10.32).sin()).powi(2))).sqrt())
             * ((anim_time * lab * 10.32).sin());
 
-        let decel = (anim_time * 16.0 * lab).min(FRAC_PI_2).sin();
+        let decel = (anim_time * 16.0 * lab).min(PI / 2.0).sin();
 
         let spin = (anim_time * 2.8 * lab).sin();
         let spinhalf = (anim_time * 1.4 * lab).sin();
@@ -67,7 +67,7 @@ impl Animation for SpinAnimation {
             );
             next.control.orientation = Quaternion::rotation_x(-0.5 + s_a.sc.3 + movement1 * -1.2)
                 * Quaternion::rotation_y(s_a.sc.4 - 0.6 + movement1 * 1.0)
-                * Quaternion::rotation_z(s_a.sc.5 + 0.1 + movement1 * FRAC_PI_2);
+                * Quaternion::rotation_z(s_a.sc.5 + 0.1 + movement1 * PI / 2.0);
             next.head.position = Vec3::new(
                 0.0 + 2.0 + movement2 * -2.0,
                 2.0 + movement2 * -2.0 + s_a.head.0,
@@ -87,7 +87,7 @@ impl Animation for SpinAnimation {
             next.head.orientation = Quaternion::rotation_y(movement1 * 0.1 - movement2 * -0.1)
                 * Quaternion::rotation_z(1.07 + movement1 * 0.4 + movement2 * -1.5);
 
-            next.torso.orientation = Quaternion::rotation_z(movement2 * TAU);
+            next.torso.orientation = Quaternion::rotation_z(movement2 * 6.28);
         }
 
         if let Some(ToolKind::Axe | ToolKind::Hammer | ToolKind::Dagger) = active_tool_kind {

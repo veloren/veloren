@@ -22,7 +22,7 @@ use fxhash::FxHasher64;
 use lazy_static::lazy_static;
 use rand::{prelude::*, seq::SliceRandom};
 use serde::Deserialize;
-use std::{f32::consts::TAU, sync::Arc};
+use std::sync::Arc;
 use vek::*;
 
 pub struct Dungeon {
@@ -948,7 +948,8 @@ pub fn spiral_staircase(
         if (pos.xy().magnitude_squared() as f32) < inner_radius.powi(2) {
             true
         } else if (pos.xy().magnitude_squared() as f32) < radius.powi(2) {
-            ((pos.x as f32).atan2(pos.y as f32) / TAU * stretch + pos.z as f32).rem_euclid(stretch)
+            ((pos.x as f32).atan2(pos.y as f32) / (f32::consts::PI * 2.0) * stretch + pos.z as f32)
+                .rem_euclid(stretch)
                 < 1.5
         } else {
             false
@@ -964,7 +965,8 @@ pub fn wall_staircase(
     Box::new(move |pos: Vec3<i32>| {
         let pos = pos - origin;
         if (pos.x.abs().max(pos.y.abs())) as f32 > 0.6 * radius {
-            ((pos.x as f32).atan2(pos.y as f32) / TAU * stretch + pos.z as f32).rem_euclid(stretch)
+            ((pos.x as f32).atan2(pos.y as f32) / (f32::consts::PI * 2.0) * stretch + pos.z as f32)
+                .rem_euclid(stretch)
                 < 1.0
         } else {
             false
@@ -978,6 +980,7 @@ pub fn inscribed_polystar(
     sides: usize,
 ) -> Box<dyn Fn(Vec3<i32>) -> bool> {
     Box::new(move |pos| {
+        use std::f32::consts::TAU;
         let rpos: Vec2<f32> = pos.xy().as_() - origin.as_();
         let is_border = rpos.magnitude_squared() > (radius - 2.0).powi(2);
         let is_line = (0..sides).into_iter().any(|i| {

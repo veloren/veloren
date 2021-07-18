@@ -6,7 +6,7 @@ use common::{
     comp::item::{AbilitySpec, ToolKind},
     states::utils::StageSection,
 };
-use std::f32::consts::{FRAC_PI_2, FRAC_PI_3, PI};
+use core::f32::consts::PI;
 
 pub struct SummonAnimation;
 
@@ -110,7 +110,7 @@ impl Animation for SummonAnimation {
                     -11.0 + -s_a.grip.0 / 2.0 + move1 * 15.0 + move2 * -12.0,
                 );
 
-                next.control_l.orientation = Quaternion::rotation_x(FRAC_PI_2 - move1 * 0.2)
+                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 - move1 * 0.2)
                     * Quaternion::rotation_y(-0.5 + move2 * -0.4)
                     * Quaternion::rotation_z(move1 * 0.0);
                 next.control_r.orientation = Quaternion::rotation_x(PI / 2.5 + move1 * 0.2)
@@ -164,11 +164,11 @@ impl Animation for SummonAnimation {
                             );
 
                             next.hand_l.orientation =
-                                Quaternion::rotation_x(FRAC_PI_3 + move1 * 1.5)
+                                Quaternion::rotation_x(PI / 3.0 + move1 * 1.5)
                                     * Quaternion::rotation_y(-move1 * 0.7 + move2 * 0.2)
                                     * Quaternion::rotation_z(-0.35);
                             next.hand_r.orientation =
-                                Quaternion::rotation_x(FRAC_PI_3 + move1 * 1.5)
+                                Quaternion::rotation_x(PI / 3.0 + move1 * 1.5)
                                     * Quaternion::rotation_y(move1 * 0.7 + move2 * 0.2)
                                     * Quaternion::rotation_z(0.35);
                             next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2);

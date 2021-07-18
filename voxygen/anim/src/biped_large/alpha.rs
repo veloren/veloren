@@ -6,7 +6,7 @@ use common::{
     comp::item::tool::{AbilitySpec, ToolKind},
     states::utils::StageSection,
 };
-use std::f32::consts::{FRAC_PI_2, FRAC_PI_3, PI};
+use core::f32::consts::PI;
 
 pub struct AlphaAnimation;
 
@@ -108,7 +108,7 @@ impl Animation for AlphaAnimation {
                 next.upper_torso.orientation = Quaternion::rotation_z(move1 * 0.5 + move2 * -0.7);
                 next.lower_torso.orientation = Quaternion::rotation_z(move1 * -0.5 + move2 * 0.7);
                 next.control_l.orientation =
-                    Quaternion::rotation_x(FRAC_PI_2 + move1 * -0.5 + move2 * 1.5)
+                    Quaternion::rotation_x(PI / 2.0 + move1 * -0.5 + move2 * 1.5)
                         * Quaternion::rotation_y(-0.2);
                 next.control_r.orientation =
                     Quaternion::rotation_x(PI / 2.2 + move1 * -0.5 + move2 * 1.5)
@@ -134,8 +134,8 @@ impl Animation for AlphaAnimation {
                 next.lower_torso.orientation = Quaternion::rotation_z(move1 * -0.2 + move2 * 0.2);
 
                 next.control_l.orientation =
-                    Quaternion::rotation_x(FRAC_PI_2 + move2 * 0.8) * Quaternion::rotation_y(-0.0);
-                next.control_r.orientation = Quaternion::rotation_x(FRAC_PI_2 + 0.2 + move2 * 0.8)
+                    Quaternion::rotation_x(PI / 2.0 + move2 * 0.8) * Quaternion::rotation_y(-0.0);
+                next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + 0.2 + move2 * 0.8)
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
 
@@ -159,8 +159,8 @@ impl Animation for AlphaAnimation {
                 next.lower_torso.orientation = Quaternion::rotation_z(move1 * -0.6 + move2 * 0.9);
 
                 next.control_l.orientation =
-                    Quaternion::rotation_x(FRAC_PI_2 + move2 * 0.8) * Quaternion::rotation_y(-0.0);
-                next.control_r.orientation = Quaternion::rotation_x(FRAC_PI_2 + 0.2 + move2 * 0.8)
+                    Quaternion::rotation_x(PI / 2.0 + move2 * 0.8) * Quaternion::rotation_y(-0.0);
+                next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + 0.2 + move2 * 0.8)
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
 
@@ -191,11 +191,11 @@ impl Animation for AlphaAnimation {
                             );
 
                             next.control_l.orientation =
-                                Quaternion::rotation_x(FRAC_PI_3 + move1 * 0.5)
+                                Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
                                     * Quaternion::rotation_y(-0.15)
                                     * Quaternion::rotation_z(move1 * 0.5 + move2 * -0.6);
                             next.control_r.orientation =
-                                Quaternion::rotation_x(FRAC_PI_3 + move1 * 0.5)
+                                Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
                                     * Quaternion::rotation_y(0.15)
                                     * Quaternion::rotation_z(move1 * -0.5 + move2 * 0.6);
                             next.head.orientation = Quaternion::rotation_x(move1 * 0.3);
@@ -221,15 +221,15 @@ impl Animation for AlphaAnimation {
                                 );
 
                                 next.hand_l.orientation =
-                                    Quaternion::rotation_x(FRAC_PI_3 + move2 * 1.5)
+                                    Quaternion::rotation_x(PI / 3.0 + move2 * 1.5)
                                         * Quaternion::rotation_y(move2 * 0.5)
                                         * Quaternion::rotation_z(
                                             -0.35 + move1 * -0.5 + move2 * 1.0,
                                         );
                                 next.hand_r.position = Vec3::new(14.0, 2.0, -4.0);
 
-                                next.hand_r.orientation = Quaternion::rotation_x(FRAC_PI_3)
-                                    * Quaternion::rotation_z(0.35);
+                                next.hand_r.orientation =
+                                    Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_z(0.35);
 
                                 next.shoulder_r.orientation = Quaternion::rotation_x(0.0);
                             } else {
@@ -252,12 +252,12 @@ impl Animation for AlphaAnimation {
                                 );
 
                                 next.hand_r.orientation =
-                                    Quaternion::rotation_x(FRAC_PI_3 + move2 * 1.5)
+                                    Quaternion::rotation_x(PI / 3.0 + move2 * 1.5)
                                         * Quaternion::rotation_y(move2 * -0.5)
                                         * Quaternion::rotation_z(0.35 + move1 * 0.5 + move2 * -1.0);
                                 next.hand_l.position = Vec3::new(-14.0, 2.0, -4.0);
 
-                                next.hand_l.orientation = Quaternion::rotation_x(FRAC_PI_3)
+                                next.hand_l.orientation = Quaternion::rotation_x(PI / 3.0)
                                     * Quaternion::rotation_z(-0.35);
 
                                 next.shoulder_l.orientation = Quaternion::rotation_x(0.0);
@@ -286,9 +286,9 @@ impl Animation for AlphaAnimation {
                                 * Quaternion::rotation_z(move1 * -0.8 + move2 * 1.8);
 
                             next.control_l.orientation =
-                                Quaternion::rotation_x(FRAC_PI_2 + move2 * 1.0);
+                                Quaternion::rotation_x(PI / 2.0 + move2 * 1.0);
                             next.control_r.orientation =
-                                Quaternion::rotation_x(FRAC_PI_2 + move2 * 1.0);
+                                Quaternion::rotation_x(PI / 2.0 + move2 * 1.0);
 
                             next.shoulder_l.orientation = Quaternion::rotation_x(-0.3)
                                 * Quaternion::rotation_y(move1 * 0.7 + move2 * -0.7);
@@ -316,10 +316,10 @@ impl Animation for AlphaAnimation {
                                 Quaternion::rotation_z(move1 * -0.2 + move2 * 0.2);
 
                             next.control_l.orientation =
-                                Quaternion::rotation_x(FRAC_PI_2 + move2 * 0.8)
+                                Quaternion::rotation_x(PI / 2.0 + move2 * 0.8)
                                     * Quaternion::rotation_y(-0.0);
                             next.control_r.orientation =
-                                Quaternion::rotation_x(FRAC_PI_2 + 0.2 + move2 * 0.8)
+                                Quaternion::rotation_x(PI / 2.0 + 0.2 + move2 * 0.8)
                                     * Quaternion::rotation_y(0.0)
                                     * Quaternion::rotation_z(0.0);
 
@@ -374,10 +374,10 @@ impl Animation for AlphaAnimation {
                                 -s_a.grip.0 / 0.8,
                             );
 
-                            next.control_l.orientation = Quaternion::rotation_x(FRAC_PI_2)
+                            next.control_l.orientation = Quaternion::rotation_x(PI / 2.0)
                                 * Quaternion::rotation_y(-0.0)
                                 * Quaternion::rotation_z(PI);
-                            next.control_r.orientation = Quaternion::rotation_x(FRAC_PI_2 + 0.2)
+                            next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + 0.2)
                                 * Quaternion::rotation_y(-1.0 + move1 * 1.0)
                                 * Quaternion::rotation_z(0.0);
 

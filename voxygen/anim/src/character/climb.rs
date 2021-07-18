@@ -3,7 +3,7 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::comp::item::ToolKind;
-use std::{f32::consts::FRAC_PI_2, ops::Mul};
+use std::{f32::consts::PI, ops::Mul};
 
 pub struct ClimbAnimation;
 
@@ -34,15 +34,15 @@ impl Animation for ClimbAnimation {
         *rate = speed;
         let constant: f32 = 1.0;
         let smooth = (anim_time * constant * 1.5).sin();
-        let smootha = (anim_time * constant * 1.5 + FRAC_PI_2).sin();
-        let drop = (anim_time * constant * 4.0 + FRAC_PI_2).sin();
+        let smootha = (anim_time * constant * 1.5 + PI / 2.0).sin();
+        let drop = (anim_time * constant * 4.0 + PI / 2.0).sin();
         let dropa = (anim_time * constant * 4.0).sin();
 
         let quick = ((5.0 / (0.6 + 4.0 * ((anim_time * constant * 1.5).sin()).powi(2))).sqrt())
             * ((anim_time * constant * 1.5).sin());
         let quicka =
-            ((5.0 / (0.6 + 4.0 * ((anim_time * constant * 1.5 + FRAC_PI_2).sin()).powi(2))).sqrt())
-                * ((anim_time * constant * 1.5 + FRAC_PI_2).sin());
+            ((5.0 / (0.6 + 4.0 * ((anim_time * constant * 1.5 + PI / 2.0).sin()).powi(2))).sqrt())
+                * ((anim_time * constant * 1.5 + PI / 2.0).sin());
         let head_look = Vec2::new(
             (global_time / 2.0 + anim_time / 2.0)
                 .floor()

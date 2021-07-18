@@ -7,7 +7,7 @@ use common::{
     terrain::TerrainGrid,
 };
 use rand_distr::{Distribution, Normal};
-use std::f32::consts::FRAC_PI_2;
+use std::f32::consts::PI;
 use tracing::warn;
 use world::{
     civ::{Site, Track},
@@ -156,7 +156,7 @@ impl Entity {
                                 let offset_dir = (offset_site_pos - self.pos.xy()).normalized();
                                 let dist = (offset_site_pos - self.pos.xy()).magnitude();
                                 let midpoint = self.pos.xy() + offset_dir * (dist / 2.0);
-                                let perp_dir = offset_dir.rotated_z(FRAC_PI_2);
+                                let perp_dir = offset_dir.rotated_z(PI / 2.0);
                                 let offset = normaloff.sample(&mut rng);
                                 let inbetween_pos = midpoint + (perp_dir * offset);
 

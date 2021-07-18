@@ -33,7 +33,7 @@ pub use self::{
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 use common::comp::{self};
-use core::convert::TryFrom;
+use core::{convert::TryFrom, f32::consts::PI};
 
 pub type Body = comp::biped_large::Body;
 
@@ -483,16 +483,16 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 _ => (-7.0, 7.0, -10.0, -0.1, 0.0, 0.0),
             },
             hhl: match (body.species, body.body_type) {
-                (Ogre, Male) => (-9.0, -10.0, 23.0, 1.57, -0.57, 0.0),
-                _ => (-6.0, -10.0, 17.0, 1.57, -0.57, 0.0),
+                (Ogre, Male) => (-9.0, -10.0, 23.0, PI / 2.0, -0.57, 0.0),
+                _ => (-6.0, -10.0, 17.0, PI / 2.0, -0.57, 0.0),
             },
             hhr: match (body.species, body.body_type) {
-                (Ogre, Male) => (-5.0, -13.0, 0.0, 1.57, -0.57, 0.0),
-                _ => (-6.0, -10.0, 0.0, 1.57, -0.57, 0.0),
+                (Ogre, Male) => (-5.0, -13.0, 0.0, PI / 2.0, -0.57, 0.0),
+                _ => (-6.0, -10.0, 0.0, PI / 2.0, -0.57, 0.0),
             },
             hc: match (body.species, body.body_type) {
-                (Ogre, Male) => (11.5, 9.0, -13.0, -0.57, -1.57, 1.0),
-                _ => (8.5, 6.0, -12.0, -0.57, -1.57, 1.0),
+                (Ogre, Male) => (11.5, 9.0, -13.0, -0.57, -PI / 2.0, 1.0),
+                _ => (8.5, 6.0, -12.0, -0.57, -PI / 2.0, 1.0),
             },
             sthl: match (body.species, body.body_type) {
                 (Ogre, Female) => (-1.0, -5.0, 12.0, 1.27, 0.0, 0.0),
@@ -501,10 +501,10 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 _ => (11.0, 5.0, -4.0, 1.27, 0.0, 0.0),
             },
             sthr: match (body.species, body.body_type) {
-                (Ogre, Female) => (5.0, -3.5, 18.0, 1.57, 0.8, 0.0),
-                (Occultsaurok, _) => (7.0, -3.5, 18.0, 1.57, 0.8, 0.0),
-                (Mindflayer, _) => (7.0, -9.0, 13.0, 1.57, 0.8, 0.0),
-                _ => (17.0, 7.5, 2.0, 1.57, 0.8, 0.0),
+                (Ogre, Female) => (5.0, -3.5, 18.0, PI / 2.0, 0.8, 0.0),
+                (Occultsaurok, _) => (7.0, -3.5, 18.0, PI / 2.0, 0.8, 0.0),
+                (Mindflayer, _) => (7.0, -9.0, 13.0, PI / 2.0, 0.8, 0.0),
+                _ => (17.0, 7.5, 2.0, PI / 2.0, 0.8, 0.0),
             },
             stc: match (body.species, body.body_type) {
                 (Ogre, Female) => (-10.0, 7.0, -23.0, -0.3, 0.15, 0.0),
@@ -513,11 +513,11 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 _ => (-18.0, 1.0, -2.0, -0.3, 0.15, 0.0),
             },
             bhl: match (body.species, body.body_type) {
-                (Slysaurok, _) => (-1.0, -12.0, 1.0, 1.57, 0.0, 0.0),
+                (Slysaurok, _) => (-1.0, -12.0, 1.0, PI / 2.0, 0.0, 0.0),
                 _ => (3.0, 2.5, 0.0, 1.2, -0.6, -0.3),
             },
             bhr: match (body.species, body.body_type) {
-                (Slysaurok, _) => (0.0, -6.0, -2.0, 1.57, 0.0, 0.0),
+                (Slysaurok, _) => (0.0, -6.0, -2.0, PI / 2.0, 0.0, 0.0),
                 _ => (5.9, 5.5, -5.0, 1.2, -0.6, -0.3),
             },
             bc: match (body.species, body.body_type) {

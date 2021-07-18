@@ -6,7 +6,7 @@ use common::{
     comp::item::{AbilitySpec, ToolKind},
     states::utils::StageSection,
 };
-use std::f32::consts::{FRAC_PI_2, PI};
+use std::f32::consts::PI;
 
 pub struct SpriteSummonAnimation;
 
@@ -104,8 +104,8 @@ impl Animation for SpriteSummonAnimation {
                             );
 
                             next.control_l.orientation =
-                                Quaternion::rotation_x(FRAC_PI_2) * Quaternion::rotation_z(PI);
-                            next.control_r.orientation = Quaternion::rotation_x(FRAC_PI_2 + 0.2)
+                                Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_z(PI);
+                            next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + 0.2)
                                 * Quaternion::rotation_y(-1.0)
                                 * Quaternion::rotation_z(0.0);
 

@@ -6,6 +6,7 @@ use common::{
     comp::item::{AbilitySpec, ToolKind},
     states::utils::StageSection,
 };
+use core::f32::consts::PI;
 
 pub struct ShockwaveAnimation;
 
@@ -136,16 +137,16 @@ impl Animation for ShockwaveAnimation {
                             next.jaw.orientation = Quaternion::rotation_x(move2 * -0.3);
                             next.control_l.position = Vec3::new(-0.5, 4.0, 1.0);
                             next.control_r.position = Vec3::new(-0.5, 4.0, 1.0);
-                            next.control_l.orientation = Quaternion::rotation_x(1.57);
-                            next.control_r.orientation = Quaternion::rotation_x(1.57);
+                            next.control_l.orientation = Quaternion::rotation_x(PI / 2.0);
+                            next.control_r.orientation = Quaternion::rotation_x(PI / 2.0);
                             next.weapon_l.position =
                                 Vec3::new(-12.0 + (move1pow * 20.0).min(10.0), -1.0, -15.0);
                             next.weapon_r.position =
                                 Vec3::new(12.0 + (move1pow * -20.0).max(-10.0), -1.0, -15.0);
 
-                            next.weapon_l.orientation = Quaternion::rotation_x(-1.57 - 0.1)
+                            next.weapon_l.orientation = Quaternion::rotation_x(-PI / 2.0 - 0.1)
                                 * Quaternion::rotation_z(move1pow * -1.0);
-                            next.weapon_r.orientation = Quaternion::rotation_x(-1.57 - 0.1)
+                            next.weapon_r.orientation = Quaternion::rotation_x(-PI / 2.0 - 0.1)
                                 * Quaternion::rotation_z(move1pow * 1.0);
 
                             next.shoulder_l.orientation =

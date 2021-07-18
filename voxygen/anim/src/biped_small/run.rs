@@ -2,10 +2,7 @@ use super::{
     super::{vek::*, Animation},
     BipedSmallSkeleton, SkeletonAttr,
 };
-use std::{
-    f32::consts::{FRAC_PI_2, PI},
-    ops::Mul,
-};
+use core::{f32::consts::PI, ops::Mul};
 
 pub struct RunAnimation;
 
@@ -54,7 +51,7 @@ impl Animation for RunAnimation {
         let footvertsl = (acc_vel * 1.4 * lab).sin();
         let footvertsr = (acc_vel * 1.4 * lab + PI * 0.5).sin();
 
-        let shortalt = (acc_vel * lab * 1.4 + FRAC_PI_2).sin();
+        let shortalt = (acc_vel * lab * 1.4 + PI / 2.0).sin();
 
         let short = ((5.0 / (1.5 + 3.5 * ((acc_vel * lab * 1.4).sin()).powi(2))).sqrt())
             * ((acc_vel * lab * 1.4).sin());
@@ -99,7 +96,7 @@ impl Animation for RunAnimation {
             * Quaternion::rotation_y(tilt * 1.6)
             * Quaternion::rotation_x(shortalter * 0.035 + speednorm * -0.4 + (tilt.abs()));
         next.main.position = Vec3::new(2.0, -3.0, -3.0);
-        next.main.orientation = Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(1.57);
+        next.main.orientation = Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(PI / 2.0);
 
         next.pants.position = Vec3::new(0.0, s_a.pants.0, s_a.pants.1);
         next.pants.orientation = Quaternion::rotation_x(0.1 * speednorm)

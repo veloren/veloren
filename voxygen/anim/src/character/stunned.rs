@@ -6,7 +6,7 @@ use common::{
     comp::item::{Hands, ToolKind},
     states::utils::StageSection,
 };
-use std::f32::consts::{FRAC_PI_2, PI};
+use core::f32::consts::PI;
 
 pub struct StunnedAnimation;
 
@@ -135,7 +135,7 @@ impl Animation for StunnedAnimation {
                         next.hand_r.orientation = Quaternion::rotation_x(s_a.bhr.3);
 
                         next.hold.position = Vec3::new(0.0, -1.0, -5.2);
-                        next.hold.orientation = Quaternion::rotation_x(-FRAC_PI_2);
+                        next.hold.orientation = Quaternion::rotation_x(-PI / 2.0);
                         next.hold.scale = Vec3::one() * 1.0;
 
                         next.control.position = Vec3::new(s_a.bc.0, s_a.bc.1, s_a.bc.2);
@@ -150,9 +150,9 @@ impl Animation for StunnedAnimation {
                     },
                     Some(ToolKind::Farming) => {
                         next.hand_l.position = Vec3::new(9.0, 1.0, 1.0);
-                        next.hand_l.orientation = Quaternion::rotation_x(FRAC_PI_2);
+                        next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0);
                         next.hand_r.position = Vec3::new(9.0, 1.0, 11.0);
-                        next.hand_r.orientation = Quaternion::rotation_x(FRAC_PI_2);
+                        next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
                         next.main.position = Vec3::new(7.5, 7.5, 13.2);
                         next.main.orientation = Quaternion::rotation_y(PI);
 
@@ -167,7 +167,7 @@ impl Animation for StunnedAnimation {
                     next.control_l.position = Vec3::new(-7.0, 8.0, 2.0);
                     next.control_l.orientation = Quaternion::rotation_x(-0.3);
                     next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
-                    next.hand_l.orientation = Quaternion::rotation_x(FRAC_PI_2)
+                    next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0)
                 },
                 (_, _) => {},
             };
@@ -176,7 +176,7 @@ impl Animation for StunnedAnimation {
                     next.control_r.position = Vec3::new(7.0, 8.0, 2.0);
                     next.control_r.orientation = Quaternion::rotation_x(-0.3);
                     next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
-                    next.hand_r.orientation = Quaternion::rotation_x(FRAC_PI_2)
+                    next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0)
                 },
                 (_, _) => {},
             };
