@@ -55,6 +55,8 @@ use common_net::msg::{world_msg, WorldMapMsg};
 use rand::Rng;
 use serde::Deserialize;
 use std::time::Duration;
+use rand_chacha::ChaCha8Rng;
+use rand::prelude::*;
 use vek::*;
 
 #[derive(Debug)]
@@ -329,7 +331,7 @@ impl World {
         };
 
         // Only use for rng affecting dynamic elements like chests and entities!
-        let mut dynamic_rng = rand::thread_rng();
+        let mut dynamic_rng = ChaCha8Rng::from_seed(thread_rng().gen());
 
         // Apply layers (paths, caves, etc.)
         let mut canvas = Canvas {
@@ -365,7 +367,7 @@ impl World {
             entities: canvas.entities,
         };
 
-        let gen_entity_pos = |dynamic_rng: &mut rand::rngs::ThreadRng| {
+        let gen_entity_pos = |dynamic_rng: &mut ChaCha8Rng| {
             let lpos2d = TerrainChunkSize::RECT_SIZE
                 .map(|sz| dynamic_rng.gen::<u32>().rem_euclid(sz) as i32);
             let mut lpos = Vec3::new(

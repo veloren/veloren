@@ -1,8 +1,5 @@
 use crate::hud::CraftingTab;
-use common::{
-    terrain::{BlockKind, SpriteKind, TerrainChunk},
-    vol::{IntoVolIterator, RectRasterableVol},
-};
+use common::terrain::{BlockKind, SpriteKind, TerrainChunk};
 use common_base::span;
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
@@ -64,14 +61,7 @@ impl BlocksOfInterest {
         let mut rng = ChaCha8Rng::from_seed(thread_rng().gen());
 
         chunk
-            .vol_iter(
-                Vec3::new(0, 0, chunk.get_min_z()),
-                Vec3::new(
-                    TerrainChunk::RECT_SIZE.x as i32,
-                    TerrainChunk::RECT_SIZE.y as i32,
-                    chunk.get_max_z(),
-                ),
-            )
+            .iter_changed()
             .for_each(|(pos, block)| {
                 match block.kind() {
                     BlockKind::Leaves if rng.gen_range(0..16) == 0 => leaves.push(pos),

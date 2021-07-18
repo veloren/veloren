@@ -607,14 +607,6 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             .mul((cavern_height as f64 - 5.0).mul(0.15).clamped(0.0, 1.0))
             .mul(32.0 + cavern_avg_height as f64 * 0.85);
 
-        let lake = info.index().noise.cave_nz
-            .get(wpos2d.map(|e| e as f64 * 0.01).into_array())
-            .sub(0.5)
-            .max(0.0)
-            .mul(2.0)
-            .mul(80.0);
-        let lake = 0.0;
-
         let rugged = 0.25; // How bumpy should the floor be relative to the ceiling?
         let cavern_bottom = (cavern_avg_alt - cavern_height * rugged) as i32;
         let cavern_avg_bottom = (cavern_avg_alt - ((height_range.start + height_range.end) * 0.5) * rugged) as i32;
@@ -626,7 +618,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
 
         let floor = stalagmite as i32;
 
-        (cavern_bottom, cavern_top, cavern_avg_bottom, cavern_avg_top, floor, lake, stalagtite)
+        (cavern_bottom, cavern_top, cavern_avg_bottom, cavern_avg_top, floor, stalagtite)
     };
 
     let mut mushroom_cache = HashMap::new();
@@ -644,8 +636,8 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                 .entry(wpos2d)
                 .or_insert_with(|| {
                     let mut rng = RandomPerm::new(seed);
-                    let (cavern_bottom, _, _, _, floor, _, _) = cavern_at(wpos2d);
-                    if rng.gen_bool(0.1) {
+                    let (cavern_bottom, cavern_top, _, _, floor, _) = cavern_at(wpos2d);
+                    if rng.gen_bool(0.1) && cavern_top - cavern_bottom > 32 {
                         Some(Mushroom {
                             pos: wpos2d.with_z(cavern_bottom + floor),
                             stalk: rng.gen_range(8.0..26.0),
@@ -684,7 +676,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                     return Some(Block::new(BlockKind::GlowingMushroom, mushroom.head_color));
                 } else if rpos.z <= mushroom.stalk && rpos.xy().magnitude_squared() < stalk_radius.powi(2) { // Stalk
                     return Some(Block::new(BlockKind::Wood, Rgb::new(50, 120, 180)));
-                } else if ((mushroom.stalk - 1.0)..mushroom.stalk).contains(&rpos.z) // Hanging orbs
+                } else if ((mushroom.stalk - 0.5)..mushroom.stalk).contains(&rpos.z) // Hanging orbs
                     && ((head_radius * 0.5)..(head_radius * 0.8)).contains(&dist)
                     && dynamic_rng.gen_bool(0.025)
                 {
@@ -697,7 +689,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
     };
 
     canvas.foreach_col(|canvas, wpos2d, _col| {
-        let (cavern_bottom, cavern_top, cavern_avg_bottom, cavern_avg_top, floor, lake, stalagtite) = cavern_at(wpos2d);
+        let (cavern_bottom, cavern_top, cavern_avg_bottom, cavern_avg_top, floor, stalagtite) = cavern_at(wpos2d);
 
         let mini_stalagtite = info.index().noise.cave_nz
             .get(wpos2d.map(|e| e as f64 * 0.08).into_array())
@@ -708,14 +700,13 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
         let stalagtite_height = (stalagtite + mini_stalagtite) as i32;
 
         let cavern_top = cavern_top as i32;
-        let lower_bound = cavern_bottom - lake as i32;
         let mut on_ground = true;
-        for z in lower_bound..cavern_top {
+        for z in cavern_bottom..cavern_top {
             use SpriteKind::*;
 
             let wpos = wpos2d.with_z(z);
 
-            let block = if z < lower_bound + floor {
+            let block = if z < cavern_bottom + floor {
                 Block::new(BlockKind::WeakRock, Rgb::new(110, 120, 150))
             } else if z > cavern_top - stalagtite_height {
                 if dynamic_rng.gen_bool(0.0035) { // Glowing rock in stalagtites
