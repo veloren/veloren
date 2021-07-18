@@ -3,7 +3,7 @@ use common::{
         body::ship::figuredata::{VoxelCollider, VOXEL_COLLIDER_MANIFEST},
         fluid_dynamics::{Fluid, LiquidKind, Wings},
         BeamSegment, Body, CharacterState, Collider, Density, Mass, Mounting, Ori, PhysicsState,
-        Pos, PosVelDefer, PreviousPhysCache, Projectile, Scale, Shockwave, Stats, Sticky, Vel,
+        Pos, PosVelOriDefer, PreviousPhysCache, Projectile, Scale, Shockwave, Stats, Sticky, Vel,
     },
     consts::{AIR_DENSITY, FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
@@ -134,7 +134,7 @@ pub struct PhysicsWrite<'a> {
     physics_states: WriteStorage<'a, PhysicsState>,
     positions: WriteStorage<'a, Pos>,
     velocities: WriteStorage<'a, Vel>,
-    pos_vel_defers: WriteStorage<'a, PosVelDefer>,
+    pos_vel_ori_defers: WriteStorage<'a, PosVelOriDefer>,
     orientations: WriteStorage<'a, Ori>,
     previous_phys_cache: WriteStorage<'a, PreviousPhysCache>,
     outcomes: Write<'a, Vec<Outcome>>,
@@ -537,27 +537,29 @@ impl<'a> PhysicsData<'a> {
             ref mut write,
         } = self;
 
-        prof_span!(guard, "insert PosVelDefer");
+        prof_span!(guard, "insert PosVelOriDefer");
         // NOTE: keep in sync with join below
         (
             &read.entities,
             read.colliders.mask(),
             &write.positions,
             &write.velocities,
+            &write.orientations,
             write.orientations.mask(),
             write.physics_states.mask(),
-            !&write.pos_vel_defers, // This is the one we are adding
+            !&write.pos_vel_ori_defers, // This is the one we are adding
             write.previous_phys_cache.mask(),
             !&read.mountings,
         )
             .join()
-            .map(|t| (t.0, *t.2, *t.3))
+            .map(|t| (t.0, *t.2, *t.3, *t.4))
             .collect::<Vec<_>>()
             .into_iter()
-            .for_each(|(entity, pos, vel)| {
-                let _ = write.pos_vel_defers.insert(entity, PosVelDefer {
+            .for_each(|(entity, pos, vel, ori)| {
+                let _ = write.pos_vel_ori_defers.insert(entity, PosVelOriDefer {
                     pos: Some(pos),
                     vel: Some(vel),
+                    ori: Some(ori),
                 });
             });
         drop(guard);
@@ -658,6 +660,20 @@ impl<'a> PhysicsData<'a> {
 
         // Third pass: resolve collisions for non-terrain-like entities
         Self::resolve_et_collision(job, read, write, voxel_collider_spatial_grid, false);
+
+        // Update cached 'old' physics values to the current values ready for the next
+        // tick
+        prof_span!(guard, "record ori into phys_cache");
+        for (ori, previous_phys_cache, _) in (
+            &write.orientations,
+            &mut write.previous_phys_cache,
+            &read.colliders,
+        )
+            .join()
+        {
+            previous_phys_cache.ori = ori.to_quat();
+        }
+        drop(guard);
     }
 
     fn resolve_et_collision(
@@ -686,7 +702,7 @@ impl<'a> PhysicsData<'a> {
             read.bodies.maybe(),
             read.character_states.maybe(),
             &mut write.physics_states,
-            &mut write.pos_vel_defers,
+            &mut write.pos_vel_ori_defers,
             previous_phys_cache,
             !&read.mountings,
         )
@@ -705,20 +721,22 @@ impl<'a> PhysicsData<'a> {
                     collider,
                     pos,
                     vel,
-                    _ori,
+                    ori,
                     body,
                     character_state,
                     mut physics_state,
-                    pos_vel_defer,
+                    pos_vel_ori_defer,
                     _previous_cache,
                     _,
                 )| {
                     let mut land_on_ground = None;
                     let mut outcomes = Vec::new();
-                    // Defer the writes of positions and velocities to allow an inner loop over
-                    // terrain-like entities
+                    // Defer the writes of positions, velocities and orientations to allow an inner
+                    // loop over terrain-like entities
                     let old_vel = *vel;
                     let mut vel = *vel;
+                    let old_ori = *ori;
+                    let mut ori = *ori;
 
                     let scale = if let Collider::Voxel { .. } = collider {
                         scale.map(|s| s.0).unwrap_or(1.0)
@@ -1028,16 +1046,17 @@ impl<'a> PhysicsData<'a> {
 
                                     // The velocity of the collider, taking into account
                                     // orientation.
-                                    let wpos_rel = (Mat4::<f32>::translation_3d(pos_other.0)
+                                    let pos_rel = (Mat4::<f32>::translation_3d(Vec3::zero())
                                         * Mat4::from(ori_other.to_quat())
                                         * Mat4::<f32>::translation_3d(voxel_collider.translation))
                                     .inverted()
-                                    .mul_point(wpos);
-                                    let wpos_last = (Mat4::<f32>::translation_3d(pos_other.0)
+                                    .mul_point(wpos - pos_other.0);
+                                    let rpos_last = (Mat4::<f32>::translation_3d(Vec3::zero())
                                         * Mat4::from(previous_cache_other.ori)
                                         * Mat4::<f32>::translation_3d(voxel_collider.translation))
-                                    .mul_point(wpos_rel);
-                                    let vel_other = vel_other.0 + (wpos - wpos_last) / read.dt.0;
+                                    .mul_point(pos_rel);
+                                    let vel_other = vel_other.0
+                                        + (wpos - (pos_other.0 + rpos_last)) / read.dt.0;
 
                                     cpos.0 = transform_to.mul_point(Vec3::zero());
                                     vel.0 = ori_to.mul_direction(vel.0 - vel_other);
@@ -1071,6 +1090,12 @@ impl<'a> PhysicsData<'a> {
                                     // recent terrain that collision was attempted with
                                     if physics_state_delta.on_ground.is_some() {
                                         physics_state.ground_vel = vel_other;
+
+                                        // Rotate if on ground
+                                        ori = ori.rotated(
+                                            ori_other.to_quat()
+                                                * previous_cache_other.ori.inverse(),
+                                        );
                                     }
                                     physics_state.on_ground =
                                         physics_state.on_ground.or(physics_state_delta.on_ground);
@@ -1102,15 +1127,19 @@ impl<'a> PhysicsData<'a> {
                         );
 
                     if tgt_pos != pos.0 {
-                        pos_vel_defer.pos = Some(Pos(tgt_pos));
+                        pos_vel_ori_defer.pos = Some(Pos(tgt_pos));
                     } else {
-                        pos_vel_defer.pos = None;
+                        pos_vel_ori_defer.pos = None;
                     }
-
                     if vel != old_vel {
-                        pos_vel_defer.vel = Some(vel);
+                        pos_vel_ori_defer.vel = Some(vel);
                     } else {
-                        pos_vel_defer.vel = None;
+                        pos_vel_ori_defer.vel = None;
+                    }
+                    if ori != old_ori {
+                        pos_vel_ori_defer.ori = Some(ori);
+                    } else {
+                        pos_vel_ori_defer.ori = None;
                     }
 
                     (land_on_ground, outcomes)
@@ -1139,35 +1168,26 @@ impl<'a> PhysicsData<'a> {
         write.outcomes.append(&mut outcomes);
 
         prof_span!(guard, "write deferred pos and vel");
-        for (_, pos, vel, pos_vel_defer, _) in (
+        for (_, pos, vel, ori, pos_vel_ori_defer, _) in (
             &read.entities,
             &mut write.positions,
             &mut write.velocities,
-            &mut write.pos_vel_defers,
+            &mut write.orientations,
+            &mut write.pos_vel_ori_defers,
             &read.colliders,
         )
             .join()
-            .filter(|tuple| matches!(tuple.4, Collider::Voxel { .. }) == terrain_like_entities)
+            .filter(|tuple| matches!(tuple.5, Collider::Voxel { .. }) == terrain_like_entities)
         {
-            if let Some(new_pos) = pos_vel_defer.pos.take() {
+            if let Some(new_pos) = pos_vel_ori_defer.pos.take() {
                 *pos = new_pos;
             }
-            if let Some(new_vel) = pos_vel_defer.vel.take() {
+            if let Some(new_vel) = pos_vel_ori_defer.vel.take() {
                 *vel = new_vel;
             }
-        }
-        drop(guard);
-
-        prof_span!(guard, "record ori into phys_cache");
-        for (ori, previous_phys_cache, _) in (
-            &write.orientations,
-            &mut write.previous_phys_cache,
-            &read.colliders,
-        )
-            .join()
-            .filter(|tuple| matches!(tuple.2, Collider::Voxel { .. }) == terrain_like_entities)
-        {
-            previous_phys_cache.ori = ori.to_quat();
+            if let Some(new_ori) = pos_vel_ori_defer.ori.take() {
+                *ori = new_ori;
+            }
         }
         drop(guard);
 
