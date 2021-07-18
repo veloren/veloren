@@ -1,0 +1,5 @@
+([
+    // Gather all warlock skills
+    Tree("common.skillset.dungeon.tier-5.bow"),
+    Tree("common.skillset.dungeon.tier-5.staff"),
+])
