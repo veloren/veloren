@@ -16,7 +16,7 @@ float cloud_broad(vec3 pos) {
 }
 
 // Returns vec4(r, g, b, density)
-vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
+vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground) {
     // Natural attenuation of air (air naturally attenuates light that passes through it)
     // Simulate the atmosphere thinning as you get higher. Not physically accurate, but then
     // it can't be since Veloren's world is flat, not spherical.
@@ -134,7 +134,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
     //moon_access *= suppress_mist;
 
     // Prevent clouds and mist appearing underground (but fade them out gently)
-    float not_underground = clamp(1.0 - (alt - (pos.z - focus_off.z)) / 80.0 + dist * 0.001, 0, 1);
+    not_underground = clamp(1.0 - (alt - (pos.z - focus_off.z)) / 80.0 + dist * 0.001, 0, 1);
     sun_access *= not_underground;
     moon_access *= not_underground;
     float vapor_density = (mist + cloud) * not_underground;
@@ -220,8 +220,9 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
         cdist = step_to_dist(trunc(dist_to_step(cdist - 0.25, quality)), quality);
 
         vec3 emission;
+        float not_underground; // Used to prevent sunlight leaking underground
         // `sample` is a reserved keyword
-        vec4 sample_ = cloud_at(origin + dir * ldist * splay, ldist, emission);
+        vec4 sample_ = cloud_at(origin + dir * ldist * splay, ldist, emission, not_underground);
 
         vec2 density_integrals = max(sample_.zw, vec2(0));
 
@@ -239,7 +240,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
             // Add the directed light light scattered into the camera by the clouds and the atmosphere (global illumination)
             sun_color * sun_scatter * get_sun_brightness() * (sun_access * (1.0 - cloud_darken) /*+ sky_color * global_scatter_factor*/) +
             moon_color * moon_scatter * get_moon_brightness() * (moon_access * (1.0 - cloud_darken) /*+ sky_color * global_scatter_factor*/) +
-            sky_light * (1.0 - global_darken) +
+            sky_light * (1.0 - global_darken) * not_underground +
             emission * density_integrals.y;
     }
 

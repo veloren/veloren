@@ -253,8 +253,12 @@ void main() {
 
     // Computing light attenuation from water.
     vec3 emitted_light, reflected_light;
+
+    // Prevent the sky affecting light when underground
+    float not_underground = clamp((f_pos.z - f_alt) / 128.0 + 1.0, 0.0, 1.0);
+
     // To account for prior saturation
-    /*float */f_light = faces_fluid ? 1.0 : f_light * sqrt(f_light);
+    /*float */f_light = faces_fluid ? not_underground : f_light * sqrt(f_light);
 
     emitted_light = vec3(1.0);
     reflected_light = vec3(1.0);
