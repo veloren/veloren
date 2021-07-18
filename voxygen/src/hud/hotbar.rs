@@ -71,7 +71,6 @@ impl State {
     // TODO: remove
     // Adds ability3 slot if it is missing and should be present
     // Removes if it is there and shouldn't be present
-    #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
     pub fn maintain_ability3(&mut self, client: &client::Client) {
         use specs::WorldExt;
         let inventories = client.state().ecs().read_storage::<Inventory>();

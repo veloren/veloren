@@ -11,11 +11,10 @@ pub struct Vertex {
 
 impl Vertex {
     #[allow(clippy::identity_op)] // TODO: Pending review in #587
-    #[allow(clippy::into_iter_on_ref)] // TODO: Pending review in #587
     pub fn new(pos: Vec3<f32>, norm: Vec3<f32>) -> Self {
         let (norm_axis, norm_dir) = norm
             .as_slice()
-            .into_iter()
+            .iter()
             .enumerate()
             .find(|(_i, e)| **e != 0.0)
             .unwrap_or((0, &1.0));

@@ -148,7 +148,6 @@ pub fn handle_unmount(server: &mut Server, mounter: EcsEntity) {
     state.delete_component::<comp::Mounting>(mounter);
 }
 
-#[allow(clippy::nonminimal_bool)] // TODO: Pending review in #587
 /// FIXME: This code is dangerous and needs to be refactored.  We can't just
 /// comment it out, but it needs to be fixed for a variety of reasons.  Get rid
 /// of this ASAP!
@@ -159,8 +158,10 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid
         ecs.entity_from_uid(possesse_uid.into()),
     ) {
         // Check that entities still exist
-        if !(possessor.gen().is_alive() && ecs.is_alive(possessor))
-            || !(possesse.gen().is_alive() && ecs.is_alive(possesse))
+        if !possessor.gen().is_alive()
+            || !ecs.is_alive(possessor)
+            || !possesse.gen().is_alive()
+            || !ecs.is_alive(possesse)
         {
             error!(
                 "Error possessing! either the possessor entity or possesse entity no longer exists"

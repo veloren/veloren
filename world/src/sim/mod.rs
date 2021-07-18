@@ -370,8 +370,6 @@ pub struct WorldSim {
 }
 
 impl WorldSim {
-    #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
-
     pub fn generate(seed: u32, opts: WorldOpts, threadpool: &rayon::ThreadPool) -> Self {
         // Parse out the contents of various map formats into the values we need.
         let parsed_world_file = (|| {
@@ -2149,7 +2147,6 @@ pub struct RegionInfo {
 }
 
 impl SimChunk {
-    #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
     fn generate(map_size_lg: MapSizeLg, posi: usize, gen_ctx: &GenCtx, gen_cdf: &GenCdf) -> Self {
         let pos = uniform_idx_as_vec2(map_size_lg, posi);
         let wposf = (pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32)).map(|e| e as f64);
