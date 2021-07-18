@@ -7,7 +7,6 @@ pub struct Font {
 }
 
 impl Font {
-    #[allow(clippy::needless_return)] // TODO: Pending review in #587
     fn new(font: &i18n::Font, ui: &mut crate::ui::Ui) -> Result<Self, assets::Error> {
         let raw_font = RawFont::load(&font.asset_key)?.cloned();
 
