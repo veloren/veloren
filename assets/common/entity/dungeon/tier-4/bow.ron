@@ -1,12 +1,14 @@
 EntityConfig (
-    name: Some("Myrmidon Marksman"),
-    body: Some(RandomWith("myrmidon")),
+    name: Name("Myrmidon Marksman"),
+    body: RandomWith("myrmidon"),
+    alignment: Alignment(Enemy),
 
-    loot: Some(LootTable("common.loot_tables.dungeon.tier-4.enemy")),
+    loot: LootTable("common.loot_tables.dungeon.tier-4.enemy"),
 
-    main_tool: Some(Item("common.items.npc_weapons.biped_small.myrmidon.adlet_bow")),
-    second_tool: None,
+    hands: TwoHanded(Item("common.items.npc_weapons.biped_small.myrmidon.adlet_bow")),
 
-    loadout_asset: Some("common.loadout.dungeon.tier-4.myrmidon"),
-    skillset_asset: Some("common.skillset.dungeon.tier-4.bow"),
+    meta: [
+        LoadoutAsset("common.loadout.dungeon.tier-4.myrmidon"),
+        SkillSetAsset("common.skillset.dungeon.tier-4.bow"),
+    ],
 )

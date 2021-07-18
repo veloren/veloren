@@ -53,13 +53,16 @@ pub struct Config {
 pub const CONFIG: Config = Config {
     sea_level: 140.0,
     mountain_scale: 2048.0,
+    // temperature
     snow_temp: -0.8,
     temperate_temp: -0.4,
     tropical_temp: 0.4,
     desert_temp: 0.8,
+    // humidity
     desert_hum: 0.15,
     forest_hum: 0.5,
     jungle_hum: 0.75,
+    // water
     rainfall_chunk_rate: 1.0 / (512.0 * 32.0 * 32.0),
     river_roughness: 0.06125,
     river_max_width: 2.0,

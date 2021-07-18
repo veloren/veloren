@@ -1,0 +1,15 @@
+SpawnEntry (
+    name: "Tundra animals.",
+    note: "Usually you can find them in snowy areas.",
+    rules: [
+        Pack(
+            groups: [
+                (1, (1, 3, "common.entity.wild.aggressive.frostfang")),
+                (1, (1, 3, "common.entity.wild.aggressive.snow_raptor")),
+                (1, (1, 3, "common.entity.wild.aggressive.roshwalr")),
+            ],
+            is_underwater: false,
+            day_period: [Night, Morning, Noon, Evening],
+        ),
+    ],
+)

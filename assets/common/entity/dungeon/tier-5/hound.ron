@@ -1,12 +1,11 @@
 EntityConfig (
-    name: Some("Tamed Darkhound"),
-    body: Some(RandomWith("darkhound")),
+    name: Name("Tamed Darkhound"),
+    body: RandomWith("darkhound"),
+    alignment: Alignment(Enemy),
 
-    loot: Some(LootTable("common.loot_tables.dungeon.tier-5.minion")),
+    loot: LootTable("common.loot_tables.dungeon.tier-5.minion"),
 
-    main_tool: None,
-    second_tool: None,
+    hands: Uninit,
 
-    loadout_asset: None,
-    skillset_asset: None,
+    meta: [],
 )

@@ -1,12 +1,11 @@
 EntityConfig (
-    name: Some("Tidal Warrior"),
-    body: Some(RandomWith("tidalwarrior")),
+    name: Name("Tidal Warrior"),
+    body: RandomWith("tidalwarrior"),
+    alignment: Alignment(Enemy),
 
-    loot: Some(LootTable("common.loot_tables.dungeon.tier-2.boss")),
+    loot: LootTable("common.loot_tables.dungeon.tier-2.boss"),
 
-    main_tool: None,
-    second_tool: None,
+    hands: Uninit,
 
-    loadout_asset: None,
-    skillset_asset: None,
+    meta: [],
 )

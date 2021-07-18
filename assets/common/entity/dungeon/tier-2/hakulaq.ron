@@ -1,12 +1,11 @@
 EntityConfig (
-    name: Some("Hakulaq"),
-    body: Some(RandomWith("hakulaq")),
+    name: Name("Hakulaq"),
+    body: RandomWith("hakulaq"),
+    alignment: Alignment(Enemy),
 
-    loot: Some(LootTable("common.loot_tables.creature.quad_low.fanged")),
+    loot: LootTable("common.loot_tables.creature.quad_low.fanged"),
 
-    main_tool: None,
-    second_tool: None,
+    hands: Uninit,
 
-    loadout_asset: None,
-    skillset_asset: None,
+    meta: [],
 )

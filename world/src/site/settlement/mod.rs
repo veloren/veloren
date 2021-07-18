@@ -16,13 +16,13 @@ use crate::{
 use common::{
     astar::Astar,
     comp::{
-        self, agent, bird_medium, humanoid,
+        self, agent, bird_medium,
         inventory::{
             loadout_builder::{make_potion_bag, LoadoutBuilder},
             slot::ArmorSlot,
             trade_pricing::TradePricing,
         },
-        object, quadruped_small, Item,
+        quadruped_small, Item,
     },
     generation::{ChunkSupplement, EntityInfo},
     path::Path,
@@ -859,7 +859,6 @@ impl Settlement {
         }
     }
 
-    #[allow(clippy::eval_order_dependence)] // TODO: Pending review in #587
     pub fn apply_supplement<'a>(
         &'a self,
         // NOTE: Used only for dynamic elements like chests and entities!
@@ -903,75 +902,19 @@ impl Settlement {
                 if matches!(sample.plot, Some(Plot::Town { .. }))
                     && RandomField::new(self.seed).chance(Vec3::from(wpos2d), 1.0 / (50.0 * 40.0))
                 {
-                    let is_human: bool;
                     let is_dummy =
                         RandomField::new(self.seed + 1).chance(Vec3::from(wpos2d), 1.0 / 15.0);
-                    let entity = EntityInfo::at(entity_wpos)
-                        .with_body(match dynamic_rng.gen_range(0..5) {
-                            _ if is_dummy => {
-                                is_human = false;
-                                object::Body::TrainingDummy.into()
-                            },
-                            0 => {
-                                let species = match dynamic_rng.gen_range(0..5) {
-                                    0 => quadruped_small::Species::Pig,
-                                    1 => quadruped_small::Species::Sheep,
-                                    2 => quadruped_small::Species::Goat,
-                                    3 => quadruped_small::Species::Dog,
-                                    _ => quadruped_small::Species::Cat,
-                                };
-                                is_human = false;
-                                comp::Body::QuadrupedSmall(quadruped_small::Body::random_with(
-                                    dynamic_rng,
-                                    &species,
-                                ))
-                            },
-                            1 => {
-                                let species = match dynamic_rng.gen_range(0..4) {
-                                    0 => bird_medium::Species::Duck,
-                                    1 => bird_medium::Species::Chicken,
-                                    2 => bird_medium::Species::Goose,
-                                    _ => bird_medium::Species::Peacock,
-                                };
-                                is_human = false;
-                                comp::Body::BirdMedium(bird_medium::Body::random_with(
-                                    dynamic_rng,
-                                    &species,
-                                ))
-                            },
-                            _ => {
-                                is_human = true;
-                                comp::Body::Humanoid(humanoid::Body::random())
-                            },
-                        })
-                        .with_agency(!is_dummy)
-                        .with_alignment(if is_dummy {
-                            comp::Alignment::Passive
-                        } else if is_human {
-                            comp::Alignment::Npc
-                        } else {
-                            comp::Alignment::Tame
-                        })
-                        .do_if(!is_dummy, |e| e.with_automatic_name())
-                        .do_if(is_dummy, |e| e.with_name("Training Dummy"))
-                        .do_if(is_human && dynamic_rng.gen(), |entity| {
-                            match dynamic_rng.gen_range(0..6) {
-                                0 => entity
-                                    .with_agent_mark(agent::Mark::Guard)
-                                    .with_lazy_loadout(guard_loadout)
-                                    .with_level(dynamic_rng.gen_range(10..15))
-                                    .with_asset_expect("common.entity.village.guard"),
-                                1 | 2 => entity
-                                    .with_agent_mark(agent::Mark::Merchant)
-                                    .with_economy(&economy)
-                                    .with_lazy_loadout(merchant_loadout)
-                                    .with_level(dynamic_rng.gen_range(10..15))
-                                    .with_asset_expect("common.entity.village.merchant"),
-                                _ => entity
-                                    .with_lazy_loadout(villager_loadout)
-                                    .with_asset_expect("common.entity.village.villager"),
-                            }
-                        });
+                    let entity = if is_dummy {
+                        EntityInfo::at(entity_wpos)
+                            .with_agency(false)
+                            .with_asset_expect("common.entity.village.dummy")
+                    } else {
+                        match dynamic_rng.gen_range(0..=4) {
+                            0 => barnyard(entity_wpos, dynamic_rng),
+                            1 => bird(entity_wpos, dynamic_rng),
+                            _ => humanoid(entity_wpos, &economy, dynamic_rng),
+                        }
+                    };
 
                     supplement.add_entity(entity);
                 }
@@ -1027,6 +970,60 @@ impl Settlement {
         }
 
         None
+    }
+}
+
+fn barnyard(pos: Vec3<f32>, dynamic_rng: &mut impl Rng) -> EntityInfo {
+    //TODO: use Lottery instead of ad-hoc RNG system
+    let species = match dynamic_rng.gen_range(0..5) {
+        0 => quadruped_small::Species::Pig,
+        1 => quadruped_small::Species::Sheep,
+        2 => quadruped_small::Species::Goat,
+        3 => quadruped_small::Species::Dog,
+        _ => quadruped_small::Species::Cat,
+    };
+    EntityInfo::at(pos)
+        .with_body(comp::Body::QuadrupedSmall(
+            quadruped_small::Body::random_with(dynamic_rng, &species),
+        ))
+        .with_alignment(comp::Alignment::Tame)
+        .with_automatic_name()
+}
+
+fn bird(pos: Vec3<f32>, dynamic_rng: &mut impl Rng) -> EntityInfo {
+    //TODO: use Lottery instead of ad-hoc RNG system
+    let species = match dynamic_rng.gen_range(0..4) {
+        0 => bird_medium::Species::Duck,
+        1 => bird_medium::Species::Chicken,
+        2 => bird_medium::Species::Goose,
+        _ => bird_medium::Species::Peacock,
+    };
+    EntityInfo::at(pos)
+        .with_body(comp::Body::BirdMedium(bird_medium::Body::random_with(
+            dynamic_rng,
+            &species,
+        )))
+        .with_alignment(comp::Alignment::Tame)
+        .with_automatic_name()
+}
+
+fn humanoid(pos: Vec3<f32>, economy: &SiteInformation, dynamic_rng: &mut impl Rng) -> EntityInfo {
+    let entity = EntityInfo::at(pos);
+    match dynamic_rng.gen_range(0..12) {
+        0 => entity
+            .with_agent_mark(agent::Mark::Guard)
+            .with_lazy_loadout(guard_loadout)
+            .with_level(dynamic_rng.gen_range(10..15))
+            .with_asset_expect("common.entity.village.guard"),
+        1 | 2 => entity
+            .with_agent_mark(agent::Mark::Merchant)
+            .with_economy(economy)
+            .with_lazy_loadout(merchant_loadout)
+            .with_level(dynamic_rng.gen_range(10..15))
+            .with_asset_expect("common.entity.village.merchant"),
+        _ => entity
+            .with_lazy_loadout(villager_loadout)
+            .with_asset_expect("common.entity.village.villager"),
     }
 }
 

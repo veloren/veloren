@@ -1,0 +1,14 @@
+EntityConfig (
+    name: Automatic,
+    body: Exact(QuadrupedMedium(Body(
+        species: Roshwalr,
+        body_type: Male,
+    ))),
+    alignment: Alignment(Enemy),
+
+    loot: Uninit,
+
+    hands: Uninit,
+
+    meta: [],
+)

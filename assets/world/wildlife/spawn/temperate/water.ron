@@ -1,0 +1,15 @@
+SpawnEntry (
+    name: "Temperate water wildlife.",
+    note: "River inhabitants",
+    rules: [
+        Pack(
+            groups: [
+                (1, (3, 4, "common.entity.wild.peaceful.marlin")),
+                (1, (3, 4, "common.entity.wild.peaceful.piranha")),
+                (1, (3, 4, "common.entity.wild.peaceful.clownfish")),
+            ],
+            is_underwater: true,
+            day_period: [Night, Morning, Noon, Evening],
+        ),
+    ],
+)

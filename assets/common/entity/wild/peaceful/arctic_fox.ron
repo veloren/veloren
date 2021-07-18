@@ -1,0 +1,11 @@
+EntityConfig (
+    name: Name("Arctic Fox"),
+    body: Exact(QuadrupedSmall(Body(species: Fox, body_type: Female))),
+    alignment: Alignment(Wild),
+
+    loot: Uninit,
+
+    hands: Uninit,
+
+    meta: [],
+)

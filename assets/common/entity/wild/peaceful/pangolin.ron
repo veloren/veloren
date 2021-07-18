@@ -1,0 +1,11 @@
+EntityConfig (
+    name: Automatic,
+    body: RandomWith("pangolin"),
+    alignment: Alignment(Wild),
+
+    loot: Uninit,
+
+    hands: Uninit,
+
+    meta: [],
+)

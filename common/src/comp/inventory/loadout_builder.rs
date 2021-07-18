@@ -92,17 +92,26 @@ impl ItemSpec {
     ///
     /// # Panics
     /// 1) If weights are invalid
-    pub fn validate(&self, key: EquipSlot) {
+    /// 2) If item doesn't correspond to `EquipSlot`
+    pub fn validate(&self, equip_slot: EquipSlot) {
         match self {
-            ItemSpec::Item(specifier) => std::mem::drop(Item::new_from_asset_expect(specifier)),
+            ItemSpec::Item(specifier) => {
+                let item = Item::new_from_asset_expect(specifier);
+                if !equip_slot.can_hold(&item.kind) {
+                    panic!("Tried to place {} into {:?}", specifier, equip_slot);
+                }
+                std::mem::drop(item);
+            },
             ItemSpec::Choice(items) => {
                 for (p, entry) in items {
                     if p <= &0.0 {
-                        let err =
-                            format!("Weight is less or equal to 0.0.\n ({:?}: {:?})", key, self,);
+                        let err = format!(
+                            "Weight is less or equal to 0.0.\n ({:?}: {:?})",
+                            equip_slot, self
+                        );
                         panic!("\n\n{}\n\n", err);
                     } else {
-                        entry.as_ref().map(|e| e.validate(key));
+                        entry.as_ref().map(|e| e.validate(equip_slot));
                     }
                 }
             },
@@ -389,13 +398,13 @@ impl LoadoutBuilder {
             .with_default_equipment(body)
     }
 
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
     /// Set default active mainhand weapon based on `body`
     pub fn with_default_maintool(self, body: &Body) -> Self {
         self.active_mainhand(Some(default_main_tool(body)))
     }
 
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
     /// Set default equipement based on `body`
     pub fn with_default_equipment(self, body: &Body) -> Self {
         let chest = match body {
@@ -466,7 +475,7 @@ impl LoadoutBuilder {
         }
     }
 
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
     pub fn with_preset(mut self, preset: Preset) -> Self {
         let rng = &mut rand::thread_rng();
         match preset {
@@ -478,7 +487,7 @@ impl LoadoutBuilder {
         self
     }
 
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
     pub fn with_creator(
         mut self,
         creator: fn(LoadoutBuilder, Option<&SiteInformation>) -> LoadoutBuilder,
@@ -497,7 +506,7 @@ impl LoadoutBuilder {
     /// 1) Will panic if there is no asset with such `asset_specifier`
     /// 2) Will panic if path to item specified in loadout file doesn't exist
     /// 3) Will panic while runs in tests and asset doesn't have "correct" form
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
     pub fn with_asset_expect(mut self, asset_specifier: &str, rng: &mut impl Rng) -> Self {
         let spec = LoadoutSpec::load_expect(asset_specifier).read().0.clone();
         for (key, entry) in spec {
@@ -573,88 +582,96 @@ impl LoadoutBuilder {
 
     /// Set default armor items for the loadout. This may vary with game
     /// updates, but should be safe defaults for a new character.
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
     pub fn defaults(self) -> Self {
         let rng = &mut rand::thread_rng();
         self.with_asset_expect("common.loadout.default", rng)
     }
 
+    #[must_use = "Method consumes builder and returns updated builder."]
     fn with_equipment(mut self, equip_slot: EquipSlot, item: Option<Item>) -> Self {
+        // Panic if item doesn't correspond to slot
+        assert!(
+            item.as_ref()
+                .map_or(true, |item| equip_slot.can_hold(&item.kind))
+        );
+
         self.0.swap(equip_slot, item);
         self
     }
 
-    #[must_use]
-    pub fn active_mainhand(self, item: Option<Item>) -> Self {
-        self.with_equipment(EquipSlot::ActiveMainhand, item)
-    }
-
-    #[must_use]
-    pub fn active_offhand(self, item: Option<Item>) -> Self {
-        self.with_equipment(EquipSlot::ActiveOffhand, item)
-    }
-
-    #[must_use]
-    pub fn inactive_mainhand(self, item: Option<Item>) -> Self {
-        self.with_equipment(EquipSlot::InactiveMainhand, item)
-    }
-
-    #[must_use]
-    pub fn inactive_offhand(self, item: Option<Item>) -> Self {
-        self.with_equipment(EquipSlot::InactiveOffhand, item)
-    }
-
+    #[must_use = "Method consumes builder and returns updated builder."]
     fn with_armor(self, armor_slot: ArmorSlot, item: Option<Item>) -> Self {
         self.with_equipment(EquipSlot::Armor(armor_slot), item)
     }
 
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
+    pub fn active_mainhand(self, item: Option<Item>) -> Self {
+        self.with_equipment(EquipSlot::ActiveMainhand, item)
+    }
+
+    #[must_use = "Method consumes builder and returns updated builder."]
+    pub fn active_offhand(self, item: Option<Item>) -> Self {
+        self.with_equipment(EquipSlot::ActiveOffhand, item)
+    }
+
+    #[must_use = "Method consumes builder and returns updated builder."]
+    pub fn inactive_mainhand(self, item: Option<Item>) -> Self {
+        self.with_equipment(EquipSlot::InactiveMainhand, item)
+    }
+
+    #[must_use = "Method consumes builder and returns updated builder."]
+    pub fn inactive_offhand(self, item: Option<Item>) -> Self {
+        self.with_equipment(EquipSlot::InactiveOffhand, item)
+    }
+
+    #[must_use = "Method consumes builder and returns updated builder."]
     pub fn shoulder(self, item: Option<Item>) -> Self {
         self.with_armor(ArmorSlot::Shoulders, item)
     }
 
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
     pub fn chest(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Chest, item) }
 
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
     pub fn belt(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Belt, item) }
 
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
     pub fn hands(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Hands, item) }
 
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
     pub fn pants(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Legs, item) }
 
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
     pub fn feet(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Feet, item) }
 
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
     pub fn back(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Back, item) }
 
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
     pub fn ring1(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Ring1, item) }
 
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
     pub fn ring2(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Ring2, item) }
 
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
     pub fn neck(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Neck, item) }
 
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
     pub fn lantern(self, item: Option<Item>) -> Self {
         self.with_equipment(EquipSlot::Lantern, item)
     }
 
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
     pub fn glider(self, item: Option<Item>) -> Self { self.with_equipment(EquipSlot::Glider, item) }
 
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
     pub fn head(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Head, item) }
 
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
     pub fn tabard(self, item: Option<Item>) -> Self { self.with_armor(ArmorSlot::Tabard, item) }
 
-    #[must_use]
+    #[must_use = "Method consumes builder and returns updated builder."]
     pub fn bag(self, which: ArmorSlot, item: Option<Item>) -> Self { self.with_armor(which, item) }
 
     #[must_use]

@@ -1,12 +1,13 @@
 EntityConfig (
-    name: Some("Gnarling Shaman"),
-    body: Some(RandomWith("gnarling")),
+    name: Name("Gnarling Shaman"),
+    body: RandomWith("gnarling"),
+    alignment: Alignment(Enemy),
 
-    loot: Some(LootTable("common.loot_tables.dungeon.tier-0.enemy")),
+    loot: LootTable("common.loot_tables.dungeon.tier-0.enemy"),
 
-    main_tool: Some(Item("common.items.npc_weapons.biped_small.gnarling.gnoll_staff")),
-    second_tool: None,
+    hands: TwoHanded(Item("common.items.npc_weapons.biped_small.gnarling.gnoll_staff")),
 
-    loadout_asset: Some("common.loadout.dungeon.tier-0.gnarling"),
-    skillset_asset: None,
+    meta: [
+        LoadoutAsset("common.loadout.dungeon.tier-0.gnarling"),
+    ],
 )

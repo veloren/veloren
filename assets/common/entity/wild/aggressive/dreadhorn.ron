@@ -1,0 +1,11 @@
+EntityConfig (
+    name: Automatic,
+    body: RandomWith("dreadhorn"),
+    alignment: Alignment(Enemy),
+
+    loot: Uninit,
+
+    hands: Uninit,
+
+    meta: [],
+)

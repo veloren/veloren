@@ -1,12 +1,11 @@
 EntityConfig (
-    name: Some("Mindflayer"),
-    body: Some(RandomWith("mindflayer")),
+    name: Name("Mindflayer"),
+    body: RandomWith("mindflayer"),
+    alignment: Alignment(Enemy),
 
-    loot: Some(LootTable("common.loot_tables.dungeon.tier-5.boss")),
+    loot: LootTable("common.loot_tables.dungeon.tier-5.boss"),
 
-    main_tool: None,
-    second_tool: None,
+    hands: Uninit,
 
-    loadout_asset: None,
-    skillset_asset: None,
+    meta: [],
 )

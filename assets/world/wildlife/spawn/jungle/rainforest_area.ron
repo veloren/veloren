@@ -1,0 +1,26 @@
+SpawnEntry (
+    name: "Jungle rainforest rare wildlife.",
+    note: "Spread through the area.",
+    rules: [
+        Pack(
+            groups: [
+                // Casual
+                (5, (1, 1, "common.entity.wild.peaceful.parrot")),
+                (5, (1, 1, "common.entity.wild.peaceful.quokka")),
+                // Rare
+                (1, (1, 1, "common.entity.wild.peaceful.tortoise")),
+                (1, (1, 1, "common.entity.wild.aggressive.monitor")),
+            ],
+            is_underwater: false,
+            day_period: [Morning, Noon, Evening],
+        ),
+        Pack(
+            groups: [
+                (5, (1, 1, "common.entity.wild.peaceful.quokka")),
+                (1, (1, 1, "common.entity.wild.peaceful.tortoise")),
+            ],
+            is_underwater: false,
+            day_period: [Night],
+        ),
+    ],
+)

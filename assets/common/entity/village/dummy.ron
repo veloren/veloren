@@ -1,0 +1,11 @@
+EntityConfig (
+    name: Name("Training Dummy"),
+    body: Exact(Object(TrainingDummy)),
+    alignment: Alignment(Passive),
+
+    loot: Uninit,
+
+    hands: Uninit,
+
+    meta: [],
+)

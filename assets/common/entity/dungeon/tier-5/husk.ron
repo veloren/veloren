@@ -1,12 +1,13 @@
 EntityConfig (
-    name: Some("Cultist Husk"),
-    body: Some(RandomWith("husk")),
+    name: Name("Cultist Husk"),
+    body: RandomWith("husk"),
+    alignment: Alignment(Enemy),
 
-    loot: Some(LootTable("common.loot_tables.dungeon.tier-5.minion")),
+    loot: LootTable("common.loot_tables.dungeon.tier-5.minion"),
 
-    main_tool: None,
-    second_tool: None,
+    hands: Uninit,
 
-    loadout_asset: Some("common.loadout.dungeon.tier-5.husk"),
-    skillset_asset: None,
+    meta: [
+        LoadoutAsset("common.loadout.dungeon.tier-5.husk"),
+    ],
 )

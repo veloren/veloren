@@ -1,0 +1,42 @@
+EntityConfig (
+    /// Name of Entity
+    /// Can be Name(String) with given name
+    /// or Automatic which will call automatic name depend on Body
+    /// or Uninit (means it should be specified somewhere in code)
+    name: Name("Paddy"),
+
+    /// Body
+    /// Can be Exact (Body with all fields e.g BodyType, Species, Hair color and such)
+    /// or RandomWith (will generate random body or species)
+    /// or Uninit (means it should be specified somewhere in code)
+    body: RandomWith("humanoid"),
+
+    /// Alignment, can be Uninit
+    alignment: Alignment(Enemy),
+
+    /// Loot
+    /// Can be Item (with asset_specifier for item)
+    /// or LootTable (with asset_specifier for loot table)
+    /// or Uninit (means it should be specified something in the code)
+    loot: LootTable("common.loot_tables.humanoids"),
+
+    /// Hands:
+    /// - TwoHanded(ItemSpec) for one 2h or 1h weapon,
+    /// - Paired(ItemSpec) for two 1h weapons aka berserker mode,
+    /// - Mix {
+    ///     mainhand: ItemSpec,
+    ///     offhand: ItemSpec,
+    /// } for two different 1h weapons,
+    /// - Uninit which means that tool should be specified somewhere in code,
+    /// Where ItemSpec is taken from loadout_builder module
+    hands: TwoHanded(Item("common.items.weapons.sword.cultist")),
+
+    /// Meta Info
+    /// Possible fields:
+    /// LoadoutAsset(String) with asset_specifier for loadout
+    /// SkillSetAsset(String) with asset_specifier for skillset
+    meta: [
+        LoadoutAsset("common.loadout.village.merchant"),
+        SkillSetAsset("common.skillset.village.merchant"),
+    ],
+)

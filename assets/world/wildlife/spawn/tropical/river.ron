@@ -1,0 +1,15 @@
+SpawnEntry (
+    name: "Tropical river wildlife.",
+    note: "",
+    rules: [
+        Pack(
+            groups: [
+                (1, (1, 2, "common.entity.wild.peaceful.frog")),
+                (1, (1, 2, "common.entity.wild.peaceful.axolotl")),
+                (1, (1, 2, "common.entity.wild.peaceful.fungome")),
+            ],
+            is_underwater: false,
+            day_period: [Night, Morning, Noon, Evening],
+        ),
+    ],
+)

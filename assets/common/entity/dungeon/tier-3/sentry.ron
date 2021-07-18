@@ -1,12 +1,11 @@
 EntityConfig (
-    name: Some("Haniwa Sentry"),
-    body: None,
+    name: Name("Haniwa Sentry"),
+    body: Exact(Object(HaniwaSentry)),
+    alignment: Alignment(Enemy),
 
-    loot: Some(Item("common.items.crafting_ing.stones")),
+    loot: Item("common.items.crafting_ing.stones"),
 
-    main_tool: None,
-    second_tool: None,
+    hands: Uninit,
 
-    loadout_asset: None,
-    skillset_asset: None,
+    meta: [],
 )

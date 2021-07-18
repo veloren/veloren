@@ -1,0 +1,13 @@
+SpawnEntry (
+    name: "Tundra rocky animals.",
+    note: "Search for the rocks in tundra and you will find them.",
+    rules: [
+        Pack(
+            groups: [
+                (1, (1, 1, "common.entity.wild.aggressive.rocksnapper")),
+            ],
+            is_underwater: false,
+            day_period: [Night, Morning, Noon, Evening],
+        ),
+    ],
+)

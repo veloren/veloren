@@ -1,14 +1,14 @@
 EntityConfig (
-    name: Some("Merchant"),
-    // body is specified outsite
-    body: None,
+    name: Name("Merchant"),
+    body: RandomWith("humanoid"),
+    alignment: Alignment(Npc),
 
     // considering giving some gold/gems/materials?
-    loot: None,
+    loot: Uninit,
 
-    main_tool: Some(Item("common.items.weapons.bow.eldwood-0")),
-    second_tool: None,
+    hands: TwoHanded(Item("common.items.weapons.bow.eldwood-0")),
 
-    loadout_asset: None,
-    skillset_asset: Some("common.skillset.village.merchant"),
+    meta: [
+        SkillSetAsset("common.skillset.village.merchant"),
+    ],
 )

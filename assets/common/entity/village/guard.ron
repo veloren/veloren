@@ -1,13 +1,13 @@
 EntityConfig (
-    name: Some("Guard"),
-    // body is specified outsite
-    body: None,
+    name: Name("Guard"),
+    body: RandomWith("humanoid"),
+    alignment: Alignment(Npc),
 
-    loot: None,
+    loot: Uninit,
 
-    main_tool: Some(Item("common.items.weapons.sword.iron-4")),
-    second_tool: None,
+    hands: TwoHanded(Item("common.items.weapons.sword.iron-4")),
 
-    loadout_asset: None,
-    skillset_asset: Some("common.skillset.village.guard"),
+    meta: [
+        SkillSetAsset("common.skillset.village.guard"),
+    ],
 )

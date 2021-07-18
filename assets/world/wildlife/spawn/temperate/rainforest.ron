@@ -1,0 +1,51 @@
+SpawnEntry (
+    name: "Temperate rainforest wildlife.",
+    note: "",
+    rules: [
+        Pack(
+            groups: [
+                // Pack animals
+                (1, (1, 7, "common.entity.wild.peaceful.deer")),
+                (1, (1, 3, "common.entity.wild.peaceful.rat")),
+                (1, (1, 7, "common.entity.wild.peaceful.rabbit")),
+                (1, (1, 7, "common.entity.wild.peaceful.jackalope")),
+                (1, (1, 7, "common.entity.wild.peaceful.boar")),
+                (1, (1, 7, "common.entity.wild.peaceful.sheep")),
+                (1, (1, 7, "common.entity.wild.peaceful.pig")),
+                (1, (1, 7, "common.entity.wild.peaceful.squirrel")),
+                (1, (1, 7, "common.entity.wild.peaceful.horse")),
+                (1, (1, 7, "common.entity.wild.peaceful.cattle")),
+                (1, (1, 7, "common.entity.wild.peaceful.goat")),
+                (1, (1, 7, "common.entity.wild.peaceful.llama")),
+                (1, (1, 7, "common.entity.wild.peaceful.alpaca")),
+                (1, (1, 7, "common.entity.wild.peaceful.chicken")),
+                // Solitary
+                (2, (1, 1, "common.entity.wild.peaceful.forest_fox")),
+                (2, (1, 1, "common.entity.wild.peaceful.donkey")),
+                (2, (1, 1, "common.entity.wild.peaceful.goose")),
+                (2, (1, 1, "common.entity.wild.peaceful.peacock")),
+                (2, (1, 1, "common.entity.wild.peaceful.skunk")),
+                (2, (1, 1, "common.entity.wild.peaceful.raccoon")),
+                (2, (1, 1, "common.entity.wild.peaceful.catoblepas")),
+                (2, (1, 1, "common.entity.wild.peaceful.turtle")),
+                (2, (1, 1, "common.entity.wild.peaceful.hirdrasil")),
+                (2, (1, 1, "common.entity.wild.peaceful.truffler")),
+            ],
+            is_underwater: false,
+            day_period: [Morning, Noon, Evening],
+        ),
+        Pack(
+            groups: [
+                // Solitary
+                (1, (1, 1, "common.entity.wild.aggressive.batfox")),
+                (5, (1, 1, "common.entity.wild.peaceful.forest_fox")),
+                (5, (1, 1, "common.entity.wild.peaceful.raccoon")),
+                // Pack
+                (5, (1, 3, "common.entity.wild.peaceful.rat")),
+                (5, (1, 3, "common.entity.wild.peaceful.squirrel")),
+            ],
+            is_underwater: false,
+            day_period: [Night],
+        ),
+    ],
+)

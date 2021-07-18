@@ -1,0 +1,18 @@
+SpawnEntry (
+    name: "Taiga animals.",
+    note: "Spread through the area",
+    rules: [
+        Pack(
+            groups: [
+                (1, (1, 1, "common.entity.wild.peaceful.eagle")),
+                (1, (1, 1, "common.entity.wild.peaceful.owl")),
+                (1, (1, 1, "common.entity.wild.peaceful.arctic_fox")),
+                (1, (1, 1, "common.entity.wild.peaceful.moose")),
+                (1, (1, 1, "common.entity.wild.peaceful.arctic_hare")),
+                (1, (1, 1, "common.entity.wild.peaceful.tuskram")),
+            ],
+            is_underwater: false,
+            day_period: [Night, Morning, Noon, Evening],
+        ),
+    ],
+)

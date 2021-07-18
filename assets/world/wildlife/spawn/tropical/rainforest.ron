@@ -1,0 +1,14 @@
+SpawnEntry (
+    name: "Tropical rainforest wildlife.",
+    note: "",
+    rules: [
+        Pack(
+            groups: [
+                (1, (1, 2, "common.entity.wild.aggressive.lion")),
+                (1, (1, 3, "common.entity.wild.aggressive.hyena")),
+            ],
+            is_underwater: false,
+            day_period: [Night, Morning, Noon, Evening],
+        ),
+    ],
+)

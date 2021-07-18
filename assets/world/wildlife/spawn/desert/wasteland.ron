@@ -1,0 +1,23 @@
+SpawnEntry (
+    name: "Desert wasteland wildlife.",
+    note: "",
+    rules: [
+        Pack(
+            groups: [
+                // Casual
+                (100, (1, 1, "common.entity.wild.aggressive.bonerattler")),
+                (100, (1, 1, "common.entity.wild.aggressive.sand_raptor")),
+                (100, (1, 1, "common.entity.wild.aggressive.ngoubou")),
+                (100, (1, 1, "common.entity.wild.aggressive.sandshark")),
+                // Rare
+                (20, (1, 1, "common.entity.wild.aggressive.lavadrake")),
+                (20, (1, 1, "common.entity.wild.aggressive.ntouka")),
+                (20, (1, 1, "common.entity.wild.aggressive.archaeos")),
+                // Ultra_rare
+                (1, (1, 1, "common.entity.wild.aggressive.roshwalr_boss")),
+            ],
+            is_underwater: false,
+            day_period: [Night, Morning, Noon, Evening],
+        ),
+    ],
+)

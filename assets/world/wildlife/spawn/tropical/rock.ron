@@ -1,0 +1,13 @@
+SpawnEntry (
+    name: "Tropical rocks wildlife.",
+    note: "",
+    rules: [
+        Pack(
+            groups: [
+                (1, (1, 1, "common.entity.wild.aggressive.dodarock")),
+            ],
+            is_underwater: false,
+            day_period: [Night, Morning, Noon, Evening],
+        ),
+    ],
+)

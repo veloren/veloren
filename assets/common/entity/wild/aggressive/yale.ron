@@ -1,0 +1,11 @@
+EntityConfig (
+    name: Automatic,
+    body: RandomWith("yale"),
+    alignment: Alignment(Enemy),
+
+    loot: Uninit,
+
+    hands: Uninit,
+
+    meta: [],
+)
