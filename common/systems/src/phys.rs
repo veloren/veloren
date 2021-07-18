@@ -272,7 +272,6 @@ impl<'a> PhysicsData<'a> {
         spatial_grid
     }
 
-    #[allow(clippy::nonminimal_bool)]
     fn apply_pushback(&mut self, job: &mut Job<Sys>, spatial_grid: &SpatialGrid) {
         span!(_guard, "Apply pushback");
         job.cpu_stats.measure(ParMode::Rayon);
@@ -439,14 +438,12 @@ impl<'a> PhysicsData<'a> {
                                         //
                                         // Don't apply force when entity is a sticky which is on the
                                         // ground (or on the wall)
-                                        if !forced_movement &&
-                                            !(is_sticky && !is_mid_air)
+                                        if !forced_movement
+                                            && !is_sticky
+                                            || is_mid_air
                                             && diff.magnitude_squared() > 0.0
                                             && !is_projectile
-                                            && !matches!(
-                                                collider_other,
-                                                Some(Collider::Voxel { .. })
-                                            )
+                                            && !matches!(collider_other,Some(Collider::Voxel { .. }))
                                             && !matches!(collider, Some(Collider::Voxel { .. }))
                                         {
                                             let force = 400.0

@@ -57,7 +57,6 @@ pub struct GenCtx<'a, R: Rng> {
 pub struct Colors;
 
 impl Castle {
-    #[allow(clippy::let_and_return)] // TODO: Pending review in #587
     pub fn generate(wpos: Vec2<i32>, sim: Option<&mut WorldSim>, rng: &mut impl Rng) -> Self {
         let ctx = GenCtx { sim, rng };
 

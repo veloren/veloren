@@ -24,7 +24,6 @@ const W: usize = 1024;
 const H: usize = 1024;
 
 #[allow(clippy::needless_update)] // TODO: Pending review in #587
-#[allow(clippy::unused_io_amount)] // TODO: Pending review in #587
 fn main() {
     FmtSubscriber::builder()
         .with_max_level(Level::ERROR)
@@ -234,7 +233,9 @@ fn main() {
                     |pos, (r, g, b, a)| {
                         let i = pos.x;
                         let j = pos.y;
-                        (&mut buf[(j * x + i) * 4..]).write(&[r, g, b, a]).unwrap();
+                        (&mut buf[(j * x + i) * 4..])
+                            .write_all(&[r, g, b, a])
+                            .unwrap();
                     },
                 );
                 // TODO: Justify fits in u32.

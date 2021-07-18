@@ -549,7 +549,6 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
 /// Precompute the maximum slope at all points.
 ///
 /// TODO: See if allocating in advance is worthwhile.
-#[allow(clippy::let_and_return)] // TODO: Pending review in #587
 fn get_max_slope(
     map_size_lg: MapSizeLg,
     h: &[Alt],

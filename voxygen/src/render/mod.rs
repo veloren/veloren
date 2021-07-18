@@ -1,6 +1,5 @@
 pub mod bound;
 mod buffer;
-#[allow(clippy::single_component_path_imports)] // TODO: Pending review in #587
 pub mod consts;
 mod error;
 pub mod instances;

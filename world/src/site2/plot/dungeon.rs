@@ -545,7 +545,6 @@ impl Floor {
         }
     }
 
-    #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
     fn create_route(&mut self, _ctx: &mut GenCtx<impl Rng>, a: Vec2<i32>, b: Vec2<i32>) {
         let heuristic = move |l: &Vec2<i32>| (l - b).map(|e| e.abs()).reduce_max() as f32;
         let neighbors = |l: &Vec2<i32>| {

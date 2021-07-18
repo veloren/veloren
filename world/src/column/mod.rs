@@ -15,7 +15,7 @@ use noise::NoiseFn;
 use serde::Deserialize;
 use std::{
     cmp::Reverse,
-    f32, f64,
+    f32,
     ops::{Add, Div, Mul, Sub},
 };
 use tracing::error;
@@ -60,7 +60,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
     type Sample = Option<ColumnSample<'a>>;
 
     #[allow(clippy::float_cmp)] // TODO: Pending review in #587
-    #[allow(clippy::nonminimal_bool)] // TODO: Pending review in #587
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn get(&self, (wpos, index): Self::Index) -> Option<ColumnSample<'a>> {
         let wposf = wpos.map(|e| e as f64);
@@ -321,7 +320,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         neighbor_river_data.for_each(|(river_chunk_idx, river_chunk, river, dist)| {
             match river.river_kind {
                 Some(kind) => {
-                    if kind.is_river() && !dist.is_some() {
+                    if kind.is_river() && dist.is_none() {
                         // Ostensibly near a river segment, but not "usefully" so (there is no
                         // closest point between t = 0.0 and t = 1.0).
                         return;

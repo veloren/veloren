@@ -184,7 +184,6 @@ impl MovementEventMapper {
     /// as opening or closing the glider. These methods translate those
     /// entity states with some additional data into more specific
     /// `SfxEvent`'s which we attach sounds to
-    #[allow(clippy::nonminimal_bool)] // TODO: Pending review in #587
     fn map_movement_event(
         character_state: &CharacterState,
         physics_state: &PhysicsState,

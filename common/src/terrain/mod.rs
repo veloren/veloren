@@ -286,7 +286,6 @@ pub fn river_spline_coeffs(
 /// curve"... hopefully this works out okay and gives us what we want (a
 /// river that extends outwards tangent to a quadratic curve, with width
 /// configured by distance along the line).
-#[allow(clippy::let_and_return)] // TODO: Pending review in #587
 #[allow(clippy::many_single_char_names)]
 pub fn quadratic_nearest_point(
     spline: &Vec3<Vec2<f64>>,
