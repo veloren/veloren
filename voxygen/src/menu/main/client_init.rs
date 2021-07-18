@@ -43,7 +43,6 @@ pub struct ClientInit {
     cancel: Arc<AtomicBool>,
 }
 impl ClientInit {
-    #[allow(clippy::op_ref)] // TODO: Pending review in #587
     pub fn new(
         connection_args: ConnectionArgs,
         username: String,
@@ -78,7 +77,7 @@ impl ClientInit {
                 let _ = tx.send(Msg::IsAuthTrusted(auth_server.to_string()));
                 trust_rx
                     .recv()
-                    .map(|AuthTrust(server, trust)| trust && &server == auth_server)
+                    .map(|AuthTrust(server, trust)| trust && server == *auth_server)
                     .unwrap_or(false)
             };
 
