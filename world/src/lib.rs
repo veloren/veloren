@@ -346,6 +346,7 @@ impl World {
             entities: Vec::new(),
         };
 
+        layer::apply_caverns_to(&mut canvas, &mut dynamic_rng);
         layer::apply_caves_to(&mut canvas, &mut dynamic_rng);
         layer::apply_shrubs_to(&mut canvas, &mut dynamic_rng);
         layer::apply_trees_to(&mut canvas, &mut dynamic_rng);

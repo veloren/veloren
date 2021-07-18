@@ -5,6 +5,7 @@ use common::{
 };
 use common_base::span;
 use rand::prelude::*;
+use rand_chacha::ChaCha8Rng;
 use vek::*;
 
 #[derive(Copy, Clone, Debug)]
@@ -60,6 +61,8 @@ impl BlocksOfInterest {
         let mut cricket3 = Vec::new();
         let mut frogs = Vec::new();
 
+        let mut rng = ChaCha8Rng::from_seed(thread_rng().gen());
+
         chunk
             .vol_iter(
                 Vec3::new(0, 0, chunk.get_min_z()),
@@ -71,13 +74,13 @@ impl BlocksOfInterest {
             )
             .for_each(|(pos, block)| {
                 match block.kind() {
-                    BlockKind::Leaves if thread_rng().gen_range(0..16) == 0 => leaves.push(pos),
-                    BlockKind::WeakRock if thread_rng().gen_range(0..6) == 0 => drip.push(pos),
+                    BlockKind::Leaves if rng.gen_range(0..16) == 0 => leaves.push(pos),
+                    BlockKind::WeakRock if rng.gen_range(0..6) == 0 => drip.push(pos),
                     BlockKind::Grass => {
-                        if thread_rng().gen_range(0..16) == 0 {
+                        if rng.gen_range(0..16) == 0 {
                             grass.push(pos);
                         }
-                        match thread_rng().gen_range(0..8192) {
+                        match rng.gen_range(0..8192) {
                             1 => cricket1.push(pos),
                             2 => cricket2.push(pos),
                             3 => cricket3.push(pos),
@@ -85,14 +88,12 @@ impl BlocksOfInterest {
                         }
                     },
                     BlockKind::Water
-                        if chunk.meta().contains_river() && thread_rng().gen_range(0..16) == 0 =>
+                        if chunk.meta().contains_river() && rng.gen_range(0..16) == 0 =>
                     {
                         river.push(pos)
                     },
-                    BlockKind::Lava if thread_rng().gen_range(0..5) == 0 => {
-                        fires.push(pos + Vec3::unit_z())
-                    },
-                    BlockKind::Snow if thread_rng().gen_range(0..16) == 0 => snow.push(pos),
+                    BlockKind::Lava if rng.gen_range(0..5) == 0 => fires.push(pos + Vec3::unit_z()),
+                    BlockKind::Snow if rng.gen_range(0..16) == 0 => snow.push(pos),
                     _ => match block.get_sprite() {
                         Some(SpriteKind::Ember) => {
                             fires.push(pos);
@@ -114,7 +115,7 @@ impl BlocksOfInterest {
                         Some(SpriteKind::Reed) => {
                             reeds.push(pos);
                             fireflies.push(pos);
-                            if thread_rng().gen_range(0..12) == 0 {
+                            if rng.gen_range(0..12) == 0 {
                                 frogs.push(pos);
                             }
                         },

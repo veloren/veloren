@@ -644,6 +644,11 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageDecoding for TriPngEncoding<AVERAGE_
                             g: 206,
                             b: 64,
                         },
+                        GlowingMushroom => Rgb {
+                            r: 50,
+                            g: 250,
+                            b: 250,
+                        },
                         Misc => Rgb {
                             r: 255,
                             g: 0,
