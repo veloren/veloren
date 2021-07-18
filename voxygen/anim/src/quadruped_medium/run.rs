@@ -2,7 +2,7 @@ use super::{
     super::{vek::*, Animation},
     QuadrupedMediumSkeleton, SkeletonAttr,
 };
-use std::{f32::consts::PI, ops::Mul};
+use core::{f32::consts::PI, ops::Mul};
 
 pub struct RunAnimation;
 
@@ -68,10 +68,11 @@ impl Animation for RunAnimation {
         let foot2b = (mixed_vel * (1.0) * lab * speedmult + 1.1 + shift2).sin(); //1.0
         //BL
         let foot3a = (mixed_vel * (1.0) * lab * speedmult + shift3).sin(); //0.0
-        let foot3b = (mixed_vel * (1.0) * lab * speedmult + 1.57 + shift3).sin(); //0.4
+        let foot3b = (mixed_vel * (1.0) * lab * speedmult + PI / 2.0 + shift3).sin(); //0.4
         //BR
         let foot4a = (mixed_vel * (1.0) * lab * speedmult + 0.0 + canceler * 0.05 + shift4).sin(); //0.3
-        let foot4b = (mixed_vel * (1.0) * lab * speedmult + 1.57 + canceler * 0.05 + shift4).sin(); //0.7
+        let foot4b =
+            (mixed_vel * (1.0) * lab * speedmult + PI / 2.0 + canceler * 0.05 + shift4).sin(); //0.7
         //
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);

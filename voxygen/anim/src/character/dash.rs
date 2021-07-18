@@ -6,7 +6,7 @@ use common::{
     comp::item::{Hands, ToolKind},
     states::utils::{AbilityInfo, StageSection},
 };
-use std::f32::consts::PI;
+use core::f32::consts::PI;
 
 pub struct DashAnimation;
 
@@ -125,7 +125,7 @@ impl Animation for DashAnimation {
                             * Quaternion::rotation_y(move1 * -1.2 + move3 * -1.5)
                             * Quaternion::rotation_z(move2 * 1.0 + move3 * 1.5);
                     next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
-                    next.hand_l.orientation = Quaternion::rotation_x(1.57)
+                    next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0)
                 },
 
                 _ => {},
@@ -148,7 +148,7 @@ impl Animation for DashAnimation {
                                 )
                                 * Quaternion::rotation_z(move3 * 1.5);
                         next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
-                        next.hand_r.orientation = Quaternion::rotation_x(1.57)
+                        next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0)
                     },
                     _ => {},
                 }

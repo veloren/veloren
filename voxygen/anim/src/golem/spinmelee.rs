@@ -3,7 +3,7 @@ use super::{
     GolemSkeleton, SkeletonAttr,
 };
 use common::states::utils::StageSection;
-use std::f32::consts::PI;
+use core::f32::consts::PI;
 
 pub struct SpinMeleeAnimation;
 
@@ -15,7 +15,6 @@ impl Animation for SpinMeleeAnimation {
     const UPDATE_FN: &'static [u8] = b"golem_spinmelee\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "golem_spinmelee")]
-    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         stage_section: Self::Dependency<'a>,

@@ -178,6 +178,7 @@ impl<'a, VIE: VoxelImageEncoding> VoxelImageEncoding for &'a VIE {
 
     fn finish(ws: &Self::Workspace) -> Option<Self::Output> { VIE::finish(ws) }
 }
+
 impl<'a, VIE: VoxelImageDecoding> VoxelImageDecoding for &'a VIE {
     fn start(ws: &Self::Output) -> Option<Self::Workspace> { VIE::start(ws) }
 
@@ -185,6 +186,7 @@ impl<'a, VIE: VoxelImageDecoding> VoxelImageDecoding for &'a VIE {
         VIE::get_block(ws, x, y, is_border)
     }
 }
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct QuadPngEncoding<const RESOLUTION_DIVIDER: u32>();
 

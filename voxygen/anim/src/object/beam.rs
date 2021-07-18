@@ -22,7 +22,6 @@ impl Animation for BeamAnimation {
     const UPDATE_FN: &'static [u8] = b"object_beam\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "object_beam")]
-    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, _second_tool_kind, _stage_section, _body): Self::Dependency<'a>,

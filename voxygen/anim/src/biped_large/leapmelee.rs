@@ -3,6 +3,8 @@ use super::{
     BipedLargeSkeleton, SkeletonAttr,
 };
 use common::{comp::item::ToolKind, states::utils::StageSection};
+use core::f32::consts::PI;
+
 pub struct LeapAnimation;
 
 impl Animation for LeapAnimation {
@@ -19,7 +21,6 @@ impl Animation for LeapAnimation {
     const UPDATE_FN: &'static [u8] = b"biped_large_leapmelee\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_leapmelee")]
-    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _second_tool_kind, _velocity, _global_time, stage_section): Self::Dependency<'a>,
@@ -54,7 +55,7 @@ impl Animation for LeapAnimation {
                 s_a.hc.2 + movement2 * 5.0 + movement3 * -10.0,
             );
             next.control.orientation =
-                Quaternion::rotation_x(s_a.hc.3 + movement2 * 1.57 + movement3 * -2.3)
+                Quaternion::rotation_x(s_a.hc.3 + movement2 * PI / 2.0 + movement3 * -2.3)
                     * Quaternion::rotation_y(s_a.hc.4 + movement2 * 1.3)
                     * Quaternion::rotation_z(s_a.hc.5 + movement2 * -1.0 + movement3 * 0.5);
             next.upper_torso.orientation =

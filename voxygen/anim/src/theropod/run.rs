@@ -1,7 +1,8 @@
-use super::{super::Animation, SkeletonAttr, TheropodSkeleton};
-//use std::{f32::consts::PI, ops::Mul};
-use super::super::vek::*;
-use std::f32::consts::PI;
+use super::{
+    super::{vek::*, Animation},
+    SkeletonAttr, TheropodSkeleton,
+};
+use core::f32::consts::PI;
 
 pub struct RunAnimation;
 
@@ -43,10 +44,10 @@ impl Animation for RunAnimation {
 
         //FL
         let foot1a = (mixed_vel * 1.0 * lab * speedmult + 0.0 + PI).sin() * speednorm; //1.5
-        let foot1b = (mixed_vel * 1.0 * lab * speedmult + 1.57 + PI).sin() * speednorm; //1.9
+        let foot1b = (mixed_vel * 1.0 * lab * speedmult + PI / 2.0 + PI).sin() * speednorm; //1.9
         //FR
         let foot2a = (mixed_vel * 1.0 * lab * speedmult).sin() * speednorm; //1.2
-        let foot2b = (mixed_vel * 1.0 * lab * speedmult + 1.57).sin() * speednorm; //1.6
+        let foot2b = (mixed_vel * 1.0 * lab * speedmult + PI / 2.0).sin() * speednorm; //1.6
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
         let tilt = if ::vek::Vec2::new(ori, last_ori)

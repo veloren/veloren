@@ -3,7 +3,7 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::comp::item::{Hands, ToolKind};
-use std::{f32::consts::PI, ops::Mul};
+use core::{f32::consts::PI, ops::Mul};
 
 pub struct RunAnimation;
 
@@ -219,16 +219,18 @@ impl Animation for RunAnimation {
             },
             Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                 next.main.position = Vec3::new(2.0, -5.0, -1.0);
-                next.main.orientation = Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(1.57);
+                next.main.orientation =
+                    Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(PI / 2.0);
             },
             Some(ToolKind::Bow) => {
                 next.main.position = Vec3::new(0.0, -5.0, 6.0);
-                next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+                next.main.orientation =
+                    Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
             },
             _ => {
                 next.main.position = Vec3::new(-7.0, -5.0, 15.0);
                 next.main.orientation =
-                    Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57 + shorte * -0.2);
+                    Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0 + shorte * -0.2);
             },
         }
 
@@ -246,7 +248,7 @@ impl Animation for RunAnimation {
             _ => {
                 next.second.position = Vec3::new(-7.0, -5.0, 15.0);
                 next.second.orientation =
-                    Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+                    Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
             },
         }
 
@@ -281,7 +283,7 @@ impl Animation for RunAnimation {
                 Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
                     next.main.position = Vec3::new(-4.0, -5.0, 10.0);
                     next.main.orientation =
-                        Quaternion::rotation_y(2.35) * Quaternion::rotation_z(1.57);
+                        Quaternion::rotation_y(2.35) * Quaternion::rotation_z(PI / 2.0);
                 },
 
                 _ => {},
@@ -293,7 +295,7 @@ impl Animation for RunAnimation {
                 Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
                     next.second.position = Vec3::new(4.0, -6.0, 10.0);
                     next.second.orientation =
-                        Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(-1.57);
+                        Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(-PI / 2.0);
                 },
                 _ => {},
             },

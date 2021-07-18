@@ -3,7 +3,7 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::comp::item::ToolKind;
-use std::f32::consts::PI;
+use core::f32::consts::PI;
 
 pub struct EquipAnimation;
 
@@ -15,7 +15,6 @@ impl Animation for EquipAnimation {
     const UPDATE_FN: &'static [u8] = b"character_equip\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_equip")]
-    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _second_tool_kind, _velocity, _global_time): Self::Dependency<'a>,
@@ -27,8 +26,8 @@ impl Animation for EquipAnimation {
         let mut next = (*skeleton).clone();
         let equip_slow = 1.0 + (anim_time * 12.0 + PI).cos();
         let equip_slowa = 1.0 + (anim_time * 12.0 + PI / 4.0).cos();
-        next.hand_l.orientation = Quaternion::rotation_y(-2.3) * Quaternion::rotation_z(1.57);
-        next.hand_r.orientation = Quaternion::rotation_y(-2.3) * Quaternion::rotation_z(1.57);
+        next.hand_l.orientation = Quaternion::rotation_y(-2.3) * Quaternion::rotation_z(PI / 2.0);
+        next.hand_r.orientation = Quaternion::rotation_y(-2.3) * Quaternion::rotation_z(PI / 2.0);
         next.control.position = Vec3::new(equip_slowa * -1.5, 0.0, equip_slow * 1.5);
 
         match active_tool_kind {

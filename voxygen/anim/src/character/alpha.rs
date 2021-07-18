@@ -6,7 +6,7 @@ use common::{
     comp::item::{Hands, ToolKind},
     states::utils::{AbilityInfo, StageSection},
 };
-use std::f32::consts::PI;
+use core::f32::consts::PI;
 
 pub struct AlphaAnimation;
 
@@ -23,7 +23,6 @@ impl Animation for AlphaAnimation {
     const UPDATE_FN: &'static [u8] = b"character_alpha\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_alpha")]
-    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (hands, stage_section, ability_info): Self::Dependency<'a>,
@@ -124,7 +123,7 @@ impl Animation for AlphaAnimation {
                     );
                     next.control.orientation = Quaternion::rotation_x(s_a.sc.3 + move1 * -1.3)
                         * Quaternion::rotation_y(s_a.sc.4 + move1 * -0.7 + move2 * 1.2)
-                        * Quaternion::rotation_z(s_a.sc.5 + move1 * -1.57 + move3 * -1.57);
+                        * Quaternion::rotation_z(s_a.sc.5 + move1 * -PI / 2.0 + move3 * -PI / 2.0);
                 },
                 Some(ToolKind::Axe) => {
                     next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
@@ -181,7 +180,9 @@ impl Animation for AlphaAnimation {
                     );
                     next.control.orientation =
                         Quaternion::rotation_x(s_a.hc.3 + (moveret1 * 1.5 + moveret2 * -2.55))
-                            * Quaternion::rotation_y(s_a.hc.4 + moveret1 * 1.57 + moveret2 * 0.5)
+                            * Quaternion::rotation_y(
+                                s_a.hc.4 + moveret1 * PI / 2.0 + moveret2 * 0.5,
+                            )
                             * Quaternion::rotation_z(s_a.hc.5 + (moveret2 * -0.5));
                 },
                 _ => {},
@@ -197,7 +198,7 @@ impl Animation for AlphaAnimation {
                         * Quaternion::rotation_y(move1 * -1.2 + move2 * -1.5)
                         * Quaternion::rotation_z(move2 * 1.5);
                     next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
-                    next.hand_l.orientation = Quaternion::rotation_x(1.57)
+                    next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0)
                 },
                 Some(ToolKind::Axe) => {
                     next.control_l.position = Vec3::new(
@@ -209,7 +210,7 @@ impl Animation for AlphaAnimation {
                         * Quaternion::rotation_y(move1 * -1.2 + move2 * -2.5)
                         * Quaternion::rotation_z(move2 * 1.5);
                     next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
-                    next.hand_l.orientation = Quaternion::rotation_x(1.57)
+                    next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0)
                 },
                 Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {
                     next.control_l.position = Vec3::new(
@@ -222,7 +223,7 @@ impl Animation for AlphaAnimation {
                             * Quaternion::rotation_y(0.0)
                             * Quaternion::rotation_z(0.0);
                     next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
-                    next.hand_l.orientation = Quaternion::rotation_x(1.57)
+                    next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0)
                 },
 
                 _ => {},
@@ -238,7 +239,7 @@ impl Animation for AlphaAnimation {
                             * Quaternion::rotation_y(move1 * -1.8 + move2 * -1.5)
                             * Quaternion::rotation_z(move2 * 1.5);
                         next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
-                        next.hand_r.orientation = Quaternion::rotation_x(1.57)
+                        next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0)
                     },
                     Some(ToolKind::Axe) => {
                         next.control_r.position = Vec3::new(
@@ -250,7 +251,7 @@ impl Animation for AlphaAnimation {
                             * Quaternion::rotation_y(move1 * -1.8 + move2 * -1.5)
                             * Quaternion::rotation_z(move2 * 1.5);
                         next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
-                        next.hand_r.orientation = Quaternion::rotation_x(1.57)
+                        next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0)
                     },
                     Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {
                         next.control_r.position = Vec3::new(
@@ -263,7 +264,7 @@ impl Animation for AlphaAnimation {
                                 * Quaternion::rotation_y(0.0)
                                 * Quaternion::rotation_z(0.0);
                         next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
-                        next.hand_r.orientation = Quaternion::rotation_x(1.57)
+                        next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0)
                     },
                     _ => {},
                 }

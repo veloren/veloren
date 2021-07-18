@@ -3,7 +3,7 @@ use super::{
     BipedLargeSkeleton, SkeletonAttr,
 };
 use common::{comp::item::ToolKind, states::utils::StageSection};
-use std::f32::consts::PI;
+use core::f32::consts::PI;
 
 pub struct SpinMeleeAnimation;
 
@@ -22,7 +22,6 @@ impl Animation for SpinMeleeAnimation {
     const UPDATE_FN: &'static [u8] = b"biped_large_spinmelee\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_spinmelee")]
-    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _second_tool_kind, velocity, _global_time, stage_section, acc_vel): Self::Dependency<'a>,

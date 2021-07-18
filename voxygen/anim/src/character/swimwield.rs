@@ -3,7 +3,7 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::comp::item::{Hands, ToolKind};
-use std::{f32::consts::PI, ops::Mul};
+use core::{f32::consts::PI, ops::Mul};
 
 pub struct SwimWieldAnimation;
 
@@ -22,7 +22,6 @@ impl Animation for SwimWieldAnimation {
     const UPDATE_FN: &'static [u8] = b"character_swimwield\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_swimwield")]
-    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (active_tool_kind, second_tool_kind, hands, velocity, global_time): Self::Dependency<'a>,
@@ -224,8 +223,8 @@ impl Animation for SwimWieldAnimation {
                 next.hand_r.scale = Vec3::one() * 1.04;
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0)
-                    * Quaternion::rotation_y(-1.57)
-                    * Quaternion::rotation_z(1.57);
+                    * Quaternion::rotation_y(-PI / 2.0)
+                    * Quaternion::rotation_z(PI / 2.0);
 
                 next.control.position = Vec3::new(6.0, 7.0, 1.0);
                 next.control.orientation = Quaternion::rotation_x(0.3 + u_slow * 0.15)
@@ -244,7 +243,7 @@ impl Animation for SwimWieldAnimation {
                 next.hand_r.scale = Vec3::one() * 1.04;
                 next.main.position = Vec3::new(12.0, 8.4, 13.2);
                 next.main.orientation = Quaternion::rotation_x(-0.3)
-                    * Quaternion::rotation_y(3.14 + 0.3)
+                    * Quaternion::rotation_y(PI + 0.3)
                     * Quaternion::rotation_z(0.9);
 
                 next.control.position = Vec3::new(-14.0, 1.8, 3.0);

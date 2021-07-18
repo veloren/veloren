@@ -6,7 +6,7 @@ use common::{
     comp::item::tool::{AbilitySpec, ToolKind},
     states::utils::StageSection,
 };
-use std::f32::consts::PI;
+use core::f32::consts::PI;
 
 pub struct SelfBuffAnimation;
 
@@ -137,10 +137,12 @@ impl Animation for SelfBuffAnimation {
                                 * Quaternion::rotation_y(move1 * -0.85 + tension * 0.12)
                                 * Quaternion::rotation_z(move1 * 0.7);
 
-                            next.control_l.orientation = Quaternion::rotation_x(1.57 + move1 * 0.1)
-                                * Quaternion::rotation_y(0.0);
-                            next.control_r.orientation = Quaternion::rotation_x(1.57 + move1 * 0.1)
-                                * Quaternion::rotation_y(0.0);
+                            next.control_l.orientation =
+                                Quaternion::rotation_x(PI / 2.0 + move1 * 0.1)
+                                    * Quaternion::rotation_y(0.0);
+                            next.control_r.orientation =
+                                Quaternion::rotation_x(PI / 2.0 + move1 * 0.1)
+                                    * Quaternion::rotation_y(0.0);
 
                             next.control.orientation =
                                 Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);

@@ -6,7 +6,7 @@ use common::{
     comp::item::tool::{AbilitySpec, ToolKind},
     states::utils::StageSection,
 };
-use std::f32::consts::PI;
+use core::f32::consts::PI;
 
 pub struct ShootAnimation;
 
@@ -234,13 +234,13 @@ impl Animation for ShootAnimation {
                             next.jaw.orientation = Quaternion::rotation_x(move2 * -0.3);
                             next.control_l.position = Vec3::new(-0.5, 4.0, 1.0);
                             next.control_r.position = Vec3::new(-0.5, 4.0, 1.0);
-                            next.control_l.orientation = Quaternion::rotation_x(1.57);
-                            next.control_r.orientation = Quaternion::rotation_x(1.57);
+                            next.control_l.orientation = Quaternion::rotation_x(PI / 2.0);
+                            next.control_r.orientation = Quaternion::rotation_x(PI / 2.0);
                             next.weapon_l.position = Vec3::new(-12.0, -1.0, -15.0);
                             next.weapon_r.position = Vec3::new(12.0, -1.0, -15.0);
 
-                            next.weapon_l.orientation = Quaternion::rotation_x(-1.57 - 0.1);
-                            next.weapon_r.orientation = Quaternion::rotation_x(-1.57 - 0.1);
+                            next.weapon_l.orientation = Quaternion::rotation_x(-PI / 2.0 - 0.1);
+                            next.weapon_r.orientation = Quaternion::rotation_x(-PI / 2.0 - 0.1);
 
                             let twist = move1 * 0.8 + move3 * -0.8;
                             next.upper_torso.position =

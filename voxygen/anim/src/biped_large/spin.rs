@@ -3,7 +3,7 @@ use super::{
     BipedLargeSkeleton, SkeletonAttr,
 };
 use common::{comp::item::ToolKind, states::utils::StageSection};
-use std::f32::consts::PI;
+use core::f32::consts::PI;
 
 pub struct SpinAnimation;
 
@@ -67,7 +67,7 @@ impl Animation for SpinAnimation {
             );
             next.control.orientation = Quaternion::rotation_x(-0.5 + s_a.sc.3 + movement1 * -1.2)
                 * Quaternion::rotation_y(s_a.sc.4 - 0.6 + movement1 * 1.0)
-                * Quaternion::rotation_z(s_a.sc.5 + 0.1 + movement1 * 1.57);
+                * Quaternion::rotation_z(s_a.sc.5 + 0.1 + movement1 * PI / 2.0);
             next.head.position = Vec3::new(
                 0.0 + 2.0 + movement2 * -2.0,
                 2.0 + movement2 * -2.0 + s_a.head.0,

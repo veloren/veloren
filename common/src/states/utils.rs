@@ -21,6 +21,7 @@ use std::{
 };
 use strum_macros::Display;
 use vek::*;
+
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
 
 impl Body {

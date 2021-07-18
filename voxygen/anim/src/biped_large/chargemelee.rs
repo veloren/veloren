@@ -6,7 +6,7 @@ use common::{
     comp::item::tool::{AbilitySpec, ToolKind},
     states::utils::StageSection,
 };
-use std::f32::consts::PI;
+use core::f32::consts::PI;
 
 pub struct ChargeMeleeAnimation;
 
@@ -26,7 +26,6 @@ impl Animation for ChargeMeleeAnimation {
     const UPDATE_FN: &'static [u8] = b"biped_large_chargemelee\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_chargemelee")]
-    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (
@@ -136,9 +135,9 @@ impl Animation for ChargeMeleeAnimation {
                             ) * Quaternion::rotation_z(0.0);
 
                             next.control_l.orientation =
-                                Quaternion::rotation_x(1.57 + move1 * 0.2 + move2 * 0.1);
+                                Quaternion::rotation_x(PI / 2.0 + move1 * 0.2 + move2 * 0.1);
                             next.control_r.orientation =
-                                Quaternion::rotation_x(1.57 + move1 * 0.4 + move2 * -0.4);
+                                Quaternion::rotation_x(PI / 2.0 + move1 * 0.4 + move2 * -0.4);
 
                             next.control.orientation =
                                 Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
@@ -157,16 +156,16 @@ impl Animation for ChargeMeleeAnimation {
                             next.jaw.orientation = Quaternion::rotation_x(move2 * -0.3);
                             next.control_l.position = Vec3::new(-0.5, 4.0, 1.0);
                             next.control_r.position = Vec3::new(-0.5, 4.0, 1.0);
-                            next.control_l.orientation = Quaternion::rotation_x(1.57);
-                            next.control_r.orientation = Quaternion::rotation_x(1.57);
+                            next.control_l.orientation = Quaternion::rotation_x(PI / 2.0);
+                            next.control_r.orientation = Quaternion::rotation_x(PI / 2.0);
                             next.weapon_l.position =
                                 Vec3::new(-12.0 + (move1 * 10.0).min(6.0), -1.0, -15.0);
                             next.weapon_r.position =
                                 Vec3::new(12.0 + (move1 * -10.0).max(-6.0), -1.0, -15.0);
 
-                            next.weapon_l.orientation = Quaternion::rotation_x(-1.57 - 0.1)
+                            next.weapon_l.orientation = Quaternion::rotation_x(-PI / 2.0 - 0.1)
                                 * Quaternion::rotation_z(move1 * -0.8);
-                            next.weapon_r.orientation = Quaternion::rotation_x(-1.57 - 0.1)
+                            next.weapon_r.orientation = Quaternion::rotation_x(-PI / 2.0 - 0.1)
                                 * Quaternion::rotation_z(move1 * 0.8);
 
                             next.shoulder_l.orientation =

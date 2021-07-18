@@ -3,7 +3,7 @@ use super::{
     BipedSmallSkeleton, SkeletonAttr,
 };
 use common::{comp::item::ToolKind, states::utils::StageSection};
-use std::f32::consts::PI;
+use core::f32::consts::PI;
 
 pub struct StunnedAnimation;
 
@@ -171,7 +171,7 @@ impl Animation for StunnedAnimation {
             next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1) * s_a.scaler / 11.0;
             next.pants.position = Vec3::new(0.0, s_a.pants.0, s_a.pants.1);
             next.main.position = Vec3::new(2.0, -3.0, -3.0);
-            next.main.orientation = Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(1.57);
+            next.main.orientation = Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(PI / 2.0);
 
             next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
             next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);

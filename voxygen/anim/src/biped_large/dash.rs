@@ -6,7 +6,7 @@ use common::{
     comp::item::tool::{AbilitySpec, ToolKind},
     states::utils::StageSection,
 };
-use std::f32::consts::PI;
+use core::f32::consts::PI;
 
 pub struct DashAnimation;
 
@@ -187,8 +187,8 @@ impl Animation for DashAnimation {
                                 * Quaternion::rotation_y(move1 * 0.6 + move2 * -0.6)
                                 * Quaternion::rotation_z(move3 * -0.5);
 
-                            next.control_l.orientation = Quaternion::rotation_x(1.57);
-                            next.control_r.orientation = Quaternion::rotation_x(1.57);
+                            next.control_l.orientation = Quaternion::rotation_x(PI / 2.0);
+                            next.control_r.orientation = Quaternion::rotation_x(PI / 2.0);
 
                             next.control.orientation =
                                 Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
@@ -200,7 +200,7 @@ impl Animation for DashAnimation {
                             next.head.orientation =
                                 Quaternion::rotation_x(0.0) * Quaternion::rotation_z(move1 * -0.3);
                             next.upper_torso.orientation = Quaternion::rotation_x(move1 * -0.1)
-                                * Quaternion::rotation_z(move1 * 1.57);
+                                * Quaternion::rotation_z(move1 * PI / 2.0);
                             next.lower_torso.orientation = Quaternion::rotation_x(move1 * 0.1)
                                 * Quaternion::rotation_x(move1 * -0.1)
                                 * Quaternion::rotation_z(move1 * -0.2);
