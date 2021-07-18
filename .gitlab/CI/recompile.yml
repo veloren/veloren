@@ -4,7 +4,7 @@
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       # No '-' here is *very* important: https://docs.gitlab.com/ee/ci/yaml/#complex-rule-clauses
       changes:
-        - "**/*.{glsl,png,rs,ron,toml,vox,yml,wav}"
+        - "**/*.{glsl,png,rs,ron,toml,vox,yml,wav,sh}"
         - "rust-toolchain"
         - "Cargo.lock"
         - ".gitlab-ci.yml"
@@ -14,7 +14,7 @@
 .recompile:
   rules:
     - changes:
-        - "**/*.{glsl,png,rs,ron,toml,vox,yml,wav}"
+        - "**/*.{glsl,png,rs,ron,toml,vox,yml,wav,sh}"
         - "rust-toolchain"
         - "Cargo.lock"
         - ".gitlab-ci.yml"
