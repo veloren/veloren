@@ -84,7 +84,8 @@ impl CharacterBehavior for Data {
                                 category: _,
                                 source: _,
                             } => {
-                                data.strength *= 1.0 + (combo as f32).log(2.0_f32);
+                                data.strength *=
+                                    1.0 + (if combo > 0 { combo } else { 1 } as f32).log(2.0_f32);
                             },
                         }
                         update.server_events.push_front(ServerEvent::ComboChange {
