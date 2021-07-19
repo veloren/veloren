@@ -26,19 +26,6 @@ pub use interface::InterfaceSettings;
 pub use language::LanguageSettings;
 pub use networking::NetworkingSettings;
 
-/// `Log` stores whether we should create a log file
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(default)]
-pub struct Log {
-    // Whether to create a log file or not.
-    // Default is to create one.
-    pub log_to_file: bool,
-}
-
-impl Default for Log {
-    fn default() -> Self { Self { log_to_file: true } }
-}
-
 /// `Settings` contains everything that can be configured in the settings.ron
 /// file.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -49,7 +36,6 @@ pub struct Settings {
     pub interface: InterfaceSettings,
     pub gameplay: GameplaySettings,
     pub networking: NetworkingSettings,
-    pub log: Log,
     pub graphics: GraphicsSettings,
     pub audio: AudioSettings,
     pub show_disclaimer: bool,
@@ -86,7 +72,6 @@ impl Default for Settings {
             interface: InterfaceSettings::default(),
             gameplay: GameplaySettings::default(),
             networking: NetworkingSettings::default(),
-            log: Log::default(),
             graphics: GraphicsSettings::default(),
             audio: AudioSettings::default(),
             show_disclaimer: true,
