@@ -52,11 +52,10 @@ use common::{
     vol::{ReadVol, RectVolSize, WriteVol},
 };
 use common_net::msg::{world_msg, WorldMapMsg};
-use rand::Rng;
+use rand::{prelude::*, Rng};
+use rand_chacha::ChaCha8Rng;
 use serde::Deserialize;
 use std::time::Duration;
-use rand_chacha::ChaCha8Rng;
-use rand::prelude::*;
 use vek::*;
 
 #[derive(Debug)]

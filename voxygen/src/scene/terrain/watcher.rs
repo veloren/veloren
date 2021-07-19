@@ -60,27 +60,54 @@ impl BlocksOfInterest {
 
         let mut rng = ChaCha8Rng::from_seed(thread_rng().gen());
 
-        chunk
-            .iter_changed()
-            .for_each(|(pos, block)| {
-                match block.kind() {
-                    BlockKind::Leaves if rng.gen_range(0..16) == 0 => leaves.push(pos),
-                    BlockKind::WeakRock if rng.gen_range(0..6) == 0 => drip.push(pos),
-                    BlockKind::Grass => {
-                        if rng.gen_range(0..16) == 0 {
-                            grass.push(pos);
-                        }
-                        match rng.gen_range(0..8192) {
-                            1 => cricket1.push(pos),
-                            2 => cricket2.push(pos),
-                            3 => cricket3.push(pos),
-                            _ => {},
+        chunk.iter_changed().for_each(|(pos, block)| {
+            match block.kind() {
+                BlockKind::Leaves if rng.gen_range(0..16) == 0 => leaves.push(pos),
+                BlockKind::WeakRock if rng.gen_range(0..6) == 0 => drip.push(pos),
+                BlockKind::Grass => {
+                    if rng.gen_range(0..16) == 0 {
+                        grass.push(pos);
+                    }
+                    match rng.gen_range(0..8192) {
+                        1 => cricket1.push(pos),
+                        2 => cricket2.push(pos),
+                        3 => cricket3.push(pos),
+                        _ => {},
+                    }
+                },
+                BlockKind::Water if chunk.meta().contains_river() && rng.gen_range(0..16) == 0 => {
+                    river.push(pos)
+                },
+                BlockKind::Snow if rng.gen_range(0..16) == 0 => snow.push(pos),
+                _ => match block.get_sprite() {
+                    Some(SpriteKind::Ember) => {
+                        fires.push(pos);
+                        smokers.push(pos);
+                    },
+                    // Offset positions to account for block height.
+                    // TODO: Is this a good idea?
+                    Some(SpriteKind::StreetLamp) => fire_bowls.push(pos + Vec3::unit_z() * 2),
+                    Some(SpriteKind::FireBowlGround) => fire_bowls.push(pos + Vec3::unit_z()),
+                    Some(SpriteKind::StreetLampTall) => fire_bowls.push(pos + Vec3::unit_z() * 4),
+                    Some(SpriteKind::WallSconce) => fire_bowls.push(pos + Vec3::unit_z()),
+                    Some(SpriteKind::Beehive) => beehives.push(pos),
+                    Some(SpriteKind::CrystalHigh) => fireflies.push(pos),
+                    Some(SpriteKind::Reed) => {
+                        reeds.push(pos);
+                        fireflies.push(pos);
+                        if rng.gen_range(0..12) == 0 {
+                            frogs.push(pos);
                         }
                     },
-                    BlockKind::Water
-                        if chunk.meta().contains_river() && rng.gen_range(0..16) == 0 =>
-                    {
-                        river.push(pos)
+                    Some(SpriteKind::CaveMushroom) => fireflies.push(pos),
+                    Some(SpriteKind::PinkFlower) => flowers.push(pos),
+                    Some(SpriteKind::PurpleFlower) => flowers.push(pos),
+                    Some(SpriteKind::RedFlower) => flowers.push(pos),
+                    Some(SpriteKind::WhiteFlower) => flowers.push(pos),
+                    Some(SpriteKind::YellowFlower) => flowers.push(pos),
+                    Some(SpriteKind::Sunflower) => flowers.push(pos),
+                    Some(SpriteKind::CraftingBench) => {
+                        interactables.push((pos, Interaction::Craft(CraftingTab::All)))
                     },
                     BlockKind::Lava if rng.gen_range(0..5) == 0 => fires.push(pos + Vec3::unit_z()),
                     BlockKind::Snow if rng.gen_range(0..16) == 0 => snow.push(pos),
@@ -143,14 +170,16 @@ impl BlocksOfInterest {
                         },
                         _ => {},
                     },
-                }
-                if block.is_collectible() {
-                    interactables.push((pos, Interaction::Collect));
-                }
-                if let Some(glow) = block.get_glow() {
-                    lights.push((pos, glow));
-                }
-            });
+                    _ => {},
+                },
+            }
+            if block.is_collectible() {
+                interactables.push((pos, Interaction::Collect));
+            }
+            if let Some(glow) = block.get_glow() {
+                lights.push((pos, glow));
+            }
+        });
 
         Self {
             leaves,
