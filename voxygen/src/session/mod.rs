@@ -259,7 +259,9 @@ impl SessionState {
                 },
                 client::Event::SetViewDistance(vd) => {
                     global_state.settings.graphics.view_distance = vd;
-                    global_state.settings.save_to_file_warn();
+                    global_state
+                        .settings
+                        .save_to_file_warn(&global_state.config_dir);
                 },
                 client::Event::Outcome(outcome) => outcomes.push(outcome),
                 client::Event::CharacterCreated(_) => {},
@@ -1305,7 +1307,9 @@ impl PlayState for SessionState {
                             state.slots,
                         );
 
-                        global_state.profile.save_to_file_warn();
+                        global_state
+                            .profile
+                            .save_to_file_warn(&global_state.config_dir);
 
                         info!("Event! -> ChangedHotbarState")
                     },

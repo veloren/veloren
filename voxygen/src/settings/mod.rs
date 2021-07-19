@@ -1,6 +1,9 @@
 use directories_next::UserDirs;
 use serde::{Deserialize, Serialize};
-use std::{fs, path::PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 use tracing::warn;
 
 pub mod audio;
@@ -30,31 +33,10 @@ pub struct Log {
     // Whether to create a log file or not.
     // Default is to create one.
     pub log_to_file: bool,
-    // The path on which the logs will be stored
-    pub logs_path: PathBuf,
 }
 
 impl Default for Log {
-    fn default() -> Self {
-        // Chooses a path to store the logs by the following order:
-        //  - The VOXYGEN_LOGS environment variable
-        //  - The ProjectsDirs data local directory
-        // This function is only called if there isn't already an entry in the settings
-        // file. However, the VOXYGEN_LOGS environment variable always overrides
-        // the log file path if set.
-        let logs_path = std::env::var_os("VOXYGEN_LOGS")
-            .map(PathBuf::from)
-            .unwrap_or_else(|| {
-                let mut path = voxygen_data_dir();
-                path.push("logs");
-                path
-            });
-
-        Self {
-            log_to_file: true,
-            logs_path,
-        }
-    }
+    fn default() -> Self { Self { log_to_file: true } }
 }
 
 /// `Settings` contains everything that can be configured in the settings.ron
@@ -118,25 +100,12 @@ impl Default for Settings {
 }
 
 impl Settings {
-    pub fn load() -> Self {
-        let path = Self::get_settings_path();
+    pub fn load(config_dir: &Path) -> Self {
+        let path = Self::get_path(config_dir);
 
         if let Ok(file) = fs::File::open(&path) {
             match ron::de::from_reader::<_, Self>(file) {
-                Ok(mut s) => {
-                    // Override the logs path if it is explicitly set using the VOXYGEN_LOGS
-                    // environment variable. This is needed to support package managers that enforce
-                    // strict application confinement (e.g. snap). In fact, the veloren snap package
-                    // relies on this environment variable to be respected in
-                    // order to communicate a path where the snap package is
-                    // allowed to write to.
-                    if let Some(logs_path_override) =
-                        std::env::var_os("VOXYGEN_LOGS").map(PathBuf::from)
-                    {
-                        s.log.logs_path = logs_path_override;
-                    }
-                    return s;
-                },
+                Ok(s) => return s,
                 Err(e) => {
                     warn!(?e, "Failed to parse setting file! Fallback to default.");
                     // Rename the corrupted settings file
@@ -153,18 +122,18 @@ impl Settings {
         // - The file can't be opened (presumably it doesn't exist)
         // - Or there was an error parsing the file
         let default_settings = Self::default();
-        default_settings.save_to_file_warn();
+        default_settings.save_to_file_warn(config_dir);
         default_settings
     }
 
-    pub fn save_to_file_warn(&self) {
-        if let Err(e) = self.save_to_file() {
+    pub fn save_to_file_warn(&self, config_dir: &Path) {
+        if let Err(e) = self.save_to_file(config_dir) {
             warn!(?e, "Failed to save settings");
         }
     }
 
-    pub fn save_to_file(&self) -> std::io::Result<()> {
-        let path = Self::get_settings_path();
+    pub fn save_to_file(&self, config_dir: &Path) -> std::io::Result<()> {
+        let path = Self::get_path(config_dir);
         if let Some(dir) = path.parent() {
             fs::create_dir_all(dir)?;
         }
@@ -173,25 +142,5 @@ impl Settings {
         fs::write(path, ron.as_bytes())
     }
 
-    pub fn get_settings_path() -> PathBuf {
-        if let Some(path) = std::env::var_os("VOXYGEN_CONFIG") {
-            let settings = PathBuf::from(&path).join("settings.ron");
-            if settings.exists() || settings.parent().map(|x| x.exists()).unwrap_or(false) {
-                return settings;
-            }
-            warn!(?path, "VOXYGEN_CONFIG points to invalid path.");
-        }
-
-        let mut path = voxygen_data_dir();
-        path.push("settings.ron");
-        path
-    }
-}
-
-pub fn voxygen_data_dir() -> PathBuf {
-    // Note: since voxygen is technically a lib we made need to lift this up to
-    // run.rs
-    let mut path = common_base::userdata_dir_workspace!();
-    path.push("voxygen");
-    path
+    fn get_path(config_dir: &Path) -> PathBuf { config_dir.join("settings.ron") }
 }
