@@ -741,7 +741,13 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                     && dist > head_radius * 0.85
                     && dynamic_rng.gen_bool(0.1)
                 {
-                    return Some(Block::air(SpriteKind::Orb));
+                    use SpriteKind::*;
+                    let sprites = if dynamic_rng.gen_bool(0.1) {
+                        &[Beehive, Lantern]
+                    } else {
+                        &[Orb, Liana]
+                    };
+                    return Some(Block::air(*sprites.choose(dynamic_rng).unwrap()));
                 }
             }
         }
@@ -852,6 +858,11 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                 mushroom_block
             } else if z < water_level {
                 Block::water(SpriteKind::Empty)
+                    .with_sprite(if z == cavern_bottom + floor && dynamic_rng.gen_bool(0.01) {
+                        SpriteKind::CaveMushroom
+                    } else {
+                        SpriteKind::Empty
+                    })
             } else if z == cavern_bottom + floor && dynamic_rng.gen_bool(0.025) && on_ground {
                 Block::air(
                     *[
@@ -863,9 +874,11 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                         Pyrebloom,
                         Moonbell,
                         Welwitch,
+                        LargeGrass,
                         LongGrass,
                         MediumGrass,
                         ShortGrass,
+                        GrassBlue,
                     ]
                     .choose(dynamic_rng)
                     .unwrap(),
