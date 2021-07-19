@@ -711,9 +711,12 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                 let head_dist = ((rpos - Vec3::unit_z() * mushroom.stalk)
                     / Vec2::broadcast(head_radius).with_z(head_height))
                 .magnitude();
+
+                let stalk = mushroom.stalk + Lerp::lerp(head_height * 0.5, 0.0, dist / head_radius);
+
                 // Head
-                if rpos.z > mushroom.stalk
-                    && rpos.z < mushroom.stalk + head_height
+                if rpos.z > stalk
+                    && rpos.z <= mushroom.stalk + head_height
                     && dist
                         < head_radius * (1.0 - (rpos.z - mushroom.stalk) / head_height).powf(0.125)
                 {
@@ -724,7 +727,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                     }
                 }
 
-                if rpos.z <= mushroom.stalk
+                if rpos.z <= mushroom.stalk + head_height - 1.0
                     && dist_sq
                         < (stalk_radius * Lerp::lerp(1.5, 0.75, rpos.z / mushroom.stalk)).powi(2)
                 {
