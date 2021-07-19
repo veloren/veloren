@@ -50,9 +50,12 @@ use crate::{
 use common::clock::Clock;
 use common_base::span;
 use i18n::LocalizationHandle;
+use std::path::PathBuf;
 
 /// A type used to store state that is shared between all play states.
 pub struct GlobalState {
+    pub userdata_dir: PathBuf,
+    pub config_dir: PathBuf,
     pub settings: Settings,
     pub profile: Profile,
     pub window: Window,

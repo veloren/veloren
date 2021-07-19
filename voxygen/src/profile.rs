@@ -1,8 +1,12 @@
-use crate::{hud, settings};
+use crate::hud;
 use common::{character::CharacterId, comp::slot::InvSlotId};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use std::{fs, io::Write, path::PathBuf};
+use std::{
+    fs,
+    io::Write,
+    path::{Path, PathBuf},
+};
 use tracing::warn;
 
 /// Represents a character in the profile.
@@ -76,8 +80,8 @@ impl Default for Profile {
 
 impl Profile {
     /// Load the profile.ron file from the standard path or create it.
-    pub fn load() -> Self {
-        let path = Profile::get_path();
+    pub fn load(config_dir: &Path) -> Self {
+        let path = Profile::get_path(config_dir);
 
         if let Ok(file) = fs::File::open(&path) {
             match ron::de::from_reader(file) {
@@ -100,13 +104,13 @@ impl Profile {
         // - The file can't be opened (presumably it doesn't exist)
         // - Or there was an error parsing the file
         let default_profile = Self::default();
-        default_profile.save_to_file_warn();
+        default_profile.save_to_file_warn(config_dir);
         default_profile
     }
 
     /// Save the current profile to disk, warn on failure.
-    pub fn save_to_file_warn(&self) {
-        if let Err(e) = self.save_to_file() {
+    pub fn save_to_file_warn(&self, config_dir: &Path) {
+        if let Err(e) = self.save_to_file(config_dir) {
             warn!(?e, "Failed to save profile");
         }
     }
@@ -194,8 +198,8 @@ impl Profile {
     }
 
     /// Save the current profile to disk.
-    fn save_to_file(&self) -> std::io::Result<()> {
-        let path = Profile::get_path();
+    fn save_to_file(&self, config_dir: &Path) -> std::io::Result<()> {
+        let path = Profile::get_path(config_dir);
         if let Some(dir) = path.parent() {
             fs::create_dir_all(dir)?;
         }
@@ -206,19 +210,7 @@ impl Profile {
         Ok(())
     }
 
-    fn get_path() -> PathBuf {
-        if let Some(path) = std::env::var_os("VOXYGEN_CONFIG") {
-            let profile = PathBuf::from(path.clone()).join("profile.ron");
-            if profile.exists() || profile.parent().map(|x| x.exists()).unwrap_or(false) {
-                return profile;
-            }
-            warn!(?path, "VOXYGEN_CONFIG points to invalid path.");
-        }
-
-        let mut path = settings::voxygen_data_dir();
-        path.push("profile.ron");
-        path
-    }
+    fn get_path(config_dir: &Path) -> PathBuf { config_dir.join("profile.ron") }
 }
 
 #[cfg(test)]

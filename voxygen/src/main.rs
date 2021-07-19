@@ -17,31 +17,52 @@ use veloren_voxygen::{
 #[cfg(feature = "hot-reloading")]
 use common::assets;
 use common::clock::Clock;
-use std::panic;
+use std::{panic, path::PathBuf};
 use tracing::{error, info, warn};
 #[cfg(feature = "egui-ui")]
 use veloren_voxygen::ui::egui::EguiState;
 
 #[allow(clippy::manual_unwrap_or)]
 fn main() {
+    let userdata_dir = common_base::userdata_dir_workspace!();
+
+    // Determine where Voxygen's logs should go
+    // Choose a path to store the logs by the following order:
+    //  - The VOXYGEN_LOGS environment variable
+    //  - The <userdata>/voxygen/logs
+    let logs_dir = std::env::var_os("VOXYGEN_LOGS")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| userdata_dir.join("voxygen").join("logs"));
+
+    // Init logging and hold the guards.
+    const LOG_FILENAME: &str = "voxygen.log";
+    let _guards = common_frontend::init_stdout(Some((&logs_dir, LOG_FILENAME)));
+
+    info!("Using userdata dir at: {}", userdata_dir.display());
+
+    // Determine Voxygen's config directory either by env var or placed in veloren's
+    // userdata folder
+    let config_dir = std::env::var_os("VOXYGEN_CONFIG")
+        .map(PathBuf::from)
+        .and_then(|path| {
+            if path.exists() {
+                Some(path)
+            } else {
+                warn!(?path, "VOXYGEN_CONFIG points to invalid path.");
+                None
+            }
+        })
+        .unwrap_or_else(|| userdata_dir.join("voxygen"));
+    info!("Using config dir at: {}", config_dir.display());
+
     // Load the settings
     // Note: This won't log anything due to it being called before
     // `logging::init`. The issue is we need to read a setting to decide
     // whether we create a log file or not.
-    let mut settings = Settings::load();
+    let mut settings = Settings::load(&config_dir);
     // Save settings to add new fields or create the file if it is not already there
-    if let Err(err) = settings.save_to_file() {
+    if let Err(err) = settings.save_to_file(&config_dir) {
         panic!("Failed to save settings: {:?}", err);
-    }
-
-    // Init logging and hold the guards.
-    const LOG_FILENAME: &str = "voxygen.log";
-    let _guards = common_frontend::init_stdout(Some((&settings.log.logs_path, LOG_FILENAME)));
-
-    if let Some(path) = veloren_voxygen::settings::voxygen_data_dir().parent() {
-        info!("Using userdata dir at: {}", path.display());
-    } else {
-        error!("Can't log userdata dir, voxygen data dir has no parent!");
     }
 
     // Set up panic handler to relay swish panic messages to the user
@@ -92,9 +113,7 @@ fn main() {
             Panic Payload: {:?}\n\
             PanicInfo: {}\n\
             Game version: {} [{}]",
-            Settings::load()
-                .log
-                .logs_path
+            logs_dir
                 .join("voxygen-<date>.log")
                 .display(),
             reason,
@@ -171,7 +190,7 @@ fn main() {
     audio.set_sfx_volume(settings.audio.sfx_volume);
 
     // Load the profile.
-    let profile = Profile::load();
+    let profile = Profile::load(&config_dir);
 
     let mut i18n =
         LocalizationHandle::load(&settings.language.selected_language).unwrap_or_else(|error| {
@@ -198,6 +217,8 @@ fn main() {
     let egui_state = EguiState::new(&window);
 
     let global_state = GlobalState {
+        userdata_dir,
+        config_dir,
         audio,
         profile,
         window,

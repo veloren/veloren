@@ -175,7 +175,9 @@ impl PlayState for MainMenuState {
                         match event {
                             client::Event::SetViewDistance(vd) => {
                                 global_state.settings.graphics.view_distance = vd;
-                                global_state.settings.save_to_file_warn();
+                                global_state
+                                    .settings
+                                    .save_to_file_warn(&global_state.config_dir);
                             },
                             client::Event::Disconnect => {
                                 global_state.info_message = Some(
@@ -238,7 +240,9 @@ impl PlayState for MainMenuState {
                     if !net_settings.servers.contains(&server_address) {
                         net_settings.servers.push(server_address.clone());
                     }
-                    global_state.settings.save_to_file_warn();
+                    global_state
+                        .settings
+                        .save_to_file_warn(&global_state.config_dir);
 
                     let connection_args = if use_quic {
                         ConnectionArgs::Quic {
@@ -302,7 +306,9 @@ impl PlayState for MainMenuState {
                             .networking
                             .trusted_auth_servers
                             .insert(auth_server.clone());
-                        global_state.settings.save_to_file_warn();
+                        global_state
+                            .settings
+                            .save_to_file_warn(&global_state.config_dir);
                     }
                     self.init
                         .client()

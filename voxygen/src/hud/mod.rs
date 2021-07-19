@@ -3436,12 +3436,16 @@ impl Hud {
                     .clamped(1.25, max_zoom / 64.0);
 
                 global_state.settings.interface.map_zoom = new_zoom_lvl;
-                global_state.settings.save_to_file_warn();
+                global_state
+                    .settings
+                    .save_to_file_warn(&global_state.config_dir);
             } else if global_state.settings.interface.minimap_show {
                 let new_zoom_lvl = global_state.settings.interface.minimap_zoom * factor;
 
                 global_state.settings.interface.minimap_zoom = new_zoom_lvl;
-                global_state.settings.save_to_file_warn();
+                global_state
+                    .settings
+                    .save_to_file_warn(&global_state.config_dir);
             }
 
             show.map && global_state.settings.interface.minimap_show

@@ -703,7 +703,11 @@ impl Window {
 
     pub fn renderer_mut(&mut self) -> &mut Renderer { &mut self.renderer }
 
-    pub fn resolve_deduplicated_events(&mut self, settings: &mut Settings) {
+    pub fn resolve_deduplicated_events(
+        &mut self,
+        settings: &mut Settings,
+        config_dir: &std::path::Path,
+    ) {
         // Handle screenshots and toggling fullscreen
         if self.take_screenshot {
             self.take_screenshot = false;
@@ -711,7 +715,7 @@ impl Window {
         }
         if self.toggle_fullscreen {
             self.toggle_fullscreen = false;
-            self.toggle_fullscreen(settings);
+            self.toggle_fullscreen(settings, config_dir);
         }
     }
 
@@ -1170,7 +1174,7 @@ impl Window {
         }
     }
 
-    pub fn toggle_fullscreen(&mut self, settings: &mut Settings) {
+    pub fn toggle_fullscreen(&mut self, settings: &mut Settings, config_dir: &std::path::Path) {
         let fullscreen = FullScreenSettings {
             enabled: !self.is_fullscreen(),
             ..settings.graphics.fullscreen
@@ -1178,7 +1182,7 @@ impl Window {
 
         self.set_fullscreen_mode(fullscreen);
         settings.graphics.fullscreen = fullscreen;
-        settings.save_to_file_warn();
+        settings.save_to_file_warn(config_dir);
     }
 
     pub fn is_fullscreen(&self) -> bool { self.fullscreen.enabled }

@@ -202,7 +202,6 @@ impl SettingsChange {
                         global_state.audio.set_sfx_volume(audio.sfx_volume);
                     },
                 }
-                settings.save_to_file_warn();
             },
             SettingsChange::Chat(chat_change) => {
                 let chat_tabs = &mut settings.chat.chat_tabs;
@@ -242,7 +241,6 @@ impl SettingsChange {
                         settings.chat = ChatSettings::default();
                     },
                 }
-                settings.save_to_file_warn();
             },
             SettingsChange::Control(control_change) => match control_change {
                 Control::ChangeBinding(game_input) => {
@@ -250,7 +248,6 @@ impl SettingsChange {
                 },
                 Control::ResetKeyBindings => {
                     settings.controls = ControlSettings::default();
-                    settings.save_to_file_warn();
                 },
             },
             SettingsChange::Gamepad(gamepad_change) => match gamepad_change {},
@@ -323,7 +320,6 @@ impl SettingsChange {
                         window.mouse_y_inversion = settings.gameplay.mouse_y_inversion;
                     },
                 }
-                settings.save_to_file_warn();
             },
             SettingsChange::Graphics(graphics_change) => {
                 match graphics_change {
@@ -423,7 +419,6 @@ impl SettingsChange {
                         global_state.window.set_size(graphics.window_size.into());
                     },
                 }
-                settings.save_to_file_warn();
             },
             SettingsChange::Interface(interface_change) => {
                 match interface_change {
@@ -534,7 +529,6 @@ impl SettingsChange {
                             .set_scaling_mode(settings.interface.ui_scale);
                     },
                 }
-                settings.save_to_file_warn();
             },
             SettingsChange::Language(language_change) => match language_change {
                 Language::ChangeLanguage(new_language) => {
@@ -556,5 +550,6 @@ impl SettingsChange {
             },
             SettingsChange::Networking(networking_change) => match networking_change {},
         }
+        settings.save_to_file_warn(&global_state.config_dir);
     }
 }

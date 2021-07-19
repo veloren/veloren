@@ -83,8 +83,12 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
             },
             winit::event::Event::LoopDestroyed => {
                 // Save any unsaved changes to settings and profile
-                global_state.settings.save_to_file_warn();
-                global_state.profile.save_to_file_warn();
+                global_state
+                    .settings
+                    .save_to_file_warn(&global_state.config_dir);
+                global_state
+                    .profile
+                    .save_to_file_warn(&global_state.config_dir);
             },
             _ => {},
         }
@@ -100,7 +104,7 @@ fn handle_main_events_cleared(
     // Screenshot / Fullscreen toggle
     global_state
         .window
-        .resolve_deduplicated_events(&mut global_state.settings);
+        .resolve_deduplicated_events(&mut global_state.settings, &global_state.config_dir);
     // Run tick here
 
     // What's going on here?

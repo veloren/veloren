@@ -139,7 +139,9 @@ impl PlayState for CharSelectionState {
                         global_state
                             .profile
                             .set_selected_character(server_name, selected);
-                        global_state.profile.save_to_file_warn();
+                        global_state
+                            .profile
+                            .save_to_file_warn(&global_state.config_dir);
                     },
                 }
             }
@@ -185,7 +187,9 @@ impl PlayState for CharSelectionState {
                         match event {
                             client::Event::SetViewDistance(vd) => {
                                 global_state.settings.graphics.view_distance = vd;
-                                global_state.settings.save_to_file_warn();
+                                global_state
+                                    .settings
+                                    .save_to_file_warn(&global_state.config_dir);
                             },
                             client::Event::Disconnect => {
                                 global_state.info_message = Some(
