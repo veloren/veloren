@@ -10,11 +10,11 @@ pub struct SkeletonAttr;
 impl<'a, Factor> Lerp<Factor> for &'a FixtureSkeleton {
     type Output = FixtureSkeleton;
 
+    fn lerp_unclamped(_from: Self, _to: Self, _factor: Factor) -> Self::Output { FixtureSkeleton }
+
     fn lerp_unclamped_precise(_from: Self, _to: Self, _factor: Factor) -> Self::Output {
         FixtureSkeleton
     }
-
-    fn lerp_unclamped(_from: Self, _to: Self, _factor: Factor) -> Self::Output { FixtureSkeleton }
 }
 
 impl Skeleton for FixtureSkeleton {

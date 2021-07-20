@@ -250,25 +250,6 @@ where
         layout::Node::with_children(size, vec![content])
     }
 
-    fn on_event(
-        &mut self,
-        event: Event,
-        layout: Layout<'_>,
-        cursor_position: Point,
-        renderer: &R,
-        clipboard: &mut dyn Clipboard,
-        messages: &mut Vec<M>,
-    ) -> iced::event::Status {
-        self.content.on_event(
-            event,
-            layout.children().next().unwrap(),
-            cursor_position,
-            renderer,
-            clipboard,
-            messages,
-        )
-    }
-
     fn draw(
         &self,
         renderer: &mut R,
@@ -301,6 +282,25 @@ where
         // TODO: add pixel dims (need renderer)
 
         self.content.hash_layout(state);
+    }
+
+    fn on_event(
+        &mut self,
+        event: Event,
+        layout: Layout<'_>,
+        cursor_position: Point,
+        renderer: &R,
+        clipboard: &mut dyn Clipboard,
+        messages: &mut Vec<M>,
+    ) -> iced::event::Status {
+        self.content.on_event(
+            event,
+            layout.children().next().unwrap(),
+            cursor_position,
+            renderer,
+            clipboard,
+            messages,
+        )
     }
 
     fn overlay(&mut self, layout: Layout<'_>) -> Option<iced::overlay::Element<'_, M, R>> {

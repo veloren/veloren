@@ -23,6 +23,12 @@ impl CharacterBehavior for Data {
         update
     }
 
+    fn manipulate_loadout(&self, data: &JoinData, inv_action: InventoryAction) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        handle_manipulate_loadout(data, &mut update, inv_action);
+        update
+    }
+
     fn wield(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         attempt_wield(data, &mut update);
@@ -39,12 +45,6 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
         // Try to Fall/Stand up/Move
         update.character = CharacterState::Idle;
-        update
-    }
-
-    fn manipulate_loadout(&self, data: &JoinData, inv_action: InventoryAction) -> StateUpdate {
-        let mut update = StateUpdate::from(data);
-        handle_manipulate_loadout(data, &mut update, inv_action);
         update
     }
 }
