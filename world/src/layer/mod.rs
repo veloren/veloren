@@ -778,19 +778,22 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             .mul(24.0 + (cavern_avg_top - cavern_avg_bottom) as f64 * 0.2);
         let stalagtite_height = (stalagtite + mini_stalagtite) as i32;
 
+        let moss_common = 1.5;
         let moss = info
             .index()
             .noise
             .cave_nz
-            .get(wpos2d.map(|e| e as f64 * 0.05).into_array())
-            .sub(0.85)
+            .get(wpos2d.map(|e| e as f64 * 0.035).into_array())
+            .sub(1.0 - moss_common)
             .max(0.0)
+            .mul(1.0 / moss_common)
+            .powf(8.0 * moss_common)
             .mul(
                 ((cavern_top - cavern_bottom) as f64)
                     .mul(0.15)
                     .clamped(0.0, 1.0),
             )
-            .mul(64.0 + (cavern_avg_top - cavern_avg_bottom) as f64 * 5.0);
+            .mul(16.0 + (cavern_avg_top - cavern_avg_bottom) as f64 * 0.35);
 
         let is_vine = |wpos: Vec3<f32>, dynamic_rng: &mut R| {
             let wpos = wpos + wpos.xy().yx().with_z(0.0) * 0.2; // A little twist
@@ -809,7 +812,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                     < 1.0f32
                 {
                     let kind = if dynamic_rng.gen_bool(0.01) {
-                        BlockKind::GlowingMushroom
+                        BlockKind::GlowingRock
                     } else {
                         BlockKind::Leaves
                     };
@@ -856,6 +859,13 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                 }
             } else if let Some(mushroom_block) = get_mushroom(wpos, dynamic_rng) {
                 mushroom_block
+            } else if z > cavern_top - moss as i32 {
+                let kind = if dynamic_rng.gen_bool(0.05 / (1.0 + ((cavern_top - z).max(0) as f64).mul(0.1))) {
+                    BlockKind::GlowingMushroom
+                } else {
+                    BlockKind::Leaves
+                };
+                Block::new(kind, Rgb::new(50, 120, 160))
             } else if z < water_level {
                 Block::water(SpriteKind::Empty)
                     .with_sprite(if z == cavern_bottom + floor && dynamic_rng.gen_bool(0.01) {
@@ -883,7 +893,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                     .choose(dynamic_rng)
                     .unwrap(),
                 )
-            } else if z == cavern_top - 1 && dynamic_rng.gen_bool(0.01) {
+            } else if z == cavern_top - 1 && dynamic_rng.gen_bool(0.001) {
                 Block::air(
                     *[CrystalHigh, CeilingMushroom, Orb]
                         .choose(dynamic_rng)
@@ -893,13 +903,6 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                 .or_else(|| is_vine(wposf.xy().yx().with_z(wposf.z), dynamic_rng))
             {
                 vine
-            } else if z > cavern_top - moss as i32 {
-                let kind = if dynamic_rng.gen_bool(0.01) {
-                    BlockKind::GlowingMushroom
-                } else {
-                    BlockKind::Leaves
-                };
-                Block::new(kind, Rgb::new(0, 85, 50))
             } else {
                 Block::empty()
             };
