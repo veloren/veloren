@@ -29,10 +29,12 @@ use common::comp::{
     Energy, Health, Inventory, SkillSet,
 };
 use conrod_core::{
+    UiCell,
     color,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use std::cmp;
 use vek::*;
 
 widget_ids! {
@@ -373,20 +375,22 @@ impl<'a> Widget for Skillbar<'a> {
         common_base::prof_span!("Skillbar::update");
         let widget::UpdateArgs { state, ui, .. } = args;
 
-        let max_hp = self.health.base_max().max(self.health.maximum());
-
-        let mut hp_percentage = self.health.current() as f64 / max_hp as f64 * 100.0;
-        let mut energy_percentage =
-            self.energy.current() as f64 / self.energy.maximum() as f64 * 100.0;
-        if self.health.is_dead {
-            hp_percentage = 0.0;
-            energy_percentage = 0.0;
+        let (hp_percentage, energy_percentage): (f64, f64) = if self.health.is_dead {
+            (0.0, 0.0)
+        } else {
+            let max_hp = cmp::max(self.health.base_max(), self.health.maximum()) as f64;
+            let current_hp = self.health.current() as f64;
+            (
+                current_hp / max_hp * 100.0,
+                (self.energy.fraction() * 100.0).into(),
+            )
         };
 
         let bar_values = self.global_state.settings.interface.bar_numbers;
         let shortcuts = self.global_state.settings.interface.shortcut_numbers;
 
-        let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
+        // Animation timer
+        let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8;
         let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
 
         let localized_strings = self.localized_strings;
@@ -514,81 +518,63 @@ impl<'a> Widget for Skillbar<'a> {
                 .set(state.ids.frame_stamina, ui);
         }
         // Bar Text
-        // Values
-        if let BarNumbers::Values = bar_values {
-            let mut hp_txt = format!(
-                "{}/{}",
-                (self.health.current() / 10).max(1) as u32, /* Don't show 0 health for
-                                                             * living players */
-                (self.health.maximum() / 10) as u32
-            );
-            let mut energy_txt = format!(
-                "{}/{}",
-                (self.energy.current() / 10) as u32,
-                (self.energy.maximum() / 10) as u32
-            );
-            if self.health.is_dead {
-                hp_txt = self.localized_strings.get("hud.group.dead").to_string();
-                energy_txt = self.localized_strings.get("hud.group.dead").to_string();
-            };
-            Text::new(&hp_txt)
+        let show_bar_text = |hp_txt: &str, energy_txt: &str, ui: &mut UiCell| {
+            Text::new(hp_txt)
                 .middle_of(state.ids.frame_health)
                 .font_size(self.fonts.cyri.scale(12))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .set(state.ids.hp_txt_bg, ui);
-            Text::new(&hp_txt)
+            Text::new(hp_txt)
                 .bottom_left_with_margins_on(state.ids.hp_txt_bg, 2.0, 2.0)
                 .font_size(self.fonts.cyri.scale(12))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.hp_txt, ui);
-            Text::new(&energy_txt)
+            Text::new(energy_txt)
                 .middle_of(state.ids.frame_stamina)
                 .font_size(self.fonts.cyri.scale(12))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .set(state.ids.stamina_txt_bg, ui);
-            Text::new(&energy_txt)
+            Text::new(energy_txt)
                 .bottom_left_with_margins_on(state.ids.stamina_txt_bg, 2.0, 2.0)
                 .font_size(self.fonts.cyri.scale(12))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.stamina_txt, ui);
+        };
+        let bar_text = if self.health.is_dead {
+            Some((
+                self.localized_strings.get("hud.group.dead").to_owned(),
+                self.localized_strings.get("hud.group.dead").to_owned(),
+            ))
+        } else if let BarNumbers::Values = bar_values {
+            Some((
+                format!(
+                    "{}/{}",
+                    (self.health.current() / 10).max(1) as u32, /* Don't show 0 health for
+                                                                 * living players */
+                    (self.health.maximum() / 10) as u32
+                ),
+                format!(
+                    "{}/{}",
+                    (self.energy.current() / 10) as u32,
+                    (self.energy.maximum() / 10) as u32
+                ),
+            ))
+        } else if let BarNumbers::Percent = bar_values {
+            Some((
+                format!("{}%", hp_percentage as u32),
+                format!("{}%", energy_percentage as u32),
+            ))
+        } else {
+            None
+        };
+        if let Some((hp_txt, energy_txt)) = bar_text {
+            show_bar_text(&hp_txt, &energy_txt, ui);
         }
-        //Percentages
-        if let BarNumbers::Percent = bar_values {
-            let mut hp_txt = format!("{}%", hp_percentage as u32);
-            let mut energy_txt = format!("{}", energy_percentage as u32);
-            if self.health.is_dead {
-                hp_txt = self.localized_strings.get("hud.group.dead").to_string();
-                energy_txt = self.localized_strings.get("hud.group.dead").to_string();
-            };
-            Text::new(&hp_txt)
-                .middle_of(state.ids.frame_health)
-                .font_size(self.fonts.cyri.scale(12))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-                .set(state.ids.hp_txt_bg, ui);
-            Text::new(&hp_txt)
-                .bottom_left_with_margins_on(state.ids.hp_txt_bg, 2.0, 2.0)
-                .font_size(self.fonts.cyri.scale(12))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.hp_txt, ui);
-            Text::new(&energy_txt)
-                .middle_of(state.ids.frame_stamina)
-                .font_size(self.fonts.cyri.scale(12))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-                .set(state.ids.stamina_txt_bg, ui);
-            Text::new(&energy_txt)
-                .bottom_left_with_margins_on(state.ids.stamina_txt_bg, 2.0, 2.0)
-                .font_size(self.fonts.cyri.scale(12))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.stamina_txt, ui);
-        }
+
         // Slots
         // TODO: avoid this
         let content_source = (self.hotbar, self.inventory, self.energy, self.skillset);
@@ -683,11 +669,11 @@ impl<'a> Widget for Skillbar<'a> {
                         _ => None,
                     }),
                 hotbar::SlotContents::Ability4 => {
-                    let hands =
-                        |equip_slot| match inventory.equipped(equip_slot).map(|i| i.kind()) {
-                            Some(ItemKind::Tool(tool)) => Some(tool.hands),
-                            _ => None,
-                        };
+                    let hands = |equip_slot| match inventory.equipped(equip_slot).map(|i| i.kind())
+                    {
+                        Some(ItemKind::Tool(tool)) => Some(tool.hands),
+                        _ => None,
+                    };
 
                     let active_tool_hands = hands(EquipSlot::ActiveMainhand);
                     let second_tool_hands = hands(EquipSlot::ActiveOffhand);

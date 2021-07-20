@@ -2,6 +2,7 @@ use crate::comp::Body;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
+use std::cmp;
 
 pub const ENERGY_PER_LEVEL: u32 = 50;
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -116,6 +117,9 @@ impl Energy {
             });
         }
     }
+
+    /// Returns the fraction of energy an entity has remaining
+    pub fn fraction(&self) -> f32 { self.current as f32 / cmp::max(self.maximum, 1) as f32 }
 }
 
 pub struct EnergyChange {
