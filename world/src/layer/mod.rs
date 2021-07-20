@@ -795,6 +795,15 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             )
             .mul(16.0 + (cavern_avg_top - cavern_avg_bottom) as f64 * 0.35);
 
+        let plant_factor = info
+            .index()
+            .noise
+            .cave_nz
+            .get(wpos2d.map(|e| e as f64 * 0.015).into_array())
+            .add(1.0)
+            .mul(0.5)
+            .powf(2.0);
+
         let is_vine = |wpos: Vec3<f32>, dynamic_rng: &mut R| {
             let wpos = wpos + wpos.xy().yx().with_z(0.0) * 0.2; // A little twist
             let dims = Vec2::new(7.0, 256.0); // Long and thin
@@ -835,7 +844,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
         let water_level = cavern_avg_bottom as i32 + 16;
 
         let cavern_top = cavern_top as i32;
-        let mut on_ground = true;
+        let mut last_kind = BlockKind::Rock;
         for z in cavern_bottom - 1..cavern_top {
             use SpriteKind::*;
 
@@ -844,7 +853,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
 
             let block = if z < cavern_bottom {
                 if z > water_level + dynamic_rng.gen_range(4..16) {
-                    Block::new(BlockKind::Leaves, Rgb::new(40, 85, 70))
+                    Block::new(BlockKind::Grass, Rgb::new(10, 75, 90))
                 } else {
                     Block::new(BlockKind::Rock, Rgb::new(50, 40, 10))
                 }
@@ -871,14 +880,19 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             } else if z < water_level {
                 Block::water(SpriteKind::Empty).with_sprite(
                     if z == cavern_bottom + floor && dynamic_rng.gen_bool(0.01) {
-                        SpriteKind::CaveMushroom
+                        *[
+                            SpriteKind::Seagrass,
+                            SpriteKind::SeaGrapes,
+                            SpriteKind::SeaweedTemperate,
+                            SpriteKind::StonyCoral,
+                        ].choose(dynamic_rng).unwrap()
                     } else {
                         SpriteKind::Empty
                     },
                 )
-            } else if z == water_level && dynamic_rng.gen_bool(0.01) && !on_ground {
+            } else if z == water_level && dynamic_rng.gen_bool(Lerp::lerp(0.0, 0.05, plant_factor)) && last_kind == BlockKind::Water {
                 Block::air(SpriteKind::CavernLillypadBlue)
-            } else if z == cavern_bottom + floor && dynamic_rng.gen_bool(0.1) && on_ground {
+            } else if z == cavern_bottom + floor && dynamic_rng.gen_bool(Lerp::lerp(0.0, 0.5, plant_factor)) && last_kind == BlockKind::Grass {
                 Block::air(
                     *if dynamic_rng.gen_bool(0.9) {
                         &[
@@ -919,7 +933,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                 Block::empty()
             };
 
-            on_ground |= block.is_solid();
+            last_kind = block.kind();
 
             let _ = canvas.set(wpos, block);
         }
