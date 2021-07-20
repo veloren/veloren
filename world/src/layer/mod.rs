@@ -653,6 +653,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             cavern_avg_top,
             floor,
             stalagtite,
+            cavern_avg_bottom as i32 + 16, // Water level
         )
     };
 
@@ -670,10 +671,11 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             let mushroom = if let Some(mushroom) =
                 mushroom_cache.entry(wpos2d).or_insert_with(|| {
                     let mut rng = RandomPerm::new(seed);
-                    let (cavern_bottom, cavern_top, _, _, floor, _) = cavern_at(wpos2d);
-                    if rng.gen_bool(0.1) && cavern_top - cavern_bottom > 32 {
+                    let (cavern_bottom, cavern_top, _, _, floor, _, water_level) = cavern_at(wpos2d);
+                    let pos = wpos2d.with_z(cavern_bottom + floor);
+                    if rng.gen_bool(0.15) && cavern_top - cavern_bottom > 32 && pos.z as i32 > water_level - 2 {
                         Some(Mushroom {
-                            pos: wpos2d.with_z(cavern_bottom + floor),
+                            pos,
                             stalk: 12.0 + rng.gen::<f32>().powf(2.0) * 35.0,
                             head_color: Rgb::new(
                                 50,
@@ -760,7 +762,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             return;
         }
 
-        let (cavern_bottom, cavern_top, cavern_avg_bottom, cavern_avg_top, floor, stalagtite) =
+        let (cavern_bottom, cavern_top, cavern_avg_bottom, cavern_avg_top, floor, stalagtite, water_level) =
             cavern_at(wpos2d);
 
         let mini_stalagtite = info
@@ -841,8 +843,6 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             }
         };
 
-        let water_level = cavern_avg_bottom as i32 + 16;
-
         let cavern_top = cavern_top as i32;
         let mut last_kind = BlockKind::Rock;
         for z in cavern_bottom - 1..cavern_top {
@@ -894,25 +894,23 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                 Block::air(SpriteKind::CavernLillypadBlue)
             } else if z == cavern_bottom + floor && dynamic_rng.gen_bool(Lerp::lerp(0.0, 0.5, plant_factor)) && last_kind == BlockKind::Grass {
                 Block::air(
-                    *if dynamic_rng.gen_bool(0.9) {
+                    *if dynamic_rng.gen_bool(0.9) { // High density
                         &[
                             CavernGrassBlueShort,
                             CavernGrassBlueMedium,
                             CavernGrassBlueLong,
                         ] as &[_]
-                    } else {
+                    } else if dynamic_rng.gen_bool(0.5) { // Medium density
                         &[
                             CaveMushroom,
+                        ] as &[_]
+                    } else { // Low density
+                        &[
                             LeafyPlant,
                             Fern,
-                            Reed,
                             Pyrebloom,
                             Moonbell,
                             Welwitch,
-                            LargeGrass,
-                            LongGrass,
-                            MediumGrass,
-                            ShortGrass,
                             GrassBlue,
                         ] as &[_]
                     }
