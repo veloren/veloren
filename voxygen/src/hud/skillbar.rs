@@ -177,7 +177,7 @@ struct SlotEntry {
     shortcut_widget_ids: (widget::Id, widget::Id),
 }
 
-fn slots_entries(state: &State, slot_offset: f64) -> [SlotEntry; 10] {
+fn slot_entries(state: &State, slot_offset: f64) -> [SlotEntry; 10] {
     use PositionSpecifier::*;
 
     [
@@ -590,7 +590,8 @@ impl<'a> Widget for Skillbar<'a> {
                 .set(state.ids.stamina_txt, ui);
         }
         // Slots
-        let content_source = (self.hotbar, self.inventory, self.energy, self.skillset); // TODO: avoid this
+        // TODO: avoid this
+        let content_source = (self.hotbar, self.inventory, self.energy, self.skillset);
         let image_source = (self.item_imgs, self.imgs);
         let mut slot_maker = SlotMaker {
             // TODO: is a separate image needed for the frame?
@@ -660,74 +661,61 @@ impl<'a> Widget for Skillbar<'a> {
         .desc_text_color(TEXT_COLOR);
 
         let slot_content = |slot| {
-            content_source
-                .0
-                .get(slot)
-                .and_then(|content| match content {
-                    hotbar::SlotContents::Inventory(i) => content_source.1.get(i),
-                    _ => None,
-                })
+            let (hotbar, inventory, ..) = content_source;
+            hotbar.get(slot).and_then(|content| match content {
+                hotbar::SlotContents::Inventory(i) => inventory.get(i),
+                _ => None,
+            })
         };
 
         // Helper
         let tooltip_text = |slot| {
-            content_source
-                .0
-                .get(slot)
-                .and_then(|content| match content {
-                    hotbar::SlotContents::Inventory(i) => content_source
-                        .1
-                        .get(i)
-                        .map(|item| (item.name(), item.description())),
-                    hotbar::SlotContents::Ability3 => content_source
-                        .1
-                        .equipped(EquipSlot::ActiveMainhand)
-                        .map(|i| i.kind())
-                        .and_then(|kind| match kind {
-                            ItemKind::Tool(Tool { kind, .. }) => ability_description(kind),
-                            _ => None,
-                        }),
-                    hotbar::SlotContents::Ability4 => {
-                        let hands = |equip_slot| match content_source
-                            .1
-                            .equipped(equip_slot)
-                            .map(|i| i.kind())
-                        {
+            let (hotbar, inventory, ..) = content_source;
+            hotbar.get(slot).and_then(|content| match content {
+                hotbar::SlotContents::Inventory(i) => inventory
+                    .get(i)
+                    .map(|item| (item.name(), item.description())),
+                hotbar::SlotContents::Ability3 => inventory
+                    .equipped(EquipSlot::ActiveMainhand)
+                    .map(|i| i.kind())
+                    .and_then(|kind| match kind {
+                        ItemKind::Tool(Tool { kind, .. }) => ability_description(kind),
+                        _ => None,
+                    }),
+                hotbar::SlotContents::Ability4 => {
+                    let hands =
+                        |equip_slot| match inventory.equipped(equip_slot).map(|i| i.kind()) {
                             Some(ItemKind::Tool(tool)) => Some(tool.hands),
                             _ => None,
                         };
 
-                        let active_tool_hands = hands(EquipSlot::ActiveMainhand);
-                        let second_tool_hands = hands(EquipSlot::ActiveOffhand);
+                    let active_tool_hands = hands(EquipSlot::ActiveMainhand);
+                    let second_tool_hands = hands(EquipSlot::ActiveOffhand);
 
-                        let equip_slot = match (active_tool_hands, second_tool_hands) {
-                            (Some(Hands::Two), _) => Some(EquipSlot::ActiveMainhand),
-                            (Some(_), Some(Hands::One)) => Some(EquipSlot::ActiveOffhand),
-                            (Some(Hands::One), _) => Some(EquipSlot::ActiveMainhand),
-                            (None, Some(_)) => Some(EquipSlot::ActiveOffhand),
-                            (_, _) => None,
-                        };
+                    let equip_slot = match (active_tool_hands, second_tool_hands) {
+                        (Some(Hands::Two), _) => Some(EquipSlot::ActiveMainhand),
+                        (Some(_), Some(Hands::One)) => Some(EquipSlot::ActiveOffhand),
+                        (Some(Hands::One), _) => Some(EquipSlot::ActiveMainhand),
+                        (None, Some(_)) => Some(EquipSlot::ActiveOffhand),
+                        (_, _) => None,
+                    };
 
-                        if let Some(equip_slot) = equip_slot {
-                            content_source
-                                .1
-                                .equipped(equip_slot)
-                                .map(|i| i.kind())
-                                .and_then(|kind| match kind {
-                                    ItemKind::Tool(Tool { kind, .. }) => ability_description(kind),
-                                    _ => None,
-                                })
-                        } else {
-                            None
-                        }
-                    },
-                })
+                    equip_slot.and_then(|equip_slot| {
+                        inventory
+                            .equipped(equip_slot)
+                            .map(|i| i.kind())
+                            .and_then(|kind| match kind {
+                                ItemKind::Tool(Tool { kind, .. }) => ability_description(kind),
+                                _ => None,
+                            })
+                    })
+                },
+            })
         };
-
-        let slots = slots_entries(state, slot_offset);
 
         slot_maker.empty_slot = self.imgs.skillbar_slot;
         slot_maker.selected_slot = self.imgs.skillbar_slot;
+        let slots = slot_entries(state, slot_offset);
         for entry in slots {
             let slot = slot_maker
                 .fabricate(entry.slot, [40.0; 2])
