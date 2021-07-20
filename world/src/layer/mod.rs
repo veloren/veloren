@@ -822,7 +822,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                     .magnitude_squared()
                     < 1.0f32
                 {
-                    let kind = if dynamic_rng.gen_bool(0.01) {
+                    let kind = if dynamic_rng.gen_bool(0.025) {
                         BlockKind::GlowingRock
                     } else {
                         BlockKind::Leaves
@@ -830,9 +830,9 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                     Some(Block::new(
                         kind,
                         Rgb::new(
-                            0,
+                            85,
                             (vine_y + vine_reach).mul(0.05).sin().mul(35.0).add(85.0) as u8,
-                            90,
+                            20,
                         ),
                     ))
                 } else {
