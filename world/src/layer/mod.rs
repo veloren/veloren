@@ -743,9 +743,9 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                 {
                     use SpriteKind::*;
                     let sprites = if dynamic_rng.gen_bool(0.1) {
-                        &[Beehive, Lantern]
+                        &[Beehive, Lantern] as &[_]
                     } else {
-                        &[Orb, Liana]
+                        &[Orb, CavernMycelBlue, CavernMycelBlue] as &[_]
                     };
                     return Some(Block::air(*sprites.choose(dynamic_rng).unwrap()));
                 }
@@ -860,42 +860,54 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             } else if let Some(mushroom_block) = get_mushroom(wpos, dynamic_rng) {
                 mushroom_block
             } else if z > cavern_top - moss as i32 {
-                let kind = if dynamic_rng.gen_bool(0.05 / (1.0 + ((cavern_top - z).max(0) as f64).mul(0.1))) {
+                let kind = if dynamic_rng
+                    .gen_bool(0.05 / (1.0 + ((cavern_top - z).max(0) as f64).mul(0.1)))
+                {
                     BlockKind::GlowingMushroom
                 } else {
                     BlockKind::Leaves
                 };
                 Block::new(kind, Rgb::new(50, 120, 160))
             } else if z < water_level {
-                Block::water(SpriteKind::Empty)
-                    .with_sprite(if z == cavern_bottom + floor && dynamic_rng.gen_bool(0.01) {
+                Block::water(SpriteKind::Empty).with_sprite(
+                    if z == cavern_bottom + floor && dynamic_rng.gen_bool(0.01) {
                         SpriteKind::CaveMushroom
                     } else {
                         SpriteKind::Empty
-                    })
-            } else if z == cavern_bottom + floor && dynamic_rng.gen_bool(0.025) && on_ground {
+                    },
+                )
+            } else if z == water_level && dynamic_rng.gen_bool(0.01) && !on_ground {
+                Block::air(SpriteKind::CavernLillypadBlue)
+            } else if z == cavern_bottom + floor && dynamic_rng.gen_bool(0.1) && on_ground {
                 Block::air(
-                    *[
-                        CrystalLow,
-                        CaveMushroom,
-                        LeafyPlant,
-                        Fern,
-                        Reed,
-                        Pyrebloom,
-                        Moonbell,
-                        Welwitch,
-                        LargeGrass,
-                        LongGrass,
-                        MediumGrass,
-                        ShortGrass,
-                        GrassBlue,
-                    ]
+                    *if dynamic_rng.gen_bool(0.9) {
+                        &[
+                            CavernGrassBlueShort,
+                            CavernGrassBlueMedium,
+                            CavernGrassBlueLong,
+                        ] as &[_]
+                    } else {
+                        &[
+                            CaveMushroom,
+                            LeafyPlant,
+                            Fern,
+                            Reed,
+                            Pyrebloom,
+                            Moonbell,
+                            Welwitch,
+                            LargeGrass,
+                            LongGrass,
+                            MediumGrass,
+                            ShortGrass,
+                            GrassBlue,
+                        ] as &[_]
+                    }
                     .choose(dynamic_rng)
                     .unwrap(),
                 )
             } else if z == cavern_top - 1 && dynamic_rng.gen_bool(0.001) {
                 Block::air(
-                    *[CrystalHigh, CeilingMushroom, Orb]
+                    *[CrystalHigh, CeilingMushroom, Orb, CavernMycelBlue]
                         .choose(dynamic_rng)
                         .unwrap(),
                 )

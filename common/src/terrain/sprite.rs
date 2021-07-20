@@ -267,7 +267,7 @@ impl SpriteKind {
             | SpriteKind::Tin
             | SpriteKind::Silver
             | SpriteKind::Gold => 0.6,
-            SpriteKind::EnsnaringVines => 0.1,
+            SpriteKind::EnsnaringVines | SpriteKind::CavernLillypadBlue => 0.1,
             _ => return None,
         })
     }

@@ -190,7 +190,11 @@ impl Block {
                 | SpriteKind::Orb => Some(16),
                 SpriteKind::Velorite
                 | SpriteKind::VeloriteFrag
-                | SpriteKind::Cauldron
+                | SpriteKind::CavernGrassBlueShort
+                | SpriteKind::CavernGrassBlueMedium
+                | SpriteKind::CavernGrassBlueLong
+                | SpriteKind::CavernLillypadBlue
+                | SpriteKind::CavernMycelBlue
                 | SpriteKind::CeilingMushroom => Some(6),
                 SpriteKind::CaveMushroom
                 | SpriteKind::CookingPot
