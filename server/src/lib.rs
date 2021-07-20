@@ -184,6 +184,7 @@ impl Server {
 
         let registry = Arc::new(Registry::new());
         let chunk_gen_metrics = metrics::ChunkGenMetrics::new(&registry).unwrap();
+        let job_metrics = metrics::JobMetrics::new(&registry).unwrap();
         let network_request_metrics = metrics::NetworkRequestMetrics::new(&registry).unwrap();
         let player_metrics = metrics::PlayerMetrics::new(&registry).unwrap();
         let ecs_system_metrics = EcsSystemMetrics::new(&registry).unwrap();
@@ -207,6 +208,7 @@ impl Server {
         });
         state.ecs_mut().insert(Tick(0));
         state.ecs_mut().insert(TickStart(Instant::now()));
+        state.ecs_mut().insert(job_metrics);
         state.ecs_mut().insert(network_request_metrics);
         state.ecs_mut().insert(player_metrics);
         state.ecs_mut().insert(ecs_system_metrics);

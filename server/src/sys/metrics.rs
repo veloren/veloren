@@ -1,8 +1,8 @@
 use crate::{
-    metrics::{EcsSystemMetrics, PhysicsMetrics, TickMetrics},
+    metrics::{EcsSystemMetrics, JobMetrics, PhysicsMetrics, TickMetrics},
     HwStats, Tick, TickStart,
 };
-use common::{resources::TimeOfDay, terrain::TerrainGrid};
+use common::{resources::TimeOfDay, slowjob::SlowJobPool, terrain::TerrainGrid};
 use common_ecs::{Job, Origin, Phase, SysMetrics, System};
 use specs::{Entities, Join, Read, ReadExpect};
 use std::time::Instant;
@@ -21,9 +21,11 @@ impl<'a> System<'a> for Sys {
         Option<Read<'a, TerrainGrid>>,
         Read<'a, SysMetrics>,
         Read<'a, common_ecs::PhysicsMetrics>,
+        ReadExpect<'a, SlowJobPool>,
         ReadExpect<'a, EcsSystemMetrics>,
         ReadExpect<'a, TickMetrics>,
         ReadExpect<'a, PhysicsMetrics>,
+        ReadExpect<'a, JobMetrics>,
     );
 
     const NAME: &'static str = "metrics";
@@ -41,9 +43,11 @@ impl<'a> System<'a> for Sys {
             terrain,
             sys_metrics,
             phys_metrics,
+            slowjobpool,
             export_ecs,
             export_tick,
             export_physics,
+            export_jobs,
         ): Self::SystemData,
     ) {
         const NANOSEC_PER_SEC: f64 = std::time::Duration::from_secs(1).as_nanos() as f64;
@@ -113,6 +117,24 @@ impl<'a> System<'a> for Sys {
         export_physics
             .entity_entity_collisions_count
             .inc_by(phys_metrics.entity_entity_collisions);
+
+        //detailed job metrics
+        for (name, jobs) in slowjobpool.take_metrics() {
+            let queried = export_jobs.job_queried_hst.with_label_values(&[&name]);
+            let executed = export_jobs.job_execution_hst.with_label_values(&[&name]);
+            for job in jobs {
+                queried.observe(
+                    job.execution_start
+                        .duration_since(job.queue_created)
+                        .as_secs_f64(),
+                );
+                executed.observe(
+                    job.execution_end
+                        .duration_since(job.execution_start)
+                        .as_secs_f64(),
+                );
+            }
+        }
 
         // export self time as best as possible
         export_ecs
