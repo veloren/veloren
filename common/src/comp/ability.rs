@@ -1927,6 +1927,8 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
+                exhausted: false,
+                combo_at_cast: 0.0,
             }),
             CharacterAbility::Blink {
                 buildup_duration,

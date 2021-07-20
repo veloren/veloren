@@ -47,6 +47,10 @@ pub struct Data {
     pub timer: Duration,
     /// What section the character stage is in
     pub stage_section: StageSection,
+    /// Whether the aura has been cast already or not
+    pub exhausted: bool,
+    /// Combo which is updated only on the first tick behavior is called
+    pub combo_at_cast: f32,
 }
 
 impl CharacterBehavior for Data {
@@ -60,13 +64,25 @@ impl CharacterBehavior for Data {
         match self.stage_section {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
+                    let combo = if self.combo_at_cast > 0.0 {
+                        self.combo_at_cast
+                    } else {
+                        if self.static_data.scales_with_combo {
+                            update.server_events.push_front(ServerEvent::ComboChange {
+                                entity: data.entity,
+                                change: -(data.combo.counter() as i32),
+                            });
+                        }
+                        data.combo.counter() as f32
+                    };
                     // Build up
                     update.character = CharacterState::BasicAura(Data {
                         timer: tick_attack_or_default(data, self.timer, None),
+                        combo_at_cast: combo,
                         ..*self
                     });
-                } else {
-                    // Creates aura
+                } else if !self.exhausted {
+                    // Creates aura if it hasn't been created already
                     let targets =
                         AuraTarget::from((Some(self.static_data.targets), Some(data.uid)));
                     let mut aura = self.static_data.aura.to_aura(
@@ -76,7 +92,6 @@ impl CharacterBehavior for Data {
                         targets,
                     );
                     if self.static_data.scales_with_combo {
-                        let combo = data.combo.counter();
                         match aura.aura_kind {
                             AuraKind::Buff {
                                 kind: _,
@@ -84,14 +99,9 @@ impl CharacterBehavior for Data {
                                 category: _,
                                 source: _,
                             } => {
-                                data.strength *=
-                                    1.0 + (if combo > 0 { combo } else { 1 } as f32).log(2.0_f32);
+                                data.strength *= 1.0 + (self.combo_at_cast).log(2.0_f32);
                             },
                         }
-                        update.server_events.push_front(ServerEvent::ComboChange {
-                            entity: data.entity,
-                            change: -(combo as i32),
-                        });
                     }
                     update.server_events.push_front(ServerEvent::Aura {
                         entity: data.entity,
@@ -101,6 +111,7 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::BasicAura(Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Cast,
+                        exhausted: true,
                         ..*self
                     });
                 }
