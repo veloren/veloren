@@ -179,7 +179,7 @@ impl Block {
         match self.kind() {
             BlockKind::Lava => Some(24),
             BlockKind::GlowingRock | BlockKind::GlowingWeakRock => Some(15),
-            BlockKind::BlockKind::GlowingMushroom => Some(20),
+            BlockKind::GlowingMushroom => Some(20),
             _ => match self.get_sprite()? {
                 SpriteKind::StreetLamp | SpriteKind::StreetLampTall => Some(24),
                 SpriteKind::Ember => Some(20),

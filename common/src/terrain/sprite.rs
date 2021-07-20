@@ -177,6 +177,11 @@ make_case_elim!(
         WitchWindow = 0x96,
         SmokeDummy = 0x97,
         Bones = 0x98,
+        CavernGrassBlueShort = 0x99,
+        CavernGrassBlueMedium = 0x9A,
+        CavernGrassBlueLong = 0x9B,
+        CavernLillypadBlue = 0x9C,
+        CavernMycelBlue = 0x9D,
     }
 );
 

@@ -79,6 +79,8 @@ impl BlocksOfInterest {
                     river.push(pos)
                 },
                 BlockKind::Snow if rng.gen_range(0..16) == 0 => snow.push(pos),
+                BlockKind::Lava if rng.gen_range(0..5) == 0 => fires.push(pos + Vec3::unit_z()),
+                BlockKind::Snow if rng.gen_range(0..16) == 0 => snow.push(pos),
                 _ => match block.get_sprite() {
                     Some(SpriteKind::Ember) => {
                         fires.push(pos);
@@ -109,66 +111,30 @@ impl BlocksOfInterest {
                     Some(SpriteKind::CraftingBench) => {
                         interactables.push((pos, Interaction::Craft(CraftingTab::All)))
                     },
-                    BlockKind::Lava if rng.gen_range(0..5) == 0 => fires.push(pos + Vec3::unit_z()),
-                    BlockKind::Snow if rng.gen_range(0..16) == 0 => snow.push(pos),
-                    _ => match block.get_sprite() {
-                        Some(SpriteKind::Ember) => {
-                            fires.push(pos);
-                            smokers.push(pos);
-                        },
-                        Some(SpriteKind::SmokeDummy) => {
-                            smokers.push(pos);
-                        },
-                        // Offset positions to account for block height.
-                        // TODO: Is this a good idea?
-                        Some(SpriteKind::StreetLamp) => fire_bowls.push(pos + Vec3::unit_z() * 2),
-                        Some(SpriteKind::FireBowlGround) => fire_bowls.push(pos + Vec3::unit_z()),
-                        Some(SpriteKind::StreetLampTall) => {
-                            fire_bowls.push(pos + Vec3::unit_z() * 3);
-                        },
-                        Some(SpriteKind::WallSconce) => fire_bowls.push(pos + Vec3::unit_z()),
-                        Some(SpriteKind::Beehive) => beehives.push(pos),
-                        Some(SpriteKind::CrystalHigh) => fireflies.push(pos),
-                        Some(SpriteKind::Reed) => {
-                            reeds.push(pos);
-                            fireflies.push(pos);
-                            if rng.gen_range(0..12) == 0 {
-                                frogs.push(pos);
-                            }
-                        },
-                        Some(SpriteKind::CaveMushroom) => fireflies.push(pos),
-                        Some(SpriteKind::PinkFlower) => flowers.push(pos),
-                        Some(SpriteKind::PurpleFlower) => flowers.push(pos),
-                        Some(SpriteKind::RedFlower) => flowers.push(pos),
-                        Some(SpriteKind::WhiteFlower) => flowers.push(pos),
-                        Some(SpriteKind::YellowFlower) => flowers.push(pos),
-                        Some(SpriteKind::Sunflower) => flowers.push(pos),
-                        Some(SpriteKind::CraftingBench) => {
-                            interactables.push((pos, Interaction::Craft(CraftingTab::All)))
-                        },
-                        Some(SpriteKind::Forge) => {
-                            interactables.push((pos, Interaction::Craft(CraftingTab::Dismantle)))
-                        },
-                        Some(SpriteKind::TanningRack) => interactables
-                            .push((pos, Interaction::Craft(CraftingTab::ProcessedMaterial))),
-                        Some(SpriteKind::SpinningWheel) => {
-                            interactables.push((pos, Interaction::Craft(CraftingTab::All)))
-                        },
-                        Some(SpriteKind::Loom) => {
-                            interactables.push((pos, Interaction::Craft(CraftingTab::All)))
-                        },
-                        Some(SpriteKind::Cauldron) => {
-                            fires.push(pos);
-                            interactables.push((pos, Interaction::Craft(CraftingTab::Potion)))
-                        },
-                        Some(SpriteKind::Anvil) => {
-                            interactables.push((pos, Interaction::Craft(CraftingTab::Weapon)))
-                        },
-                        Some(SpriteKind::CookingPot) => {
-                            fires.push(pos);
-                            interactables.push((pos, Interaction::Craft(CraftingTab::Food)))
-                        },
-                        _ => {},
+                    Some(SpriteKind::SmokeDummy) => {
+                        smokers.push(pos);
+                    },
+                    Some(SpriteKind::Forge) => {
+                        interactables.push((pos, Interaction::Craft(CraftingTab::Dismantle)))
+                    },
+                    Some(SpriteKind::TanningRack) => interactables
+                        .push((pos, Interaction::Craft(CraftingTab::ProcessedMaterial))),
+                    Some(SpriteKind::SpinningWheel) => {
+                        interactables.push((pos, Interaction::Craft(CraftingTab::All)))
+                    },
+                    Some(SpriteKind::Loom) => {
+                        interactables.push((pos, Interaction::Craft(CraftingTab::All)))
+                    },
+                    Some(SpriteKind::Cauldron) => {
+                        fires.push(pos);
+                        interactables.push((pos, Interaction::Craft(CraftingTab::Potion)))
+                    },
+                    Some(SpriteKind::Anvil) => {
+                        interactables.push((pos, Interaction::Craft(CraftingTab::Weapon)))
+                    },
+                    Some(SpriteKind::CookingPot) => {
+                        fires.push(pos);
+                        interactables.push((pos, Interaction::Craft(CraftingTab::Food)))
                     },
                     _ => {},
                 },
