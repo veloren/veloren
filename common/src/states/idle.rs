@@ -20,21 +20,33 @@ impl CharacterBehavior for Data {
         update
     }
 
+    fn swap_equipped_weapons(&self, data: &JoinData) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        attempt_swap_equipped_weapons(data, &mut update);
+        update
+    }
+
+    fn manipulate_loadout(&self, data: &JoinData, inv_action: InventoryAction) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        handle_manipulate_loadout(data, &mut update, inv_action);
+        update
+    }
+
     fn wield(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         attempt_wield(data, &mut update);
         update
     }
 
-    fn sit(&self, data: &JoinData) -> StateUpdate {
+    fn glide_wield(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        attempt_sit(data, &mut update);
+        attempt_glide_wield(data, &mut update);
         update
     }
 
-    fn talk(&self, data: &JoinData) -> StateUpdate {
+    fn sit(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        attempt_talk(data, &mut update);
+        attempt_sit(data, &mut update);
         update
     }
 
@@ -50,21 +62,9 @@ impl CharacterBehavior for Data {
         update
     }
 
-    fn glide_wield(&self, data: &JoinData) -> StateUpdate {
+    fn talk(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        attempt_glide_wield(data, &mut update);
-        update
-    }
-
-    fn swap_equipped_weapons(&self, data: &JoinData) -> StateUpdate {
-        let mut update = StateUpdate::from(data);
-        attempt_swap_equipped_weapons(data, &mut update);
-        update
-    }
-
-    fn manipulate_loadout(&self, data: &JoinData, inv_action: InventoryAction) -> StateUpdate {
-        let mut update = StateUpdate::from(data);
-        handle_manipulate_loadout(data, &mut update, inv_action);
+        attempt_talk(data, &mut update);
         update
     }
 }

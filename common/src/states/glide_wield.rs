@@ -38,6 +38,18 @@ impl CharacterBehavior for Data {
         update
     }
 
+    fn manipulate_loadout(&self, data: &JoinData, inv_action: InventoryAction) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        handle_manipulate_loadout(data, &mut update, inv_action);
+        update
+    }
+
+    fn unwield(&self, data: &JoinData) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        update.character = CharacterState::Idle;
+        update
+    }
+
     fn sit(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         attempt_sit(data, &mut update);
@@ -53,18 +65,6 @@ impl CharacterBehavior for Data {
     fn sneak(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         attempt_sneak(data, &mut update);
-        update
-    }
-
-    fn unwield(&self, data: &JoinData) -> StateUpdate {
-        let mut update = StateUpdate::from(data);
-        update.character = CharacterState::Idle;
-        update
-    }
-
-    fn manipulate_loadout(&self, data: &JoinData, inv_action: InventoryAction) -> StateUpdate {
-        let mut update = StateUpdate::from(data);
-        handle_manipulate_loadout(data, &mut update, inv_action);
         update
     }
 }

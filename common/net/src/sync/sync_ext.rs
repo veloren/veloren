@@ -61,6 +61,16 @@ impl WorldSyncExt for specs::World {
         self.create_entity().marked::<super::Uid>()
     }
 
+    fn delete_entity_and_clear_from_uid_allocator(&mut self, uid: u64) {
+        // Clear from uid allocator
+        let maybe_entity = self.write_resource::<UidAllocator>().remove_entity(uid);
+        if let Some(entity) = maybe_entity {
+            if let Err(e) = self.delete_entity(entity) {
+                error!(?e, "Failed to delete entity");
+            }
+        }
+    }
+
     /// Get the UID of an entity
     fn uid_from_entity(&self, entity: specs::Entity) -> Option<Uid> {
         self.read_storage::<Uid>().get(entity).copied()
@@ -84,16 +94,6 @@ impl WorldSyncExt for specs::World {
         }
 
         entity
-    }
-
-    fn delete_entity_and_clear_from_uid_allocator(&mut self, uid: u64) {
-        // Clear from uid allocator
-        let maybe_entity = self.write_resource::<UidAllocator>().remove_entity(uid);
-        if let Some(entity) = maybe_entity {
-            if let Err(e) = self.delete_entity(entity) {
-                error!(?e, "Failed to delete entity");
-            }
-        }
     }
 
     fn apply_entity_sync_package(&mut self, package: EntitySyncPackage) {

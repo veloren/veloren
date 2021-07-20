@@ -130,6 +130,41 @@ where
         layout::Node::with_children(size, vec![over, under])
     }
 
+    fn draw(
+        &self,
+        renderer: &mut R,
+        defaults: &R::Defaults,
+        layout: Layout<'_>,
+        cursor_position: Point,
+        viewport: &Rectangle,
+    ) -> R::Output {
+        let mut children = layout.children();
+        renderer.draw(
+            defaults,
+            layout.bounds(),
+            cursor_position,
+            viewport,
+            &self.over,
+            children.next().unwrap(),
+            &self.under,
+            children.next().unwrap(),
+        )
+    }
+
+    fn hash_layout(&self, state: &mut Hasher) {
+        struct Marker;
+        std::any::TypeId::of::<Marker>().hash(state);
+
+        self.padding.hash(state);
+        self.width.hash(state);
+        self.height.hash(state);
+        self.max_width.hash(state);
+        self.max_height.hash(state);
+
+        self.over.hash_layout(state);
+        self.under.hash_layout(state);
+    }
+
     fn on_event(
         &mut self,
         event: Event,
@@ -170,41 +205,6 @@ where
         } else {
             status
         }
-    }
-
-    fn draw(
-        &self,
-        renderer: &mut R,
-        defaults: &R::Defaults,
-        layout: Layout<'_>,
-        cursor_position: Point,
-        viewport: &Rectangle,
-    ) -> R::Output {
-        let mut children = layout.children();
-        renderer.draw(
-            defaults,
-            layout.bounds(),
-            cursor_position,
-            viewport,
-            &self.over,
-            children.next().unwrap(),
-            &self.under,
-            children.next().unwrap(),
-        )
-    }
-
-    fn hash_layout(&self, state: &mut Hasher) {
-        struct Marker;
-        std::any::TypeId::of::<Marker>().hash(state);
-
-        self.padding.hash(state);
-        self.width.hash(state);
-        self.height.hash(state);
-        self.max_width.hash(state);
-        self.max_height.hash(state);
-
-        self.over.hash_layout(state);
-        self.under.hash_layout(state);
     }
 
     fn overlay(&mut self, layout: Layout<'_>) -> Option<iced::overlay::Element<'_, M, R>> {

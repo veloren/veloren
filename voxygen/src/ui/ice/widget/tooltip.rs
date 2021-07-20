@@ -184,25 +184,6 @@ where
         self.content.layout(renderer, limits)
     }
 
-    fn on_event(
-        &mut self,
-        event: Event,
-        layout: Layout<'_>,
-        cursor_position: Point,
-        renderer: &R,
-        clipboard: &mut dyn Clipboard,
-        messages: &mut Vec<M>,
-    ) -> iced::event::Status {
-        self.content.on_event(
-            event,
-            layout,
-            cursor_position,
-            renderer,
-            clipboard,
-            messages,
-        )
-    }
-
     fn draw(
         &self,
         renderer: &mut R,
@@ -228,6 +209,31 @@ where
             .draw(renderer, defaults, layout, cursor_position, viewport)
     }
 
+    fn hash_layout(&self, state: &mut Hasher) {
+        struct Marker;
+        std::any::TypeId::of::<Marker>().hash(state);
+        self.content.hash_layout(state);
+    }
+
+    fn on_event(
+        &mut self,
+        event: Event,
+        layout: Layout<'_>,
+        cursor_position: Point,
+        renderer: &R,
+        clipboard: &mut dyn Clipboard,
+        messages: &mut Vec<M>,
+    ) -> iced::event::Status {
+        self.content.on_event(
+            event,
+            layout,
+            cursor_position,
+            renderer,
+            clipboard,
+            messages,
+        )
+    }
+
     fn overlay(&mut self, layout: Layout<'_>) -> Option<iced::overlay::Element<'_, M, R>> {
         let bounds = layout.bounds();
         let aabr = aabr_from_bounds(bounds);
@@ -243,12 +249,6 @@ where
                 )),
             )
         })
-    }
-
-    fn hash_layout(&self, state: &mut Hasher) {
-        struct Marker;
-        std::any::TypeId::of::<Marker>().hash(state);
-        self.content.hash_layout(state);
     }
 }
 
@@ -332,20 +332,6 @@ where
         node
     }
 
-    fn hash_layout(&self, state: &mut Hasher, position: Point) {
-        struct Marker;
-        std::any::TypeId::of::<Marker>().hash(state);
-
-        (position.x as u32).hash(state);
-        (position.y as u32).hash(state);
-        (self.cursor_position.x as u32).hash(state);
-        (self.avoid.x as u32).hash(state);
-        (self.avoid.y as u32).hash(state);
-        (self.avoid.height as u32).hash(state);
-        (self.avoid.width as u32).hash(state);
-        self.content.hash_layout(state);
-    }
-
     fn draw(
         &self,
         renderer: &mut R,
@@ -361,6 +347,20 @@ where
             &self.content,
             layout,
         )
+    }
+
+    fn hash_layout(&self, state: &mut Hasher, position: Point) {
+        struct Marker;
+        std::any::TypeId::of::<Marker>().hash(state);
+
+        (position.x as u32).hash(state);
+        (position.y as u32).hash(state);
+        (self.cursor_position.x as u32).hash(state);
+        (self.avoid.x as u32).hash(state);
+        (self.avoid.y as u32).hash(state);
+        (self.avoid.height as u32).hash(state);
+        (self.avoid.width as u32).hash(state);
+        self.content.hash_layout(state);
     }
 }
 

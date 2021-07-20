@@ -43,6 +43,25 @@ where
         layout::Node::new(limits.resolve(Size::ZERO))
     }
 
+    fn draw(
+        &self,
+        renderer: &mut R,
+        _defaults: &R::Defaults,
+        layout: Layout<'_>,
+        _cursor_position: Point,
+        _viewport: &Rectangle,
+    ) -> R::Output {
+        renderer.draw(layout.bounds())
+    }
+
+    fn hash_layout(&self, state: &mut Hasher) {
+        struct Marker;
+        std::any::TypeId::of::<Marker>().hash(state);
+
+        self.width.hash(state);
+        self.height.hash(state);
+    }
+
     fn on_event(
         &mut self,
         event: Event,
@@ -67,25 +86,6 @@ where
         }
 
         iced::event::Status::Ignored
-    }
-
-    fn draw(
-        &self,
-        renderer: &mut R,
-        _defaults: &R::Defaults,
-        layout: Layout<'_>,
-        _cursor_position: Point,
-        _viewport: &Rectangle,
-    ) -> R::Output {
-        renderer.draw(layout.bounds())
-    }
-
-    fn hash_layout(&self, state: &mut Hasher) {
-        struct Marker;
-        std::any::TypeId::of::<Marker>().hash(state);
-
-        self.width.hash(state);
-        self.height.hash(state);
     }
 }
 
