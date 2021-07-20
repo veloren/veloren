@@ -29,10 +29,9 @@ use common::comp::{
     Energy, Health, Inventory, SkillSet,
 };
 use conrod_core::{
-    UiCell,
     color,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
 use std::cmp;
 use vek::*;
@@ -873,9 +872,10 @@ impl<'a> Widget for Skillbar<'a> {
                     (1.0 - combo_cnt / (combo_cnt + 5.0)).max(0.17),
                     alpha,
                 );
-
+                // Increase size for higher counts,
+                // "flash" on update by increasing the font size by 2.
                 let fnt_size = ((14.0 + combo.timer as f32 * 0.8).min(30.0)) as u32
-                    + if (time_since_last_update) < 0.1 { 2 } else { 0 }; // Increase size for higher counts, "flash" on update by increasing the font size by 2
+                    + if (time_since_last_update) < 0.1 { 2 } else { 0 };
                 Rectangle::fill_with([10.0, 10.0], color::TRANSPARENT)
                     .middle_of(ui.window)
                     .set(state.ids.combo_align, ui);
@@ -906,29 +906,43 @@ fn ability_description(tool: &ToolKind) -> Option<(&str, &str)> {
     match tool {
         ToolKind::Hammer => Some((
             "Smash of Doom",
-            "\nAn AOE attack with knockback. \nLeaps to position of cursor.",
+            concat!(
+                "\n",
+                "An AOE attack with knockback.\n",
+                "Leaps to position of cursor.",
+            ),
         )),
-        ToolKind::Axe => Some(("Spin Leap", "\nA slashing running spin leap.")),
+        ToolKind::Axe => Some((
+            "Axe Jump",
+            concat!("\n", "A jump with the slashing leap to position of cursor."),
+        )),
         ToolKind::Staff => Some((
-            "Firebomb",
-            "\nWhirls a big fireball into the air. \nExplodes the ground and does\na big amount \
-             of damage",
+            "Ring of Fire",
+            concat!("\n", "Explodes the gound with fire shockwave."),
         )),
         ToolKind::Sword => Some((
             "Whirlwind",
-            "\nMove forward while spinning with \n your sword.",
+            concat!("\n", "Move forward while spinning with your sword."),
         )),
         ToolKind::Bow => Some((
             "Burst",
-            "\nLaunches a burst of arrows at the top \nof a running leap.",
-        )),
-        ToolKind::Debug => Some((
-            "Possessing Arrow",
-            "\nShoots a poisonous arrow.\nLets you control your target.",
+            concat!("\n", "Launches a burst of arrows into your target"),
         )),
         ToolKind::Sceptre => Some((
             "Thorn Bulwark",
-            "\nProtects you and your group with thorns\nfor a short amount of time.",
+            concat!(
+                "\n",
+                "Protects you and your group with thorns\n",
+                "for a short amount of time.",
+            ),
+        )),
+        ToolKind::Debug => Some((
+            "Possessing Arrow",
+            concat!(
+                "\n",
+                "Shoots a poisonous arrow.\n",
+                "Lets you control your target."
+            ),
         )),
         _ => None,
     }
