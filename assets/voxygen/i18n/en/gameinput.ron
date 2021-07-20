@@ -65,6 +65,7 @@
         "gameinput.swimup": "Swim upwards",
         "gameinput.mapzoomin": "Increase map zoom",
         "gameinput.mapzoomout": "Decrease map zoom",
+        "gameinput.greet": "Greet",
     },
 
 
