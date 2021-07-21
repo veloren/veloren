@@ -6,6 +6,7 @@ use super::{
     Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
+    game_input::GameInput,
     i18n::Localization,
     ui::{
         fonts::Fonts,
@@ -13,7 +14,6 @@ use crate::{
         ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip, TooltipManager,
         Tooltipable,
     },
-    window::GameInput,
     GlobalState,
 };
 use client::Client;

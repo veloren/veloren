@@ -1,6 +1,7 @@
-use crate::window::{GameInput, KeyMouse};
+use crate::{game_input::GameInput, window::KeyMouse};
 use hashbrown::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
+use strum::IntoEnumIterator;
 use winit::event::{MouseButton, VirtualKeyCode};
 
 // ControlSetting-like struct used by Serde, to handle not serializing/building
@@ -181,7 +182,7 @@ impl Default for ControlSettings {
             inverse_keybindings: HashMap::new(),
         };
         // Sets the initial keybindings for those GameInputs.
-        for game_input in GameInput::iterator() {
+        for game_input in GameInput::iter() {
             new_settings.insert_binding(game_input, ControlSettings::default_binding(game_input));
         }
         new_settings

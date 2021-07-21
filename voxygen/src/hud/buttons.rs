@@ -3,9 +3,10 @@ use super::{
     BLACK, CRITICAL_HP_COLOR, LOW_HP_COLOR, QUALITY_LEGENDARY, TEXT_COLOR,
 };
 use crate::{
+    game_input::GameInput,
     i18n::Localization,
     ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
-    window::{GameInput, KeyMouse},
+    window::KeyMouse,
     GlobalState,
 };
 use client::Client;

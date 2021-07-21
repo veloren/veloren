@@ -18,6 +18,7 @@ pub mod audio;
 pub mod controller;
 mod ecs;
 pub mod error;
+pub mod game_input;
 pub mod hud;
 pub mod key_state;
 pub mod menu;

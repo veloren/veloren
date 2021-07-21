@@ -6,6 +6,7 @@ use super::{
     QUALITY_EPIC, STAMINA_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0,
 };
 use crate::{
+    game_input::GameInput,
     hud::ComboFloater,
     i18n::Localization,
     ui::{
@@ -14,7 +15,6 @@ use crate::{
         ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip, TooltipManager,
         Tooltipable,
     },
-    window::GameInput,
     GlobalState,
 };
 

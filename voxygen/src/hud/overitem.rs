@@ -1,8 +1,8 @@
 use crate::{
+    game_input::GameInput,
     i18n::Localization,
     settings::ControlSettings,
     ui::{fonts::Fonts, Ingameable},
-    window::GameInput,
 };
 use conrod_core::{
     color,

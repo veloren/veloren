@@ -1,11 +1,11 @@
 use super::{RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
 
 use crate::{
+    game_input::GameInput,
     hud::{img_ids::Imgs, ERROR_COLOR, TEXT_BIND_CONFLICT_COLOR, TEXT_COLOR},
     i18n::Localization,
     session::settings_change::{Control as ControlChange, Control::*},
     ui::fonts::Fonts,
-    window::GameInput,
     GlobalState,
 };
 use conrod_core::{
@@ -14,6 +14,7 @@ use conrod_core::{
     widget::{self, Button, Rectangle, Scrollbar, Text},
     widget_ids, Borderable, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use strum::IntoEnumIterator;
 
 widget_ids! {
     struct Ids {
@@ -94,7 +95,7 @@ impl<'a> Widget for Controls<'a> {
 
         // Used for sequential placement in a flow-down pattern
         let mut previous_element_id = None;
-        let mut keybindings_vec: Vec<GameInput> = GameInput::iterator().collect();
+        let mut keybindings_vec: Vec<GameInput> = GameInput::iter().collect();
         keybindings_vec.sort();
 
         let controls = &self.global_state.settings.controls;

@@ -1,10 +1,10 @@
 use super::{img_ids::Imgs, TEXT_COLOR, UI_HIGHLIGHT_0};
 use crate::{
+    game_input::GameInput,
     hud::{Event, PromptDialogSettings},
     i18n::LocalizationHandle,
     settings::Settings,
     ui::fonts::Fonts,
-    window::GameInput,
 };
 use conrod_core::{
     widget::{self, Button, Image, Text},
