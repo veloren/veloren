@@ -114,7 +114,7 @@ fn main() {
             PanicInfo: {}\n\
             Game version: {} [{}]",
             logs_dir
-                .join("voxygen-<date>.log")
+                .join("voxygen.log.<date>")
                 .display(),
             reason,
             panic_info,
