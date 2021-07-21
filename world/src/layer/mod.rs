@@ -933,6 +933,15 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
 
             last_kind = block.kind();
 
+            let block = if block.is_filled() {
+                Block::new(block.kind(), block
+                    .get_color()
+                    .unwrap_or_default()
+                    .map(|e| (e as f32 * dynamic_rng.gen_range(0.95..1.05)).clamped(0.0, 255.0) as u8))
+            } else {
+                block
+            };
+
             let _ = canvas.set(wpos, block);
         }
     });
