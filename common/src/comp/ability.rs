@@ -1923,7 +1923,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     range: *range,
                     ability_info,
                     scales_with_combo: *scales_with_combo,
-                    combo_at_cast: data.combo.counter() as f32,
+                    combo_at_cast: data.combo.counter(),
                     specifier: *specifier,
                 },
                 timer: Duration::default(),
