@@ -50,7 +50,7 @@ impl PostProcessLayout {
                     // TODO: make optional
                     // src bloom
                     wgpu::BindGroupLayoutEntry {
-                        binding: 0,
+                        binding: 1,
                         visibility: wgpu::ShaderStage::FRAGMENT,
                         ty: wgpu::BindingType::Texture {
                             sample_type: wgpu::TextureSampleType::Float { filterable: true },
@@ -60,7 +60,7 @@ impl PostProcessLayout {
                         count: None,
                     },
                     wgpu::BindGroupLayoutEntry {
-                        binding: 1,
+                        binding: 2,
                         visibility: wgpu::ShaderStage::FRAGMENT,
                         ty: wgpu::BindingType::Sampler {
                             filtering: true,
@@ -70,7 +70,7 @@ impl PostProcessLayout {
                     },
                     // Locals
                     wgpu::BindGroupLayoutEntry {
-                        binding: 2,
+                        binding: 3,
                         visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                         ty: wgpu::BindingType::Buffer {
                             ty: wgpu::BufferBindingType::Uniform,
@@ -105,15 +105,15 @@ impl PostProcessLayout {
                 // TODO: if there is no upscaling we can do the last bloom upsampling in post
                 // process to save a pass and the need for the final full size bloom render target
                 wgpu::BindGroupEntry {
-                    binding: 0,
+                    binding: 1,
                     resource: wgpu::BindingResource::TextureView(src_bloom),
                 },
                 wgpu::BindGroupEntry {
-                    binding: 1,
+                    binding: 2,
                     resource: wgpu::BindingResource::Sampler(sampler),
                 },
                 wgpu::BindGroupEntry {
-                    binding: 2,
+                    binding: 3,
                     resource: locals.buf().as_entire_binding(),
                 },
             ],

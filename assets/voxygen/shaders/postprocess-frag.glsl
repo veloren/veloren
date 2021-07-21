@@ -32,7 +32,7 @@ uniform sampler s_src_color;
 
 layout(location = 0) in vec2 uv;
 
-layout (std140, set = 1, binding = 2)
+layout (std140, set = 1, binding = 3)
 uniform u_locals {
     mat4 proj_mat_inv;
     mat4 view_mat_inv;
@@ -185,7 +185,7 @@ void main() {
     vec4 aa_color = aa_apply(t_src_color, s_src_color, uv * screen_res.xy, screen_res.xy);
 
     // Bloom
-    vec4 bloom = textureLod(sampler2D(t_src_bloom, s_src_color), uv, 0) * 0.05;
+    vec4 bloom = textureLod(sampler2D(t_src_bloom, s_src_color), uv, 0) * 0.75;
     aa_color += bloom;
 
     // Tonemapping

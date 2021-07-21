@@ -5,7 +5,10 @@ uniform texture2D t_src_color;
 layout(set = 0, binding = 1)
 uniform sampler s_src_color;
 layout(set = 0, binding = 2)
-uniform vec2 halfpixel;
+// TODO: refactor in rust
+uniform u_locals {
+    vec2 halfpixel;
+};
 
 layout(location = 0) in vec2 uv;
 
