@@ -46,6 +46,19 @@ docker-nightly:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/server-cli/Dockerfile --destination "${CI_REGISTRY_IMAGE}/server-cli:nightly"
 
+tag-nightly:
+  extends: .publish-nightly
+  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
+  tags:
+    - veloren-benchmark
+  script:
+    - git config --global user.email "gitlab-veloren-bot@veloren.net"
+    - git config --global user.name "veloren-bot"
+    - git config --global http.postBuffer 52428800
+    - git remote set-url origin https://veloren-bot:${GITLAB_TOKEN_WRITE}@${CI_PROJECT_URL:8}
+    - git tag -a "nightly" -m '' -f
+    - git push origin nightly -f
+
 pages:
   extends: .publish
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
