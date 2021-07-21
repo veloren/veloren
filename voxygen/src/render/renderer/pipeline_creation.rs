@@ -1,8 +1,8 @@
 use super::{
     super::{
         pipelines::{
-            blit, clouds, debug, figure, fluid, lod_terrain, particle, postprocess, shadow, skybox,
-            sprite, terrain, ui,
+            blit, bloom, clouds, debug, figure, fluid, lod_terrain, particle, postprocess, shadow,
+            skybox, sprite, terrain, ui,
         },
         AaMode, CloudMode, FluidMode, LightingMode, RenderError, RenderMode, ShadowMode,
     },
@@ -20,6 +20,7 @@ pub struct Pipelines {
     pub lod_terrain: lod_terrain::LodTerrainPipeline,
     pub particle: particle::ParticlePipeline,
     pub clouds: clouds::CloudsPipeline,
+    pub bloom: bloom::BloomPipelines,
     pub postprocess: postprocess::PostProcessPipeline,
     // Consider reenabling at some time
     // player_shadow: figure::FigurePipeline,
@@ -39,6 +40,7 @@ pub struct IngamePipelines {
     lod_terrain: lod_terrain::LodTerrainPipeline,
     particle: particle::ParticlePipeline,
     clouds: clouds::CloudsPipeline,
+    bloom: bloom::BloomPipelines,
     postprocess: postprocess::PostProcessPipeline,
     // Consider reenabling at some time
     // player_shadow: figure::FigurePipeline,
@@ -74,6 +76,7 @@ impl Pipelines {
             lod_terrain: ingame.lod_terrain,
             particle: ingame.particle,
             clouds: ingame.clouds,
+            bloom: ingame.bloom,
             postprocess: ingame.postprocess,
             //player_shadow: ingame.player_shadow,
             skybox: ingame.skybox,
@@ -107,6 +110,8 @@ struct ShaderModules {
     lod_terrain_frag: wgpu::ShaderModule,
     clouds_vert: wgpu::ShaderModule,
     clouds_frag: wgpu::ShaderModule,
+    duel_downsample_frag: wgpu::ShaderModule,
+    duel_upsample_frag: wgpu::ShaderModule,
     postprocess_vert: wgpu::ShaderModule,
     postprocess_frag: wgpu::ShaderModule,
     blit_vert: wgpu::ShaderModule,
@@ -255,6 +260,8 @@ impl ShaderModules {
             lod_terrain_frag: create_shader("lod-terrain-frag", ShaderKind::Fragment)?,
             clouds_vert: create_shader("clouds-vert", ShaderKind::Vertex)?,
             clouds_frag: create_shader("clouds-frag", ShaderKind::Fragment)?,
+            duel_downsample_frag: create_shader("duel-downsample-frag", ShaderKind::Fragment)?,
+            duel_upsample_frag: create_shader("duel-upsample-frag", ShaderKind::Fragment)?,
             postprocess_vert: create_shader("postprocess-vert", ShaderKind::Vertex)?,
             postprocess_frag: create_shader("postprocess-frag", ShaderKind::Fragment)?,
             blit_vert: create_shader("blit-vert", ShaderKind::Vertex)?,
@@ -360,7 +367,7 @@ fn create_interface_pipelines(
 fn create_ingame_and_shadow_pipelines(
     needs: PipelineNeeds,
     pool: &rayon::ThreadPool,
-    tasks: [Task; 13],
+    tasks: [Task; 14],
 ) -> IngameAndShadowPipelines {
     prof_span!(_guard, "create_ingame_and_shadow_pipelines");
 
@@ -382,6 +389,7 @@ fn create_ingame_and_shadow_pipelines(
         particle_task,
         lod_terrain_task,
         clouds_task,
+        bloom_task,
         postprocess_task,
         // TODO: if these are ever actually optionally done, counting them 
         // as tasks to do beforehand seems kind of iffy since they will just 
@@ -535,6 +543,22 @@ fn create_ingame_and_shadow_pipelines(
             "clouds pipeline creation",
         )
     };
+    // Pipelines for rendering our bloom
+    let create_bloom = || {
+        bloom_task.run(
+            || {
+                bloom::BloomPipelines::new(
+                    device,
+                    &shaders.blit_vert,
+                    &shaders.duel_downsample_frag,
+                    &shaders.duel_upsample_frag,
+                    wgpu::TextureFormat::Rgba16Float,
+                    &layouts.bloom,
+                )
+            },
+            "bloom pipelines creation",
+        )
+    };
     // Pipeline for rendering our post-processing
     let create_postprocess = || {
         postprocess_task.run(
@@ -622,7 +646,7 @@ fn create_ingame_and_shadow_pipelines(
     };
 
     let j1 = || pool.join(create_debug, || pool.join(create_skybox, create_figure));
-    let j2 = || pool.join(create_terrain, create_fluid);
+    let j2 = || pool.join(create_terrain, || pool.join(create_fluid, create_bloom));
     let j3 = || pool.join(create_sprite, create_particle);
     let j4 = || pool.join(create_lod_terrain, create_clouds);
     let j5 = || pool.join(create_postprocess, create_point_shadow);
@@ -636,7 +660,7 @@ fn create_ingame_and_shadow_pipelines(
     // Ignore this
     let (
         (
-            ((debug, (skybox, figure)), (terrain, fluid)),
+            ((debug, (skybox, figure)), (terrain, (fluid, bloom))),
             ((sprite, particle), (lod_terrain, clouds)),
         ),
         ((postprocess, point_shadow), (terrain_directed_shadow, figure_directed_shadow)),
@@ -653,6 +677,7 @@ fn create_ingame_and_shadow_pipelines(
             lod_terrain,
             particle,
             clouds,
+            bloom,
             postprocess,
             skybox,
             sprite,

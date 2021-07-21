@@ -1,4 +1,5 @@
 pub mod blit;
+pub mod bloom;
 pub mod clouds;
 pub mod debug;
 pub mod figure;

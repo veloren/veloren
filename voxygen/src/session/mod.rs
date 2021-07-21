@@ -1483,6 +1483,12 @@ impl PlayState for SessionState {
                 second_pass.draw_clouds();
             }
         }
+        // Bloom
+        // TODO: make optional
+        {
+            prof_span!("bloom");
+            drawer.run_bloom_passes()
+        }
         // PostProcess and UI
         {
             prof_span!("post-process and ui");

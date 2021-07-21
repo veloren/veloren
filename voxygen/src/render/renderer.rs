@@ -21,8 +21,8 @@ use super::{
     mesh::Mesh,
     model::{DynamicModel, Model},
     pipelines::{
-        blit, clouds, debug, figure, postprocess, shadow, sprite, terrain, ui, GlobalsBindGroup,
-        GlobalsLayouts, ShadowTexturesBindGroup,
+        blit, bloom, clouds, debug, figure, postprocess, shadow, sprite, terrain, ui,
+        GlobalsBindGroup, GlobalsLayouts, ShadowTexturesBindGroup,
     },
     texture::Texture,
     AaMode, AddressMode, FilterMode, RenderError, RenderMode, ShadowMapMode, ShadowMode, Vertex,
@@ -49,13 +49,14 @@ const QUAD_INDEX_BUFFER_U32_START_VERT_LEN: u32 = 3000;
 struct Layouts {
     global: GlobalsLayouts,
 
-    clouds: clouds::CloudsLayout,
     debug: debug::DebugLayout,
     figure: figure::FigureLayout,
-    postprocess: postprocess::PostProcessLayout,
     shadow: shadow::ShadowLayout,
     sprite: sprite::SpriteLayout,
     terrain: terrain::TerrainLayout,
+    clouds: clouds::CloudsLayout,
+    bloom: bloom::BloomLayout,
+    postprocess: postprocess::PostProcessLayout,
     ui: ui::UiLayout,
     blit: blit::BlitLayout,
 }
@@ -67,6 +68,8 @@ struct Views {
 
     tgt_color: wgpu::TextureView,
     tgt_depth: wgpu::TextureView,
+
+    bloom_tgts: [wgpu::TextureView; bloom::NUM_SIZES],
     // TODO: rename
     tgt_color_pp: wgpu::TextureView,
 }
@@ -305,26 +308,28 @@ impl Renderer {
         let layouts = {
             let global = GlobalsLayouts::new(&device);
 
-            let clouds = clouds::CloudsLayout::new(&device);
             let debug = debug::DebugLayout::new(&device);
             let figure = figure::FigureLayout::new(&device);
-            let postprocess = postprocess::PostProcessLayout::new(&device);
             let shadow = shadow::ShadowLayout::new(&device);
             let sprite = sprite::SpriteLayout::new(&device);
             let terrain = terrain::TerrainLayout::new(&device);
+            let clouds = clouds::CloudsLayout::new(&device);
+            let bloom = bloom::BloomLayout::new(&device);
+            let postprocess = postprocess::PostProcessLayout::new(&device);
             let ui = ui::UiLayout::new(&device);
             let blit = blit::BlitLayout::new(&device);
 
             Layouts {
                 global,
 
-                clouds,
                 debug,
                 figure,
-                postprocess,
                 shadow,
                 sprite,
                 terrain,
+                clouds,
+                bloom,
+                postprocess,
                 ui,
                 blit,
             }
@@ -350,7 +355,8 @@ impl Renderer {
             creating,
         };
 
-        let views = Self::create_rt_views(&device, (dims.width, dims.height), &mode)?;
+        let (views, bloom_sizes) =
+            Self::create_rt_views(&device, (dims.width, dims.height), &mode)?;
 
         let create_sampler = |filter| {
             device.create_sampler(&wgpu::SamplerDescriptor {
@@ -379,6 +385,8 @@ impl Renderer {
 
         let clouds_locals =
             Self::create_consts_inner(&device, &queue, &[clouds::Locals::default()]);
+        let bloom_locals = bloom_sizes
+            .map(|size| Self::create_consts_inner(&device, &queue, &[bloom::HalfPixel::new(size)]));
         let postprocess_locals =
             Self::create_consts_inner(&device, &queue, &[postprocess::Locals::default()]);
 
@@ -386,9 +394,18 @@ impl Renderer {
             &device,
             &layouts,
             clouds_locals,
+            bloom_locals,
             postprocess_locals,
             &views.tgt_color,
             &views.tgt_depth,
+            [
+                &views.tgt_color,
+                &views.bloom_tgts[1],
+                &views.bloom_tgts[2],
+                &views.bloom_tgts[3],
+                &views.bloom_tgts[4],
+            ],
+            &views.bloom_tgts[0],
             &views.tgt_color_pp,
             &sampler,
             &depth_sampler,
@@ -546,13 +563,26 @@ impl Renderer {
             self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
 
             // Resize other render targets
-            self.views = Self::create_rt_views(&self.device, (dims.x, dims.y), &self.mode)?;
+            let (views, bloom_sizes) =
+                Self::create_rt_views(&self.device, (dims.x, dims.y), &self.mode)?;
+            self.views = views;
+            let bloom_locals =
+                bloom_sizes.map(|size| self.create_consts(&[bloom::HalfPixel::new(size)]));
             // Rebind views to clouds/postprocess bind groups
             self.locals.rebind(
                 &self.device,
                 &self.layouts,
+                bloom_locals,
                 &self.views.tgt_color,
                 &self.views.tgt_depth,
+                [
+                    &self.views.tgt_color,
+                    &self.views.bloom_tgts[1],
+                    &self.views.bloom_tgts[2],
+                    &self.views.bloom_tgts[3],
+                    &self.views.bloom_tgts[4],
+                ],
+                &self.views.bloom_tgts[0],
                 &self.views.tgt_color_pp,
                 &self.sampler,
                 &self.depth_sampler,
@@ -625,7 +655,7 @@ impl Renderer {
         device: &wgpu::Device,
         size: (u32, u32),
         mode: &RenderMode,
-    ) -> Result<Views, RenderError> {
+    ) -> Result<(Views, [Vec2<f32>; bloom::NUM_SIZES]), RenderError> {
         let upscaled = Vec2::<u32>::from(size)
             .map(|e| (e as f32 * mode.upscale_mode.factor) as u32)
             .into_tuple();
@@ -637,7 +667,7 @@ impl Renderer {
         };
         let levels = 1;
 
-        let color_view = || {
+        let color_view = |width, height| {
             let tex = device.create_texture(&wgpu::TextureDescriptor {
                 label: None,
                 size: wgpu::Extent3d {
@@ -665,8 +695,19 @@ impl Renderer {
             })
         };
 
-        let tgt_color_view = color_view();
-        let tgt_color_pp_view = color_view();
+        let tgt_color_view = color_view(width, height);
+        let tgt_color_pp_view = color_view(width, height);
+
+        let mut size_shift = 0;
+        // TODO: skip creating bloom stuff when it is disabled
+        let bloom_sizes = [(); bloom::NUM_SIZES].map(|()| {
+            // .max(1) to ensure we don't create zero sized textures
+            let size = Vec2::new(width, height).map(|e| (e >> size_shift).max(1));
+            size_shift += 1;
+            size
+        });
+
+        let bloom_tgt_views = bloom_sizes.map(|size| color_view(size.x, size.y));
 
         let tgt_depth_tex = device.create_texture(&wgpu::TextureDescriptor {
             label: None,
@@ -717,12 +758,16 @@ impl Renderer {
             array_layer_count: None,
         });
 
-        Ok(Views {
-            tgt_color: tgt_color_view,
-            tgt_depth: tgt_depth_view,
-            tgt_color_pp: tgt_color_pp_view,
-            _win_depth: win_depth_view,
-        })
+        Ok((
+            Views {
+                tgt_color: tgt_color_view,
+                tgt_depth: tgt_depth_view,
+                bloom_tgts: bloom_tgt_views,
+                tgt_color_pp: tgt_color_pp_view,
+                _win_depth: win_depth_view,
+            },
+            bloom_sizes.map(|s| s.map(|e| e as f32)),
+        ))
     }
 
     /// Get the resolution of the render target.

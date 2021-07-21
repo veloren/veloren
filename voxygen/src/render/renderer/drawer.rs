@@ -4,8 +4,8 @@ use super::{
         instances::Instances,
         model::{DynamicModel, Model, SubModel},
         pipelines::{
-            blit, clouds, debug, figure, fluid, lod_terrain, particle, shadow, skybox, sprite,
-            terrain, ui, ColLights, GlobalsBindGroup, ShadowTexturesBindGroup,
+            blit, bloom, clouds, debug, figure, fluid, lod_terrain, particle, shadow, skybox,
+            sprite, terrain, ui, ColLights, GlobalsBindGroup, ShadowTexturesBindGroup,
         },
     },
     Renderer, ShadowMap, ShadowMapRenderer,
@@ -239,6 +239,57 @@ impl<'frame> Drawer<'frame> {
             borrow: &self.borrow,
             pipeline,
         })
+    }
+
+    /// To be ran between the second pass and the third pass
+    /// does nothing if the ingame pipelines are not yet ready
+    pub fn run_bloom_passes(&mut self) {
+        let pipelines = match self.borrow.pipelines.all() {
+            Some(p) => p,
+            None => return,
+        };
+
+        let locals = &self.borrow.locals;
+        let views = &self.borrow.views;
+
+        let encoder = self.encoder.as_mut().unwrap();
+        let device = self.borrow.device;
+
+        let mut run_bloom_pass = |bind, view, label: String, pipeline| {
+            let mut render_pass =
+                encoder.scoped_render_pass(&label, device, &wgpu::RenderPassDescriptor {
+                    label: Some(&label),
+                    color_attachments: &[wgpu::RenderPassColorAttachment {
+                        resolve_target: None,
+                        view,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                            store: true,
+                        },
+                    }],
+                    depth_stencil_attachment: None,
+                });
+
+            render_pass.set_bind_group(0, bind, &[]);
+            render_pass.set_pipeline(pipeline);
+            render_pass.draw(0..3, 0..1);
+        };
+
+        // Downsample filter passes
+        (0..bloom::NUM_SIZES - 1).for_each(|index| {
+            let bind = &locals.bloom_binds[index].bind_group;
+            let view = &views.bloom_tgts[index + 1];
+            let label = format!("bloom downsample pass {}", index + 1);
+            run_bloom_pass(bind, view, label, &pipelines.bloom.downsample);
+        });
+
+        // Upsample filter passes
+        (0..bloom::NUM_SIZES - 1).for_each(|index| {
+            let bind = &locals.bloom_binds[bloom::NUM_SIZES - 1 - index].bind_group;
+            let view = &views.bloom_tgts[bloom::NUM_SIZES - 2 - index];
+            let label = format!("bloom upsample pass {}", index + 1);
+            run_bloom_pass(bind, view, label, &pipelines.bloom.upsample);
+        });
     }
 
     pub fn third_pass(&mut self) -> ThirdPassDrawer {
