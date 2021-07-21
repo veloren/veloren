@@ -106,6 +106,7 @@ pub enum KeyMouse {
 }
 
 impl KeyMouse {
+    /// Returns key description (e.g Left Shift)
     pub fn display_string(&self, key_layout: &Option<KeyLayout>) -> String {
         use self::KeyMouse::*;
         use winit::event::{MouseButton, VirtualKeyCode::*};
@@ -225,6 +226,7 @@ impl KeyMouse {
             Key(MediaSelect) => "MediaSelect",
             Key(MediaStop) => "MediaStop",
             Key(Minus) => "-",
+            Key(Plus) => "+",
             Key(NumpadMultiply) => "Numpad *",
             Key(Mute) => "Mute",
             Key(MyComputer) => "My Computer",
@@ -322,7 +324,6 @@ impl KeyMouse {
             Key(Paste) => "Paste",
             Key(Cut) => "Cut",
             Key(Asterisk) => "*",
-            Key(Plus) => "+",
             Mouse(MouseButton::Left) => "Left Click",
             Mouse(MouseButton::Right) => "Right Click",
             Mouse(MouseButton::Middle) => "Middle Click",
@@ -339,7 +340,30 @@ impl KeyMouse {
             },
         };
 
-        String::from(key_string)
+        key_string.to_owned()
+    }
+
+    /// Returns shortened key name (e.g. Left Click -> LMB)
+    ///
+    /// Use it in case if space does really matter.
+    pub fn display_shortened(&self, _key_layout: &Option<KeyLayout>) -> Option<String> {
+        use self::KeyMouse::*;
+        use winit::event::{MouseButton, VirtualKeyCode::*};
+        let key_string = match self {
+            Mouse(MouseButton::Left) => "M1",
+            Mouse(MouseButton::Right) => "M2",
+            Mouse(MouseButton::Middle) => "M3",
+            Mouse(MouseButton::Other(button)) => {
+                // Additional mouse buttons after middle click start at 1
+                return Some(format!("M{}", button + 3));
+            },
+            Key(Back) => "Back",
+            Key(LShift) => "LShft",
+            Key(RShift) => "RShft",
+            _ => return None,
+        };
+
+        Some(key_string.to_owned())
     }
 }
 
