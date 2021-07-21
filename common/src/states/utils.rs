@@ -237,7 +237,7 @@ impl Body {
 }
 
 /// Handles updating `Components` to move player based on state of `JoinData`
-pub fn handle_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
+pub fn handle_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) {
     let submersion = data
         .physics
         .in_liquid()
@@ -262,7 +262,7 @@ pub fn handle_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
 
 /// Updates components to move player as if theyre on ground or in air
 #[allow(clippy::assign_op_pattern)] // TODO: Pending review in #587
-fn basic_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
+fn basic_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) {
     let efficiency = efficiency * data.stats.move_speed_modifier * data.stats.friction_modifier;
 
     let accel = if data.physics.on_ground.is_some() {
@@ -303,7 +303,11 @@ fn basic_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
 }
 
 /// Handles forced movement
-pub fn handle_forced_movement(data: &JoinData, update: &mut StateUpdate, movement: ForcedMovement) {
+pub fn handle_forced_movement(
+    data: &JoinData<'_>,
+    update: &mut StateUpdate,
+    movement: ForcedMovement,
+) {
     match movement {
         ForcedMovement::Forward { strength } => {
             let strength = strength * data.stats.move_speed_modifier * data.stats.friction_modifier;
@@ -345,7 +349,7 @@ pub fn handle_forced_movement(data: &JoinData, update: &mut StateUpdate, movemen
     }
 }
 
-pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
+pub fn handle_orientation(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) {
     if let Some(dir) = (is_strafing(data, update) || update.character.is_attack())
         .then(|| data.inputs.look_dir.to_horizontal().unwrap_or_default())
         .or_else(|| Dir::from_unnormalized(data.inputs.move_dir.into()))
@@ -361,7 +365,12 @@ pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, efficiency:
 }
 
 /// Updates components to move player as if theyre swimming
-fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, submersion: f32) -> bool {
+fn swim_move(
+    data: &JoinData<'_>,
+    update: &mut StateUpdate,
+    efficiency: f32,
+    submersion: f32,
+) -> bool {
     let efficiency = efficiency * data.stats.move_speed_modifier * data.stats.friction_modifier;
     if let Some(force) = data.body.swim_thrust() {
         let force = efficiency * force;
@@ -399,7 +408,7 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, submers
 }
 
 /// Updates components to move entity as if it's flying
-pub fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) -> bool {
+pub fn fly_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) -> bool {
     let efficiency = efficiency * data.stats.move_speed_modifier * data.stats.friction_modifier;
 
     let glider = match data.character {
@@ -466,14 +475,14 @@ pub fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) -> b
 
 /// Checks if an input related to an attack is held. If one is, moves entity
 /// into wielding state
-pub fn handle_wield(data: &JoinData, update: &mut StateUpdate) {
+pub fn handle_wield(data: &JoinData<'_>, update: &mut StateUpdate) {
     if data.controller.queued_inputs.keys().any(|i| i.is_ability()) {
         attempt_wield(data, update);
     }
 }
 
 /// If a tool is equipped, goes into Equipping state, otherwise goes to Idle
-pub fn attempt_wield(data: &JoinData, update: &mut StateUpdate) {
+pub fn attempt_wield(data: &JoinData<'_>, update: &mut StateUpdate) {
     // Closure to get equip time provided an equip slot if a tool is equipped in
     // equip slot
     let equip_time = |equip_slot| {
@@ -511,32 +520,32 @@ pub fn attempt_wield(data: &JoinData, update: &mut StateUpdate) {
 }
 
 /// Checks that player can `Sit` and updates `CharacterState` if so
-pub fn attempt_sit(data: &JoinData, update: &mut StateUpdate) {
+pub fn attempt_sit(data: &JoinData<'_>, update: &mut StateUpdate) {
     if data.physics.on_ground.is_some() {
         update.character = CharacterState::Sit;
     }
 }
 
-pub fn attempt_dance(data: &JoinData, update: &mut StateUpdate) {
+pub fn attempt_dance(data: &JoinData<'_>, update: &mut StateUpdate) {
     if data.physics.on_ground.is_some() && data.body.is_humanoid() {
         update.character = CharacterState::Dance;
     }
 }
 
-pub fn attempt_talk(data: &JoinData, update: &mut StateUpdate) {
+pub fn attempt_talk(data: &JoinData<'_>, update: &mut StateUpdate) {
     if data.physics.on_ground.is_some() {
         update.character = CharacterState::Talk;
     }
 }
 
-pub fn attempt_sneak(data: &JoinData, update: &mut StateUpdate) {
+pub fn attempt_sneak(data: &JoinData<'_>, update: &mut StateUpdate) {
     if data.physics.on_ground.is_some() && data.body.is_humanoid() {
         update.character = CharacterState::Sneak;
     }
 }
 
 /// Checks that player can `Climb` and updates `CharacterState` if so
-pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) -> bool {
+pub fn handle_climb(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
     if data.inputs.climb.is_some()
         && data.physics.on_wall.is_some()
         && data.physics.on_ground.is_none()
@@ -557,7 +566,7 @@ pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) -> bool {
 }
 
 /// Checks that player can Swap Weapons and updates `Loadout` if so
-pub fn attempt_swap_equipped_weapons(data: &JoinData, update: &mut StateUpdate) {
+pub fn attempt_swap_equipped_weapons(data: &JoinData<'_>, update: &mut StateUpdate) {
     if data
         .inventory
         .equipped(EquipSlot::InactiveMainhand)
@@ -573,7 +582,7 @@ pub fn attempt_swap_equipped_weapons(data: &JoinData, update: &mut StateUpdate) 
 
 /// Handles inventory manipulations that affect the loadout
 pub fn handle_manipulate_loadout(
-    data: &JoinData,
+    data: &JoinData<'_>,
     update: &mut StateUpdate,
     inv_action: InventoryAction,
 ) {
@@ -619,7 +628,7 @@ pub fn handle_manipulate_loadout(
 }
 
 /// Checks that player can wield the glider and updates `CharacterState` if so
-pub fn attempt_glide_wield(data: &JoinData, update: &mut StateUpdate) {
+pub fn attempt_glide_wield(data: &JoinData<'_>, update: &mut StateUpdate) {
     if data.inventory.equipped(EquipSlot::Glider).is_some()
         && !data
             .physics
@@ -633,7 +642,7 @@ pub fn attempt_glide_wield(data: &JoinData, update: &mut StateUpdate) {
 }
 
 /// Checks that player can jump and sends jump event if so
-pub fn handle_jump(data: &JoinData, update: &mut StateUpdate, strength: f32) -> bool {
+pub fn handle_jump(data: &JoinData<'_>, update: &mut StateUpdate, strength: f32) -> bool {
     (input_is_pressed(data, InputKind::Jump) && data.physics.on_ground.is_some())
         .then(|| data.body.jump_impulse())
         .flatten()
@@ -646,7 +655,7 @@ pub fn handle_jump(data: &JoinData, update: &mut StateUpdate, strength: f32) -> 
         .is_some()
 }
 
-fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
+fn handle_ability(data: &JoinData<'_>, update: &mut StateUpdate, input: InputKind) {
     let hands = get_hands(data);
 
     // Mouse1 and Skill1 always use the MainHand slot
@@ -699,12 +708,13 @@ fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
                     matches!(equip_slot, EquipSlot::ActiveOffhand),
                     input,
                 ),
+                data,
             ));
         }
     }
 }
 
-pub fn handle_ability_input(data: &JoinData, update: &mut StateUpdate) {
+pub fn handle_ability_input(data: &JoinData<'_>, update: &mut StateUpdate) {
     if let Some(input) = data
         .controller
         .queued_inputs
@@ -715,7 +725,7 @@ pub fn handle_ability_input(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-pub fn handle_input(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
+pub fn handle_input(data: &JoinData<'_>, update: &mut StateUpdate, input: InputKind) {
     match input {
         InputKind::Primary | InputKind::Secondary | InputKind::Ability(_) => {
             handle_ability(data, update, input)
@@ -729,7 +739,7 @@ pub fn handle_input(data: &JoinData, update: &mut StateUpdate, input: InputKind)
     }
 }
 
-pub fn attempt_input(data: &JoinData, update: &mut StateUpdate) {
+pub fn attempt_input(data: &JoinData<'_>, update: &mut StateUpdate) {
     // TODO: look into using first() when it becomes stable
     if let Some(input) = data.controller.queued_inputs.keys().next() {
         handle_input(data, update, *input);
@@ -737,7 +747,7 @@ pub fn attempt_input(data: &JoinData, update: &mut StateUpdate) {
 }
 
 /// Checks that player can block, then attempts to block
-pub fn handle_block_input(data: &JoinData, update: &mut StateUpdate) {
+pub fn handle_block_input(data: &JoinData<'_>, update: &mut StateUpdate) {
     let can_block =
         |equip_slot| matches!(unwrap_tool_data(data, equip_slot), Some(tool) if tool.can_block());
     let hands = get_hands(data);
@@ -750,6 +760,7 @@ pub fn handle_block_input(data: &JoinData, update: &mut StateUpdate) {
             update.character = CharacterState::from((
                 &ability,
                 AbilityInfo::from_input(data, false, InputKind::Roll),
+                data,
             ));
         }
     }
@@ -757,13 +768,14 @@ pub fn handle_block_input(data: &JoinData, update: &mut StateUpdate) {
 
 /// Checks that player can perform a dodge, then
 /// attempts to perform their dodge ability
-pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
+pub fn handle_dodge_input(data: &JoinData<'_>, update: &mut StateUpdate) {
     if input_is_pressed(data, InputKind::Roll) && data.body.is_humanoid() {
         let ability = CharacterAbility::default_roll().adjusted_by_skills(data.skill_set, None);
         if ability.requirements_paid(data, update) {
             update.character = CharacterState::from((
                 &ability,
                 AbilityInfo::from_input(data, false, InputKind::Roll),
+                data,
             ));
             if let CharacterState::ComboMelee(c) = data.character {
                 if let CharacterState::Roll(roll) = &mut update.character {
@@ -783,7 +795,7 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-pub fn is_strafing(data: &JoinData, update: &StateUpdate) -> bool {
+pub fn is_strafing(data: &JoinData<'_>, update: &StateUpdate) -> bool {
     // TODO: Don't always check `character.is_aimed()`, allow the frontend to
     // control whether the player strafes during an aimed `CharacterState`.
     (update.character.is_aimed() || update.should_strafe) && data.body.can_strafe()
@@ -797,7 +809,7 @@ pub fn unwrap_tool_data<'a>(data: &'a JoinData, equip_slot: EquipSlot) -> Option
     }
 }
 
-pub fn get_hands(data: &JoinData) -> (Option<Hands>, Option<Hands>) {
+pub fn get_hands(data: &JoinData<'_>) -> (Option<Hands>, Option<Hands>) {
     let hand = |slot| {
         if let Some(ItemKind::Tool(tool)) = data.inventory.equipped(slot).map(|i| i.kind()) {
             Some(tool.hands)
@@ -813,7 +825,7 @@ pub fn get_hands(data: &JoinData) -> (Option<Hands>, Option<Hands>) {
 
 /// Returns (critical chance, critical multiplier) which is calculated from
 /// equipped weapon and equipped armor respectively
-pub fn get_crit_data(data: &JoinData, ai: AbilityInfo) -> (f32, f32) {
+pub fn get_crit_data(data: &JoinData<'_>, ai: AbilityInfo) -> (f32, f32) {
     const DEFAULT_CRIT_CHANCE: f32 = 0.1;
 
     let crit_chance = ai
@@ -838,7 +850,7 @@ pub fn get_crit_data(data: &JoinData, ai: AbilityInfo) -> (f32, f32) {
 }
 
 /// Returns buff strength from the weapon used in the ability
-pub fn get_buff_strength(data: &JoinData, ai: AbilityInfo) -> f32 {
+pub fn get_buff_strength(data: &JoinData<'_>, ai: AbilityInfo) -> f32 {
     ai.hand
         .map(|hand| match hand {
             HandInfo::TwoHanded | HandInfo::MainHand => EquipSlot::ActiveMainhand,
@@ -855,21 +867,25 @@ pub fn get_buff_strength(data: &JoinData, ai: AbilityInfo) -> f32 {
         .unwrap_or(1.0)
 }
 
-pub fn handle_state_interrupt(data: &JoinData, update: &mut StateUpdate, attacks_interrupt: bool) {
+pub fn handle_state_interrupt(
+    data: &JoinData<'_>,
+    update: &mut StateUpdate,
+    attacks_interrupt: bool,
+) {
     if attacks_interrupt {
         handle_ability_input(data, update);
     }
     handle_dodge_input(data, update);
 }
 
-pub fn input_is_pressed(data: &JoinData, input: InputKind) -> bool {
+pub fn input_is_pressed(data: &JoinData<'_>, input: InputKind) -> bool {
     data.controller.queued_inputs.contains_key(&input)
 }
 
 /// Checked `Duration` addition. Computes `timer` + `dt`, applying relevant stat
 /// attack modifiers and `other_modifiers`, returning None if overflow occurred.
 pub fn checked_tick_attack(
-    data: &JoinData,
+    data: &JoinData<'_>,
     timer: Duration,
     other_modifier: Option<f32>,
 ) -> Option<Duration> {
@@ -880,7 +896,7 @@ pub fn checked_tick_attack(
 /// Ticks `timer` by `dt`, applying relevant stat attack modifiers and
 /// `other_modifier`. Returns `Duration::default()` if overflow occurs
 pub fn tick_attack_or_default(
-    data: &JoinData,
+    data: &JoinData<'_>,
     timer: Duration,
     other_modifier: Option<f32>,
 ) -> Duration {
@@ -926,7 +942,7 @@ pub enum MovementDirection {
 }
 
 impl MovementDirection {
-    pub fn get_2d_dir(self, data: &JoinData) -> Vec2<f32> {
+    pub fn get_2d_dir(self, data: &JoinData<'_>) -> Vec2<f32> {
         use MovementDirection::*;
         match self {
             Look => data
@@ -951,7 +967,7 @@ pub struct AbilityInfo {
 }
 
 impl AbilityInfo {
-    pub fn from_input(data: &JoinData, from_offhand: bool, input: InputKind) -> Self {
+    pub fn from_input(data: &JoinData<'_>, from_offhand: bool, input: InputKind) -> Self {
         let tool_data = if from_offhand {
             unwrap_tool_data(data, EquipSlot::ActiveOffhand)
         } else {

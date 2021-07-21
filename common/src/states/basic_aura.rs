@@ -34,6 +34,8 @@ pub struct StaticData {
     pub ability_info: AbilityInfo,
     /// Whether the aura's effect scales with the user's current combo
     pub scales_with_combo: bool,
+    /// Combo at the time the aura is first cast
+    pub combo_at_cast: f32,
     /// Used to specify aura to the frontend
     pub specifier: Specifier,
 }
@@ -49,8 +51,6 @@ pub struct Data {
     pub stage_section: StageSection,
     /// Whether the aura has been cast already or not
     pub exhausted: bool,
-    /// Combo which is updated only on the first tick behavior is called
-    pub combo_at_cast: f32,
 }
 
 impl CharacterBehavior for Data {
@@ -64,24 +64,12 @@ impl CharacterBehavior for Data {
         match self.stage_section {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
-                    let combo = if self.combo_at_cast > 0.0 {
-                        self.combo_at_cast
-                    } else {
-                        if self.static_data.scales_with_combo {
-                            update.server_events.push_front(ServerEvent::ComboChange {
-                                entity: data.entity,
-                                change: -(data.combo.counter() as i32),
-                            });
-                        }
-                        data.combo.counter() as f32
-                    };
                     // Build up
                     update.character = CharacterState::BasicAura(Data {
                         timer: tick_attack_or_default(data, self.timer, None),
-                        combo_at_cast: combo,
                         ..*self
                     });
-                } else if !self.exhausted {
+                } else if true {
                     // Creates aura if it hasn't been created already
                     let targets =
                         AuraTarget::from((Some(self.static_data.targets), Some(data.uid)));
@@ -99,9 +87,14 @@ impl CharacterBehavior for Data {
                                 category: _,
                                 source: _,
                             } => {
-                                data.strength *= 1.0 + self.combo_at_cast.max(1.0_f32).log(2.0_f32);
+                                data.strength *=
+                                    1.0 + self.static_data.combo_at_cast.max(1.0_f32).log(2.0_f32);
                             },
                         }
+                        update.server_events.push_front(ServerEvent::ComboChange {
+                            entity: data.entity,
+                            change: -(self.static_data.combo_at_cast as i32),
+                        });
                     }
                     update.server_events.push_front(ServerEvent::Aura {
                         entity: data.entity,
