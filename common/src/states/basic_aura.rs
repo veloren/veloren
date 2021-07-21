@@ -99,7 +99,7 @@ impl CharacterBehavior for Data {
                                 category: _,
                                 source: _,
                             } => {
-                                data.strength *= 1.0 + (self.combo_at_cast).log(2.0_f32);
+                                data.strength *= 1.0 + self.combo_at_cast.max(1.0_f32).log(2.0_f32);
                             },
                         }
                     }
