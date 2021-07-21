@@ -7,11 +7,11 @@ use super::{
 };
 
 use crate::{
+    game_input::GameInput,
     hud,
     i18n::Localization,
     settings::Settings,
     ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
-    window::GameInput,
     GlobalState,
 };
 use client::{self, Client};

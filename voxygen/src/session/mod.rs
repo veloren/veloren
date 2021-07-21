@@ -35,13 +35,14 @@ use common_net::{
 
 use crate::{
     audio::sfx::SfxEvent,
+    game_input::GameInput,
     hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, LootMessage, PromptDialogSettings},
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
     render::{Drawer, GlobalsBindGroup},
     scene::{camera, terrain::Interaction, CameraMode, DebugShapeId, Scene, SceneData},
     settings::Settings,
-    window::{AnalogGameInput, Event, GameInput},
+    window::{AnalogGameInput, Event},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
 use hashbrown::HashMap;

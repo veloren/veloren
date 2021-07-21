@@ -1,6 +1,7 @@
 use super::SessionState;
 use crate::{
     controller::ControllerSettings,
+    game_input::GameInput,
     hud::{
         BarNumbers, BuffPosition, ChatTab, CrosshairType, Intro, PressBehavior, ScaleChange,
         ShortcutNumbers, XpBar,
@@ -11,7 +12,7 @@ use crate::{
         AudioSettings, ChatSettings, ControlSettings, Fps, GamepadSettings, GameplaySettings,
         GraphicsSettings, InterfaceSettings,
     },
-    window::{FullScreenSettings, GameInput},
+    window::FullScreenSettings,
     GlobalState,
 };
 use vek::*;

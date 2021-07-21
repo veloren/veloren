@@ -1,7 +1,7 @@
 //! Module containing controller-specific abstractions allowing complex
 //! keybindings
 
-use crate::window::{GameInput, MenuInput};
+use crate::{game_input::GameInput, window::MenuInput};
 use gilrs::{ev::Code as GilCode, Axis as GilAxis, Button as GilButton};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};

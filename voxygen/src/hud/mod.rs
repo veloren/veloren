@@ -53,6 +53,7 @@ use trade::Trade;
 
 use crate::{
     ecs::{comp as vcomp, comp::HpFloaterList},
+    game_input::GameInput,
     hud::{img_ids::ImgsRot, prompt_dialog::DialogOutcomeEvent},
     i18n::Localization,
     render::UiDrawer,
@@ -66,7 +67,7 @@ use crate::{
         self, fonts::Fonts, img_ids::Rotations, slot, slot::SlotKey, Graphic, Ingameable,
         ScaleMode, Ui,
     },
-    window::{Event as WinEvent, GameInput},
+    window::Event as WinEvent,
     GlobalState,
 };
 use client::Client;
