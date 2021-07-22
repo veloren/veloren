@@ -77,7 +77,6 @@ struct Config {
 struct Queue {
     id: u64,
     name: String,
-    _queue_created: Instant,
     task: Box<dyn FnOnce() + Send + Sync + 'static>,
 }
 
@@ -98,7 +97,6 @@ impl Queue {
         Self {
             id,
             name: name.to_owned(),
-            _queue_created: queue_created,
             task: Box::new(move || {
                 common_base::prof_span!(_guard, &name_cloned);
                 let execution_start = Instant::now();
@@ -325,7 +323,7 @@ impl InternalSlowJobPool {
     }
 
     pub fn take_metrics(&mut self) -> HashMap<String, Vec<JobMetrics>> {
-        std::mem::replace(&mut self.jobs_metrics, HashMap::new())
+        core::mem::take(&mut self.jobs_metrics)
     }
 }
 
