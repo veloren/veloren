@@ -197,7 +197,7 @@ impl<'a> Widget for Map<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         common_base::prof_span!("Map::update");
         let widget::UpdateArgs { state, ui, .. } = args;
-        let zoom = self.global_state.settings.interface.map_zoom * 0.8;
+        let zoom = self.global_state.settings.interface.map_zoom;
         let show_difficulty = self.global_state.settings.interface.map_show_difficulty;
         let show_towns = self.global_state.settings.interface.map_show_towns;
         let show_dungeons = self.global_state.settings.interface.map_show_dungeons;
@@ -319,6 +319,13 @@ impl<'a> Widget for Map<'a> {
         let w_src = max_zoom / zoom;
         let h_src = max_zoom / zoom;
 
+        // player pos from -1 to 1
+        let relative_player_pos =
+            player_pos.xy() / (TerrainChunkSize::RECT_SIZE * worldsize).map(|x| x as f32) * 2.0
+                - 1.0;
+        let min_drag = (relative_player_pos.map(|x| x as f64) / 2.0 - 1.0) * map_size;
+        let max_drag = (relative_player_pos.map(|x| x as f64) / 2.0 + 1.0) * map_size;
+
         // Handle dragging
         let drag = self.global_state.settings.interface.map_drag;
         let dragged: Vec2<f64> = ui
@@ -328,7 +335,7 @@ impl<'a> Widget for Map<'a> {
             .map(|drag| Vec2::<f64>::from(drag.delta_xy))
             .sum();
         // Drag represents offset of view from the player_pos in chunk coords
-        let drag_new = drag + dragged / map_size / zoom * max_zoom;
+        let drag_new = (drag + dragged / map_size / zoom * max_zoom).clamped(min_drag, max_drag);
         if drag_new != drag {
             events.push(Event::SettingsChange(MapDrag(drag_new)));
         }
@@ -388,20 +395,37 @@ impl<'a> Widget for Map<'a> {
         }
 
         // Handle zooming with the mousewheel
-
-        // TODO: Experiment with zooming around cursor position instead of map center
-        // (issue #1111)
         let scrolled: f64 = ui
             .widget_input(state.ids.map_layers[0])
             .scrolls()
             .map(|scroll| scroll.y)
             .sum();
         if scrolled != 0.0 {
-            let new_zoom_lvl = (self.global_state.settings.interface.map_zoom
-                * (scrolled * 0.05 * -1.0).exp2())
-            .clamped(1.25, max_zoom / 64.0);
-            events.push(Event::SettingsChange(MapZoom(new_zoom_lvl as f64)));
+            let new_zoom_lvl: f64 = (f64::log2(zoom) - scrolled * 0.03)
+                .exp2()
+                .clamped(1.0, max_zoom / 64.0);
+            events.push(Event::SettingsChange(MapZoom(new_zoom_lvl)));
+            let drag = self.global_state.settings.interface.map_drag;
+            let cursor_mouse_pos = ui
+                .widget_input(state.ids.map_layers[0])
+                .mouse()
+                .map(|mouse| mouse.rel_xy());
+            if let Some(cursor_pos) = cursor_mouse_pos {
+                // First we calc the new zoomed rect. Then we find out its mid.
+                // The diff between both mids is the new drag.
+                let w_src2 = max_zoom / new_zoom_lvl;
+                let h_src2 = max_zoom / new_zoom_lvl;
+                // range -0.5 to 0.5
+                let relative_mouse_pos = Vec2::from_slice(&cursor_pos) / map_size;
+                let drag_new = (drag
+                    + relative_mouse_pos * Vec2::new(w_src2 - w_src, h_src2 - h_src))
+                .clamped(min_drag, max_drag);
+                if drag_new != drag {
+                    events.push(Event::SettingsChange(MapDrag(drag_new)));
+                }
+            }
         }
+
         // Icon settings
         // Alignment
         Rectangle::fill_with([150.0, 200.0], color::TRANSPARENT)
@@ -1110,12 +1134,7 @@ impl<'a> Widget for Map<'a> {
 
         // Info about controls
         let icon_size = Vec2::new(25.6, 28.8);
-        let recenter: bool;
-        if drag.x != 0.0 || drag.y != 0.0 {
-            recenter = true
-        } else {
-            recenter = false
-        };
+        let recenter: bool = drag.x != 0.0 || drag.y != 0.0;
         if Button::image(self.imgs.button)
             .w_h(92.0, icon_size.y)
             .mid_bottom_with_margin_on(state.ids.map_layers[0], -36.0)
