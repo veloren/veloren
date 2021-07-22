@@ -114,90 +114,19 @@ impl TagExampleInfo for ModularComponentTag {
     }
 }
 
-const SUPPORTED_TOOLKINDS: [ToolKind; 7] = [
+const SUPPORTED_TOOLKINDS: [ToolKind; 6] = [
     ToolKind::Sword,
     ToolKind::Axe,
     ToolKind::Hammer,
     ToolKind::Bow,
-    ToolKind::Dagger,
     ToolKind::Staff,
     ToolKind::Sceptre,
 ];
 const MODKINDS: [ModularComponentKind; 2] =
     [ModularComponentKind::Damage, ModularComponentKind::Held];
 
-const COMPONENT_PREFIX: &str = "common.items.crafting_ing.modular";
 const WEAPON_PREFIX: &str = "common.items.weapons.modular";
 const TAG_EXAMPLES_PREFIX: &str = "common.items.tag_examples.modular";
-
-// AVERAGE_STAT_VALUE from the "Progression" google sheet
-// TODO: also get materials from there
-const AVERAGE_STAT_VALUE: [f32; 6] = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
-
-fn make_component_def(
-    toolkind: ToolKind,
-    modkind: ModularComponentKind,
-    tier: usize,
-) -> (String, RawItemDef) {
-    let tag = ModularComponentTag { toolkind, modkind };
-    let identifier = format!(
-        "{}.{}.{}.tier{}",
-        COMPONENT_PREFIX,
-        modkind.identifier_name(),
-        toolkind.identifier_name(),
-        tier
-    );
-    let name = format!("Tier-{} {}", tier, tag.name());
-    let description = format!(
-        "A {} used to make {}s",
-        tag.name(),
-        toolkind.identifier_name()
-    );
-    let mc = ModularComponent {
-        toolkind,
-        modkind,
-        stats: tool::Stats {
-            equip_time_secs: 0.25,
-            power: if matches!(modkind, ModularComponentKind::Damage) {
-                AVERAGE_STAT_VALUE[tier]
-            } else {
-                0.0
-            },
-            effect_power: if matches!(modkind, ModularComponentKind::Damage) {
-                AVERAGE_STAT_VALUE[tier] * 0.75
-            } else {
-                0.0
-            },
-            speed: if matches!(modkind, ModularComponentKind::Held) {
-                //AVERAGE_STAT_VALUE[tier] * 0.5
-                1.0
-            } else {
-                0.0
-            },
-            crit_chance: if matches!(modkind, ModularComponentKind::Held) {
-                AVERAGE_STAT_VALUE[tier] * 0.1
-            } else {
-                0.0
-            },
-            range: 0.5,
-            energy_efficiency: 0.0,
-            buff_strength: 0.0,
-        },
-    };
-    let kind = ItemKind::ModularComponent(mc);
-    // TODO: tier -> quality?
-    let quality = Quality::Common;
-    let item = RawItemDef {
-        name,
-        description,
-        kind,
-        quality,
-        tags: vec![ItemTag::ModularComponent(tag)],
-        slots: 0,
-        ability_spec: None,
-    };
-    (identifier, item)
-}
 
 fn make_weapon_def(toolkind: ToolKind) -> (String, RawItemDef) {
     let identifier = format!("{}.{}", WEAPON_PREFIX, toolkind.identifier_name(),);
@@ -239,11 +168,7 @@ fn make_recipe_def(identifier: String, toolkind: ToolKind) -> RawRecipe {
     }
 }
 
-fn make_tagexample_def(
-    toolkind: ToolKind,
-    modkind: ModularComponentKind,
-    exemplars: &HashMap<ModularComponentTag, Vec<String>>,
-) -> (String, RawItemDef) {
+fn make_tagexample_def(toolkind: ToolKind, modkind: ModularComponentKind) -> (String, RawItemDef) {
     let identifier = format!(
         "{}.{}.{}",
         TAG_EXAMPLES_PREFIX,
@@ -259,7 +184,8 @@ fn make_tagexample_def(
         toolkind.identifier_name()
     );
     let kind = ItemKind::TagExamples {
-        item_ids: exemplars.get(&tag).cloned().unwrap_or_default(),
+        // TODO: Iterate over components
+        item_ids: Vec::new(),
     };
     let quality = Quality::Common;
 
@@ -277,20 +203,8 @@ fn make_tagexample_def(
 
 fn initialize_modular_assets() -> (HashMap<String, RawItemDef>, RawRecipeBook) {
     let mut itemdefs = HashMap::new();
-    let mut exemplars = HashMap::new();
     let mut recipes = HashMap::new();
     for &toolkind in &SUPPORTED_TOOLKINDS {
-        for &modkind in &MODKINDS {
-            for tier in 0..=5 {
-                let (identifier, item) = make_component_def(toolkind, modkind, tier);
-                let tag = ModularComponentTag { toolkind, modkind };
-                exemplars
-                    .entry(tag)
-                    .or_insert_with(Vec::new)
-                    .push(identifier.clone());
-                itemdefs.insert(identifier, item);
-            }
-        }
         let (identifier, item) = make_weapon_def(toolkind);
         itemdefs.insert(identifier.clone(), item);
         let recipe = make_recipe_def(identifier.clone(), toolkind);
@@ -298,7 +212,7 @@ fn initialize_modular_assets() -> (HashMap<String, RawItemDef>, RawRecipeBook) {
     }
     for &toolkind in &SUPPORTED_TOOLKINDS {
         for &modkind in &MODKINDS {
-            let (identifier, item) = make_tagexample_def(toolkind, modkind, &exemplars);
+            let (identifier, item) = make_tagexample_def(toolkind, modkind);
             itemdefs.insert(identifier, item);
         }
     }
@@ -320,7 +234,6 @@ pub(crate) fn append_modular_recipes(recipes: &mut RawRecipeBook) {
 }
 
 /// Synthesize modular assets programmatically, to allow for the following:
-/// - Tweaking stats as a function of tier automatically
 /// - Allow the modular tag_examples to auto-update with the list of applicable
 ///   components
 pub(super) fn synthesize_modular_asset(specifier: &str) -> Option<RawItemDef> {
