@@ -316,6 +316,40 @@ widget_ids! {
     }
 }
 
+// TODO: extend as you need it
+#[derive(Clone, Copy)]
+pub enum PositionSpecifier {
+    MidBottomWithMarginOn(widget::Id, f64),
+    TopRightWithMarginsOn(widget::Id, f64, f64),
+    BottomRightWithMarginsOn(widget::Id, f64, f64),
+    BottomLeftWithMarginsOn(widget::Id, f64, f64),
+    RightFrom(widget::Id, f64),
+}
+
+pub trait Position {
+    fn position(self, request: PositionSpecifier) -> Self;
+}
+
+impl<W: Positionable> Position for W {
+    fn position(self, request: PositionSpecifier) -> Self {
+        match request {
+            PositionSpecifier::MidBottomWithMarginOn(other, margin) => {
+                self.mid_bottom_with_margin_on(other, margin)
+            },
+            PositionSpecifier::TopRightWithMarginsOn(other, top, right) => {
+                self.top_right_with_margins_on(other, top, right)
+            },
+            PositionSpecifier::BottomRightWithMarginsOn(other, bottom, right) => {
+                self.bottom_right_with_margins_on(other, bottom, right)
+            },
+            PositionSpecifier::BottomLeftWithMarginsOn(other, bottom, left) => {
+                self.bottom_left_with_margins_on(other, bottom, left)
+            },
+            PositionSpecifier::RightFrom(other, offset) => self.right_from(other, offset),
+        }
+    }
+}
+
 #[derive(Clone, Copy)]
 pub struct BuffInfo {
     kind: comp::BuffKind,

@@ -7,7 +7,7 @@ use super::{
 };
 use crate::{
     game_input::GameInput,
-    hud::ComboFloater,
+    hud::{ComboFloater, Position, PositionSpecifier},
     i18n::Localization,
     ui::{
         fonts::Fonts,
@@ -129,41 +129,6 @@ widget_ids! {
         slot10,
         slot10_text,
         slot10_text_bg,
-    }
-}
-
-// TODO: extend as you need it
-// Make it public to use throughout the code?
-#[derive(Clone, Copy)]
-enum PositionSpecifier {
-    MidBottomWithMarginOn(widget::Id, f64),
-    TopRightWithMarginsOn(widget::Id, f64, f64),
-    BottomRightWithMarginsOn(widget::Id, f64, f64),
-    BottomLeftWithMarginsOn(widget::Id, f64, f64),
-    RightFrom(widget::Id, f64),
-}
-
-trait Position {
-    fn position(self, request: PositionSpecifier) -> Self;
-}
-
-impl<W: Positionable> Position for W {
-    fn position(self, request: PositionSpecifier) -> Self {
-        match request {
-            PositionSpecifier::MidBottomWithMarginOn(other, margin) => {
-                self.mid_bottom_with_margin_on(other, margin)
-            },
-            PositionSpecifier::TopRightWithMarginsOn(other, top, right) => {
-                self.top_right_with_margins_on(other, top, right)
-            },
-            PositionSpecifier::BottomRightWithMarginsOn(other, bottom, right) => {
-                self.bottom_right_with_margins_on(other, bottom, right)
-            },
-            PositionSpecifier::BottomLeftWithMarginsOn(other, bottom, left) => {
-                self.bottom_left_with_margins_on(other, bottom, left)
-            },
-            PositionSpecifier::RightFrom(other, offset) => self.right_from(other, offset),
-        }
     }
 }
 
@@ -351,29 +316,53 @@ impl<'a> Skillbar<'a> {
             combo,
         }
     }
-}
 
-pub struct State {
-    ids: Ids,
-}
+    fn show_death_message(&self, state: &State, ui: &mut UiCell) {
+        let localized_strings = self.localized_strings;
+        let key_layout = &self.global_state.window.key_layout;
 
-impl<'a> Widget for Skillbar<'a> {
-    type Event = ();
-    type State = State;
-    type Style = ();
-
-    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        State {
-            ids: Ids::new(id_gen),
+        if let Some(key) = self
+            .global_state
+            .settings
+            .controls
+            .get_binding(GameInput::Respawn)
+        {
+            Text::new(localized_strings.get("hud.you_died"))
+                .middle_of(ui.window)
+                .font_size(self.fonts.cyri.scale(50))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                .set(state.ids.death_message_1_bg, ui);
+            Text::new(
+                &localized_strings
+                    .get("hud.press_key_to_respawn")
+                    .replace("{key}", key.display_string(key_layout).as_str()),
+            )
+            .mid_bottom_with_margin_on(state.ids.death_message_1_bg, -120.0)
+            .font_size(self.fonts.cyri.scale(30))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+            .set(state.ids.death_message_2_bg, ui);
+            Text::new(localized_strings.get("hud.you_died"))
+                .bottom_left_with_margins_on(state.ids.death_message_1_bg, 2.0, 2.0)
+                .font_size(self.fonts.cyri.scale(50))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(CRITICAL_HP_COLOR)
+                .set(state.ids.death_message_1, ui);
+            Text::new(
+                &localized_strings
+                    .get("hud.press_key_to_respawn")
+                    .replace("{key}", key.display_string(key_layout).as_str()),
+            )
+            .bottom_left_with_margins_on(state.ids.death_message_2_bg, 2.0, 2.0)
+            .font_size(self.fonts.cyri.scale(30))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(CRITICAL_HP_COLOR)
+            .set(state.ids.death_message_2, ui);
         }
     }
 
-    fn style(&self) -> Self::Style {}
-
-    fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        common_base::prof_span!("Skillbar::update");
-        let widget::UpdateArgs { state, ui, .. } = args;
-
+    fn show_stat_bars(&self, state: &State, ui: &mut UiCell) {
         let (hp_percentage, energy_percentage): (f64, f64) = if self.health.is_dead {
             (0.0, 0.0)
         } else {
@@ -385,67 +374,10 @@ impl<'a> Widget for Skillbar<'a> {
             )
         };
 
-        let bar_values = self.global_state.settings.interface.bar_numbers;
-        let shortcuts = self.global_state.settings.interface.shortcut_numbers;
-
         // Animation timer
         let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8;
         let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
-
-        let localized_strings = self.localized_strings;
-        let key_layout = &self.global_state.window.key_layout;
-
-        let slot_offset = 3.0;
-
-        // Death message
-        if self.health.is_dead {
-            if let Some(key) = self
-                .global_state
-                .settings
-                .controls
-                .get_binding(GameInput::Respawn)
-            {
-                Text::new(localized_strings.get("hud.you_died"))
-                    .middle_of(ui.window)
-                    .font_size(self.fonts.cyri.scale(50))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-                    .set(state.ids.death_message_1_bg, ui);
-                Text::new(
-                    &localized_strings
-                        .get("hud.press_key_to_respawn")
-                        .replace("{key}", key.display_string(key_layout).as_str()),
-                )
-                .mid_bottom_with_margin_on(state.ids.death_message_1_bg, -120.0)
-                .font_size(self.fonts.cyri.scale(30))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-                .set(state.ids.death_message_2_bg, ui);
-                Text::new(localized_strings.get("hud.you_died"))
-                    .bottom_left_with_margins_on(state.ids.death_message_1_bg, 2.0, 2.0)
-                    .font_size(self.fonts.cyri.scale(50))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(CRITICAL_HP_COLOR)
-                    .set(state.ids.death_message_1, ui);
-                Text::new(
-                    &localized_strings
-                        .get("hud.press_key_to_respawn")
-                        .replace("{key}", key.display_string(key_layout).as_str()),
-                )
-                .bottom_left_with_margins_on(state.ids.death_message_2_bg, 2.0, 2.0)
-                .font_size(self.fonts.cyri.scale(30))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(CRITICAL_HP_COLOR)
-                .set(state.ids.death_message_2, ui);
-            }
-        }
-        // Skillbar
-        // Alignment and BG
-        let alignment_size = 40.0 * 12.0 + slot_offset * 11.0;
-        Rectangle::fill_with([alignment_size, 80.0], color::TRANSPARENT)
-            .mid_bottom_with_margin_on(ui.window, 10.0)
-            .set(state.ids.frame, ui);
-        // Health and Stamina bar
+        let bar_values = self.global_state.settings.interface.bar_numbers;
         let show_health = self.health.current() != self.health.maximum();
         let show_stamina = self.energy.current() != self.energy.maximum();
         let decayed_health = 1.0 - self.health.maximum() as f64 / self.health.base_max() as f64;
@@ -517,32 +449,6 @@ impl<'a> Widget for Skillbar<'a> {
                 .set(state.ids.frame_stamina, ui);
         }
         // Bar Text
-        let show_bar_text = |hp_txt: &str, energy_txt: &str, ui: &mut UiCell| {
-            Text::new(hp_txt)
-                .middle_of(state.ids.frame_health)
-                .font_size(self.fonts.cyri.scale(12))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-                .set(state.ids.hp_txt_bg, ui);
-            Text::new(hp_txt)
-                .bottom_left_with_margins_on(state.ids.hp_txt_bg, 2.0, 2.0)
-                .font_size(self.fonts.cyri.scale(12))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.hp_txt, ui);
-            Text::new(energy_txt)
-                .middle_of(state.ids.frame_stamina)
-                .font_size(self.fonts.cyri.scale(12))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-                .set(state.ids.stamina_txt_bg, ui);
-            Text::new(energy_txt)
-                .bottom_left_with_margins_on(state.ids.stamina_txt_bg, 2.0, 2.0)
-                .font_size(self.fonts.cyri.scale(12))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.stamina_txt, ui);
-        };
         let bar_text = if self.health.is_dead {
             Some((
                 self.localized_strings.get("hud.group.dead").to_owned(),
@@ -571,12 +477,41 @@ impl<'a> Widget for Skillbar<'a> {
             None
         };
         if let Some((hp_txt, energy_txt)) = bar_text {
-            show_bar_text(&hp_txt, &energy_txt, ui);
-        }
+            Text::new(&hp_txt)
+                .middle_of(state.ids.frame_health)
+                .font_size(self.fonts.cyri.scale(12))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                .set(state.ids.hp_txt_bg, ui);
+            Text::new(&hp_txt)
+                .bottom_left_with_margins_on(state.ids.hp_txt_bg, 2.0, 2.0)
+                .font_size(self.fonts.cyri.scale(12))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.hp_txt, ui);
 
-        // Slots
+            Text::new(&energy_txt)
+                .middle_of(state.ids.frame_stamina)
+                .font_size(self.fonts.cyri.scale(12))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                .set(state.ids.stamina_txt_bg, ui);
+            Text::new(&energy_txt)
+                .bottom_left_with_margins_on(state.ids.stamina_txt_bg, 2.0, 2.0)
+                .font_size(self.fonts.cyri.scale(12))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.stamina_txt, ui);
+        }
+    }
+
+    fn show_slotbar(&mut self, state: &State, ui: &mut UiCell, slot_offset: f64) {
+        let shortcuts = self.global_state.settings.interface.shortcut_numbers;
+        let key_layout = &self.global_state.window.key_layout;
+
         // TODO: avoid this
         let content_source = (self.hotbar, self.inventory, self.energy, self.skillset);
+
         let image_source = (self.item_imgs, self.imgs);
         let mut slot_maker = SlotMaker {
             // TODO: is a separate image needed for the frame?
@@ -700,6 +635,7 @@ impl<'a> Widget for Skillbar<'a> {
 
         slot_maker.empty_slot = self.imgs.skillbar_slot;
         slot_maker.selected_slot = self.imgs.skillbar_slot;
+
         let slots = slot_entries(state, slot_offset);
         for entry in slots {
             let slot = slot_maker
@@ -859,47 +795,93 @@ impl<'a> Widget for Skillbar<'a> {
             .w_h(16.0, 18.0)
             .mid_bottom_with_margin_on(state.ids.m2_content, -11.0)
             .set(state.ids.m2_ico, ui);
+    }
+
+    fn show_combo_counter(&self, combo: ComboFloater, state: &State, ui: &mut UiCell) {
+        if combo.combo > 0 {
+            let combo_txt = format!("{} Combo", combo.combo);
+            let combo_cnt = combo.combo as f32;
+            let time_since_last_update = comp::combo::COMBO_DECAY_START - combo.timer;
+            let alpha = (1.0 - time_since_last_update * 0.2).min(1.0) as f32;
+            let fnt_col = Color::Rgba(
+                // White -> Yellow -> Red text color gradient depending on count
+                (1.0 - combo_cnt / (combo_cnt + 20.0)).max(0.79),
+                (1.0 - combo_cnt / (combo_cnt + 80.0)).max(0.19),
+                (1.0 - combo_cnt / (combo_cnt + 5.0)).max(0.17),
+                alpha,
+            );
+            // Increase size for higher counts,
+            // "flash" on update by increasing the font size by 2.
+            let fnt_size = ((14.0 + combo.timer as f32 * 0.8).min(30.0)) as u32
+                + if (time_since_last_update) < 0.1 { 2 } else { 0 };
+
+            Rectangle::fill_with([10.0, 10.0], color::TRANSPARENT)
+                .middle_of(ui.window)
+                .set(state.ids.combo_align, ui);
+
+            Text::new(combo_txt.as_str())
+                .mid_bottom_with_margin_on(
+                    state.ids.combo_align,
+                    -350.0 + time_since_last_update * -8.0,
+                )
+                .font_size(self.fonts.cyri.scale(fnt_size))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(Color::Rgba(0.0, 0.0, 0.0, alpha))
+                .set(state.ids.combo_bg, ui);
+            Text::new(combo_txt.as_str())
+                .bottom_right_with_margins_on(state.ids.combo_bg, 1.0, 1.0)
+                .font_size(self.fonts.cyri.scale(fnt_size))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(fnt_col)
+                .set(state.ids.combo, ui);
+        }
+    }
+}
+
+pub struct State {
+    ids: Ids,
+}
+
+impl<'a> Widget for Skillbar<'a> {
+    type Event = ();
+    type State = State;
+    type Style = ();
+
+    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
+        State {
+            ids: Ids::new(id_gen),
+        }
+    }
+
+    fn style(&self) -> Self::Style {}
+
+    fn update(mut self, args: widget::UpdateArgs<Self>) -> Self::Event {
+        common_base::prof_span!("Skillbar::update");
+        let widget::UpdateArgs { state, ui, .. } = args;
+
+        let slot_offset = 3.0;
+
+        // Death message
+        if self.health.is_dead {
+            self.show_death_message(state, ui);
+        }
+
+        // Skillbar
+        // Alignment and BG
+        let alignment_size = 40.0 * 12.0 + slot_offset * 11.0;
+        Rectangle::fill_with([alignment_size, 80.0], color::TRANSPARENT)
+            .mid_bottom_with_margin_on(ui.window, 10.0)
+            .set(state.ids.frame, ui);
+
+        // Health and Stamina bar
+        self.show_stat_bars(state, ui);
+
+        // Slots
+        self.show_slotbar(state, ui, slot_offset);
 
         // Combo Counter
         if let Some(combo) = self.combo {
-            if combo.combo > 0 {
-                let combo_txt = format!("{} Combo", combo.combo);
-                let combo_cnt = combo.combo as f32;
-                let time_since_last_update = comp::combo::COMBO_DECAY_START - combo.timer;
-                let alpha = (1.0 - time_since_last_update * 0.2).min(1.0) as f32;
-                let fnt_col = Color::Rgba(
-                    // White -> Yellow -> Red text color gradient depending on count
-                    (1.0 - combo_cnt / (combo_cnt + 20.0)).max(0.79),
-                    (1.0 - combo_cnt / (combo_cnt + 80.0)).max(0.19),
-                    (1.0 - combo_cnt / (combo_cnt + 5.0)).max(0.17),
-                    alpha,
-                );
-                // Increase size for higher counts,
-                // "flash" on update by increasing the font size by 2.
-                let fnt_size = ((14.0 + combo.timer as f32 * 0.8).min(30.0)) as u32
-                    + if (time_since_last_update) < 0.1 { 2 } else { 0 };
-                Rectangle::fill_with([10.0, 10.0], color::TRANSPARENT)
-                    .middle_of(ui.window)
-                    .set(state.ids.combo_align, ui);
-                let bg_align = PositionSpecifier::MidBottomWithMarginOn(
-                    state.ids.combo_align,
-                    -350.0 + time_since_last_update * -8.0,
-                );
-                let align =
-                    PositionSpecifier::BottomRightWithMarginsOn(state.ids.combo_bg, 1.0, 1.0);
-                Text::new(combo_txt.as_str())
-                    .position(bg_align)
-                    .font_size(self.fonts.cyri.scale(fnt_size))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(Color::Rgba(0.0, 0.0, 0.0, alpha))
-                    .set(state.ids.combo_bg, ui);
-                Text::new(combo_txt.as_str())
-                    .position(align)
-                    .font_size(self.fonts.cyri.scale(fnt_size))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(fnt_col)
-                    .set(state.ids.combo, ui);
-            }
+            self.show_combo_counter(combo, state, ui);
         }
     }
 }
