@@ -791,6 +791,10 @@ impl Item {
         self.update_item_config(ability_map, msm);
     }
 
+    pub fn component_mut(&mut self, index: usize) -> Option<&mut Self> {
+        self.components.get_mut(index)
+    }
+
     fn update_item_config(&mut self, ability_map: &AbilityMap, msm: &MaterialStatManifest) {
         if let Ok(item_config) = ItemConfig::try_from((&*self, ability_map, msm)) {
             self.item_config = Some(Box::new(item_config));

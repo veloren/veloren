@@ -11,7 +11,7 @@ use common::{
     character::CharacterId,
     comp::{
         inventory::{
-            item::{tool::AbilityMap, MaterialStatManifest},
+            item::{tool::AbilityMap, Item as VelorenItem, MaterialStatManifest},
             loadout::{Loadout, LoadoutError},
             loadout_builder::LoadoutBuilder,
             slot::InvSlotId,
@@ -344,7 +344,59 @@ pub fn convert_inventory_from_database_items(
                 ));
             }
         } else if let Some(&j) = item_indices.get(&db_item.parent_container_item_id) {
-            if let Some(Some(parent)) = inventory.slot_mut(slot(&inventory_items[j].position)?) {
+            // Returns a mutable reference to the parent of an item that is a component. If
+            // parent item is itself a component, recursively goes through inventory until
+            // it grabs component.
+            fn get_mutable_parent_item<'a>(
+                index: usize,
+                inventory_items: &'a [Item],
+                item_indices: &'a HashMap<i64, usize>,
+                inventory: &'a mut Inventory,
+                slot: &dyn Fn(&str) -> Result<InvSlotId, PersistenceError>,
+            ) -> Option<&'a mut VelorenItem> {
+                // First checks if parent item is itself also a component, if it is, tries to
+                // get a mutable reference to itself by getting a mutable reference to the item
+                // that is its own parent
+                if inventory_items[index].position.contains("component_") {
+                    if let Some(parent) = item_indices
+                        .get(&inventory_items[index].parent_container_item_id)
+                        .and_then(move |i| {
+                            get_mutable_parent_item(
+                                *i,
+                                inventory_items,
+                                item_indices,
+                                inventory,
+                                slot,
+                            )
+                        })
+                    {
+                        // Parses component index
+                        let component_index = inventory_items[index]
+                            .position
+                            .split('_')
+                            .collect::<Vec<_>>()
+                            .get(1)
+                            .and_then(|s| s.parse::<usize>().ok());
+                        // Returns mutable reference to parent item of original item, by grabbing
+                        // the component representing the parent item from the parent item's parent
+                        // item
+                        component_index.and_then(move |i| parent.component_mut(i))
+                    } else {
+                        None
+                    }
+                } else if let Some(parent) =
+                    // Parent item is not itself a component, just grab it from the
+                    // inventory
+                    inventory.slot_mut(slot(&inventory_items[index].position).ok()?)
+                {
+                    parent.as_mut()
+                } else {
+                    None
+                }
+            }
+            if let Some(parent) =
+                get_mutable_parent_item(j, inventory_items, &item_indices, &mut inventory, &slot)
+            {
                 parent.add_component(item, &ABILITY_MAP, &MATERIAL_STATS_MANIFEST);
             } else {
                 return Err(PersistenceError::ConversionError(format!(
