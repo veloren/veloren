@@ -3,6 +3,7 @@ use rayon::ThreadPool;
 use std::{
     collections::VecDeque,
     sync::{Arc, Mutex},
+    time::Instant,
 };
 use tracing::{error, warn};
 
@@ -39,7 +40,7 @@ use tracing::{error, warn};
 ///     .num_threads(16)
 ///     .build()
 ///     .unwrap();
-/// let pool = SlowJobPool::new(3, Arc::new(threadpool));
+/// let pool = SlowJobPool::new(3, 10, Arc::new(threadpool));
 /// pool.configure("CHUNK_GENERATOR", |n| n / 2);
 /// pool.spawn("CHUNK_GENERATOR", move || println!("this is a job"));
 /// ```
@@ -61,6 +62,8 @@ struct InternalSlowJobPool {
     last_spawned_configs: Vec<String>,
     global_spawned_and_running: u64,
     global_limit: u64,
+    jobs_metrics_cnt: usize,
+    jobs_metrics: HashMap<String, Vec<JobMetrics>>,
     threadpool: Arc<ThreadPool>,
     internal: Option<Arc<Mutex<Self>>>,
 }
@@ -77,6 +80,12 @@ struct Queue {
     task: Box<dyn FnOnce() + Send + Sync + 'static>,
 }
 
+pub struct JobMetrics {
+    pub queue_created: Instant,
+    pub execution_start: Instant,
+    pub execution_end: Instant,
+}
+
 impl Queue {
     fn new<F>(name: &str, id: u64, internal: &Arc<Mutex<InternalSlowJobPool>>, f: F) -> Self
     where
@@ -84,16 +93,24 @@ impl Queue {
     {
         let internal = Arc::clone(internal);
         let name_cloned = name.to_owned();
+        let queue_created = Instant::now();
         Self {
             id,
             name: name.to_owned(),
             task: Box::new(move || {
                 common_base::prof_span!(_guard, &name_cloned);
+                let execution_start = Instant::now();
                 f();
+                let execution_end = Instant::now();
+                let metrics = JobMetrics {
+                    queue_created,
+                    execution_start,
+                    execution_end,
+                };
                 // directly maintain the next task afterwards
                 {
                     let mut lock = internal.lock().expect("slowjob lock poisoned");
-                    lock.finish(&name_cloned);
+                    lock.finish(&name_cloned, metrics);
                     lock.spawn_queued();
                 }
             }),
@@ -102,7 +119,11 @@ impl Queue {
 }
 
 impl InternalSlowJobPool {
-    pub fn new(global_limit: u64, threadpool: Arc<ThreadPool>) -> Arc<Mutex<Self>> {
+    pub fn new(
+        global_limit: u64,
+        jobs_metrics_cnt: usize,
+        threadpool: Arc<ThreadPool>,
+    ) -> Arc<Mutex<Self>> {
         let link = Arc::new(Mutex::new(Self {
             next_id: 0,
             queue: HashMap::new(),
@@ -110,6 +131,8 @@ impl InternalSlowJobPool {
             last_spawned_configs: Vec::new(),
             global_spawned_and_running: 0,
             global_limit: global_limit.max(1),
+            jobs_metrics_cnt,
+            jobs_metrics: HashMap::new(),
             threadpool,
             internal: None,
         }));
@@ -247,7 +270,12 @@ impl InternalSlowJobPool {
         }
     }
 
-    fn finish(&mut self, name: &str) {
+    fn finish(&mut self, name: &str, metrics: JobMetrics) {
+        let metric = self.jobs_metrics.entry(name.to_string()).or_default();
+
+        if metric.len() < self.jobs_metrics_cnt {
+            metric.push(metrics);
+        }
         self.global_spawned_and_running -= 1;
         if let Some(c) = self.configs.get_mut(name) {
             c.local_spawned_and_running -= 1;
@@ -293,12 +321,16 @@ impl InternalSlowJobPool {
             }
         }
     }
+
+    pub fn take_metrics(&mut self) -> HashMap<String, Vec<JobMetrics>> {
+        core::mem::take(&mut self.jobs_metrics)
+    }
 }
 
 impl SlowJobPool {
-    pub fn new(global_limit: u64, threadpool: Arc<ThreadPool>) -> Self {
+    pub fn new(global_limit: u64, jobs_metrics_cnt: usize, threadpool: Arc<ThreadPool>) -> Self {
         Self {
-            internal: InternalSlowJobPool::new(global_limit, threadpool),
+            internal: InternalSlowJobPool::new(global_limit, jobs_metrics_cnt, threadpool),
         }
     }
 
@@ -356,6 +388,13 @@ impl SlowJobPool {
         }
         Err(job)
     }
+
+    pub fn take_metrics(&self) -> HashMap<String, Vec<JobMetrics>> {
+        self.internal
+            .lock()
+            .expect("lock poisoned while take_metrics")
+            .take_metrics()
+    }
 }
 
 #[cfg(test)]
@@ -366,6 +405,7 @@ mod tests {
     fn mock_pool(
         pool_threads: usize,
         global_threads: u64,
+        metrics: usize,
         foo: u64,
         bar: u64,
         baz: u64,
@@ -374,7 +414,7 @@ mod tests {
             .num_threads(pool_threads)
             .build()
             .unwrap();
-        let pool = SlowJobPool::new(global_threads, Arc::new(threadpool));
+        let pool = SlowJobPool::new(global_threads, metrics, Arc::new(threadpool));
         if foo != 0 {
             pool.configure("FOO", |x| x / foo);
         }
@@ -389,7 +429,7 @@ mod tests {
 
     #[test]
     fn simple_queue() {
-        let pool = mock_pool(4, 4, 1, 0, 0);
+        let pool = mock_pool(4, 4, 0, 1, 0, 0);
         let internal = pool.internal.lock().unwrap();
         let queue_data = [("FOO", 1u64)]
             .iter()
@@ -406,7 +446,7 @@ mod tests {
 
     #[test]
     fn multiple_queue() {
-        let pool = mock_pool(4, 4, 1, 0, 0);
+        let pool = mock_pool(4, 4, 0, 1, 0, 0);
         let internal = pool.internal.lock().unwrap();
         let queue_data = [("FOO", 2u64)]
             .iter()
@@ -424,7 +464,7 @@ mod tests {
 
     #[test]
     fn limit_queue() {
-        let pool = mock_pool(5, 5, 1, 0, 0);
+        let pool = mock_pool(5, 5, 0, 1, 0, 0);
         let internal = pool.internal.lock().unwrap();
         let queue_data = [("FOO", 80u64)]
             .iter()
@@ -444,7 +484,7 @@ mod tests {
 
     #[test]
     fn simple_queue_2() {
-        let pool = mock_pool(4, 4, 1, 1, 0);
+        let pool = mock_pool(4, 4, 0, 1, 1, 0);
         let internal = pool.internal.lock().unwrap();
         let queue_data = [("FOO", 1u64), ("BAR", 1u64)]
             .iter()
@@ -462,7 +502,7 @@ mod tests {
 
     #[test]
     fn multiple_queue_3() {
-        let pool = mock_pool(4, 4, 1, 1, 0);
+        let pool = mock_pool(4, 4, 0, 1, 1, 0);
         let internal = pool.internal.lock().unwrap();
         let queue_data = [("FOO", 2u64), ("BAR", 2u64)]
             .iter()
@@ -480,7 +520,7 @@ mod tests {
 
     #[test]
     fn multiple_queue_4() {
-        let pool = mock_pool(4, 4, 2, 1, 0);
+        let pool = mock_pool(4, 4, 0, 2, 1, 0);
         let internal = pool.internal.lock().unwrap();
         let queue_data = [("FOO", 3u64), ("BAR", 3u64)]
             .iter()
@@ -498,7 +538,7 @@ mod tests {
 
     #[test]
     fn multiple_queue_5() {
-        let pool = mock_pool(4, 4, 2, 1, 0);
+        let pool = mock_pool(4, 4, 0, 2, 1, 0);
         let internal = pool.internal.lock().unwrap();
         let queue_data = [("FOO", 5u64), ("BAR", 5u64)]
             .iter()
@@ -516,7 +556,7 @@ mod tests {
 
     #[test]
     fn multiple_queue_6() {
-        let pool = mock_pool(40, 40, 2, 1, 0);
+        let pool = mock_pool(40, 40, 0, 2, 1, 0);
         let internal = pool.internal.lock().unwrap();
         let queue_data = [("FOO", 5u64), ("BAR", 5u64)]
             .iter()
@@ -534,7 +574,7 @@ mod tests {
 
     #[test]
     fn roundrobin() {
-        let pool = mock_pool(4, 4, 2, 2, 0);
+        let pool = mock_pool(4, 4, 0, 2, 2, 0);
         let queue_data = [("FOO", 5u64), ("BAR", 5u64)]
             .iter()
             .map(|(n, c)| ((*n).to_owned(), *c))
@@ -583,14 +623,14 @@ mod tests {
     #[test]
     #[should_panic]
     fn unconfigured() {
-        let pool = mock_pool(4, 4, 2, 1, 0);
+        let pool = mock_pool(4, 4, 0, 2, 1, 0);
         let mut internal = pool.internal.lock().unwrap();
         internal.spawn("UNCONFIGURED", || println!());
     }
 
     #[test]
     fn correct_spawn_doesnt_panic() {
-        let pool = mock_pool(4, 4, 2, 1, 0);
+        let pool = mock_pool(4, 4, 0, 2, 1, 0);
         let mut internal = pool.internal.lock().unwrap();
         internal.spawn("FOO", || println!("foo"));
         internal.spawn("BAR", || println!("bar"));
@@ -598,7 +638,7 @@ mod tests {
 
     #[test]
     fn can_spawn() {
-        let pool = mock_pool(4, 4, 2, 1, 0);
+        let pool = mock_pool(4, 4, 0, 2, 1, 0);
         let internal = pool.internal.lock().unwrap();
         assert!(internal.can_spawn("FOO"));
         assert!(internal.can_spawn("BAR"));
@@ -606,7 +646,7 @@ mod tests {
 
     #[test]
     fn try_run_works() {
-        let pool = mock_pool(4, 4, 2, 1, 0);
+        let pool = mock_pool(4, 4, 0, 2, 1, 0);
         pool.try_run("FOO", || println!("foo")).unwrap();
         pool.try_run("BAR", || println!("bar")).unwrap();
     }
@@ -614,7 +654,7 @@ mod tests {
     #[test]
     fn try_run_exhausted() {
         use std::{thread::sleep, time::Duration};
-        let pool = mock_pool(8, 8, 4, 2, 0);
+        let pool = mock_pool(8, 8, 0, 4, 2, 0);
         let func = || loop {
             sleep(Duration::from_secs(1))
         };
@@ -633,7 +673,7 @@ mod tests {
 
     #[test]
     fn actually_runs_1() {
-        let pool = mock_pool(4, 4, 0, 0, 1);
+        let pool = mock_pool(4, 4, 0, 0, 0, 1);
         let barrier = Arc::new(std::sync::Barrier::new(2));
         let barrier_clone = Arc::clone(&barrier);
         pool.try_run("BAZ", move || {
@@ -645,7 +685,7 @@ mod tests {
 
     #[test]
     fn actually_runs_2() {
-        let pool = mock_pool(4, 4, 0, 0, 1);
+        let pool = mock_pool(4, 4, 0, 0, 0, 1);
         let barrier = Arc::new(std::sync::Barrier::new(2));
         let barrier_clone = Arc::clone(&barrier);
         pool.spawn("BAZ", move || {
@@ -660,7 +700,7 @@ mod tests {
             atomic::{AtomicBool, Ordering},
             Barrier,
         };
-        let pool = mock_pool(4, 4, 4, 0, 1);
+        let pool = mock_pool(4, 4, 0, 4, 0, 1);
         let ops_i_ran = Arc::new(AtomicBool::new(false));
         let ops_i_ran_clone = Arc::clone(&ops_i_ran);
         let barrier = Arc::new(Barrier::new(2));
@@ -682,5 +722,29 @@ mod tests {
         barrier.wait();
         // now wait on the second job to be actually finished
         barrier2.wait();
+    }
+
+    #[test]
+    fn verify_metrics() {
+        use std::sync::Barrier;
+        let pool = mock_pool(4, 4, 2, 1, 0, 4);
+        let barrier = Arc::new(Barrier::new(5));
+        for name in &["FOO", "BAZ", "FOO", "FOO"] {
+            let barrier_clone = Arc::clone(&barrier);
+            pool.spawn(name, move || {
+                barrier_clone.wait();
+            });
+        }
+        // now finish all jobs
+        barrier.wait();
+        // in this case we have to sleep to give it some time to store all the metrics
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        let metrics = pool.take_metrics();
+        let foo = metrics.get("FOO").expect("FOO doesn't exist in metrics");
+        //its limited to 2, even though we had 3 jobs
+        assert_eq!(foo.len(), 2);
+        assert!(metrics.get("BAR").is_none());
+        let baz = metrics.get("BAZ").expect("BAZ doesn't exist in metrics");
+        assert_eq!(baz.len(), 1);
     }
 }

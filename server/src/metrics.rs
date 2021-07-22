@@ -44,6 +44,11 @@ pub struct ChunkGenMetrics {
     pub chunks_canceled: IntCounter,
 }
 
+pub struct JobMetrics {
+    pub job_queried_hst: HistogramVec,
+    pub job_execution_hst: HistogramVec,
+}
+
 pub struct TickMetrics {
     pub chonks_count: IntGauge,
     pub chunks_count: IntGauge,
@@ -237,6 +242,55 @@ impl ChunkGenMetrics {
             chunks_requested,
             chunks_served,
             chunks_canceled,
+        })
+    }
+}
+
+impl JobMetrics {
+    pub fn new(registry: &Registry) -> Result<Self, prometheus::Error> {
+        let bucket = vec![
+            Duration::from_micros(100).as_secs_f64(),
+            Duration::from_millis(2).as_secs_f64(),
+            Duration::from_millis(100).as_secs_f64(),
+        ];
+
+        let job_queried_hst = HistogramVec::new(
+            HistogramOpts::new(
+                "job_queried_hst",
+                "shows the detailed time each job name took from query till it started to execute \
+                 as histogram",
+            )
+            .buckets(bucket),
+            &["name"],
+        )?;
+
+        let bucket = vec![
+            Duration::from_millis(5).as_secs_f64(),
+            Duration::from_millis(20).as_secs_f64(),
+            Duration::from_millis(50).as_secs_f64(),
+            Duration::from_millis(100).as_secs_f64(),
+            Duration::from_millis(200).as_secs_f64(),
+            Duration::from_millis(500).as_secs_f64(),
+            Duration::from_millis(1000).as_secs_f64(),
+            Duration::from_millis(10000).as_secs_f64(),
+        ];
+
+        let job_execution_hst = HistogramVec::new(
+            HistogramOpts::new(
+                "job_execution_hst",
+                "shows the detailed time each job name took from start of execution until it \
+                 finished as histogram",
+            )
+            .buckets(bucket),
+            &["name"],
+        )?;
+
+        registry.register(Box::new(job_queried_hst.clone()))?;
+        registry.register(Box::new(job_execution_hst.clone()))?;
+
+        Ok(Self {
+            job_queried_hst,
+            job_execution_hst,
         })
     }
 }
