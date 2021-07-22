@@ -34,6 +34,8 @@ pub struct StaticData {
     pub ability_info: AbilityInfo,
     /// Whether the aura's effect scales with the user's current combo
     pub scales_with_combo: bool,
+    /// Combo at the time the aura is first cast
+    pub combo_at_cast: u32,
     /// Used to specify aura to the frontend
     pub specifier: Specifier,
 }
@@ -76,7 +78,6 @@ impl CharacterBehavior for Data {
                         targets,
                     );
                     if self.static_data.scales_with_combo {
-                        let combo = data.combo.counter();
                         match aura.aura_kind {
                             AuraKind::Buff {
                                 kind: _,
@@ -84,12 +85,13 @@ impl CharacterBehavior for Data {
                                 category: _,
                                 source: _,
                             } => {
-                                data.strength *= 1.0 + (combo as f32).log(2.0_f32);
+                                data.strength *=
+                                    1.0 + (self.static_data.combo_at_cast.max(1) as f32).log(2.0);
                             },
                         }
                         update.server_events.push_front(ServerEvent::ComboChange {
                             entity: data.entity,
-                            change: -(combo as i32),
+                            change: -(self.static_data.combo_at_cast as i32),
                         });
                     }
                     update.server_events.push_front(ServerEvent::Aura {

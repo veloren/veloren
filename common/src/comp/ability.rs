@@ -1443,8 +1443,8 @@ impl CharacterAbility {
     }
 }
 
-impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
-    fn from((ability, ability_info): (&CharacterAbility, AbilityInfo)) -> Self {
+impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
+    fn from((ability, ability_info, data): (&CharacterAbility, AbilityInfo, &JoinData)) -> Self {
         match ability {
             CharacterAbility::BasicMelee {
                 buildup_duration,
@@ -1923,6 +1923,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     range: *range,
                     ability_info,
                     scales_with_combo: *scales_with_combo,
+                    combo_at_cast: data.combo.counter(),
                     specifier: *specifier,
                 },
                 timer: Duration::default(),
