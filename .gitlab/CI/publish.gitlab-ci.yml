@@ -4,14 +4,14 @@
   stage: publish
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "schedule"
-      when: always
+      when: on_success
     - when: never
 
 .publish-nightly:
   stage: publish
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "schedule"
-      when: always
+      when: on_success
     - when: never
 
 docker:
