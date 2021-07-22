@@ -1928,7 +1928,6 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
-                exhausted: false,
             }),
             CharacterAbility::Blink {
                 buildup_duration,

@@ -49,8 +49,6 @@ pub struct Data {
     pub timer: Duration,
     /// What section the character stage is in
     pub stage_section: StageSection,
-    /// Whether the aura has been cast already or not
-    pub exhausted: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -69,8 +67,8 @@ impl CharacterBehavior for Data {
                         timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
-                } else if true {
-                    // Creates aura if it hasn't been created already
+                } else {
+                    // Creates aura
                     let targets =
                         AuraTarget::from((Some(self.static_data.targets), Some(data.uid)));
                     let mut aura = self.static_data.aura.to_aura(
@@ -87,9 +85,8 @@ impl CharacterBehavior for Data {
                                 category: _,
                                 source: _,
                             } => {
-                                data.strength *= 1.0
-                                    + (std::cmp::max(self.static_data.combo_at_cast, 1) as f32)
-                                        .log(2.0);
+                                data.strength *=
+                                    1.0 + (self.static_data.combo_at_cast.max(1) as f32).log(2.0);
                             },
                         }
                         update.server_events.push_front(ServerEvent::ComboChange {
@@ -105,7 +102,6 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::BasicAura(Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Cast,
-                        exhausted: true,
                         ..*self
                     });
                 }
