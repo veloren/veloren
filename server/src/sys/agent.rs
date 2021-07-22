@@ -60,6 +60,7 @@ struct AgentData<'a> {
     body: Option<&'a Body>,
     inventory: &'a Inventory,
     skill_set: &'a SkillSet,
+    #[allow(dead_code)] // may be useful for pathing
     physics_state: &'a PhysicsState,
     alignment: Option<&'a Alignment>,
     traversal_config: TraversalConfig,
@@ -492,10 +493,19 @@ impl<'a> System<'a> for Sys {
                             }
                         };
 
-                    // If falling fast and can glide, save yourself!
-                    if data.glider_equipped && data.physics_state.on_ground.is_none() {
-                        // toggle glider when vertical velocity is above some
-                        // threshold (here ~ glider fall vertical speed)
+                    // Falling damage starts from 30.0 as of time of writing
+                    // But keep in mind our 25 m/s gravity
+                    let is_falling_dangerous = data.vel.0.z < -20.0;
+
+                    // If falling velocity is critical, throw everything
+                    // and save yourself!
+                    //
+                    // If can fly - fly.
+                    // If have glider - glide.
+                    // Else, rest in peace.
+                    if is_falling_dangerous && data.traversal_config.can_fly {
+                        data.fly_upward(controller)
+                    } else if is_falling_dangerous && data.glider_equipped {
                         data.glider_fall(controller);
                     } else if let Some(target_info) = agent.target {
                         let Target {
@@ -695,24 +705,28 @@ impl<'a> AgentData<'a> {
     ////////////////////////////////////////
 
     fn glider_fall(&self, controller: &mut Controller) {
-        if self.vel.0.z < -15.0 {
-            controller.actions.push(ControlAction::GlideWield);
+        controller.actions.push(ControlAction::GlideWield);
 
-            let flight_direction =
-                Vec3::from(self.vel.0.xy().try_normalized().unwrap_or_else(Vec2::zero));
-            let flight_ori = Quaternion::from_scalar_and_vec3((1.0, flight_direction));
+        let flight_direction =
+            Vec3::from(self.vel.0.xy().try_normalized().unwrap_or_else(Vec2::zero));
+        let flight_ori = Quaternion::from_scalar_and_vec3((1.0, flight_direction));
 
-            let ori = self.ori.look_vec();
-            let look_dir = if ori.z > 0.0 {
-                flight_ori.rotated_x(-0.1)
-            } else {
-                flight_ori.rotated_x(0.1)
-            };
+        let ori = self.ori.look_vec();
+        let look_dir = if ori.z > 0.0 {
+            flight_ori.rotated_x(-0.1)
+        } else {
+            flight_ori.rotated_x(0.1)
+        };
 
-            let (_, look_dir) = look_dir.into_scalar_and_vec3();
-            controller.inputs.look_dir =
-                Dir::from_unnormalized(look_dir).unwrap_or_else(Dir::forward);
-        }
+        let (_, look_dir) = look_dir.into_scalar_and_vec3();
+        controller.inputs.look_dir = Dir::from_unnormalized(look_dir).unwrap_or_else(Dir::forward);
+    }
+
+    fn fly_upward(&self, controller: &mut Controller) {
+        controller
+            .actions
+            .push(ControlAction::basic_input(InputKind::Fly));
+        controller.inputs.move_z = 1.0;
     }
 
     fn idle(&self, agent: &mut Agent, controller: &mut Controller, read_data: &ReadData) {
@@ -3298,9 +3312,6 @@ impl<'a> AgentData<'a> {
                     controller
                         .actions
                         .push(ControlAction::basic_input(InputKind::Fly));
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Jump));
                     controller.inputs.move_z = 1.0;
                 } else {
                     // Jump
@@ -3359,9 +3370,6 @@ impl<'a> AgentData<'a> {
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Fly));
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Jump));
             controller.inputs.move_z = 1.0;
         }
         // If further than 2.5 blocks and random chance
@@ -3428,9 +3436,6 @@ impl<'a> AgentData<'a> {
                     controller
                         .actions
                         .push(ControlAction::basic_input(InputKind::Fly));
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Jump));
                     controller.inputs.move_z = 1.0;
                 } else {
                     self.jump_if(controller, bearing.z > 1.5);
@@ -3477,9 +3482,6 @@ impl<'a> AgentData<'a> {
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Fly));
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Jump));
             controller.inputs.move_z = 1.0;
         } else if attack_data.dist_sqrd > (3.0 * attack_data.min_attack_dist).powi(2) {
             self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);

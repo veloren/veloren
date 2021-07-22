@@ -115,6 +115,13 @@ impl<'a> System<'a> for Sys {
             ));
 
             let rtsim_entity = Some(RtSimEntity(id));
+
+            // TODO: this should be a bit more intelligent
+            let loadout = match body {
+                comp::Body::Humanoid(_) => entity.get_loadout(),
+                _ => LoadoutBuilder::new().with_default_maintool(&body).build(),
+            };
+
             let event = match body {
                 comp::Body::Ship(ship) => ServerEvent::CreateShip {
                     pos,
@@ -128,10 +135,7 @@ impl<'a> System<'a> for Sys {
                     stats: comp::Stats::new(entity.get_name()),
                     skill_set: comp::SkillSet::default(),
                     health: Some(comp::Health::new(body, 10)),
-                    loadout: match body {
-                        comp::Body::Humanoid(_) => entity.get_loadout(),
-                        _ => LoadoutBuilder::new().build(),
-                    },
+                    loadout,
                     poise: comp::Poise::new(body),
                     body,
                     agent,
