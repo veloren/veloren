@@ -2445,14 +2445,30 @@ impl<'a> AgentData<'a> {
     ) {
         //TODO: minimum energy values for skills and rolls are hard coded from
         // approximate guesses
+        let mut flamethrower_range = 20.0_f32;
+        if let Ok(Some(level)) = self.skill_set.skill_level(Skill::Staff(StaffSkill::FRange)) {
+            flamethrower_range *= 1.25_f32.powi(level.into());
+        }
+        let mut shockwave_cost = 600.0_f32;
+        if let Ok(Some(level)) = self.skill_set.skill_level(Skill::Staff(StaffSkill::SCost)) {
+            shockwave_cost *= 0.8_f32.powi(level.into());
+        }
         if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
             && attack_data.in_min_range()
             && self.energy.current() > 100
+            && !matches!(self.char_state, CharacterState::Shockwave(_))
         {
             // if a humanoid, have enough stamina, and in melee range, emergency roll
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Roll));
+        } else if agent.action_state.condition
+            && matches!(self.char_state, CharacterState::Wielding)
+        {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Ability(0)));
+            agent.action_state.condition = false;
         } else if !matches!(self.char_state, CharacterState::Shockwave(c) if !matches!(c.stage_section, StageSection::Recover))
         {
             // only try to use another ability if not already in recover and not casting
@@ -2470,10 +2486,16 @@ impl<'a> AgentData<'a> {
                 && self.energy.current() > 200
             {
                 // if enemy is closing distance quickly, use shockwave to knock back
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Ability(0)));
-            } else if self.energy.current() > 100 && attack_data.dist_sqrd < 280.0 {
+                if matches!(self.char_state, CharacterState::Wielding) {
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Ability(0)));
+                } else {
+                    agent.action_state.condition = true;
+                }
+            } else if self.energy.current() as f32 > shockwave_cost + 100.0
+                && attack_data.dist_sqrd < flamethrower_range.powi(2)
+            {
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Secondary));
