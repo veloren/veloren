@@ -111,7 +111,7 @@
         "common.stats.energy_reward": "Винагороди Енергії",
         "common.stats.stealth": "Стелс",
         "common.stats.armor": "Броні",
-        "common.stats.poise_res": "Баланс",
+        "common.stats.poise_res": "Баланс", // force update
         "common.stats.slots": "Слотів",
 
         // Materials

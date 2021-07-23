@@ -10,13 +10,13 @@
         "hud.map.town": "Місто",
         "hud.map.castles": "Фортеці",
         "hud.map.castle": "Фортеця",
-        "hud.map.dungeons": "Підземелля",
+        "hud.map.dungeons": "Підземелля", // force update
         "hud.map.dungeon": "Підземелля",
         "hud.map.difficulty": "Складність",
         "hud.map.difficulty_dungeon": "Складність\n\nПідземелля: {difficulty}",
         "hud.map.caves": "Печери",
         "hud.map.cave": "Печера",
-        "hud.map.peaks": "Гори",
+        "hud.map.peaks": "Гори", // force update
         "hud.map.tree": "Гігантське дерево",
         "hud.map.trees": "Гігантські\nдерева",
         "hud.map.drag": "Область",
@@ -25,7 +25,7 @@
         "hud.map.mid_click": "Додати вказівник",
         "hud.map.topo_map": "Топографічна\nмапа",
         "hud.map.marked_location": "Вказівник",
-        "hud.map.marked_location_remove": "Натисніть, щоб видалити",
+        "hud.map.marked_location_remove": "Натисніть, щоб видалити", // force update
     },
 
 

@@ -64,8 +64,8 @@
         "hud.skill.sc_heal_title": "Аура цілителя",
         "hud.skill.sc_heal": "Зцілює вас і ваших союзників. (Потужність залежить від числа комбо)",
 
-        "hud.skill.sc_heal_heal_title": "Зцілення",
-        "hud.skill.sc_heal_heal": "Збільшує потужність зцілення на {boost}%{SP}",
+        "hud.skill.sc_heal_heal_title": "Зцілення", // force update
+        "hud.skill.sc_heal_heal": "Збільшує потужність зцілення на {boost}%{SP}", // force update
 
         "hud.skill.sc_heal_cost_title": "Витрати енергії",
         "hud.skill.sc_heal_cost": "Створення аури вимагає на {boost}% менше енергії{SP}",
@@ -73,7 +73,7 @@
         "hud.skill.sc_heal_duration_title": "Довготривалість",
         "hud.skill.sc_heal_duration": "Регенерація працює на {boost}% довше{SP}",
 
-        "hud.skill.sc_heal_range_title": "Дальність",
+        "hud.skill.sc_heal_range_title": "Дальність", // force update
         "hud.skill.sc_heal_range": "Еффект аури має більший на {boost}% радіус{SP}",
 
         // Ward aura

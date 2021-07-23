@@ -86,7 +86,7 @@
         "hud.settings.lossy_terrain_compression": "Стискання з втратами даних про місцевість",
         "hud.settings.resolution": "Роздільна здатність",
         "hud.settings.bit_depth": "Глибина кольору",
-        "hud.settings.refresh_rate": "Частота оновлення",
+        "hud.settings.refresh_rate": "Частота оновлення", // force update
         "hud.settings.lighting_rendering_mode": "Режим Освітлення",
         "hud.settings.lighting_rendering_mode.ashikhmin": "Тип A - Високий",
         "hud.settings.lighting_rendering_mode.blinnphong": "Тип B - Середній",
