@@ -105,40 +105,57 @@
         "hud.skill.st_damage_title" : "Ушкодження снарядами",
         "hud.skill.st_damage" : "Збільшує ушкодження вогняними снарядами на {boost}%{SP}",
         // Bow
+        // Passive
         "hud.skill.bow_projectile_speed_title" : "Швидкість стріл",
         "hud.skill.bow_projectile_speed" : "Стріли летять на {boost}% швидше і далі{SP}",
-        "hud.skill.bow_arrow_count_title" : "Кількість стріл в черзі",
-        "hud.skill.bow_arrow_count" : "Черга стріл включає на одну стрілу більше{SP}",
-        "hud.skill.bow_repeater_cost_title" : "Енергоспоживання черги стріл",
-        "hud.skill.bow_repeater_cost" : "Запуск черги стріл споживає на {boost}% менше енергії{SP}",
-        "hud.skill.bow_repeater_glide_title" : "Дальність стрибка",
-        "hud.skill.bow_repeater_glide" : "Збільшує дальність стрибка при запуску черги стріл{SP}",
-        "hud.skill.bow_repeater_damage_title" : "Ушкодження чергою стріл",
-        "hud.skill.bow_repeater_damage" : "Збільшує ушкодження, заподіяні чергою стріл, на {boost}%{SP}",
-        "hud.skill.bow_repeater_unlock_title" : "Черга стріл",
-        "hud.skill.bow_repeater_unlock" : "Відкриває можливість випустити чергу стріл в стрибку{SP}",
-        "hud.skill.bow_charged_title" : "Заряджений залп",
-        "hud.skill.bow_charged" : "Терпіння - золото",
+
+        // Charged Shoot
+        "hud.skill.bow_charged_title" : "Заряджений постріл",
+        "hud.skill.bow_charged" : "Терпіння винагороджується",
+
+        "hud.skill.bow_charged_damage_title" : "Ушкодження",
+        "hud.skill.bow_charged_damage" : "Збільшує ушкодження на {boost}%{SP}",
+
+        "hud.skill.bow_charged_energy_regen_title" : "Відновлення енергії",
+        "hud.skill.bow_charged_energy_regen" : "Збільшує відновлення енергії на {boost}%{SP}",
+
         "hud.skill.bow_charged_knockback_title" : "Відкидання потужним пострілом",
         "hud.skill.bow_charged_knockback" : "Потужний постріл відкидає ворогів на {boost}% далі{SP}",
-        "hud.skill.bow_charged_move_speed_title" : "Швидкість руху при зарядженні потужного пострілу",
-        "hud.skill.bow_charged_move_speed" : "Збільшує швидкість руху під час зарядження потужного пострілу на {boost}%{SP}",
+
         "hud.skill.bow_charged_speed_title" : "Швидкість зарядження потужного пострілу",
         "hud.skill.bow_charged_speed" : "Збільшує швидкість зарядження потужного пострілу на {boost}%{SP}",
-        "hud.skill.bow_charged_projectile_speed_title" : "Швидкість стріл потужного пострілу",
-        "hud.skill.bow_charged_projectile_speed" : "Збільшує швидкість польоту стріл потужного пострілу ще на {boost}%{SP}",
-        "hud.skill.bow_charged_drain_title" : "Енергоспоживання потужного пострілу",
-        "hud.skill.bow_charged_drain" : "Зарядження потужного пострілу споживає на {boost}% менше енергії{SP}",
-        "hud.skill.bow_charged_damage_title" : "Ушкодження потужним пострілом",
-        "hud.skill.bow_charged_damage" : "Збільшує ушкодження потужним пострілом на {boost}%{SP}",
-        "hud.skill.bow_energy_regen_title" : "Відновлення енергії",
-        "hud.skill.bow_energy_regen" : "Збільшує відновлення енергії від заподіяних ушкоджень на {boost}%{SP}",
-        "hud.skill.bow_title" : "Arrow Shoot",
-        "hud.skill.bow_title" : "Постріл стрілою",
-        "hud.skill.bow" : "Infinite quiver included, not suitable for children",
-        "hud.skill.bow" : "Нескінченний сагайдак у комплекті, тримайте подалі від дітей",
-        "hud.skill.bow_damage_title" : "Ушкодження",
-        "hud.skill.bow_damage" : "Збільшує ушкодження на {boost}%{SP}",
+
+        "hud.skill.bow_charged_move_title" : "Швидкість руху",
+        "hud.skill.bow_charged_move" : "Збільшує швидкість руху під час зарядження потужного пострілу на {boost}%{SP}",
+
+        // Repeater
+        "hud.skill.bow_repeater_title" : "Стріломет",
+        "hud.skill.bow_repeater" : "Випускає стрілу за стрілою набираючи швидкість",
+
+        "hud.skill.bow_repeater_damage_title" : "Ушкодження",
+        "hud.skill.bow_repeater_damage" : "Збільшує ушкодження на {boost}%{SP}",
+
+        "hud.skill.bow_repeater_cost_title" : "Енергозатрата",
+        "hud.skill.bow_repeater_cost" : "Запуск черги стріл споживає на {boost}% менше енергії{SP}",
+
+        "hud.skill.bow_repeater_speed_title" : "Швидкість",
+        "hud.skill.bow_repeater_speed" : "Збільшує темп стріломету на {boost}%{SP}",
+        // Shotgun
+        "hud.skill.bow_shotgun_unlock_title" : "Стріловик",
+        "hud.skill.bow_shotgun_unlock" : "Розблоковує можливість запуску декількох стріл одночасно{SP}",
+
+        "hud.skill.bow_shotgun_damage_title" : "Ушкодження",
+        "hud.skill.bow_shotgun_damage" : "Збільшує ушкодження на {boost}%{SP}",
+
+        "hud.skill.bow_shotgun_cost_title" : "Енергоспоживання",
+        "hud.skill.bow_shotgun_cost" : "Постріл споживає на {boost}% менше енергії{SP}",
+
+        "hud.skill.bow_shotgun_arrow_count_title" : "Кількість стріл",
+        "hud.skill.bow_shotgun_arrow_count" : "Збільшує кількість стріл на {boost}{SP}",
+
+        "hud.skill.bow_shotgun_spread_title" : "Кучність стріл",
+        "hud.skill.bow_shotgun_spread" : "Зменшує розліт стріл на {boost}%{SP}",
+
         // Hammer
         "hud.skill.hmr_leap_radius_title" : "Радіус ударної хвилі від атаки в стрибку",
         "hud.skill.hmr_leap_radius" : "Збільшує радіус ударної хвилі від атаки в стрибку на {boost} метр{SP}",
