@@ -50,7 +50,12 @@ fn main() {
         );
     }
     if matches.is_present("test") {
-        analysis::test_all_localizations(&root, &asset_path, matches.is_present("verbose"), csv_enabled);
+        analysis::test_all_localizations(
+            &root,
+            &asset_path,
+            matches.is_present("verbose"),
+            csv_enabled,
+        );
     }
     if matches.is_present("verify") {
         verification::verify_all_localizations(&root, &asset_path);

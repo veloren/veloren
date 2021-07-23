@@ -1,7 +1,7 @@
 use ron::de::from_bytes;
 use std::path::{Path, PathBuf};
 
-use crate::data::{
+use crate::raw::{
     i18n_directories, LocalizationFragment, RawLocalization, LANG_MANIFEST_FILE, REFERENCE_LANG,
 };
 use hashbrown::{HashMap, HashSet};
@@ -27,6 +27,7 @@ struct LocalizationStats {
 
 #[derive(Default)]
 struct LocalizationAnalysis {
+    uptodate: Vec<(String, Option<git2::Oid>)>,
     notfound: Vec<(String, Option<git2::Oid>)>,
     unused: Vec<(String, Option<git2::Oid>)>,
     outdated: Vec<(String, Option<git2::Oid>)>,
@@ -39,11 +40,11 @@ impl LocalizationAnalysis {
         state: LocalizationState,
     ) -> Option<&mut Vec<(String, Option<git2::Oid>)>> {
         match state {
+            LocalizationState::UpToDate => Some(&mut self.uptodate),
             LocalizationState::NotFound => Some(&mut self.notfound),
             LocalizationState::Unused => Some(&mut self.unused),
             LocalizationState::Outdated => Some(&mut self.outdated),
             LocalizationState::Unknown => Some(&mut self.unknown),
-            _ => None,
         }
     }
 
@@ -53,9 +54,7 @@ impl LocalizationAnalysis {
         be_verbose: bool,
         ref_i18n_map: &HashMap<String, LocalizationEntryState>,
     ) {
-        let entries = self
-            .get_mut(state)
-            .unwrap_or_else(|| panic!("called on invalid state: {:?}", state));
+        let entries = self.unwrap_entries(state);
         if entries.is_empty() {
             return;
         }
@@ -63,9 +62,7 @@ impl LocalizationAnalysis {
         entries.sort();
         for (key, commit_id) in entries {
             if be_verbose {
-                let our_commit = commit_id
-                    .map(|s| format!("{}", s))
-                    .unwrap_or_else(|| "None".to_owned());
+                let our_commit = LocalizationAnalysis::create_our_commit(commit_id);
                 let ref_commit = ref_i18n_map
                     .get(key)
                     .and_then(|s| s.commit_id)
@@ -76,6 +73,32 @@ impl LocalizationAnalysis {
                 println!("{}", key);
             }
         }
+    }
+
+    //TODO: Add which file each faulty translation is in
+    fn csv(&mut self, state: LocalizationState) {
+        let entries = self.unwrap_entries(state);
+        for (key, commit_id) in entries {
+            let our_commit = LocalizationAnalysis::create_our_commit(commit_id);
+            println!(
+                "{},{},{},{:?},{}",
+                "sv", "_manifest.yml", key, state, our_commit
+            );
+        }
+    }
+
+    fn unwrap_entries(
+        &mut self,
+        state: LocalizationState,
+    ) -> &mut Vec<(String, Option<git2::Oid>)> {
+        self.get_mut(state)
+            .unwrap_or_else(|| panic!("called on invalid state: {:?}", state))
+    }
+
+    fn create_our_commit(commit_id: &mut Option<git2::Oid>) -> String {
+        commit_id
+            .map(|s| format!("{}", s))
+            .unwrap_or_else(|| "None".to_owned())
     }
 }
 
@@ -329,14 +352,7 @@ fn test_localization_directory(
 
     let mut state_map = LocalizationAnalysis::default();
     let result = gather_results(current_i18n, &mut state_map);
-    print_translation_stats(
-        i18n_references,
-        &result,
-        &mut state_map,
-        be_verbose,
-        relfile,
-        ref_manifest,
-    );
+    print_csv_file(&mut state_map, relfile);
     Some(result)
 }
 
@@ -490,6 +506,16 @@ fn print_translation_stats(
     );
 }
 
+fn print_csv_file(state_map: &mut LocalizationAnalysis, relfile: PathBuf) {
+    println!("country_code,file_name,translation_code,status,git_commit");
+
+    state_map.csv(LocalizationState::UpToDate);
+    state_map.csv(LocalizationState::NotFound);
+    state_map.csv(LocalizationState::Unused);
+    state_map.csv(LocalizationState::Outdated);
+    state_map.csv(LocalizationState::Unknown);
+}
+
 /// Test one language
 /// `code` - name of the directory in assets (de_DE for example)
 /// `root_dir` - absolute path to main repo
@@ -548,7 +574,12 @@ pub fn test_specific_localization(
 /// `assets_path` - relative path to asset directory (right now it is
 /// 'assets/voxygen/i18n')
 /// csv_enabled - generate csv files in target folder
-pub fn test_all_localizations(root_dir: &Path, assets_path: &Path, be_verbose: bool, csv_enabled: bool) {
+pub fn test_all_localizations(
+    root_dir: &Path,
+    assets_path: &Path,
+    be_verbose: bool,
+    csv_enabled: bool,
+) {
     let ref_lang_dir = assets_path.join(REFERENCE_LANG);
     let ref_manifest = ref_lang_dir.join(LANG_MANIFEST_FILE.to_string() + ".ron");
 
