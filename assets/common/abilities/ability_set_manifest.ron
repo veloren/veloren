@@ -213,7 +213,7 @@
         abilities: [],
     ),
     Custom("Theropod Charge"): (
-        primary: "common.abilities.custom.theropodbird.triplestrike",
+        primary: "common.abilities.custom.theropodbasic.triplestrike",
         secondary: "common.abilities.custom.theropodbasic.dash",
         abilities: [],
     ),

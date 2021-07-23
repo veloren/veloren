@@ -2665,79 +2665,78 @@ impl<'a> AgentData<'a> {
         radius: u32,
         circle_time: u32,
     ) {
-        if attack_data.in_min_range() && thread_rng().gen_bool(0.5) {
-            controller.inputs.move_dir = Vec2::zero();
+        if agent.action_state.counter >= circle_time as f32 {
+            // if circle charge is in progress and time hasn't expired, continue charging
             controller
                 .actions
-                .push(ControlAction::basic_input(InputKind::Primary));
-        } else if attack_data.dist_sqrd < (radius as f32 * attack_data.min_attack_dist).powi(2) {
-            controller.inputs.move_dir = (self.pos.0 - tgt_data.pos.0)
-                .xy()
-                .try_normalized()
-                .unwrap_or_else(Vec2::unit_y);
-        } else if attack_data.dist_sqrd
-            < ((radius as f32 + 1.0) * attack_data.min_attack_dist).powi(2)
-            && attack_data.dist_sqrd > (radius as f32 * attack_data.min_attack_dist).powi(2)
-        {
-            if agent.action_state.timer < circle_time as f32 {
-                let move_dir = (tgt_data.pos.0 - self.pos.0)
-                    .xy()
-                    .rotated_z(0.47 * PI)
-                    .try_normalized()
-                    .unwrap_or_else(Vec2::unit_y);
-                let obstacle_left = read_data
-                    .terrain
-                    .ray(
-                        self.pos.0 + Vec3::unit_z(),
-                        self.pos.0 + move_dir.with_z(0.0) * 2.0 + Vec3::unit_z(),
-                    )
-                    .until(Block::is_solid)
-                    .cast()
-                    .1
-                    .map_or(true, |b| b.is_some());
-                if obstacle_left {
-                    agent.action_state.timer = circle_time as f32;
-                }
-                controller.inputs.move_dir = move_dir;
-                agent.action_state.timer += read_data.dt.0;
-            } else if agent.action_state.timer < circle_time as f32 + 0.5 {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Secondary));
-                agent.action_state.timer += read_data.dt.0;
-            } else if agent.action_state.timer < 2.0 * circle_time as f32 + 0.5 {
-                let move_dir = (tgt_data.pos.0 - self.pos.0)
-                    .xy()
-                    .rotated_z(-0.47 * PI)
-                    .try_normalized()
-                    .unwrap_or_else(Vec2::unit_y);
-                let obstacle_right = read_data
-                    .terrain
-                    .ray(
-                        self.pos.0 + Vec3::unit_z(),
-                        self.pos.0 + move_dir.with_z(0.0) * 2.0 + Vec3::unit_z(),
-                    )
-                    .until(Block::is_solid)
-                    .cast()
-                    .1
-                    .map_or(true, |b| b.is_some());
-                if obstacle_right {
-                    agent.action_state.timer = 2.0 * circle_time as f32 + 0.5;
-                }
-                controller.inputs.move_dir = move_dir;
-                agent.action_state.timer += read_data.dt.0;
-            } else if agent.action_state.timer < 2.0 * circle_time as f32 + 1.0 {
-                if agent.action_state.timer < 2.0 * circle_time as f32 {
-                    agent.action_state.timer = 2.0 * circle_time as f32;
-                }
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Secondary));
-                agent.action_state.timer += read_data.dt.0;
+                .push(ControlAction::basic_input(InputKind::Secondary));
+        }
+        if attack_data.in_min_range() {
+            if agent.action_state.counter > 0.0 {
+                // set timer and rotation counter to zero if in minimum range
+                agent.action_state.counter = 0.0;
+                agent.action_state.int_counter = 0;
             } else {
-                agent.action_state.timer = 0.0;
+                // melee attack
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.inputs.move_dir = Vec2::zero();
             }
+        } else if attack_data.dist_sqrd < (radius as f32 + attack_data.min_attack_dist).powi(2) {
+            // if in range to charge, circle, then charge
+            if agent.action_state.int_counter == 0 {
+                // if you haven't chosen a direction to go in, choose now
+                agent.action_state.int_counter = 1 + thread_rng().gen_bool(0.5) as u8;
+            }
+            if agent.action_state.counter < circle_time as f32 {
+                // circle if circle timer not ready
+                let move_dir = match agent.action_state.int_counter {
+                    1 =>
+                    // circle left if counter is 1
+                    {
+                        (tgt_data.pos.0 - self.pos.0)
+                            .xy()
+                            .rotated_z(0.47 * PI)
+                            .try_normalized()
+                            .unwrap_or_else(Vec2::unit_y)
+                    },
+                    2 =>
+                    // circle right if counter is 2
+                    {
+                        (tgt_data.pos.0 - self.pos.0)
+                            .xy()
+                            .rotated_z(-0.47 * PI)
+                            .try_normalized()
+                            .unwrap_or_else(Vec2::unit_y)
+                    },
+                    _ =>
+                    // if some illegal value slipped in, get zero vector
+                    {
+                        vek::Vec2::zero()
+                    },
+                };
+                let obstacle = read_data
+                    .terrain
+                    .ray(
+                        self.pos.0 + Vec3::unit_z(),
+                        self.pos.0 + move_dir.with_z(0.0) * 2.0 + Vec3::unit_z(),
+                    )
+                    .until(Block::is_solid)
+                    .cast()
+                    .1
+                    .map_or(true, |b| b.is_some());
+                if obstacle {
+                    // if obstacle detected, stop circling
+                    agent.action_state.counter = circle_time as f32;
+                }
+                controller.inputs.move_dir = move_dir;
+                // use counter as timer since timer may be modified in other parts of the code
+                agent.action_state.counter += read_data.dt.0;
+            }
+            // activating charge once circle timer expires is handled above
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
+            // if too far away from target, move towards them
             self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
         } else {
             self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
