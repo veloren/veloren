@@ -291,6 +291,7 @@ fn test_localization_directory(
     ref_manifest: &Path,
     i18n_references: &HashMap<String, LocalizationEntryState>,
     be_verbose: bool,
+    csv_enabled: bool,
     repo: &git2::Repository,
     head_ref: &git2::Reference,
 ) -> Option<LocalizationStats> {
@@ -494,11 +495,14 @@ fn print_translation_stats(
 /// `root_dir` - absolute path to main repo
 /// `assets_path` - relative path to asset directory (right now it is
 /// 'assets/voxygen/i18n')
+/// be_verbose -
+/// csv_enabled - generate csv files in target folder
 pub fn test_specific_localization(
     code: &str,
     root_dir: &Path,
     assets_path: &Path,
     be_verbose: bool,
+    csv_enabled: bool,
 ) {
     // Relative paths from root of repo to assets
     let ref_lang_dir = assets_path.join(REFERENCE_LANG);
@@ -533,6 +537,7 @@ pub fn test_specific_localization(
         &ref_manifest,
         &reference_i18n,
         be_verbose,
+        csv_enabled,
         &repo,
         &head_ref,
     );
@@ -542,7 +547,8 @@ pub fn test_specific_localization(
 /// `root_dir` - absolute path to main repo
 /// `assets_path` - relative path to asset directory (right now it is
 /// 'assets/voxygen/i18n')
-pub fn test_all_localizations(root_dir: &Path, assets_path: &Path, be_verbose: bool) {
+/// csv_enabled - generate csv files in target folder
+pub fn test_all_localizations(root_dir: &Path, assets_path: &Path, be_verbose: bool, csv_enabled: bool) {
     let ref_lang_dir = assets_path.join(REFERENCE_LANG);
     let ref_manifest = ref_lang_dir.join(LANG_MANIFEST_FILE.to_string() + ".ron");
 
@@ -585,6 +591,7 @@ pub fn test_all_localizations(root_dir: &Path, assets_path: &Path, be_verbose: b
             &ref_manifest,
             &reference_i18n,
             be_verbose,
+            csv_enabled,
             &repo,
             &head_ref,
         );
