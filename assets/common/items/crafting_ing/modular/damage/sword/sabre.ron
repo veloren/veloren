@@ -1,0 +1,21 @@
+ItemDef(
+    name: "Sabre blade",
+    description: "A sword blade made of metal.",
+    kind: ModularComponent((
+        toolkind: Sword,
+        modkind: Damage,
+        stats: (
+            equip_time_secs: 0.25,
+            power: 1.6,
+            effect_power: 0.9,
+            speed: 0.8,
+            crit_chance: 0.2,
+            range: 0.9,
+            energy_efficiency: 0.9,
+            buff_strength: 0.9,
+        ),
+    )),
+    quality: Common,
+    tags: [ModularComponent((toolkind: Sword, modkind: Damage))],
+)
+
