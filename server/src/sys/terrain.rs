@@ -8,10 +8,11 @@ use crate::{
     SpawnPoint, Tick,
 };
 use common::{
-    comp::{self, agent, bird_medium, Alignment, BehaviorCapability, ForceUpdate, Pos},
+    comp::{self, agent, bird_medium, Alignment, BehaviorCapability, ForceUpdate, Pos, Waypoint},
     event::{EventBus, ServerEvent},
     generation::{get_npc_name, EntityInfo},
     npc::NPC_NAMES,
+    resources::Time,
     terrain::TerrainGrid,
     LoadoutBuilder, SkillSetBuilder,
 };
@@ -104,6 +105,8 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         WriteStorage<'a, RepositionOnChunkLoad>,
         WriteStorage<'a, ForceUpdate>,
+        WriteStorage<'a, Waypoint>,
+        ReadExpect<'a, Time>,
     );
 
     const NAME: &'static str = "terrain";
@@ -128,6 +131,8 @@ impl<'a> System<'a> for Sys {
             entities,
             mut reposition_on_load,
             mut force_update,
+            mut waypoints,
+            time,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_event_bus.emitter();
@@ -330,11 +335,13 @@ impl<'a> System<'a> for Sys {
 
             let chunk_pos = terrain.pos_key(pos.0.map(|e| e as i32));
             if let Some(chunk) = terrain.get_key(chunk_pos) {
-                pos.0 = chunk
-                    .find_accessible_pos(pos.0.xy().as_::<i32>(), false)
-                    .as_::<f32>();
+                pos.0 = terrain
+                    .find_space_opt(pos.0.as_::<i32>())
+                    .map(|x| x.as_::<f32>())
+                    .unwrap_or_else(|| chunk.find_accessible_pos(pos.0.xy().as_::<i32>(), false));
                 repositioned.push(entity);
                 let _ = force_update.insert(entity, ForceUpdate);
+                let _ = waypoints.insert(entity, Waypoint::new(pos.0, *time));
             }
         }
         for entity in repositioned {
