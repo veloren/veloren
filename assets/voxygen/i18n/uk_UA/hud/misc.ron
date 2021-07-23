@@ -9,6 +9,7 @@
         "hud.you_died": "Ви померли",
         "hud.waypoint_saved": "Шляхову Мітку збережено",
         "hud.sp_arrow_txt": "ОУ",
+        "hud.inventory_full": "Повний Інвентар",
 
         "hud.press_key_to_show_keybindings_fmt": "[{key}] Елементи керування",
         "hud.press_key_to_toggle_lantern_fmt": "[{key}] Ліхтар",

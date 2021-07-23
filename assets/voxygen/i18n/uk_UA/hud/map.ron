@@ -23,9 +23,13 @@
         "hud.map.zoom": "Масштаб",
         "hud.map.recenter": "Відцентрувати",
         "hud.map.mid_click": "Додати вказівник",
-        "hud.map.topo_map": "Топографічна\nмапа",
+        "hud.map.topo_map": "Топографічна\nМапа",
+        "hud.map.voxel_map": "Воксельна\nМінімапа",
         "hud.map.marked_location": "Вказівник",
         "hud.map.marked_location_remove": "Натисніть, щоб видалити", // force update
+        "hud.map.change_map_mode": "Змінити режим Мапи",
+        "hud.map.toggle_minimap_voxel": "Переключитися до Воксельної Мінімапи",
+        "hud.map.zoom_minimap_explanation": "Масштабуйте мінімапу щоб\nпобачити область навколо себе",
     },
 
 
