@@ -244,40 +244,66 @@
         "hud.skill.sw_interrupt_title": "Переривання атаки",
         "hud.skill.sw_interrupt": "Дозволяє миттєво перервати ворожу атаку власною{SP}",
         // Axe
-            // Double strike
+        // Double strike
         "hud.skill.axe_double_strike_title": "Подвійний удар",
         "hud.skill.axe_double_strike": "Порубай цих злодюг",
+
         "hud.skill.axe_double_strike_combo_title": "Комбо двох ударів",
         "hud.skill.axe_double_strike_combo": "Відкриває другий послідовний удар{SP}",
+
         "hud.skill.axe_double_strike_damage_title": "Комбо приріст ушкодження",
         "hud.skill.axe_double_strike_damage": "Збільшує приріст ушкодження від ударів підряд{SP}",
+
         "hud.skill.axe_double_strike_speed_title": "Комбо приріст швидкості",
         "hud.skill.axe_double_strike_speed": "Збільшує приріст швидкості від ударів підряд{SP}",
+
         "hud.skill.axe_double_strike_regen_title": "Комбо приріст відновлення енергії",
         "hud.skill.axe_double_strike_regen": "Збільшує приріст відновлення енергії від ударів підряд{SP}",
-            // Spin
+
+         // Spin
         "hud.skill.axe_spin_title": "Кружляння з топором",
         "hud.skill.axe_spin": "Марами, сивими хмарами дико крутили ...",
+
         "hud.skill.axe_infinite_axe_spin_title": "Незкінченне кружляння",
         "hud.skill.axe_infinite_axe_spin": "Дозволяє кружляти доки не закінчиться енергія{SP}",
+
         "hud.skill.axe_spin_damage_title": "Ушкодження кружлянням",
         "hud.skill.axe_spin_damage": "Збільшує ушкодження під час кружляння на {boost}%{SP}",
+
         "hud.skill.axe_spin_helicopter_title": "Гелікоптер",
         "hud.skill.axe_spin_helicopter": "Сповільнює падіння під час кружляння{SP}",
+
         "hud.skill.axe_spin_speed_title": "Швидкість кружляння",
         "hud.skill.axe_spin_speed": "Збільшує швидкість кружляння на {boost}%{SP}",
+
         "hud.skill.axe_spin_cost_title": "Енергоспоживання кружляння",
         "hud.skill.axe_spin_cost": "Зменшує споживання енергії в кружлянні на {boost}%{SP}",
+        // Leap
         "hud.skill.axe_unlock_leap_title": "Атака в стрибку",
         "hud.skill.axe_unlock_leap": "Відкриває атаку в стрибку{SP}",
+
         "hud.skill.axe_leap_damage_title": "Ушкодження атакою в стрибку",
         "hud.skill.axe_leap_damage": "Збільшує ушкодження від атаки в стрибку на {boost}%{SP}",
+
         "hud.skill.axe_leap_knockback_title": "Відкидання атакою в стрибку",
         "hud.skill.axe_leap_knockback": "Збільшує відстань відкидання від атаки в стрибку на {boost}%{SP}",
+
         "hud.skill.axe_leap_cost_title": "Енергоспоживання атаки в стрибку",
         "hud.skill.axe_leap_cost": "Зменшує споживання енергії атакою в стрибку на {boost}%{SP}",
+
         "hud.skill.axe_leap_distance_title": "Дальність стрибка",
         "hud.skill.axe_leap_distance": "Збільшує дальність стрибка на {boost}%{SP}",
+
+        // Mining
+        "hud.skill.mining_title": "Гірнича справа",
+        "hud.skill.pick_strike_title": "Удар Киркою",
+        "hud.skill.pick_strike": "Шукайте руди та коштовні камені щоб здобути матеріали",
+        "hud.skill.pick_strike_speed_title": "Швидший Удар",
+        "hud.skill.pick_strike_speed": "Добувайте матеріали швидше{SP}",
+        "hud.skill.pick_strike_oregain_title": "Щасливий удар (Руди)",
+        "hud.skill.pick_strike_oregain": "Шанс здобути додаткову руду (+{boost}% за рівень){SP}",
+        "hud.skill.pick_strike_gemgain_title": "Щасливий удар (Камені)",
+        "hud.skill.pick_strike_gemgain": "Шанс здобути додатковий камінь (+{boost}% за рівень){SP}",
     },
 
 
