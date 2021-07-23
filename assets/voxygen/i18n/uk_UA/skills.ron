@@ -44,35 +44,51 @@
         "hud.skill.swim_speed_title": "Швидкість плавання",
         "hud.skill.swim_speed": "Пливи на {boost}% швидше{SP}",
         // Sceptre
-            // Lifesteal
+        // Lifesteal
         "hud.skill.sc_lifesteal_title": "Промінь життєкрада",
         "hud.skill.sc_lifesteal": "Випивай життя зі своїх ворогів",
+
         "hud.skill.sc_lifesteal_damage_title": "Шкода",
         "hud.skill.sc_lifesteal_damage": "Завдає на {boost}% більше ушкоджень{SP}",
+
         "hud.skill.sc_lifesteal_range_title": "Дальність",
         "hud.skill.sc_lifesteal_range": "Твій промінь сягає на {boost}% довше{SP}",
+
         "hud.skill.sc_lifesteal_lifesteal_title": "Крадіжка життя",
         "hud.skill.sc_lifesteal_lifesteal": "Конвертує додаткових {boost}% з ушкоджень у здоров'я{SP}",
+
         "hud.skill.sc_lifesteal_regen_title": "Регенерація енергії",
         "hud.skill.sc_lifesteal_regen": "Поповнює енергію з додатковими {boost}%{SP}",
-            // Healing
-        "hud.skill.sc_heal_title": "Промінь цілителя",
-        "hud.skill.sc_heal": "Зцілюй своїх спільників кров'ю своїх ворогів",
+
+        // Healing
+        "hud.skill.sc_heal_title": "Аура цілителя",
+        "hud.skill.sc_heal": "Зцілює вас і ваших союзників. (Потужність залежить від числа комбо)",
+
         "hud.skill.sc_heal_heal_title": "Зцілення",
         "hud.skill.sc_heal_heal": "Збільшує потужність зцілення на {boost}%{SP}",
+
         "hud.skill.sc_heal_cost_title": "Витрати енергії",
-        "hud.skill.sc_heal_cost": "Зцілення інших вимагає на {boost}% менше енергії{SP}",
+        "hud.skill.sc_heal_cost": "Створення аури вимагає на {boost}% менше енергії{SP}",
+
+        "hud.skill.sc_heal_duration_title": "Довготривалість",
+        "hud.skill.sc_heal_duration": "Регенерація працює на {boost}% довше{SP}",
+
         "hud.skill.sc_heal_range_title": "Дальність",
-        "hud.skill.sc_heal_range": "Твій промінь сягає на {boost}% довше{SP}",
-          // Ward aura
+        "hud.skill.sc_heal_range": "Еффект аури має більший на {boost}% радіус{SP}",
+
+        // Ward aura
         "hud.skill.sc_wardaura_unlock_title": "Розблоковує Захисну Ауру",
         "hud.skill.sc_wardaura_unlock": "Дозволяє захищати своїх спільників від атак ворогів{SP}",
+
         "hud.skill.sc_wardaura_strength_title": "Сила",
         "hud.skill.sc_wardaura_strength": "Ефект вашого захисту росте на {boost}%{SP}",
+
         "hud.skill.sc_wardaura_duration_title": "Довготривалість",
         "hud.skill.sc_wardaura_duration": "Ваша аура тримається на {boost}% довше{SP}",
+
         "hud.skill.sc_wardaura_range_title": "Радіус",
         "hud.skill.sc_wardaura_range": "Захисна аура сягає на {boost}% далі{SP}",
+
         "hud.skill.sc_wardaura_cost_title": "Витрати енергії",
         "hud.skill.sc_wardaura_cost": "Створення аури вимагає на {boost}% менше енергії{SP}",
         // Staff
