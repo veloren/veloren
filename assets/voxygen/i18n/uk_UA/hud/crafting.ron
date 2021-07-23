@@ -15,11 +15,16 @@
         "hud.crafting.cauldron": "Казан",
         "hud.crafting.cooking_pot": "Кастрюля",
         "hud.crafting.crafting_bench": "Верстак",
+        "hud.crafting.forge": "Горнило",
+        "hud.crafting.loom": "Ткацький Верстат",
+        "hud.crafting.spinning_wheel": "Самопряд",
+        "hud.crafting.tanning_rack": "Кобилиця",
 
         // Tabs
         "hud.crafting.tabs.all": "Усе",
         "hud.crafting.tabs.armor": "Броня",
         "hud.crafting.tabs.dismantle": "Переробка",
+        "hud.crafting.tabs.processed_material": "Матеріали",
         "hud.crafting.tabs.food": "Їжа",
         "hud.crafting.tabs.glider": "Планери",
         "hud.crafting.tabs.potion": "Зілля",
