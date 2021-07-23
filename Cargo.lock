@@ -565,6 +565,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "chumsky"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d6144914dd4928dc86677ef8824a77cf1a5df915590af7befa0ac8d9815cd740"
+
+[[package]]
 name = "clang-sys"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -715,12 +721,6 @@ dependencies = [
  "bytes",
  "memchr",
 ]
-
-[[package]]
-name = "comma"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96677551532ffe910f470bd767a9a7daf9ba53b1f5532e0891dba6c735f692e5"
 
 [[package]]
 name = "concurrent-queue"
@@ -4661,15 +4661,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "scan_fmt"
-version = "0.2.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b53b0a5db882a8e2fdaae0a43f7b39e7e9082389e978398bdf223a55b581248"
-dependencies = [
- "regex",
-]
-
-[[package]]
 name = "schannel"
 version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6139,7 +6130,6 @@ dependencies = [
  "refinery",
  "ron",
  "rusqlite",
- "scan_fmt",
  "serde",
  "serde_json",
  "slab",
@@ -6191,7 +6181,7 @@ dependencies = [
  "bincode",
  "bytemuck",
  "chrono",
- "comma",
+ "chumsky",
  "conrod_core",
  "conrod_winit",
  "copy_dir",

@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bald hairstyles for humans and danari
 - AI for sceptre wielders and sceptre cultists in Tier 5 dungeons
 - HUD debug info now displays current biome and site
+- Quotes and escape codes can be used in command arguments
 
 ### Changed
 

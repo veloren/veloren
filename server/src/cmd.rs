@@ -49,7 +49,6 @@ use wiring::{Circuit, Wire, WiringAction, WiringActionEffect, WiringElement};
 use world::util::Sampler;
 
 use crate::{client::Client, login_provider::LoginProvider, wiring};
-use scan_fmt::{scan_fmt, scan_fmt_some};
 use tracing::{error, info, warn};
 
 pub trait ChatCommandExt {
@@ -57,10 +56,6 @@ pub trait ChatCommandExt {
 }
 impl ChatCommandExt for ChatCommand {
     fn execute(&self, server: &mut Server, entity: EcsEntity, args: Vec<String>) {
-        // TODO: Pass arguments to commands as Vec<String>, not String, to support
-        // proper parsing.
-        let args = args.join(" ");
-
         if let Err(err) = do_command(server, entity, entity, args, self) {
             server.notify_client(
                 entity,
@@ -78,24 +73,25 @@ type CmdResult<T> = Result<T, String>;
 ///   command.
 /// * `EcsEntity` - an `Entity` for the player on whom the command is invoked.
 ///   This differs from the previous argument when using /sudo
-/// * `String` - a `String` containing the part of the command after the
-///   keyword.
+/// * `Vec<String>` - a `Vec<String>` containing the arguments of the command
+///   after the keyword.
 /// * `&ChatCommand` - the command to execute with the above arguments.
 /// Handler functions must parse arguments from the the given `String`
-/// (`scan_fmt!` is included for this purpose).
+/// (`parse_args!` exists for this purpose).
 ///
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command went smoothly, and `Err` if it
 /// failed; on failure, the string is sent to the client who initiated the
 /// command.
-type CommandHandler = fn(&mut Server, EcsEntity, EcsEntity, String, &ChatCommand) -> CmdResult<()>;
+type CommandHandler =
+    fn(&mut Server, EcsEntity, EcsEntity, Vec<String>, &ChatCommand) -> CmdResult<()>;
 
 fn do_command(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     cmd: &ChatCommand,
 ) -> CmdResult<()> {
     // Make sure your role is at least high enough to execute this command.
@@ -396,11 +392,25 @@ fn edit_setting_feedback<S: EditableSetting>(
     }
 }
 
+/// Parse a series of command arguments into values, including collecting all
+/// trailing arguments.
+macro_rules! parse_args {
+    ($args:expr, $($t:ty),* $(, ..$tail:ty)? $(,)?) => {
+        {
+            let mut args = $args.into_iter();
+            (
+                $(args.next().and_then(|s| s.parse::<$t>().ok())),*
+                $(, args.map(|s| s.to_string()).collect::<$tail>())?
+            )
+        }
+    };
+}
+
 fn handle_drop_all(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
-    _args: String,
+    _args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     let pos = position(server, target, "target")?;
@@ -443,12 +453,10 @@ fn handle_give_item(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(item_name), give_amount_opt) =
-        scan_fmt_some!(&args, &action.arg_fmt(), String, u32)
-    {
+    if let (Some(item_name), give_amount_opt) = parse_args!(args, String, u32) {
         let give_amount = give_amount_opt.unwrap_or(1);
         if let Ok(item) = Item::new_from_asset(&item_name.replace('/', ".").replace("\\", ".")) {
             let mut item: Item = item;
@@ -510,10 +518,10 @@ fn handle_make_block(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let Some(block_name) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
+    if let Some(block_name) = parse_args!(args, String) {
         if let Ok(bk) = BlockKind::from_str(block_name.as_str()) {
             let pos = position(server, target, "target")?;
             server.state.set_block(
@@ -533,10 +541,10 @@ fn handle_make_sprite(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let Some(sprite_name) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
+    if let Some(sprite_name) = parse_args!(args, String) {
         if let Ok(sk) = SpriteKind::try_from(sprite_name.as_str()) {
             let pos = position(server, target, "target")?;
             let pos = pos.0.map(|e| e.floor() as i32);
@@ -560,7 +568,7 @@ fn handle_motd(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    _args: String,
+    _args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     server.notify_client(
@@ -577,16 +585,16 @@ fn handle_set_motd(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    args: String,
-    action: &ChatCommand,
+    args: Vec<String>,
+    _action: &ChatCommand,
 ) -> CmdResult<()> {
     let data_dir = server.data_dir();
     let client_uuid = uuid(server, client, "client")?;
     // Ensure the person setting this has a real role in the settings file, since
     // it's persistent.
     let _client_real_role = real_role(server, client_uuid, "client")?;
-    match scan_fmt!(&args, &action.arg_fmt(), String) {
-        Ok(msg) => {
+    match parse_args!(args, String) {
+        Some(msg) => {
             let edit =
                 server
                     .editable_settings_mut()
@@ -601,7 +609,7 @@ fn handle_set_motd(
                 unreachable!("edit always returns Some")
             })
         },
-        Err(_) => {
+        None => {
             let edit =
                 server
                     .editable_settings_mut()
@@ -622,10 +630,10 @@ fn handle_jump(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let Ok((x, y, z)) = scan_fmt!(&args, &action.arg_fmt(), f32, f32, f32) {
+    if let (Some(x), Some(y), Some(z)) = parse_args!(args, f32, f32, f32) {
         position_mut(server, target, "target", |current_pos| {
             current_pos.0 += Vec3::new(x, y, z)
         })?;
@@ -639,10 +647,10 @@ fn handle_goto(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let Ok((x, y, z)) = scan_fmt!(&args, &action.arg_fmt(), f32, f32, f32) {
+    if let (Some(x), Some(y), Some(z)) = parse_args!(args, f32, f32, f32) {
         position_mut(server, target, "target", |current_pos| {
             current_pos.0 = Vec3::new(x, y, z)
         })?;
@@ -658,11 +666,11 @@ fn handle_site(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
     #[cfg(feature = "worldgen")]
-    if let Ok(dest_name) = scan_fmt!(&args, &action.arg_fmt(), String) {
+    if let Some(dest_name) = parse_args!(args, String) {
         let site = server
             .world
             .civs()
@@ -695,7 +703,7 @@ fn handle_home(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
-    _args: String,
+    _args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     let home_pos = server.state.mut_resource::<SpawnPoint>().0;
@@ -717,7 +725,7 @@ fn handle_kill(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    _args: String,
+    _args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     let reason = if client == target {
@@ -743,8 +751,8 @@ fn handle_time(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    args: String,
-    action: &ChatCommand,
+    args: Vec<String>,
+    _action: &ChatCommand,
 ) -> CmdResult<()> {
     const DAY: u64 = 86400;
 
@@ -763,7 +771,7 @@ fn handle_time(
             }
     };
 
-    let time = scan_fmt_some!(&args, &action.arg_fmt(), String);
+    let time = parse_args!(args, String);
     let new_time = match time.as_deref() {
         Some("midnight") => {
             next_cycle(NaiveTime::from_hms(0, 0, 0).num_seconds_from_midnight() as f64)
@@ -889,10 +897,10 @@ fn handle_health(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
-    args: String,
-    action: &ChatCommand,
+    args: Vec<String>,
+    _action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let Ok(hp) = scan_fmt!(&args, &action.arg_fmt(), u32) {
+    if let Some(hp) = parse_args!(args, u32) {
         if let Some(mut health) = server
             .state
             .ecs()
@@ -913,10 +921,10 @@ fn handle_alias(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let Ok(alias) = scan_fmt!(&args, &action.arg_fmt(), String) {
+    if let Some(alias) = parse_args!(args, String) {
         // Prevent silly aliases
         comp::Player::alias_validate(&alias).map_err(|e| e.to_string())?;
 
@@ -965,10 +973,10 @@ fn handle_tp(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    let player = if let Some(alias) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
+    let player = if let Some(alias) = parse_args!(args, String) {
         find_alias(server.state.ecs(), &alias)?.0
     } else if client != target {
         client
@@ -986,10 +994,10 @@ fn handle_spawn(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    match scan_fmt_some!(&args, &action.arg_fmt(), String, npc::NpcBody, u32, bool) {
+    match parse_args!(args, String, npc::NpcBody, u32, bool) {
         (Some(opt_align), Some(npc::NpcBody(id, mut body)), opt_amount, opt_ai) => {
             let uid = uid(server, target, "target")?;
             let alignment = parse_alignment(uid, &opt_align)?;
@@ -1099,7 +1107,7 @@ fn handle_spawn_training_dummy(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    _args: String,
+    _args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     let pos = position(server, target, "target")?;
@@ -1142,10 +1150,10 @@ fn handle_spawn_airship(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    args: String,
-    action: &ChatCommand,
+    args: Vec<String>,
+    _action: &ChatCommand,
 ) -> CmdResult<()> {
-    let angle = scan_fmt!(&args, &action.arg_fmt(), f32).ok();
+    let angle = parse_args!(args, f32);
     let mut pos = position(server, target, "target")?;
     pos.0.z += 50.0;
     const DESTINATION_RADIUS: f32 = 2000.0;
@@ -1189,7 +1197,7 @@ fn handle_spawn_campfire(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    _args: String,
+    _args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     let pos = position(server, target, "target")?;
@@ -1240,10 +1248,10 @@ fn handle_safezone(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    args: String,
-    action: &ChatCommand,
+    args: Vec<String>,
+    _action: &ChatCommand,
 ) -> CmdResult<()> {
-    let range = scan_fmt_some!(&args, &action.arg_fmt(), f32);
+    let range = parse_args!(args, f32);
     let pos = position(server, target, "target")?;
     server.state.create_safezone(range, pos).build();
 
@@ -1258,10 +1266,10 @@ fn handle_permit_build(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let Some(area_name) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
+    if let Some(area_name) = parse_args!(args, String) {
         let bb_id = area(server, &area_name)?;
         let mut can_build = server.state.ecs().write_storage::<comp::CanBuild>();
         let entry = can_build
@@ -1299,10 +1307,10 @@ fn handle_revoke_build(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let Some(area_name) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
+    if let Some(area_name) = parse_args!(args, String) {
         let bb_id = area(server, &area_name)?;
         let mut can_build = server.state.ecs_mut().write_storage::<comp::CanBuild>();
         if let Some(mut comp_can_build) = can_build.get_mut(target) {
@@ -1337,7 +1345,7 @@ fn handle_revoke_build_all(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    _args: String,
+    _args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     let ecs = server.state.ecs();
@@ -1363,7 +1371,7 @@ fn handle_players(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    _args: String,
+    _args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     let ecs = server.state.ecs();
@@ -1391,7 +1399,7 @@ fn handle_build(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    _args: String,
+    _args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     if let Some(mut can_build) = server
@@ -1420,20 +1428,12 @@ fn handle_build_area_add(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(area_name), Some(xlo), Some(xhi), Some(ylo), Some(yhi), Some(zlo), Some(zhi)) = scan_fmt_some!(
-        &args,
-        &action.arg_fmt(),
-        String,
-        i32,
-        i32,
-        i32,
-        i32,
-        i32,
-        i32
-    ) {
+    if let (Some(area_name), Some(xlo), Some(xhi), Some(ylo), Some(yhi), Some(zlo), Some(zhi)) =
+        parse_args!(args, String, i32, i32, i32, i32, i32, i32)
+    {
         let build_areas = server.state.mut_resource::<BuildAreas>();
         let msg = ServerGeneral::server_msg(
             ChatType::CommandInfo,
@@ -1456,7 +1456,7 @@ fn handle_build_area_list(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    _args: String,
+    _args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     let build_areas = server.state.mut_resource::<BuildAreas>();
@@ -1482,10 +1482,10 @@ fn handle_build_area_remove(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let Some(area_name) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
+    if let Some(area_name) = parse_args!(args, String) {
         let build_areas = server.state.mut_resource::<BuildAreas>();
 
         build_areas.remove(&area_name).map_err(|err| match err {
@@ -1512,10 +1512,10 @@ fn handle_help(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    args: String,
-    action: &ChatCommand,
+    args: Vec<String>,
+    _action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let Some(cmd) = scan_fmt_some!(&args, &action.arg_fmt(), ChatCommand) {
+    if let Some(cmd) = parse_args!(args, ChatCommand) {
         server.notify_client(
             client,
             ServerGeneral::server_msg(ChatType::CommandInfo, cmd.help_string()),
@@ -1560,7 +1560,7 @@ fn handle_kill_npcs(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    _args: String,
+    _args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     let ecs = server.state.ecs();
@@ -1588,11 +1588,10 @@ fn handle_kit(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    let kit_name = scan_fmt!(&args, &action.arg_fmt(), String);
-    if let Ok(name) = kit_name {
+    if let Some(name) = parse_args!(args, String) {
         if let Ok(kits) = common::cmd::KitManifest::load("server.manifests.kits") {
             let kits = kits.read();
             if let Some(kit) = kits.0.get(&name) {
@@ -1638,10 +1637,10 @@ fn handle_object(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    args: String,
-    action: &ChatCommand,
+    args: Vec<String>,
+    _action: &ChatCommand,
 ) -> CmdResult<()> {
-    let obj_type = scan_fmt!(&args, &action.arg_fmt(), String);
+    let obj_type = parse_args!(args, String);
 
     let pos = position(server, target, "target")?;
     let ori = server
@@ -1654,10 +1653,10 @@ fn handle_object(
     /*let builder = server.state
     .create_object(pos, ori, obj_type)
     .with(ori);*/
-    let obj_str_res = obj_type.as_ref().map(String::as_str);
+    let obj_str_res = obj_type.as_deref();
     if let Some(obj_type) = comp::object::ALL_OBJECTS
         .iter()
-        .find(|o| Ok(o.to_string()) == obj_str_res)
+        .find(|o| Some(o.to_string()) == obj_str_res)
     {
         server
             .state
@@ -1697,11 +1696,11 @@ fn handle_light(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    args: String,
-    action: &ChatCommand,
+    args: Vec<String>,
+    _action: &ChatCommand,
 ) -> CmdResult<()> {
     let (opt_r, opt_g, opt_b, opt_x, opt_y, opt_z, opt_s) =
-        scan_fmt_some!(&args, &action.arg_fmt(), f32, f32, f32, f32, f32, f32, f32);
+        parse_args!(args, f32, f32, f32, f32, f32, f32, f32);
 
     let mut light_emitter = comp::LightEmitter::default();
     let mut light_offset_opt = None;
@@ -1750,10 +1749,10 @@ fn handle_lantern(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(s), r, g, b) = scan_fmt_some!(&args, &action.arg_fmt(), f32, f32, f32, f32) {
+    if let (Some(s), r, g, b) = parse_args!(args, f32, f32, f32, f32) {
         if let Some(mut light) = server
             .state
             .ecs()
@@ -1797,10 +1796,10 @@ fn handle_explosion(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
-    args: String,
-    action: &ChatCommand,
+    args: Vec<String>,
+    _action: &ChatCommand,
 ) -> CmdResult<()> {
-    let power = scan_fmt!(&args, &action.arg_fmt(), f32).unwrap_or(8.0);
+    let power = parse_args!(args, f32).unwrap_or(8.0);
 
     const MIN_POWER: f32 = 0.0;
     const MAX_POWER: f32 = 512.0;
@@ -1850,7 +1849,7 @@ fn handle_waypoint(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    _args: String,
+    _args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     let pos = position(server, target, "target")?;
@@ -1876,7 +1875,7 @@ fn handle_spawn_wiring(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    _args: String,
+    _args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     // Obviously it is a WIP - use it for debug
@@ -2045,10 +2044,10 @@ fn handle_adminify(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(alias), desired_role) = scan_fmt_some!(&args, &action.arg_fmt(), String, String) {
+    if let (Some(alias), desired_role) = parse_args!(args, String, String) {
         let desired_role = if let Some(mut desired_role) = desired_role {
             desired_role.make_ascii_lowercase();
             Some(match &*desired_role {
@@ -2155,12 +2154,12 @@ fn handle_tell(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
     no_sudo(client, target)?;
 
-    if let (Some(alias), message_opt) = scan_fmt_some!(&args, &action.arg_fmt(), String, String) {
+    if let (Some(alias), message_opt) = parse_args!(args, String, ..Vec<String>) {
         let ecs = server.state.ecs();
         let player = find_alias(ecs, &alias)?.0;
 
@@ -2171,7 +2170,11 @@ fn handle_tell(
         let player_uid = uid(server, player, "player")?;
         let mode = comp::ChatMode::Tell(player_uid);
         insert_or_replace_component(server, target, mode.clone(), "target")?;
-        let msg = message_opt.unwrap_or_else(|| format!("{} wants to talk to you.", alias));
+        let msg = if message_opt.is_empty() {
+            format!("{} wants to talk to you.", alias)
+        } else {
+            message_opt.join(" ")
+        };
         server.state.send_chat(mode.new_message(target_uid, msg));
         server.notify_client(target, ServerGeneral::ChatMode(mode));
         Ok(())
@@ -2184,7 +2187,7 @@ fn handle_faction(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    msg: String,
+    args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     no_sudo(client, target)?;
@@ -2194,6 +2197,7 @@ fn handle_faction(
         let mode = comp::ChatMode::Faction(faction.to_string());
         drop(factions);
         insert_or_replace_component(server, target, mode.clone(), "target")?;
+        let msg = args.join(" ");
         if !msg.is_empty() {
             if let Some(uid) = server.state.ecs().read_storage().get(target) {
                 server.state.send_chat(mode.new_message(*uid, msg));
@@ -2210,7 +2214,7 @@ fn handle_group(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    msg: String,
+    args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     no_sudo(client, target)?;
@@ -2220,6 +2224,7 @@ fn handle_group(
         let mode = comp::ChatMode::Group(*group);
         drop(groups);
         insert_or_replace_component(server, target, mode.clone(), "target")?;
+        let msg = args.join(" ");
         if !msg.is_empty() {
             if let Some(uid) = server.state.ecs().read_storage().get(target) {
                 server.state.send_chat(mode.new_message(*uid, msg));
@@ -2236,10 +2241,10 @@ fn handle_group_invite(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let Some(target_alias) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
+    if let Some(target_alias) = parse_args!(args, String) {
         let target_player = find_alias(server.state.ecs(), &target_alias)?.0;
         let uid = uid(server, target_player, "player")?;
 
@@ -2275,11 +2280,11 @@ fn handle_group_kick(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
     // Checking if leader is already done in group_manip
-    if let Some(target_alias) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
+    if let Some(target_alias) = parse_args!(args, String) {
         let target_player = find_alias(server.state.ecs(), &target_alias)?.0;
         let uid = uid(server, target_player, "player")?;
 
@@ -2297,7 +2302,7 @@ fn handle_group_leave(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
-    _args: String,
+    _args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     server
@@ -2311,11 +2316,11 @@ fn handle_group_promote(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
     // Checking if leader is already done in group_manip
-    if let Some(target_alias) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
+    if let Some(target_alias) = parse_args!(args, String) {
         let target_player = find_alias(server.state.ecs(), &target_alias)?.0;
         let uid = uid(server, target_player, "player")?;
 
@@ -2336,13 +2341,14 @@ fn handle_region(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    msg: String,
+    args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     no_sudo(client, target)?;
 
     let mode = comp::ChatMode::Region;
     insert_or_replace_component(server, target, mode.clone(), "target")?;
+    let msg = args.join(" ");
     if !msg.is_empty() {
         if let Some(uid) = server.state.ecs().read_storage().get(target) {
             server.state.send_chat(mode.new_message(*uid, msg));
@@ -2356,13 +2362,14 @@ fn handle_say(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    msg: String,
+    args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     no_sudo(client, target)?;
 
     let mode = comp::ChatMode::Say;
     insert_or_replace_component(server, target, mode.clone(), "target")?;
+    let msg = args.join(" ");
     if !msg.is_empty() {
         if let Some(uid) = server.state.ecs().read_storage().get(target) {
             server.state.send_chat(mode.new_message(*uid, msg));
@@ -2376,13 +2383,14 @@ fn handle_world(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    msg: String,
+    args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     no_sudo(client, target)?;
 
     let mode = comp::ChatMode::World;
     insert_or_replace_component(server, target, mode.clone(), "target")?;
+    let msg = args.join(" ");
     if !msg.is_empty() {
         if let Some(uid) = server.state.ecs().read_storage().get(target) {
             server.state.send_chat(mode.new_message(*uid, msg));
@@ -2396,14 +2404,13 @@ fn handle_join_faction(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
-    args: String,
-    action: &ChatCommand,
+    args: Vec<String>,
+    _action: &ChatCommand,
 ) -> CmdResult<()> {
     let players = server.state.ecs().read_storage::<comp::Player>();
     if let Some(alias) = players.get(target).map(|player| player.alias.clone()) {
         drop(players);
-        let (faction_leave, mode) = if let Ok(faction) = scan_fmt!(&args, &action.arg_fmt(), String)
-        {
+        let (faction_leave, mode) = if let Some(faction) = parse_args!(args, String) {
             let mode = comp::ChatMode::Faction(faction.clone());
             insert_or_replace_component(server, target, mode.clone(), "target")?;
             let faction_join = server
@@ -2448,7 +2455,7 @@ fn handle_debug_column(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    _args: String,
+    _args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     Err("Unsupported without worldgen enabled".into())
@@ -2459,12 +2466,12 @@ fn handle_debug_column(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    args: String,
-    action: &ChatCommand,
+    args: Vec<String>,
+    _action: &ChatCommand,
 ) -> CmdResult<()> {
     let sim = server.world.sim();
     let sampler = server.world.sample_columns();
-    let wpos = if let Ok((x, y)) = scan_fmt!(&args, &action.arg_fmt(), i32, i32) {
+    let wpos = if let (Some(x), Some(y)) = parse_args!(args, i32, i32) {
         Vec2::new(x, y)
     } else {
         let pos = position(server, target, "target")?;
@@ -2534,14 +2541,14 @@ fn handle_disconnect_all_players(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     let client_uuid = uuid(server, client, "client")?;
     // Make sure temporary mods/admins can't run this command.
     let _role = real_role(server, client_uuid, "role")?;
 
-    if args != *"confirm" {
+    if parse_args!(args, String).as_deref() != Some("confirm") {
         return Err(
             "Please run the command again with the second argument of \"confirm\" to confirm that \
              you really want to disconnect all players from the server"
@@ -2578,12 +2585,10 @@ fn handle_skill_point(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(a_skill_tree), Some(sp), a_alias) =
-        scan_fmt_some!(&args, &action.arg_fmt(), String, u16, String)
-    {
+    if let (Some(a_skill_tree), Some(sp), a_alias) = parse_args!(args, String, u16, String) {
         let skill_tree = parse_skill_tree(&a_skill_tree)?;
         let player = a_alias
             .map(|alias| find_alias(server.state.ecs(), &alias).map(|(target, _)| target))
@@ -2624,10 +2629,10 @@ fn handle_remove_lights(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    args: String,
-    action: &ChatCommand,
+    args: Vec<String>,
+    _action: &ChatCommand,
 ) -> CmdResult<()> {
-    let opt_radius = scan_fmt_some!(&args, &action.arg_fmt(), f32);
+    let opt_radius = parse_args!(args, f32);
     let player_pos = position(server, target, "target")?;
     let mut to_delete = vec![];
 
@@ -2668,13 +2673,12 @@ fn handle_sudo(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
     if let (Some(player_alias), Some(cmd), cmd_args) =
-        scan_fmt_some!(&args, &action.arg_fmt(), String, String, String)
+        parse_args!(args, String, String, ..Vec<String>)
     {
-        let cmd_args = cmd_args.unwrap_or_else(|| String::from(""));
         if let Ok(action) = cmd.parse() {
             let (player, player_uuid) = find_alias(server.state.ecs(), &player_alias)?;
             let client_uuid = uuid(server, client, "client")?;
@@ -2701,7 +2705,7 @@ fn handle_version(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    _args: String,
+    _args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     server.notify_client(
@@ -2722,12 +2726,12 @@ fn handle_whitelist(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
     let now = Utc::now();
 
-    if let Ok((whitelist_action, username)) = scan_fmt!(&args, &action.arg_fmt(), String, String) {
+    if let (Some(whitelist_action), Some(username)) = parse_args!(args, String, String) {
         let client_uuid = uuid(server, client, "client")?;
         let client_username = uuid_to_username(server, client, client_uuid)?;
         let client_role = real_role(server, client_uuid, "client")?;
@@ -2820,12 +2824,10 @@ fn handle_kick(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(target_alias), reason_opt) =
-        scan_fmt_some!(&args, &action.arg_fmt(), String, String)
-    {
+    if let (Some(target_alias), reason_opt) = parse_args!(args, String, String) {
         let client_uuid = uuid(server, client, "client")?;
         let reason = reason_opt.unwrap_or_default();
         let ecs = server.state.ecs();
@@ -2852,17 +2854,12 @@ fn handle_ban(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(username), overwrite, parse_duration, reason_opt) = scan_fmt_some!(
-        &args,
-        &action.arg_fmt(),
-        String,
-        bool,
-        HumanDuration,
-        String
-    ) {
+    if let (Some(username), overwrite, parse_duration, reason_opt) =
+        parse_args!(args, String, bool, HumanDuration, String)
+    {
         let reason = reason_opt.unwrap_or_default();
         let overwrite = overwrite.unwrap_or(false);
 
@@ -2935,10 +2932,10 @@ fn handle_unban(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let Ok(username) = scan_fmt!(&args, &action.arg_fmt(), String) {
+    if let Some(username) = parse_args!(args, String) {
         let player_uuid = find_username(server, &username)?;
 
         let client_uuid = uuid(server, client, "client")?;
@@ -2980,10 +2977,10 @@ fn handle_server_physics(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(username), enabled_opt) = scan_fmt_some!(&args, &action.arg_fmt(), String, bool) {
+    if let (Some(username), enabled_opt) = parse_args!(args, String, bool) {
         let uuid = find_username(server, &username)?;
         let server_force = enabled_opt.unwrap_or(true);
 
@@ -3012,12 +3009,10 @@ fn handle_apply_buff(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(buff), strength, duration) =
-        scan_fmt_some!(&args, &action.arg_fmt(), String, f32, f64)
-    {
+    if let (Some(buff), strength, duration) = parse_args!(args, String, f32, f64) {
         let strength = strength.unwrap_or(0.01);
         let duration = Duration::from_secs_f64(duration.unwrap_or(1.0));
         let buffdata = BuffData::new(strength, Some(duration));
@@ -3053,10 +3048,10 @@ fn handle_skill_preset(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
-    args: String,
+    args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let Some(preset) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
+    if let Some(preset) = parse_args!(args, String) {
         if let Some(mut skill_set) = server
             .state
             .ecs_mut()

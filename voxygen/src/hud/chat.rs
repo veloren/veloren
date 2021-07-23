@@ -659,11 +659,11 @@ impl<'a> Widget for Chat<'a> {
                 }
             });
             if let Some(msg) = msg.strip_prefix('/') {
-                match msg.parse::<comma::Command>() {
-                    Ok(cmd) => events.push(Event::SendCommand(cmd.name, cmd.arguments)),
+                match parse_cmd(msg) {
+                    Ok((name, args)) => events.push(Event::SendCommand(name, args)),
                     Err(err) => self.new_messages.push_back(ChatMsg {
                         chat_type: ChatType::CommandError,
-                        message: err.to_string(),
+                        message: err,
                     }),
                 }
             } else {
@@ -812,5 +812,43 @@ fn get_chat_template_key(chat_type: &ChatType<String>) -> Option<&str> {
             KillSource::NonExistent(_) | KillSource::Other => "hud.chat.default_death_msg",
         },
         _ => return None,
+    })
+}
+
+fn parse_cmd(msg: &str) -> Result<(String, Vec<String>), String> {
+    use chumsky::prelude::*;
+
+    let escape = just::<_, Simple<char>>('\\').padding_for(
+        just('\\')
+            .or(just('/'))
+            .or(just('"'))
+            .or(just('b').to('\x08'))
+            .or(just('f').to('\x0C'))
+            .or(just('n').to('\n'))
+            .or(just('r').to('\r'))
+            .or(just('t').to('\t')),
+    );
+
+    let string = just('"')
+        .padding_for(filter(|c| *c != '\\' && *c != '"').or(escape).repeated())
+        .padded_by(just('"'))
+        .labelled("quoted argument");
+
+    let arg = string
+        .or(filter(|c: &char| !c.is_whitespace() && *c != '"')
+            .repeated_at_least(1)
+            .labelled("argument"))
+        .collect::<String>();
+
+    let cmd = text::ident()
+        .collect::<String>()
+        .then(arg.padded().repeated())
+        .padded_by(end());
+
+    cmd.parse(msg).map_err(|errs| {
+        errs.into_iter()
+            .map(|err| err.to_string())
+            .collect::<Vec<_>>()
+            .join(", ")
     })
 }
