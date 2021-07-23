@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom error message when a supported graphics backend can not be found
 - Add server setting with PvE/PvP switch
 - Can now tilt glider while only wielding it
+- Experimental terrain persistence (see server documentation)
 
 ### Changed
 

@@ -452,8 +452,13 @@ impl ChatCommand {
                 Some(Admin),
             ),
             ChatCommand::MakeBlock => cmd(
-                vec![Enum("block", BLOCK_KINDS.clone(), Required)],
-                "Make a block at your location",
+                vec![
+                    Enum("block", BLOCK_KINDS.clone(), Required),
+                    Integer("r", 255, Optional),
+                    Integer("g", 255, Optional),
+                    Integer("b", 255, Optional),
+                ],
+                "Make a block at your location with a color",
                 Some(Admin),
             ),
             ChatCommand::MakeSprite => cmd(

@@ -31,6 +31,7 @@ pub mod rtsim;
 pub mod settings;
 pub mod state_ext;
 pub mod sys;
+pub mod terrain_persistence;
 #[cfg(not(feature = "worldgen"))] mod test_world;
 pub mod wiring;
 
@@ -55,6 +56,7 @@ use crate::{
     rtsim::RtSim,
     state_ext::StateExt,
     sys::sentinel::{DeletedEntities, TrackedComps},
+    terrain_persistence::TerrainPersistence,
 };
 #[cfg(not(feature = "worldgen"))]
 use common::grid::Grid;
@@ -216,6 +218,17 @@ impl Server {
         state.ecs_mut().insert(ecs_system_metrics);
         state.ecs_mut().insert(tick_metrics);
         state.ecs_mut().insert(physics_metrics);
+        if settings.experimental_terrain_persistence {
+            warn!(
+                "Experimental terrain persistence support is enabled. This feature may break, be \
+                 disabled, or otherwise change under your feet at *any time*. Additionally, it is \
+                 expected to be replaced in the future *without* migration or warning. You have \
+                 been warned."
+            );
+            state
+                .ecs_mut()
+                .insert(TerrainPersistence::new(data_dir.to_owned()));
+        }
         state
             .ecs_mut()
             .write_resource::<SlowJobPool>()
@@ -859,6 +872,12 @@ impl Server {
     pub fn cleanup(&mut self) {
         // Cleanup the local state
         self.state.cleanup();
+
+        // Maintain persisted terrain
+        self.state
+            .ecs()
+            .try_fetch_mut::<TerrainPersistence>()
+            .map(|mut t| t.maintain());
     }
 
     fn initialize_client(
@@ -1236,6 +1255,13 @@ impl Drop for Server {
         self.metrics_shutdown.notify_one();
         self.state
             .notify_players(ServerGeneral::Disconnect(DisconnectReason::Shutdown));
+        self.state
+            .ecs()
+            .try_fetch_mut::<TerrainPersistence>()
+            .map(|mut terrain_persistence| {
+                info!("Unloading terrain persistence...");
+                terrain_persistence.unload_all()
+            });
     }
 }
 

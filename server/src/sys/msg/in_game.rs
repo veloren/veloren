@@ -1,4 +1,4 @@
-use crate::{client::Client, presence::Presence, Settings};
+use crate::{client::Client, presence::Presence, Settings, TerrainPersistence};
 use common::{
     comp::{
         Admin, CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Player, Pos, SkillSet,
@@ -36,6 +36,7 @@ impl Sys {
         settings: &Read<'_, Settings>,
         build_areas: &Read<'_, BuildAreas>,
         player_physics_settings: &mut Write<'_, PlayerPhysicsSettings>,
+        terrain_persistence: &mut Option<Write<'_, TerrainPersistence>>,
         maybe_player: &Option<&Player>,
         maybe_admin: &Option<&Admin>,
         msg: ClientGeneral,
@@ -190,7 +191,7 @@ impl Sys {
                 if let Some(comp_can_build) = can_build.get(entity) {
                     if comp_can_build.enabled {
                         for area in comp_can_build.build_areas.iter() {
-                            if let Some(block) = build_areas
+                            if let Some(old_block) = build_areas
                                 .areas()
                                 .get(*area)
                                 // TODO: Make this an exclusive check on the upper bound of the AABB
@@ -198,13 +199,20 @@ impl Sys {
                                 .filter(|aabb| aabb.contains_point(pos))
                                 .and_then(|_| terrain.get(pos).ok())
                             {
-                                block_changes.set(pos, block.into_vacant());
+                                let new_block = old_block.into_vacant();
+                                let was_placed = block_changes.try_set(pos, new_block).is_some();
+                                if was_placed {
+                                    if let Some(terrain_persistence) = terrain_persistence.as_mut()
+                                    {
+                                        terrain_persistence.set_block(pos, new_block);
+                                    }
+                                }
                             }
                         }
                     }
                 }
             },
-            ClientGeneral::PlaceBlock(pos, block) => {
+            ClientGeneral::PlaceBlock(pos, new_block) => {
                 if let Some(comp_can_build) = can_build.get(entity) {
                     if comp_can_build.enabled {
                         for area in comp_can_build.build_areas.iter() {
@@ -216,7 +224,13 @@ impl Sys {
                                 .filter(|aabb| aabb.contains_point(pos))
                                 .is_some()
                             {
-                                block_changes.try_set(pos, block);
+                                let was_placed = block_changes.try_set(pos, new_block).is_some();
+                                if was_placed {
+                                    if let Some(terrain_persistence) = terrain_persistence.as_mut()
+                                    {
+                                        terrain_persistence.set_block(pos, new_block);
+                                    }
+                                }
                             }
                         }
                     }
@@ -287,6 +301,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, Settings>,
         Read<'a, BuildAreas>,
         Write<'a, PlayerPhysicsSettings>,
+        Option<Write<'a, TerrainPersistence>>,
         ReadStorage<'a, Player>,
         ReadStorage<'a, Admin>,
     );
@@ -315,6 +330,7 @@ impl<'a> System<'a> for Sys {
             settings,
             build_areas,
             mut player_physics_settings,
+            mut terrain_persistence,
             players,
             admins,
         ): Self::SystemData,
@@ -349,6 +365,7 @@ impl<'a> System<'a> for Sys {
                     &settings,
                     &build_areas,
                     &mut player_physics_settings,
+                    &mut terrain_persistence,
                     &player,
                     &maybe_admin,
                     msg,

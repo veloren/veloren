@@ -5,7 +5,7 @@ use crate::{
     presence::{Presence, RepositionOnChunkLoad},
     rtsim::RtSim,
     settings::Settings,
-    SpawnPoint, Tick,
+    SpawnPoint, TerrainPersistence, Tick,
 };
 use common::{
     comp::{self, agent, bird_medium, Alignment, BehaviorCapability, ForceUpdate, Pos, Waypoint},
@@ -99,6 +99,7 @@ impl<'a> System<'a> for Sys {
         WriteExpect<'a, TerrainGrid>,
         Write<'a, TerrainChanges>,
         WriteExpect<'a, RtSim>,
+        Option<WriteExpect<'a, TerrainPersistence>>,
         WriteStorage<'a, Pos>,
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Client>,
@@ -125,6 +126,7 @@ impl<'a> System<'a> for Sys {
             mut terrain,
             mut terrain_changes,
             mut rtsim,
+            mut terrain_persistence,
             mut positions,
             presences,
             clients,
@@ -141,7 +143,7 @@ impl<'a> System<'a> for Sys {
         // Also, send the chunk data to anybody that is close by.
         let mut new_chunks = Vec::new();
         'insert_terrain_chunks: while let Some((key, res)) = chunk_generator.recv_new_chunk() {
-            let (chunk, supplement) = match res {
+            let (mut chunk, supplement) = match res {
                 Ok((chunk, supplement)) => (chunk, supplement),
                 Err(Some(entity)) => {
                     if let Some(client) = clients.get(entity) {
@@ -156,6 +158,11 @@ impl<'a> System<'a> for Sys {
                     continue 'insert_terrain_chunks;
                 },
             };
+
+            // Apply changes from terrain persistence to this chunk
+            if let Some(terrain_persistence) = terrain_persistence.as_mut() {
+                terrain_persistence.apply_changes(key, &mut chunk);
+            }
 
             // Arcify the chunk
             let chunk = Arc::new(chunk);
@@ -409,6 +416,11 @@ impl<'a> System<'a> for Sys {
             });
 
         for key in chunks_to_remove {
+            // Register the unloading of this chunk from terrain persistence
+            if let Some(terrain_persistence) = terrain_persistence.as_mut() {
+                terrain_persistence.unload_chunk(key);
+            }
+
             // TODO: code duplication for chunk insertion between here and state.rs
             if terrain.remove(key).is_some() {
                 terrain_changes.removed_chunks.insert(key);
