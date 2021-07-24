@@ -1,5 +1,4 @@
 #![deny(unsafe_code)]
-#![allow(clippy::option_map_unit_fn)]
 #![feature(bool_to_option)]
 #![recursion_limit = "2048"]
 
