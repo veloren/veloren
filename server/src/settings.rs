@@ -25,7 +25,7 @@ use std::{
 use tracing::{error, warn};
 use world::sim::FileOpts;
 
-const DEFAULT_WORLD_SEED: u32 = 25269;
+const DEFAULT_WORLD_SEED: u32 = 230;
 const CONFIG_DIR: &str = "server_config";
 const SETTINGS_FILENAME: &str = "settings.ron";
 const WHITELIST_FILENAME: &str = "whitelist.ron";
