@@ -262,7 +262,6 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
     ]
 }
 
-#[allow(clippy::eval_order_dependence)]
 pub fn apply_wildlife_supplement<'a, R: Rng>(
     // NOTE: Used only for dynamic elements like chests and entities!
     dynamic_rng: &mut R,
