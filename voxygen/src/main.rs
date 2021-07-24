@@ -111,9 +111,7 @@ fn main() {
             Panic Payload: {:?}\n\
             PanicInfo: {}\n\
             Game version: {} [{}]",
-            logs_dir
-                .join("voxygen.log.<date>")
-                .display(),
+            logs_dir.join("voxygen.log.<date>").display(),
             reason,
             panic_info,
             common::util::GIT_HASH.to_string(),

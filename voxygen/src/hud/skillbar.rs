@@ -886,47 +886,46 @@ impl<'a> Widget for Skillbar<'a> {
     }
 }
 
+#[rustfmt::skip]
 fn ability_description(tool: &ToolKind) -> Option<(&str, &str)> {
     match tool {
         ToolKind::Hammer => Some((
             "Smash of Doom",
-            concat!(
-                "\n",
-                "An AOE attack with knockback.\n",
-                "Leaps to position of cursor.",
-            ),
+            "\n\
+            An AOE attack with knockback.\n\
+            Leaps to position of cursor.",
         )),
         ToolKind::Axe => Some((
             "Axe Jump",
-            concat!("\n", "A jump with the slashing leap to position of cursor."),
+            "\n\
+            A jump with the slashing leap to position of cursor.",
         )),
         ToolKind::Staff => Some((
             "Ring of Fire",
-            concat!("\n", "Explodes the gound with fire shockwave."),
+            "\n\
+            Explodes the gound with fire shockwave.",
         )),
         ToolKind::Sword => Some((
             "Whirlwind",
-            concat!("\n", "Move forward while spinning with your sword."),
+            "\n\
+            Move forward while spinning with your sword.",
         )),
         ToolKind::Bow => Some((
             "Burst",
-            concat!("\n", "Launches a burst of arrows into your target"),
+            "\n\
+            Launches a burst of arrows into your target",
         )),
         ToolKind::Sceptre => Some((
             "Thorn Bulwark",
-            concat!(
-                "\n",
-                "Protects you and your group with thorns\n",
-                "for a short amount of time.",
-            ),
+            "\n\
+            Protects you and your group with thorns\n\
+            for a short amount of time.",
         )),
         ToolKind::Debug => Some((
             "Possessing Arrow",
-            concat!(
-                "\n",
-                "Shoots a poisonous arrow.\n",
-                "Lets you control your target."
-            ),
+            "\n\
+            Shoots a poisonous arrow.\n\
+            Lets you control your target.",
         )),
         _ => None,
     }

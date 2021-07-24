@@ -316,6 +316,8 @@ widget_ids! {
     }
 }
 
+/// Specifier to use with `Position::position`
+/// Read its documentation for more
 // TODO: extend as you need it
 #[derive(Clone, Copy)]
 pub enum PositionSpecifier {
@@ -326,6 +328,52 @@ pub enum PositionSpecifier {
     RightFrom(widget::Id, f64),
 }
 
+/// Trait which enables you to declare widget position
+/// to use later on widget creation.
+/// It is implemented for all widgets which are implement Positionable,
+/// so you can easily change your code to use this method.
+///
+/// Consider this example:
+/// ```text
+///     let slot1 = slot_maker
+///         .fabricate(hotbar::Slot::One, [40.0; 2])
+///         .filled_slot(self.imgs.skillbar_slot)
+///         .bottom_left_with_margins_on(state.ids.frame, 0.0, 0.0);
+///     if condition {
+///         call_slot1(slot1);
+///     } else {
+///         call_slot2(slot1);
+///     }
+///     let slot2 = slot_maker
+///         .fabricate(hotbar::Slot::Two, [40.0; 2])
+///         .filled_slot(self.imgs.skillbar_slot)
+///         .right_from(state.ids.slot1, slot_offset);
+///     if condition {
+///         call_slot1(slot2);
+///     } else {
+///         call_slot2(slot2);
+///     }
+/// ```
+/// Despite being identical, you can't easily deduplicate code
+/// which uses slot1 and slot2 as they are calling methods to position itself.
+/// This can be solved if you declare position and use it later like so
+/// ```text
+/// let slots = [
+///     (hotbar::Slot::One, BottomLeftWithMarginsOn(state.ids.frame, 0.0, 0.0)),
+///     (hotbar::Slot::Two, RightFrom(state.ids.slot1, slot_offset)),
+/// ];
+/// for (slot, pos) in slots {
+///     let slot = slot_maker
+///         .fabricate(slot, [40.0; 2])
+///         .filled_slot(self.imgs.skillbar_slot)
+///         .position(pos);
+///     if condition {
+///         call_slot1(slot);
+///     } else {
+///         call_slot2(slot);
+///     }
+/// }
+/// ```
 pub trait Position {
     fn position(self, request: PositionSpecifier) -> Self;
 }
