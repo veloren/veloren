@@ -399,7 +399,7 @@ impl Renderer {
             &views.tgt_color,
             &views.tgt_depth,
             [
-                &views.tgt_color,
+                &views.tgt_color_pp,
                 &views.bloom_tgts[1],
                 &views.bloom_tgts[2],
                 &views.bloom_tgts[3],
@@ -576,7 +576,7 @@ impl Renderer {
                 &self.views.tgt_color,
                 &self.views.tgt_depth,
                 [
-                    &self.views.tgt_color,
+                    &self.views.tgt_color_pp,
                     &self.views.bloom_tgts[1],
                     &self.views.bloom_tgts[2],
                     &self.views.bloom_tgts[3],

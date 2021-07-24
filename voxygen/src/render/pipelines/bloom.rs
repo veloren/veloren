@@ -1,7 +1,12 @@
+//! Based on: https://community.arm.com/cfs-file/__key/communityserver-blogs-components-weblogfiles/00-00-00-20-66/siggraph2015_2D00_mmg_2D00_marius_2D00_notes.pdf
+
 use super::super::Consts;
 use bytemuck::{Pod, Zeroable};
 use vek::*;
 
+// TODO: auto-tune the number of passes to maintain roughly constant blur per
+// unit of FOV so changing resolution / FOV doesn't change the blur appearance
+// significantly
 /// Each level is a multiple of 2 smaller in both dimensions.
 /// For a total of 8 passes from the largest to the smallest to the largest
 /// again.
@@ -98,7 +103,7 @@ impl BloomLayout {
 }
 
 pub struct BloomPipelines {
-    //pub downsample_filtered: wgpu::RenderPipeline,
+    pub downsample_filtered: wgpu::RenderPipeline,
     pub downsample: wgpu::RenderPipeline,
     pub upsample: wgpu::RenderPipeline,
 }
@@ -107,7 +112,7 @@ impl BloomPipelines {
     pub fn new(
         device: &wgpu::Device,
         vs_module: &wgpu::ShaderModule,
-        //downsample_filtered_fs_module: &wgpu::ShaderModule,
+        downsample_filtered_fs_module: &wgpu::ShaderModule,
         downsample_fs_module: &wgpu::ShaderModule,
         upsample_fs_module: &wgpu::ShaderModule,
         target_format: wgpu::TextureFormat,
@@ -121,75 +126,69 @@ impl BloomPipelines {
                 bind_group_layouts: &[&layout.layout],
             });
 
-        let downsample_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("Bloom downsample pipeline"),
-            layout: Some(&render_pipeline_layout),
-            vertex: wgpu::VertexState {
-                module: vs_module,
-                entry_point: "main",
-                buffers: &[],
-            },
-            primitive: wgpu::PrimitiveState {
-                topology: wgpu::PrimitiveTopology::TriangleList,
-                strip_index_format: None,
-                front_face: wgpu::FrontFace::Ccw,
-                cull_mode: None,
-                clamp_depth: false,
-                polygon_mode: wgpu::PolygonMode::Fill,
-                conservative: false,
-            },
-            depth_stencil: None,
-            multisample: wgpu::MultisampleState {
-                count: 1,
-                mask: !0,
-                alpha_to_coverage_enabled: false,
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: downsample_fs_module,
-                entry_point: "main",
-                targets: &[wgpu::ColorTargetState {
-                    format: target_format,
-                    blend: None,
-                    write_mask: wgpu::ColorWrite::ALL,
-                }],
-            }),
-        });
+        let create_pipeline = |label, fs_module, blend| {
+            device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+                label: Some(label),
+                layout: Some(&render_pipeline_layout),
+                vertex: wgpu::VertexState {
+                    module: vs_module,
+                    entry_point: "main",
+                    buffers: &[],
+                },
+                primitive: wgpu::PrimitiveState {
+                    topology: wgpu::PrimitiveTopology::TriangleList,
+                    strip_index_format: None,
+                    front_face: wgpu::FrontFace::Ccw,
+                    cull_mode: None,
+                    clamp_depth: false,
+                    polygon_mode: wgpu::PolygonMode::Fill,
+                    conservative: false,
+                },
+                depth_stencil: None,
+                multisample: wgpu::MultisampleState {
+                    count: 1,
+                    mask: !0,
+                    alpha_to_coverage_enabled: false,
+                },
+                fragment: Some(wgpu::FragmentState {
+                    module: fs_module,
+                    entry_point: "main",
+                    targets: &[wgpu::ColorTargetState {
+                        format: target_format,
+                        blend,
+                        write_mask: wgpu::ColorWrite::ALL,
+                    }],
+                }),
+            })
+        };
 
-        let upsample_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("Bloom upsample pipeline"),
-            layout: Some(&render_pipeline_layout),
-            vertex: wgpu::VertexState {
-                module: vs_module,
-                entry_point: "main",
-                buffers: &[],
-            },
-            primitive: wgpu::PrimitiveState {
-                topology: wgpu::PrimitiveTopology::TriangleList,
-                strip_index_format: None,
-                front_face: wgpu::FrontFace::Ccw,
-                cull_mode: None,
-                clamp_depth: false,
-                polygon_mode: wgpu::PolygonMode::Fill,
-                conservative: false,
-            },
-            depth_stencil: None,
-            multisample: wgpu::MultisampleState {
-                count: 1,
-                mask: !0,
-                alpha_to_coverage_enabled: false,
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: upsample_fs_module,
-                entry_point: "main",
-                targets: &[wgpu::ColorTargetState {
-                    format: target_format,
-                    blend: None,
-                    write_mask: wgpu::ColorWrite::ALL,
-                }],
+        let downsample_filtered_pipeline = create_pipeline(
+            "Bloom downsample filtered pipeline",
+            downsample_filtered_fs_module,
+            None,
+        );
+        let downsample_pipeline =
+            create_pipeline("Bloom downsample pipeline", downsample_fs_module, None);
+        let upsample_pipeline = create_pipeline(
+            "Bloom upsample pipeline",
+            upsample_fs_module,
+            Some(wgpu::BlendState {
+                color: wgpu::BlendComponent {
+                    src_factor: wgpu::BlendFactor::One,
+                    dst_factor: wgpu::BlendFactor::One,
+                    operation: wgpu::BlendOperation::Add,
+                },
+                // we don't really use this, but... we need something here
+                alpha: wgpu::BlendComponent {
+                    src_factor: wgpu::BlendFactor::One,
+                    dst_factor: wgpu::BlendFactor::One,
+                    operation: wgpu::BlendOperation::Add,
+                },
             }),
-        });
+        );
 
         Self {
+            downsample_filtered: downsample_filtered_pipeline,
             downsample: downsample_pipeline,
             upsample: upsample_pipeline,
         }

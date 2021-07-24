@@ -252,20 +252,18 @@ impl<'frame> Drawer<'frame> {
         let locals = &self.borrow.locals;
         let views = &self.borrow.views;
 
-        let encoder = self.encoder.as_mut().unwrap();
         let device = self.borrow.device;
+        let mut encoder = self.encoder.as_mut().unwrap().scope("bloom", device);
 
-        let mut run_bloom_pass = |bind, view, label: String, pipeline| {
+        let mut run_bloom_pass = |bind, view, label: String, pipeline, load| {
+            let pass_label = format!("bloom {} pass", label);
             let mut render_pass =
                 encoder.scoped_render_pass(&label, device, &wgpu::RenderPassDescriptor {
-                    label: Some(&label),
+                    label: Some(&pass_label),
                     color_attachments: &[wgpu::RenderPassColorAttachment {
                         resolve_target: None,
                         view,
-                        ops: wgpu::Operations {
-                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
-                            store: true,
-                        },
+                        ops: wgpu::Operations { store: true, load },
                     }],
                     depth_stencil_attachment: None,
                 });
@@ -279,16 +277,35 @@ impl<'frame> Drawer<'frame> {
         (0..bloom::NUM_SIZES - 1).for_each(|index| {
             let bind = &locals.bloom_binds[index].bind_group;
             let view = &views.bloom_tgts[index + 1];
-            let label = format!("bloom downsample pass {}", index + 1);
-            run_bloom_pass(bind, view, label, &pipelines.bloom.downsample);
+            let label = format!("downsample {}", index + 1);
+            run_bloom_pass(
+                bind,
+                view,
+                label,
+                &pipelines.bloom.downsample,
+                wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+            );
         });
 
         // Upsample filter passes
         (0..bloom::NUM_SIZES - 1).for_each(|index| {
             let bind = &locals.bloom_binds[bloom::NUM_SIZES - 1 - index].bind_group;
             let view = &views.bloom_tgts[bloom::NUM_SIZES - 2 - index];
-            let label = format!("bloom upsample pass {}", index + 1);
-            run_bloom_pass(bind, view, label, &pipelines.bloom.upsample);
+            let label = format!("upsample {}", index + 1);
+            run_bloom_pass(
+                bind,
+                view,
+                label,
+                &pipelines.bloom.upsample,
+                if index + 2 == bloom::NUM_SIZES {
+                    // Clear for the final image since that is just stuff from the pervious frame.
+                    wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT)
+                } else {
+                    // Add to less blurred images to get gradient of blur instead of a smudge>
+                    // https://catlikecoding.com/unity/tutorials/advanced-rendering/bloom/
+                    wgpu::LoadOp::Load
+                },
+            );
         });
     }
 

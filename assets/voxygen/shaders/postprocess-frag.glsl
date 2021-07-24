@@ -185,8 +185,10 @@ void main() {
     vec4 aa_color = aa_apply(t_src_color, s_src_color, uv * screen_res.xy, screen_res.xy);
 
     // Bloom
-    vec4 bloom = textureLod(sampler2D(t_src_bloom, s_src_color), uv, 0) * 0.75;
-    aa_color += bloom;
+    // divide by 4.0 to account for adding blurred layers together
+    vec4 bloom = textureLod(sampler2D(t_src_bloom, s_src_color), uv, 0) / 4.0;
+    float bloom_factor = 0.10;
+    aa_color = aa_color * (1.0 - bloom_factor) + bloom * bloom_factor;
 
     // Tonemapping
     float exposure_offset = 1.0;
