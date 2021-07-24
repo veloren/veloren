@@ -336,7 +336,7 @@ impl<'a> System<'a> for Sys {
             let chunk_pos = terrain.pos_key(pos.0.map(|e| e as i32));
             if let Some(chunk) = terrain.get_key(chunk_pos) {
                 pos.0 = terrain
-                    .find_space_opt(pos.0.as_::<i32>())
+                    .try_find_space(pos.0.as_::<i32>())
                     .map(|x| x.as_::<f32>())
                     .unwrap_or_else(|| chunk.find_accessible_pos(pos.0.xy().as_::<i32>(), false));
                 repositioned.push(entity);

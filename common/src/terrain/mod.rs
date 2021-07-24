@@ -159,10 +159,10 @@ impl TerrainGrid {
     /// Find a location suitable for spawning an entity near the given
     /// position (but in the same chunk).
     pub fn find_space(&self, pos: Vec3<i32>) -> Vec3<i32> {
-        self.find_space_opt(pos).unwrap_or(pos)
+        self.try_find_space(pos).unwrap_or(pos)
     }
 
-    pub fn find_space_opt(&self, pos: Vec3<i32>) -> Option<Vec3<i32>> {
+    pub fn try_find_space(&self, pos: Vec3<i32>) -> Option<Vec3<i32>> {
         const SEARCH_DIST: i32 = 63;
         (0..SEARCH_DIST * 2 + 1)
             .map(|i| if i % 2 == 0 { i } else { -i } / 2)
