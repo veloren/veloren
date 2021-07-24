@@ -30,7 +30,6 @@ pub fn event_handler(_args: TokenStream, item: TokenStream) -> TokenStream {
 
     let out: proc_macro2::TokenStream = if fn_args.len() == 1 {
         quote! {
-            #[allow(clippy::unnecessary_wraps)]
             #[no_mangle]
             pub fn #fn_name(intern__ptr: i64, intern__len: i64) -> i64 {
                 let input = ::veloren_plugin_rt::read_input(intern__ptr as _,intern__len as _).unwrap();
@@ -47,7 +46,6 @@ pub fn event_handler(_args: TokenStream, item: TokenStream) -> TokenStream {
         }
     } else {
         quote! {
-            #[allow(clippy::unnecessary_wraps)]
             #[no_mangle]
             pub fn #fn_name(intern__ptr: i64, intern__len: i64) -> i64 {
                 let input = ::veloren_plugin_rt::read_input(intern__ptr as _,intern__len as _).unwrap();
