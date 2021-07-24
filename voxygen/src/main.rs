@@ -22,7 +22,6 @@ use tracing::{error, info, warn};
 #[cfg(feature = "egui-ui")]
 use veloren_voxygen::ui::egui::EguiState;
 
-#[allow(clippy::manual_unwrap_or)]
 fn main() {
     let userdata_dir = common_base::userdata_dir_workspace!();
 
