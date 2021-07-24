@@ -18,9 +18,9 @@ vec4 simplefetch(ivec2 uv) {
     return texelFetch(sampler2D(t_src_color, s_src_color), uv, 0);
 }
 
-// check whether the texel color is higher than threshold, if so output as brightness color
+// Check whether the texel color is higher than threshold, if so output as brightness color
 vec4 filterDim(vec4 color) {
-    // TODO: note where this constant came from if we keep it
+    // constants from: https://learnopengl.com/Advanced-Lighting/Bloom
     float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
     if(brightness > 1.00)
         return vec4(color.rgb, 1.0);
