@@ -34,6 +34,7 @@ maps
 screenshots
 todo.txt
 userdata
+heaptrack.*
 
 # Export data
 *.csv
