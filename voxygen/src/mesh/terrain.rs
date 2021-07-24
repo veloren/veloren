@@ -224,7 +224,6 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     }
 }
 
-#[allow(clippy::collapsible_if)]
 #[allow(clippy::many_single_char_names)]
 #[allow(clippy::type_complexity)]
 #[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
