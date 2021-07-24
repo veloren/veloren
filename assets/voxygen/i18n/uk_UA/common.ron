@@ -56,14 +56,7 @@
 Можливо сервер перезапустився?
 Чи Ваш клієнт не останньої версії?"#,
 
-
-        "common.species.orc": "Орк",
-        "common.species.human": "Людина",
-        "common.species.dwarf": "Дварф",
-        "common.species.elf": "Ельф",
-        "common.species.undead": "Нежить",
-        "common.species.danari": "Данарі",
-
+        // Weapon skills
         "common.weapons.axe": "Сокира",
         "common.weapons.sword": "Меч",
         "common.weapons.staff": "Посох",
@@ -74,6 +67,7 @@
         "common.weapons.spear": "Спис",
         "common.weapons.general": "Бій (загальне)",
 
+        // Tools & Weapons
         "common.weapons.hammer_simple": "Простий Молот",
         "common.weapons.sword_simple": "Простий Меч",
         "common.weapons.staff_simple": "Простий Посох",
@@ -83,6 +77,7 @@
         "common.tool.debug": "Дебаг",
         "common.tool.faming": "Фермерський Інструмент",
         "common.tool.pick": "Кирка",
+        "common.tool.mining": "Гірнича справа",
         "common.kind.modular_component": "Модульний Компонент",
         "common.kind.glider": "Дельтаплан",
         "common.kind.consumable": "Вживане",
@@ -93,18 +88,38 @@
         "common.hands.one": "Одноручне",
         "common.hands.two": "Дворучне",
 
+        // Character creation
         "common.rand_appearance": "Випадкова зовнішність",
         "common.rand_name": "Випадкове ім'я",
 
+        "common.species.orc": "Орк",
+        "common.species.human": "Людина",
+        "common.species.dwarf": "Дварф",
+        "common.species.elf": "Ельф",
+        "common.species.undead": "Нежить",
+        "common.species.danari": "Данарі",
+
+        // Stats
         "common.stats.combat_rating": "БР",
         "common.stats.power": "Потужність",
         "common.stats.speed": "Швидкість",
         "common.stats.poise": "Приголомшення",
         "common.stats.crit_chance": "Крит. шанс",
         "common.stats.crit_mult": "Крит. множник",
+        "common.stats.crit_power": "Крит. модифікатор",
+        "common.stats.energy_max": "Макс. енергія",
+        "common.stats.energy_reward": "Винагороди Енергії",
+        "common.stats.stealth": "Стелс",
         "common.stats.armor": "Броні",
-        "common.stats.poise_res": "Баланс",
+        "common.stats.poise_res": "Баланс", // force update
         "common.stats.slots": "Слотів",
+
+        // Materials
+        "common.material.metal": "Метал",
+        "common.material.wood": "Дерево",
+        "common.material.stone": "Камінь",
+        "common.material.cloth": "Тканина",
+        "common.material.hide": "Шкіра",
     },
 
 

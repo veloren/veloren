@@ -4,7 +4,7 @@
 (
     string_map: {
         "gameinput.primary": "Базова атака",
-        "gameinput.secondary": "Додаткова атака",
+        "gameinput.secondary": "Додаткова атака", // force update
         "gameinput.block": "Блок",
         "gameinput.slot1": "Слот швидкого доступу 1",
         "gameinput.slot2": "Слот швидкого доступу 2",
@@ -30,6 +30,7 @@
         "gameinput.moveback": "Рух назад",
         "gameinput.jump": "Стрибати",
         "gameinput.glide": "Дельтаплан",
+        "gameinput.greet": "Вітання",
         "gameinput.roll": "Перекид",
         "gameinput.climb": "Лізти вгору",
         "gameinput.climbdown": "Лізти вниз",
@@ -51,7 +52,7 @@
         "gameinput.togglewield": "Дістати зброю",
         "gameinput.interact": "Взаємодіяти",
         "gameinput.freelook": "Вільний огляд",
-        "gameinput.autowalk": "Авто Рух/Політ",
+        "gameinput.autowalk": "Авто Рух/Політ", // force update
         "gameinput.dance": "Танцювати",
         "gameinput.select": "Обрати",
         "gameinput.acceptgroupinvite": "Прийняти запрошення в групу",
