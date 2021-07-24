@@ -277,12 +277,23 @@ impl<'frame> Drawer<'frame> {
         (0..bloom::NUM_SIZES - 1).for_each(|index| {
             let bind = &locals.bloom_binds[index].bind_group;
             let view = &views.bloom_tgts[index + 1];
-            let label = format!("downsample {}", index + 1);
+            // Do filtering out of non-bright things during the first downsample
+            let (label, pipeline) = if index == 0 {
+                (
+                    format!("downsample filtered {}", index + 1),
+                    &pipelines.bloom.downsample_filtered,
+                )
+            } else {
+                (
+                    format!("downsample {}", index + 1),
+                    &pipelines.bloom.downsample,
+                )
+            };
             run_bloom_pass(
                 bind,
                 view,
                 label,
-                &pipelines.bloom.downsample,
+                pipeline,
                 wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
             );
         });

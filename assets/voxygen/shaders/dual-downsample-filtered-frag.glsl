@@ -14,27 +14,27 @@ layout(location = 0) in vec2 uv;
 
 layout(location = 0) out vec4 tgt_color;
 
-vec4 simplesample(vec2 uv) {
-    return textureLod(sampler2D(t_src_color, s_src_color), uv, 0);
+vec4 simplefetch(ivec2 uv) {
+    return texelFetch(sampler2D(t_src_color, s_src_color), uv, 0);
 }
 
 // check whether the texel color is higher than threshold, if so output as brightness color
 vec4 filterDim(vec4 color) {
     // TODO: note where this constant came from if we keep it
     float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
-    if(brightness > 1.0)
+    if(brightness > 1.00)
         return vec4(color.rgb, 1.0);
     else
         return vec4(0.0, 0.0, 0.0, 1.0);
 }
 
 vec4 filteredFetch(ivec2 uv) {
-    return filterDim(simplesample(uv));
+    return filterDim(simplefetch(uv));
 }
 
 // Derived from: https://community.arm.com/cfs-file/__key/communityserver-blogs-components-weblogfiles/00-00-00-20-66/siggraph2015_2D00_mmg_2D00_marius_2D00_notes.pdf
 vec4 filteredDownsample(vec2 uv, vec2 halfpixel) {
-    vec2 tex_res = 2.0 / halfpixel;
+    vec2 tex_res = 0.5 / halfpixel;
     // coordinate of the top left texel
     //  _ _ _ _
     // |x|_|_|_|
@@ -68,6 +68,23 @@ vec4 filteredDownsample(vec2 uv, vec2 halfpixel) {
     return sum / 32.0;
 }
 
+vec4 simplesample(vec2 uv) {
+    return textureLod(sampler2D(t_src_color, s_src_color), uv, 0);
+}
+
+// From: https://community.arm.com/cfs-file/__key/communityserver-blogs-components-weblogfiles/00-00-00-20-66/siggraph2015_2D00_mmg_2D00_marius_2D00_notes.pdf
+vec4 downsample(vec2 uv, vec2 halfpixel) {
+    vec4 sum = simplesample(uv) * 4.0;
+    sum += simplesample(uv - halfpixel.xy);
+    sum += simplesample(uv + halfpixel.xy);
+    sum += simplesample(uv + vec2(halfpixel.x, -halfpixel.y));
+    sum += simplesample(uv - vec2(halfpixel.x, -halfpixel.y));
+
+    return sum / 8.0;
+}
+
 void main() {
-    tgt_color = filteredDownsample(uv, halfpixel);
+    // Uncomment to experiment with filtering out dim pixels
+    //tgt_color = filteredDownsample(uv, halfpixel);
+    tgt_color = downsample(uv, halfpixel);
 }
