@@ -75,7 +75,7 @@ impl Skeleton for TheropodSkeleton {
             make_bone(leg_r_mat * Mat4::<f32>::from(self.foot_r)),
         ];
         Offsets {
-            lantern: Vec3::default(),
+            lantern: None,
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: common::comp::Body::Theropod(body)

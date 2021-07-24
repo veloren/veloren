@@ -128,7 +128,7 @@ impl Skeleton for BipedLargeSkeleton {
             make_bone(upper_torso_mat * control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
         ];
         Offsets {
-            lantern: Vec3::default(),
+            lantern: None,
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: common::comp::Body::BipedLarge(body)

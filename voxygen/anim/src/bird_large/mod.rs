@@ -97,7 +97,7 @@ impl Skeleton for BirdLargeSkeleton {
             make_bone(foot_r_mat),
         ];
         Offsets {
-            lantern: Vec3::default(),
+            lantern: None,
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: common::comp::Body::BirdLarge(body)

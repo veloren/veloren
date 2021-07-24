@@ -141,7 +141,7 @@ impl Skeleton for CharacterSkeleton {
             make_bone(control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
         ];
         Offsets {
-            lantern: (lantern_mat * Vec4::new(0.0, 0.0, -4.0, 1.0)).xyz(),
+            lantern: Some((lantern_mat * Vec4::new(0.0, 0.0, -4.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: common::comp::Body::Humanoid(body)

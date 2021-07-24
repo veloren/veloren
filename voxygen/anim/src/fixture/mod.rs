@@ -35,7 +35,7 @@ impl Skeleton for FixtureSkeleton {
     ) -> Offsets {
         buf[0] = make_bone(base_mat);
         Offsets {
-            lantern: Vec3::default(),
+            lantern: None,
             mount_bone: Transform::default(),
         }
     }

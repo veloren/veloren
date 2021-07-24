@@ -100,7 +100,7 @@ pub fn init() { lazy_static::initialize(&LIB); }
 
 // Offsets that will be returned after computing the skeleton matrices
 pub struct Offsets {
-    pub lantern: Vec3<f32>,
+    pub lantern: Option<Vec3<f32>>,
     pub mount_bone: Transform<f32, f32, f32>,
 }
 
