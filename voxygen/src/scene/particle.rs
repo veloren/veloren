@@ -918,7 +918,6 @@ impl ParticleMgr {
             .join()
         {
             for (_, aura) in auras.auras.iter() {
-                #[allow(clippy::single_match)]
                 match aura.aura_kind {
                     aura::AuraKind::Buff {
                         kind: buff::BuffKind::ProtectingWard,
@@ -1045,7 +1044,6 @@ impl ParticleMgr {
         }
     }
 
-    #[allow(clippy::same_item_push)] // TODO: Pending review in #587
     fn maintain_block_particles(
         &mut self,
         scene_data: &SceneData,
