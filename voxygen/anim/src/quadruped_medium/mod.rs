@@ -103,7 +103,7 @@ impl Skeleton for QuadrupedMediumSkeleton {
         let mount_orientation = mount_bone_ori;
 
         Offsets {
-            lantern: Vec3::default(),
+            lantern: None,
             mount_bone: Transform {
                 position: mount_position,
                 orientation: mount_orientation,

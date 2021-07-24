@@ -454,8 +454,13 @@ impl FigureMgr {
                 } else {
                     (vek::Rgb::zero(), 0.0, 0.0, true)
                 };
-            if let Some(state) = body.and_then(|body| self.states.get_mut(body, &entity)) {
-                light_anim.offset = vek::Vec3::from(state.lantern_offset);
+            if let Some(lantern_offset) = body
+                .and_then(|body| self.states.get_mut(body, &entity))
+                .and_then(|state| state.lantern_offset)
+            {
+                light_anim.offset = vek::Vec3::from(lantern_offset);
+            } else if let Some(body) = body {
+                light_anim.offset = body.default_light_offset();
             }
             if !light_anim.strength.is_normal() {
                 light_anim.strength = 0.0;
@@ -5257,7 +5262,7 @@ impl FigureColLights {
 }
 
 pub struct FigureStateMeta {
-    lantern_offset: anim::vek::Vec3<f32>,
+    lantern_offset: Option<anim::vek::Vec3<f32>>,
     // Animation to be applied to mounter of this entity
     mount_transform: anim::vek::Transform<f32, f32, f32>,
     // Contains the position of this figure or if it is a mounter it will contain the mountee's

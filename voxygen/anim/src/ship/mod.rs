@@ -40,7 +40,7 @@ impl Skeleton for ShipSkeleton {
             make_bone(bone0_mat * Mat4::<f32>::from(self.bone3)),
         ];
         Offsets {
-            lantern: Vec3::default(),
+            lantern: None,
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: common::comp::Body::Ship(body)

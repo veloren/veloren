@@ -51,7 +51,7 @@ impl Skeleton for FishMediumSkeleton {
             make_bone(chest_front_mat * Mat4::<f32>::from(self.fin_r)),
         ];
         Offsets {
-            lantern: Vec3::default(),
+            lantern: None,
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: common::comp::Body::FishMedium(body)

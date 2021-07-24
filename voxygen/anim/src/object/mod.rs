@@ -40,7 +40,7 @@ impl Skeleton for ObjectSkeleton {
             make_bone(scale_mat * Mat4::<f32>::from(self.bone1)), /* Decorellated from ori */
         ];
         Offsets {
-            lantern: Vec3::default(),
+            lantern: None,
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: common::comp::Body::Object(body)
