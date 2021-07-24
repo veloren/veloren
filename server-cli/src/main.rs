@@ -32,7 +32,6 @@ lazy_static::lazy_static! {
 }
 const TPS: u64 = 30;
 
-#[allow(clippy::unnecessary_wraps)]
 fn main() -> io::Result<()> {
     let app = ArgvApp::from_args();
 

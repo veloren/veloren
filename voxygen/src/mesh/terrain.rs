@@ -224,10 +224,8 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     }
 }
 
-#[allow(clippy::collapsible_if)]
 #[allow(clippy::many_single_char_names)]
 #[allow(clippy::type_complexity)]
-#[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
 pub fn generate_mesh<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>(
     vol: &'a VolGrid2d<V>,
     (range, max_texture_size, _boi): (Aabb<i32>, Vec2<u16>, &'a BlocksOfInterest),

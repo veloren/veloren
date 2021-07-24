@@ -261,7 +261,6 @@ pub fn handle_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f3
 }
 
 /// Updates components to move player as if theyre on ground or in air
-#[allow(clippy::assign_op_pattern)] // TODO: Pending review in #587
 fn basic_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) {
     let efficiency = efficiency * data.stats.move_speed_modifier * data.stats.friction_modifier;
 

@@ -38,7 +38,6 @@ pub fn snuff_lantern(storage: &mut WriteStorage<comp::LightEmitter>, entity: Ecs
 }
 
 #[allow(clippy::blocks_in_if_conditions)]
-#[allow(clippy::same_item_push)] // TODO: Pending review in #587
 pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::InventoryManip) {
     let state = server.state_mut();
 
@@ -772,7 +771,6 @@ mod tests {
     use super::*;
 
     // Helper function
-    #[allow(clippy::unnecessary_wraps)]
     fn test_cylinder(pos: comp::Pos) -> Option<Cylinder> {
         Some(Cylinder::from_components(pos.0, None, None, None))
     }

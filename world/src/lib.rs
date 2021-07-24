@@ -206,7 +206,6 @@ impl World {
         tc.find_accessible_pos(spawn_wpos, ascending)
     }
 
-    #[allow(clippy::eval_order_dependence)]
     #[allow(clippy::result_unit_err)]
     pub fn generate_chunk(
         &self,

@@ -14,7 +14,6 @@ use tracing::{debug, error, warn};
 
 impl Sys {
     #[allow(clippy::too_many_arguments)]
-    #[allow(clippy::unnecessary_wraps)]
     fn handle_general_msg(
         server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
         entity: specs::Entity,

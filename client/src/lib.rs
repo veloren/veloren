@@ -1833,7 +1833,6 @@ impl Client {
         Ok(())
     }
 
-    #[allow(clippy::unnecessary_wraps)]
     fn handle_server_in_game_msg(
         &mut self,
         frontend_events: &mut Vec<Event>,
@@ -2012,7 +2011,6 @@ impl Client {
         Ok(())
     }
 
-    #[allow(clippy::unnecessary_wraps)]
     fn handle_server_terrain_msg(&mut self, msg: ServerGeneral) -> Result<(), Error> {
         prof_span!("handle_server_terrain_mgs");
         match msg {
@@ -2034,7 +2032,6 @@ impl Client {
         Ok(())
     }
 
-    #[allow(clippy::unnecessary_wraps)]
     fn handle_server_character_screen_msg(
         &mut self,
         events: &mut Vec<Event>,

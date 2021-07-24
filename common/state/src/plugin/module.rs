@@ -177,7 +177,6 @@ pub fn from_i64(i: i64) -> u64 { u64::from_le_bytes(i.to_le_bytes()) }
 
 // This function is not public because this function should not be used without
 // an interface to limit unsafe behaviours
-#[allow(clippy::needless_range_loop)]
 fn execute_raw(
     module: &PluginModule,
     instance: &mut Instance,
