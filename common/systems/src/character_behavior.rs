@@ -97,7 +97,6 @@ impl<'a> System<'a> for Sys {
     const ORIGIN: Origin = Origin::Common;
     const PHASE: Phase = Phase::Create;
 
-    #[allow(clippy::while_let_on_iterator)] // TODO: Pending review in #587
     fn run(
         _job: &mut Job<Self>,
         (
