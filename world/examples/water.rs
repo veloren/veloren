@@ -96,10 +96,9 @@ fn main() {
         } else {
             MapSample {
                 alt: 0.0,
-                rgba: Rgba::new(0, 0, 0, 255),
+                rgb: Rgb::new(0, 0, 0),
                 connections: None,
                 downhill_wpos: (pos + 1) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
-                is_path: false,
             }
         }
     };
@@ -186,9 +185,7 @@ fn main() {
             is_debug: true,
             is_contours: false,
             is_height_map: false,
-            is_political: false,
-            is_roads: false,
-            rgba_alpha: 1.0,
+            is_stylized_topo: false,
         };
 
         if samples_changed {
