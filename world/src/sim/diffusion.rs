@@ -405,7 +405,6 @@ pub fn diffusion(
       INTEGER n
       double precision a(n),b(n),c(n),r(n),u(n)
 */
-#[allow(clippy::assign_op_pattern)] // TODO: Pending review in #587
 #[allow(clippy::many_single_char_names)]
 pub fn tridag(a: &[f64], b: &[f64], c: &[f64], r: &[f64], u: &mut [f64], n: usize) {
     /*
@@ -462,7 +461,7 @@ pub fn tridag(a: &[f64], b: &[f64], c: &[f64], r: &[f64], u: &mut [f64], n: usiz
         12    continue
     */
     for j in (0..n - 1).rev() {
-        u[j] = u[j] - gam[j + 1] * u[j + 1];
+        u[j] -= gam[j + 1] * u[j + 1];
     }
     /*
         deallocate (gam)

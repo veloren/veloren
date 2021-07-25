@@ -952,7 +952,6 @@ impl Hud {
         self.fonts = Fonts::load(i18n.fonts(), &mut self.ui).expect("Impossible to load fonts!");
     }
 
-    #[allow(clippy::assign_op_pattern)] // TODO: Pending review in #587
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update_layout(
         &mut self,
@@ -972,7 +971,7 @@ impl Hud {
         let (ref mut ui_widgets, ref mut item_tooltip_manager, ref mut tooltip_manager) =
             &mut self.ui.set_widgets();
         // self.ui.set_item_widgets(); pulse time for pulsating elements
-        self.pulse = self.pulse + dt.as_secs_f32();
+        self.pulse += dt.as_secs_f32();
         // FPS
         let fps = global_state.clock.stats().average_tps;
         let version = common::util::DISPLAY_VERSION_LONG.clone();

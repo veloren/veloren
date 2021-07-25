@@ -1,19 +1,17 @@
 use vek::{Mat3, Rgb, Rgba, Vec3};
 
 #[inline(always)]
-#[allow(clippy::excessive_precision)]
 pub fn srgb_to_linear(col: Rgb<f32>) -> Rgb<f32> {
     col.map(|c| {
         if c <= 0.104 {
             c * 0.08677088
         } else {
-            0.012522878 * c + 0.682171111 * c * c + 0.305306011 * c * c * c
+            0.012522878 * c + 0.682_171_1 * c * c + 0.305_306_02 * c * c * c
         }
     })
 }
 
 #[inline(always)]
-#[allow(clippy::excessive_precision)]
 pub fn linear_to_srgb(col: Rgb<f32>) -> Rgb<f32> {
     col.map(|c| {
         if c <= 0.0060 {
@@ -22,7 +20,7 @@ pub fn linear_to_srgb(col: Rgb<f32>) -> Rgb<f32> {
             let s1 = c.sqrt();
             let s2 = s1.sqrt();
             let s3 = s2.sqrt();
-            0.585122381 * s1 + 0.783140355 * s2 - 0.368262736 * s3
+            0.585_122_4 * s1 + 0.783_140_36 * s2 - 0.368_262_74 * s3
         }
     })
 }

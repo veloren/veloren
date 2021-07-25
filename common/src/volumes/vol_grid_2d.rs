@@ -145,8 +145,7 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
         }
     }
 
-    #[allow(clippy::needless_lifetimes)] // TODO: Pending review in #587
-    pub fn cached<'a>(&'a self) -> CachedVolGrid2d<'a, V> { CachedVolGrid2d::new(self) }
+    pub fn cached(&self) -> CachedVolGrid2d<V> { CachedVolGrid2d::new(self) }
 }
 
 pub struct CachedVolGrid2d<'a, V: RectRasterableVol> {
