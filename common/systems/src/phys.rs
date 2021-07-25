@@ -1379,7 +1379,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         const MAX_ATTEMPTS: usize = 16;
 
         // While the player is colliding with the terrain...
-        while let Some((_block_pos, block_aabb, block_height, block)) =
+        while let Some((_block_pos, block_aabb, block)) =
             (attempts < MAX_ATTEMPTS).then(|| {
                 // Calculate the player's AABB
                 let player_aabb = Aabb {
@@ -1409,14 +1409,13 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
                                 min: block_pos.map(|e| e as f32),
                                 max: block_pos.map(|e| e as f32) + Vec3::new(1.0, 1.0, block.solid_height()),
                             },
-                            block.solid_height(),
                             block,
                         )
                     })
                     // Determine whether the block's AABB collides with the player's AABB
-                    .filter(|(_, block_aabb, _, _)| block_aabb.collides_with_aabb(player_aabb))
+                    .filter(|(_, block_aabb, _)| block_aabb.collides_with_aabb(player_aabb))
                     // Find the maximum of the minimum collision axes (this bit is weird, trust me that it works)
-                    .min_by_key(|(_, block_aabb, _, _)| {
+                    .min_by_key(|(_, block_aabb, _)| {
                         ordered_float::OrderedFloat((block_aabb.center() - player_aabb.center() - Vec3::unit_z() * 0.5)
                             .map(f32::abs)
                             .sum())
@@ -1480,7 +1479,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
                 )
             {
                 // ...block-hop!
-                pos.0.z = (pos.0.z + 0.1).floor() + block_height;
+                pos.0.z = pos.0.z.max(block_aabb.max.z);
                 vel.0.z = vel.0.z.max(0.0);
                 // Push the character on to the block very slightly to avoid jitter due to imprecision
                 if (vel.0 * resolve_dir).xy().magnitude_squared() < 1.0f32.powi(2) {
