@@ -1,0 +1,118 @@
+({
+    (Tarantula, Male): (
+        mandible_l: (
+            offset: (-4.0, -2.0, -9.0),
+            lateral: ("npc.tarantula.male.mandible_l"),
+        ),
+        mandible_r: (
+            offset: (0.0, -2.0, -9.0),
+            lateral: ("npc.tarantula.male.mandible_r"),
+        ),
+        wing_fl: (
+            offset: (-6.0, -4.5, -8.0),
+            lateral: ("npc.tarantula.male.wing_fl"),
+        ),
+        wing_fr: (
+            offset: (0.0, -4.5, -8.0),
+            lateral: ("npc.tarantula.male.wing_fr"),
+        ),
+        wing_bl: (
+            offset: (-11.0, -1.0, -8.0),
+            lateral: ("npc.tarantula.male.wing_bl"),
+        ),
+        wing_br: (
+            offset: (-11.0, -1.0, -8.0),
+            lateral: ("npc.tarantula.male.wing_br"),
+        ),
+        leg_fl: (
+            offset: (0.0, -1.0, -8.0),
+            lateral: ("npc.tarantula.male.leg_fl"),
+        ),
+        leg_fr: (
+            offset: (0.0, -1.0, -8.0),
+            lateral: ("npc.tarantula.male.leg_fr"),
+        ),
+        leg_fcl: (
+            offset: (0.0, -1.0, -8.0),
+            lateral: ("npc.tarantula.male.leg_fbl"),
+        ),
+        leg_fcr: (
+            offset: (0.0, -1.0, -8.0),
+            lateral: ("npc.tarantula.male.leg_fbr"),
+        ),
+        leg_bcl: (
+            offset: (0.0, -1.0, -8.0),
+            lateral: ("npc.tarantula.male.leg_bcl"),
+        ),
+        leg_bcr: (
+            offset: (0.0, -1.0, -8.0),
+            lateral: ("npc.tarantula.male.leg_bcr"),
+        ),
+        leg_bl: (
+            offset: (0.0, -1.0, -8.0),
+            lateral: ("npc.tarantula.male.leg_bl"),
+        ),
+        leg_br: (
+            offset: (0.0, -1.0, -8.0),
+            lateral: ("npc.tarantula.male.leg_br"),
+        ),
+    ),
+    (Tarantula, Female): (
+        mandible_l: (
+            offset: (-4.0, -2.0, -9.0),
+            lateral: ("npc.tarantula.male.mandible_l"),
+        ),
+        mandible_r: (
+            offset: (0.0, -2.0, -9.0),
+            lateral: ("npc.tarantula.male.mandible_r"),
+        ),
+        wing_fl: (
+            offset: (-6.0, -4.5, -8.0),
+            lateral: ("npc.tarantula.male.wing_fl"),
+        ),
+        wing_fr: (
+            offset: (0.0, -4.5, -8.0),
+            lateral: ("npc.tarantula.male.wing_fr"),
+        ),
+        wing_bl: (
+            offset: (-11.0, -1.0, -8.0),
+            lateral: ("npc.tarantula.male.wing_bl"),
+        ),
+        wing_br: (
+            offset: (-11.0, -1.0, -8.0),
+            lateral: ("npc.tarantula.male.wing_br"),
+        ),
+        leg_fl: (
+            offset: (0.0, -1.0, -8.0),
+            lateral: ("npc.tarantula.male.leg_fl"),
+        ),
+        leg_fr: (
+            offset: (0.0, -1.0, -8.0),
+            lateral: ("npc.tarantula.male.leg_fr"),
+        ),
+        leg_fcl: (
+            offset: (0.0, -1.0, -8.0),
+            lateral: ("npc.tarantula.male.leg_fbl"),
+        ),
+        leg_fcr: (
+            offset: (0.0, -1.0, -8.0),
+            lateral: ("npc.tarantula.male.leg_fbr"),
+        ),
+        leg_bcl: (
+            offset: (0.0, -1.0, -8.0),
+            lateral: ("npc.tarantula.male.leg_bcl"),
+        ),
+        leg_bcr: (
+            offset: (0.0, -1.0, -8.0),
+            lateral: ("npc.tarantula.male.leg_bcr"),
+        ),
+        leg_bl: (
+            offset: (0.0, -1.0, -8.0),
+            lateral: ("npc.tarantula.male.leg_bl"),
+        ),
+        leg_br: (
+            offset: (0.0, -1.0, -8.0),
+            lateral: ("npc.tarantula.male.leg_br"),
+        ),
+    ),
+})

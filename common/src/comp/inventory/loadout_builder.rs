@@ -3,7 +3,7 @@
 use crate::{
     assets::{self, AssetExt},
     comp::{
-        biped_large, biped_small, bird_large, golem,
+        arthropod, biped_large, biped_small, bird_large, golem,
         inventory::{
             loadout::Loadout,
             slot::{ArmorSlot, EquipSlot},
@@ -261,6 +261,11 @@ fn default_main_tool(body: &Body) -> Item {
             theropod::Species::Yale => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.theropodcharge",
             )),
+            _ => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.theropodbasic",
+            )),
+        },
+        Body::Arthropod(arthropod) => match arthropod.species {
             _ => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.theropodbasic",
             )),
@@ -752,6 +757,7 @@ mod tests {
             theropod: Theropod,
             dragon: Dragon,
             golem: Golem,
+            arthropod: Arthropod,
         );
     }
 

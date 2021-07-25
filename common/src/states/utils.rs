@@ -2,7 +2,7 @@ use crate::{
     astar::Astar,
     combat,
     comp::{
-        biped_large, biped_small,
+        arthropod, biped_large, biped_small,
         character_state::OutputEvents,
         inventory::slot::{EquipSlot, Slot},
         item::{Hands, ItemKind, Tool, ToolKind},
@@ -129,6 +129,7 @@ impl Body {
                 quadruped_low::Species::Deadwood => 140.0,
             },
             Body::Ship(_) => 0.0,
+            Body::Arthropod(_) => 135.0,
         }
     }
 
@@ -186,6 +187,7 @@ impl Body {
             },
             Body::Ship(ship) if ship.has_water_thrust() => 0.1,
             Body::Ship(_) => 0.035,
+            Body::Arthropod(_) => 3.5,
         }
     }
 
@@ -214,6 +216,7 @@ impl Body {
             Body::QuadrupedSmall(_) => Some(300.0 * self.mass().0),
             Body::Ship(ship) if ship.has_water_thrust() => Some(3500.0 * self.mass().0),
             Body::Ship(_) => None,
+            Body::Arthropod(_) => Some(300.0 * self.mass().0),
         }
     }
 
@@ -242,6 +245,7 @@ impl Body {
                 | theropod::Species::Woodraptor => Some(0.4 * self.mass().0),
                 _ => None,
             },
+            Body::QuadrupedMedium(_) => Some(3.0 * self.mass().0),
             _ => Some(0.4 * self.mass().0),
         }
         .map(|f| f * GRAVITY)

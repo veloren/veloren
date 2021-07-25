@@ -267,6 +267,7 @@ impl<'a> From<&'a Body> for Psyche {
                 Body::Theropod(_) => 0.0,
                 Body::Ship(_) => 0.0,
                 Body::Dragon(_) => 0.0,
+                Body::Arthropod(_) => 1.0,
             },
             sight_dist: 40.0,
             listen_dist: 30.0,

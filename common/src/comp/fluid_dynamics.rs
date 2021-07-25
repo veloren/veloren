@@ -229,7 +229,8 @@ impl Body {
             Body::Theropod(_)
             | Body::QuadrupedMedium(_)
             | Body::QuadrupedSmall(_)
-            | Body::QuadrupedLow(_) => {
+            | Body::QuadrupedLow(_)
+            | Body::Arthropod(_) => {
                 let dim = self.dimensions().map(|a| a * 0.5);
                 let cd: f32 = if matches!(self, Body::QuadrupedLow(_)) {
                     0.7

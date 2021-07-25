@@ -1,0 +1,22 @@
+({
+    (Tarantula, Male): (
+        head: (
+            offset: (-4.5, 0.0, -5.0),
+            central: ("npc.tarantula.male.head"),
+        ),
+        chest: (
+            offset: (-5.5, -2.0, -3.0),
+            central: ("npc.tarantula.male.chest"),
+        ),
+    ),
+    (Tarantula, Female): (
+        head: (
+            offset: (-4.5, 0.0, -5.0),
+            central: ("npc.tarantula.male.head"),
+        ),
+        chest: (
+            offset: (-5.5, -2.0, -3.0),
+            central: ("npc.tarantula.male.chest"),
+        ),
+    ),
+})
