@@ -24,7 +24,7 @@ use crossbeam_utils::atomic::AtomicCell;
 use serde::{de, Deserialize, Serialize, Serializer};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
-use std::{collections::hash_map::DefaultHasher, fmt, sync::Arc};
+use std::{borrow::Cow, collections::hash_map::DefaultHasher, fmt, sync::Arc};
 use strum::IntoStaticStr;
 use tracing::error;
 use vek::Rgb;
@@ -83,10 +83,10 @@ pub enum Quality {
 }
 
 pub trait TagExampleInfo {
-    fn name(&self) -> &'static str;
+    fn name(&self) -> Cow<'static, str>;
     /// What item to show in the crafting hud if the player has nothing with the
     /// tag
-    fn exemplar_identifier(&self) -> &'static str;
+    fn exemplar_identifier(&self) -> Cow<'static, str>;
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -216,9 +216,11 @@ impl MaterialTag {
 }
 
 impl TagExampleInfo for MaterialTag {
-    fn name(&self) -> &'static str { self.material.into() }
+    fn name(&self) -> Cow<'static, str> { Cow::Borrowed(self.material.into()) }
 
-    fn exemplar_identifier(&self) -> &'static str { "common.items.tag_examples.placeholder" }
+    fn exemplar_identifier(&self) -> Cow<'static, str> {
+        Cow::Borrowed("common.items.tag_examples.placeholder")
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -239,40 +241,40 @@ pub enum ItemTag {
 }
 
 impl TagExampleInfo for ItemTag {
-    fn name(&self) -> &'static str {
+    fn name(&self) -> Cow<'static, str> {
         match self {
             ItemTag::Material(material) => material.name(),
             ItemTag::ModularComponent(kind) => kind.name(),
-            ItemTag::MetalIngot => "metal ingot",
-            ItemTag::Textile => "textile",
-            ItemTag::Leather => "leather",
-            ItemTag::Cultist => "cultist",
-            ItemTag::Potion => "potion",
-            ItemTag::Food => "food",
-            ItemTag::BaseMaterial => "basemat",
-            ItemTag::CraftingTool => "tool",
-            ItemTag::Utility => "utility",
-            ItemTag::Bag => "bag",
-            ItemTag::SalvageInto(_) => "salvage",
+            ItemTag::MetalIngot => Cow::Borrowed("metal ingot"),
+            ItemTag::Textile => Cow::Borrowed("textile"),
+            ItemTag::Leather => Cow::Borrowed("leather"),
+            ItemTag::Cultist => Cow::Borrowed("cultist"),
+            ItemTag::Potion => Cow::Borrowed("potion"),
+            ItemTag::Food => Cow::Borrowed("food"),
+            ItemTag::BaseMaterial => Cow::Borrowed("basemat"),
+            ItemTag::CraftingTool => Cow::Borrowed("tool"),
+            ItemTag::Utility => Cow::Borrowed("utility"),
+            ItemTag::Bag => Cow::Borrowed("bag"),
+            ItemTag::SalvageInto(_) => Cow::Borrowed("salvage"),
         }
     }
 
     // TODO: Autogenerate these?
-    fn exemplar_identifier(&self) -> &'static str {
+    fn exemplar_identifier(&self) -> Cow<'static, str> {
         match self {
-            ItemTag::Material(_) => "common.items.tag_examples.placeholder",
+            ItemTag::Material(_) => Cow::Borrowed("common.items.tag_examples.placeholder"),
             ItemTag::ModularComponent(tag) => tag.exemplar_identifier(),
-            ItemTag::MetalIngot => "common.items.tag_examples.metal_ingot",
-            ItemTag::Textile => "common.items.tag_examples.textile",
-            ItemTag::Leather => "common.items.tag_examples.leather",
-            ItemTag::Cultist => "common.items.tag_examples.cultist",
-            ItemTag::Potion => "common.items.tag_examples.placeholder",
-            ItemTag::Food => "common.items.tag_examples.placeholder",
-            ItemTag::BaseMaterial => "common.items.tag_examples.placeholder",
-            ItemTag::CraftingTool => "common.items.tag_examples.placeholder",
-            ItemTag::Utility => "common.items.tag_examples.placeholder",
-            ItemTag::Bag => "common.items.tag_examples.placeholder",
-            ItemTag::SalvageInto(_) => "common.items.tag_examples.placeholder",
+            ItemTag::MetalIngot => Cow::Borrowed("common.items.tag_examples.metal_ingot"),
+            ItemTag::Textile => Cow::Borrowed("common.items.tag_examples.textile"),
+            ItemTag::Leather => Cow::Borrowed("common.items.tag_examples.leather"),
+            ItemTag::Cultist => Cow::Borrowed("common.items.tag_examples.cultist"),
+            ItemTag::Potion => Cow::Borrowed("common.items.tag_examples.placeholder"),
+            ItemTag::Food => Cow::Borrowed("common.items.tag_examples.placeholder"),
+            ItemTag::BaseMaterial => Cow::Borrowed("common.items.tag_examples.placeholder"),
+            ItemTag::CraftingTool => Cow::Borrowed("common.items.tag_examples.placeholder"),
+            ItemTag::Utility => Cow::Borrowed("common.items.tag_examples.placeholder"),
+            ItemTag::Bag => Cow::Borrowed("common.items.tag_examples.placeholder"),
+            ItemTag::SalvageInto(_) => Cow::Borrowed("common.items.tag_examples.placeholder"),
         }
     }
 }

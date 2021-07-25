@@ -2,7 +2,7 @@ use core::ops::Not;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
-use std::{convert::TryFrom, mem, ops::Range};
+use std::{borrow::Cow, convert::TryFrom, mem, ops::Range};
 use tracing::{debug, trace, warn};
 use vek::Vec3;
 
@@ -128,8 +128,8 @@ impl Inventory {
             // Quality is sorted in reverse since we want high quality items first
             InventorySortOrder::Quality => Ord::cmp(&b.quality(), &a.quality()),
             InventorySortOrder::Tag => Ord::cmp(
-                a.tags.first().map_or("", |tag| tag.name()),
-                b.tags.first().map_or("", |tag| tag.name()),
+                &a.tags.first().map_or(Cow::Borrowed(""), |tag| tag.name()),
+                &b.tags.first().map_or(Cow::Borrowed(""), |tag| tag.name()),
             ),
         });
 

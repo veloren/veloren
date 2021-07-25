@@ -6,16 +6,19 @@ ItemDef(
         modkind: Damage,
         stats: (
             equip_time_secs: 0.25,
-            power: 1.1,
-            effect_power: 1.6,
-            speed: 0.85,
+            power: 0.9,
+            effect_power: 2.0,
+            speed: 0.8,
             crit_chance: 0.15,
             range: 1.0,
             energy_efficiency: 0.8,
             buff_strength: 0.8,
         ),
+        hand_restriction: Some(Two),
     )),
     quality: Common,
-    tags: [ModularComponent((toolkind: Sword, modkind: Damage))],
+    tags: [
+        ModularComponent((toolkind: Sword, modkind: Held, hands: Two)),
+    ],
 )
 

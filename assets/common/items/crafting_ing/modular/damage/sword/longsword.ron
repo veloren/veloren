@@ -14,8 +14,12 @@ ItemDef(
             energy_efficiency: 1.0,
             buff_strength: 1.0,
         ),
+        hand_restriction: None,
     )),
     quality: Common,
-    tags: [ModularComponent((toolkind: Sword, modkind: Damage))],
+    tags: [
+        ModularComponent((toolkind: Sword, modkind: Held, hands: One)),
+        ModularComponent((toolkind: Sword, modkind: Held, hands: Two)),
+    ],
 )
 

@@ -28,7 +28,7 @@ use conrod_core::{
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use i18n::Localization;
-use std::sync::Arc;
+use std::{borrow::Cow, sync::Arc};
 
 use strum::{EnumIter, IntoEnumIterator};
 
@@ -467,7 +467,7 @@ impl<'a> Widget for Crafting<'a> {
                 },
                 SearchFilter::Input => recipe.inputs().any(|(input, _, _)| {
                     let input_name = match input {
-                        RecipeInput::Item(def) => def.name.as_str(),
+                        RecipeInput::Item(def) => Cow::Borrowed(def.name()),
                         RecipeInput::Tag(tag) => tag.name(),
                         RecipeInput::TagSameItem(tag, _) => tag.name(),
                     }

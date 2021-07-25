@@ -39,6 +39,7 @@ pub enum ToolKind {
 }
 
 impl ToolKind {
+    // Changing this will break persistence of modular weapons
     pub fn identifier_name(&self) -> &'static str {
         match self {
             ToolKind::Sword => "sword",
@@ -76,10 +77,20 @@ impl ToolKind {
     }
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Hands {
     One,
     Two,
+}
+
+impl Hands {
+    // Changing this will break persistence of modular weapons
+    pub fn identifier_name(&self) -> &'static str {
+        match self {
+            Hands::One => "one-handed",
+            Hands::Two => "two-handed",
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -105,6 +116,19 @@ impl Stats {
             range: 0.0,
             energy_efficiency: 0.0,
             buff_strength: 0.0,
+        }
+    }
+
+    pub fn oned() -> Stats {
+        Stats {
+            equip_time_secs: 1.0,
+            power: 1.0,
+            effect_power: 1.0,
+            speed: 1.0,
+            crit_chance: 1.0,
+            range: 1.0,
+            energy_efficiency: 1.0,
+            buff_strength: 1.0,
         }
     }
 
@@ -205,16 +229,18 @@ impl StatKind {
     pub fn resolve_stats(&self, msm: &MaterialStatManifest, components: &[Item]) -> Stats {
         let mut stats = match self {
             StatKind::Direct(stats) => *stats,
-            StatKind::Modular => Stats::zeroed(),
+            StatKind::Modular => Stats::oned(),
         };
         let mut multipliers: Vec<Stats> = Vec::new();
         for item in components.iter() {
             match item.kind() {
+                // Modular components directly multiply against the base stats
                 ItemKind::ModularComponent(mc) => {
                     let inner_stats =
                         StatKind::Direct(mc.stats).resolve_stats(msm, item.components());
-                    stats += inner_stats;
+                    stats *= inner_stats;
                 },
+                // Ingredients push multiplier to vec as the ingredient multipliers are averaged
                 ItemKind::Ingredient { .. } => {
                     if let Some(mult_stats) = msm.0.get(item.item_definition_id()) {
                         multipliers.push(*mult_stats);
@@ -224,7 +250,7 @@ impl StatKind {
                 _ => (),
             }
         }
-        // Take the average of the material multipliers, to allow alloyed blades
+        // Take the average of the material multipliers
         if !multipliers.is_empty() {
             let mut average_mult = Stats::zeroed();
             for stat in multipliers.iter() {
