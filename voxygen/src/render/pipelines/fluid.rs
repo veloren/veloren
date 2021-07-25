@@ -23,7 +23,8 @@ impl Vertex {
         const EXTRA_NEG_Z: f32 = 65536.0;
 
         Self {
-            pos_norm: ((pos.x as u32) & 0x003F)
+            pos_norm: 0
+                | ((pos.x as u32) & 0x003F) << 0
                 | ((pos.y as u32) & 0x003F) << 6
                 | (((pos.z + EXTRA_NEG_Z).max(0.0).min((1 << 17) as f32) as u32) & 0x1FFFF) << 12
                 | (norm_bits & 0x7) << 29,
