@@ -1825,7 +1825,6 @@ pub(crate) fn fill_sinks<F: Float + Send + Sync>(
 ///   adjacency list).
 /// - The adjacency list (stored in a single vector), indexed by the second
 ///   indirection vector.
-#[allow(clippy::filter_next)] // TODO: Pending review in #587
 pub fn get_lakes<F: Float>(
     map_size_lg: MapSizeLg,
     h: impl Fn(usize) -> F,
@@ -1957,8 +1956,7 @@ pub fn get_lakes<F: Float>(
                         // the neighbor lake in our lake.
                         *neighbor_lake
                             .iter_mut()
-                            .filter(|neighbor_pass| neighbor_pass.0 == -1)
-                            .next()
+                            .find(|neighbor_pass| neighbor_pass.0 == -1)
                             .unwrap() = (neighbor_idx as i32, chunk_idx_);
                         // panic!("Should never happen; maybe didn't reserve enough space in
                         // lakes?")

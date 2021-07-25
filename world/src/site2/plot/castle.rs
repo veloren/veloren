@@ -42,7 +42,6 @@ impl Castle {
 }
 
 impl Structure for Castle {
-    #[allow(clippy::identity_op)]
     fn render<F: FnMut(Primitive) -> Id<Primitive>, G: FnMut(Id<Primitive>, Fill)>(
         &self,
         site: &Site,
@@ -127,7 +126,7 @@ impl Structure for Castle {
                                     .with_z(self.alt + wall_height / 4 + 12),
                             }));
                             let window_bottom = prim(Primitive::Aabb(Aabb {
-                                min: (wpos + 1 * dir).with_z(self.alt + wall_height / 4),
+                                min: (wpos + dir).with_z(self.alt + wall_height / 4),
                                 max: (wpos + (ts - 1) * dir + dir.yx())
                                     .with_z(self.alt + wall_height / 4 + 9),
                             }));
@@ -138,7 +137,7 @@ impl Structure for Castle {
                                     .with_z(self.alt + wall_height / 4 + 12),
                             }));
                             let window_bottom2 = prim(Primitive::Aabb(Aabb {
-                                min: (wpos + 1 * dir + (ts - 1) * dir.yx())
+                                min: (wpos + dir + (ts - 1) * dir.yx())
                                     .with_z(self.alt + wall_height / 4),
                                 max: (wpos + (ts - 1) * dir + ts * dir.yx())
                                     .with_z(self.alt + wall_height / 4 + 9),

@@ -561,8 +561,6 @@ impl Settlement {
         }
     }
 
-    #[allow(clippy::identity_op)] // TODO: Pending review in #587
-    #[allow(clippy::modulo_one)] // TODO: Pending review in #587
     pub fn apply_to<'a>(
         &'a self,
         index: IndexRef,
@@ -658,16 +656,12 @@ impl Settlement {
                                 }
                             }
 
-                            Some(Rgb::from(colors.plot_town_path).map2(
-                                Rgb::iota(),
-                                |e: u8, i: i32| {
-                                    e.saturating_add(
-                                        (self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, i * 5)) % 1)
-                                            as u8,
-                                    )
-                                    .saturating_sub(8)
-                                },
-                            ))
+                            Some(
+                                Rgb::from(colors.plot_town_path)
+                                    .map2(Rgb::iota(), |e: u8, _i: i32| {
+                                        e.saturating_add(0_u8).saturating_sub(8)
+                                    }),
+                            )
                         },
                         Some(Plot::Field { seed, crop, .. }) => {
                             let furrow_dirs = [
@@ -680,7 +674,7 @@ impl Settlement {
                             let in_furrow = (wpos2d * furrow_dir).sum().rem_euclid(5) < 2;
 
                             let dirt = Rgb::<u8>::from(colors.plot_field_dirt).map(|e| {
-                                e + (self.noise.get(Vec3::broadcast((seed % 4096 + 0) as i32)) % 32)
+                                e + (self.noise.get(Vec3::broadcast((seed % 4096) as i32)) % 32)
                                     as u8
                             });
                             let mound = Rgb::<u8>::from(colors.plot_field_mound)
