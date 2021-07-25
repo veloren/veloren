@@ -187,6 +187,7 @@ impl MatSegment {
         })
     }
 
+    #[allow(clippy::identity_op)]
     pub fn from_vox(dot_vox_data: &DotVoxData, flipped: bool) -> Self {
         if let Some(model) = dot_vox_data.models.get(0) {
             let palette = dot_vox_data

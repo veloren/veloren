@@ -561,6 +561,7 @@ impl Settlement {
         }
     }
 
+    #[allow(clippy::identity_op)] // TODO: Pending review in #587
     pub fn apply_to<'a>(
         &'a self,
         index: IndexRef,
@@ -674,7 +675,7 @@ impl Settlement {
                             let in_furrow = (wpos2d * furrow_dir).sum().rem_euclid(5) < 2;
 
                             let dirt = Rgb::<u8>::from(colors.plot_field_dirt).map(|e| {
-                                e + (self.noise.get(Vec3::broadcast((seed % 4096) as i32)) % 32)
+                                e + (self.noise.get(Vec3::broadcast((seed % 4096 + 0) as i32)) % 32)
                                     as u8
                             });
                             let mound = Rgb::<u8>::from(colors.plot_field_mound)

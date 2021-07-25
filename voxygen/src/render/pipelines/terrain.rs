@@ -11,6 +11,7 @@ pub struct Vertex {
 }
 
 impl Vertex {
+    #[allow(clippy::identity_op)] // TODO: Pending review in #587
     /// NOTE: meta is true when the terrain vertex is touching water.
     pub fn new(atlas_pos: Vec2<u16>, pos: Vec3<f32>, norm: Vec3<f32>, meta: bool) -> Self {
         const EXTRA_NEG_Z: f32 = 32768.0;
@@ -25,12 +26,12 @@ impl Vertex {
             5
         };
         Self {
-            pos_norm: ((pos.x as u32) & 0x003F)
+            pos_norm: ((pos.x as u32) & 0x003F) << 0
                 | ((pos.y as u32) & 0x003F) << 6
                 | (((pos + EXTRA_NEG_Z).z.max(0.0).min((1 << 16) as f32) as u32) & 0xFFFF) << 12
                 | if meta { 1 } else { 0 } << 28
                 | (norm_bits & 0x7) << 29,
-            atlas_pos: ((atlas_pos.x as u32) & 0xFFFF) | ((atlas_pos.y as u32) & 0xFFFF) << 16,
+            atlas_pos: ((atlas_pos.x as u32) & 0xFFFF) << 0 | ((atlas_pos.y as u32) & 0xFFFF) << 16,
         }
     }
 
@@ -96,6 +97,7 @@ impl Vertex {
         ]
     }
 
+    #[allow(clippy::identity_op)]
     pub fn make_col_light_figure(
         // 0 to 31
         light: u8,
@@ -103,7 +105,7 @@ impl Vertex {
         shiny: bool,
         col: Rgb<u8>,
     ) -> [u8; 4] {
-        let attr = (glowy as u8) | ((shiny as u8) << 1);
+        let attr = 0 | ((glowy as u8) << 0) | ((shiny as u8) << 1);
         [
             (light.min(31) << 3) | ((col.r >> 1) & 0b111),
             (attr.min(31) << 3) | ((col.b >> 1) & 0b111),

@@ -168,7 +168,8 @@ impl<'a> BlockGen<'a> {
         .or_else(|| {
             // Rocks
             if (height + 2.5 - wposf.z as f32).div(7.5).abs().powi(2) < rock {
-                let field0 = RandomField::new(world.seed);
+                #[allow(clippy::identity_op)]
+                let field0 = RandomField::new(world.seed + 0);
                 let field1 = RandomField::new(world.seed + 1);
                 let field2 = RandomField::new(world.seed + 2);
 
