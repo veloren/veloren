@@ -80,7 +80,10 @@ impl CharacterBehavior for Data {
             update.character = CharacterState::GlideWield;
             update.ori = update.ori.to_horizontal();
         } else if data.physics.in_liquid().is_some()
-            || data.inventory.equipped(EquipSlot::Glider).is_none()
+            || data
+                .inventory
+                .and_then(|inv| inv.equipped(EquipSlot::Glider))
+                .is_none()
         {
             update.character = CharacterState::Idle;
             update.ori = update.ori.to_horizontal();

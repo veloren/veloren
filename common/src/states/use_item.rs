@@ -205,7 +205,7 @@ fn use_item(data: &JoinData, update: &mut StateUpdate, state: &Data) {
     // Check if the same item is in the slot
     let item_is_same = data
         .inventory
-        .get(state.static_data.inv_slot)
+        .and_then(|inv| inv.get(state.static_data.inv_slot))
         .map_or(false, |item| {
             item.item_definition_id() == state.static_data.item_definition_id
         });
