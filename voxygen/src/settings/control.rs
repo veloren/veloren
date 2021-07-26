@@ -144,6 +144,7 @@ impl ControlSettings {
             GameInput::Help => KeyMouse::Key(VirtualKeyCode::F1),
             GameInput::ToggleInterface => KeyMouse::Key(VirtualKeyCode::F2),
             GameInput::ToggleDebug => KeyMouse::Key(VirtualKeyCode::F3),
+            GameInput::ToggleChat => KeyMouse::Key(VirtualKeyCode::F5),
             GameInput::Fullscreen => KeyMouse::Key(VirtualKeyCode::F11),
             GameInput::Screenshot => KeyMouse::Key(VirtualKeyCode::F4),
             GameInput::ToggleIngameUi => KeyMouse::Key(VirtualKeyCode::F6),
