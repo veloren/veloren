@@ -659,6 +659,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             inventory.sort();
             drop(inventories);
         },
+        comp::InventoryManip::SwapEquippedWeapons => {
+            inventory.swap_equipped_weapons();
+            drop(inventories);
+        },
     }
 
     // Drop items, Debug items should simply disappear when dropped

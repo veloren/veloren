@@ -51,6 +51,7 @@ pub enum InventoryManip {
         recipe: String,
         craft_sprite: Option<Vec3<i32>>,
     },
+    SwapEquippedWeapons,
 }
 
 impl From<InventoryAction> for InventoryManip {

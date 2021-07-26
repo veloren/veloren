@@ -31,7 +31,11 @@ impl CharacterBehavior for Data {
         {
             update.character = CharacterState::Idle;
         }
-        if data.inventory.equipped(EquipSlot::Glider).is_none() {
+        if data
+            .inventory
+            .and_then(|inv| inv.equipped(EquipSlot::Glider))
+            .is_none()
+        {
             update.character = CharacterState::Idle
         };
 

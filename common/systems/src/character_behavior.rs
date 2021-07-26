@@ -6,10 +6,10 @@ use specs::{
 use common::{
     comp::{
         self, inventory::item::MaterialStatManifest, Beam, Body, CharacterState, Combo, Controller,
-        Density, Energy, Health, Inventory, Mass, Melee, Mounting, Ori, PhysicsState, Poise,
-        PoiseState, Pos, SkillSet, StateUpdate, Stats, Vel,
+        Density, Energy, Health, Inventory, InventoryManip, Mass, Melee, Mounting, Ori,
+        PhysicsState, Poise, PoiseState, Pos, SkillSet, StateUpdate, Stats, Vel,
     },
-    event::{EventBus, LocalEvent, ServerEvent},
+    event::{Emitter, EventBus, LocalEvent, ServerEvent},
     outcome::Outcome,
     resources::DeltaTime,
     states::{
@@ -22,7 +22,11 @@ use common::{
 use common_ecs::{Job, Origin, Phase, System};
 use std::time::Duration;
 
-fn incorporate_update(join: &mut JoinStruct, mut state_update: StateUpdate) {
+fn incorporate_update(
+    join: &mut JoinStruct,
+    mut state_update: StateUpdate,
+    server_emitter: &mut Emitter<ServerEvent>,
+) {
     // TODO: if checking equality is expensive use optional field in StateUpdate
     if join.char_state.get_unchecked() != &state_update.character {
         *join.char_state.get_mut_unchecked() = state_update.character
@@ -42,9 +46,10 @@ fn incorporate_update(join: &mut JoinStruct, mut state_update: StateUpdate) {
         join.controller.queued_inputs.remove(&input);
     }
     if state_update.swap_equipped_weapons {
-        let mut inventory = join.inventory.get_mut_unchecked();
-        let inventory = &mut *inventory;
-        inventory.swap_equipped_weapons();
+        server_emitter.emit(ServerEvent::InventoryManip(
+            join.entity,
+            InventoryManip::SwapEquippedWeapons,
+        ));
     }
 }
 
@@ -69,6 +74,7 @@ pub struct ReadData<'a> {
     combos: ReadStorage<'a, Combo>,
     alignments: ReadStorage<'a, comp::Alignment>,
     terrain: ReadExpect<'a, TerrainGrid>,
+    inventories: ReadStorage<'a, Inventory>,
 }
 
 /// ## Character Behavior System
@@ -87,7 +93,6 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Density>,
         WriteStorage<'a, Energy>,
-        WriteStorage<'a, Inventory>,
         WriteStorage<'a, Controller>,
         WriteStorage<'a, Poise>,
         Write<'a, Vec<Outcome>>,
@@ -107,7 +112,6 @@ impl<'a> System<'a> for Sys {
             mut orientations,
             mut densities,
             mut energies,
-            mut inventories,
             mut controllers,
             mut poises,
             mut outcomes,
@@ -143,7 +147,7 @@ impl<'a> System<'a> for Sys {
             &read_data.masses,
             &mut densities,
             &mut energies.restrict_mut(),
-            &mut inventories.restrict_mut(),
+            read_data.inventories.maybe(),
             &mut controllers,
             read_data.healths.maybe(),
             &read_data.bodies,
@@ -346,7 +350,7 @@ impl<'a> System<'a> for Sys {
                 };
                 local_emitter.append(&mut state_update.local_events);
                 server_emitter.append(&mut state_update.server_events);
-                incorporate_update(&mut join_struct, state_update);
+                incorporate_update(&mut join_struct, state_update, &mut server_emitter);
             }
 
             // Mounted occurs after control actions have been handled
@@ -402,7 +406,7 @@ impl<'a> System<'a> for Sys {
 
             local_emitter.append(&mut state_update.local_events);
             server_emitter.append(&mut state_update.server_events);
-            incorporate_update(&mut join_struct, state_update);
+            incorporate_update(&mut join_struct, state_update, &mut server_emitter);
         }
     }
 }

@@ -486,7 +486,7 @@ pub fn attempt_wield(data: &JoinData<'_>, update: &mut StateUpdate) {
     // equip slot
     let equip_time = |equip_slot| {
         data.inventory
-            .equipped(equip_slot)
+            .and_then(|inv| inv.equipped(equip_slot))
             .and_then(|item| match item.kind() {
                 ItemKind::Tool(tool) => Some((item, tool)),
                 _ => None,
@@ -568,11 +568,11 @@ pub fn handle_climb(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
 pub fn attempt_swap_equipped_weapons(data: &JoinData<'_>, update: &mut StateUpdate) {
     if data
         .inventory
-        .equipped(EquipSlot::InactiveMainhand)
+        .and_then(|inv| inv.equipped(EquipSlot::InactiveMainhand))
         .is_some()
         || data
             .inventory
-            .equipped(EquipSlot::InactiveOffhand)
+            .and_then(|inv| inv.equipped(EquipSlot::InactiveOffhand))
             .is_some()
     {
         update.swap_equipped_weapons = true;
@@ -592,7 +592,7 @@ pub fn handle_manipulate_loadout(
         // the loadout will have effects that are desired to be non-instantaneous
         if let Some((item_kind, item)) = data
             .inventory
-            .get(inv_slot)
+            .and_then(|inv| inv.get(inv_slot))
             .and_then(|item| Option::<ItemUseKind>::from(item.kind()).zip(Some(item)))
         {
             let (buildup_duration, use_duration, recover_duration) = item_kind.durations();
@@ -628,7 +628,10 @@ pub fn handle_manipulate_loadout(
 
 /// Checks that player can wield the glider and updates `CharacterState` if so
 pub fn attempt_glide_wield(data: &JoinData<'_>, update: &mut StateUpdate) {
-    if data.inventory.equipped(EquipSlot::Glider).is_some()
+    if data
+        .inventory
+        .and_then(|inv| inv.equipped(EquipSlot::Glider))
+        .is_some()
         && !data
             .physics
             .in_liquid()
@@ -681,7 +684,7 @@ fn handle_ability(data: &JoinData<'_>, update: &mut StateUpdate, input: InputKin
     if let Some(equip_slot) = equip_slot {
         if let Some(ability) = data
             .inventory
-            .equipped(equip_slot)
+            .and_then(|inv| inv.equipped(equip_slot))
             .map(|i| &i.item_config_expect().abilities)
             .and_then(|abilities| match input {
                 InputKind::Primary => Some(abilities.primary.clone()),
@@ -801,7 +804,11 @@ pub fn is_strafing(data: &JoinData<'_>, update: &StateUpdate) -> bool {
 }
 
 pub fn unwrap_tool_data<'a>(data: &'a JoinData, equip_slot: EquipSlot) -> Option<&'a Tool> {
-    if let Some(ItemKind::Tool(tool)) = data.inventory.equipped(equip_slot).map(|i| i.kind()) {
+    if let Some(ItemKind::Tool(tool)) = data
+        .inventory
+        .and_then(|inv| inv.equipped(equip_slot))
+        .map(|i| i.kind())
+    {
         Some(tool)
     } else {
         None
@@ -810,7 +817,11 @@ pub fn unwrap_tool_data<'a>(data: &'a JoinData, equip_slot: EquipSlot) -> Option
 
 pub fn get_hands(data: &JoinData<'_>) -> (Option<Hands>, Option<Hands>) {
     let hand = |slot| {
-        if let Some(ItemKind::Tool(tool)) = data.inventory.equipped(slot).map(|i| i.kind()) {
+        if let Some(ItemKind::Tool(tool)) = data
+            .inventory
+            .and_then(|inv| inv.equipped(slot))
+            .map(|i| i.kind())
+        {
             Some(tool.hands)
         } else {
             None
@@ -833,7 +844,7 @@ pub fn get_crit_data(data: &JoinData<'_>, ai: AbilityInfo) -> (f32, f32) {
             HandInfo::TwoHanded | HandInfo::MainHand => EquipSlot::ActiveMainhand,
             HandInfo::OffHand => EquipSlot::ActiveOffhand,
         })
-        .and_then(|slot| data.inventory.equipped(slot))
+        .and_then(|slot| data.inventory.and_then(|inv| inv.equipped(slot)))
         .and_then(|item| {
             if let ItemKind::Tool(tool) = item.kind() {
                 Some(tool.base_crit_chance(data.msm, item.components()))
@@ -843,7 +854,7 @@ pub fn get_crit_data(data: &JoinData<'_>, ai: AbilityInfo) -> (f32, f32) {
         })
         .unwrap_or(DEFAULT_CRIT_CHANCE);
 
-    let crit_mult = combat::compute_crit_mult(Some(data.inventory));
+    let crit_mult = combat::compute_crit_mult(data.inventory);
 
     (crit_chance, crit_mult)
 }
@@ -855,7 +866,7 @@ pub fn get_buff_strength(data: &JoinData<'_>, ai: AbilityInfo) -> f32 {
             HandInfo::TwoHanded | HandInfo::MainHand => EquipSlot::ActiveMainhand,
             HandInfo::OffHand => EquipSlot::ActiveOffhand,
         })
-        .and_then(|slot| data.inventory.equipped(slot))
+        .and_then(|slot| data.inventory.and_then(|inv| inv.equipped(slot)))
         .and_then(|item| {
             if let ItemKind::Tool(tool) = item.kind() {
                 Some(tool.base_buff_strength(data.msm, item.components()))
