@@ -106,6 +106,8 @@ pub enum GameInput {
     Help,
     #[strum(serialize = "gameinput.toggledebug")]
     ToggleDebug,
+    #[strum(serialize = "gameinput.togglechat")]
+    ToggleChat,
     #[strum(serialize = "gameinput.fullscreen")]
     Fullscreen,
     #[strum(serialize = "gameinput.screenshot")]

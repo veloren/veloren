@@ -3573,6 +3573,11 @@ impl Hud {
                         self.show.debug = global_state.settings.interface.toggle_debug;
                         true
                     },
+                    GameInput::ToggleChat if state => {
+                        global_state.settings.interface.toggle_chat =
+                            !global_state.settings.interface.toggle_chat;
+                        true
+                    },
                     GameInput::ToggleIngameUi if state => {
                         self.show.ingame = !self.show.ingame;
                         true

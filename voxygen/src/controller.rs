@@ -150,6 +150,9 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_buttons.toggle_debug)
                     .or_default()
                     .push(GameInput::ToggleDebug);
+                map.entry(settings.game_buttons.toggle_chat)
+                    .or_default()
+                    .push(GameInput::ToggleChat);
                 map.entry(settings.game_buttons.fullscreen)
                     .or_default()
                     .push(GameInput::Fullscreen);

@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI for sceptre wielders and sceptre cultists in Tier 5 dungeons
 - HUD debug info now displays current biome and site
 - Quotes and escape codes can be used in command arguments
+- Toggle chat with a shortcut (default is F5)
 
 ### Changed
 
