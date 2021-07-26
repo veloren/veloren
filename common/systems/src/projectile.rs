@@ -1,9 +1,9 @@
 use common::{
-    combat::{AttackSource, AttackerInfo, TargetInfo},
+    combat::{AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
         projectile, Body, CharacterState, Combo, Energy, Group, Health, HealthSource, Inventory,
-        Ori, PhysicsState, Pos, Projectile, Stats, Vel,
+        Ori, PhysicsState, Player, Pos, Projectile, Stats, Vel,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
@@ -25,6 +25,7 @@ use vek::*;
 pub struct ReadData<'a> {
     time: Read<'a, Time>,
     entities: Entities<'a>,
+    players: ReadStorage<'a, Player>,
     dt: Read<'a, DeltaTime>,
     uid_allocator: Read<'a, UidAllocator>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
@@ -152,6 +153,22 @@ impl<'a> System<'a> for Sys {
                                         char_state: read_data.character_states.get(target),
                                     };
 
+                                    // They say witchers can dodge arrows,
+                                    // but we don't have witchers
+                                    let is_dodge = false;
+                                    let avoid_harm = {
+                                        let players = &read_data.players;
+                                        projectile_owner.map_or(false, |attacker| {
+                                            if let (Some(attacker), Some(target)) =
+                                                (players.get(attacker), players.get(target))
+                                            {
+                                                attacker.disallow_harm(target)
+                                            } else {
+                                                false
+                                            }
+                                        })
+                                    };
+
                                     if let Some(&body) = read_data.bodies.get(entity) {
                                         outcomes.push(Outcome::ProjectileHit {
                                             pos: pos.0,
@@ -165,12 +182,16 @@ impl<'a> System<'a> for Sys {
                                         });
                                     }
 
-                                    attack.apply_attack(
+                                    let attack_options = AttackOptions {
+                                        target_dodging: is_dodge,
                                         target_group,
+                                        avoid_harm,
+                                    };
+                                    attack.apply_attack(
                                         attacker_info,
                                         target_info,
                                         dir,
-                                        false,
+                                        attack_options,
                                         1.0,
                                         AttackSource::Projectile,
                                         |e| server_emitter.emit(e),

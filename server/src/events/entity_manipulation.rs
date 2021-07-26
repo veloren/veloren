@@ -819,6 +819,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                 let energies = &ecs.read_storage::<comp::Energy>();
                 let combos = &ecs.read_storage::<comp::Combo>();
                 let inventories = &ecs.read_storage::<comp::Inventory>();
+                let players = &ecs.read_storage::<comp::Player>();
                 for (
                     entity_b,
                     pos_b,
@@ -887,12 +888,31 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             char_state: char_state_b_maybe,
                         };
 
-                        attack.apply_attack(
+                        let avoid_harm = {
+                            owner_entity.map_or(false, |attacker| {
+                                if let (Some(attacker), Some(target)) =
+                                    (players.get(attacker), players.get(entity_b))
+                                {
+                                    attacker.disallow_harm(target)
+                                } else {
+                                    false
+                                }
+                            })
+                        };
+
+                        let attack_options = combat::AttackOptions {
+                            // cool guyz maybe don't look at explosions
+                            // but they still got hurt, it's not Hollywood
+                            target_dodging: false,
                             target_group,
+                            avoid_harm,
+                        };
+
+                        attack.apply_attack(
                             attacker_info,
                             target_info,
                             dir,
-                            false,
+                            attack_options,
                             strength,
                             combat::AttackSource::Explosion,
                             |e| server_eventbus.emit_now(e),
@@ -902,6 +922,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                 }
             },
             RadiusEffect::Entity(mut effect) => {
+                let players = &ecs.read_storage::<comp::Player>();
                 for (entity_b, pos_b, body_b_maybe) in (
                     &ecs.entities(),
                     &ecs.read_storage::<comp::Pos>(),
@@ -921,9 +942,23 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             .read_storage::<comp::Health>()
                             .get(entity_b)
                             .map_or(true, |h| !h.is_dead);
+
                         if is_alive {
+                            let avoid_harm = {
+                                owner_entity.map_or(false, |attacker| {
+                                    if let (Some(attacker), Some(target)) =
+                                        (players.get(attacker), players.get(entity_b))
+                                    {
+                                        attacker.disallow_harm(target)
+                                    } else {
+                                        false
+                                    }
+                                })
+                            };
                             effect.modify_strength(strength);
-                            server.state().apply_effect(entity_b, effect.clone(), owner);
+                            if !(effect.is_harm() && avoid_harm) {
+                                server.state().apply_effect(entity_b, effect.clone(), owner);
+                            }
                         }
                     }
                 }

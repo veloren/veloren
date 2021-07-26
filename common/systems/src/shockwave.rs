@@ -1,9 +1,9 @@
 use common::{
-    combat::{AttackSource, AttackerInfo, TargetInfo},
+    combat::{AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
         Body, CharacterState, Combo, Energy, Group, Health, HealthSource, Inventory, Ori,
-        PhysicsState, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
+        PhysicsState, Player, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
@@ -25,6 +25,7 @@ pub struct ReadData<'a> {
     entities: Entities<'a>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
     time: Read<'a, Time>,
+    players: ReadStorage<'a, Player>,
     dt: Read<'a, DeltaTime>,
     uid_allocator: Read<'a, UidAllocator>,
     uids: ReadStorage<'a, Uid>,
@@ -208,12 +209,32 @@ impl<'a> System<'a> for Sys {
                         char_state: read_data.character_states.get(target),
                     };
 
-                    shockwave.properties.attack.apply_attack(
+                    // Trying roll during earthquake isn't the best idea
+                    let is_dodge = false;
+                    let avoid_harm = {
+                        let players = &read_data.players;
+                        shockwave_owner.map_or(false, |attacker| {
+                            if let (Some(attacker), Some(target)) =
+                                (players.get(attacker), players.get(target))
+                            {
+                                attacker.disallow_harm(target)
+                            } else {
+                                false
+                            }
+                        })
+                    };
+
+                    let attack_options = AttackOptions {
+                        target_dodging: is_dodge,
                         target_group,
+                        avoid_harm,
+                    };
+
+                    shockwave.properties.attack.apply_attack(
                         attacker_info,
                         target_info,
                         dir,
-                        false,
+                        attack_options,
                         1.0,
                         AttackSource::Shockwave,
                         |e| server_emitter.emit(e),

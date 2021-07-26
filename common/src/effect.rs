@@ -28,6 +28,15 @@ impl Effect {
         }
     }
 
+    pub fn is_harm(&self) -> bool {
+        match self {
+            Effect::Health(c) => c.amount < 0,
+            Effect::PoiseChange(c) => c.amount < 0,
+            Effect::Damage(_) => true,
+            Effect::Buff(e) => !e.kind.is_buff(),
+        }
+    }
+
     pub fn modify_strength(&mut self, modifier: f32) {
         match self {
             Effect::Health(change) => {

@@ -1,9 +1,9 @@
 use common::{
-    combat::{AttackSource, AttackerInfo, TargetInfo},
+    combat::{AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
         Beam, BeamSegment, Body, CharacterState, Combo, Energy, Group, Health, HealthSource,
-        Inventory, Ori, Pos, Scale, Stats,
+        Inventory, Ori, Player, Pos, Scale, Stats,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
@@ -26,6 +26,7 @@ use vek::*;
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     entities: Entities<'a>,
+    players: ReadStorage<'a, Player>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
     time: Read<'a, Time>,
     dt: Read<'a, DeltaTime>,
@@ -212,12 +213,32 @@ impl<'a> System<'a> for Sys {
                         char_state: read_data.character_states.get(target),
                     };
 
-                    beam_segment.properties.attack.apply_attack(
+                    // No luck with dodging beams
+                    let is_dodge = false;
+                    let avoid_harm = {
+                        let players = &read_data.players;
+                        beam_owner.map_or(false, |attacker| {
+                            if let (Some(attacker), Some(target)) =
+                                (players.get(attacker), players.get(target))
+                            {
+                                attacker.disallow_harm(target)
+                            } else {
+                                false
+                            }
+                        })
+                    };
+
+                    let attack_options = AttackOptions {
+                        target_dodging: is_dodge,
                         target_group,
+                        avoid_harm,
+                    };
+
+                    beam_segment.properties.attack.apply_attack(
                         attacker_info,
                         target_info,
                         ori.look_dir(),
-                        false,
+                        attack_options,
                         1.0,
                         AttackSource::Beam,
                         |e| server_events.push(e),

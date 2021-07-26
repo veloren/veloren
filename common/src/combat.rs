@@ -71,6 +71,13 @@ pub struct TargetInfo<'a> {
     pub char_state: Option<&'a CharacterState>,
 }
 
+#[derive(Clone, Copy)]
+pub struct AttackOptions {
+    pub target_dodging: bool,
+    pub target_group: GroupTarget,
+    pub avoid_harm: bool,
+}
+
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Debug, Serialize, Deserialize)] // TODO: Yeet clone derive
 pub struct Attack {
@@ -158,28 +165,47 @@ impl Attack {
         1.0 - (1.0 - damage_reduction) * (1.0 - block_reduction)
     }
 
+
     #[allow(clippy::too_many_arguments)]
     pub fn apply_attack(
         &self,
-        target_group: GroupTarget,
         attacker: Option<AttackerInfo>,
         target: TargetInfo,
         dir: Dir,
-        target_dodging: bool,
-        // Currently just modifies damage, maybe look into modifying strength of other effects?
+        options: AttackOptions,
+        // Currently strength_modifier just modifies damage,
+        // maybe look into modifying strength of other effects?
         strength_modifier: f32,
         attack_source: AttackSource,
         mut emit: impl FnMut(ServerEvent),
         mut emit_outcome: impl FnMut(Outcome),
     ) -> bool {
-        let mut is_applied = false;
+        let AttackOptions {
+            target_dodging,
+            target_group,
+            avoid_harm,
+        } = options;
+        // target == OutOfGroup is basic heuristic that this
+        // "attack" has negative effects.
+        //
+        // so if target dodges this "attack" or we don't want to harm target,
+        // it should avoid such "damage" or effect
+        let avoid_damage = |attack_damage: &AttackDamage| {
+            matches!(attack_damage.target, Some(GroupTarget::OutOfGroup))
+                && (target_dodging || avoid_harm)
+        };
+        let avoid_effect = |attack_effect: &AttackEffect| {
+            matches!(attack_effect.target, Some(GroupTarget::OutOfGroup))
+                && (target_dodging || avoid_harm)
+        };
         let is_crit = thread_rng().gen::<f32>() < self.crit_chance;
+        let mut is_applied = false;
         let mut accumulated_damage = 0.0;
         for damage in self
             .damages
             .iter()
             .filter(|d| d.target.map_or(true, |t| t == target_group))
-            .filter(|d| !(matches!(d.target, Some(GroupTarget::OutOfGroup)) && target_dodging))
+            .filter(|d| !avoid_damage(d))
         {
             is_applied = true;
             let damage_reduction = Attack::compute_damage_reduction(
@@ -294,7 +320,7 @@ impl Attack {
             .effects
             .iter()
             .filter(|e| e.target.map_or(true, |t| t == target_group))
-            .filter(|e| !(matches!(e.target, Some(GroupTarget::OutOfGroup)) && target_dodging))
+            .filter(|e| !avoid_effect(e))
         {
             if effect.requirements.iter().all(|req| match req {
                 CombatRequirement::AnyDamage => accumulated_damage > 0.0 && target.health.is_some(),

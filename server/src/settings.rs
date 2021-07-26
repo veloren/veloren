@@ -14,6 +14,7 @@ pub use server_description::ServerDescription;
 pub use whitelist::{Whitelist, WhitelistInfo, WhitelistRecord};
 
 use chrono::Utc;
+use common::resources::BattleMode;
 use core::time::Duration;
 use portpicker::pick_unused_port;
 use serde::{Deserialize, Serialize};
@@ -48,7 +49,7 @@ pub struct Settings {
     pub quic_files: Option<X509FilePair>,
     pub max_players: usize,
     pub world_seed: u32,
-    //pub pvp_enabled: bool,
+    pub battle_mode: BattleMode,
     pub server_name: String,
     pub start_time: f64,
     /// When set to None, loads the default map file (if available); otherwise,
@@ -73,6 +74,7 @@ impl Default for Settings {
             world_seed: DEFAULT_WORLD_SEED,
             server_name: "Veloren Alpha".into(),
             max_players: 100,
+            battle_mode: BattleMode::PvP,
             start_time: 9.0 * 3600.0,
             map_file: None,
             max_view_distance: Some(65),

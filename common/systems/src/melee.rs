@@ -1,9 +1,9 @@
 use common::{
-    combat::{AttackSource, AttackerInfo, TargetInfo},
+    combat::{AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
-        Body, CharacterState, Combo, Energy, Group, Health, Inventory, Melee, Ori, Pos, Scale,
-        Stats,
+        Body, CharacterState, Combo, Energy, Group, Health, Inventory, Melee, Ori, Player, Pos,
+        Scale, Stats,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
@@ -22,6 +22,7 @@ use vek::*;
 pub struct ReadData<'a> {
     time: Read<'a, Time>,
     entities: Entities<'a>,
+    players: ReadStorage<'a, Player>,
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
     orientations: ReadStorage<'a, Ori>,
@@ -161,12 +162,40 @@ impl<'a> System<'a> for Sys {
                         char_state: read_data.char_states.get(target),
                     };
 
-                    let is_applied = melee_attack.attack.apply_attack(
+                    let avoid_harm = {
+                        let players = &read_data.players;
+                        if let (Some(attacker), Some(target)) =
+                            (players.get(attacker), players.get(target))
+                        {
+                            attacker.disallow_harm(target)
+                        } else {
+                            false
+                        }
+                    };
+
+                    // FIXME: printf debugging, this shouldn't go to master
+                    if let Some(attacker) = read_data.players.get(attacker) {
+                        println!("attacker battle_mode: {:?}", attacker.battle_mode);
+                    } else {
+                        println!("attacker special casing")
+                    }
+                    if let Some(target) = read_data.players.get(target) {
+                        println!("target battle_mode: {:?}", target.battle_mode);
+                    } else {
+                        println!("target special casing")
+                    }
+
+                    let attack_options = AttackOptions {
+                        target_dodging: is_dodge,
                         target_group,
+                        avoid_harm,
+                    };
+
+                    let is_applied = melee_attack.attack.apply_attack(
                         attacker_info,
                         target_info,
                         dir,
-                        is_dodge,
+                        attack_options,
                         1.0,
                         AttackSource::Melee,
                         |e| server_emitter.emit(e),
