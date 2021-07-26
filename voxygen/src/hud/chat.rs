@@ -214,6 +214,14 @@ impl<'a> Widget for Chat<'a> {
 
         let chat_tabs = &chat_settings.chat_tabs;
         let current_chat_tab = chat_settings.chat_tab_index.and_then(|i| chat_tabs.get(i));
+
+        // Empty old messages
+        state.update(|s| {
+            while s.messages.len() > MAX_MESSAGES {
+                s.messages.pop_front();
+            }
+        });
+
         // Maintain scrolling //
         if !self.new_messages.is_empty() {
             //new messages - update chat w/ them & scroll down if at bottom of chat
@@ -235,13 +243,6 @@ impl<'a> Widget for Chat<'a> {
             state.update(|s| s.prev_chat_tab = current_chat_tab.cloned());
             state.update(|s| s.scroll_next = true); //make scroll happen only once any filters to the messages have already been applied
         }
-
-        // Empty old messages
-        state.update(|s| {
-            while s.messages.len() > MAX_MESSAGES {
-                s.messages.pop_front();
-            }
-        });
 
         if let Some(comps) = &self.force_completions {
             state.update(|s| s.completions = comps.clone());
