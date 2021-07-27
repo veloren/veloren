@@ -45,10 +45,9 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         // Mounted entities.
-        for (entity, mut mount_states, body) in
-            (&entities, &mut mount_state.restrict_mut(), bodies.maybe()).join()
+        for (entity, mut mount_states, body) in (&entities, &mut mount_state, bodies.maybe()).join()
         {
-            match mount_states.get_unchecked() {
+            match *mount_states {
                 MountState::Unmounted => {},
                 MountState::MountedBy(mounter_uid) => {
                     // Note: currently controller events are not passed through since none of them
@@ -82,7 +81,7 @@ impl<'a> System<'a> for Sys {
                             }
                         }
                     } else {
-                        *(mount_states.get_mut_unchecked()) = MountState::Unmounted;
+                        *mount_states = MountState::Unmounted;
                     }
                 },
             }

@@ -90,21 +90,17 @@ impl<'a> System<'a> for Sys {
             &read_data.entities,
             &read_data.uids,
             &stats,
-            &mut skill_sets.restrict_mut(),
-            &mut healths.restrict_mut(),
+            &mut skill_sets,
+            &mut healths,
             &read_data.positions,
-            &mut energies.restrict_mut(),
+            &mut energies,
             read_data.inventories.maybe(),
         )
             .join()
         {
-            let set_dead = {
-                let health = health.get_unchecked();
-                health.should_die() && !health.is_dead
-            };
+            let set_dead = { health.should_die() && !health.is_dead };
 
             if set_dead {
-                let mut health = health.get_mut_unchecked();
                 let cloned_entity = (entity, *pos);
                 entities_died_last_tick.0.push(cloned_entity);
                 server_event_emitter.emit(ServerEvent::Destroy {
@@ -117,21 +113,18 @@ impl<'a> System<'a> for Sys {
             let stat = stats;
 
             let update_max_hp = {
-                let health = health.get_unchecked();
                 (stat.max_health_modifier - 1.0).abs() > f32::EPSILON
                     || health.base_max() != health.maximum()
             };
 
             if update_max_hp {
-                let mut health = health.get_mut_unchecked();
                 health.scale_maximum(stat.max_health_modifier);
             }
 
             let (change_energy, energy_scaling) = {
-                let energy = energy.get_unchecked();
                 // Calculates energy scaling from stats and inventory
                 let new_energy_scaling =
-                    combat::compute_max_energy_mod(energy, inventory) + stat.max_energy_modifier;
+                    combat::compute_max_energy_mod(&energy, inventory) + stat.max_energy_modifier;
                 let current_energy_scaling = energy.maximum() as f32 / energy.base_max() as f32;
                 // Only changes energy if new modifier different from old modifer
                 // TODO: Look into using wider threshold incase floating point imprecision makes
@@ -144,22 +137,19 @@ impl<'a> System<'a> for Sys {
 
             // If modifier sufficiently different, mutably access energy
             if change_energy {
-                let mut energy = energy.get_mut_unchecked();
                 energy.scale_maximum(energy_scaling);
             }
 
-            let skillset = skill_set.get_unchecked();
-            let skills_to_level = skillset
+            let skills_to_level = skill_set
                 .skill_groups
                 .iter()
                 .filter_map(|s_g| {
-                    (s_g.exp >= skillset.skill_point_cost(s_g.skill_group_kind))
+                    (s_g.exp >= skill_set.skill_point_cost(s_g.skill_group_kind))
                         .then(|| s_g.skill_group_kind)
                 })
                 .collect::<HashSet<_>>();
 
             if !skills_to_level.is_empty() {
-                let mut skill_set = skill_set.get_mut_unchecked();
                 for skill_group in skills_to_level {
                     skill_set.earn_skill_point(skill_group);
                     outcomes.push(Outcome::SkillPointGain {
@@ -174,44 +164,34 @@ impl<'a> System<'a> for Sys {
 
         // Apply effects from leveling skills
         for (mut skill_set, mut health, mut energy, body) in (
-            &mut skill_sets.restrict_mut(),
-            &mut healths.restrict_mut(),
-            &mut energies.restrict_mut(),
+            &mut skill_sets,
+            &mut healths,
+            &mut energies,
             &read_data.bodies,
         )
             .join()
         {
-            let skillset = skill_set.get_unchecked();
-            if skillset.modify_health {
-                let mut health = health.get_mut_unchecked();
-                let health_level = skillset
+            if skill_set.modify_health {
+                let health_level = skill_set
                     .skill_level(Skill::General(GeneralSkill::HealthIncrease))
                     .unwrap_or(None)
                     .unwrap_or(0);
                 health.update_max_hp(Some(*body), health_level);
-                let mut skillset = skill_set.get_mut_unchecked();
-                skillset.modify_health = false;
+                skill_set.modify_health = false;
             }
-            let skillset = skill_set.get_unchecked();
-            if skillset.modify_energy {
-                let mut energy = energy.get_mut_unchecked();
-                let energy_level = skillset
+            if skill_set.modify_energy {
+                let energy_level = skill_set
                     .skill_level(Skill::General(GeneralSkill::EnergyIncrease))
                     .unwrap_or(None)
                     .unwrap_or(0);
                 energy.update_max_energy(Some(*body), energy_level);
-                let mut skill_set = skill_set.get_mut_unchecked();
                 skill_set.modify_energy = false;
             }
         }
 
         // Update energies and poises
-        for (character_state, mut energy, mut poise) in (
-            &read_data.char_states,
-            &mut energies.restrict_mut(),
-            &mut poises.restrict_mut(),
-        )
-            .join()
+        for (character_state, mut energy, mut poise) in
+            (&read_data.char_states, &mut energies, &mut poises).join()
         {
             match character_state {
                 // Accelerate recharging energy.
@@ -225,13 +205,9 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::Wielding { .. }
                 | CharacterState::Equipping { .. }
                 | CharacterState::Boost { .. } => {
-                    let res = {
-                        let energy = energy.get_unchecked();
-                        energy.current() < energy.maximum()
-                    };
+                    let res = { energy.current() < energy.maximum() };
 
                     if res {
-                        let mut energy = energy.get_mut_unchecked();
                         let energy = &mut *energy;
                         // Have to account for Calc I differential equations due to acceleration
                         energy.change_by(EnergyChange {
@@ -243,13 +219,9 @@ impl<'a> System<'a> for Sys {
                             (energy.regen_rate + ENERGY_REGEN_ACCEL * dt).min(100.0);
                     }
 
-                    let res_poise = {
-                        let poise = poise.get_unchecked();
-                        poise.current() < poise.maximum()
-                    };
+                    let res_poise = { poise.current() < poise.maximum() };
 
                     if res_poise {
-                        let mut poise = poise.get_mut_unchecked();
                         let poise = &mut *poise;
                         poise.change_by(
                             PoiseChange {
@@ -280,8 +252,8 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::BasicSummon { .. }
                 | CharacterState::SelfBuff { .. }
                 | CharacterState::SpriteSummon { .. } => {
-                    if energy.get_unchecked().regen_rate != 0.0 {
-                        energy.get_mut_unchecked().regen_rate = 0.0
+                    if energy.regen_rate != 0.0 {
+                        energy.regen_rate = 0.0
                     }
                 },
                 // Abilities that temporarily stall energy gain, but preserve regen_rate.
