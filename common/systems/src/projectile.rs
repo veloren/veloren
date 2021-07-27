@@ -135,6 +135,7 @@ impl<'a> System<'a> for Sys {
                                         owner_entity.zip(projectile.owner).map(|(entity, uid)| {
                                             AttackerInfo {
                                                 entity,
+                                                player: read_data.players.get(entity),
                                                 uid,
                                                 energy: read_data.energies.get(entity),
                                                 combo: read_data.combos.get(entity),
@@ -144,6 +145,7 @@ impl<'a> System<'a> for Sys {
 
                                     let target_info = TargetInfo {
                                         entity: target,
+                                        player: read_data.players.get(target),
                                         uid: other,
                                         inventory: read_data.inventories.get(target),
                                         stats: read_data.stats.get(target),
@@ -155,19 +157,7 @@ impl<'a> System<'a> for Sys {
 
                                     // They say witchers can dodge arrows,
                                     // but we don't have witchers
-                                    let is_dodge = false;
-                                    let avoid_harm = {
-                                        let players = &read_data.players;
-                                        projectile_owner.map_or(false, |attacker| {
-                                            if let (Some(attacker), Some(target)) =
-                                                (players.get(attacker), players.get(target))
-                                            {
-                                                attacker.disallow_harm(target)
-                                            } else {
-                                                false
-                                            }
-                                        })
-                                    };
+                                    let target_dodging = false;
 
                                     if let Some(&body) = read_data.bodies.get(entity) {
                                         outcomes.push(Outcome::ProjectileHit {
@@ -183,9 +173,8 @@ impl<'a> System<'a> for Sys {
                                     }
 
                                     let attack_options = AttackOptions {
-                                        target_dodging: is_dodge,
+                                        target_dodging,
                                         target_group,
-                                        avoid_harm,
                                     };
                                     attack.apply_attack(
                                         attacker_info,

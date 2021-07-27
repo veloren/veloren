@@ -116,7 +116,7 @@ impl<'a> System<'a> for Sys {
                 let rad_b = body_b.radius() * scale_b;
 
                 // Check if entity is dodging
-                let is_dodge = read_data
+                let target_dodging = read_data
                     .char_states
                     .get(target)
                     .map_or(false, |c_s| c_s.is_melee_dodge());
@@ -145,6 +145,7 @@ impl<'a> System<'a> for Sys {
 
                     let attacker_info = Some(AttackerInfo {
                         entity: attacker,
+                        player: read_data.players.get(attacker),
                         uid: *uid,
                         energy: read_data.energies.get(attacker),
                         combo: read_data.combos.get(attacker),
@@ -153,6 +154,7 @@ impl<'a> System<'a> for Sys {
 
                     let target_info = TargetInfo {
                         entity: target,
+                        player: read_data.players.get(target),
                         uid: *uid_b,
                         inventory: read_data.inventories.get(target),
                         stats: read_data.stats.get(target),
@@ -162,33 +164,9 @@ impl<'a> System<'a> for Sys {
                         char_state: read_data.char_states.get(target),
                     };
 
-                    let avoid_harm = {
-                        let players = &read_data.players;
-                        if let (Some(attacker), Some(target)) =
-                            (players.get(attacker), players.get(target))
-                        {
-                            attacker.disallow_harm(target)
-                        } else {
-                            false
-                        }
-                    };
-
-                    // FIXME: printf debugging, this shouldn't go to master
-                    if let Some(attacker) = read_data.players.get(attacker) {
-                        println!("attacker battle_mode: {:?}", attacker.battle_mode);
-                    } else {
-                        println!("attacker special casing")
-                    }
-                    if let Some(target) = read_data.players.get(target) {
-                        println!("target battle_mode: {:?}", target.battle_mode);
-                    } else {
-                        println!("target special casing")
-                    }
-
                     let attack_options = AttackOptions {
-                        target_dodging: is_dodge,
+                        target_dodging,
                         target_group,
-                        avoid_harm,
                     };
 
                     let is_applied = melee_attack.attack.apply_attack(

@@ -13,7 +13,7 @@ use crate::{
         poise::PoiseChange,
         skills::SkillGroupKind,
         Body, CharacterState, Combo, Energy, EnergyChange, EnergySource, Health, HealthChange,
-        HealthSource, Inventory, Ori, SkillSet, Stats,
+        HealthSource, Inventory, Ori, Player, SkillSet, Stats,
     },
     event::ServerEvent,
     outcome::Outcome,
@@ -53,6 +53,7 @@ pub enum AttackSource {
 #[derive(Copy, Clone)]
 pub struct AttackerInfo<'a> {
     pub entity: EcsEntity,
+    pub player: Option<&'a Player>,
     pub uid: Uid,
     pub energy: Option<&'a Energy>,
     pub combo: Option<&'a Combo>,
@@ -62,6 +63,7 @@ pub struct AttackerInfo<'a> {
 #[cfg(not(target_arch = "wasm32"))]
 pub struct TargetInfo<'a> {
     pub entity: EcsEntity,
+    pub player: Option<&'a Player>,
     pub uid: Uid,
     pub inventory: Option<&'a Inventory>,
     pub stats: Option<&'a Stats>,
@@ -75,7 +77,6 @@ pub struct TargetInfo<'a> {
 pub struct AttackOptions {
     pub target_dodging: bool,
     pub target_group: GroupTarget,
-    pub avoid_harm: bool,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -165,7 +166,6 @@ impl Attack {
         1.0 - (1.0 - damage_reduction) * (1.0 - block_reduction)
     }
 
-
     #[allow(clippy::too_many_arguments)]
     pub fn apply_attack(
         &self,
@@ -183,8 +183,11 @@ impl Attack {
         let AttackOptions {
             target_dodging,
             target_group,
-            avoid_harm,
         } = options;
+
+        let avoid_harm =
+            attacker.map_or(false, |attacker| avoid_harm(attacker.player, target.player));
+
         // target == OutOfGroup is basic heuristic that this
         // "attack" has negative effects.
         //
@@ -454,6 +457,18 @@ impl Attack {
         }
         is_applied
     }
+}
+
+/// Checks if we should avoid negative effects from one player to another
+// FIXME: handle pets?
+// This code works only with players.
+// You still can kill someone's pet and
+// you still can be killed by someone's pet
+pub fn avoid_harm(attacker: Option<&Player>, target: Option<&Player>) -> bool {
+    if let (Some(attacker), Some(target)) = (attacker, target) {
+        return attacker.disallow_harm(target);
+    }
+    false
 }
 
 #[cfg(not(target_arch = "wasm32"))]

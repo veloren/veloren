@@ -34,7 +34,8 @@ impl Player {
 
     /// Currently we allow attacking only if both players are opt-in to PvP.
     ///
-    /// Simple as tea, if they don't want the tea, don't make them drink the tea.
+    /// Simple as tea, if they don't want the tea, don't make them drink the
+    /// tea.
     pub fn allow_harm(&self, other: &Player) -> bool {
         // TODO: discuss if we want to keep self-harm
         matches!(
@@ -44,9 +45,7 @@ impl Player {
     }
 
     /// Inverse of `allow_harm`. Read its doc to learn more.
-    pub fn disallow_harm(&self, other: &Player) -> bool {
-        !self.allow_harm(other)
-    }
+    pub fn disallow_harm(&self, other: &Player) -> bool { !self.allow_harm(other) }
 
     pub fn is_valid(&self) -> bool { Self::alias_validate(&self.alias).is_ok() }
 

@@ -196,6 +196,7 @@ impl<'a> System<'a> for Sys {
                             .zip(beam_segment.owner)
                             .map(|(entity, uid)| AttackerInfo {
                                 entity,
+                                player: read_data.players.get(entity),
                                 uid,
                                 energy: read_data.energies.get(entity),
                                 combo: read_data.combos.get(entity),
@@ -204,6 +205,7 @@ impl<'a> System<'a> for Sys {
 
                     let target_info = TargetInfo {
                         entity: target,
+                        player: read_data.players.get(target),
                         uid: *uid_b,
                         inventory: read_data.inventories.get(target),
                         stats: read_data.stats.get(target),
@@ -214,24 +216,11 @@ impl<'a> System<'a> for Sys {
                     };
 
                     // No luck with dodging beams
-                    let is_dodge = false;
-                    let avoid_harm = {
-                        let players = &read_data.players;
-                        beam_owner.map_or(false, |attacker| {
-                            if let (Some(attacker), Some(target)) =
-                                (players.get(attacker), players.get(target))
-                            {
-                                attacker.disallow_harm(target)
-                            } else {
-                                false
-                            }
-                        })
-                    };
+                    let target_dodging = false;
 
                     let attack_options = AttackOptions {
-                        target_dodging: is_dodge,
+                        target_dodging,
                         target_group,
-                        avoid_harm,
                     };
 
                     beam_segment.properties.attack.apply_attack(
