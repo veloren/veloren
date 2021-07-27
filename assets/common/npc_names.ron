@@ -1219,7 +1219,47 @@
             tarantula: (
                 keyword: "tarantula",
                 generic: "Tarantula"
-            )
+            ),
+            black_widow: (
+                keyword: "black_widow",
+                generic: "Blackwidow"
+            ),
+            antlion: (
+                keyword: "antlion",
+                generic: "Antlion"
+            ),
+            horn_beetle: (
+                keyword: "horn_beetle",
+                generic: "Hornbeetle"
+            ),
+            leaf_beetle: (
+                keyword: "leaf_beetle",
+                generic: "Leafbeetle"
+            ),
+            stag_beetle: (
+                keyword: "stag_beetle",
+                generic: "Stagbeetle"
+            ),
+            weevil: (
+                keyword: "weevil",
+                generic: "Weevil"
+            ),
+            cave_spider: (
+                keyword: "cave_spider",
+                generic: "Cave Spider"
+            ),
+            crawler_molten: (
+                keyword: "crawler_molten",
+                generic: "Molten Crawler"
+            ),
+            crawler_moss: (
+                keyword: "crawler_moss",
+                generic: "Moss Crawler"
+            ),
+            crawler_sand: (
+                keyword: "crawler_sand",
+                generic: "Molten Crawler"
+            ),
         )
     ),
 )

@@ -22,32 +22,40 @@ impl Animation for IdleAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        next.chest.scale = Vec3::one() / s_a.scaler;
+        next.chest.scale = Vec3::one();
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
 
-        next.mandible_l.position = Vec3::new(-s_a.mandible_l.0, s_a.mandible_l.1, s_a.mandible_l.2);
-        next.mandible_r.position = Vec3::new(s_a.mandible_r.0, s_a.mandible_r.1, s_a.mandible_r.2);
+        next.mandible_l.position = Vec3::new(-s_a.mandible.0, s_a.mandible.1, s_a.mandible.2);
+        next.mandible_r.position = Vec3::new(s_a.mandible.0, s_a.mandible.1, s_a.mandible.2);
 
-        next.wing_fl.position = Vec3::new(-s_a.wing_fl.0, s_a.wing_fl.1, s_a.wing_fl.2);
-        next.wing_fr.position = Vec3::new(s_a.wing_fr.0, s_a.wing_fr.1, s_a.wing_fr.2);
+        next.wing_fl.position = Vec3::new(-s_a.wing_f.0, s_a.wing_f.1, s_a.wing_f.2);
+        next.wing_fr.position = Vec3::new(s_a.wing_f.0, s_a.wing_f.1, s_a.wing_f.2);
 
-        next.wing_bl.position = Vec3::new(-s_a.wing_bl.0, s_a.wing_bl.1, s_a.wing_bl.2);
-        next.wing_br.position = Vec3::new(s_a.wing_br.0, s_a.wing_br.1, s_a.wing_br.2);
+        next.wing_bl.position = Vec3::new(-s_a.wing_b.0, s_a.wing_b.1, s_a.wing_b.2);
+        next.wing_br.position = Vec3::new(s_a.wing_b.0, s_a.wing_b.1, s_a.wing_b.2);
 
-        next.leg_fl.position = Vec3::new(-s_a.leg_fl.0, s_a.leg_fl.1, s_a.leg_fl.2);
-        next.leg_fr.position = Vec3::new(s_a.leg_fr.0, s_a.leg_fr.1, s_a.leg_fr.2);
+        next.leg_fl.position = Vec3::new(-s_a.leg_f.0, s_a.leg_f.1, s_a.leg_f.2);
+        next.leg_fr.position = Vec3::new(s_a.leg_f.0, s_a.leg_f.1, s_a.leg_f.2);
+        //next.leg_fl.orientation = Quaternion::rotation_z(0.1);
+        //next.leg_fr.orientation = Quaternion::rotation_z(-0.1);
 
-        next.leg_fcl.position = Vec3::new(-s_a.leg_fcl.0, s_a.leg_fcl.1, s_a.leg_fcl.2);
-        next.leg_fcr.position = Vec3::new(s_a.leg_fcr.0, s_a.leg_fcr.1, s_a.leg_fcr.2);
+        next.leg_fcl.position = Vec3::new(-s_a.leg_fc.0, s_a.leg_fc.1, s_a.leg_fc.2);
+        next.leg_fcr.position = Vec3::new(s_a.leg_fc.0, s_a.leg_fc.1, s_a.leg_fc.2);
+        //next.leg_fcl.orientation = Quaternion::rotation_z(-0.3);
+        //next.leg_fcr.orientation = Quaternion::rotation_z(0.3);
 
-        next.leg_bcl.position = Vec3::new(-s_a.leg_bcl.0, s_a.leg_bcl.1, s_a.leg_bcl.2);
-        next.leg_bcr.position = Vec3::new(s_a.leg_bcr.0, s_a.leg_bcr.1, s_a.leg_bcr.2);
+        next.leg_bcl.position = Vec3::new(-s_a.leg_bc.0, s_a.leg_bc.1, s_a.leg_bc.2);
+        next.leg_bcr.position = Vec3::new(s_a.leg_bc.0, s_a.leg_bc.1, s_a.leg_bc.2);
+        //next.leg_bcl.orientation = Quaternion::rotation_z(0.0);
+        //next.leg_bcr.orientation = Quaternion::rotation_z(0.0);
 
-        next.leg_bl.position = Vec3::new(-s_a.leg_bl.0, s_a.leg_bl.1, s_a.leg_bl.2);
-        next.leg_br.position = Vec3::new(s_a.leg_br.0, s_a.leg_br.1, s_a.leg_br.2);
+        next.leg_bl.position = Vec3::new(-s_a.leg_b.0, s_a.leg_b.1, s_a.leg_b.2);
+        next.leg_br.position = Vec3::new(s_a.leg_b.0, s_a.leg_b.1, s_a.leg_b.2);
+        //next.leg_bl.orientation = Quaternion::rotation_z(0.4);
+        //next.leg_br.orientation = Quaternion::rotation_z(-0.4);
 
         next
     }

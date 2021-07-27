@@ -1,22 +1,222 @@
 ({
     (Tarantula, Male): (
         head: (
-            offset: (-4.5, 0.0, -5.0),
+            offset: (-4.5, 0.0, -2.5),
             central: ("npc.tarantula.male.head"),
         ),
         chest: (
-            offset: (-5.5, -2.0, -3.0),
+            offset: (-5.5, -7.0, -4.0),
             central: ("npc.tarantula.male.chest"),
         ),
     ),
     (Tarantula, Female): (
         head: (
-            offset: (-4.5, 0.0, -5.0),
+            offset: (-4.5, 0.0, -2.5),
             central: ("npc.tarantula.male.head"),
         ),
         chest: (
-            offset: (-5.5, -2.0, -3.0),
+            offset: (-5.5, -7.0, -4.0),
             central: ("npc.tarantula.male.chest"),
+        ),
+    ),
+    (Blackwidow, Male): (
+        head: (
+            offset: (-4.5, 0.0, -3.0),
+            central: ("npc.black_widow.male.head"),
+        ),
+        chest: (
+            offset: (-4.5, -7.5, -6.0),
+            central: ("npc.black_widow.male.chest"),
+        ),
+    ),
+    (Blackwidow, Female): (
+        head: (
+            offset: (-4.5, 0.0, -3.0),
+            central: ("npc.black_widow.male.head"),
+        ),
+        chest: (
+            offset: (-4.5, -7.5, -6.0),
+            central: ("npc.black_widow.male.chest"),
+        ),
+    ),
+    (Antlion, Male): (
+        head: (
+            offset: (-6.5, 0.0, -5.5),
+            central: ("npc.antlion.male.head"),
+        ),
+        chest: (
+            offset: (-5.5, -7.5, -5.5),
+            central: ("npc.antlion.male.chest"),
+        ),
+    ),
+    (Antlion, Female): (
+        head: (
+            offset: (-6.5, 0.0, -5.5),
+            central: ("npc.antlion.male.head"),
+        ),
+        chest: (
+            offset: (-5.5, -7.5, -5.5),
+            central: ("npc.antlion.male.chest"),
+        ),
+    ),
+    (Hornbeetle, Male): (
+        head: (
+            offset: (-5.5, 0.0, -7.5),
+            central: ("npc.horn_beetle.male.head"),
+        ),
+        chest: (
+            offset: (-4.5, -6.0, -3.5),
+            central: ("npc.horn_beetle.male.chest"),
+        ),
+    ),
+    (Hornbeetle, Female): (
+        head: (
+            offset: (-5.5, 0.0, -7.5),
+            central: ("npc.horn_beetle.male.head"),
+        ),
+        chest: (
+            offset: (-4.5, -6.0, -3.5),
+            central: ("npc.horn_beetle.male.chest"),
+        ),
+    ),
+    (Leafbeetle, Male): (
+        head: (
+            offset: (-5.5, 0.0, -3.0),
+            central: ("npc.leaf_beetle.male.head"),
+        ),
+        chest: (
+            offset: (-4.5, -5.0, -3.0),
+            central: ("npc.leaf_beetle.male.chest"),
+        ),
+    ),
+    (Leafbeetle, Female): (
+        head: (
+            offset: (-5.5, 0.0, -3.0),
+            central: ("npc.leaf_beetle.male.head"),
+        ),
+        chest: (
+            offset: (-4.5, -5.0, -3.0),
+            central: ("npc.leaf_beetle.male.chest"),
+        ),
+    ),
+    (Stagbeetle, Male): (
+        head: (
+            offset: (-8.5, 0.0, -4.5),
+            central: ("npc.stag_beetle.male.head"),
+        ),
+        chest: (
+            offset: (-4.5, -6.0, -3.5),
+            central: ("npc.stag_beetle.male.chest"),
+        ),
+    ),
+    (Stagbeetle, Female): (
+        head: (
+            offset: (-8.5, 0.0, -4.5),
+            central: ("npc.stag_beetle.male.head"),
+        ),
+        chest: (
+            offset: (-4.5, -6.0, -3.5),
+            central: ("npc.stag_beetle.male.chest"),
+        ),
+    ),
+    (Weevil, Male): (
+        head: (
+            offset: (-4.5, 0.0, -3.0),
+            central: ("npc.weevil.male.head"),
+        ),
+        chest: (
+            offset: (-4.5, -5.0, -3.0),
+            central: ("npc.weevil.male.chest"),
+        ),
+    ),
+    (Weevil, Female): (
+        head: (
+            offset: (-4.5, 0.0, -3.0),
+            central: ("npc.weevil.male.head"),
+        ),
+        chest: (
+            offset: (-4.5, -5.0, -3.0),
+            central: ("npc.weevil.male.chest"),
+        ),
+    ),
+    (Cavespider, Male): (
+        head: (
+            offset: (-4.5, 0.0, -2.5),
+            central: ("npc.cave_spider.male.head"),
+        ),
+        chest: (
+            offset: (-5.5, -7.0, -4.0),
+            central: ("npc.cave_spider.male.chest"),
+        ),
+    ),
+    (Cavespider, Female): (
+        head: (
+            offset: (-4.5, 0.0, -2.5),
+            central: ("npc.cave_spider.male.head"),
+        ),
+        chest: (
+            offset: (-5.5, -7.0, -4.0),
+            central: ("npc.cave_spider.male.chest"),
+        ),
+    ),
+    (Moltencrawler, Male): (
+        head: (
+            offset: (-7.5, 0.0, -4.0),
+            central: ("npc.crawler_molten.male.head"),
+        ),
+        chest: (
+            offset: (-4.5, -5.0, -5.0),
+            central: ("npc.crawler_molten.male.chest"),
+        ),
+    ),
+    (Moltencrawler, Female): (
+        head: (
+            offset: (-7.5, 0.0, -4.0),
+            central: ("npc.crawler_molten.male.head"),
+        ),
+        chest: (
+            offset: (-4.5, -5.0, -5.0),
+            central: ("npc.crawler_molten.male.chest"),
+        ),
+    ),
+    (Mosscrawler, Male): (
+        head: (
+            offset: (-5.5, 0.0, -4.0),
+            central: ("npc.crawler_moss.male.head"),
+        ),
+        chest: (
+            offset: (-3.5, -5.0, -5.5),
+            central: ("npc.crawler_moss.male.chest"),
+        ),
+    ),
+    (Mosscrawler, Female): (
+        head: (
+            offset: (-5.5, 0.0, -4.0),
+            central: ("npc.crawler_moss.male.head"),
+        ),
+        chest: (
+            offset: (-3.5, -5.0, -5.5),
+            central: ("npc.crawler_moss.male.chest"),
+        ),
+    ),
+    (Sandcrawler, Male): (
+        head: (
+            offset: (-5.5, 0.0, -4.0),
+            central: ("npc.crawler_sand.male.head"),
+        ),
+        chest: (
+            offset: (-3.5, -5.0, -5.0),
+            central: ("npc.crawler_sand.male.chest"),
+        ),
+    ),
+    (Sandcrawler, Female): (
+        head: (
+            offset: (-5.5, 0.0, -4.0),
+            central: ("npc.crawler_sand.male.head"),
+        ),
+        chest: (
+            offset: (-3.5, -5.0, -5.0),
+            central: ("npc.crawler_sand.male.chest"),
         ),
     ),
 })

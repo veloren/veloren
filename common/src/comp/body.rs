@@ -402,7 +402,7 @@ impl Body {
                 theropod::Species::Woodraptor => Vec3::new(2.0, 3.0, 2.6),
                 theropod::Species::Yale => Vec3::new(1.5, 3.2, 4.0),
             },
-            Body::Arthropod(body) => Vec3::new(1.0, 1.0, 1.0),
+            Body::Arthropod(body) => Vec3::new(4.0, 4.0, 4.0),
         }
     }
 
