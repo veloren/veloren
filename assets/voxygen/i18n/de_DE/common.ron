@@ -21,7 +21,7 @@
         "common.close": "Schließen",
         "common.yes": "Ja",
         "common.no": "Nein",
-        "common.back": "Nein",
+        "common.back": "Zurück",
         "common.create": "Erstellen",
         "common.okay": "Okay",
         "common.add": "Hinzufügen",
@@ -38,12 +38,12 @@
         "common.empty": "Leer",
         
         // Settings Window title
-        "common.interface_settings": "Interface Einstellungen",
-        "common.gameplay_settings": "Spiel Einstellungen",
-        "common.controls_settings": "Steuerung",
-        "common.video_settings": "Grafik Einstellungen",
-        "common.sound_settings": "Audio Einstellungen",
-        "common.language_settings": "Sprache",
+        "common.interface_settings": "Interfaceeinstellungen",
+        "common.gameplay_settings": "Spieleinstellungen",
+        "common.controls_settings": "Steuerungseinstellungen",
+        "common.video_settings": "Grafikeinstellungen",
+        "common.sound_settings": "Audioeinstellungen",
+        "common.language_settings": "Spracheinstellungen",
 
         // Message when connection to the server is lost
         "common.connection_lost": r#"Verbindungsabbruch!
@@ -74,7 +74,7 @@ Ist das Spiel auf dem neusten Stand?"#,
         "common.weapons.bow_simple": "Einfacher Bogen",
         "common.weapons.unique": "Einzigartig",
         "common.tool.debug": "Debug",
-        "common.tool.faming": "Ernte Werkzeug",
+        "common.tool.faming": "Erntewerkzeug",
         "common.tool.pick": "Spitzhacke",
         "common.kind.modular_component": "Modulares Bauteil",
         "common.kind.glider": "Gleiter",

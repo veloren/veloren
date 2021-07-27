@@ -10,7 +10,7 @@
         "hud.chat.default_death_msg": "[{name}] Starb",
         "hud.chat.environmental_kill_msg": "[{name}] starb in {environment}",
         "hud.chat.fall_kill_msg": "[{name}] starb durch Fallschaden",
-        "hud.chat.suicide_msg": "[{name}] began Selbstmord",
+        "hud.chat.suicide_msg": "[{name}] beging Selbstmord",
 
         "hud.chat.pvp_buff_kill_msg": "[{victim}] starb an {buff} von [{attacker}]",
         "hud.chat.pvp_melee_kill_msg": "[{attacker}] vernichtete [{victim}]",

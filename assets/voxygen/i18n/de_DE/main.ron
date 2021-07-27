@@ -14,20 +14,20 @@
         // Welcome notice that appears the first time Veloren is started
         "main.notice": r#"Wilkommen in der Alpha-Version von Veloren!
 
-Bevor du dich ins Abendteuer stürzt, behalte bitte einige Dinge im Hinterkopf:
+Bevor du dich ins Abenteuer stürzt, behalte bitte einige Dinge im Hinterkopf:
 
 - Dies ist eine frühe Alpha. Du wirst auf Bugs, unfertiges Gameplay und Mechaniken, sowie fehlende Features stoßen.
 
-- Für konstruktives Feedback und Bug-Reports kannst du uns via Reddit, Gitlab oder über unseren Discord Server kontaktieren.
+- Für konstruktives Feedback und Bug-Reports kannst du uns via Reddit, Gitlab oder über unseren Discord-Server kontaktieren.
 
-- Veloren hat die GPL 3 Open-Source Lizenz. Das heißt Du kannst es kostenlos spielen,
+- Veloren hat die GPL 3 Open-Source Lizenz. Das heißt du kannst es kostenlos spielen,
 aber auch modifizieren (solange die Modifikation auch die selbe Lizenz trägt) und das Spiel an andere weiterschicken.
 
 - Veloren ist ein Non-Profit Community Projekt und jeder Mitarbeiter entwickelt es als Hobby in seiner Freizeit.
 
-Wenn Dir die Idee gefällt, dann schließe Dich doch einfach unserem Dev- oder Art-Team an!
+Wenn dir die Idee gefällt, dann schließe dich doch einfach unserem Dev- oder Art-Team an!
 
-Danke, dass Du dir die Zeit genommen hast diese Zeilen zu lesen und wir hoffen, dass dir Veloren gefällt!
+Danke, dass du dir die Zeit genommen hast diese Zeilen zu lesen und wir hoffen, dass dir Veloren gefällt!
 
 ~ Die Entwickler"#,
 
@@ -37,7 +37,7 @@ Danke, dass Du dir die Zeit genommen hast diese Zeilen zu lesen und wir hoffen, 
 Bitte beachte, dass du einen Account benötigst,
 um auf Servern mit Authentifizierung zu spielen.
 
-Du kannst deienn account unter auf folgender Webseite erstellen:
+Du kannst deinen Account auf folgender Webseite erstellen:
 
 https://veloren.net/account/."#,
         "main.login.server_not_found": "Server nicht gefunden",

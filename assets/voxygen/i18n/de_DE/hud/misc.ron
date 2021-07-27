@@ -12,9 +12,9 @@
 
         "hud.press_key_to_show_keybindings_fmt": "[{key}] Kurzwahltasten",
         "hud.press_key_to_toggle_lantern_fmt": "[{key}] Laterne",
-        "hud.press_key_to_show_debug_info_fmt": "Drücke {key}, um die debug info anzuzeigen",
+        "hud.press_key_to_show_debug_info_fmt": "Drücke {key}, um die Debug-Info anzuzeigen",
         "hud.press_key_to_toggle_keybindings_fmt": "Drücke {key}, um die Kurzwahltasten umzuschalten",
-        "hud.press_key_to_toggle_debug_info_fmt": "Drücke {key}, um die debug info umzuschalten",
+        "hud.press_key_to_toggle_debug_info_fmt": "Drücke {key}, um die Debug-Info umzuschalten",
 
         // Respawn message
         "hud.press_key_to_respawn": r#"Drücke {key}, um am letzten Lagerfeuer wieder einzusteigen."#,
@@ -29,13 +29,13 @@
 
 Dir steht es frei, mitzunehmen, was auch immer du auf deiner Reise findest!
 
-An der unteren rechten Ecke des Bildschirms, findest du verschiedene dinge, wie deinen Beutel, das Herstellungsmenü und die Karte.
+An der unteren rechten Ecke des Bildschirms findest du verschiedene Dinge, wie deinen Beutel, das Herstellungsmenü und die Karte.
 
 Im Herstellungsmenü kannst du dir eine Rüstung, verschiedene Waffen, Nahrung und noch vieles mehr herstellen!
 
-Für den Anfang stellen die wilden Tiere rund um das Dorf eine verlässliche Quelle für Lederstreifen dar, mit denen du dir eine Leichte Rüstung, gegen die Gefahren dieser Welt herstellen kannst.
+Für den Anfang stellen die wilden Tiere rund um das Dorf eine verlässliche Quelle für Lederstreifen dar, mit denen du dir eine leichte Rüstung gegen die Gefahren dieser Welt herstellen kannst.
 
-Sobald du dich bereit dafür fühlst, kannst du Versuchen, dich den zahlreichen auf der Karte markierten Herausvorderungen, zu stellen, um immer bessere Ausrüstungsgegenstände zu erhalten!
+Sobald du dich bereit dafür fühlst, kannst du versuchen, dich den zahlreichen, auf der Karte markierten, Herausforderungen zu stellen, um immer bessere Ausrüstungsgegenstände zu erhalten!
 "#,
 
         "hud.spell": "Zaubersprüche",
