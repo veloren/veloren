@@ -31,8 +31,8 @@ pub fn verify_all_localizations(root_dir: &Path, asset_path: &Path) {
          folder is empty?"
     );
     for i18n_directory in i18n_directories {
-        let display_language_identifier = i18n_directory.strip_prefix(&root_dir).unwrap().as_os_str().to_str().unwrap();
-        let language_identifier = i18n_directory.strip_prefix(&i18n_root_path).unwrap().as_os_str().to_str().unwrap();
+        let display_language_identifier = i18n_directory.strip_prefix(&root_dir).unwrap().to_str().unwrap();
+        let language_identifier = i18n_directory.strip_prefix(&i18n_root_path).unwrap().to_str().unwrap();
         println!(
             "verifying {:?}",
             display_language_identifier

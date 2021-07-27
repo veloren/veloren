@@ -20,14 +20,14 @@ pub(crate) struct RawManifest {
 /// Raw localization data from one specific file
 /// These structs are meant to be merged into a Language
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-pub(crate) struct RawFragment {
-    pub(crate) string_map: HashMap<String, String>,
-    pub(crate) vector_map: HashMap<String, Vec<String>>,
+pub(crate) struct RawFragment<T> {
+    pub(crate) string_map: HashMap<String, T>,
+    pub(crate) vector_map: HashMap<String, Vec<T>>,
 }
 
-pub(crate) struct RawLanguage {
+pub(crate) struct RawLanguage<T> {
     pub(crate) manifest: RawManifest,
-    pub(crate) fragments: HashMap<PathBuf, RawFragment>,
+    pub(crate) fragments: HashMap<PathBuf, RawFragment<T>>,
 }
 
 #[derive(Debug)]
@@ -44,18 +44,26 @@ pub(crate) fn load_manifest(i18n_root_path: &Path, language_identifier: &str) ->
 }
 
 /// `i18n_root_path` - absolute path to i18n path which contains `en`, `de_DE`, `fr_FR` files
-pub(crate) fn load_raw_language(i18n_root_path: &Path, manifest: RawManifest) -> Result<RawLanguage, common_assets::Error> {
+pub(crate) fn load_raw_language(i18n_root_path: &Path, manifest: RawManifest) -> Result<RawLanguage<String>, common_assets::Error> {
+    let language_identifier = &manifest.metadata.language_identifier;
+    let fragments = recursive_load_raw_language(i18n_root_path, language_identifier, Path::new(""))?;
+    Ok(RawLanguage{
+        manifest,
+        fragments,
+    })
+}
+
+fn recursive_load_raw_language(i18n_root_path: &Path, language_identifier: &str, subfolder: &Path) -> Result<HashMap<PathBuf,RawFragment<String>>, common_assets::Error> {
     // Walk through each file in the directory
     let mut fragments = HashMap::new();
-    let language_identifier = &manifest.metadata.language_identifier;
-    let language_dir = i18n_root_path.join(language_identifier);
-    for fragment_file in language_dir.read_dir().unwrap().flatten() {
+    let search_dir = i18n_root_path.join(language_identifier).join(subfolder);
+    for fragment_file in search_dir.read_dir().unwrap().flatten() {
         let file_type = fragment_file.file_type()?;
         if file_type.is_dir() {
-            // TODO: recursive
-            continue;
-        }
-        if file_type.is_file() {
+            let full_path = fragment_file.path();
+            let relative_path = full_path.strip_prefix(&search_dir).unwrap();
+            fragments.extend(recursive_load_raw_language(i18n_root_path, language_identifier, relative_path)?);
+        } else if file_type.is_file() {
             let full_path = fragment_file.path();
             let relative_path = full_path.strip_prefix(&i18n_root_path).unwrap();
             let f = fs::File::open(&full_path)?;
@@ -63,14 +71,11 @@ pub(crate) fn load_raw_language(i18n_root_path: &Path, manifest: RawManifest) ->
             fragments.insert(relative_path.to_path_buf(), fragment);
         }
     }
-    Ok(RawLanguage{
-        manifest,
-        fragments,
-    })
+    Ok(fragments)
 }
 
-impl From<RawLanguage> for Language {
-    fn from(raw: RawLanguage) -> Self {
+impl From<RawLanguage<String>> for Language {
+    fn from(raw: RawLanguage<String>) -> Self {
 
         let mut string_map = HashMap::new();
         let mut vector_map = HashMap::new();
@@ -129,7 +134,7 @@ impl common_assets::Asset for RawManifest {
     const EXTENSION: &'static str = LANG_EXTENSION;
 }
 
-impl common_assets::Asset for RawFragment {
+impl common_assets::Asset for RawFragment<String> {
     type Loader = common_assets::RonLoader;
 
     const EXTENSION: &'static str = LANG_EXTENSION;

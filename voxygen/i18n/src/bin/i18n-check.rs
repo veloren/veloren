@@ -1,3 +1,4 @@
+/*
 use clap::{App, Arg};
 use std::path::Path;
 use veloren_i18n::{analysis, verification};
@@ -60,4 +61,7 @@ fn main() {
     if matches.is_present("verify") {
         verification::verify_all_localizations(&root, &asset_path);
     }
-}
+}*/
+
+
+fn main() {}

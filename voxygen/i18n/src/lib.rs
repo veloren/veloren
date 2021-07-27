@@ -1,5 +1,7 @@
 #[cfg(any(feature = "bin", test))]
-pub mod analysis;
+pub mod gitfragments;
+//#[cfg(any(feature = "bin", test))]
+//pub mod analysis;
 pub mod raw;
 pub mod verification;
 
@@ -113,7 +115,7 @@ impl common_assets::Compound for Language {
         // inside the asked_localization
         let mut fragments = HashMap::new();
         for fragment_asset in cache
-            .load_dir::<RawFragment>(asset_key, true)?
+            .load_dir::<RawFragment<String>>(asset_key, true)?
             .iter()
         {
             let read = fragment_asset.read();
