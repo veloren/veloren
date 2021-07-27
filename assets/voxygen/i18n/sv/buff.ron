@@ -34,6 +34,8 @@
         "buff.desc.frozen": "Din rörlighet och attacker går långsammare.",
         "buff.title.wet": "Blöt",
         "buff.desc.wet": "Marken skyr dina fötter, vilket gör det svårt att stanna.",
+        "buff.title.ensnared": "Intrasslad",
+        "buff.desc.ensnared": "Rankor greppar tag i dina ben vilket begränsar dina rörelser.",
         // Buffs stats
         "buff.stat.health": "Återger {str_total} hälsa",
         "buff.stat.increase_max_stamina": "Ökar max-uthålligheten med {strength}",

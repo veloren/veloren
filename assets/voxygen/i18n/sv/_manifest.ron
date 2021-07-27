@@ -55,6 +55,7 @@
             "Du kan välja att visa din hälsostatus i inställningarna.",
             "Sitt nära en lägereld (tryck 'K') för att långsamt återhämta dig från skador.",
             "Behöver du fler säckar eller bättre rustning för din fortsatta färd? Tryck 'C' för att öppna the crafting menu!", /// TODO translate crafting
+            "Försök att hoppa när du rullar genom kreatur.",
         ],
         "npc.speech.villager": [
             "Är inte detta en underbar dag?",
