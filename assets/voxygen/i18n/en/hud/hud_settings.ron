@@ -101,7 +101,6 @@
         "hud.settings.save_window_size": "Save window size",
         "hud.settings.reset_graphics": "Reset to Defaults",
 
-
         "hud.settings.master_volume": "Master Volume",
         "hud.settings.inactive_master_volume_perc": "Inactive Window Volume",
         "hud.settings.music_volume": "Music Volume",
@@ -127,7 +126,6 @@
         "hud.settings.world": "World",
         "hud.settings.region": "Region",
         "hud.settings.say": "Say",
-        "hud.settings.none": "None",
         "hud.settings.all": "All",
         "hud.settings.group_only": "Group only",
         "hud.settings.reset_chat" : "Reset to Defaults",

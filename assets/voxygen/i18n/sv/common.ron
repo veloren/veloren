@@ -77,7 +77,8 @@ Startade servern om?
         "common.weapons.unique": "Unik",
         "common.tool.debug": "Felsökning",
         "common.tool.faming": "Jordbruksredskap",
-        "common.tool.pick": "Korphacka",
+        "common.tool.pick": "Hacka",
+        "common.tool.mining": "Gruvgrävande",
         "common.kind.modular_component": "Modulär komponent",
         "common.kind.glider": "Glidare",
         "common.kind.consumable": "Förbrukningsvara",
@@ -99,7 +100,17 @@ Startade servern om?
         "common.stats.crit_mult": "Kritisk multi",
         "common.stats.armor": "Rustning",
         "common.stats.poise_res":"Motståndskraft",
+        "common.stats.energy_max": "Max Energi",
+        "common.stats.energy_reward": "Energibelöning",
+        "common.stats.crit_power": "Kritisk Kraft",
+        "common.stats.stealth": "Smygning",
         "common.stats.slots": "Packningutrymme",
+
+        "common.material.metal": "Metall",
+        "common.material.wood": "Trä",
+        "common.material.stone": "Sten",
+        "common.material.cloth": "Tyg",
+        "common.material.hide": "Skinn",
     },
 
 

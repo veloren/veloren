@@ -60,6 +60,8 @@
         "hud.skill.sc_heal_heal": "Ökar din förmåga att hela andra med {boost}%{SP}",
         "hud.skill.sc_heal_cost_title": "Energikostnad",
         "hud.skill.sc_heal_cost": "Helande av andra kräver {boost}% mindre energi{SP}",
+        "hud.skill.sc_heal_duration_title": "Tidsspann",
+        "hud.skill.sc_heal_duration": "Effekterna från din helande aura varar {boost}% längre{SP}",
         "hud.skill.sc_heal_range_title": "Räckvidd",
         "hud.skill.sc_heal_range": "Din stråle når {boost}% längre{SP}",
         "hud.skill.sc_wardaura_unlock_title": "Låser upp beskyddande aura",
@@ -238,6 +240,16 @@
         "hud.skill.axe_leap_cost": "Decreases cost of leap by {boost}%{SP}", //TODO
         "hud.skill.axe_leap_distance_title": "Leap Distance", //TODO
         "hud.skill.axe_leap_distance": "Increases distance of leap by {boost}%{SP}", //TODO
+        // Mining
+        "hud.skill.mining_title": "Gruvgrävande",
+        "hud.skill.pick_strike_title": "Hackehugg",
+        "hud.skill.pick_strike": "Hacka stenar med hackan för att få malm, ädelstenar och erfarenhet",
+        "hud.skill.pick_strike_speed_title": "Hugghastighet",
+        "hud.skill.pick_strike_speed": "Hacka stenar fortare{SP}",
+        "hud.skill.pick_strike_oregain_title": "Hackans Malmavkastning",
+        "hud.skill.pick_strike_oregain": "Chans att få extra malm ({boost}% per nivå){SP}",
+        "hud.skill.pick_strike_gemgain_title": "Hackans Ädelstensavkastning",
+        "hud.skill.pick_strike_gemgain": "Chans att få extra ädelstenar ({boost}% per nivå){SP}",
     },
 
 
