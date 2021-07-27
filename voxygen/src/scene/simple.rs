@@ -279,27 +279,24 @@ impl Scene {
         self.figure_model_cache
             .clean(&mut self.col_lights, scene_data.tick);
 
-        let active_item_kind = inventory
-            .and_then(|inv| inv.equipped(EquipSlot::ActiveMainhand))
-            .map(|i| i.kind());
+        let item_info = |equip_slot| {
+            inventory
+                .and_then(|inv| inv.equipped(equip_slot))
+                .and_then(|i| {
+                    if let ItemKind::Tool(tool) = i.kind() {
+                        Some((
+                            Some(tool.kind),
+                            Some(tool.hands.resolve_hands(i.components())),
+                        ))
+                    } else {
+                        None
+                    }
+                })
+                .unwrap_or((None, None))
+        };
 
-        let (active_tool_kind, active_tool_hand) =
-            if let Some(ItemKind::Tool(tool)) = active_item_kind {
-                (Some(tool.kind), Some(tool.hands))
-            } else {
-                (None, None)
-            };
-
-        let second_item_kind = inventory
-            .and_then(|inv| inv.equipped(EquipSlot::ActiveOffhand))
-            .map(|i| i.kind());
-
-        let (second_tool_kind, second_tool_hand) =
-            if let Some(ItemKind::Tool(tool)) = second_item_kind {
-                (Some(tool.kind), Some(tool.hands))
-            } else {
-                (None, None)
-            };
+        let (active_tool_kind, active_tool_hand) = item_info(EquipSlot::ActiveMainhand);
+        let (second_tool_kind, second_tool_hand) = item_info(EquipSlot::ActiveOffhand);
 
         let hands = (active_tool_hand, second_tool_hand);
 

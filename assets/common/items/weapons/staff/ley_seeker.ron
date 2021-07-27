@@ -3,7 +3,7 @@ ItemDef(
     description: "Starts swinging when pointed away from water",
     kind: Tool((
         kind: Staff,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.3,
             power: 0.8,

@@ -897,8 +897,10 @@ pub trait ItemDesc {
     fn quality(&self) -> &Quality;
     fn num_slots(&self) -> u16;
     fn item_definition_id(&self) -> &str;
-    fn components(&self) -> &[Item];
     fn tags(&self) -> &[ItemTag];
+    fn concrete_item(&self) -> Option<&Item>;
+
+    fn components(&self) -> &[Item] { self.concrete_item().map_or(&[], |i| i.components()) }
 
     fn tool(&self) -> Option<&Tool> {
         if let ItemKind::Tool(tool) = self.kind() {
@@ -922,9 +924,9 @@ impl ItemDesc for Item {
 
     fn item_definition_id(&self) -> &str { &self.item_def.item_definition_id }
 
-    fn components(&self) -> &[Item] { &self.components }
-
     fn tags(&self) -> &[ItemTag] { &self.item_def.tags }
+
+    fn concrete_item(&self) -> Option<&Item> { Some(self) }
 }
 
 impl ItemDesc for ItemDef {
@@ -940,9 +942,9 @@ impl ItemDesc for ItemDef {
 
     fn item_definition_id(&self) -> &str { &self.item_definition_id }
 
-    fn components(&self) -> &[Item] { &[] }
-
     fn tags(&self) -> &[ItemTag] { &self.tags }
+
+    fn concrete_item(&self) -> Option<&Item> { None }
 }
 
 impl Component for Item {
@@ -972,6 +974,8 @@ impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
     fn components(&self) -> &[Item] { (*self).components() }
 
     fn tags(&self) -> &[ItemTag] { (*self).tags() }
+
+    fn concrete_item(&self) -> Option<&Item> { None }
 }
 
 /// Returns all item asset specifiers

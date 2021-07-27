@@ -3,7 +3,7 @@ ItemDef(
     description: "Was attached to a mighty stone golem.",
     kind: Tool((
         kind: Natural,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.001,
             power: 1.0,

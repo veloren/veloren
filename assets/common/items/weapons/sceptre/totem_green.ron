@@ -3,7 +3,7 @@ ItemDef(
     description: "Territory marker of a Gnarling tribe.\nInfused with healing powers.",
     kind: Tool((
         kind: Sceptre,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.4,
             power: 1.0,

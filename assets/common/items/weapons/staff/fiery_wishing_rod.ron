@@ -3,7 +3,7 @@ ItemDef(
     description: "Fulfills all your wishes from medium-rare to well-done",
     kind: Tool((
         kind: Staff,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.3,
             power: 0.95,

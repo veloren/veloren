@@ -462,14 +462,15 @@ impl<'a> Widget for ItemTooltip<'a> {
 
         let quality = get_quality_col(item);
 
-        let first_equipped = inventory
-            .equipped_items_of_kind(item.kind().clone())
-            .next()
-            .cloned();
+        let equip_slot = item
+            .concrete_item()
+            .map(|item| inventory.equipped_items_of_kind(item))
+            .into_iter()
+            .flatten();
 
         let (title, desc) = (item.name().to_string(), item.description().to_string());
 
-        let item_kind = util::kind_text(item.kind(), i18n).to_string();
+        let item_kind = util::kind_text(item, i18n).to_string();
 
         let material_tag = item.tags().iter().find_map(|t| match t {
             ItemTag::Material(material) => Some(material),

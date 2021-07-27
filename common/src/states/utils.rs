@@ -5,7 +5,7 @@ use crate::{
         arthropod, biped_large, biped_small,
         character_state::OutputEvents,
         inventory::slot::{EquipSlot, Slot},
-        item::{Hands, ItemKind, Tool, ToolKind},
+        item::{Hands, Item, ItemKind, Tool, ToolKind},
         quadruped_low, quadruped_medium, quadruped_small,
         skills::{Skill, SwimSkill, SKILL_MODIFIERS},
         theropod, Body, CharacterAbility, CharacterState, Density, InputAttr, InputKind,
@@ -948,8 +948,7 @@ pub fn attempt_input(
 
 /// Checks that player can block, then attempts to block
 pub fn handle_block_input(data: &JoinData<'_>, update: &mut StateUpdate) {
-    let can_block =
-        |equip_slot| matches!(unwrap_tool_data(data, equip_slot), Some(tool) if tool.can_block());
+    let can_block = |equip_slot| matches!(unwrap_tool_data(data, equip_slot), Some((tool, _)) if tool.can_block());
     let hands = get_hands(data);
     if input_is_pressed(data, InputKind::Block)
         && (can_block(EquipSlot::ActiveMainhand)
@@ -1000,13 +999,17 @@ pub fn is_strafing(data: &JoinData<'_>, update: &StateUpdate) -> bool {
     (update.character.is_aimed() || update.should_strafe) && data.body.can_strafe()
 }
 
-pub fn unwrap_tool_data<'a>(data: &'a JoinData, equip_slot: EquipSlot) -> Option<&'a Tool> {
-    if let Some(ItemKind::Tool(tool)) = data
+// Returns tool and components
+pub fn unwrap_tool_data<'a>(
+    data: &'a JoinData,
+    equip_slot: EquipSlot,
+) -> Option<(&'a Tool, &'a [Item])> {
+    if let Some((ItemKind::Tool(tool), components)) = data
         .inventory
         .and_then(|inv| inv.equipped(equip_slot))
-        .map(|i| i.kind())
+        .map(|i| (i.kind(), i.components()))
     {
-        Some(tool)
+        Some((tool, components))
     } else {
         None
     }
@@ -1014,12 +1017,12 @@ pub fn unwrap_tool_data<'a>(data: &'a JoinData, equip_slot: EquipSlot) -> Option
 
 pub fn get_hands(data: &JoinData<'_>) -> (Option<Hands>, Option<Hands>) {
     let hand = |slot| {
-        if let Some(ItemKind::Tool(tool)) = data
+        if let Some((ItemKind::Tool(tool), components)) = data
             .inventory
             .and_then(|inv| inv.equipped(slot))
-            .map(|i| i.kind())
+            .map(|i| (i.kind(), i.components()))
         {
-            Some(tool.hands)
+            Some(tool.hands.resolve_hands(components))
         } else {
             None
         }
@@ -1176,8 +1179,8 @@ impl AbilityInfo {
             unwrap_tool_data(data, EquipSlot::ActiveMainhand)
         };
         let (tool, hand) = (
-            tool_data.map(|t| t.kind),
-            tool_data.map(|t| HandInfo::from_main_tool(t, from_offhand)),
+            tool_data.map(|(t, _)| t.kind),
+            tool_data.map(|(t, components)| HandInfo::from_main_tool(t, components, from_offhand)),
         );
 
         Self {
@@ -1197,8 +1200,8 @@ pub enum HandInfo {
 }
 
 impl HandInfo {
-    pub fn from_main_tool(tool: &Tool, from_offhand: bool) -> Self {
-        match tool.hands {
+    pub fn from_main_tool(tool: &Tool, components: &[Item], from_offhand: bool) -> Self {
+        match tool.hands.resolve_hands(components) {
             Hands::Two => Self::TwoHanded,
             Hands::One => {
                 if from_offhand {

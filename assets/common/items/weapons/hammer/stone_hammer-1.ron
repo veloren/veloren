@@ -3,7 +3,7 @@ ItemDef(
     description: "A rough stone, crumbling on the striking surfaces. Still usable as a weapon.",
     kind: Tool((
         kind: Hammer,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.5,
             power: 0.5,

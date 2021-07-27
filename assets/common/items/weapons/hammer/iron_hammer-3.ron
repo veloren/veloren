@@ -3,7 +3,7 @@ ItemDef(
     description: "The decorative iron mace has a crowning tip on top.",
     kind: Tool((
         kind: Hammer,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.5,
             power: 1.2,

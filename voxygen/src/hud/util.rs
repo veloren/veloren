@@ -70,13 +70,13 @@ pub fn price_desc(
     }
 }
 
-pub fn kind_text<'a>(kind: &ItemKind, i18n: &'a Localization) -> Cow<'a, str> {
-    match kind {
+pub fn kind_text<'a>(item: &dyn ItemDesc, i18n: &'a Localization) -> Cow<'a, str> {
+    match item.kind() {
         ItemKind::Armor(armor) => Cow::Borrowed(armor_kind(armor, i18n)),
         ItemKind::Tool(tool) => Cow::Owned(format!(
             "{} ({})",
             tool_kind(tool, i18n),
-            tool_hands(tool, i18n)
+            tool_hands(tool, item.components(), i18n)
         )),
         ItemKind::ModularComponent(_mc) => Cow::Borrowed(i18n.get("common.bag.shoulders")),
         ItemKind::Glider(_glider) => Cow::Borrowed(i18n.get("common.kind.glider")),
@@ -274,8 +274,8 @@ fn tool_kind<'a>(tool: &Tool, i18n: &'a Localization) -> &'a str {
 }
 
 /// Output the number of hands needed to hold a tool
-pub fn tool_hands<'a>(tool: &Tool, i18n: &'a Localization) -> &'a str {
-    let hands = match tool.hands {
+pub fn tool_hands<'a>(tool: &Tool, components: &[Item], i18n: &'a Localization) -> &'a str {
+    let hands = match tool.hands.resolve_hands(components) {
         Hands::One => i18n.get("common.hands.one"),
         Hands::Two => i18n.get("common.hands.two"),
     };

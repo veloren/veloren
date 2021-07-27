@@ -3,7 +3,7 @@ ItemDef(
     description: "It's beginning to fall apart.",
     kind: Tool((
         kind: Farming,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.4,
             power: 1.0,

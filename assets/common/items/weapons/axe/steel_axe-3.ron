@@ -3,7 +3,7 @@ ItemDef(
     description: "The blade of this steel axe is forged in a manner to resemble a crescent moon.",
     kind: Tool((
         kind: Axe,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.4,
             power: 1.4,

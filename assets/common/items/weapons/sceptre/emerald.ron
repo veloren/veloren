@@ -3,7 +3,7 @@ ItemDef(
     description: "Its stone is the closest thing from perfection",
     kind: Tool((
         kind: Sceptre,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.3,
             power: 2.0,

@@ -9,7 +9,7 @@ use vek::Vec3;
 use crate::{
     comp::{
         inventory::{
-            item::{tool::AbilityMap, ItemDef, ItemKind, MaterialStatManifest, TagExampleInfo},
+            item::{tool::AbilityMap, ItemDef, MaterialStatManifest, TagExampleInfo},
             loadout::Loadout,
             slot::{EquipSlot, Slot, SlotError},
         },
@@ -540,7 +540,7 @@ impl Inventory {
     #[must_use = "Returned items will be lost if not used"]
     pub fn equip(&mut self, inv_slot: InvSlotId) -> Vec<Item> {
         self.get(inv_slot)
-            .and_then(|item| self.loadout.get_slot_to_equip_into(item.kind()))
+            .and_then(|item| self.loadout.get_slot_to_equip_into(item))
             .map(|equip_slot| self.swap_inventory_loadout(inv_slot, equip_slot))
             .unwrap_or_else(Vec::new)
     }
@@ -551,7 +551,7 @@ impl Inventory {
     pub fn free_after_equip(&self, inv_slot: InvSlotId) -> i32 {
         let (inv_slot_for_equipped, slots_from_equipped) = self
             .get(inv_slot)
-            .and_then(|item| self.loadout.get_slot_to_equip_into(item.kind()))
+            .and_then(|item| self.loadout.get_slot_to_equip_into(item))
             .and_then(|equip_slot| self.equipped(equip_slot))
             .map_or((1, 0), |item| (0, item.slots().len()));
 
@@ -758,7 +758,7 @@ impl Inventory {
     pub fn can_swap(&self, inv_slot_id: InvSlotId, equip_slot: EquipSlot) -> bool {
         // Check if loadout slot can hold item
         if !self.get(inv_slot_id).map_or(true, |item| {
-            self.loadout.slot_can_hold(equip_slot, Some(item.kind()))
+            self.loadout.slot_can_hold(equip_slot, Some(item))
         }) {
             trace!("can_swap = false, equip slot can't hold item");
             return false;
@@ -775,8 +775,8 @@ impl Inventory {
         true
     }
 
-    pub fn equipped_items_of_kind(&self, item_kind: ItemKind) -> impl Iterator<Item = &Item> {
-        self.loadout.equipped_items_of_kind(item_kind)
+    pub fn equipped_items_of_kind<'a>(&'a self, item: &'a Item) -> impl Iterator<Item = &'a Item> {
+        self.loadout.equipped_items_of_kind(item)
     }
 
     pub fn swap_equipped_weapons(&mut self) { self.loadout.swap_equipped_weapons() }

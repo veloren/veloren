@@ -3,7 +3,7 @@ ItemDef(
     description: "Some loose brambles are still attached",
     kind: Tool((
         kind: Bow,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.4,
             power: 1.2,

@@ -110,22 +110,28 @@ pub enum ArmorSlot {
 }
 
 impl Slot {
-    pub fn can_hold(self, item_kind: &item::ItemKind) -> bool {
-        match (self, item_kind) {
+    pub fn can_hold(self, item: &item::Item) -> bool {
+        match (self, item) {
             (Self::Inventory(_), _) => true,
-            (Self::Equip(slot), item_kind) => slot.can_hold(item_kind),
+            (Self::Equip(slot), item) => slot.can_hold(item),
         }
     }
 }
 
 impl EquipSlot {
-    pub fn can_hold(self, item_kind: &item::ItemKind) -> bool {
-        match (self, item_kind) {
+    pub fn can_hold(self, item: &item::Item) -> bool {
+        match (self, item.kind()) {
             (Self::Armor(slot), ItemKind::Armor(armor::Armor { kind, .. })) => slot.can_hold(kind),
             (Self::ActiveMainhand, ItemKind::Tool(_)) => true,
-            (Self::ActiveOffhand, ItemKind::Tool(tool)) => matches!(tool.hands, tool::Hands::One),
+            (Self::ActiveOffhand, ItemKind::Tool(tool)) => matches!(
+                tool.hands.resolve_hands(item.components()),
+                tool::Hands::One
+            ),
             (Self::InactiveMainhand, ItemKind::Tool(_)) => true,
-            (Self::InactiveOffhand, ItemKind::Tool(tool)) => matches!(tool.hands, tool::Hands::One),
+            (Self::InactiveOffhand, ItemKind::Tool(tool)) => matches!(
+                tool.hands.resolve_hands(item.components()),
+                tool::Hands::One
+            ),
             (Self::Lantern, ItemKind::Lantern(_)) => true,
             (Self::Glider, ItemKind::Glider(_)) => true,
             _ => false,

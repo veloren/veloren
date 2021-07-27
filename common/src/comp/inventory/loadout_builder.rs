@@ -1043,10 +1043,7 @@ impl LoadoutBuilder {
     #[must_use = "Method consumes builder and returns updated builder."]
     fn with_equipment(mut self, equip_slot: EquipSlot, item: Option<Item>) -> Self {
         // Panic if item doesn't correspond to slot
-        assert!(
-            item.as_ref()
-                .map_or(true, |item| equip_slot.can_hold(&item.kind))
-        );
+        assert!(item.as_ref().map_or(true, |item| equip_slot.can_hold(item)));
 
         self.0.swap(equip_slot, item);
         self

@@ -3,7 +3,7 @@ ItemDef(
     description: "Perfect for mounted archery",
     kind: Tool((
         kind: Bow,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.4,
             power: 0.9,

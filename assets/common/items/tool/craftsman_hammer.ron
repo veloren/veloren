@@ -3,7 +3,7 @@ ItemDef(
     description: "Used to craft various items.",
     kind: Tool((
         kind: Hammer,
-        hands: One,
+        hands: Direct(One),
         stats: Direct((
             equip_time_secs: 0.25,
             power: 0.2,

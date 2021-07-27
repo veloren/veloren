@@ -3,7 +3,7 @@ ItemDef(
     description: "spook.",
     kind: Tool((
         kind: Natural,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.5,
             power: 1.0,

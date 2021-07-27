@@ -3,7 +3,7 @@ ItemDef(
     description: "Several sharp axe heads forged with points to mimic animal fangs.",
     kind: Tool((
         kind: Axe,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.4,
             power: 1.2,

@@ -3,7 +3,7 @@ ItemDef(
     description: "The ashes never stop glowing",
     kind: Tool((
         kind: Staff,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.6,
             power: 2.5,

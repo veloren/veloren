@@ -3,7 +3,7 @@ ItemDef(
     description: "",
     kind: Tool((
         kind: Spear,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.0,
             power: 1.2,

@@ -28,6 +28,7 @@ pub struct ModularComponent {
     pub toolkind: ToolKind,
     pub modkind: ModularComponentKind,
     pub stats: tool::Stats,
+    pub hand_restriction: Option<Hands>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -110,26 +111,13 @@ const TAG_EXAMPLES_PREFIX: &str = "common.items.tag_examples.modular";
 
 const HANDS: [Hands; 2] = [Hands::One, Hands::Two];
 
-fn make_weapon_def(toolkind: ToolKind, hands: Hands) -> (String, RawItemDef) {
-    let identifier = format!(
-        "{}.{}.{}",
-        WEAPON_PREFIX,
-        toolkind.identifier_name(),
-        hands.identifier_name()
-    );
-    let name = format!(
-        "Modular {} {}",
-        hands.identifier_name(),
-        toolkind.identifier_name()
-    );
-    let description = format!(
-        "A {} {} made of components",
-        hands.identifier_name(),
-        toolkind.identifier_name()
-    );
+fn make_weapon_def(toolkind: ToolKind) -> (String, RawItemDef) {
+    let identifier = format!("{}.{}", WEAPON_PREFIX, toolkind.identifier_name());
+    let name = format!("Modular {}", toolkind.identifier_name());
+    let description = format!("A {} made of components", toolkind.identifier_name());
     let tool = tool::Tool {
         kind: toolkind,
-        hands,
+        hands: tool::HandsKind::Modular,
         stats: tool::StatKind::Modular,
     };
     let kind = ItemKind::Tool(tool);
@@ -206,18 +194,43 @@ fn make_tagexample_def(
     (identifier, item)
 }
 
+// Checks that modular weapons should exist for a given toolkind and hands
+// combination
+fn exists(tool: ToolKind, hands: Hands) -> bool {
+    match tool {
+        // Has both 1 handed and 2 handed variants
+        ToolKind::Sword | ToolKind::Axe | ToolKind::Hammer => true,
+        // Has only 2 handed variants
+        ToolKind::Bow | ToolKind::Staff | ToolKind::Sceptre => matches!(hands, Hands::Two),
+        // Modular weapons do not yet exist
+        ToolKind::Dagger
+        | ToolKind::Spear
+        | ToolKind::Shield
+        | ToolKind::Natural
+        | ToolKind::Debug
+        | ToolKind::Farming
+        | ToolKind::Pick
+        | ToolKind::Empty => false,
+    }
+}
+
 fn initialize_modular_assets() -> (HashMap<String, RawItemDef>, RawRecipeBook) {
     let mut itemdefs = HashMap::new();
     let mut recipes = HashMap::new();
     for &toolkind in &SUPPORTED_TOOLKINDS {
+        let (identifier, item) = make_weapon_def(toolkind);
+        itemdefs.insert(identifier.clone(), item);
         for &hands in &HANDS {
-            let (identifier, item) = make_weapon_def(toolkind, hands);
-            itemdefs.insert(identifier.clone(), item);
-            let recipe = make_recipe_def(identifier.clone(), toolkind, hands);
-            recipes.insert(identifier, recipe);
-            for &modkind in &MODKINDS {
-                let (identifier, item) = make_tagexample_def(toolkind, modkind, hands);
-                itemdefs.insert(identifier, item);
+            if exists(toolkind, hands) {
+                let recipe = make_recipe_def(identifier.clone(), toolkind, hands);
+                recipes.insert(
+                    format!("{}.{}", identifier.clone(), hands.identifier_name()),
+                    recipe,
+                );
+                for &modkind in &MODKINDS {
+                    let (identifier, item) = make_tagexample_def(toolkind, modkind, hands);
+                    itemdefs.insert(identifier, item);
+                }
             }
         }
     }

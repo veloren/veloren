@@ -3,7 +3,7 @@ ItemDef(
     description: "Heavy iron hammered into rough blades, a simple tool for killing.",
     kind: Tool((
         kind: Axe,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.4,
             power: 1.2,

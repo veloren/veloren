@@ -3,7 +3,7 @@ ItemDef(
     description: "It's twitching from being charged with elemental powers",
     kind: Tool((
         kind: Staff,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.3,
             power: 0.8,

@@ -78,6 +78,31 @@ impl ToolKind {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum HandsKind {
+    Direct(Hands),
+    Modular,
+}
+
+impl HandsKind {
+    pub fn resolve_hands(&self, components: &[Item]) -> Hands {
+        match self {
+            HandsKind::Direct(hands) => *hands,
+            HandsKind::Modular => {
+                // Checks if weapon has components that restrict hands to two. Restrictions to
+                // one hand or no restrictions default to one-handed weapon.
+                let is_two_handed = components.iter().any(|item| matches!(item.kind(), ItemKind::ModularComponent(mc) if matches!(mc.hand_restriction, Some(Hands::Two))));
+                // If weapon is two handed, make it two handed
+                if is_two_handed {
+                    Hands::Two
+                } else {
+                    Hands::One
+                }
+            },
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Hands {
     One,
     Two,
@@ -265,28 +290,14 @@ impl StatKind {
 
 impl From<(&MaterialStatManifest, &[Item], &Tool)> for Stats {
     fn from((msm, components, tool): (&MaterialStatManifest, &[Item], &Tool)) -> Self {
-        let raw_stats = tool.stats.resolve_stats(msm, components).clamp_speed();
-        let (power, speed, poise) = match tool.hands {
-            Hands::One => (0.67, 1.33, 0.67),
-            Hands::Two => (1.5, 0.75, 1.5),
-        };
-        Self {
-            equip_time_secs: raw_stats.equip_time_secs,
-            power: raw_stats.power * power,
-            effect_power: raw_stats.effect_power * poise,
-            speed: raw_stats.speed * speed,
-            crit_chance: raw_stats.crit_chance,
-            range: raw_stats.range,
-            energy_efficiency: raw_stats.energy_efficiency,
-            buff_strength: raw_stats.buff_strength,
-        }
+        tool.stats.resolve_stats(msm, components).clamp_speed()
     }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Tool {
     pub kind: ToolKind,
-    pub hands: Hands,
+    pub hands: HandsKind,
     pub stats: StatKind,
     // TODO: item specific abilities
 }
@@ -297,7 +308,7 @@ impl Tool {
     pub fn new(kind: ToolKind, hands: Hands, stats: Stats) -> Self {
         Self {
             kind,
-            hands,
+            hands: HandsKind::Direct(hands),
             stats: StatKind::Direct(stats),
         }
     }
@@ -305,7 +316,7 @@ impl Tool {
     pub fn empty() -> Self {
         Self {
             kind: ToolKind::Empty,
-            hands: Hands::One,
+            hands: HandsKind::Direct(Hands::One),
             stats: StatKind::Direct(Stats {
                 equip_time_secs: 0.0,
                 power: 1.00,

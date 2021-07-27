@@ -3,7 +3,7 @@ ItemDef(
     description: "Staff made from the coolest wood",
     kind: Tool((
         kind: Staff,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.3,
             power: 1.3,

@@ -3,7 +3,7 @@ ItemDef(
     description: "Sun energy rumble deep within this staff",
     kind: Tool((
         kind: Staff,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.3,
             power: 0.9,

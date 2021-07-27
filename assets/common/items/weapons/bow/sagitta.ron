@@ -3,7 +3,7 @@ ItemDef(
     description: "Said to have slain a dragon with a single arrow",
     kind: Tool((
         kind: Bow,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.4,
             power: 2.5,

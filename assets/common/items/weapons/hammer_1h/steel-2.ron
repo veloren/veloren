@@ -3,7 +3,7 @@ ItemDef(
     description: "Inlaid with gold.",
     kind: Tool((
         kind: Hammer,
-        hands: One,
+        hands: Direct(One),
         stats: Direct((
             equip_time_secs: 0.5,
             power: 1.2,

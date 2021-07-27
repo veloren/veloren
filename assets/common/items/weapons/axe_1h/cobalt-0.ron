@@ -3,7 +3,7 @@ ItemDef(
     description: "Forged from cobalt.",
     kind: Tool((
         kind: Axe,
-        hands: One,
+        hands: Direct(One),
         stats: Direct((
             equip_time_secs: 0.4,
             power: 1.6,

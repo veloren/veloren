@@ -3,7 +3,7 @@ ItemDef(
     description: "'Caution, hot surface!'",
     kind: Tool((
         kind: Staff,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.1,
             power: 1.0,

@@ -3,7 +3,7 @@ ItemDef(
     description: "This heavy, solid chunk iron hammer head is simple and brutal in its design.",
     kind: Tool((
         kind: Hammer,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.5,
             power: 1.2,

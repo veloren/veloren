@@ -3,7 +3,7 @@ ItemDef(
     description: "Said to be able to cleave the heavens.",
     kind: Tool((
         kind: Axe,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.4,
             power: 2.5,

@@ -3,7 +3,7 @@ ItemDef(
     description: "Forged with iron.",
     kind: Tool((
         kind: Sword,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.3,
             power: 1.35,

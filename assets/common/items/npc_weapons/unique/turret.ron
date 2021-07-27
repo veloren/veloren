@@ -3,7 +3,7 @@ ItemDef(
     description: "Turret weapon",
     kind: Tool((
         kind: Natural,
-        hands: Two,
+        hands: Direct(Two),
         stats: Direct((
             equip_time_secs: 0.01,
             power: 1.0,

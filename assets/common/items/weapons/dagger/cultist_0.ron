@@ -3,7 +3,7 @@ ItemDef(
     description: "This belonged to an evil Cult Leader.",
     kind: Tool((
         kind: Dagger,
-        hands: One,
+        hands: Direct(One),
         stats: Direct((
             equip_time_secs: 0.2,
             power: 2.0,
