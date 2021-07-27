@@ -4,7 +4,7 @@
 (
     string_map: {
         "esc_menu.logout": "Ausloggen",
-        "esc_menu.quit_game": "Spiel Beenden",
+        "esc_menu.quit_game": "Spiel beenden",
     },
 
 

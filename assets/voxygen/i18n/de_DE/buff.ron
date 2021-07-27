@@ -16,7 +16,7 @@
         "buff.title.campfire_heal": "Heilung durch Lagerfeuer",
         "buff.desc.campfire_heal": "Das sitzen am Lagerfeuer heilt 1% der Lebensenergie pro Sekunde.",
         "buff.title.invulnerability": "Unverwundbarkeit",
-        "buff.desc.invulnerability": "Du bist immung gegen jeglichen Schaden.",
+        "buff.desc.invulnerability": "Du bist immun gegen jeglichen Schaden.",
         "buff.title.protectingward": "Schutzaura",
         "buff.desc.protectingward": "Du bist einigermaßen vor Angriffen geschützt.",
         // Debuffs

@@ -3,7 +3,7 @@
 /// Localization for germany German
 (
     string_map: {
-        "character_window.character_name": "Charakter Name",
+        "character_window.character_name": "Charaktername",
         // Character stats
         "character_window.character_stats": r#"Ausdauer
 
