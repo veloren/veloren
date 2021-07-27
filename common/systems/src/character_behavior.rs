@@ -28,16 +28,16 @@ fn incorporate_update(
     server_emitter: &mut Emitter<ServerEvent>,
 ) {
     // TODO: if checking equality is expensive use optional field in StateUpdate
-    if join.char_state.get_unchecked() != &state_update.character {
-        *join.char_state.get_mut_unchecked() = state_update.character
+    if *join.char_state != state_update.character {
+        *join.char_state = state_update.character
     };
     *join.pos = state_update.pos;
     *join.vel = state_update.vel;
     *join.ori = state_update.ori;
     *join.density = state_update.density;
     // Note: might be changed every tick by timer anyway
-    if join.energy.get_unchecked() != &state_update.energy {
-        *join.energy.get_mut_unchecked() = state_update.energy
+    if *join.energy != state_update.energy {
+        *join.energy = state_update.energy
     };
     join.controller
         .queued_inputs
@@ -74,7 +74,6 @@ pub struct ReadData<'a> {
     combos: ReadStorage<'a, Combo>,
     alignments: ReadStorage<'a, comp::Alignment>,
     terrain: ReadExpect<'a, TerrainGrid>,
-    inventories: ReadStorage<'a, Inventory>,
 }
 
 /// ## Character Behavior System
@@ -93,6 +92,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Density>,
         WriteStorage<'a, Energy>,
+        WriteStorage<'a, Inventory>,
         WriteStorage<'a, Controller>,
         WriteStorage<'a, Poise>,
         Write<'a, Vec<Outcome>>,
@@ -112,6 +112,7 @@ impl<'a> System<'a> for Sys {
             mut orientations,
             mut densities,
             mut energies,
+            mut inventories,
             mut controllers,
             mut poises,
             mut outcomes,
@@ -140,14 +141,14 @@ impl<'a> System<'a> for Sys {
         ) in (
             &read_data.entities,
             &read_data.uids,
-            &mut character_states.restrict_mut(),
+            &mut character_states,
             &mut positions,
             &mut velocities,
             &mut orientations,
             &read_data.masses,
             &mut densities,
-            &mut energies.restrict_mut(),
-            read_data.inventories.maybe(),
+            &mut energies,
+            &mut inventories,
             &mut controllers,
             read_data.healths.maybe(),
             &read_data.bodies,
@@ -165,7 +166,7 @@ impl<'a> System<'a> for Sys {
 
             // Enter stunned state if poise damage is enough
             if let Some(mut poise) = poises.get_mut(entity) {
-                let was_wielded = char_state.get_unchecked().is_wield();
+                let was_wielded = char_state.is_wield();
                 let poise_state = poise.poise_state();
                 let pos = pos.0;
                 // Remove potion/saturation buff if knocked into poise state
@@ -184,18 +185,17 @@ impl<'a> System<'a> for Sys {
                     PoiseState::Normal => {},
                     PoiseState::Interrupted => {
                         poise.reset();
-                        *char_state.get_mut_unchecked() =
-                            CharacterState::Stunned(common::states::stunned::Data {
-                                static_data: common::states::stunned::StaticData {
-                                    buildup_duration: Duration::from_millis(125),
-                                    recover_duration: Duration::from_millis(125),
-                                    movement_speed: 0.80,
-                                    poise_state,
-                                },
-                                timer: Duration::default(),
-                                stage_section: common::states::utils::StageSection::Buildup,
-                                was_wielded,
-                            });
+                        *char_state = CharacterState::Stunned(common::states::stunned::Data {
+                            static_data: common::states::stunned::StaticData {
+                                buildup_duration: Duration::from_millis(125),
+                                recover_duration: Duration::from_millis(125),
+                                movement_speed: 0.80,
+                                poise_state,
+                            },
+                            timer: Duration::default(),
+                            stage_section: common::states::utils::StageSection::Buildup,
+                            was_wielded,
+                        });
                         outcomes.push(Outcome::PoiseChange {
                             pos,
                             state: PoiseState::Interrupted,
@@ -203,18 +203,17 @@ impl<'a> System<'a> for Sys {
                     },
                     PoiseState::Stunned => {
                         poise.reset();
-                        *char_state.get_mut_unchecked() =
-                            CharacterState::Stunned(common::states::stunned::Data {
-                                static_data: common::states::stunned::StaticData {
-                                    buildup_duration: Duration::from_millis(300),
-                                    recover_duration: Duration::from_millis(300),
-                                    movement_speed: 0.65,
-                                    poise_state,
-                                },
-                                timer: Duration::default(),
-                                stage_section: common::states::utils::StageSection::Buildup,
-                                was_wielded,
-                            });
+                        *char_state = CharacterState::Stunned(common::states::stunned::Data {
+                            static_data: common::states::stunned::StaticData {
+                                buildup_duration: Duration::from_millis(300),
+                                recover_duration: Duration::from_millis(300),
+                                movement_speed: 0.65,
+                                poise_state,
+                            },
+                            timer: Duration::default(),
+                            stage_section: common::states::utils::StageSection::Buildup,
+                            was_wielded,
+                        });
                         outcomes.push(Outcome::PoiseChange {
                             pos,
                             state: PoiseState::Stunned,
@@ -226,18 +225,17 @@ impl<'a> System<'a> for Sys {
                     },
                     PoiseState::Dazed => {
                         poise.reset();
-                        *char_state.get_mut_unchecked() =
-                            CharacterState::Stunned(common::states::stunned::Data {
-                                static_data: common::states::stunned::StaticData {
-                                    buildup_duration: Duration::from_millis(600),
-                                    recover_duration: Duration::from_millis(250),
-                                    movement_speed: 0.45,
-                                    poise_state,
-                                },
-                                timer: Duration::default(),
-                                stage_section: common::states::utils::StageSection::Buildup,
-                                was_wielded,
-                            });
+                        *char_state = CharacterState::Stunned(common::states::stunned::Data {
+                            static_data: common::states::stunned::StaticData {
+                                buildup_duration: Duration::from_millis(600),
+                                recover_duration: Duration::from_millis(250),
+                                movement_speed: 0.45,
+                                poise_state,
+                            },
+                            timer: Duration::default(),
+                            stage_section: common::states::utils::StageSection::Buildup,
+                            was_wielded,
+                        });
                         outcomes.push(Outcome::PoiseChange {
                             pos,
                             state: PoiseState::Dazed,
@@ -249,18 +247,17 @@ impl<'a> System<'a> for Sys {
                     },
                     PoiseState::KnockedDown => {
                         poise.reset();
-                        *char_state.get_mut_unchecked() =
-                            CharacterState::Stunned(common::states::stunned::Data {
-                                static_data: common::states::stunned::StaticData {
-                                    buildup_duration: Duration::from_millis(750),
-                                    recover_duration: Duration::from_millis(500),
-                                    movement_speed: 0.4,
-                                    poise_state,
-                                },
-                                timer: Duration::default(),
-                                stage_section: common::states::utils::StageSection::Buildup,
-                                was_wielded,
-                            });
+                        *char_state = CharacterState::Stunned(common::states::stunned::Data {
+                            static_data: common::states::stunned::StaticData {
+                                buildup_duration: Duration::from_millis(750),
+                                recover_duration: Duration::from_millis(500),
+                                movement_speed: 0.4,
+                                poise_state,
+                            },
+                            timer: Duration::default(),
+                            stage_section: common::states::utils::StageSection::Buildup,
+                            was_wielded,
+                        });
                         outcomes.push(Outcome::PoiseChange {
                             pos,
                             state: PoiseState::KnockedDown,
@@ -286,7 +283,7 @@ impl<'a> System<'a> for Sys {
                 mass,
                 density: &mut density,
                 energy,
-                inventory,
+                inventory: Some(&inventory),
                 controller: &mut controller,
                 health,
                 body,
@@ -357,8 +354,8 @@ impl<'a> System<'a> for Sys {
             // If mounted, character state is controlled by mount
             if let Some(Mounting(_)) = read_data.mountings.get(entity) {
                 let idle_state = CharacterState::Idle {};
-                if join_struct.char_state.get_unchecked() != &idle_state {
-                    *join_struct.char_state.get_mut_unchecked() = idle_state;
+                if *join_struct.char_state != idle_state {
+                    *join_struct.char_state = idle_state;
                 }
                 continue;
             }
