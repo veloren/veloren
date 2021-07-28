@@ -8,12 +8,7 @@ use crate::{
     terrain::TerrainGrid,
     uid::Uid,
 };
-use specs::{
-    hibitset,
-    storage::{PairedStorage, SequentialRestriction},
-    DerefFlaggedStorage, Entity, LazyUpdate,
-};
-use specs_idvs::IdvStorage;
+use specs::{storage::FlaggedAccessMut, Entity, LazyUpdate};
 use vek::*;
 
 pub trait CharacterBehavior {
@@ -100,25 +95,16 @@ pub struct JoinData<'a> {
     pub terrain: &'a TerrainGrid,
 }
 
-type RestrictedMut<'a, C> = PairedStorage<
-    'a,
-    'a,
-    C,
-    &'a mut DerefFlaggedStorage<C, IdvStorage<C>>,
-    &'a hibitset::BitSet,
-    SequentialRestriction,
->;
-
 pub struct JoinStruct<'a> {
     pub entity: Entity,
     pub uid: &'a Uid,
-    pub char_state: RestrictedMut<'a, CharacterState>,
+    pub char_state: FlaggedAccessMut<'a, &'a mut CharacterState, CharacterState>,
     pub pos: &'a mut Pos,
     pub vel: &'a mut Vel,
     pub ori: &'a mut Ori,
     pub mass: &'a Mass,
     pub density: &'a mut Density,
-    pub energy: RestrictedMut<'a, Energy>,
+    pub energy: FlaggedAccessMut<'a, &'a mut Energy, Energy>,
     pub inventory: Option<&'a Inventory>,
     pub controller: &'a mut Controller,
     pub health: Option<&'a Health>,
@@ -143,13 +129,13 @@ impl<'a> JoinData<'a> {
         Self {
             entity: j.entity,
             uid: j.uid,
-            character: j.char_state.get_unchecked(),
+            character: &j.char_state,
             pos: j.pos,
             vel: j.vel,
             ori: j.ori,
             mass: j.mass,
             density: j.density,
-            energy: j.energy.get_unchecked(),
+            energy: &j.energy,
             inventory: j.inventory,
             controller: j.controller,
             inputs: &j.controller.inputs,
