@@ -21,7 +21,7 @@ fn push_full() {
             .iter()
             .map(|a| Some(a.duplicate(ability_map, msm)))
             .collect(),
-        loadout: LoadoutBuilder::new().build(),
+        loadout: LoadoutBuilder::empty().build(),
     };
     assert_eq!(
         inv.push(TEST_ITEMS[0].duplicate(ability_map, msm))
@@ -41,7 +41,7 @@ fn push_all_full() {
             .iter()
             .map(|a| Some(a.duplicate(ability_map, msm)))
             .collect(),
-        loadout: LoadoutBuilder::new().build(),
+        loadout: LoadoutBuilder::empty().build(),
     };
     let Error::Full(leftovers) = inv
         .push_all(
@@ -71,7 +71,7 @@ fn push_unique_all_full() {
             .iter()
             .map(|a| Some(a.duplicate(ability_map, msm)))
             .collect(),
-        loadout: LoadoutBuilder::new().build(),
+        loadout: LoadoutBuilder::empty().build(),
     };
     inv.push_all_unique(
         TEST_ITEMS
@@ -90,7 +90,7 @@ fn push_all_empty() {
     let mut inv = Inventory {
         next_sort_order: InventorySortOrder::Name,
         slots: vec![None, None],
-        loadout: LoadoutBuilder::new().build(),
+        loadout: LoadoutBuilder::empty().build(),
     };
     inv.push_all(
         TEST_ITEMS
@@ -109,7 +109,7 @@ fn push_all_unique_empty() {
     let mut inv = Inventory {
         next_sort_order: InventorySortOrder::Name,
         slots: vec![None, None],
-        loadout: LoadoutBuilder::new().build(),
+        loadout: LoadoutBuilder::empty().build(),
     };
     inv.push_all_unique(
         TEST_ITEMS

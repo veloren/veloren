@@ -24,17 +24,14 @@ use tracing::warn;
 /// `ItemConfig`
 ///
 /// ```
-/// use veloren_common::{
-///     assets::AssetExt,
-///     comp::item::tool::AbilityMap,
-///     comp::Item,
-///     LoadoutBuilder,
-/// };
+/// use veloren_common::{comp::Item, LoadoutBuilder};
 ///
-/// // Build a loadout with character starter defaults and a specific sword with default sword abilities
-/// let loadout = LoadoutBuilder::new()
+/// // Build a loadout with character starter defaults
+/// // and a specific sword with default sword abilities
+/// let sword = Item::new_from_asset_expect("common.items.weapons.sword.steel-8");
+/// let loadout = LoadoutBuilder::empty()
 ///     .defaults()
-///     .active_mainhand(Some(Item::new_from_asset_expect("common.items.weapons.sword.steel-8")))
+///     .active_mainhand(Some(sword))
 ///     .build();
 /// ```
 #[derive(Clone)]
@@ -362,13 +359,9 @@ fn default_main_tool(body: &Body) -> Item {
     maybe_tool.unwrap_or_else(Item::empty)
 }
 
-impl Default for LoadoutBuilder {
-    fn default() -> Self { Self::new() }
-}
-
 impl LoadoutBuilder {
     #[must_use]
-    pub fn new() -> Self { Self(Loadout::new_empty()) }
+    pub fn empty() -> Self { Self(Loadout::new_empty()) }
 
     #[must_use]
     /// Construct new `LoadoutBuilder` from `asset_specifier`
@@ -376,7 +369,7 @@ impl LoadoutBuilder {
     pub fn from_asset_expect(asset_specifier: &str, rng: Option<&mut impl Rng>) -> Self {
         // It's impossible to use lambdas because `loadout` is used by value
         #![allow(clippy::option_if_let_else)]
-        let loadout = Self::new();
+        let loadout = Self::empty();
 
         if let Some(rng) = rng {
             loadout.with_asset_expect(asset_specifier, rng)
@@ -392,7 +385,7 @@ impl LoadoutBuilder {
     /// NOTE: make sure that you check what is default for this body
     /// Use it if you don't care much about it, for example in "/spawn" command
     pub fn from_default(body: &Body) -> Self {
-        let loadout = Self::new();
+        let loadout = Self::empty();
         loadout
             .with_default_maintool(body)
             .with_default_equipment(body)
@@ -691,7 +684,7 @@ mod tests {
     #[test]
     fn test_loadout_presets() {
         for preset in Preset::iter() {
-            std::mem::drop(LoadoutBuilder::default().with_preset(preset));
+            std::mem::drop(LoadoutBuilder::empty().with_preset(preset));
         }
     }
 

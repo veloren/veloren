@@ -36,7 +36,7 @@ pub fn create_character(
     let stats = Stats::new(character_alias.to_string());
     let skill_set = SkillSet::default();
 
-    let loadout = LoadoutBuilder::new()
+    let loadout = LoadoutBuilder::empty()
         .defaults()
         .active_mainhand(Some(Item::new_from_asset_expect(&tool_id)))
         .build();

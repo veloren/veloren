@@ -341,7 +341,7 @@ pub fn convert_loadout_from_database_items(
     loadout_container_id: i64,
     database_items: &[Item],
 ) -> Result<Loadout, PersistenceError> {
-    let loadout_builder = LoadoutBuilder::new();
+    let loadout_builder = LoadoutBuilder::empty();
     let mut loadout = loadout_builder.build();
     let mut item_indices = HashMap::new();
 

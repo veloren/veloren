@@ -230,7 +230,7 @@ impl<'a> System<'a> for Sys {
                 };
 
                 let loadout = {
-                    let mut loadout_builder = LoadoutBuilder::new();
+                    let mut loadout_builder = LoadoutBuilder::empty();
                     let rng = &mut rand::thread_rng();
 
                     // If main tool is passed, use it. Otherwise fallback to default tool

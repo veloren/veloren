@@ -180,7 +180,7 @@ impl Mode {
     pub fn create(name: String) -> Self {
         let tool = STARTER_SWORD;
 
-        let loadout = LoadoutBuilder::new()
+        let loadout = LoadoutBuilder::empty()
             .defaults()
             .active_mainhand(Some(Item::new_from_asset_expect(tool)))
             .build();

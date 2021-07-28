@@ -119,7 +119,7 @@ impl<'a> System<'a> for Sys {
             // TODO: this should be a bit more intelligent
             let loadout = match body {
                 comp::Body::Humanoid(_) => entity.get_loadout(),
-                _ => LoadoutBuilder::new().with_default_maintool(&body).build(),
+                _ => LoadoutBuilder::empty().with_default_maintool(&body).build(),
             };
 
             let event = match body {

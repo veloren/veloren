@@ -57,14 +57,73 @@ enum Meta {
     SkillSetAsset(String),
 }
 
+// FIXME: currently this is used for both base definition
+// and extension manifest.
+// This is why all fields have Uninit kind which is means
+// that this field should be either Default or Unchanged
+// depending on how it is used.
+//
+// When we will use exension manifests more, it would be nicer to
+// split EntityBase and EntityExtension to different structs.
+//
+// Fields which have Uninit enum kind
+// should be optional (or renamed to Unchanged) in EntityExtension
+// and required (or renamed to Default) in EntityBase
+/// Struct for EntityInfo manifest.
+///
+/// Intended to use with .ron files as base definion or
+/// in rare cases as extension manifest.
+/// Check assets/common/entity/template.ron or other examples.
+///
+/// # Example
+/// ```
+/// use vek::Vec3;
+/// use veloren_common::generation::EntityInfo;
+///
+/// // create new EntityInfo at dummy position
+/// // and fill it with template config
+/// let dummy_position = Vec3::new(0.0, 0.0, 0.0);
+/// let entity = EntityInfo::at(dummy_position).with_asset_expect("common.entity.template");
+/// ```
 #[derive(Debug, Deserialize, Clone)]
 pub struct EntityConfig {
+    /// Name of Entity
+    /// Can be Name(String) with given name
+    /// or Automatic which will call automatic name depend on Body
+    /// or Uninit (means it should be specified somewhere in code)
     name: NameKind,
+
+    /// Body
+    /// Can be Exact (Body with all fields e.g BodyType, Species, Hair color and
+    /// such) or RandomWith (will generate random body or species)
+    /// or Uninit (means it should be specified somewhere in code)
     body: BodyBuilder,
+
+    /// Alignment, can be Uninit
     alignment: AlignmentMark,
+
+    /// Loot
+    /// Can be Item (with asset_specifier for item)
+    /// or LootTable (with asset_specifier for loot table)
+    /// or Uninit (means it should be specified something in the code)
     loot: LootKind,
+
+    /// Hands:
+    /// - TwoHanded(ItemSpec) for one 2h or 1h weapon,
+    /// - Paired(ItemSpec) for two 1h weapons aka berserker mode,
+    /// - Mix { mainhand: ItemSpec, offhand: ItemSpec,
+    /// } for two different 1h weapons,
+    /// - Uninit which means that tool should be specified somewhere in code,
+    /// Where ItemSpec is taken from loadout_builder module
+    // TODO: better name for this?
+    // wielding? equipped? what do you think Tigers are wielding?
+    // should we use this field for animals without visible weapons at all?
     hands: Hands,
-    // Meta fields
+
+    /// Meta Info for optional fields
+    /// Possible fields:
+    /// LoadoutAsset(String) with asset_specifier for loadout
+    /// SkillSetAsset(String) with asset_specifier for skillset
     meta: Vec<Meta>,
 }
 
@@ -476,7 +535,7 @@ mod tests {
             match field {
                 Meta::LoadoutAsset(asset) => {
                     let rng = &mut rand::thread_rng();
-                    let builder = LoadoutBuilder::default();
+                    let builder = LoadoutBuilder::empty();
                     // we need to just load it check if it exists,
                     // because all loadouts are tested in LoadoutBuilder module
                     std::mem::drop(builder.with_asset_expect(&asset, rng));
