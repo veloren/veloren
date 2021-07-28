@@ -62,6 +62,7 @@
         "gameinput.sneak": "S'accroupir",
         "gameinput.swimdown": "Nager vers le bas",
         "gameinput.swimup": "Nager vers le haut",
+        "gameinput.greet": "Saluer",
     },
 
 
