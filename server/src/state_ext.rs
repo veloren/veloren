@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
     persistence::PersistedComponents,
+    pet::restore_pet,
     presence::{Presence, RepositionOnChunkLoad},
     settings::Settings,
     sys::sentinel::DeletedEntities,
@@ -12,7 +13,7 @@ use common::{
     comp::{
         self,
         skills::{GeneralSkill, Skill},
-        Group, Inventory,
+        Group, Inventory, Poise,
     },
     effect::Effect,
     resources::TimeOfDay,
@@ -30,7 +31,7 @@ use specs::{
     Join, WorldExt,
 };
 use std::time::Duration;
-use tracing::warn;
+use tracing::{trace, warn};
 use vek::*;
 
 pub trait StateExt {
@@ -485,7 +486,7 @@ impl StateExt for State {
     }
 
     fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents) {
-        let (body, stats, skill_set, inventory, waypoint) = components;
+        let (body, stats, skill_set, inventory, waypoint, pets) = components;
 
         if let Some(player_uid) = self.read_component_copied::<Uid>(entity) {
             // Notify clients of a player list update
@@ -534,6 +535,38 @@ impl StateExt for State {
                 self.write_component_ignore_entity_dead(entity, comp::Pos(waypoint.get_pos()));
                 self.write_component_ignore_entity_dead(entity, comp::Vel(Vec3::zero()));
                 self.write_component_ignore_entity_dead(entity, comp::ForceUpdate);
+            }
+
+            let player_pos = self.ecs().read_storage::<comp::Pos>().get(entity).copied();
+            if let Some(player_pos) = player_pos {
+                trace!(
+                    "Loading {} pets for player at pos {:?}",
+                    pets.len(),
+                    player_pos
+                );
+                // This is the same as wild creatures naturally spawned in the world
+                const DEFAULT_PET_HEALTH_LEVEL: u16 = 0;
+
+                for (pet, body, stats) in pets {
+                    let pet_entity = self
+                        .create_npc(
+                            player_pos,
+                            stats,
+                            comp::SkillSet::default(),
+                            Some(comp::Health::new(body, DEFAULT_PET_HEALTH_LEVEL)),
+                            Poise::new(body),
+                            Inventory::new_empty(),
+                            body,
+                        )
+                        .with(comp::Scale(1.0))
+                        .with(comp::Vel(Vec3::new(0.0, 0.0, 0.0)))
+                        .with(comp::MountState::Unmounted)
+                        .build();
+
+                    restore_pet(self.ecs(), pet_entity, entity, pet);
+                }
+            } else {
+                warn!("Player has no pos, cannot load {} pets", pets.len());
             }
         }
     }

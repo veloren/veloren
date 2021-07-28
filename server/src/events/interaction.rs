@@ -29,6 +29,7 @@ use crate::{
     Server,
 };
 
+use crate::pet::tame_pet;
 use hashbrown::{HashMap, HashSet};
 use lazy_static::lazy_static;
 use serde::Deserialize;
@@ -441,4 +442,10 @@ pub fn handle_create_sprite(server: &mut Server, pos: Vec3<i32>, sprite: SpriteK
             server.state.set_block(pos, new_block);
         }
     }
+}
+
+pub fn handle_tame_pet(server: &mut Server, pet_entity: EcsEntity, owner_entity: EcsEntity) {
+    // TODO: Raise outcome to send to clients to play sound/render an indicator
+    // showing taming success?
+    tame_pet(server.state.ecs(), pet_entity, owner_entity);
 }

@@ -1,5 +1,6 @@
 use common::comp;
 use serde::{Deserialize, Serialize};
+use std::string::ToString;
 use vek::Vec3;
 
 #[derive(Serialize, Deserialize)]
@@ -30,6 +31,32 @@ impl From<&comp::humanoid::Body> for HumanoidBody {
         }
     }
 }
+
+/// A serializable model used to represent a generic Body. Since all variants
+/// of Body except Humanoid (currently) have the same struct layout, a single
+/// struct is used for persistence conversions.
+#[derive(Serialize, Deserialize)]
+pub struct GenericBody {
+    pub species: String,
+    pub body_type: String,
+}
+
+macro_rules! generic_body_from_impl {
+    ($body_type:ty) => {
+        impl From<&$body_type> for GenericBody {
+            fn from(body: &$body_type) -> Self {
+                GenericBody {
+                    species: body.species.to_string(),
+                    body_type: body.body_type.to_string(),
+                }
+            }
+        }
+    };
+}
+
+generic_body_from_impl!(comp::quadruped_low::Body);
+generic_body_from_impl!(comp::quadruped_medium::Body);
+generic_body_from_impl!(comp::quadruped_small::Body);
 
 #[derive(Serialize, Deserialize)]
 pub struct CharacterPosition {

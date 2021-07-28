@@ -1045,31 +1045,12 @@ fn handle_spawn(
 
                 // Add to group system if a pet
                 if matches!(alignment, comp::Alignment::Owned { .. }) {
-                    let state = server.state();
-                    let clients = state.ecs().read_storage::<Client>();
-                    let uids = state.ecs().read_storage::<Uid>();
-                    let mut group_manager =
-                        state.ecs().write_resource::<comp::group::GroupManager>();
-                    group_manager.new_pet(
-                        new_entity,
-                        target,
-                        &mut state.ecs().write_storage(),
-                        &state.ecs().entities(),
-                        &state.ecs().read_storage(),
-                        &uids,
-                        &mut |entity, group_change| {
-                            clients
-                                .get(entity)
-                                .and_then(|c| {
-                                    group_change
-                                        .try_map(|e| uids.get(e).copied())
-                                        .map(|g| (g, c))
-                                })
-                                .map(|(g, c)| {
-                                    c.send_fallible(ServerGeneral::GroupUpdate(g));
-                                });
-                        },
-                    );
+                    let server_eventbus =
+                        server.state.ecs().read_resource::<EventBus<ServerEvent>>();
+                    server_eventbus.emit_now(ServerEvent::TamePet {
+                        owner_entity: target,
+                        pet_entity: new_entity,
+                    });
                 } else if let Some(group) = match alignment {
                     comp::Alignment::Wild => None,
                     comp::Alignment::Passive => None,

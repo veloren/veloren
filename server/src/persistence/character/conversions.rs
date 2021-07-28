@@ -1,11 +1,11 @@
 use crate::persistence::{
     character::EntityId,
-    models::{Body, Character, Item, Skill, SkillGroup},
+    models::{Character, Item, Skill, SkillGroup},
 };
 
 use crate::persistence::{
     error::PersistenceError,
-    json_models::{self, CharacterPosition, HumanoidBody},
+    json_models::{self, CharacterPosition, GenericBody, HumanoidBody},
 };
 use common::{
     character::CharacterId,
@@ -23,7 +23,7 @@ use common::{
 use core::{convert::TryFrom, num::NonZeroU64};
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
-use std::{collections::VecDeque, sync::Arc};
+use std::{collections::VecDeque, str::FromStr, sync::Arc};
 use tracing::trace;
 
 #[derive(Debug)]
@@ -188,13 +188,33 @@ pub fn convert_items_to_database_items(
     upserts
 }
 
-pub fn convert_body_to_database_json(body: &CompBody) -> Result<String, PersistenceError> {
-    let json_model = match body {
-        common::comp::Body::Humanoid(humanoid_body) => HumanoidBody::from(humanoid_body),
-        _ => unimplemented!("Only humanoid bodies are currently supported for persistence"),
-    };
-
-    serde_json::to_string(&json_model).map_err(PersistenceError::SerializationError)
+pub fn convert_body_to_database_json(
+    comp_body: &CompBody,
+) -> Result<(&str, String), PersistenceError> {
+    Ok(match comp_body {
+        common::comp::Body::Humanoid(body) => (
+            "humanoid",
+            serde_json::to_string(&HumanoidBody::from(body))?,
+        ),
+        common::comp::Body::QuadrupedLow(body) => (
+            "quadruped_low",
+            serde_json::to_string(&GenericBody::from(body))?,
+        ),
+        common::comp::Body::QuadrupedMedium(body) => (
+            "quadruped_medium",
+            serde_json::to_string(&GenericBody::from(body))?,
+        ),
+        common::comp::Body::QuadrupedSmall(body) => (
+            "quadruped_small",
+            serde_json::to_string(&GenericBody::from(body))?,
+        ),
+        _ => {
+            return Err(PersistenceError::ConversionError(format!(
+                "Unsupported body type for persistence: {:?}",
+                comp_body
+            )));
+        },
+    })
 }
 
 pub fn convert_waypoint_to_database_json(waypoint: Option<Waypoint>) -> Option<String> {
@@ -388,10 +408,39 @@ pub fn convert_loadout_from_database_items(
     Ok(loadout)
 }
 
-pub fn convert_body_from_database(body: &Body) -> Result<CompBody, PersistenceError> {
-    Ok(match body.variant.as_str() {
+/// Generates the code to deserialize a specific body variant from JSON
+macro_rules! deserialize_body {
+    ($body_data:expr, $body_variant:tt, $body_type:tt) => {{
+        let json_model = serde_json::de::from_str::<GenericBody>($body_data)?;
+        CompBody::$body_variant(common::comp::$body_type::Body {
+            species: common::comp::$body_type::Species::from_str(&json_model.species)
+                .map_err(|_| {
+                    PersistenceError::ConversionError(format!(
+                        "Missing species: {}",
+                        json_model.species
+                    ))
+                })?
+                .to_owned(),
+            body_type: common::comp::$body_type::BodyType::from_str(&json_model.body_type)
+                .map_err(|_| {
+                    PersistenceError::ConversionError(format!(
+                        "Missing body type: {}",
+                        json_model.species
+                    ))
+                })?
+                .to_owned(),
+        })
+    }};
+}
+pub fn convert_body_from_database(
+    variant: &str,
+    body_data: &str,
+) -> Result<CompBody, PersistenceError> {
+    Ok(match variant {
+        // The humanoid variant doesn't use the body_variant! macro as it is unique in having
+        // extra fields on its body struct
         "humanoid" => {
-            let json_model = serde_json::de::from_str::<HumanoidBody>(&body.body_data)?;
+            let json_model = serde_json::de::from_str::<HumanoidBody>(body_data)?;
             CompBody::Humanoid(common::comp::humanoid::Body {
                 species: common::comp::humanoid::ALL_SPECIES
                     .get(json_model.species as usize)
@@ -420,10 +469,20 @@ pub fn convert_body_from_database(body: &Body) -> Result<CompBody, PersistenceEr
                 eye_color: json_model.eye_color,
             })
         },
+        "quadruped_low" => {
+            deserialize_body!(body_data, QuadrupedLow, quadruped_low)
+        },
+        "quadruped_medium" => {
+            deserialize_body!(body_data, QuadrupedMedium, quadruped_medium)
+        },
+        "quadruped_small" => {
+            deserialize_body!(body_data, QuadrupedSmall, quadruped_small)
+        },
         _ => {
-            return Err(PersistenceError::ConversionError(
-                "Only humanoid bodies are supported for characters".to_string(),
-            ));
+            return Err(PersistenceError::ConversionError(format!(
+                "{} is not a supported body type for deserialization",
+                variant.to_string()
+            )));
         },
     })
 }

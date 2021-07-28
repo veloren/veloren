@@ -33,3 +33,10 @@ pub struct SkillGroup {
     pub available_sp: i32,
     pub earned_sp: i32,
 }
+
+pub struct Pet {
+    pub database_id: i64,
+    pub name: String,
+    pub body_variant: String,
+    pub body_data: String,
+}

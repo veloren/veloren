@@ -18,7 +18,14 @@ use std::{
 };
 use tracing::{debug, error, info, trace, warn};
 
-pub type CharacterUpdateData = (comp::SkillSet, comp::Inventory, Option<comp::Waypoint>);
+pub type CharacterUpdateData = (
+    comp::SkillSet,
+    comp::Inventory,
+    Vec<PetPersistenceData>,
+    Option<comp::Waypoint>,
+);
+
+pub type PetPersistenceData = (comp::Pet, comp::Body, comp::Stats);
 
 #[allow(clippy::large_enum_variant)]
 pub enum CharacterUpdaterEvent {
@@ -258,15 +265,21 @@ impl CharacterUpdater {
                 CharacterId,
                 &'a comp::SkillSet,
                 &'a comp::Inventory,
+                Vec<PetPersistenceData>,
                 Option<&'a comp::Waypoint>,
             ),
         >,
     ) {
         let updates = updates
-            .map(|(character_id, skill_set, inventory, waypoint)| {
+            .map(|(character_id, skill_set, inventory, pets, waypoint)| {
                 (
                     character_id,
-                    (skill_set.clone(), inventory.clone(), waypoint.cloned()),
+                    (
+                        skill_set.clone(),
+                        inventory.clone(),
+                        pets,
+                        waypoint.cloned(),
+                    ),
                 )
             })
             .chain(self.pending_logout_updates.drain())
@@ -308,8 +321,15 @@ fn execute_batch_update(
     trace!("Transaction started for character batch update");
     updates
         .into_iter()
-        .try_for_each(|(character_id, (stats, inventory, waypoint))| {
-            super::character::update(character_id, stats, inventory, waypoint, &mut transaction)
+        .try_for_each(|(character_id, (stats, inventory, pets, waypoint))| {
+            super::character::update(
+                character_id,
+                stats,
+                inventory,
+                pets,
+                waypoint,
+                &mut transaction,
+            )
         })?;
     transaction.commit()?;
 

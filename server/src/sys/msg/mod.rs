@@ -5,7 +5,7 @@ pub mod ping;
 pub mod register;
 pub mod terrain;
 
-use crate::client::Client;
+use crate::{client::Client, sys::pets};
 use common_ecs::{dispatch, System};
 use serde::de::DeserializeOwned;
 use specs::DispatcherBuilder;
@@ -19,6 +19,7 @@ pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch::<ping::Sys>(dispatch_builder, &[&general::Sys::sys_name()]);
     dispatch::<register::Sys>(dispatch_builder, &[]);
     dispatch::<terrain::Sys>(dispatch_builder, &[]);
+    dispatch::<pets::Sys>(dispatch_builder, &[]);
 }
 
 /// handles all send msg and calls a handle fn

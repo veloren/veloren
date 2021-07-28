@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HUD debug info now displays current biome and site
 - Quotes and escape codes can be used in command arguments
 - Toggle chat with a shortcut (default is F5)
+- Pets are now saved on logout 🐕 🦎 🐼
 
 ### Changed
 
@@ -34,15 +35,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Harvester boss now has new abilities and AI
 - Death particles and SFX
 - Default keybindings were made more consistent
-- Adjust Yeti difficulty
+- Adjusted Yeti difficulty
 - Now most of the food gives Saturation in the process of eating
 - Mushroom Curry gives long-lasting Regeneration buff
 - Trades now consider if items can stack in full inventories.
+- The types of animals that can be tamed as pets are now limited to certain species, pending further balancing of pets
 
 ### Removed
 
-- Enemies no more spawn in dungeon boss room
-- Melee critical hit no more applies after reduction by armour
+- Enemies no longer spawn in dungeon boss room
+- Melee critical hit no longer applies after reduction by armour
 
 ### Fixed
 

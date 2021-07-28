@@ -5,13 +5,13 @@ use crate::{
 };
 use common::{
     comp,
-    comp::group,
+    comp::{group, pet::is_tameable},
     uid::{Uid, UidAllocator},
 };
 use common_base::span;
 use common_net::msg::{PlayerListUpdate, PresenceKind, ServerGeneral};
 use common_state::State;
-use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, WorldExt};
+use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, Join, WorldExt};
 use tracing::{debug, error, trace, warn, Instrument};
 
 pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
@@ -195,10 +195,17 @@ pub fn handle_client_disconnect(
 // the race condition of their login fetching their old data
 // and overwriting the data saved here.
 fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
-    if let (Some(presence), Some(skill_set), Some(inventory), mut character_updater) = (
+    if let (
+        Some(presence),
+        Some(skill_set),
+        Some(inventory),
+        Some(player_uid),
+        mut character_updater,
+    ) = (
         state.read_storage::<Presence>().get(entity),
         state.read_storage::<comp::SkillSet>().get(entity),
         state.read_storage::<comp::Inventory>().get(entity),
+        state.read_storage::<Uid>().get(entity),
         state.ecs().fetch_mut::<CharacterUpdater>(),
     ) {
         match presence.kind {
@@ -209,9 +216,29 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
                     .get(entity)
                     .cloned();
 
+                // Get player's pets
+                let alignments = state.ecs().read_storage::<comp::Alignment>();
+                let bodies = state.ecs().read_storage::<comp::Body>();
+                let stats = state.ecs().read_storage::<comp::Stats>();
+                let pets = state.ecs().read_storage::<comp::Pet>();
+                let pets = (&alignments, &bodies, &stats, &pets)
+                    .join()
+                    .filter_map(|(alignment, body, stats, pet)| match alignment {
+                        // Don't try to persist non-tameable pets (likely spawned
+                        // using /spawn) since there isn't any code to handle
+                        // persisting them
+                        common::comp::Alignment::Owned(ref pet_owner)
+                            if pet_owner == player_uid && is_tameable(body) =>
+                        {
+                            Some(((*pet).clone(), *body, stats.clone()))
+                        },
+                        _ => None,
+                    })
+                    .collect();
+
                 character_updater.add_pending_logout_update(
                     char_id,
-                    (skill_set.clone(), inventory.clone(), waypoint),
+                    (skill_set.clone(), inventory.clone(), pets, waypoint),
                 );
             },
             PresenceKind::Spectator => { /* Do nothing, spectators do not need persisting */ },

@@ -186,7 +186,7 @@ impl CharacterBehavior for Data {
                                 .summon_info
                                 .scale
                                 .unwrap_or(comp::Scale(1.0)),
-                            home_chunk: None,
+                            anchor: None,
                             drop_item: None,
                             rtsim_entity: None,
                             projectile,

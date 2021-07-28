@@ -8,6 +8,7 @@ pub mod error;
 mod json_models;
 mod models;
 
+use crate::persistence::character_updater::PetPersistenceData;
 use common::comp;
 use refinery::Report;
 use rusqlite::{Connection, OpenFlags};
@@ -27,6 +28,7 @@ pub type PersistedComponents = (
     comp::SkillSet,
     comp::Inventory,
     Option<comp::Waypoint>,
+    Vec<PetPersistenceData>,
 );
 
 // See: https://docs.rs/refinery/0.5.0/refinery/macro.embed_migrations.html
