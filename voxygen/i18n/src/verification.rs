@@ -1,23 +1,23 @@
-use std::{path::Path};
+use std::path::Path;
 
-use crate::{i18n_directories, LANG_MANIFEST_FILE, REFERENCE_LANG};
-use crate::raw;
+use crate::{i18n_directories, raw, LANG_MANIFEST_FILE, REFERENCE_LANG};
 
 /// Test to verify all languages that they are VALID and loadable, without
 /// need of git just on the local assets folder
-/// `root_dir` - absolute path to main repo
-/// `asset_path` - relative path to asset directory (right now it is
-/// 'assets/voxygen/i18n')
-pub fn verify_all_localizations(root_dir: &Path, asset_path: &Path) {
-    let i18n_root_path = root_dir.join(asset_path);
+/// `root_path` - absolute path to main repo
+/// `relative_i18n_root_path` - relative path to asset directory (right now it
+/// is 'assets/voxygen/i18n')
+pub fn verify_all_localizations(root_path: &Path, relative_i18n_root_path: &Path) {
+    let i18n_root_path = root_path.join(relative_i18n_root_path);
     let ref_i18n_path = i18n_root_path.join(REFERENCE_LANG);
-    let ref_i18n_manifest_path = ref_i18n_path.join(LANG_MANIFEST_FILE.to_string() + "." + crate::LANG_EXTENSION);
+    let ref_i18n_manifest_path =
+        ref_i18n_path.join(LANG_MANIFEST_FILE.to_string() + "." + crate::LANG_EXTENSION);
     assert!(
-        root_dir.join(&ref_i18n_path).is_dir(),
+        root_path.join(&ref_i18n_path).is_dir(),
         "Reference language folder doesn't exist, something is wrong!"
     );
     assert!(
-        root_dir.join(&ref_i18n_manifest_path).is_file(),
+        root_path.join(&ref_i18n_manifest_path).is_file(),
         "Reference language manifest file doesn't exist, something is wrong!"
     );
     let i18n_directories = i18n_directories(&i18n_root_path);
@@ -31,19 +31,29 @@ pub fn verify_all_localizations(root_dir: &Path, asset_path: &Path) {
          folder is empty?"
     );
     for i18n_directory in i18n_directories {
-        let display_language_identifier = i18n_directory.strip_prefix(&root_dir).unwrap().to_str().unwrap();
-        let language_identifier = i18n_directory.strip_prefix(&i18n_root_path).unwrap().to_str().unwrap();
-        println!(
-            "verifying {:?}",
-            display_language_identifier
-        );
+        let display_language_identifier = i18n_directory
+            .strip_prefix(&root_path)
+            .unwrap()
+            .to_str()
+            .unwrap();
+        let language_identifier = i18n_directory
+            .strip_prefix(&i18n_root_path)
+            .unwrap()
+            .to_str()
+            .unwrap();
+        println!("verifying {:?}", display_language_identifier);
         // Walk through each files and try to load them
-        verify_localization_directory(root_dir, &asset_path, language_identifier);
+        verify_localization_directory(root_path, relative_i18n_root_path, language_identifier);
     }
 }
 
-fn verify_localization_directory(root_dir: &Path, asset_path: &Path, language_identifier: &str) {
-    let i18n_path = root_dir.join(asset_path);
-    let manifest = raw::load_manifest(&i18n_path, language_identifier).expect("error accessing manifest file");
+fn verify_localization_directory(
+    root_path: &Path,
+    relative_i18n_root_path: &Path,
+    language_identifier: &str,
+) {
+    let i18n_path = root_path.join(relative_i18n_root_path);
+    let manifest =
+        raw::load_manifest(&i18n_path, language_identifier).expect("error accessing manifest file");
     raw::load_raw_language(&i18n_path, manifest).expect("error accessing fragment file");
 }

@@ -1,19 +1,20 @@
 #[cfg(any(feature = "bin", test))]
+pub mod analysis;
+#[cfg(any(feature = "bin", test))]
 pub mod gitfragments;
-//#[cfg(any(feature = "bin", test))]
-//pub mod analysis;
 pub mod raw;
+#[cfg(any(feature = "bin", test))] pub mod stats;
 pub mod verification;
 
 use common_assets::{self, source::DirEntry, AssetExt, AssetGuard, AssetHandle};
 use hashbrown::{HashMap, HashSet};
+use raw::{RawFragment, RawLanguage, RawManifest};
 use serde::{Deserialize, Serialize};
 use std::{
     fs, io,
     path::{Path, PathBuf},
 };
 use tracing::warn;
-use raw::{RawManifest, RawFragment, RawLanguage};
 
 /// The reference language, aka the more up-to-date localization data.
 /// Also the default language at first startup.
@@ -118,11 +119,18 @@ impl common_assets::Compound for Language {
             .load_dir::<RawFragment<String>>(asset_key, true)?
             .iter()
         {
+            let id = fragment_asset.id();
+            // Activate this once ._manifest is fully transformed and only contains metadata
+            // or regex: "<veloren\.\w+\._manifest"
+            /*
+            if id.starts_with("voxygen.") && id.ends_with("._manifest") {
+                continue;
+            }*/
             let read = fragment_asset.read();
-            fragments.insert(PathBuf::from(fragment_asset.id()), read.clone());
+            fragments.insert(PathBuf::from(id), read.clone());
         }
 
-        Ok(Language::from(RawLanguage{
+        Ok(Language::from(RawLanguage {
             manifest,
             fragments,
         }))
@@ -266,7 +274,10 @@ impl LocalizationHandle {
 struct FindManifests;
 
 impl common_assets::Compound for FindManifests {
-    fn load<S: common_assets::Source>(_: &common_assets::AssetCache<S>, _: &str) -> Result<Self, common_assets::Error> {
+    fn load<S: common_assets::Source>(
+        _: &common_assets::AssetCache<S>,
+        _: &str,
+    ) -> Result<Self, common_assets::Error> {
         Ok(Self)
     }
 }
@@ -328,7 +339,6 @@ pub fn i18n_directories(i18n_dir: &Path) -> Vec<PathBuf> {
 #[cfg(test)]
 mod tests {
     use std::path::Path;
-    use common_assets;
 
     // Test that localization list is loaded (not empty)
     #[test]
@@ -357,11 +367,9 @@ mod tests {
     #[test]
     #[ignore]
     fn test_all_localizations() {
-        // Options
-        let be_verbose = true;
         // Generate paths
         let i18n_root_path = Path::new("assets/voxygen/i18n/");
         let root_dir = common_assets::find_root().expect("Failed to discover repository root");
-        crate::analysis::test_all_localizations(&root_dir, i18n_root_path, be_verbose);
+        crate::analysis::test_all_localizations(&root_dir, i18n_root_path, true, false);
     }
 }
