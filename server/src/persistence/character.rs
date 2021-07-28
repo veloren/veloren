@@ -20,6 +20,7 @@ use crate::{
             convert_waypoint_from_database_json, convert_waypoint_to_database_json,
         },
         character_loader::{CharacterCreationResult, CharacterDataResult, CharacterListResult},
+        character_updater::PetPersistenceData,
         error::PersistenceError::DatabaseError,
         PersistedComponents,
     },
@@ -27,8 +28,8 @@ use crate::{
 use common::character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER};
 use core::ops::Range;
 use rusqlite::{types::Value, Connection, ToSql, Transaction, NO_PARAMS};
-use std::rc::Rc;
-use tracing::{error, trace, warn};
+use std::{num::NonZeroU64, rc::Rc};
+use tracing::{debug, error, trace, warn};
 
 /// Private module for very tightly coupled database conversion methods.  In
 /// general, these have many invariants that need to be maintained when they're
@@ -203,8 +204,55 @@ pub fn load_character_data(
         .filter_map(Result::ok)
         .collect::<Vec<SkillGroup>>();
 
+    #[rustfmt::skip]
+    let mut stmt = connection.prepare_cached("
+        SELECT  p.pet_id,
+                p.name,
+                b.variant,
+                b.body_data
+        FROM    pet p
+        JOIN    body b ON (p.pet_id = b.body_id)
+        WHERE   p.character_id = ?1",
+    )?;
+
+    let db_pets = stmt
+        .query_map(&[char_id], |row| {
+            Ok(Pet {
+                database_id: row.get(0)?,
+                name: row.get(1)?,
+                body_variant: row.get(2)?,
+                body_data: row.get(3)?,
+            })
+        })?
+        .filter_map(Result::ok)
+        .collect::<Vec<Pet>>();
+
+    // Re-construct the pet components for the player's pets, including
+    // de-serializing the pets' bodies and creating their Pet and Stats
+    // components
+    let pets = db_pets
+        .iter()
+        .filter_map(|db_pet| {
+            if let Ok(pet_body) =
+                convert_body_from_database(&db_pet.body_variant, &db_pet.body_data)
+            {
+                let pet = comp::Pet::new_from_database(
+                    NonZeroU64::new(db_pet.database_id as u64).unwrap(),
+                );
+                let pet_stats = comp::Stats::new(db_pet.name.to_owned());
+                Some((pet, pet_body, pet_stats))
+            } else {
+                warn!(
+                    "Failed to deserialize pet_id: {} for character_id {}",
+                    db_pet.database_id, char_id
+                );
+                None
+            }
+        })
+        .collect::<Vec<(comp::Pet, comp::Body, comp::Stats)>>();
+
     Ok((
-        convert_body_from_database(&body_data)?,
+        convert_body_from_database(&body_data.variant, &body_data.body_data)?,
         convert_stats_from_database(character_data.alias),
         convert_skill_set_from_database(&skill_data, &skill_group_data),
         convert_inventory_from_database_items(
@@ -214,6 +262,7 @@ pub fn load_character_data(
             &loadout_items,
         )?,
         char_waypoint,
+        pets,
     ))
 }
 
@@ -269,7 +318,7 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
             })?;
             drop(stmt);
 
-            let char_body = convert_body_from_database(&db_body)?;
+            let char_body = convert_body_from_database(&db_body.variant, &db_body.body_data)?;
 
             let loadout_container_id = get_pseudo_container_id(
                 connection,
@@ -299,7 +348,7 @@ pub fn create_character(
 ) -> CharacterCreationResult {
     check_character_limit(uuid, transactionn)?;
 
-    let (body, _stats, skill_set, inventory, waypoint) = persisted_components;
+    let (body, _stats, skill_set, inventory, waypoint, _) = persisted_components;
 
     // Fetch new entity IDs for character, inventory and loadout
     let mut new_entity_ids = get_new_entity_ids(transactionn, |next_id| next_id + 3)?;
@@ -362,10 +411,11 @@ pub fn create_character(
         VALUES (?1, ?2, ?3)",
     )?;
 
+    let (body_variant, body_json) = convert_body_to_database_json(&body)?;
     stmt.execute(&[
         &character_id as &dyn ToSql,
-        &"humanoid".to_string(),
-        &convert_body_to_database_json(&body)?,
+        &body_variant.to_string(),
+        &body_json,
     ])?;
     drop(stmt);
 
@@ -548,6 +598,14 @@ pub fn delete_character(
         )));
     }
 
+    let pet_ids = get_pet_ids(char_id, transaction)?
+        .iter()
+        .map(|x| Value::from(*x))
+        .collect::<Vec<Value>>();
+    if !pet_ids.is_empty() {
+        delete_pets(transaction, char_id, Rc::new(pet_ids))?;
+    }
+
     load_character_list(requesting_player_uuid, transaction)
 }
 
@@ -678,17 +736,142 @@ fn get_pseudo_container_id(
     }
 }
 
+/// Stores new pets in the database, and removes pets from the database that the
+/// player no longer has. Currently there are no actual updates to pet data
+/// since we don't store any updatable data about pets in the database.
+fn update_pets(
+    char_id: CharacterId,
+    pets: Vec<PetPersistenceData>,
+    transaction: &mut Transaction,
+) -> Result<(), PersistenceError> {
+    debug!("Updating {} pets for character {}", pets.len(), char_id);
+
+    let db_pets = get_pet_ids(char_id, transaction)?;
+    if !db_pets.is_empty() {
+        let dead_pet_ids = Rc::new(
+            db_pets
+                .iter()
+                .filter(|pet_id| {
+                    !pets.iter().any(|(pet, _, _)| {
+                        pet.get_database_id()
+                            .load()
+                            .map_or(false, |x| x.get() == **pet_id as u64)
+                    })
+                })
+                .map(|x| Value::from(*x))
+                .collect::<Vec<Value>>(),
+        );
+
+        if !dead_pet_ids.is_empty() {
+            delete_pets(transaction, char_id, dead_pet_ids)?;
+        }
+    }
+
+    for (pet, body, stats) in pets
+        .iter()
+        .filter(|(pet, _, _)| pet.get_database_id().load().is_none())
+    {
+        let pet_entity_id = get_new_entity_ids(transaction, |next_id| next_id + 1)?.start;
+
+        let (body_variant, body_json) = convert_body_to_database_json(body)?;
+
+        #[rustfmt::skip]
+        let mut stmt = transaction.prepare_cached("
+            INSERT
+            INTO    body (
+                    body_id,
+                    variant,
+                    body_data)
+            VALUES  (?1, ?2, ?3)"
+        )?;
+
+        stmt.execute(&[
+            &pet_entity_id as &dyn ToSql,
+            &body_variant.to_string(),
+            &body_json,
+        ])?;
+
+        #[rustfmt::skip]
+        let mut stmt = transaction.prepare_cached("
+            INSERT
+            INTO    pet (
+                    pet_id,
+                    character_id,
+                    name)
+            VALUES  (?1, ?2, ?3)",
+        )?;
+
+        stmt.execute(&[&pet_entity_id as &dyn ToSql, &char_id, &stats.name])?;
+        drop(stmt);
+
+        pet.get_database_id()
+            .store(NonZeroU64::new(pet_entity_id as u64));
+    }
+
+    Ok(())
+}
+
+fn get_pet_ids(char_id: i64, transaction: &mut Transaction) -> Result<Vec<i64>, PersistenceError> {
+    #[rustfmt::skip]
+        let mut stmt = transaction.prepare_cached("
+        SELECT  pet_id
+        FROM    pet
+        WHERE   character_id = ?1
+    ")?;
+
+    #[allow(clippy::needless_question_mark)]
+    let db_pets = stmt
+        .query_map(&[&char_id], |row| Ok(row.get(0)?))?
+        .map(|x| x.unwrap())
+        .collect::<Vec<i64>>();
+    drop(stmt);
+    Ok(db_pets)
+}
+
+fn delete_pets(
+    transaction: &mut Transaction,
+    char_id: CharacterId,
+    pet_ids: Rc<Vec<Value>>,
+) -> Result<(), PersistenceError> {
+    #[rustfmt::skip]
+    let mut stmt = transaction.prepare_cached("
+            DELETE
+            FROM    pet
+            WHERE   pet_id IN rarray(?1)"
+    )?;
+
+    let delete_count = stmt.execute(&[&pet_ids])?;
+    drop(stmt);
+    debug!("Deleted {} pets for character id {}", delete_count, char_id);
+
+    #[rustfmt::skip]
+    let mut stmt = transaction.prepare_cached("
+            DELETE 
+            FROM    body
+            WHERE   body_id IN rarray(?1)"
+    )?;
+
+    let delete_count = stmt.execute(&[&pet_ids])?;
+    debug!(
+        "Deleted {} pet bodies for character id {}",
+        delete_count, char_id
+    );
+
+    Ok(())
+}
 pub fn update(
     char_id: CharacterId,
     char_skill_set: comp::SkillSet,
     inventory: comp::Inventory,
+    pets: Vec<PetPersistenceData>,
     char_waypoint: Option<comp::Waypoint>,
     transaction: &mut Transaction,
 ) -> Result<(), PersistenceError> {
+    // Run pet persistence
+    update_pets(char_id, pets, transaction)?;
+
     let pseudo_containers = get_pseudo_containers(transaction, char_id)?;
-
     let mut upserts = Vec::new();
-
     // First, get all the entity IDs for any new items, and identify which
     // slots to upsert and which ones to delete.
     get_new_entity_ids(transaction, |mut next_id| {

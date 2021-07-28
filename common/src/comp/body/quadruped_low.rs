@@ -1,6 +1,7 @@
 use crate::{make_case_elim, make_proj_elim};
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
+use strum::{Display, EnumString};
 
 make_proj_elim!(
     body,
@@ -29,9 +30,13 @@ impl From<Body> for super::Body {
     fn from(body: Body) -> Self { super::Body::QuadrupedLow(body) }
 }
 
+// Renaming any enum entries here (re-ordering is fine) will require a
+// database migration to ensure pets correctly de-serialize on player login.
 make_case_elim!(
     species,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[derive(
+        Copy, Clone, Debug, Display, EnumString, PartialEq, Eq, Hash, Serialize, Deserialize,
+    )]
     #[repr(u32)]
     pub enum Species {
         Crocodile = 0,
@@ -120,9 +125,13 @@ impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     fn into_iter(self) -> Self::IntoIter { ALL_SPECIES.iter().copied() }
 }
 
+// Renaming any enum entries here (re-ordering is fine) will require a
+// database migration to ensure pets correctly de-serialize on player login.
 make_case_elim!(
     body_type,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[derive(
+        Copy, Clone, Debug, Display, EnumString, PartialEq, Eq, Hash, Serialize, Deserialize,
+    )]
     #[repr(u32)]
     pub enum BodyType {
         Female = 0,

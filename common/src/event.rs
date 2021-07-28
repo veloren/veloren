@@ -102,12 +102,14 @@ pub enum ServerEvent {
     },
     UpdateCharacterData {
         entity: EcsEntity,
+        #[allow(clippy::type_complexity)]
         components: (
             comp::Body,
             comp::Stats,
             comp::SkillSet,
             comp::Inventory,
             Option<comp::Waypoint>,
+            Vec<(comp::Pet, comp::Body, comp::Stats)>,
         ),
     },
     ExitIngame {
@@ -125,7 +127,7 @@ pub enum ServerEvent {
         agent: Option<comp::Agent>,
         alignment: comp::Alignment,
         scale: comp::Scale,
-        home_chunk: Option<comp::HomeChunk>,
+        anchor: Option<comp::Anchor>,
         drop_item: Option<Item>,
         rtsim_entity: Option<RtSimEntity>,
         projectile: Option<comp::Projectile>,
@@ -185,6 +187,10 @@ pub enum ServerEvent {
     CreateSprite {
         pos: Vec3<i32>,
         sprite: SpriteKind,
+    },
+    TamePet {
+        pet_entity: EcsEntity,
+        owner_entity: EcsEntity,
     },
 }
 

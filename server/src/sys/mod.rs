@@ -5,6 +5,7 @@ pub mod metrics;
 pub mod msg;
 pub mod object;
 pub mod persistence;
+pub mod pets;
 pub mod sentinel;
 pub mod subscription;
 pub mod terrain;

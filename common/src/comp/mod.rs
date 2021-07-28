@@ -1,6 +1,8 @@
 #[cfg(not(target_arch = "wasm32"))] mod ability;
 #[cfg(not(target_arch = "wasm32"))] mod admin;
 #[cfg(not(target_arch = "wasm32"))] pub mod agent;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod anchor;
 #[cfg(not(target_arch = "wasm32"))] pub mod aura;
 #[cfg(not(target_arch = "wasm32"))] pub mod beam;
 #[cfg(not(target_arch = "wasm32"))] pub mod body;
@@ -19,8 +21,6 @@ pub mod dialogue;
 pub mod fluid_dynamics;
 #[cfg(not(target_arch = "wasm32"))] pub mod group;
 mod health;
-#[cfg(not(target_arch = "wasm32"))]
-pub mod home_chunk;
 #[cfg(not(target_arch = "wasm32"))] mod inputs;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod inventory;
@@ -30,6 +30,7 @@ pub mod invite;
 #[cfg(not(target_arch = "wasm32"))] mod location;
 #[cfg(not(target_arch = "wasm32"))] mod misc;
 #[cfg(not(target_arch = "wasm32"))] pub mod ori;
+#[cfg(not(target_arch = "wasm32"))] pub mod pet;
 #[cfg(not(target_arch = "wasm32"))] mod phys;
 #[cfg(not(target_arch = "wasm32"))] mod player;
 #[cfg(not(target_arch = "wasm32"))] pub mod poise;
@@ -49,6 +50,7 @@ pub use self::{
     ability::{CharacterAbility, CharacterAbilityType},
     admin::{Admin, AdminRole},
     agent::{Agent, Alignment, Behavior, BehaviorCapability, BehaviorState, PidController},
+    anchor::Anchor,
     aura::{Aura, AuraChange, AuraKind, Auras},
     beam::{Beam, BeamSegment},
     body::{
@@ -73,7 +75,6 @@ pub use self::{
     energy::{Energy, EnergyChange, EnergySource},
     fluid_dynamics::Fluid,
     group::Group,
-    home_chunk::HomeChunk,
     inputs::CanBuild,
     inventory::{
         item::{self, tool, Item, ItemConfig, ItemDrop},
@@ -83,6 +84,7 @@ pub use self::{
     location::{Waypoint, WaypointArea},
     misc::Object,
     ori::Ori,
+    pet::Pet,
     phys::{
         Collider, Density, ForceUpdate, Mass, PhysicsState, Pos, PosVelOriDefer, PreviousPhysCache,
         Scale, Sticky, Vel,

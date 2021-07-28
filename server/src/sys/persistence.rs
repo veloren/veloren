@@ -1,5 +1,11 @@
 use crate::{persistence::character_updater, presence::Presence, sys::SysScheduler};
-use common::comp::{Inventory, SkillSet, Waypoint};
+use common::{
+    comp::{
+        pet::{is_tameable, Pet},
+        Alignment, Body, Inventory, SkillSet, Stats, Waypoint,
+    },
+    uid::Uid,
+};
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::PresenceKind;
 use specs::{Join, ReadStorage, Write, WriteExpect};
@@ -10,10 +16,15 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
+        ReadStorage<'a, Alignment>,
+        ReadStorage<'a, Body>,
         ReadStorage<'a, Presence>,
         ReadStorage<'a, SkillSet>,
         ReadStorage<'a, Inventory>,
+        ReadStorage<'a, Uid>,
         ReadStorage<'a, Waypoint>,
+        ReadStorage<'a, Pet>,
+        ReadStorage<'a, Stats>,
         WriteExpect<'a, character_updater::CharacterUpdater>,
         Write<'a, SysScheduler<Self>>,
     );
@@ -25,10 +36,15 @@ impl<'a> System<'a> for Sys {
     fn run(
         _job: &mut Job<Self>,
         (
+            alignments,
+            bodies,
             presences,
             player_skill_set,
             player_inventories,
-            player_waypoint,
+            uids,
+            player_waypoints,
+            pets,
+            stats,
             mut updater,
             mut scheduler,
         ): Self::SystemData,
@@ -39,13 +55,30 @@ impl<'a> System<'a> for Sys {
                     &presences,
                     &player_skill_set,
                     &player_inventories,
-                    player_waypoint.maybe(),
+                    &uids,
+                    player_waypoints.maybe(),
                 )
                     .join()
                     .filter_map(
-                        |(presence, skill_set, inventory, waypoint)| match presence.kind {
+                        |(presence, skill_set, inventory, player_uid, waypoint)| match presence.kind
+                        {
                             PresenceKind::Character(id) => {
-                                Some((id, skill_set, inventory, waypoint))
+                                let pets = (&alignments, &bodies, &stats, &pets)
+                                    .join()
+                                    .filter_map(|(alignment, body, stats, pet)| match alignment {
+                                        // Don't try to persist non-tameable pets (likely spawned
+                                        // using /spawn) since there isn't any code to handle
+                                        // persisting them
+                                        Alignment::Owned(ref pet_owner)
+                                            if pet_owner == player_uid && is_tameable(body) =>
+                                        {
+                                            Some(((*pet).clone(), *body, stats.clone()))
+                                        },
+                                        _ => None,
+                                    })
+                                    .collect();
+
+                                Some((id, skill_set, inventory, pets, waypoint))
                             },
                             PresenceKind::Spectator => None,
                         },

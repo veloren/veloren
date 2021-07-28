@@ -1,4 +1,4 @@
-use crate::{state_ext::StateExt, Server};
+use crate::{events::interaction::handle_tame_pet, state_ext::StateExt, Server};
 use common::event::{EventBus, ServerEvent};
 use common_base::span;
 use entity_creation::{
@@ -144,7 +144,7 @@ impl Server {
                     agent,
                     alignment,
                     scale,
-                    home_chunk,
+                    anchor: home_chunk,
                     drop_item,
                     rtsim_entity,
                     projectile,
@@ -224,6 +224,10 @@ impl Server {
                 ServerEvent::CreateSprite { pos, sprite } => {
                     handle_create_sprite(self, pos, sprite)
                 },
+                ServerEvent::TamePet {
+                    pet_entity,
+                    owner_entity,
+                } => handle_tame_pet(self, pet_entity, owner_entity),
             }
         }
 

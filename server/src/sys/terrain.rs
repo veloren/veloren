@@ -312,7 +312,7 @@ impl<'a> System<'a> for Sys {
                     body,
                     alignment,
                     scale: comp::Scale(scale),
-                    home_chunk: Some(comp::HomeChunk(key)),
+                    anchor: Some(comp::Anchor::Chunk(key)),
                     drop_item: entity.loot_drop,
                     rtsim_entity: None,
                     projectile: None,

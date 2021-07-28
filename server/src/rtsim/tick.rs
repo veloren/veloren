@@ -153,7 +153,7 @@ impl<'a> System<'a> for Sys {
                         _ => comp::Scale(1.0),
                     },
                     drop_item: None,
-                    home_chunk: None,
+                    anchor: None,
                     rtsim_entity,
                     projectile: None,
                 },

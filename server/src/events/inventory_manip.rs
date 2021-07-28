@@ -16,11 +16,15 @@ use common::{
     util::find_dist::{self, FindDist},
     vol::ReadVol,
 };
-use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
+use common_net::sync::WorldSyncExt;
 use common_state::State;
 use comp::LightEmitter;
 
-use crate::{client::Client, Server, StateExt};
+use crate::{Server, StateExt};
+use common::{
+    comp::pet::is_tameable,
+    event::{EventBus, ServerEvent},
+};
 
 pub fn swap_lantern(
     storage: &mut WriteStorage<comp::LightEmitter>,
@@ -310,6 +314,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 kind: comp::item::Utility::Collar,
                                 ..
                             } => {
+                                const MAX_PETS: usize = 3;
                                 let reinsert = if let Some(pos) =
                                     state.read_storage::<comp::Pos>().get(entity)
                                 {
@@ -322,65 +327,36 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                             alignment == &&comp::Alignment::Owned(uid)
                                         })
                                         .count()
-                                        >= 3
+                                        >= MAX_PETS
                                     {
                                         true
                                     } else if let Some(tameable_entity) = {
                                         let nearest_tameable = (
                                             &state.ecs().entities(),
+                                            &state.ecs().read_storage::<comp::Body>(),
                                             &state.ecs().read_storage::<comp::Pos>(),
                                             &state.ecs().read_storage::<comp::Alignment>(),
                                         )
                                             .join()
-                                            .filter(|(_, wild_pos, _)| {
+                                            .filter(|(_, _, wild_pos, _)| {
                                                 wild_pos.0.distance_squared(pos.0) < 5.0f32.powi(2)
                                             })
-                                            .filter(|(_, _, alignment)| {
+                                            .filter(|(_, body, _, alignment)| {
                                                 alignment == &&comp::Alignment::Wild
+                                                    && is_tameable(body)
                                             })
-                                            .min_by_key(|(_, wild_pos, _)| {
+                                            .min_by_key(|(_, _, wild_pos, _)| {
                                                 (wild_pos.0.distance_squared(pos.0) * 100.0) as i32
                                             })
-                                            .map(|(entity, _, _)| entity);
+                                            .map(|(entity, _, _, _)| entity);
                                         nearest_tameable
                                     } {
-                                        let _ = state
-                                            .ecs()
-                                            .write_storage()
-                                            .insert(tameable_entity, comp::Alignment::Owned(uid));
-
-                                        // Add to group system
-                                        let clients = state.ecs().read_storage::<Client>();
-                                        let uids = state.ecs().read_storage::<Uid>();
-                                        let mut group_manager = state
-                                            .ecs()
-                                            .write_resource::<comp::group::GroupManager>(
-                                        );
-                                        group_manager.new_pet(
-                                            tameable_entity,
-                                            entity,
-                                            &mut state.ecs().write_storage(),
-                                            &state.ecs().entities(),
-                                            &state.ecs().read_storage(),
-                                            &uids,
-                                            &mut |entity, group_change| {
-                                                clients
-                                                    .get(entity)
-                                                    .and_then(|c| {
-                                                        group_change
-                                                            .try_map(|e| uids.get(e).copied())
-                                                            .map(|g| (g, c))
-                                                    })
-                                                    .map(|(g, c)| {
-                                                        c.send(ServerGeneral::GroupUpdate(g))
-                                                    });
-                                            },
-                                        );
-
-                                        let _ = state
-                                            .ecs()
-                                            .write_storage()
-                                            .insert(tameable_entity, comp::Agent::default());
+                                        let server_eventbus =
+                                            state.ecs().read_resource::<EventBus<ServerEvent>>();
+                                        server_eventbus.emit_now(ServerEvent::TamePet {
+                                            owner_entity: entity,
+                                            pet_entity: tameable_entity,
+                                        });
                                         false
                                     } else {
                                         true

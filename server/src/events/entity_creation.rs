@@ -8,9 +8,9 @@ use common::{
         beam,
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
         inventory::loadout::Loadout,
-        shockwave, Agent, Alignment, Body, Health, HomeChunk, Inventory, Item, ItemDrop,
-        LightEmitter, Object, Ori, PidController, Poise, Pos, Projectile, Scale, SkillSet, Stats,
-        Vel, WaypointArea,
+        shockwave, Agent, Alignment, Anchor, Body, Health, Inventory, Item, ItemDrop, LightEmitter,
+        Object, Ori, PidController, Poise, Pos, Projectile, Scale, SkillSet, Stats, Vel,
+        WaypointArea,
     },
     outcome::Outcome,
     rtsim::RtSimEntity,
@@ -30,6 +30,7 @@ pub fn handle_initialize_character(
     server.state.initialize_character_data(entity, character_id);
 }
 
+#[allow(clippy::type_complexity)]
 pub fn handle_loaded_character_data(
     server: &mut Server,
     entity: EcsEntity,
@@ -39,6 +40,7 @@ pub fn handle_loaded_character_data(
         comp::SkillSet,
         comp::Inventory,
         Option<comp::Waypoint>,
+        Vec<(comp::Pet, comp::Body, comp::Stats)>,
     ),
 ) {
     server
@@ -61,7 +63,7 @@ pub fn handle_create_npc(
     alignment: Alignment,
     scale: Scale,
     drop_item: Option<Item>,
-    home_chunk: Option<HomeChunk>,
+    home_chunk: Option<Anchor>,
     rtsim_entity: Option<RtSimEntity>,
     projectile: Option<Projectile>,
 ) {

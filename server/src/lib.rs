@@ -25,6 +25,7 @@ pub mod input;
 pub mod login_provider;
 pub mod metrics;
 pub mod persistence;
+mod pet;
 pub mod presence;
 pub mod rtsim;
 pub mod settings;
@@ -87,7 +88,7 @@ use persistence::{
 };
 use prometheus::Registry;
 use prometheus_hyper::Server as PrometheusServer;
-use specs::{join::Join, Builder, Entity as EcsEntity, SystemData, WorldExt};
+use specs::{join::Join, Builder, Entity as EcsEntity, Entity, SystemData, WorldExt};
 use std::{
     i32,
     ops::{Deref, DerefMut},
@@ -112,6 +113,7 @@ use {
     common_state::plugin::{memory_manager::EcsWorld, PluginMgr},
 };
 
+use common::comp::Anchor;
 #[cfg(feature = "worldgen")]
 use world::{
     sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP},
@@ -249,7 +251,8 @@ impl Server {
         state.ecs_mut().register::<Presence>();
         state.ecs_mut().register::<wiring::WiringElement>();
         state.ecs_mut().register::<wiring::Circuit>();
-        state.ecs_mut().register::<comp::HomeChunk>();
+        state.ecs_mut().register::<comp::Anchor>();
+        state.ecs_mut().register::<comp::Pet>();
         state.ecs_mut().register::<login_provider::PendingLogin>();
         state.ecs_mut().register::<RepositionOnChunkLoad>();
 
@@ -617,6 +620,32 @@ impl Server {
             run_now::<terrain::Sys>(self.state.ecs_mut());
         }
 
+        // Prevent anchor entity chains which are not currently supported
+        let anchors = self.state.ecs().read_storage::<comp::Anchor>();
+        let anchored_anchor_entities: Vec<Entity> = (
+            &self.state.ecs().entities(),
+            &self.state.ecs().read_storage::<comp::Anchor>(),
+        )
+            .join()
+            .filter_map(|(_, anchor)| match anchor {
+                Anchor::Entity(anchor_entity) => Some(*anchor_entity),
+                _ => None,
+            })
+            .filter(|anchor_entity| anchors.get(*anchor_entity).is_some())
+            .collect();
+        drop(anchors);
+
+        for entity in anchored_anchor_entities {
+            if cfg!(debug_assertions) {
+                panic!("Entity anchor chain detected");
+            }
+            error!(
+                "Detected an anchor entity that itself has an anchor entity - anchor chains are \
+                 not currently supported. The entity's Anchor component has been deleted"
+            );
+            self.state.delete_component::<Anchor>(entity);
+        }
+
         // Remove NPCs that are outside the view distances of all players
         // This is done by removing NPCs in unloaded chunks
         let to_delete = {
@@ -625,16 +654,22 @@ impl Server {
                 &self.state.ecs().entities(),
                 &self.state.ecs().read_storage::<comp::Pos>(),
                 !&self.state.ecs().read_storage::<Presence>(),
-                self.state.ecs().read_storage::<comp::HomeChunk>().maybe(),
+                self.state.ecs().read_storage::<comp::Anchor>().maybe(),
             )
                 .join()
-                .filter(|(_, pos, _, home_chunk)| {
+                .filter(|(_, pos, _, anchor)| {
                     let chunk_key = terrain.pos_key(pos.0.map(|e| e.floor() as i32));
-                    // Check if both this chunk and the NPCs `home_chunk` is unloaded. If so,
-                    // we delete them. We check for `home_chunk` in order to avoid duplicating
-                    // the entity under some circumstances.
-                    terrain.get_key(chunk_key).is_none()
-                        && home_chunk.map_or(true, |hc| terrain.get_key(hc.0).is_none())
+                    match anchor {
+                        Some(Anchor::Chunk(hc)) => {
+                            // Check if both this chunk and the NPCs `home_chunk` is unloaded. If
+                            // so, we delete them. We check for
+                            // `home_chunk` in order to avoid duplicating
+                            // the entity under some circumstances.
+                            terrain.get_key(chunk_key).is_none() && terrain.get_key(*hc).is_none()
+                        },
+                        Some(Anchor::Entity(entity)) => !self.state.ecs().is_alive(*entity),
+                        None => terrain.get_key(chunk_key).is_none(),
+                    }
                 })
                 .map(|(entity, _, _, _)| entity)
                 .collect::<Vec<_>>()
