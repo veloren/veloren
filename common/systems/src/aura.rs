@@ -1,24 +1,26 @@
 use common::{
+    combat,
     comp::{
         aura::{AuraChange, AuraKey, AuraKind, AuraTarget},
-        buff::{self, BuffCategory},
+        buff::{Buff, BuffCategory, BuffChange, BuffSource},
         group::Group,
-        Auras, BuffKind, Buffs, CharacterState, Health, Pos,
+        Aura, Auras, BuffKind, Buffs, CharacterState, Health, Player, Pos,
     },
-    event::{EventBus, ServerEvent},
+    event::{Emitter, EventBus, ServerEvent},
     resources::DeltaTime,
     uid::{Uid, UidAllocator},
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
-    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData,
-    World, WriteStorage,
+    saveload::MarkerAllocator, shred::ResourceId, Entities, Entity as EcsEntity, Join, Read,
+    ReadStorage, SystemData, World, WriteStorage,
 };
 use std::time::Duration;
 
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     entities: Entities<'a>,
+    players: ReadStorage<'a, Player>,
     dt: Read<'a, DeltaTime>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
     uid_allocator: Read<'a, UidAllocator>,
@@ -101,92 +103,43 @@ impl<'a> System<'a> for Sys {
                         Some(buff) => buff,
                         None => return,
                     };
+
                     // Ensure entity is within the aura radius
                     if target_pos.0.distance_squared(pos.0) < aura.radius.powi(2) {
-                        if let AuraTarget::GroupOf(uid) = aura.target {
-                            let same_group = read_data
+                        // Ensure the entity is in the group we want to target
+                        let same_group = |uid: Uid| {
+                            read_data
                                 .uid_allocator
                                 .retrieve_entity_internal(uid.into())
                                 .and_then(|e| read_data.groups.get(e))
                                 .map_or(false, |owner_group| {
                                     Some(owner_group) == read_data.groups.get(target)
                                 })
-                                || *target_uid == uid;
+                                || *target_uid == uid
+                        };
 
-                            if !same_group {
-                                return;
-                            }
-                        }
-
-                        // TODO: When more aura kinds (besides Buff) are
-                        // implemented, match on them here
-                        match aura.aura_kind {
-                            AuraKind::Buff {
-                                kind,
-                                data,
-                                category,
-                                source,
-                            } => {
-                                let apply_buff = match kind {
-                                    BuffKind::CampfireHeal => {
-                                        matches!(
-                                            read_data.char_states.get(target),
-                                            Some(CharacterState::Sit)
-                                        ) && health.current() < health.maximum()
-                                    },
-                                    // Add other specific buff conditions here
-                                    _ => true,
-                                };
-                                if apply_buff {
-                                    // Checks that target is not already receiving a buff from
-                                    // an aura, where
-                                    // the buff is of the same kind, and is of at least
-                                    // the same strength and of at least the same duration
-                                    // If no such buff is present, adds the buff
-                                    let emit_buff = !target_buffs.buffs.iter().any(|(_, buff)| {
-                                        buff.cat_ids.iter().any(|cat_id| {
-                                            matches!(cat_id, BuffCategory::FromAura(_))
-                                        }) && buff.kind == kind
-                                            && buff.data.strength >= data.strength
-                                            && buff.time.map_or(true, |dur| {
-                                                data.duration.map_or(false, |dur_2| dur >= dur_2)
-                                            })
-                                    });
-                                    if emit_buff {
-                                        use buff::*;
-                                        server_emitter.emit(ServerEvent::Buff {
-                                            entity: target,
-                                            buff_change: BuffChange::Add(Buff::new(
-                                                kind,
-                                                data,
-                                                vec![category, BuffCategory::FromAura(true)],
-                                                source,
-                                            )),
-                                        });
-                                    }
-                                    // Finds all buffs on target that are from an aura, are of
-                                    // the
-                                    // same buff kind, and are of at most the same strength
-                                    // For any such buffs, marks it as recently applied
-                                    for (_, buff) in
-                                        target_buffs.buffs.iter_mut().filter(|(_, buff)| {
-                                            buff.cat_ids.iter().any(|cat_id| {
-                                                matches!(cat_id, BuffCategory::FromAura(_))
-                                            }) && buff.kind == kind
-                                                && buff.data.strength <= data.strength
-                                        })
-                                    {
-                                        if let Some(cat_id) =
-                                            buff.cat_ids.iter_mut().find(|cat_id| {
-                                                matches!(cat_id, BuffCategory::FromAura(false))
-                                            })
-                                        {
-                                            *cat_id = BuffCategory::FromAura(true);
-                                        }
-                                    }
+                        match aura.target {
+                            AuraTarget::GroupOf(uid) => {
+                                if !same_group(uid) {
+                                    return;
                                 }
                             },
+                            AuraTarget::NotGroupOf(uid) => {
+                                if same_group(uid) {
+                                    return;
+                                }
+                            },
+                            AuraTarget::All => {},
                         }
+
+                        activate_aura(
+                            aura,
+                            target,
+                            health,
+                            &mut target_buffs,
+                            &read_data,
+                            &mut server_emitter,
+                        );
                     }
                 });
             }
@@ -199,5 +152,109 @@ impl<'a> System<'a> for Sys {
         }
         auras.set_event_emission(true);
         buffs.set_event_emission(true);
+    }
+}
+
+#[warn(clippy::pedantic)]
+//#[warn(clippy::nursery)]
+fn activate_aura(
+    aura: &Aura,
+    target: EcsEntity,
+    health: &Health,
+    target_buffs: &mut Buffs,
+    read_data: &ReadData,
+    server_emitter: &mut Emitter<ServerEvent>,
+) {
+    let should_activate = |aura: &Aura| {
+        match aura.aura_kind {
+            AuraKind::Buff { kind, source, .. } => {
+                let owner = match source {
+                    BuffSource::Character { by } => {
+                        read_data.uid_allocator.retrieve_entity_internal(by.into())
+                    },
+                    _ => None,
+                };
+                let avoid_harm = owner.map_or(false, |attacker| {
+                    let attacker = read_data.players.get(attacker);
+                    let target = read_data.players.get(target);
+                    combat::avoid_harm(attacker, target)
+                });
+                let conditions_held = match kind {
+                    BuffKind::CampfireHeal => {
+                        let target_state = read_data.char_states.get(target);
+                        matches!(target_state, Some(CharacterState::Sit))
+                            && health.current() < health.maximum()
+                    },
+                    // Add other specific buff conditions here
+                    _ => true,
+                };
+
+                if conditions_held {
+                    if kind.is_buff() { true } else { !avoid_harm }
+                } else {
+                    false
+                }
+            },
+        }
+    };
+
+    // TODO: When more aura kinds (besides Buff) are
+    // implemented, match on them here
+    match aura.aura_kind {
+        AuraKind::Buff {
+            kind,
+            data,
+            category,
+            source,
+        } => {
+            if !should_activate(aura) {
+                return;
+            }
+            // Checks that target is not already receiving a buff from
+            // an aura, where
+            // the buff is of the same kind, and is of at least
+            // the same strength and of at least the same duration
+            // If no such buff is present, adds the buff
+            let emit_buff = !target_buffs.buffs.iter().any(|(_, buff)| {
+                buff.cat_ids
+                    .iter()
+                    .any(|cat_id| matches!(cat_id, BuffCategory::FromAura(_)))
+                    && buff.kind == kind
+                    && buff.data.strength >= data.strength
+                    && buff.time.map_or(true, |dur| {
+                        data.duration.map_or(false, |dur_2| dur >= dur_2)
+                    })
+            });
+            if emit_buff {
+                server_emitter.emit(ServerEvent::Buff {
+                    entity: target,
+                    buff_change: BuffChange::Add(Buff::new(
+                        kind,
+                        data,
+                        vec![category, BuffCategory::FromAura(true)],
+                        source,
+                    )),
+                });
+            }
+            // Finds all buffs on target that are from an aura, are of
+            // the
+            // same buff kind, and are of at most the same strength
+            // For any such buffs, marks it as recently applied
+            for (_, buff) in target_buffs.buffs.iter_mut().filter(|(_, buff)| {
+                buff.cat_ids
+                    .iter()
+                    .any(|cat_id| matches!(cat_id, BuffCategory::FromAura(_)))
+                    && buff.kind == kind
+                    && buff.data.strength <= data.strength
+            }) {
+                if let Some(cat_id) = buff
+                    .cat_ids
+                    .iter_mut()
+                    .find(|cat_id| matches!(cat_id, BuffCategory::FromAura(false)))
+                {
+                    *cat_id = BuffCategory::FromAura(true);
+                }
+            }
+        },
     }
 }
