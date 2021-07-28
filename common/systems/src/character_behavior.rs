@@ -74,6 +74,7 @@ pub struct ReadData<'a> {
     combos: ReadStorage<'a, Combo>,
     alignments: ReadStorage<'a, comp::Alignment>,
     terrain: ReadExpect<'a, TerrainGrid>,
+    inventories: ReadStorage<'a, Inventory>,
 }
 
 /// ## Character Behavior System
@@ -92,7 +93,6 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Density>,
         WriteStorage<'a, Energy>,
-        WriteStorage<'a, Inventory>,
         WriteStorage<'a, Controller>,
         WriteStorage<'a, Poise>,
         Write<'a, Vec<Outcome>>,
@@ -112,7 +112,6 @@ impl<'a> System<'a> for Sys {
             mut orientations,
             mut densities,
             mut energies,
-            mut inventories,
             mut controllers,
             mut poises,
             mut outcomes,
@@ -148,7 +147,7 @@ impl<'a> System<'a> for Sys {
             &read_data.masses,
             &mut densities,
             &mut energies,
-            &mut inventories,
+            read_data.inventories.maybe(),
             &mut controllers,
             read_data.healths.maybe(),
             &read_data.bodies,
@@ -283,7 +282,7 @@ impl<'a> System<'a> for Sys {
                 mass,
                 density: &mut density,
                 energy,
-                inventory: Some(&inventory),
+                inventory,
                 controller: &mut controller,
                 health,
                 body,
