@@ -12,7 +12,7 @@ use common::{
         inventory::{item::ItemTag, slot::EquipSlot},
         invite::{InviteKind, InviteResponse},
         item::{
-            tool::{AbilitySpec, ToolKind},
+            tool::{AbilityMap, AbilitySpec, ToolKind},
             ConsumableKind, Item, ItemDesc, ItemKind,
         },
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
@@ -2443,16 +2443,26 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        //TODO: minimum energy values for skills and rolls are hard coded from
-        // approximate guesses
-        let mut flamethrower_range = 20.0_f32;
-        if let Ok(Some(level)) = self.skill_set.skill_level(Skill::Staff(StaffSkill::FRange)) {
-            flamethrower_range *= 1.25_f32.powi(level.into());
-        }
-        let mut shockwave_cost = 600.0_f32;
-        if let Ok(Some(level)) = self.skill_set.skill_level(Skill::Staff(StaffSkill::SCost)) {
-            shockwave_cost *= 0.8_f32.powi(level.into());
-        }
+        let ability_map = AbilityMap::default();
+        let ability_set = ability_map
+            .get_ability_set(&AbilitySpec::Tool(ToolKind::Staff))
+            .unwrap()
+            .clone();
+        let flamethrower = ability_set
+            .secondary
+            .adjusted_by_skills(self.skill_set, Some(ToolKind::Staff));
+        let flamethrower_range = match flamethrower {
+            CharacterAbility::BasicBeam { range, .. } => range,
+            _ => 20.0_f32,
+        };
+        let shockwave = ability_set.abilities[0]
+            .clone()
+            .1
+            .adjusted_by_skills(self.skill_set, Some(ToolKind::Staff));
+        let shockwave_cost = match shockwave {
+            CharacterAbility::Shockwave { energy_cost, .. } => energy_cost,
+            _ => 600.0_f32,
+        };
         if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
             && attack_data.in_min_range()
             && self.energy.current() > 100
