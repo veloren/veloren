@@ -27,7 +27,7 @@ use crate::{
 use common::character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER};
 use core::ops::Range;
 use rusqlite::{types::Value, Connection, ToSql, Transaction, NO_PARAMS};
-use std::{collections::VecDeque, rc::Rc};
+use std::rc::Rc;
 use tracing::{error, trace, warn};
 
 /// Private module for very tightly coupled database conversion methods.  In
@@ -50,43 +50,54 @@ struct CharacterContainers {
     loadout_container_id: EntityId,
 }
 
-/// BFS the inventory/loadout to ensure that each is topologically sorted in the
-/// sense required by convert_inventory_from_database_items to support recursive
-/// items
-pub fn load_items_bfs(connection: &Connection, root: i64) -> Result<Vec<Item>, PersistenceError> {
-    let mut items = Vec::new();
-    let mut queue = VecDeque::new();
-    queue.push_front(root);
+/// Load the inventory/loadout
+///
+/// Loading is done recursively to ensure that each is topologically sorted in
+/// the sense required by convert_inventory_from_database_items
+pub fn load_items(connection: &Connection, root: i64) -> Result<Vec<Item>, PersistenceError> {
+    let mut stmt = connection.prepare_cached(
+        "
+        WITH RECURSIVE
+        items_tree (
+            item_id,
+            parent_container_item_id,
+            item_definition_id,
+            stack_size,
+            position
+        ) AS (
+            SELECT  item_id,
+                    parent_container_item_id,
+                    item_definition_id,
+                    stack_size,
+                    position
+            FROM item
+            WHERE parent_container_item_id = ?1
+            UNION ALL
+            SELECT  item.item_id,
+                    item.parent_container_item_id,
+                    item.item_definition_id,
+                    item.stack_size,
+                    item.position
+            FROM item, items_tree
+            WHERE item.parent_container_item_id = items_tree.item_id
+        )
+        SELECT  *
+        FROM    items_tree",
+    )?;
 
-    #[rustfmt::skip]
-    let mut stmt = connection.prepare_cached("
-        SELECT  item_id,
-                parent_container_item_id,
-                item_definition_id,
-                stack_size,
-                position
-        FROM    item
-        WHERE   parent_container_item_id = ?1")?;
+    let items = stmt
+        .query_map(&[root], |row| {
+            Ok(Item {
+                item_id: row.get(0)?,
+                parent_container_item_id: row.get(1)?,
+                item_definition_id: row.get(2)?,
+                stack_size: row.get(3)?,
+                position: row.get(4)?,
+            })
+        })?
+        .filter_map(Result::ok)
+        .collect::<Vec<Item>>();
 
-    while let Some(id) = queue.pop_front() {
-        let frontier = stmt
-            .query_map(&[id], |row| {
-                Ok(Item {
-                    item_id: row.get(0)?,
-                    parent_container_item_id: row.get(1)?,
-                    item_definition_id: row.get(2)?,
-                    stack_size: row.get(3)?,
-                    position: row.get(4)?,
-                })
-            })?
-            .filter_map(Result::ok)
-            .collect::<Vec<Item>>();
-
-        for i in frontier.iter() {
-            queue.push_back(i.item_id);
-        }
-        items.extend(frontier);
-    }
     Ok(items)
 }
 
@@ -100,11 +111,11 @@ pub fn load_character_data(
     connection: &Connection,
 ) -> CharacterDataResult {
     let character_containers = get_pseudo_containers(connection, char_id)?;
-    let inventory_items = load_items_bfs(connection, character_containers.inventory_container_id)?;
-    let loadout_items = load_items_bfs(connection, character_containers.loadout_container_id)?;
+    let inventory_items = load_items(connection, character_containers.inventory_container_id)?;
+    let loadout_items = load_items(connection, character_containers.loadout_container_id)?;
 
-    #[rustfmt::skip]
-    let mut stmt = connection.prepare_cached("
+    let mut stmt = connection.prepare_cached(
+        "
         SELECT  c.character_id,
                 c.alias,
                 c.waypoint,
@@ -150,8 +161,8 @@ pub fn load_character_data(
         }
     });
 
-    #[rustfmt::skip]
-    let mut stmt = connection.prepare_cached("
+    let mut stmt = connection.prepare_cached(
+        "
         SELECT  skill,
                 level
         FROM    skill
@@ -169,8 +180,8 @@ pub fn load_character_data(
         .filter_map(Result::ok)
         .collect::<Vec<Skill>>();
 
-    #[rustfmt::skip]
-    let mut stmt = connection.prepare_cached("
+    let mut stmt = connection.prepare_cached(
+        "
         SELECT  skill_group_kind,
                 exp,
                 available_sp,
@@ -214,53 +225,49 @@ pub fn load_character_data(
 /// stats, body, etc...) the character is skipped, and no entry will be
 /// returned.
 pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> CharacterListResult {
-    let characters;
-    {
-        #[rustfmt::skip]
-        let mut stmt = connection
-            .prepare_cached("
-                SELECT  character_id,
-                        alias 
-                FROM    character 
-                WHERE   player_uuid = ?1
-                ORDER BY character_id")?;
+    let mut stmt = connection.prepare_cached(
+        "
+            SELECT  character_id,
+                    alias 
+            FROM    character 
+            WHERE   player_uuid = ?1
+            ORDER BY character_id",
+    )?;
 
-        characters = stmt
-            .query_map(&[player_uuid_], |row| {
-                Ok(Character {
-                    character_id: row.get(0)?,
-                    alias: row.get(1)?,
-                    player_uuid: player_uuid_.to_owned(),
-                    waypoint: None, // Not used for character select
-                })
-            })?
-            .map(|x| x.unwrap())
-            .collect::<Vec<Character>>();
-    }
+    let characters = stmt
+        .query_map(&[player_uuid_], |row| {
+            Ok(Character {
+                character_id: row.get(0)?,
+                alias: row.get(1)?,
+                player_uuid: player_uuid_.to_owned(),
+                waypoint: None, // Not used for character select
+            })
+        })?
+        .map(|x| x.unwrap())
+        .collect::<Vec<Character>>();
+    drop(stmt);
+
     characters
         .iter()
         .map(|character_data| {
             let char = convert_character_from_database(character_data);
 
-            let db_body;
-
-            {
-                #[rustfmt::skip]
-                let mut stmt = connection
-                    .prepare_cached("\
-                        SELECT  body_id,\
-                                variant,\
-                                body_data \
-                        FROM    body \
-                        WHERE   body_id = ?1")?;
-                db_body = stmt.query_row(&[char.id], |row| {
-                    Ok(Body {
-                        body_id: row.get(0)?,
-                        variant: row.get(1)?,
-                        body_data: row.get(2)?,
-                    })
-                })?;
-            }
+            let mut stmt = connection.prepare_cached(
+                "
+                SELECT  body_id,
+                        variant,
+                        body_data
+                FROM    body
+                WHERE   body_id = ?1",
+            )?;
+            let db_body = stmt.query_row(&[char.id], |row| {
+                Ok(Body {
+                    body_id: row.get(0)?,
+                    variant: row.get(1)?,
+                    body_data: row.get(2)?,
+                })
+            })?;
+            drop(stmt);
 
             let char_body = convert_body_from_database(&db_body)?;
 
@@ -270,7 +277,7 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
                 LOADOUT_PSEUDO_CONTAINER_POSITION,
             )?;
 
-            let loadout_items = load_items_bfs(connection, loadout_container_id)?;
+            let loadout_items = load_items(connection, loadout_container_id)?;
 
             let loadout =
                 convert_loadout_from_database_items(loadout_container_id, &loadout_items)?;
@@ -288,14 +295,14 @@ pub fn create_character(
     uuid: &str,
     character_alias: &str,
     persisted_components: PersistedComponents,
-    connection: &mut Transaction,
+    transactionn: &mut Transaction,
 ) -> CharacterCreationResult {
-    check_character_limit(uuid, connection)?;
+    check_character_limit(uuid, transactionn)?;
 
     let (body, _stats, skill_set, inventory, waypoint) = persisted_components;
 
     // Fetch new entity IDs for character, inventory and loadout
-    let mut new_entity_ids = get_new_entity_ids(connection, |next_id| next_id + 3)?;
+    let mut new_entity_ids = get_new_entity_ids(transactionn, |next_id| next_id + 3)?;
 
     // Create pseudo-container items for character
     let character_id = new_entity_ids.next().unwrap();
@@ -326,8 +333,8 @@ pub fn create_character(
         },
     ];
 
-    #[rustfmt::skip]
-    let mut stmt = connection.prepare_cached("
+    let mut stmt = transactionn.prepare_cached(
+        "
         INSERT INTO item (item_id,
                           parent_container_item_id,
                           item_definition_id,
@@ -345,15 +352,15 @@ pub fn create_character(
             &pseudo_container.position,
         ])?;
     }
-
     drop(stmt);
 
-    #[rustfmt::skip]
-    let mut stmt = connection.prepare_cached("
+    let mut stmt = transactionn.prepare_cached(
+        "
         INSERT INTO body (body_id,
                           variant,
                           body_data)
-        VALUES (?1, ?2, ?3)")?;
+        VALUES (?1, ?2, ?3)",
+    )?;
 
     stmt.execute(&[
         &character_id as &dyn ToSql,
@@ -362,13 +369,14 @@ pub fn create_character(
     ])?;
     drop(stmt);
 
-    #[rustfmt::skip]
-    let mut stmt = connection.prepare_cached("
+    let mut stmt = transactionn.prepare_cached(
+        "
         INSERT INTO character (character_id,
                                player_uuid,
                                alias,
                                waypoint)
-        VALUES (?1, ?2, ?3, ?4)")?;
+        VALUES (?1, ?2, ?3, ?4)",
+    )?;
 
     stmt.execute(&[
         &character_id as &dyn ToSql,
@@ -380,14 +388,15 @@ pub fn create_character(
 
     let db_skill_groups = convert_skill_groups_to_database(character_id, skill_set.skill_groups);
 
-    #[rustfmt::skip]
-    let mut stmt = connection.prepare_cached("
+    let mut stmt = transactionn.prepare_cached(
+        "
         INSERT INTO skill_group (entity_id,
                                  skill_group_kind,
                                  exp,
                                  available_sp,
                                  earned_sp)
-        VALUES (?1, ?2, ?3, ?4, ?5)")?;
+        VALUES (?1, ?2, ?3, ?4, ?5)",
+    )?;
 
     for skill_group in db_skill_groups {
         stmt.execute(&[
@@ -403,7 +412,7 @@ pub fn create_character(
     // Insert default inventory and loadout item records
     let mut inserts = Vec::new();
 
-    get_new_entity_ids(connection, |mut next_id| {
+    get_new_entity_ids(transactionn, |mut next_id| {
         let inserts_ = convert_items_to_database_items(
             loadout_container_id,
             &inventory,
@@ -414,8 +423,8 @@ pub fn create_character(
         next_id
     })?;
 
-    #[rustfmt::skip]
-    let mut stmt = connection.prepare_cached("
+    let mut stmt = transactionn.prepare_cached(
+        "
         INSERT INTO item (item_id,
                           parent_container_item_id,
                           item_definition_id,
@@ -435,21 +444,22 @@ pub fn create_character(
     }
     drop(stmt);
 
-    load_character_list(uuid, connection).map(|list| (character_id, list))
+    load_character_list(uuid, transactionn).map(|list| (character_id, list))
 }
 
 /// Delete a character. Returns the updated character list.
 pub fn delete_character(
     requesting_player_uuid: &str,
     char_id: CharacterId,
-    connection: &mut Transaction,
+    transaction: &mut Transaction,
 ) -> CharacterListResult {
-    #[rustfmt::skip]
-    let mut stmt = connection.prepare_cached("
+    let mut stmt = transaction.prepare_cached(
+        "
         SELECT  COUNT(1)
         FROM    character
         WHERE   character_id = ?1
-        AND     player_uuid = ?2")?;
+        AND     player_uuid = ?2",
+    )?;
 
     let result = stmt.query_row(&[&char_id as &dyn ToSql, &requesting_player_uuid], |row| {
         let y: i64 = row.get(0)?;
@@ -463,7 +473,7 @@ pub fn delete_character(
         ));
     }
     // Delete skills
-    let mut stmt = connection.prepare_cached(
+    let mut stmt = transaction.prepare_cached(
         "
         DELETE
         FROM    skill
@@ -474,7 +484,7 @@ pub fn delete_character(
     drop(stmt);
 
     // Delete skill groups
-    let mut stmt = connection.prepare_cached(
+    let mut stmt = transaction.prepare_cached(
         "
         DELETE
         FROM    skill_group
@@ -485,7 +495,7 @@ pub fn delete_character(
     drop(stmt);
 
     // Delete character
-    let mut stmt = connection.prepare_cached(
+    let mut stmt = transaction.prepare_cached(
         "
         DELETE
         FROM    character
@@ -496,7 +506,7 @@ pub fn delete_character(
     drop(stmt);
 
     // Delete body
-    let mut stmt = connection.prepare_cached(
+    let mut stmt = transaction.prepare_cached(
         "
         DELETE
         FROM    body
@@ -509,7 +519,7 @@ pub fn delete_character(
     // Delete all items, recursively walking all containers starting from the
     // "character" pseudo-container that is the root for all items owned by
     // a character.
-    let mut stmt = connection.prepare_cached(
+    let mut stmt = transaction.prepare_cached(
         "
         WITH RECURSIVE
         parents AS (
@@ -538,20 +548,21 @@ pub fn delete_character(
         )));
     }
 
-    load_character_list(requesting_player_uuid, connection)
+    load_character_list(requesting_player_uuid, transaction)
 }
 
 /// Before creating a character, we ensure that the limit on the number of
 /// characters has not been exceeded
 pub fn check_character_limit(
     uuid: &str,
-    connection: &mut Transaction,
+    transaction: &mut Transaction,
 ) -> Result<(), PersistenceError> {
-    #[rustfmt::skip]
-    let mut stmt = connection.prepare_cached("
+    let mut stmt = transaction.prepare_cached(
+        "
         SELECT  COUNT(1)
         FROM    character
-        WHERE   player_uuid = ?1")?;
+        WHERE   player_uuid = ?1",
+    )?;
 
     #[allow(clippy::needless_question_mark)]
     let character_count: i64 = stmt.query_row(&[&uuid], |row| Ok(row.get(0)?))?;
@@ -571,14 +582,13 @@ pub fn check_character_limit(
 ///
 /// These are then inserted into the entities table.
 fn get_new_entity_ids(
-    conn: &mut Transaction,
+    transaction: &mut Transaction,
     mut max: impl FnMut(i64) -> i64,
 ) -> Result<Range<EntityId>, PersistenceError> {
     // The sqlite_sequence table is used here to avoid reusing entity IDs for
     // deleted entities. This table always contains the highest used ID for
     // each AUTOINCREMENT column in a SQLite database.
-    #[rustfmt::skip]
-    let mut stmt = conn.prepare_cached(
+    let mut stmt = transaction.prepare_cached(
         "
         SELECT  seq + 1 AS entity_id
         FROM    sqlite_sequence
@@ -592,9 +602,9 @@ fn get_new_entity_ids(
     // Create a new range of IDs and insert them into the entity table
     let new_ids: Range<EntityId> = next_entity_id..max_entity_id;
 
-    let mut stmt = conn.prepare_cached("INSERT INTO entity (entity_id) VALUES (?1)")?;
+    let mut stmt = transaction.prepare_cached("INSERT INTO entity (entity_id) VALUES (?1)")?;
 
-    // TODO: bulk insert? rarray doesn't seem to work in VALUES clause
+    // SQLite has no bulk insert
     for i in new_ids.clone() {
         stmt.execute(&[i])?;
     }
@@ -637,8 +647,8 @@ fn get_pseudo_container_id(
     character_id: CharacterId,
     pseudo_container_position: &str,
 ) -> Result<EntityId, PersistenceError> {
-    #[rustfmt::skip]
-    let mut stmt = connection.prepare_cached("\
+    let mut stmt = connection.prepare_cached(
+        "
         SELECT  item_id
         FROM    item
         WHERE   parent_container_item_id = ?1
@@ -673,15 +683,15 @@ pub fn update(
     char_skill_set: comp::SkillSet,
     inventory: comp::Inventory,
     char_waypoint: Option<comp::Waypoint>,
-    connection: &mut Transaction,
+    transaction: &mut Transaction,
 ) -> Result<(), PersistenceError> {
-    let pseudo_containers = get_pseudo_containers(connection, char_id)?;
+    let pseudo_containers = get_pseudo_containers(transaction, char_id)?;
 
     let mut upserts = Vec::new();
 
     // First, get all the entity IDs for any new items, and identify which
     // slots to upsert and which ones to delete.
-    get_new_entity_ids(connection, |mut next_id| {
+    get_new_entity_ids(transaction, |mut next_id| {
         let upserts_ = convert_items_to_database_items(
             pseudo_containers.loadout_container_id,
             &inventory,
@@ -698,10 +708,10 @@ pub fn update(
         Value::from(pseudo_containers.inventory_container_id),
         Value::from(pseudo_containers.loadout_container_id),
     ];
-    for it in load_items_bfs(connection, pseudo_containers.inventory_container_id)? {
+    for it in load_items(transaction, pseudo_containers.inventory_container_id)? {
         existing_item_ids.push(Value::from(it.item_id));
     }
-    for it in load_items_bfs(connection, pseudo_containers.loadout_container_id)? {
+    for it in load_items(transaction, pseudo_containers.loadout_container_id)? {
         existing_item_ids.push(Value::from(it.item_id));
     }
 
@@ -710,13 +720,14 @@ pub fn update(
         .map(|item_pair| Value::from(item_pair.model.item_id))
         .collect::<Vec<Value>>();
 
-    #[rustfmt::skip]
-    let mut stmt = connection.prepare_cached("
+    let mut stmt = transaction.prepare_cached(
+        "
         DELETE
         FROM    item
         WHERE   parent_container_item_id
         IN      rarray(?1)
-        AND     item_id NOT IN rarray(?2)")?;
+        AND     item_id NOT IN rarray(?2)",
+    )?;
     let delete_count = stmt.execute(&[Rc::new(existing_item_ids), Rc::new(non_upserted_items)])?;
     trace!("Deleted {} items", delete_count);
 
@@ -746,17 +757,18 @@ pub fn update(
         // The `defer_foreign_keys` pragma treats the foreign key
         // constraints as deferred for the next transaction (it turns itself
         // off at the commit boundary). https://sqlite.org/foreignkeys.html#fk_deferred
-        connection.pragma_update(None, "defer_foreign_keys", &"ON".to_string())?;
+        transaction.pragma_update(None, "defer_foreign_keys", &"ON".to_string())?;
 
-        #[rustfmt::skip]
-        let mut stmt =  connection.prepare_cached("
+        let mut stmt = transaction.prepare_cached(
+            "
             REPLACE
             INTO    item (item_id,
                           parent_container_item_id,
                           item_definition_id,
                           stack_size,
                           position)
-            VALUES  (?1, ?2, ?3, ?4, ?5)")?;
+            VALUES  (?1, ?2, ?3, ?4, ?5)",
+        )?;
 
         for item in upserted_items.iter() {
             stmt.execute(&[
@@ -771,15 +783,16 @@ pub fn update(
 
     let db_skill_groups = convert_skill_groups_to_database(char_id, char_skill_set.skill_groups);
 
-    #[rustfmt::skip]
-    let mut stmt =  connection.prepare_cached("
+    let mut stmt = transaction.prepare_cached(
+        "
         REPLACE
         INTO    skill_group (entity_id,
                              skill_group_kind,
                              exp,
                              available_sp,
                              earned_sp)
-        VALUES (?1, ?2, ?3, ?4, ?5)")?;
+        VALUES (?1, ?2, ?3, ?4, ?5)",
+    )?;
 
     for skill_group in db_skill_groups {
         stmt.execute(&[
@@ -800,23 +813,25 @@ pub fn update(
             .collect::<Vec<Value>>(),
     );
 
-    #[rustfmt::skip]
-    let mut stmt = connection.prepare_cached("
+    let mut stmt = transaction.prepare_cached(
+        "
         DELETE
         FROM    skill
         WHERE   entity_id = ?1
-        AND     skill NOT IN rarray(?2)")?;
+        AND     skill NOT IN rarray(?2)",
+    )?;
 
     let delete_count = stmt.execute(&[&char_id as &dyn ToSql, &known_skills])?;
     trace!("Deleted {} skills", delete_count);
 
-    #[rustfmt::skip]
-    let mut stmt =  connection.prepare_cached("
+    let mut stmt = transaction.prepare_cached(
+        "
         REPLACE 
         INTO    skill (entity_id,
                        skill,
                        level)
-        VALUES (?1, ?2, ?3)")?;
+        VALUES (?1, ?2, ?3)",
+    )?;
 
     for skill in db_skills {
         stmt.execute(&[&skill.entity_id as &dyn ToSql, &skill.skill, &skill.level])?;
@@ -824,12 +839,13 @@ pub fn update(
 
     let db_waypoint = convert_waypoint_to_database_json(char_waypoint);
 
-    #[rustfmt::skip]
-    let mut stmt =  connection.prepare_cached("
+    let mut stmt = transaction.prepare_cached(
+        "
         UPDATE  character
         SET     waypoint = ?1
         WHERE   character_id = ?2
-    ")?;
+    ",
+    )?;
 
     let waypoint_count = stmt.execute(&[&db_waypoint as &dyn ToSql, &char_id])?;
 
