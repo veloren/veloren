@@ -756,6 +756,12 @@ impl Site {
         let mut plots_to_render = plots.into_iter().collect::<Vec<_>>();
         plots_to_render.sort_unstable();
 
+        let wpos2d = canvas.info().wpos();
+        let chunk_aabr = Aabr {
+            min: wpos2d,
+            max: wpos2d + TerrainChunkSize::RECT_SIZE.as_::<i32>(),
+        };
+
         for plot in plots_to_render {
             let (prim_tree, fills) = match &self.plots[plot].kind {
                 PlotKind::House(house) => house.render_collect(self, &canvas.land()),
@@ -765,7 +771,9 @@ impl Site {
             };
 
             for (prim, fill) in fills {
-                let aabb = fill.get_bounds(&prim_tree, prim);
+                let mut aabb = fill.get_bounds(&prim_tree, prim);
+                aabb.min = Vec2::max(aabb.min.xy(), chunk_aabr.min).with_z(aabb.min.z);
+                aabb.max = Vec2::min(aabb.max.xy(), chunk_aabr.max).with_z(aabb.max.z);
 
                 for x in aabb.min.x..aabb.max.x {
                     for y in aabb.min.y..aabb.max.y {
