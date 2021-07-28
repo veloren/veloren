@@ -77,7 +77,7 @@ pub struct PlayerPhysicsSettings {
 
 /// Describe how players interact with other players.
 ///
-/// Probably will be removed when we will discover better way
+/// May be removed when we will discover better way
 /// to handle duels and murders
 #[derive(Copy, Clone, Debug, Deserialize, Serialize)]
 pub enum BattleMode {

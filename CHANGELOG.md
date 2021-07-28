@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Healing sceptre crafting recipe
 - NPCs can now warn players before engaging in combat
 - Custom error message when a supported graphics backend can not be found
+- Add server setting with PvE/PvP switch
 
 ### Changed
 
