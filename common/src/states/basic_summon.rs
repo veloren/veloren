@@ -91,7 +91,7 @@ impl CharacterBehavior for Data {
 
                         let loadout = {
                             let loadout_builder =
-                                LoadoutBuilder::new().with_default_maintool(&body);
+                                LoadoutBuilder::empty().with_default_maintool(&body);
                             // If preset is none, use default equipment
                             if let Some(preset) = loadout_config {
                                 loadout_builder.with_preset(preset).build()

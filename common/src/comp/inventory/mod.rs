@@ -81,7 +81,7 @@ impl InventorySortOrder {
 /// that contains items etc) must first ensure items are unloaded from the item.
 /// This is handled in `inventory\slot.rs`
 impl Inventory {
-    pub fn new_empty() -> Inventory { Self::new_with_loadout(LoadoutBuilder::new().build()) }
+    pub fn new_empty() -> Inventory { Self::new_with_loadout(LoadoutBuilder::empty().build()) }
 
     pub fn new_with_loadout(loadout: Loadout) -> Inventory {
         Inventory {
