@@ -118,28 +118,22 @@ impl<'a> System<'a> for Sys {
                                 || *target_uid == uid
                         };
 
-                        match aura.target {
-                            AuraTarget::GroupOf(uid) => {
-                                if !same_group(uid) {
-                                    return;
-                                }
-                            },
-                            AuraTarget::NotGroupOf(uid) => {
-                                if same_group(uid) {
-                                    return;
-                                }
-                            },
-                            AuraTarget::All => {},
-                        }
+                        let is_target = match aura.target {
+                            AuraTarget::GroupOf(uid) => same_group(uid),
+                            AuraTarget::NotGroupOf(uid) => !same_group(uid),
+                            AuraTarget::All => true,
+                        };
 
-                        activate_aura(
-                            aura,
-                            target,
-                            health,
-                            &mut target_buffs,
-                            &read_data,
-                            &mut server_emitter,
-                        );
+                        if is_target {
+                            activate_aura(
+                                aura,
+                                target,
+                                health,
+                                &mut target_buffs,
+                                &read_data,
+                                &mut server_emitter,
+                            );
+                        }
                     }
                 });
             }
@@ -165,38 +159,38 @@ fn activate_aura(
     read_data: &ReadData,
     server_emitter: &mut Emitter<ServerEvent>,
 ) {
-    let should_activate = |aura: &Aura| {
-        match aura.aura_kind {
-            AuraKind::Buff { kind, source, .. } => {
+    let should_activate = match aura.aura_kind {
+        AuraKind::Buff { kind, source, .. } => {
+            let conditions_held = match kind {
+                BuffKind::CampfireHeal => {
+                    let target_state = read_data.char_states.get(target);
+                    matches!(target_state, Some(CharacterState::Sit))
+                        && health.current() < health.maximum()
+                },
+                // Add other specific buff conditions here
+                _ => true,
+            };
+            let avoid_harm = || {
                 let owner = match source {
                     BuffSource::Character { by } => {
                         read_data.uid_allocator.retrieve_entity_internal(by.into())
                     },
                     _ => None,
                 };
-                let avoid_harm = owner.map_or(false, |attacker| {
+                owner.map_or(false, |attacker| {
                     let attacker = read_data.players.get(attacker);
                     let target = read_data.players.get(target);
                     combat::avoid_harm(attacker, target)
-                });
-                let conditions_held = match kind {
-                    BuffKind::CampfireHeal => {
-                        let target_state = read_data.char_states.get(target);
-                        matches!(target_state, Some(CharacterState::Sit))
-                            && health.current() < health.maximum()
-                    },
-                    // Add other specific buff conditions here
-                    _ => true,
-                };
+                })
+            };
 
-                if conditions_held {
-                    if kind.is_buff() { true } else { !avoid_harm }
-                } else {
-                    false
-                }
-            },
-        }
+            conditions_held && (kind.is_buff() || !avoid_harm())
+        },
     };
+
+    if !should_activate {
+        return;
+    }
 
     // TODO: When more aura kinds (besides Buff) are
     // implemented, match on them here
@@ -207,14 +201,11 @@ fn activate_aura(
             category,
             source,
         } => {
-            if !should_activate(aura) {
-                return;
-            }
-            // Checks that target is not already receiving a buff from
-            // an aura, where
-            // the buff is of the same kind, and is of at least
-            // the same strength and of at least the same duration
-            // If no such buff is present, adds the buff
+            // Checks that target is not already receiving a buff
+            // from an aura, where the buff is of the same kind,
+            // and is of at least the same strength
+            // and of at least the same duration.
+            // If no such buff is present, adds the buff.
             let emit_buff = !target_buffs.buffs.iter().any(|(_, buff)| {
                 buff.cat_ids
                     .iter()
@@ -237,9 +228,8 @@ fn activate_aura(
                 });
             }
             // Finds all buffs on target that are from an aura, are of
-            // the
-            // same buff kind, and are of at most the same strength
-            // For any such buffs, marks it as recently applied
+            // the same buff kind, and are of at most the same strength.
+            // For any such buffs, marks it as recently applied.
             for (_, buff) in target_buffs.buffs.iter_mut().filter(|(_, buff)| {
                 buff.cat_ids
                     .iter()
