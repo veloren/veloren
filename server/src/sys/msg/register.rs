@@ -75,6 +75,7 @@ impl<'a> System<'a> for Sys {
             mut login_provider,
         ): Self::SystemData,
     ) {
+        let mut server_emitter = read_data.server_event_bus.emitter();
         // Player list to send new players.
         let player_list = (
             &read_data.uids,
@@ -138,12 +139,10 @@ impl<'a> System<'a> for Sys {
                         trace!(?r, "pending login returned");
                         match r {
                             Err(e) => {
-                                read_data
-                                    .server_event_bus
-                                    .emit_now(ServerEvent::ClientDisconnect(
-                                        entity,
-                                        common::comp::DisconnectReason::Kicked,
-                                    ));
+                                server_emitter.emit(ServerEvent::ClientDisconnect(
+                                    entity,
+                                    common::comp::DisconnectReason::Kicked,
+                                ));
                                 client.send(ServerRegisterAnswer::Err(e))?;
                                 return Ok(());
                             },
@@ -159,12 +158,10 @@ impl<'a> System<'a> for Sys {
                         .find(|(_, _, old_player)| old_player.uuid() == uuid)
                 {
                     // Remove old client
-                    read_data
-                        .server_event_bus
-                        .emit_now(ServerEvent::ClientDisconnect(
-                            old_entity,
-                            common::comp::DisconnectReason::NewerLogin,
-                        ));
+                    server_emitter.emit(ServerEvent::ClientDisconnect(
+                        old_entity,
+                        common::comp::DisconnectReason::NewerLogin,
+                    ));
                     let _ = old_client.send(ServerGeneral::Disconnect(DisconnectReason::Kicked(
                         String::from("You have logged in from another location."),
                     )));
