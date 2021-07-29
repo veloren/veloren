@@ -77,7 +77,7 @@ float ShadowCalculationPoint(uint lightIndex, vec3 fragToLight, vec3 fragNorm, /
 
         // currentDepth = -currentDepth * 0.5 + 0.5;
 
-        float visibility = texture(samplerCubeShadow(t_point_shadow_maps, s_point_shadow_maps), vec4(fragToLight, currentDepth));// / (screen_res.w/* - screen_res.z*/)/*1.0 -bias*//*-(currentDepth - bias) / screen_res.w*//*-screen_res.w*/);
+        float visibility = textureGrad(samplerCubeShadow(t_point_shadow_maps, s_point_shadow_maps), vec4(fragToLight, currentDepth), vec3(0), vec3(0));// / (screen_res.w/* - screen_res.z*/)/*1.0 -bias*//*-(currentDepth - bias) / screen_res.w*//*-screen_res.w*/);
         /* if (visibility == 1.0 || visibility == 0.0) {
             return visibility;
         } */
