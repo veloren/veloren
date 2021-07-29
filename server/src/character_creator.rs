@@ -4,45 +4,54 @@ use common::comp::{
 };
 use specs::{Entity, WriteExpect};
 
-const VALID_STARTER_ITEMS: [&str; 6] = [
-    "common.items.weapons.hammer.starter_hammer",
-    "common.items.weapons.bow.starter",
-    "common.items.weapons.axe.starter_axe",
-    "common.items.weapons.staff.starter_staff",
-    "common.items.weapons.sword.starter",
-    "common.items.weapons.sceptre.starter_sceptre",
+const VALID_STARTER_ITEMS: &[[Option<&str>; 2]] = &[
+    [None, None], // Not used with an unmodified client but should still be allowed (zesterer)
+    [Some("common.items.weapons.hammer.starter_hammer"), None],
+    [Some("common.items.weapons.bow.starter"), None],
+    [Some("common.items.weapons.axe.starter_axe"), None],
+    [Some("common.items.weapons.staff.starter_staff"), None],
+    [Some("common.items.weapons.sword.starter"), None],
+    [
+        Some("common.items.weapons.sword_1h.starter"),
+        Some("common.items.weapons.sword_1h.starter"),
+    ],
 ];
+
+#[derive(Debug)]
+pub enum CreationError {
+    InvalidWeapon,
+    InvalidBody,
+}
 
 pub fn create_character(
     entity: Entity,
     player_uuid: String,
     character_alias: String,
-    character_tool: Option<String>,
+    character_mainhand: Option<String>,
+    character_offhand: Option<String>,
     body: Body,
     character_updater: &mut WriteExpect<'_, CharacterUpdater>,
-) {
+) -> Result<(), CreationError> {
     // quick fix whitelist validation for now; eventually replace the
     // `Option<String>` with an index into a server-provided list of starter
     // items, and replace `comp::body::Body` with `comp::body::humanoid::Body`
     // throughout the messages involved
-    let tool_id = match character_tool {
-        Some(tool_id) if VALID_STARTER_ITEMS.contains(&&*tool_id) => tool_id,
-        _ => return,
-    };
     if !matches!(body, Body::Humanoid(_)) {
-        return;
+        return Err(CreationError::InvalidBody);
     }
-
-    let stats = Stats::new(character_alias.to_string());
-    let skill_set = SkillSet::default();
-
+    if !VALID_STARTER_ITEMS.contains(&[character_mainhand.as_deref(), character_offhand.as_deref()])
+    {
+        return Err(CreationError::InvalidWeapon);
+    };
+    // The client sends None if a weapon hand is empty
     let loadout = LoadoutBuilder::empty()
         .defaults()
-        .active_mainhand(Some(Item::new_from_asset_expect(&tool_id)))
+        .active_mainhand(character_mainhand.map(|x| Item::new_from_asset_expect(&x)))
+        .active_offhand(character_offhand.map(|x| Item::new_from_asset_expect(&x)))
         .build();
-
     let mut inventory = Inventory::new_with_loadout(loadout);
-
+    let stats = Stats::new(character_alias.to_string());
+    let skill_set = SkillSet::default();
     // Default items for new characters
     inventory
         .push(Item::new_from_asset_expect(
@@ -61,4 +70,21 @@ pub fn create_character(
         character_alias,
         (body, stats, skill_set, inventory, waypoint, Vec::new()),
     );
+    Ok(())
+}
+
+// Error handling
+impl core::fmt::Display for CreationError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            CreationError::InvalidWeapon => write!(
+                f,
+                "Invalid weapon.\nServer and client might be partially incompatible."
+            ),
+            CreationError::InvalidBody => write!(
+                f,
+                "Invalid Body.\nServer and client might be partially incompatible"
+            ),
+        }
+    }
 }

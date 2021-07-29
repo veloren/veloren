@@ -826,9 +826,20 @@ impl Client {
     }
 
     /// New character creation
-    pub fn create_character(&mut self, alias: String, tool: Option<String>, body: comp::Body) {
+    pub fn create_character(
+        &mut self,
+        alias: String,
+        mainhand: Option<String>,
+        offhand: Option<String>,
+        body: comp::Body,
+    ) {
         self.character_list.loading = true;
-        self.send_msg(ClientGeneral::CreateCharacter { alias, tool, body });
+        self.send_msg(ClientGeneral::CreateCharacter {
+            alias,
+            mainhand,
+            offhand,
+            body,
+        });
     }
 
     /// Character deletion

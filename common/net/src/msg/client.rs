@@ -51,7 +51,8 @@ pub enum ClientGeneral {
     RequestCharacterList,
     CreateCharacter {
         alias: String,
-        tool: Option<String>,
+        mainhand: Option<String>,
+        offhand: Option<String>,
         body: comp::Body,
     },
     DeleteCharacter(CharacterId),

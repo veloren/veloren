@@ -506,6 +506,15 @@
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
+    "Healing Sceptre": (
+        output: ("common.items.weapons.sceptre.starter_sceptre", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.twigs"), 10),
+            (Item("common.items.crafting_ing.stones"), 0),
+        ],
+        craft_sprite: None,
+        is_recycling: false,
+    ),
     "Soothing Loop": (
         output: ("common.items.weapons.sceptre.loops0", 1),
         inputs: [
@@ -514,7 +523,7 @@
             (Item("common.items.mineral.gem.ruby"), 4),
             (Item("common.items.tool.craftsman_hammer"), 0),
         ],
-        craft_sprite: None,
+        craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
     "Hunting Bow": (
