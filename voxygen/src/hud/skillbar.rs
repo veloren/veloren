@@ -8,7 +8,6 @@ use super::{
 use crate::{
     game_input::GameInput,
     hud::{ComboFloater, Position, PositionSpecifier},
-    i18n::Localization,
     ui::{
         fonts::Fonts,
         slot::{ContentSize, SlotMaker},
@@ -17,6 +16,7 @@ use crate::{
     },
     GlobalState,
 };
+use i18n::Localization;
 
 use client::{self, Client};
 use common::comp::{

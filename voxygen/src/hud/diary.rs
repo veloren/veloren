@@ -3,16 +3,14 @@ use super::{
     item_imgs::{animate_by_pulse, ItemImgs, ItemKey::Tool},
     Show, CRITICAL_HP_COLOR, HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
 };
-use crate::{
-    i18n::Localization,
-    ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
-};
+use crate::ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable};
 use conrod_core::{
     color,
     image::Id,
     widget::{self, button, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
+use i18n::Localization;
 
 use client::{self, Client};
 use common::comp::{

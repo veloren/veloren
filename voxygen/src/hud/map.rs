@@ -4,7 +4,6 @@ use super::{
     TEXT_BG, TEXT_BLUE_COLOR, TEXT_COLOR, TEXT_GRAY_COLOR, TEXT_VELORITE, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
-    i18n::Localization,
     session::settings_change::{Interface as InterfaceChange, Interface::*},
     ui::{fonts::Fonts, img_ids, ImageFrame, Tooltip, TooltipManager, Tooltipable},
     GlobalState,
@@ -17,6 +16,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use i18n::Localization;
 use specs::{saveload::MarkerAllocator, WorldExt};
 use vek::*;
 

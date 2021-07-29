@@ -1,11 +1,9 @@
 use super::{Imgs, Message, FILL_FRAC_ONE};
-use crate::{
-    i18n::Localization,
-    ui::{
-        fonts::IcedFonts as Fonts,
-        ice::{component::neat_button, style, Element},
-    },
+use crate::ui::{
+    fonts::IcedFonts as Fonts,
+    ice::{component::neat_button, style, Element},
 };
+use i18n::Localization;
 use iced::{
     button, scrollable, Align, Button, Column, Container, Length, Row, Scrollable, Space, Text,
 };

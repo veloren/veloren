@@ -4,7 +4,6 @@ use super::{
 };
 use crate::{
     game_input::GameInput,
-    i18n::Localization,
     ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
     window::KeyMouse,
     GlobalState,
@@ -15,6 +14,7 @@ use conrod_core::{
     widget::{self, Button, Image, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
+use i18n::Localization;
 widget_ids! {
     struct Ids {
         bag,

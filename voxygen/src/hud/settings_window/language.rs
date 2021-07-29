@@ -1,6 +1,5 @@
 use crate::{
     hud::{img_ids::Imgs, TEXT_COLOR},
-    i18n::{list_localizations, Localization},
     session::settings_change::{Language as LanguageChange, Language::*},
     ui::{fonts::Fonts, ToggleButton},
     GlobalState,
@@ -10,6 +9,7 @@ use conrod_core::{
     widget::{self, Button, Rectangle, Scrollbar, Text},
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use i18n::{list_localizations, Localization};
 
 widget_ids! {
     struct Ids {

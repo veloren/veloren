@@ -2,7 +2,6 @@ use super::{img_ids::Imgs, TEXT_COLOR, UI_HIGHLIGHT_0};
 use crate::{
     game_input::GameInput,
     hud::{Event, PromptDialogSettings},
-    i18n::LocalizationHandle,
     settings::Settings,
     ui::fonts::Fonts,
 };
@@ -10,6 +9,7 @@ use conrod_core::{
     widget::{self, Button, Image, Text},
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use i18n::LocalizationHandle;
 use keyboard_keynames::key_layout::KeyLayout;
 
 widget_ids! {

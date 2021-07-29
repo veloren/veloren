@@ -2,7 +2,7 @@ use super::{
     img_ids::Imgs, ChatTab, ERROR_COLOR, FACTION_COLOR, GROUP_COLOR, INFO_COLOR, KILL_COLOR,
     OFFLINE_COLOR, ONLINE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR, WORLD_COLOR,
 };
-use crate::{i18n::Localization, settings::chat::MAX_CHAT_TABS, ui::fonts::Fonts, GlobalState};
+use crate::{settings::chat::MAX_CHAT_TABS, ui::fonts::Fonts, GlobalState};
 use client::{cmd, Client};
 use common::comp::{
     chat::{KillSource, KillType},
@@ -22,6 +22,7 @@ use conrod_core::{
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Ui, UiCell, Widget,
     WidgetCommon,
 };
+use i18n::Localization;
 use std::collections::{HashSet, VecDeque};
 
 widget_ids! {

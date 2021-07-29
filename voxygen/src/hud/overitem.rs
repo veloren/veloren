@@ -1,6 +1,5 @@
 use crate::{
     game_input::GameInput,
-    i18n::Localization,
     settings::ControlSettings,
     ui::{fonts::Fonts, Ingameable},
 };
@@ -9,6 +8,7 @@ use conrod_core::{
     widget::{self, RoundedRectangle, Text},
     widget_ids, Color, Colorable, Positionable, Widget, WidgetCommon,
 };
+use i18n::Localization;
 use std::borrow::Cow;
 
 use keyboard_keynames::key_layout::KeyLayout;

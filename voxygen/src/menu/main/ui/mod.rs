@@ -5,7 +5,6 @@ mod login;
 mod servers;
 
 use crate::{
-    i18n::{LanguageMetadata, LocalizationHandle},
     render::UiDrawer,
     ui::{
         self,
@@ -16,6 +15,7 @@ use crate::{
     },
     window, GlobalState,
 };
+use i18n::{LanguageMetadata, LocalizationHandle};
 use iced::{text_input, Column, Container, HorizontalAlignment, Length, Row, Space};
 //ImageFrame, Tooltip,
 use crate::settings::Settings;
@@ -193,7 +193,7 @@ impl Controls {
             .iter()
             .position(|f| f == &login_info.server);
 
-        let language_metadatas = crate::i18n::list_localizations();
+        let language_metadatas = i18n::list_localizations();
         let selected_language_index = language_metadatas
             .iter()
             .position(|f| f.language_identifier == settings.language.selected_language);
@@ -256,7 +256,7 @@ impl Controls {
             self.imgs.bg
         };
 
-        let language_metadatas = crate::i18n::list_localizations();
+        let language_metadatas = i18n::list_localizations();
 
         // TODO: make any large text blocks scrollable so that if the area is to
         // small they can still be read
@@ -315,7 +315,7 @@ impl Controls {
         ui: &mut Ui,
     ) {
         let servers = &settings.networking.servers;
-        let mut language_metadatas = crate::i18n::list_localizations();
+        let mut language_metadatas = i18n::list_localizations();
 
         match message {
             Message::Quit => events.push(Event::Quit),
@@ -509,7 +509,7 @@ impl MainMenuUi {
         self.ui.clear_fonts(font);
         self.controls.fonts =
             Fonts::load(i18n.fonts(), &mut self.ui).expect("Impossible to load fonts!");
-        let language_metadatas = crate::i18n::list_localizations();
+        let language_metadatas = i18n::list_localizations();
         self.controls.selected_language_index = language_metadatas
             .iter()
             .position(|f| f.language_identifier == settings.language.selected_language);

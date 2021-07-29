@@ -1,7 +1,7 @@
 use super::graphic::{Graphic, GraphicCache, Id as GraphicId};
 use crate::{
+    error::Error,
     render::{Renderer, Texture, UiTextureBindGroup},
-    Error,
 };
 use common::assets::{self, AssetExt};
 use glyph_brush::GlyphBrushBuilder;

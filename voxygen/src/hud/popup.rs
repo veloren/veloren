@@ -1,11 +1,12 @@
 use super::Show;
-use crate::{i18n::Localization, ui::fonts::Fonts};
+use crate::ui::fonts::Fonts;
 use client::{self, Client};
 use common_net::msg::Notification;
 use conrod_core::{
     widget::{self, Text},
     widget_ids, Color, Colorable, Positionable, Widget, WidgetCommon,
 };
+use i18n::Localization;
 use std::{collections::VecDeque, time::Instant};
 
 widget_ids! {

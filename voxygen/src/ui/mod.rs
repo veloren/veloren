@@ -28,12 +28,12 @@ pub use widgets::{
 };
 
 use crate::{
+    error::Error,
     render::{
         create_ui_quad, create_ui_tri, DynamicModel, Mesh, RenderError, Renderer, UiBoundLocals,
         UiDrawer, UiLocals, UiMode, UiVertex,
     },
     window::Window,
-    Error,
 };
 #[rustfmt::skip]
 use ::image::GenericImageView;

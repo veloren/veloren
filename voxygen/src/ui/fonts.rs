@@ -1,4 +1,4 @@
-use crate::{i18n, ui::ice::RawFont};
+use crate::ui::ice::RawFont;
 use common::assets::{self, AssetExt};
 
 pub struct Font {

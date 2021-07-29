@@ -5,7 +5,6 @@ use super::{
 };
 use crate::{
     hud::{get_buff_image, get_buff_info},
-    i18n::Localization,
     settings::InterfaceSettings,
     ui::{fonts::Fonts, Ingameable},
 };
@@ -16,6 +15,7 @@ use conrod_core::{
     widget::{self, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use i18n::Localization;
 
 const MAX_BUBBLE_WIDTH: f64 = 250.0;
 widget_ids! {

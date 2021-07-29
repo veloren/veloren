@@ -15,9 +15,9 @@ use super::{
     scale::{Scale, ScaleMode},
 };
 use crate::{
+    error::Error,
     render::{Renderer, UiDrawer},
     window::Window,
-    Error,
 };
 use common::slowjob::SlowJobPool;
 use common_base::span;

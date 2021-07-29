@@ -1,13 +1,12 @@
 use super::{ConnectionState, Imgs, Message};
-use crate::{
-    i18n::Localization,
-    ui::{
-        fonts::IcedFonts as Fonts,
-        ice::{component::neat_button, style, widget::Image, Element, IcedUi as Ui, Id},
-        Graphic,
-    },
+
+use crate::ui::{
+    fonts::IcedFonts as Fonts,
+    ice::{component::neat_button, style, widget::Image, Element, IcedUi as Ui, Id},
+    Graphic,
 };
 use common::assets::{self, AssetExt};
+use i18n::Localization;
 use iced::{button, Align, Column, Container, Length, Row, Space, Text};
 use serde::{Deserialize, Serialize};
 

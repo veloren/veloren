@@ -6,7 +6,6 @@ use crate::{
         BarNumbers, BuffPosition, ChatTab, CrosshairType, Intro, PressBehavior, ScaleChange,
         ShortcutNumbers, XpBar,
     },
-    i18n::{LanguageMetadata, LocalizationHandle},
     render::RenderMode,
     settings::{
         AudioSettings, ChatSettings, ControlSettings, Fps, GamepadSettings, GameplaySettings,
@@ -15,6 +14,7 @@ use crate::{
     window::FullScreenSettings,
     GlobalState,
 };
+use i18n::{LanguageMetadata, LocalizationHandle};
 use vek::*;
 
 #[derive(Clone)]

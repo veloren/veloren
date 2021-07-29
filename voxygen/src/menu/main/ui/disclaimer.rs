@@ -1,6 +1,6 @@
 use super::Message;
+use i18n::{Localization};
 use crate::{
-    i18n::Localization,
     ui::{
         fonts::IcedFonts as Fonts,
         ice::{component::neat_button, style, Element},

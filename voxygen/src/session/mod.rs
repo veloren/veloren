@@ -35,6 +35,7 @@ use common_net::{
 
 use crate::{
     audio::sfx::SfxEvent,
+    error::Error,
     game_input::GameInput,
     hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, LootMessage, PromptDialogSettings},
     key_state::KeyState,
@@ -43,7 +44,7 @@ use crate::{
     scene::{camera, terrain::Interaction, CameraMode, DebugShapeId, Scene, SceneData},
     settings::Settings,
     window::{AnalogGameInput, Event},
-    Direction, Error, GlobalState, PlayState, PlayStateResult,
+    Direction, GlobalState, PlayState, PlayStateResult,
 };
 use hashbrown::HashMap;
 use settings_change::Language::ChangeLanguage;

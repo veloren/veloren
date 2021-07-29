@@ -4,12 +4,9 @@ use super::{
     item_imgs::{animate_by_pulse, ItemImgs, ItemKey::Tool},
     Show, TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
-use crate::{
-    i18n::Localization,
-    ui::{
-        fonts::Fonts, ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip,
-        TooltipManager, Tooltipable,
-    },
+use crate::ui::{
+    fonts::Fonts, ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip,
+    TooltipManager, Tooltipable,
 };
 use client::{self, Client};
 use common::{
@@ -29,6 +26,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Scrollbar, Text, TextEdit},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use i18n::Localization;
 use std::sync::Arc;
 
 use strum::IntoEnumIterator;

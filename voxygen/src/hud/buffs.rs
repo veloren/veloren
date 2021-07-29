@@ -4,10 +4,10 @@ use super::{
 };
 use crate::{
     hud::{self, BuffPosition},
-    i18n::Localization,
     ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
     GlobalState,
 };
+use i18n::Localization;
 
 use common::comp::{BuffKind, Buffs, Energy, Health};
 use conrod_core::{

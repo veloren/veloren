@@ -2,7 +2,6 @@ use super::{RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
 
 use crate::{
     hud::{img_ids::Imgs, TEXT_COLOR},
-    i18n::Localization,
     session::settings_change::{Audio as AudioChange, Audio::*},
     ui::{fonts::Fonts, ImageSlider},
     GlobalState,
@@ -13,6 +12,7 @@ use conrod_core::{
     widget::{self, Button, Rectangle, Scrollbar, Text},
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use i18n::Localization;
 
 widget_ids! {
     struct Ids {

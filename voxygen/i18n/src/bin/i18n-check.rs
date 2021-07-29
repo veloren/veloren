@@ -1,6 +1,5 @@
 use clap::{App, Arg};
-use std::path::Path;
-use veloren_i18n::{analysis, verification};
+use veloren_voxygen_i18n::{analysis, verification, BasePath};
 
 fn main() {
     let matches = App::new("i18n-check")
@@ -28,24 +27,26 @@ fn main() {
                 .long("verbose")
                 .help("print additional information"),
         )
+        .arg(
+            Arg::with_name("csv")
+                .long("csv")
+                .help("generate csv files per language in target folder"),
+        )
         .get_matches();
 
     // Generate paths
-    let root = common_assets::find_root().expect("Failed to find root of repository");
-    let asset_path = Path::new("assets/voxygen/i18n/");
+    let root_path = common_assets::find_root().expect("Failed to find root of repository");
+    let path = BasePath::new(&root_path);
+    let be_verbose = matches.is_present("verbose");
+    let csv_enabled = matches.is_present("csv");
 
     if let Some(code) = matches.value_of("CODE") {
-        analysis::test_specific_localization(
-            code,
-            &root,
-            &asset_path,
-            matches.is_present("verbose"),
-        );
+        analysis::test_specific_localizations(&path, &[code], be_verbose, csv_enabled);
     }
     if matches.is_present("test") {
-        analysis::test_all_localizations(&root, &asset_path, matches.is_present("verbose"));
+        analysis::test_all_localizations(&path, be_verbose, csv_enabled);
     }
     if matches.is_present("verify") {
-        verification::verify_all_localizations(&root, &asset_path);
+        verification::verify_all_localizations(&path);
     }
 }

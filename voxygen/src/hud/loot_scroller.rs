@@ -4,10 +4,7 @@ use super::{
     item_imgs::ItemImgs,
     Show, Windows, TEXT_COLOR,
 };
-use crate::{
-    i18n::Localization,
-    ui::{fonts::Fonts, ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable},
-};
+use crate::ui::{fonts::Fonts, ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable};
 use client::Client;
 use common::comp::inventory::item::{ItemDef, MaterialStatManifest, Quality};
 use conrod_core::{
@@ -16,6 +13,7 @@ use conrod_core::{
     widget::{self, Image, List, Rectangle, Scrollbar, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use i18n::Localization;
 use std::{collections::VecDeque, sync::Arc};
 
 widget_ids! {

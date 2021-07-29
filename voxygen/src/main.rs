@@ -2,9 +2,9 @@
 #![feature(bool_to_option)]
 #![recursion_limit = "2048"]
 
+use i18n::{self, LocalizationHandle};
 use veloren_voxygen::{
     audio::AudioFrontend,
-    i18n::{self, LocalizationHandle},
     profile::Profile,
     run,
     scene::terrain::SpriteRenderContext,

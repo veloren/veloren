@@ -11,9 +11,8 @@ use common::{
     effect::Effect,
     trade::{Good, SitePrices},
 };
+use i18n::Localization;
 use std::{borrow::Cow, fmt::Write};
-
-use crate::i18n::Localization;
 
 pub fn price_desc(
     prices: &Option<SitePrices>,
