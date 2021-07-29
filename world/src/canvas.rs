@@ -110,9 +110,11 @@ impl<'a> CanvasInfo<'a> {
             cave: Default::default(),
             cliff_height: 0.0,
             contains_waypoint: false,
+            spot: None,
         };
         f(&CanvasInfo {
-            wpos: Vec2::broadcast(0),
+            chunk_pos: Vec2::zero(),
+            wpos: Vec2::zero(),
             column_grid: &zcache_grid,
             column_grid_border: 0,
             chunks: sim,

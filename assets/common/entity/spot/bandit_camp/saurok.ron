@@ -1,12 +1,9 @@
 EntityConfig (
-    name: Some("Saurok Bandit"),
-    body: Some(RandomWith("saurok_mighty")),
+    name: Name("Saurok Bandit"),
+    body: RandomWith("saurok_mighty"),
+	alignment: Alignment(Enemy),
 
-    loot: Some(LootTable("common.loot_tables.creature.biped_large.saurok")),
+    loot: LootTable("common.loot_tables.creature.biped_large.saurok"),
 
-    main_tool: Some(Item("common.items.npc_weapons.bow.saurok_bow")),
-    second_tool: None,
-
-    loadout_asset: None,
-    skillset_asset: None,
+	hands: TwoHanded(Item("common.items.npc_weapons.bow.saurok_bow")),
 )

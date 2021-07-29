@@ -33,11 +33,19 @@ enum AlignmentMark {
     Uninit,
 }
 
+impl Default for AlignmentMark {
+    fn default() -> Self { Self::Alignment(Alignment::Wild) }
+}
+
 #[derive(Debug, Deserialize, Clone)]
 enum LootKind {
     Item(String),
     LootTable(String),
     Uninit,
+}
+
+impl Default for LootKind {
+    fn default() -> Self { Self::Uninit }
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -49,6 +57,10 @@ enum Hands {
         offhand: ItemSpec,
     },
     Uninit,
+}
+
+impl Default for Hands {
+    fn default() -> Self { Self::Uninit }
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -124,6 +136,7 @@ pub struct EntityConfig {
     /// Possible fields:
     /// LoadoutAsset(String) with asset_specifier for loadout
     /// SkillSetAsset(String) with asset_specifier for skillset
+    #[serde(default)]
     meta: Vec<Meta>,
 }
 

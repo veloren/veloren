@@ -88,7 +88,7 @@ pub fn apply_spots_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                 );
             },
             Spot::BanditCamp => {
-                let structures = Structure::load_group("dungeon_entrances").read();
+                let structures = Structure::load_group("dungeon_entrances.grassland").read();
                 let structure = structures.choose(&mut rng).unwrap();
                 let origin = spot_wpos.with_z(
                     canvas
