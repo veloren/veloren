@@ -269,7 +269,7 @@ impl<'a> System<'a> for Sys {
                     &read_data.dt,
                     &read_data.msm,
                 );
-                let state_update = j.character.handle_action(&j, action);
+                let state_update = j.character.handle_event(&j, action);
                 <Sys>::publish_state_update(
                     &mut join_struct,
                     state_update,
@@ -295,7 +295,7 @@ impl<'a> System<'a> for Sys {
                 &read_data.msm,
             );
 
-            let state_update = j.character.execute_behavior(&j);
+            let state_update = j.character.behavior(&j);
             <Sys>::publish_state_update(
                 &mut join_struct,
                 state_update,

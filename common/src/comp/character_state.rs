@@ -222,7 +222,7 @@ impl CharacterState {
         std::mem::discriminant(self) == std::mem::discriminant(other)
     }
 
-    pub fn execute_behavior(&self, j: &JoinData) -> StateUpdate {
+    pub fn behavior(&self, j: &JoinData) -> StateUpdate {
         match &self {
             CharacterState::Idle => states::idle::Data.behavior(&j),
             CharacterState::Talk => states::talk::Data.behavior(&j),
@@ -258,7 +258,7 @@ impl CharacterState {
         }
     }
 
-    pub fn handle_action(&self, j: &JoinData, action: ControlAction) -> StateUpdate {
+    pub fn handle_event(&self, j: &JoinData, action: ControlAction) -> StateUpdate {
         match &self {
             CharacterState::Idle => states::idle::Data.handle_event(&j, action),
             CharacterState::Talk => states::talk::Data.handle_event(&j, action),
