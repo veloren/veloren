@@ -116,6 +116,9 @@ impl Energy {
             });
         }
     }
+
+    /// Returns the fraction of energy an entity has remaining
+    pub fn fraction(&self) -> f32 { self.current as f32 / self.maximum.max(1) as f32 }
 }
 
 pub struct EnergyChange {

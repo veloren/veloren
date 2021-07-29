@@ -7,7 +7,7 @@ use super::{
 };
 use crate::{
     game_input::GameInput,
-    hud::ComboFloater,
+    hud::{ComboFloater, Position, PositionSpecifier},
     i18n::Localization,
     ui::{
         fonts::Fonts,
@@ -31,8 +31,9 @@ use common::comp::{
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
+use std::cmp;
 use vek::*;
 
 widget_ids! {
@@ -131,6 +132,116 @@ widget_ids! {
     }
 }
 
+#[derive(Clone, Copy)]
+struct SlotEntry {
+    slot: hotbar::Slot,
+    widget_id: widget::Id,
+    position: PositionSpecifier,
+    game_input: GameInput,
+    shortcut_position: PositionSpecifier,
+    shortcut_position_bg: PositionSpecifier,
+    shortcut_widget_ids: (widget::Id, widget::Id),
+}
+
+fn slot_entries(state: &State, slot_offset: f64) -> [SlotEntry; 10] {
+    use PositionSpecifier::*;
+
+    [
+        // 1th - 5th slots
+        SlotEntry {
+            slot: hotbar::Slot::One,
+            widget_id: state.ids.slot1,
+            position: BottomLeftWithMarginsOn(state.ids.frame, 0.0, 0.0),
+            game_input: GameInput::Slot1,
+            shortcut_position: BottomLeftWithMarginsOn(state.ids.slot1_text_bg, 1.0, 1.0),
+            shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot1, 3.0, 5.0),
+            shortcut_widget_ids: (state.ids.slot1_text, state.ids.slot1_text_bg),
+        },
+        SlotEntry {
+            slot: hotbar::Slot::Two,
+            widget_id: state.ids.slot2,
+            position: RightFrom(state.ids.slot1, slot_offset),
+            game_input: GameInput::Slot2,
+            shortcut_position: BottomLeftWithMarginsOn(state.ids.slot2_text_bg, 1.0, 1.0),
+            shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot2, 3.0, 5.0),
+            shortcut_widget_ids: (state.ids.slot2_text, state.ids.slot2_text_bg),
+        },
+        SlotEntry {
+            slot: hotbar::Slot::Three,
+            widget_id: state.ids.slot3,
+            position: RightFrom(state.ids.slot2, slot_offset),
+            game_input: GameInput::Slot3,
+            shortcut_position: BottomLeftWithMarginsOn(state.ids.slot3_text_bg, 1.0, 1.0),
+            shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot3, 3.0, 5.0),
+            shortcut_widget_ids: (state.ids.slot3_text, state.ids.slot3_text_bg),
+        },
+        SlotEntry {
+            slot: hotbar::Slot::Four,
+            widget_id: state.ids.slot4,
+            position: RightFrom(state.ids.slot3, slot_offset),
+            game_input: GameInput::Slot4,
+            shortcut_position: BottomLeftWithMarginsOn(state.ids.slot4_text_bg, 1.0, 1.0),
+            shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot4, 3.0, 5.0),
+            shortcut_widget_ids: (state.ids.slot4_text, state.ids.slot4_text_bg),
+        },
+        SlotEntry {
+            slot: hotbar::Slot::Five,
+            widget_id: state.ids.slot5,
+            position: RightFrom(state.ids.slot4, slot_offset),
+            game_input: GameInput::Slot5,
+            shortcut_position: BottomLeftWithMarginsOn(state.ids.slot5_text_bg, 1.0, 1.0),
+            shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot5, 3.0, 5.0),
+            shortcut_widget_ids: (state.ids.slot5_text, state.ids.slot5_text_bg),
+        },
+        // 6th - 10th slots
+        SlotEntry {
+            slot: hotbar::Slot::Six,
+            widget_id: state.ids.slot6,
+            position: RightFrom(state.ids.m2_slot_bg, slot_offset),
+            game_input: GameInput::Slot6,
+            shortcut_position: BottomLeftWithMarginsOn(state.ids.slot6_text_bg, 1.0, 1.0),
+            shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot6, 3.0, 5.0),
+            shortcut_widget_ids: (state.ids.slot6_text, state.ids.slot6_text_bg),
+        },
+        SlotEntry {
+            slot: hotbar::Slot::Seven,
+            widget_id: state.ids.slot7,
+            position: RightFrom(state.ids.slot6, slot_offset),
+            game_input: GameInput::Slot7,
+            shortcut_position: BottomLeftWithMarginsOn(state.ids.slot7_text_bg, 1.0, 1.0),
+            shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot7, 3.0, 5.0),
+            shortcut_widget_ids: (state.ids.slot7_text, state.ids.slot7_text_bg),
+        },
+        SlotEntry {
+            slot: hotbar::Slot::Eight,
+            widget_id: state.ids.slot8,
+            position: RightFrom(state.ids.slot7, slot_offset),
+            game_input: GameInput::Slot8,
+            shortcut_position: BottomLeftWithMarginsOn(state.ids.slot8_text_bg, 1.0, 1.0),
+            shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot8, 3.0, 5.0),
+            shortcut_widget_ids: (state.ids.slot8_text, state.ids.slot8_text_bg),
+        },
+        SlotEntry {
+            slot: hotbar::Slot::Nine,
+            widget_id: state.ids.slot9,
+            position: RightFrom(state.ids.slot8, slot_offset),
+            game_input: GameInput::Slot9,
+            shortcut_position: BottomLeftWithMarginsOn(state.ids.slot9_text_bg, 1.0, 1.0),
+            shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot9, 3.0, 5.0),
+            shortcut_widget_ids: (state.ids.slot9_text, state.ids.slot9_text_bg),
+        },
+        SlotEntry {
+            slot: hotbar::Slot::Ten,
+            widget_id: state.ids.slot10,
+            position: RightFrom(state.ids.slot9, slot_offset),
+            game_input: GameInput::Slot10,
+            shortcut_position: BottomLeftWithMarginsOn(state.ids.slot10_text_bg, 1.0, 1.0),
+            shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot10, 3.0, 5.0),
+            shortcut_widget_ids: (state.ids.slot10_text, state.ids.slot10_text_bg),
+        },
+    ]
+}
+
 #[derive(WidgetCommon)]
 pub struct Skillbar<'a> {
     client: &'a Client,
@@ -205,99 +316,68 @@ impl<'a> Skillbar<'a> {
             combo,
         }
     }
-}
 
-pub struct State {
-    ids: Ids,
-}
-
-impl<'a> Widget for Skillbar<'a> {
-    type Event = ();
-    type State = State;
-    type Style = ();
-
-    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        State {
-            ids: Ids::new(id_gen),
-        }
-    }
-
-    fn style(&self) -> Self::Style {}
-
-    fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        common_base::prof_span!("Skillbar::update");
-        let widget::UpdateArgs { state, ui, .. } = args;
-
-        let max_hp = self.health.base_max().max(self.health.maximum());
-
-        let mut hp_percentage = self.health.current() as f64 / max_hp as f64 * 100.0;
-        let mut energy_percentage =
-            self.energy.current() as f64 / self.energy.maximum() as f64 * 100.0;
-        if self.health.is_dead {
-            hp_percentage = 0.0;
-            energy_percentage = 0.0;
-        };
-
-        let bar_values = self.global_state.settings.interface.bar_numbers;
-        let shortcuts = self.global_state.settings.interface.shortcut_numbers;
-
-        let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
-        let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
-
+    fn show_death_message(&self, state: &State, ui: &mut UiCell) {
         let localized_strings = self.localized_strings;
         let key_layout = &self.global_state.window.key_layout;
 
-        let slot_offset = 3.0;
-
-        // Death message
-        if self.health.is_dead {
-            if let Some(key) = self
-                .global_state
-                .settings
-                .controls
-                .get_binding(GameInput::Respawn)
-            {
-                Text::new(localized_strings.get("hud.you_died"))
-                    .middle_of(ui.window)
-                    .font_size(self.fonts.cyri.scale(50))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-                    .set(state.ids.death_message_1_bg, ui);
-                Text::new(
-                    &localized_strings
-                        .get("hud.press_key_to_respawn")
-                        .replace("{key}", key.display_string(key_layout).as_str()),
-                )
-                .mid_bottom_with_margin_on(state.ids.death_message_1_bg, -120.0)
-                .font_size(self.fonts.cyri.scale(30))
+        if let Some(key) = self
+            .global_state
+            .settings
+            .controls
+            .get_binding(GameInput::Respawn)
+        {
+            Text::new(localized_strings.get("hud.you_died"))
+                .middle_of(ui.window)
+                .font_size(self.fonts.cyri.scale(50))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-                .set(state.ids.death_message_2_bg, ui);
-                Text::new(localized_strings.get("hud.you_died"))
-                    .bottom_left_with_margins_on(state.ids.death_message_1_bg, 2.0, 2.0)
-                    .font_size(self.fonts.cyri.scale(50))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(CRITICAL_HP_COLOR)
-                    .set(state.ids.death_message_1, ui);
-                Text::new(
-                    &localized_strings
-                        .get("hud.press_key_to_respawn")
-                        .replace("{key}", key.display_string(key_layout).as_str()),
-                )
-                .bottom_left_with_margins_on(state.ids.death_message_2_bg, 2.0, 2.0)
-                .font_size(self.fonts.cyri.scale(30))
+                .set(state.ids.death_message_1_bg, ui);
+            Text::new(
+                &localized_strings
+                    .get("hud.press_key_to_respawn")
+                    .replace("{key}", key.display_string(key_layout).as_str()),
+            )
+            .mid_bottom_with_margin_on(state.ids.death_message_1_bg, -120.0)
+            .font_size(self.fonts.cyri.scale(30))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+            .set(state.ids.death_message_2_bg, ui);
+            Text::new(localized_strings.get("hud.you_died"))
+                .bottom_left_with_margins_on(state.ids.death_message_1_bg, 2.0, 2.0)
+                .font_size(self.fonts.cyri.scale(50))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(CRITICAL_HP_COLOR)
-                .set(state.ids.death_message_2, ui);
-            }
+                .set(state.ids.death_message_1, ui);
+            Text::new(
+                &localized_strings
+                    .get("hud.press_key_to_respawn")
+                    .replace("{key}", key.display_string(key_layout).as_str()),
+            )
+            .bottom_left_with_margins_on(state.ids.death_message_2_bg, 2.0, 2.0)
+            .font_size(self.fonts.cyri.scale(30))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(CRITICAL_HP_COLOR)
+            .set(state.ids.death_message_2, ui);
         }
-        // Skillbar
-        // Alignment and BG
-        let alignment_size = 40.0 * 12.0 + slot_offset * 11.0;
-        Rectangle::fill_with([alignment_size, 80.0], color::TRANSPARENT)
-            .mid_bottom_with_margin_on(ui.window, 10.0)
-            .set(state.ids.frame, ui);
-        // Health and Stamina bar
+    }
+
+    fn show_stat_bars(&self, state: &State, ui: &mut UiCell) {
+        let (hp_percentage, energy_percentage): (f64, f64) = if self.health.is_dead {
+            (0.0, 0.0)
+        } else {
+            let max_hp = cmp::max(self.health.base_max(), self.health.maximum()) as f64;
+            let current_hp = self.health.current() as f64;
+            (
+                current_hp / max_hp * 100.0,
+                (self.energy.fraction() * 100.0).into(),
+            )
+        };
+
+        // Animation timer
+        let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8;
+        let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
+        let bar_values = self.global_state.settings.interface.bar_numbers;
         let show_health = self.health.current() != self.health.maximum();
         let show_stamina = self.energy.current() != self.energy.maximum();
         let decayed_health = 1.0 - self.health.maximum() as f64 / self.health.base_max() as f64;
@@ -369,23 +449,34 @@ impl<'a> Widget for Skillbar<'a> {
                 .set(state.ids.frame_stamina, ui);
         }
         // Bar Text
-        // Values
-        if let BarNumbers::Values = bar_values {
-            let mut hp_txt = format!(
-                "{}/{}",
-                (self.health.current() / 10).max(1) as u32, /* Don't show 0 health for
-                                                             * living players */
-                (self.health.maximum() / 10) as u32
-            );
-            let mut energy_txt = format!(
-                "{}/{}",
-                (self.energy.current() / 10) as u32,
-                (self.energy.maximum() / 10) as u32
-            );
-            if self.health.is_dead {
-                hp_txt = self.localized_strings.get("hud.group.dead").to_string();
-                energy_txt = self.localized_strings.get("hud.group.dead").to_string();
-            };
+        let bar_text = if self.health.is_dead {
+            Some((
+                self.localized_strings.get("hud.group.dead").to_owned(),
+                self.localized_strings.get("hud.group.dead").to_owned(),
+            ))
+        } else if let BarNumbers::Values = bar_values {
+            Some((
+                format!(
+                    "{}/{}",
+                    (self.health.current() / 10).max(1) as u32, /* Don't show 0 health for
+                                                                 * living players */
+                    (self.health.maximum() / 10) as u32
+                ),
+                format!(
+                    "{}/{}",
+                    (self.energy.current() / 10) as u32,
+                    (self.energy.maximum() / 10) as u32
+                ),
+            ))
+        } else if let BarNumbers::Percent = bar_values {
+            Some((
+                format!("{}%", hp_percentage as u32),
+                format!("{}%", energy_percentage as u32),
+            ))
+        } else {
+            None
+        };
+        if let Some((hp_txt, energy_txt)) = bar_text {
             Text::new(&hp_txt)
                 .middle_of(state.ids.frame_health)
                 .font_size(self.fonts.cyri.scale(12))
@@ -398,6 +489,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.hp_txt, ui);
+
             Text::new(&energy_txt)
                 .middle_of(state.ids.frame_stamina)
                 .font_size(self.fonts.cyri.scale(12))
@@ -411,41 +503,15 @@ impl<'a> Widget for Skillbar<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.stamina_txt, ui);
         }
-        //Percentages
-        if let BarNumbers::Percent = bar_values {
-            let mut hp_txt = format!("{}%", hp_percentage as u32);
-            let mut energy_txt = format!("{}", energy_percentage as u32);
-            if self.health.is_dead {
-                hp_txt = self.localized_strings.get("hud.group.dead").to_string();
-                energy_txt = self.localized_strings.get("hud.group.dead").to_string();
-            };
-            Text::new(&hp_txt)
-                .middle_of(state.ids.frame_health)
-                .font_size(self.fonts.cyri.scale(12))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-                .set(state.ids.hp_txt_bg, ui);
-            Text::new(&hp_txt)
-                .bottom_left_with_margins_on(state.ids.hp_txt_bg, 2.0, 2.0)
-                .font_size(self.fonts.cyri.scale(12))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.hp_txt, ui);
-            Text::new(&energy_txt)
-                .middle_of(state.ids.frame_stamina)
-                .font_size(self.fonts.cyri.scale(12))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-                .set(state.ids.stamina_txt_bg, ui);
-            Text::new(&energy_txt)
-                .bottom_left_with_margins_on(state.ids.stamina_txt_bg, 2.0, 2.0)
-                .font_size(self.fonts.cyri.scale(12))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.stamina_txt, ui);
-        }
-        // Slots
-        let content_source = (self.hotbar, self.inventory, self.energy, self.skillset); // TODO: avoid this
+    }
+
+    fn show_slotbar(&mut self, state: &State, ui: &mut UiCell, slot_offset: f64) {
+        let shortcuts = self.global_state.settings.interface.shortcut_numbers;
+        let key_layout = &self.global_state.window.key_layout;
+
+        // TODO: avoid this
+        let content_source = (self.hotbar, self.inventory, self.energy, self.skillset);
+
         let image_source = (self.item_imgs, self.imgs);
         let mut slot_maker = SlotMaker {
             // TODO: is a separate image needed for the frame?
@@ -515,141 +581,111 @@ impl<'a> Widget for Skillbar<'a> {
         .desc_text_color(TEXT_COLOR);
 
         let slot_content = |slot| {
-            content_source
-                .0
-                .get(slot)
-                .and_then(|content| match content {
-                    hotbar::SlotContents::Inventory(i) => content_source.1.get(i),
-                    _ => None,
-                })
+            let (hotbar, inventory, ..) = content_source;
+            hotbar.get(slot).and_then(|content| match content {
+                hotbar::SlotContents::Inventory(i) => inventory.get(i),
+                _ => None,
+            })
         };
 
         // Helper
         let tooltip_text = |slot| {
-            content_source
-                .0
-                .get(slot)
-                .and_then(|content| match content {
-                    hotbar::SlotContents::Inventory(i) => content_source
-                        .1
-                        .get(i)
-                        .map(|item| (item.name(), item.description())),
-                    hotbar::SlotContents::Ability3 => content_source
-                        .1
-                        .equipped(EquipSlot::ActiveMainhand)
-                        .map(|i| i.kind())
-                        .and_then(|kind| match kind {
-                            ItemKind::Tool(Tool { kind, .. }) => ability_description(kind),
-                            _ => None,
-                        }),
-                    hotbar::SlotContents::Ability4 => {
-                        let hands = |equip_slot| match content_source
-                            .1
+            let (hotbar, inventory, ..) = content_source;
+            hotbar.get(slot).and_then(|content| match content {
+                hotbar::SlotContents::Inventory(i) => inventory
+                    .get(i)
+                    .map(|item| (item.name(), item.description())),
+                hotbar::SlotContents::Ability3 => inventory
+                    .equipped(EquipSlot::ActiveMainhand)
+                    .map(|i| i.kind())
+                    .and_then(|kind| match kind {
+                        ItemKind::Tool(Tool { kind, .. }) => ability_description(kind),
+                        _ => None,
+                    }),
+                hotbar::SlotContents::Ability4 => {
+                    let hands = |equip_slot| match inventory.equipped(equip_slot).map(|i| i.kind())
+                    {
+                        Some(ItemKind::Tool(tool)) => Some(tool.hands),
+                        _ => None,
+                    };
+
+                    let active_tool_hands = hands(EquipSlot::ActiveMainhand);
+                    let second_tool_hands = hands(EquipSlot::ActiveOffhand);
+
+                    let equip_slot = match (active_tool_hands, second_tool_hands) {
+                        (Some(Hands::Two), _) => Some(EquipSlot::ActiveMainhand),
+                        (Some(_), Some(Hands::One)) => Some(EquipSlot::ActiveOffhand),
+                        (Some(Hands::One), _) => Some(EquipSlot::ActiveMainhand),
+                        (None, Some(_)) => Some(EquipSlot::ActiveOffhand),
+                        (_, _) => None,
+                    };
+
+                    equip_slot.and_then(|equip_slot| {
+                        inventory
                             .equipped(equip_slot)
                             .map(|i| i.kind())
-                        {
-                            Some(ItemKind::Tool(tool)) => Some(tool.hands),
-                            _ => None,
-                        };
-
-                        let active_tool_hands = hands(EquipSlot::ActiveMainhand);
-                        let second_tool_hands = hands(EquipSlot::ActiveOffhand);
-
-                        let equip_slot = match (active_tool_hands, second_tool_hands) {
-                            (Some(Hands::Two), _) => Some(EquipSlot::ActiveMainhand),
-                            (Some(_), Some(Hands::One)) => Some(EquipSlot::ActiveOffhand),
-                            (Some(Hands::One), _) => Some(EquipSlot::ActiveMainhand),
-                            (None, Some(_)) => Some(EquipSlot::ActiveOffhand),
-                            (_, _) => None,
-                        };
-
-                        if let Some(equip_slot) = equip_slot {
-                            content_source
-                                .1
-                                .equipped(equip_slot)
-                                .map(|i| i.kind())
-                                .and_then(|kind| match kind {
-                                    ItemKind::Tool(Tool { kind, .. }) => ability_description(kind),
-                                    _ => None,
-                                })
-                        } else {
-                            None
-                        }
-                    },
-                })
+                            .and_then(|kind| match kind {
+                                ItemKind::Tool(Tool { kind, .. }) => ability_description(kind),
+                                _ => None,
+                            })
+                    })
+                },
+            })
         };
-        // Slot 1-5
-        // Slot 1
+
         slot_maker.empty_slot = self.imgs.skillbar_slot;
         slot_maker.selected_slot = self.imgs.skillbar_slot;
-        let slot = slot_maker
-            .fabricate(hotbar::Slot::One, [40.0; 2])
-            .filled_slot(self.imgs.skillbar_slot)
-            .bottom_left_with_margins_on(state.ids.frame, 0.0, 0.0);
-        if let Some(item) = slot_content(hotbar::Slot::One) {
-            slot.with_item_tooltip(self.item_tooltip_manager, item, &None, &item_tooltip)
-                .set(state.ids.slot1, ui);
-        } else if let Some((title, desc)) = tooltip_text(hotbar::Slot::One) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &tooltip, TEXT_COLOR)
-                .set(state.ids.slot1, ui);
-        } else {
-            slot.set(state.ids.slot1, ui);
-        }
-        // Slot 2
-        let slot = slot_maker
-            .fabricate(hotbar::Slot::Two, [40.0; 2])
-            .filled_slot(self.imgs.skillbar_slot)
-            .right_from(state.ids.slot1, slot_offset);
-        if let Some(item) = slot_content(hotbar::Slot::Two) {
-            slot.with_item_tooltip(self.item_tooltip_manager, item, &None, &item_tooltip)
-                .set(state.ids.slot2, ui);
-        } else if let Some((title, desc)) = tooltip_text(hotbar::Slot::Two) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &tooltip, TEXT_COLOR)
-                .set(state.ids.slot2, ui);
-        } else {
-            slot.set(state.ids.slot2, ui);
-        }
-        // Slot 3
-        let slot = slot_maker
-            .fabricate(hotbar::Slot::Three, [40.0; 2])
-            .filled_slot(self.imgs.skillbar_slot)
-            .right_from(state.ids.slot2, slot_offset);
-        if let Some(item) = slot_content(hotbar::Slot::Three) {
-            slot.with_item_tooltip(self.item_tooltip_manager, item, &None, &item_tooltip)
-                .set(state.ids.slot3, ui);
-        } else if let Some((title, desc)) = tooltip_text(hotbar::Slot::Three) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &tooltip, TEXT_COLOR)
-                .set(state.ids.slot3, ui);
-        } else {
-            slot.set(state.ids.slot3, ui);
-        }
-        // Slot 4
-        let slot = slot_maker
-            .fabricate(hotbar::Slot::Four, [40.0; 2])
-            .filled_slot(self.imgs.skillbar_slot)
-            .right_from(state.ids.slot3, slot_offset);
-        if let Some(item) = slot_content(hotbar::Slot::Four) {
-            slot.with_item_tooltip(self.item_tooltip_manager, item, &None, &item_tooltip)
-                .set(state.ids.slot4, ui);
-        } else if let Some((title, desc)) = tooltip_text(hotbar::Slot::Four) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &tooltip, TEXT_COLOR)
-                .set(state.ids.slot4, ui);
-        } else {
-            slot.set(state.ids.slot4, ui);
-        }
-        // Slot 5
-        let slot = slot_maker
-            .fabricate(hotbar::Slot::Five, [40.0; 2])
-            .filled_slot(self.imgs.skillbar_slot)
-            .right_from(state.ids.slot4, slot_offset);
-        if let Some(item) = slot_content(hotbar::Slot::Five) {
-            slot.with_item_tooltip(self.item_tooltip_manager, item, &None, &item_tooltip)
-                .set(state.ids.slot5, ui);
-        } else if let Some((title, desc)) = tooltip_text(hotbar::Slot::Five) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &tooltip, TEXT_COLOR)
-                .set(state.ids.slot5, ui);
-        } else {
-            slot.set(state.ids.slot5, ui);
+
+        let slots = slot_entries(state, slot_offset);
+        for entry in slots {
+            let slot = slot_maker
+                .fabricate(entry.slot, [40.0; 2])
+                .filled_slot(self.imgs.skillbar_slot)
+                .position(entry.position);
+            // if there is an item attached, show item tooltip
+            if let Some(item) = slot_content(entry.slot) {
+                slot.with_item_tooltip(self.item_tooltip_manager, item, &None, &item_tooltip)
+                    .set(entry.widget_id, ui);
+            // if we can gather some text to display, show it
+            } else if let Some((title, desc)) = tooltip_text(entry.slot) {
+                slot.with_tooltip(self.tooltip_manager, title, desc, &tooltip, TEXT_COLOR)
+                    .set(entry.widget_id, ui);
+            // if not, just set slot
+            } else {
+                slot.set(entry.widget_id, ui);
+            }
+
+            // shortcuts
+            if let ShortcutNumbers::On = shortcuts {
+                if let Some(key) = &self
+                    .global_state
+                    .settings
+                    .controls
+                    .get_binding(entry.game_input)
+                {
+                    let position = entry.shortcut_position;
+                    let position_bg = entry.shortcut_position_bg;
+                    let (id, id_bg) = entry.shortcut_widget_ids;
+
+                    let key_desc = key
+                        .display_shortened(key_layout)
+                        .unwrap_or_else(|| key.display_string(key_layout));
+                    // shortcut text
+                    Text::new(&key_desc)
+                        .position(position)
+                        .font_size(self.fonts.cyri.scale(8))
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(TEXT_COLOR)
+                        .set(id, ui);
+                    // shortcut background
+                    Text::new(&key_desc)
+                        .position(position_bg)
+                        .font_size(self.fonts.cyri.scale(8))
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(BLACK)
+                        .set(id_bg, ui);
+                }
+            }
         }
         // Slot M1
         Image::new(self.imgs.skillbar_slot)
@@ -749,271 +785,7 @@ impl<'a> Widget for Skillbar<'a> {
             }
         })
         .set(state.ids.m2_content, ui);
-        // Slot 6-10
-        // Slot 6
-        slot_maker.empty_slot = self.imgs.skillbar_slot;
-        slot_maker.selected_slot = self.imgs.skillbar_slot;
-        let slot = slot_maker
-            .fabricate(hotbar::Slot::Six, [40.0; 2])
-            .filled_slot(self.imgs.skillbar_slot)
-            .right_from(state.ids.m2_slot_bg, slot_offset);
-        if let Some(item) = slot_content(hotbar::Slot::Six) {
-            slot.with_item_tooltip(self.item_tooltip_manager, item, &None, &item_tooltip)
-                .set(state.ids.slot6, ui);
-        } else if let Some((title, desc)) = tooltip_text(hotbar::Slot::Six) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &tooltip, TEXT_COLOR)
-                .set(state.ids.slot6, ui);
-        } else {
-            slot.set(state.ids.slot6, ui);
-        }
-        // Slot 7
-        let slot = slot_maker
-            .fabricate(hotbar::Slot::Seven, [40.0; 2])
-            .filled_slot(self.imgs.skillbar_slot)
-            .right_from(state.ids.slot6, slot_offset);
-        if let Some(item) = slot_content(hotbar::Slot::Seven) {
-            slot.with_item_tooltip(self.item_tooltip_manager, item, &None, &item_tooltip)
-                .set(state.ids.slot7, ui);
-        } else if let Some((title, desc)) = tooltip_text(hotbar::Slot::Seven) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &tooltip, TEXT_COLOR)
-                .set(state.ids.slot7, ui);
-        } else {
-            slot.set(state.ids.slot7, ui);
-        }
-        // Slot 8
-        let slot = slot_maker
-            .fabricate(hotbar::Slot::Eight, [40.0; 2])
-            .filled_slot(self.imgs.skillbar_slot)
-            .right_from(state.ids.slot7, slot_offset);
-        if let Some(item) = slot_content(hotbar::Slot::Eight) {
-            slot.with_item_tooltip(self.item_tooltip_manager, item, &None, &item_tooltip)
-                .set(state.ids.slot8, ui);
-        } else if let Some((title, desc)) = tooltip_text(hotbar::Slot::Eight) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &tooltip, TEXT_COLOR)
-                .set(state.ids.slot8, ui);
-        } else {
-            slot.set(state.ids.slot8, ui);
-        }
-        // Slot 9
-        let slot = slot_maker
-            .fabricate(hotbar::Slot::Nine, [40.0; 2])
-            .filled_slot(self.imgs.skillbar_slot)
-            .right_from(state.ids.slot8, slot_offset);
-        if let Some(item) = slot_content(hotbar::Slot::Nine) {
-            slot.with_item_tooltip(self.item_tooltip_manager, item, &None, &item_tooltip)
-                .set(state.ids.slot9, ui);
-        } else if let Some((title, desc)) = tooltip_text(hotbar::Slot::Nine) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &tooltip, TEXT_COLOR)
-                .set(state.ids.slot9, ui);
-        } else {
-            slot.set(state.ids.slot9, ui);
-        }
-        // Quickslot
-        slot_maker.empty_slot = self.imgs.skillbar_slot;
-        slot_maker.selected_slot = self.imgs.skillbar_slot;
-        let slot = slot_maker
-            .fabricate(hotbar::Slot::Ten, [40.0; 2])
-            .filled_slot(self.imgs.skillbar_slot)
-            .right_from(state.ids.slot9, slot_offset);
-        if let Some((title, desc)) = tooltip_text(hotbar::Slot::Ten) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &tooltip, TEXT_COLOR)
-                .set(state.ids.slot10, ui);
-        } else {
-            slot.set(state.ids.slot10, ui);
-        }
-        // Shortcuts
-        if let ShortcutNumbers::On = shortcuts {
-            if let Some(slot1) = &self
-                .global_state
-                .settings
-                .controls
-                .get_binding(GameInput::Slot1)
-            {
-                Text::new(slot1.display_string(key_layout).as_str())
-                    .top_right_with_margins_on(state.ids.slot1, 3.0, 5.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(BLACK)
-                    .set(state.ids.slot1_text_bg, ui);
-                Text::new(slot1.display_string(key_layout).as_str())
-                    .bottom_left_with_margins_on(state.ids.slot1_text_bg, 1.0, 1.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.slot1_text, ui);
-            }
-            if let Some(slot2) = &self
-                .global_state
-                .settings
-                .controls
-                .get_binding(GameInput::Slot2)
-            {
-                Text::new(slot2.display_string(key_layout).as_str())
-                    .top_right_with_margins_on(state.ids.slot2, 3.0, 5.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(BLACK)
-                    .set(state.ids.slot2_text_bg, ui);
-                Text::new(slot2.display_string(key_layout).as_str())
-                    .bottom_left_with_margins_on(state.ids.slot2_text_bg, 1.0, 1.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.slot2_text, ui);
-            }
-            if let Some(slot3) = &self
-                .global_state
-                .settings
-                .controls
-                .get_binding(GameInput::Slot3)
-            {
-                Text::new(slot3.display_string(key_layout).as_str())
-                    .top_right_with_margins_on(state.ids.slot3, 3.0, 5.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(BLACK)
-                    .set(state.ids.slot3_text_bg, ui);
-                Text::new(slot3.display_string(key_layout).as_str())
-                    .bottom_left_with_margins_on(state.ids.slot3_text_bg, 1.0, 1.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.slot3_text, ui);
-            }
-            if let Some(slot4) = &self
-                .global_state
-                .settings
-                .controls
-                .get_binding(GameInput::Slot4)
-            {
-                Text::new(slot4.display_string(key_layout).as_str())
-                    .top_right_with_margins_on(state.ids.slot4, 3.0, 5.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(BLACK)
-                    .set(state.ids.slot4_text_bg, ui);
-                Text::new(slot4.display_string(key_layout).as_str())
-                    .bottom_left_with_margins_on(state.ids.slot4_text_bg, 1.0, 1.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.slot4_text, ui);
-            }
-            if let Some(slot5) = &self
-                .global_state
-                .settings
-                .controls
-                .get_binding(GameInput::Slot5)
-            {
-                Text::new(slot5.display_string(key_layout).as_str())
-                    .top_right_with_margins_on(state.ids.slot5, 3.0, 5.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(BLACK)
-                    .set(state.ids.slot5_text_bg, ui);
-                Text::new(slot5.display_string(key_layout).as_str())
-                    .bottom_left_with_margins_on(state.ids.slot5_text_bg, 1.0, 1.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.slot5_text, ui);
-            }
-            if let Some(slot6) = &self
-                .global_state
-                .settings
-                .controls
-                .get_binding(GameInput::Slot6)
-            {
-                Text::new(slot6.display_string(key_layout).as_str())
-                    .top_right_with_margins_on(state.ids.slot6, 3.0, 5.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(BLACK)
-                    .set(state.ids.slot6_text_bg, ui);
-                Text::new(slot6.display_string(key_layout).as_str())
-                    .bottom_right_with_margins_on(state.ids.slot6_text_bg, 1.0, 1.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.slot6_text, ui);
-            }
-            if let Some(slot7) = &self
-                .global_state
-                .settings
-                .controls
-                .get_binding(GameInput::Slot7)
-            {
-                Text::new(slot7.display_string(key_layout).as_str())
-                    .top_right_with_margins_on(state.ids.slot7, 3.0, 5.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(BLACK)
-                    .set(state.ids.slot7_text_bg, ui);
-                Text::new(slot7.display_string(key_layout).as_str())
-                    .bottom_right_with_margins_on(state.ids.slot7_text_bg, 1.0, 1.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.slot7_text, ui);
-            }
-            if let Some(slot8) = &self
-                .global_state
-                .settings
-                .controls
-                .get_binding(GameInput::Slot8)
-            {
-                Text::new(slot8.display_string(key_layout).as_str())
-                    .top_right_with_margins_on(state.ids.slot8, 3.0, 5.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(BLACK)
-                    .set(state.ids.slot8_text_bg, ui);
-                Text::new(slot8.display_string(key_layout).as_str())
-                    .bottom_right_with_margins_on(state.ids.slot8_text_bg, 1.0, 1.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.slot8_text, ui);
-            }
-            if let Some(slot9) = &self
-                .global_state
-                .settings
-                .controls
-                .get_binding(GameInput::Slot9)
-            {
-                Text::new(slot9.display_string(key_layout).as_str())
-                    .top_right_with_margins_on(state.ids.slot9, 3.0, 5.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(BLACK)
-                    .set(state.ids.slot9_text_bg, ui);
-                Text::new(slot9.display_string(key_layout).as_str())
-                    .bottom_right_with_margins_on(state.ids.slot9_text_bg, 1.0, 1.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.slot9_text, ui);
-            }
-            if let Some(slot10) = &self
-                .global_state
-                .settings
-                .controls
-                .get_binding(GameInput::Slot10)
-            {
-                Text::new(slot10.display_string(key_layout).as_str())
-                    .top_right_with_margins_on(state.ids.slot10, 3.0, 5.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(BLACK)
-                    .set(state.ids.slot10_text_bg, ui);
-                Text::new(slot10.display_string(key_layout).as_str())
-                    .bottom_right_with_margins_on(state.ids.slot10_text_bg, 1.0, 1.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.slot10_text, ui);
-            }
-        };
+
         // M1 and M2 icons
         Image::new(self.imgs.m1_ico)
             .w_h(16.0, 18.0)
@@ -1023,74 +795,137 @@ impl<'a> Widget for Skillbar<'a> {
             .w_h(16.0, 18.0)
             .mid_bottom_with_margin_on(state.ids.m2_content, -11.0)
             .set(state.ids.m2_ico, ui);
+    }
 
-        // Combo Counter
-        if let Some(combo) = self.combo {
-            if combo.combo > 0 {
-                let combo_txt = format!("{} Combo", combo.combo);
-                let combo_cnt = combo.combo as f32;
-                let time_since_last_update = comp::combo::COMBO_DECAY_START - combo.timer;
-                let alpha = (1.0 - time_since_last_update * 0.2).min(1.0) as f32;
-                let fnt_col = Color::Rgba(
-                    // White -> Yellow -> Red text color gradient depending on count
-                    (1.0 - combo_cnt / (combo_cnt + 20.0)).max(0.79),
-                    (1.0 - combo_cnt / (combo_cnt + 80.0)).max(0.19),
-                    (1.0 - combo_cnt / (combo_cnt + 5.0)).max(0.17),
-                    alpha,
-                );
+    fn show_combo_counter(&self, combo: ComboFloater, state: &State, ui: &mut UiCell) {
+        if combo.combo > 0 {
+            let combo_txt = format!("{} Combo", combo.combo);
+            let combo_cnt = combo.combo as f32;
+            let time_since_last_update = comp::combo::COMBO_DECAY_START - combo.timer;
+            let alpha = (1.0 - time_since_last_update * 0.2).min(1.0) as f32;
+            let fnt_col = Color::Rgba(
+                // White -> Yellow -> Red text color gradient depending on count
+                (1.0 - combo_cnt / (combo_cnt + 20.0)).max(0.79),
+                (1.0 - combo_cnt / (combo_cnt + 80.0)).max(0.19),
+                (1.0 - combo_cnt / (combo_cnt + 5.0)).max(0.17),
+                alpha,
+            );
+            // Increase size for higher counts,
+            // "flash" on update by increasing the font size by 2.
+            let fnt_size = ((14.0 + combo.timer as f32 * 0.8).min(30.0)) as u32
+                + if (time_since_last_update) < 0.1 { 2 } else { 0 };
 
-                let fnt_size = ((14.0 + combo.timer as f32 * 0.8).min(30.0)) as u32
-                    + if (time_since_last_update) < 0.1 { 2 } else { 0 }; // Increase size for higher counts, "flash" on update by increasing the font size by 2
-                Rectangle::fill_with([10.0, 10.0], color::TRANSPARENT)
-                    .middle_of(ui.window)
-                    .set(state.ids.combo_align, ui);
-                Text::new(combo_txt.as_str())
-                    .mid_bottom_with_margin_on(
-                        state.ids.combo_align,
-                        -350.0 + time_since_last_update * -8.0,
-                    )
-                    .font_size(self.fonts.cyri.scale(fnt_size))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(Color::Rgba(0.0, 0.0, 0.0, alpha))
-                    .set(state.ids.combo_bg, ui);
-                Text::new(combo_txt.as_str())
-                    .bottom_right_with_margins_on(state.ids.combo_bg, 1.0, 1.0)
-                    .font_size(self.fonts.cyri.scale(fnt_size))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(fnt_col)
-                    .set(state.ids.combo, ui);
-            }
+            Rectangle::fill_with([10.0, 10.0], color::TRANSPARENT)
+                .middle_of(ui.window)
+                .set(state.ids.combo_align, ui);
+
+            Text::new(combo_txt.as_str())
+                .mid_bottom_with_margin_on(
+                    state.ids.combo_align,
+                    -350.0 + time_since_last_update * -8.0,
+                )
+                .font_size(self.fonts.cyri.scale(fnt_size))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(Color::Rgba(0.0, 0.0, 0.0, alpha))
+                .set(state.ids.combo_bg, ui);
+            Text::new(combo_txt.as_str())
+                .bottom_right_with_margins_on(state.ids.combo_bg, 1.0, 1.0)
+                .font_size(self.fonts.cyri.scale(fnt_size))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(fnt_col)
+                .set(state.ids.combo, ui);
         }
     }
 }
 
+pub struct State {
+    ids: Ids,
+}
+
+impl<'a> Widget for Skillbar<'a> {
+    type Event = ();
+    type State = State;
+    type Style = ();
+
+    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
+        State {
+            ids: Ids::new(id_gen),
+        }
+    }
+
+    fn style(&self) -> Self::Style {}
+
+    fn update(mut self, args: widget::UpdateArgs<Self>) -> Self::Event {
+        common_base::prof_span!("Skillbar::update");
+        let widget::UpdateArgs { state, ui, .. } = args;
+
+        let slot_offset = 3.0;
+
+        // Death message
+        if self.health.is_dead {
+            self.show_death_message(state, ui);
+        }
+
+        // Skillbar
+        // Alignment and BG
+        let alignment_size = 40.0 * 12.0 + slot_offset * 11.0;
+        Rectangle::fill_with([alignment_size, 80.0], color::TRANSPARENT)
+            .mid_bottom_with_margin_on(ui.window, 10.0)
+            .set(state.ids.frame, ui);
+
+        // Health and Stamina bar
+        self.show_stat_bars(state, ui);
+
+        // Slots
+        self.show_slotbar(state, ui, slot_offset);
+
+        // Combo Counter
+        if let Some(combo) = self.combo {
+            self.show_combo_counter(combo, state, ui);
+        }
+    }
+}
+
+#[rustfmt::skip]
 fn ability_description(tool: &ToolKind) -> Option<(&str, &str)> {
     match tool {
         ToolKind::Hammer => Some((
             "Smash of Doom",
-            "\nAn AOE attack with knockback. \nLeaps to position of cursor.",
+            "\n\
+            An AOE attack with knockback.\n\
+            Leaps to position of cursor.",
         )),
-        ToolKind::Axe => Some(("Spin Leap", "\nA slashing running spin leap.")),
+        ToolKind::Axe => Some((
+            "Axe Jump",
+            "\n\
+            A jump with the slashing leap to position of cursor.",
+        )),
         ToolKind::Staff => Some((
-            "Firebomb",
-            "\nWhirls a big fireball into the air. \nExplodes the ground and does\na big amount \
-             of damage",
+            "Ring of Fire",
+            "\n\
+            Ignites the ground with fiery shockwave.",
         )),
         ToolKind::Sword => Some((
             "Whirlwind",
-            "\nMove forward while spinning with \n your sword.",
+            "\n\
+            Move forward while spinning with your sword.",
         )),
         ToolKind::Bow => Some((
             "Burst",
-            "\nLaunches a burst of arrows at the top \nof a running leap.",
-        )),
-        ToolKind::Debug => Some((
-            "Possessing Arrow",
-            "\nShoots a poisonous arrow.\nLets you control your target.",
+            "\n\
+            Launches a burst of arrows",
         )),
         ToolKind::Sceptre => Some((
             "Thorn Bulwark",
-            "\nProtects you and your group with thorns\nfor a short amount of time.",
+            "\n\
+            Protects you and your group with thorns\n\
+            for a short amount of time.",
+        )),
+        ToolKind::Debug => Some((
+            "Possessing Arrow",
+            "\n\
+            Shoots a poisonous arrow.\n\
+            Lets you control your target.",
         )),
         _ => None,
     }

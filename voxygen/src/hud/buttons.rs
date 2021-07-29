@@ -425,9 +425,12 @@ impl<'a> Buttons<'a> {
         text: widget::Id,
     ) {
         let key_layout = &self.global_state.window.key_layout;
+        let key_desc = key_mouse
+            .display_shortened(key_layout)
+            .unwrap_or_else(|| key_mouse.display_string(key_layout));
 
         //Create shadow
-        Text::new(key_mouse.display_string(key_layout).as_str())
+        Text::new(&key_desc)
             .bottom_right_with_margins_on(button_identifier, 0.0, 0.0)
             .font_size(10)
             .font_id(self.fonts.cyri.conrod_id)
@@ -435,7 +438,7 @@ impl<'a> Buttons<'a> {
             .set(text_background, ui);
 
         //Create button
-        Text::new(key_mouse.display_string(key_layout).as_str())
+        Text::new(&key_desc)
             .bottom_right_with_margins_on(text_background, 1.0, 1.0)
             .font_size(10)
             .font_id(self.fonts.cyri.conrod_id)

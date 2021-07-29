@@ -123,12 +123,19 @@ impl<'a> Widget for Controls<'a> {
             let (key_string, key_color) =
                 if self.global_state.window.remapping_keybindings == Some(game_input) {
                     (
-                        String::from(self.localized_strings.get("hud.settings.awaitingkey")),
+                        self.localized_strings
+                            .get("hud.settings.awaitingkey")
+                            .to_owned(),
                         TEXT_COLOR,
                     )
                 } else if let Some(key) = controls.get_binding(game_input) {
                     (
-                        key.display_string(key_layout),
+                        format!(
+                            "{} {}",
+                            key.display_string(key_layout),
+                            key.display_shortened(key_layout)
+                                .map_or("".to_owned(), |short| format!("({})", short))
+                        ),
                         if controls.has_conflicting_bindings(key) {
                             TEXT_BIND_CONFLICT_COLOR
                         } else {
@@ -137,7 +144,9 @@ impl<'a> Widget for Controls<'a> {
                     )
                 } else {
                     (
-                        String::from(self.localized_strings.get("hud.settings.unbound")),
+                        self.localized_strings
+                            .get("hud.settings.unbound")
+                            .to_owned(),
                         ERROR_COLOR,
                     )
                 };
