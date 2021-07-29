@@ -137,7 +137,7 @@ impl<'a> Canvas<'a> {
     /// inner `CanvasInfo` such that it may be used independently.
     pub fn info(&mut self) -> CanvasInfo<'a> { self.info }
 
-    pub fn get(&mut self, pos: Vec3<i32>) -> Block {
+    pub fn get(&self, pos: Vec3<i32>) -> Block {
         self.chunk
             .get(pos - self.wpos())
             .ok()
@@ -220,6 +220,20 @@ impl<'a> Canvas<'a> {
                 }
             }
         });
+    }
+
+    pub fn find_spawn_pos(&self, wpos: Vec3<i32>) -> Option<Vec3<i32>> {
+        let height = 2;
+        let search_dist: i32 = 8;
+
+        (1..search_dist * 2 + 1)
+            .rev()
+            .map(|z| wpos.z + if z % 2 != 0 { z / 2 } else { -(z / 2) })
+            .find(|&z| {
+                self.get(wpos.xy().with_z(z - 1)).is_solid()
+                    && (0..height).all(|z_offs| self.get(wpos.xy().with_z(z + z_offs)).is_fluid())
+            })
+            .map(|z| wpos.xy().with_z(z))
     }
 
     pub fn spawn(&mut self, entity: EntityInfo) { self.entities.push(entity); }
