@@ -69,6 +69,13 @@ fn compare_lang_with_reference(
         }
     };
 
+    const MISSING: LocalizationEntryState = LocalizationEntryState {
+        key_line: None,
+        chuck_line_range: None,
+        commit_id: None,
+        state: Some(LocalizationState::NotFound),
+    };
+
     // match files
     for (ref_path, ref_fragment) in i18n_references.fragments.iter() {
         let cur_fragment = match current_i18n.fragments.get_mut(ref_path) {
@@ -78,6 +85,17 @@ fn compare_lang_with_reference(
                     "language {} is missing file: {:?}",
                     current_i18n.manifest.metadata.language_identifier, ref_path
                 );
+                // add all keys as missing
+                let mut string_map = HashMap::new();
+                for (ref_key, _) in ref_fragment.string_map.iter() {
+                    string_map.insert(ref_key.to_owned(), MISSING.clone());
+                }
+                current_i18n
+                    .fragments
+                    .insert(ref_path.to_owned(), RawFragment {
+                        string_map,
+                        vector_map: HashMap::new(),
+                    });
                 continue;
             },
         };
@@ -118,12 +136,7 @@ fn compare_lang_with_reference(
                 None => {
                     cur_fragment
                         .string_map
-                        .insert(ref_key.to_owned(), LocalizationEntryState {
-                            key_line: None,
-                            chuck_line_range: None,
-                            commit_id: None,
-                            state: Some(LocalizationState::NotFound),
-                        });
+                        .insert(ref_key.to_owned(), MISSING.clone());
                 },
             }
         }

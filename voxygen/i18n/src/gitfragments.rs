@@ -19,7 +19,7 @@ pub(crate) const ALL_LOCALIZATION_STATES: [Option<LocalizationState>; 5] = [
     None,
 ];
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub(crate) struct LocalizationEntryState {
     pub(crate) key_line: Option<usize>,
     pub(crate) chuck_line_range: Option<(usize, usize)>,
