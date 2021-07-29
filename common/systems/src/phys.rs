@@ -668,6 +668,8 @@ impl<'a> PhysicsData<'a> {
         )
             .join()
         {
+            // Note: updating ori with the rest of the cache values above was attempted but
+            // it did not work (investigate root cause?)
             previous_phys_cache.ori = ori.to_quat();
         }
         drop(guard);
