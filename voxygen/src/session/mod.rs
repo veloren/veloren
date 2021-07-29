@@ -1483,8 +1483,7 @@ impl PlayState for SessionState {
                 second_pass.draw_clouds();
             }
         }
-        // Bloom
-        // TODO: make optional
+        // Bloom (call does nothing if bloom is off)
         {
             prof_span!("bloom");
             drawer.run_bloom_passes()

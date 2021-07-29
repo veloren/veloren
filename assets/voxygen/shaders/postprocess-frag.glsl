@@ -25,18 +25,20 @@
 layout(set = 1, binding = 0)
 uniform texture2D t_src_color;
 layout(set = 1, binding = 1)
-uniform texture2D t_src_bloom;
-layout(set = 1, binding = 2)
 uniform sampler s_src_color;
-
 
 layout(location = 0) in vec2 uv;
 
-layout (std140, set = 1, binding = 3)
+layout (std140, set = 1, binding = 2)
 uniform u_locals {
     mat4 proj_mat_inv;
     mat4 view_mat_inv;
 };
+
+#if (BLOOM == BLOOM_ENABLED)
+layout(set = 1, binding = 3)
+uniform texture2D t_src_bloom;
+#endif
 
 layout(location = 0) out vec4 tgt_color;
 
@@ -185,10 +187,12 @@ void main() {
     vec4 aa_color = aa_apply(t_src_color, s_src_color, uv * screen_res.xy, screen_res.xy);
 
     // Bloom
+    #if (BLOOM == BLOOM_ENABLED)
     // divide by 4.0 to account for adding blurred layers together
     vec4 bloom = textureLod(sampler2D(t_src_bloom, s_src_color), uv, 0) / 4.0;
     float bloom_factor = 0.10;
-    aa_color = aa_color * (1.0 - bloom_factor) + bloom * bloom_factor;
+    aa_color = mix(aa_color, bloom, bloom_factor);
+    #endif
 
     // Tonemapping
     float exposure_offset = 1.0;

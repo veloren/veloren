@@ -274,7 +274,49 @@ pub struct RenderMode {
     pub fluid: FluidMode,
     pub lighting: LightingMode,
     pub shadow: ShadowMode,
+    pub bloom: bool,
+
     pub upscale_mode: UpscaleMode,
     pub present_mode: PresentMode,
     pub profiler_enabled: bool,
+}
+
+impl RenderMode {
+    fn split(self) -> (PipelineModes, OtherModes) {
+        (
+            PipelineModes {
+                aa: self.aa,
+                cloud: self.cloud,
+                fluid: self.fluid,
+                lighting: self.lighting,
+                shadow: self.shadow,
+                bloom: self.bloom,
+            },
+            OtherModes {
+                upscale_mode: self.upscale_mode,
+                present_mode: self.present_mode,
+                profiler_enabled: self.profiler_enabled,
+            },
+        )
+    }
+}
+
+/// Render modes that require pipeline recreation (e.g. shader recompilation)
+/// when changed
+#[derive(PartialEq, Clone, Debug)]
+pub struct PipelineModes {
+    aa: AaMode,
+    cloud: CloudMode,
+    fluid: FluidMode,
+    lighting: LightingMode,
+    pub shadow: ShadowMode,
+    bloom: bool,
+}
+
+/// Other render modes that don't effect pipelines
+#[derive(PartialEq, Clone, Debug)]
+struct OtherModes {
+    upscale_mode: UpscaleMode,
+    present_mode: PresentMode,
+    profiler_enabled: bool,
 }

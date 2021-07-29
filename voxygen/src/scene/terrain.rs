@@ -1244,7 +1244,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             return min.partial_cmple(&max).reduce_and();
         };
         let (visible_light_volume, visible_psr_bounds) = if ray_direction.z < 0.0
-            && renderer.render_mode().shadow.is_map()
+            && renderer.pipeline_modes().shadow.is_map()
         {
             let visible_bounding_box = math::Aabb::<f32> {
                 min: math::Vec3::from(visible_bounding_box.min - focus_off),

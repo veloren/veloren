@@ -518,7 +518,7 @@ impl FigureMgr {
             let ray_direction = scene_data.get_sun_dir();
             let is_daylight = ray_direction.z < 0.0/*0.6*/;
             // Are shadows enabled at all?
-            let can_shadow_sun = renderer.render_mode().shadow.is_map() && is_daylight;
+            let can_shadow_sun = renderer.pipeline_modes().shadow.is_map() && is_daylight;
             let Dependents {
                 proj_mat: _,
                 view_mat: _,

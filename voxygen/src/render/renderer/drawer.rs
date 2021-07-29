@@ -61,7 +61,7 @@ struct RendererBorrow<'frame> {
     pipelines: Pipelines<'frame>,
     locals: &'frame super::locals::Locals,
     views: &'frame super::Views,
-    mode: &'frame super::super::RenderMode,
+    pipeline_modes: &'frame super::super::PipelineModes,
     quad_index_buffer_u16: &'frame Buffer<u16>,
     quad_index_buffer_u32: &'frame Buffer<u32>,
     #[cfg(feature = "egui-ui")]
@@ -112,7 +112,7 @@ impl<'frame> Drawer<'frame> {
             pipelines,
             locals: &renderer.locals,
             views: &renderer.views,
-            mode: &renderer.mode,
+            pipeline_modes: &renderer.pipeline_modes,
             quad_index_buffer_u16: &renderer.quad_index_buffer_u16,
             quad_index_buffer_u32: &renderer.quad_index_buffer_u32,
             #[cfg(feature = "egui-ui")]
@@ -131,13 +131,13 @@ impl<'frame> Drawer<'frame> {
         }
     }
 
-    /// Get the render mode.
-    pub fn render_mode(&self) -> &super::super::RenderMode { self.borrow.mode }
+    /// Get the pipeline modes.
+    pub fn pipeline_modes(&self) -> &super::super::PipelineModes { self.borrow.pipeline_modes }
 
     /// Returns None if the shadow renderer is not enabled at some level or the
     /// pipelines are not available yet
     pub fn shadow_pass(&mut self) -> Option<ShadowPassDrawer> {
-        if !self.borrow.mode.shadow.is_map() {
+        if !self.borrow.pipeline_modes.shadow.is_map() {
             return None;
         }
 
@@ -243,14 +243,23 @@ impl<'frame> Drawer<'frame> {
 
     /// To be ran between the second pass and the third pass
     /// does nothing if the ingame pipelines are not yet ready
+    /// does nothing if bloom is disabled
     pub fn run_bloom_passes(&mut self) {
-        let pipelines = match self.borrow.pipelines.all() {
-            Some(p) => p,
-            None => return,
-        };
-
         let locals = &self.borrow.locals;
         let views = &self.borrow.views;
+
+        let bloom_pipelines = match self.borrow.pipelines.all() {
+            Some(super::Pipelines { bloom: Some(p), .. }) => p,
+            _ => return,
+        };
+
+        // TODO: consider consolidating optional bloom bind groups and optional pipeline
+        // into a single structure?
+        let (bloom_tgts, bloom_binds) =
+            match views.bloom_tgts.as_ref().zip(locals.bloom_binds.as_ref()) {
+                Some((t, b)) => (t, b),
+                None => return,
+            };
 
         let device = self.borrow.device;
         let mut encoder = self.encoder.as_mut().unwrap().scope("bloom", device);
@@ -275,18 +284,18 @@ impl<'frame> Drawer<'frame> {
 
         // Downsample filter passes
         (0..bloom::NUM_SIZES - 1).for_each(|index| {
-            let bind = &locals.bloom_binds[index].bind_group;
-            let view = &views.bloom_tgts[index + 1];
+            let bind = &bloom_binds[index].bind_group;
+            let view = &bloom_tgts[index + 1];
             // Do filtering out of non-bright things during the first downsample
             let (label, pipeline) = if index == 0 {
                 (
                     format!("downsample filtered {}", index + 1),
-                    &pipelines.bloom.downsample_filtered,
+                    &bloom_pipelines.downsample_filtered,
                 )
             } else {
                 (
                     format!("downsample {}", index + 1),
-                    &pipelines.bloom.downsample,
+                    &bloom_pipelines.downsample,
                 )
             };
             run_bloom_pass(
@@ -300,14 +309,14 @@ impl<'frame> Drawer<'frame> {
 
         // Upsample filter passes
         (0..bloom::NUM_SIZES - 1).for_each(|index| {
-            let bind = &locals.bloom_binds[bloom::NUM_SIZES - 1 - index].bind_group;
-            let view = &views.bloom_tgts[bloom::NUM_SIZES - 2 - index];
+            let bind = &bloom_binds[bloom::NUM_SIZES - 1 - index].bind_group;
+            let view = &bloom_tgts[bloom::NUM_SIZES - 2 - index];
             let label = format!("upsample {}", index + 1);
             run_bloom_pass(
                 bind,
                 view,
                 label,
-                &pipelines.bloom.upsample,
+                &bloom_pipelines.upsample,
                 if index + 2 == bloom::NUM_SIZES {
                     // Clear for the final image since that is just stuff from the pervious frame.
                     wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT)
@@ -400,7 +409,7 @@ impl<'frame> Drawer<'frame> {
         chunks: impl Clone
         + Iterator<Item = (&'data Model<terrain::Vertex>, &'data terrain::BoundLocals)>,
     ) {
-        if !self.borrow.mode.shadow.is_map() {
+        if !self.borrow.pipeline_modes.shadow.is_map() {
             return;
         }
 

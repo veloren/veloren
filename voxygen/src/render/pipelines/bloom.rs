@@ -18,11 +18,15 @@ pub struct BindGroup {
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
-pub struct HalfPixel([f32; 2]);
+pub struct Locals {
+    halfpixel: [f32; 2],
+}
 
-impl HalfPixel {
+impl Locals {
     pub fn new(source_texture_resolution: Vec2<f32>) -> Self {
-        Self(source_texture_resolution.map(|e| 0.5 / e).into_array())
+        Self {
+            halfpixel: source_texture_resolution.map(|e| 0.5 / e).into_array(),
+        }
     }
 }
 
@@ -77,7 +81,7 @@ impl BloomLayout {
         device: &wgpu::Device,
         src_color: &wgpu::TextureView,
         sampler: &wgpu::Sampler,
-        half_pixel: Consts<HalfPixel>,
+        half_pixel: Consts<Locals>,
     ) -> BindGroup {
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: None,

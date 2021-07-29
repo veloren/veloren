@@ -24,6 +24,9 @@
 #define SHADOW_MODE_CHEAP 1
 #define SHADOW_MODE_MAP 2
 
+#define BLOOM_DISABLED 0
+#define BLOOM_ENABLED 1
+
 /* Unlike the other flags (for now anyway), these are bitmask values */
 #define LIGHTING_TYPE_REFLECTION 0x01
 #define LIGHTING_TYPE_TRANSMISSION 0x02

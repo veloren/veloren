@@ -681,7 +681,7 @@ impl Scene {
 
         let sun_dir = scene_data.get_sun_dir();
         let is_daylight = sun_dir.z < 0.0;
-        if renderer.render_mode().shadow.is_map() && (is_daylight || !lights.is_empty()) {
+        if renderer.pipeline_modes().shadow.is_map() && (is_daylight || !lights.is_empty()) {
             let fov = self.camera.get_fov();
             let aspect_ratio = self.camera.get_aspect_ratio();
 
@@ -1062,7 +1062,7 @@ impl Scene {
         let camera_data = (&self.camera, scene_data.figure_lod_render_distance);
 
         // would instead have this as an extension.
-        if drawer.render_mode().shadow.is_map() && (is_daylight || !self.light_data.is_empty()) {
+        if drawer.pipeline_modes().shadow.is_map() && (is_daylight || !self.light_data.is_empty()) {
             if is_daylight {
                 prof_span!("directed shadows");
                 if let Some(mut shadow_pass) = drawer.shadow_pass() {
