@@ -1,28 +1,26 @@
 #[cfg(any(feature = "bin", test))]
 pub mod analysis;
 #[cfg(any(feature = "bin", test))]
-pub mod gitfragments;
-pub mod raw;
+mod gitfragments;
+mod path;
+mod raw;
 #[cfg(any(feature = "bin", test))] pub mod stats;
 pub mod verification;
 
+//reexport
+pub use path::BasePath;
+
+use crate::path::{LANG_EXTENSION, LANG_MANIFEST_FILE};
 use common_assets::{self, source::DirEntry, AssetExt, AssetGuard, AssetHandle};
 use hashbrown::{HashMap, HashSet};
 use raw::{RawFragment, RawLanguage, RawManifest};
 use serde::{Deserialize, Serialize};
-use std::{
-    fs, io,
-    path::{Path, PathBuf},
-};
+use std::{io, path::PathBuf};
 use tracing::warn;
 
 /// The reference language, aka the more up-to-date localization data.
 /// Also the default language at first startup.
 pub const REFERENCE_LANG: &str = "en";
-
-pub const LANG_MANIFEST_FILE: &str = "_manifest";
-
-pub(crate) const LANG_EXTENSION: &str = "ron";
 
 /// How a language can be described
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -327,18 +325,9 @@ pub fn list_localizations() -> Vec<LanguageMetadata> {
     LocalizationList::load_expect_cloned("voxygen.i18n").0
 }
 
-/// List localization directories as a `PathBuf` vector
-pub fn i18n_directories(i18n_dir: &Path) -> Vec<PathBuf> {
-    fs::read_dir(i18n_dir)
-        .unwrap()
-        .map(|res| res.map(|e| e.path()).unwrap())
-        .filter(|e| e.is_dir())
-        .collect()
-}
-
 #[cfg(test)]
 mod tests {
-    use std::path::Path;
+    use crate::path::BasePath;
 
     // Test that localization list is loaded (not empty)
     #[test]
@@ -358,9 +347,8 @@ mod tests {
     #[test]
     fn verify_all_localizations() {
         // Generate paths
-        let i18n_root_path = Path::new("assets/voxygen/i18n/");
         let root_dir = common_assets::find_root().expect("Failed to discover repository root");
-        crate::verification::verify_all_localizations(&root_dir, i18n_root_path);
+        crate::verification::verify_all_localizations(&BasePath::new(&root_dir));
     }
 
     // Test to verify all languages and print missing and faulty localisation
@@ -368,8 +356,7 @@ mod tests {
     #[ignore]
     fn test_all_localizations() {
         // Generate paths
-        let i18n_root_path = Path::new("assets/voxygen/i18n/");
         let root_dir = common_assets::find_root().expect("Failed to discover repository root");
-        crate::analysis::test_all_localizations(&root_dir, i18n_root_path, true, false);
+        crate::analysis::test_all_localizations(&BasePath::new(&root_dir), true, false);
     }
 }

@@ -2,7 +2,7 @@ use crate::{
     gitfragments::{
         read_file_from_path, transform_fragment, LocalizationEntryState, LocalizationState,
     },
-    i18n_directories,
+    path::{BasePath, LangPath},
     raw::{self, RawFragment, RawLanguage},
     stats::{
         print_csv_file, print_overall_stats, print_translation_stats, LocalizationAnalysis,
@@ -10,45 +10,35 @@ use crate::{
     },
     REFERENCE_LANG,
 };
-use hashbrown::{hash_map::Entry, HashMap, HashSet};
+use hashbrown::{hash_map::Entry, HashMap};
 use ron::de::from_bytes;
-use std::path::Path;
 
 /// Fill the entry State base information (except `state`) for a complete
 /// language
 fn gather_entry_state<'a>(
     repo: &'a git2::Repository,
     head_ref: &git2::Reference,
-    language_identifier: &str,
-    root_path: &Path,
-    relative_i18n_root_path: &Path,
+    path: &LangPath,
 ) -> RawLanguage<LocalizationEntryState> {
-    println!("-> {:?}", &language_identifier);
-    let i18n_root_path = root_path.join(relative_i18n_root_path);
+    println!("-> {:?}", path.language_identifier());
     // load standard manifest
-    let manifest = raw::load_manifest(&i18n_root_path, language_identifier)
-        .expect("failed to load language manifest");
+    let manifest = raw::load_manifest(path).expect("failed to load language manifest");
     // transform language into LocalizationEntryState
     let mut fragments = HashMap::new();
 
     // For each file in directory
-    let files = raw::fragments_pathes_in_language(&i18n_root_path, language_identifier)
+    let files = path
+        .fragments()
         .expect("failed to get all files in language");
-    for subpath in files {
-        let path = relative_i18n_root_path
-            .join(language_identifier)
-            .join(&subpath);
-        println!("  -> {:?}", &subpath);
-        let i18n_blob = read_file_from_path(repo, head_ref, &path);
-        let fragment: RawFragment<String> = from_bytes(i18n_blob.content()).unwrap_or_else(|e| {
-            panic!(
-                "Could not parse {} RON file, skipping: {}",
-                subpath.to_string_lossy(),
-                e
-            )
-        });
-        let frag = transform_fragment(repo, (&path, fragment), &i18n_blob);
-        fragments.insert(subpath.to_path_buf(), frag);
+    for sub_path in files {
+        let fullpath = path.sub_path(&sub_path);
+        let gitpath = fullpath.strip_prefix(path.base().root_path()).unwrap();
+        println!("  -> {:?}", &sub_path);
+        let i18n_blob = read_file_from_path(repo, head_ref, gitpath);
+        let fragment: RawFragment<String> = from_bytes(i18n_blob.content())
+            .unwrap_or_else(|e| panic!("Could not parse {:?} RON file, error: {}", sub_path, e));
+        let frag = transform_fragment(repo, (gitpath, fragment), &i18n_blob);
+        fragments.insert(sub_path, frag);
     }
 
     RawLanguage::<LocalizationEntryState> {
@@ -138,11 +128,10 @@ fn compare_lang_with_reference(
             }
         }
 
-        let ref_keys: HashSet<&String> = ref_fragment.string_map.keys().collect();
         for (_, state) in cur_fragment
             .string_map
             .iter_mut()
-            .filter(|&(k, _)| !ref_keys.contains(k))
+            .filter(|&(k, _)| ref_fragment.string_map.get(k).is_none())
         {
             state.state = Some(LocalizationState::Unused);
         }
@@ -179,67 +168,42 @@ fn gather_results(
     (state_map, stats)
 }
 
-/// completely analysis multiple languages without printing
-fn complete_analysis(
-    language_identifiers: &[&str],
-    root_path: &Path,
-    relative_i18n_root_path: &Path,
-) -> (
-    HashMap<String, (LocalizationAnalysis, LocalizationStats)>,
-    /* ref lang */ RawLanguage<LocalizationEntryState>,
-) {
-    let mut result = HashMap::new();
-    // Initialize Git objects
-    let repo = git2::Repository::discover(&root_path)
-        .unwrap_or_else(|_| panic!("Failed to open the Git repository at {:?}", &root_path));
-    let head_ref = repo.head().expect("Impossible to get the HEAD reference");
-
-    // Read Reference Language
-    let ref_language = gather_entry_state(
-        &repo,
-        &head_ref,
-        REFERENCE_LANG,
-        root_path,
-        relative_i18n_root_path,
-    );
-    for &language_identifier in language_identifiers {
-        let mut cur_language = gather_entry_state(
-            &repo,
-            &head_ref,
-            language_identifier,
-            root_path,
-            relative_i18n_root_path,
-        );
-        compare_lang_with_reference(&mut cur_language, &ref_language, &repo);
-        let (state_map, stats) = gather_results(&cur_language);
-        result.insert(language_identifier.to_owned(), (state_map, stats));
-    }
-    (result, ref_language)
-}
-
 /// Test one language
 /// - `code`: name of the directory in assets (de_DE for example)
-/// - `root_path`: absolute path to main repo
-/// - `relative_i18n_root_path`: relative path to asset directory (right now it
-///   is 'assets/voxygen/i18n')
-/// - be_verbose: print extra info
-/// - csv_enabled: generate csv files in target folder
+/// - `path`: path to repo
+/// - `be_verbose`: print extra info
+/// - `csv_enabled`: generate csv files in target folder
 pub fn test_specific_localizations(
+    path: &BasePath,
     language_identifiers: &[&str],
-    root_path: &Path,
-    relative_i18n_root_path: &Path,
     be_verbose: bool,
     csv_enabled: bool,
 ) {
-    let (analysis, reference_language) =
-        complete_analysis(language_identifiers, root_path, relative_i18n_root_path);
+    //complete analysis
+    let mut analysis = HashMap::new();
+    // Initialize Git objects
+    let repo = git2::Repository::discover(path.root_path())
+        .unwrap_or_else(|_| panic!("Failed to open the Git repository {:?}", path.root_path()));
+    let head_ref = repo.head().expect("Impossible to get the HEAD reference");
+
+    // Read Reference Language
+    let ref_language = gather_entry_state(&repo, &head_ref, &path.i18n_path(REFERENCE_LANG));
+    for &language_identifier in language_identifiers {
+        let mut cur_language =
+            gather_entry_state(&repo, &head_ref, &path.i18n_path(language_identifier));
+        compare_lang_with_reference(&mut cur_language, &ref_language, &repo);
+        let (state_map, stats) = gather_results(&cur_language);
+        analysis.insert(language_identifier.to_owned(), (state_map, stats));
+    }
+
+    //printing
     for (language_identifier, (state_map, stats)) in &analysis {
         if csv_enabled {
             print_csv_file(state_map);
         } else {
             print_translation_stats(
                 language_identifier,
-                &reference_language,
+                &ref_language,
                 stats,
                 state_map,
                 be_verbose,
@@ -252,32 +216,12 @@ pub fn test_specific_localizations(
 }
 
 /// Test all localizations
-pub fn test_all_localizations(
-    root_path: &Path,
-    relative_i18n_root_path: &Path,
-    be_verbose: bool,
-    csv_enabled: bool,
-) {
-    let i18n_root_path = root_path.join(relative_i18n_root_path);
+pub fn test_all_localizations(path: &BasePath, be_verbose: bool, csv_enabled: bool) {
     // Compare to other reference files
-    let language_identifiers = i18n_directories(&i18n_root_path)
-        .into_iter()
-        .map(|p| {
-            p.strip_prefix(&i18n_root_path)
-                .unwrap()
-                .to_str()
-                .unwrap()
-                .to_owned()
-        })
+    let languages = path.i18n_directories();
+    let language_identifiers = languages
+        .iter()
+        .map(|s| s.language_identifier())
         .collect::<Vec<_>>();
-    test_specific_localizations(
-        &language_identifiers
-            .iter()
-            .map(|s| s.as_str())
-            .collect::<Vec<_>>(),
-        root_path,
-        relative_i18n_root_path,
-        be_verbose,
-        csv_enabled,
-    );
+    test_specific_localizations(path, &language_identifiers, be_verbose, csv_enabled);
 }

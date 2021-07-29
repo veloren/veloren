@@ -45,7 +45,7 @@ impl LocalizationAnalysis {
     fn show(
         &self,
         state: Option<LocalizationState>,
-        reference_language: &RawLanguage<LocalizationEntryState>,
+        ref_language: &RawLanguage<LocalizationEntryState>,
         be_verbose: bool,
     ) {
         let entries = self.data.get(&state).unwrap_or_else(|| {
@@ -61,7 +61,7 @@ impl LocalizationAnalysis {
         for (path, key, commit_id) in entries {
             if be_verbose {
                 let our_commit = LocalizationAnalysis::print_commit(commit_id);
-                let ref_commit = reference_language
+                let ref_commit = ref_language
                     .fragments
                     .get(path)
                     .and_then(|entry| entry.string_map.get(key))
@@ -102,7 +102,7 @@ impl LocalizationAnalysis {
 
 pub(crate) fn print_translation_stats(
     language_identifier: &str,
-    reference_language: &RawLanguage<LocalizationEntryState>,
+    ref_language: &RawLanguage<LocalizationEntryState>,
     stats: &LocalizationStats,
     state_map: &LocalizationAnalysis,
     be_verbose: bool,
@@ -116,9 +116,7 @@ pub(crate) fn print_translation_stats(
     if be_verbose {
         println!(
             "\n{:60}| {:40} | {:40}",
-            "Key name",
-            language_identifier,
-            reference_language.manifest.metadata.language_identifier,
+            "Key name", language_identifier, ref_language.manifest.metadata.language_identifier,
         );
     } else {
         println!("\nKey name");
@@ -128,7 +126,7 @@ pub(crate) fn print_translation_stats(
         if state == &Some(LocalizationState::UpToDate) {
             continue;
         }
-        state_map.show(*state, reference_language, be_verbose);
+        state_map.show(*state, ref_language, be_verbose);
     }
 
     println!(

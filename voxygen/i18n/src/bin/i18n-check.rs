@@ -1,5 +1,4 @@
 use clap::{App, Arg};
-use std::path::Path;
 use veloren_i18n::{analysis, verification};
 
 fn main() {
@@ -37,28 +36,17 @@ fn main() {
 
     // Generate paths
     let root_path = common_assets::find_root().expect("Failed to find root of repository");
-    let relative_i18n_root_path = Path::new("assets/voxygen/i18n/");
+    let path = veloren_i18n::BasePath::new(&root_path);
     let be_verbose = matches.is_present("verbose");
     let csv_enabled = matches.is_present("csv");
 
     if let Some(code) = matches.value_of("CODE") {
-        analysis::test_specific_localizations(
-            &[code],
-            &root_path,
-            relative_i18n_root_path,
-            be_verbose,
-            csv_enabled,
-        );
+        analysis::test_specific_localizations(&path, &[code], be_verbose, csv_enabled);
     }
     if matches.is_present("test") {
-        analysis::test_all_localizations(
-            &root_path,
-            relative_i18n_root_path,
-            be_verbose,
-            csv_enabled,
-        );
+        analysis::test_all_localizations(&path, be_verbose, csv_enabled);
     }
     if matches.is_present("verify") {
-        verification::verify_all_localizations(&root_path, relative_i18n_root_path);
+        verification::verify_all_localizations(&path);
     }
 }
