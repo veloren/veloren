@@ -68,10 +68,13 @@ impl CharacterBehavior for Data {
                 .then(|| data.body.jump_impulse())
                 .flatten()
             {
+                // How strong the climb boost is relative to a normal jump
+                const CLIMB_BOOST_JUMP_FACTOR: f32 = 0.5;
                 // They've climbed atop something, give them a boost
-                update
-                    .local_events
-                    .push_front(LocalEvent::Jump(data.entity, 0.5 * impulse / data.mass.0));
+                update.local_events.push_front(LocalEvent::Jump(
+                    data.entity,
+                    CLIMB_BOOST_JUMP_FACTOR * impulse / data.mass.0,
+                ));
             };
             update.character = CharacterState::Idle {};
             return update;
