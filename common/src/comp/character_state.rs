@@ -1,8 +1,13 @@
 use crate::{
     combat::Attack,
-    comp::{tool::ToolKind, Density, Energy, InputAttr, InputKind, Ori, Pos, Vel},
+    comp::{tool::ToolKind, ControlAction, Density, Energy, InputAttr, InputKind, Ori, Pos, Vel},
     event::{LocalEvent, ServerEvent},
-    states::{behavior::JoinData, utils::StageSection, *},
+    states::{
+        self,
+        behavior::{CharacterBehavior, JoinData},
+        utils::StageSection,
+        *,
+    },
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, VecStorage};
@@ -215,6 +220,82 @@ impl CharacterState {
     pub fn same_variant(&self, other: &Self) -> bool {
         // Check if state is the same without looking at the inner data
         std::mem::discriminant(self) == std::mem::discriminant(other)
+    }
+
+    pub fn execute_behavior(&self, j: &JoinData) -> StateUpdate {
+        match &self {
+            CharacterState::Idle => states::idle::Data.behavior(&j),
+            CharacterState::Talk => states::talk::Data.behavior(&j),
+            CharacterState::Climb(data) => data.behavior(&j),
+            CharacterState::Glide(data) => data.behavior(&j),
+            CharacterState::GlideWield => states::glide_wield::Data.behavior(&j),
+            CharacterState::Stunned(data) => data.behavior(&j),
+            CharacterState::Sit => states::sit::Data::behavior(&states::sit::Data, &j),
+            CharacterState::Dance => states::dance::Data::behavior(&states::dance::Data, &j),
+            CharacterState::Sneak => states::sneak::Data::behavior(&states::sneak::Data, &j),
+            CharacterState::BasicBlock(data) => data.behavior(&j),
+            CharacterState::Roll(data) => data.behavior(&j),
+            CharacterState::Wielding => states::wielding::Data.behavior(&j),
+            CharacterState::Equipping(data) => data.behavior(&j),
+            CharacterState::ComboMelee(data) => data.behavior(&j),
+            CharacterState::BasicMelee(data) => data.behavior(&j),
+            CharacterState::BasicRanged(data) => data.behavior(&j),
+            CharacterState::Boost(data) => data.behavior(&j),
+            CharacterState::DashMelee(data) => data.behavior(&j),
+            CharacterState::LeapMelee(data) => data.behavior(&j),
+            CharacterState::SpinMelee(data) => data.behavior(&j),
+            CharacterState::ChargedMelee(data) => data.behavior(&j),
+            CharacterState::ChargedRanged(data) => data.behavior(&j),
+            CharacterState::RepeaterRanged(data) => data.behavior(&j),
+            CharacterState::Shockwave(data) => data.behavior(&j),
+            CharacterState::BasicBeam(data) => data.behavior(&j),
+            CharacterState::BasicAura(data) => data.behavior(&j),
+            CharacterState::Blink(data) => data.behavior(&j),
+            CharacterState::BasicSummon(data) => data.behavior(&j),
+            CharacterState::SelfBuff(data) => data.behavior(&j),
+            CharacterState::SpriteSummon(data) => data.behavior(&j),
+            CharacterState::UseItem(data) => data.behavior(&j),
+        }
+    }
+
+    pub fn handle_action(&self, j: &JoinData, action: ControlAction) -> StateUpdate {
+        match &self {
+            CharacterState::Idle => states::idle::Data.handle_event(&j, action),
+            CharacterState::Talk => states::talk::Data.handle_event(&j, action),
+            CharacterState::Climb(data) => data.handle_event(&j, action),
+            CharacterState::Glide(data) => data.handle_event(&j, action),
+            CharacterState::GlideWield => states::glide_wield::Data.handle_event(&j, action),
+            CharacterState::Stunned(data) => data.handle_event(&j, action),
+            CharacterState::Sit => states::sit::Data::handle_event(&states::sit::Data, &j, action),
+            CharacterState::Dance => {
+                states::dance::Data::handle_event(&states::dance::Data, &j, action)
+            },
+            CharacterState::Sneak => {
+                states::sneak::Data::handle_event(&states::sneak::Data, &j, action)
+            },
+            CharacterState::BasicBlock(data) => data.handle_event(&j, action),
+            CharacterState::Roll(data) => data.handle_event(&j, action),
+            CharacterState::Wielding => states::wielding::Data.handle_event(&j, action),
+            CharacterState::Equipping(data) => data.handle_event(&j, action),
+            CharacterState::ComboMelee(data) => data.handle_event(&j, action),
+            CharacterState::BasicMelee(data) => data.handle_event(&j, action),
+            CharacterState::BasicRanged(data) => data.handle_event(&j, action),
+            CharacterState::Boost(data) => data.handle_event(&j, action),
+            CharacterState::DashMelee(data) => data.handle_event(&j, action),
+            CharacterState::LeapMelee(data) => data.handle_event(&j, action),
+            CharacterState::SpinMelee(data) => data.handle_event(&j, action),
+            CharacterState::ChargedMelee(data) => data.handle_event(&j, action),
+            CharacterState::ChargedRanged(data) => data.handle_event(&j, action),
+            CharacterState::RepeaterRanged(data) => data.handle_event(&j, action),
+            CharacterState::Shockwave(data) => data.handle_event(&j, action),
+            CharacterState::BasicBeam(data) => data.handle_event(&j, action),
+            CharacterState::BasicAura(data) => data.handle_event(&j, action),
+            CharacterState::Blink(data) => data.handle_event(&j, action),
+            CharacterState::BasicSummon(data) => data.handle_event(&j, action),
+            CharacterState::SelfBuff(data) => data.handle_event(&j, action),
+            CharacterState::SpriteSummon(data) => data.handle_event(&j, action),
+            CharacterState::UseItem(data) => data.handle_event(&j, action),
+        }
     }
 }
 
