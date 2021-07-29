@@ -903,7 +903,7 @@ fn ability_description(tool: &ToolKind) -> Option<(&str, &str)> {
         ToolKind::Staff => Some((
             "Ring of Fire",
             "\n\
-            Explodes the gound with fire shockwave.",
+            Ignites the ground with fiery shockwave.",
         )),
         ToolKind::Sword => Some((
             "Whirlwind",
@@ -913,7 +913,7 @@ fn ability_description(tool: &ToolKind) -> Option<(&str, &str)> {
         ToolKind::Bow => Some((
             "Burst",
             "\n\
-            Launches a burst of arrows into your target",
+            Launches a burst of arrows",
         )),
         ToolKind::Sceptre => Some((
             "Thorn Bulwark",
