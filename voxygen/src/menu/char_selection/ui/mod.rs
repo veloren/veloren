@@ -52,7 +52,8 @@ const STARTER_BOW: &str = "common.items.weapons.bow.starter";
 const STARTER_AXE: &str = "common.items.weapons.axe.starter_axe";
 const STARTER_STAFF: &str = "common.items.weapons.staff.starter_staff";
 const STARTER_SWORD: &str = "common.items.weapons.sword.starter";
-const STARTER_SCEPTRE: &str = "common.items.weapons.sceptre.starter_sceptre";
+const STARTER_SWORDS: &str = "common.items.weapons.sword_1h.starter";
+
 // TODO: what does this comment mean?
 // // Use in future MR to make this a starter weapon
 
@@ -67,9 +68,9 @@ image_ids_ice! {
         slider_range: "voxygen.element.ui.generic.slider.track",
         slider_indicator: "voxygen.element.ui.generic.slider.indicator",
 
-        selection: "voxygen.element.ui.generic.frames.selection",
-        selection_hover: "voxygen.element.ui.generic.frames.selection_hover",
-        selection_press: "voxygen.element.ui.generic.frames.selection_press",
+        char_selection: "voxygen.element.ui.generic.frames.selection",
+        char_selection_hover: "voxygen.element.ui.generic.frames.selection_hover",
+        char_selection_press: "voxygen.element.ui.generic.frames.selection_press",
 
         delete_button: "voxygen.element.ui.char_select.icons.bin",
         delete_button_hover: "voxygen.element.ui.char_select.icons.bin_hover",
@@ -78,7 +79,7 @@ image_ids_ice! {
         name_input: "voxygen.element.ui.generic.textbox",
 
         // Tool Icons
-        sceptre: "voxygen.element.weapons.sceptre",
+        swords: "voxygen.element.weapons.swords",
         sword: "voxygen.element.weapons.sword",
         axe: "voxygen.element.weapons.axe",
         hammer: "voxygen.element.weapons.hammer",
@@ -124,7 +125,8 @@ pub enum Event {
     Play(CharacterId),
     AddCharacter {
         alias: String,
-        tool: String,
+        mainhand: Option<String>,
+        offhand: Option<String>,
         body: comp::Body,
     },
     DeleteCharacter(CharacterId),
@@ -148,7 +150,8 @@ enum Mode {
         name: String,
         body: humanoid::Body,
         inventory: Box<comp::inventory::Inventory>,
-        tool: &'static str,
+        mainhand: Option<&'static str>,
+        offhand: Option<&'static str>,
 
         body_type_buttons: [button::State; 2],
         species_buttons: [button::State; 6],
@@ -178,11 +181,15 @@ impl Mode {
     }
 
     pub fn create(name: String) -> Self {
-        let tool = STARTER_SWORD;
+        // TODO: Load these from the server (presumably from a .ron) to allow for easier
+        // modification of custom starting weapons
+        let mainhand = Some(STARTER_SWORD);
+        let offhand = None;
 
         let loadout = LoadoutBuilder::empty()
             .defaults()
-            .active_mainhand(Some(Item::new_from_asset_expect(tool)))
+            .active_mainhand(mainhand.map(Item::new_from_asset_expect))
+            .active_offhand(offhand.map(Item::new_from_asset_expect))
             .build();
 
         let inventory = Box::new(Inventory::new_with_loadout(loadout));
@@ -191,7 +198,8 @@ impl Mode {
             name,
             body: humanoid::Body::random(),
             inventory,
-            tool,
+            mainhand,
+            offhand,
             body_type_buttons: Default::default(),
             species_buttons: Default::default(),
             tool_buttons: Default::default(),
@@ -244,7 +252,7 @@ enum Message {
     Name(String),
     BodyType(humanoid::BodyType),
     Species(humanoid::Species),
-    Tool(&'static str),
+    Tool((Option<&'static str>, Option<&'static str>)),
     RandomizeCharacter,
     RandomizeName,
     CancelDeletion,
@@ -468,12 +476,12 @@ impl Controls {
                                         .padding(10)
                                         .style(
                                             style::button::Style::new(if Some(i) == selected {
-                                                imgs.selection_hover
+                                                imgs.char_selection_hover
                                             } else {
-                                                imgs.selection
+                                                imgs.char_selection
                                             })
-                                            .hover_image(imgs.selection_hover)
-                                            .press_image(imgs.selection_press)
+                                            .hover_image(imgs.char_selection_hover)
+                                            .press_image(imgs.char_selection_press)
                                             .image_color(Rgba::new(
                                                 select_col.0,
                                                 select_col.1,
@@ -485,7 +493,7 @@ impl Controls {
                                         .height(Length::Fill)
                                         .on_press(Message::Select(character_id)),
                                     )
-                                    .ratio_of_image(imgs.selection),
+                                    .ratio_of_image(imgs.char_selection),
                                 )
                                 .padding(0)
                                 .align_x(Align::End)
@@ -514,9 +522,9 @@ impl Controls {
                                 .center_y(),
                             )
                             .style(
-                                style::button::Style::new(imgs.selection)
-                                    .hover_image(imgs.selection_hover)
-                                    .press_image(imgs.selection_press)
+                                style::button::Style::new(imgs.char_selection)
+                                    .hover_image(imgs.char_selection_hover)
+                                    .press_image(imgs.char_selection_press)
                                     .image_color(Rgba::new(color.0, color.1, color.2, 255))
                                     .text_color(iced::Color::from_rgb8(color.0, color.1, color.2))
                                     .disabled_text_color(iced::Color::from_rgb8(
@@ -531,7 +539,7 @@ impl Controls {
                                 button
                             }
                         })
-                        .ratio_of_image(imgs.selection)
+                        .ratio_of_image(imgs.char_selection)
                         .into(),
                     );
                     characters
@@ -710,7 +718,8 @@ impl Controls {
                 name,
                 body,
                 inventory: _,
-                tool,
+                mainhand,
+                offhand: _,
                 ref mut scroll,
                 ref mut body_type_buttons,
                 ref mut species_buttons,
@@ -863,30 +872,30 @@ impl Controls {
                 ])
                 .spacing(1);
 
-                let [ref mut sword_button, ref mut sceptre_button, ref mut axe_button, ref mut hammer_button, ref mut bow_button, ref mut staff_button] =
+                let [ref mut sword_button, ref mut swords_button, ref mut axe_button, ref mut hammer_button, ref mut bow_button, ref mut staff_button] =
                     tool_buttons;
                 let tool = Column::with_children(vec![
                     Row::with_children(vec![
                         icon_button_tooltip(
                             sword_button,
-                            *tool == STARTER_SWORD,
-                            Message::Tool(STARTER_SWORD),
+                            *mainhand == Some(STARTER_SWORD),
+                            Message::Tool((Some(STARTER_SWORD), None)),
                             imgs.sword,
-                            "common.weapons.sword",
+                            "common.weapons.greatsword",
                         )
                         .into(),
                         icon_button_tooltip(
                             hammer_button,
-                            *tool == STARTER_HAMMER,
-                            Message::Tool(STARTER_HAMMER),
+                            *mainhand == Some(STARTER_HAMMER),
+                            Message::Tool((Some(STARTER_HAMMER), None)),
                             imgs.hammer,
                             "common.weapons.hammer",
                         )
                         .into(),
                         icon_button_tooltip(
                             axe_button,
-                            *tool == STARTER_AXE,
-                            Message::Tool(STARTER_AXE),
+                            *mainhand == Some(STARTER_AXE),
+                            Message::Tool((Some(STARTER_AXE), None)),
                             imgs.axe,
                             "common.weapons.axe",
                         )
@@ -896,25 +905,26 @@ impl Controls {
                     .into(),
                     Row::with_children(vec![
                         icon_button_tooltip(
-                            sceptre_button,
-                            *tool == STARTER_SCEPTRE,
-                            Message::Tool(STARTER_SCEPTRE),
-                            imgs.sceptre,
-                            "common.weapons.sceptre",
+                            swords_button,
+                            *mainhand == Some(STARTER_SWORDS),
+                            Message::Tool((Some(STARTER_SWORDS), Some(STARTER_SWORDS))),
+                            imgs.swords,
+                            "common.weapons.greatsword
+                            ",
                         )
                         .into(),
                         icon_button_tooltip(
                             bow_button,
-                            *tool == STARTER_BOW,
-                            Message::Tool(STARTER_BOW),
+                            *mainhand == Some(STARTER_BOW),
+                            Message::Tool((Some(STARTER_BOW), None)),
                             imgs.bow,
                             "common.weapons.bow",
                         )
                         .into(),
                         icon_button_tooltip(
                             staff_button,
-                            *tool == STARTER_STAFF,
-                            Message::Tool(STARTER_STAFF),
+                            *mainhand == Some(STARTER_STAFF),
+                            Message::Tool((Some(STARTER_STAFF), None)),
                             imgs.staff,
                             "common.weapons.staff",
                         )
@@ -1076,8 +1086,8 @@ impl Controls {
 
                 let column_content = vec![
                     body_type.into(),
-                    species.into(),
                     tool.into(),
+                    species.into(),
                     slider_options.into(),
                     rand_character.into(),
                 ];
@@ -1300,12 +1310,17 @@ impl Controls {
             },
             Message::CreateCharacter => {
                 if let Mode::Create {
-                    name, body, tool, ..
+                    name,
+                    body,
+                    mainhand,
+                    offhand,
+                    ..
                 } = &self.mode
                 {
                     events.push(Event::AddCharacter {
                         alias: name.clone(),
-                        tool: String::from(*tool),
+                        mainhand: mainhand.map(String::from),
+                        offhand: offhand.map(String::from),
                         body: comp::Body::Humanoid(*body),
                     });
                     self.mode = Mode::select(Some(InfoContent::CreatingCharacter));
@@ -1330,13 +1345,21 @@ impl Controls {
             },
             Message::Tool(value) => {
                 if let Mode::Create {
-                    tool, inventory, ..
+                    mainhand,
+                    offhand,
+                    inventory,
+                    ..
                 } = &mut self.mode
                 {
-                    *tool = value;
+                    *mainhand = value.0;
+                    *offhand = value.1;
                     inventory.replace_loadout_item(
                         EquipSlot::ActiveMainhand,
-                        Some(Item::new_from_asset_expect(*tool)),
+                        mainhand.map(|specifier| Item::new_from_asset_expect(specifier)),
+                    );
+                    inventory.replace_loadout_item(
+                        EquipSlot::ActiveOffhand,
+                        offhand.map(|specifier| Item::new_from_asset_expect(specifier)),
                     );
                 }
             },

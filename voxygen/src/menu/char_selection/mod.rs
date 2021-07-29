@@ -109,10 +109,15 @@ impl PlayState for CharSelectionState {
                     ui::Event::Logout => {
                         return PlayStateResult::Pop;
                     },
-                    ui::Event::AddCharacter { alias, tool, body } => {
+                    ui::Event::AddCharacter {
+                        alias,
+                        mainhand,
+                        offhand,
+                        body,
+                    } => {
                         self.client
                             .borrow_mut()
-                            .create_character(alias, Some(tool), body);
+                            .create_character(alias, mainhand, offhand, body);
                     },
                     ui::Event::DeleteCharacter(character_id) => {
                         self.client.borrow_mut().delete_character(character_id);

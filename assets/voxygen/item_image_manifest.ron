@@ -437,6 +437,10 @@
         "voxel.weapon.sword_1h.cobalt-3",
         (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
+    Tool("common.items.weapons.sword_1h.starter"): VoxTrans(
+        "voxel.weapon.sword_1h.starter",
+        (-1.0, 1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
     Tool("common.items.weapons.sword_1h.iron-0"): VoxTrans(
         "voxel.weapon.sword_1h.iron-0",
         (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,

@@ -115,19 +115,34 @@ impl Sys {
                     character_loader.load_character_list(entity, player.uuid().to_string())
                 }
             },
-            ClientGeneral::CreateCharacter { alias, tool, body } => {
+            ClientGeneral::CreateCharacter {
+                alias,
+                mainhand,
+                offhand,
+                body,
+            } => {
                 if let Err(error) = alias_validator.validate(&alias) {
                     debug!(?error, ?alias, "denied alias as it contained a banned word");
                     client.send(ServerGeneral::CharacterActionError(error.to_string()))?;
                 } else if let Some(player) = players.get(entity) {
-                    character_creator::create_character(
+                    if let Err(error) = character_creator::create_character(
                         entity,
                         player.uuid().to_string(),
                         alias,
-                        tool,
+                        mainhand.clone(),
+                        offhand.clone(),
                         body,
                         character_updater,
-                    );
+                    ) {
+                        debug!(
+                            ?error,
+                            ?mainhand,
+                            ?offhand,
+                            ?body,
+                            "Denied creating character because of invalid input."
+                        );
+                        client.send(ServerGeneral::CharacterActionError(error.to_string()))?;
+                    }
                 }
             },
             ClientGeneral::DeleteCharacter(character_id) => {

@@ -174,6 +174,7 @@ impl BotClient {
             client.create_character(
                 cred.username.clone(),
                 Some("common.items.weapons.sword.starter".to_string()),
+                None,
                 body.into(),
             );
             client.load_character_list();
