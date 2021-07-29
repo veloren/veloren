@@ -560,7 +560,6 @@ impl StateExt for State {
                         )
                         .with(comp::Scale(1.0))
                         .with(comp::Vel(Vec3::new(0.0, 0.0, 0.0)))
-                        .with(comp::MountState::Unmounted)
                         .build();
 
                     restore_pet(self.ecs(), pet_entity, entity, pet);
