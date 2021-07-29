@@ -1,7 +1,7 @@
 use super::graphic::{Graphic, GraphicCache, Id as GraphicId};
 use crate::{
+    error::Error,
     render::{Mesh, Renderer, Texture, UiTextureBindGroup, UiVertex},
-    Error,
 };
 use conrod_core::{text::GlyphCache, widget::Id};
 use hashbrown::HashMap;

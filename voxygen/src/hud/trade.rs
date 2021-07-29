@@ -6,7 +6,6 @@ use super::{
 };
 use crate::{
     hud::bag::{BackgroundIds, InventoryScroller},
-    i18n::Localization,
     ui::{
         fonts::Fonts,
         slot::{ContentSize, SlotMaker},
@@ -28,6 +27,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, State as ConrodState, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
+use i18n::Localization;
 use specs::Entity as EcsEntity;
 use vek::*;
 

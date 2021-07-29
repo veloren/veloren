@@ -14,11 +14,11 @@ use super::{
     Font, FontId, RawFont, Rotation,
 };
 use crate::{
+    error::Error,
     render::{
         create_ui_quad, create_ui_quad_vert_gradient, DynamicModel, Mesh, Renderer, UiBoundLocals,
         UiDrawer, UiLocals, UiMode, UiVertex,
     },
-    Error,
 };
 use common::{slowjob::SlowJobPool, util::srgba_to_linear};
 use common_base::span;

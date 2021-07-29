@@ -1,9 +1,10 @@
 use super::{img_ids::Imgs, settings_window::SettingsTab, TEXT_COLOR};
-use crate::{i18n::Localization, ui::fonts::Fonts};
+use crate::ui::fonts::Fonts;
 use conrod_core::{
     widget::{self, Button, Image},
     widget_ids, Color, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use i18n::Localization;
 
 widget_ids! {
     struct Ids {

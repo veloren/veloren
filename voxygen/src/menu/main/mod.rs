@@ -6,7 +6,6 @@ use super::char_selection::CharSelectionState;
 #[cfg(feature = "singleplayer")]
 use crate::singleplayer::Singleplayer;
 use crate::{
-    i18n::LocalizationHandle,
     render::{Drawer, GlobalsBindGroup},
     settings::Settings,
     window::Event,
@@ -20,6 +19,7 @@ use client::{
 use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
 use common::comp;
 use common_base::span;
+use i18n::LocalizationHandle;
 use scene::Scene;
 use std::sync::Arc;
 use tokio::runtime;

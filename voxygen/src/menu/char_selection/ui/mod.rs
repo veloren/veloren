@@ -1,5 +1,4 @@
 use crate::{
-    i18n::{Localization, LocalizationHandle},
     render::UiDrawer,
     ui::{
         self,
@@ -26,6 +25,7 @@ use common::{
     comp::{self, humanoid, inventory::slot::EquipSlot, Inventory, Item},
     LoadoutBuilder,
 };
+use i18n::{Localization, LocalizationHandle};
 //ImageFrame, Tooltip,
 use crate::settings::Settings;
 //use std::time::Duration;

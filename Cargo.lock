@@ -6018,20 +6018,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "veloren-i18n"
-version = "0.10.0"
-dependencies = [
- "clap",
- "deunicode",
- "git2",
- "hashbrown 0.11.2",
- "ron",
- "serde",
- "tracing",
- "veloren-common-assets",
-]
-
-[[package]]
 name = "veloren-network"
 version = "0.3.0"
 dependencies = [
@@ -6236,10 +6222,10 @@ dependencies = [
  "veloren-common-net",
  "veloren-common-state",
  "veloren-common-systems",
- "veloren-i18n",
  "veloren-server",
  "veloren-voxygen-anim",
  "veloren-voxygen-egui",
+ "veloren-voxygen-i18n",
  "veloren-world",
  "wgpu",
  "wgpu-profiler",
@@ -6293,6 +6279,20 @@ name = "veloren-voxygen-egui-dyn"
 version = "0.9.0"
 dependencies = [
  "veloren-voxygen-egui",
+]
+
+[[package]]
+name = "veloren-voxygen-i18n"
+version = "0.10.0"
+dependencies = [
+ "clap",
+ "deunicode",
+ "git2",
+ "hashbrown 0.11.2",
+ "ron",
+ "serde",
+ "tracing",
+ "veloren-common-assets",
 ]
 
 [[package]]

@@ -55,7 +55,6 @@ use crate::{
     ecs::{comp as vcomp, comp::HpFloaterList},
     game_input::GameInput,
     hud::{img_ids::ImgsRot, prompt_dialog::DialogOutcomeEvent},
-    i18n::Localization,
     render::UiDrawer,
     scene::camera::{self, Camera},
     session::{
@@ -100,6 +99,7 @@ use conrod_core::{
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 use hashbrown::{HashMap, HashSet};
+use i18n::Localization;
 use rand::Rng;
 use specs::{Entity as EcsEntity, Join, WorldExt};
 use std::{

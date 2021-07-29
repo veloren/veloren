@@ -1,12 +1,9 @@
 use super::image_frame::ImageFrame;
-use crate::{
-    hud::{
-        get_quality_col,
-        img_ids::Imgs,
-        item_imgs::{animate_by_pulse, ItemImgs, ItemKey},
-        util,
-    },
-    i18n::Localization,
+use crate::hud::{
+    get_quality_col,
+    img_ids::Imgs,
+    item_imgs::{animate_by_pulse, ItemImgs, ItemKey},
+    util,
 };
 use client::Client;
 use common::{
@@ -22,6 +19,7 @@ use conrod_core::{
     widget, widget_ids, Color, Colorable, FontSize, Positionable, Scalar, Sizeable, Ui, UiCell,
     Widget, WidgetCommon, WidgetStyle,
 };
+use i18n::Localization;
 use lazy_static::lazy_static;
 use std::time::{Duration, Instant};
 

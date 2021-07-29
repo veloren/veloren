@@ -9,7 +9,6 @@ use super::{
 use crate::{
     game_input::GameInput,
     hud,
-    i18n::Localization,
     settings::Settings,
     ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
     GlobalState,
@@ -27,6 +26,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use i18n::Localization;
 use specs::{saveload::MarkerAllocator, WorldExt};
 
 widget_ids! {

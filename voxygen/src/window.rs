@@ -1,9 +1,10 @@
 use crate::{
     controller::*,
+    error::Error,
     game_input::GameInput,
     render::Renderer,
     settings::{ControlSettings, Settings},
-    ui, Error,
+    ui,
 };
 use common_base::span;
 use crossbeam_channel as channel;

@@ -1,19 +1,17 @@
 use super::{Imgs, LoginInfo, Message, FILL_FRAC_ONE, FILL_FRAC_TWO};
-use crate::{
-    i18n::Localization,
-    ui::{
-        fonts::IcedFonts as Fonts,
-        ice::{
-            component::neat_button,
-            style,
-            widget::{
-                compound_graphic::{CompoundGraphic, Graphic},
-                BackgroundContainer, Image, Padding,
-            },
-            Element,
+use crate::ui::{
+    fonts::IcedFonts as Fonts,
+    ice::{
+        component::neat_button,
+        style,
+        widget::{
+            compound_graphic::{CompoundGraphic, Graphic},
+            BackgroundContainer, Image, Padding,
         },
+        Element,
     },
 };
+use i18n::{LanguageMetadata, Localization};
 use iced::{
     button, scrollable, text_input, Align, Button, Column, Container, Length, Row, Scrollable,
     Space, Text, TextInput,
@@ -61,7 +59,7 @@ impl Screen {
         i18n: &Localization,
         is_selecting_language: bool,
         selected_language_index: Option<usize>,
-        language_metadatas: &[crate::i18n::LanguageMetadata],
+        language_metadatas: &[LanguageMetadata],
         button_style: style::button::Style,
         version: &str,
     ) -> Element<Message> {
@@ -223,7 +221,7 @@ impl LanguageSelectBanner {
         fonts: &Fonts,
         imgs: &Imgs,
         i18n: &Localization,
-        language_metadatas: &[crate::i18n::LanguageMetadata],
+        language_metadatas: &[LanguageMetadata],
         selected_language_index: Option<usize>,
         button_style: style::button::Style,
     ) -> Element<Message> {

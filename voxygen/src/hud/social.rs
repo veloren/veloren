@@ -2,11 +2,7 @@ use super::{
     img_ids::{Imgs, ImgsRot},
     Show, TEXT_COLOR, TEXT_COLOR_3, UI_HIGHLIGHT_0, UI_MAIN,
 };
-
-use crate::{
-    i18n::Localization,
-    ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
-};
+use crate::ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable};
 use client::{self, Client};
 use common::{comp::group, uid::Uid};
 use conrod_core::{
@@ -14,6 +10,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Scrollbar, Text, TextEdit},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use i18n::Localization;
 use itertools::Itertools;
 use std::time::Instant;
 

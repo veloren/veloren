@@ -1,5 +1,5 @@
 use clap::{App, Arg};
-use veloren_i18n::{analysis, verification};
+use veloren_voxygen_i18n::{analysis, verification, BasePath};
 
 fn main() {
     let matches = App::new("i18n-check")
@@ -36,7 +36,7 @@ fn main() {
 
     // Generate paths
     let root_path = common_assets::find_root().expect("Failed to find root of repository");
-    let path = veloren_i18n::BasePath::new(&root_path);
+    let path = BasePath::new(&root_path);
     let be_verbose = matches.is_present("verbose");
     let csv_enabled = matches.is_present("csv");
 

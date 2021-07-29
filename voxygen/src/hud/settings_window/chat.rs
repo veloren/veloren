@@ -2,7 +2,6 @@ use super::{RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
 
 use crate::{
     hud::{img_ids::Imgs, ChatTab, Show, TEXT_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN},
-    i18n::Localization,
     session::settings_change::{Chat as ChatChange, Chat::*},
     settings::chat::MAX_CHAT_TABS,
     ui::{fonts::Fonts, ImageSlider, ToggleButton},
@@ -14,6 +13,7 @@ use conrod_core::{
     widget::{self, Button, DropDownList, Image, Rectangle, Text, TextEdit},
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use i18n::Localization;
 use std::cmp::Ordering;
 
 widget_ids! {

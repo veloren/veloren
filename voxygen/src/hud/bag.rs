@@ -7,7 +7,6 @@ use super::{
 };
 use crate::{
     game_input::GameInput,
-    i18n::Localization,
     ui::{
         fonts::Fonts,
         slot::{ContentSize, SlotMaker},
@@ -31,6 +30,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Scrollbar, State as ConrodState, Text},
     widget_ids, Color, Colorable, Positionable, Scalar, Sizeable, UiCell, Widget, WidgetCommon,
 };
+use i18n::Localization;
 
 use crate::hud::slots::SlotKind;
 use specs::Entity as EcsEntity;

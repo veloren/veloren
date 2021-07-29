@@ -5,7 +5,6 @@ use crate::{
         img_ids::Imgs, CRITICAL_HP_COLOR, HP_COLOR, LOW_HP_COLOR, MENU_BG, STAMINA_COLOR,
         TEXT_COLOR,
     },
-    i18n::Localization,
     render::{
         AaMode, CloudMode, FluidMode, LightingMode, PresentMode, RenderMode, ShadowMapMode,
         ShadowMode, UpscaleMode,
@@ -23,6 +22,7 @@ use conrod_core::{
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use core::convert::TryFrom;
+use i18n::Localization;
 
 use itertools::Itertools;
 use std::iter::once;

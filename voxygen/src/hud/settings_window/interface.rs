@@ -4,7 +4,6 @@ use crate::{
     hud::{
         img_ids::Imgs, BarNumbers, BuffPosition, CrosshairType, ShortcutNumbers, Show, TEXT_COLOR,
     },
-    i18n::Localization,
     session::settings_change::{Interface as InterfaceChange, Interface::*},
     ui::{fonts::Fonts, ImageSlider, ScaleMode, ToggleButton},
     GlobalState,
@@ -15,6 +14,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use i18n::Localization;
 
 widget_ids! {
     struct Ids{

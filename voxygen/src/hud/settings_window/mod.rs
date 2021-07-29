@@ -8,7 +8,6 @@ mod video;
 
 use crate::{
     hud::{img_ids::Imgs, Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN},
-    i18n::Localization,
     session::settings_change::SettingsChange,
     ui::fonts::Fonts,
     GlobalState,
@@ -18,6 +17,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use i18n::Localization;
 
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
