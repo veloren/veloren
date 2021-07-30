@@ -1,5 +1,5 @@
 use common::{
-    combat::{AttackOptions, AttackSource, AttackerInfo, TargetInfo},
+    combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
         Body, CharacterState, Combo, Energy, Group, Health, HealthSource, Inventory, Ori,
@@ -192,7 +192,6 @@ impl<'a> System<'a> for Sys {
                             .zip(shockwave.owner)
                             .map(|(entity, uid)| AttackerInfo {
                                 entity,
-                                player: read_data.players.get(entity),
                                 uid,
                                 energy: read_data.energies.get(entity),
                                 combo: read_data.combos.get(entity),
@@ -201,7 +200,6 @@ impl<'a> System<'a> for Sys {
 
                     let target_info = TargetInfo {
                         entity: target,
-                        player: read_data.players.get(target),
                         uid: *uid_b,
                         inventory: read_data.inventories.get(target),
                         stats: read_data.stats.get(target),
@@ -211,11 +209,14 @@ impl<'a> System<'a> for Sys {
                         char_state: read_data.character_states.get(target),
                     };
 
-                    // Trying roll during earthquake isn't the best idea
-                    let target_dodging = false;
-
+                    let avoid_harm = combat::avoid_player_harm(
+                        shockwave_owner.and_then(|owner| read_data.players.get(owner)),
+                        read_data.players.get(target),
+                    );
                     let attack_options = AttackOptions {
-                        target_dodging,
+                        // Trying roll during earthquake isn't the best idea
+                        target_dodging: false,
+                        avoid_harm,
                         target_group,
                     };
 

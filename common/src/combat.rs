@@ -53,7 +53,6 @@ pub enum AttackSource {
 #[derive(Copy, Clone)]
 pub struct AttackerInfo<'a> {
     pub entity: EcsEntity,
-    pub player: Option<&'a Player>,
     pub uid: Uid,
     pub energy: Option<&'a Energy>,
     pub combo: Option<&'a Combo>,
@@ -63,7 +62,6 @@ pub struct AttackerInfo<'a> {
 #[cfg(not(target_arch = "wasm32"))]
 pub struct TargetInfo<'a> {
     pub entity: EcsEntity,
-    pub player: Option<&'a Player>,
     pub uid: Uid,
     pub inventory: Option<&'a Inventory>,
     pub stats: Option<&'a Stats>,
@@ -76,6 +74,7 @@ pub struct TargetInfo<'a> {
 #[derive(Clone, Copy)]
 pub struct AttackOptions {
     pub target_dodging: bool,
+    pub avoid_harm: bool,
     pub target_group: GroupTarget,
 }
 
@@ -182,11 +181,9 @@ impl Attack {
     ) -> bool {
         let AttackOptions {
             target_dodging,
+            avoid_harm,
             target_group,
         } = options;
-
-        let avoid_harm =
-            attacker.map_or(false, |attacker| avoid_harm(attacker.player, target.player));
 
         // target == OutOfGroup is basic heuristic that this
         // "attack" has negative effects.
@@ -464,7 +461,7 @@ impl Attack {
 // This code works only with players.
 // You still can kill someone's pet and
 // you still can be killed by someone's pet
-pub fn avoid_harm(attacker: Option<&Player>, target: Option<&Player>) -> bool {
+pub fn avoid_player_harm(attacker: Option<&Player>, target: Option<&Player>) -> bool {
     if let (Some(attacker), Some(target)) = (attacker, target) {
         return attacker.disallow_harm(target);
     }

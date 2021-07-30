@@ -1,5 +1,5 @@
 use common::{
-    combat::{AttackOptions, AttackSource, AttackerInfo, TargetInfo},
+    combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
         projectile, Body, CharacterState, Combo, Energy, Group, Health, HealthSource, Inventory,
@@ -115,6 +115,7 @@ impl<'a> System<'a> for Sys {
                 }
 
                 let projectile = &mut *projectile;
+                // FIXME: this code is highway to hell, resolve this
                 for effect in projectile.hit_entity.drain(..) {
                     match effect {
                         projectile::Effect::Attack(attack) => {
@@ -135,7 +136,6 @@ impl<'a> System<'a> for Sys {
                                         owner_entity.zip(projectile.owner).map(|(entity, uid)| {
                                             AttackerInfo {
                                                 entity,
-                                                player: read_data.players.get(entity),
                                                 uid,
                                                 energy: read_data.energies.get(entity),
                                                 combo: read_data.combos.get(entity),
@@ -145,7 +145,6 @@ impl<'a> System<'a> for Sys {
 
                                     let target_info = TargetInfo {
                                         entity: target,
-                                        player: read_data.players.get(target),
                                         uid: other,
                                         inventory: read_data.inventories.get(target),
                                         stats: read_data.stats.get(target),
@@ -154,10 +153,6 @@ impl<'a> System<'a> for Sys {
                                         ori: orientations.get(target),
                                         char_state: read_data.character_states.get(target),
                                     };
-
-                                    // They say witchers can dodge arrows,
-                                    // but we don't have witchers
-                                    let target_dodging = false;
 
                                     if let Some(&body) = read_data.bodies.get(entity) {
                                         outcomes.push(Outcome::ProjectileHit {
@@ -172,8 +167,16 @@ impl<'a> System<'a> for Sys {
                                         });
                                     }
 
+                                    let avoid_harm = combat::avoid_player_harm(
+                                        owner_entity.and_then(|owner| read_data.players.get(owner)),
+                                        read_data.players.get(target),
+                                    );
+
                                     let attack_options = AttackOptions {
-                                        target_dodging,
+                                        // They say witchers can dodge arrows,
+                                        // but we don't have witchers
+                                        target_dodging: false,
+                                        avoid_harm,
                                         target_group,
                                     };
                                     attack.apply_attack(

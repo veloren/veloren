@@ -1,5 +1,5 @@
 use common::{
-    combat::{AttackOptions, AttackSource, AttackerInfo, TargetInfo},
+    combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
         Body, CharacterState, Combo, Energy, Group, Health, Inventory, Melee, Ori, Player, Pos,
@@ -145,7 +145,6 @@ impl<'a> System<'a> for Sys {
 
                     let attacker_info = Some(AttackerInfo {
                         entity: attacker,
-                        player: read_data.players.get(attacker),
                         uid: *uid,
                         energy: read_data.energies.get(attacker),
                         combo: read_data.combos.get(attacker),
@@ -154,7 +153,6 @@ impl<'a> System<'a> for Sys {
 
                     let target_info = TargetInfo {
                         entity: target,
-                        player: read_data.players.get(target),
                         uid: *uid_b,
                         inventory: read_data.inventories.get(target),
                         stats: read_data.stats.get(target),
@@ -164,8 +162,14 @@ impl<'a> System<'a> for Sys {
                         char_state: read_data.char_states.get(target),
                     };
 
+                    let avoid_harm = combat::avoid_player_harm(
+                        read_data.players.get(attacker),
+                        read_data.players.get(target),
+                    );
+
                     let attack_options = AttackOptions {
                         target_dodging,
+                        avoid_harm,
                         target_group,
                     };
 

@@ -23,6 +23,12 @@ pub struct Player {
     uuid: Uuid,
 }
 
+impl BattleMode {
+    pub fn allow_harm(self, other: Self) -> bool {
+        matches!((self, other), (BattleMode::PvP, BattleMode::PvP))
+    }
+}
+
 impl Player {
     pub fn new(alias: String, battle_mode: BattleMode, uuid: Uuid) -> Self {
         Self {
@@ -38,10 +44,7 @@ impl Player {
     /// tea.
     pub fn allow_harm(&self, other: &Player) -> bool {
         // TODO: discuss if we want to keep self-harm
-        matches!(
-            (self.battle_mode, other.battle_mode),
-            (BattleMode::PvP, BattleMode::PvP)
-        )
+        self.battle_mode.allow_harm(other.battle_mode)
     }
 
     /// Inverse of `allow_harm`. Read its doc to learn more.

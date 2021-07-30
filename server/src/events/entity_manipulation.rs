@@ -871,7 +871,6 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                                 .zip(owner)
                                 .map(|(entity, uid)| combat::AttackerInfo {
                                     entity,
-                                    player: players.get(entity),
                                     uid,
                                     energy: energies.get(entity),
                                     combo: combos.get(entity),
@@ -880,7 +879,6 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
 
                         let target_info = combat::TargetInfo {
                             entity: entity_b,
-                            player: players.get(entity_b),
                             uid: *uid_b,
                             inventory: inventories.get(entity_b),
                             stats: stats_b_maybe,
@@ -890,10 +888,15 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             char_state: char_state_b_maybe,
                         };
 
+                        let avoid_harm = combat::avoid_player_harm(
+                            owner_entity.and_then(|owner| players.get(owner)),
+                            players.get(entity_b),
+                        );
                         let attack_options = combat::AttackOptions {
                             // cool guyz maybe don't look at explosions
                             // but they still got hurt, it's not Hollywood
                             target_dodging: false,
+                            avoid_harm,
                             target_group,
                         };
 
@@ -926,6 +929,13 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                         1.0 - distance_squared / explosion.radius.powi(2)
                     };
 
+                    let avoid_harm = || {
+                        owner_entity.map_or(false, |attacker| {
+                            let attacker = players.get(attacker);
+                            let target = players.get(entity_b);
+                            combat::avoid_player_harm(attacker, target)
+                        })
+                    };
                     if strength > 0.0 {
                         let is_alive = ecs
                             .read_storage::<comp::Health>()
@@ -933,13 +943,8 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             .map_or(true, |h| !h.is_dead);
 
                         if is_alive {
-                            let avoid_harm = owner_entity.map_or(false, |attacker| {
-                                let attacker = players.get(attacker);
-                                let target = players.get(entity_b);
-                                combat::avoid_harm(attacker, target)
-                            });
                             effect.modify_strength(strength);
-                            if !(effect.is_harm() && avoid_harm) {
+                            if !(effect.is_harm() && avoid_harm()) {
                                 server.state().apply_effect(entity_b, effect.clone(), owner);
                             }
                         }

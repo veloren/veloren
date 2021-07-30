@@ -180,7 +180,7 @@ fn activate_aura(
                 owner.map_or(false, |attacker| {
                     let attacker = read_data.players.get(attacker);
                     let target = read_data.players.get(target);
-                    combat::avoid_harm(attacker, target)
+                    combat::avoid_player_harm(attacker, target)
                 })
             };
 

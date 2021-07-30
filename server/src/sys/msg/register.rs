@@ -37,8 +37,8 @@ pub struct ReadData<'a> {
     uids: ReadStorage<'a, Uid>,
     clients: ReadStorage<'a, Client>,
     server_event_bus: Read<'a, EventBus<ServerEvent>>,
-    _health_comp: ReadStorage<'a, Health>, // used by plugin feature
-    _plugin_mgr: ReadPlugin<'a>,           // used by plugin feature
+    _healths: ReadStorage<'a, Health>, // used by plugin feature
+    _plugin_mgr: ReadPlugin<'a>,       // used by plugin feature
     _uid_allocator: Read<'a, UidAllocator>, // used by plugin feature
 }
 
@@ -117,7 +117,7 @@ impl<'a> System<'a> for Sys {
                 #[cfg(feature = "plugins")]
                 let ecs_world = EcsWorld {
                     entities: &read_data.entities,
-                    health: (&read_data._health_comp).into(),
+                    health: (&read_data._healths).into(),
                     uid: (&read_data.uids).into(),
                     player: (&players).into(),
                     uid_allocator: &read_data._uid_allocator,
