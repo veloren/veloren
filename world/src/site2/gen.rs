@@ -24,6 +24,12 @@ pub enum Primitive {
         aabb: Aabb<i32>,
         inset: i32,
     },
+    Gable {
+        aabb: Aabb<i32>,
+        inset: i32,
+        // X axis parallel or Y axis parallel
+        dir: bool,
+    },
     Cylinder(Aabb<i32>),
     Cone(Aabb<i32>),
     Sphere(Aabb<i32>),
@@ -83,6 +89,27 @@ impl Fill {
                         < 1.0
                             - ((pos.z - aabb.min.z) as f32 + 0.5) / (aabb.max.z - aabb.min.z) as f32
             },
+            Primitive::Gable { aabb, inset, dir } => {
+                let inset = (*inset).max(aabb.size().reduce_min());
+                let inner = if *dir {
+                    Aabr {
+                        min: Vec2::new(aabb.min.x - 1 + inset, aabb.min.y),
+                        max: Vec2::new(aabb.max.x - inset, aabb.max.y),
+                    }
+                } else {
+                    Aabr {
+                        min: Vec2::new(aabb.min.x, aabb.min.y - 1 + inset),
+                        max: Vec2::new(aabb.max.x, aabb.max.y - inset),
+                    }
+                };
+                aabb_contains(*aabb, pos) &&
+                    (inner.projected_point(pos.xy()) - pos.xy())
+                    .map(|e| e.abs())
+                    .reduce_max() as f32
+                    / (inset as f32)
+                    < 1.0
+                            - ((pos.z - aabb.min.z) as f32 + 0.5) / (aabb.max.z - aabb.min.z) as f32
+            }
             Primitive::Cylinder(aabb) => {
                 (aabb.min.z..aabb.max.z).contains(&pos.z)
                     && (pos
@@ -200,6 +227,7 @@ impl Fill {
             Primitive::Empty => return None,
             Primitive::Aabb(aabb) => *aabb,
             Primitive::Pyramid { aabb, .. } => *aabb,
+            Primitive::Gable { aabb, .. } => *aabb,
             Primitive::Cylinder(aabb) => *aabb,
             Primitive::Cone(aabb) => *aabb,
             Primitive::Sphere(aabb) => *aabb,
