@@ -37,6 +37,9 @@ pub struct ReadData<'a> {
     uids: ReadStorage<'a, Uid>,
     clients: ReadStorage<'a, Client>,
     server_event_bus: Read<'a, EventBus<ServerEvent>>,
+    player_metrics: ReadExpect<'a, PlayerMetrics>,
+    settings: ReadExpect<'a, Settings>,
+    editable_settings: ReadExpect<'a, EditableSettings>,
     _healths: ReadStorage<'a, Health>, // used by plugin feature
     _plugin_mgr: ReadPlugin<'a>,       // used by plugin feature
     _uid_allocator: Read<'a, UidAllocator>, // used by plugin feature
@@ -49,9 +52,6 @@ impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         ReadData<'a>,
-        ReadExpect<'a, PlayerMetrics>,
-        ReadExpect<'a, Settings>,
-        ReadExpect<'a, EditableSettings>,
         WriteStorage<'a, Player>,
         WriteStorage<'a, Admin>,
         WriteStorage<'a, PendingLogin>,
@@ -66,9 +66,6 @@ impl<'a> System<'a> for Sys {
         _job: &mut Job<Self>,
         (
             read_data,
-            player_metrics,
-            settings,
-            editable_settings,
             mut players,
             mut admins,
             mut pending_logins,
@@ -129,9 +126,9 @@ impl<'a> System<'a> for Sys {
                     &ecs_world,
                     #[cfg(feature = "plugins")]
                     &read_data._plugin_mgr,
-                    &*editable_settings.admins,
-                    &*editable_settings.whitelist,
-                    &*editable_settings.banlist,
+                    &*read_data.editable_settings.admins,
+                    &*read_data.editable_settings.whitelist,
+                    &*read_data.editable_settings.banlist,
                 ) {
                     None => return Ok(()),
                     Some(r) => {
@@ -176,8 +173,8 @@ impl<'a> System<'a> for Sys {
                     return Ok(());
                 }
 
-                let player = Player::new(username, settings.battle_mode, uuid);
-                let admin = editable_settings.admins.get(&uuid);
+                let player = Player::new(username, read_data.settings.battle_mode, uuid);
+                let admin = read_data.editable_settings.admins.get(&uuid);
 
                 if !player.is_valid() {
                     // Invalid player
@@ -188,7 +185,7 @@ impl<'a> System<'a> for Sys {
                 if let Ok(StorageEntry::Vacant(v)) = players.entry(entity) {
                     // Add Player component to this client, if the entity exists.
                     v.insert(player);
-                    player_metrics.players_connected.inc();
+                    read_data.player_metrics.players_connected.inc();
 
                     // Give the Admin component to the player if their name exists in
                     // admin list
@@ -225,21 +222,26 @@ impl<'a> System<'a> for Sys {
         // Handle new players.
         // Tell all clients to add them to the player list.
         for entity in new_players {
-            if let (Some(uid), Some(player)) = (read_data.uids.get(entity), players.get(entity)) {
-                let mut lazy_msg = None;
-                for (_, client) in (&players, &read_data.clients).join() {
-                    if lazy_msg.is_none() {
-                        lazy_msg = Some(client.prepare(ServerGeneral::PlayerListUpdate(
-                            PlayerListUpdate::Add(*uid, PlayerInfo {
-                                player_alias: player.alias.clone(),
-                                is_online: true,
-                                is_moderator: admins.get(entity).is_some(),
-                                character: None, // new players will be on character select.
-                            }),
-                        )));
-                    }
-                    lazy_msg.as_ref().map(|msg| client.send_prepared(msg));
+            let player_info = read_data.uids.get(entity).zip(players.get(entity));
+            let (uid, player) = if let Some((uid, player)) = player_info {
+                (uid, player)
+            } else {
+                continue;
+            };
+
+            let mut lazy_msg = None;
+            for (_, client) in (&players, &read_data.clients).join() {
+                if lazy_msg.is_none() {
+                    lazy_msg = Some(client.prepare(ServerGeneral::PlayerListUpdate(
+                        PlayerListUpdate::Add(*uid, PlayerInfo {
+                            player_alias: player.alias.clone(),
+                            is_online: true,
+                            is_moderator: admins.get(entity).is_some(),
+                            character: None, // new players will be on character select.
+                        }),
+                    )));
                 }
+                lazy_msg.as_ref().map(|msg| client.send_prepared(msg));
             }
         }
     }
