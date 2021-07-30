@@ -28,6 +28,7 @@ hot-reloading = ["common/hot-reloading"]
 singleplayer = ["server"]
 simd = ["vek/platform_intrinsics"]
 tracy = ["profiling", "profiling/profile-with-tracy", "common-frontend/tracy", "client/tracy"]
+tracy-memory = ["tracy"] # enables heap profiling with tracy
 plugins = ["client/plugins"]
 egui-ui = ["voxygen-egui", "egui", "egui_wgpu_backend", "egui_winit_platform"]
 
