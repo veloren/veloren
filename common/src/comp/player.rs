@@ -42,9 +42,9 @@ impl Player {
     ///
     /// Simple as tea, if they don't want the tea, don't make them drink the
     /// tea.
+    /// You can make tea for yourself though.
     pub fn allow_harm(&self, other: &Player) -> bool {
-        // TODO: discuss if we want to keep self-harm
-        self.battle_mode.allow_harm(other.battle_mode)
+        self.battle_mode.allow_harm(other.battle_mode) || self.uuid == other.uuid
     }
 
     /// Inverse of `allow_harm`. Read its doc to learn more.
