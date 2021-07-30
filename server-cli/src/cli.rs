@@ -8,15 +8,13 @@ use tracing::error;
 pub enum Admin {
     /// Adds an admin
     Add {
-        #[structopt(short, long)]
         /// Name of the admin to whom to assign a role
         username: String,
         /// role to assign to the admin
-        #[structopt(short, long, possible_values = &comp::AdminRole::variants(), case_insensitive = true)]
+        #[structopt(possible_values = &comp::AdminRole::variants(), case_insensitive = true)]
         role: comp::AdminRole,
     },
     Remove {
-        #[structopt(short, long)]
         /// Name of the admin from whom to remove any existing roles
         username: String,
     },
