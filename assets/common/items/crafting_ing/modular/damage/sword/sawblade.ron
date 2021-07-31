@@ -18,8 +18,8 @@ ItemDef(
     )),
     quality: Common,
     tags: [
-        ModularComponent((toolkind: Sword, modkind: Held, hands: One)),
-        ModularComponent((toolkind: Sword, modkind: Held, hands: Two)),
+        ModularComponent((toolkind: Sword, modkind: Damage, hands: One)),
+        ModularComponent((toolkind: Sword, modkind: Damage, hands: Two)),
     ],
 )
 

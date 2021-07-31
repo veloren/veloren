@@ -1,8 +1,8 @@
 ItemDef(
-    name: "Greatsword blade",
-    description: "A sword blade made of metal.",
+    name: "Greathammer Head",
+    description: "A hammer head made of metal.",
     kind: ModularComponent((
-        toolkind: Sword,
+        toolkind: Hammer,
         modkind: Damage,
         stats: (
             equip_time_secs: 0.25,
@@ -18,7 +18,6 @@ ItemDef(
     )),
     quality: Common,
     tags: [
-        ModularComponent((toolkind: Sword, modkind: Damage, hands: Two)),
+        ModularComponent((toolkind: Hammer, modkind: Damage, hands: Two)),
     ],
 )
-

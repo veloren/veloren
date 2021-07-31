@@ -1,8 +1,8 @@
 ItemDef(
-    name: "Sabre blade",
-    description: "A sword blade made of metal.",
+    name: "Great mace head",
+    description: "A hamemr head made of metal.",
     kind: ModularComponent((
-        toolkind: Sword,
+        toolkind: Hammer,
         modkind: Damage,
         stats: (
             equip_time_secs: 0.25,
@@ -14,12 +14,11 @@ ItemDef(
             energy_efficiency: 0.8,
             buff_strength: 0.8,
         ),
-        hand_restriction: None,
+        hand_restriction: Some(Two),
     )),
     quality: Common,
     tags: [
-        ModularComponent((toolkind: Sword, modkind: Damage, hands: One)),
-        ModularComponent((toolkind: Sword, modkind: Damage, hands: Two)),
+        ModularComponent((toolkind: Hammer, modkind: Damage, hands: Two)),
     ],
 )
 

@@ -1,14 +1,14 @@
 ItemDef(
-    name: "Sabre blade",
-    description: "A sword blade made of metal.",
+    name: "Warhammer head",
+    description: "A hammer head made of metal.",
     kind: ModularComponent((
-        toolkind: Sword,
+        toolkind: Hammer,
         modkind: Damage,
         stats: (
             equip_time_secs: 0.25,
-            power: 1.5,
+            power: 0.9,
             effect_power: 0.8,
-            speed: 0.9,
+            speed: 1.5,
             crit_chance: 0.15,
             range: 1.0,
             energy_efficiency: 0.8,
@@ -18,8 +18,8 @@ ItemDef(
     )),
     quality: Common,
     tags: [
-        ModularComponent((toolkind: Sword, modkind: Damage, hands: One)),
-        ModularComponent((toolkind: Sword, modkind: Damage, hands: Two)),
+        ModularComponent((toolkind: Hammer, modkind: Damage, hands: One)),
+        ModularComponent((toolkind: Hammer, modkind: Damage, hands: Two)),
     ],
 )
 

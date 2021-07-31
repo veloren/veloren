@@ -1,0 +1,24 @@
+ItemDef(
+    name: "Long hammer haft",
+    description: "A hammer haft.",
+    kind: ModularComponent((
+        toolkind: Hammer,
+        modkind: Held,
+        stats: (
+            equip_time_secs: 1.0,
+            power: 1.5,
+            effect_power: 1.3,
+            speed: 0.8,
+            crit_chance: 0.8,
+            range: 1.0,
+            energy_efficiency: 0.9,
+            buff_strength: 1.1,
+        ),
+        hand_restriction: Some(Two),
+    )),
+    quality: Common,
+    tags: [
+        ModularComponent((toolkind: Hammer, modkind: Held, hands: Two)),
+    ],
+)
+
