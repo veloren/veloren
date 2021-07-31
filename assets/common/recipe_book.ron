@@ -484,8 +484,8 @@
     "Healing Sceptre": (
         output: ("common.items.weapons.sceptre.starter_sceptre", 1),
         inputs: [
-            (Item("common.items.crafting_ing.twigs"), 10),
-            (Item("common.items.crafting_ing.stones"), 0),
+            (Item("common.items.crafting_ing.twigs"), 10, false),
+            (Item("common.items.crafting_ing.stones"), 0, false),
         ],
         craft_sprite: None,
     ),
@@ -1898,24 +1898,250 @@
         ],
         craft_sprite: Some(CraftingBench),
     ),
-        craft_sprite: Some(CraftingBench),
-    ),
-    "metal_blade": (
-        output: ("common.items.crafting_ing.modular.damage.sword.metal_blade", 1),
+/// MODULAR WEAPONS/SWORDS/DAMAGE COMPONENTS
+    "longsword blade": (
+        output: ("common.items.crafting_ing.modular.damage.sword.longsword", 1),
         inputs: [
-            (Item("common.items.mineral.ingot.tin"), 1, false),
             (TagSameItem(MetalIngot), 5, true),
-            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
     ),
-    "sword_hilt": (
-        output: ("common.items.crafting_ing.modular.held.sword.hilt", 1),
+    "sawblade": (
+        output: ("common.items.crafting_ing.modular.damage.sword.sawblade", 1),
         inputs: [
-            (Item("common.items.crafting_ing.twigs"), 1, false),
+            (TagSameItem(MetalIngot), 5, true),
         ],
-        craft_sprite: None,
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "katana blade": (
+        output: ("common.items.crafting_ing.modular.damage.sword.katana", 1),
+        inputs: [
+            (TagSameItem(MetalIngot), 5, true),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "zweihander blade": (
+        output: ("common.items.crafting_ing.modular.damage.sword.zweihander", 1),
+        inputs: [
+            (TagSameItem(MetalIngot), 5, true),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "sabre blade": (
+        output: ("common.items.crafting_ing.modular.damage.sword.sabre", 1),
+        inputs: [
+            (TagSameItem(MetalIngot), 5, true),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "greatsword blade": (
+        output: ("common.items.crafting_ing.modular.damage.sword.greatsword", 1),
+        inputs: [
+            (TagSameItem(MetalIngot), 5, true),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "ornate sword blade": (
+        output: ("common.items.crafting_ing.modular.damage.sword.ornate", 1),
+        inputs: [
+            (TagSameItem(MetalIngot), 5, true),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+/// MODULAR WEAPONS/SWORDS/HELD COMPONENTS
+    "one-handed hilt": (
+        output: ("common.items.crafting_ing.modular.held.sword.one-handed", 1),
+        inputs: [
+            (Item("common.items.log.wood"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "two-handed hilt": (
+        output: ("common.items.crafting_ing.modular.held.sword.two-handed", 1),
+        inputs: [
+            (Item("common.items.log.wood"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "hand-and-a-half hilt": (
+        output: ("common.items.crafting_ing.modular.held.sword.hand-and-half", 1),
+        inputs: [
+            (Item("common.items.log.wood"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+/// MODULAR WEAPONS/HAMMERS/DAMAGE COMPONENTS
+    "hammer head": (
+        output: ("common.items.crafting_ing.modular.damage.hammer.hammer", 1),
+        inputs: [
+            (TagSameItem(MetalIngot), 5, true),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "spiked mace head": (
+        output: ("common.items.crafting_ing.modular.damage.hammer.spikedmace", 1),
+        inputs: [
+            (TagSameItem(MetalIngot), 5, true),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "warhammer head": (
+        output: ("common.items.crafting_ing.modular.damage.hammer.warhammer", 1),
+        inputs: [
+            (TagSameItem(MetalIngot), 5, true),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "maul head": (
+        output: ("common.items.crafting_ing.modular.damage.hammer.maul", 1),
+        inputs: [
+            (TagSameItem(MetalIngot), 5, true),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "great mace head": (
+        output: ("common.items.crafting_ing.modular.damage.hammer.greatmace", 1),
+        inputs: [
+            (TagSameItem(MetalIngot), 5, true),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "greathammer head": (
+        output: ("common.items.crafting_ing.modular.damage.hammer.greathammer", 1),
+        inputs: [
+            (TagSameItem(MetalIngot), 5, true),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "ornate hammer head": (
+        output: ("common.items.crafting_ing.modular.damage.hammer.ornate", 1),
+        inputs: [
+            (TagSameItem(MetalIngot), 5, true),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+/// MODULAR WEAPONS/HAMMERS/HELD COMPONENTS
+    "short hammer haft": (
+        output: ("common.items.crafting_ing.modular.held.hammer.short", 1),
+        inputs: [
+            (Item("common.items.log.wood"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "long hammer haft": (
+        output: ("common.items.crafting_ing.modular.held.hammer.long", 1),
+        inputs: [
+            (Item("common.items.log.wood"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "medium hammer haft": (
+        output: ("common.items.crafting_ing.modular.held.hammer.medium", 1),
+        inputs: [
+            (Item("common.items.log.wood"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+/// MODULAR WEAPONS/AXES/DAMAGE COMPONENTS
+    "axe head": (
+        output: ("common.items.crafting_ing.modular.damage.axe.axe", 1),
+        inputs: [
+            (TagSameItem(MetalIngot), 5, true),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "jagged axe head": (
+        output: ("common.items.crafting_ing.modular.damage.axe.jagged", 1),
+        inputs: [
+            (TagSameItem(MetalIngot), 5, true),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "battleaxe head": (
+        output: ("common.items.crafting_ing.modular.damage.axe.battleaxe", 1),
+        inputs: [
+            (TagSameItem(MetalIngot), 5, true),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "poleaxe head": (
+        output: ("common.items.crafting_ing.modular.damage.axe.poleaxe", 1),
+        inputs: [
+            (TagSameItem(MetalIngot), 5, true),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "labrys axe head": (
+        output: ("common.items.crafting_ing.modular.damage.axe.labrys", 1),
+        inputs: [
+            (TagSameItem(MetalIngot), 5, true),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "greataxe head": (
+        output: ("common.items.crafting_ing.modular.damage.axe.greataxe", 1),
+        inputs: [
+            (TagSameItem(MetalIngot), 5, true),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "ornate axe head": (
+        output: ("common.items.crafting_ing.modular.damage.axe.ornate", 1),
+        inputs: [
+            (TagSameItem(MetalIngot), 5, true),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+/// MODULAR WEAPONS/AXES/HELD COMPONENTS
+    "short axe haft": (
+        output: ("common.items.crafting_ing.modular.held.axe.short", 1),
+        inputs: [
+            (Item("common.items.log.wood"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "long axe haft": (
+        output: ("common.items.crafting_ing.modular.held.axe.long", 1),
+        inputs: [
+            (Item("common.items.log.wood"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "medium axe haft": (
+        output: ("common.items.crafting_ing.modular.held.axe.medium", 1),
+        inputs: [
+            (Item("common.items.log.wood"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
 }

@@ -222,6 +222,8 @@ pub enum RawRecipeInput {
 #[derive(Clone, Deserialize)]
 pub(crate) struct RawRecipe {
     pub(crate) output: (String, u32),
+    /// Input required for recipe, amount of input needed, whether input should
+    /// be tracked as a modular component
     pub(crate) inputs: Vec<(RawRecipeInput, u32, bool)>,
     pub(crate) craft_sprite: Option<SpriteKind>,
 }
