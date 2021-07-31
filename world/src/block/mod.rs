@@ -245,7 +245,8 @@ pub fn block_from_structure(
             sample.surface_color.map(|e| (e * 255.0) as u8),
         )),
         StructureBlock::Normal(color) => Some(Block::new(BlockKind::Misc, color)),
-        StructureBlock::Block(kind, color) => Some(Block::new(kind, color)),
+        StructureBlock::Filled(kind, color) => Some(Block::new(kind, color)),
+        StructureBlock::Sprite(kind) => Some(with_sprite(kind)),
         StructureBlock::Water => Some(Block::water(SpriteKind::Empty)),
         // TODO: If/when liquid supports other colors again, revisit this.
         StructureBlock::GreenSludge => Some(Block::water(SpriteKind::Empty)),

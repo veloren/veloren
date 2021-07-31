@@ -197,7 +197,7 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                         TreeModel::Procedural(t, leaf_block) => Some(
                             match t.is_branch_or_leaves_at(model_pos.map(|e| e as f32 + 0.5)) {
                                 (_, _, true, _) => {
-                                    StructureBlock::Block(BlockKind::Wood, Rgb::new(110, 68, 22))
+                                    StructureBlock::Filled(BlockKind::Wood, Rgb::new(110, 68, 22))
                                 },
                                 (_, _, _, true) => StructureBlock::None,
                                 (true, _, _, _) => StructureBlock::Log,
