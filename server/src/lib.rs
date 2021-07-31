@@ -173,7 +173,7 @@ impl Server {
         data_dir: &std::path::Path,
         runtime: Arc<Runtime>,
     ) -> Result<Self, Error> {
-        info!("Server is data dir is: {}", data_dir.display());
+        info!("Server data dir is: {}", data_dir.display());
         if settings.auth_server_address.is_none() {
             info!("Authentication is disabled");
         }
