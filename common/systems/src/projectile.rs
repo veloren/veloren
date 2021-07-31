@@ -281,7 +281,7 @@ fn dispatch_hit(
                 });
             }
 
-            let avoid_harm = combat::avoid_player_harm(
+            let may_harm = combat::may_harm(
                 owner.and_then(|owner| read_data.players.get(owner)),
                 read_data.players.get(target),
             );
@@ -290,7 +290,7 @@ fn dispatch_hit(
                 // They say witchers can dodge arrows,
                 // but we don't have witchers
                 target_dodging: false,
-                avoid_harm,
+                may_harm,
                 target_group: projectile_target_info.target_group,
             };
 

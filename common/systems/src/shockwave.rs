@@ -209,14 +209,14 @@ impl<'a> System<'a> for Sys {
                         char_state: read_data.character_states.get(target),
                     };
 
-                    let avoid_harm = combat::avoid_player_harm(
+                    let may_harm = combat::may_harm(
                         shockwave_owner.and_then(|owner| read_data.players.get(owner)),
                         read_data.players.get(target),
                     );
                     let attack_options = AttackOptions {
                         // Trying roll during earthquake isn't the best idea
                         target_dodging: false,
-                        avoid_harm,
+                        may_harm,
                         target_group,
                     };
 

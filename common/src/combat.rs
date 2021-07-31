@@ -74,7 +74,7 @@ pub struct TargetInfo<'a> {
 #[derive(Clone, Copy)]
 pub struct AttackOptions {
     pub target_dodging: bool,
-    pub avoid_harm: bool,
+    pub may_harm: bool,
     pub target_group: GroupTarget,
 }
 
@@ -181,7 +181,7 @@ impl Attack {
     ) -> bool {
         let AttackOptions {
             target_dodging,
-            avoid_harm,
+            may_harm,
             target_group,
         } = options;
 
@@ -192,11 +192,11 @@ impl Attack {
         // it should avoid such "damage" or effect
         let avoid_damage = |attack_damage: &AttackDamage| {
             matches!(attack_damage.target, Some(GroupTarget::OutOfGroup))
-                && (target_dodging || avoid_harm)
+                && (target_dodging || !may_harm)
         };
         let avoid_effect = |attack_effect: &AttackEffect| {
             matches!(attack_effect.target, Some(GroupTarget::OutOfGroup))
-                && (target_dodging || avoid_harm)
+                && (target_dodging || !may_harm)
         };
         let is_crit = thread_rng().gen::<f32>() < self.crit_chance;
         let mut is_applied = false;
@@ -456,16 +456,15 @@ impl Attack {
     }
 }
 
-/// Checks if we should avoid negative effects from one player to another
+/// Checks if we should allow negative effects from one player to another
 // FIXME: handle pets?
 // This code works only with players.
 // You still can kill someone's pet and
 // you still can be killed by someone's pet
-pub fn avoid_player_harm(attacker: Option<&Player>, target: Option<&Player>) -> bool {
-    if let (Some(attacker), Some(target)) = (attacker, target) {
-        return attacker.disallow_harm(target);
-    }
-    false
+pub fn may_harm(attacker: Option<&Player>, target: Option<&Player>) -> bool {
+    attacker
+        .zip(target)
+        .map_or(true, |(attacker, target)| attacker.may_harm(target))
 }
 
 #[cfg(not(target_arch = "wasm32"))]

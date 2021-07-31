@@ -888,7 +888,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             char_state: char_state_b_maybe,
                         };
 
-                        let avoid_harm = combat::avoid_player_harm(
+                        let may_harm = combat::may_harm(
                             owner_entity.and_then(|owner| players.get(owner)),
                             players.get(entity_b),
                         );
@@ -896,7 +896,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             // cool guyz maybe don't look at explosions
                             // but they still got hurt, it's not Hollywood
                             target_dodging: false,
-                            avoid_harm,
+                            may_harm,
                             target_group,
                         };
 
@@ -929,11 +929,22 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                         1.0 - distance_squared / explosion.radius.powi(2)
                     };
 
-                    let avoid_harm = || {
+                    // Player check only accounts for PvP/PvE flag.
+                    //
+                    // But bombs are intented to do
+                    // friendly fire.
+                    //
+                    // What exactly friendly fire is subject to discussion.
+                    // As we probably want to minimize possibility of being dick
+                    // even to your group members, the only exception is when
+                    // you want to harm yourself.
+                    //
+                    // This can be changed later.
+                    let may_harm = || {
                         owner_entity.map_or(false, |attacker| {
-                            let attacker = players.get(attacker);
-                            let target = players.get(entity_b);
-                            combat::avoid_player_harm(attacker, target)
+                            let attacker_player = players.get(attacker);
+                            let target_player = players.get(entity_b);
+                            combat::may_harm(attacker_player, target_player) || attacker == entity_b
                         })
                     };
                     if strength > 0.0 {
@@ -944,7 +955,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
 
                         if is_alive {
                             effect.modify_strength(strength);
-                            if !(effect.is_harm() && avoid_harm()) {
+                            if !effect.is_harm() || may_harm() {
                                 server.state().apply_effect(entity_b, effect.clone(), owner);
                             }
                         }

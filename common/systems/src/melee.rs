@@ -162,14 +162,14 @@ impl<'a> System<'a> for Sys {
                         char_state: read_data.char_states.get(target),
                     };
 
-                    let avoid_harm = combat::avoid_player_harm(
+                    let may_harm = combat::may_harm(
                         read_data.players.get(attacker),
                         read_data.players.get(target),
                     );
 
                     let attack_options = AttackOptions {
                         target_dodging,
-                        avoid_harm,
+                        may_harm,
                         target_group,
                     };
 

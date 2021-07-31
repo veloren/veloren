@@ -170,21 +170,29 @@ fn activate_aura(
                 // Add other specific buff conditions here
                 _ => true,
             };
-            let avoid_harm = || {
+
+            // TODO: this check will disable friendly fire with PvE switch.
+            //
+            // Which means that you can't apply debuffs on you and your group
+            // even if it's intented mechanics.
+            //
+            // Not that we have this for now, but think about this
+            // when we will add this.
+            let may_harm = || {
                 let owner = match source {
                     BuffSource::Character { by } => {
                         read_data.uid_allocator.retrieve_entity_internal(by.into())
                     },
                     _ => None,
                 };
-                owner.map_or(false, |attacker| {
+                owner.map_or(true, |attacker| {
                     let attacker = read_data.players.get(attacker);
                     let target = read_data.players.get(target);
-                    combat::avoid_player_harm(attacker, target)
+                    combat::may_harm(attacker, target)
                 })
             };
 
-            conditions_held && (kind.is_buff() || !avoid_harm())
+            conditions_held && (kind.is_buff() || may_harm())
         },
     };
 

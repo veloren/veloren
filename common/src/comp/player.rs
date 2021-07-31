@@ -24,7 +24,7 @@ pub struct Player {
 }
 
 impl BattleMode {
-    pub fn allow_harm(self, other: Self) -> bool {
+    pub fn may_harm(self, other: Self) -> bool {
         matches!((self, other), (BattleMode::PvP, BattleMode::PvP))
     }
 }
@@ -43,12 +43,7 @@ impl Player {
     /// Simple as tea, if they don't want the tea, don't make them drink the
     /// tea.
     /// You can make tea for yourself though.
-    pub fn allow_harm(&self, other: &Player) -> bool {
-        self.battle_mode.allow_harm(other.battle_mode) || self.uuid == other.uuid
-    }
-
-    /// Inverse of `allow_harm`. Read its doc to learn more.
-    pub fn disallow_harm(&self, other: &Player) -> bool { !self.allow_harm(other) }
+    pub fn may_harm(&self, other: &Player) -> bool { self.battle_mode.may_harm(other.battle_mode) }
 
     pub fn is_valid(&self) -> bool { Self::alias_validate(&self.alias).is_ok() }
 
