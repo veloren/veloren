@@ -909,8 +909,7 @@ impl Controls {
                             *mainhand == Some(STARTER_SWORDS),
                             Message::Tool((Some(STARTER_SWORDS), Some(STARTER_SWORDS))),
                             imgs.swords,
-                            "common.weapons.greatsword
-                            ",
+                            "common.weapons.shortswords",
                         )
                         .into(),
                         icon_button_tooltip(
