@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Garlic",
+    name: Direct("Garlic"),
     description: "Make sure to brush your teeth after eating.",
     kind: Consumable(
         kind: Food,

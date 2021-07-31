@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Amethyst Staff",
+    name: Direct("Amethyst Staff"),
     description: "Its stone is the closest thing from perfection",
     kind: Tool((
         kind: Sceptre,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Velorite Battlemage Vest",
+    name: Direct("Velorite Battlemage Vest"),
     description: "",
     kind: Armor((
         kind: Chest("VeloriteMage"),

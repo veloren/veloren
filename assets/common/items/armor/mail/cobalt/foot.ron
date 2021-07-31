@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cobalt Footguards",
+    name: Direct("Cobalt Footguards"),
     description: "Ornamental and impenetrable, the metal will never dull.",
     kind: Armor((
         kind: Foot("Cobalt"),

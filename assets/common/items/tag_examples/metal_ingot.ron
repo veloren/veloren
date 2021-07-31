@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Any metal ingot",
+    name: Direct("Any metal ingot"),
     description: "Ingots made from various metals.",
     kind: TagExamples(
         item_ids: [

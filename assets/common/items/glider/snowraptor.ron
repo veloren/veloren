@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Snow Raptor Wings",
+    name: Direct("Snow Raptor Wings"),
     description: "Take flight with the wings of a predator.",
     kind: Glider(
         (

@@ -1,9 +1,9 @@
 ItemDef(
-    name: "Damaged Gladius",
+    name: Direct("Damaged Gladius"),
     description: "This blade has seen better days.",
     kind: Tool((
         kind: Sword,
-        hands: One,
+        hands: Direct(One),
         stats: Direct((
             equip_time_secs: 0.3,
             power: 0.5,

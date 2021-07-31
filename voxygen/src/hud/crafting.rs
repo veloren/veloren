@@ -460,7 +460,7 @@ impl<'a> Widget for Crafting<'a> {
             .iter()
             .filter(|(_, recipe)| match search_filter {
                 SearchFilter::None => {
-                    let output_name = recipe.output.0.name.to_lowercase();
+                    let output_name = recipe.output.0.name().to_lowercase();
                     search_keys
                         .iter()
                         .all(|&substring| output_name.contains(substring))

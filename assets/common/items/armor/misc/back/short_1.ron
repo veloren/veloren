@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Green Blanket",
+    name: Direct("Green Blanket"),
     description: "Keeps your shoulders warm.",
     kind: Armor((
         kind: Back("Short1"),

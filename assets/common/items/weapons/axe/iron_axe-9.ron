@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Wolfen Axe",
+    name: Direct("Wolfen Axe"),
     description: "Strikes from this axe look like wolf bites in flesh.",
     kind: Tool((
         kind: Axe,

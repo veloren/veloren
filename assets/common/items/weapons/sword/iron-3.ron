@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Iron Flamberge",
+    name: Direct("Iron Flamberge"),
     description: "Forged with iron.",
     kind: Tool((
         kind: Sword,

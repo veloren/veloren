@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Empty Vial",
+    name: Direct("Empty Vial"),
     description: "Can be filled with fluids.",
     kind: Ingredient(
         kind: "EmptyVial",

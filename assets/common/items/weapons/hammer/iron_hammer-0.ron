@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Iron Hammer",
+    name: Direct("Iron Hammer"),
     description: "This heavy, solid chunk iron hammer head is simple and brutal in its design.",
     kind: Tool((
         kind: Hammer,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Savage Shoulder Pad",
+    name: Direct("Savage Shoulder Pad"),
     description: "Brings the fury of the barbarians.",
     kind: Armor((
         kind: Shoulder("Savage"),

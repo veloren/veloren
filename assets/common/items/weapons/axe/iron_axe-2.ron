@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cyclone Axe",
+    name: Direct("Cyclone Axe"),
     description: "The iron axe head is split into two distinct curves, giving it a unique appearance.",
     kind: Tool((
         kind: Axe,

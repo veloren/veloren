@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Steel Axe",
+    name: Direct("Steel Axe"),
     description: "A simple metal alloy axe.",
     kind: Tool((
         kind: Axe,

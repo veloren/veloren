@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Fiery Wishing-Rod",
+    name: Direct("Fiery Wishing-Rod"),
     description: "Fulfills all your wishes from medium-rare to well-done",
     kind: Tool((
         kind: Staff,

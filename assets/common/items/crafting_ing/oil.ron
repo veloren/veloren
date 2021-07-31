@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Oil",
+    name: Direct("Oil"),
     description: "A measure of thick, sludgy oil.",
     kind: Ingredient(
         kind: "Oil",

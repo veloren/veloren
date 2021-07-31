@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Iron Labrys",
+    name: Direct("Iron Labrys"),
     description: "Double bitted axe head, decorated iron construction.",
     kind: Tool((
         kind: Axe,

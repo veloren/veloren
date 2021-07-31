@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Divine Gohei",
+    name: Direct("Divine Gohei"),
     description: "The wind wont make it bend",
     kind: Tool((
         kind: Sceptre,

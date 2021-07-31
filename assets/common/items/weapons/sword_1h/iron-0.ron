@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Gladius",
+    name: Direct("Gladius"),
     description: "Forged with iron.",
     kind: Tool((
         kind: Sword,

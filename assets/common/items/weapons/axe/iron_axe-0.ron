@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Iron Greataxe",
+    name: Direct("Iron Greataxe"),
     description: "Heavy iron hammered into rough blades, a simple tool for killing.",
     kind: Tool((
         kind: Axe,

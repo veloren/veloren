@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Orange Monarch",
+    name: Direct("Orange Monarch"),
     description: "The delicate wings flutter faintly.",
     kind: Glider(
         (

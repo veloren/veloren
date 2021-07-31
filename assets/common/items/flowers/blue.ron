@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Blue Flower",
+    name: Direct("Blue Flower"),
     description: "Matches the color of the sky.",
     kind: Ingredient(
         kind: "Flower",

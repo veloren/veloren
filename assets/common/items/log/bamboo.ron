@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bamboo",
+    name: Direct("Bamboo"),
     description: "A giant woody grass.",
     kind: Ingredient(
         kind: "Bamboo",

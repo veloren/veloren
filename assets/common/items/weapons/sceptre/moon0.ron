@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Crescent Saviour",
+    name: Direct("Crescent Saviour"),
     description: "Trusty companion by day and night.",
     kind: Tool((
         kind: Sceptre,

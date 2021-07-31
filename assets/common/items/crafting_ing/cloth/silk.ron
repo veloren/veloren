@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Silk",
+    name: Direct("Silk"),
     description: "A fine and strong fibre produced by spiders.",
     kind: Ingredient(
         kind: "Silk",

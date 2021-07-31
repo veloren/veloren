@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Craftsman Hammer",
+    name: Direct("Craftsman Hammer"),
     description: "Used to craft various items.",
     kind: Tool((
         kind: Hammer,

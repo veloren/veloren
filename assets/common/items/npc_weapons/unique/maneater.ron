@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Maneater",
+    name: Direct("Maneater"),
     description: "testing123",
     kind: Tool((
         kind: Natural,

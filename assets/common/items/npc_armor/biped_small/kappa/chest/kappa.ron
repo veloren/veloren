@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Kappa",
+    name: Direct("Kappa"),
     description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Chest("Kappa"),

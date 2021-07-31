@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Primal Cape",
+    name: Direct("Primal Cape"),
     description: "Smithed from hide tougher than steel.",
     kind: Armor((
         kind: Back("Primal"),

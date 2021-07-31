@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Moonbell",
+    name: Direct("Moonbell"),
     description: "It glistens brilliantly, but only under moonlight.",
     kind: Ingredient(
         kind: "Moonbell",

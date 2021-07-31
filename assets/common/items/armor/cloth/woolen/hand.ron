@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Woolen Mittens",
+    name: Direct("Woolen Mittens"),
     description: "Thick and ready for the snow.",
     kind: Armor((
         kind: Hand("Woolen"),

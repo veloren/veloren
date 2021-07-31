@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Tornado",
+    name: Direct("Tornado"),
     description: "Tornado weapon",
     kind: Tool((
         kind: Natural,

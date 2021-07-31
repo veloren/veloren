@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Sceptre of Regeneration",
+    name: Direct("Sceptre of Regeneration"),
     description: "Heals your allies with the power of nature.",
     kind: Tool((
         kind: Sceptre,

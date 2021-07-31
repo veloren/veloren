@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Leather Plate Chausses",
+    name: Direct("Leather Plate Chausses"),
     description: "Leather adorned with steel for better protection.",
     kind: Armor((
         kind: Pants("LeatherPlate"),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Orichalcum Legplates",
+    name: Direct("Orichalcum Legplates"),
     description: "An ancient alloy. Myths remain of heroes who wore this metal.",
     kind: Armor((
         kind: Pants("Orichalcum"),

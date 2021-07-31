@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Horse Bow",
+    name: Direct("Horse Bow"),
     description: "Perfect for mounted archery",
     kind: Tool((
         kind: Bow,

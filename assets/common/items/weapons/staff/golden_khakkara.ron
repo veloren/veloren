@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Golden Khakkara",
+    name: Direct("Golden Khakkara"),
     description: "Originally used to frighten away animals",
     kind: Tool((
         kind: Staff,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Spine Mace",
+    name: Direct("Spine Mace"),
     description: "Bone(s?)",
     kind: Tool((
         kind: Hammer,

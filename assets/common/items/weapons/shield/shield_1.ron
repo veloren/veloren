@@ -1,5 +1,5 @@
 ItemDef(
-    name: "A Tattered Targe",
+    name: Direct("A Tattered Targe"),
     description: "Should withstand a few more hits, hopefully...",
     kind: Tool((
         kind: Shield,

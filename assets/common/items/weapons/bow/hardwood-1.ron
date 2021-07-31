@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Composite Bow",
+    name: Direct("Composite Bow"),
     description: "It has a heavy draw weight",
     kind: Tool((
         kind: Bow,

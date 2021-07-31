@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Ritual Bow",
+    name: Direct("Ritual Bow"),
     description: "A ceremonial weapon",
     kind: Tool((
         kind: Bow,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Sapphire",
+    name: Direct("Sapphire"),
     description: "A colorful cobalt gem.",
     kind: Ingredient(
         kind: "Sapphire",

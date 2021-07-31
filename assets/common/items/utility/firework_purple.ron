@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Firework Purple",
+    name: Direct("Firework Purple"),
     description: "Cult favourite.",
     kind: Throwable(
         kind: Firework(Purple),

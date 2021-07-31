@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Raw Fish",
+    name: Direct("Raw Fish"),
     description: "A steak chopped from a fish, best after cooking.",
     kind: Consumable(
         kind: Food,

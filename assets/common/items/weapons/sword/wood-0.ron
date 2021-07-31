@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bladed Branch",
+    name: Direct("Bladed Branch"),
     description: "Grown in the shape of a sword.",
     kind: Tool((
         kind: Sword,

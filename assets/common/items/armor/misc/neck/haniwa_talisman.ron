@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Haniwa Talisman",
+    name: Direct("Haniwa Talisman"),
     description: "A talisman depicting a figure of unkown origin.",
     kind: Armor((
         kind: Neck("Haniwa"),

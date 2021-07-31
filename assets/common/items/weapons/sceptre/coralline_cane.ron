@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Coralline Cane",
+    name: Direct("Coralline Cane"),
     description: "Traditional danari scepter from the depths of the ocean",
     kind: Tool((
         kind: Sceptre,

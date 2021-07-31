@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Brute's Hammer",
+    name: Direct("Brute's Hammer"),
     description: "This destructive hammer was likely wielded by a vicious killer.",
     kind: Tool((
         kind: Hammer,

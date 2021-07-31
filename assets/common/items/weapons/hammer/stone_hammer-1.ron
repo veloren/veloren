@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Granite Sledgehammer",
+    name: Direct("Granite Sledgehammer"),
     description: "A rough stone, crumbling on the striking surfaces. Still usable as a weapon.",
     kind: Tool((
         kind: Hammer,

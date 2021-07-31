@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cobalt Cudgel",
+    name: Direct("Cobalt Cudgel"),
     description: "Forged from cobalt.",
     kind: Tool((
         kind: Hammer,

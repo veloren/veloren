@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Wooden Cleaver",
+    name: Direct("Wooden Cleaver"),
     description: "Carved from wood.",
     kind: Tool((
         kind: Axe,

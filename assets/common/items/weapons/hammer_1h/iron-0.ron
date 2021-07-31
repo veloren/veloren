@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Dwarven Hammer",
+    name: Direct("Dwarven Hammer"),
     description: "Forged from iron.",
     kind: Tool((
         kind: Hammer,

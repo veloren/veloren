@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Moon Axe",
+    name: Direct("Moon Axe"),
     description: "The blade of this axe resembles a full moon.",
     kind: Tool((
         kind: Axe,

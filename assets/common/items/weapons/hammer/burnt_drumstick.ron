@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Burnt Drumstick",
+    name: Direct("Burnt Drumstick"),
     description: "Might need more practice...",
     kind: Tool((
         kind: Hammer,

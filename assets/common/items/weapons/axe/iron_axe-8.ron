@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Fanged Axe",
+    name: Direct("Fanged Axe"),
     description: "Several sharp axe heads forged with points to mimic animal fangs.",
     kind: Tool((
         kind: Axe,

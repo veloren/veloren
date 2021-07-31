@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Lunar Bow",
+    name: Direct("Lunar Bow"),
     description: "Glows under the light of the moon",
     kind: Tool((
         kind: Bow,

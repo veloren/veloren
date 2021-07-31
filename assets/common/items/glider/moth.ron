@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Green Luna",
+    name: Direct("Green Luna"),
     description: "The delicate wings flutter faintly.",
     kind: Glider(
         (

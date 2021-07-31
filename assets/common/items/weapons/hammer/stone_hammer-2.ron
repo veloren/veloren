@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Rocky Maul",
+    name: Direct("Rocky Maul"),
     description: "A rock tied to a stick, still good for smashing, but not very strong.",
     kind: Tool((
         kind: Hammer,

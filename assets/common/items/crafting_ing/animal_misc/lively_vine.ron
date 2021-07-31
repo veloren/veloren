@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Lively Vine",
+    name: Direct("Lively Vine"),
     description: "I think it just moved.",
     kind: Ingredient(
         kind: "LivelyVine",

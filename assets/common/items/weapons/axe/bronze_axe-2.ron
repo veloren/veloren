@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Tribal Axe",
+    name: Direct("Tribal Axe"),
     description: "Stained with the blood of its wielder's enemies.",
     kind: Tool((
         kind: Axe,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Ley Seeker",
+    name: Direct("Ley Seeker"),
     description: "Starts swinging when pointed away from water",
     kind: Tool((
         kind: Staff,

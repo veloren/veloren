@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Dragon Tongue",
+    name: Direct("Dragon Tongue"),
     description: "The one they fear",
     kind: Tool((
         kind: Staff,

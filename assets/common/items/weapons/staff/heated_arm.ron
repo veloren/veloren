@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Heated Grip Arm",
+    name: Direct("Heated Grip Arm"),
     description: "'Caution, hot surface!'",
     kind: Tool((
         kind: Staff,

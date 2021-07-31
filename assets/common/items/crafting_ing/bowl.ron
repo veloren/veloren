@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bowl",
+    name: Direct("Bowl"),
     description: "A simple bowl for preparing meals.",
     kind: Ingredient(
         kind: "Bowl",

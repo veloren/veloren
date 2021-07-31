@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Scale Leggings",
+    name: Direct("Scale Leggings"),
     description: "Each embedded scale provides protection.",
     kind: Armor((
         kind: Pants("Scale"),

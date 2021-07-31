@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Topaz",
+    name: Direct("Topaz"),
     description: "An outstanding orange gem.",
     kind: Ingredient(
         kind: "Topaz",

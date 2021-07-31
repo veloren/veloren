@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Shovel",
+    name: Direct("Shovel"),
     description: "It's covered in manure.",
     kind: Tool((
         kind: Farming,

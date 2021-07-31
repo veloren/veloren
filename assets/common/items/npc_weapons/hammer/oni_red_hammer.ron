@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Red Oni Hammer",
+    name: Direct("Red Oni Hammer"),
     description: "Placeholder",
     kind: Tool((
         kind: Hammer,

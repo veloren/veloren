@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Apple",
+    name: Direct("Apple"),
     description: "Red and juicy",
     kind: Consumable(
         kind: Food,

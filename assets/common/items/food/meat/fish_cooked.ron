@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cooked Fish",
+    name: Direct("Cooked Fish"),
     description: "A fresh cooked seafood steak.",
     kind: Consumable(
         kind: Food,

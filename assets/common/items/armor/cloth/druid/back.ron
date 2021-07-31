@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Druid Cape",
+    name: Direct("Druid Cape"),
     description: "Incredibly light, with the essence of nature.",
     kind: Armor((
         kind: Back("Druid"),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Jeweled Bulawa",
+    name: Direct("Jeweled Bulawa"),
     description: "Inset with an amethyst.",
     kind: Tool((
         kind: Hammer,

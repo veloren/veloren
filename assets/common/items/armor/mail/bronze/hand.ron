@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bronze Gauntlets",
+    name: Direct("Bronze Gauntlets"),
     description: "'Heavy and dull, but it can take a punch.'",
     kind: Armor((
         kind: Hand("Bronze"),

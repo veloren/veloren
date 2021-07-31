@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Coins",
+    name: Direct("Coins"),
     description: "Money can be exchanged for goods and services.",
     kind: Utility(
         kind: Coins,

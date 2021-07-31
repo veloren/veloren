@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Savage Belt",
+    name: Direct("Savage Belt"),
     description: "Brings the fury of the barbarians.",
     kind: Armor((
         kind: Belt("Savage"),

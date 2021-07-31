@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Infused Fork",
+    name: Direct("Infused Fork"),
     description: "Shamanistic energies brought this piece of wood to life again.",
     kind: Tool((
         kind: Sceptre,

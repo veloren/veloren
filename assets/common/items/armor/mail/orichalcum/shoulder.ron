@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Orichalcum Mantle",
+    name: Direct("Orichalcum Mantle"),
     description: "An ancient alloy. Myths remain of heroes who wore this armor.",
     kind: Armor((
         kind: Shoulder("Orichalcum"),

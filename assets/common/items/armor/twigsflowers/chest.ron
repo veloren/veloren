@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Flowery Shirt",
+    name: Direct("Flowery Shirt"),
     description: "Magically imbued twigs decorated with flowers and their stems, letting others know your intentions of peace and love.",
     kind: Armor((
         kind: Chest("TwigsFlowers"),

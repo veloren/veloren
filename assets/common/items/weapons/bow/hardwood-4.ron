@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Recurve Bow",
+    name: Direct("Recurve Bow"),
     description: "It's hard to pull back all the way",
     kind: Tool((
         kind: Bow,

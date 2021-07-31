@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Iron Club",
+    name: Direct("Iron Club"),
     description: "Forged from iron.",
     kind: Tool((
         kind: Hammer,

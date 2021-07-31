@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Soft Fur",
+    name: Direct("Soft Fur"),
     description: "Soft fur from an animal.",
     kind: Ingredient(
         kind: "Fur",

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Druid Kickers",
+    name: Direct("Druid Kickers"),
     description: "Incredibly light, with the essence of nature.",
     kind: Armor((
         kind: Foot("Druid"),

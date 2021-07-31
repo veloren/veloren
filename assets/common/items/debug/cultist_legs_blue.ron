@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Velorite Skirt",
+    name: Direct("Velorite Skirt"),
     description: "",
     kind: Armor(
         (

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Fluffy Jackalope Slippers",
+    name: Direct("Fluffy Jackalope Slippers"),
     description: "So warm and cozy!",
     kind: Armor((
         kind: Foot("Jackalope"),

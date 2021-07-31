@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Coconut",
+    name: Direct("Coconut"),
     description: "Reliable source of water and fat.\n\nNaturally growing at the top of palm trees.",
     kind: Consumable(
         kind: Food,

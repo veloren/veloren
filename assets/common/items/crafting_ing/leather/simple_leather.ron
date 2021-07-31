@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Simple Leather",
+    name: Direct("Simple Leather"),
     description: "Light and flexible.",
     kind: Ingredient(
         kind: "SimpleLeather",

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Topaz Warbow",
+    name: Direct("Topaz Warbow"),
     description: "Inset with topaz",
     kind: Tool((
         kind: Bow,

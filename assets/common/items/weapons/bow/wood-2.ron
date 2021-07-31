@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Hunting Bow",
+    name: Direct("Hunting Bow"),
     description: "You could hunt a deer with this bow",
     kind: Tool((
         kind: Bow,

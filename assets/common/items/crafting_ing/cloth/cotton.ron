@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cotton",
+    name: Direct("Cotton"),
     description: "Easy to work with and multi-functional.",
     kind: Ingredient(
         kind: "Cotton",

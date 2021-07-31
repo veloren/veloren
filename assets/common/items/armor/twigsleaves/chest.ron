@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Leafy Shirt",
+    name: Direct("Leafy Shirt"),
     description: "Leaves cover the magically imbued twig shirt, providing a more natural appearance.",
     kind: Armor((
         kind: Chest("TwigsLeaves"),

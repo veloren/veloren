@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Mindflayer Armor",
+    name: Direct("Mindflayer Armor"),
     description: "Worn by mindflayer.",
     kind: Armor((
         kind: Chest("Mindflayer"),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Malachite Axe",
+    name: Direct("Malachite Axe"),
     description: "Etched axe head decorated with malachite on the blades to provide magical properties.",
     kind: Tool((
         kind: Axe,

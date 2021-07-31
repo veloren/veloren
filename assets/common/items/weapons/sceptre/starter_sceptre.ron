@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Naturalist Walking Stick",
+    name: Direct("Naturalist Walking Stick"),
     description: "Heals your allies with the power of nature.",
     kind: Tool((
         kind: Sceptre,

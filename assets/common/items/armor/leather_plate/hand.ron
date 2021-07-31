@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Leather Plate Gloves",
+    name: Direct("Leather Plate Gloves"),
     description: "Leather adorned with steel for better protection.",
     kind: Armor((
         kind: Hand("LeatherPlate"),

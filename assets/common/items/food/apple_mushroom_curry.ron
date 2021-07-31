@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Mushroom Curry",
+    name: Direct("Mushroom Curry"),
     description: "Who could say no to that?",
     kind: Consumable(
         kind: ComplexFood,

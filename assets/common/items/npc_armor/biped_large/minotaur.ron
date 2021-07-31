@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Minotaur Armor",
+    name: Direct("Minotaur Armor"),
     description: "The best defense is a good offense.",
     kind: Armor((
         kind: Chest("Minotaur"),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Traveler's Backpack",
+    name: Direct("Traveler's Backpack"),
     description: "Comfort and capacity united.",
     kind: Armor((
         kind: Back("Backpack"),

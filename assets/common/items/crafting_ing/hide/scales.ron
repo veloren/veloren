@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Scale",
+    name: Direct("Scale"),
     description: "Shiny scale from an animal.",
     kind: Ingredient(
         kind: "Scale",

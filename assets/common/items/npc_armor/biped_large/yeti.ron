@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Yeti Hide",
+    name: Direct("Yeti Hide"),
     description: "Strong as Yeti itself.",
     kind: Armor((
         kind: Chest("Yeti"),

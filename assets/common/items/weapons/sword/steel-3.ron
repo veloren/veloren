@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Seven-Branched Sword",
+    name: Direct("Seven-Branched Sword"),
     description: "Forged with steel.",
     kind: Tool((
         kind: Sword,

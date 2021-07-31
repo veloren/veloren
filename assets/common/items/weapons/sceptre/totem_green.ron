@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Gnarling Pride",
+    name: Direct("Gnarling Pride"),
     description: "Territory marker of a Gnarling tribe.\nInfused with healing powers.",
     kind: Tool((
         kind: Sceptre,

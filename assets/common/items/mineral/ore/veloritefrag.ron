@@ -1,8 +1,8 @@
 ItemDef(
-    name: "Velorite Fragment",
+    name: Direct("Velorite Fragment"),
     description: "Small runes sparkle on its surface",
     kind: Ingredient(
-        kind: "VeloriteFrag",        
+        kind: "VeloriteFrag",
     ),
     quality: Moderate,
     tags: [],

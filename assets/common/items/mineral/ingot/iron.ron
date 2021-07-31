@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Iron Ingot",
+    name: Direct("Iron Ingot"),
     description: "An incredibly commonplace metal.",
     kind: Ingredient(
         kind: "IronIngot",

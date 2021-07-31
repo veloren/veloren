@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Aurora",
+    name: Direct("Aurora"),
     description: "Praise the sun!",
     kind: Tool((
         kind: Staff,

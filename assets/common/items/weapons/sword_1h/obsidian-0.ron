@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Macuahuitl",
+    name: Direct("Macuahuitl"),
     description: "Embedded with obsidian.",
     kind: Tool((
         kind: Sword,

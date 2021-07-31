@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Dragonscale Spurs",
+    name: Direct("Dragonscale Spurs"),
     description: "Power pulses through it.",
     kind: Armor((
         kind: Foot("Dragonscale"),

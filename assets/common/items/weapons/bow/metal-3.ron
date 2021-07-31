@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Metal Warbow",
+    name: Direct("Metal Warbow"),
     description: "Its appearance is intimidating",
     kind: Tool((
         kind: Bow,

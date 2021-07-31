@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Beast Cleaver",
+    name: Direct("Beast Cleaver"),
     description: "A rough cut axe created by orcs to cleave beasts in two.",
     kind: Tool((
         kind: Axe,

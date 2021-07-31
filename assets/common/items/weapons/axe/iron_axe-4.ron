@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Butcher's Axe",
+    name: Direct("Butcher's Axe"),
     description: "This axe has a heavy iron head used to cleave nearly anything.",
     kind: Tool((
         kind: Axe,

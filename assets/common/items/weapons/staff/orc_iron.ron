@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Orcish Branding Iron",
+    name: Direct("Orcish Branding Iron"),
     description: "Used to mark animals and captured foes",
     kind: Tool((
         kind: Staff,

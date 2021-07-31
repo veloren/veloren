@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Hard Carapace",
+    name: Direct("Hard Carapace"),
     description: "Tough, hard carapace.",
     kind: Ingredient(
         kind: "Carapace",

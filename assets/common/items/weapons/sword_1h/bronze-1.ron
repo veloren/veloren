@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bronze Shortsword",
+    name: Direct("Bronze Shortsword"),
     description: "Forged with bronze.",
     kind: Tool((
         kind: Sword,

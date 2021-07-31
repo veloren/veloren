@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Wooden Hatchet",
+    name: Direct("Wooden Hatchet"),
     description: "Carved from wood.",
     kind: Tool((
         kind: Axe,

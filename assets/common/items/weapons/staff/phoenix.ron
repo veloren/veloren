@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Phoenix",
+    name: Direct("Phoenix"),
     description: "The ashes never stop glowing",
     kind: Tool((
         kind: Staff,

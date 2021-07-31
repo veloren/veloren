@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Admin Velorite Bow",
+    name: Direct("Admin Velorite Bow"),
     description: "Infused with Velorite power.",
     kind: Tool((
         kind: Bow,

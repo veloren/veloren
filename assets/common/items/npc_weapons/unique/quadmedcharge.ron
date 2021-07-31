@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Quad Med Charge",
+    name: Direct("Quad Med Charge"),
     description: "testing123",
     kind: Tool((
         kind: Natural,

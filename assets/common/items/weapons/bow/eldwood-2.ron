@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Treant Branch",
+    name: Direct("Treant Branch"),
     description: "You occasionally see it twitch from your periphery",
     kind: Tool((
         kind: Bow,

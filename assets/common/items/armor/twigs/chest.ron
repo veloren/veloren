@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Twig Shirt",
+    name: Direct("Twig Shirt"),
     description: "Small sticks magically imbued to hold together to form a shirt.",
     kind: Armor((
         kind: Chest("Twigs"),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Rake",
+    name: Direct("Rake"),
     description: "Held together with twine.",
     kind: Tool((
         kind: Farming,

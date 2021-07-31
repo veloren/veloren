@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bronze Guards",
+    name: Direct("Bronze Guards"),
     description: "Heavy and dull, but it can take a punch.",
     kind: Armor((
         kind: Shoulder("Bronze"),

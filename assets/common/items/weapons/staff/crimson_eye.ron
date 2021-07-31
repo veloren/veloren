@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Crimson Eye",
+    name: Direct("Crimson Eye"),
     description: "The eye faintly glows.",
     kind: Tool((
         kind: Staff,

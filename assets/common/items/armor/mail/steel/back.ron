@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Steel Cape",
+    name: Direct("Steel Cape"),
     description: "Metal alloy interlocking plates to improve protection.",
     kind: Armor((
         kind: Back("Steel"),

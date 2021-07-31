@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Potent Potion",
+    name: Direct("Potent Potion"),
     description: "A potent healing potion.",
     kind: Consumable(
         kind: Drink,

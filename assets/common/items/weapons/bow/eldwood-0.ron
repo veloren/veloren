@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Eldwood Bow",
+    name: Direct("Eldwood Bow"),
     description: "The wood feels old, yet still alive",
     kind: Tool((
         kind: Bow,

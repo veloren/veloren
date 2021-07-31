@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Royal Guard",
+    name: Direct("Royal Guard"),
     description: "Forged with steel.",
     kind: Tool((
         kind: Sword,

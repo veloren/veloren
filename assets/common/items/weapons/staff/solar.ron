@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Solar Staff",
+    name: Direct("Solar Staff"),
     description: "Sun energy rumble deep within this staff",
     kind: Tool((
         kind: Staff,

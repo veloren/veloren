@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Twiggy Shoulders",
+    name: Direct("Twiggy Shoulders"),
     description: "Spaulders made from tightly tied twigs.",
     kind: Armor((
         kind: Shoulder("Twigs"),

@@ -421,11 +421,17 @@ where
     deserializer.deserialize_str(ItemDefStringVisitor)
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum ItemName {
+    Direct(String),
+    Modular,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ItemDef {
     #[serde(default)]
     item_definition_id: String,
-    pub name: String,
+    pub name: ItemName,
     pub description: String,
     pub kind: ItemKind,
     pub quality: Quality,
@@ -534,12 +540,26 @@ impl ItemDef {
     ) -> Self {
         Self {
             item_definition_id,
-            name: "test item name".to_owned(),
+            name: ItemName::Direct("test item name".to_owned()),
             description: "test item description".to_owned(),
             kind,
             quality,
             tags,
             slots,
+            ability_spec: None,
+        }
+    }
+
+    #[cfg(test)]
+    pub fn create_test_itemdef_from_kind(kind: ItemKind) -> Self {
+        Self {
+            item_definition_id: "test.item".to_string(),
+            name: ItemName::Direct("test item name".to_owned()),
+            description: "test item description".to_owned(),
+            kind,
+            quality: Quality::Common,
+            tags: vec![],
+            slots: 0,
             ability_spec: None,
         }
     }
@@ -569,7 +589,7 @@ impl assets::Compound for ItemDef {
         specifier: &str,
     ) -> Result<Self, BoxedError> {
         // load from the filesystem first, but if the file doesn't exist, see if it's a
-        // programmaticly-generated asset
+        // programmatically-generated asset
         let raw = match cache.load::<RawItemDef>(specifier) {
             Ok(handle) => handle.cloned(),
             Err(e) => modular::synthesize_modular_asset(specifier).ok_or(e)?,
@@ -607,7 +627,7 @@ impl assets::Compound for ItemDef {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename = "ItemDef")]
 struct RawItemDef {
-    name: String,
+    name: ItemName,
     description: String,
     kind: ItemKind,
     quality: Quality,
@@ -845,7 +865,12 @@ impl Item {
             .filter_map(|material| material.asset_identifier())
     }
 
-    pub fn name(&self) -> &str { &self.item_def.name }
+    pub fn name(&self) -> &str {
+        match &self.item_def.name {
+            ItemName::Direct(name) => name,
+            ItemName::Modular => "",
+        }
+    }
 
     pub fn description(&self) -> &str { &self.item_def.description }
 
@@ -886,6 +911,16 @@ impl Item {
     pub fn ability_spec(&self) -> Option<&AbilitySpec> { self.item_def.ability_spec.as_ref() }
 
     pub fn item_hash(&self) -> u64 { self.hash }
+
+    #[cfg(test)]
+    pub fn create_test_item_from_kind(kind: ItemKind) -> Self {
+        Self::new_from_item_def(
+            Arc::new(ItemDef::create_test_itemdef_from_kind(kind)),
+            &[],
+            &Default::default(),
+            &Default::default(),
+        )
+    }
 }
 
 /// Provides common methods providing details about an item definition
@@ -914,7 +949,7 @@ pub trait ItemDesc {
 impl ItemDesc for Item {
     fn description(&self) -> &str { &self.item_def.description }
 
-    fn name(&self) -> &str { &self.item_def.name }
+    fn name(&self) -> &str { self.name() }
 
     fn kind(&self) -> &ItemKind { &self.item_def.kind }
 
@@ -932,7 +967,12 @@ impl ItemDesc for Item {
 impl ItemDesc for ItemDef {
     fn description(&self) -> &str { &self.description }
 
-    fn name(&self) -> &str { &self.name }
+    fn name(&self) -> &str {
+        match &self.name {
+            ItemName::Direct(name) => name,
+            ItemName::Modular => "",
+        }
+    }
 
     fn kind(&self) -> &ItemKind { &self.kind }
 

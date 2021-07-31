@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Steel Shoulders",
+    name: Direct("Steel Shoulders"),
     description: "The metal alloy plates provide better protection and comfort.",
     kind: Armor((
         kind: Shoulder("Steel"),

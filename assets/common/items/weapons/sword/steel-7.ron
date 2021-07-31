@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Steel Towerblade",
+    name: Direct("Steel Towerblade"),
     description: "Forged with steel.",
     kind: Tool((
         kind: Sword,

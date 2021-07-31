@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cooked Tough Meat",
+    name: Direct("Cooked Tough Meat"),
     description: "Tastes exotic.",
     kind: Consumable(
         kind: Food,

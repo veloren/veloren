@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Fanged Bow",
+    name: Direct("Fanged Bow"),
     description: "There are over a dozen small fangs attached to the bow limbs",
     kind: Tool((
         kind: Bow,

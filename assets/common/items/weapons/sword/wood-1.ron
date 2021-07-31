@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Oaken Greatsword",
+    name: Direct("Oaken Greatsword"),
     description: "Carved from an oak.",
     kind: Tool((
         kind: Sword,

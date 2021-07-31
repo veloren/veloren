@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Firework Red",
+    name: Direct("Firework Red"),
     description: "Humans sometimes use these\nas a flare in a pinch.",
     kind: Throwable(
         kind: Firework(Red),

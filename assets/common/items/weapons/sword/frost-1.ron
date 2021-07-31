@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Frost Saw",
+    name: Direct("Frost Saw"),
     description: "Forged from a single piece of eternal ice.",
     kind: Tool((
         kind: Sword,

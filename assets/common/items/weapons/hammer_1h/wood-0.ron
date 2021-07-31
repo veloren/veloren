@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Stump Club",
+    name: Direct("Stump Club"),
     description: "All that remains of a tree...",
     kind: Tool((
         kind: Hammer,

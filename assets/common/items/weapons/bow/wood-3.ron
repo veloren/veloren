@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Longbow",
+    name: Direct("Longbow"),
     description: "Made of wood",
     kind: Tool((
         kind: Bow,

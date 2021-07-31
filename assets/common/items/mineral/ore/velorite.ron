@@ -1,8 +1,8 @@
 ItemDef(
-    name: "Velorite",
+    name: Direct("Velorite"),
     description: "Just a slight touch makes you feel\nthe knowledge of ancient times",
     kind: Ingredient(
-        kind: "Velorite",      
+        kind: "Velorite",
     ),
     quality: High,
     tags: [],

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Red Flower",
+    name: Direct("Red Flower"),
     description: "Can be used as a dying ingredient.",
     kind: Ingredient(
         kind: "FlowerRed",

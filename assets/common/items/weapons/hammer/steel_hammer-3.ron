@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Battle Mace",
+    name: Direct("Battle Mace"),
     description: "A heavy, spiked steel ball tip provides a great smashing weapon.",
     kind: Tool((
         kind: Hammer,

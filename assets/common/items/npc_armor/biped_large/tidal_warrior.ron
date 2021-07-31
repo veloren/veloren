@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Tidal Warrior Armor",
+    name: Direct("Tidal Warrior Armor"),
     description: "Made of fish scales.",
     kind: Armor((
         kind: Chest("Tidal Warrior"),

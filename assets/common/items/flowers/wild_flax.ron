@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Wild Flax",
+    name: Direct("Wild Flax"),
     description: "Could be used to spin some simple cloth.",
     kind: Ingredient(
         kind: "WildFlax",

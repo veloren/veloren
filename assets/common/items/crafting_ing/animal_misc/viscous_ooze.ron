@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Viscous Ooze",
+    name: Direct("Viscous Ooze"),
     description: "A measure of viscous ooze from a slimy creature.",
     kind: Ingredient(
         kind: "ViscousOoze",

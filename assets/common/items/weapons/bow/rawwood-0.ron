@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Oakroot Bow",
+    name: Direct("Oakroot Bow"),
     description: "The wood is blackened with dirt",
     kind: Tool((
         kind: Bow,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Pyrebloom",
+    name: Direct("Pyrebloom"),
     description: "Warm to the touch, long after picking.",
     kind: Ingredient(
         kind: "Pyrebloom",

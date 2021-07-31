@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Hardwood Mallet",
+    name: Direct("Hardwood Mallet"),
     description: "Hardened wood, subjected to many different elements to provide a enough strength to be a weapon.",
     kind: Tool((
         kind: Hammer,

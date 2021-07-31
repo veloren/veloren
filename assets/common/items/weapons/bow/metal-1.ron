@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Enchanted Longbow",
+    name: Direct("Enchanted Longbow"),
     description: "You feel a faint magical aura emanating from the bow",
     kind: Tool((
         kind: Bow,

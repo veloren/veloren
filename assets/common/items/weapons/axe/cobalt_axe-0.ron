@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cobalt Axe",
+    name: Direct("Cobalt Axe"),
     description: "The lustrous bluish gray axe provides a certain stylish class to the weapon.",
     kind: Tool((
         kind: Axe,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Dragonscale Sash",
+    name: Direct("Dragonscale Sash"),
     description: "Power pulses through it.",
     kind: Armor((
         kind: Belt("Dragonscale"),

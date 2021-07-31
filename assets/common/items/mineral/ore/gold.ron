@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Gold Ore",
+    name: Direct("Gold Ore"),
     description: "A precious yellow metal.",
     kind: Ingredient(
         kind: "GoldOre",

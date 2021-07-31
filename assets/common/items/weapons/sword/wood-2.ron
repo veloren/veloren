@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Forest Spirit",
+    name: Direct("Forest Spirit"),
     description: "The resin glows.",
     kind: Tool((
         kind: Sword,

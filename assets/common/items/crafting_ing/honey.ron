@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Honey",
+    name: Direct("Honey"),
     description: "From a beehive.",
     kind: Ingredient(
         kind: "Honey",

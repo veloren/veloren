@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Large Potion",
+    name: Direct("Large Potion"),
     description: "Precious medicine.",
     kind: Consumable(
         kind: Drink,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Linen Shoulders",
+    name: Direct("Linen Shoulders"),
     description: "Roughly stitched, but it seems to hold.",
     kind: Armor((
         kind: Shoulder("Linen"),

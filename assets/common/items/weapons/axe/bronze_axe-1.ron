@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Discus Axe",
+    name: Direct("Discus Axe"),
     description: "While the metal alloy is relatively simple, this unique circular axe has a unique appearance.",
     kind: Tool((
         kind: Axe,

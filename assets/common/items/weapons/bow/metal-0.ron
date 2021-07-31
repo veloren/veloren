@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Beetlehorn Bow",
+    name: Direct("Beetlehorn Bow"),
     description: "Made from the horns of a small beetle",
     kind: Tool((
         kind: Bow,

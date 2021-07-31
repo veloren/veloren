@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Moonweave",
+    name: Direct("Moonweave"),
     description: "A light yet very sturdy textile.",
     kind: Ingredient(
         kind: "Moonweave",

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Damaged Greatsword",
+    name: Direct("Damaged Greatsword"),
     description: "The blade could snap at any moment...",
     kind: Tool((
         kind: Sword,

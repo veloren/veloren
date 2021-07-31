@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Dark Assassin Mask",
+    name: Direct("Dark Assassin Mask"),
     description: "A general assassination mask preventing the wearer from being identified.",
     kind: Armor((
         kind: Head("AssaMask0"),

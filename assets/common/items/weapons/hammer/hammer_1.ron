@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Crude Mallet",
+    name: Direct("Crude Mallet"),
     description: "Breaks bones like sticks and stones.",
     kind: Tool((
         kind: Hammer,

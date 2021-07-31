@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Ferocious Shorts",
+    name: Direct("Ferocious Shorts"),
     description: "The dark side of nature",
     kind: Armor((
         kind: Pants("Ferocious"),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Iron Chestplate",
+    name: Direct("Iron Chestplate"),
     description: "A chestplate forged from iron.",
     kind: Armor(
         (

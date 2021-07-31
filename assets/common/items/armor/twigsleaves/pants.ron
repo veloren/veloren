@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Leafy Pants",
+    name: Direct("Leafy Pants"),
     description: "Leaves cover the magically imbued chainmail twigs, providing protection from the elements.",
     kind: Armor((
         kind: Pants("TwigsLeaves"),

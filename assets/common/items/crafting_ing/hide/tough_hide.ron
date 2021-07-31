@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Tough Hide",
+    name: Direct("Tough Hide"),
     description: "A pelt from something fierce. Becomes leather.",
     kind: Ingredient(
         kind: "ToughHide",

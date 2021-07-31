@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Rawhide Chestpiece",
+    name: Direct("Rawhide Chestpiece"),
     description: "Tightly packed pieces of leather to endure all weather.",
     kind: Armor((
         kind: Chest("Rawhide"),

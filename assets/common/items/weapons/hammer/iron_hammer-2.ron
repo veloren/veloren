@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Iron Mace",
+    name: Direct("Iron Mace"),
     description: "A decorative iron mace, great for smashing.",
     kind: Tool((
         kind: Hammer,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Steel Battleaxe",
+    name: Direct("Steel Battleaxe"),
     description: "Well crafted metal alloy axe that slices more cleanly than its iron counterparts.",
     kind: Tool((
         kind: Axe,

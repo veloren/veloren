@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Sprig Bow",
+    name: Direct("Sprig Bow"),
     description: "It was only recently collected",
     kind: Tool((
         kind: Bow,

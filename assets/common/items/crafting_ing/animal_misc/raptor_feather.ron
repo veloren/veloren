@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Raptor Feather",
+    name: Direct("Raptor Feather"),
     description: "Large colorful feather from a raptor.",
     kind: Ingredient(
         kind: "RaptorFeather",

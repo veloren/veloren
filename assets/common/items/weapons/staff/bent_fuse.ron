@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bent Fuse",
+    name: Direct("Bent Fuse"),
     description: "It's twitching from being charged with elemental powers",
     kind: Tool((
         kind: Staff,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Orichalcum Axe",
+    name: Direct("Orichalcum Axe"),
     description: "Forged with orichalcum.",
     kind: Tool((
         kind: Axe,

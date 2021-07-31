@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Rawhide Shoulderpads",
+    name: Direct("Rawhide Shoulderpads"),
     description: "Tightly packed pieces of leather to endure all weather.",
     kind: Armor((
         kind: Shoulder("Rawhide"),

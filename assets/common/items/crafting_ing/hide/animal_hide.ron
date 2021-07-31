@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Animal Hide",
+    name: Direct("Animal Hide"),
     description: "A pelt from an animal. Becomes leather.",
     kind: Ingredient(
         kind: "AnimalHide",

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cultist Mantle",
+    name: Direct("Cultist Mantle"),
     description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Shoulder("Cultist"),

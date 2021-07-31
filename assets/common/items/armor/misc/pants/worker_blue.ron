@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Blue Worker Pants",
+    name: Direct("Blue Worker Pants"),
     description: "Resilient and reliable.",
     kind: Armor((
         kind: Pants("WorkerBlue"),

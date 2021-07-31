@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Longsword blade",
+    name: Direct("Longsword blade"),
     description: "A sword blade made of metal.",
     kind: ModularComponent((
         toolkind: Sword,

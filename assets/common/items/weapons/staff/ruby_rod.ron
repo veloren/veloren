@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Ruby Rod",
+    name: Direct("Ruby Rod"),
     description: "Some legends tell that the ruby is is tied to the fire element",
     kind: Tool((
         kind: Staff,

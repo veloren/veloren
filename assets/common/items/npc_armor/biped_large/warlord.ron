@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Giant Warlord Chest",
+    name: Direct("Giant Warlord Chest"),
     description: "Made of darkest steel.",
     kind: Armor((
         kind: Chest("GiantWarlord"),

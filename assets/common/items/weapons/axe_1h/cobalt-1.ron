@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Skullsplitter",
+    name: Direct("Skullsplitter"),
     description: "Forged from cobalt.",
     kind: Tool((
         kind: Axe,

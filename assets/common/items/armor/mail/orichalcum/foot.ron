@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Orichalcum Warboots",
+    name: Direct("Orichalcum Warboots"),
     description: "An ancient alloy. Myths remain of heroes who wore this metal.",
     kind: Armor((
         kind: Foot("Orichalcum"),

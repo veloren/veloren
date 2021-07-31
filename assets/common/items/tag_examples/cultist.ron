@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Anything related to cultists",
+    name: Direct("Anything related to cultists"),
     description: "These items are a little creepy.",
     kind: TagExamples(
         item_ids: [

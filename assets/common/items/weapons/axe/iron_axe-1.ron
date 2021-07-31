@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Ceremonial Axe",
+    name: Direct("Ceremonial Axe"),
     description: "Heavy iron axe, likely created for ritual execution.",
     kind: Tool((
         kind: Axe,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bloodsteel Sabatons",
+    name: Direct("Bloodsteel Sabatons"),
     description: "Forged to preserve life, at the cost of another.",
     kind: Armor((
         kind: Foot("Bloodsteel"),

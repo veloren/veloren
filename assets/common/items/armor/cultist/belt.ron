@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cultist Belt",
+    name: Direct("Cultist Belt"),
     description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Belt("Cultist"),

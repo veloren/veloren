@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Coal",
+    name: Direct("Coal"),
     description: "A dark, combustible energy source.",
     kind: Ingredient(
         kind: "Coal",

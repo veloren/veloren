@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Plate",
+    name: Direct("Plate"),
     description: "Durable plate from an armored animal.",
     kind: Ingredient(
         kind: "Plate",

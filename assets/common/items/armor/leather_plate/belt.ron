@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Leather Plate Belt",
+    name: Direct("Leather Plate Belt"),
     description: "Leather adorned with steel for better protection.",
     kind: Armor((
         kind: Belt("LeatherPlate"),

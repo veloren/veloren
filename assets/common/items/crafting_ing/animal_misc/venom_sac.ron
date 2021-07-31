@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Venom Sac",
+    name: Direct("Venom Sac"),
     description: "A venomous sac from a poisonous creature.",
     kind: Ingredient(
         kind: "VenomSac",

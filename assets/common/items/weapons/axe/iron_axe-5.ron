@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Barbarian's Axe",
+    name: Direct("Barbarian's Axe"),
     description: "While heavy, this iron forged axe is quite easy to swing, at least for those with the muscle backing it.",
     kind: Tool((
         kind: Axe,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bronze Cudgel",
+    name: Direct("Bronze Cudgel"),
     description: "Forged from bronze.",
     kind: Tool((
         kind: Hammer,

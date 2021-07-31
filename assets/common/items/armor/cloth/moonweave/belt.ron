@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Moonweave Belt",
+    name: Direct("Moonweave Belt"),
     description: "The fabric dances silently, like moonlight.",
     kind: Armor((
         kind: Belt("Moonweave"),

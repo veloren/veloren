@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bronze Girdle",
+    name: Direct("Bronze Girdle"),
     description: "'Heavy and dull, but it can take a punch.'",
     kind: Armor((
         kind: Belt("Bronze"),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Sunsilk Shoulderwraps",
+    name: Direct("Sunsilk Shoulderwraps"),
     description: "It radiates with the sun's power, and the grace to harness it.",
     kind: Armor((
         kind: Shoulder("Sunsilk"),

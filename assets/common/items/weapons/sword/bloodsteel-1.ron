@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Fierce Katana",
+    name: Direct("Fierce Katana"),
     description: "Infused with blood.",
     kind: Tool((
         kind: Sword,

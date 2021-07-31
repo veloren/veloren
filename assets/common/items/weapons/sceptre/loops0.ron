@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Soothing Loop",
+    name: Direct("Soothing Loop"),
     description: "Do you really want to live forever?",
     kind: Tool((
         kind: Sceptre,

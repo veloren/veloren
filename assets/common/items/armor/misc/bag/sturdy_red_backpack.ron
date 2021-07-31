@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Sturdy Red Saddlebag",
+    name: Direct("Sturdy Red Saddlebag"),
     description: "Made from a large amount of dyed cloth patches.",
     kind: Armor(
         (

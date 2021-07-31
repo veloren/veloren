@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Skull Axe",
+    name: Direct("Skull Axe"),
     description: "Infused with blood.",
     kind: Tool((
         kind: Axe,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cursed Soulkeeper",
+    name: Direct("Cursed Soulkeeper"),
     description: "WIP",
     kind: Armor(
         (

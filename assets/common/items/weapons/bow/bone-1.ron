@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Horn Bow",
+    name: Direct("Horn Bow"),
     description: "The horns aren't from any creature you know",
     kind: Tool((
         kind: Bow,

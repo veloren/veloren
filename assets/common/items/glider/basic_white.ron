@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Plain Cloth Glider",
+    name: Direct("Plain Cloth Glider"),
     description: "Simple, but classy.",
     kind: Glider(
         (

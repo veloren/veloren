@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Basilisk",
+    name: Direct("Basilisk"),
     description: "testing123",
     kind: Tool((
         kind: Natural,

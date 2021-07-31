@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Crimson Tomahawk",
+    name: Direct("Crimson Tomahawk"),
     description: "Infused with blood.",
     kind: Tool((
         kind: Axe,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Eagle Bow",
+    name: Direct("Eagle Bow"),
     description: "The design is reminiscent of a spread eagle's wings",
     kind: Tool((
         kind: Bow,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Druid's Arbor",
+    name: Direct("Druid's Arbor"),
     description: "Draws its power from the primordial nature",
     kind: Tool((
         kind: Sceptre,

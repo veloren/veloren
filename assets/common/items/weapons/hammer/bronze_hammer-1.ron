@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bronze Club",
+    name: Direct("Bronze Club"),
     description: "The entire head of this club is forged from bronze alloy.",
     kind: Tool((
         kind: Hammer,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bird Large Breathe",
+    name: Direct("Bird Large Breathe"),
     description: "testing123",
     kind: Tool((
         kind: Natural,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Blue Oni Axe",
+    name: Direct("Blue Oni Axe"),
     description: "Placeholder",
     kind: Tool((
         kind: Axe,

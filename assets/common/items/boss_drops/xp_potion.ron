@@ -1,8 +1,8 @@
 ItemDef(
-    name: "Potion of Skill",
+    name: Direct("Potion of Skill"),
     description: "It doesn't seem to be doing anything...",
     kind: Ingredient(
-        kind: "Potion",        
+        kind: "Potion",
     ),
     quality: High,
     tags: [Potion],

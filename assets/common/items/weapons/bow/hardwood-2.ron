@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Elven Longbow",
+    name: Direct("Elven Longbow"),
     description: "Made with exquisite craftsmanship",
     kind: Tool((
         kind: Bow,

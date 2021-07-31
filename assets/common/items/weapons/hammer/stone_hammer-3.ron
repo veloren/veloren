@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Stone Sledgehammer",
+    name: Direct("Stone Sledgehammer"),
     description: "A heavy rock with a slot worn through to fasten it in place. Brutal in its simple design, but still functional.",
     kind: Tool((
         kind: Hammer,

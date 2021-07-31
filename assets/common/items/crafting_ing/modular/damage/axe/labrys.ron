@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Great mace head",
+    name: Direct("Great mace head"),
     description: "A hamemr head made of metal.",
     kind: ModularComponent((
         toolkind: Hammer,

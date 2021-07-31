@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Leather Plate Chest",
+    name: Direct("Leather Plate Chest"),
     description: "Leather adorned with steel for better protection.",
     kind: Armor((
         kind: Chest("LeatherPlate"),

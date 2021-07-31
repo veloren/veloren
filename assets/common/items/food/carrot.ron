@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Carrot",
+    name: Direct("Carrot"),
     description: "An orange root vegetable. They say it'll improve your vision!",
     kind: Consumable(
         kind: Food,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Twigs",
+    name: Direct("Twigs"),
     description: "Found near trees.",
     kind: Ingredient(
         kind: "Twigs",

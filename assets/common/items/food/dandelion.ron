@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Dandelion",
+    name: Direct("Dandelion"),
     description: "A small, yellow flower. Uses the wind to spread its seeds.",
     kind: Consumable(
         kind: Food,

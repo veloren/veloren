@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bloodsteel Ingot",
+    name: Direct("Bloodsteel Ingot"),
     description: "An alloy of bloodstone and iron.",
     kind: Ingredient(
         kind: "BloodsteelIngot",

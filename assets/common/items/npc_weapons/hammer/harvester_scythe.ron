@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Harvester Sythe",
+    name: Direct("Harvester Sythe"),
     description: "Placeholder",
     kind: Tool((
         kind: Natural,

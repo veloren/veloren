@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Lime Zest Lantern",
+    name: Direct("Lime Zest Lantern"),
     description: "It has an opening that could fit a ring...",
     kind: Lantern(
         (

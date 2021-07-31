@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Soldier's Bow",
+    name: Direct("Soldier's Bow"),
     description: "Reinforced with iron",
     kind: Tool((
         kind: Bow,

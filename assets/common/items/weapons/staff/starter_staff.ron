@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Gnarled Rod",
+    name: Direct("Gnarled Rod"),
     description: "Smells like resin and magic.",
     kind: Tool((
         kind: Staff,

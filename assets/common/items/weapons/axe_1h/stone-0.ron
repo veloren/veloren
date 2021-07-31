@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Flint Axe",
+    name: Direct("Flint Axe"),
     description: "Chiseled from stone.",
     kind: Tool((
         kind: Axe,

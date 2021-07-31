@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Huge Cooked Drumstick",
+    name: Direct("Huge Cooked Drumstick"),
     description: "Makes for a legendary meal.",
     kind: Consumable(
         kind: Food,

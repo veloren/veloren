@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Mooncleaver",
+    name: Direct("Mooncleaver"),
     description: "Forged from cobalt.",
     kind: Tool((
         kind: Axe,

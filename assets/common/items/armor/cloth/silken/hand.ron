@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Silken Wraps",
+    name: Direct("Silken Wraps"),
     description: "Weaved with care by a skilled tailor.",
     kind: Armor((
         kind: Hand("Silken"),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cobalt Ingot",
+    name: Direct("Cobalt Ingot"),
     description: "A strikingly blue ingot.",
     kind: Ingredient(
         kind: "CobaltIngot",

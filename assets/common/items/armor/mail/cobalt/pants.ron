@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cobalt Leggings",
+    name: Direct("Cobalt Leggings"),
     description: "Ornamental and impenetrable, the metal will never dull.",
     kind: Armor((
         kind: Pants("Cobalt"),

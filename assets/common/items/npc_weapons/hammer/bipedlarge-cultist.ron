@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Giant Cultist Warhammer",
+    name: Direct("Giant Cultist Warhammer"),
     description: "This belonged to an evil Cult Leader.",
     kind: Tool((
         kind: Hammer,

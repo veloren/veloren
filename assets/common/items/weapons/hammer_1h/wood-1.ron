@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Wooden Cudgel",
+    name: Direct("Wooden Cudgel"),
     description: "Carved from wood.",
     kind: Tool((
         kind: Hammer,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Ritual Greatsword",
+    name: Direct("Ritual Greatsword"),
     description: "Chiseled from stone.",
     kind: Tool((
         kind: Sword,

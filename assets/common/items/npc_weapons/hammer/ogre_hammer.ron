@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Ogre Hammer",
+    name: Direct("Ogre Hammer"),
     description: "Placeholder",
     kind: Tool((
         kind: Hammer,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Primal Shoulders",
+    name: Direct("Primal Shoulders"),
     description: "Smithed from hide tougher than steel.",
     kind: Armor((
         kind: Shoulder("Primal"),

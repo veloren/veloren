@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Infused Tower",
+    name: Direct("Infused Tower"),
     description: "Portable Beacon",
     kind: Tool((
         kind: Staff,

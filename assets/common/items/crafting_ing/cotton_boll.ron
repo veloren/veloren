@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cotton Boll",
+    name: Direct("Cotton Boll"),
     description: "Plucked from a common cotton plant.",
     kind: Ingredient(
         kind: "CottonBoll",

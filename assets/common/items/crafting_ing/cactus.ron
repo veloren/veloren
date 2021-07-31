@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cactus",
+    name: Direct("Cactus"),
     description: "Grows in warm and dry places.",
     kind: Ingredient(
         kind: "Cactus",

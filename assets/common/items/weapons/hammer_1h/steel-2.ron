@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Ornamental Mace",
+    name: Direct("Ornamental Mace"),
     description: "Inlaid with gold.",
     kind: Tool((
         kind: Hammer,

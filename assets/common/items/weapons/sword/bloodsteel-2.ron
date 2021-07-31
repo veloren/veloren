@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Sharktooth",
+    name: Direct("Sharktooth"),
     description: "Infused with blood.",
     kind: Tool((
         kind: Sword,

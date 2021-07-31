@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Topaz Ring",
+    name: Direct("Topaz Ring"),
     description: "A copper ring with a topaz gem.",
     kind: Armor((
         kind: Ring("Topaz"),

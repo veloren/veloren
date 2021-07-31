@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Sharp Fang",
+    name: Direct("Sharp Fang"),
     description: "Incredibly sharp tooth from a predatory animal.",
     kind: Ingredient(
         kind: "SharpFang",

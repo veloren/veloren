@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Suspicious Paper Knife",
+    name: Direct("Suspicious Paper Knife"),
     description: "Opens letters quickly.",
     kind: Tool((
         kind: Dagger,

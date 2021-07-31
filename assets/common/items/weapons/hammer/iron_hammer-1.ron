@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Iron Battlehammer",
+    name: Direct("Iron Battlehammer"),
     description: "This heavy, square iron hammer is designed for squashing heads like watermelons.",
     kind: Tool((
         kind: Hammer,

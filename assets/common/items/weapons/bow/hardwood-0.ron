@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bramblewood Bow",
+    name: Direct("Bramblewood Bow"),
     description: "Some loose brambles are still attached",
     kind: Tool((
         kind: Bow,

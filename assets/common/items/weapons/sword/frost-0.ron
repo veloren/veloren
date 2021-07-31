@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Frost Cleaver",
+    name: Direct("Frost Cleaver"),
     description: "Radiates a freezing aura.",
     kind: Tool((
         kind: Sword,

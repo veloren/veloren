@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Pink Flower",
+    name: Direct("Pink Flower"),
     description: "Looks like a lollipop.",
     kind: Ingredient(
         kind: "Flower",

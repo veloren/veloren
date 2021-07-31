@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cloverleaf",
+    name: Direct("Cloverleaf"),
     description: "Brings luck to its owner.",
     kind: Glider(
         (

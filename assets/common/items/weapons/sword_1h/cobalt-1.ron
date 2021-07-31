@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cobalt Warblade",
+    name: Direct("Cobalt Warblade"),
     description: "Forged with cobalt.",
     kind: Tool((
         kind: Sword,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Any leather",
+    name: Direct("Any leather"),
     description: "Leathers tanned from hides.",
     kind: TagExamples(
         item_ids: [

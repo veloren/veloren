@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Leather Cloak",
+    name: Direct("Leather Cloak"),
     description: "Swift like the wind.",
     kind: Armor((
         kind: Back("Leather"),

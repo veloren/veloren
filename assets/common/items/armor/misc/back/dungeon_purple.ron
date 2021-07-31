@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Purple Cultist Cape",
+    name: Direct("Purple Cultist Cape"),
     description: "Smells like dark magic and candles.",
     kind: Armor((
         kind: Back("DungeonPurple"),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Quad Small Beam",
+    name: Direct("Quad Small Beam"),
     description: "testing123",
     kind: Tool((
         kind: Natural,

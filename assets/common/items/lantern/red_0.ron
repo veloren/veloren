@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Red Lantern",
+    name: Direct("Red Lantern"),
     description: "Caution: contents hot",
     kind: Lantern(
         (

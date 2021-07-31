@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Twitching Root",
+    name: Direct("Twitching Root"),
     description: "Sparkles from living energy.",
     kind: Tool((
         kind: Sceptre,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Ruby",
+    name: Direct("Ruby"),
     description: "A superbly scarlet gem.",
     kind: Ingredient(
         kind: "Ruby",

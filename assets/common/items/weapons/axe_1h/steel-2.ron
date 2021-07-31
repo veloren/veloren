@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Steel Kilonda",
+    name: Direct("Steel Kilonda"),
     description: "Forged from steel.",
     kind: Tool((
         kind: Axe,

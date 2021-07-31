@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bronze Shoes",
+    name: Direct("Bronze Shoes"),
     description: "'Heavy and dull, but it can take a punch.",
     kind: Armor((
         kind: Foot("Bronze"),

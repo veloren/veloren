@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Phoenix Feather",
+    name: Direct("Phoenix Feather"),
     description: "Said to have magical properties.",
     kind: Ingredient(
         kind: "PhoenixFeather",

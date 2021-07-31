@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Flimsy Hammer",
+    name: Direct("Flimsy Hammer"),
     description: "The head is barely secured.",
     kind: Tool((
         kind: Hammer,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Carapace Treads",
+    name: Direct("Carapace Treads"),
     description: "Shell that once shielded a beast.",
     kind: Armor((
         kind: Foot("Carapace"),

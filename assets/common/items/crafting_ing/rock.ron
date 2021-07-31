@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Rock",
+    name: Direct("Rock"),
     description: "A solid made up of a bunch of different minerals.",
     kind: Ingredient(
         kind: "Rock",

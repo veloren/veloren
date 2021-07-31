@@ -1,6 +1,6 @@
 use super::{
     tool::{self, Hands},
-    ItemKind, ItemTag, Quality, RawItemDef, TagExampleInfo, ToolKind,
+    ItemKind, ItemName, ItemTag, Quality, RawItemDef, TagExampleInfo, ToolKind,
 };
 use crate::recipe::{RawRecipe, RawRecipeBook, RawRecipeInput};
 use hashbrown::HashMap;
@@ -113,7 +113,7 @@ const HANDS: [Hands; 2] = [Hands::One, Hands::Two];
 
 fn make_weapon_def(toolkind: ToolKind) -> (String, RawItemDef) {
     let identifier = format!("{}.{}", WEAPON_PREFIX, toolkind.identifier_name());
-    let name = format!("Modular {}", toolkind.identifier_name());
+    let name = ItemName::Modular;
     let description = format!("A {} made of components", toolkind.identifier_name());
     let tool = tool::Tool {
         kind: toolkind,
@@ -170,7 +170,7 @@ fn make_tagexample_def(
         hands,
     };
     // TODO: i18n
-    let name = format!("Any {}", tag.name());
+    let name = ItemName::Direct(format!("Any {}", tag.name()));
     let description = format!(
         "{}s used to make {}s",
         tag.name(),
@@ -205,6 +205,7 @@ fn exists(tool: ToolKind, hands: Hands) -> bool {
         // Modular weapons do not yet exist
         ToolKind::Dagger
         | ToolKind::Spear
+        | ToolKind::Blowgun
         | ToolKind::Shield
         | ToolKind::Natural
         | ToolKind::Debug

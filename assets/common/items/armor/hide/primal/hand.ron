@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Primal Gauntlets",
+    name: Direct("Primal Gauntlets"),
     description: "Smithed from hide tougher than steel.",
     kind: Armor((
         kind: Hand("Primal"),

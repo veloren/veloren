@@ -461,10 +461,12 @@ mod tests {
         loadout.swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(get_test_bag(1)));
 
         let result = loadout
-            .get_slot_to_equip_into(&ItemKind::Armor(Armor::test_armor(
-                ArmorKind::Bag("test".to_string()),
-                Protection::Normal(0.0),
-                Protection::Normal(0.0),
+            .get_slot_to_equip_into(&Item::create_test_item_from_kind(ItemKind::Armor(
+                Armor::test_armor(
+                    ArmorKind::Bag("test".to_string()),
+                    Protection::Normal(0.0),
+                    Protection::Normal(0.0),
+                ),
             )))
             .unwrap();
 
@@ -481,10 +483,12 @@ mod tests {
         loadout.swap(EquipSlot::Armor(ArmorSlot::Bag4), Some(get_test_bag(1)));
 
         let result = loadout
-            .get_slot_to_equip_into(&ItemKind::Armor(Armor::test_armor(
-                ArmorKind::Bag("test".to_string()),
-                Protection::Normal(0.0),
-                Protection::Normal(0.0),
+            .get_slot_to_equip_into(&Item::create_test_item_from_kind(ItemKind::Armor(
+                Armor::test_armor(
+                    ArmorKind::Bag("test".to_string()),
+                    Protection::Normal(0.0),
+                    Protection::Normal(0.0),
+                ),
             )))
             .unwrap();
 

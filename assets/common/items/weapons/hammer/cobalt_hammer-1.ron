@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cobalt Mace",
+    name: Direct("Cobalt Mace"),
     description: "The decorative hooked head of this mace is formed from a bluish gray metal.",
     kind: Tool((
         kind: Hammer,

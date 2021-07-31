@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Quad Low Quick",
+    name: Direct("Quad Low Quick"),
     description: "testing123",
     kind: Tool((
         kind: Natural,

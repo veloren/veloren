@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Harvester Shirt",
+    name: Direct("Harvester Shirt"),
     description: "Made of sunflowers.",
     kind: Armor((
         kind: Chest("Harvester"),

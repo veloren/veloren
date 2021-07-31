@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Stag Bow",
+    name: Direct("Stag Bow"),
     description: "Made from the antlers of a stag",
     kind: Tool((
         kind: Bow,

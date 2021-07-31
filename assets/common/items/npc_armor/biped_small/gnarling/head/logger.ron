@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Gnarling",
+    name: Direct("Gnarling"),
     description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Head("GnarlingLogger"),

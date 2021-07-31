@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Steel Hammer",
+    name: Direct("Steel Hammer"),
     description: "While lighter and more durable than its iron counterparts, it is nonetheless just as deadly.",
     kind: Tool((
         kind: Hammer,

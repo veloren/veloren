@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Ferocious Guards",
+    name: Direct("Ferocious Guards"),
     description: "The dark side of nature",
     kind: Armor((
         kind: Shoulder("Ferocious"),

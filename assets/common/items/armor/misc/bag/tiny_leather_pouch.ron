@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Tiny Leather Pouch",
+    name: Direct("Tiny Leather Pouch"),
     description: "Made from a few patches of leather.",
     kind: Armor(
         (

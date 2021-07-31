@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Ferocious Mantle",
+    name: Direct("Ferocious Mantle"),
     description: "The dark side of nature",
     kind: Armor((
         kind: Back("Ferocious"),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Spinal Bow",
+    name: Direct("Spinal Bow"),
     description: "Made with bones",
     kind: Tool((
         kind: Bow,

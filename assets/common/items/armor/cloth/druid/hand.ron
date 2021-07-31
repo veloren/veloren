@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Druid Handwraps",
+    name: Direct("Druid Handwraps"),
     description: "Incredibly light, with the essence of nature.",
     kind: Armor((
         kind: Hand("Druid"),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Brass Block",
+    name: Direct("Brass Block"),
     description: "Casted from brass.",
     kind: Tool((
         kind: Hammer,

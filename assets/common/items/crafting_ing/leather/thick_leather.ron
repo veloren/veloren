@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Thick Leather",
+    name: Direct("Thick Leather"),
     description: "Strong and durable.",
     kind: Ingredient(
         kind: "ThickLeather",

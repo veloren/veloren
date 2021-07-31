@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Hammer head",
+    name: Direct("Hammer head"),
     description: "A hammer head made of metal.",
     kind: ModularComponent((
         toolkind: Hammer,

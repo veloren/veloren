@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Unstable Flamethrower MK II",
+    name: Direct("Unstable Flamethrower MK II"),
     description: "Definitely-A-Flamethrower",
     kind: Tool((
         kind: Staff,

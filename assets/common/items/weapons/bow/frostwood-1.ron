@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Frostwood Bow",
+    name: Direct("Frostwood Bow"),
     description: "Chill to the touch...",
     kind: Tool((
         kind: Bow,

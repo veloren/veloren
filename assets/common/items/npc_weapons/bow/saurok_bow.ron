@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Saurok bow",
+    name: Direct("Saurok bow"),
     description: "Placeholder",
     kind: Tool((
         kind: Bow,

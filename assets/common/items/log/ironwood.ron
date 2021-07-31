@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Ironwood Logs",
+    name: Direct("Ironwood Logs"),
     description: "A particularly sturdy wood.",
     kind: Ingredient(
         kind: "IronwoodLogs",

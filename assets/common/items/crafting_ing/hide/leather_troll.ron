@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Troll Hide",
+    name: Direct("Troll Hide"),
     description: "Looted from cave trolls.",
     kind: Ingredient(
         kind: "TrollLeather",

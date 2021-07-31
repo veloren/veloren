@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Sagitta",
+    name: Direct("Sagitta"),
     description: "Said to have slain a dragon with a single arrow",
     kind: Tool((
         kind: Bow,
