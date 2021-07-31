@@ -3,6 +3,7 @@ ItemDef(
     description: "Extra thick and sturdy logs.",
     kind: Ingredient(
         kind: "HardwoodLogs",
+        descriptor: "Hardwood",
     ),
     quality: Common,
     tags: [],

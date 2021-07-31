@@ -3,6 +3,7 @@ ItemDef(
     description: "A supernaturally strong textile.",
     kind: Ingredient(
         kind: "Sunsilk",
+        descriptor: "Sunsilken",
     ),
     quality: Legendary,
     tags: [Textile],

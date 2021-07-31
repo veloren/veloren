@@ -124,7 +124,7 @@ impl Inventory {
         let mut items: Vec<Item> = self.slots_mut().filter_map(mem::take).collect();
 
         items.sort_by(|a, b| match sort_order {
-            InventorySortOrder::Name => Ord::cmp(a.name(), b.name()),
+            InventorySortOrder::Name => Ord::cmp(&a.name(), &b.name()),
             // Quality is sorted in reverse since we want high quality items first
             InventorySortOrder::Quality => Ord::cmp(&b.quality(), &a.quality()),
             InventorySortOrder::Tag => Ord::cmp(

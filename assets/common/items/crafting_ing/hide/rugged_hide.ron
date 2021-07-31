@@ -3,6 +3,8 @@ ItemDef(
     description: "A durable pelt, favored by leatherworkers.",
     kind: Ingredient(
         kind: "RuggedHide",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Epic,
     tags: [

@@ -3,6 +3,8 @@ ItemDef(
     description: "Looted from a frosty creature.",
     kind: Ingredient(
         kind: "IcyShard",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

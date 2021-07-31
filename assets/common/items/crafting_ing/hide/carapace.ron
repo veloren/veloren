@@ -3,6 +3,7 @@ ItemDef(
     description: "Tough, hard carapace.",
     kind: Ingredient(
         kind: "Carapace",
+        descriptor: "Carapace",
     ),
     quality: High,
     tags: [],

@@ -3,6 +3,8 @@ ItemDef(
     description: "Light but layered, perfect for protection.",
     kind: Ingredient(
         kind: "RigidLeather",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Epic,
     tags: [BaseMaterial, Leather],

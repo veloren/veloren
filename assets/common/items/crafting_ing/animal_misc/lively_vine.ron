@@ -3,6 +3,8 @@ ItemDef(
     description: "I think it just moved.",
     kind: Ingredient(
         kind: "LivelyVine",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

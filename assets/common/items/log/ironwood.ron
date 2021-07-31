@@ -3,6 +3,7 @@ ItemDef(
     description: "A particularly sturdy wood.",
     kind: Ingredient(
         kind: "IronwoodLogs",
+        descriptor: "Ironwood",
     ),
     quality: High,
     tags: [],

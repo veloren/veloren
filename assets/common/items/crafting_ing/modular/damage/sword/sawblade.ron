@@ -15,6 +15,7 @@ ItemDef(
             buff_strength: 2.0,
         ),
         hand_restriction: None,
+        weapon_name: "Sawblade",
     )),
     quality: Common,
     tags: [

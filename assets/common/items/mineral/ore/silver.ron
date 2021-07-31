@@ -3,6 +3,8 @@ ItemDef(
     description: "A precious shiny greyish-white metal.",
     kind: Ingredient(
         kind: "SilverOre",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Epic,
     tags: [],

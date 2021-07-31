@@ -3,6 +3,8 @@ ItemDef(
     description: "Incredibly sharp claw from a predatory animal.",
     kind: Ingredient(
         kind: "Claw",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

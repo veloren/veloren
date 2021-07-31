@@ -33,6 +33,7 @@ use super::{
     slots::{SlotKind, SlotManager, TradeSlot},
     Hud, Show, TradeAmountInput, TEXT_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
+use std::borrow::Cow;
 
 #[derive(Debug)]
 pub enum HudUpdate {
@@ -453,7 +454,7 @@ impl<'a> Trade<'a> {
                 .invslot
                 .and_then(|i| inventory.get(i))
                 .map(|i| i.name())
-                .unwrap_or("");
+                .unwrap_or(Cow::Borrowed(""));
             let is_present = slot.quantity > 0 && slot.invslot.is_some();
             Text::new(&format!("{} x {}", slot.quantity, itemname))
                 .top_left_with_margins_on(state.ids.inv_alignment[who], 10.0 + i as f64 * 30.0, 0.0)

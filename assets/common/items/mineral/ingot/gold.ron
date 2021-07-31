@@ -3,6 +3,7 @@ ItemDef(
     description: "An ingot made of refined metallic gold.",
     kind: Ingredient(
         kind: "GoldIngot",
+        descriptor: "Golden",
     ),
     quality: Epic,
     tags: [MetalIngot],

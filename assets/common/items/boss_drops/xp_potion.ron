@@ -3,6 +3,8 @@ ItemDef(
     description: "It doesn't seem to be doing anything...",
     kind: Ingredient(
         kind: "Potion",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: High,
     tags: [Potion],

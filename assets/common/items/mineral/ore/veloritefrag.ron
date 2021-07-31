@@ -3,6 +3,8 @@ ItemDef(
     description: "Small runes sparkle on its surface",
     kind: Ingredient(
         kind: "VeloriteFrag",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Moderate,
     tags: [],

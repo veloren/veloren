@@ -3,6 +3,8 @@ ItemDef(
     description: "From a beehive.",
     kind: Ingredient(
         kind: "Honey",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

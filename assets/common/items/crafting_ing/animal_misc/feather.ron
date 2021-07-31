@@ -3,6 +3,8 @@ ItemDef(
     description: "Feather from a bird.",
     kind: Ingredient(
         kind: "Feather",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

@@ -3,6 +3,7 @@ ItemDef(
     description: "A superbly scarlet gem.",
     kind: Ingredient(
         kind: "Ruby",
+        descriptor: "Ruby",
     ),
     quality: High,
     tags: [],

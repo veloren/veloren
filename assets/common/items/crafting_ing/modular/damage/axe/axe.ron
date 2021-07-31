@@ -15,6 +15,7 @@ ItemDef(
             buff_strength: 1.0,
         ),
         hand_restriction: None,
+        weapon_name: "Axe",
     )),
     quality: Common,
     tags: [

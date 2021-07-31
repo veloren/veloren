@@ -30,6 +30,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
+use std::borrow::Cow;
 use vek::*;
 
 widget_ids! {
@@ -636,7 +637,7 @@ impl<'a> Skillbar<'a> {
                 .set(entry.widget_id, ui);
             // if we can gather some text to display, show it
             } else if let Some((title, desc)) = tooltip_text(entry.slot) {
-                slot.with_tooltip(self.tooltip_manager, title, desc, &tooltip, TEXT_COLOR)
+                slot.with_tooltip(self.tooltip_manager, &title, desc, &tooltip, TEXT_COLOR)
                     .set(entry.widget_id, ui);
             // if not, just set slot
             } else {

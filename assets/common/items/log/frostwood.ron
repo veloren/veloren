@@ -3,6 +3,7 @@ ItemDef(
     description: "Chilly wood that comes from cold biomes. Cold to the touch.",
     kind: Ingredient(
         kind: "FrostwoodLogs",
+        descriptor: "Frostwood",
     ),
     quality: Common,
     tags: [],

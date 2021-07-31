@@ -3,6 +3,7 @@ ItemDef(
     description: "An alloy of iron and coal that is much tougher than its components.",
     kind: Ingredient(
         kind: "SteelIngot",
+        descriptor: "Steel",
     ),
     quality: Moderate,
     tags: [MetalIngot],

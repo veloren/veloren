@@ -3,6 +3,8 @@ ItemDef(
     description: "A precious yellow metal.",
     kind: Ingredient(
         kind: "GoldOre",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Epic,
     tags: [],

@@ -3,6 +3,7 @@ ItemDef(
     description: "A giant woody grass.",
     kind: Ingredient(
         kind: "Bamboo",
+        descriptor: "Bamboo",
     ),
     quality: Common,
     tags: [],

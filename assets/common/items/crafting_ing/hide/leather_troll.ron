@@ -3,6 +3,8 @@ ItemDef(
     description: "Looted from cave trolls.",
     kind: Ingredient(
         kind: "TrollLeather",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: High,
     tags: [BaseMaterial],

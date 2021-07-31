@@ -3,6 +3,8 @@ ItemDef(
     description: "Take with plenty of water",
     kind: Ingredient(
         kind: "PotionExp",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: High,
     tags: [Potion],

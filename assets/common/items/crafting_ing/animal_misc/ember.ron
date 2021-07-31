@@ -3,6 +3,8 @@ ItemDef(
     description: "A flicking ember left by a fiery creature.",
     kind: Ingredient(
         kind: "Ember",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

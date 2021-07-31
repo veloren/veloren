@@ -3,6 +3,7 @@ ItemDef(
     description: "A sturdy alloy made from combining copper and tin.",
     kind: Ingredient(
         kind: "BronzeIngot",
+        descriptor: "Bronze",
     ),
     quality: Low,
     tags: [MetalIngot],

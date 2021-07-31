@@ -15,6 +15,7 @@ ItemDef(
             buff_strength: 0.9,
         ),
         hand_restriction: Some(One),
+        weapon_name: "",
     )),
     quality: Common,
     tags: [

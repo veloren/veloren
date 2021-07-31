@@ -3,6 +3,8 @@ ItemDef(
     description: "A flax fiber textile, dyed to stand out.",
     kind: Ingredient(
         kind: "LinenRed",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Low,
     tags: [Textile],

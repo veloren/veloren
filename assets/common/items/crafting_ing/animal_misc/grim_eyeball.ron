@@ -3,6 +3,8 @@ ItemDef(
     description: "Casts a petrifying gaze.",
     kind: Ingredient(
         kind: "GrimEyeball",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

@@ -3,6 +3,7 @@ ItemDef(
     description: "A strikingly blue ingot.",
     kind: Ingredient(
         kind: "CobaltIngot",
+        descriptor: "Cobalt",
     ),
     quality: High,
     tags: [MetalIngot],

@@ -3,6 +3,8 @@ ItemDef(
     description: "A blue, shiny ore.",
     kind: Ingredient(
         kind: "CobaltOre",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: High,
     tags: [],

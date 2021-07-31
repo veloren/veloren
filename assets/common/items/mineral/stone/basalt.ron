@@ -3,6 +3,7 @@ ItemDef(
     description: "A dark volcanic rock.",
     kind: Ingredient(
         kind: "Basalt",
+        descriptor: "Basalt",
     ),
     quality: High,
     tags: [],

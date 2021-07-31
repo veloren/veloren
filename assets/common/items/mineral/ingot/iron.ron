@@ -3,6 +3,7 @@ ItemDef(
     description: "An incredibly commonplace metal.",
     kind: Ingredient(
         kind: "IronIngot",
+        descriptor: "Iron",
     ),
     quality: Common,
     tags: [MetalIngot],

@@ -3,6 +3,8 @@ ItemDef(
     description: "A solid made up of a bunch of different minerals.",
     kind: Ingredient(
         kind: "Rock",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Low,
     tags: [],

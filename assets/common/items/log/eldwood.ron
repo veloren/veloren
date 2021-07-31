@@ -3,6 +3,7 @@ ItemDef(
     description: "Old logs that emanate magic.",
     kind: Ingredient(
         kind: "EldwoodLogs",
+        descriptor: "Eldwood",
     ),
     quality: Common,
     tags: [],

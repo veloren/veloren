@@ -15,6 +15,7 @@ ItemDef(
             buff_strength: 0.8,
         ),
         hand_restriction: Some(Two),
+        weapon_name: "Greathammer",
     )),
     quality: Common,
     tags: [

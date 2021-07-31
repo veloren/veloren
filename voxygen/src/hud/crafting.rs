@@ -557,7 +557,9 @@ impl<'a> Widget for Crafting<'a> {
             .press_image(self.imgs.selection_press)
             .image_color(color::rgba(1.0, 0.82, 0.27, 1.0));
 
-            let text = Text::new(recipe.output.0.name())
+            let recipe_name = recipe.output.0.name();
+
+            let text = Text::new(&recipe_name)
                 .color(if is_craftable {
                     TEXT_COLOR
                 } else {
@@ -660,7 +662,7 @@ impl<'a> Widget for Crafting<'a> {
             .and_then(|rn| self.client.recipe_book().get(rn.as_str()).map(|r| (rn, r)))
         {
             // Title
-            Text::new(recipe.output.0.name())
+            Text::new(&recipe.output.0.name())
                 .mid_top_with_margin_on(state.ids.align_ing, -22.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
@@ -1013,7 +1015,7 @@ impl<'a> Widget for Crafting<'a> {
                         .font_size(self.fonts.cyri.scale(14))
                         .color(TEXT_COLOR)
                         .set(state.ids.req_text[i], ui);
-                    Text::new(item_def.name())
+                    Text::new(&item_def.name())
                         .right_from(state.ids.ingredient_frame[i], 10.0)
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(14))

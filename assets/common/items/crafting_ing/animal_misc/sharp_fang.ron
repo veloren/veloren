@@ -3,6 +3,8 @@ ItemDef(
     description: "Incredibly sharp tooth from a predatory animal.",
     kind: Ingredient(
         kind: "SharpFang",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

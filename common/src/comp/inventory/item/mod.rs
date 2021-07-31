@@ -299,6 +299,7 @@ pub enum ItemKind {
     },
     Ingredient {
         kind: String,
+        descriptor: String,
     },
     TagExamples {
         /// A list of item names to lookup the appearences of and animate
@@ -865,10 +866,10 @@ impl Item {
             .filter_map(|material| material.asset_identifier())
     }
 
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> Cow<'_, str> {
         match &self.item_def.name {
-            ItemName::Direct(name) => name,
-            ItemName::Modular => "",
+            ItemName::Direct(name) => Cow::Borrowed(name),
+            ItemName::Modular => modular::modular_name(self),
         }
     }
 
@@ -927,7 +928,7 @@ impl Item {
 /// for either an `Item` containing the definition, or the actual `ItemDef`
 pub trait ItemDesc {
     fn description(&self) -> &str;
-    fn name(&self) -> &str;
+    fn name(&self) -> Cow<'_, str>;
     fn kind(&self) -> &ItemKind;
     fn quality(&self) -> &Quality;
     fn num_slots(&self) -> u16;
@@ -949,7 +950,7 @@ pub trait ItemDesc {
 impl ItemDesc for Item {
     fn description(&self) -> &str { &self.item_def.description }
 
-    fn name(&self) -> &str { self.name() }
+    fn name(&self) -> Cow<'_, str> { self.name() }
 
     fn kind(&self) -> &ItemKind { &self.item_def.kind }
 
@@ -967,10 +968,17 @@ impl ItemDesc for Item {
 impl ItemDesc for ItemDef {
     fn description(&self) -> &str { &self.description }
 
-    fn name(&self) -> &str {
+    fn name(&self) -> Cow<'_, str> {
         match &self.name {
-            ItemName::Direct(name) => name,
-            ItemName::Modular => "",
+            ItemName::Direct(name) => Cow::Borrowed(name),
+            ItemName::Modular => {
+                let toolkind = if let ItemKind::Tool(tool) = &self.kind {
+                    tool.kind.identifier_name()
+                } else {
+                    "Weapon"
+                };
+                Cow::Owned(format!("Modular {}", toolkind))
+            },
         }
     }
 
@@ -1001,7 +1009,7 @@ impl Component for ItemDrop {
 impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
     fn description(&self) -> &str { (*self).description() }
 
-    fn name(&self) -> &str { (*self).name() }
+    fn name(&self) -> Cow<'_, str> { (*self).name() }
 
     fn kind(&self) -> &ItemKind { (*self).kind() }
 

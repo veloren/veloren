@@ -3,6 +3,7 @@ ItemDef(
     description: "Regular, sturdy wooden logs.",
     kind: Ingredient(
         kind: "WoodLogs",
+        descriptor: "Wooden",
     ),
     quality: Common,
     tags: [],

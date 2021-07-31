@@ -1,6 +1,6 @@
 use super::{
     tool::{self, Hands},
-    ItemKind, ItemName, ItemTag, Quality, RawItemDef, TagExampleInfo, ToolKind,
+    Item, ItemKind, ItemName, ItemTag, Quality, RawItemDef, TagExampleInfo, ToolKind,
 };
 use crate::recipe::{RawRecipe, RawRecipeBook, RawRecipeInput};
 use hashbrown::HashMap;
@@ -29,6 +29,7 @@ pub struct ModularComponent {
     pub modkind: ModularComponentKind,
     pub stats: tool::Stats,
     pub hand_restriction: Option<Hands>,
+    pub weapon_name: String,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -259,4 +260,45 @@ pub(super) fn synthesize_modular_asset(specifier: &str) -> Option<RawItemDef> {
     let ret = ITEM_DEFS_AND_RECIPES.0.get(specifier).cloned();
     tracing::trace!("synthesize_modular_asset({:?}) -> {:?}", specifier, ret);
     ret
+}
+
+/// Modular weapons are named as "{Material} {Weapon}" where {Weapon} is from
+/// the damage component used and {Material} is from the material the damage
+/// component is created from.
+pub(super) fn modular_name(item: &Item) -> Cow<'_, str> {
+    let damage_components = item.components().iter().filter(|comp| {
+        matches!(comp.kind(), ItemKind::ModularComponent(ModularComponent { modkind, .. })
+                if matches!(modkind, ModularComponentKind::Damage)
+        )
+    });
+    // Last fine as there should only ever be one damage component on a weapon
+    let (material_name, weapon_name) = if let Some(component) = damage_components.last() {
+        let materials = component
+            .components()
+            .iter()
+            .filter_map(|comp| match comp.kind() {
+                ItemKind::Ingredient { .. } => Some(comp.kind()),
+                _ => None,
+            });
+        // TODO: Better handle multiple materials
+        let material_name = if let Some(ItemKind::Ingredient { descriptor, .. }) = materials.last()
+        {
+            descriptor
+        } else {
+            "Modular"
+        };
+        let weapon_name =
+            if let ItemKind::ModularComponent(ModularComponent { weapon_name, .. }) =
+                component.kind()
+            {
+                weapon_name
+            } else {
+                "Weapon"
+            };
+        (material_name, weapon_name)
+    } else {
+        ("Modular", "Weapon")
+    };
+
+    Cow::Owned(format!("{} {}", material_name, weapon_name))
 }

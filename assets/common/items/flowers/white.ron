@@ -3,6 +3,8 @@ ItemDef(
     description: "Pure and precious.",
     kind: Ingredient(
         kind: "Flower",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

@@ -3,6 +3,8 @@ ItemDef(
     description: "A huge sharp horn from an animal.",
     kind: Ingredient(
         kind: "LargeHorn",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

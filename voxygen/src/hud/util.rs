@@ -112,7 +112,7 @@ pub fn modular_component_desc(
     if !components.is_empty() {
         result += "\n\nMade from:\n";
         for component in components {
-            result += component.name();
+            result += &component.name();
             result += "\n"
         }
         result += "\n";

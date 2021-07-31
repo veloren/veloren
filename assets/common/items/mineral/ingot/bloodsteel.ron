@@ -3,6 +3,7 @@ ItemDef(
     description: "An alloy of bloodstone and iron.",
     kind: Ingredient(
         kind: "BloodsteelIngot",
+        descriptor: "Bloodsteel",
     ),
     quality: Epic,
     tags: [MetalIngot],

@@ -3,6 +3,7 @@ ItemDef(
     description: "A textile made from flax fibers.",
     kind: Ingredient(
         kind: "Linen",
+        descriptor: "Linen",
     ),
     quality: Low,
     tags: [Textile],
