@@ -30,6 +30,7 @@ pub enum Spot {
     MerchantCamp,
     SaurokCamp,
     DwarvenGrave,
+    GnarlingTotem,
 }
 
 impl Spot {
@@ -62,6 +63,19 @@ impl Spot {
         );
         Self::generate_spots(
             Spot::DwarvenGrave,
+            world,
+            1.0,
+            |g, c| {
+                g < 0.25
+                    && !c.near_cliffs()
+                    && !c.river.near_water()
+                    && !c.path.0.is_way()
+                    && c.sites.is_empty()
+            },
+            false,
+        );
+        Self::generate_spots(
+            Spot::GnarlingTotem,
             world,
             10.0,
             |g, c| {
@@ -141,6 +155,15 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 base_structures: Some("spots_grasslands.dwarven_grave"),
                 entity_radius: 60.0,
                 entities: &[(6..12, "common.entity.spot.bandit_camp.dwarf_grave_robber")],
+            },
+            Spot::GnarlingTotem => SpotConfig {
+                base_structures: Some("spots_grasslands.gnarling_totem"),
+                entity_radius: 30.0,
+                entities: &[
+                    (1..4, "common.entity.dungeon.tier-0.spear"),
+                    (2..5, "common.entity.dungeon.tier-0.bow"),
+                    (1..3, "common.entity.dungeon.tier-0.staff"),
+                ],
             },
         };
 
