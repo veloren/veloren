@@ -38,21 +38,39 @@ impl Spot {
             Spot::MerchantCamp,
             world,
             1.0,
-            |g, c| g < 0.25 && !c.near_cliffs() && !c.river.near_water() && !c.path.0.is_way(),
+            |g, c| {
+                g < 0.25
+                    && !c.near_cliffs()
+                    && !c.river.near_water()
+                    && !c.path.0.is_way()
+                    && c.sites.is_empty()
+            },
             false,
         );
         Self::generate_spots(
             Spot::SaurokCamp,
             world,
             1.0,
-            |g, c| g < 0.25 && !c.near_cliffs() && !c.river.near_water() && !c.path.0.is_way(),
+            |g, c| {
+                g < 0.25
+                    && !c.near_cliffs()
+                    && !c.river.near_water()
+                    && !c.path.0.is_way()
+                    && c.sites.is_empty()
+            },
             false,
         );
         Self::generate_spots(
             Spot::DwarvenGrave,
             world,
             10.0,
-            |g, c| g < 0.25 && !c.near_cliffs() && !c.river.near_water() && !c.path.0.is_way(),
+            |g, c| {
+                g < 0.25
+                    && !c.near_cliffs()
+                    && !c.river.near_water()
+                    && !c.path.0.is_way()
+                    && c.sites.is_empty()
+            },
             false,
         );
     }
