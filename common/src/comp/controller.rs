@@ -242,7 +242,10 @@ impl ControllerInputs {
 
 impl Controller {
     /// Sets all inputs to default
-    pub fn reset(&mut self) { *self = Self::default(); }
+    pub fn reset(&mut self) {
+        self.inputs = Default::default();
+        self.queued_inputs = Default::default();
+    }
 
     pub fn clear_events(&mut self) { self.events.clear(); }
 

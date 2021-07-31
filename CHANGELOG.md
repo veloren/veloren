@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pets are now saved on logout 🐕 🦎 🐼
 - Dualwielded, one-handed swords as starting weapons (Will be replaced by daggers in the future!)
 - Healing sceptre crafting recipe
+- NPCs can now warn players before engaging in combat
 
 ### Changed
 

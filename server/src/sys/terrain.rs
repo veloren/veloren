@@ -265,7 +265,7 @@ impl<'a> System<'a> for Sys {
                 let poise = comp::Poise::new(body);
 
                 let can_speak = match body {
-                    comp::Body::Humanoid(_) => alignment == comp::Alignment::Npc,
+                    comp::Body::Humanoid(_) => true,
                     comp::Body::BirdMedium(bird_medium) => match bird_medium.species {
                         // Parrots like to have a word in this, too...
                         bird_medium::Species::Parrot => alignment == comp::Alignment::Npc,

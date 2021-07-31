@@ -15,7 +15,6 @@ use super::dialogue::Subject;
 
 pub const DEFAULT_INTERACTION_TIME: f32 = 1.0;
 pub const TRADE_INTERACTION_TIME: f32 = 300.0;
-pub const MAX_LISTEN_DIST: f32 = 100.0;
 
 #[derive(Copy, Clone, Debug, PartialEq, Deserialize)]
 pub enum Alignment {
@@ -43,6 +42,8 @@ impl Alignment {
     // Always attacks
     pub fn hostile_towards(self, other: Alignment) -> bool {
         match (self, other) {
+            (Alignment::Passive, _) => false,
+            (_, Alignment::Passive) => false,
             (Alignment::Enemy, Alignment::Enemy) => false,
             (Alignment::Enemy, Alignment::Wild) => false,
             (Alignment::Wild, Alignment::Enemy) => false,
@@ -167,83 +168,105 @@ impl Behavior {
 
 #[derive(Clone, Debug, Default)]
 pub struct Psyche {
-    pub aggro: f32, // 0.0 = always flees, 1.0 = always attacks, 0.5 = flee at 50% health
+    /// The proportion of health below which entities will start fleeing.
+    /// 0.0 = never flees, 1.0 = always flees, 0.5 = flee at 50% health.
+    pub flee_health: f32,
+    /// The distance below which the agent will see enemies if it has line of
+    /// sight.
+    pub sight_dist: f32,
+    /// The distance below which the agent can hear enemies without seeing them.
+    pub listen_dist: f32,
+    /// The distance below which the agent will attack enemies. Should be lower
+    /// than `sight_dist`. `None` implied that the agent is always aggro
+    /// towards enemies that it is aware of.
+    pub aggro_dist: Option<f32>,
 }
 
 impl<'a> From<&'a Body> for Psyche {
     fn from(body: &'a Body) -> Self {
         Self {
-            aggro: match body {
+            flee_health: match body {
                 Body::Humanoid(humanoid) => match humanoid.species {
-                    humanoid::Species::Danari => 0.9,
-                    humanoid::Species::Dwarf => 0.8,
-                    humanoid::Species::Elf => 0.7,
-                    humanoid::Species::Human => 0.6,
-                    humanoid::Species::Orc => 0.9,
-                    humanoid::Species::Undead => 0.9,
+                    humanoid::Species::Danari => 0.1,
+                    humanoid::Species::Dwarf => 0.2,
+                    humanoid::Species::Elf => 0.3,
+                    humanoid::Species::Human => 0.4,
+                    humanoid::Species::Orc => 0.1,
+                    humanoid::Species::Undead => 0.1,
                 },
                 Body::QuadrupedSmall(quadruped_small) => match quadruped_small.species {
                     quadruped_small::Species::Pig => 0.5,
-                    quadruped_small::Species::Fox => 0.3,
+                    quadruped_small::Species::Fox => 0.7,
                     quadruped_small::Species::Sheep => 0.5,
-                    quadruped_small::Species::Boar => 0.8,
-                    quadruped_small::Species::Jackalope => 0.4,
-                    quadruped_small::Species::Skunk => 0.6,
-                    quadruped_small::Species::Cat => 0.2,
-                    quadruped_small::Species::Batfox => 0.6,
-                    quadruped_small::Species::Raccoon => 0.4,
-                    quadruped_small::Species::Quokka => 0.4,
-                    quadruped_small::Species::Dodarock => 0.9,
-                    quadruped_small::Species::Holladon => 1.0,
-                    quadruped_small::Species::Hyena => 0.4,
-                    quadruped_small::Species::Rabbit => 0.1,
-                    quadruped_small::Species::Truffler => 0.8,
-                    quadruped_small::Species::Frog => 0.4,
-                    quadruped_small::Species::Hare => 0.2,
+                    quadruped_small::Species::Boar => 0.2,
+                    quadruped_small::Species::Jackalope => 0.6,
+                    quadruped_small::Species::Skunk => 0.4,
+                    quadruped_small::Species::Cat => 0.8,
+                    quadruped_small::Species::Batfox => 0.4,
+                    quadruped_small::Species::Raccoon => 0.6,
+                    quadruped_small::Species::Quokka => 0.6,
+                    quadruped_small::Species::Dodarock => 0.1,
+                    quadruped_small::Species::Holladon => 0.0,
+                    quadruped_small::Species::Hyena => 0.6,
+                    quadruped_small::Species::Rabbit => 0.9,
+                    quadruped_small::Species::Truffler => 0.2,
+                    quadruped_small::Species::Frog => 0.6,
+                    quadruped_small::Species::Hare => 0.8,
                     quadruped_small::Species::Goat => 0.5,
-                    _ => 0.0,
+                    _ => 1.0,
                 },
                 Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
-                    quadruped_medium::Species::Tuskram => 0.7,
-                    quadruped_medium::Species::Frostfang => 0.9,
-                    quadruped_medium::Species::Mouflon => 0.7,
-                    quadruped_medium::Species::Catoblepas => 0.8,
-                    quadruped_medium::Species::Deer => 0.6,
-                    quadruped_medium::Species::Hirdrasil => 0.7,
-                    quadruped_medium::Species::Donkey => 0.7,
-                    quadruped_medium::Species::Camel => 0.7,
-                    quadruped_medium::Species::Zebra => 0.7,
-                    quadruped_medium::Species::Antelope => 0.6,
-                    quadruped_medium::Species::Horse => 0.7,
-                    quadruped_medium::Species::Cattle => 0.7,
-                    quadruped_medium::Species::Darkhound => 0.9,
-                    quadruped_medium::Species::Dreadhorn => 0.8,
-                    quadruped_medium::Species::Snowleopard => 0.7,
-                    quadruped_medium::Species::Llama => 0.6,
-                    quadruped_medium::Species::Alpaca => 0.6,
+                    quadruped_medium::Species::Tuskram => 0.3,
+                    quadruped_medium::Species::Frostfang => 0.1,
+                    quadruped_medium::Species::Mouflon => 0.3,
+                    quadruped_medium::Species::Catoblepas => 0.2,
+                    quadruped_medium::Species::Deer => 0.4,
+                    quadruped_medium::Species::Hirdrasil => 0.3,
+                    quadruped_medium::Species::Donkey => 0.3,
+                    quadruped_medium::Species::Camel => 0.3,
+                    quadruped_medium::Species::Zebra => 0.3,
+                    quadruped_medium::Species::Antelope => 0.4,
+                    quadruped_medium::Species::Horse => 0.3,
+                    quadruped_medium::Species::Cattle => 0.3,
+                    quadruped_medium::Species::Darkhound => 0.1,
+                    quadruped_medium::Species::Dreadhorn => 0.2,
+                    quadruped_medium::Species::Snowleopard => 0.3,
+                    quadruped_medium::Species::Llama => 0.4,
+                    quadruped_medium::Species::Alpaca => 0.4,
                     _ => 0.5,
                 },
                 Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
-                    quadruped_low::Species::Salamander => 0.7,
-                    quadruped_low::Species::Monitor => 0.7,
-                    quadruped_low::Species::Asp => 0.9,
-                    quadruped_low::Species::Pangolin => 0.4,
-                    _ => 0.6,
+                    quadruped_low::Species::Salamander => 0.3,
+                    quadruped_low::Species::Monitor => 0.3,
+                    quadruped_low::Species::Asp => 0.1,
+                    quadruped_low::Species::Pangolin => 0.6,
+                    _ => 0.4,
                 },
                 Body::BipedSmall(_) => 0.5,
                 Body::BirdMedium(_) => 0.5,
-                Body::BirdLarge(_) => 0.9,
-                Body::FishMedium(_) => 0.15,
-                Body::FishSmall(_) => 0.0,
-                Body::BipedLarge(_) => 1.0,
-                Body::Object(_) => 1.0,
-                Body::Golem(_) => 1.0,
-                Body::Theropod(_) => 1.0,
-                Body::Dragon(_) => 1.0,
-                Body::Ship(_) => 1.0,
+                Body::BirdLarge(_) => 0.1,
+                Body::FishMedium(_) => 0.85,
+                Body::FishSmall(_) => 1.0,
+                Body::BipedLarge(_) => 0.0,
+                Body::Object(_) => 0.0,
+                Body::Golem(_) => 0.0,
+                Body::Theropod(_) => 0.0,
+                Body::Dragon(_) => 0.0,
+                Body::Ship(_) => 0.0,
+            },
+            sight_dist: 40.0,
+            listen_dist: 30.0,
+            aggro_dist: match body {
+                Body::Humanoid(_) => Some(20.0),
+                _ => None, // Always aggressive if detected
             },
         }
     }
+}
+
+impl Psyche {
+    /// The maximum distance that targets might be detected by this agent.
+    pub fn search_dist(&self) -> f32 { self.sight_dist.max(self.listen_dist) }
 }
 
 #[derive(Clone, Debug)]
@@ -309,8 +332,12 @@ pub enum SoundKind {
 #[derive(Clone, Copy, Debug)]
 pub struct Target {
     pub target: EcsEntity,
+    /// Whether the target is hostile
     pub hostile: bool,
+    /// The time at which the target was selected
     pub selected_at: f64,
+    /// Whether the target has come close enough to trigger aggro.
+    pub aggro_on: bool,
 }
 
 #[allow(clippy::type_complexity)]
@@ -345,7 +372,7 @@ impl Agent {
     }
 
     pub fn with_destination(mut self, pos: Vec3<f32>) -> Self {
-        self.psyche = Psyche { aggro: 1.0 };
+        self.psyche.flee_health = 0.0;
         self.rtsim_controller = RtSimController::with_destination(pos);
         self.behavior.allow(BehaviorCapability::SPEAK);
         self
@@ -369,7 +396,10 @@ impl Agent {
         Agent {
             patrol_origin,
             psyche: if no_flee {
-                Psyche { aggro: 1.0 }
+                Psyche {
+                    flee_health: 0.0,
+                    ..Psyche::from(body)
+                }
             } else {
                 Psyche::from(body)
             },
