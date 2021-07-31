@@ -60,6 +60,8 @@ Ist das Spiel auf dem neusten Stand?"#,
 
         "common.weapons.axe": "Axt",
         "common.weapons.sword": "Schwert",
+        "common.weapons.greatsword": "Zweihänder",
+        "common.weapons.shortswords": "Kurzschwerter",
         "common.weapons.staff": "Stab",
         "common.weapons.bow": "Bogen",
         "common.weapons.hammer": "Hammer",
