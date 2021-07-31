@@ -38,7 +38,7 @@
         "buff.desc.ensnared": "Vines grasp at your legs, impeding your movement.",
         // Buffs stats
         "buff.stat.health": "Restores {str_total} Health",
-        "buff.stat.increase_max_energy": "Raises Maximum Stamina by {strength}",
+        "buff.stat.increase_max_energy": "Raises Maximum Energy by {strength}",
         "buff.stat.increase_max_health": "Raises Maximum Health by {strength}",
         "buff.stat.invulnerability": "Grants invulnerability",
         // Text

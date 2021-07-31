@@ -43,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Trades now consider if items can stack in full inventories.
 - The types of animals that can be tamed as pets are now limited to certain species, pending further balancing of pets
 - Made server-cli admin add/remove command use positional arguments again
-
+- Usage of "stamina" replaced with "energy"
 
 ### Removed
 
