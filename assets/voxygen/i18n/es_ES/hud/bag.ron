@@ -26,7 +26,7 @@
         "hud.bag.offhand": "Mano secundaria",
         "hud.bag.bag": "Mochila",
         "hud.bag.health": "Vida",
-        "hud.bag.stamina": "Resistencia",
+        "hud.bag.energy": "Resistencia",
         "hud.bag.combat_rating": "Puntuación de combate",
         "hud.bag.protection": "Protección",
         "hud.bag.combat_rating_desc": "Calculado por tu\nequipamiento y vida",

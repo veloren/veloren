@@ -26,7 +26,7 @@
         "hud.bag.offhand": "非利き手",
         "hud.bag.bag": "バッグ",
         "hud.bag.health": "体力",
-        "hud.bag.stamina": "スタミナ",
+        "hud.bag.energy": "スタミナ",
         "hud.bag.combat_rating": "戦闘レート",
         "hud.bag.protection": "防御力",
         "hud.bag.combat_rating_desc": "装備と体力から\n計算されます",

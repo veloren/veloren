@@ -30,7 +30,7 @@
         "hud.bag.swap_equipped_weapons_desc": "Press {key}",
         "hud.bag.bag": "Bag",
         "hud.bag.health": "Health",
-        "hud.bag.stamina": "Stamina",
+        "hud.bag.energy": "Stamina",
         "hud.bag.combat_rating": "Combat Rating",
         "hud.bag.protection": "Protection",
         "hud.bag.stun_res": "Stun Resilience",

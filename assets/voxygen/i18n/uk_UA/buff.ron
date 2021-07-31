@@ -52,7 +52,7 @@
         // Stats
         "buff.stat.health": "Відновлює {str_total} ОЗ",
         "buff.stat.increase_max_health": "Підвищує Максимальне Здоров'я на {strength}",
-        "buff.stat.increase_max_stamina": "Підвищує Максимальну Енергію на {strength}",
+        "buff.stat.increase_max_energy": "Підвищує Максимальну Енергію на {strength}",
         "buff.stat.invulnerability": "Дає невразливість",
         // Text
         "buff.text.for_seconds": "протягом {dur_secs} сек.",

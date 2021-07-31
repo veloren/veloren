@@ -32,7 +32,7 @@
         "buff.desc.crippled": "Il tuo movimento è storpio dal momento che le tue gambe sono gravemente ferite.",
         // Buffs stats
         "buff.stat.health": "Rigenera {str_total} di Salute",
-        "buff.stat.increase_max_stamina": "Aumenta la Stamina Massima di {strength}",
+        "buff.stat.increase_max_energy": "Aumenta la Stamina Massima di {strength}",
         "buff.stat.increase_max_health": "Aumenta la Salute Massima di {strength}",
         "buff.stat.invulnerability": "Dona invulnerabilità",
         // Text

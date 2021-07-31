@@ -26,7 +26,7 @@
         "buff.desc.burn": "Palisz się żywcem",
         // Buffs stats
         "buff.stat.health": "Odnawia {str_total} Zdrowia",
-        "buff.stat.increase_max_stamina": "Podnosi Maksymalną Wytrzymałość o {strength}",
+        "buff.stat.increase_max_energy": "Podnosi Maksymalną Wytrzymałość o {strength}",
         "buff.stat.increase_max_health": "Podnosi Maksymalne Zdrowie o {strength}",
         "buff.stat.invulnerability": "Daje nietykalność",
         // Text

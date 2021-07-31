@@ -30,7 +30,7 @@
         "hud.bag.swap_equipped_weapons_desc": "Tryck {key}",
         "hud.bag.bag": "Säck",
         "hud.bag.health": "Hälsa",
-        "hud.bag.stamina": "Uthållighet",
+        "hud.bag.energy": "Uthållighet",
         "hud.bag.combat_rating": "Stridsduglighet",
         "hud.bag.protection": "Skydd",
         "hud.bag.stun_res": "Motståndskraft mot medvetslöshet",

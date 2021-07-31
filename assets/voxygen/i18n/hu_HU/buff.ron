@@ -38,7 +38,7 @@
         "buff.desc.ensnared": "Indák kapaszkodnak a lábadba, így szinte lehetetlenné vált számodra a mozgás.",
         // Buffs stats
         "buff.stat.health": "{str_total} életerőt tölt vissza",
-        "buff.stat.increase_max_stamina": "Megnöveli a maximális energiát ennyivel: {strength}",
+        "buff.stat.increase_max_energy": "Megnöveli a maximális energiát ennyivel: {strength}",
         "buff.stat.increase_max_health": "Megnöveli a maximális életerőt ennyivel: {strength}",
         "buff.stat.invulnerability": "Sebezhetetlenné tesz",
         // Text

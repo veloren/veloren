@@ -129,10 +129,10 @@ impl<'a> Widget for BuffsBar<'a> {
             let decayed_health = 1.0 - self.health.maximum() as f64 / self.health.base_max() as f64;
             let show_health =
                 self.health.current() != self.health.maximum() || decayed_health > 0.0;
-            let show_stamina = self.energy.current() != self.energy.maximum();
-            let offset = if show_stamina && show_health {
+            let show_energy = self.energy.current() != self.energy.maximum();
+            let offset = if show_energy && show_health {
                 140.0
-            } else if show_health || show_stamina {
+            } else if show_health || show_energy {
                 95.0
             } else {
                 55.0

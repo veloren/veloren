@@ -53,7 +53,7 @@ widget_ids! {
         member_panels_txt[],
         member_health[],
         member_health_decay[],
-        member_stam[],
+        member_energy[],
         buffs[],
         buff_timers[],
         dead_txt[],
@@ -297,10 +297,10 @@ impl<'a> Widget for Group<'a> {
                         .resize(group_size, &mut ui.widget_id_generator());
                 })
             };
-            if state.ids.member_stam.len() < group_size {
+            if state.ids.member_energy.len() < group_size {
                 state.update(|s| {
                     s.ids
-                        .member_stam
+                        .member_energy
                         .resize(group_size, &mut ui.widget_id_generator())
                 })
             };
@@ -485,12 +485,12 @@ impl<'a> Widget for Group<'a> {
                             .set(state.ids.member_panels_txt[i], ui);
                     if let Some(energy) = energy {
                         let stam_perc = energy.current() as f64 / energy.maximum() as f64;
-                        // Stamina
+                        // Energy
                         Image::new(self.imgs.bar_content)
                             .w_h(100.0 * stam_perc, 8.0)
                             .color(Some(STAMINA_COLOR))
                             .top_left_with_margins_on(state.ids.member_panels_bg[i], 26.0, 2.0)
-                            .set(state.ids.member_stam[i], ui);
+                            .set(state.ids.member_energy[i], ui);
                     }
                     if let Some(buffs) = buffs {
                         // Limit displayed buffs to 11

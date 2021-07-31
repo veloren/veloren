@@ -30,7 +30,7 @@
         "hud.bag.swap_equipped_weapons_desc": "Pressione {key}",
         "hud.bag.bag": "Mochila",
         "hud.bag.health": "Vida",
-        "hud.bag.stamina": "Stamina",
+        "hud.bag.energy": "Stamina",
         "hud.bag.combat_rating": "Pontuação de Combate",
         "hud.bag.protection": "Proteção",
         "hud.bag.stun_res": "Resistência à paralisia",

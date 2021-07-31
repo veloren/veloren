@@ -29,7 +29,7 @@ pub enum BuffKind {
     /// Applied when sitting at a campfire
     /// Strength is fraction of health resotred per second
     CampfireHeal,
-    /// Raises maximum stamina
+    /// Raises maximum energy
     /// Strength should be 10x the effect to max energy
     IncreaseMaxEnergy,
     /// Raises maximum health
@@ -146,7 +146,7 @@ pub enum BuffEffect {
     },
     /// Changes maximum health by a certain amount
     MaxHealthModifier { value: f32, kind: ModifierKind },
-    /// Changes maximum stamina by a certain amount
+    /// Changes maximum energy by a certain amount
     MaxEnergyModifier { value: f32, kind: ModifierKind },
     /// Reduces damage after armor is accounted for by this fraction
     DamageReduction(f32),

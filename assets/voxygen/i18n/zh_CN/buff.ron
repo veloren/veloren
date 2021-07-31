@@ -26,7 +26,7 @@
         "buff.desc.cursed": "你被诅咒了.",
         // Buffs stats
         "buff.stat.health": "总共恢复 {str_total} 点生命值",
-        "buff.stat.increase_max_stamina": "提高{strength}点耐力值上限 ",
+        "buff.stat.increase_max_energy": "提高{strength}点耐力值上限 ",
         "buff.stat.increase_max_health": "提高{strength}点生命值上限",
         "buff.stat.invulnerability": "获得无敌状态",
         // Text

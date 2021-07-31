@@ -533,7 +533,7 @@ impl<'a> Bag<'a> {
 }
 const STATS: [&str; 5] = [
     "Health",
-    "Stamina",
+    "Energy",
     "Protection",
     "Combat Rating",
     "Stun Resilience",
@@ -809,7 +809,7 @@ impl<'a> Widget for Bag<'a> {
             for i in STATS.iter().copied().enumerate() {
                 let btn = Button::image(match i.1 {
                     "Health" => self.imgs.health_ico,
-                    "Stamina" => self.imgs.stamina_ico,
+                    "Energy" => self.imgs.energy_ico,
                     "Combat Rating" => self.imgs.combat_rating_ico,
                     "Protection" => self.imgs.protection_ico,
                     "Stun Resilience" => self.imgs.stun_res_ico,
@@ -828,7 +828,7 @@ impl<'a> Widget for Bag<'a> {
                         as i32
                 );
                 let health_txt = format!("{}", (self.health.maximum() as f32 / 10.0) as usize);
-                let stamina_txt = format!("{}", (self.energy.maximum() as f32 / 10.0) as usize);
+                let energy_txt = format!("{}", (self.energy.maximum() as f32 / 10.0) as usize);
                 let combat_rating_txt = format!("{}", (combat_rating * 10.0) as usize);
                 let stun_res_txt = format!(
                     "{}",
@@ -841,7 +841,7 @@ impl<'a> Widget for Bag<'a> {
                 };
                 let tooltip_head = match i.1 {
                     "Health" => i18n.get("hud.bag.health"),
-                    "Stamina" => i18n.get("hud.bag.stamina"),
+                    "Energy" => i18n.get("hud.bag.energy"),
                     "Combat Rating" => i18n.get("hud.bag.combat_rating"),
                     "Protection" => i18n.get("hud.bag.protection"),
                     "Stun Resilience" => i18n.get("hud.bag.stun_res"),
@@ -863,7 +863,7 @@ impl<'a> Widget for Bag<'a> {
                 .set(state.ids.stat_icons[i.0], ui);
                 Text::new(match i.1 {
                     "Health" => &health_txt,
-                    "Stamina" => &stamina_txt,
+                    "Energy" => &energy_txt,
                     "Combat Rating" => &combat_rating_txt,
                     "Protection" => &protection_txt,
                     "Stun Resilience" => &stun_res_txt,

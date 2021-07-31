@@ -38,7 +38,7 @@
         "buff.desc.ensnared": "Trepadeiras agarram suas pernas, impedindo seus movimentos.",
         // Buffs stats
         "buff.stat.health": "Restaura {str_total} de Vida",
-        "buff.stat.increase_max_stamina": "Aumenta a Stamina Máxima em {strength}",
+        "buff.stat.increase_max_energy": "Aumenta a Stamina Máxima em {strength}",
         "buff.stat.increase_max_health": "Aumenta a Vida Máxima em {strength}",
         "buff.stat.invulnerability": "Concede invulnerabilidade",
         // Text

@@ -187,7 +187,7 @@ image_ids! {
 
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
-        stamina_plus_skill: "voxygen.element.skills.skilltree.stamina_plus",
+        energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",
         unlock_axe_skill: "voxygen.element.skills.skilltree.unlock_axe",
         unlock_bow_skill: "voxygen.element.skills.skilltree.unlock_bow",
         unlock_hammer_skill: "voxygen.element.skills.skilltree.unlock_hammer",
@@ -318,8 +318,8 @@ image_ids! {
         health_bg: "voxygen.element.ui.skillbar.health_bg",
         health_frame: "voxygen.element.ui.skillbar.health_frame",
         decayed_bg: "voxygen.element.ui.skillbar.decayed_bg",
-        stamina_bg: "voxygen.element.ui.skillbar.stamina_bg",
-        stamina_frame: "voxygen.element.ui.skillbar.stamina_frame",
+        energy_bg: "voxygen.element.ui.skillbar.energy_bg",
+        energy_frame: "voxygen.element.ui.skillbar.energy_frame",
         m1_ico: "voxygen.element.ui.generic.icons.m1",
         m2_ico: "voxygen.element.ui.generic.icons.m2",
         m_scroll_ico: "voxygen.element.ui.generic.icons.m_scroll",
@@ -476,7 +476,7 @@ image_ids! {
         mainhand_bg: "voxygen.element.ui.bag.backgrounds.mainhand",
         bag_bg: "voxygen.element.ui.bag.backgrounds.bag",
         offhand_bg: "voxygen.element.ui.bag.backgrounds.offhand",
-        stamina_ico: "voxygen.element.ui.bag.icons.stamina",
+        energy_ico: "voxygen.element.ui.bag.icons.energy",
         health_ico: "voxygen.element.ui.bag.icons.health",
         protection_ico: "voxygen.element.ui.bag.icons.protection",
         stun_res_ico: "voxygen.element.ui.bag.icons.stun_res",
