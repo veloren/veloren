@@ -39,7 +39,10 @@ where
 {
     // To hold the guards that we create, they will cause the logs to be
     // flushed when they're dropped.
-    let mut _guards: Vec<WorkerGuard> = vec![];
+    #[cfg(not(feature = "tracy"))]
+    let mut guards: Vec<WorkerGuard> = Vec::new();
+    #[cfg(feature = "tracy")]
+    let guards: Vec<WorkerGuard> = Vec::new();
 
     // We will do lower logging than the default (INFO) by INCLUSION. This
     // means that if you need lower level logging for a specific module, then
@@ -100,8 +103,8 @@ where
     let registry = registry.with(tracing_tracy::TracyLayer::new().with_stackdepth(0));
     #[cfg(not(feature = "tracy"))]
     let registry = {
-        let (non_blocking, _stdio_guard) = tracing_appender::non_blocking(terminal.make_writer());
-        _guards.push(_stdio_guard);
+        let (non_blocking, stdio_guard) = tracing_appender::non_blocking(terminal.make_writer());
+        guards.push(stdio_guard);
         registry.with(tracing_subscriber::fmt::layer().with_writer(non_blocking))
     };
 
@@ -111,9 +114,8 @@ where
         match fs::create_dir_all(path) {
             Ok(_) => {
                 let file_appender = tracing_appender::rolling::daily(path, file);
-                let (non_blocking_file, _file_guard) =
-                    tracing_appender::non_blocking(file_appender);
-                _guards.push(_file_guard);
+                let (non_blocking_file, file_guard) = tracing_appender::non_blocking(file_appender);
+                guards.push(file_guard);
                 file_setup = true;
                 registry
                     .with(tracing_subscriber::fmt::layer().with_writer(non_blocking_file))
@@ -146,7 +148,7 @@ where
     };
 
     // Return the guards
-    _guards
+    guards
 }
 
 pub fn init_stdout(log_path_file: Option<(&Path, &str)>) -> Vec<impl Drop> {
