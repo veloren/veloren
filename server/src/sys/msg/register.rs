@@ -221,14 +221,11 @@ impl<'a> System<'a> for Sys {
 
         // Handle new players.
         // Tell all clients to add them to the player list.
-        for entity in new_players {
+        let player_info = |entity| {
             let player_info = read_data.uids.get(entity).zip(players.get(entity));
-            let (uid, player) = if let Some((uid, player)) = player_info {
-                (uid, player)
-            } else {
-                continue;
-            };
-
+            player_info.map(|(u, p)| (entity, u, p))
+        };
+        for (entity, uid, player) in new_players.into_iter().filter_map(player_info) {
             let mut lazy_msg = None;
             for (_, client) in (&players, &read_data.clients).join() {
                 if lazy_msg.is_none() {
