@@ -1,0 +1,8 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.natural.dwarven_grave",
+        center: (20, 23, 5)
+    ),
+]

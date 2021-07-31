@@ -29,6 +29,7 @@ use vek::*;
 pub enum Spot {
     MerchantCamp,
     SaurokCamp,
+    DwarvenGrave,
 }
 
 impl Spot {
@@ -36,12 +37,19 @@ impl Spot {
         Self::generate_spots(
             Spot::MerchantCamp,
             world,
-            10.0,
+            1.0,
             |g, c| g < 0.25 && !c.near_cliffs() && !c.river.near_water() && !c.path.0.is_way(),
             false,
         );
         Self::generate_spots(
             Spot::SaurokCamp,
+            world,
+            1.0,
+            |g, c| g < 0.25 && !c.near_cliffs() && !c.river.near_water() && !c.path.0.is_way(),
+            false,
+        );
+        Self::generate_spots(
+            Spot::DwarvenGrave,
             world,
             10.0,
             |g, c| g < 0.25 && !c.near_cliffs() && !c.river.near_water() && !c.path.0.is_way(),
@@ -110,6 +118,11 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 base_structures: Some("dungeon_entrances.grassland"),
                 entity_radius: 12.0,
                 entities: &[(4..6, "common.entity.spot.bandit_camp.saurok")],
+            },
+            Spot::DwarvenGrave => SpotConfig {
+                base_structures: Some("spots_grasslands.dwarven_grave"),
+                entity_radius: 60.0,
+                entities: &[(6..12, "common.entity.spot.bandit_camp.dwarf_grave_robber")],
             },
         };
 
