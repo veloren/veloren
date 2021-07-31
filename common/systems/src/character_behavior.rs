@@ -12,46 +12,12 @@ use common::{
     event::{Emitter, EventBus, LocalEvent, ServerEvent},
     outcome::Outcome,
     resources::DeltaTime,
-    states::{
-        self,
-        behavior::{CharacterBehavior, JoinData, JoinStruct},
-    },
+    states::behavior::{JoinData, JoinStruct},
     terrain::TerrainGrid,
     uid::Uid,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use std::time::Duration;
-
-fn incorporate_update(
-    join: &mut JoinStruct,
-    mut state_update: StateUpdate,
-    server_emitter: &mut Emitter<ServerEvent>,
-) {
-    // TODO: if checking equality is expensive use optional field in StateUpdate
-    if *join.char_state != state_update.character {
-        *join.char_state = state_update.character
-    };
-    *join.pos = state_update.pos;
-    *join.vel = state_update.vel;
-    *join.ori = state_update.ori;
-    *join.density = state_update.density;
-    // Note: might be changed every tick by timer anyway
-    if *join.energy != state_update.energy {
-        *join.energy = state_update.energy
-    };
-    join.controller
-        .queued_inputs
-        .append(&mut state_update.queued_inputs);
-    for input in state_update.removed_inputs {
-        join.controller.queued_inputs.remove(&input);
-    }
-    if state_update.swap_equipped_weapons {
-        server_emitter.emit(ServerEvent::InventoryManip(
-            join.entity,
-            InventoryManip::SwapEquippedWeapons,
-        ));
-    }
-}
 
 #[derive(SystemData)]
 pub struct ReadData<'a> {
@@ -303,50 +269,13 @@ impl<'a> System<'a> for Sys {
                     &read_data.dt,
                     &read_data.msm,
                 );
-                let mut state_update = match j.character {
-                    CharacterState::Idle => states::idle::Data.handle_event(&j, action),
-                    CharacterState::Talk => states::talk::Data.handle_event(&j, action),
-                    CharacterState::Climb(data) => data.handle_event(&j, action),
-                    CharacterState::Glide(data) => data.handle_event(&j, action),
-                    CharacterState::GlideWield => {
-                        states::glide_wield::Data.handle_event(&j, action)
-                    },
-                    CharacterState::Stunned(data) => data.handle_event(&j, action),
-                    CharacterState::Sit => {
-                        states::sit::Data::handle_event(&states::sit::Data, &j, action)
-                    },
-                    CharacterState::Dance => {
-                        states::dance::Data::handle_event(&states::dance::Data, &j, action)
-                    },
-                    CharacterState::Sneak => {
-                        states::sneak::Data::handle_event(&states::sneak::Data, &j, action)
-                    },
-                    CharacterState::BasicBlock(data) => data.handle_event(&j, action),
-                    CharacterState::Roll(data) => data.handle_event(&j, action),
-                    CharacterState::Wielding => states::wielding::Data.handle_event(&j, action),
-                    CharacterState::Equipping(data) => data.handle_event(&j, action),
-                    CharacterState::ComboMelee(data) => data.handle_event(&j, action),
-                    CharacterState::BasicMelee(data) => data.handle_event(&j, action),
-                    CharacterState::BasicRanged(data) => data.handle_event(&j, action),
-                    CharacterState::Boost(data) => data.handle_event(&j, action),
-                    CharacterState::DashMelee(data) => data.handle_event(&j, action),
-                    CharacterState::LeapMelee(data) => data.handle_event(&j, action),
-                    CharacterState::SpinMelee(data) => data.handle_event(&j, action),
-                    CharacterState::ChargedMelee(data) => data.handle_event(&j, action),
-                    CharacterState::ChargedRanged(data) => data.handle_event(&j, action),
-                    CharacterState::RepeaterRanged(data) => data.handle_event(&j, action),
-                    CharacterState::Shockwave(data) => data.handle_event(&j, action),
-                    CharacterState::BasicBeam(data) => data.handle_event(&j, action),
-                    CharacterState::BasicAura(data) => data.handle_event(&j, action),
-                    CharacterState::Blink(data) => data.handle_event(&j, action),
-                    CharacterState::BasicSummon(data) => data.handle_event(&j, action),
-                    CharacterState::SelfBuff(data) => data.handle_event(&j, action),
-                    CharacterState::SpriteSummon(data) => data.handle_event(&j, action),
-                    CharacterState::UseItem(data) => data.handle_event(&j, action),
-                };
-                local_emitter.append(&mut state_update.local_events);
-                server_emitter.append(&mut state_update.server_events);
-                incorporate_update(&mut join_struct, state_update, &mut server_emitter);
+                let state_update = j.character.handle_event(&j, action);
+                Self::publish_state_update(
+                    &mut join_struct,
+                    state_update,
+                    &mut local_emitter,
+                    &mut server_emitter,
+                );
             }
 
             // Mounted occurs after control actions have been handled
@@ -366,43 +295,50 @@ impl<'a> System<'a> for Sys {
                 &read_data.msm,
             );
 
-            let mut state_update = match j.character {
-                CharacterState::Idle => states::idle::Data.behavior(&j),
-                CharacterState::Talk => states::talk::Data.behavior(&j),
-                CharacterState::Climb(data) => data.behavior(&j),
-                CharacterState::Glide(data) => data.behavior(&j),
-                CharacterState::GlideWield => states::glide_wield::Data.behavior(&j),
-                CharacterState::Stunned(data) => data.behavior(&j),
-                CharacterState::Sit => states::sit::Data::behavior(&states::sit::Data, &j),
-                CharacterState::Dance => states::dance::Data::behavior(&states::dance::Data, &j),
-                CharacterState::Sneak => states::sneak::Data::behavior(&states::sneak::Data, &j),
-                CharacterState::BasicBlock(data) => data.behavior(&j),
-                CharacterState::Roll(data) => data.behavior(&j),
-                CharacterState::Wielding => states::wielding::Data.behavior(&j),
-                CharacterState::Equipping(data) => data.behavior(&j),
-                CharacterState::ComboMelee(data) => data.behavior(&j),
-                CharacterState::BasicMelee(data) => data.behavior(&j),
-                CharacterState::BasicRanged(data) => data.behavior(&j),
-                CharacterState::Boost(data) => data.behavior(&j),
-                CharacterState::DashMelee(data) => data.behavior(&j),
-                CharacterState::LeapMelee(data) => data.behavior(&j),
-                CharacterState::SpinMelee(data) => data.behavior(&j),
-                CharacterState::ChargedMelee(data) => data.behavior(&j),
-                CharacterState::ChargedRanged(data) => data.behavior(&j),
-                CharacterState::RepeaterRanged(data) => data.behavior(&j),
-                CharacterState::Shockwave(data) => data.behavior(&j),
-                CharacterState::BasicBeam(data) => data.behavior(&j),
-                CharacterState::BasicAura(data) => data.behavior(&j),
-                CharacterState::Blink(data) => data.behavior(&j),
-                CharacterState::BasicSummon(data) => data.behavior(&j),
-                CharacterState::SelfBuff(data) => data.behavior(&j),
-                CharacterState::SpriteSummon(data) => data.behavior(&j),
-                CharacterState::UseItem(data) => data.behavior(&j),
-            };
+            let state_update = j.character.behavior(&j);
+            Self::publish_state_update(
+                &mut join_struct,
+                state_update,
+                &mut local_emitter,
+                &mut server_emitter,
+            );
+        }
+    }
+}
 
-            local_emitter.append(&mut state_update.local_events);
-            server_emitter.append(&mut state_update.server_events);
-            incorporate_update(&mut join_struct, state_update, &mut server_emitter);
+impl Sys {
+    fn publish_state_update(
+        join: &mut JoinStruct,
+        mut state_update: StateUpdate,
+        local_emitter: &mut Emitter<LocalEvent>,
+        server_emitter: &mut Emitter<ServerEvent>,
+    ) {
+        local_emitter.append(&mut state_update.local_events);
+        server_emitter.append(&mut state_update.server_events);
+
+        // TODO: if checking equality is expensive use optional field in StateUpdate
+        if *join.char_state != state_update.character {
+            *join.char_state = state_update.character
+        };
+        *join.pos = state_update.pos;
+        *join.vel = state_update.vel;
+        *join.ori = state_update.ori;
+        *join.density = state_update.density;
+        // Note: might be changed every tick by timer anyway
+        if *join.energy != state_update.energy {
+            *join.energy = state_update.energy
+        };
+        join.controller
+            .queued_inputs
+            .append(&mut state_update.queued_inputs);
+        for input in state_update.removed_inputs {
+            join.controller.queued_inputs.remove(&input);
+        }
+        if state_update.swap_equipped_weapons {
+            server_emitter.emit(ServerEvent::InventoryManip(
+                join.entity,
+                InventoryManip::SwapEquippedWeapons,
+            ));
         }
     }
 }
