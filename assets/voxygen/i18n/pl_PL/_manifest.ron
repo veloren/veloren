@@ -2,7 +2,7 @@
 (
     metadata: (
         language_name: "Polish",
-        language_identifier: "PL",
+        language_identifier: "pl_PL",
     ),
     convert_utf8_to_ascii: false,
     fonts: {

@@ -12,11 +12,11 @@
 ///
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Localization for "global" English
+/// Localization for netherlands Dutch
 (
     metadata: (
         language_name: "Nederlands",
-        language_identifier: "nl",
+        language_identifier: "nl_NL",
     ),
     convert_utf8_to_ascii: false,
     fonts: {

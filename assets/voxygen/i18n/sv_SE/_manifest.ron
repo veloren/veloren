@@ -1,10 +1,10 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Localization for "global" Swedish
+/// Localization for sweden Swedish
 (
     metadata: (
         language_name: "Svenska",
-        language_identifier: "sv",
+        language_identifier: "sv_SE",
     ),
     convert_utf8_to_ascii: false,
     fonts: {
