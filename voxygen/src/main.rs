@@ -2,6 +2,12 @@
 #![feature(bool_to_option)]
 #![recursion_limit = "2048"]
 
+// Allow profiling allocations with Tracy
+#[cfg_attr(feature = "tracy-memory", global_allocator)]
+#[cfg(feature = "tracy-memory")]
+static GLOBAL: common_base::tracy_client::ProfiledAllocator<std::alloc::System> =
+    common_base::tracy_client::ProfiledAllocator::new(std::alloc::System, 128);
+
 use i18n::{self, LocalizationHandle};
 use veloren_voxygen::{
     audio::AudioFrontend,
