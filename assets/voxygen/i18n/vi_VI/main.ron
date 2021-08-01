@@ -60,5 +60,29 @@ https://veloren.net/account/."#,
 
 
     vector_map: {
+        "loading.tips": [
+            "Nhấn 'G' bật đèn lồng của bạn.",
+            "Nhấn 'F1' để xem tất cả các liên kết phím mặc định.",
+            "Bạn có thể gõ /say hoặc là /s để nói chuyện xung quanh bạn.",
+            "Bạn có thể gõ /region hoặc là /r nói chuyện với người chơi vài trăm blocks xung quanh bạn.",
+            "Quản trị viên có thể sử dụng /build để vào chế độ xây dựng.",
+            "Bạn có thể gõ /group hoặc là /g để nói chuyện với những người chơi trong nhóm hiện tại của bạnto.",
+            "Để gửi tin nhắn riêng tư gõ /tell theo sau là tên người chơi và tin nhắn của bạn.",
+            "NPCs với cùng một mức độ có thể có một khó khăn khác nhau.",
+            "Coi chừng thức ăn, rương và các chiến lợi phẩm khác lan rộng khắp thế giới!",
+            "Thực phẩm đầy tồn kho? Hãy thử chế biến những món ăn ngon hơn từ nó!",
+            "Tự hỏi những gì ở đó để làm? Thử một trong những ngục tối được đánh dấu trên bản đồ!",
+            "Đừng quên điều chỉnh đồ họa cho hệ thống của bạn. Nhấn 'N' để mở cài đặt.",
+            "Chơi với những người khác rất vui! Nhấn 'O' để xem ai cũng đáng chơi hiện tại bây giờ.",
+            "Kẻ thù có đầu lâu bên dưới thanh máu của chúng mạnh mẽ hơn so với chính bạn.",
+            "Nhấn 'J' để nhảy múa. Buổi tiệc!",
+            "Nhấn 'L-Shift' để mở tàu lượn của bạn và chinh phục bầu trời.",
+            "Veloren vẫn đang trong giai đoạn Pre-Alpha. Chúng tôi cố gắng hết sức để cải thiện nó mỗi ngày!",
+            "Nếu bạn muốn tham gia nhóm nhà phát triển hoặc chỉ cần trò chuyện với chúng tôi, hãy tham gia Discord-Server.",
+            "Bạn có thể thay đổi hiển thị lượng máu của mình trên thanh sức khỏe trong cài đặt.",
+            "Để xem số liệu thống kê của bạn, hãy nhấn vào nút 'Stats' trong kho.",
+            "Ngồi gần lửa trại (nhấn nút 'K') để nghỉ ngơi - nhận được một sự chữa lành chậm theo thời gian.",
+            "Cần thêm túi hoặc áo giáp tốt hơn để tiếp tục cuộc hành trình của bạny? Nhấn 'C' để mở menu chế tạo!",
+        ],
     }
 )

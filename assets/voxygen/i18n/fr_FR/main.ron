@@ -60,5 +60,26 @@ https://veloren.net/account/."#,
 
 
     vector_map: {
+        "loading.tips": [
+            "Appuyez sur 'G' pour allumer ta lanterne.",
+            "Appuyez sur 'F1' pour voir les raccourcis clavier par défaut.",
+            "Vous pouvez taper /say ou /s pour discuter aux joueurs directement à côté toi.",
+            "Vous pouvez taper /region ou /r pour discuter avec les joueurs situés à quelques centaines de blocs de toi.",
+            "Pour envoyer un message privé, tapez /tell suivi par un nom de joueur puis votre message.",
+            "Des PNJs avec le même niveau peuvent varier en difficulté.",
+            "Regardez le sol pour trouver de la nourriture, des coffres et d'autres butins !",
+            "Votre inventaire est rempli de nourriture ? Essayez de créer un meilleur repas avec !",
+            "Vous cherchez une activité ? Essayez de visiter un des donjons marqués sur la carte !",
+            "N'oubliez pas d'ajuster les graphismes pour votre système. Appuyez sur 'N' pour ouvrir les paramètres.",
+            "Jouer à plusieurs est amusant ! Appuyez sur 'O' pour voir qui est en ligne.",
+            "Un PNJ avec une tête de mort sous sa barre de vie est plus puissant que vous.",
+            "Appuyez sur 'J' pour danser. C'est la fête !",
+            "Appuyez sur 'L-Shift' pour ouvrir votre deltaplane et conquérir les cieux.",
+            "Veloren est encore en Pré-Alpha. Nous faisons de notre mieux pour l'améliorer chaque jour !",
+            "Si vous voulez vous joindre à l'équipe de développement ou juste discuter avec nous, rejoignez notre serveur Discord.",
+            "Vous pouvez afficher ou non combien de santé vous avez dans les options.",
+            "Pour voir vos statistiques, cliquez sur le bouton 'Stats' dans l'inventaire",
+            "Asseyez-vous près d'un feu de camp (avec la touche 'K') pour vous reposer - cela régénèrera votre santé.",
+        ],
     }
 )

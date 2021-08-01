@@ -63,5 +63,25 @@ bir hesap oluşturabilirsin."#,
 
 
     vector_map: {
+		"loading.tips": [
+			"'G'ye basarak fenerini yak.",
+			"'F1'e basarak bütün kontrolleri görebilirsin.",
+			"'/say' veya '/s' yazarak sadece hemen yanındaki oyuncularla konuşabilirsin.",
+			"'/region' veya '/r' yazarak sadece bir kaç yüz blok içindeki oyuncularla konuşabilirsin.",
+			"Özel bir mesaj göndermek için '/tell' ve sonra bir oyuncu ismi ile mesajını yaz.",
+			"Aynı seviyedeki NPCler farklı zorluklara sahip olabilir.",
+			"Yemek, sandık ve diğer ganimetler için yere bak!",
+			"Envanterin yemekle mi dolu? Onları kullanarak daha iyi yemek yapmaya çalış!",
+			"Ne yapabileceğini merak mı ediyorsun? Zindanlar haritada kahverengi bölgeler olarak işaretlenmiştir!",
+			"Grafikleri sistemin için ayarlamayı unutma. 'N'e basarak ayarları aç.",
+			"Başkalarıyla oynamak eğlencelidir! 'O'ya basarak kimlerin çevirimiçi olduğunu gör.",
+			"Can barının yanında kurukafa olan bir NPC senden hayli bir güçlüdür.",
+			"'J'ye basarak dans et. Parti!",
+			"'L-Shift'e basarak Planörünü aç ve gökyüzünü fethet.",
+			"Veloren hala Pre-Alpha'da. Onu geliştirmek için her gün elimizden geleni yapıyoruz!",
+			"Geliştirme Takımına katılmak istiyorsan veya sadece sohbet etmek istiyorsan Discord sunucumuza katıl.",
+			"Can barında canı sayı olarak görmek istiyorsan, bunu ayarlardan aktifleştirebilirsin.",
+			"Niteliklerini görmek için envanterindeki 'Nitelikler' düğmesine tıklayabilirsin.",
+		],
     }
 )

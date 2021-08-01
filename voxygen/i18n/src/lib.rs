@@ -118,12 +118,10 @@ impl common_assets::Compound for Language {
             .iter()
         {
             let id = fragment_asset.id();
-            // Activate this once ._manifest is fully transformed and only contains metadata
-            // or regex: "<veloren\.\w+\._manifest"
-            /*
-            if id.starts_with("voxygen.") && id.ends_with("._manifest") {
+            // don't try to load ._manifest files
+            if id.ends_with("._manifest") {
                 continue;
-            }*/
+            }
             let read = fragment_asset.read();
             fragments.insert(PathBuf::from(id), read.clone());
         }

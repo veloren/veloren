@@ -67,5 +67,26 @@ https://veloren.net/account/."#,
 
 
     vector_map: {
+        "loading.tips": [
+            "Premi 'G' per accendere la tua lanterna.",
+            "Premi 'F1' per vedere tutte le combinazioni di tasti base.",
+            "Puoi scrivere /say o /s per chattare solo con giocatori attorno a te.",
+            "Puoi scrivere /region o /r per chattare solo con giocatori entro qualche centinaio di blocchi attorno a te.",
+            "Gli Amministratori possono usare il comando /build per entrare in modalità costruzione.",
+            "Puoi scrivere /group o /g per chattare solo con giocatori attualmente nel tuo gruppo.",
+            "Per mandare messaggi privati scrivi /tell seguito dal nome di un giocatore e dal tuo messaggio.",
+            "Fai attenzione al cibo, ai forzieri e ad altro bottino sparso per tutto il mondo!",
+            "Inventario pieno di cibo? Prova a utilizzarlo per crearne di migiliore!",
+            "Ti stai chiedendo cosa ci sia da fare? Prova uno dei dungeon segnati sulla mappa!",
+            "Non dimenticare di sistemare la grafica secondo il tuo sistema. Premi 'N' per aprire le impostazioni.",
+            "Giocare con altri è divertente! Premi 'O' per vedere chi è online.",
+            "Premi 'J' per ballare. Festeggia!",
+            "Premi 'Shift Sinistro' per aprire il tuo Aliante e conquistare i cieli.",
+            "Veloren è ancora in Pre-Alpha. Facciamo del nostro meglio per migliorarlo ogni giorno!",
+            "Se vuoi unirti al team di sviluppo o se vuoi solamente chattare con noi, unisciti al nostro server Discord.",
+            "Puoi scegliere di mostrare la tua quantità di vita sulla barra della vita dalle impostazioni.",
+            "Siedi vicino a un fuoco (col tasto 'K') per riprenderti lentamente dalle lesioni.",
+            "Hai bisogno di più borse o di armature migliori per continuare la tua avventura? Premi 'C' per aprire il menu di creazione!",
+        ],
     }
 )

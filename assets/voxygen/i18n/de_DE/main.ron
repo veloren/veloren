@@ -66,5 +66,26 @@ https://veloren.net/account/."#,
 
 
     vector_map: {
+        "loading.tips": [
+            "Mit 'G' aktivierst du deine Laterne.",
+            "Mit 'F1' kannst du die Standard-Tastenbelegung einsehen.",
+            "Mit /say oder /s kannst du mit Spielern in deiner unmittelbaren Umgebung chatten.",
+            "Mit /region oder /r kannst du mit Spielern chatten, die sich ein paar hundert Meter um dich herum befinden.",
+            "Als Admin kannst du mit /build den Baumodus nutzen.",
+            "Mit /group oder /g können deine Nachrichten nur von Mitgliedern deiner Gruppe gelesen werden.",
+            "Um private Nachrichten zu verschicken, kannst du /tell, gefolgt vom Namen des Spielers, der die Nachricht erhalten soll, nutzen.",
+            "Halte Ausschau nach Essen, Kisten oder anderen Schätzen überall auf der Welt!",
+            "Deine Taschen sind voll mit Essen? Versuche besseres Essen damit herzustellen!",
+            "Du weißt nicht was du tun sollst? Versuche dich doch mal an den Katakomben, die auf der Karte eingezeichnet sind!",
+            "Vergiss nicht die Grafikeinstellungen an deine Hardware anzupassen. Mit 'N' öffnest du die Grafikeinstellungen.",
+            "Mit Anderen zusammen zu spielen macht noch viel mehr Spaß! Mit 'O' kannst du sehen, wer gerade online ist.",
+            "Mit 'J' kannst du das Tanzbein schwingen. Party!",
+            "Mit 'L-Shift' kannst du den Gleiter öffnen und hohe Lüfte erobern.",
+            "Veloren ist immernoch in der Pre-Alpha. Wir tun unser Bestes, um es jeden Tag ein Stück besser zu machen!",
+            "Du möchtest aktiv an der Entwicklung mitwirken oder einfach nur chatten? Dann komm auf unseren Discord-Server.",
+            "Die Art, wie dir deine Lebensenergie angezeigt wird, kannst du in den Einstellungen ändern.",
+            "Setze dich neben ein Lagerfeuer (drücke dafür 'K') um dich langsam von deinen Verletzungen zu erholen.",
+            "Du brauchst einen größeren Beutel oder bessere Rüstung? Dann drücke 'C', um das Crafting-Menü zu öffnen!",
+        ],
     }
 )

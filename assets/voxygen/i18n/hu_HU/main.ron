@@ -67,5 +67,27 @@ https://veloren.net/account/."#,
 
 
     vector_map: {
+        "loading.tips": [
+            "Lámpásod meggyújtásához nyomd meg a 'G' gombot!",
+            "Az alapértelmezett billentyű-összerendelések megtekintéséhez nyomd meg az 'F1' gombot!",
+            "Ha beírod a csevegésbe a /say vagy a /s parancsot, lehetőséged nyílik arra, hogy csak a közvetlen közeledben lévő játékosokkal beszélgess.",
+            "Ha beírod a csevegésbe a /region vagy a /r parancsot, lehetőséged nyílik arra, hogy csak a tőled max pár száz blokkra lévő játékosokkal beszélgess.",
+            "Az adminisztrátorok használhatják a /build parancsot – ezzel léphetnek be az építő módba.",
+            "Ha beírod a csevegésbe a /group vagy a /g parancsot, lehetőséged nyílik arra, hogy csak a csoportodban lévő játékosokkal beszélgess.",
+            "Privát üzenetek küldéséhez írd be a csevegésbe a /tell parancsot, majd a játékos nevét, végül pedig az üzenetet.",
+            "Érdemes nyitott szemmel járni, hiszen rengeteg étel, láda és egyéb zsákmány található szerte a világban!",
+            "Túl sok az étel a holmijaid között? Próbálj meg jobb ételt kotyvasztani belőlük!",
+            "Azon tűnődsz, hogy mit kellene csinálnod? Tedd magad próbára a térképen megjelölt kazamaták valamelyikében!",
+            "Ne felejtsd el a rendszeredhez igazítani a grafikát! A beállítások megtekintéséhez nyomd meg az 'N' gombot!",
+            "Másokkal játszani bizony jó muri! Hogy lásd, épp ki van fönn a hálózaton nyomd meg az 'O' gombot!",
+            "A táncoláshoz nyomd meg a 'J' gombot. Bulira föl!",
+            "Nyomd meg a 'Bal Ctrl'-t és hódítsd meg sárkányrepülőddel az eget!",
+            "A Veloren még mindig előzetes alfában van. Igyekszünk mindent megtenni annak érdekében, hogy napról-napra jobb és jobb legyen!",
+            "Szeretnél a feljesztői csapat tagja lenni, vagy netán csak csevegnél velünk? Csatlakozz a Discord szerverünkhöz!",
+            "A beállításokban azt is eldöntheted, hogy megjelenjen-e az életerőd mennyisége az életerő sávban, vagy sem.",
+            "Ha lehuppansz (a 'K' gombbal) egy tábortűz mellé szép lassan be fognak gyógyulni a sebeid.",
+            "Több holmitartóra vagy jobb páncélzatra van szükséged? Nyomd meg a 'C' gombot, és nézz szét a tárgykészítési menüben!",
+            "Próbálj meg ugrani egyet, miközben keresztülbukfencezel másokon!",
+        ],
     }
 )
