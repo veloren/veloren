@@ -70,6 +70,13 @@ impl Lantern {
 pub struct Glider {
     pub kind: String,
 }
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum QualityKind {
+    Direct(Quality),
+    Modular,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Copy, PartialOrd, Ord)]
 pub enum Quality {
     Low,       // Grey
@@ -436,7 +443,7 @@ pub struct ItemDef {
     pub name: ItemName,
     pub description: String,
     pub kind: ItemKind,
-    pub quality: Quality,
+    pub quality: QualityKind,
     pub tags: Vec<ItemTag>,
     #[serde(default)]
     pub slots: u16,
@@ -632,7 +639,7 @@ struct RawItemDef {
     name: ItemName,
     description: String,
     kind: ItemKind,
-    quality: Quality,
+    quality: QualityKind,
     tags: Vec<ItemTag>,
     #[serde(default)]
     slots: u16,
@@ -885,7 +892,12 @@ impl Item {
     /// and if !self.is_stackable(), self.max_amount() = 1.
     pub fn max_amount(&self) -> u32 { if self.is_stackable() { u32::MAX } else { 1 } }
 
-    pub fn quality(&self) -> Quality { self.item_def.quality }
+    pub fn quality(&self) -> Quality {
+        match self.item_def.quality {
+            QualityKind::Direct(quality) => quality,
+            QualityKind::Modular => modular::resolve_quality(self),
+        }
+    }
 
     pub fn components(&self) -> &[Item] { &self.components }
 
@@ -932,7 +944,7 @@ pub trait ItemDesc {
     fn description(&self) -> &str;
     fn name(&self) -> Cow<'_, str>;
     fn kind(&self) -> &ItemKind;
-    fn quality(&self) -> &Quality;
+    fn quality(&self) -> Quality;
     fn num_slots(&self) -> u16;
     fn item_definition_id(&self) -> &str;
     fn tags(&self) -> &[ItemTag];
@@ -956,7 +968,7 @@ impl ItemDesc for Item {
 
     fn kind(&self) -> &ItemKind { &self.item_def.kind }
 
-    fn quality(&self) -> &Quality { &self.item_def.quality }
+    fn quality(&self) -> Quality { self.quality() }
 
     fn num_slots(&self) -> u16 { self.item_def.slots }
 
@@ -986,7 +998,12 @@ impl ItemDesc for ItemDef {
 
     fn kind(&self) -> &ItemKind { &self.kind }
 
-    fn quality(&self) -> &Quality { &self.quality }
+    fn quality(&self) -> Quality {
+        match &self.quality {
+            QualityKind::Direct(quality) => *quality,
+            QualityKind::Modular => Quality::Common,
+        }
+    }
 
     fn num_slots(&self) -> u16 { self.slots }
 
@@ -1015,7 +1032,7 @@ impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
 
     fn kind(&self) -> &ItemKind { (*self).kind() }
 
-    fn quality(&self) -> &Quality { (*self).quality() }
+    fn quality(&self) -> Quality { (*self).quality() }
 
     fn num_slots(&self) -> u16 { (*self).num_slots() }
 

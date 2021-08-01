@@ -1,6 +1,6 @@
 use super::{
     tool::{self, Hands},
-    Item, ItemKind, ItemName, ItemTag, Quality, RawItemDef, TagExampleInfo, ToolKind,
+    Item, ItemKind, ItemName, ItemTag, RawItemDef, TagExampleInfo, ToolKind,
 };
 use crate::recipe::{RawRecipe, RawRecipeBook, RawRecipeInput};
 use hashbrown::HashMap;
@@ -121,12 +121,11 @@ fn make_weapon_def(toolkind: ToolKind) -> (String, RawItemDef) {
         stats: tool::StatKind::Modular,
     };
     let kind = ItemKind::Tool(tool);
-    let quality = Quality::Common;
     let item = RawItemDef {
         name,
         description: "".to_string(),
         kind,
-        quality,
+        quality: super::QualityKind::Modular,
         tags: Vec::new(),
         slots: 0,
         ability_spec: None,
@@ -175,13 +174,12 @@ fn make_tagexample_def(
         // TODO: Iterate over components
         item_ids: Vec::new(),
     };
-    let quality = Quality::Common;
 
     let item = RawItemDef {
         name,
         description: "".to_string(),
         kind,
-        quality,
+        quality: super::QualityKind::Modular,
         tags: vec![ItemTag::ModularComponent(tag)],
         slots: 0,
         ability_spec: None,
@@ -323,4 +321,10 @@ pub(super) fn modular_name<'a>(item: &'a Item, arg1: &'a str) -> Cow<'a, str> {
         },
         _ => Cow::Borrowed("Modular Item"),
     }
+}
+
+pub(super) fn resolve_quality(item: &Item) -> super::Quality {
+    item.components
+        .iter()
+        .fold(super::Quality::Common, |a, b| a.max(b.quality()))
 }

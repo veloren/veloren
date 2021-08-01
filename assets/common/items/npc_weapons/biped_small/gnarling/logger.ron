@@ -15,7 +15,7 @@ ItemDef(
             buff_strength: 1.0,
         )),
     )),
-    quality: Low,
+    quality: Direct(Low),
     tags: [],
     // TODO: Later investigate if we want to make this back to a simple axe when more things need a simpler axe ability set
     ability_spec: Some(Custom("Gnarling Axe")),

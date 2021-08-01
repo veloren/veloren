@@ -6,6 +6,6 @@ ItemDef(
         stats: (
         ),
     )),
-    quality: Common,
+    quality: Direct(Common),
     tags: [],
 )

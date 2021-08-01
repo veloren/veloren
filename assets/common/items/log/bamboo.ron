@@ -5,6 +5,6 @@ ItemDef(
         kind: "Bamboo",
         descriptor: "Bamboo",
     ),
-    quality: Common,
+    quality: Direct(Common),
     tags: [],
 )

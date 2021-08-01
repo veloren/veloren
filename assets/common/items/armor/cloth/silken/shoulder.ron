@@ -10,7 +10,7 @@ ItemDef(
             stealth: Some(0.1),
         ),
     )),
-    quality: Moderate,
+    quality: Direct(Moderate),
     tags: [
         Material(Silk),
         SalvageInto(Silk),

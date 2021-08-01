@@ -10,7 +10,7 @@ ItemDef(
             stealth: Some(0.051),
         ),
     )),
-    quality: Low,
+    quality: Direct(Low),
     tags: [
         Material(Linen),
         SalvageInto(Linen),

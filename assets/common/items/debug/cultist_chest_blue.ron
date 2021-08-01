@@ -8,6 +8,6 @@ ItemDef(
             ),
         )
     ),
-    quality: Debug,
+    quality: Direct(Debug),
     tags: [],
 )

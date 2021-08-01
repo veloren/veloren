@@ -5,6 +5,6 @@ ItemDef(
         kind: "Linen",
         descriptor: "Linen",
     ),
-    quality: Low,
+    quality: Direct(Low),
     tags: [Textile],
 )

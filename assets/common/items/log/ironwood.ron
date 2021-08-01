@@ -5,6 +5,6 @@ ItemDef(
         kind: "IronwoodLogs",
         descriptor: "Ironwood",
     ),
-    quality: High,
+    quality: Direct(High),
     tags: [],
 )

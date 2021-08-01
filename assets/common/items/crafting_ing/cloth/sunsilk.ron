@@ -5,6 +5,6 @@ ItemDef(
         kind: "Sunsilk",
         descriptor: "Sunsilken",
     ),
-    quality: Legendary,
+    quality: Direct(Legendary),
     tags: [Textile],
 )

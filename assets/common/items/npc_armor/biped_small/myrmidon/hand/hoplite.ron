@@ -12,6 +12,6 @@ ItemDef(
             stealth: Some(0.04),
         ),
     )),
-    quality: Low,
+    quality: Direct(Low),
     tags: [],
 )

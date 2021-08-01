@@ -10,7 +10,7 @@ ItemDef(
             stealth: Some(0.2),
         ),
     )),
-    quality: High,
+    quality: Direct(High),
     tags: [
         Material(Lifecloth),
         SalvageInto(Lifecloth),

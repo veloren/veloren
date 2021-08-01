@@ -8,7 +8,7 @@ ItemDef(
             ),
         )
     ),
-    quality: Common,
+    quality: Direct(Common),
     tags: [Bag],
     slots: 6,
 )

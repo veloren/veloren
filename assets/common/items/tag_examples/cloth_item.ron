@@ -20,6 +20,6 @@ ItemDef(
             "common.items.armor.cloth_purple.shoulder",
         ],
     ),
-    quality: Common,
+    quality: Direct(Common),
     tags: [],
 )

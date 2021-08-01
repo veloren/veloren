@@ -6,6 +6,6 @@ ItemDef(
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Low,
+    quality: Direct(Low),
     tags: [Textile],
 )

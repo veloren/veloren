@@ -5,6 +5,6 @@ ItemDef(
         kind: "FrostwoodLogs",
         descriptor: "Frostwood",
     ),
-    quality: Common,
+    quality: Direct(Common),
     tags: [],
 )

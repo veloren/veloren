@@ -4,6 +4,6 @@ ItemDef(
     kind: Throwable(
         kind: Firework(Purple),
     ),
-    quality: Moderate,
+    quality: Direct(Moderate),
     tags: [Utility],
 )

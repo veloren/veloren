@@ -6,6 +6,6 @@ ItemDef(
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: High,
+    quality: Direct(High),
     tags: [Potion],
 )

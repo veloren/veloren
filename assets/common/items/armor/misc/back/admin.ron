@@ -8,6 +8,6 @@ ItemDef(
             poise_resilience: Some(Invincible),
         ),
     )),
-    quality: Debug,
+    quality: Direct(Debug),
     tags: [],
 )

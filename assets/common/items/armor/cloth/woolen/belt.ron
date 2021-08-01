@@ -10,7 +10,7 @@ ItemDef(
             stealth: Some(0.017),
         ),
     )),
-    quality: Common,
+    quality: Direct(Common),
     tags: [
         Material(Wool),
         SalvageInto(Wool),

@@ -11,7 +11,7 @@ ItemDef(
             "common.items.armor.cultist.shoulder",
         ],
     ),
-    quality: Common,
+    quality: Direct(Common),
     tags: [],
 )
 

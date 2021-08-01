@@ -9,7 +9,7 @@ ItemDef(
             stealth: Some(0.133),
         ),
     )),
-    quality: High,
+    quality: Direct(High),
     tags: [
         Material(Carapace),
         SalvageInto(Carapace),

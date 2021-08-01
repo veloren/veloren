@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Normal(4.0)),
         ),
     )),
-    quality: High,
+    quality: Direct(High),
     tags: [
         Material(Leather),
         SalvageInto(Leather),

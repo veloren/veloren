@@ -10,6 +10,6 @@ ItemDef(
             energy_reward: Some(1.0),
         ),
     )),
-    quality: Moderate,
+    quality: Direct(Moderate),
     tags: [],
 )

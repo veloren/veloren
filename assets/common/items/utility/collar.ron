@@ -5,6 +5,6 @@ ItemDef(
         kind: Collar,
     ),
     amount: 1,
-    quality: Moderate,
+    quality: Direct(Moderate),
     tags: [Utility],
 )

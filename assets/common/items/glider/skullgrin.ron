@@ -6,6 +6,6 @@ ItemDef(
             kind: "Purple0",
         ),
     ),
-    quality: Legendary,
+    quality: Direct(Legendary),
     tags: [],
 )

@@ -6,7 +6,7 @@ ItemDef(
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Common,
+    quality: Direct(Common),
     tags: [],
 )
 

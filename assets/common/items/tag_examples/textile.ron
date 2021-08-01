@@ -11,7 +11,7 @@ ItemDef(
             "common.items.crafting_ing.cloth.sunsilk",
         ],
     ),
-    quality: Common,
+    quality: Direct(Common),
     tags: [],
 )
 

@@ -5,6 +5,6 @@ ItemDef(
         kind: "GoldIngot",
         descriptor: "Golden",
     ),
-    quality: Epic,
+    quality: Direct(Epic),
     tags: [MetalIngot],
 )

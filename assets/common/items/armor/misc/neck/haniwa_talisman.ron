@@ -8,6 +8,6 @@ ItemDef(
             poise_resilience: Some(Normal(2.0)),
         ),
     )),
-    quality: High,
+    quality: Direct(High),
     tags: [],
 )

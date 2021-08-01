@@ -28,6 +28,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: Epic,
+    quality: Direct(Epic),
     tags: [Food],
 )

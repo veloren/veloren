@@ -28,6 +28,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: Moderate,
+    quality: Direct(Moderate),
     tags: [Food],
 )

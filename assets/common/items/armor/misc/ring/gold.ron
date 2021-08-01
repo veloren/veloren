@@ -9,6 +9,6 @@ ItemDef(
             crit_power: Some(0.01),
         ),
     )),
-    quality: Moderate,
+    quality: Direct(Moderate),
     tags: [],
 )

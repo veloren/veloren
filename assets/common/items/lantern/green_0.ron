@@ -9,6 +9,6 @@ ItemDef(
             flicker_thousandths: 250,
         ),
     ),
-    quality: Common,
+    quality: Direct(Common),
     tags: [Utility],
 )

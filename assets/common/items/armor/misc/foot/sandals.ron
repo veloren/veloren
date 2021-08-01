@@ -6,7 +6,7 @@ ItemDef(
         stats: (
         ),
     )),
-    quality: Low,
+    quality: Direct(Low),
     tags: [
         Material(Linen),
         SalvageInto(Linen),

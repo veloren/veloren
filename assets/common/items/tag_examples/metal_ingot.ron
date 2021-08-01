@@ -12,7 +12,7 @@ ItemDef(
             "common.items.mineral.ingot.tin",
         ],
     ),
-    quality: Common,
+    quality: Direct(Common),
     tags: [],
 )
 

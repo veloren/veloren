@@ -178,7 +178,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     );
                     let ecs = state.ecs();
                     if let Some(group_id) = ecs.read_storage::<comp::Group>().get(entity) {
-                        announce_loot_to_group(group_id, ecs, entity, item_msg.name());
+                        announce_loot_to_group(group_id, ecs, entity, &item_msg.name());
                     }
                     comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Collected(item_msg))
                 },
@@ -208,7 +208,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 if let Some(group_id) =
                                     ecs.read_storage::<comp::Group>().get(entity)
                                 {
-                                    announce_loot_to_group(group_id, ecs, entity, item_msg.name());
+                                    announce_loot_to_group(group_id, ecs, entity, &item_msg.name());
                                 }
                                 comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Collected(
                                     item_msg,

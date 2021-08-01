@@ -5,6 +5,6 @@ ItemDef(
         kind: "BronzeIngot",
         descriptor: "Bronze",
     ),
-    quality: Low,
+    quality: Direct(Low),
     tags: [MetalIngot],
 )

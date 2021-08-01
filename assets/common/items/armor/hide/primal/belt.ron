@@ -9,7 +9,7 @@ ItemDef(
             stealth: Some(0.084),
         ),
     )),
-    quality: Epic,
+    quality: Direct(Epic),
     tags: [
         Material(Plate),
         SalvageInto(Plate),

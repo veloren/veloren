@@ -6,6 +6,6 @@ ItemDef(
             kind: "PlainCloth",
         ),
     ),
-    quality: Moderate,
+    quality: Direct(Moderate),
     tags: [],
 )

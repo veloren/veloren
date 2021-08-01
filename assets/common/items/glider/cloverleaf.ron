@@ -6,6 +6,6 @@ ItemDef(
             kind: "Starter",
         ),
     ),
-    quality: Moderate,
+    quality: Direct(Moderate),
     tags: [],
 )

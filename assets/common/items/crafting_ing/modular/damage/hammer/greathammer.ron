@@ -17,7 +17,7 @@ ItemDef(
         hand_restriction: Some(Two),
         weapon_name: "Greathammer",
     )),
-    quality: Common,
+    quality: Modular,
     tags: [
         ModularComponent((toolkind: Hammer, modkind: Damage, hands: Two)),
     ],

@@ -6,6 +6,6 @@ ItemDef(
             kind: "Leaves",
         ),
     ),
-    quality: Moderate,
+    quality: Direct(Moderate),
     tags: [],
 )

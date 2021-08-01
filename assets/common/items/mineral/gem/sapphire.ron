@@ -5,6 +5,6 @@ ItemDef(
         kind: "Sapphire",
         descriptor: "Sapphire",
     ),
-    quality: High,
+    quality: Direct(High),
     tags: [],
 )

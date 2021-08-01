@@ -6,6 +6,6 @@ ItemDef(
             kind: "ButterflyMorpho",
         ),
     ),
-    quality: High,
+    quality: Direct(High),
     tags: [],
 )

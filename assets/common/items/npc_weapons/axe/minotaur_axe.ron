@@ -15,7 +15,7 @@ ItemDef(
             buff_strength: 1.0,
         )),
     )),
-    quality: Legendary,
+    quality: Direct(Legendary),
     tags: [],
     ability_spec: Some(Custom("Minotaur")),
 )

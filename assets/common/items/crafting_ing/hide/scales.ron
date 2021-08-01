@@ -5,6 +5,6 @@ ItemDef(
         kind: "Scale",
         descriptor: "Scale",
     ),
-    quality: Moderate,
+    quality: Direct(Moderate),
     tags: [],
 )

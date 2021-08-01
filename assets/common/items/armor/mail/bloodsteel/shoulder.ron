@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Normal(10.0)),
         ),
     )),
-    quality: Epic,
+    quality: Direct(Epic),
     tags: [
         Material(Bloodsteel),
         SalvageInto(Bloodsteel),

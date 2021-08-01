@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(1.0)),
         ),
     )),
-    quality: Low,
+    quality: Direct(Low),
     tags: [
         Material(Linen),
         SalvageInto(Linen),

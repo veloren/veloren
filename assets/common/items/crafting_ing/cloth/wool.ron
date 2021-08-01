@@ -5,6 +5,6 @@ ItemDef(
         kind: "Wool",
         descriptor: "Woolen",
     ),
-    quality: Common,
+    quality: Direct(Common),
     tags: [Textile],
 )

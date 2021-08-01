@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Normal(1.0)),
         ),
     )),
-    quality: Low,
+    quality: Direct(Low),
     tags: [
         Material(Bronze),
         SalvageInto(Bronze),

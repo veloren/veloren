@@ -5,6 +5,6 @@ ItemDef(
         kind: "DragonScale",
         descriptor: "Dragon Scaled",
     ),
-    quality: Legendary,
+    quality: Direct(Legendary),
     tags: [],
 )

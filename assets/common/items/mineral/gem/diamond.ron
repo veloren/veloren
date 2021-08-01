@@ -5,6 +5,6 @@ ItemDef(
         kind: "Diamond",
         descriptor: "Diamond",
     ),
-    quality: Epic,
+    quality: Direct(Epic),
     tags: [],
 )

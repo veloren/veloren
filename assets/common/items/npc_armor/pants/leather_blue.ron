@@ -10,6 +10,6 @@ ItemDef(
             ),
         )
     ),
-    quality: Low,
+    quality: Direct(Low),
     tags: [],
 )

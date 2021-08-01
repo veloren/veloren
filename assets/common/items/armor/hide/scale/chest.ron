@@ -9,7 +9,7 @@ ItemDef(
             stealth: Some(0.3),
         ),
     )),
-    quality: Moderate,
+    quality: Direct(Moderate),
     tags: [
         Material(Scale),
         SalvageInto(Scale),

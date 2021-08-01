@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Normal(6.0)),
         ),
     )),
-    quality: Legendary,
+    quality: Direct(Legendary),
     tags: [
         Material(Orichalcum),
         SalvageInto(Orichalcum),

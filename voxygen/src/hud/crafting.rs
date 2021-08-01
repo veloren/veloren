@@ -467,7 +467,7 @@ impl<'a> Widget for Crafting<'a> {
                 },
                 SearchFilter::Input => recipe.inputs().any(|(input, _, _)| {
                     let input_name = match input {
-                        RecipeInput::Item(def) => Cow::Borrowed(def.name()),
+                        RecipeInput::Item(def) => Cow::Borrowed(&def.name()),
                         RecipeInput::Tag(tag) => tag.name(),
                         RecipeInput::TagSameItem(tag, _) => tag.name(),
                     }
@@ -707,7 +707,7 @@ impl<'a> Widget for Crafting<'a> {
             }
 
             // Output Image Frame
-            let quality_col_img = match recipe.output.0.quality {
+            let quality_col_img = match recipe.output.0.quality() {
                 Quality::Low => self.imgs.inv_slot_grey,
                 Quality::Common => self.imgs.inv_slot_common,
                 Quality::Moderate => self.imgs.inv_slot_green,
@@ -951,7 +951,7 @@ impl<'a> Widget for Crafting<'a> {
                 } else {
                     0.0
                 };
-                let quality_col_img = match &item_def.quality {
+                let quality_col_img = match &item_def.quality() {
                     Quality::Low => self.imgs.inv_slot_grey,
                     Quality::Common => self.imgs.inv_slot_common,
                     Quality::Moderate => self.imgs.inv_slot_green,

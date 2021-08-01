@@ -5,6 +5,6 @@ ItemDef(
         kind: "IronIngot",
         descriptor: "Iron",
     ),
-    quality: Common,
+    quality: Direct(Common),
     tags: [MetalIngot],
 )

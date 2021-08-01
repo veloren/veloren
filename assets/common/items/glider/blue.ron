@@ -6,6 +6,6 @@ ItemDef(
             kind: "Blue0",
         ),
     ),
-    quality: High,
+    quality: Direct(High),
     tags: [],
 )

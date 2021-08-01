@@ -15,7 +15,7 @@ ItemDef(
             buff_strength: 1.0,
         )),
     )),
-    quality: Low,
+    quality: Direct(Low),
     tags: [],
     ability_spec: Some(Custom("Bird Large Fire")),
 )

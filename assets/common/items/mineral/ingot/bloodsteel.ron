@@ -5,6 +5,6 @@ ItemDef(
         kind: "BloodsteelIngot",
         descriptor: "Bloodsteel",
     ),
-    quality: Epic,
+    quality: Direct(Epic),
     tags: [MetalIngot],
 )

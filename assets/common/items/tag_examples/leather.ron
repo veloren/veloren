@@ -8,7 +8,7 @@ ItemDef(
             "common.items.crafting_ing.leather.simple_leather",
         ],
     ),
-    quality: Common,
+    quality: Direct(Common),
     tags: [],
 )
 

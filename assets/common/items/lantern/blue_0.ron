@@ -9,6 +9,6 @@ ItemDef(
             flicker_thousandths: 300,
         ),
     ),
-    quality: High,
+    quality: Direct(High),
     tags: [Utility],
 )

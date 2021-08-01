@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(60.0)),
         ),
     )),
-    quality: Epic,
+    quality: Direct(Epic),
     tags: [
         Material(Moonweave),
     ],

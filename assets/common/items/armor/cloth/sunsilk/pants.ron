@@ -10,7 +10,7 @@ ItemDef(
             stealth: Some(0.2),
         ),
     )),
-    quality: Legendary,
+    quality: Direct(Legendary),
     tags: [
         Material(Sunsilk),
         SalvageInto(Sunsilk),

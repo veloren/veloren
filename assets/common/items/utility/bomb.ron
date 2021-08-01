@@ -4,6 +4,6 @@ ItemDef(
     kind: Throwable(
         kind: Bomb,
     ),
-    quality: Common,
+    quality: Direct(Common),
     tags: [Utility],
 )

@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(25.0)),
         ),
     )),
-    quality: High,
+    quality: Direct(High),
     tags: [
         Material(Carapace),
     ],

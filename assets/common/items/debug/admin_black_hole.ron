@@ -8,7 +8,7 @@ ItemDef(
             ),
         )
     ),
-    quality: Debug,
+    quality: Direct(Debug),
     tags: [],
     slots: 900,
 )

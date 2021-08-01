@@ -6,7 +6,7 @@ ItemDef(
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Epic,
+    quality: Direct(Epic),
     tags: [
     ],
 )

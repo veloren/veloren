@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Normal(1.5)),
         ),
     )),
-    quality: Moderate,
+    quality: Direct(Moderate),
     tags: [
         Material(Steel),
         SalvageInto(Steel),

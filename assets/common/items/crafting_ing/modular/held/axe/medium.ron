@@ -17,7 +17,7 @@ ItemDef(
         hand_restriction: None,
         weapon_name: "",
     )),
-    quality: Common,
+    quality: Direct(Common),
     tags: [
         ModularComponent((toolkind: Axe, modkind: Held, hands: One)),
         ModularComponent((toolkind: Axe, modkind: Held, hands: Two)),

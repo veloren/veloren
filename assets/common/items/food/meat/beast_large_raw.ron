@@ -17,6 +17,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: Common,
+    quality: Direct(Common),
     tags: [Food],
 )

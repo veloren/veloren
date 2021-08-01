@@ -9,7 +9,7 @@ ItemDef(
             stealth: Some(0.066),
         ),
     )),
-    quality: Low,
+    quality: Direct(Low),
     tags: [
         Material(Rawhide),
         SalvageInto(Rawhide),

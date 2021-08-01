@@ -5,6 +5,6 @@ ItemDef(
         kind: "OrichalcumIngot",
         descriptor: "Orichalcum",
     ),
-    quality: Legendary,
+    quality: Direct(Legendary),
     tags: [MetalIngot],
 )

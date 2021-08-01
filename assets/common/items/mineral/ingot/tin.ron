@@ -5,6 +5,6 @@ ItemDef(
         kind: "TinIngot",
         descriptor: "Tin",
     ),
-    quality: Common,
+    quality: Direct(Common),
     tags: [MetalIngot],
 )

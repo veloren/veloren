@@ -8,7 +8,7 @@ ItemDef(
             ),
         )
     ),
-    quality: Epic,
+    quality: Direct(Epic),
     tags: [Bag],
     slots: 27,
 )

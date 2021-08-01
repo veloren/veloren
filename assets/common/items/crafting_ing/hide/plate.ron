@@ -5,6 +5,6 @@ ItemDef(
         kind: "Plate",
         descriptor: "Plate",
     ),
-    quality: Epic,
+    quality: Direct(Epic),
     tags: [],
 )

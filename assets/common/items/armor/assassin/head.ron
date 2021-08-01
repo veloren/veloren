@@ -6,7 +6,7 @@ ItemDef(
         stats: (
         ),
     )),
-    quality: Moderate,
+    quality: Direct(Moderate),
     tags: [
         Material(Leather),
         SalvageInto(Leather),

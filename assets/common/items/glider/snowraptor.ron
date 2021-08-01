@@ -6,6 +6,6 @@ ItemDef(
             kind: "SnowRaptor",
         ),
     ),
-    quality: High,
+    quality: Direct(High),
     tags: [],
 )
