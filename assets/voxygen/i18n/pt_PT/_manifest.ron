@@ -26,10 +26,5 @@
             asset_key: "voxygen.font.haxrcorp_4089_cyrillic_altgr_extended",
             scale_ratio: 1.0,
         ),
-    },
-    string_map: {
-    },
-
-    vector_map: {
     }
 )

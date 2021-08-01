@@ -36,6 +36,9 @@ todo.txt
 userdata
 heaptrack.*
 
+# allow asset hud settings
+!assets/voxygen/i18n/*/hud/settings.ron
+
 # Export data
 *.csv
 

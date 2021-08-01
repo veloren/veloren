@@ -26,22 +26,5 @@
             asset_key: "voxygen.font.bdfUMplus-outline",
             scale_ratio: 0.75,
         ),
-    },
-    string_map: {
-        /// Start Common section
-
-        /// End Common section
-
-
-        /// Start Main screen section
-        /// End Main screen section
-
-
-        /// Start HUD Section
-
-    },
-
-    vector_map: {
-
-    },
+    }
 )

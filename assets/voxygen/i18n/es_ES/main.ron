@@ -64,5 +64,28 @@ https://veloren.net/account/."#,
 
 
     vector_map: {
+        "loading.tips": [
+            "Pulsa 'G' para encender tu linterna.",
+            "Pulsa 'F1' para ver todos las atajos de teclado predeterminados.",
+            "Puedes escribir /say o /s para chatear solo con jugadores que estén a tu alrededor.",
+            "Puedes escribir /region o /r para chatear con jugadores que se encuentren a cien bloques a tu alrededor.",
+            "Puedes escribir /group o /g para chatear con jugadores en tu grupo.",
+            "Para enviar mensajes privados escribe /tell seguido del nombre y tu mensaje.",
+            "NPCs con el mismo nivel pueden tener una dificultad diferente.",
+            "¡Observa el terreno en búsqueda de comida, cofres y botines!",
+            "¿Inventario lleno de comida? ¡Intenta elaborar comida mejorada con ella!",
+            "En busqueda de una aventura? ¡Prueba una de las mazmorras marcadas en el mapa!",
+            "No te olvides de ajustar los gráficos de tu pc. Pulsa 'N' para abrir la configuración.",
+            "¡Jugar con otros jugadores es mas divertido! Pulsa 'O' para ver quien esta en linea.",
+            "Un NPC con un cráneo debajo su barra de vida indica claramente que es mas poderoso que tu.",
+            "Pulsa 'J' para bailar. ¡Fiesta!",
+            "Pulsa 'Shift-Izquierdo' para desplegar tu planeador y conquistar los cielos",
+            "Veloren se encuentra todavia en Pre-Alpha. ¡Hacemos todo lo posible para mejorar la experiencia de juego día a día!",
+            "Si quieres unirte al equipo de desarrollo o solo conversar con nosotros, únete a nuestro servidor en Discord.",
+            "Puedes mostrar o ocultar tu total de salud en la barra de salud en configuración.",
+            "Para ver tus atributos, haz clic en el botón 'Atributos' del inventario.",
+            "Siéntate cerca de una fogata (con la tecla 'K') para descansar - recibirás una lenta sanación periódicamente.",            "Need more bags or better armor to continue your journey? Press 'C' to open the crafting menu!",
+            "¿Necesitas más mochilas o mejores armaduras para continuar tu viaje? Pulsa 'C' para abrir el menú de elaboración.",
+        ],
     }
 )

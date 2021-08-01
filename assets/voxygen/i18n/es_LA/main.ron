@@ -59,5 +59,25 @@ https://veloren.net/account/."#,
 
 
     vector_map: {
+        "loading.tips": [
+            "Presiona 'G' para encender tu linterna.",
+            "Presiona 'F1' para ver los controles predeterminados.",
+            "Puedes escribir /say o /s para chatear solo con jugadores alrededor tuyo.",
+            "Puedes escribr /region o /r para chatear solo con jugadores que están a unos cien bloques alrededor tuyo.",
+            "Para enviar mensajes privados escribe /tell seguido de el nombre de un jugador y luego tu mensaje.",
+            "NPCs con el mismo nivel pueden tener una dificultad diferente.",
+            "Observa el terreno en búsqueda de comida, cofres y botines!",
+            "¿Inventario lleno de comida? Intenta craftear mejor comida con ella!",
+            "¿Te preguntas dónde debes hacerlo? Los Dungeons están marcados con puntos marrones en el mapa!",
+            "No te olvides de ajustar los gráficos de tu pc. Presiona 'N' para abrir la configuración.",
+            "Jugar con otros es divertido! Presiona 'O' para ver quien esta conectado.",
+            "Un NPC con un craneo debajo de su barra de vida es bastante más poderoso comparado contigo.",
+            "Presiona 'J' para bailar. Fiesta!",
+            "Presiona 'Shift-Izquierdo' para abrir tu planeador y conquistar los cielos.",
+            "Veloren está aún en Alfa temprana. Hacemos lo mejor para mejorar día a día!",
+            "Si te quieres unir al equipo de desarrolladores o solo chatear con nosotros, únete a nuestro servidor en Discord.",
+            "Puedes elegir mostrar tu cantidad de vida en la barra de vida en la configuración.",
+            "Para ver tus estadísticas, haz click en el botón 'Estadísticas' en el inventario.",
+        ],
     }
 )
