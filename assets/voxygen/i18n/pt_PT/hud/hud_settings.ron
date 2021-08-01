@@ -14,7 +14,7 @@
         "hud.settings.relative_scaling": "Escala relativa",
         "hud.settings.custom_scaling": "Escala customizada",
         "hud.settings.crosshair": "Crosshair",
-        "hud.settings.transparency": "Transparência",
+        "hud.settings.opacity": "Transparência",
         "hud.settings.hotbar": "Hotbar",
         "hud.settings.toggle_shortcuts": "Mostar/Ocultar atalhos",
         "hud.settings.toggle_bar_experience": "Mostar/Ocultar barra de experiência",
@@ -27,7 +27,7 @@
         "hud.settings.values": "Valores",
         "hud.settings.percentages": "Percentagens",
         "hud.settings.chat": "Chat",
-        "hud.settings.background_transparency": "Transparência do fundo",
+        "hud.settings.background_opacity": "Transparência do fundo",
 
         "hud.settings.pan_sensitivity": "Sensibilidade de rotação",
         "hud.settings.zoom_sensitivity": "Sensibilidade de zoom",

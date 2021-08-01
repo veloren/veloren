@@ -15,7 +15,7 @@
         "hud.settings.relative_scaling": "Otomatik Ölçek",
         "hud.settings.custom_scaling": "Sabit Ölçek",
         "hud.settings.crosshair": "İmleç tipi",
-        "hud.settings.transparency": "Şeffaflık",
+        "hud.settings.opacity": "Şeffaflık",
         "hud.settings.hotbar": "Aksiyon Çubuğu",
         "hud.settings.toggle_shortcuts": "Kısayolları aç/kapa",
         "hud.settings.buffs_skillbar": "Etkiler yetenek çubuğunun üstünde",
@@ -33,7 +33,7 @@
         "hud.settings.values": "Sayılar",
         "hud.settings.percentages": "Yüzdeler",
         "hud.settings.chat": "Sohbet",
-        "hud.settings.background_transparency": "Arkaplan Şeffaflığı",
+        "hud.settings.background_opacity": "Arkaplan Şeffaflığı",
         "hud.settings.chat_character_name": "Sohbette karakter isimlerini göster",
         "hud.settings.loading_tips": "Yükleme ekranı ipuçları",
 

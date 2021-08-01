@@ -14,7 +14,7 @@
         "hud.settings.relative_scaling": "Relativ Skalering",
         "hud.settings.custom_scaling": "Tilpasset Skalering",
         "hud.settings.crosshair": "Retikkel",
-        "hud.settings.transparency": "Gjennomsiktighet",
+        "hud.settings.opacity": "Gjennomsiktighet",
         "hud.settings.hotbar": "Hurtigknappsbar",
         "hud.settings.toggle_shortcuts": "Veksle Snarveier",
         "hud.settings.buffs_skillbar": "Ikoner på Ferdighetsbar",
@@ -32,7 +32,7 @@
         "hud.settings.values": "Verdier",
         "hud.settings.percentages": "Prosentandeler",
         "hud.settings.chat": "Chat",
-        "hud.settings.background_transparency": "Bakgrunnsgjennomsiktighet",
+        "hud.settings.background_opacity": "Bakgrunnsgjennomsiktighet",
         "hud.settings.chat_character_name": "Karakternavn i chat",
         "hud.settings.loading_tips": "Oppstartsskjerm Tips",
 

@@ -207,8 +207,8 @@ impl SettingsChange {
             SettingsChange::Chat(chat_change) => {
                 let chat_tabs = &mut settings.chat.chat_tabs;
                 match chat_change {
-                    Chat::Transp(chat_transp) => {
-                        settings.chat.chat_transp = chat_transp;
+                    Chat::Transp(chat_opacity) => {
+                        settings.chat.chat_opacity = chat_opacity;
                     },
                     Chat::CharName(chat_char_name) => {
                         settings.chat.chat_character_name = chat_char_name;
@@ -453,8 +453,8 @@ impl SettingsChange {
                     Interface::ToggleTips(loading_tips) => {
                         settings.interface.loading_tips = loading_tips;
                     },
-                    Interface::CrosshairTransp(crosshair_transp) => {
-                        settings.interface.crosshair_transp = crosshair_transp;
+                    Interface::CrosshairTransp(crosshair_opacity) => {
+                        settings.interface.crosshair_opacity = crosshair_opacity;
                     },
                     Interface::CrosshairType(crosshair_type) => {
                         settings.interface.crosshair_type = crosshair_type;

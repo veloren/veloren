@@ -14,7 +14,7 @@
         "hud.settings.relative_scaling": "Escalado Relativo",
         "hud.settings.custom_scaling": "Escalado Personalizado",
         "hud.settings.crosshair": "Mira",
-        "hud.settings.transparency": "Transparencia",
+        "hud.settings.opacity": "Transparencia",
         "hud.settings.hotbar": "Inventario Rápido",
         "hud.settings.toggle_shortcuts": "Alternar Atajos",
         "hud.settings.buffs_skillbar": "Buffs en la barra de habilidades.",
@@ -32,7 +32,7 @@
         "hud.settings.values": "Valores",
         "hud.settings.percentages": "Porcentajes",
         "hud.settings.chat": "Chat",
-        "hud.settings.background_transparency": "Transparencia del Fondo",
+        "hud.settings.background_opacity": "Transparencia del Fondo",
         "hud.settings.chat_character_name": "Nombres de Personajes en el chat",
         "hud.settings.loading_tips": "Consejos en Pantalla de Carga",
 

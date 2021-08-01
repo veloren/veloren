@@ -69,7 +69,7 @@ impl Default for ChatFilter {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct ChatSettings {
-    pub chat_transp: f32,
+    pub chat_opacity: f32,
     pub chat_character_name: bool,
     pub chat_tabs: Vec<ChatTab>,
     pub chat_tab_index: Option<usize>,
@@ -78,7 +78,7 @@ pub struct ChatSettings {
 impl Default for ChatSettings {
     fn default() -> Self {
         Self {
-            chat_transp: 0.4,
+            chat_opacity: 0.4,
             chat_character_name: true,
             chat_tabs: vec![ChatTab::default()],
             chat_tab_index: Some(0),

@@ -1143,7 +1143,7 @@ impl Hud {
                         1.0,
                         1.0,
                         1.0,
-                        self.crosshair_opacity * global_state.settings.interface.crosshair_transp,
+                        self.crosshair_opacity * global_state.settings.interface.crosshair_opacity,
                     )))
                     .set(self.ids.crosshair_outer, ui_widgets);
                     Image::new(self.imgs.crosshair_inner)
