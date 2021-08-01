@@ -70,7 +70,7 @@ impl<'a> CanvasInfo<'a> {
                     // TODO: Very dumb, not this.
                     let seed = pos.x as u32 | (pos.y as u32).wrapping_shl(16);
 
-                    (wpos, spot, seed)
+                    (wpos, spot, seed ^ 0xA801D82E)
                 })
             })
     }
@@ -193,15 +193,20 @@ impl<'a> Canvas<'a> {
     /// Note that this function should be called with identitical parameters by
     /// all chunks within the bounds of the structure to avoid cut-offs
     /// occurring at chunk borders. Deterministic RNG is advised!
-    pub fn blit_structure(&mut self, origin: Vec3<i32>, structure: &Structure, seed: u32) {
-        let aabr = Aabr {
-            min: origin.xy() + structure.get_bounds().min.xy(),
-            max: origin.xy() + structure.get_bounds().max.xy(),
-        };
+    pub fn blit_structure(
+        &mut self,
+        origin: Vec3<i32>,
+        structure: &Structure,
+        seed: u32,
+        units: Vec2<Vec2<i32>>,
+    ) {
         let info = self.info();
-        self.foreach_col_area(aabr, |canvas, wpos2d, col| {
+        self.foreach_col(|canvas, wpos2d, col| {
+            let rpos2d = wpos2d - origin.xy();
+            let rpos2d = units.x * rpos2d.x + units.y * rpos2d.y;
+
             for z in structure.get_bounds().min.z..structure.get_bounds().max.z {
-                if let Ok(sblock) = structure.get((wpos2d - origin.xy()).with_z(z)) {
+                if let Ok(sblock) = structure.get(rpos2d.with_z(z)) {
                     let _ = canvas.map(wpos2d.with_z(origin.z + z), |block| {
                         if let Some(block) = block_from_structure(
                             info.index,

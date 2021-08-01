@@ -1,6 +1,6 @@
 use crate::{
     sim::{SimChunk, WorldSim},
-    util::seed_expan,
+    util::{seed_expan, Sampler, UnitChooser},
     Canvas,
 };
 use common::{
@@ -132,6 +132,8 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
     for (spot_wpos2d, spot, seed) in nearby_spots.iter().copied() {
         let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
 
+        let units = UnitChooser::new(seed).get(seed).into();
+
         #[derive(Default)]
         struct SpotConfig<'a> {
             // The manifest containing a list of possible base structures for the spot (one will be
@@ -171,7 +173,7 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                     .map(|c| c.alt as i32)
                     .unwrap_or(0),
             );
-            canvas.blit_structure(origin, &structure, seed);
+            canvas.blit_structure(origin, &structure, seed, units);
         }
 
         // Spawn entities
