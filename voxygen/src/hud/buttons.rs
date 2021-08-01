@@ -126,13 +126,7 @@ impl<'a> Widget for Buttons<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         common_base::prof_span!("Buttons::update");
         let widget::UpdateArgs { state, ui, .. } = args;
-        let invs = self.client.inventories();
-        let inventory = match invs.get(self.client.entity()) {
-            Some(inv) => inv,
-            None => return None,
-        };
         let localized_strings = self.localized_strings;
-        let arrow_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
 
         let button_tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
@@ -197,6 +191,11 @@ impl<'a> Widget for Buttons<'a> {
                 state.ids.bag_text,
             );
         }
+        let invs = self.client.inventories();
+        let inventory = match invs.get(self.client.entity()) {
+            Some(inv) => inv,
+            None => return None,
+        };
         if !self.show_bag {
             let space_used = inventory.populated_slots();
             let space_max = inventory.slots().count();
@@ -357,6 +356,7 @@ impl<'a> Widget for Buttons<'a> {
         }
         // Unspent SP indicator
         if unspent_sp {
+            let arrow_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
             Image::new(self.imgs.sp_indicator_arrow)
                 .w_h(20.0, 11.0)
                 .graphics_for(state.ids.spellbook_button)
