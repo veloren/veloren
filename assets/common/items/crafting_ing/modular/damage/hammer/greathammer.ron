@@ -1,6 +1,6 @@
 ItemDef(
     name: Component("Greathammer Head"),
-    description: "A hammer head made of metal.",
+    description: "",
     kind: ModularComponent((
         toolkind: Hammer,
         modkind: Damage,

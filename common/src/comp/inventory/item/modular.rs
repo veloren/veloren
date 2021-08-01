@@ -115,7 +115,6 @@ const HANDS: [Hands; 2] = [Hands::One, Hands::Two];
 fn make_weapon_def(toolkind: ToolKind) -> (String, RawItemDef) {
     let identifier = format!("{}.{}", WEAPON_PREFIX, toolkind.identifier_name());
     let name = ItemName::Modular;
-    let description = format!("A {} made of components", toolkind.identifier_name());
     let tool = tool::Tool {
         kind: toolkind,
         hands: tool::HandsKind::Modular,
@@ -125,7 +124,7 @@ fn make_weapon_def(toolkind: ToolKind) -> (String, RawItemDef) {
     let quality = Quality::Common;
     let item = RawItemDef {
         name,
-        description,
+        description: "".to_string(),
         kind,
         quality,
         tags: Vec::new(),
@@ -172,11 +171,6 @@ fn make_tagexample_def(
     };
     // TODO: i18n
     let name = ItemName::Direct(format!("Any {}", tag.name()));
-    let description = format!(
-        "{}s used to make {}s",
-        tag.name(),
-        toolkind.identifier_name()
-    );
     let kind = ItemKind::TagExamples {
         // TODO: Iterate over components
         item_ids: Vec::new(),
@@ -185,7 +179,7 @@ fn make_tagexample_def(
 
     let item = RawItemDef {
         name,
-        description,
+        description: "".to_string(),
         kind,
         quality,
         tags: vec![ItemTag::ModularComponent(tag)],

@@ -1,6 +1,6 @@
 ItemDef(
     name: Component("Jagged Axe Head"),
-    description: "An axe head made of metal.",
+    description: "",
     kind: ModularComponent((
         toolkind: Axe,
         modkind: Damage,

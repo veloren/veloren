@@ -1,6 +1,6 @@
 ItemDef(
     name: Component("Short Hammer Haft"),
-    description: "A hammer haft.",
+    description: "",
     kind: ModularComponent((
         toolkind: Hammer,
         modkind: Held,
