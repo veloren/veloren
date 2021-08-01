@@ -1,0 +1,39 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Polish
+(
+    string_map: {
+        // Inventory
+        "hud.bag.glider": "Glider",
+        "hud.bag.bag": "Batoh",
+        "hud.bag.health": "Život",
+        "hud.bag.energy": "Výdrž",
+        "hud.bag.combat_rating": "Bojové hodnocení",
+        "hud.bag.protection": "Ochrana",
+        "hud.bag.combat_rating_desc": "Vypočítáno z života/zbroje.",
+        "hud.bag.protection_desc": "Redukce poškození přes brnení",
+        "hud.bag.inventory": "Inventář {playername}",
+        "hud.bag.stats_title": "Statistiky {playername}",
+        "hud.bag.exp": "Zkušenosti",
+        "hud.bag.armor": "Výzbroj",
+        "hud.bag.stats": "Statistiky",
+        "hud.bag.head": "Hlava",
+        "hud.bag.neck": "Krk",
+        "hud.bag.tabard": "Tabard",
+        "hud.bag.shoulders": "Ramena",
+        "hud.bag.chest": "Hruď",
+        "hud.bag.hands": "Ruce",
+        "hud.bag.lantern": "Lampa",
+        "hud.bag.belt": "Pas",
+        "hud.bag.ring": "Prsten",
+        "hud.bag.back": "Záda",
+        "hud.bag.legs": "Nohy",
+        "hud.bag.feet": "Chodidla",
+        "hud.bag.mainhand": "Hlavní Ruka",
+        "hud.bag.offhand": "Druhá Ruka",
+    },
+
+
+    vector_map: {
+    }
+)

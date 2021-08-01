@@ -1,0 +1,63 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for norsk bokmål
+(
+    string_map: {
+        "main.username": "Brukernavn",
+        "main.server": "Server",
+        "main.password": "Passord",
+        "main.connecting": "Kobler til",
+        "main.creating_world": "Lager verden",
+        "main.tip": "Tips:",
+
+        // Welcome notice that appears the first time Veloren is started
+        "main.notice": r#"Velkommen til alfaversjonen av Veloren!
+
+Før du dykker inn i moroa, vennligst hold et par ting i tankene:
+
+- Dette er en veldig tidlig alfa. Forvent feil, ekstremt uferdig spilling, upolert mekanikk og manglende funksjoner.
+
+- Hvis du har konstruktive tilbakemeldinger eller feilrapporter, kan du kontakte oss via Reddit, GitLab eller vår Discord-server.
+
+- Veloren er lisensiert under GPL 3 åpen kildekode-lisensen. Det betyr at du er fri til å spille, endre og distribuere spillet på nytt, akkurat
+ som du ønsker (så lenge arbeidet også er under GPL 3).
+
+- Veloren er et ikke-profitt basert samfunnsprosjekt, og alle som jobber på prosjektet er frivillige.
+Hvis du liker det du ser, er du velkommen til å bli med i utviklings- eller kunstteamene!
+
+Takk for at du tar deg tid til å lese denne meldingen, vi håper at du liker spillet!
+
+- Veloren-utviklerne"#,
+
+        // Login process description
+        "main.login_process": r#"Informasjon om påloggingsprosessen:
+
+Vær oppmerksom på at du nå trenger en konto
+for å spille på godkjennings-aktiverte servere.
+
+Du kan opprette en konto på
+
+https://veloren.net/account/."#,
+        "main.login.server_not_found": "Server ikke funnet",
+        "main.login.authentication_error": "Innloggingsfeil på serveren",
+        "main.login.server_full": "Serveren er full",
+        "main.login.untrusted_auth_server": "Godkjenningsserver kan ikke stoles på",
+        "main.login.outdated_client_or_server": "Sannsynligvis er versjoner inkompatible, se etter oppdateringer.",
+        "main.login.timeout": "Serveren svarte ikke i tide. (Overbelastet eller nettverksproblemer).",
+        "main.login.server_shut_down": "Serveren stoppet",
+        "main.login.network_error": "Nettverksfeil",
+        "main.login.failed_sending_request": "Forespørsel til godkjenningsserver mislyktes",
+        "main.login.invalid_character": "Den valgte karakteren er ugyldig",
+        "main.login.client_crashed": "Klienten krasjet",
+        "main.login.not_on_whitelist": "Du trenger en hvitelisteoppføring av en administrator for å bli med",
+        "main.login.banned": "Du har blitt utestengt av følgende grunn",
+        "main.login.kicked": "Du har blitt sparket ut av følgende grunn",
+        "main.login.select_language": "Velg språk",
+
+        "main.servers.select_server": "Velg en server",
+    },
+
+
+    vector_map: {
+    }
+)

@@ -1,0 +1,71 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Latin-American
+(
+    string_map: {
+        // Texts used in multiple locations with the same formatting
+        "common.username": "Usuario",
+        "common.singleplayer": "Un Jugador",
+        "common.multiplayer": "Multijugador",
+        "common.servers": "Servidores",
+        "common.quit": "Salir",
+        "common.settings": "Configuración",
+        "common.languages": "Idiomas",      //this one is repeated in en.ron (53 and 59)
+        "common.interface": "Interfaz",
+        "common.gameplay": "Jugabilidad",
+        "common.controls": "Controles",
+        "common.video": "Gráficos",
+        "common.sound": "Sonido",
+        "common.resume": "Continuar",
+        "common.characters": "Personajes",
+        "common.close": "Cerrar",
+        "common.yes": "Sí",
+        "common.no": "No",
+        "common.back": "Volver",
+        "common.create": "Crear",
+        "common.okay": "Ok",
+        "common.add": "Agregar",
+        "common.accept": "Aceptar",
+        "common.decline": "Rechazar",
+        "common.disclaimer": "Cuidado",
+        "common.cancel": "Cancelar",
+        "common.none": "Ninguno",
+        "common.error": "Error",
+        "common.fatal_error": "Error Fatal",
+        "common.you": "Tú",
+        "common.automatic": "Automático",
+        "common.random": "Aleatorio",
+        // Settings Window title
+        "common.interface_settings": "Ajustes de Interfaz",
+        "common.gameplay_settings": "Ajustes de Jugabilidad",
+        "common.controls_settings": "Ajustes de Controles",
+        "common.video_settings": "Ajustes de Graficos",
+        "common.sound_settings": "Ajustes de Sonido",
+        "common.language_settings": "Ajustes de Idiomas",
+
+        // Message when connection to the server is lost
+        "common.connection_lost": r#"Conexión perdida!
+Se reinició el servidor?
+El cliente está actualizado?"#,
+
+
+        "common.species.orc": "Orco",
+        "common.species.human": "Humano",
+        "common.species.dwarf": "Enano",
+        "common.species.elf": "Elfo",
+        "common.species.undead": "No-Muerto",
+        "common.species.danari": "Danari",
+
+        "common.weapons.axe": "Hacha",
+        "common.weapons.sword": "Espada",
+        "common.weapons.staff": "Vara Mágica",
+        "common.weapons.bow": "Arco",
+        "common.weapons.hammer": "Martillo",
+        "common.weapons.sceptre": "Cetro curativo",
+        "common.rand_appearance": "Nombre y Apariencia Aleatoria",
+    },
+
+
+    vector_map: {
+    }
+)

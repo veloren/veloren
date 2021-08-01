@@ -1,0 +1,67 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Polish
+(
+    string_map: {
+        /// Start Main screen section
+        "main.connecting": "Připojování",
+        "main.creating_world": "Tvorba Světa",
+
+        // Welcome notice that appears the first time Veloren is started
+        "main.notice": r#"Vítejte v alfa verzi Veloren!
+
+Než začnete, mějte na paměti, že:
+
+- Hra je v rané verzi alfa. Očekávejte chyby, extrémně nedokončený příběh, nedostatečně rozvinuté mechaniky a chybějící funkce.
+
+- Pokud se chcete podělit o svůj názor, máte návrhy nebo nápady nebo chcete nahlásit chybu, můžete nás kontaktovat prostřednictvím Redditu, GitLabu nebo Discordu.
+
+- Veloren je licencován pod licencí open source GPL 3. To znamená, že máte právo hru upravovat a distribuovat, jakkoliv chcete (pokud je vaše práce licencována také pod GPL 3).
+
+- Veloren je neziskový projekt, kde je každý pracující člověk dobrovolníkem. Pokud se vám tato hra líbí, připojte se k našemu týmu!
+
+Děkujeme za přečtení této zprávy a doufáme, že se vám tato hra bude líbit!
+
+~ Tvůrci Veloren"#,
+
+        // Login process description
+        "main.login_process": r#"Informace o procesu přihlášení:
+
+Pokud máte problémy s přihlášením:
+
+Nezapomeňte, že k připojení na server
+se zapnutým ověřením potřebujete účet.
+
+Účet si můžete vytvořit na webu:
+
+https://veloren.net/account/."#,
+        "main.login.server_not_found": "Server nenalezen",
+        "main.login.authentication_error": "Chyba ověření",
+        "main.login.server_full": "Server je plný",
+        "main.login.untrusted_auth_server": "Ověřovací server je nedůvěryhodný",
+        "main.login.outdated_client_or_server": "ServerWentMad: Pravděpodobně jsou verze nekompatibilní, zkontrolujte aktualizace!",
+        "main.login.network_wrong_version": "Server běží na jiné verzy hry. Aktualizuj si klienta.",
+        "main.login.timeout": "Timeout: Server neodpověděl včas. (Přetížení nebo chyby v síti).",
+        "main.login.server_shut_down": "Server Uzavřen",
+        "main.login.network_error": "Chyba sítě.",
+        "main.login.failed_sending_request": "Dotaz na ověřovací server se nezdařil",
+        "main.login.client_crashed": "Pád klienta",
+        "main.servers.select_server": "Výběr serveru",
+        "main.server": "Server",
+        "main.password": "Heslo",
+        "main.username": "Jméno",
+        "main.tip":"Rada:",
+        "main.login.invalid_character": "Vybraná postava je neplatná",
+        "main.login.not_on_whitelist": "Potřebuješ být ve whitelistu. Kontaktuj Admina serveru.",
+        "main.login.banned": "Byl/a si zabanován/á z tohoto důvodu",
+        "main.login.kicked": "Byl/a si vyhozen/á z tohoto důvodu",
+        "main.login.select_language": "Vyber si svůj Jazyk",
+        "main.login.insecure_auth_scheme": "Schéma ověření HTTP NENÍ podporováno. Je to nejisté! Pro účely vývoje je HTTP povolen pro „localhost“ nebo pro ladění",
+        "main.login.failed_auth_server_url_invalid": "Připojení k ověřovacímu serveru se nezdařilo.",
+        /// End Main screen section
+    },
+
+
+    vector_map: {
+    }
+)

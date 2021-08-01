@@ -1,0 +1,74 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Latin-American
+(
+    string_map: {
+        "hud.do_not_show_on_startup": "No muestres esto al iniciar",
+        "hud.show_tips": "Mostrar Consejos",
+        "hud.quests": "Misiones",
+        "hud.you_died": "Moriste",
+        "hud.waypoint_saved": "Marcador Guardado",
+
+        "hud.press_key_to_show_keybindings_fmt": "Presiona {key} para mostrar los controles del teclado",
+        "hud.press_key_to_toggle_lantern_fmt": "[{key}] Linterna",
+        "hud.press_key_to_show_debug_info_fmt": "Presiona {key} para mostrar información de depuración",
+        "hud.press_key_to_toggle_keybindings_fmt": "Presiona {key} para alternar los controles del teclado",
+        "hud.press_key_to_toggle_debug_info_fmt": "Presiona {key} para alternar la información de depuración",
+
+        // Respawn message
+        "hud.press_key_to_respawn": r#"Presiona {key} para reaparecer en la ultima fogata que visitaste."#,
+
+        // Welcome message
+        "hud.welcome": r#"Bienvenido a la alfa de Veloren!
+
+
+Algunos consejos antes de que empieces:
+
+
+Presiona F1 para ver los controles del teclado disponibles.
+
+Escribe /help en el chat para ver los comandos del chat
+
+
+Hay cofres y otros objetos que aparecen al azar en el Mundo!
+
+Presiona E para recogerlos.
+
+Para usar lo que consigas de los cofres abre tu inventario con 'B'.
+
+Doble click en los objetos en tu bolsa para usarlos o equiparlos.
+
+Deshazte de ellos haciendo click en ellos y luego arrastralos fuera de la bolsa.
+
+
+Las noches pueden volverse bastante oscuras en Veloren.
+
+Enciende tu Linterna escribiendo /lantern en el chat o presionando la G.
+
+
+Quieres liberar tu cursor para cerrar esta ventana? Presiona TAB!
+
+
+Disfruta tu estadía en el Mundo de Veloren."#,
+
+"hud.temp_quest_headline": r#"Por favor, ayúdanos Viajero!"#,
+"hud.temp_quest_text": r#"Calabozos llenos de cultistas malvados
+han emergido alrededor de nuestros pacíficos pueblos!
+
+
+Consigue alguien que te acompañe, re-abastecete con comida
+y derrota sus viles lideres y acólitos.
+
+
+Tal vez incluso obtengas uno de sus
+objetos infundidos con magia?"#,
+        "hud.spell": "Hechizos",
+
+        "hud.free_look_indicator": "Vista libre activa",
+        "hud.auto_walk_indicator": "Caminata automática activa",
+    },
+
+
+    vector_map: {
+    }
+)

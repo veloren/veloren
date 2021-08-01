@@ -1,0 +1,26 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Latin-American
+(
+    string_map: {
+        "buff.remove": "Click para quitar",
+        "buff.title.missing": "Sin Título",
+        "buff.desc.missing": "Sin Descripción",
+        // Buffs
+        "buff.title.heal": "Curación",
+        "buff.desc.heal": "Recupera vida durante un tiempo.",
+        "buff.title.potion": "Poción",
+        "buff.desc.potion": "Bebiendo...",
+        "buff.title.saturation": "Saturación",
+        "buff.desc.saturation": "Recupera vida durante un tiempo por objetos.",
+        "buff.title.campfire_heal": "Curación de fogata",
+        "buff.desc.campfire_heal": "Descansar en una fogata recupera {rate}% por segundo.",
+        // Debuffs
+        "buff.title.bleed": "Sangrando",
+        "buff.desc.bleed": "Inflinge daño regularmente.",
+    },
+
+
+    vector_map: {
+    }
+)

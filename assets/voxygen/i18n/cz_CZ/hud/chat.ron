@@ -1,0 +1,38 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Polish
+(
+    string_map: {
+        "hud.chat.online_msg": "[{name}] je online",
+        "hud.chat.offline_msg": "[{name}] šel/šla offline",
+
+        "hud.chat.default_death_msg": "[{name}] zemřel",
+        "hud.chat.environmental_kill_msg": "[{name}] zemřel v {environment}",
+        "hud.chat.fall_kill_msg": "[{name}] zemřel z pádu",
+        "hud.chat.suicide_msg": "[{name}] zemřel díky svému zapříčinění",
+
+        "hud.chat.pvp_buff_kill_msg": "[{victim}] zemřel z {buff} od [{attacker}]",
+        "hud.chat.pvp_melee_kill_msg": "[{attacker}] porazil [{victim}]",
+        "hud.chat.pvp_ranged_kill_msg": "[{attacker}] postřelil [{victim}]",
+        "hud.chat.pvp_explosion_kill_msg": "[{attacker}] odpálil [{victim}]",
+        "hud.chat.pvp_energy_kill_msg": "[{attacker}] zabil [{victim}] pomocí magie",
+
+        "hud.chat.nonexistent_buff_kill_msg": "[{victim}] zemřel pomocí {buff}",
+
+        "hud.chat.npc_buff_kill_msg": "[{victim}] died of {buff} od {attacker}",
+        "hud.chat.npc_melee_kill_msg": "{attacker} zabil [{victim}]",
+        "hud.chat.npc_ranged_kill_msg": "{attacker} postřelil [{victim}]",
+        "hud.chat.npc_explosion_kill_msg": "{attacker} odpálil [{victim}]",
+        "hud.chat.npc_energy_kill_msg": "{attacker} zabil [{victim}] pomocí magie",
+        "hud.chat.npc_other_kill_msg": "{attacker} zabil [{victim}]",
+
+        "hud.chat.loot_msg": "Sebral si [{item}]",
+        "hud.chat.loot_fail": "Tvůj inventář je plný!",
+        "hud.chat.goodbye": "nashledanou!",
+        "hud.chat.connection_lost": "Spojení ztraceno. Odpojuji za {time} sekund.",
+    },
+
+
+    vector_map: {
+    }
+)
