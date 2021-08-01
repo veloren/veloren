@@ -59,7 +59,7 @@ pub enum CharacterState {
     Talk,
     Sneak,
     Glide(glide::Data),
-    GlideWield,
+    GlideWield(glide_wield::Data),
     /// A stunned state
     Stunned(stunned::Data),
     /// A basic blocking state
@@ -189,7 +189,7 @@ impl CharacterState {
                 | CharacterState::Equipping(_)
                 | CharacterState::Dance
                 | CharacterState::Glide(_)
-                | CharacterState::GlideWield
+                | CharacterState::GlideWield(_)
                 | CharacterState::Talk
                 | CharacterState::Roll(_),
         )
@@ -228,7 +228,7 @@ impl CharacterState {
             CharacterState::Talk => states::talk::Data.behavior(j),
             CharacterState::Climb(data) => data.behavior(j),
             CharacterState::Glide(data) => data.behavior(j),
-            CharacterState::GlideWield => states::glide_wield::Data.behavior(j),
+            CharacterState::GlideWield(data) => data.behavior(j),
             CharacterState::Stunned(data) => data.behavior(j),
             CharacterState::Sit => states::sit::Data::behavior(&states::sit::Data, j),
             CharacterState::Dance => states::dance::Data::behavior(&states::dance::Data, j),
@@ -264,7 +264,7 @@ impl CharacterState {
             CharacterState::Talk => states::talk::Data.handle_event(j, action),
             CharacterState::Climb(data) => data.handle_event(j, action),
             CharacterState::Glide(data) => data.handle_event(j, action),
-            CharacterState::GlideWield => states::glide_wield::Data.handle_event(j, action),
+            CharacterState::GlideWield(data) => data.handle_event(j, action),
             CharacterState::Stunned(data) => data.handle_event(j, action),
             CharacterState::Sit => states::sit::Data::handle_event(&states::sit::Data, j, action),
             CharacterState::Dance => {

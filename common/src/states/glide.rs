@@ -4,7 +4,10 @@ use crate::{
         fluid_dynamics::angle_of_attack, inventory::slot::EquipSlot, CharacterState, Ori,
         StateUpdate, Vel,
     },
-    states::behavior::{CharacterBehavior, JoinData},
+    states::{
+        behavior::{CharacterBehavior, JoinData},
+        glide_wield,
+    },
     util::{Dir, Plane, Projection},
 };
 use serde::{Deserialize, Serialize};
@@ -77,8 +80,7 @@ impl CharacterBehavior for Data {
         if data.physics.on_ground.is_some()
             && (data.vel.0 - data.physics.ground_vel).magnitude_squared() < 2_f32.powi(2)
         {
-            update.character = CharacterState::GlideWield;
-            update.ori = update.ori.to_horizontal();
+            update.character = CharacterState::GlideWield(glide_wield::Data::default());
         } else if data.physics.in_liquid().is_some()
             || data
                 .inventory
@@ -86,7 +88,6 @@ impl CharacterBehavior for Data {
                 .is_none()
         {
             update.character = CharacterState::Idle;
-            update.ori = update.ori.to_horizontal();
         } else if !handle_climb(data, &mut update) {
             let air_flow = data
                 .physics
@@ -193,8 +194,6 @@ impl CharacterBehavior for Data {
                 inputs_disabled,
                 ..*self
             });
-        } else {
-            update.ori = update.ori.to_horizontal();
         }
 
         update
@@ -203,7 +202,6 @@ impl CharacterBehavior for Data {
     fn unwield(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         update.character = CharacterState::Idle;
-        update.ori = update.ori.to_horizontal();
         update
     }
 }

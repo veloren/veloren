@@ -63,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Campfires now despawn when underwater
 - Players no longer spawn underground if their waypoint is underground
 - Map will now zoom around the cursor's position and drag correctly
+- No more jittering while running down slopes with the glider out
 
 ## [0.10.0] - 2021-06-12
 
