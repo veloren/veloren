@@ -24,7 +24,7 @@ pub fn draw_char_state_group(
         CharacterState::Dance
         | CharacterState::Idle
         | CharacterState::Sit
-        | CharacterState::GlideWield
+        | CharacterState::GlideWield(_)
         | CharacterState::Sneak
         | CharacterState::Talk
         | CharacterState::Wielding => {},

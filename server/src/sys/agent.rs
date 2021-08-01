@@ -291,7 +291,7 @@ impl<'a> System<'a> for Sys {
 
                     let is_gliding = matches!(
                         read_data.char_states.get(entity),
-                        Some(CharacterState::GlideWield | CharacterState::Glide(_))
+                        Some(CharacterState::GlideWield(_) | CharacterState::Glide(_))
                     ) && physics_state.on_ground.is_none();
 
                     if let Some(pid) = agent.position_pid_controller.as_mut() {

@@ -1231,7 +1231,7 @@ impl Client {
             .map(|cs| {
                 matches!(
                     cs,
-                    comp::CharacterState::GlideWield | comp::CharacterState::Glide(_)
+                    comp::CharacterState::GlideWield(_) | comp::CharacterState::Glide(_)
                 )
             });
 

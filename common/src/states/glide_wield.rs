@@ -6,8 +6,18 @@ use crate::{
         glide,
     },
 };
+use serde::{Deserialize, Serialize};
 
-pub struct Data;
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Data {
+    // time since left ground, for preventing state transition
+    // before block snapping kicks in
+    timer: f32,
+}
+
+impl Default for Data {
+    fn default() -> Self { Self { timer: 0.0 } }
+}
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
@@ -21,7 +31,13 @@ impl CharacterBehavior for Data {
 
         // If not on the ground while wielding glider enter gliding state
         if data.physics.on_ground.is_none() {
-            update.character = CharacterState::Glide(glide::Data::new(10.0, 0.6, *data.ori));
+            update.character = if self.timer > 0.3 {
+                CharacterState::Glide(glide::Data::new(10.0, 0.6, *data.ori))
+            } else {
+                CharacterState::GlideWield(Self {
+                    timer: self.timer + data.dt.0,
+                })
+            };
         }
         if data
             .physics
