@@ -4,6 +4,7 @@ use super::{
 };
 use crate::{
     game_input::GameInput,
+    hud::animation::animation_timer,
     ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
     window::KeyMouse,
     GlobalState,
@@ -356,7 +357,7 @@ impl<'a> Widget for Buttons<'a> {
         }
         // Unspent SP indicator
         if unspent_sp {
-            let arrow_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
+            let arrow_ani = animation_timer(self.pulse); //Animation timer
             Image::new(self.imgs.sp_indicator_arrow)
                 .w_h(20.0, 11.0)
                 .graphics_for(state.ids.spellbook_button)
