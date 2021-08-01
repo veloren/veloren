@@ -179,7 +179,7 @@ impl ShaderModules {
                 ShadowMode::Map(_) if has_shadow_views => "SHADOW_MODE_MAP",
                 ShadowMode::Cheap | ShadowMode::Map(_) => "SHADOW_MODE_CHEAP",
             },
-            if dbg!(pipeline_modes.bloom) {
+            if pipeline_modes.bloom {
                 "BLOOM_ENABLED"
             } else {
                 "BLOOM_DISABLED"

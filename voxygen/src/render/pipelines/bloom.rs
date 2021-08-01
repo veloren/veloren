@@ -1,4 +1,6 @@
 //! Based on: https://community.arm.com/cfs-file/__key/communityserver-blogs-components-weblogfiles/00-00-00-20-66/siggraph2015_2D00_mmg_2D00_marius_2D00_notes.pdf
+//!
+//! See additional details in the [NUM_SIZES] docs
 
 use super::super::Consts;
 use bytemuck::{Pod, Zeroable};
@@ -6,10 +8,39 @@ use vek::*;
 
 // TODO: auto-tune the number of passes to maintain roughly constant blur per
 // unit of FOV so changing resolution / FOV doesn't change the blur appearance
-// significantly
-/// Each level is a multiple of 2 smaller in both dimensions.
-/// For a total of 8 passes from the largest to the smallest to the largest
-/// again.
+// significantly.
+//
+/// Blurring is performed while downsampling to the smaller sizes in steps and
+/// then upsampling back up to the original resolution. Each level is half the
+/// size in both dimensions from the previous. For instance with 5 distinct
+/// sizes there is a total of 8 passes going from the largest to the smallest to
+/// the largest again:
+///
+/// 1 -> 1/2 -> 1/4 -> 1/8 -> 1/16 -> 1/8 -> 1/4 -> 1/2 -> 1
+///                           ~~~~
+///     [downsampling]      smallest      [upsampling]
+///
+/// The textures used for downsampling are re-used when upsampling.
+///
+/// Additionally, instead of clearing them the colors are added together in an
+/// attempt to obtain a more concentrated bloom near bright areas rather than
+/// a uniform blur. In the example above, the added layers would include 1/8,
+/// 1/4, and 1/2. The smallest size is not upsampled to and the original full
+/// resolution has no blurring and we are already combining the bloom into the
+/// full resolution image in a later step, so they are not included here. The 3
+/// extra layers added in mean the total luminosity of the final blurred bloom
+/// image will be 4 times more than the input image. To account for this, we
+/// divide the bloom intensity by 4 before applying it.
+///
+/// Nevertheless, we have not fully evaluated how this visually compares to the
+/// bloom obtained without adding with the previous layers so there is the
+/// potential for further artistic investigation here.
+///
+/// NOTE: This constant includes the full resolution size and it is
+/// assumed that there will be at least one smaller image to downsample to and
+/// upsample back from (otherwise no blurring would be done). Thus, the minimum
+/// valid value is 2 and panicking indexing operations we perform assume this
+/// will be at least 2.
 pub const NUM_SIZES: usize = 5;
 
 pub struct BindGroup {

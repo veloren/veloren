@@ -555,12 +555,11 @@ impl Renderer {
         // We can't cancel the pending recreation even if the new settings are equal
         // to the current ones becuase the recreation could be triggered by something
         // else like shader hotloading
-        if dbg!(self.pipeline_modes != pipeline_modes)
-            || dbg!(
-                self.recreation_pending
-                    .as_ref()
-                    .map_or(false, |modes| modes != &pipeline_modes)
-            )
+        if self.pipeline_modes != pipeline_modes
+            || self
+                .recreation_pending
+                .as_ref()
+                .map_or(false, |modes| modes != &pipeline_modes)
         {
             // Recreate pipelines with new modes
             self.recreate_pipelines(pipeline_modes);
@@ -619,7 +618,7 @@ impl Renderer {
             );
             self.views = views;
 
-            // appease borrow check
+            // appease borrow check (TODO: remove after Rust 2021)
             let device = &self.device;
             let queue = &self.queue;
             let views = &self.views;
