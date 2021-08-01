@@ -26,7 +26,7 @@
         "hud.bag.offhand": "副手",
         "hud.bag.bag": "背包",
         "hud.bag.health": "血量",
-        "hud.bag.stamina": "耐力",
+        "hud.bag.energy": "耐力",
         "hud.bag.combat_rating": "战力",
         "hud.bag.protection": "防御",
 		"hud.bag.stun_res": "韧性恢复",

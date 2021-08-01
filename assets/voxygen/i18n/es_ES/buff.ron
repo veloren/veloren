@@ -26,7 +26,7 @@
         "buff.desc.cursed": "Estás maldito.",
         // Buffs stats
         "buff.stat.health": "Restaura {str_total} salud",
-        "buff.stat.increase_max_stamina": "Aumenta la resistencia máxima en {strength}",
+        "buff.stat.increase_max_energy": "Aumenta la resistencia máxima en {strength}",
         "buff.stat.increase_max_health": "Aumenta la salud máxima en {strength}",
         "buff.stat.invulnerability": "Ofrece invulnerabilidad",
         // Text

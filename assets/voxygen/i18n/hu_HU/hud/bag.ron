@@ -30,7 +30,7 @@
         "hud.bag.swap_equipped_weapons_desc": "Nyomd meg a(z) '{key}' gombot",
         "hud.bag.bag": "Holmitartó",
         "hud.bag.health": "Életerő",
-        "hud.bag.stamina": "Energia",
+        "hud.bag.energy": "Energia",
         "hud.bag.combat_rating": "Küzdelmi érték",
         "hud.bag.protection": "Védelem",
         "hud.bag.stun_res": "Megszédíthetőség",

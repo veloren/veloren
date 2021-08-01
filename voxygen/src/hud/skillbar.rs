@@ -58,8 +58,8 @@ widget_ids! {
         frame,
         bg_health,
         frame_health,
-        bg_stamina,
-        frame_stamina,
+        bg_energy,
+        frame_energy,
         m1_ico,
         m2_ico,
         // Level
@@ -76,12 +76,12 @@ widget_ids! {
         hp_txt_bg,
         hp_txt,
         decay_overlay,
-        // Stamina-Bar
-        stamina_alignment,
-        stamina_filling,
-        stamina_txt_alignment,
-        stamina_txt_bg,
-        stamina_txt,
+        // Energy-Bar
+        energy_alignment,
+        energy_filling,
+        energy_txt_alignment,
+        energy_txt_bg,
+        energy_txt,
         // Combo Counter
         combo_align,
         combo_bg,
@@ -379,7 +379,7 @@ impl<'a> Skillbar<'a> {
         let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
         let bar_values = self.global_state.settings.interface.bar_numbers;
         let show_health = self.health.current() != self.health.maximum();
-        let show_stamina = self.energy.current() != self.energy.maximum();
+        let show_energy = self.energy.current() != self.energy.maximum();
         let decayed_health = 1.0 - self.health.maximum() as f64 / self.health.base_max() as f64;
 
         if show_health && !self.health.is_dead || decayed_health > 0.0 {
@@ -424,29 +424,29 @@ impl<'a> Skillbar<'a> {
                 .middle_of(state.ids.bg_health)
                 .set(state.ids.frame_health, ui);
         }
-        if show_stamina && !self.health.is_dead {
+        if show_energy && !self.health.is_dead {
             let offset = if show_health || decayed_health > 0.0 {
                 34.0
             } else {
                 1.0
             };
-            Image::new(self.imgs.stamina_bg)
+            Image::new(self.imgs.energy_bg)
                 .w_h(323.0, 16.0)
                 .mid_top_with_margin_on(state.ids.frame, -offset)
-                .set(state.ids.bg_stamina, ui);
+                .set(state.ids.bg_energy, ui);
             Rectangle::fill_with([319.0, 10.0], color::TRANSPARENT)
-                .top_left_with_margins_on(state.ids.bg_stamina, 2.0, 2.0)
-                .set(state.ids.stamina_alignment, ui);
+                .top_left_with_margins_on(state.ids.bg_energy, 2.0, 2.0)
+                .set(state.ids.energy_alignment, ui);
             Image::new(self.imgs.bar_content)
                 .w_h(319.0 * energy_percentage / 100.0, 10.0)
                 .color(Some(STAMINA_COLOR))
-                .top_left_with_margins_on(state.ids.stamina_alignment, 0.0, 0.0)
-                .set(state.ids.stamina_filling, ui);
-            Image::new(self.imgs.stamina_frame)
+                .top_left_with_margins_on(state.ids.energy_alignment, 0.0, 0.0)
+                .set(state.ids.energy_filling, ui);
+            Image::new(self.imgs.energy_frame)
                 .w_h(323.0, 16.0)
                 .color(Some(UI_HIGHLIGHT_0))
-                .middle_of(state.ids.bg_stamina)
-                .set(state.ids.frame_stamina, ui);
+                .middle_of(state.ids.bg_energy)
+                .set(state.ids.frame_energy, ui);
         }
         // Bar Text
         let bar_text = if self.health.is_dead {
@@ -491,17 +491,17 @@ impl<'a> Skillbar<'a> {
                 .set(state.ids.hp_txt, ui);
 
             Text::new(&energy_txt)
-                .middle_of(state.ids.frame_stamina)
+                .middle_of(state.ids.frame_energy)
                 .font_size(self.fonts.cyri.scale(12))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-                .set(state.ids.stamina_txt_bg, ui);
+                .set(state.ids.energy_txt_bg, ui);
             Text::new(&energy_txt)
-                .bottom_left_with_margins_on(state.ids.stamina_txt_bg, 2.0, 2.0)
+                .bottom_left_with_margins_on(state.ids.energy_txt_bg, 2.0, 2.0)
                 .font_size(self.fonts.cyri.scale(12))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
-                .set(state.ids.stamina_txt, ui);
+                .set(state.ids.energy_txt, ui);
         }
     }
 
@@ -873,7 +873,7 @@ impl<'a> Widget for Skillbar<'a> {
             .mid_bottom_with_margin_on(ui.window, 10.0)
             .set(state.ids.frame, ui);
 
-        // Health and Stamina bar
+        // Health and Energy bar
         self.show_stat_bars(state, ui);
 
         // Slots

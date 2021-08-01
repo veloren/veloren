@@ -26,7 +26,7 @@
         "buff.desc.cursed": "あなたは呪われた。",
         // Buffs stats
         "buff.stat.health": "体力を{str_total}回復",
-        "buff.stat.increase_max_stamina": "スタミナ最大値を{strength}上げる",
+        "buff.stat.increase_max_energy": "スタミナ最大値を{strength}上げる",
         "buff.stat.increase_max_health": "体力最大値を{strength}上げる",
         "buff.stat.invulnerability": "不死身になる",
         // Text

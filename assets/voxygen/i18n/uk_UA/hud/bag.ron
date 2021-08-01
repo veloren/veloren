@@ -39,7 +39,7 @@
 
         // Stats
         "hud.bag.health": "Здоров'я",
-        "hud.bag.stamina": "Енергія",
+        "hud.bag.energy": "Енергія",
         "hud.bag.combat_rating": "Бойовий рейтинг",
         "hud.bag.combat_rating_desc": "Розрахований з огляду на ваше\nспорядження і здоров'я",
         "hud.bag.protection": "Захист",

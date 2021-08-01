@@ -3943,7 +3943,7 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> &str 
         BuffKind::Potion { .. } => localized_strings.get("buff.title.potion"),
         BuffKind::CampfireHeal { .. } => localized_strings.get("buff.title.campfire_heal"),
         BuffKind::IncreaseMaxHealth { .. } => localized_strings.get("buff.title.IncreaseMaxHealth"),
-        BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get("buff.title.staminaup"),
+        BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get("buff.title.energyup"),
         BuffKind::Invulnerability => localized_strings.get("buff.title.invulnerability"),
         BuffKind::ProtectingWard => localized_strings.get("buff.title.protectingward"),
         BuffKind::Frenzied => localized_strings.get("buff.title.frenzied"),

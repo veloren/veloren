@@ -26,7 +26,7 @@
         "buff.desc.cursed": "Du bist verflucht.",
         // Buffs stats
         "buff.stat.health": "Stellt {str_total} Leben wiederher",
-        "buff.stat.increase_max_stamina": "Erhöt die maximale Ausdauer um {strength}",
+        "buff.stat.increase_max_energy": "Erhöt die maximale Ausdauer um {strength}",
         "buff.stat.increase_max_health": "Erhöht die maximale Lebensenergie um {strength}",
         "buff.stat.invulnerability": "Gewährt Unverwundbarkeit",
         // Text
