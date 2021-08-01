@@ -159,6 +159,7 @@ impl Settings {
             max_players: 100,
             start_time: 9.0 * 3600.0,
             max_view_distance: None,
+            safe_spawn: false,
             client_timeout: Duration::from_secs(180),
             ..load // Fill in remaining fields from server_settings.ron.
         }

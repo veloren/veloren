@@ -6,7 +6,7 @@ use common::{
     assets,
     comp::{
         self,
-        agent::{AgentEvent, Sound, SoundKind, MAX_LISTEN_DIST},
+        agent::{AgentEvent, Sound, SoundKind},
         dialogue::Subject,
         inventory::slot::EquipSlot,
         item,
@@ -408,7 +408,7 @@ pub fn handle_sound(server: &mut Server, sound: &Sound) {
         let propagated_sound = sound.with_new_vol(sound.vol - vol_dropoff);
 
         let can_hear_sound = propagated_sound.vol > 0.00;
-        let should_hear_sound = agent_dist_sqrd < MAX_LISTEN_DIST.powi(2);
+        let should_hear_sound = agent_dist_sqrd < agent.psyche.listen_dist.powi(2);
 
         if can_hear_sound && should_hear_sound {
             agent
