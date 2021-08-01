@@ -45,6 +45,7 @@ pub use index::{IndexOwned, IndexRef};
 use crate::{
     column::ColumnGen,
     index::Index,
+    layer::spot::Spot,
     site::SiteKind,
     util::{Grid, Sampler},
 };
@@ -104,6 +105,8 @@ impl World {
             let civs = civ::Civs::generate(seed, &mut sim, &mut index);
 
             sim2::simulate(&mut index, &mut sim);
+
+            Spot::generate(&mut sim);
 
             (Self { sim, civs }, IndexOwned::new(index))
         })

@@ -3,7 +3,11 @@ use crate::{
     util::seed_expan,
     Canvas,
 };
-use common::{generation::EntityInfo, terrain::Structure};
+use common::{
+    generation::EntityInfo,
+    terrain::{Structure, TerrainChunkSize},
+    vol::RectVolSize,
+};
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use std::ops::Range;
@@ -103,7 +107,11 @@ impl Spot {
         trees: bool,
     ) {
         let world_size = world.get_size();
-        for _ in 0..(world_size.product() as f32 / 32.0f32.powi(2) * freq).ceil() as u64 {
+        for _ in
+            0..(world_size.product() as f32 * TerrainChunkSize::RECT_SIZE.product() as f32 * freq
+                / 1000.0f32.powi(2))
+            .ceil() as u64
+        {
             let pos = world_size.map(|e| world.rng.gen_range(0..e as i32));
             if let Some((_, chunk)) = world
                 .get_gradient_approx(pos)

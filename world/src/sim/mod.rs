@@ -1414,8 +1414,6 @@ impl WorldSim {
 
         this.generate_cliffs();
 
-        Spot::generate(&mut this);
-
         if opts.seed_elements {
             this.seed_elements();
         }
