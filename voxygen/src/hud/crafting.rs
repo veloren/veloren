@@ -1045,6 +1045,8 @@ impl<'a> Widget for Crafting<'a> {
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(12))
                         .color(col)
+                        .wrap_by_word()
+                        .w(150.0)
                         .set(state.ids.ingredients[i], ui);
                 }
             }
