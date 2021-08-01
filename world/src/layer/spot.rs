@@ -5,7 +5,7 @@ use crate::{
 };
 use common::{
     generation::EntityInfo,
-    terrain::{Structure, TerrainChunkSize},
+    terrain::{BiomeKind, Structure, TerrainChunkSize},
     vol::RectVolSize,
 };
 use rand::prelude::*;
@@ -31,66 +31,65 @@ use vek::*;
 /// that composes the spot and the entities that should be spawned there.
 #[derive(Copy, Clone, Debug)]
 pub enum Spot {
-    MerchantCamp,
-    SaurokCamp,
     DwarvenGrave,
     GnarlingTotem,
 }
 
+// Available Biomes are:
+//Void
+//Lake
+//Grassland
+//Ocean
+//Mountain
+//Snowland
+//Desert
+//Swamp
+//Jungle
+//Forest
+
 impl Spot {
     pub fn generate(world: &mut WorldSim) {
         Self::generate_spots(
-            Spot::MerchantCamp,
-            world,
-            1.0,
-            |g, c| {
-                g < 0.25
-                    && !c.near_cliffs()
-                    && !c.river.near_water()
-                    && !c.path.0.is_way()
-                    && c.sites.is_empty()
-            },
-            false,
-        );
-        Self::generate_spots(
-            Spot::SaurokCamp,
-            world,
-            1.0,
-            |g, c| {
-                g < 0.25
-                    && !c.near_cliffs()
-                    && !c.river.near_water()
-                    && !c.path.0.is_way()
-                    && c.sites.is_empty()
-            },
-            false,
-        );
-        Self::generate_spots(
             Spot::DwarvenGrave,
             world,
-            1.0,
+            2.0,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()
                     && !c.river.near_water()
                     && !c.path.0.is_way()
                     && c.sites.is_empty()
+                    && matches!(c.get_biome(), BiomeKind::Jungle | BiomeKind::Forest)
             },
-            false,
+            true,
         );
         Self::generate_spots(
             Spot::GnarlingTotem,
             world,
-            10.0,
+            2.0,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()
                     && !c.river.near_water()
                     && !c.path.0.is_way()
                     && c.sites.is_empty()
+                    && matches!(c.get_biome(), BiomeKind::Forest | BiomeKind::Grassland)
             },
-            false,
+            true,
         );
+        // Missing:
+        /*
+        Witch House
+        Bandit Camp
+        TreeStump
+        DesertBones
+        AirshipCrash
+        EnchantedRock
+        TowerRuin
+        WellOfLight
+        Merchant Outpost -> Near a road!
+
+        */
     }
 
     fn generate_spots(
@@ -146,19 +145,6 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
         }
 
         let spot_config = match spot {
-            Spot::MerchantCamp => SpotConfig {
-                base_structures: Some("trees.quirky"),
-                entity_radius: 6.0,
-                entities: &[
-                    (1..3, "common.entity.village.merchant"),
-                    (2..5, "common.entity.village.villager"),
-                ],
-            },
-            Spot::SaurokCamp => SpotConfig {
-                base_structures: Some("dungeon_entrances.grassland"),
-                entity_radius: 12.0,
-                entities: &[(4..6, "common.entity.spot.bandit_camp.saurok")],
-            },
             Spot::DwarvenGrave => SpotConfig {
                 base_structures: Some("spots_grasslands.dwarven_grave"),
                 entity_radius: 60.0,
