@@ -1,0 +1,13 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Latin-American
+(
+    string_map: {
+        "esc_menu.logout": "Cerrar Sesión",
+        "esc_menu.quit_game": "Salir del Juego",
+    },
+
+
+    vector_map: {
+    }
+)

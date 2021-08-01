@@ -1,0 +1,22 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for norsk bokmål
+(
+    string_map: {
+        /// Start character window section
+        "character_window.character_name": "Karakternavn",
+        // Character stats
+        "character_window.character_stats": r#"Utholdenhet
+
+Fitness
+
+Viljestyrke
+
+Beskyttelse
+"#,
+    },
+
+
+    vector_map: {
+    }
+)

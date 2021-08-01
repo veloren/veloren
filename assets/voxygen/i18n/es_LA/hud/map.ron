@@ -1,0 +1,26 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Latin-American
+(
+    string_map: {
+        "hud.map.map_title": "Mapa",
+        "hud.map.qlog_title": "Misiones",
+        "hud.map.difficulty": "Dificultad",
+        "hud.map.towns": "Pueblos",
+        "hud.map.castles": "Castillos",
+        "hud.map.dungeons": "Calabozos",
+        "hud.map.caves": "Cuevas",
+        "hud.map.cave": "Cueva",
+        "hud.map.town": "Pueblo",
+        "hud.map.castle": "Castillo",
+        "hud.map.dungeon": "Calabozo",
+        "hud.map.difficulty_dungeon": "Dificultad de\n\nCalabozo: {difficulty}",
+        "hud.map.drag": "Arrastrar",
+        "hud.map.zoom": "Zoom",
+        "hud.map.recenter": "Centrar",
+    },
+
+
+    vector_map: {
+    }
+)

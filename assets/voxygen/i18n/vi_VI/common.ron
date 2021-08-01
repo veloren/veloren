@@ -1,0 +1,73 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Vietnamese (Vietnam)
+(
+    string_map: {
+    // Texts used in multiple locations with the same formatting
+    "common.username": "Tên tài khoản",
+    "common.singleplayer": "Chơi đơn",
+    "common.multiplayer": "Chơi mạng",
+    "common.servers": "Máy chủ",
+    "common.quit": "Bỏ cuộc",
+    "common.settings": "Cài đặt",
+    "common.languages": "Ngôn ngữ",
+    "common.interface": "Giao diện",
+    "common.gameplay": "Lối chơi",
+    "common.controls": "Điều khiển",
+    "common.video": "Đồ họa",
+    "common.sound": "Âm thanh",
+    "common.resume": "Tiếp tục",
+    "common.characters": "Nhân vật",
+    "common.close": "Đóng",
+    "common.yes": "Đúng",
+    "common.no": "Không",
+    "common.back": "Trở lại",
+    "common.create": "Tạo nên",
+    "common.okay": "Được",
+    "common.add": "Thêm vào",
+    "common.accept": "Chấp nhận",
+    "common.decline": "Từ chối",
+    "common.disclaimer": "Khước từ",
+    "common.cancel": "Hủy bỏ",
+    "common.none": "Không còn",
+    "common.error": "Lỗi",
+    "common.fatal_error": "Lỗi nghiêm trọng",
+    "common.you": "Bạn",
+    "common.automatic": "Tự động",
+    "common.random": "Ngẫu nhiên",
+
+    // Settings Window title
+    "common.interface_settings": "Cài đặt giao diện",
+    "common.gameplay_settings": "Cài đặt chế độ chơi",
+    "common.controls_settings": "Cài đặt điều khiển",
+    "common.video_settings": "Cài đặt hình ảnh",
+    "common.sound_settings": "Cài đặt âm thanh",
+    "common.language_settings": "Cài đặt ngôn ngữ",
+
+    // Message when connection to the server is lost
+    "common.connection_lost": r#"Mất mạng!
+Máy chủ có khởi động lại không?
+Trò chơi có được cập nhật không?"#,
+
+
+    "common.species.orc": "Loài orc",
+    "common.species.human": "Loài người",
+    "common.species.dwarf": "Quỷ lùn",
+    "common.species.elf": "Yêu tinh",
+    "common.species.undead": "Xác sống",
+    "common.species.danari": "Loài Danari",
+
+    "common.weapons.axe": "Rìu",
+    "common.weapons.sword": "Kiếm",
+    "common.weapons.staff": "Ba toong",
+    "common.weapons.bow": "Cung",
+    "common.weapons.hammer": "Búa",
+    "common.weapons.general": "Chiến đấu chung",
+    "common.weapons.sceptre": "Quyền trượng chữa bệnh",
+    "common.rand_appearance": "Sự xuất hiện ngẫu nhiên và tên",
+    },
+
+
+    vector_map: {
+    }
+)

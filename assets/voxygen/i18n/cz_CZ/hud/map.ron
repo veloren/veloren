@@ -1,0 +1,33 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Polish
+(
+    string_map: {
+        // Map and Questlog
+        "hud.map.map_title": "Mapa",
+        "hud.map.qlog_title": "Úkoly",
+        "hud.map.difficulty": "Obtížnost",
+        "hud.map.towns": "Města",
+        "hud.map.castles": "Hrady",
+        "hud.map.dungeons": "Kobky",
+        "hud.map.caves": "Jeskyně",
+        "hud.map.cave": "Jeskyně",
+        "hud.map.trees": "Velké Stromy",
+        "hud.map.tree": "Velký Strom",
+        "hud.map.town": "Město",
+        "hud.map.castle": "Hrad",
+        "hud.map.dungeon": "Kobka",
+        "hud.map.difficulty_dungeon": "Kobka\n\nDifficulty: {difficulty}",
+        "hud.map.drag": "Pohybovat",
+        "hud.map.zoom": "Přiblížit",
+        "hud.map.recenter": "Recentrovat",
+        "hud.rank_up": "Nový Skillpoint",
+        "hud.skill.sp_available": "{number} SP dostupných",
+        "hud.skill.not_unlocked": "Není ještě odemčeno",
+        "hud.skill.req_sp": "\n\nVyžaduje {number} SP",
+    },
+
+
+    vector_map: {
+    }
+)

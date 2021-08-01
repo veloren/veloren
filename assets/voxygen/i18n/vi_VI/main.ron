@@ -1,0 +1,64 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Vietnamese (Vietnam)
+(
+    string_map: {
+        "main.username": "Tên tài khoản",
+        "main.server": "Máy chủ",
+        "main.password": "Mật khẩu",
+        "main.connecting": "Đang kết nối",
+        "main.creating_world": "Đang tạo thế giới mới",
+        "main.tip": "Lời khuyên:",
+
+        // Welcome notice that appears the first time Veloren is started
+        "main.notice": r#"Chào mừng đến với phiên bản alpha của Veloren!
+
+Trước khi bạn nhảy trong vào Veloren, bạn phải nhớ những điều này:
+
+- Đây là một alpha rất sớm. Mong đợi lỗi chương trình, trò chơi cực kỳ chưa hoàn thành, cơ khí chưa hoàn thành, và tính năng bị thiếu.
+
+- Nếu bạn có phản hồi hoặc là báo cáo lỗi máy tính, liên hệ chúng tôi trên Reddit, GitLab, hoặc là máy chủ Discord của chúng tôi.
+
+- Veloren được cấp phép theo GPL 3 open-source licence. Đó có nghĩa là bạn được phép chơi miễn phí, sửa đổi, và phân phối lại trò chơi theo cách bạn muốn (miễn là công việc bắt nguồn cũng cấp phép theo GPL 3).
+
+- Veloren là một dự án cộng đồng phi lợi nhuận, và mọi người đang làm việc đó là một tình nguyện viên. Nếu bạn thích những gì bạn đang thấy, Chúng tôi mời bạn vô đội phát triển hoặc nghệ thuật!
+
+Cảm ơn bạn đã dành thời gian đọc thông báo này, chúng tôi hy vọng bạn thích trò chơi này!
+
+~ The Veloren Devs"#,
+
+        // Login process description
+        "main.login_process": r#"Thông tin về quá trình đăng nhập:
+
+Xin lưu ý rằng bây giờ bạn cần một tài khoản
+để chơi trên máy chủ xác thực được kích hoạt.
+
+Bạn có thể tạo một tài khoản ở
+
+
+https://veloren.net/account/."#,
+        "main.login.server_not_found": "Không tìm thấy được may chủ",
+        "main.login.authentication_error": "Lỗi xác thực trên máy chủ",
+        "main.login.server_full": "Máy chủ đầy rồi",
+        "main.login.untrusted_auth_server": "máy chủ xác thực không đáng tin cậy",
+        "main.login.outdated_client_or_server": "Máy chủ nổi khùng:
+        Có thể các phiên bản không tương thích, kiểm tra xem có cập nhật không.",
+        "main.login.timeout": "Hết giờ: máy chủ không phản hồi kịp thời. (quá tải hoặc lỗi mạng).",
+        "main.login.server_shut_down": "Máy chủ ngừng hoạt động",
+        "main.login.already_logged_in": "Bạn đã đăng nhập vào máy chủ rồi.",
+        "main.login.network_error": "lỗi mạng",
+        "main.login.failed_sending_request": "yêu cầu máy chủ ủy quyền không thành công",
+        "main.login.invalid_character": "Ký tự đã chọn không hợp lệ",
+        "main.login.client_crashed": "Trò chơi bị rơi",
+        "main.login.not_on_whitelist": "Bạn cần được quản trị viên chấp thuận để tham gia",
+        "main.login.banned": "Bạn đã bị cấm tại vì",
+        "main.login.kicked": "Bạn đã bị đá bởi vì",
+        "main.login.select_language": "Chọn một ngôn ngữ",
+
+        "main.servers.select_server": "Chọn một máy chủ",
+    },
+
+
+    vector_map: {
+    }
+)

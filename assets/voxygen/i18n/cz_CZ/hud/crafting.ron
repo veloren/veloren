@@ -1,0 +1,16 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Polish
+(
+    string_map: {
+        "hud.crafting": "Výroba",
+        "hud.crafting.recipes": "Recepty",
+        "hud.crafting.ingredients": "Ingredience:",
+        "hud.crafting.craft": "Vyrobit",
+        "hud.crafting.tool_cata": "Potřeba:",
+    },
+
+
+    vector_map: {
+    }
+)

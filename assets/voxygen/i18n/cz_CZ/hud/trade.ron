@@ -1,0 +1,30 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Polish
+(
+    string_map: {
+        /// Obchod
+
+        "hud.trade.trade_window": "Obchod",
+	    "hud.trade.phase1_description": "Přetáhněte položky.",
+	    "hud.trade.phase2_description": "Obchod je nyní uzamčen, abyste měli\n čas jej zkontrolovat.",
+	    /// Phase3 should only be visible for a few milliseconds if everything is working properly, but is included for completeness
+	    "hud.trade.phase3_description": "Probíhá zpracování.",
+	    "hud.trade.persons_offer": "Nabídka {playername}",
+	    "hud.trade.has_accepted": "{playername}přijal obchod",
+	    "hud.trade.accept": "Akceptovat",
+	    "hud.trade.decline": "Odmítnout",
+	    "hud.trade.invite_sent": "Žádost o obchod zaslána {playername}.",
+	    "hud.trade.result.completed": "Obchod proběhl úspěšně.",
+	    "hud.trade.result.declined": "Obchod odmítnut.",
+	    "hud.trade.result.nospace": "Nedostatek místa pro dokončení.",
+	    "hud.trade.buy_price": "Cena koupě",
+	    "hud.trade.sell_price": "Cena prodeje",
+	    "hud.trade.coin": "Peníze",
+    },
+
+
+    vector_map: {
+    }
+)
+

@@ -1,0 +1,19 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for portuguese (Portugal)
+(
+    string_map: {
+        "character_window.character_name": "Nome da personagem",
+        // Charater stats
+        "character_window.character_stats": r#"Resistência
+
+Aptidão fisíca
+
+Força de vontade
+"#,
+    },
+
+
+    vector_map: {
+    }
+)

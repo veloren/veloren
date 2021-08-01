@@ -1,0 +1,40 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Polish
+(
+    string_map: {
+        // Buffs
+        "buff.remove": "Klikni pro zrušení",
+        "buff.title.missing": "Chybějící název",
+        "buff.desc.missing": "Chybějící popis",
+        "buff.title.heal": "Léčba",
+        "buff.desc.heal": "Přídá život během určitého času.",
+        "buff.title.potion": "Lektvar",
+        "buff.desc.potion": "Piju...",
+        "buff.title.saturation": "Nasycení",
+        "buff.desc.saturation": "Přídá život během času ze Spotřebních.",
+        "buff.title.campfire_heal": "Léčba Táborákem",
+        "buff.desc.campfire_heal": "Odpočinek u ohně léčí 1% za sekundu.",
+        "buff.title.invulnerability": "Nezranitelnost",
+        "buff.desc.invulnerability": "Žádný útok tě nezraní.",
+        "buff.title.protectingward": "Ochraná Vizita",
+        "buff.desc.protectingward": "Jsi chráněn, nějak, před útoky.",
+        // Debuffs
+        "buff.title.bleed": "Krvácení",
+        "buff.desc.bleed": "Způsobuje pravidelné poškození.",
+        "buff.title.cursed": "Prokletí",
+        "buff.desc.cursed": "Jsi prokletý.",
+        // Buffs stats
+        "buff.stat.health": "Obnoví {str_total} Životů",
+        "buff.stat.increase_max_energy": "Zvedne Maximalní Výdrž o {strength}",
+        "buff.stat.increase_max_health": "Zvedne Maximální počet životů o {strength}",
+        "buff.stat.invulnerability": "Zaručuje Nezranitelnost",
+        // Text
+        "buff.text.over_seconds": "více než {dur_secs} sekund",
+        "buff.text.for_seconds": "po dobu {dur_secs} sekund",
+    },
+
+
+    vector_map: {
+    }
+)
