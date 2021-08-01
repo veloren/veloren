@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("One-handed sword hilt"),
+    name: Component("One-Handed Sword Hilt"),
     description: "A sword hilt.",
     kind: ModularComponent((
         toolkind: Sword,

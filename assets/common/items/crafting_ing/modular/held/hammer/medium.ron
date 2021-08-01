@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Medium hammer haft"),
+    name: Component("Medium Hammer Haft"),
     description: "A hammer half.",
     kind: ModularComponent((
         toolkind: Hammer,

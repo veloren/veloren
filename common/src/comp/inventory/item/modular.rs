@@ -265,40 +265,68 @@ pub(super) fn synthesize_modular_asset(specifier: &str) -> Option<RawItemDef> {
 /// Modular weapons are named as "{Material} {Weapon}" where {Weapon} is from
 /// the damage component used and {Material} is from the material the damage
 /// component is created from.
-pub(super) fn modular_name(item: &Item) -> Cow<'_, str> {
-    let damage_components = item.components().iter().filter(|comp| {
-        matches!(comp.kind(), ItemKind::ModularComponent(ModularComponent { modkind, .. })
-                if matches!(modkind, ModularComponentKind::Damage)
-        )
-    });
-    // Last fine as there should only ever be one damage component on a weapon
-    let (material_name, weapon_name) = if let Some(component) = damage_components.last() {
-        let materials = component
-            .components()
-            .iter()
-            .filter_map(|comp| match comp.kind() {
-                ItemKind::Ingredient { .. } => Some(comp.kind()),
-                _ => None,
+pub(super) fn modular_name<'a>(item: &'a Item, arg1: &'a str) -> Cow<'a, str> {
+    match item.kind() {
+        ItemKind::Tool(tool) => {
+            let damage_components = item.components().iter().filter(|comp| {
+                matches!(comp.kind(), ItemKind::ModularComponent(ModularComponent { modkind, .. })
+                        if matches!(modkind, ModularComponentKind::Damage)
+                )
             });
-        // TODO: Better handle multiple materials
-        let material_name = if let Some(ItemKind::Ingredient { descriptor, .. }) = materials.last()
-        {
-            descriptor
-        } else {
-            "Modular"
-        };
-        let weapon_name =
-            if let ItemKind::ModularComponent(ModularComponent { weapon_name, .. }) =
-                component.kind()
-            {
-                weapon_name
+            // Last fine as there should only ever be one damage component on a weapon
+            let (material_name, weapon_name) = if let Some(component) = damage_components.last() {
+                let materials =
+                    component
+                        .components()
+                        .iter()
+                        .filter_map(|comp| match comp.kind() {
+                            ItemKind::Ingredient { .. } => Some(comp.kind()),
+                            _ => None,
+                        });
+                // TODO: Better handle multiple materials
+                let material_name =
+                    if let Some(ItemKind::Ingredient { descriptor, .. }) = materials.last() {
+                        descriptor
+                    } else {
+                        "Modular"
+                    };
+                let weapon_name =
+                    if let ItemKind::ModularComponent(ModularComponent { weapon_name, .. }) =
+                        component.kind()
+                    {
+                        weapon_name
+                    } else {
+                        tool.kind.identifier_name()
+                    };
+                (material_name, weapon_name)
             } else {
-                "Weapon"
+                ("Modular", tool.kind.identifier_name())
             };
-        (material_name, weapon_name)
-    } else {
-        ("Modular", "Weapon")
-    };
 
-    Cow::Owned(format!("{} {}", material_name, weapon_name))
+            Cow::Owned(format!("{} {}", material_name, weapon_name))
+        },
+        ItemKind::ModularComponent(comp) => {
+            match comp.modkind {
+                ModularComponentKind::Damage => {
+                    let materials = item
+                        .components()
+                        .iter()
+                        .filter_map(|comp| match comp.kind() {
+                            ItemKind::Ingredient { .. } => Some(comp.kind()),
+                            _ => None,
+                        });
+                    // TODO: Better handle multiple materials
+                    let material_name =
+                        if let Some(ItemKind::Ingredient { descriptor, .. }) = materials.last() {
+                            descriptor
+                        } else {
+                            "Modular"
+                        };
+                    Cow::Owned(format!("{} {}", material_name, arg1))
+                },
+                ModularComponentKind::Held => Cow::Borrowed(arg1),
+            }
+        },
+        _ => Cow::Borrowed("Modular Item"),
+    }
 }

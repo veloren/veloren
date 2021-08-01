@@ -426,6 +426,7 @@ where
 pub enum ItemName {
     Direct(String),
     Modular,
+    Component(String),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -869,7 +870,8 @@ impl Item {
     pub fn name(&self) -> Cow<'_, str> {
         match &self.item_def.name {
             ItemName::Direct(name) => Cow::Borrowed(name),
-            ItemName::Modular => modular::modular_name(self),
+            ItemName::Modular => modular::modular_name(self, ""),
+            ItemName::Component(name) => modular::modular_name(self, name),
         }
     }
 
@@ -970,7 +972,7 @@ impl ItemDesc for ItemDef {
 
     fn name(&self) -> Cow<'_, str> {
         match &self.name {
-            ItemName::Direct(name) => Cow::Borrowed(name),
+            ItemName::Direct(name) | ItemName::Component(name) => Cow::Borrowed(name),
             ItemName::Modular => {
                 let toolkind = if let ItemKind::Tool(tool) = &self.kind {
                     tool.kind.identifier_name()
