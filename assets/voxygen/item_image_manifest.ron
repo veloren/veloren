@@ -2909,6 +2909,30 @@
         "voxel.sprite.crafting_ing.animal_misc.phoenix_feather",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.2,
     ),
+    Ingredient("Bamboo"): VoxTrans(
+        "voxel.sprite.wood.item.bamboo",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Ingredient("EldwoodLogs"): VoxTrans(
+        "voxel.sprite.wood.item.eldwood",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Ingredient("FrostwoodLogs"): VoxTrans(
+        "voxel.sprite.wood.item.frostwood",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Ingredient("HardwoodLogs"): VoxTrans(
+        "voxel.sprite.wood.item.hardwood",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Ingredient("IronwoodLogs"): VoxTrans(
+        "voxel.sprite.wood.item.ironwood",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Ingredient("WoodLogs"): VoxTrans(
+        "voxel.sprite.wood.item.wood",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
     // Gliders
     Glider("Starter"): VoxTrans(
         "voxel.glider.starter",

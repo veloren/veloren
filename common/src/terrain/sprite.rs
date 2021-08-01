@@ -209,6 +209,12 @@ make_case_elim!(
         Hearth = 0xB6,
         ForgeTools = 0xB7,
         CliffDecorBlock = 0xB8,
+        Wood = 0xB9,
+        Bamboo = 0xBA,
+        Hardwood = 0xBB,
+        Ironwood = 0xBC,
+        Frostwood = 0xBD,
+        Eldwood = 0xBE,
     }
 );
 
@@ -318,6 +324,12 @@ impl SpriteKind {
             SpriteKind::Hearth => 2.3,
             SpriteKind::ForgeTools => 2.8,
             SpriteKind::CliffDecorBlock => 1.0,
+            SpriteKind::Wood
+            | SpriteKind::Hardwood
+            | SpriteKind::Ironwood
+            | SpriteKind::Frostwood
+            | SpriteKind::Eldwood => 7.0 / 11.0,
+            SpriteKind::Bamboo => 9.0 / 11.0,
             _ => return None,
         })
     }
