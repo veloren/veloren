@@ -235,7 +235,7 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 entities: &[(0..1, "common.entity.wild.aggressive.deadwood")],
             },
             Spot::DesertBones => SpotConfig {
-                base_structures: Some("spots_grasslands.gnarling_totem"),
+                base_structures: Some("trees.quirky_dry"),
                 entity_radius: 40.0,
                 entities: &[(1..6, "common.entity.wild.aggressive.hyena")],
             },
