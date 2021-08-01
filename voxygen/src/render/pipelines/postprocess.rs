@@ -66,7 +66,7 @@ impl PostProcessLayout {
             },
         ];
 
-        if pipeline_modes.bloom {
+        if pipeline_modes.bloom.is_on() {
             bind_entries.push(
                 // src bloom
                 wgpu::BindGroupLayoutEntry {

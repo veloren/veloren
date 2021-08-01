@@ -111,19 +111,19 @@ enum State {
     Complete {
         pipelines: Pipelines,
         shadow: Shadow,
-        recreating: Option<
+        recreating: Option<(
+            PipelineModes,
             PipelineCreation<
                 Result<
                     (
                         Pipelines,
                         ShadowPipelines,
-                        PipelineModes,
                         Arc<postprocess::PostProcessLayout>,
                     ),
                     RenderError,
                 >,
             >,
-        >,
+        )>,
     },
 }
 
@@ -522,7 +522,7 @@ impl Renderer {
     /// Returns `Some((total, complete))` if in progress
     pub fn pipeline_recreation_status(&self) -> Option<(usize, usize)> {
         if let State::Complete { recreating, .. } = &self.state {
-            recreating.as_ref().map(|r| r.status())
+            recreating.as_ref().map(|(_, c)| c.status())
         } else {
             None
         }
@@ -765,6 +765,7 @@ impl Renderer {
 
         let bloom_tgt_views = pipeline_modes
             .bloom
+            .is_on()
             .then(|| bloom_sizes.map(|size| color_view(size.x, size.y)));
 
         let tgt_depth_tex = device.create_texture(&wgpu::TextureDescriptor {
@@ -964,11 +965,11 @@ impl Renderer {
         } else if let State::Complete {
             pipelines,
             mut shadow,
-            recreating: Some(recreating),
+            recreating: Some((new_pipeline_modes, pipeline_creation)),
         } = state
         {
-            match recreating.try_complete() {
-                Ok(Ok((pipelines, shadow_pipelines, new_pipeline_modes, postprocess_layout))) => {
+            match pipeline_creation.try_complete() {
+                Ok(Ok((pipelines, shadow_pipelines, postprocess_layout))) => {
                     if let (
                         Some(point_pipeline),
                         Some(terrain_directed_pipeline),
@@ -1007,10 +1008,10 @@ impl Renderer {
                     }
                 },
                 // Not complete
-                Err(recreating) => State::Complete {
+                Err(pipeline_creation) => State::Complete {
                     pipelines,
                     shadow,
-                    recreating: Some(recreating),
+                    recreating: Some((new_pipeline_modes, pipeline_creation)),
                 },
             }
         } else {
@@ -1080,16 +1081,20 @@ impl Renderer {
             State::Complete {
                 recreating, shadow, ..
             } => {
-                *recreating = Some(pipeline_creation::recreate_pipelines(
-                    Arc::clone(&self.device),
-                    Arc::clone(&self.layouts.immutable),
-                    self.shaders.read().clone(),
-                    self.pipeline_modes.clone(),
-                    // NOTE: if present_mode starts to be used to configure pipelines then it needs
-                    // to become a part of the pipeline modes (note here since the present mode is
-                    // accessible through the swap chain descriptor)
-                    self.sc_desc.clone(), // Note: cheap clone
-                    shadow.map.is_enabled(),
+                *recreating = Some((
+                    pipeline_modes.clone(),
+                    pipeline_creation::recreate_pipelines(
+                        Arc::clone(&self.device),
+                        Arc::clone(&self.layouts.immutable),
+                        self.shaders.read().clone(),
+                        pipeline_modes,
+                        // NOTE: if present_mode starts to be used to configure pipelines then it
+                        // needs to become a part of the pipeline modes
+                        // (note here since the present mode is accessible
+                        // through the swap chain descriptor)
+                        self.sc_desc.clone(), // Note: cheap clone
+                        shadow.map.is_enabled(),
+                    ),
                 ));
             },
             State::Interface { .. } => {

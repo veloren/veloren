@@ -43,7 +43,6 @@ pub struct GraphicsSettings {
     pub window_size: [u16; 2],
     pub fullscreen: FullScreenSettings,
     pub lod_detail: u32,
-    pub bloom_enabled: bool,
 }
 
 impl Default for GraphicsSettings {
@@ -63,7 +62,6 @@ impl Default for GraphicsSettings {
             window_size: [1280, 720],
             fullscreen: FullScreenSettings::default(),
             lod_detail: 250,
-            bloom_enabled: false,
         }
     }
 }

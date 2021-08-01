@@ -35,7 +35,7 @@ uniform u_locals {
     mat4 view_mat_inv;
 };
 
-#if (BLOOM == BLOOM_ENABLED)
+#ifdef BLOOM_FACTOR
 layout(set = 1, binding = 3)
 uniform texture2D t_src_bloom;
 #endif
@@ -187,11 +187,13 @@ void main() {
     vec4 aa_color = aa_apply(t_src_color, s_src_color, uv * screen_res.xy, screen_res.xy);
 
     // Bloom
-    #if (BLOOM == BLOOM_ENABLED)
-    // divide by 4.0 to account for adding blurred layers together
-    vec4 bloom = textureLod(sampler2D(t_src_bloom, s_src_color), uv, 0) / 4.0;
-    float bloom_factor = 0.10;
-    aa_color = mix(aa_color, bloom, bloom_factor);
+    #ifdef BLOOM_FACTOR
+        vec4 bloom = textureLod(sampler2D(t_src_bloom, s_src_color), uv, 0);
+        #if (BLOOM_UNIFORM_BLUR == false)
+            // divide by 4.0 to account for adding blurred layers together
+            bloom /= 4.0;
+        #endif
+        aa_color = mix(aa_color, bloom, BLOOM_FACTOR);
     #endif
 
     // Tonemapping

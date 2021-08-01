@@ -2,7 +2,7 @@
 //!
 //! See additional details in the [NUM_SIZES] docs
 
-use super::super::Consts;
+use super::super::{BloomConfig, Consts};
 use bytemuck::{Pod, Zeroable};
 use vek::*;
 
@@ -152,6 +152,7 @@ impl BloomPipelines {
         upsample_fs_module: &wgpu::ShaderModule,
         target_format: wgpu::TextureFormat,
         layout: &BloomLayout,
+        bloom_config: &BloomConfig,
     ) -> Self {
         common_base::span!(_guard, "BloomPipelines::new");
         let render_pipeline_layout =
@@ -207,18 +208,14 @@ impl BloomPipelines {
         let upsample_pipeline = create_pipeline(
             "Bloom upsample pipeline",
             upsample_fs_module,
-            Some(wgpu::BlendState {
+            (!bloom_config.uniform_blur).then(|| wgpu::BlendState {
                 color: wgpu::BlendComponent {
                     src_factor: wgpu::BlendFactor::One,
                     dst_factor: wgpu::BlendFactor::One,
                     operation: wgpu::BlendOperation::Add,
                 },
-                // we don't really use this, but... we need something here
-                alpha: wgpu::BlendComponent {
-                    src_factor: wgpu::BlendFactor::One,
-                    dst_factor: wgpu::BlendFactor::One,
-                    operation: wgpu::BlendOperation::Add,
-                },
+                // We don't reaaly use this but we need something here..
+                alpha: wgpu::BlendComponent::REPLACE,
             }),
         );
 

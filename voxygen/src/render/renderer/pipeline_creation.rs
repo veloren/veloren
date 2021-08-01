@@ -4,7 +4,8 @@ use super::{
             blit, bloom, clouds, debug, figure, fluid, lod_terrain, particle, postprocess, shadow,
             skybox, sprite, terrain, ui,
         },
-        AaMode, CloudMode, FluidMode, LightingMode, PipelineModes, RenderError, ShadowMode,
+        AaMode, BloomMode, CloudMode, FluidMode, LightingMode, PipelineModes, RenderError,
+        ShadowMode,
     },
     shaders::Shaders,
     ImmutableLayouts, Layouts,
@@ -151,7 +152,6 @@ impl ShaderModules {
 #define CLOUD_MODE {}
 #define LIGHTING_ALGORITHM {}
 #define SHADOW_MODE {}
-#define BLOOM {}
 
 "#,
             &constants.0,
@@ -179,12 +179,25 @@ impl ShaderModules {
                 ShadowMode::Map(_) if has_shadow_views => "SHADOW_MODE_MAP",
                 ShadowMode::Cheap | ShadowMode::Map(_) => "SHADOW_MODE_CHEAP",
             },
-            if pipeline_modes.bloom {
-                "BLOOM_ENABLED"
-            } else {
-                "BLOOM_DISABLED"
-            },
         );
+
+        let constants = match pipeline_modes.bloom {
+            BloomMode::Off => constants,
+            BloomMode::On(config) => {
+                format!(
+                    r#"
+{}
+
+#define BLOOM_FACTOR {}
+#define BLOOM_UNIFORM_BLUR {}
+
+"#,
+                    constants,
+                    config.factor.fraction(),
+                    config.uniform_blur,
+                )
+            },
+        };
 
         let anti_alias = shaders
             .get(match pipeline_modes.aa {
@@ -558,7 +571,11 @@ fn create_ingame_and_shadow_pipelines(
     let create_bloom = || {
         bloom_task.run(
             || {
-                pipeline_modes.bloom.then(|| {
+                match &pipeline_modes.bloom {
+                    BloomMode::Off => None,
+                    BloomMode::On(config) => Some(config),
+                }
+                .map(|bloom_config| {
                     bloom::BloomPipelines::new(
                         device,
                         &shaders.blit_vert,
@@ -567,6 +584,7 @@ fn create_ingame_and_shadow_pipelines(
                         &shaders.dual_upsample_frag,
                         wgpu::TextureFormat::Rgba16Float,
                         &layouts.bloom,
+                        bloom_config,
                     )
                 })
             },
@@ -797,7 +815,6 @@ pub(super) fn recreate_pipelines(
         (
             Pipelines,
             ShadowPipelines,
-            PipelineModes,
             Arc<postprocess::PostProcessLayout>,
         ),
         RenderError,
@@ -871,7 +888,6 @@ pub(super) fn recreate_pipelines(
             .send(Ok((
                 Pipelines::consolidate(interface, ingame),
                 shadow,
-                pipeline_modes,
                 layouts.postprocess,
             )))
             .expect("Channel disconnected");
