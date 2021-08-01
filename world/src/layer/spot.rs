@@ -31,8 +31,19 @@ use vek::*;
 /// that composes the spot and the entities that should be spawned there.
 #[derive(Copy, Clone, Debug)]
 pub enum Spot {
+    // *Themed Spots*
     DwarvenGrave,
     GnarlingTotem,
+    //WitchHouse,
+    //BanditCamp,
+    //EnchantedRock,
+    //TowerRuin,
+    //WellOfLight,
+    //MerchantOutpost,
+    // *Random world objects*
+    TreeStumpForest,
+    DesertBones,
+    AirshipCrash,
 }
 
 // Available Biomes are:
@@ -49,6 +60,7 @@ pub enum Spot {
 
 impl Spot {
     pub fn generate(world: &mut WorldSim) {
+        // Themed Spots -> Act as an introduction to themes of sites
         Self::generate_spots(
             Spot::DwarvenGrave,
             world,
@@ -77,17 +89,71 @@ impl Spot {
             },
             true,
         );
+        // Random World Objects -> Themed to their Biome and the NPCs that regularly
+        // spawn there
+        Self::generate_spots(
+            Spot::TreeStumpForest,
+            world,
+            20.0,
+            |g, c| {
+                g < 0.25
+                    && !c.near_cliffs()
+                    && !c.river.near_water()
+                    && !c.path.0.is_way()
+                    && c.sites.is_empty()
+                    && matches!(c.get_biome(), BiomeKind::Jungle | BiomeKind::Forest)
+            },
+            false,
+        );
+        Self::generate_spots(
+            Spot::DesertBones,
+            world,
+            6.0,
+            |g, c| {
+                g < 0.25
+                    && !c.near_cliffs()
+                    && !c.river.near_water()
+                    && !c.path.0.is_way()
+                    && c.sites.is_empty()
+                    && matches!(c.get_biome(), BiomeKind::Desert)
+            },
+            true,
+        );
+        Self::generate_spots(
+            Spot::AirshipCrash,
+            world,
+            1.0,
+            |g, c| {
+                g < 0.25
+                    && !c.near_cliffs()
+                    && !c.river.near_water()
+                    && !c.path.0.is_way()
+                    && c.sites.is_empty()
+                    && !matches!(
+                        c.get_biome(),
+                        BiomeKind::Mountain | BiomeKind::Void | BiomeKind::Ocean
+                    )
+            },
+            true,
+        );
+
         // Missing:
         /*
         Witch House
         Bandit Camp
-        TreeStump
-        DesertBones
-        AirshipCrash
-        EnchantedRock
-        TowerRuin
+        Hunter Camp
+        TowerRuinForest
+        TowerRuinDesert
         WellOfLight
         Merchant Outpost -> Near a road!
+
+        *Quirky:*
+        TreeHouse (Forest)
+        TreeStump (Forest, Grassland)
+        DesertBones (Desert, Savannah)
+        AirshipCrash (Desert, Savannah, Grassland)
+        EnchantedRock (Forest, Jungle)
+
 
         */
     }
@@ -147,6 +213,7 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
         }
 
         let spot_config = match spot {
+            // Themed Spots
             Spot::DwarvenGrave => SpotConfig {
                 base_structures: Some("spots_grasslands.dwarven_grave"),
                 entity_radius: 60.0,
@@ -161,8 +228,23 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                     (1..3, "common.entity.dungeon.tier-0.staff"),
                 ],
             },
+            // Random World Objects
+            Spot::TreeStumpForest => SpotConfig {
+                base_structures: Some("trees.oak_stumps"),
+                entity_radius: 30.0,
+                entities: &[(0..1, "common.entity.wild.aggressive.deadwood")],
+            },
+            Spot::DesertBones => SpotConfig {
+                base_structures: Some("spots_grasslands.gnarling_totem"),
+                entity_radius: 40.0,
+                entities: &[(1..6, "common.entity.wild.aggressive.hyena")],
+            },
+            Spot::AirshipCrash => SpotConfig {
+                base_structures: Some("trees.airship_crash"),
+                entity_radius: 10.0,
+                entities: &[(1..4, "common.entity.spot.bandit_camp.grim_salvager")],
+            },
         };
-
         // Blit base structure
         if let Some(base_structures) = spot_config.base_structures {
             let structures = Structure::load_group(base_structures).read();

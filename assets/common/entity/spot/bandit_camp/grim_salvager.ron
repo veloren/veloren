@@ -1,0 +1,14 @@
+EntityConfig (
+    name: Name("Grim Salvager"),
+    body: RandomWith("human"),
+	alignment: Alignment(Enemy),
+
+    loot: LootTable("common.loot_tables.creature.biped_large.saurok"),
+
+	hands: TwoHanded(Item("common.items.weapons.hammer.steel_hammer-0")),
+
+    meta: [
+        SkillSetAsset("common.skillset.village.guard"),
+        LoadoutAsset("common.loadout.spots.dwarf_graverobber"),
+    ],
+)
