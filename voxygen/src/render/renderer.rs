@@ -21,11 +21,12 @@ use super::{
     mesh::Mesh,
     model::{DynamicModel, Model},
     pipelines::{
-        blit, clouds, debug, figure, postprocess, shadow, sprite, terrain, ui, GlobalsBindGroup,
-        GlobalsLayouts, ShadowTexturesBindGroup,
+        blit, bloom, clouds, debug, figure, postprocess, shadow, sprite, terrain, ui,
+        GlobalsBindGroup, GlobalsLayouts, ShadowTexturesBindGroup,
     },
     texture::Texture,
-    AaMode, AddressMode, FilterMode, RenderError, RenderMode, ShadowMapMode, ShadowMode, Vertex,
+    AaMode, AddressMode, FilterMode, OtherModes, PipelineModes, RenderError, RenderMode,
+    ShadowMapMode, ShadowMode, Vertex,
 };
 use common::assets::{self, AssetExt, AssetHandle};
 use common_base::span;
@@ -45,19 +46,33 @@ pub type ColLightInfo = (Vec<[u8; 4]>, Vec2<u16>);
 const QUAD_INDEX_BUFFER_U16_START_VERT_LEN: u16 = 3000;
 const QUAD_INDEX_BUFFER_U32_START_VERT_LEN: u32 = 3000;
 
-/// A type that stores all the layouts associated with this renderer.
-struct Layouts {
+/// A type that stores all the layouts associated with this renderer that never
+/// change when the RenderMode is modified.
+struct ImmutableLayouts {
     global: GlobalsLayouts,
 
-    clouds: clouds::CloudsLayout,
     debug: debug::DebugLayout,
     figure: figure::FigureLayout,
-    postprocess: postprocess::PostProcessLayout,
     shadow: shadow::ShadowLayout,
     sprite: sprite::SpriteLayout,
     terrain: terrain::TerrainLayout,
+    clouds: clouds::CloudsLayout,
+    bloom: bloom::BloomLayout,
     ui: ui::UiLayout,
     blit: blit::BlitLayout,
+}
+
+/// A type that stores all the layouts associated with this renderer.
+struct Layouts {
+    immutable: Arc<ImmutableLayouts>,
+
+    postprocess: Arc<postprocess::PostProcessLayout>,
+}
+
+impl core::ops::Deref for Layouts {
+    type Target = ImmutableLayouts;
+
+    fn deref(&self) -> &Self::Target { &self.immutable }
 }
 
 /// Render target views
@@ -67,6 +82,8 @@ struct Views {
 
     tgt_color: wgpu::TextureView,
     tgt_depth: wgpu::TextureView,
+
+    bloom_tgts: Option<[wgpu::TextureView; bloom::NUM_SIZES]>,
     // TODO: rename
     tgt_color_pp: wgpu::TextureView,
 }
@@ -81,6 +98,7 @@ struct Shadow {
 /// 1. Only interface pipelines created
 /// 2. All of the pipelines have been created
 #[allow(clippy::large_enum_variant)] // They are both pretty large
+#[allow(clippy::type_complexity)]
 enum State {
     // NOTE: this is used as a transient placeholder for moving things out of State temporarily
     Nothing,
@@ -93,7 +111,19 @@ enum State {
     Complete {
         pipelines: Pipelines,
         shadow: Shadow,
-        recreating: Option<PipelineCreation<Result<(Pipelines, ShadowPipelines), RenderError>>>,
+        recreating: Option<(
+            PipelineModes,
+            PipelineCreation<
+                Result<
+                    (
+                        Pipelines,
+                        ShadowPipelines,
+                        Arc<postprocess::PostProcessLayout>,
+                    ),
+                    RenderError,
+                >,
+            >,
+        )>,
     },
 }
 
@@ -112,11 +142,11 @@ pub struct Renderer {
     depth_sampler: wgpu::Sampler,
 
     state: State,
-    // true if there is a pending need to recreate the pipelines (e.g. RenderMode change or shader
+    // Some if there is a pending need to recreate the pipelines (e.g. RenderMode change or shader
     // hotloading)
-    recreation_pending: bool,
+    recreation_pending: Option<PipelineModes>,
 
-    layouts: Arc<Layouts>,
+    layouts: Layouts,
     // Note: we keep these here since their bind groups need to be updated if we resize the
     // color/depth textures
     locals: Locals,
@@ -128,7 +158,8 @@ pub struct Renderer {
 
     shaders: AssetHandle<Shaders>,
 
-    mode: RenderMode,
+    pipeline_modes: PipelineModes,
+    other_modes: OtherModes,
     resolution: Vec2<u32>,
 
     // If this is Some then a screenshot will be taken and passed to the handler here
@@ -152,7 +183,8 @@ pub struct Renderer {
 impl Renderer {
     /// Create a new `Renderer` from a variety of backend-specific components
     /// and the window targets.
-    pub fn new(window: &winit::window::Window, mut mode: RenderMode) -> Result<Self, RenderError> {
+    pub fn new(window: &winit::window::Window, mode: RenderMode) -> Result<Self, RenderError> {
+        let (pipeline_modes, mut other_modes) = mode.split();
         // Enable seamless cubemaps globally, where available--they are essentially a
         // strict improvement on regular cube maps.
         //
@@ -285,7 +317,7 @@ impl Renderer {
             format,
             width: dims.width,
             height: dims.height,
-            present_mode: mode.present_mode.into(),
+            present_mode: other_modes.present_mode.into(),
         };
 
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
@@ -293,7 +325,7 @@ impl Renderer {
         let shadow_views = ShadowMap::create_shadow_views(
             &device,
             (dims.width, dims.height),
-            &ShadowMapMode::try_from(mode.shadow).unwrap_or_default(),
+            &ShadowMapMode::try_from(pipeline_modes.shadow).unwrap_or_default(),
         )
         .map_err(|err| {
             warn!("Could not create shadow map views: {:?}", err);
@@ -305,41 +337,51 @@ impl Renderer {
         let layouts = {
             let global = GlobalsLayouts::new(&device);
 
-            let clouds = clouds::CloudsLayout::new(&device);
             let debug = debug::DebugLayout::new(&device);
             let figure = figure::FigureLayout::new(&device);
-            let postprocess = postprocess::PostProcessLayout::new(&device);
             let shadow = shadow::ShadowLayout::new(&device);
             let sprite = sprite::SpriteLayout::new(&device);
             let terrain = terrain::TerrainLayout::new(&device);
+            let clouds = clouds::CloudsLayout::new(&device);
+            let bloom = bloom::BloomLayout::new(&device);
+            let postprocess = Arc::new(postprocess::PostProcessLayout::new(
+                &device,
+                &pipeline_modes,
+            ));
             let ui = ui::UiLayout::new(&device);
             let blit = blit::BlitLayout::new(&device);
 
-            Layouts {
+            let immutable = Arc::new(ImmutableLayouts {
                 global,
 
-                clouds,
                 debug,
                 figure,
-                postprocess,
                 shadow,
                 sprite,
                 terrain,
+                clouds,
+                bloom,
                 ui,
                 blit,
+            });
+
+            Layouts {
+                immutable,
+                postprocess,
             }
         };
 
-        // Arcify the device and layouts
+        // Arcify the device
         let device = Arc::new(device);
-        let layouts = Arc::new(layouts);
 
         let (interface_pipelines, creating) = pipeline_creation::initial_create_pipelines(
-            // TODO: combine Arcs?
             Arc::clone(&device),
-            Arc::clone(&layouts),
+            Layouts {
+                immutable: Arc::clone(&layouts.immutable),
+                postprocess: Arc::clone(&layouts.postprocess),
+            },
             shaders.read().clone(),
-            mode.clone(),
+            pipeline_modes.clone(),
             sc_desc.clone(), // Note: cheap clone
             shadow_views.is_some(),
         )?;
@@ -350,7 +392,12 @@ impl Renderer {
             creating,
         };
 
-        let views = Self::create_rt_views(&device, (dims.width, dims.height), &mode)?;
+        let (views, bloom_sizes) = Self::create_rt_views(
+            &device,
+            (dims.width, dims.height),
+            &pipeline_modes,
+            &other_modes,
+        );
 
         let create_sampler = |filter| {
             device.create_sampler(&wgpu::SamplerDescriptor {
@@ -389,6 +436,13 @@ impl Renderer {
             postprocess_locals,
             &views.tgt_color,
             &views.tgt_depth,
+            views.bloom_tgts.as_ref().map(|tgts| locals::BloomParams {
+                locals: bloom_sizes.map(|size| {
+                    Self::create_consts_inner(&device, &queue, &[bloom::Locals::new(size)])
+                }),
+                src_views: [&views.tgt_color_pp, &tgts[1], &tgts[2], &tgts[3], &tgts[4]],
+                final_tgt_view: &tgts[0],
+            }),
             &views.tgt_color_pp,
             &sampler,
             &depth_sampler,
@@ -399,9 +453,9 @@ impl Renderer {
         let quad_index_buffer_u32 =
             create_quad_index_buffer_u32(&device, QUAD_INDEX_BUFFER_U32_START_VERT_LEN as usize);
         let mut profiler = wgpu_profiler::GpuProfiler::new(4, queue.get_timestamp_period());
-        mode.profiler_enabled &= profiler_features_enabled;
-        profiler.enable_timer = mode.profiler_enabled;
-        profiler.enable_debug_marker = mode.profiler_enabled;
+        other_modes.profiler_enabled &= profiler_features_enabled;
+        profiler.enable_timer = other_modes.profiler_enabled;
+        profiler.enable_debug_marker = other_modes.profiler_enabled;
 
         #[cfg(feature = "egui-ui")]
         let egui_renderpass =
@@ -415,7 +469,7 @@ impl Renderer {
             sc_desc,
 
             state,
-            recreation_pending: false,
+            recreation_pending: None,
 
             layouts,
             locals,
@@ -430,7 +484,8 @@ impl Renderer {
 
             shaders,
 
-            mode,
+            pipeline_modes,
+            other_modes,
             resolution: Vec2::new(dims.width, dims.height),
 
             take_screenshot: None,
@@ -467,7 +522,7 @@ impl Renderer {
     /// Returns `Some((total, complete))` if in progress
     pub fn pipeline_recreation_status(&self) -> Option<(usize, usize)> {
         if let State::Complete { recreating, .. } = &self.state {
-            recreating.as_ref().map(|r| r.status())
+            recreating.as_ref().map(|(_, c)| c.status())
         } else {
             None
         }
@@ -475,37 +530,46 @@ impl Renderer {
 
     /// Change the render mode.
     pub fn set_render_mode(&mut self, mode: RenderMode) -> Result<(), RenderError> {
-        // TODO: are there actually any issues with the current mode not matching the
-        // pipelines (since we could previously have inconsistencies from
-        // pipelines failing to build due to shader editing)?
-        // TODO: FIXME: defer mode changing until pipelines are rebuilt to prevent
-        // incompatibilities as pipelines are now rebuilt in a deferred mannder in the
-        // background TODO: consider separating changes that don't require
-        // rebuilding pipelines
-        self.mode = mode;
-        self.sc_desc.present_mode = self.mode.present_mode.into();
+        let (pipeline_modes, other_modes) = mode.split();
 
-        // Only enable profiling if the wgpu features are enabled
-        self.mode.profiler_enabled &= self.profiler_features_enabled;
-        // Enable/disable profiler
-        if !self.mode.profiler_enabled {
-            // Clear the times if disabled
-            core::mem::take(&mut self.profile_times);
+        if self.other_modes != other_modes {
+            self.other_modes = other_modes;
+
+            // Update present mode in swap chain descriptor
+            self.sc_desc.present_mode = self.other_modes.present_mode.into();
+
+            // Only enable profiling if the wgpu features are enabled
+            self.other_modes.profiler_enabled &= self.profiler_features_enabled;
+            // Enable/disable profiler
+            if !self.other_modes.profiler_enabled {
+                // Clear the times if disabled
+                core::mem::take(&mut self.profile_times);
+            }
+            self.profiler.enable_timer = self.other_modes.profiler_enabled;
+            self.profiler.enable_debug_marker = self.other_modes.profiler_enabled;
+
+            // Recreate render target
+            self.on_resize(self.resolution);
         }
-        self.profiler.enable_timer = self.mode.profiler_enabled;
-        self.profiler.enable_debug_marker = self.mode.profiler_enabled;
 
-        // Recreate render target
-        self.on_resize(self.resolution)?;
-
-        // Recreate pipelines with the new AA mode
-        self.recreate_pipelines();
+        // We can't cancel the pending recreation even if the new settings are equal
+        // to the current ones becuase the recreation could be triggered by something
+        // else like shader hotloading
+        if self.pipeline_modes != pipeline_modes
+            || self
+                .recreation_pending
+                .as_ref()
+                .map_or(false, |modes| modes != &pipeline_modes)
+        {
+            // Recreate pipelines with new modes
+            self.recreate_pipelines(pipeline_modes);
+        }
 
         Ok(())
     }
 
-    /// Get the render mode.
-    pub fn render_mode(&self) -> &RenderMode { &self.mode }
+    /// Get the pipelines mode.
+    pub fn pipeline_modes(&self) -> &PipelineModes { &self.pipeline_modes }
 
     /// Get the current profiling times
     /// Nested timings immediately follow their parent
@@ -535,7 +599,7 @@ impl Renderer {
     }
 
     /// Resize internal render targets to match window render target dimensions.
-    pub fn on_resize(&mut self, dims: Vec2<u32>) -> Result<(), RenderError> {
+    pub fn on_resize(&mut self, dims: Vec2<u32>) {
         // Avoid panics when creating texture with w,h of 0,0.
         if dims.x != 0 && dims.y != 0 {
             self.is_minimized = false;
@@ -546,13 +610,36 @@ impl Renderer {
             self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
 
             // Resize other render targets
-            self.views = Self::create_rt_views(&self.device, (dims.x, dims.y), &self.mode)?;
-            // Rebind views to clouds/postprocess bind groups
+            let (views, bloom_sizes) = Self::create_rt_views(
+                &self.device,
+                (dims.x, dims.y),
+                &self.pipeline_modes,
+                &self.other_modes,
+            );
+            self.views = views;
+
+            // appease borrow check (TODO: remove after Rust 2021)
+            let device = &self.device;
+            let queue = &self.queue;
+            let views = &self.views;
+            let bloom_params = self
+                .views
+                .bloom_tgts
+                .as_ref()
+                .map(|tgts| locals::BloomParams {
+                    locals: bloom_sizes.map(|size| {
+                        Self::create_consts_inner(device, queue, &[bloom::Locals::new(size)])
+                    }),
+                    src_views: [&views.tgt_color_pp, &tgts[1], &tgts[2], &tgts[3], &tgts[4]],
+                    final_tgt_view: &tgts[0],
+                });
+
             self.locals.rebind(
                 &self.device,
                 &self.layouts,
                 &self.views.tgt_color,
                 &self.views.tgt_depth,
+                bloom_params,
                 &self.views.tgt_color_pp,
                 &self.sampler,
                 &self.depth_sampler,
@@ -576,7 +663,7 @@ impl Renderer {
             };
 
             if let (Some((point_depth, directed_depth)), ShadowMode::Map(mode)) =
-                (shadow_views, self.mode.shadow)
+                (shadow_views, self.pipeline_modes.shadow)
             {
                 match ShadowMap::create_shadow_views(&self.device, (dims.x, dims.y), &mode) {
                     Ok((new_point_depth, new_directed_depth)) => {
@@ -608,8 +695,6 @@ impl Renderer {
         } else {
             self.is_minimized = true;
         }
-
-        Ok(())
     }
 
     pub fn maintain(&self) {
@@ -624,12 +709,13 @@ impl Renderer {
     fn create_rt_views(
         device: &wgpu::Device,
         size: (u32, u32),
-        mode: &RenderMode,
-    ) -> Result<Views, RenderError> {
+        pipeline_modes: &PipelineModes,
+        other_modes: &OtherModes,
+    ) -> (Views, [Vec2<f32>; bloom::NUM_SIZES]) {
         let upscaled = Vec2::<u32>::from(size)
-            .map(|e| (e as f32 * mode.upscale_mode.factor) as u32)
+            .map(|e| (e as f32 * other_modes.upscale_mode.factor) as u32)
             .into_tuple();
-        let (width, height, sample_count) = match mode.aa {
+        let (width, height, sample_count) = match pipeline_modes.aa {
             AaMode::None | AaMode::Fxaa => (upscaled.0, upscaled.1, 1),
             AaMode::MsaaX4 => (upscaled.0, upscaled.1, 4),
             AaMode::MsaaX8 => (upscaled.0, upscaled.1, 8),
@@ -637,7 +723,7 @@ impl Renderer {
         };
         let levels = 1;
 
-        let color_view = || {
+        let color_view = |width, height| {
             let tex = device.create_texture(&wgpu::TextureDescriptor {
                 label: None,
                 size: wgpu::Extent3d {
@@ -665,8 +751,22 @@ impl Renderer {
             })
         };
 
-        let tgt_color_view = color_view();
-        let tgt_color_pp_view = color_view();
+        let tgt_color_view = color_view(width, height);
+        let tgt_color_pp_view = color_view(width, height);
+
+        let mut size_shift = 0;
+        // TODO: skip creating bloom stuff when it is disabled
+        let bloom_sizes = [(); bloom::NUM_SIZES].map(|()| {
+            // .max(1) to ensure we don't create zero sized textures
+            let size = Vec2::new(width, height).map(|e| (e >> size_shift).max(1));
+            size_shift += 1;
+            size
+        });
+
+        let bloom_tgt_views = pipeline_modes
+            .bloom
+            .is_on()
+            .then(|| bloom_sizes.map(|size| color_view(size.x, size.y)));
 
         let tgt_depth_tex = device.create_texture(&wgpu::TextureDescriptor {
             label: None,
@@ -717,12 +817,16 @@ impl Renderer {
             array_layer_count: None,
         });
 
-        Ok(Views {
-            tgt_color: tgt_color_view,
-            tgt_depth: tgt_depth_view,
-            tgt_color_pp: tgt_color_pp_view,
-            _win_depth: win_depth_view,
-        })
+        (
+            Views {
+                tgt_color: tgt_color_view,
+                tgt_depth: tgt_depth_view,
+                bloom_tgts: bloom_tgt_views,
+                tgt_color_pp: tgt_color_pp_view,
+                _win_depth: win_depth_view,
+            },
+            bloom_sizes.map(|s| s.map(|e| e as f32)),
+        )
     }
 
     /// Get the resolution of the render target.
@@ -796,7 +900,7 @@ impl Renderer {
         }
 
         // Try to get the latest profiling results
-        if self.mode.profiler_enabled {
+        if self.other_modes.profiler_enabled {
             // Note: this lags a few frames behind
             if let Some(profile_times) = self.profiler.process_finished_frame() {
                 self.profile_times = profile_times;
@@ -806,6 +910,10 @@ impl Renderer {
         // Handle polling background pipeline creation/recreation
         // Temporarily set to nothing and then replace in the statement below
         let state = core::mem::replace(&mut self.state, State::Nothing);
+        // Indicator for if pipeline recreation finished and we need to recreate bind
+        // groups / render targets (handling defered so that State will be valid
+        // when calling Self::on_resize)
+        let mut trigger_on_resize = false;
         // If still creating initial pipelines, check if complete
         self.state = if let State::Interface {
             pipelines: interface,
@@ -857,11 +965,11 @@ impl Renderer {
         } else if let State::Complete {
             pipelines,
             mut shadow,
-            recreating: Some(recreating),
+            recreating: Some((new_pipeline_modes, pipeline_creation)),
         } = state
         {
-            match recreating.try_complete() {
-                Ok(Ok((pipelines, shadow_pipelines))) => {
+            match pipeline_creation.try_complete() {
+                Ok(Ok((pipelines, shadow_pipelines, postprocess_layout))) => {
                     if let (
                         Some(point_pipeline),
                         Some(terrain_directed_pipeline),
@@ -877,6 +985,14 @@ impl Renderer {
                         shadow_map.terrain_directed_pipeline = terrain_directed_pipeline;
                         shadow_map.figure_directed_pipeline = figure_directed_pipeline;
                     }
+
+                    self.pipeline_modes = new_pipeline_modes;
+                    self.layouts.postprocess = postprocess_layout;
+                    // TODO: we have the potential to skip recreating bindings / render targets on
+                    // pipeline recreation trigged by shader reloading (would need to ensure new
+                    // postprocess_layout is not created...)
+                    trigger_on_resize = true;
+
                     State::Complete {
                         pipelines,
                         shadow,
@@ -892,27 +1008,36 @@ impl Renderer {
                     }
                 },
                 // Not complete
-                Err(recreating) => State::Complete {
+                Err(pipeline_creation) => State::Complete {
                     pipelines,
                     shadow,
-                    recreating: Some(recreating),
+                    recreating: Some((new_pipeline_modes, pipeline_creation)),
                 },
             }
         } else {
             state
         };
 
+        // Call on_resize to recreate render targets and their bind groups if the
+        // pipelines were recreated with a new postprocess layout and or changes in the
+        // render modes
+        if trigger_on_resize {
+            self.on_resize(self.resolution);
+        }
+
         // If the shaders files were changed attempt to recreate the shaders
         if self.shaders.reloaded() {
-            self.recreate_pipelines();
+            self.recreate_pipelines(self.pipeline_modes.clone());
         }
 
         // Or if we have a recreation pending
-        if self.recreation_pending
-            && matches!(&self.state, State::Complete { recreating, .. } if recreating.is_none())
-        {
-            self.recreation_pending = false;
-            self.recreate_pipelines();
+        if matches!(&self.state, State::Complete {
+            recreating: None,
+            ..
+        }) {
+            if let Some(new_pipeline_modes) = self.recreation_pending.take() {
+                self.recreate_pipelines(new_pipeline_modes);
+            }
         }
 
         let tex = match self.swap_chain.get_current_frame() {
@@ -920,7 +1045,8 @@ impl Renderer {
             // If lost recreate the swap chain
             Err(err @ wgpu::SwapChainError::Lost) => {
                 warn!("{}. Recreating swap chain. A frame will be missed", err);
-                return self.on_resize(self.resolution).map(|()| None);
+                self.on_resize(self.resolution);
+                return Ok(None);
             },
             Err(wgpu::SwapChainError::Timeout) => {
                 // This will probably be resolved on the next frame
@@ -945,29 +1071,36 @@ impl Renderer {
     }
 
     /// Recreate the pipelines
-    fn recreate_pipelines(&mut self) {
+    fn recreate_pipelines(&mut self, pipeline_modes: PipelineModes) {
         match &mut self.state {
             State::Complete { recreating, .. } if recreating.is_some() => {
                 // Defer recreation so that we are not building multiple sets of pipelines in
                 // the background at once
-                self.recreation_pending = true;
+                self.recreation_pending = Some(pipeline_modes);
             },
             State::Complete {
                 recreating, shadow, ..
             } => {
-                *recreating = Some(pipeline_creation::recreate_pipelines(
-                    Arc::clone(&self.device),
-                    Arc::clone(&self.layouts),
-                    self.shaders.read().clone(),
-                    self.mode.clone(),
-                    self.sc_desc.clone(), // Note: cheap clone
-                    shadow.map.is_enabled(),
+                *recreating = Some((
+                    pipeline_modes.clone(),
+                    pipeline_creation::recreate_pipelines(
+                        Arc::clone(&self.device),
+                        Arc::clone(&self.layouts.immutable),
+                        self.shaders.read().clone(),
+                        pipeline_modes,
+                        // NOTE: if present_mode starts to be used to configure pipelines then it
+                        // needs to become a part of the pipeline modes
+                        // (note here since the present mode is accessible
+                        // through the swap chain descriptor)
+                        self.sc_desc.clone(), // Note: cheap clone
+                        shadow.map.is_enabled(),
+                    ),
                 ));
             },
             State::Interface { .. } => {
                 // Defer recreation so that we are not building multiple sets of pipelines in
                 // the background at once
-                self.recreation_pending = true;
+                self.recreation_pending = Some(pipeline_modes);
             },
             State::Nothing => {},
         }
@@ -1184,7 +1317,7 @@ impl Renderer {
         // Queue screenshot
         self.take_screenshot = Some(Box::new(screenshot_handler));
         // Take profiler snapshot
-        if self.mode.profiler_enabled {
+        if self.other_modes.profiler_enabled {
             let file_name = format!(
                 "frame-trace_{}.json",
                 std::time::SystemTime::now()

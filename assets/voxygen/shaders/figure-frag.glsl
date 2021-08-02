@@ -198,7 +198,7 @@ void main() {
     // For now, just make glowing material light be the same colour as the surface
     // TODO: Add a way to control this better outside the shaders
     if ((material & (1u << 0u)) > 0u) {
-        emitted_light += 1000 * surf_color;
+        emitted_light += 20 * surf_color;
     }
 
     float glow_mag = length(model_glow.xyz);

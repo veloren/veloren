@@ -791,8 +791,7 @@ impl Window {
                 let physical = self.window.inner_size();
 
                 self.renderer
-                    .on_resize(Vec2::new(physical.width, physical.height))
-                    .unwrap();
+                    .on_resize(Vec2::new(physical.width, physical.height));
                 // TODO: update users of this event with the fact that it is now the physical
                 // size
                 let winit::dpi::PhysicalSize { width, height } = physical;

@@ -145,7 +145,7 @@ void main() {
     nmap = mix(f_norm, normalize(nmap), min(1.0 / pow(frag_dist, 0.75), 1));
 
     //float suppress_waves = max(dot(), 0);
-    vec3 norm = vec3(0, 0, 1) * nmap.z + b_norm * nmap.x + c_norm * nmap.y;
+    vec3 norm = normalize(vec3(0, 0, 1) * nmap.z + b_norm * nmap.x + c_norm * nmap.y);
     // vec3 norm = f_norm;
 
     vec3 water_color = (1.0 - MU_WATER) * MU_SCATTER;

@@ -4,6 +4,8 @@
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(
     array_map,
+    array_methods,
+    array_zip,
     bool_to_option,
     const_generics,
     drain_filter,

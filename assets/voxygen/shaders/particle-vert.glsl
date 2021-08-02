@@ -355,7 +355,7 @@ void main() {
                     sin(lifetime * 2.0 + rand2) + sin(lifetime * 9.0 + rand5) * 0.3
                 ),
                 vec3(raise),
-                vec4(vec3(5, 5, 1.1), 1),
+                vec4(vec3(10.3, 9, 1.5), 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
             );
             break;
@@ -386,7 +386,7 @@ void main() {
             attr = Attr(
                 spiral_motion(vec3(0, 0, rand3 + 1), spiral_radius, lifetime, abs(rand0), rand1 * 2 * PI) + vec3(0, 0, rand2),
                 vec3(6 * abs(rand4) * (1 - slow_start(2)) * pow(spiral_radius / length(inst_dir), 0.5)),
-                vec4(vec3(0, 1.7, 0.7), 1),
+                vec4(vec3(0, 1.7, 0.7) * 3, 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
             );
             break;
@@ -397,7 +397,7 @@ void main() {
             attr = Attr(
                 spiral_motion(inst_dir, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime / inst_lifespan, 10.0, inst_time),
                 vec3((1.7 - 0.7 * abs(floor(2 * rand0 - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick.x * 10 - lifetime * 4))),
-                vec4(vec3(purple_col, green_col, 0.75 * purple_col), 1),
+                vec4(vec3(purple_col, green_col, 0.75 * purple_col) * 3, 1),
                 spin_in_axis(inst_dir, tick.z)
             );
             break;

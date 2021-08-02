@@ -265,6 +265,66 @@ impl From<PresentMode> for wgpu::PresentMode {
     }
 }
 
+/// Bloom factor
+/// Controls fraction of output image luminosity that is blurred bloom
+#[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum BloomFactor {
+    Low,
+    High,
+    /// Max valid value is 1.0
+    Custom(f32),
+    // other variant has to be placed last
+    #[serde(other)]
+    Standard,
+}
+
+impl Default for BloomFactor {
+    fn default() -> Self { Self::Standard }
+}
+
+impl BloomFactor {
+    /// Fraction of output image luminosity that is blurred bloom
+    pub fn fraction(self) -> f32 {
+        match self {
+            Self::Low => 0.05,
+            Self::Standard => 0.10,
+            Self::High => 0.25,
+            Self::Custom(val) => val.max(0.0).min(1.0),
+        }
+    }
+}
+
+/// Bloom settings
+#[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct BloomConfig {
+    /// Controls fraction of output image luminosity that is blurred bloom
+    ///
+    /// Defaults to `Standard`
+    factor: BloomFactor,
+    /// Turning this on make the bloom blur less sharply concentrated around the
+    /// high intensity phenomena (removes adding in less blurred layers to the
+    /// final blur)
+    ///
+    /// Defaults to `false`
+    uniform_blur: bool,
+    // TODO: allow configuring the blur radius and/or the number of passes
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum BloomMode {
+    On(BloomConfig),
+    #[serde(other)]
+    Off,
+}
+
+impl Default for BloomMode {
+    fn default() -> Self { Self::Off }
+}
+
+impl BloomMode {
+    fn is_on(&self) -> bool { matches!(self, BloomMode::On(_)) }
+}
+
 /// Render modes
 #[derive(PartialEq, Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(default)]
@@ -274,7 +334,49 @@ pub struct RenderMode {
     pub fluid: FluidMode,
     pub lighting: LightingMode,
     pub shadow: ShadowMode,
+    pub bloom: BloomMode,
+
     pub upscale_mode: UpscaleMode,
     pub present_mode: PresentMode,
     pub profiler_enabled: bool,
+}
+
+impl RenderMode {
+    fn split(self) -> (PipelineModes, OtherModes) {
+        (
+            PipelineModes {
+                aa: self.aa,
+                cloud: self.cloud,
+                fluid: self.fluid,
+                lighting: self.lighting,
+                shadow: self.shadow,
+                bloom: self.bloom,
+            },
+            OtherModes {
+                upscale_mode: self.upscale_mode,
+                present_mode: self.present_mode,
+                profiler_enabled: self.profiler_enabled,
+            },
+        )
+    }
+}
+
+/// Render modes that require pipeline recreation (e.g. shader recompilation)
+/// when changed
+#[derive(PartialEq, Clone, Debug)]
+pub struct PipelineModes {
+    aa: AaMode,
+    cloud: CloudMode,
+    fluid: FluidMode,
+    lighting: LightingMode,
+    pub shadow: ShadowMode,
+    bloom: BloomMode,
+}
+
+/// Other render modes that don't effect pipelines
+#[derive(PartialEq, Clone, Debug)]
+struct OtherModes {
+    upscale_mode: UpscaleMode,
+    present_mode: PresentMode,
+    profiler_enabled: bool,
 }

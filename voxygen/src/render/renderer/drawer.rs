@@ -4,8 +4,8 @@ use super::{
         instances::Instances,
         model::{DynamicModel, Model, SubModel},
         pipelines::{
-            blit, clouds, debug, figure, fluid, lod_terrain, particle, shadow, skybox, sprite,
-            terrain, ui, ColLights, GlobalsBindGroup, ShadowTexturesBindGroup,
+            blit, bloom, clouds, debug, figure, fluid, lod_terrain, particle, shadow, skybox,
+            sprite, terrain, ui, ColLights, GlobalsBindGroup, ShadowTexturesBindGroup,
         },
     },
     Renderer, ShadowMap, ShadowMapRenderer,
@@ -61,7 +61,7 @@ struct RendererBorrow<'frame> {
     pipelines: Pipelines<'frame>,
     locals: &'frame super::locals::Locals,
     views: &'frame super::Views,
-    mode: &'frame super::super::RenderMode,
+    pipeline_modes: &'frame super::super::PipelineModes,
     quad_index_buffer_u16: &'frame Buffer<u16>,
     quad_index_buffer_u32: &'frame Buffer<u32>,
     #[cfg(feature = "egui-ui")]
@@ -112,7 +112,7 @@ impl<'frame> Drawer<'frame> {
             pipelines,
             locals: &renderer.locals,
             views: &renderer.views,
-            mode: &renderer.mode,
+            pipeline_modes: &renderer.pipeline_modes,
             quad_index_buffer_u16: &renderer.quad_index_buffer_u16,
             quad_index_buffer_u32: &renderer.quad_index_buffer_u32,
             #[cfg(feature = "egui-ui")]
@@ -131,13 +131,13 @@ impl<'frame> Drawer<'frame> {
         }
     }
 
-    /// Get the render mode.
-    pub fn render_mode(&self) -> &super::super::RenderMode { self.borrow.mode }
+    /// Get the pipeline modes.
+    pub fn pipeline_modes(&self) -> &super::super::PipelineModes { self.borrow.pipeline_modes }
 
     /// Returns None if the shadow renderer is not enabled at some level or the
     /// pipelines are not available yet
     pub fn shadow_pass(&mut self) -> Option<ShadowPassDrawer> {
-        if !self.borrow.mode.shadow.is_map() {
+        if !self.borrow.pipeline_modes.shadow.is_map() {
             return None;
         }
 
@@ -241,6 +241,94 @@ impl<'frame> Drawer<'frame> {
         })
     }
 
+    /// To be ran between the second pass and the third pass
+    /// does nothing if the ingame pipelines are not yet ready
+    /// does nothing if bloom is disabled
+    pub fn run_bloom_passes(&mut self) {
+        let locals = &self.borrow.locals;
+        let views = &self.borrow.views;
+
+        let bloom_pipelines = match self.borrow.pipelines.all() {
+            Some(super::Pipelines { bloom: Some(p), .. }) => p,
+            _ => return,
+        };
+
+        // TODO: consider consolidating optional bloom bind groups and optional pipeline
+        // into a single structure?
+        let (bloom_tgts, bloom_binds) =
+            match views.bloom_tgts.as_ref().zip(locals.bloom_binds.as_ref()) {
+                Some((t, b)) => (t, b),
+                None => return,
+            };
+
+        let device = self.borrow.device;
+        let mut encoder = self.encoder.as_mut().unwrap().scope("bloom", device);
+
+        let mut run_bloom_pass = |bind, view, label: String, pipeline, load| {
+            let pass_label = format!("bloom {} pass", label);
+            let mut render_pass =
+                encoder.scoped_render_pass(&label, device, &wgpu::RenderPassDescriptor {
+                    label: Some(&pass_label),
+                    color_attachments: &[wgpu::RenderPassColorAttachment {
+                        resolve_target: None,
+                        view,
+                        ops: wgpu::Operations { store: true, load },
+                    }],
+                    depth_stencil_attachment: None,
+                });
+
+            render_pass.set_bind_group(0, bind, &[]);
+            render_pass.set_pipeline(pipeline);
+            render_pass.draw(0..3, 0..1);
+        };
+
+        // Downsample filter passes
+        (0..bloom::NUM_SIZES - 1).for_each(|index| {
+            let bind = &bloom_binds[index].bind_group;
+            let view = &bloom_tgts[index + 1];
+            // Do filtering out of non-bright things during the first downsample
+            let (label, pipeline) = if index == 0 {
+                (
+                    format!("downsample filtered {}", index + 1),
+                    &bloom_pipelines.downsample_filtered,
+                )
+            } else {
+                (
+                    format!("downsample {}", index + 1),
+                    &bloom_pipelines.downsample,
+                )
+            };
+            run_bloom_pass(
+                bind,
+                view,
+                label,
+                pipeline,
+                wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+            );
+        });
+
+        // Upsample filter passes
+        (0..bloom::NUM_SIZES - 1).for_each(|index| {
+            let bind = &bloom_binds[bloom::NUM_SIZES - 1 - index].bind_group;
+            let view = &bloom_tgts[bloom::NUM_SIZES - 2 - index];
+            let label = format!("upsample {}", index + 1);
+            run_bloom_pass(
+                bind,
+                view,
+                label,
+                &bloom_pipelines.upsample,
+                if index + 2 == bloom::NUM_SIZES {
+                    // Clear for the final image since that is just stuff from the pervious frame.
+                    wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT)
+                } else {
+                    // Add to less blurred images to get gradient of blur instead of a smudge>
+                    // https://catlikecoding.com/unity/tutorials/advanced-rendering/bloom/
+                    wgpu::LoadOp::Load
+                },
+            );
+        });
+    }
+
     pub fn third_pass(&mut self) -> ThirdPassDrawer {
         let encoder = self.encoder.as_mut().unwrap();
         let device = self.borrow.device;
@@ -321,7 +409,7 @@ impl<'frame> Drawer<'frame> {
         chunks: impl Clone
         + Iterator<Item = (&'data Model<terrain::Vertex>, &'data terrain::BoundLocals)>,
     ) {
-        if !self.borrow.mode.shadow.is_map() {
+        if !self.borrow.pipeline_modes.shadow.is_map() {
             return;
         }
 

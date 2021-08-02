@@ -1,13 +1,14 @@
 use super::{
     super::{
         pipelines::{
-            blit, clouds, debug, figure, fluid, lod_terrain, particle, postprocess, shadow, skybox,
-            sprite, terrain, ui,
+            blit, bloom, clouds, debug, figure, fluid, lod_terrain, particle, postprocess, shadow,
+            skybox, sprite, terrain, ui,
         },
-        AaMode, CloudMode, FluidMode, LightingMode, RenderError, RenderMode, ShadowMode,
+        AaMode, BloomMode, CloudMode, FluidMode, LightingMode, PipelineModes, RenderError,
+        ShadowMode,
     },
     shaders::Shaders,
-    Layouts,
+    ImmutableLayouts, Layouts,
 };
 use common_base::prof_span;
 use std::sync::Arc;
@@ -20,6 +21,7 @@ pub struct Pipelines {
     pub lod_terrain: lod_terrain::LodTerrainPipeline,
     pub particle: particle::ParticlePipeline,
     pub clouds: clouds::CloudsPipeline,
+    pub bloom: Option<bloom::BloomPipelines>,
     pub postprocess: postprocess::PostProcessPipeline,
     // Consider reenabling at some time
     // player_shadow: figure::FigurePipeline,
@@ -39,6 +41,7 @@ pub struct IngamePipelines {
     lod_terrain: lod_terrain::LodTerrainPipeline,
     particle: particle::ParticlePipeline,
     clouds: clouds::CloudsPipeline,
+    pub bloom: Option<bloom::BloomPipelines>,
     postprocess: postprocess::PostProcessPipeline,
     // Consider reenabling at some time
     // player_shadow: figure::FigurePipeline,
@@ -74,6 +77,7 @@ impl Pipelines {
             lod_terrain: ingame.lod_terrain,
             particle: ingame.particle,
             clouds: ingame.clouds,
+            bloom: ingame.bloom,
             postprocess: ingame.postprocess,
             //player_shadow: ingame.player_shadow,
             skybox: ingame.skybox,
@@ -107,6 +111,9 @@ struct ShaderModules {
     lod_terrain_frag: wgpu::ShaderModule,
     clouds_vert: wgpu::ShaderModule,
     clouds_frag: wgpu::ShaderModule,
+    dual_downsample_filtered_frag: wgpu::ShaderModule,
+    dual_downsample_frag: wgpu::ShaderModule,
+    dual_upsample_frag: wgpu::ShaderModule,
     postprocess_vert: wgpu::ShaderModule,
     postprocess_frag: wgpu::ShaderModule,
     blit_vert: wgpu::ShaderModule,
@@ -120,7 +127,7 @@ impl ShaderModules {
     pub fn new(
         device: &wgpu::Device,
         shaders: &Shaders,
-        mode: &RenderMode,
+        pipeline_modes: &PipelineModes,
         has_shadow_views: bool,
     ) -> Result<Self, RenderError> {
         prof_span!(_guard, "ShaderModules::new");
@@ -150,11 +157,11 @@ impl ShaderModules {
             &constants.0,
             // TODO: Configurable vertex/fragment shader preference.
             "VOXYGEN_COMPUTATION_PREFERENCE_FRAGMENT",
-            match mode.fluid {
+            match pipeline_modes.fluid {
                 FluidMode::Cheap => "FLUID_MODE_CHEAP",
                 FluidMode::Shiny => "FLUID_MODE_SHINY",
             },
-            match mode.cloud {
+            match pipeline_modes.cloud {
                 CloudMode::None => "CLOUD_MODE_NONE",
                 CloudMode::Minimal => "CLOUD_MODE_MINIMAL",
                 CloudMode::Low => "CLOUD_MODE_LOW",
@@ -162,20 +169,38 @@ impl ShaderModules {
                 CloudMode::High => "CLOUD_MODE_HIGH",
                 CloudMode::Ultra => "CLOUD_MODE_ULTRA",
             },
-            match mode.lighting {
+            match pipeline_modes.lighting {
                 LightingMode::Ashikhmin => "LIGHTING_ALGORITHM_ASHIKHMIN",
                 LightingMode::BlinnPhong => "LIGHTING_ALGORITHM_BLINN_PHONG",
                 LightingMode::Lambertian => "LIGHTING_ALGORITHM_LAMBERTIAN",
             },
-            match mode.shadow {
+            match pipeline_modes.shadow {
                 ShadowMode::None => "SHADOW_MODE_NONE",
                 ShadowMode::Map(_) if has_shadow_views => "SHADOW_MODE_MAP",
                 ShadowMode::Cheap | ShadowMode::Map(_) => "SHADOW_MODE_CHEAP",
             },
         );
 
+        let constants = match pipeline_modes.bloom {
+            BloomMode::Off => constants,
+            BloomMode::On(config) => {
+                format!(
+                    r#"
+{}
+
+#define BLOOM_FACTOR {}
+#define BLOOM_UNIFORM_BLUR {}
+
+"#,
+                    constants,
+                    config.factor.fraction(),
+                    config.uniform_blur,
+                )
+            },
+        };
+
         let anti_alias = shaders
-            .get(match mode.aa {
+            .get(match pipeline_modes.aa {
                 AaMode::None => "antialias.none",
                 AaMode::Fxaa => "antialias.fxaa",
                 AaMode::MsaaX4 => "antialias.msaa-x4",
@@ -185,7 +210,7 @@ impl ShaderModules {
             .unwrap();
 
         let cloud = shaders
-            .get(match mode.cloud {
+            .get(match pipeline_modes.cloud {
                 CloudMode::None => "include.cloud.none",
                 _ => "include.cloud.regular",
             })
@@ -228,7 +253,7 @@ impl ShaderModules {
             create_shader_module(device, &mut compiler, glsl, kind, &file_name, &options)
         };
 
-        let selected_fluid_shader = ["fluid-frag.", match mode.fluid {
+        let selected_fluid_shader = ["fluid-frag.", match pipeline_modes.fluid {
             FluidMode::Cheap => "cheap",
             FluidMode::Shiny => "shiny",
         }]
@@ -255,6 +280,12 @@ impl ShaderModules {
             lod_terrain_frag: create_shader("lod-terrain-frag", ShaderKind::Fragment)?,
             clouds_vert: create_shader("clouds-vert", ShaderKind::Vertex)?,
             clouds_frag: create_shader("clouds-frag", ShaderKind::Fragment)?,
+            dual_downsample_filtered_frag: create_shader(
+                "dual-downsample-filtered-frag",
+                ShaderKind::Fragment,
+            )?,
+            dual_downsample_frag: create_shader("dual-downsample-frag", ShaderKind::Fragment)?,
+            dual_upsample_frag: create_shader("dual-upsample-frag", ShaderKind::Fragment)?,
             postprocess_vert: create_shader("postprocess-vert", ShaderKind::Vertex)?,
             postprocess_frag: create_shader("postprocess-frag", ShaderKind::Fragment)?,
             blit_vert: create_shader("blit-vert", ShaderKind::Vertex)?,
@@ -305,7 +336,7 @@ struct PipelineNeeds<'a> {
     device: &'a wgpu::Device,
     layouts: &'a Layouts,
     shaders: &'a ShaderModules,
-    mode: &'a RenderMode,
+    pipeline_modes: &'a PipelineModes,
     sc_desc: &'a wgpu::SwapChainDescriptor,
 }
 
@@ -360,7 +391,7 @@ fn create_interface_pipelines(
 fn create_ingame_and_shadow_pipelines(
     needs: PipelineNeeds,
     pool: &rayon::ThreadPool,
-    tasks: [Task; 13],
+    tasks: [Task; 14],
 ) -> IngameAndShadowPipelines {
     prof_span!(_guard, "create_ingame_and_shadow_pipelines");
 
@@ -368,7 +399,7 @@ fn create_ingame_and_shadow_pipelines(
         device,
         layouts,
         shaders,
-        mode,
+        pipeline_modes,
         sc_desc,
     } = needs;
 
@@ -382,6 +413,7 @@ fn create_ingame_and_shadow_pipelines(
         particle_task,
         lod_terrain_task,
         clouds_task,
+        bloom_task,
         postprocess_task,
         // TODO: if these are ever actually optionally done, counting them 
         // as tasks to do beforehand seems kind of iffy since they will just 
@@ -403,7 +435,7 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.debug_frag,
                     &layouts.global,
                     &layouts.debug,
-                    mode.aa,
+                    pipeline_modes.aa,
                 )
             },
             "debug pipeline creation",
@@ -418,7 +450,7 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.skybox_vert,
                     &shaders.skybox_frag,
                     &layouts.global,
-                    mode.aa,
+                    pipeline_modes.aa,
                 )
             },
             "skybox pipeline creation",
@@ -434,7 +466,7 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.figure_frag,
                     &layouts.global,
                     &layouts.figure,
-                    mode.aa,
+                    pipeline_modes.aa,
                 )
             },
             "figure pipeline creation",
@@ -450,7 +482,7 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.terrain_frag,
                     &layouts.global,
                     &layouts.terrain,
-                    mode.aa,
+                    pipeline_modes.aa,
                 )
             },
             "terrain pipeline creation",
@@ -466,7 +498,7 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.fluid_frag,
                     &layouts.global,
                     &layouts.terrain,
-                    mode.aa,
+                    pipeline_modes.aa,
                 )
             },
             "fluid pipeline creation",
@@ -483,7 +515,7 @@ fn create_ingame_and_shadow_pipelines(
                     &layouts.global,
                     &layouts.sprite,
                     &layouts.terrain,
-                    mode.aa,
+                    pipeline_modes.aa,
                 )
             },
             "sprite pipeline creation",
@@ -498,7 +530,7 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.particle_vert,
                     &shaders.particle_frag,
                     &layouts.global,
-                    mode.aa,
+                    pipeline_modes.aa,
                 )
             },
             "particle pipeline creation",
@@ -513,7 +545,7 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.lod_terrain_vert,
                     &shaders.lod_terrain_frag,
                     &layouts.global,
-                    mode.aa,
+                    pipeline_modes.aa,
                 )
             },
             "lod terrain pipeline creation",
@@ -529,10 +561,34 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.clouds_frag,
                     &layouts.global,
                     &layouts.clouds,
-                    mode.aa,
+                    pipeline_modes.aa,
                 )
             },
             "clouds pipeline creation",
+        )
+    };
+    // Pipelines for rendering our bloom
+    let create_bloom = || {
+        bloom_task.run(
+            || {
+                match &pipeline_modes.bloom {
+                    BloomMode::Off => None,
+                    BloomMode::On(config) => Some(config),
+                }
+                .map(|bloom_config| {
+                    bloom::BloomPipelines::new(
+                        device,
+                        &shaders.blit_vert,
+                        &shaders.dual_downsample_filtered_frag,
+                        &shaders.dual_downsample_frag,
+                        &shaders.dual_upsample_frag,
+                        wgpu::TextureFormat::Rgba16Float,
+                        &layouts.bloom,
+                        bloom_config,
+                    )
+                })
+            },
+            "bloom pipelines creation",
         )
     };
     // Pipeline for rendering our post-processing
@@ -584,7 +640,7 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.point_light_shadows_vert,
                     &layouts.global,
                     &layouts.terrain,
-                    mode.aa,
+                    pipeline_modes.aa,
                 )
             },
             "point shadow pipeline creation",
@@ -599,7 +655,7 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.light_shadows_directed_vert,
                     &layouts.global,
                     &layouts.terrain,
-                    mode.aa,
+                    pipeline_modes.aa,
                 )
             },
             "terrain directed shadow pipeline creation",
@@ -614,7 +670,7 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.light_shadows_figure_vert,
                     &layouts.global,
                     &layouts.figure,
-                    mode.aa,
+                    pipeline_modes.aa,
                 )
             },
             "figure directed shadow pipeline creation",
@@ -622,7 +678,7 @@ fn create_ingame_and_shadow_pipelines(
     };
 
     let j1 = || pool.join(create_debug, || pool.join(create_skybox, create_figure));
-    let j2 = || pool.join(create_terrain, create_fluid);
+    let j2 = || pool.join(create_terrain, || pool.join(create_fluid, create_bloom));
     let j3 = || pool.join(create_sprite, create_particle);
     let j4 = || pool.join(create_lod_terrain, create_clouds);
     let j5 = || pool.join(create_postprocess, create_point_shadow);
@@ -636,7 +692,7 @@ fn create_ingame_and_shadow_pipelines(
     // Ignore this
     let (
         (
-            ((debug, (skybox, figure)), (terrain, fluid)),
+            ((debug, (skybox, figure)), (terrain, (fluid, bloom))),
             ((sprite, particle), (lod_terrain, clouds)),
         ),
         ((postprocess, point_shadow), (terrain_directed_shadow, figure_directed_shadow)),
@@ -653,6 +709,7 @@ fn create_ingame_and_shadow_pipelines(
             lod_terrain,
             particle,
             clouds,
+            bloom,
             postprocess,
             skybox,
             sprite,
@@ -675,9 +732,9 @@ fn create_ingame_and_shadow_pipelines(
 /// NOTE: this tries to use all the CPU cores to complete as soon as possible
 pub(super) fn initial_create_pipelines(
     device: Arc<wgpu::Device>,
-    layouts: Arc<Layouts>,
+    layouts: Layouts,
     shaders: Shaders,
-    mode: RenderMode,
+    pipeline_modes: PipelineModes,
     sc_desc: wgpu::SwapChainDescriptor,
     has_shadow_views: bool,
 ) -> Result<
@@ -690,7 +747,7 @@ pub(super) fn initial_create_pipelines(
     prof_span!(_guard, "initial_create_pipelines");
 
     // Process shaders into modules
-    let shader_modules = ShaderModules::new(&device, &shaders, &mode, has_shadow_views)?;
+    let shader_modules = ShaderModules::new(&device, &shaders, &pipeline_modes, has_shadow_views)?;
 
     // Create threadpool for parallel portion
     let pool = rayon::ThreadPoolBuilder::new()
@@ -702,7 +759,7 @@ pub(super) fn initial_create_pipelines(
         device: &device,
         layouts: &layouts,
         shaders: &shader_modules,
-        mode: &mode,
+        pipeline_modes: &pipeline_modes,
         sc_desc: &sc_desc,
     };
 
@@ -729,7 +786,7 @@ pub(super) fn initial_create_pipelines(
             device: &device,
             layouts: &layouts,
             shaders: &shader_modules,
-            mode: &mode,
+            pipeline_modes: &pipeline_modes,
             sc_desc: &sc_desc,
         };
 
@@ -745,14 +802,24 @@ pub(super) fn initial_create_pipelines(
 /// Use this to recreate all the pipelines in the background.
 /// TODO: report progress
 /// NOTE: this tries to use all the CPU cores to complete as soon as possible
+#[allow(clippy::type_complexity)]
 pub(super) fn recreate_pipelines(
     device: Arc<wgpu::Device>,
-    layouts: Arc<Layouts>,
+    immutable_layouts: Arc<ImmutableLayouts>,
     shaders: Shaders,
-    mode: RenderMode,
+    pipeline_modes: PipelineModes,
     sc_desc: wgpu::SwapChainDescriptor,
     has_shadow_views: bool,
-) -> PipelineCreation<Result<(Pipelines, ShadowPipelines), RenderError>> {
+) -> PipelineCreation<
+    Result<
+        (
+            Pipelines,
+            ShadowPipelines,
+            Arc<postprocess::PostProcessLayout>,
+        ),
+        RenderError,
+    >,
+> {
     prof_span!(_guard, "recreate_pipelines");
 
     // Create threadpool for parallel portion
@@ -780,20 +847,32 @@ pub(super) fn recreate_pipelines(
 
         // Process shaders into modules
         let guard = shader_task.start("process shaders");
-        let shader_modules = match ShaderModules::new(&device, &shaders, &mode, has_shadow_views) {
-            Ok(modules) => modules,
-            Err(err) => {
-                result_send.send(Err(err)).expect("Channel disconnected");
-                return;
-            },
-        };
+        let shader_modules =
+            match ShaderModules::new(&device, &shaders, &pipeline_modes, has_shadow_views) {
+                Ok(modules) => modules,
+                Err(err) => {
+                    result_send.send(Err(err)).expect("Channel disconnected");
+                    return;
+                },
+            };
         drop(guard);
+
+        // Create new postprocess layouts
+        let postprocess_layouts = Arc::new(postprocess::PostProcessLayout::new(
+            &device,
+            &pipeline_modes,
+        ));
+
+        let layouts = Layouts {
+            immutable: immutable_layouts,
+            postprocess: postprocess_layouts,
+        };
 
         let needs = PipelineNeeds {
             device: &device,
             layouts: &layouts,
             shaders: &shader_modules,
-            mode: &mode,
+            pipeline_modes: &pipeline_modes,
             sc_desc: &sc_desc,
         };
 
@@ -806,7 +885,11 @@ pub(super) fn recreate_pipelines(
 
         // Send them
         result_send
-            .send(Ok((Pipelines::consolidate(interface, ingame), shadow)))
+            .send(Ok((
+                Pipelines::consolidate(interface, ingame),
+                shadow,
+                layouts.postprocess,
+            )))
             .expect("Channel disconnected");
     });
 
