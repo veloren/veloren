@@ -168,8 +168,8 @@ impl Spot {
         // parameters are the gradient of the terrain and the [`SimChunk`] of the candidate
         // location.
         mut valid: impl FnMut(f32, &SimChunk) -> bool,
-        // Should we allow trees to spawn close to the spot?
-        trees: bool,
+        // Should we allow trees and other trivial structures to spawn close to the spot?
+        spawn: bool,
     ) {
         let world_size = world.get_size();
         for _ in
@@ -184,8 +184,9 @@ impl Spot {
                 .filter(|(grad, chunk)| valid(*grad, chunk))
             {
                 chunk.spot = Some(spot);
-                if !trees {
+                if !spawn {
                     chunk.tree_density = 0.0;
+                    chunk.spawn_rate = 0.0;
                 }
             }
         }
