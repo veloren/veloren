@@ -296,16 +296,21 @@ impl<'a> System<'a> for Sys {
                     poise,
                     loadout,
                     agent: if entity.has_agency {
-                        Some(comp::Agent::new(
-                            Some(entity.pos),
-                            &body,
-                            Behavior::default()
-                                .maybe_with_capabilities(
-                                    can_speak.then(|| BehaviorCapability::SPEAK),
+                        Some(
+                            comp::Agent::from_body(&body)
+                                .with_behavior(
+                                    Behavior::default()
+                                        .maybe_with_capabilities(
+                                            can_speak.then(|| BehaviorCapability::SPEAK),
+                                        )
+                                        .with_trade_site(trade_for_site),
                                 )
-                                .with_trade_site(trade_for_site),
-                            matches!(entity.agent_mark, Some(agent::Mark::Guard)),
-                        ))
+                                .with_patrol_origin(entity.pos)
+                                .with_no_flee(!matches!(
+                                    entity.agent_mark,
+                                    Some(agent::Mark::Guard)
+                                )),
+                        )
                     } else {
                         None
                     },

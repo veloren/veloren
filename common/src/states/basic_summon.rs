@@ -174,12 +174,11 @@ impl CharacterBehavior for Data {
                             poise: comp::Poise::new(body),
                             loadout,
                             body,
-                            agent: Some(comp::Agent::new(
-                                None,
-                                &body,
-                                Behavior::from(BehaviorCapability::SPEAK),
-                                true,
-                            )),
+                            agent: Some(
+                                comp::Agent::from_body(&body)
+                                    .with_behavior(Behavior::from(BehaviorCapability::SPEAK))
+                                    .with_no_flee(true),
+                            ),
                             alignment: comp::Alignment::Owned(*data.uid),
                             scale: self
                                 .static_data

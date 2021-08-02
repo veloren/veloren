@@ -103,15 +103,12 @@ impl<'a> System<'a> for Sys {
                 .map(|e| e as f32)
                 + Vec3::new(0.5, 0.5, body.flying_height());
             let pos = comp::Pos(spawn_pos);
-            let agent = Some(comp::Agent::new(
-                None,
-                &body,
+            let agent = Some(comp::Agent::from_body(&body).with_behavior(
                 if matches!(body, comp::Body::Humanoid(_)) {
                     Behavior::from(BehaviorCapability::SPEAK)
                 } else {
                     Behavior::default()
                 },
-                false,
             ));
 
             let rtsim_entity = Some(RtSimEntity(id));
