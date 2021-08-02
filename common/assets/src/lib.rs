@@ -303,12 +303,30 @@ mod tests {
     }
 }
 
+/// Set of functions for easy tweaking values using our asset cache machinery.
+///
+/// Will hot-reload (if corresponded feature is enabled).
 #[cfg(feature = "asset_tweak")]
 pub mod asset_tweak {
-    use super::{find_root, Asset, AssetExt, RonLoader};
+    use super::{Asset, AssetExt, RonLoader, ASSETS_PATH};
     use ron::ser::{to_writer_pretty, PrettyConfig};
     use serde::{de::DeserializeOwned, Deserialize, Serialize};
     use std::{fs, path::Path};
+
+    /// Specifier to use with tweak functions in this module
+    ///
+    /// `Tweak("test")` will be interpreted as `<assets_dir>/tweak/test.ron`.
+    ///
+    /// `Asset(&["path", "to", "file"])` will be interpreted as
+    /// `<assets_dir>/path/to/file.ron`
+    // TODO: should we care about situation where
+    // lifetime of slice and lifetime of strings are different?
+    //
+    // Should we use references at all?
+    pub enum Specifier<'a> {
+        Tweak(&'a str),
+        Asset(&'a [&'a str]),
+    }
 
     #[derive(Clone, Deserialize, Serialize)]
     struct AssetTweakWrapper<T>(T);
@@ -322,20 +340,65 @@ pub mod asset_tweak {
         const EXTENSION: &'static str = "ron";
     }
 
-    // helper function to load asset and return contained value
-    // asset_specifier is full "path" to asset relative to ASSETS_PATH.
-    fn read_expect<T>(asset_specifier: &str) -> T
+    /// Read value from file, will panic if file doesn't exist.
+    ///
+    /// If you don't have a file or its content is invalid,
+    /// this function will panic.
+    /// If you want to have some default content,
+    /// read documentation for [tweak_expect_or_create] for more.
+    ///
+    /// # Examples:
+    /// How not to use.
+    /// ```should_panic
+    /// use veloren_common_assets::asset_tweak::{tweak_expect, Specifier};
+    ///
+    /// // will panic if you don't have a file
+    /// let specifier = Specifier::Asset(&["no_way_we_have_this_directory", "x"]);
+    /// let x: i32 = tweak_expect(specifier);
+    /// ```
+    ///
+    /// How to use.
+    /// ```
+    /// use std::fs;
+    /// use veloren_common_assets::{
+    ///     asset_tweak::{tweak_expect, Specifier},
+    ///     ASSETS_PATH,
+    /// };
+    ///
+    /// // you need to create file first
+    /// let tweak_path = ASSETS_PATH.join("tweak/y.ron");
+    /// // note parentheses
+    /// fs::write(&tweak_path, b"(10)");
+    ///
+    /// let y: i32 = tweak_expect(Specifier::Tweak("y"));
+    /// assert_eq!(y, 10);
+    ///
+    /// // Specifier::Tweak is just a shorthand
+    /// // for Specifier::Asset(&["tweak", ..])
+    /// let z: i32 = tweak_expect(Specifier::Asset(&["tweak", "y"]));
+    /// assert_eq!(y, 10);
+    ///
+    /// // you may want to remove this file later
+    /// std::fs::remove_file(tweak_path);
+    /// ```
+    pub fn tweak_expect<T>(specifier: Specifier) -> T
     where
         T: Clone + Sized + Send + Sync + 'static + DeserializeOwned,
     {
-        let handle = <AssetTweakWrapper<T> as AssetExt>::load_expect(asset_specifier);
+        let asset_specifier = match specifier {
+            Specifier::Tweak(specifier) => format!("tweak.{}", specifier),
+            Specifier::Asset(path) => path.join("."),
+        };
+        let handle = <AssetTweakWrapper<T> as AssetExt>::load_expect(&asset_specifier);
         let AssetTweakWrapper(value) = handle.read().clone();
+
         value
     }
 
-    // helper function to create new file to tweak
-    // the file will be filled with passed value
-    // returns passed value
+    // Helper function to create new file to tweak.
+    //
+    // The file will be filled with passed value
+    // returns passed value.
     fn create_new<T>(tweak_dir: &Path, filename: &str, value: T) -> T
     where
         T: Sized + Send + Sync + 'static + DeserializeOwned + Serialize,
@@ -352,66 +415,71 @@ pub mod asset_tweak {
         value
     }
 
-    /// # Usage
-    /// Read value from file using our asset cache machinery.
-    ///
-    /// Will hot-reload (if corresponded feature is enabled).
-    ///
-    /// If you don't have a file or its content is invalid,
-    /// this function will panic.
-    ///
-    /// Read documentation for `tweak_expect_or_create` for more.
-    pub fn tweak_expect<T>(specifier: &str) -> T
-    where
-        T: Clone + Sized + Send + Sync + 'static + DeserializeOwned,
-    {
-        let asset_specifier = format!("tweak.{}", specifier);
-        read_expect(&asset_specifier)
+    // Helper function to get directory and file from asset list.
+    //
+    // Converts ["path", "to", "file"] to (String("path/to"), "file")
+    fn directory_and_name<'a>(path: &'a [&'a str]) -> (String, &'a str) {
+        let (file, path) = path.split_last().expect("empty asset list");
+        let directory = path.join("/");
+
+        (directory, file)
     }
 
-    /// # Usage
-    /// Will create file "assets/tweak/{specifier}.ron" if not exists
-    /// and return passed `value`.
-    /// If file exists will read a value from such file.
+    /// Read a value from asset, creating file if not exists.
     ///
-    /// In release builds (if `debug_assertions` == false) just returns passed
-    /// `value`
+    /// If file exists will read a value from such file
+    /// using [tweak_expect].
     ///
-    /// Example if you want to tweak integer value
-    /// ```no_run
-    /// use veloren_common_assets::asset_tweak;
-    /// let x: i32 = asset_tweak::tweak_expect_or_create("x", 5);
-    /// ```
-    /// File needs to look like that
+    /// File should look like that (note the parentheses).
     /// ```text
     /// assets/tweak/x.ron
     /// (5)
     /// ```
-    /// Note the parentheses.
-    pub fn tweak_expect_or_create<T>(specifier: &str, value: T) -> T
+    ///
+    /// # Example:
+    /// Tweaking integer value
+    /// ```
+    /// use veloren_common_assets::{
+    ///     asset_tweak::{tweak_expect_or_create, Specifier},
+    ///     ASSETS_PATH,
+    /// };
+    ///
+    /// // first time it will create the file
+    /// let x: i32 = tweak_expect_or_create(Specifier::Tweak("x"), 5);
+    /// let file_path = ASSETS_PATH.join("tweak/x.ron");
+    /// assert!(file_path.is_file());
+    /// assert_eq!(x, 5);
+    ///
+    /// // next time it will read value from file
+    /// // whatever you will pass as default
+    /// let x: i32 = tweak_expect_or_create(Specifier::Tweak("x"), 42);
+    /// assert_eq!(x, 5);
+    ///
+    /// // you may want to remove this file later
+    /// std::fs::remove_file(file_path);
+    /// ```
+    pub fn tweak_expect_or_create<T>(specifier: Specifier, value: T) -> T
     where
         T: Clone + Sized + Send + Sync + 'static + DeserializeOwned + Serialize,
     {
-        if cfg!(not(debug_assertions)) {
-            return value;
-        }
+        let (dir, filename) = match specifier {
+            Specifier::Tweak(name) => (ASSETS_PATH.join("tweak"), format!("{}.ron", name)),
+            Specifier::Asset(list) => {
+                let (directory, name) = directory_and_name(list);
+                (ASSETS_PATH.join(directory), format!("{}.ron", name))
+            },
+        };
 
-        let root = find_root().expect("failed to discover repository_root");
-        let tweak_dir = root.join("assets/tweak/");
-        let filename = format!("{}.ron", specifier);
-
-        if Path::new(&tweak_dir.join(&filename)).is_file() {
-            let asset_specifier = format!("tweak.{}", specifier);
-            read_expect(&asset_specifier)
+        if Path::new(&dir.join(&filename)).is_file() {
+            tweak_expect(specifier)
         } else {
-            create_new(&tweak_dir, &filename, value)
+            create_new(&dir, &filename, value)
         }
     }
 
     #[cfg(test)]
     mod tests {
-        use super::{find_root, tweak_expect, tweak_expect_or_create};
-        use serial_test::serial;
+        use super::*;
         use std::{
             convert::AsRef,
             fmt::Debug,
@@ -469,90 +537,139 @@ pub mod asset_tweak {
             P: AsRef<Path> + Debug,
         {
             fn drop(&mut self) {
-                fs::remove_file(&self.file)
-                    .unwrap_or_else(|_| panic!("failed to create file {:?}", &self.file));
+                fs::remove_file(&self.file).unwrap_or_else(|e| {
+                    panic!("failed to remove file {:?}. Error: {:?}", &self.file, e)
+                });
             }
         }
 
-        #[test]
-        #[serial]
-        fn test_tweaked_string() {
-            let root = find_root().expect("failed to discover repository_root");
-            let tweak_dir = root.join("assets/tweak/");
-            let _dir_guard = DirectoryGuard::create(tweak_dir.clone());
+        // helper function to create environment with needed directory and file
+        // and responsible for cleaning
+        fn run_with_file(tweak_path: &[&str], test: impl Fn(&mut File)) {
+            let (tweak_dir, tweak_name) = directory_and_name(tweak_path);
+            let tweak_folder = ASSETS_PATH.join(tweak_dir);
+            let tweak_file = tweak_folder.join(format!("{}.ron", tweak_name));
 
-            // define test files
-            let from_int = tweak_dir.join("__test_int_tweak.ron");
-            let from_string = tweak_dir.join("__test_string_tweak.ron");
-            let from_map = tweak_dir.join("__test_map_tweak.ron");
+            let _dir_guard = DirectoryGuard::create(tweak_folder);
+            let (_file_guard, mut file) = FileGuard::create(tweak_file);
 
-            // setup fs guards
-            let (_file_guard1, mut file1) = FileGuard::create(from_int);
-            let (_file_guard2, mut file2) = FileGuard::create(from_string);
-            let (_file_guard3, mut file3) = FileGuard::create(from_map);
-
-            // write to file and check result
-            file1
-                .write_all(b"(5)")
-                .expect("failed to write to the file");
-            let x = tweak_expect::<i32>("__test_int_tweak");
-            assert_eq!(x, 5);
-
-            // write to file and check result
-            file2
-                .write_all(br#"("Hello Zest")"#)
-                .expect("failed to write to the file");
-            let x = tweak_expect::<String>("__test_string_tweak");
-            assert_eq!(x, "Hello Zest".to_owned());
-
-            // write to file and check result
-            file3
-                .write_all(
-                    br#"
-        ({
-            "wow": 4,
-            "such": 5,
-        })
-        "#,
-                )
-                .expect("failed to write to the file");
-            let x: std::collections::HashMap<String, i32> = tweak_expect("__test_map_tweak");
-            let mut map = std::collections::HashMap::new();
-            map.insert("wow".to_owned(), 4);
-            map.insert("such".to_owned(), 5);
-            assert_eq!(x, map);
+            test(&mut file);
         }
 
         #[test]
-        #[serial]
-        fn test_tweaked_create() {
-            let root = find_root().expect("failed to discover repository_root");
-            let tweak_dir = root.join("assets/tweak/");
+        fn test_tweaked_int() {
+            use Specifier::Asset;
 
-            let test_path1 = tweak_dir.join("__test_int_create.ron");
-            let _file_guard1 = FileGuard::hold(&test_path1);
-            let x = tweak_expect_or_create("__test_int_create", 5);
-            assert_eq!(x, 5);
-            assert!(test_path1.is_file());
-            // Recheck it loads back correctly
-            let x = tweak_expect_or_create("__test_int_create", 5);
-            assert_eq!(x, 5);
+            let tweak_path = &["tweak_test_int", "tweak"];
 
-            let test_path2 = tweak_dir.join("__test_tuple_create.ron");
-            let _file_guard2 = FileGuard::hold(&test_path2);
-            let (x, y, z) = tweak_expect_or_create("__test_tuple_create", (5.0, 6.0, 7.0));
-            assert_eq!((x, y, z), (5.0, 6.0, 7.0));
-            // Recheck it loads back correctly
-            let (x, y, z) = tweak_expect_or_create("__test_tuple_create", (5.0, 6.0, 7.0));
-            assert_eq!((x, y, z), (5.0, 6.0, 7.0));
+            run_with_file(tweak_path, |file| {
+                file.write_all(b"(5)").expect("failed to write to the file");
+                let x: i32 = tweak_expect(Asset(tweak_path));
+                assert_eq!(x, 5);
+            });
+        }
 
-            // Test that file has stronger priority
-            let test_path3 = tweak_dir.join("__test_priority.ron");
-            let (_file_guard3, mut file) = FileGuard::create(&test_path3);
-            file.write_all(b"(10)")
+        #[test]
+        fn test_tweaked_string() {
+            use Specifier::Asset;
+            let tweak_path = &["tweak_test_string", "tweak"];
+
+            run_with_file(tweak_path, |file| {
+                file.write_all(br#"("Hello Zest")"#)
+                    .expect("failed to write to the file");
+
+                let x: String = tweak_expect(Asset(tweak_path));
+                assert_eq!(x, "Hello Zest".to_owned());
+            });
+        }
+
+        #[test]
+        fn test_tweaked_hashmap() {
+            use Specifier::Asset;
+            type Map = std::collections::HashMap<String, i32>;
+
+            let tweak_path = &["tweak_test_map", "tweak"];
+
+            run_with_file(tweak_path, |file| {
+                file.write_all(
+                    br#"
+                    ({
+                        "wow": 4,
+                        "such": 5,
+                    })
+                    "#,
+                )
                 .expect("failed to write to the file");
-            let x = tweak_expect_or_create("__test_priority", 6);
-            assert_eq!(x, 10);
+
+                let x: Map = tweak_expect(Asset(tweak_path));
+
+                let mut map = Map::new();
+                map.insert("wow".to_owned(), 4);
+                map.insert("such".to_owned(), 5);
+                assert_eq!(x, map);
+            });
+        }
+
+        fn run_with_path(tweak_path: &[&str], test: impl Fn(&Path)) {
+            let (tweak_dir, tweak_name) = directory_and_name(tweak_path);
+
+            let tweak_folder = ASSETS_PATH.join(tweak_dir);
+            let test_path = tweak_folder.join(format!("{}.ron", tweak_name));
+
+            let _file_guard = FileGuard::hold(&test_path);
+
+            test(&test_path);
+        }
+
+        #[test]
+        fn test_create_tweak() {
+            use Specifier::Asset;
+
+            let tweak_path = &["tweak_create_test", "tweak"];
+
+            run_with_path(tweak_path, |test_path| {
+                let x = tweak_expect_or_create(Asset(tweak_path), 5);
+                assert_eq!(x, 5);
+                assert!(test_path.is_file());
+                // Recheck it loads back correctly
+                let x = tweak_expect_or_create(Asset(tweak_path), 5);
+                assert_eq!(x, 5);
+            });
+        }
+
+        #[test]
+        fn test_create_tweak_deep() {
+            use Specifier::Asset;
+
+            let tweak_path = &["so_much", "deep_test", "tweak_create_test", "tweak"];
+
+            run_with_path(tweak_path, |test_path| {
+                let x = tweak_expect_or_create(Asset(tweak_path), 5);
+                assert_eq!(x, 5);
+                assert!(test_path.is_file());
+                // Recheck it loads back correctly
+                let x = tweak_expect_or_create(Asset(tweak_path), 5);
+                assert_eq!(x, 5);
+            });
+        }
+
+        #[test]
+        fn test_create_but_prioritize_loaded() {
+            use Specifier::Asset;
+
+            let tweak_path = &["tweak_create_and_prioritize_test", "tweak"];
+
+            run_with_path(tweak_path, |test_path| {
+                let x = tweak_expect_or_create(Asset(tweak_path), 5);
+                assert_eq!(x, 5);
+                assert!(test_path.is_file());
+
+                // Recheck it loads back
+                // with content as priority
+                fs::write(test_path, b"(10)").expect("failed to write to the file");
+                let x = tweak_expect_or_create(Asset(tweak_path), 5);
+                assert_eq!(x, 10);
+            });
         }
     }
 }
