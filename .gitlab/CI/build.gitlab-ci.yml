@@ -11,6 +11,25 @@ unittests:
   retry:
     max: 2
 
+translation:
+  extends: .release
+  stage: build
+  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
+  script:
+    - ln -s /dockercache/target target
+    - cat ./.gitlab/scripts/translation.sh
+    - source ./.gitlab/scripts/translation.sh
+    - TAGUUID="Z$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)" || echo "ignore this returncode, dont ask me why, it works"
+    - echo $TAGUUID # Use TAGUUID to mitigate https://xkcd.com/327/ in the branch name
+    - echo 'SET veloren.timestamp = "'"$(git show --no-patch --no-notes --pretty='%cd' HEAD)"'";' > upload.sql
+    - echo "SET veloren.branch = \$${TAGUUID}\$${CI_COMMIT_REF_NAME}\$${TAGUUID}\$;" >> upload.sql
+    - echo "SET veloren.sha = \$${TAGUUID}\$${CI_COMMIT_SHA}\$${TAGUUID}\$;" >> upload.sql
+    - echo '\copy translations ("country_code", "file_name", "translation_key", "status", "git_commit") from '"'translation_analysis.csv' csv header" >> upload.sql
+    - cat upload.sql
+    - PGPASSWORD="${CIDBPASSWORD}" PGSSLROOTCERT="./.gitlab/ci-db.crt" psql "sslmode=verify-ca host=grafana.veloren.net port=15432 dbname=translations" -U hgseehzjtsrghtjdcqw -f upload.sql;
+  retry:
+    max: 2
+
 benchmarks:
   extends: .release
   stage: build
@@ -23,7 +42,7 @@ benchmarks:
     - cat ./.gitlab/scripts/benchmark.sh
     - source ./.gitlab/scripts/benchmark.sh
     - TAGUUID="Z$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)" || echo "ignore this returncode, dont ask me why, it works"
-    - echo $TAGUUID
+    - echo $TAGUUID # Use TAGUUID to mitigate https://xkcd.com/327/ in the branch name
     - echo 'SET veloren.timestamp = "'"$(git show --no-patch --no-notes --pretty='%cd' HEAD)"'";' > upload.sql
     - echo "SET veloren.branch = \$${TAGUUID}\$${CI_COMMIT_REF_NAME}\$${TAGUUID}\$;" >> upload.sql
     - echo "SET veloren.sha = \$${TAGUUID}\$${CI_COMMIT_SHA}\$${TAGUUID}\$;" >> upload.sql

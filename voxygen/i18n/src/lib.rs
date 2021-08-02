@@ -355,6 +355,6 @@ mod tests {
     fn test_all_localizations() {
         // Generate paths
         let root_dir = common_assets::find_root().expect("Failed to discover repository root");
-        crate::analysis::test_all_localizations(&BasePath::new(&root_dir), true, false);
+        crate::analysis::test_all_localizations(&BasePath::new(&root_dir), true, true);
     }
 }

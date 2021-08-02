@@ -5,7 +5,7 @@ use crate::{
     path::{BasePath, LangPath},
     raw::{self, RawFragment, RawLanguage},
     stats::{
-        print_csv_file, print_overall_stats, print_translation_stats, LocalizationAnalysis,
+        print_csv_stats, print_overall_stats, print_translation_stats, LocalizationAnalysis,
         LocalizationStats,
     },
     REFERENCE_LANG,
@@ -167,10 +167,8 @@ fn gather_results(
                 Some(LocalizationState::Unused) => stats.unused_entries += 1,
                 Some(LocalizationState::UpToDate) => stats.uptodate_entries += 1,
             };
-            if entry.state != Some(LocalizationState::UpToDate) {
-                let state_keys = state_map.data.get_mut(&entry.state).expect("prefiled");
-                state_keys.push((file.clone(), key.to_owned(), entry.commit_id));
-            }
+            let state_keys = state_map.data.get_mut(&entry.state).expect("prefiled");
+            state_keys.push((file.clone(), key.to_owned(), entry.commit_id));
         }
     }
 
@@ -209,10 +207,13 @@ pub fn test_specific_localizations(
         analysis.insert(language_identifier.to_owned(), (state_map, stats));
     }
 
+    let output = path.root_path().join("translation_analysis.csv");
+    let mut f = std::fs::File::create(output).expect("couldn't write csv file");
+
     //printing
     for (language_identifier, (state_map, stats)) in &analysis {
         if csv_enabled {
-            print_csv_file(state_map);
+            print_csv_stats(state_map, &mut f);
         } else {
             print_translation_stats(
                 language_identifier,

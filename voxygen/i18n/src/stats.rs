@@ -31,22 +31,21 @@ impl LocalizationStats {
 impl LocalizationAnalysis {
     pub(crate) fn new(language_identifier: &str) -> Self {
         let mut data = HashMap::new();
-        data.insert(Some(LocalizationState::UpToDate), vec![]);
-        data.insert(Some(LocalizationState::NotFound), vec![]);
-        data.insert(Some(LocalizationState::Unused), vec![]);
-        data.insert(Some(LocalizationState::Outdated), vec![]);
-        data.insert(None, vec![]);
+        for key in ALL_LOCALIZATION_STATES.iter() {
+            data.insert(*key, vec![]);
+        }
         Self {
             language_identifier: language_identifier.to_owned(),
             data,
         }
     }
 
-    fn show(
+    fn show<W: std::io::Write>(
         &self,
         state: Option<LocalizationState>,
         ref_language: &RawLanguage<LocalizationEntryState>,
         be_verbose: bool,
+        output: &mut W,
     ) {
         let entries = self.data.get(&state).unwrap_or_else(|| {
             panic!(
@@ -57,7 +56,7 @@ impl LocalizationAnalysis {
         if entries.is_empty() {
             return;
         }
-        println!("\n\t[{}]", LocalizationState::print(&state));
+        writeln!(output, "\n\t[{}]", LocalizationState::print(&state)).unwrap();
         for (path, key, commit_id) in entries {
             if be_verbose {
                 let our_commit = LocalizationAnalysis::print_commit(commit_id);
@@ -68,28 +67,30 @@ impl LocalizationAnalysis {
                     .and_then(|s| s.commit_id)
                     .map(|s| format!("{}", s))
                     .unwrap_or_else(|| "None".to_owned());
-                println!("{:60}| {:40} | {:40}", key, our_commit, ref_commit,);
+                writeln!(output, "{:60}| {:40} | {:40}", key, our_commit, ref_commit).unwrap();
             } else {
-                println!("{}", key);
+                writeln!(output, "{}", key).unwrap();
             }
         }
     }
 
-    fn csv(&self, state: Option<LocalizationState>) {
+    fn csv<W: std::io::Write>(&self, state: Option<LocalizationState>, output: &mut W) {
         let entries = self
             .data
             .get(&state)
             .unwrap_or_else(|| panic!("called on invalid state: {:?}", state));
         for (path, key, commit_id) in entries {
             let our_commit = LocalizationAnalysis::print_commit(commit_id);
-            println!(
+            writeln!(
+                output,
                 "{},{:?},{},{},{}",
                 self.language_identifier,
                 path,
                 key,
                 LocalizationState::print(&state),
                 our_commit
-            );
+            )
+            .unwrap();
         }
     }
 
@@ -126,7 +127,7 @@ pub(crate) fn print_translation_stats(
         if state == &Some(LocalizationState::UpToDate) {
             continue;
         }
-        state_map.show(*state, ref_language, be_verbose);
+        state_map.show(*state, ref_language, be_verbose, &mut std::io::stdout());
     }
 
     println!(
@@ -144,14 +145,15 @@ pub(crate) fn print_translation_stats(
     );
 }
 
-pub(crate) fn print_csv_file(state_map: &LocalizationAnalysis) {
-    println!("country_code,file_name,translation_code,status,git_commit");
+pub(crate) fn print_csv_stats<W: std::io::Write>(state_map: &LocalizationAnalysis, output: &mut W) {
+    writeln!(
+        output,
+        "country_code,file_name,translation_key,status,git_commit"
+    )
+    .unwrap();
 
     for state in &ALL_LOCALIZATION_STATES {
-        if state == &Some(LocalizationState::UpToDate) {
-            continue;
-        }
-        state_map.csv(*state);
+        state_map.csv(*state, output);
     }
 }
 
