@@ -109,6 +109,8 @@ fn recursive_fragments_paths_in_language(
     subfolder: &Path,
     result: &mut Vec<PathBuf>,
 ) -> Result<(), std::io::Error> {
+    let manifest_path = PathBuf::from(&format!("{}.{}", LANG_MANIFEST_FILE, LANG_EXTENSION));
+    let template_path = PathBuf::from(&format!("{}.{}", "template", LANG_EXTENSION));
     let search_dir = lpath.sub_path(subfolder);
     for fragment_file in search_dir.read_dir()?.flatten() {
         let file_type = fragment_file.file_type()?;
@@ -117,7 +119,8 @@ fn recursive_fragments_paths_in_language(
         if file_type.is_dir() {
             recursive_fragments_paths_in_language(lpath, relative_path, result)?;
         } else if file_type.is_file()
-            && relative_path != Path::new(&format!("{}.{}", LANG_MANIFEST_FILE, LANG_EXTENSION))
+            && relative_path != manifest_path
+            && relative_path != template_path
         {
             result.push(relative_path.to_path_buf());
         }
