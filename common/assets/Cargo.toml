@@ -15,11 +15,10 @@ tracing = "0.1"
 
 # asset tweak
 serde = {version = "1.0", features = ["derive"], optional = true}
-serial_test = {version = "0.5", optional = true}
 
 [dev-dependencies]
 walkdir = "2.3.2"
 
 [features]
 hot-reloading = ["assets_manager/hot-reloading"]
-asset_tweak = ["serial_test", "serde", "hot-reloading"]
+asset_tweak = ["serde", "hot-reloading"]
