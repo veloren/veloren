@@ -1,3 +1,4 @@
+mod animation;
 mod bag;
 mod buffs;
 mod buttons;

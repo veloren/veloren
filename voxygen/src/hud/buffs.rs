@@ -3,7 +3,7 @@ use super::{
     BUFF_COLOR, DEBUFF_COLOR, TEXT_COLOR,
 };
 use crate::{
-    hud::{self, BuffPosition},
+    hud::{self, animation::animation_timer, BuffPosition},
     ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
     GlobalState,
 };
@@ -104,7 +104,7 @@ impl<'a> Widget for BuffsBar<'a> {
         let mut event = Vec::new();
         let localized_strings = self.localized_strings;
         let buffs = self.buffs;
-        let buff_ani = ((self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8) + 0.5; //Animation timer
+        let buff_ani = animation_timer(self.pulse) + 0.5; //Animation timer
         let pulsating_col = Color::Rgba(1.0, 1.0, 1.0, buff_ani);
         let norm_col = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         let buff_position = self.global_state.settings.interface.buff_position;

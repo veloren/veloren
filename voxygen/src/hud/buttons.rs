@@ -4,6 +4,7 @@ use super::{
 };
 use crate::{
     game_input::GameInput,
+    hud::animation::animation_timer,
     ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
     window::KeyMouse,
     GlobalState,
@@ -11,7 +12,7 @@ use crate::{
 use client::Client;
 use common::comp::{SkillSet, Stats};
 use conrod_core::{
-    widget::{self, Button, Image, Text},
+    widget::{self, Button, Image, Text, UpdateArgs},
     widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
 use i18n::Localization;
@@ -123,16 +124,10 @@ impl<'a> Widget for Buttons<'a> {
 
     fn style(&self) -> Self::Style {}
 
-    fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
+    fn update(self, args: UpdateArgs<Self>) -> Self::Event {
         common_base::prof_span!("Buttons::update");
-        let widget::UpdateArgs { state, ui, .. } = args;
-        let invs = self.client.inventories();
-        let inventory = match invs.get(self.client.entity()) {
-            Some(inv) => inv,
-            None => return None,
-        };
+        let UpdateArgs { state, ui, .. } = args;
         let localized_strings = self.localized_strings;
-        let arrow_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
 
         let button_tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
@@ -197,6 +192,11 @@ impl<'a> Widget for Buttons<'a> {
                 state.ids.bag_text,
             );
         }
+        let invs = self.client.inventories();
+        let inventory = match invs.get(self.client.entity()) {
+            Some(inv) => inv,
+            None => return None,
+        };
         if !self.show_bag {
             let space_used = inventory.populated_slots();
             let space_max = inventory.slots().count();
@@ -357,6 +357,7 @@ impl<'a> Widget for Buttons<'a> {
         }
         // Unspent SP indicator
         if unspent_sp {
+            let arrow_ani = animation_timer(self.pulse); //Animation timer
             Image::new(self.imgs.sp_indicator_arrow)
                 .w_h(20.0, 11.0)
                 .graphics_for(state.ids.spellbook_button)
