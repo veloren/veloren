@@ -212,7 +212,7 @@ impl<'a> Canvas<'a> {
                             info.index,
                             *sblock,
                             wpos2d.with_z(origin.z + z),
-                            wpos2d - origin.xy(),
+                            origin.xy(),
                             seed,
                             col,
                             |sprite| block.with_sprite(sprite),
