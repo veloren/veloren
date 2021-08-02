@@ -1005,11 +1005,12 @@ fn handle_spawn(
 
             let ai = opt_ai.unwrap_or(true);
             let pos = position(server, target, "target")?;
-            let agent = if let comp::Alignment::Owned(_) | comp::Alignment::Npc = alignment {
-                comp::Agent::default()
-            } else {
-                comp::Agent::default().with_patrol_origin(pos.0)
-            };
+            let mut agent = comp::Agent::from_body(&body());
+
+            // If unowned, the agent should stay in a particular place
+            if !matches!(alignment, comp::Alignment::Owned(_)) {
+                agent = agent.with_patrol_origin(pos.0);
+            }
 
             for _ in 0..amount {
                 let vel = Vec3::new(
@@ -1160,7 +1161,7 @@ fn handle_spawn_airship(
     if let Some(pos) = destination {
         let (kp, ki, kd) = comp::agent::pid_coefficients(&comp::Body::Ship(ship));
         fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp - pv).z }
-        let agent = comp::Agent::default()
+        let agent = comp::Agent::from_body(&comp::Body::Ship(ship))
             .with_destination(pos)
             .with_position_pid_controller(comp::PidController::new(kp, ki, kd, pos, 0.0, pure_z));
         builder = builder.with(agent);

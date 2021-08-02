@@ -1,7 +1,7 @@
 use crate::{make_case_elim, make_proj_elim};
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumString};
+use strum_macros::{Display, EnumString};
 
 make_proj_elim!(
     body,

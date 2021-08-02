@@ -49,9 +49,9 @@ fn tame_pet_internal(ecs: &specs::World, pet_entity: Entity, owner: Entity, pet:
         .write_storage()
         .insert(pet_entity, pet.unwrap_or_default());
 
-    // TODO: Review whether we should be doing this or not, should the Agent always
-    // be overwritten when taming a pet?
-    let _ = ecs.write_storage().insert(pet_entity, Agent::default());
+    if let Some(agent) = ecs.write_storage::<Agent>().get_mut(pet_entity) {
+        agent.set_no_flee();
+    }
 
     // Add to group system
     let clients = ecs.read_storage::<Client>();

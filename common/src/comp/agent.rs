@@ -341,7 +341,7 @@ pub struct Target {
 }
 
 #[allow(clippy::type_complexity)]
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct Agent {
     pub rtsim_controller: RtSimController,
     pub patrol_origin: Option<Vec3<f32>>,
@@ -366,11 +366,43 @@ pub struct ActionState {
 }
 
 impl Agent {
+    pub fn from_body(body: &Body) -> Self {
+        Agent {
+            rtsim_controller: RtSimController::default(),
+            patrol_origin: None,
+            target: None,
+            chaser: Chaser::default(),
+            behavior: Behavior::default(),
+            psyche: Psyche::from(body),
+            inbox: VecDeque::new(),
+            action_state: ActionState::default(),
+            bearing: Vec2::zero(),
+            sounds_heard: Vec::new(),
+            awareness: 0.0,
+            position_pid_controller: None,
+        }
+    }
+
     pub fn with_patrol_origin(mut self, origin: Vec3<f32>) -> Self {
         self.patrol_origin = Some(origin);
         self
     }
 
+    pub fn with_behavior(mut self, behavior: Behavior) -> Self {
+        self.behavior = behavior;
+        self
+    }
+
+    pub fn with_no_flee(mut self, no_flee: bool) -> Self {
+        if no_flee {
+            self.set_no_flee();
+        }
+        self
+    }
+
+    pub fn set_no_flee(&mut self) { self.psyche.flee_health = 0.0; }
+
+    // TODO: Get rid of this method, it does weird things
     pub fn with_destination(mut self, pos: Vec3<f32>) -> Self {
         self.psyche.flee_health = 0.0;
         self.rtsim_controller = RtSimController::with_destination(pos);
@@ -385,27 +417,6 @@ impl Agent {
     ) -> Self {
         self.position_pid_controller = Some(pid);
         self
-    }
-
-    pub fn new(
-        patrol_origin: Option<Vec3<f32>>,
-        body: &Body,
-        behavior: Behavior,
-        no_flee: bool,
-    ) -> Self {
-        Agent {
-            patrol_origin,
-            psyche: if no_flee {
-                Psyche {
-                    flee_health: 0.0,
-                    ..Psyche::from(body)
-                }
-            } else {
-                Psyche::from(body)
-            },
-            behavior,
-            ..Default::default()
-        }
     }
 }
 
