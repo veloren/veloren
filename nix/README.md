@@ -22,6 +22,11 @@ git lfs install --local && git lfs fetch && git lfs checkout
 ```
 This should be automatically done if you use the development shell.
 
+If you get an issue such as `WARN gfx_backend_vulkan: Unable to create Vulkan instance: VkError(ERROR_INCOMPATIBLE_DRIVER)`,
+it might be that your system nixpkgs version and veloren repo nixpkgs version might be too far apart. In that case, you can try
+changing your system nixpkgs to the unstable channel, or change the `nixpkgs` input in the `flake.nix` to match your system
+nixpkgs.
+
 ## Usage for players
 
 ### With flakes
