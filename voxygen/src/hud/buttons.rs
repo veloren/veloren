@@ -12,7 +12,7 @@ use crate::{
 use client::Client;
 use common::comp::{SkillSet, Stats};
 use conrod_core::{
-    widget::{self, Button, Image, Text},
+    widget::{self, Button, Image, Text, UpdateArgs},
     widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
 use i18n::Localization;
@@ -124,9 +124,9 @@ impl<'a> Widget for Buttons<'a> {
 
     fn style(&self) -> Self::Style {}
 
-    fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
+    fn update(self, args: UpdateArgs<Self>) -> Self::Event {
         common_base::prof_span!("Buttons::update");
-        let widget::UpdateArgs { state, ui, .. } = args;
+        let UpdateArgs { state, ui, .. } = args;
         let localized_strings = self.localized_strings;
 
         let button_tooltip = Tooltip::new({
