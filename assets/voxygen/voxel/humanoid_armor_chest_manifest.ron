@@ -182,6 +182,10 @@
           vox_spec: ("armor.cloth.silken.chest", (-7.0, -4.0, 1.0)),
           color: None
         ),
+        "Witch": (
+          vox_spec: ("armor.witch.chest", (-7.0, -4.0, 1.0)),
+          color: None
+        ),
         "Druid": (
           vox_spec: ("armor.cloth.druid.chest", (-7.0, -4.0, 2.0)),
           color: None

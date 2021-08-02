@@ -1,0 +1,10 @@
+({
+    Armor(Head): Item("common.items.armor.witch.hat"),
+    Armor(Chest): Item("common.items.armor.witch.chest"),
+    Armor(Shoulders): Item("common.items.armor.witch.shoulder"),
+    Armor(Belt): Item("common.items.armor.witch.belt"),
+    Armor(Hands): Item("common.items.armor.witch.hand"),
+    Armor(Legs): Item("common.items.armor.witch.pants"),
+    Armor(Feet): Item("common.items.armor.witch.foot"),
+    Lantern: Item("common.items.lantern.black_0"),
+})

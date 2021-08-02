@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Witch Handwarmers",
+    description: "",
+    kind: Armor((
+        kind: Hand("Witch"),
+        stats: (
+            protection: Normal(16.0),
+            poise_resilience: Normal(2.0),
+            energy_max: 45,
+            energy_reward: 0.045,
+            crit_power: 0.04,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [
+        Cultist,
+    ],
+)

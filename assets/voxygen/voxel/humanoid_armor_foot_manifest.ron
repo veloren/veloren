@@ -112,6 +112,10 @@
           vox_spec: ("armor.cloth.silken.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
+        "Witch": (
+          vox_spec: ("armor.witch.foot", (-2.5, -3.5, -2.0)),
+          color: None
+        ),
         "Druid": (
           vox_spec: ("armor.cloth.druid.foot", (-2.5, -3.5, -2.0)),
           color: None

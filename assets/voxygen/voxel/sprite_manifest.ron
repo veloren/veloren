@@ -3257,4 +3257,15 @@ EnsnaringVines: Some((
     ],
     wind_sway: 0.0,
 )),
+// WitchWindow
+WitchWindow: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.window.witch_purple",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 )

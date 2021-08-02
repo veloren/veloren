@@ -34,7 +34,7 @@ pub enum Spot {
     // *Themed Spots*
     DwarvenGrave,
     GnarlingTotem,
-    //WitchHouse,
+    WitchHouse,
     //BanditCamp,
     //EnchantedRock,
     //TowerRuin,
@@ -49,6 +49,7 @@ pub enum Spot {
     TreeStumpForest,
     DesertBones,
     AirshipCrash,
+    FruitTree,
 }
 
 // Available Biomes are:
@@ -66,7 +67,22 @@ pub enum Spot {
 
 impl Spot {
     pub fn generate(world: &mut WorldSim) {
+        // Trees/spawn: false => *No* trees around the spot
         // Themed Spots -> Act as an introduction to themes of sites
+        Self::generate_spots(
+            Spot::WitchHouse,
+            world,
+            2.0,
+            |g, c| {
+                g < 0.25
+                    && !c.near_cliffs()
+                    && !c.river.near_water()
+                    && !c.path.0.is_way()
+                    && c.sites.is_empty()
+                    && !matches!(c.get_biome(), BiomeKind::Ocean | BiomeKind::Mountain)
+            },
+            false,
+        );
         Self::generate_spots(
             Spot::DwarvenGrave,
             world,
@@ -79,7 +95,7 @@ impl Spot {
                     && c.sites.is_empty()
                     && matches!(c.get_biome(), BiomeKind::Jungle | BiomeKind::Forest)
             },
-            true,
+            false,
         );
         Self::generate_spots(
             Spot::GnarlingTotem,
@@ -93,7 +109,7 @@ impl Spot {
                     && c.sites.is_empty()
                     && matches!(c.get_biome(), BiomeKind::Forest | BiomeKind::Grassland)
             },
-            true,
+            false,
         );
         // Random World Objects -> Themed to their Biome and the NPCs that regularly
         // spawn there
@@ -109,7 +125,7 @@ impl Spot {
                     && c.sites.is_empty()
                     && matches!(c.get_biome(), BiomeKind::Savannah)
             },
-            true,
+            false,
         );
         Self::generate_spots(
             Spot::TreeStumpForest,
@@ -123,7 +139,7 @@ impl Spot {
                     && c.sites.is_empty()
                     && matches!(c.get_biome(), BiomeKind::Jungle | BiomeKind::Forest)
             },
-            false,
+            true,
         );
         Self::generate_spots(
             Spot::DesertBones,
@@ -137,7 +153,7 @@ impl Spot {
                     && c.sites.is_empty()
                     && matches!(c.get_biome(), BiomeKind::Desert)
             },
-            true,
+            false,
         );
         Self::generate_spots(
             Spot::AirshipCrash,
@@ -154,6 +170,20 @@ impl Spot {
                         BiomeKind::Mountain | BiomeKind::Void | BiomeKind::Ocean
                     )
             },
+            false,
+        );
+        Self::generate_spots(
+            Spot::FruitTree,
+            world,
+            20.0,
+            |g, c| {
+                g < 0.25
+                    && !c.near_cliffs()
+                    && !c.river.near_water()
+                    && !c.path.0.is_way()
+                    && c.sites.is_empty()
+                    && matches!(c.get_biome(), BiomeKind::Forest)
+            },
             true,
         );
 
@@ -166,15 +196,12 @@ impl Spot {
         TowerRuinDesert
         WellOfLight
         Merchant Outpost -> Near a road!
-
         *Quirky:*
         TreeHouse (Forest)
         TreeStump (Forest, Grassland)
         DesertBones (Desert, Savannah)
         AirshipCrash (Desert, Savannah, Grassland)
         EnchantedRock (Forest, Jungle)
-
-
         */
     }
 
@@ -240,6 +267,11 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 entity_radius: 60.0,
                 entities: &[(6..12, "common.entity.spot.bandit_camp.dwarf_grave_robber")],
             },
+            Spot::WitchHouse => SpotConfig {
+                base_structures: Some("spots_general.witch_hut"),
+                entity_radius: 1.0,
+                entities: &[(1..2, "common.entity.spot.bandit_camp.witch_dark")],
+            },
             Spot::GnarlingTotem => SpotConfig {
                 base_structures: Some("spots_grasslands.gnarling_totem"),
                 entity_radius: 30.0,
@@ -269,6 +301,11 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 base_structures: Some("trees.airship_crash"),
                 entity_radius: 20.0,
                 entities: &[(4..9, "common.entity.spot.bandit_camp.grim_salvager")],
+            },
+            Spot::FruitTree => SpotConfig {
+                base_structures: Some("trees.fruit_trees"),
+                entity_radius: 2.0,
+                entities: &[(0..2, "common.entity.wild.peaceful.bear")],
             },
         };
         // Blit base structure

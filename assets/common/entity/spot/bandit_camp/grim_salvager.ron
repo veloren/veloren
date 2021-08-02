@@ -1,6 +1,6 @@
 EntityConfig (
     name: Name("Grim Salvager"),
-    body: RandomWith("human"),
+    body: RandomWith("humanoid"),
 	alignment: Alignment(Enemy),
 
     loot: LootTable("common.loot_tables.creature.biped_large.saurok"),

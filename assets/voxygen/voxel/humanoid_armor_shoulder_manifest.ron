@@ -331,6 +331,16 @@
                 color: None
             )
         ),
+        "Witch": (
+            left: (
+                vox_spec: ("armor.witch.shoulder", (-5.0, -4.0 , -2.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.witch.shoulder", (-1.0, -4.0, -2.0)),
+                color: None
+            )
+        ),
         "Druid": (
             left: (
                 vox_spec: ("armor.cloth.druid.shoulder", (-4.5, -4.0 , -3.5)),

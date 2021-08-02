@@ -250,6 +250,16 @@
                 color: None
             )
         ),
+        "Witch": (
+            left: (
+                vox_spec: ("armor.witch.hand", (-2.5, -2.5, -4.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.witch.hand", (-1.5, -2.5, -4.0)),
+                color: None
+            )
+        ),
         "Druid": (
             left: (
                 vox_spec: ("armor.cloth.druid.hand", (-2.5, -1.0, -3.0)),

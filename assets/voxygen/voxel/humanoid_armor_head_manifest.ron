@@ -28,5 +28,9 @@
             vox_spec: ("armor.misc.head.exclamation", (-11.0, -11.0, 18.0)),
             color: None
         ),
+        (Human, "Witch"): (
+            vox_spec: ("armor.witch.hat", (-2.0, -2.0, 5.0)),
+            color: None
+        ),
     }
 ))
