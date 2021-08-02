@@ -322,7 +322,7 @@ pub mod asset_tweak {
         const EXTENSION: &'static str = "ron";
     }
 
-    // helper function to load asset and return value
+    // helper function to load asset and return contained value
     // asset_specifier is full "path" to asset relative to ASSETS_PATH.
     fn read_expect<T>(asset_specifier: &str) -> T
     where
@@ -338,14 +338,13 @@ pub mod asset_tweak {
     // returns passed value
     fn create_new<T>(tweak_dir: &Path, filename: &str, value: T) -> T
     where
-        T: Clone + Sized + Send + Sync + 'static + DeserializeOwned + Serialize,
+        T: Sized + Send + Sync + 'static + DeserializeOwned + Serialize,
     {
         fs::create_dir_all(tweak_dir).expect("failed to create directory for tweak files");
         let f = fs::File::create(tweak_dir.join(filename)).unwrap_or_else(|error| {
             panic!("failed to create file {:?}. Error: {:?}", filename, error)
         });
-        // TODO: can we not require clone here?
-        let tweaker = AssetTweakWrapper(value.clone());
+        let tweaker = AssetTweakWrapper(&value);
         if let Err(e) = to_writer_pretty(f, &tweaker, PrettyConfig::new()) {
             panic!("failed to write to file {:?}. Error: {:?}", filename, e);
         }
