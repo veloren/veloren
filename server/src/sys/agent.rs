@@ -12,7 +12,7 @@ use common::{
         inventory::{item::ItemTag, slot::EquipSlot},
         invite::{InviteKind, InviteResponse},
         item::{
-            tool::{AbilityMap, AbilitySpec, ToolKind},
+            tool::{AbilitySpec, ToolKind},
             ConsumableKind, Item, ItemDesc, ItemKind,
         },
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
@@ -2443,42 +2443,52 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        let ability_map = AbilityMap::default();
-        let ability_set = ability_map
-            .get_ability_set(&AbilitySpec::Tool(ToolKind::Staff))
-            .unwrap()
-            .clone();
-        let flamethrower = ability_set
-            .secondary
-            .adjusted_by_skills(self.skill_set, Some(ToolKind::Staff));
+        let extract_ability = |ability: &CharacterAbility| {
+            ability
+                .clone()
+                .adjusted_by_skills(self.skill_set, Some(ToolKind::Staff))
+        };
+        let (flamethrower, shockwave) = self
+            .inventory
+            .equipped(EquipSlot::ActiveMainhand)
+            .map(|i| &i.item_config_expect().abilities)
+            .map(|a| {
+                (
+                    Some(a.secondary.clone()),
+                    a.abilities.get(0).map(|(_, s)| s),
+                )
+            })
+            .map_or(
+                (CharacterAbility::default(), CharacterAbility::default()),
+                |(s, a)| {
+                    (
+                        extract_ability(&s.unwrap_or_default()),
+                        extract_ability(a.unwrap_or(&CharacterAbility::default())),
+                    )
+                },
+            );
         let flamethrower_range = match flamethrower {
             CharacterAbility::BasicBeam { range, .. } => range,
             _ => 20.0_f32,
         };
-        let shockwave = ability_set.abilities[0]
-            .clone()
-            .1
-            .adjusted_by_skills(self.skill_set, Some(ToolKind::Staff));
-        let shockwave_cost = match shockwave {
-            CharacterAbility::Shockwave { energy_cost, .. } => energy_cost,
-            _ => 600.0_f32,
-        };
-        if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+        let shockwave_cost = shockwave.get_energy_cost();
+        if self.body.map_or(false, |b| b.is_humanoid())
             && attack_data.in_min_range()
-            && self.energy.current() > 100
+            && self.energy.current() > CharacterAbility::default_roll().get_energy_cost()
             && !matches!(self.char_state, CharacterState::Shockwave(_))
         {
             // if a humanoid, have enough stamina, and in melee range, emergency roll
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Roll));
+        } else if matches!(self.char_state, CharacterState::Shockwave(_)) {
+            agent.action_state.condition = false;
         } else if agent.action_state.condition
             && matches!(self.char_state, CharacterState::Wielding)
         {
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Ability(0)));
-            agent.action_state.condition = false;
         } else if !matches!(self.char_state, CharacterState::Shockwave(c) if !matches!(c.stage_section, StageSection::Recover))
         {
             // only try to use another ability if not already in recover and not casting
@@ -2503,7 +2513,8 @@ impl<'a> AgentData<'a> {
                 } else {
                     agent.action_state.condition = true;
                 }
-            } else if self.energy.current() as f32 > shockwave_cost + 100.0
+            } else if self.energy.current()
+                > shockwave_cost + CharacterAbility::default_roll().get_energy_cost()
                 && attack_data.dist_sqrd < flamethrower_range.powi(2)
             {
                 controller
@@ -2566,7 +2577,7 @@ impl<'a> AgentData<'a> {
                 }
             }
             // Sometimes try to roll
-            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+            if self.body.map_or(false, |b| b.is_humanoid())
                 && attack_data.dist_sqrd < 16.0f32.powi(2)
                 && thread_rng().gen::<f32>() < 0.01
             {
