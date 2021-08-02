@@ -3,7 +3,7 @@ use crate::{
     block::block_from_structure,
     column::ColumnGen,
     util::{RandomPerm, Sampler, UnitChooser},
-    Canvas, CONFIG,
+    Canvas,
 };
 use common::{
     assets::AssetHandle,
@@ -31,8 +31,6 @@ lazy_static! {
     static ref BIRCHES: AssetHandle<StructuresGroup> = Structure::load_group("trees.birch");
     static ref MANGROVE_TREES: AssetHandle<StructuresGroup> =
         Structure::load_group("trees.mangrove_trees");
-    static ref QUIRKY: AssetHandle<StructuresGroup> = Structure::load_group("trees.quirky");
-    static ref QUIRKY_DRY: AssetHandle<StructuresGroup> = Structure::load_group("trees.quirky_dry");
     static ref SWAMP_TREES: AssetHandle<StructuresGroup> =
         Structure::load_group("trees.swamp_trees");
 }
@@ -72,8 +70,6 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
             let tree = if let Some(tree) = tree_cache.entry(pos).or_insert_with(|| {
                 let col = ColumnGen::new(info.chunks()).get((pos, info.index()))?;
 
-                let is_quirky = QUIRKY_RAND.chance(seed, 1.0 / 500.0);
-
                 // Ensure that it's valid to place a *thing* here
                 if col.alt < col.water_level
                     || col.spawn_rate < 0.9
@@ -84,68 +80,59 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                 }
 
                 // Ensure that it's valid to place a tree here
-                if !is_quirky && ((seed.wrapping_mul(13)) & 0xFF) as f32 / 256.0 > col.tree_density
-                {
+                if ((seed.wrapping_mul(13)) & 0xFF) as f32 / 256.0 > col.tree_density {
                     return None;
                 }
 
                 Some(Tree {
                     pos: Vec3::new(pos.x, pos.y, col.alt as i32),
                     model: 'model: {
-                        let models: AssetHandle<_> = if is_quirky {
-                            if col.temp > CONFIG.desert_temp {
-                                *QUIRKY_DRY
-                            } else {
-                                *QUIRKY
-                            }
-                        } else {
-                            match forest_kind {
-                                ForestKind::Oak if QUIRKY_RAND.chance(seed + 1, 1.0 / 16.0) => {
-                                    *OAK_STUMPS
-                                },
-                                ForestKind::Oak if QUIRKY_RAND.chance(seed + 2, 1.0 / 20.0) => {
-                                    *FRUIT_TREES
-                                },
-                                ForestKind::Palm => *PALMS,
-                                ForestKind::Acacia => *ACACIAS,
-                                ForestKind::Baobab => *BAOBABS,
-                                // ForestKind::Oak => *OAKS,
-                                ForestKind::Oak => {
-                                    break 'model TreeModel::Procedural(
-                                        ProceduralTree::generate(
-                                            TreeConfig::oak(&mut RandomPerm::new(seed), scale),
+                        let models: AssetHandle<_> = match forest_kind {
+                            ForestKind::Oak if QUIRKY_RAND.chance(seed + 1, 1.0 / 16.0) => {
+                                *OAK_STUMPS
+                            },
+                            ForestKind::Oak if QUIRKY_RAND.chance(seed + 2, 1.0 / 20.0) => {
+                                *FRUIT_TREES
+                            },
+                            ForestKind::Palm => *PALMS,
+                            ForestKind::Acacia => *ACACIAS,
+                            ForestKind::Baobab => *BAOBABS,
+                            // ForestKind::Oak => *OAKS,
+                            ForestKind::Oak => {
+                                break 'model TreeModel::Procedural(
+                                    ProceduralTree::generate(
+                                        TreeConfig::oak(&mut RandomPerm::new(seed), scale),
+                                        &mut RandomPerm::new(seed),
+                                    ),
+                                    StructureBlock::TemperateLeaves,
+                                );
+                            },
+                            //ForestKind::Pine => *PINES,
+                            ForestKind::Pine => {
+                                break 'model TreeModel::Procedural(
+                                    ProceduralTree::generate(
+                                        TreeConfig::pine(&mut RandomPerm::new(seed), scale),
+                                        &mut RandomPerm::new(seed),
+                                    ),
+                                    StructureBlock::PineLeaves,
+                                );
+                            },
+                            ForestKind::Birch => *BIRCHES,
+                            ForestKind::Mangrove => *MANGROVE_TREES,
+                            ForestKind::Swamp => *SWAMP_TREES,
+                            ForestKind::Giant => {
+                                break 'model TreeModel::Procedural(
+                                    ProceduralTree::generate(
+                                        TreeConfig::giant(
                                             &mut RandomPerm::new(seed),
+                                            scale,
+                                            inhabited,
                                         ),
-                                        StructureBlock::TemperateLeaves,
-                                    );
-                                },
-                                //ForestKind::Pine => *PINES,
-                                ForestKind::Pine => {
-                                    break 'model TreeModel::Procedural(
-                                        ProceduralTree::generate(
-                                            TreeConfig::pine(&mut RandomPerm::new(seed), scale),
-                                            &mut RandomPerm::new(seed),
-                                        ),
-                                        StructureBlock::PineLeaves,
-                                    );
-                                },
-                                ForestKind::Birch => *BIRCHES,
-                                ForestKind::Mangrove => *MANGROVE_TREES,
-                                ForestKind::Swamp => *SWAMP_TREES,
-                                ForestKind::Giant => {
-                                    break 'model TreeModel::Procedural(
-                                        ProceduralTree::generate(
-                                            TreeConfig::giant(
-                                                &mut RandomPerm::new(seed),
-                                                scale,
-                                                inhabited,
-                                            ),
-                                            &mut RandomPerm::new(seed),
-                                        ),
-                                        StructureBlock::TemperateLeaves,
-                                    );
-                                },
-                            }
+                                        &mut RandomPerm::new(seed),
+                                    ),
+                                    StructureBlock::TemperateLeaves,
+                                );
+                            },
                         };
 
                         let models = models.read();
