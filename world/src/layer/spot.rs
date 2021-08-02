@@ -62,6 +62,7 @@ pub enum Spot {
 //Swamp
 //Jungle
 //Forest
+//Savannah
 
 impl Spot {
     pub fn generate(world: &mut WorldSim) {
@@ -106,9 +107,9 @@ impl Spot {
                     && !c.river.near_water()
                     && !c.path.0.is_way()
                     && c.sites.is_empty()
-                    && matches!(c.get_biome(), BiomeKind::Grassland)
+                    && matches!(c.get_biome(), BiomeKind::Savannah)
             },
-            false,
+            true,
         );
         Self::generate_spots(
             Spot::TreeStumpForest,

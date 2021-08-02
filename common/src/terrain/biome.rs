@@ -13,6 +13,8 @@ pub enum BiomeKind {
     Swamp,
     Jungle,
     Forest,
+    Savannah,
+    Taiga,
 }
 
 impl Default for BiomeKind {
