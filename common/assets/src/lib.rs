@@ -322,32 +322,52 @@ pub mod asset_tweak {
         const EXTENSION: &'static str = "ron";
     }
 
+    // helper function to load asset and return value
+    // asset_specifier is full "path" to asset relative to ASSETS_PATH.
+    fn read_expect<T>(asset_specifier: &str) -> T
+    where
+        T: Clone + Sized + Send + Sync + 'static + DeserializeOwned,
+    {
+        let handle = <AssetTweakWrapper<T> as AssetExt>::load_expect(asset_specifier);
+        let AssetTweakWrapper(value) = handle.read().clone();
+        value
+    }
+
+    // helper function to create new file to tweak
+    // the file will be filled with passed value
+    // returns passed value
+    fn create_new<T>(tweak_dir: &Path, filename: &str, value: T) -> T
+    where
+        T: Clone + Sized + Send + Sync + 'static + DeserializeOwned + Serialize,
+    {
+        fs::create_dir_all(tweak_dir).expect("failed to create directory for tweak files");
+        let f = fs::File::create(tweak_dir.join(filename)).unwrap_or_else(|error| {
+            panic!("failed to create file {:?}. Error: {:?}", filename, error)
+        });
+        // TODO: can we not require clone here?
+        let tweaker = AssetTweakWrapper(value.clone());
+        if let Err(e) = to_writer_pretty(f, &tweaker, PrettyConfig::new()) {
+            panic!("failed to write to file {:?}. Error: {:?}", filename, e);
+        }
+
+        value
+    }
+
     /// # Usage
-    /// Create file with content which represent tweaked value
+    /// Read value from file using our asset cache machinery.
     ///
-    /// Example if you want to tweak integer value
-    /// ```no_run
-    /// use veloren_common_assets::asset_tweak;
-    /// let x: i32 = asset_tweak::tweak_expect("x");
-    /// ```
-    /// File needs to look like that
-    /// ```text
-    /// assets/tweak/x.ron
-    /// (5)
-    /// ```
-    /// Note the parentheses.
+    /// Will hot-reload (if corresponded feature is enabled).
     ///
-    /// # Panics
-    /// 1) If given `asset_specifier` does not exists
-    /// 2) If asseet is broken
+    /// If you don't have a file or its content is invalid,
+    /// this function will panic.
+    ///
+    /// Read documentation for `tweak_expect_or_create` for more.
     pub fn tweak_expect<T>(specifier: &str) -> T
     where
         T: Clone + Sized + Send + Sync + 'static + DeserializeOwned,
     {
-        let asset_specifier: &str = &format!("tweak.{}", specifier);
-        let handle = <AssetTweakWrapper<T> as AssetExt>::load_expect(asset_specifier);
-        let AssetTweakWrapper(value) = handle.read().clone();
-        value
+        let asset_specifier = format!("tweak.{}", specifier);
+        read_expect(&asset_specifier)
     }
 
     /// # Usage
@@ -369,10 +389,6 @@ pub mod asset_tweak {
     /// (5)
     /// ```
     /// Note the parentheses.
-    ///
-    /// # Panics
-    /// 1) If asset is broken
-    /// 2) filesystem errors
     pub fn tweak_expect_or_create<T>(specifier: &str, value: T) -> T
     where
         T: Clone + Sized + Send + Sync + 'static + DeserializeOwned + Serialize,
@@ -386,22 +402,10 @@ pub mod asset_tweak {
         let filename = format!("{}.ron", specifier);
 
         if Path::new(&tweak_dir.join(&filename)).is_file() {
-            let asset_specifier: &str = &format!("tweak.{}", specifier);
-            let handle = <AssetTweakWrapper<T> as AssetExt>::load_expect(asset_specifier);
-            let AssetTweakWrapper(new_value) = handle.read().clone();
-
-            new_value
+            let asset_specifier = format!("tweak.{}", specifier);
+            read_expect(&asset_specifier)
         } else {
-            fs::create_dir_all(&tweak_dir).expect("failed to create directory for tweak files");
-            let f = fs::File::create(tweak_dir.join(&filename)).unwrap_or_else(|err| {
-                panic!("failed to create file {:?}. Error: {:?}", &filename, err)
-            });
-            to_writer_pretty(f, &AssetTweakWrapper(value.clone()), PrettyConfig::new())
-                .unwrap_or_else(|err| {
-                    panic!("failed to write to file {:?}. Error: {:?}", &filename, err)
-                });
-
-            value
+            create_new(&tweak_dir, &filename, value)
         }
     }
 
