@@ -15,7 +15,7 @@
         "hud.settings.relative_scaling": "相對大小",
         "hud.settings.custom_scaling": "自訂大小",
         "hud.settings.crosshair": "準星",
-        "hud.settings.transparency": "透明度",
+        "hud.settings.opacity": "透明度",
         "hud.settings.hotbar": "角色資訊",
         "hud.settings.toggle_shortcuts": "顯示快捷鍵",
         "hud.settings.toggle_bar_experience": "顯示經驗條",
@@ -28,7 +28,7 @@
         "hud.settings.values": "數字",
         "hud.settings.percentages": "百分比",
         "hud.settings.chat": "聊天欄",
-        "hud.settings.background_transparency": "背景透明度",
+        "hud.settings.background_opacity": "背景透明度",
         "hud.settings.none": "無",
 
         "hud.settings.pan_sensitivity": "滑鼠靈敏度",

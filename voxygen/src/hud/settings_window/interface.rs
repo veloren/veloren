@@ -159,7 +159,7 @@ impl<'a> Widget for Interface<'a> {
             .set(state.ids.window_scrollbar, ui);
 
         let bar_values = self.global_state.settings.interface.bar_numbers;
-        let crosshair_transp = self.global_state.settings.interface.crosshair_transp;
+        let crosshair_opacity = self.global_state.settings.interface.crosshair_opacity;
         let crosshair_type = self.global_state.settings.interface.crosshair_type;
         let ui_scale = self.global_state.settings.interface.ui_scale;
 
@@ -441,7 +441,7 @@ impl<'a> Widget for Interface<'a> {
                 1.0,
                 1.0,
                 1.0,
-                self.global_state.settings.interface.crosshair_transp,
+                self.global_state.settings.interface.crosshair_opacity,
             )))
             .graphics_for(state.ids.ch_1_bg)
             .set(state.ids.crosshair_outer_1, ui);
@@ -484,7 +484,7 @@ impl<'a> Widget for Interface<'a> {
                 1.0,
                 1.0,
                 1.0,
-                self.global_state.settings.interface.crosshair_transp,
+                self.global_state.settings.interface.crosshair_opacity,
             )))
             .graphics_for(state.ids.ch_2_bg)
             .set(state.ids.crosshair_outer_2, ui);
@@ -527,7 +527,7 @@ impl<'a> Widget for Interface<'a> {
                 1.0,
                 1.0,
                 1.0,
-                self.global_state.settings.interface.crosshair_transp,
+                self.global_state.settings.interface.crosshair_opacity,
             )))
             .graphics_for(state.ids.ch_3_bg)
             .set(state.ids.crosshair_outer_3, ui);
@@ -544,7 +544,7 @@ impl<'a> Widget for Interface<'a> {
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.ch_title, ui);
-        Text::new(self.localized_strings.get("hud.settings.transparency"))
+        Text::new(self.localized_strings.get("hud.settings.opacity"))
             .right_from(state.ids.ch_3_bg, 20.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -552,7 +552,7 @@ impl<'a> Widget for Interface<'a> {
             .set(state.ids.ch_transp_text, ui);
 
         if let Some(new_val) = ImageSlider::continuous(
-            crosshair_transp,
+            crosshair_opacity,
             0.0,
             1.0,
             self.imgs.slider_indicator,
@@ -568,7 +568,7 @@ impl<'a> Widget for Interface<'a> {
             events.push(CrosshairTransp(new_val));
         }
 
-        Text::new(&format!("{:.2}", crosshair_transp,))
+        Text::new(&format!("{:.2}", crosshair_opacity,))
             .right_from(state.ids.ch_transp_slider, 8.0)
             .font_size(self.fonts.cyri.scale(14))
             .graphics_for(state.ids.ch_transp_slider)

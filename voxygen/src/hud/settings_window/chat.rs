@@ -150,7 +150,7 @@ impl<'a> Widget for Chat<'a> {
         // Chat Transp
         Text::new(
             self.localized_strings
-                .get("hud.settings.background_transparency"),
+                .get("hud.settings.background_opacity"),
         )
         .down_from(state.ids.general_txt, 20.0)
         .font_size(self.fonts.cyri.scale(14))
@@ -158,7 +158,7 @@ impl<'a> Widget for Chat<'a> {
         .color(TEXT_COLOR)
         .set(state.ids.transp_text, ui);
         if let Some(new_val) = ImageSlider::continuous(
-            chat_settings.chat_transp,
+            chat_settings.chat_opacity,
             0.0,
             0.9,
             self.imgs.slider_indicator,

@@ -17,7 +17,7 @@
         "hud.settings.relative_scaling": "Relativ skalning",
         "hud.settings.custom_scaling": "Anpassad skalning",
         "hud.settings.crosshair": "Hårkors",
-        "hud.settings.transparency": "Transparens",
+        "hud.settings.opacity": "Transparens",
         "hud.settings.hotbar": "Snabbåtkomst",
         "hud.settings.toggle_shortcuts": "Växla genvägar",
         "hud.settings.buffs_skillbar": "Buffs at Skillbar", // TODO
@@ -35,7 +35,7 @@
         "hud.settings.values": "Värden",
         "hud.settings.percentages": "Procent",
         "hud.settings.chat": "Konversation",
-        "hud.settings.background_transparency": "Bakgrundstransparens",
+        "hud.settings.background_opacity": "Bakgrundstransparens",
         "hud.settings.chat_character_name": "Karaktärers namn i konverationer",
         "hud.settings.loading_tips": "Tips på laddningsskärmen",
         "hud.settings.reset_interface": "Återställ till standard",
