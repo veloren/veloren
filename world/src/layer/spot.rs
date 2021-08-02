@@ -40,7 +40,12 @@ pub enum Spot {
     //TowerRuin,
     //WellOfLight,
     //MerchantOutpost,
+    //TrollHideout,
+    //RuinedHuntingCabin, <-- Bears!
+    //LionRock,
+    //WolfBurrow,
     // *Random world objects*
+    LionRock,
     TreeStumpForest,
     DesertBones,
     AirshipCrash,
@@ -91,6 +96,20 @@ impl Spot {
         );
         // Random World Objects -> Themed to their Biome and the NPCs that regularly
         // spawn there
+        Self::generate_spots(
+            Spot::LionRock,
+            world,
+            1.0,
+            |g, c| {
+                g < 0.25
+                    && !c.near_cliffs()
+                    && !c.river.near_water()
+                    && !c.path.0.is_way()
+                    && c.sites.is_empty()
+                    && matches!(c.get_biome(), BiomeKind::Grassland)
+            },
+            false,
+        );
         Self::generate_spots(
             Spot::TreeStumpForest,
             world,
@@ -230,20 +249,25 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 ],
             },
             // Random World Objects
+            Spot::LionRock => SpotConfig {
+                base_structures: Some("spots_savannah.lion_rock"),
+                entity_radius: 20.0,
+                entities: &[(0..8, "common.entity.wild.aggressive.lion")],
+            },
             Spot::TreeStumpForest => SpotConfig {
                 base_structures: Some("trees.oak_stumps"),
                 entity_radius: 30.0,
-                entities: &[(0..1, "common.entity.wild.aggressive.deadwood")],
+                entities: &[(0..2, "common.entity.wild.aggressive.deadwood")],
             },
             Spot::DesertBones => SpotConfig {
                 base_structures: Some("trees.quirky_dry"),
                 entity_radius: 40.0,
-                entities: &[(1..6, "common.entity.wild.aggressive.hyena")],
+                entities: &[(4..9, "common.entity.wild.aggressive.hyena")],
             },
             Spot::AirshipCrash => SpotConfig {
                 base_structures: Some("trees.airship_crash"),
-                entity_radius: 10.0,
-                entities: &[(1..4, "common.entity.spot.bandit_camp.grim_salvager")],
+                entity_radius: 20.0,
+                entities: &[(4..9, "common.entity.spot.bandit_camp.grim_salvager")],
             },
         };
         // Blit base structure
