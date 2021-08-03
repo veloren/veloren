@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dualwielded, one-handed swords as starting weapons (Will be replaced by daggers in the future!)
 - Healing sceptre crafting recipe
 - NPCs can now warn players before engaging in combat
+- Custom error message when a supported graphics backend can not be found
 
 ### Changed
 
