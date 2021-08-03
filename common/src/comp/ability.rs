@@ -1021,9 +1021,9 @@ impl CharacterAbility {
                                 0
                             };
                         *max_energy_gain = *max_energy_gain
-                            * ((energy_level + 1) * stage_data.len() as u16 - 1) as f32
+                            * ((energy_level + 1) * stage_data.len() as u16 - 1).max(1) as f32
                             / (Axe(DsRegen).max_level().unwrap() + 1) as f32
-                            * (stage_data.len() - 1) as f32;
+                            * (stage_data.len() - 1).max(1) as f32;
                         *scales_from_combo = skillset
                             .skill_level(Axe(DsDamage))
                             .unwrap_or(None)
