@@ -2477,7 +2477,8 @@ impl<'a> AgentData<'a> {
             && self.energy.current() > CharacterAbility::default_roll().get_energy_cost()
             && !matches!(self.char_state, CharacterState::Shockwave(_))
         {
-            // if a humanoid, have enough stamina, and in melee range, emergency roll
+            // if a humanoid, have enough stamina, not in shockwave, and in melee range,
+            // emergency roll
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Roll));
@@ -2491,8 +2492,7 @@ impl<'a> AgentData<'a> {
                 .push(ControlAction::basic_input(InputKind::Ability(0)));
         } else if !matches!(self.char_state, CharacterState::Shockwave(c) if !matches!(c.stage_section, StageSection::Recover))
         {
-            // only try to use another ability if not already in recover and not casting
-            // shockwave
+            // only try to use another ability unless in shockwave or recover
             let target_approaching_speed = -agent
                 .target
                 .as_ref()
@@ -2502,8 +2502,8 @@ impl<'a> AgentData<'a> {
             if self
                 .skill_set
                 .has_skill(Skill::Staff(StaffSkill::UnlockShockwave))
-                && target_approaching_speed > 20.0
-                && self.energy.current() > 200
+                && target_approaching_speed > 12.0
+                && self.energy.current() > shockwave_cost
             {
                 // if enemy is closing distance quickly, use shockwave to knock back
                 if matches!(self.char_state, CharacterState::Wielding) {
@@ -2579,7 +2579,8 @@ impl<'a> AgentData<'a> {
             // Sometimes try to roll
             if self.body.map_or(false, |b| b.is_humanoid())
                 && attack_data.dist_sqrd < 16.0f32.powi(2)
-                && thread_rng().gen::<f32>() < 0.01
+                && !matches!(self.char_state, CharacterState::Shockwave(_))
+                && thread_rng().gen::<f32>() < 0.02
             {
                 controller
                     .actions
