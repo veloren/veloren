@@ -67,16 +67,10 @@
             # veloren-world = oldAttrs: {
             #   crateBin = lib.filter (bin: bin.name != "chunk_compression_benchmarks") oldAttrs.crateBin;
             # };
-            shaderc-sys = _:
-              let SHADERC_LIB_DIR = "${common.pkgs.shaderc.lib}/lib"; in
-              {
-                inherit SHADERC_LIB_DIR;
-                propagatedEnv = { inherit SHADERC_LIB_DIR; };
-              };
             veloren-client = oldAttrs: {
               crateBin = lib.filter (bin: bin.name != "bot") oldAttrs.crateBin;
             };
-            veloren-i18n = oldAttrs: {
+            veloren-voxygen-i18n = oldAttrs: {
               crateBin = lib.filter (bin: bin.name != "i18n-check") oldAttrs.crateBin;
             };
             veloren-common = oldAttrs: {

@@ -2718,7 +2718,7 @@ dependencies = [
 [[package]]
 name = "keyboard-keynames"
 version = "0.1.0"
-source = "git+https://gitlab.com/Frinksy/keyboard-keynames.git?rev=9ae8f89014d0b0c5b61d0e821c5aeb6140c5c0dc#9ae8f89014d0b0c5b61d0e821c5aeb6140c5c0dc"
+source = "git+https://gitlab.com/Frinksy/keyboard-keynames.git?rev=721c8b301f8003332d0cc767ab2649fdd330e842#721c8b301f8003332d0cc767ab2649fdd330e842"
 dependencies = [
  "libc",
  "memmap",
@@ -2726,7 +2726,7 @@ dependencies = [
  "winapi 0.3.9",
  "winit",
  "xcb",
- "xkbcommon-sys 0.7.5 (git+https://github.com/Frinksy/rust-xkbcommon-sys.git?rev=d5d69e05a81f7ee8d2f65a824ae692610ed7cb14)",
+ "xkbcommon-sys 0.7.6",
 ]
 
 [[package]]
@@ -3063,7 +3063,7 @@ dependencies = [
  "winapi 0.3.9",
  "x11-dl",
  "xkb",
- "xkbcommon-sys 0.7.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "xkbcommon-sys 0.7.5",
 ]
 
 [[package]]
@@ -7082,7 +7082,7 @@ checksum = "aec02bc5de902aa579f3d2f2c522edaf40fa42963cbaffe645b058ddcc68fdb2"
 dependencies = [
  "bitflags",
  "libc",
- "xkbcommon-sys 0.7.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "xkbcommon-sys 0.7.5",
 ]
 
 [[package]]
@@ -7098,8 +7098,8 @@ dependencies = [
 
 [[package]]
 name = "xkbcommon-sys"
-version = "0.7.5"
-source = "git+https://github.com/Frinksy/rust-xkbcommon-sys.git?rev=d5d69e05a81f7ee8d2f65a824ae692610ed7cb14#d5d69e05a81f7ee8d2f65a824ae692610ed7cb14"
+version = "0.7.6"
+source = "git+https://github.com/Frinksy/rust-xkbcommon-sys.git?rev=8f615dd6cd90a4ab77c45627830dde49b592b9b5#8f615dd6cd90a4ab77c45627830dde49b592b9b5"
 dependencies = [
  "libc",
  "pkg-config",
