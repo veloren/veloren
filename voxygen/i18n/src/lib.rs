@@ -113,17 +113,25 @@ impl common_assets::Compound for Language {
         // Walk through files in the folder, collecting localization fragment to merge
         // inside the asked_localization
         let mut fragments = HashMap::new();
-        for fragment_asset in cache
+        for id in cache
             .load_dir::<RawFragment<String>>(asset_key, true)?
-            .iter()
+            .ids()
         {
-            let id = fragment_asset.id();
-            // don't try to load ._manifest files
-            if id.ends_with("._manifest") {
+            // Don't try to load manifests
+            if id.ends_with(&[".", LANG_MANIFEST_FILE].concat()) {
                 continue;
             }
-            let read = fragment_asset.read();
-            fragments.insert(PathBuf::from(id), read.clone());
+
+            match cache.load(id) {
+                Ok(handle) => {
+                    let fragment: &RawFragment<String> = &*handle.read();
+
+                    fragments.insert(PathBuf::from(id), fragment.clone());
+                },
+                Err(e) => {
+                    warn!("Unable to load asset {}, error={:?}", id, e);
+                },
+            }
         }
 
         Ok(Language::from(RawLanguage {
