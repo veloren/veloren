@@ -270,7 +270,10 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
             Spot::WitchHouse => SpotConfig {
                 base_structures: Some("spots_general.witch_hut"),
                 entity_radius: 1.0,
-                entities: &[(1..2, "common.entity.spot.bandit_camp.witch_dark")],
+                entities: &[
+                    (1..2, "common.entity.spot.bandit_camp.witch_dark"),
+                    (3..6, "common.entity.wild.peaceful.cat"),
+                ],
             },
             Spot::GnarlingTotem => SpotConfig {
                 base_structures: Some("spots_grasslands.gnarling_totem"),
