@@ -26,7 +26,8 @@ enum-iterator = "0.6"
 vek = { version = "=0.14.1", features = ["serde"] }
 
 # Strum
-strum = "0.21"
+strum = { version = "0.21", features = ["derive"] }
+# TODO: remove this and rewrite every use of strum_macros to strum
 strum_macros = "0.21"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

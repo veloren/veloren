@@ -74,3 +74,13 @@ impl PlayerPhysicsSetting {
 pub struct PlayerPhysicsSettings {
     pub settings: hashbrown::HashMap<uuid::Uuid, PlayerPhysicsSetting>,
 }
+
+/// Describe how players interact with other players.
+///
+/// May be removed when we will discover better way
+/// to handle duels and murders
+#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
+pub enum BattleMode {
+    PvP,
+    PvE,
+}

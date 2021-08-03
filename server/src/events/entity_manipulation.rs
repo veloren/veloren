@@ -819,6 +819,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                 let energies = &ecs.read_storage::<comp::Energy>();
                 let combos = &ecs.read_storage::<comp::Combo>();
                 let inventories = &ecs.read_storage::<comp::Inventory>();
+                let players = &ecs.read_storage::<comp::Player>();
                 for (
                     entity_b,
                     pos_b,
@@ -887,12 +888,23 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             char_state: char_state_b_maybe,
                         };
 
-                        attack.apply_attack(
+                        let may_harm = combat::may_harm(
+                            owner_entity.and_then(|owner| players.get(owner)),
+                            players.get(entity_b),
+                        );
+                        let attack_options = combat::AttackOptions {
+                            // cool guyz maybe don't look at explosions
+                            // but they still got hurt, it's not Hollywood
+                            target_dodging: false,
+                            may_harm,
                             target_group,
+                        };
+
+                        attack.apply_attack(
                             attacker_info,
                             target_info,
                             dir,
-                            false,
+                            attack_options,
                             strength,
                             combat::AttackSource::Explosion,
                             |e| server_eventbus.emit_now(e),
@@ -902,6 +914,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                 }
             },
             RadiusEffect::Entity(mut effect) => {
+                let players = &ecs.read_storage::<comp::Player>();
                 for (entity_b, pos_b, body_b_maybe) in (
                     &ecs.entities(),
                     &ecs.read_storage::<comp::Pos>(),
@@ -916,14 +929,35 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                         1.0 - distance_squared / explosion.radius.powi(2)
                     };
 
+                    // Player check only accounts for PvP/PvE flag.
+                    //
+                    // But bombs are intented to do
+                    // friendly fire.
+                    //
+                    // What exactly friendly fire is subject to discussion.
+                    // As we probably want to minimize possibility of being dick
+                    // even to your group members, the only exception is when
+                    // you want to harm yourself.
+                    //
+                    // This can be changed later.
+                    let may_harm = || {
+                        owner_entity.map_or(false, |attacker| {
+                            let attacker_player = players.get(attacker);
+                            let target_player = players.get(entity_b);
+                            combat::may_harm(attacker_player, target_player) || attacker == entity_b
+                        })
+                    };
                     if strength > 0.0 {
                         let is_alive = ecs
                             .read_storage::<comp::Health>()
                             .get(entity_b)
                             .map_or(true, |h| !h.is_dead);
+
                         if is_alive {
                             effect.modify_strength(strength);
-                            server.state().apply_effect(entity_b, effect.clone(), owner);
+                            if !effect.is_harm() || may_harm() {
+                                server.state().apply_effect(entity_b, effect.clone(), owner);
+                            }
                         }
                     }
                 }

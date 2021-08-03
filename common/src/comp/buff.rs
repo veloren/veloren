@@ -81,22 +81,22 @@ impl BuffKind {
     /// Checks if buff is buff or debuff
     pub fn is_buff(self) -> bool {
         match self {
-            BuffKind::Regeneration => true,
-            BuffKind::Saturation => true,
-            BuffKind::Bleeding => false,
-            BuffKind::Cursed => false,
-            BuffKind::Potion => true,
-            BuffKind::CampfireHeal => true,
-            BuffKind::IncreaseMaxEnergy => true,
-            BuffKind::IncreaseMaxHealth => true,
-            BuffKind::Invulnerability => true,
-            BuffKind::ProtectingWard => true,
-            BuffKind::Burning => false,
-            BuffKind::Crippled => false,
-            BuffKind::Frenzied => true,
-            BuffKind::Frozen => false,
-            BuffKind::Wet => false,
-            BuffKind::Ensnared => false,
+            BuffKind::Regeneration
+            | BuffKind::Saturation
+            | BuffKind::Potion
+            | BuffKind::CampfireHeal
+            | BuffKind::IncreaseMaxEnergy
+            | BuffKind::IncreaseMaxHealth
+            | BuffKind::Invulnerability
+            | BuffKind::ProtectingWard => true,
+            BuffKind::Bleeding
+            | BuffKind::Cursed
+            | BuffKind::Burning
+            | BuffKind::Crippled
+            | BuffKind::Frenzied
+            | BuffKind::Frozen
+            | BuffKind::Wet
+            | BuffKind::Ensnared => false,
         }
     }
 

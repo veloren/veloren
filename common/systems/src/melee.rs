@@ -1,9 +1,9 @@
 use common::{
-    combat::{AttackSource, AttackerInfo, TargetInfo},
+    combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
-        Body, CharacterState, Combo, Energy, Group, Health, Inventory, Melee, Ori, Pos, Scale,
-        Stats,
+        Body, CharacterState, Combo, Energy, Group, Health, Inventory, Melee, Ori, Player, Pos,
+        Scale, Stats,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
@@ -22,6 +22,7 @@ use vek::*;
 pub struct ReadData<'a> {
     time: Read<'a, Time>,
     entities: Entities<'a>,
+    players: ReadStorage<'a, Player>,
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
     orientations: ReadStorage<'a, Ori>,
@@ -115,7 +116,7 @@ impl<'a> System<'a> for Sys {
                 let rad_b = body_b.radius() * scale_b;
 
                 // Check if entity is dodging
-                let is_dodge = read_data
+                let target_dodging = read_data
                     .char_states
                     .get(target)
                     .map_or(false, |c_s| c_s.is_melee_dodge());
@@ -161,12 +162,22 @@ impl<'a> System<'a> for Sys {
                         char_state: read_data.char_states.get(target),
                     };
 
-                    let is_applied = melee_attack.attack.apply_attack(
+                    let may_harm = combat::may_harm(
+                        read_data.players.get(attacker),
+                        read_data.players.get(target),
+                    );
+
+                    let attack_options = AttackOptions {
+                        target_dodging,
+                        may_harm,
                         target_group,
+                    };
+
+                    let is_applied = melee_attack.attack.apply_attack(
                         attacker_info,
                         target_info,
                         dir,
-                        is_dodge,
+                        attack_options,
                         1.0,
                         AttackSource::Melee,
                         |e| server_emitter.emit(e),

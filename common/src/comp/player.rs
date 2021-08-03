@@ -3,6 +3,8 @@ use specs::{Component, DerefFlaggedStorage, NullStorage};
 use specs_idvs::IdvStorage;
 use uuid::Uuid;
 
+use crate::resources::BattleMode;
+
 const MAX_ALIAS_LEN: usize = 32;
 
 #[derive(Debug)]
@@ -17,11 +19,31 @@ pub enum DisconnectReason {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Player {
     pub alias: String,
+    pub battle_mode: BattleMode,
     uuid: Uuid,
 }
 
+impl BattleMode {
+    pub fn may_harm(self, other: Self) -> bool {
+        matches!((self, other), (BattleMode::PvP, BattleMode::PvP))
+    }
+}
+
 impl Player {
-    pub fn new(alias: String, uuid: Uuid) -> Self { Self { alias, uuid } }
+    pub fn new(alias: String, battle_mode: BattleMode, uuid: Uuid) -> Self {
+        Self {
+            alias,
+            battle_mode,
+            uuid,
+        }
+    }
+
+    /// Currently we allow attacking only if both players are opt-in to PvP.
+    ///
+    /// Simple as tea, if they don't want the tea, don't make them drink the
+    /// tea.
+    /// You can make tea for yourself though.
+    pub fn may_harm(&self, other: &Player) -> bool { self.battle_mode.may_harm(other.battle_mode) }
 
     pub fn is_valid(&self) -> bool { Self::alias_validate(&self.alias).is_ok() }
 

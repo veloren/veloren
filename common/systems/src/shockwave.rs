@@ -1,9 +1,9 @@
 use common::{
-    combat::{AttackSource, AttackerInfo, TargetInfo},
+    combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
         Body, CharacterState, Combo, Energy, Group, Health, HealthSource, Inventory, Ori,
-        PhysicsState, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
+        PhysicsState, Player, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
@@ -25,6 +25,7 @@ pub struct ReadData<'a> {
     entities: Entities<'a>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
     time: Read<'a, Time>,
+    players: ReadStorage<'a, Player>,
     dt: Read<'a, DeltaTime>,
     uid_allocator: Read<'a, UidAllocator>,
     uids: ReadStorage<'a, Uid>,
@@ -208,12 +209,22 @@ impl<'a> System<'a> for Sys {
                         char_state: read_data.character_states.get(target),
                     };
 
-                    shockwave.properties.attack.apply_attack(
+                    let may_harm = combat::may_harm(
+                        shockwave_owner.and_then(|owner| read_data.players.get(owner)),
+                        read_data.players.get(target),
+                    );
+                    let attack_options = AttackOptions {
+                        // Trying roll during earthquake isn't the best idea
+                        target_dodging: false,
+                        may_harm,
                         target_group,
+                    };
+
+                    shockwave.properties.attack.apply_attack(
                         attacker_info,
                         target_info,
                         dir,
-                        false,
+                        attack_options,
                         1.0,
                         AttackSource::Shockwave,
                         |e| server_emitter.emit(e),

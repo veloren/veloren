@@ -2,7 +2,7 @@ use crate::{
     client::Client,
     login_provider::{LoginProvider, PendingLogin},
     metrics::PlayerMetrics,
-    EditableSettings,
+    EditableSettings, Settings,
 };
 use common::{
     comp::{Admin, Player, Stats},
@@ -17,7 +17,8 @@ use common_net::msg::{
 use hashbrown::HashMap;
 use plugin_api::Health;
 use specs::{
-    storage::StorageEntry, Entities, Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage,
+    shred::ResourceId, storage::StorageEntry, Entities, Join, Read, ReadExpect, ReadStorage,
+    SystemData, World, WriteExpect, WriteStorage,
 };
 use tracing::trace;
 
@@ -29,26 +30,32 @@ type ReadPlugin<'a> = Read<'a, PluginMgr>;
 #[cfg(not(feature = "plugins"))]
 type ReadPlugin<'a> = Option<Read<'a, ()>>;
 
+#[derive(SystemData)]
+pub struct ReadData<'a> {
+    entities: Entities<'a>,
+    stats: ReadStorage<'a, Stats>,
+    uids: ReadStorage<'a, Uid>,
+    clients: ReadStorage<'a, Client>,
+    server_event_bus: Read<'a, EventBus<ServerEvent>>,
+    player_metrics: ReadExpect<'a, PlayerMetrics>,
+    settings: ReadExpect<'a, Settings>,
+    editable_settings: ReadExpect<'a, EditableSettings>,
+    _healths: ReadStorage<'a, Health>, // used by plugin feature
+    _plugin_mgr: ReadPlugin<'a>,       // used by plugin feature
+    _uid_allocator: Read<'a, UidAllocator>, // used by plugin feature
+}
+
 /// This system will handle new messages from clients
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
-        Entities<'a>,
-        ReadExpect<'a, PlayerMetrics>,
-        ReadStorage<'a, Health>,
-        ReadStorage<'a, Uid>,
-        ReadStorage<'a, Client>,
+        ReadData<'a>,
         WriteStorage<'a, Player>,
-        WriteStorage<'a, PendingLogin>,
-        Read<'a, UidAllocator>,
-        ReadPlugin<'a>,
-        ReadStorage<'a, Stats>,
-        WriteExpect<'a, LoginProvider>,
         WriteStorage<'a, Admin>,
-        ReadExpect<'a, EditableSettings>,
-        Read<'a, EventBus<ServerEvent>>,
+        WriteStorage<'a, PendingLogin>,
+        WriteExpect<'a, LoginProvider>,
     );
 
     const NAME: &'static str = "msg::register";
@@ -58,24 +65,21 @@ impl<'a> System<'a> for Sys {
     fn run(
         _job: &mut Job<Self>,
         (
-            entities,
-            player_metrics,
-            _health_comp, // used by plugin feature
-            uids,
-            clients,
+            read_data,
             mut players,
-            mut pending_logins,
-            _uid_allocator, // used by plugin feature
-            _plugin_mgr,    // used by plugin feature
-            stats,
-            mut login_provider,
             mut admins,
-            editable_settings,
-            server_event_bus,
+            mut pending_logins,
+            mut login_provider,
         ): Self::SystemData,
     ) {
+        let mut server_emitter = read_data.server_event_bus.emitter();
         // Player list to send new players.
-        let player_list = (&uids, &players, stats.maybe(), admins.maybe())
+        let player_list = (
+            &read_data.uids,
+            &players,
+            read_data.stats.maybe(),
+            admins.maybe(),
+        )
             .join()
             .map(|(uid, player, stats, admin)| {
                 (*uid, PlayerInfo {
@@ -92,7 +96,7 @@ impl<'a> System<'a> for Sys {
         let mut new_players = Vec::new();
 
         // defer auth lockup
-        for (entity, client) in (&entities, &clients).join() {
+        for (entity, client) in (&read_data.entities, &read_data.clients).join() {
             let _ = super::try_recv_all(client, 0, |_, msg: ClientRegister| {
                 trace!(?msg.token_or_username, "defer auth lockup");
                 let pending = login_provider.verify(&msg.token_or_username);
@@ -103,15 +107,17 @@ impl<'a> System<'a> for Sys {
 
         let mut finished_pending = vec![];
         let mut retries = vec![];
-        for (entity, client, mut pending) in (&entities, &clients, &mut pending_logins).join() {
+        for (entity, client, mut pending) in
+            (&read_data.entities, &read_data.clients, &mut pending_logins).join()
+        {
             if let Err(e) = || -> std::result::Result<(), crate::error::Error> {
                 #[cfg(feature = "plugins")]
                 let ecs_world = EcsWorld {
-                    entities: &entities,
-                    health: (&_health_comp).into(),
-                    uid: (&uids).into(),
+                    entities: &read_data.entities,
+                    health: (&read_data._healths).into(),
+                    uid: (&read_data.uids).into(),
                     player: (&players).into(),
-                    uid_allocator: &_uid_allocator,
+                    uid_allocator: &read_data._uid_allocator,
                 };
 
                 let (username, uuid) = match login_provider.login(
@@ -119,10 +125,10 @@ impl<'a> System<'a> for Sys {
                     #[cfg(feature = "plugins")]
                     &ecs_world,
                     #[cfg(feature = "plugins")]
-                    &_plugin_mgr,
-                    &*editable_settings.admins,
-                    &*editable_settings.whitelist,
-                    &*editable_settings.banlist,
+                    &read_data._plugin_mgr,
+                    &*read_data.editable_settings.admins,
+                    &*read_data.editable_settings.whitelist,
+                    &*read_data.editable_settings.banlist,
                 ) {
                     None => return Ok(()),
                     Some(r) => {
@@ -130,7 +136,7 @@ impl<'a> System<'a> for Sys {
                         trace!(?r, "pending login returned");
                         match r {
                             Err(e) => {
-                                server_event_bus.emit_now(ServerEvent::ClientDisconnect(
+                                server_emitter.emit(ServerEvent::ClientDisconnect(
                                     entity,
                                     common::comp::DisconnectReason::Kicked,
                                 ));
@@ -143,12 +149,13 @@ impl<'a> System<'a> for Sys {
                 };
 
                 // Check if user is already logged-in
-                if let Some((old_entity, old_client, _)) = (&entities, &clients, &players)
-                    .join()
-                    .find(|(_, _, old_player)| old_player.uuid() == uuid)
+                if let Some((old_entity, old_client, _)) =
+                    (&read_data.entities, &read_data.clients, &players)
+                        .join()
+                        .find(|(_, _, old_player)| old_player.uuid() == uuid)
                 {
                     // Remove old client
-                    server_event_bus.emit_now(ServerEvent::ClientDisconnect(
+                    server_emitter.emit(ServerEvent::ClientDisconnect(
                         old_entity,
                         common::comp::DisconnectReason::NewerLogin,
                     ));
@@ -166,8 +173,8 @@ impl<'a> System<'a> for Sys {
                     return Ok(());
                 }
 
-                let player = Player::new(username, uuid);
-                let admin = editable_settings.admins.get(&uuid);
+                let player = Player::new(username, read_data.settings.battle_mode, uuid);
+                let admin = read_data.editable_settings.admins.get(&uuid);
 
                 if !player.is_valid() {
                     // Invalid player
@@ -178,7 +185,7 @@ impl<'a> System<'a> for Sys {
                 if let Ok(StorageEntry::Vacant(v)) = players.entry(entity) {
                     // Add Player component to this client, if the entity exists.
                     v.insert(player);
-                    player_metrics.players_connected.inc();
+                    read_data.player_metrics.players_connected.inc();
 
                     // Give the Admin component to the player if their name exists in
                     // admin list
@@ -214,22 +221,24 @@ impl<'a> System<'a> for Sys {
 
         // Handle new players.
         // Tell all clients to add them to the player list.
-        for entity in new_players {
-            if let (Some(uid), Some(player)) = (uids.get(entity), players.get(entity)) {
-                let mut lazy_msg = None;
-                for (_, client) in (&players, &clients).join() {
-                    if lazy_msg.is_none() {
-                        lazy_msg = Some(client.prepare(ServerGeneral::PlayerListUpdate(
-                            PlayerListUpdate::Add(*uid, PlayerInfo {
-                                player_alias: player.alias.clone(),
-                                is_online: true,
-                                is_moderator: admins.get(entity).is_some(),
-                                character: None, // new players will be on character select.
-                            }),
-                        )));
-                    }
-                    lazy_msg.as_ref().map(|msg| client.send_prepared(msg));
+        let player_info = |entity| {
+            let player_info = read_data.uids.get(entity).zip(players.get(entity));
+            player_info.map(|(u, p)| (entity, u, p))
+        };
+        for (entity, uid, player) in new_players.into_iter().filter_map(player_info) {
+            let mut lazy_msg = None;
+            for (_, client) in (&players, &read_data.clients).join() {
+                if lazy_msg.is_none() {
+                    lazy_msg = Some(client.prepare(ServerGeneral::PlayerListUpdate(
+                        PlayerListUpdate::Add(*uid, PlayerInfo {
+                            player_alias: player.alias.clone(),
+                            is_online: true,
+                            is_moderator: admins.get(entity).is_some(),
+                            character: None, // new players will be on character select.
+                        }),
+                    )));
                 }
+                lazy_msg.as_ref().map(|msg| client.send_prepared(msg));
             }
         }
     }
