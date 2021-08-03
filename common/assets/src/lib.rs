@@ -303,11 +303,17 @@ mod tests {
     }
 }
 
-/// Set of functions for easy tweaking values using our asset cache machinery.
-///
-/// Will hot-reload (if corresponded feature is enabled).
 #[cfg(feature = "asset_tweak")]
 pub mod asset_tweak {
+    //! Set of functions and macros for easy tweaking values
+    //! using our asset cache machinery.
+    //!
+    //! Because of how macros works, you will not find
+    //! [tweak] and [tweak_from] macros in this module,
+    //! import it from [assets](super) crate directly.
+    //!
+    //! Will hot-reload (if corresponded feature is enabled).
+    // TODO: don't use the same ASSETS_PATH as game uses?
     use super::{Asset, AssetExt, RonLoader, ASSETS_PATH};
     use ron::ser::{to_writer_pretty, PrettyConfig};
     use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -366,17 +372,17 @@ pub mod asset_tweak {
     /// };
     ///
     /// // you need to create file first
-    /// let tweak_path = ASSETS_PATH.join("tweak/y.ron");
+    /// let tweak_path = ASSETS_PATH.join("tweak/year.ron");
     /// // note parentheses
     /// fs::write(&tweak_path, b"(10)");
     ///
-    /// let y: i32 = tweak_expect(Specifier::Tweak("y"));
+    /// let y: i32 = tweak_expect(Specifier::Tweak("year"));
     /// assert_eq!(y, 10);
     ///
     /// // Specifier::Tweak is just a shorthand
     /// // for Specifier::Asset(&["tweak", ..])
-    /// let z: i32 = tweak_expect(Specifier::Asset(&["tweak", "y"]));
-    /// assert_eq!(y, 10);
+    /// let y1: i32 = tweak_expect(Specifier::Asset(&["tweak", "year"]));
+    /// assert_eq!(y1, 10);
     ///
     /// // you may want to remove this file later
     /// std::fs::remove_file(tweak_path);
@@ -445,15 +451,15 @@ pub mod asset_tweak {
     /// };
     ///
     /// // first time it will create the file
-    /// let x: i32 = tweak_expect_or_create(Specifier::Tweak("x"), 5);
-    /// let file_path = ASSETS_PATH.join("tweak/x.ron");
+    /// let x: i32 = tweak_expect_or_create(Specifier::Tweak("stars"), 5);
+    /// let file_path = ASSETS_PATH.join("tweak/stars.ron");
     /// assert!(file_path.is_file());
     /// assert_eq!(x, 5);
     ///
     /// // next time it will read value from file
     /// // whatever you will pass as default
-    /// let x: i32 = tweak_expect_or_create(Specifier::Tweak("x"), 42);
-    /// assert_eq!(x, 5);
+    /// let x1: i32 = tweak_expect_or_create(Specifier::Tweak("stars"), 42);
+    /// assert_eq!(x1, 5);
     ///
     /// // you may want to remove this file later
     /// std::fs::remove_file(file_path);
@@ -475,6 +481,100 @@ pub mod asset_tweak {
         } else {
             create_new(&dir, &filename, value)
         }
+    }
+
+    /// Convinient macro to quickly tweak value.
+    ///
+    /// Will use [Specifier]`::Tweak` specifier and call
+    /// [tweak_expect] if passed only name
+    /// or [tweak_expect_or_create] if default is passed.
+    ///
+    /// # Examples:
+    /// ```
+    /// // note that you need to export it from `assets` crate,
+    /// // not from `assets::asset_tweak`
+    /// use veloren_common_assets::{tweak, ASSETS_PATH};
+    ///
+    /// // you need to create file first
+    /// let own_path = ASSETS_PATH.join("tweak/grizelda.ron");
+    /// // note parentheses
+    /// std::fs::write(&own_path, b"(10)");
+    ///
+    /// let z: i32 = tweak!("grizelda");
+    /// assert_eq!(z, 10);
+    ///
+    /// // voila, you don't need to care about creating file first
+    /// let p: i32 = tweak!("peter", 8);
+    ///
+    /// let created_path = ASSETS_PATH.join("tweak/peter.ron");
+    /// assert!(created_path.is_file());
+    /// assert_eq!(p, 8);
+    ///
+    /// // will use default value only first time
+    /// // if file exists, will load from this file
+    /// let p: i32 = tweak!("peter", 50);
+    /// assert_eq!(p, 8);
+    ///
+    /// // you may want to remove this file later
+    /// std::fs::remove_file(own_path);
+    /// std::fs::remove_file(created_path);
+    /// ```
+    #[macro_export]
+    macro_rules! tweak {
+        ($name:literal) => {{
+            use $crate::asset_tweak::{tweak_expect, Specifier::Tweak};
+
+            tweak_expect(Tweak($name))
+        }};
+
+        ($name:literal, $default:expr) => {{
+            use $crate::asset_tweak::{tweak_expect_or_create, Specifier::Tweak};
+
+            tweak_expect_or_create(Tweak($name), $default)
+        }};
+    }
+
+    /// Convinient macro to quickly tweak value from some existing path.
+    ///
+    /// Will use [Specifier]`::Asset` specifier and call
+    /// [tweak_expect] if passed only name
+    /// or [tweak_expect_or_create] if default is passed.
+    ///
+    /// The main use case is when you have some object
+    /// which needs constant tuning of values, but you can't afford
+    /// loading a file.
+    /// So you can use tweak_from! and then just copy values from asset
+    /// to your object.
+    ///
+    /// # Examples:
+    /// ```no_run
+    /// // note that you need to export it from `assets` crate,
+    /// // not from `assets::asset_tweak`
+    /// use serde::{Deserialize, Serialize};
+    /// use veloren_common_assets::{tweak_from, ASSETS_PATH};
+    ///
+    /// #[derive(Clone, PartialEq, Deserialize, Serialize)]
+    /// struct Data {
+    ///     x: i32,
+    ///     y: i32,
+    /// }
+    ///
+    /// let default = Data { x: 5, y: 7 };
+    /// let data: Data = tweak_from!(&["common", "body", "dimensions"], default);
+    /// ```
+    #[macro_export]
+    macro_rules! tweak_from {
+        ($path:expr) => {{
+            use $crate::asset_tweak::{tweak_expect, Specifier::Asset};
+
+            tweak_expect(Asset($path))
+        }};
+
+        ($path:expr, $default:expr) => {{
+            use $crate::asset_tweak::{tweak_expect_or_create, Specifier::Asset};
+
+            tweak_expect_or_create(Asset($path), $default)
+        }};
     }
 
     #[cfg(test)]
