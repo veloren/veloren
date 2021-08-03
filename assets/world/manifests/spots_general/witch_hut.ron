@@ -10,7 +10,7 @@
             44: Filled(GlowingRock, (r: 54, g: 180, b: 64)),
             8: Filled(Air, (r: 255, g: 255, b: 255)),
             249: Sprite(PotionMinor),
-            252: Sprite(Ember),
+            251: Sprite(Ember),
          },
     ),
 ]

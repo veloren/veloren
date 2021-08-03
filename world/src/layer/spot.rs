@@ -272,7 +272,8 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 entity_radius: 1.0,
                 entities: &[
                     (1..2, "common.entity.spot.bandit_camp.witch_dark"),
-                    (3..6, "common.entity.wild.peaceful.cat"),
+                    (0..4, "common.entity.wild.peaceful.cat"),
+                    (0..3, "common.entity.wild.peaceful.frog"),
                 ],
             },
             Spot::GnarlingTotem => SpotConfig {
