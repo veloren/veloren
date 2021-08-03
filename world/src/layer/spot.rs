@@ -323,12 +323,11 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
 
         // Spawn entities
         const PHI: f32 = 1.618;
-        let dir_offset = rng.gen::<f32>();
-        let mut i = 0;
         for (spawn_count, spec) in spot_config.entities {
             let spawn_count = rng.gen_range(spawn_count.clone());
 
-            for _ in 0..spawn_count {
+            let dir_offset = rng.gen::<f32>();
+            for i in 0..spawn_count {
                 let dir = Vec2::new(
                     ((dir_offset + i as f32 * PHI) * std::f32::consts::TAU).sin(),
                     ((dir_offset + i as f32 * PHI) * std::f32::consts::TAU).cos(),
@@ -349,8 +348,6 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                             .with_asset_expect(spec),
                     );
                 }
-
-                i += 1;
             }
         }
     }
