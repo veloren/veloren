@@ -98,7 +98,7 @@ fn main() {
             https://www.gitlab.com/veloren/veloren/issues/new\n\
             \n\
             If you're on the Veloren community Discord server, we'd be \
-            grateful if you could also post a message in the #support channel.
+            grateful if you could also post a message in the #bugs-and-support channel.
             \n\
             > What should I include?\n\
             \n\
@@ -209,7 +209,30 @@ fn main() {
     i18n.set_english_fallback(settings.language.use_english_fallback);
 
     // Create window
-    let (mut window, event_loop) = Window::new(&settings).expect("Failed to create window!");
+    use veloren_voxygen::{error::Error, render::RenderError};
+    let (mut window, event_loop) = match Window::new(&settings) {
+        Ok(ok) => ok,
+        // Custom panic message when a graphics backend could not be found
+        Err(Error::RenderError(RenderError::CouldNotFindAdapter)) => {
+            #[cfg(target_os = "windows")]
+            const POTENTIAL_FIX: &str =
+                " Updating the graphics drivers on this system may resolve this issue.";
+            #[cfg(target_os = "macos")]
+            const POTENTIAL_FIX: &str = "";
+            #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+            const POTENTIAL_FIX: &str =
+                " Installing or updating vulkan drivers may resolve this issue.";
+
+            panic!(
+                "Failed to select a rendering backend! No compatible backends were found. We \
+                 currently support vulkan, metal, dx12, and dx11.{} If the issue persists, please \
+                 include the operating system and GPU details in your bug report to help us \
+                 identify the cause.",
+                POTENTIAL_FIX
+            );
+        },
+        Err(error) => panic!("Failed to create window!: {:?}", error),
+    };
 
     let clipboard = iced_winit::Clipboard::connect(window.window());
 
