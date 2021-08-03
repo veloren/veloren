@@ -2443,40 +2443,80 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        if self.body.map(|b| b.is_humanoid()).unwrap_or(false) && attack_data.in_min_range() {
+        let extract_ability = |ability: &CharacterAbility| {
+            ability
+                .clone()
+                .adjusted_by_skills(self.skill_set, Some(ToolKind::Staff))
+        };
+        let (flamethrower, shockwave) = self
+            .inventory
+            .equipped(EquipSlot::ActiveMainhand)
+            .map(|i| &i.item_config_expect().abilities)
+            .map(|a| {
+                (
+                    Some(a.secondary.clone()),
+                    a.abilities.get(0).map(|(_, s)| s),
+                )
+            })
+            .map_or(
+                (CharacterAbility::default(), CharacterAbility::default()),
+                |(s, a)| {
+                    (
+                        extract_ability(&s.unwrap_or_default()),
+                        extract_ability(a.unwrap_or(&CharacterAbility::default())),
+                    )
+                },
+            );
+        let flamethrower_range = match flamethrower {
+            CharacterAbility::BasicBeam { range, .. } => range,
+            _ => 20.0_f32,
+        };
+        let shockwave_cost = shockwave.get_energy_cost();
+        if self.body.map_or(false, |b| b.is_humanoid())
+            && attack_data.in_min_range()
+            && self.energy.current() > CharacterAbility::default_roll().get_energy_cost()
+            && !matches!(self.char_state, CharacterState::Shockwave(_))
+        {
+            // if a humanoid, have enough stamina, not in shockwave, and in melee range,
+            // emergency roll
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Roll));
-        } else if attack_data.dist_sqrd < (5.0 * attack_data.min_attack_dist).powi(2)
-            && attack_data.angle < 15.0
+        } else if matches!(self.char_state, CharacterState::Shockwave(_)) {
+            agent.action_state.condition = false;
+        } else if agent.action_state.condition
+            && matches!(self.char_state, CharacterState::Wielding)
         {
-            if agent.action_state.timer < 1.5 {
-                controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
-                    .xy()
-                    .rotated_z(0.47 * PI)
-                    .try_normalized()
-                    .unwrap_or_else(Vec2::unit_y);
-                agent.action_state.timer += read_data.dt.0;
-            } else if agent.action_state.timer < 3.0 {
-                controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
-                    .xy()
-                    .rotated_z(-0.47 * PI)
-                    .try_normalized()
-                    .unwrap_or_else(Vec2::unit_y);
-                agent.action_state.timer += read_data.dt.0;
-            } else {
-                agent.action_state.timer = 0.0;
-            }
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Ability(0)));
+        } else if !matches!(self.char_state, CharacterState::Shockwave(c) if !matches!(c.stage_section, StageSection::Recover))
+        {
+            // only try to use another ability unless in shockwave or recover
+            let target_approaching_speed = -agent
+                .target
+                .as_ref()
+                .map(|t| t.target)
+                .and_then(|e| read_data.velocities.get(e))
+                .map_or(0.0, |v| v.0.dot(self.ori.look_vec()));
             if self
                 .skill_set
                 .has_skill(Skill::Staff(StaffSkill::UnlockShockwave))
-                && self.energy.current() > 800
-                && thread_rng().gen::<f32>() > 0.8
+                && target_approaching_speed > 12.0
+                && self.energy.current() > shockwave_cost
             {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Ability(0)));
-            } else if self.energy.current() > 10 {
+                // if enemy is closing distance quickly, use shockwave to knock back
+                if matches!(self.char_state, CharacterState::Wielding) {
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Ability(0)));
+                } else {
+                    agent.action_state.condition = true;
+                }
+            } else if self.energy.current()
+                > shockwave_cost + CharacterAbility::default_roll().get_energy_cost()
+                && attack_data.dist_sqrd < flamethrower_range.powi(2)
+            {
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Secondary));
@@ -2485,7 +2525,26 @@ impl<'a> AgentData<'a> {
                     .actions
                     .push(ControlAction::basic_input(InputKind::Primary));
             }
+        }
+        // Logic to move. Intentionally kept separate from ability logic so duplicated
+        // work is less necessary.
+        if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
+            // Attempt to move away from target if too close
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+            }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
+            // Else attempt to circle target if neither too close nor too far
             if let Some((bearing, speed)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
@@ -2501,7 +2560,7 @@ impl<'a> AgentData<'a> {
                     self.pos,
                     tgt_data.pos,
                     attack_data.dist_sqrd,
-                ) && attack_data.angle < 15.0
+                ) && attack_data.angle < 45.0
                 {
                     controller.inputs.move_dir = bearing
                         .xy()
@@ -2509,18 +2568,18 @@ impl<'a> AgentData<'a> {
                         .try_normalized()
                         .unwrap_or_else(Vec2::zero)
                         * speed;
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Primary));
                 } else {
+                    // Unless cannot see target, then move towards them
                     controller.inputs.move_dir =
                         bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
                     self.jump_if(controller, bearing.z > 1.5);
                     controller.inputs.move_z = bearing.z;
                 }
             }
-            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+            // Sometimes try to roll
+            if self.body.map_or(false, |b| b.is_humanoid())
                 && attack_data.dist_sqrd < 16.0f32.powi(2)
+                && !matches!(self.char_state, CharacterState::Shockwave(_))
                 && thread_rng().gen::<f32>() < 0.02
             {
                 controller
@@ -2528,6 +2587,7 @@ impl<'a> AgentData<'a> {
                     .push(ControlAction::basic_input(InputKind::Roll));
             }
         } else {
+            // If too far, move towards target
             self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
     }
