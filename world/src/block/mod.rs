@@ -246,7 +246,7 @@ pub fn block_from_structure(
         )),
         StructureBlock::Normal(color) => Some(Block::new(BlockKind::Misc, color)),
         StructureBlock::Filled(kind, color) => Some(Block::new(kind, color)),
-        StructureBlock::Sprite(kind) => Some(with_sprite(kind)),
+        StructureBlock::Sprite(kind) => Some(with_sprite(kind).into_vacant().with_sprite(kind)),
         StructureBlock::Water => Some(Block::water(SpriteKind::Empty)),
         // TODO: If/when liquid supports other colors again, revisit this.
         StructureBlock::GreenSludge => Some(Block::water(SpriteKind::Empty)),
