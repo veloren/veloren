@@ -363,20 +363,24 @@ impl Camera {
             Vec3::new(0.0, 0.0, -1.0),
             Vec3::new(0.0, 0.0, 1.0),
         ];
+        // Calculate new frustom location as there may have been lerp towards tgt_dist
+        // Without this, there will be camera jumpig back and forth in some scenarios
+        // TODO: Optimize and fix clipping still happening if self.dist << self.tgt_dist
+
+        // Use tgt_dist, as otherwise we end up in loop due to dist depending on frustum
+        // and vice versa
+        let local_dependents = self.compute_dependents_helper(self.tgt_dist);
+        let frustum = self.compute_frustum(&local_dependents);
         let dist = {
-            self.frustum
+            frustum
                 .points
                 .iter()
                 .take(4)
                 .zip(FRUSTUM_PADDING.iter())
                 .map(|(pos, padding)| {
                     let fwd = self.forward();
-                    [
-                        pos + 0.5 * fwd.cross(*padding), // right/left direction
-                        pos + fwd.cross(*padding).cross(fwd),
-                    ] // up/down direction
+                    pos + 0.5 * (fwd.cross(*padding) + fwd.cross(*padding).cross(fwd))
                 })
-                .flatten()
                 .chain([(self.focus - self.forward() * (self.dist + 0.5))])  // Padding to behind
                 .map(|pos| {
                     match terrain
@@ -396,38 +400,57 @@ impl Camera {
                 .unwrap_or(0.0)
         };
 
-        self.dependents.view_mat = Mat4::<f32>::identity()
+        if self.dist >= dist {
+            self.dist = dist;
+        }
+
+        // Recompute only if needed
+        if (dist - self.tgt_dist).abs() > f32::EPSILON {
+            let dependents = self.compute_dependents_helper(dist);
+            self.frustum = self.compute_frustum(&dependents);
+            self.dependents = dependents;
+        } else {
+            self.dependents = local_dependents;
+            self.frustum = frustum;
+        }
+    }
+
+    fn compute_dependents_helper(&self, dist: f32) -> Dependents {
+        let view_mat = Mat4::<f32>::identity()
             * Mat4::translation_3d(-Vec3::unit_z() * dist)
             * Mat4::rotation_z(self.ori.z)
             * Mat4::rotation_x(self.ori.y)
             * Mat4::rotation_y(self.ori.x)
             * Mat4::rotation_3d(PI / 2.0, -Vec4::unit_x())
             * Mat4::translation_3d(-self.focus.map(|e| e.fract()));
-        self.dependents.view_mat_inv = self.dependents.view_mat.inverted();
+        let view_mat_inv: Mat4<f32> = self.dependents.view_mat.inverted();
 
         // NOTE: We reverse the far and near planes to produce an inverted depth
         // buffer (1 to 0 z planes).
-        self.dependents.proj_mat =
+        let proj_mat =
             perspective_rh_zo_general(self.fov, self.aspect, 1.0 / FAR_PLANE, 1.0 / NEAR_PLANE);
         // For treeculler, we also produce a version without inverted depth.
-        self.dependents.proj_mat_treeculler =
+        let proj_mat_treeculler =
             perspective_rh_zo_general(self.fov, self.aspect, 1.0 / NEAR_PLANE, 1.0 / FAR_PLANE);
-        self.dependents.proj_mat_inv = self.dependents.proj_mat.inverted();
 
-        // TODO: Make this more efficient.
-        self.dependents.cam_pos = Vec3::from(self.dependents.view_mat_inv * Vec4::unit_w());
-        self.frustum = Frustum::from_modelview_projection(
-            (self.dependents.proj_mat_treeculler
-                * self.dependents.view_mat
+        Dependents {
+            view_mat,
+            view_mat_inv,
+            proj_mat,
+            proj_mat_inv: proj_mat.inverted(),
+            proj_mat_treeculler,
+            cam_pos: Vec3::from(view_mat_inv * Vec4::unit_w()),
+            cam_dir: Vec3::from(self.dependents.view_mat_inv * -Vec4::unit_z()),
+        }
+    }
+
+    fn compute_frustum(&mut self, dependents: &Dependents) -> Frustum<f32> {
+        Frustum::from_modelview_projection(
+            (dependents.proj_mat_treeculler
+                * dependents.view_mat
                 * Mat4::translation_3d(-self.focus.map(|e| e.trunc())))
             .into_col_arrays(),
-        );
-
-        if self.dist != dist {
-            self.dist = dist;
-        }
-        println!("dist: {}", self.dist);
-        self.dependents.cam_dir = Vec3::from(self.dependents.view_mat_inv * -Vec4::unit_z());
+        )
     }
 
     pub fn frustum(&self) -> &Frustum<f32> { &self.frustum }
