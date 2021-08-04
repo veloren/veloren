@@ -105,10 +105,10 @@ vec2 textureBicubic16(texture2D tex, sampler sampl, vec2 texCoords) {
     /* // Correct for map rotaton.
     offset.zw  = 1.0 - offset.zw; */
 
-    vec4 sample0_v4 = texture(sampler2D(tex, sampl), offset.xz);
-    vec4 sample1_v4 = texture(sampler2D(tex, sampl), offset.yz);
-    vec4 sample2_v4 = texture(sampler2D(tex, sampl), offset.xw);
-    vec4 sample3_v4 = texture(sampler2D(tex, sampl), offset.yw);
+    vec4 sample0_v4 = textureLod(sampler2D(tex, sampl), offset.xz, 0);
+    vec4 sample1_v4 = textureLod(sampler2D(tex, sampl), offset.yz, 0);
+    vec4 sample2_v4 = textureLod(sampler2D(tex, sampl), offset.xw, 0);
+    vec4 sample3_v4 = textureLod(sampler2D(tex, sampl), offset.yw, 0);
     vec2 sample0 = sample0_v4.rb / 256.0 + sample0_v4.ga;
     vec2 sample1 = sample1_v4.rb / 256.0 + sample1_v4.ga;
     vec2 sample2 = sample2_v4.rb / 256.0 + sample2_v4.ga;
