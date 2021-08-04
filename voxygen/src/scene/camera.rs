@@ -347,7 +347,7 @@ impl Camera {
     /// Compute the transformation matrices (view matrix and projection matrix)
     /// and position of the camera.
     pub fn compute_dependents(&mut self, terrain: &TerrainGrid) {
-        self.compute_dependents_full(terrain, |block| !block.is_opaque())
+        self.compute_dependents_full(terrain, |block| block.is_opaque())
     }
 
     /// The is_fluid argument should return true for transparent voxels.
@@ -357,21 +357,43 @@ impl Camera {
         is_transparent: fn(&V::Vox) -> bool,
     ) {
         span!(_guard, "compute_dependents", "Camera::compute_dependents");
+        const FRUSTUM_PADDING: [Vec3<f32>; 4] = [
+            Vec3::new(0.0, 0.0, -1.0),
+            Vec3::new(0.0, 0.0, 1.0),
+            Vec3::new(0.0, 0.0, -1.0),
+            Vec3::new(0.0, 0.0, 1.0),
+        ];
         let dist = {
-            let (start, end) = (self.focus - self.forward() * self.dist, self.focus);
-
-            match terrain
-                .ray(start, end)
-                .ignore_error()
-                .max_iter(500)
-                .until(is_transparent)
-                .cast()
-            {
-                (d, Ok(Some(_))) => f32::min(self.dist - d - 0.03, self.dist),
-                (_, Ok(None)) => self.dist,
-                (_, Err(_)) => self.dist,
-            }
-            .max(0.0)
+            self.frustum
+                .points
+                .iter()
+                .take(4)
+                .zip(FRUSTUM_PADDING.iter())
+                .map(|(pos, padding)| {
+                    let fwd = self.forward();
+                    [
+                        pos + 0.5 * fwd.cross(*padding), // right/left direction
+                        pos + fwd.cross(*padding).cross(fwd),
+                    ] // up/down direction
+                })
+                .flatten()
+                .chain([(self.focus - self.forward() * (self.dist + 0.5))])  // Padding to behind
+                .map(|pos| {
+                    match terrain
+                        .ray(self.focus, pos)
+                        .ignore_error()
+                        .max_iter(500)
+                        .until(is_transparent)
+                        .cast()
+                    {
+                        (d, Ok(Some(_))) => f32::min(d, self.dist),
+                        (_, Ok(None)) => self.dist,
+                        (_, Err(_)) => self.dist,
+                    }
+                    .max(0.0)
+                })
+                .reduce(f32::min)
+                .unwrap_or(0.0)
         };
 
         self.dependents.view_mat = Mat4::<f32>::identity()
@@ -401,6 +423,10 @@ impl Camera {
             .into_col_arrays(),
         );
 
+        if self.dist != dist {
+            self.dist = dist;
+        }
+        println!("dist: {}", self.dist);
         self.dependents.cam_dir = Vec3::from(self.dependents.view_mat_inv * -Vec4::unit_z());
     }
 
