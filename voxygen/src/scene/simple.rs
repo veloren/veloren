@@ -229,7 +229,7 @@ impl Scene {
             scene_data.mouse_smoothing,
         );
 
-        self.camera.compute_dependents_full(&VoidVol, |_| true);
+        self.camera.compute_dependents_full(&VoidVol, |_| false);
         let camera::Dependents {
             view_mat,
             proj_mat,
