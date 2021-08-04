@@ -251,7 +251,6 @@ pub enum CharacterAbility {
         damage_effect: Option<CombatEffect>,
         energy_regen: f32,
         energy_drain: f32,
-        orientation_behavior: basic_beam::OrientationBehavior,
         ori_rate: f32,
         specifier: beam::FrontendSpecifier,
     },
@@ -745,7 +744,6 @@ impl CharacterAbility {
                 ref mut damage_effect,
                 energy_regen: _,
                 ref mut energy_drain,
-                orientation_behavior: _,
                 ori_rate: _,
                 specifier: _,
             } => {
@@ -1878,7 +1876,6 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 damage_effect,
                 energy_regen,
                 energy_drain,
-                orientation_behavior,
                 ori_rate,
                 specifier,
             } => CharacterState::BasicBeam(basic_beam::Data {
@@ -1894,7 +1891,6 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     energy_regen: *energy_regen,
                     energy_drain: *energy_drain,
                     ability_info,
-                    orientation_behavior: *orientation_behavior,
                     ori_rate: *ori_rate,
                     specifier: *specifier,
                 },
