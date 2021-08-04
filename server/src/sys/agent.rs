@@ -3,7 +3,8 @@ use common::{
     comp::{
         self,
         agent::{
-            AgentEvent, Sound, SoundKind, Target, DEFAULT_INTERACTION_TIME, TRADE_INTERACTION_TIME,
+            AgentEvent, Sound, SoundKind, Target, TimerAction, DEFAULT_INTERACTION_TIME,
+            TRADE_INTERACTION_TIME,
         },
         buff::{BuffKind, Buffs},
         compass::{Direction, Distance},
@@ -383,7 +384,6 @@ impl<'a> System<'a> for Sys {
                         |agent: &mut Agent,
                          controller: &mut Controller,
                          event_emitter: &mut Emitter<ServerEvent>| {
-                            agent.target = None;
                             data.idle_tree(agent, controller, &read_data, event_emitter);
                         };
 
@@ -608,27 +608,43 @@ impl<'a> AgentData<'a> {
                 agent.action_state.timer = 0.1;
             }
         }
-        if agent.action_state.timer > 0.0 {
-            if agent.action_state.timer
-                < (if agent.behavior.is(BehaviorState::TRADING) {
-                    TRADE_INTERACTION_TIME
-                } else {
-                    DEFAULT_INTERACTION_TIME
-                })
-            {
-                self.interact(agent, controller, read_data, event_emitter);
-            } else {
-                agent.action_state.timer = 0.0;
-                agent.target = None;
-                controller.actions.push(ControlAction::Stand);
-                self.idle(agent, controller, read_data);
-            }
-        } else if thread_rng().gen::<f32>() < 0.1 {
-            self.choose_target(agent, controller, read_data, event_emitter);
-        } else if agent.awareness > AWARENESS_INVESTIGATE_THRESHOLD {
-            self.handle_elevated_awareness(agent, controller, read_data);
+
+        // If we receive a new interaction, start the interaction timer
+        if can_speak(agent) && self.recv_interaction(agent, controller, read_data, event_emitter) {
+            agent.timer.start(read_data.time.0, TimerAction::Interact);
+        }
+
+        let timeout = if agent.behavior.is(BehaviorState::TRADING) {
+            TRADE_INTERACTION_TIME
         } else {
-            self.idle(agent, controller, read_data);
+            DEFAULT_INTERACTION_TIME
+        };
+
+        match agent
+            .timer
+            .timeout_elapsed(read_data.time.0, TimerAction::Interact, timeout as f64)
+        {
+            None => {
+                // Look toward the interacting entity for a while
+                if let Some(Target { target, .. }) = &agent.target {
+                    self.look_toward(controller, read_data, *target);
+                    controller.actions.push(ControlAction::Talk);
+                }
+            },
+            Some(just_ended) => {
+                if just_ended {
+                    agent.target = None;
+                    controller.actions.push(ControlAction::Stand);
+                }
+
+                if thread_rng().gen::<f32>() < 0.1 {
+                    self.choose_target(agent, controller, read_data, event_emitter);
+                } else if agent.awareness > AWARENESS_INVESTIGATE_THRESHOLD {
+                    self.handle_elevated_awareness(agent, controller, read_data);
+                } else {
+                    self.idle(agent, controller, read_data);
+                }
+            },
         }
     }
 
@@ -967,13 +983,13 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    fn interact(
+    fn recv_interaction(
         &self,
         agent: &mut Agent,
         controller: &mut Controller,
         read_data: &ReadData,
         event_emitter: &mut Emitter<'_, ServerEvent>,
-    ) {
+    ) -> bool {
         // TODO: Process group invites
         // TODO: Add Group AgentEvent
         // let accept = false;  // set back to "matches!(alignment, Alignment::Npc)"
@@ -1302,18 +1318,11 @@ impl<'a> AgentData<'a> {
                     }
                 }
             },
-            _ => {
-                if can_speak(agent) {
-                    // No new events, continue looking towards the last
-                    // interacting player for some time
-                    if let Some(Target { target, .. }) = &agent.target {
-                        self.look_toward(controller, read_data, *target);
-                    } else {
-                        agent.action_state.timer = 0.0;
-                    }
-                }
-            },
+            Some(AgentEvent::ServerSound(_)) => {},
+            Some(AgentEvent::Hurt) => {},
+            None => return false,
         }
+        true
     }
 
     fn look_toward(
