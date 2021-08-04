@@ -49,8 +49,11 @@ fn tame_pet_internal(ecs: &specs::World, pet_entity: Entity, owner: Entity, pet:
         .write_storage()
         .insert(pet_entity, pet.unwrap_or_default());
 
-    if let Some(agent) = ecs.write_storage::<Agent>().get_mut(pet_entity) {
-        agent.set_no_flee();
+    // Create an agent for this entity using its body
+    if let Some(body) = ecs.read_storage().get(pet_entity) {
+        let _ = ecs
+            .write_storage()
+            .insert(pet_entity, Agent::from_body(body));
     }
 
     // Add to group system
