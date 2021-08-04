@@ -1264,14 +1264,15 @@ impl Floor {
                             min: (tile_center - Vec2::broadcast(1 + pillar_thickness - 1))
                                 .with_z(floor_z),
                             max: (tile_center + Vec2::broadcast(1 + pillar_thickness))
-                                .with_z(floor_z + 3),
+                                .with_z(floor_z + 1),
                         }));
 
                         let scale = (pillar_thickness + 2) as f32 / pillar_thickness as f32;
                         let mut lights =
                             prim(Primitive::Scale(pillar, Vec2::broadcast(scale).with_z(1.0)));
                         lights = prim(Primitive::And(lighting_plane, lights));
-                        // Only add the base (and shift the lights up) for boss-room pillars
+                        // Only add the base (and shift the lights up)
+                        // for boss-rooms pillars
                         if room.kind == RoomKind::Boss {
                             lights = prim(Primitive::Translate(lights, 3 * Vec3::unit_z()));
                             pillar = prim(Primitive::Or(pillar, base));
