@@ -1540,7 +1540,10 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             .unwrap_or(0.0);
         vel.0.z = 0.0;
         pos.0.z = (pos.0.z - 0.1).floor() + snap_height;
-        physics_state.on_ground = on_ground;
+        physics_state.on_ground = terrain
+            .get(Vec3::new(pos.0.x, pos.0.y, pos.0.z - 0.01).map(|e| e.floor() as i32))
+            .ok()
+            .copied();
     }
 
     let player_aabb = Aabb {
