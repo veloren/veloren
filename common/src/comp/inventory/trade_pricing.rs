@@ -260,6 +260,8 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
                             .into_iter()
                     },
                     LootSpec::Nothing => Vec::new().into_iter(),
+                    // TODO: Let someone else wrangle modular weapons into the economy
+                    LootSpec::ModularWeapon { .. } => vec![].into_iter(),
                 })
                 .collect(),
         }

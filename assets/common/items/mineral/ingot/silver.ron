@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Silver",
     ),
     quality: Direct(Epic),
-    tags: [MetalIngot],
+    tags: [MaterialKind(Metal)],
 )

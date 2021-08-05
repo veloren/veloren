@@ -3,9 +3,8 @@ ItemDef(
     description: "Light and flexible.",
     kind: Ingredient(
         kind: "SimpleLeather",
-        // Descriptor not needed
-        descriptor: "",
+        descriptor: "Raw Hide",
     ),
     quality: Direct(Low),
-    tags: [BaseMaterial, Leather],
+    tags: [BaseMaterial, Leather, MaterialKind(Hide)],
 )

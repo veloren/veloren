@@ -96,7 +96,7 @@ pub trait TagExampleInfo {
     fn exemplar_identifier(&self) -> Cow<'static, str>;
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, IntoStaticStr)]
 pub enum MaterialKind {
     Metal,
     Wood,
@@ -184,12 +184,12 @@ impl Material {
             Material::Cobalt => Some("common.items.mineral.ingot.cobalt"),
             Material::Bloodsteel => Some("common.items.mineral.ingot.bloodsteel"),
             Material::Orichalcum => Some("common.items.mineral.ingot.orichalcum"),
-            Material::Wood
-            | Material::Bamboo
-            | Material::Hardwood
-            | Material::Ironwood
-            | Material::Frostwood
-            | Material::Eldwood => None,
+            Material::Wood => Some("common.items.log.wood"),
+            Material::Bamboo => Some("common.items.log.bamboo"),
+            Material::Hardwood => Some("common.items.log.hardwood"),
+            Material::Ironwood => Some("common.items.log.ironwood"),
+            Material::Frostwood => Some("common.items.log.frostwood"),
+            Material::Eldwood => Some("common.items.log.eldwood"),
             Material::Rock
             | Material::Granite
             | Material::Bone
@@ -232,10 +232,9 @@ impl TagExampleInfo for MaterialTag {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ItemTag {
-    MetalIngot,
-    Textile,
     Leather,
     Material(MaterialTag),
+    MaterialKind(MaterialKind),
     ModularComponent(ModularComponentTag),
     Cultist,
     Potion,
@@ -252,8 +251,7 @@ impl TagExampleInfo for ItemTag {
         match self {
             ItemTag::Material(material) => material.name(),
             ItemTag::ModularComponent(kind) => kind.name(),
-            ItemTag::MetalIngot => Cow::Borrowed("metal ingot"),
-            ItemTag::Textile => Cow::Borrowed("textile"),
+            ItemTag::MaterialKind(material_kind) => Cow::Borrowed(material_kind.into()),
             ItemTag::Leather => Cow::Borrowed("leather"),
             ItemTag::Cultist => Cow::Borrowed("cultist"),
             ItemTag::Potion => Cow::Borrowed("potion"),
@@ -271,8 +269,7 @@ impl TagExampleInfo for ItemTag {
         match self {
             ItemTag::Material(_) => Cow::Borrowed("common.items.tag_examples.placeholder"),
             ItemTag::ModularComponent(tag) => tag.exemplar_identifier(),
-            ItemTag::MetalIngot => Cow::Borrowed("common.items.tag_examples.metal_ingot"),
-            ItemTag::Textile => Cow::Borrowed("common.items.tag_examples.textile"),
+            ItemTag::MaterialKind(_) => Cow::Borrowed("common.items.tag_examples.placeholder"),
             ItemTag::Leather => Cow::Borrowed("common.items.tag_examples.leather"),
             ItemTag::Cultist => Cow::Borrowed("common.items.tag_examples.cultist"),
             ItemTag::Potion => Cow::Borrowed("common.items.tag_examples.placeholder"),

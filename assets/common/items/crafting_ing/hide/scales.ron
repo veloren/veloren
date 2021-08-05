@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Scale",
     ),
     quality: Direct(Moderate),
-    tags: [],
+    tags: [MaterialKind(Hide)],
 )

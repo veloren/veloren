@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Linen",
     ),
     quality: Direct(Low),
-    tags: [Textile],
+    tags: [MaterialKind(Cloth)],
 )

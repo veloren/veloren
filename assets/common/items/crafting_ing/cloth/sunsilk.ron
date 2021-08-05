@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Sunsilken",
     ),
     quality: Direct(Legendary),
-    tags: [Textile],
+    tags: [MaterialKind(Cloth)],
 )

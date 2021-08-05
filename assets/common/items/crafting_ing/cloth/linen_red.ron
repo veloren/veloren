@@ -7,5 +7,5 @@ ItemDef(
         descriptor: "",
     ),
     quality: Direct(Low),
-    tags: [Textile],
+    tags: [MaterialKind(Cloth)],
 )

@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Tin",
     ),
     quality: Direct(Common),
-    tags: [MetalIngot],
+    tags: [MaterialKind(Metal)],
 )

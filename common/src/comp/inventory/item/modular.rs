@@ -2,7 +2,11 @@ use super::{
     tool::{self, Hands},
     Item, ItemKind, ItemName, ItemTag, RawItemDef, TagExampleInfo, ToolKind,
 };
-use crate::recipe::{RawRecipe, RawRecipeBook, RawRecipeInput};
+use crate::{
+    assets::AssetExt,
+    lottery::Lottery,
+    recipe::{self, RawRecipe, RawRecipeBook, RawRecipeInput},
+};
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
@@ -19,6 +23,16 @@ impl ModularComponentKind {
         match self {
             ModularComponentKind::Damage => "damage",
             ModularComponentKind::Held => "held",
+        }
+    }
+
+    /// Returns the main component of a weapon, i.e. which component has a
+    /// material component
+    fn main_component(tool: ToolKind) -> Self {
+        match tool {
+            ToolKind::Sword | ToolKind::Axe | ToolKind::Hammer => Self::Damage,
+            ToolKind::Bow | ToolKind::Staff | ToolKind::Sceptre => Self::Held,
+            _ => unreachable!(),
         }
     }
 }
@@ -327,4 +341,116 @@ pub(super) fn resolve_quality(item: &Item) -> super::Quality {
     item.components
         .iter()
         .fold(super::Quality::Common, |a, b| a.max(b.quality()))
+}
+
+/// Returns directory that contains components for a particular combination of
+/// toolkind and modular component kind
+fn make_mod_comp_dir_def(tool: ToolKind, mod_kind: ModularComponentKind) -> String {
+    const MOD_COMP_DIR_PREFIX: &str = "common.items.crafting_ing.modular";
+    format!(
+        "{}.{}.{}",
+        MOD_COMP_DIR_PREFIX,
+        mod_kind.identifier_name(),
+        tool.identifier_name()
+    )
+}
+
+/// Creates a random modular weapon when provided with a toolkind, material, and
+/// optionally the handedness
+pub fn random_weapon(tool: ToolKind, material: super::Material, hands: Option<Hands>) -> Item {
+    // Returns inner modular component of an item if it has one
+    fn unwrap_modular_component(item: &Item) -> Option<&ModularComponent> {
+        if let ItemKind::ModularComponent(mod_comp) = item.kind() {
+            Some(mod_comp)
+        } else {
+            None
+        }
+    }
+
+    // Loads default ability map and material stat manifest for later use
+    let ability_map = Default::default();
+    let msm = Default::default();
+
+    // Initialize modular weapon
+    let mut modular_weapon = Item::new_from_asset_expect(&make_weapon_def(tool).0);
+
+    // Load recipe book (done to check that material is valid for a particular
+    // component)
+    let recipe::RawRecipeBook(recipes) =
+        recipe::RawRecipeBook::load_expect_cloned("common.recipe_book");
+
+    // Closure to check that an Item has a recipe that uses the provided material
+    let is_composed_of = |item: &str| {
+        // Iterate over all recipes in the raw recipe book
+        recipes
+            .values()
+            // Filter by recipes that have an output of the item of interest
+            .filter(|recipe| recipe.output.0.eq(item))
+            // Check that item is composed of material, uses heuristic that assumes all modular components use the TagSameItem recipe input
+            .any(|recipe| {
+                recipe
+                    .inputs
+                    .iter()
+                    .any(|input| {
+                        matches!(input.0, recipe::RawRecipeInput::TagSameItem(item_tag) if item_tag == super::ItemTag::MaterialKind(material.material_kind()))
+                    })
+            })
+    };
+
+    // Finds which component has a material as a subcomponent
+    let material_comp = ModularComponentKind::main_component(tool);
+
+    // Closure to return vec of components that are eligible to be used in the
+    // modular weapon
+    let create_component = |directory, hands| {
+        // Load directory of components
+        let components = Item::new_from_asset_glob(directory)
+            .expect("Asset directory did not properly load")
+            .into_iter()
+            // Filter by handedness requirement
+            .filter(|item| {
+                matches!(unwrap_modular_component(item), Some(ModularComponent { hand_restriction, .. }) if hand_restriction.zip(hands).map_or(true, |(hr1, hr2)| hr1 == hr2))
+            })
+            // Filter by if component does not have a material, or if material can be used in the modular component
+            .filter(|item| {
+                matches!(unwrap_modular_component(item), Some(ModularComponent { modkind, .. }) if *modkind != material_comp)
+                || is_composed_of(item.item_definition_id())
+            })
+            .map(|item| (1.0, item))
+            .collect::<Vec<_>>();
+
+        // Create lottery and choose item
+        Lottery::<Item>::from(components).choose_owned()
+    };
+
+    // Creates components of modular weapon
+    let damage_comp_dir = make_mod_comp_dir_def(tool, ModularComponentKind::Damage);
+    let mut damage_component = create_component(&damage_comp_dir, hands);
+    // Takes whichever is more restrictive of hand restriction passed in and hand
+    // restriction from damage component e.g. if None is passed to function, and
+    // damage component chooses piece with two handed restriction, then makes held
+    // component have two handed restriction as well
+    let damage_hands = unwrap_modular_component(&damage_component)
+        .and_then(|mc| mc.hand_restriction)
+        .map_or(hands, Some);
+    let held_comp_dir = make_mod_comp_dir_def(tool, ModularComponentKind::Held);
+    let mut held_component = create_component(&held_comp_dir, damage_hands);
+    let material_component = Item::new_from_asset_expect(material.asset_identifier().expect("Code reviewers: open comment here if I forget about this, I got lazy during a rebase"));
+
+    // Insert material item into modular component of appropriate kind
+    match material_comp {
+        ModularComponentKind::Damage => {
+            damage_component.add_component(material_component, &ability_map, &msm);
+        },
+        ModularComponentKind::Held => {
+            held_component.add_component(material_component, &ability_map, &msm);
+        },
+    }
+
+    // Insert components onto modular weapon
+    modular_weapon.add_component(damage_component, &ability_map, &msm);
+    modular_weapon.add_component(held_component, &ability_map, &msm);
+
+    // Returns fully created modular weapon
+    modular_weapon
 }

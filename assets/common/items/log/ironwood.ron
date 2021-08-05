@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Ironwood",
     ),
     quality: Direct(High),
-    tags: [],
+    tags: [MaterialKind(Wood)],
 )

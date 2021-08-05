@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Bloodsteel",
     ),
     quality: Direct(Epic),
-    tags: [MetalIngot],
+    tags: [MaterialKind(Metal)],
 )

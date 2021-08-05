@@ -1902,7 +1902,7 @@
     "longsword blade": (
         output: ("common.items.crafting_ing.modular.damage.sword.longsword", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -1910,7 +1910,7 @@
     "sawblade": (
         output: ("common.items.crafting_ing.modular.damage.sword.sawblade", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -1918,7 +1918,7 @@
     "katana blade": (
         output: ("common.items.crafting_ing.modular.damage.sword.katana", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -1926,7 +1926,7 @@
     "zweihander blade": (
         output: ("common.items.crafting_ing.modular.damage.sword.zweihander", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -1934,7 +1934,7 @@
     "sabre blade": (
         output: ("common.items.crafting_ing.modular.damage.sword.sabre", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -1942,7 +1942,7 @@
     "greatsword blade": (
         output: ("common.items.crafting_ing.modular.damage.sword.greatsword", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -1950,7 +1950,7 @@
     "ornate sword blade": (
         output: ("common.items.crafting_ing.modular.damage.sword.ornate", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -1984,7 +1984,7 @@
     "hammer head": (
         output: ("common.items.crafting_ing.modular.damage.hammer.hammer", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -1992,7 +1992,7 @@
     "spiked mace head": (
         output: ("common.items.crafting_ing.modular.damage.hammer.spikedmace", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2000,7 +2000,7 @@
     "warhammer head": (
         output: ("common.items.crafting_ing.modular.damage.hammer.warhammer", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2008,7 +2008,7 @@
     "maul head": (
         output: ("common.items.crafting_ing.modular.damage.hammer.maul", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2016,7 +2016,7 @@
     "great mace head": (
         output: ("common.items.crafting_ing.modular.damage.hammer.greatmace", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2024,7 +2024,7 @@
     "greathammer head": (
         output: ("common.items.crafting_ing.modular.damage.hammer.greathammer", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2032,7 +2032,7 @@
     "ornate hammer head": (
         output: ("common.items.crafting_ing.modular.damage.hammer.ornate", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2066,7 +2066,7 @@
     "axe head": (
         output: ("common.items.crafting_ing.modular.damage.axe.axe", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2074,7 +2074,7 @@
     "jagged axe head": (
         output: ("common.items.crafting_ing.modular.damage.axe.jagged", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2082,7 +2082,7 @@
     "battleaxe head": (
         output: ("common.items.crafting_ing.modular.damage.axe.battleaxe", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2090,7 +2090,7 @@
     "poleaxe head": (
         output: ("common.items.crafting_ing.modular.damage.axe.poleaxe", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2098,7 +2098,7 @@
     "labrys axe head": (
         output: ("common.items.crafting_ing.modular.damage.axe.labrys", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2106,7 +2106,7 @@
     "greataxe head": (
         output: ("common.items.crafting_ing.modular.damage.axe.greataxe", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2114,7 +2114,7 @@
     "ornate axe head": (
         output: ("common.items.crafting_ing.modular.damage.axe.ornate", 1),
         inputs: [
-            (TagSameItem(MetalIngot), 5, true),
+            (TagSameItem(MaterialKind(Metal)), 5, true),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,

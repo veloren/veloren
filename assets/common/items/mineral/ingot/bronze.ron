@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Bronze",
     ),
     quality: Direct(Low),
-    tags: [MetalIngot],
+    tags: [MaterialKind(Metal)],
 )

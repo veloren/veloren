@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Steel",
     ),
     quality: Direct(Moderate),
-    tags: [MetalIngot],
+    tags: [MaterialKind(Metal)],
 )

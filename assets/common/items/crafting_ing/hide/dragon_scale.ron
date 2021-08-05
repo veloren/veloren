@@ -3,8 +3,8 @@ ItemDef(
     description: "Tough scale from a legendary beast.",
     kind: Ingredient(
         kind: "DragonScale",
-        descriptor: "Dragon Scaled",
+        descriptor: "Dragonscale",
     ),
     quality: Direct(Legendary),
-    tags: [],
+    tags: [MaterialKind(Hide)],
 )

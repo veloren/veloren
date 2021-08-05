@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Lifecloth",
     ),
     quality: Direct(High),
-    tags: [Textile],
+    tags: [MaterialKind(Cloth)],
 )
