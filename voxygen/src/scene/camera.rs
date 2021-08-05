@@ -13,6 +13,7 @@ const FIRST_PERSON_INTERP_TIME: f32 = 0.1;
 const THIRD_PERSON_INTERP_TIME: f32 = 0.1;
 const FREEFLY_INTERP_TIME: f32 = 0.0;
 const LERP_ORI_RATE: f32 = 15.0;
+const CLIPPING_MODE_DISTANCE: f32 = 20.0;
 pub const MIN_ZOOM: f32 = 0.1;
 
 // Possible TODO: Add more modes
@@ -377,15 +378,33 @@ impl Camera {
             fn swap((a, b): (Vec3<f32>, Vec3<f32>)) -> (Vec3<f32>, Vec3<f32>) { (b, a) }
             fn invert(v: bool) -> bool { !v }
 
-            let (dir_fn, transparent_fn, dist_fn, reduce_fn): (
-                fn((Vec3<f32>, Vec3<f32>)) -> (Vec3<f32>, Vec3<f32>),
-                fn(bool) -> bool,
-                fn(f32, f32) -> f32,
-            ) = if self.tgt_dist < 20.0 {
-                (identity, identity, f32::min)
+            // Decide whther to ray cast from player to camera or in the opposite direction.
+            // Ray casting from camera to player is useful when we wish to let small objects
+            // pass between player and camera rather than make camera jump
+            // TODO: More intelligent function to decide raycast direction
+            struct CalcHelpers<T> {
+                dir_fn: fn((T, T)) -> (T, T),
+                until_fn: fn(bool) -> bool,
+                dist_fn: fn(f32, f32) -> f32,
+            }
+            let CalcHelpers {
+                dir_fn,
+                until_fn,
+                dist_fn,
+            } = if self.tgt_dist < CLIPPING_MODE_DISTANCE {
+                CalcHelpers {
+                    dir_fn: identity,
+                    until_fn: identity,
+                    dist_fn: f32::min,
+                }
             } else {
-                (swap, invert, dist_far)
+                CalcHelpers {
+                    dir_fn: swap,
+                    until_fn: invert,
+                    dist_fn: dist_far,
+                }
             };
+
             frustum
                 .points
                 .iter()
@@ -393,7 +412,7 @@ impl Camera {
                 .zip(FRUSTUM_PADDING.iter())
                 .map(|(pos, padding)| {
                     let fwd = self.forward();
-                    pos + 0.5 * (fwd.cross(*padding) + fwd.cross(*padding).cross(fwd))
+                    pos + 0.6 * (fwd.cross(*padding) + fwd.cross(*padding).cross(fwd))
                 })
                 .chain([(self.focus - self.forward() * (self.dist + 0.5))])  // Padding to behind
                 .map(|pos| {
@@ -402,10 +421,10 @@ impl Camera {
                         .ray(start, end)
                         .ignore_error()
                         .max_iter(500)
-                        .until(|b| transparent_fn(is_transparent(b)))
+                        .until(|b| until_fn(is_transparent(b)))
                         .cast()
                     {
-                        (d, Ok(Some(_))) => dist_fn(d, self.dist),
+                        (d, Ok(Some(_))) => dist_fn(d, self.tgt_dist),
                         (_, Ok(None)) => self.dist,
                         (_, Err(_)) => self.dist,
                     }
