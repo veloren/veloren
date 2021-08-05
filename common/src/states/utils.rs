@@ -349,18 +349,17 @@ pub fn handle_forced_movement(
 }
 
 pub fn handle_orientation(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) {
-    if let Some(dir) = (is_strafing(data, update) || update.character.is_attack())
+    let dir = (is_strafing(data, update) || update.character.is_attack())
         .then(|| data.inputs.look_dir.to_horizontal().unwrap_or_default())
         .or_else(|| Dir::from_unnormalized(data.inputs.move_dir.into()))
-    {
-        let rate = {
-            let angle = update.ori.look_dir().angle_between(*dir);
-            data.body.base_ori_rate() * efficiency * std::f32::consts::PI / angle
-        };
-        update.ori = update
-            .ori
-            .slerped_towards(dir.into(), (data.dt.0 * rate).min(1.0));
+        .unwrap_or_else(|| data.ori.to_horizontal().look_dir());
+    let rate = {
+        let angle = update.ori.look_dir().angle_between(*dir);
+        data.body.base_ori_rate() * efficiency * std::f32::consts::PI / angle
     };
+    update.ori = update
+        .ori
+        .slerped_towards(dir.into(), (data.dt.0 * rate).min(1.0));
 }
 
 /// Updates components to move player as if theyre swimming
