@@ -2,6 +2,7 @@ use common::{terrain::TerrainGrid, vol::ReadVol};
 use common_base::span;
 use core::{f32::consts::PI, fmt::Debug};
 use num::traits::{real::Real, FloatConst};
+use std::convert::identity;
 use treeculler::Frustum;
 use vek::*;
 
@@ -372,6 +373,19 @@ impl Camera {
         let local_dependents = self.compute_dependents_helper(self.tgt_dist);
         let frustum = self.compute_frustum(&local_dependents);
         let dist = {
+            fn dist_far(d: f32, max: f32) -> f32 { f32::min(max - d, max) }
+            fn swap((a, b): (Vec3<f32>, Vec3<f32>)) -> (Vec3<f32>, Vec3<f32>) { (b, a) }
+            fn invert(v: bool) -> bool { !v }
+
+            let (dir_fn, transparent_fn, dist_fn, reduce_fn): (
+                fn((Vec3<f32>, Vec3<f32>)) -> (Vec3<f32>, Vec3<f32>),
+                fn(bool) -> bool,
+                fn(f32, f32) -> f32,
+            ) = if self.tgt_dist < 20.0 {
+                (identity, identity, f32::min)
+            } else {
+                (swap, invert, dist_far)
+            };
             frustum
                 .points
                 .iter()
@@ -383,14 +397,15 @@ impl Camera {
                 })
                 .chain([(self.focus - self.forward() * (self.dist + 0.5))])  // Padding to behind
                 .map(|pos| {
+                    let (start, end) = dir_fn((self.focus, pos));
                     match terrain
-                        .ray(self.focus, pos)
+                        .ray(start, end)
                         .ignore_error()
                         .max_iter(500)
-                        .until(is_transparent)
+                        .until(|b| transparent_fn(is_transparent(b)))
                         .cast()
                     {
-                        (d, Ok(Some(_))) => f32::min(d, self.dist),
+                        (d, Ok(Some(_))) => dist_fn(d, self.dist),
                         (_, Ok(None)) => self.dist,
                         (_, Err(_)) => self.dist,
                     }
