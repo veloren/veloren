@@ -194,6 +194,30 @@ impl Ori {
         self.rotated(Quaternion::rotation_y(angle_radians))
     }
 
+    /// Returns a version which is rolled such that its up points towards `dir`
+    /// as much as possible without pitching or yawing
+    pub fn rolled_towards(self, dir: Dir) -> Self {
+        dir.projected(&Plane::from(self.look_dir()))
+            .map_or(self, |dir| self.prerotated(self.up().rotation_between(dir)))
+    }
+
+    /// Returns a version which has been pitched towards `dir` as much as
+    /// possible without yawing or rolling
+    pub fn pitched_towards(self, dir: Dir) -> Self {
+        dir.projected(&Plane::from(self.right()))
+            .map_or(self, |dir_| {
+                self.prerotated(self.look_dir().rotation_between(dir_))
+            })
+    }
+
+    /// Returns a version which has been yawed towards `dir` as much as possible
+    /// without pitching or rolling
+    pub fn yawed_towards(self, dir: Dir) -> Self {
+        dir.projected(&Plane::from(self.up())).map_or(self, |dir_| {
+            self.prerotated(self.look_dir().rotation_between(dir_))
+        })
+    }
+
     /// Returns a version without sideways tilt (roll)
     ///
     /// ```
