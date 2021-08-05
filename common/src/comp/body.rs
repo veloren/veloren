@@ -210,14 +210,10 @@ impl Body {
                 //
                 // If you want to change that value, consult with
                 // Physics and Combat teams
-                match humanoid.species {
-                    humanoid::Species::Orc => 100.0,
-                    humanoid::Species::Elf => 85.0,
-                    humanoid::Species::Human => 85.0,
-                    humanoid::Species::Dwarf => 80.0,
-                    humanoid::Species::Undead => 75.0,
-                    humanoid::Species::Danari => 75.0,
-                }
+                //
+                // Weight is proportional height, where
+                // a 1.75m character would weigh 65kg
+                65.0 * humanoid.height() / 1.75f32
             },
             Body::Object(obj) => obj.mass().0,
             Body::QuadrupedLow(body) => match body.species {
@@ -331,21 +327,8 @@ impl Body {
             Body::FishSmall(_) => Vec3::new(0.3, 1.2, 0.6),
             Body::Golem(_) => Vec3::new(5.0, 5.0, 7.5),
             Body::Humanoid(humanoid) => {
-                let height = match (humanoid.species, humanoid.body_type) {
-                    (humanoid::Species::Orc, humanoid::BodyType::Male) => 2.0,
-                    (humanoid::Species::Orc, humanoid::BodyType::Female) => 1.9,
-                    (humanoid::Species::Human, humanoid::BodyType::Male) => 1.8,
-                    (humanoid::Species::Human, humanoid::BodyType::Female) => 1.7,
-                    (humanoid::Species::Elf, humanoid::BodyType::Male) => 1.9,
-                    (humanoid::Species::Elf, humanoid::BodyType::Female) => 1.8,
-                    (humanoid::Species::Dwarf, humanoid::BodyType::Male) => 1.6,
-                    (humanoid::Species::Dwarf, humanoid::BodyType::Female) => 1.5,
-                    (humanoid::Species::Undead, humanoid::BodyType::Male) => 1.9,
-                    (humanoid::Species::Undead, humanoid::BodyType::Female) => 1.8,
-                    (humanoid::Species::Danari, humanoid::BodyType::Male) => 1.5,
-                    (humanoid::Species::Danari, humanoid::BodyType::Female) => 1.4,
-                };
-                Vec3::new(1.5, 0.5, height)
+                let height = humanoid.height();
+                Vec3::new(height / 1.3, 1.75 / 2.0, height)
             },
             Body::Object(object) => object.dimensions(),
             Body::QuadrupedMedium(body) => match body.species {

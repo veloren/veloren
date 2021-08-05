@@ -17,15 +17,15 @@ pub struct Data {
 
 impl From<&JoinData<'_>> for Data {
     fn from(data: &JoinData) -> Self {
-        let scale = data.body.dimensions().z;
+        let scale = data.body.dimensions().z.sqrt();
         Self {
             // Aspect ratio is what really matters for lift/drag ratio
             // and the aerodynamics model works for ARs up to 25.
             // The inflated dimensions are hopefully only a temporary
             // bandaid for the poor glide ratio experienced under 2.5G.
             // A span/chord ratio of 4.5 gives an AR of ~5.73.
-            span_length: scale * 3.0,
-            chord_length: scale / 1.5,
+            span_length: scale * 4.5,
+            chord_length: scale,
             ori: *data.ori,
         }
     }
