@@ -131,16 +131,9 @@ impl CharacterBehavior for Data {
                         owner: Some(*data.uid),
                         specifier: self.static_data.specifier,
                     };
-                    // Gets offsets
-                    let body_offsets_r = data.body.radius() + 1.0;
-                    let body_offsets_z = match data.body {
-                        Body::BirdLarge(_) => data.body.height() * 0.8,
-                        Body::Golem(_) => data.body.height() * 0.9 + data.inputs.look_dir.z * 3.0,
-                        _ => data.body.height() * 0.5,
-                    };
-                    let (body_offsets, ori) = {
-                        // We want Beam to use Ori.
-                        // But we also want beam to use Z part of where you look.
+                    let beam_ori = {
+                        // We want Beam to use Ori of owner.
+                        // But we also want beam to use Z part of where owner looks.
                         // This means that we need to merge this data to one Ori.
                         //
                         // This code just gets look_dir without Z part
@@ -156,26 +149,41 @@ impl CharacterBehavior for Data {
                         let xy_dir = Dir::from_unnormalized(Vec3::new(look_dir.x, look_dir.y, 0.0))
                             .unwrap_or_else(Dir::default);
                         let pitch = xy_dir.rotation_between(look_dir);
-                        (
-                            Vec3::new(
-                                body_offsets_r * update.ori.look_vec().x,
-                                body_offsets_r * update.ori.look_vec().y,
-                                body_offsets_z,
-                            ),
-                            Ori::from(Vec3::new(
-                                update.ori.look_vec().x,
-                                update.ori.look_vec().y,
-                                0.0,
-                            ))
-                            .prerotated(pitch),
+
+                        Ori::from(Vec3::new(
+                            update.ori.look_vec().x,
+                            update.ori.look_vec().y,
+                            0.0,
+                        ))
+                        .prerotated(pitch)
+                    };
+                    // Gets offsets
+                    let body_offsets = {
+                        let body_radius = data.body.radius();
+
+                        // TODO: make it public function to use in Agent code
+                        // to help with aim.
+                        let body_offsets_z = match data.body {
+                            Body::BirdLarge(_) => data.body.height() * 0.8,
+                            Body::Golem(_) => {
+                                data.body.height() * 0.9 + data.inputs.look_dir.z * 3.0
+                            },
+                            _ => data.body.height() * 0.5,
+                        };
+
+                        Vec3::new(
+                            body_radius * update.ori.look_vec().x * 1.1,
+                            body_radius * update.ori.look_vec().y * 1.1,
+                            body_offsets_z,
                         )
                     };
                     let pos = Pos(data.pos.0 + body_offsets);
+
                     // Create beam segment
                     update.server_events.push_front(ServerEvent::BeamSegment {
                         properties,
                         pos,
-                        ori,
+                        ori: beam_ori,
                     });
                     update.character = CharacterState::BasicBeam(Data {
                         timer: tick_attack_or_default(data, self.timer, None),
