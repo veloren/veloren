@@ -1,17 +1,12 @@
-use super::{
-    img_ids::{Imgs, ImgsRot},
-    item_imgs::ItemImgs,
-    slots::{SlotManager, TradeSlot},
-    TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+use conrod_core::{
+    color,
+    position::Relative,
+    widget::{self, Button, Image, Rectangle, State as ConrodState, Text},
+    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
-use crate::{
-    hud::bag::{BackgroundIds, InventoryScroller},
-    ui::{
-        fonts::Fonts,
-        slot::{ContentSize, SlotMaker},
-        ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable,
-    },
-};
+use specs::Entity as EcsEntity;
+use vek::*;
+
 use client::Client;
 use common::{
     comp::{
@@ -21,15 +16,23 @@ use common::{
     trade::{PendingTrade, SitePrices, TradeAction, TradePhase},
 };
 use common_net::sync::WorldSyncExt;
-use conrod_core::{
-    color,
-    position::Relative,
-    widget::{self, Button, Image, Rectangle, State as ConrodState, Text},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
-};
 use i18n::Localization;
-use specs::Entity as EcsEntity;
-use vek::*;
+
+use crate::{
+    hud::bag::{BackgroundIds, InventoryScroller},
+    ui::{
+        fonts::Fonts,
+        slot::{ContentSize, SlotMaker},
+        ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable,
+    },
+};
+
+use super::{
+    img_ids::{Imgs, ImgsRot},
+    item_imgs::ItemImgs,
+    slots::{SlotManager, TradeSlot},
+    TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+};
 
 pub struct State {
     ids: Ids,
@@ -99,17 +102,18 @@ impl<'a> Trade<'a> {
         }
     }
 }
+
 const MAX_TRADE_SLOTS: usize = 16;
 
 impl<'a> Trade<'a> {
     fn background(&mut self, state: &mut ConrodState<'_, State>, ui: &mut UiCell<'_>) {
-        Image::new(self.imgs.inv_bg_bag)
-            .w_h(424.0, 708.0)
-            .middle()
+        Image::new(self.imgs.inv_middle_bg_bag)
+            .w_h(424.0, 500.0)
             .color(Some(UI_MAIN))
+            .mid_bottom_with_margin_on(ui.window, 281.0)
             .set(state.ids.bg, ui);
-        Image::new(self.imgs.inv_frame_bag)
-            .w_h(424.0, 708.0)
+        Image::new(self.imgs.inv_middle_frame)
+            .w_h(424.0, 500.0)
             .middle_of(state.ids.bg)
             .color(Some(UI_HIGHLIGHT_0))
             .set(state.ids.bg_frame, ui);
@@ -173,9 +177,9 @@ impl<'a> Trade<'a> {
         let inventory = inventories.get(entity)?;
 
         // Alignment for Grid
-        let mut alignment = Rectangle::fill_with([200.0, 340.0], color::TRANSPARENT);
+        let mut alignment = Rectangle::fill_with([200.0, 180.0], color::TRANSPARENT);
         if !ours {
-            alignment = alignment.top_left_with_margins_on(state.ids.bg, 180.0, 46.5);
+            alignment = alignment.top_left_with_margins_on(state.ids.bg, 180.0, 32.5);
         } else {
             alignment = alignment.right_from(state.ids.inv_alignment[1 - who], 0.0);
         }
@@ -198,9 +202,27 @@ impl<'a> Trade<'a> {
             .unwrap_or_else(|| format!("Player {}", who));
 
         let offer_header = self
-            .localized_strings
-            .get("hud.trade.persons_offer")
-            .replace("{playername}", &name);
+            .client
+            .player_list()
+            .get(&uid)
+            .map(|_| {
+                self.localized_strings
+                    .get("hud.trade.your_offer")
+                    .to_owned()
+            })
+            .or_else(|| {
+                self.client
+                    .state()
+                    .read_storage::<Stats>()
+                    .get(entity)
+                    .map(|_| {
+                        self.localized_strings
+                            .get("hud.trade.their_offer")
+                            .to_owned()
+                    })
+            })
+            .unwrap_or_else(|| format!("Player {}", who));
+
         Text::new(&offer_header)
             .up_from(state.ids.inv_alignment[who], 20.0)
             .font_id(self.fonts.cyri.conrod_id)
@@ -214,7 +236,7 @@ impl<'a> Trade<'a> {
             .get("hud.trade.has_accepted")
             .replace("{playername}", &name);
         Text::new(&accept_indicator)
-            .down_from(state.ids.inv_alignment[who], 20.0)
+            .down_from(state.ids.inv_alignment[who], 50.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(20))
             .color(Color::Rgba(
@@ -461,7 +483,7 @@ impl<'a> Trade<'a> {
             .w_h(31.0 * 5.0, 12.0 * 2.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .bottom_left_with_margins_on(state.ids.bg, 80.0, 60.0)
+            .bottom_left_with_margins_on(state.ids.bg, 110.0, 47.0)
             .label(self.localized_strings.get("hud.trade.accept"))
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)

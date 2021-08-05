@@ -56,7 +56,9 @@ widget_ids! {
         inventory_title,
         inventory_title_bg,
         scrollbar_bg,
+        second_phase_scrollbar_bg,
         scrollbar_slots,
+        left_scrollbar_slots,
     }
 }
 
@@ -138,11 +140,11 @@ impl<'a> InventoryScroller<'a> {
         } else {
             self.imgs.inv_bg_armor
         })
-        .w_h(424.0, 708.0);
+        .w_h(424.0, if self.show_bag_inv { 548.0 } else { 708.0 });
         if self.on_right {
-            bg = bg.bottom_right_with_margins_on(ui.window, 60.0, 5.0);
+            bg = bg.bottom_right_with_margins_on(ui.window, 70.0, 5.0);
         } else {
-            bg = bg.bottom_left_with_margins_on(ui.window, 60.0, 5.0);
+            bg = bg.bottom_left_with_margins_on(ui.window, 230.0, 5.0);
         }
         bg.color(Some(UI_MAIN)).set(self.bg_ids.bg, ui);
         Image::new(if self.show_bag_inv {
@@ -150,7 +152,7 @@ impl<'a> InventoryScroller<'a> {
         } else {
             self.imgs.inv_frame
         })
-        .w_h(424.0, 708.0)
+        .w_h(424.0, if self.show_bag_inv { 548.0 } else { 708.0 })
         .middle_of(self.bg_ids.bg)
         .color(Some(UI_HIGHLIGHT_0))
         .set(self.bg_ids.bg_frame, ui);
@@ -187,6 +189,7 @@ impl<'a> InventoryScroller<'a> {
         ui: &mut UiCell<'_>,
     ) {
         let space_max = self.inventory.slots().count();
+
         // Slots Scrollbar
         if space_max > 45 && !self.show_bag_inv {
             // Scrollbar-BG
@@ -217,12 +220,34 @@ impl<'a> InventoryScroller<'a> {
                 .middle_of(state.ids.scrollbar_bg)
                 .set(state.ids.scrollbar_slots, ui);
         };
+
+        // This is just for the offeror inventory scrollbar
+        if space_max >= 108 && self.show_bag_inv {
+            // Left bag scrollbar background
+            Image::new(self.imgs.second_phase_scrollbar_bg)
+                .w_h(9.0, 434.0)
+                .bottom_right_with_margins_on(self.bg_ids.bg_frame, 42.0, 3.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.second_phase_scrollbar_bg, ui);
+            // Left bag scrollbar
+            Scrollbar::y_axis(state.ids.inv_alignment)
+                .thickness(5.0)
+                .h(384.0)
+                .color(UI_MAIN)
+                .middle_of(state.ids.second_phase_scrollbar_bg)
+                .set(state.ids.left_scrollbar_slots, ui);
+        }
+
         // Alignment for Grid
         Rectangle::fill_with(
-            [362.0, if self.show_bag_inv { 600.0 } else { 200.0 }],
+            [362.0, if self.show_bag_inv { 440.0 } else { 200.0 }],
             color::TRANSPARENT,
         )
-        .bottom_left_with_margins_on(self.bg_ids.bg_frame, 29.0, 46.5)
+        .bottom_left_with_margins_on(
+            self.bg_ids.bg_frame,
+            29.0,
+            if self.show_bag_inv { 28.0 } else { 46.5 },
+        )
         .scroll_kids_vertically()
         .set(state.ids.inv_alignment, ui);
 
