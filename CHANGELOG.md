@@ -67,6 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Map will now zoom around the cursor's position and drag correctly
 - No more jittering while running down slopes with the glider out
 - Axe normal attack rewards energy without skill points
+- Gliders no longer suffer from unreasonable amounts of induced drag
 
 ## [0.10.0] - 2021-06-12
 
