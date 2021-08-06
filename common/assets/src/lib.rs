@@ -325,10 +325,6 @@ pub mod asset_tweak {
     ///
     /// `Asset(&["path", "to", "file"])` will be interpreted as
     /// `<assets_dir>/path/to/file.ron`
-    // TODO: should we care about situation where
-    // lifetime of slice and lifetime of strings are different?
-    //
-    // Should we use references at all?
     pub enum Specifier<'a> {
         Tweak(&'a str),
         Asset(&'a [&'a str]),
@@ -658,34 +654,30 @@ pub mod asset_tweak {
 
         #[test]
         fn test_tweaked_int() {
-            use Specifier::Asset;
-
             let tweak_path = &["tweak_test_int", "tweak"];
 
             run_with_file(tweak_path, |file| {
                 file.write_all(b"(5)").expect("failed to write to the file");
-                let x: i32 = tweak_expect(Asset(tweak_path));
+                let x: i32 = tweak_expect(Specifier::Asset(tweak_path));
                 assert_eq!(x, 5);
             });
         }
 
         #[test]
         fn test_tweaked_string() {
-            use Specifier::Asset;
             let tweak_path = &["tweak_test_string", "tweak"];
 
             run_with_file(tweak_path, |file| {
                 file.write_all(br#"("Hello Zest")"#)
                     .expect("failed to write to the file");
 
-                let x: String = tweak_expect(Asset(tweak_path));
+                let x: String = tweak_expect(Specifier::Asset(tweak_path));
                 assert_eq!(x, "Hello Zest".to_owned());
             });
         }
 
         #[test]
         fn test_tweaked_hashmap() {
-            use Specifier::Asset;
             type Map = std::collections::HashMap<String, i32>;
 
             let tweak_path = &["tweak_test_map", "tweak"];
@@ -701,12 +693,43 @@ pub mod asset_tweak {
                 )
                 .expect("failed to write to the file");
 
-                let x: Map = tweak_expect(Asset(tweak_path));
+                let x: Map = tweak_expect(Specifier::Asset(tweak_path));
 
                 let mut map = Map::new();
                 map.insert("wow".to_owned(), 4);
                 map.insert("such".to_owned(), 5);
                 assert_eq!(x, map);
+            });
+        }
+
+        #[test]
+        fn test_tweaked_with_macro_struct() {
+            // partial eq and debug because of assert_eq in this test
+            #[derive(Debug, PartialEq, Clone, Deserialize, Serialize)]
+            struct Wow {
+                such: i32,
+                field: f32,
+            }
+
+            let tweak_path = &["tweak_test_struct", "tweak"];
+
+            run_with_file(tweak_path, |file| {
+                file.write_all(
+                    br#"
+                    ((
+                        such: 5,
+                        field: 35.752346,
+                    ))
+                    "#,
+                )
+                .expect("failed to write to the file");
+
+                let x: Wow = crate::tweak_from!(tweak_path);
+                let expected = Wow {
+                    such: 5,
+                    field: 35.752_346,
+                };
+                assert_eq!(x, expected);
             });
         }
 
@@ -723,51 +746,45 @@ pub mod asset_tweak {
 
         #[test]
         fn test_create_tweak() {
-            use Specifier::Asset;
-
             let tweak_path = &["tweak_create_test", "tweak"];
 
             run_with_path(tweak_path, |test_path| {
-                let x = tweak_expect_or_create(Asset(tweak_path), 5);
+                let x = tweak_expect_or_create(Specifier::Asset(tweak_path), 5);
                 assert_eq!(x, 5);
                 assert!(test_path.is_file());
                 // Recheck it loads back correctly
-                let x = tweak_expect_or_create(Asset(tweak_path), 5);
+                let x = tweak_expect_or_create(Specifier::Asset(tweak_path), 5);
                 assert_eq!(x, 5);
             });
         }
 
         #[test]
         fn test_create_tweak_deep() {
-            use Specifier::Asset;
-
             let tweak_path = &["so_much", "deep_test", "tweak_create_test", "tweak"];
 
             run_with_path(tweak_path, |test_path| {
-                let x = tweak_expect_or_create(Asset(tweak_path), 5);
+                let x = tweak_expect_or_create(Specifier::Asset(tweak_path), 5);
                 assert_eq!(x, 5);
                 assert!(test_path.is_file());
                 // Recheck it loads back correctly
-                let x = tweak_expect_or_create(Asset(tweak_path), 5);
+                let x = tweak_expect_or_create(Specifier::Asset(tweak_path), 5);
                 assert_eq!(x, 5);
             });
         }
 
         #[test]
         fn test_create_but_prioritize_loaded() {
-            use Specifier::Asset;
-
             let tweak_path = &["tweak_create_and_prioritize_test", "tweak"];
 
             run_with_path(tweak_path, |test_path| {
-                let x = tweak_expect_or_create(Asset(tweak_path), 5);
+                let x = tweak_expect_or_create(Specifier::Asset(tweak_path), 5);
                 assert_eq!(x, 5);
                 assert!(test_path.is_file());
 
                 // Recheck it loads back
                 // with content as priority
                 fs::write(test_path, b"(10)").expect("failed to write to the file");
-                let x = tweak_expect_or_create(Asset(tweak_path), 5);
+                let x = tweak_expect_or_create(Specifier::Asset(tweak_path), 5);
                 assert_eq!(x, 10);
             });
         }
