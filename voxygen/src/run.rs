@@ -198,7 +198,8 @@ fn handle_main_events_cleared(
             #[cfg(feature = "egui-ui")]
             if last.egui_enabled()
                 && global_state.settings.interface.toggle_debug
-                && global_state.settings.interface.toggle_egui_debug {
+                && global_state.settings.interface.toggle_egui_debug
+            {
                 drawer.draw_egui(&mut global_state.egui_state.platform, scale_factor);
             }
         };

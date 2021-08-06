@@ -14,7 +14,7 @@ use core::mem;
 use egui::{
     plot::{Plot, Value},
     widgets::plot::Curve,
-    CollapsingHeader, Color32, Grid, Label, ScrollArea, Slider, Ui, Window,
+    CollapsingHeader, Color32, Grid, Label, Pos2, ScrollArea, Slider, Ui, Window,
 };
 
 fn two_col_row(ui: &mut Ui, label: impl Into<Label>, content: impl Into<Label>) {
@@ -202,7 +202,9 @@ pub fn maintain_egui_inner(
         }
     };
 
+    let start_pos = Pos2 { x: 300.0, y: 0.0 };
     egui::Window::new("Debug Control")
+        .default_pos(start_pos)
         .default_width(200.0)
         .default_height(200.0)
         .show(&platform.context(), |ui| {
