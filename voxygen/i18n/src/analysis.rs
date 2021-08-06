@@ -210,6 +210,12 @@ pub fn test_specific_localizations(
     let output = path.root_path().join("translation_analysis.csv");
     let mut f = std::fs::File::create(output).expect("couldn't write csv file");
 
+    use std::io::Write;
+    writeln!(
+        f,
+        "country_code,file_name,translation_key,status,git_commit"
+    )
+    .unwrap();
     //printing
     for (language_identifier, (state_map, stats)) in &analysis {
         if csv_enabled {
