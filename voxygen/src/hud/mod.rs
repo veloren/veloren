@@ -60,7 +60,7 @@ use crate::{
     scene::camera::{self, Camera},
     session::{
         settings_change::{Chat as ChatChange, Interface as InterfaceChange, SettingsChange},
-        Interactable,
+        interactable::Interactable,
     },
     settings::chat::ChatFilter,
     ui::{

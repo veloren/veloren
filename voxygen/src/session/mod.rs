@@ -1,3 +1,4 @@
+pub mod interactable;
 pub mod settings_change;
 
 use std::{cell::RefCell, collections::HashSet, rc::Rc, result::Result, sync::Arc, time::Duration};
@@ -24,7 +25,7 @@ use common::{
     terrain::{Block, BlockKind},
     trade::TradeResult,
     util::{
-        find_dist::{Cube, Cylinder, FindDist},
+        find_dist::{Cylinder, FindDist},
         Dir, Plane,
     },
     vol::ReadVol,
@@ -50,6 +51,7 @@ use crate::{
 };
 use hashbrown::HashMap;
 use settings_change::Language::ChangeLanguage;
+use interactable::{Interactable, select_interactable};
 #[cfg(feature = "egui-ui")]
 use voxygen_egui::EguiDebugInfo;
 
@@ -1660,128 +1662,4 @@ fn under_cursor(
 
     // TODO: consider setting build/select to None when targeting an entity
     (build_pos, select_pos, target_entity)
-}
-
-#[derive(Clone, Copy)]
-pub enum Interactable {
-    Block(Block, Vec3<i32>, Interaction),
-    Entity(specs::Entity),
-}
-
-impl Interactable {
-    pub fn entity(self) -> Option<specs::Entity> {
-        match self {
-            Self::Entity(e) => Some(e),
-            Self::Block(_, _, _) => None,
-        }
-    }
-}
-
-/// Select interactable to hightlight, display interaction text for, and to
-/// interact with if the interact key is pressed
-/// Selected in the following order
-/// 1) Targeted entity (if interactable) (entities can't be target through
-/// blocks) 2) Selected block  (if interactabl)
-/// 3) Closest of nearest interactable entity/block
-fn select_interactable(
-    client: &Client,
-    target_entity: Option<(specs::Entity, f32)>,
-    selected_pos: Option<Vec3<i32>>,
-    scene: &Scene,
-    mut hit: impl FnMut(Block) -> bool,
-) -> Option<Interactable> {
-    span!(_guard, "select_interactable");
-    // TODO: once there are multiple distances for different types of interactions
-    // this code will need to be revamped to cull things by varying distances
-    // based on the types of interactions available for those things
-    use common::{spiral::Spiral2d, terrain::TerrainChunk, vol::RectRasterableVol};
-    target_entity
-        .and_then(|(e, dist_to_player)| (dist_to_player < MAX_PICKUP_RANGE).then_some(Interactable::Entity(e)))
-        .or_else(|| selected_pos.and_then(|sp|
-                client.state().terrain().get(sp).ok().copied()
-                    .filter(|b| hit(*b))
-                    .map(|b| Interactable::Block(b, sp, Interaction::Collect))
-        ))
-        .or_else(|| {
-            let ecs = client.state().ecs();
-            let player_entity = client.entity();
-            let positions = ecs.read_storage::<comp::Pos>();
-            let player_pos = positions.get(player_entity)?.0;
-
-            let scales = ecs.read_storage::<comp::Scale>();
-            let colliders = ecs.read_storage::<comp::Collider>();
-            let char_states = ecs.read_storage::<comp::CharacterState>();
-
-            let player_cylinder = Cylinder::from_components(
-                player_pos,
-                scales.get(player_entity).copied(),
-                colliders.get(player_entity),
-                char_states.get(player_entity),
-            );
-
-            let closest_interactable_entity = (
-                &ecs.entities(),
-                &positions,
-                scales.maybe(),
-                colliders.maybe(),
-                char_states.maybe(),
-            )
-                .join()
-                .filter(|(e, _, _, _, _)| *e != player_entity)
-                .map(|(e, p, s, c, cs)| {
-                    let cylinder = Cylinder::from_components(p.0, s.copied(), c, cs);
-                    (e, cylinder)
-                })
-                // Roughly filter out entities farther than interaction distance
-                .filter(|(_, cylinder)| player_cylinder.approx_in_range(*cylinder, MAX_PICKUP_RANGE))
-                .map(|(e, cylinder)| (e, player_cylinder.min_distance(cylinder)))
-                .min_by_key(|(_, dist)| OrderedFloat(*dist));
-
-            // Only search as far as closest interactable entity
-            let search_dist = closest_interactable_entity
-                .map_or(MAX_PICKUP_RANGE, |(_, dist)| dist);
-            let player_chunk = player_pos.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {
-                (e.floor() as i32).div_euclid(sz as i32)
-            });
-            let terrain = scene.terrain();
-
-            // Find closest interactable block
-            // TODO: consider doing this one first?
-            let closest_interactable_block_pos = Spiral2d::new()
-                // TODO: this formula for the number to take was guessed
-                // Note: assume RECT_SIZE.x == RECT_SIZE.y
-                .take(((search_dist / TerrainChunk::RECT_SIZE.x as f32).ceil() as usize * 2 + 1).pow(2))
-                .flat_map(|offset| {
-                    let chunk_pos = player_chunk + offset;
-                    let chunk_voxel_pos =
-                            Vec3::<i32>::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32));
-                    terrain.get(chunk_pos).map(|data| (data, chunk_voxel_pos))
-                })
-                // TODO: maybe we could make this more efficient by putting the
-                // interactables is some sort of spatial structure
-                .flat_map(|(chunk_data, chunk_pos)| {
-                    chunk_data
-                        .blocks_of_interest
-                        .interactables
-                        .iter()
-                        .map(move |(block_offset, interaction)| (chunk_pos + block_offset, interaction))
-                })
-                .map(|(block_pos, interaction)| (
-                        block_pos,
-                        block_pos.map(|e| e as f32 + 0.5)
-                            .distance_squared(player_pos),
-                        interaction,
-                ))
-                .min_by_key(|(_, dist_sqr, _)| OrderedFloat(*dist_sqr))
-                .map(|(block_pos, _, interaction)| (block_pos, interaction));
-
-            // Pick closer one if they exist
-            closest_interactable_block_pos
-                .filter(|(block_pos, _)|  player_cylinder.min_distance(Cube { min: block_pos.as_(), side_length: 1.0}) < search_dist)
-                .and_then(|(block_pos, interaction)|
-                    client.state().terrain().get(block_pos).ok().copied()
-                        .map(|b| Interactable::Block(b, block_pos, *interaction))
-                )
-                .or_else(|| closest_interactable_entity.map(|(e, _)| Interactable::Entity(e)))
-        })
 }
