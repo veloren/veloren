@@ -146,12 +146,6 @@ pub(crate) fn print_translation_stats(
 }
 
 pub(crate) fn print_csv_stats<W: std::io::Write>(state_map: &LocalizationAnalysis, output: &mut W) {
-    writeln!(
-        output,
-        "country_code,file_name,translation_key,status,git_commit"
-    )
-    .unwrap();
-
     for state in &ALL_LOCALIZATION_STATES {
         state_map.csv(*state, output);
     }
