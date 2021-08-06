@@ -205,19 +205,18 @@ impl Body {
             Body::FishSmall(_) => 1.0,
             Body::Golem(_) => 10_000.0,
             Body::Humanoid(humanoid) => {
-                match (humanoid.species, humanoid.body_type) {
-                    (humanoid::Species::Orc, humanoid::BodyType::Male) => 120.0,
-                    (humanoid::Species::Orc, humanoid::BodyType::Female) => 120.0,
-                    (humanoid::Species::Human, humanoid::BodyType::Male) => 77.0, // ~✅
-                    (humanoid::Species::Human, humanoid::BodyType::Female) => 59.0, // ~✅
-                    (humanoid::Species::Elf, humanoid::BodyType::Male) => 77.0,
-                    (humanoid::Species::Elf, humanoid::BodyType::Female) => 59.0,
-                    (humanoid::Species::Dwarf, humanoid::BodyType::Male) => 70.0,
-                    (humanoid::Species::Dwarf, humanoid::BodyType::Female) => 70.0,
-                    (humanoid::Species::Undead, humanoid::BodyType::Male) => 70.0,
-                    (humanoid::Species::Undead, humanoid::BodyType::Female) => 50.0,
-                    (humanoid::Species::Danari, humanoid::BodyType::Male) => 80.0,
-                    (humanoid::Species::Danari, humanoid::BodyType::Female) => 60.0,
+                // Understand that chaning the mass values can have effects
+                // on multiple systems.
+                //
+                // If you want to change that value, consult with
+                // Physics and Combat teams
+                match humanoid.species {
+                    humanoid::Species::Orc => 100.0,
+                    humanoid::Species::Elf => 85.0,
+                    humanoid::Species::Human => 85.0,
+                    humanoid::Species::Dwarf => 80.0,
+                    humanoid::Species::Undead => 75.0,
+                    humanoid::Species::Danari => 75.0,
                 }
             },
             Body::Object(obj) => obj.mass().0,
