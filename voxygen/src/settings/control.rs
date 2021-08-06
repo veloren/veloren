@@ -144,6 +144,8 @@ impl ControlSettings {
             GameInput::Help => KeyMouse::Key(VirtualKeyCode::F1),
             GameInput::ToggleInterface => KeyMouse::Key(VirtualKeyCode::F2),
             GameInput::ToggleDebug => KeyMouse::Key(VirtualKeyCode::F3),
+            #[cfg(feature = "egui-ui")]
+            GameInput::ToggleEguiDebug => KeyMouse::Key(VirtualKeyCode::F7),
             GameInput::ToggleChat => KeyMouse::Key(VirtualKeyCode::F5),
             GameInput::Fullscreen => KeyMouse::Key(VirtualKeyCode::F11),
             GameInput::Screenshot => KeyMouse::Key(VirtualKeyCode::F4),
