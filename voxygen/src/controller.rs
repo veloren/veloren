@@ -150,6 +150,10 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_buttons.toggle_debug)
                     .or_default()
                     .push(GameInput::ToggleDebug);
+                #[cfg(feature = "egui-ui")]
+                map.entry(settings.game_buttons.toggle_debug)
+                    .or_default()
+                    .push(GameInput::ToggleEguiDebug);
                 map.entry(settings.game_buttons.toggle_chat)
                     .or_default()
                     .push(GameInput::ToggleChat);

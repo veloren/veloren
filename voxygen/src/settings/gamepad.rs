@@ -77,6 +77,8 @@ pub mod con_settings {
         pub help: Button,
         pub toggle_interface: Button,
         pub toggle_debug: Button,
+        #[cfg(feature = "egui-ui")]
+        pub toggle_egui_debug: Button,
         pub toggle_chat: Button,
         pub fullscreen: Button,
         pub screenshot: Button,
@@ -168,6 +170,8 @@ pub mod con_settings {
                 help: Button::Simple(GilButton::Unknown),
                 toggle_interface: Button::Simple(GilButton::Unknown),
                 toggle_debug: Button::Simple(GilButton::Unknown),
+                #[cfg(feature = "egui-ui")]
+                toggle_egui_debug: Button::Simple(GilButton::Unknown),
                 toggle_chat: Button::Simple(GilButton::Unknown),
                 fullscreen: Button::Simple(GilButton::Unknown),
                 screenshot: Button::Simple(GilButton::Unknown),

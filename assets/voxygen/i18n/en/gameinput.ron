@@ -21,6 +21,7 @@
         "gameinput.help": "Toggle Help Window",
         "gameinput.toggleinterface": "Toggle Interface",
         "gameinput.toggledebug": "Toggle FPS and Debug Info",
+        "gameinput.toggle_egui_debug": "Toggle EGUI Debug Info",
         "gameinput.togglechat": "Toggle Chat",
         "gameinput.screenshot": "Take Screenshot",
         "gameinput.toggleingameui": "Toggle Nametags",

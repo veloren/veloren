@@ -3656,6 +3656,12 @@ impl Hud {
                         self.show.debug = global_state.settings.interface.toggle_debug;
                         true
                     },
+                    #[cfg(feature = "egui-ui")]
+                    GameInput::ToggleEguiDebug if state => {
+                        global_state.settings.interface.toggle_egui_debug =
+                            !global_state.settings.interface.toggle_egui_debug;
+                        true
+                    },
                     GameInput::ToggleChat if state => {
                         global_state.settings.interface.toggle_chat =
                             !global_state.settings.interface.toggle_chat;
