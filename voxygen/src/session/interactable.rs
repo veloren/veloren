@@ -11,12 +11,13 @@ use common::{
     vol::ReadVol,
 };
 use common_base::span;
+use super::target::Target;
 
 use crate::scene::{terrain::Interaction, Scene};
 
 #[derive(Clone, Copy, Debug)]
 pub enum Interactable {
-    Block(Block, Vec3<i32>, Interaction),
+    Block(Block, Vec3<i32>, Option<Interaction>),
     Entity(specs::Entity),
 }
 
@@ -24,7 +25,7 @@ impl Interactable {
     pub fn entity(self) -> Option<specs::Entity> {
         match self {
             Self::Entity(e) => Some(e),
-            Self::Block(_, _, _) => None,
+            _ => None,
         }
     }
 }
@@ -34,14 +35,16 @@ impl Interactable {
 /// Selected in the following order
 /// 1) Targeted entity (if interactable) (entities can't be target through
 /// blocks)
-/// 2) Selected block  (if interactable)
+/// 2) Selected block
+///     (a) if collectable
+///     (b) if can be mined
 /// 3) Closest of nearest interactable entity/block
 pub(super) fn select_interactable(
     client: &Client,
-    target_entity: Option<(specs::Entity, f32)>,
-    selected_pos: Option<Vec3<i32>>,
+    collect_target: Option<Target>,
+    entity_target: Option<Target>,
+    mine_target: Option<Target>,
     scene: &Scene,
-    mut hit: impl FnMut(Block) -> bool,
 ) -> Option<Interactable> {
     span!(_guard, "select_interactable");
     // TODO: once there are multiple distances for different types of interactions
@@ -49,13 +52,22 @@ pub(super) fn select_interactable(
     // based on the types of interactions available for those things
     use common::{spiral::Spiral2d, terrain::TerrainChunk, vol::RectRasterableVol};
 
-    target_entity
-        .and_then(|(e, dist_to_player)| (dist_to_player < MAX_PICKUP_RANGE).then_some(Interactable::Entity(e)))
-        .or_else(|| selected_pos.and_then(|sp|
-                client.state().terrain().get(sp).ok().copied()
-                    .filter(|b| hit(*b))
-                    .map(|b| Interactable::Block(b, sp, Interaction::Collect))
-        ))
+    entity_target
+        .and_then(|x| if let Target::Entity(entity, _, dist) = x {
+            (dist < MAX_PICKUP_RANGE).then_some(Interactable::Entity(entity))
+        } else { None })
+        .or_else(|| {
+            collect_target.and_then(|ct| {
+                client.state().terrain().get(ct.position_int()).ok().copied()
+                    .map(|b| Interactable::Block(b, ct.position_int(), Some(Interaction::Collect)))
+            })
+        })
+        .or_else(|| {
+            mine_target.and_then(|mt| {
+                client.state().terrain().get(mt.position_int()).ok().copied()
+                    .map(|b| Interactable::Block(b, mt.position_int(), None))
+            })
+        })
         .or_else(|| {
             let ecs = client.state().ecs();
             let player_entity = client.entity();
@@ -134,7 +146,7 @@ pub(super) fn select_interactable(
                 .filter(|(block_pos, _)|  player_cylinder.min_distance(Cube { min: block_pos.as_(), side_length: 1.0}) < search_dist)
                 .and_then(|(block_pos, interaction)|
                     client.state().terrain().get(block_pos).ok().copied()
-                        .map(|b| Interactable::Block(b, block_pos, *interaction))
+                        .map(|b| Interactable::Block(b, block_pos, Some(*interaction)))
                 )
                 .or_else(|| closest_interactable_entity.map(|(e, _)| Interactable::Entity(e)))
         })

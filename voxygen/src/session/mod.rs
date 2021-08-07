@@ -1,5 +1,6 @@
 pub mod interactable;
 pub mod settings_change;
+pub(self) mod target;
 
 use std::{cell::RefCell, collections::HashSet, rc::Rc, result::Result, sync::Arc, time::Duration};
 
@@ -20,14 +21,11 @@ use common::{
         item::{tool::ToolKind, ItemDef, ItemDesc},
         ChatMsg, ChatType, InputKind, InventoryUpdateEvent, Pos, Stats, UtteranceKind, Vel,
     },
-    consts::{MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
+    consts::{MAX_MOUNT_RANGE},
     outcome::Outcome,
     terrain::{Block, BlockKind},
     trade::TradeResult,
-    util::{
-        find_dist::{Cylinder, FindDist},
-        Dir, Plane,
-    },
+    util::{Dir, Plane},
     vol::ReadVol,
 };
 use common_base::{prof_span, span};
@@ -52,6 +50,7 @@ use crate::{
 use hashbrown::HashMap;
 use settings_change::Language::ChangeLanguage;
 use interactable::{Interactable, select_interactable};
+use target::{Target, targets_under_cursor};
 #[cfg(feature = "egui-ui")]
 use voxygen_egui::EguiDebugInfo;
 
@@ -415,38 +414,48 @@ impl PlayState for SessionState {
             drop(client);
 
             // Check to see whether we're aiming at anything
-            let (build_pos, select_pos, target_entity) =
-                under_cursor(&self.client.borrow(), cam_pos, cam_dir, |b| {
-                    b.is_filled()
-                        || if is_mining {
-                            b.mine_tool().is_some()
-                        } else {
-                            b.is_collectible()
-                        }
-                });
-            self.inputs.select_pos = select_pos;
-            // Throw out distance info, it will be useful in the future
-            self.target_entity = target_entity.map(|x| x.0);
+            let (build_target, collect_target, entity_target, mine_target, shortest_dist) =
+                targets_under_cursor(&self.client.borrow(), cam_pos, cam_dir, can_build, is_mining);
 
             self.interactable = select_interactable(
                 &self.client.borrow(),
-                target_entity,
-                select_pos.map(|sp| sp.map(|e| e.floor() as i32)),
+                collect_target,
+                entity_target,
+                mine_target,
                 &self.scene,
-                |b| b.is_collectible() || (is_mining && b.mine_tool().is_some()),
             );
 
-            // Only highlight interactables
-            // unless in build mode where select_pos highlighted
-            self.scene.set_select_pos(
-                select_pos
-                    .map(|sp| sp.map(|e| e.floor() as i32))
-                    .filter(|_| can_build || is_mining)
-                    .or_else(|| match self.interactable {
-                        Some(Interactable::Block(_, block_pos, _)) => Some(block_pos),
-                        _ => None,
-                    }),
-            );
+            let is_nearest_target = |target: Option<Target>| {
+                target.map(|t| (t.distance() == shortest_dist)).unwrap_or(false)
+            };
+
+            // Only highlight terrain blocks which can be interacted with
+            if is_mining && is_nearest_target(mine_target) {
+                mine_target.map(|mt| self.scene.set_select_pos(Some(mt.position_int())));
+            } else if can_build && is_nearest_target(build_target) {
+                build_target.map(|bt| self.scene.set_select_pos(Some(bt.position_int())));
+            } else {
+                self.scene.set_select_pos(None);
+            }
+
+            // Throw out distance info, it will be useful in the future
+            self.target_entity = entity_target.and_then(Target::entity);
+
+            // controller only wants 1 target
+            // set default using entity_target as the selected_pos, and update per event
+            self.inputs.select_pos = entity_target.map(|et| et.position());
+
+            macro_rules! entity_event_handler {
+                ($input: expr, $pressed: expr) => {
+                    let mut client = self.client.borrow_mut();
+                    client.handle_input(
+                        $input,
+                        $pressed,
+                        self.inputs.select_pos,
+                        entity_target.map(Target::entity).unwrap_or(None),
+                    );
+                }
+            }
 
             // Handle window events.
             for event in events {
@@ -465,74 +474,52 @@ impl PlayState for SessionState {
                         if !self.inputs_state.insert(input) {
                             self.inputs_state.remove(&input);
                         }
+
                         match input {
                             GameInput::Primary => {
-                                // If we can build, use LMB to break blocks, if not, use it to
-                                // attack
-                                let mut client = self.client.borrow_mut();
-                                if state && can_build {
-                                    if let Some(select_pos) = select_pos {
-                                        client.remove_block(select_pos.map(|e| e.floor() as i32));
-                                    }
+                                if is_mining && is_nearest_target(mine_target) {
+                                    self.inputs.select_pos = mine_target.map(Target::position);
+                                    entity_event_handler!(InputKind::Primary, state);
+                                } else if state && can_build && is_nearest_target(build_target) {
+                                    self.inputs.select_pos = build_target.map(Target::position);
+                                    let mut client = self.client.borrow_mut();
+                                    client.remove_block(build_target.unwrap().position_int());
                                 } else {
-                                    client.handle_input(
-                                        InputKind::Primary,
-                                        state,
-                                        select_pos,
-                                        target_entity.map(|t| t.0),
-                                    );
+                                    entity_event_handler!(InputKind::Primary, state);
                                 }
                             },
                             GameInput::Secondary => {
-                                let mut client = self.client.borrow_mut();
-
-                                if state && can_build {
-                                    if let Some(build_pos) = build_pos {
-                                        client.place_block(
-                                            build_pos.map(|e| e.floor() as i32),
-                                            self.selected_block,
-                                        );
+                                if state && can_build && is_nearest_target(build_target) {
+                                    if let Some(build_target) = build_target {
+                                        self.inputs.select_pos = Some(build_target.position());
+                                        let mut client = self.client.borrow_mut();
+                                        client.place_block(build_target.position_int(), self.selected_block);
                                     }
                                 } else {
-                                    client.handle_input(
-                                        InputKind::Secondary,
-                                        state,
-                                        select_pos,
-                                        target_entity.map(|t| t.0),
-                                    );
+                                    entity_event_handler!(InputKind::Secondary, state);
                                 }
                             },
                             GameInput::Block => {
-                                let mut client = self.client.borrow_mut();
-                                client.handle_input(
-                                    InputKind::Block,
-                                    state,
-                                    select_pos,
-                                    target_entity.map(|t| t.0),
-                                );
+                                entity_event_handler!(InputKind::Block, state);
                             },
                             GameInput::Roll => {
-                                let mut client = self.client.borrow_mut();
                                 if can_build {
+                                    let client = self.client.borrow_mut();
                                     if state {
-                                        if let Some(block) = select_pos.and_then(|sp| {
+                                        if let Some(block) = build_target.and_then(|bt| {
                                             client
                                                 .state()
                                                 .terrain()
-                                                .get(sp.map(|e| e.floor() as i32))
+                                                .get(bt.position_int())
                                                 .ok()
                                                 .copied()
                                         }) {
+                                            self.inputs.select_pos = build_target.map(Target::position);
                                             self.selected_block = block;
                                         }
                                     }
                                 } else {
-                                    client.handle_input(
-                                        InputKind::Roll,
-                                        state,
-                                        select_pos,
-                                        target_entity.map(|t| t.0),
-                                    );
+                                    entity_event_handler!(InputKind::Roll, state);
                                 }
                             },
                             GameInput::Respawn => {
@@ -542,13 +529,7 @@ impl PlayState for SessionState {
                                 }
                             },
                             GameInput::Jump => {
-                                let mut client = self.client.borrow_mut();
-                                client.handle_input(
-                                    InputKind::Jump,
-                                    state,
-                                    select_pos,
-                                    target_entity.map(|t| t.0),
-                                );
+                                entity_event_handler!(InputKind::Jump, state);
                             },
                             GameInput::SwimUp => {
                                 self.key_state.swim_up = state;
@@ -618,13 +599,7 @@ impl PlayState for SessionState {
                                 // Syncing of inputs between mounter and mountee
                                 // broke with controller change
                                 self.key_state.fly ^= state;
-                                let mut client = self.client.borrow_mut();
-                                client.handle_input(
-                                    InputKind::Fly,
-                                    self.key_state.fly,
-                                    select_pos,
-                                    target_entity.map(|t| t.0),
-                                );
+                                entity_event_handler!(InputKind::Fly, self.key_state.fly);
                             },
                             GameInput::Climb => {
                                 self.key_state.climb_up = state;
@@ -696,17 +671,19 @@ impl PlayState for SessionState {
                                         match interactable {
                                             Interactable::Block(block, pos, interaction) => {
                                                 match interaction {
-                                                    Interaction::Collect => {
+                                                    Some(Interaction::Collect) => {
                                                         if block.is_collectible() {
+                                                            self.inputs.select_pos = collect_target.map(Target::position);
                                                             client.collect_block(pos);
                                                         }
                                                     },
-                                                    Interaction::Craft(tab) => {
+                                                    Some(Interaction::Craft(tab)) => {
                                                         self.hud.show.open_crafting_tab(
                                                             tab,
                                                             block.get_sprite().map(|s| (pos, s)),
                                                         )
                                                     },
+                                                    _ => {},
                                                 }
                                             },
                                             Interactable::Entity(entity) => {
@@ -1351,22 +1328,10 @@ impl PlayState for SessionState {
                         client.perform_trade_action(action);
                     },
                     HudEvent::Ability3(state) => {
-                        let mut client = self.client.borrow_mut();
-                        client.handle_input(
-                            InputKind::Ability(0),
-                            state,
-                            select_pos,
-                            target_entity.map(|t| t.0),
-                        );
+                        entity_event_handler!(InputKind::Ability(0), state);
                     },
                     HudEvent::Ability4(state) => {
-                        let mut client = self.client.borrow_mut();
-                        client.handle_input(
-                            InputKind::Ability(1),
-                            state,
-                            select_pos,
-                            target_entity.map(|t| t.0),
-                        );
+                        entity_event_handler!(InputKind::Ability(1), state);
                     },
 
                     HudEvent::RequestSiteInfo(id) => {
@@ -1532,134 +1497,4 @@ impl PlayState for SessionState {
     }
 
     fn egui_enabled(&self) -> bool { true }
-}
-
-/// Max distance an entity can be "targeted"
-const MAX_TARGET_RANGE: f32 = 300.0;
-/// Calculate what the cursor is pointing at within the 3d scene
-#[allow(clippy::type_complexity)]
-fn under_cursor(
-    client: &Client,
-    cam_pos: Vec3<f32>,
-    cam_dir: Vec3<f32>,
-    mut hit: impl FnMut(Block) -> bool,
-) -> (
-    Option<Vec3<f32>>,
-    Option<Vec3<f32>>,
-    Option<(specs::Entity, f32)>,
-) {
-    span!(_guard, "under_cursor");
-    // Choose a spot above the player's head for item distance checks
-    let player_entity = client.entity();
-    let ecs = client.state().ecs();
-    let positions = ecs.read_storage::<comp::Pos>();
-    let player_pos = match positions.get(player_entity) {
-        Some(pos) => pos.0,
-        None => cam_pos, // Should never happen, but a safe fallback
-    };
-    let scales = ecs.read_storage();
-    let colliders = ecs.read_storage();
-    let char_states = ecs.read_storage();
-    // Get the player's cylinder
-    let player_cylinder = Cylinder::from_components(
-        player_pos,
-        scales.get(player_entity).copied(),
-        colliders.get(player_entity),
-        char_states.get(player_entity),
-    );
-    let terrain = client.state().terrain();
-
-    let cam_ray = terrain
-        .ray(cam_pos, cam_pos + cam_dir * 100.0)
-        .until(|block| hit(*block))
-        .cast();
-
-    let cam_dist = cam_ray.0;
-
-    // The ray hit something, is it within range?
-    let (build_pos, select_pos) = if matches!(cam_ray.1, Ok(Some(_)) if
-        player_cylinder.min_distance(cam_pos + cam_dir * (cam_dist + 0.01))
-        <= MAX_PICKUP_RANGE)
-    {
-        (
-            Some(cam_pos + cam_dir * (cam_dist - 0.01)),
-            Some(cam_pos + cam_dir * (cam_dist + 0.01)),
-        )
-    } else {
-        (None, None)
-    };
-
-    // See if ray hits entities
-    // Currently treated as spheres
-    // Don't cast through blocks
-    // Could check for intersection with entity from last frame to narrow this down
-    let cast_dist = if let Ok(Some(_)) = cam_ray.1 {
-        cam_dist.min(MAX_TARGET_RANGE)
-    } else {
-        MAX_TARGET_RANGE
-    };
-
-    // Need to raycast by distance to cam
-    // But also filter out by distance to the player (but this only needs to be done
-    // on final result)
-    let mut nearby = (
-        &ecs.entities(),
-        &positions,
-        scales.maybe(),
-        &ecs.read_storage::<comp::Body>(),
-        ecs.read_storage::<comp::Item>().maybe(),
-    )
-        .join()
-        .filter(|(e, _, _, _, _)| *e != player_entity)
-        .filter_map(|(e, p, s, b, i)| {
-            const RADIUS_SCALE: f32 = 3.0;
-            // TODO: use collider radius instead of body radius?
-            let radius = s.map_or(1.0, |s| s.0) * b.max_radius() * RADIUS_SCALE;
-            // Move position up from the feet
-            let pos = Vec3::new(p.0.x, p.0.y, p.0.z + radius);
-            // Distance squared from camera to the entity
-            let dist_sqr = pos.distance_squared(cam_pos);
-            // We only care about interacting with entities that contain items,
-            // or are not inanimate (to trade with)
-            if i.is_some() || !matches!(b, comp::Body::Object(_)) {
-                Some((e, pos, radius, dist_sqr))
-            } else {
-                None
-            }
-        })
-        // Roughly filter out entities farther than ray distance
-        .filter(|(_, _, r, d_sqr)| *d_sqr <= cast_dist.powi(2) + 2.0 * cast_dist * r + r.powi(2))
-        // Ignore entities intersecting the camera
-        .filter(|(_, _, r, d_sqr)| *d_sqr > r.powi(2))
-        // Substract sphere radius from distance to the camera
-        .map(|(e, p, r, d_sqr)| (e, p, r, d_sqr.sqrt() - r))
-        .collect::<Vec<_>>();
-    // Sort by distance
-    nearby.sort_unstable_by(|a, b| a.3.partial_cmp(&b.3).unwrap());
-
-    let seg_ray = LineSegment3 {
-        start: cam_pos,
-        end: cam_pos + cam_dir * cam_dist,
-    };
-    // TODO: fuzzy borders
-    let target_entity = nearby
-        .iter()
-        .map(|(e, p, r, _)| (e, *p, r))
-        // Find first one that intersects the ray segment
-        .find(|(_, p, r)| seg_ray.projected_point(*p).distance_squared(*p) < r.powi(2))
-        .and_then(|(e, p, _)| {
-            // Get the entity's cylinder
-            let target_cylinder = Cylinder::from_components(
-                p,
-                scales.get(*e).copied(),
-                colliders.get(*e),
-                char_states.get(*e),
-            );
-
-            let dist_to_player = player_cylinder.min_distance(target_cylinder);
-            (dist_to_player < MAX_TARGET_RANGE).then_some((*e, dist_to_player))
-        });
-
-    // TODO: consider setting build/select to None when targeting an entity
-    (build_pos, select_pos, target_entity)
 }
