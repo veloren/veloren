@@ -1802,6 +1802,8 @@ impl<'a> AgentData<'a> {
         // And this is quite hard to debug when you don't see it in actual
         // attack handler.
         if let Some(dir) = match tactic {
+            // FIXME: this code make Staff flamethrower aim flamethrower
+            // like a projectile.
             Tactic::Bow
             | Tactic::FixedTurret
             | Tactic::QuadLowRanged
