@@ -138,11 +138,10 @@ impl Loadout {
         }
     }
 
-    pub fn update_item_at_slot_using_persistence_key<F: FnOnce(&mut Item)>(
+    pub fn get_mut_item_at_slot_using_persistence_key(
         &mut self,
         persistence_key: &str,
-        f: F,
-    ) -> Result<(), LoadoutError> {
+    ) -> Result<&mut Item, LoadoutError> {
         self.slots
             .iter_mut()
             .find(|loadout_slot| loadout_slot.persistence_key == persistence_key)
@@ -150,11 +149,17 @@ impl Loadout {
                 loadout_slot
                     .slot
                     .as_mut()
-                    .map_or(Err(LoadoutError::NoParentAtSlot), |item| {
-                        f(item);
-                        Ok(())
-                    })
+                    .ok_or(LoadoutError::NoParentAtSlot)
             })
+        // .map_or(Err(LoadoutError::InvalidPersistenceKey), |loadout_slot| {
+        //     loadout_slot
+        //         .slot
+        //         .as_mut()
+        //         .map_or(Err(LoadoutError::NoParentAtSlot), |item| {
+        //             f(item);
+        //             Ok(())
+        //         })
+        // })
     }
 
     /// Swaps the contents of two loadout slots

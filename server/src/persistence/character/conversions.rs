@@ -256,6 +256,56 @@ pub fn convert_waypoint_from_database_json(
     ))
 }
 
+// Used to handle cases of modular items that are composed of components.
+// Returns a mutable reference to the parent of an item that is a component. If
+// parent item is itself a component, recursively goes through inventory until
+// it grabs component.
+fn get_mutable_parent_item<'a, 'b, T>(
+    index: usize,
+    inventory_items: &'a [Item],
+    item_indices: &'a HashMap<i64, usize>,
+    inventory: &'b mut T,
+    get_mut_item: &'a dyn Fn(&'b mut T, &str) -> Option<&'b mut VelorenItem>,
+) -> Option<&'a mut VelorenItem>
+where
+    'b: 'a,
+{
+    // First checks if parent item is itself also a component, if it is, tries to
+    // get a mutable reference to itself by getting a mutable reference to the item
+    // that is its own parent
+    if inventory_items[index].position.contains("component_") {
+        if let Some(parent) = item_indices
+            .get(&inventory_items[index].parent_container_item_id)
+            .and_then(move |i| {
+                get_mutable_parent_item(
+                    *i,
+                    inventory_items,
+                    item_indices,
+                    inventory,
+                    // slot,
+                    get_mut_item,
+                )
+            })
+        {
+            // Parses component index
+            let component_index = inventory_items[index]
+                .position
+                .split('_')
+                .collect::<Vec<_>>()
+                .get(1)
+                .and_then(|s| s.parse::<usize>().ok());
+            // Returns mutable reference to parent item of original item, by grabbing
+            // the component representing the parent item from the parent item's parent
+            // item
+            component_index.and_then(move |i| parent.component_mut(i))
+        } else {
+            None
+        }
+    } else {
+        get_mut_item(inventory, &inventory_items[index].position)
+    }
+}
+
 /// Properly-recursive items (currently modular weapons) occupy the same
 /// inventory slot as their parent. The caller is responsible for ensuring that
 /// inventory_items and loadout_items are topologically sorted (i.e. forall i,
@@ -344,59 +394,13 @@ pub fn convert_inventory_from_database_items(
                 ));
             }
         } else if let Some(&j) = item_indices.get(&db_item.parent_container_item_id) {
-            // Returns a mutable reference to the parent of an item that is a component. If
-            // parent item is itself a component, recursively goes through inventory until
-            // it grabs component.
-            fn get_mutable_parent_item<'a>(
-                index: usize,
-                inventory_items: &'a [Item],
-                item_indices: &'a HashMap<i64, usize>,
-                inventory: &'a mut Inventory,
-                slot: &dyn Fn(&str) -> Result<InvSlotId, PersistenceError>,
-            ) -> Option<&'a mut VelorenItem> {
-                // First checks if parent item is itself also a component, if it is, tries to
-                // get a mutable reference to itself by getting a mutable reference to the item
-                // that is its own parent
-                if inventory_items[index].position.contains("component_") {
-                    if let Some(parent) = item_indices
-                        .get(&inventory_items[index].parent_container_item_id)
-                        .and_then(move |i| {
-                            get_mutable_parent_item(
-                                *i,
-                                inventory_items,
-                                item_indices,
-                                inventory,
-                                slot,
-                            )
-                        })
-                    {
-                        // Parses component index
-                        let component_index = inventory_items[index]
-                            .position
-                            .split('_')
-                            .collect::<Vec<_>>()
-                            .get(1)
-                            .and_then(|s| s.parse::<usize>().ok());
-                        // Returns mutable reference to parent item of original item, by grabbing
-                        // the component representing the parent item from the parent item's parent
-                        // item
-                        component_index.and_then(move |i| parent.component_mut(i))
-                    } else {
-                        None
-                    }
-                } else if let Some(parent) =
-                    // Parent item is not itself a component, just grab it from the
-                    // inventory
-                    inventory.slot_mut(slot(&inventory_items[index].position).ok()?)
-                {
-                    parent.as_mut()
-                } else {
-                    None
-                }
-            }
-            if let Some(parent) =
-                get_mutable_parent_item(j, inventory_items, &item_indices, &mut inventory, &slot)
-            {
+            if let Some(parent) = get_mutable_parent_item(
+                j,
+                inventory_items,
+                &item_indices,
+                &mut inventory,
+                &|inv, s| inv.slot_mut(slot(s).ok()?).and_then(|a| a.as_mut()),
+            ) {
                 parent.add_component(item, &ABILITY_MAP, &MATERIAL_STATS_MANIFEST);
             } else {
                 return Err(PersistenceError::ConversionError(format!(
@@ -451,11 +455,25 @@ pub fn convert_loadout_from_database_items(
                 .set_item_at_slot_using_persistence_key(&db_item.position, item)
                 .map_err(convert_error)?;
         } else if let Some(&j) = item_indices.get(&db_item.parent_container_item_id) {
-            loadout
-                .update_item_at_slot_using_persistence_key(&database_items[j].position, |parent| {
-                    parent.add_component(item, &ABILITY_MAP, &MATERIAL_STATS_MANIFEST);
+            if let Some(parent) =
+                get_mutable_parent_item(j, database_items, &item_indices, &mut loadout, &|l, s| {
+                    l.get_mut_item_at_slot_using_persistence_key(s).ok()
                 })
-                .map_err(convert_error)?;
+            {
+                parent.add_component(item, &ABILITY_MAP, &MATERIAL_STATS_MANIFEST);
+            } else {
+                return Err(PersistenceError::ConversionError(format!(
+                    "Parent slot {} for component {} was empty even though it occurred earlier in \
+                     the loop?",
+                    db_item.parent_container_item_id, db_item.item_id
+                )));
+            }
+            // loadout
+            //     .update_item_at_slot_using_persistence_key(&
+            // database_items[j].position, |parent| {
+            //         parent.add_component(item, &ABILITY_MAP,
+            // &MATERIAL_STATS_MANIFEST);     })
+            //     .map_err(convert_error)?;
         } else {
             return Err(PersistenceError::ConversionError(format!(
                 "Couldn't find parent item {} before item {} in loadout",

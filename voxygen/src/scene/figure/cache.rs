@@ -15,7 +15,7 @@ use common::{
         item::{
             armor::{Armor, ArmorKind},
             item_key::ItemKey,
-            Item, ItemKind,
+            modular, Item, ItemKind,
         },
         CharacterState,
     },
@@ -26,6 +26,7 @@ use common::{
 use core::{hash::Hash, ops::Range};
 use crossbeam_utils::atomic;
 use hashbrown::{hash_map::Entry, HashMap};
+use serde::Deserialize;
 use std::sync::Arc;
 use vek::*;
 
@@ -71,10 +72,10 @@ pub struct FigureKey<Body> {
     pub(super) extra: Option<Arc<CharacterCacheKey>>,
 }
 
-#[derive(Eq, Hash, PartialEq)]
-pub(super) struct ToolKey {
-    pub name: String,
-    pub components: Vec<String>,
+#[derive(Deserialize, Eq, Hash, PartialEq, Debug)]
+pub enum ToolKey {
+    Tool(String),
+    Modular(modular::ModularWeaponKey),
 }
 
 /// Character data that should be visible when tools are visible (i.e. in third
@@ -214,13 +215,12 @@ impl CharacterCacheKey {
                 })
             },
             tool: if are_tools_visible {
-                let tool_key_from_item = |item: &Item| ToolKey {
-                    name: item.item_definition_id().to_owned(),
-                    components: item
-                        .components()
-                        .iter()
-                        .map(|comp| comp.item_definition_id().to_owned())
-                        .collect(),
+                let tool_key_from_item = |item: &Item| {
+                    if item.is_modular() {
+                        ToolKey::Modular(modular::weapon_to_key(item))
+                    } else {
+                        ToolKey::Tool(item.item_definition_id().to_owned())
+                    }
                 };
                 Some(CharacterToolKey {
                     active: inventory

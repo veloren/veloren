@@ -12,7 +12,7 @@ use common::{
         fish_small::{self, BodyType as FSBodyType, Species as FSSpecies},
         golem::{self, BodyType as GBodyType, Species as GSpecies},
         humanoid::{self, Body, BodyType, EyeColor, Skin, Species},
-        item::{item_key::ItemKey, ItemDef, ModularComponentKind},
+        item::item_key::ItemKey,
         item_drop, object,
         quadruped_low::{self, BodyType as QLBodyType, Species as QLSpecies},
         quadruped_medium::{self, BodyType as QMBodyType, Species as QMSpecies},
@@ -28,7 +28,7 @@ use common::{
 };
 use hashbrown::HashMap;
 use serde::Deserialize;
-use std::{fmt, hash::Hash, sync::Arc};
+use std::{fmt, hash::Hash};
 use tracing::{error, warn};
 use vek::*;
 
@@ -339,6 +339,7 @@ impl HumHeadSpec {
         )
     }
 }
+
 // Armor aspects should be in the same order, top to bottom.
 // These seem overly split up, but wanted to keep the armor seperated
 // unlike head which is done above.
@@ -365,7 +366,7 @@ struct HumArmorPantsSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Deserialize)]
 struct HumArmorFootSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Deserialize)]
-struct HumMainWeaponSpec(HashMap<String, ArmorVoxSpec>);
+struct HumMainWeaponSpec(HashMap<ToolKey, ArmorVoxSpec>);
 #[derive(Deserialize)]
 struct HumModularComponentSpec(HashMap<String, ModularComponentSpec>);
 #[derive(Deserialize)]
@@ -390,7 +391,6 @@ make_vox_spec!(
         armor_pants: HumArmorPantsSpec = "voxygen.voxel.humanoid_armor_pants_manifest",
         armor_foot: HumArmorFootSpec = "voxygen.voxel.humanoid_armor_foot_manifest",
         main_weapon: HumMainWeaponSpec = "voxygen.voxel.biped_weapon_manifest",
-        modular_components: HumModularComponentSpec = "voxygen.voxel.humanoid_modular_component_manifest",
         armor_lantern: HumArmorLanternSpec = "voxygen.voxel.humanoid_lantern_manifest",
         armor_glider: HumArmorGliderSpec = "voxygen.voxel.humanoid_glider_manifest",
         armor_head: HumArmorHeadSpec = "voxygen.voxel.humanoid_armor_head_manifest",
@@ -499,14 +499,12 @@ make_vox_spec!(
             )),
             tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
                 spec.main_weapon.read().0.mesh_main_weapon(
-                    &spec.modular_components.read().0,
                     tool,
                     false,
                 )
             }),
             tool.and_then(|tool| tool.second.as_ref()).map(|tool| {
                 spec.main_weapon.read().0.mesh_main_weapon(
-                    &spec.modular_components.read().0,
                     tool,
                     true,
                 )
@@ -876,67 +874,19 @@ impl HumArmorFootSpec {
 }
 
 impl HumMainWeaponSpec {
-    fn mesh_main_weapon(
-        &self,
-        modular_components: &HumModularComponentSpec,
-        tool: &ToolKey,
-        flipped: bool,
-    ) -> BoneMeshes {
-        // TODO: resolve ItemDef info into the ToolKey earlier
-        let itemdef = Arc::<ItemDef>::load_expect_cloned(&tool.name);
-        let not_found = |name: &str| {
-            error!(?name, "No tool/weapon specification exists");
+    fn mesh_main_weapon(&self, tool: &ToolKey, flipped: bool) -> BoneMeshes {
+        let not_found = |tool: &ToolKey| {
+            error!(?tool, "No tool/weapon specification exists");
             load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0))
         };
-        let (tool_kind_segment, mut offset) = if itemdef.is_modular() {
-            let (mut damage, mut held) = (None, None);
-            for comp in tool.components.iter() {
-                let compdef = Arc::<ItemDef>::load_expect_cloned(comp);
-                if compdef.is_component(ModularComponentKind::Held) {
-                    held = Some(comp.clone());
-                }
-                if compdef.is_component(ModularComponentKind::Damage) {
-                    damage = Some(comp.clone());
-                }
-                // TODO: when enhancements are added, line them up to make a
-                // pretty row of gems on the hilt or something
-            }
-            if let (Some(damage), Some(held)) = (damage.as_ref(), held.as_ref()) {
-                use ModularComponentSpec::*;
-                let damagespec = match modular_components.0.get(&*damage) {
-                    Some(Damage(spec)) => spec,
-                    _ => return not_found(damage),
-                };
-                let heldspec = match modular_components.0.get(&*held) {
-                    Some(Held(spec)) => spec,
-                    _ => return not_found(held),
-                };
-                let damage_asset = graceful_load_vox(&damagespec.0).read();
-                let held_asset = graceful_load_vox(&heldspec.0).read();
 
-                let (segment, segment_origin) = Segment::from_voxes(&[
-                    (&damage_asset.0, Vec3::from(damagespec.1), flipped),
-                    (&held_asset.0, Vec3::from(heldspec.2), flipped),
-                ]);
-                (segment, segment_origin.map(|x: i32| x as f32) + heldspec.1)
-            } else {
-                error!(
-                    "A modular weapon is missing some components (damage: {:?}, held: {:?})",
-                    damage, held
-                );
-                return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
-            }
-        } else {
-            let spec = match self.0.get(&tool.name) {
-                Some(spec) => spec,
-                None => return not_found(&tool.name),
-            };
-
-            (
-                graceful_load_segment_flipped(&spec.vox_spec.0, flipped),
-                Vec3::from(spec.vox_spec.1),
-            )
+        let spec = match self.0.get(tool) {
+            Some(spec) => spec,
+            None => return not_found(tool),
         };
+
+        let tool_kind_segment = graceful_load_segment_flipped(&spec.vox_spec.0, flipped);
+        let mut offset = Vec3::from(spec.vox_spec.1);
 
         if flipped {
             offset.x = 0.0 - offset.x - (tool_kind_segment.sz.x as f32);
@@ -2862,7 +2812,7 @@ impl FishSmallLateralSpec {
 ////
 
 #[derive(Deserialize)]
-struct BipedSmallWeaponSpec(HashMap<String, ArmorVoxSpec>);
+struct BipedSmallWeaponSpec(HashMap<ToolKey, ArmorVoxSpec>);
 #[derive(Deserialize)]
 struct BipedSmallArmorHeadSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Deserialize)]
@@ -2929,7 +2879,7 @@ make_vox_spec!(
             }),
             tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
                 spec.weapon.read().0.mesh_main(
-                    &tool.name,
+                    tool,
                     false,
                 )
             }),
@@ -3106,11 +3056,11 @@ impl BipedSmallArmorFootSpec {
 }
 
 impl BipedSmallWeaponSpec {
-    fn mesh_main(&self, item_definition_id: &str, flipped: bool) -> BoneMeshes {
-        let spec = match self.0.get(item_definition_id) {
+    fn mesh_main(&self, tool: &ToolKey, flipped: bool) -> BoneMeshes {
+        let spec = match self.0.get(tool) {
             Some(spec) => spec,
             None => {
-                error!(?item_definition_id, "No tool/weapon specification exists");
+                error!(?tool, "No tool/weapon specification exists");
                 return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
             },
         };
@@ -3905,9 +3855,9 @@ struct BipedLargeLateralSubSpec {
     lateral: VoxSimple,
 }
 #[derive(Deserialize)]
-struct BipedLargeMainSpec(HashMap<String, ArmorVoxSpec>);
+struct BipedLargeMainSpec(HashMap<ToolKey, ArmorVoxSpec>);
 #[derive(Deserialize)]
-struct BipedLargeSecondSpec(HashMap<String, ArmorVoxSpec>);
+struct BipedLargeSecondSpec(HashMap<ToolKey, ArmorVoxSpec>);
 make_vox_spec!(
     biped_large::Body,
     struct BipedLargeSpec {
@@ -3954,13 +3904,13 @@ make_vox_spec!(
             )),
             tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
                 spec.main.read().0.mesh_main(
-                    &tool.name,
+                    tool,
                     false,
                 )
             }),
             tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
                 spec.second.read().0.mesh_second(
-                    &tool.name,
+                    tool,
                     false,
                 )
             }),
@@ -4212,11 +4162,11 @@ impl BipedLargeLateralSpec {
     }
 }
 impl BipedLargeMainSpec {
-    fn mesh_main(&self, item_definition_id: &str, flipped: bool) -> BoneMeshes {
-        let spec = match self.0.get(item_definition_id) {
+    fn mesh_main(&self, tool: &ToolKey, flipped: bool) -> BoneMeshes {
+        let spec = match self.0.get(tool) {
             Some(spec) => spec,
             None => {
-                error!(?item_definition_id, "No tool/weapon specification exists");
+                error!(?tool, "No tool/weapon specification exists");
                 return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
             },
         };
@@ -4241,11 +4191,11 @@ impl BipedLargeMainSpec {
     }
 }
 impl BipedLargeSecondSpec {
-    fn mesh_second(&self, item_definition_id: &str, flipped: bool) -> BoneMeshes {
-        let spec = match self.0.get(item_definition_id) {
+    fn mesh_second(&self, tool: &ToolKey, flipped: bool) -> BoneMeshes {
+        let spec = match self.0.get(tool) {
             Some(spec) => spec,
             None => {
-                error!(?item_definition_id, "No tool/weapon specification exists");
+                error!(?tool, "No tool/weapon specification exists");
                 return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
             },
         };
