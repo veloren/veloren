@@ -377,6 +377,8 @@ impl Body {
             Body::SeaLantern => Vec3::new(0.5, 0.5, 1.0),
             Body::Snowball => Vec3::broadcast(2.5),
             Body::Tornado => Vec3::new(2.0, 2.0, 3.4),
+            Body::TrainingDummy => Vec3::new(1.5, 1.5, 3.0),
+            // FIXME: this *must* be exhaustive match
             _ => Vec3::broadcast(0.5),
         }
     }

@@ -1787,10 +1787,20 @@ impl<'a> AgentData<'a> {
                        0.0
                    };
 
-        // FIXME: Retrieve actual projectile speed!
+        // FIXME:
+        // 1) Retrieve actual projectile speed!
         // We have to assume projectiles are faster than base speed because there are
         // skills that increase it, and in most cases this will cause agents to
         // overshoot
+        //
+        // 2) We use eye_offset-s which isn't actually ideal.
+        // Some attacks (beam for example) may use different offsets,
+        // we should probably use offsets from corresponding states.
+        //
+        // 3) Should we even have this big switch?
+        // Not all attacks may want their direction overwritten.
+        // And this is quite hard to debug when you don't see it in actual
+        // attack handler.
         if let Some(dir) = match tactic {
             Tactic::Bow
             | Tactic::FixedTurret

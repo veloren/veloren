@@ -9,7 +9,6 @@ BasicBeam(
     damage_effect: Some(Lifesteal(0.125)),
     energy_regen: 50,
     energy_drain: 0,
-    orientation_behavior: Normal,
     ori_rate: 0.3,
     specifier: LifestealBeam
 )
