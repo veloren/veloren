@@ -74,7 +74,7 @@ use client::Client;
 use common::{
     combat,
     comp::{
-        self,
+        self, fluid_dynamics,
         inventory::trade_pricing::TradePricing,
         item::{tool::ToolKind, ItemDesc, MaterialStatManifest, Quality},
         skills::{Skill, SkillGroupKind},
@@ -86,7 +86,7 @@ use common::{
     terrain::{SpriteKind, TerrainChunk},
     trade::{ReducedInventory, TradeAction},
     uid::Uid,
-    util::srgba_to_linear,
+    util::{srgba_to_linear, Dir},
     vol::RectRasterableVol,
 };
 use common_base::{prof_span, span};
@@ -233,7 +233,10 @@ widget_ids! {
         ping,
         coordinates,
         velocity,
+        glide_ratio,
+        glide_aoe,
         orientation,
+        look_direction,
         loaded_distance,
         time,
         entity_count,
@@ -441,6 +444,9 @@ pub struct DebugInfo {
     pub coordinates: Option<comp::Pos>,
     pub velocity: Option<comp::Vel>,
     pub ori: Option<comp::Ori>,
+    pub character_state: Option<comp::CharacterState>,
+    pub look_dir: Dir,
+    pub in_fluid: Option<comp::Fluid>,
     pub num_chunks: u32,
     pub num_lights: u32,
     pub num_visible_chunks: u32,
@@ -2150,6 +2156,8 @@ impl Hud {
         }
 
         // Display debug window.
+        // TODO:
+        // Make it use i18n keys.
         if let Some(debug_info) = debug_info {
             prof_span!("debug info");
             // Alpha Version
@@ -2192,15 +2200,31 @@ impl Hud {
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.coordinates, ui_widgets);
             // Player's velocity
-            let velocity_text = match debug_info.velocity {
-                Some(velocity) => format!(
-                    "Velocity: ({:.1}, {:.1}, {:.1}) [{:.1} u/s]",
-                    velocity.0.x,
-                    velocity.0.y,
-                    velocity.0.z,
-                    velocity.0.magnitude()
-                ),
-                None => "Player has no Vel component".to_owned(),
+            let (velocity_text, glide_ratio_text) = match debug_info.velocity {
+                Some(velocity) => {
+                    let velocity = velocity.0;
+                    let velocity_text = format!(
+                        "Velocity: ({:.1}, {:.1}, {:.1}) [{:.1} u/s]",
+                        velocity.x,
+                        velocity.y,
+                        velocity.z,
+                        velocity.magnitude()
+                    );
+                    let horizontal_velocity = velocity.xy().magnitude();
+                    let dz = velocity.z;
+                    // don't divide by zero
+                    let glide_ratio_text = if dz.abs() > 0.0001 {
+                        format!("Glide Ratio: {:.1}", (-1.0) * (horizontal_velocity / dz))
+                    } else {
+                        "Glide Ratio: Altitude is constant".to_owned()
+                    };
+
+                    (velocity_text, glide_ratio_text)
+                },
+                None => {
+                    let err = "Player has no Vel component";
+                    (err.to_owned(), err.to_owned())
+                },
             };
             Text::new(&velocity_text)
                 .color(TEXT_COLOR)
@@ -2208,23 +2232,54 @@ impl Hud {
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.velocity, ui_widgets);
+            Text::new(&glide_ratio_text)
+                .color(TEXT_COLOR)
+                .down_from(self.ids.velocity, 5.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .set(self.ids.glide_ratio, ui_widgets);
+            let glide_angle_text = angle_of_attack_text(
+                debug_info.in_fluid,
+                debug_info.velocity,
+                debug_info.character_state.as_ref(),
+            );
+            Text::new(&glide_angle_text)
+                .color(TEXT_COLOR)
+                .down_from(self.ids.glide_ratio, 5.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .set(self.ids.glide_aoe, ui_widgets);
             // Player's orientation vector
             let orientation_text = match debug_info.ori {
                 Some(ori) => {
-                    let look_dir = ori.look_dir();
+                    let orientation = ori.look_dir();
                     format!(
-                        "Orientation: ({:.1}, {:.1}, {:.1})",
-                        look_dir.x, look_dir.y, look_dir.z,
+                        "Orientation: ({:.2}, {:.2}, {:.2})",
+                        orientation.x, orientation.y, orientation.z,
                     )
                 },
                 None => "Player has no Ori component".to_owned(),
             };
             Text::new(&orientation_text)
                 .color(TEXT_COLOR)
-                .down_from(self.ids.velocity, 5.0)
+                .down_from(self.ids.glide_aoe, 5.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.orientation, ui_widgets);
+            let look_dir_text = {
+                let look_vec = debug_info.look_dir.to_vec();
+
+                format!(
+                    "Look Direction: ({:.2}, {:.2}, {:.2})",
+                    look_vec.x, look_vec.y, look_vec.z,
+                )
+            };
+            Text::new(&look_dir_text)
+                .color(TEXT_COLOR)
+                .down_from(self.ids.orientation, 5.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .set(self.ids.look_direction, ui_widgets);
             // Loaded distance
             Text::new(&format!(
                 "View distance: {:.2} blocks ({:.2} chunks)",
@@ -2232,7 +2287,7 @@ impl Hud {
                 client.loaded_distance() / TerrainChunk::RECT_SIZE.x as f32,
             ))
             .color(TEXT_COLOR)
-            .down_from(self.ids.orientation, 5.0)
+            .down_from(self.ids.look_direction, 5.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.loaded_distance, ui_widgets);
@@ -4005,5 +4060,41 @@ pub fn get_buff_time(buff: BuffInfo) -> String {
         format!("{:.0}s", dur.as_secs_f32())
     } else {
         "".to_string()
+    }
+}
+
+pub fn angle_of_attack_text(
+    fluid: Option<comp::Fluid>,
+    velocity: Option<comp::Vel>,
+    character_state: Option<&comp::CharacterState>,
+) -> String {
+    use comp::CharacterState;
+
+    let glider_ori = if let Some(CharacterState::Glide(data)) = character_state {
+        data.ori
+    } else {
+        return "Angle of Attack: Not gliding".to_owned();
+    };
+
+    let fluid = if let Some(fluid) = fluid {
+        fluid
+    } else {
+        return "Angle of Attack: Not in fluid".to_owned();
+    };
+
+    let velocity = if let Some(velocity) = velocity {
+        velocity
+    } else {
+        return "Angle of Attack: Player has no vel component".to_owned();
+    };
+    let rel_flow = fluid.relative_flow(&velocity).0;
+    let v_sq = rel_flow.magnitude_squared();
+
+    if v_sq.abs() > 0.0001 {
+        let rel_flow_dir = Dir::new(rel_flow / v_sq.sqrt());
+        let aoe = fluid_dynamics::angle_of_attack(&glider_ori, &rel_flow_dir);
+        format!("Angle of Attack: {:.1}", aoe.to_degrees())
+    } else {
+        "Angle of Attack: Not moving".to_owned()
     }
 }

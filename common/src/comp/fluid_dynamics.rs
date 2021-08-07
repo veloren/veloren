@@ -243,8 +243,9 @@ impl Body {
             Body::BirdMedium(_) | Body::BirdLarge(_) | Body::Dragon(_) => {
                 let dim = self.dimensions().map(|a| a * 0.5);
                 let cd: f32 = match self {
-                    // "Field Estimates of Body Drag Coefficient on the Basis of Dives in Passerine
-                    // Birds", Anders Hedenström and Felix Liechti, 2001
+                    // "Field Estimates of Body Drag Coefficient
+                    // on the Basis of Dives in Passerine Birds",
+                    // Anders Hedenström and Felix Liechti, 2001
                     Body::BirdLarge(_) | Body::BirdMedium(_) => 0.2,
                     // arbitrary
                     _ => 0.7,
@@ -370,7 +371,8 @@ pub fn zero_lift_drag_coefficient(planform_area: f32) -> f32 { planform_area * 0
 /// freestream flow
 /// 2. up to around ~18°, at which point maximum lift has been achieved and
 /// thereafter falls precipitously, causing a stall (this is the stall
-/// angle) 3. effective aoa, i.e. geometric aoa - induced aoa; assumes
+/// angle)
+/// 3. effective aoa, i.e. geometric aoa - induced aoa; assumes
 /// no sideslip
 // TODO: Look into handling tapered wings
 fn lift_slope(aspect_ratio: f32, sweep_angle: Option<f32>) -> f32 {
