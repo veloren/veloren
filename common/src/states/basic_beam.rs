@@ -3,7 +3,10 @@ use crate::{
         Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageKind,
         DamageSource, GroupTarget,
     },
-    comp::{beam, Body, CharacterState, EnergyChange, EnergySource, Ori, Pos, StateUpdate},
+    comp::{
+        beam, body::biped_large, Body, CharacterState, EnergyChange, EnergySource, Ori, Pos,
+        StateUpdate,
+    },
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -158,25 +161,8 @@ impl CharacterBehavior for Data {
                         .prerotated(pitch)
                     };
                     // Gets offsets
-                    let body_offsets = {
-                        let body_radius = data.body.radius();
-
-                        // TODO: make it public function to use in Agent code
-                        // to help with aim.
-                        let body_offsets_z = match data.body {
-                            Body::BirdLarge(_) => data.body.height() * 0.8,
-                            Body::Golem(_) => {
-                                data.body.height() * 0.9 + data.inputs.look_dir.z * 3.0
-                            },
-                            _ => data.body.height() * 0.5,
-                        };
-
-                        Vec3::new(
-                            body_radius * update.ori.look_vec().x * 1.1,
-                            body_radius * update.ori.look_vec().y * 1.1,
-                            body_offsets_z,
-                        )
-                    };
+                    let body_offsets =
+                        beam_offsets(data.body, data.inputs.look_dir, update.ori.look_vec());
                     let pos = Pos(data.pos.0 + body_offsets);
 
                     // Create beam segment
@@ -231,4 +217,26 @@ impl CharacterBehavior for Data {
 
         update
     }
+}
+
+fn height_offset(body: &Body, look_dir: Dir) -> f32 {
+    match body {
+        Body::BirdLarge(_) => body.height() * 0.8,
+        Body::Golem(_) => body.height() * 0.9 + look_dir.z * 3.0,
+        Body::BipedLarge(b) => match b.species {
+            biped_large::Species::Mindflayer => body.height() * 0.6,
+            _ => body.height() * 0.5,
+        },
+        _ => body.height() * 0.5,
+    }
+}
+
+pub fn beam_offsets(body: &Body, look_dir: Dir, ori: Vec3<f32>) -> Vec3<f32> {
+    let body_radius = body.radius();
+    let body_offsets_z = height_offset(body, look_dir);
+    Vec3::new(
+        body_radius * ori.x * 1.1,
+        body_radius * ori.y * 1.1,
+        body_offsets_z,
+    )
 }
