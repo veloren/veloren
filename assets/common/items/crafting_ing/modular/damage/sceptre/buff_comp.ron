@@ -1,0 +1,25 @@
+ItemDef(
+    name: Component("Buff Sceptre Piece"),
+    description: "",
+    kind: ModularComponent((
+        toolkind: Sceptre,
+        modkind: Damage,
+        stats: (
+            equip_time_secs: 0.25,
+            power: 0.9,
+            effect_power: 0.8,
+            speed: 0.9,
+            crit_chance: 0.15,
+            range: 1.0,
+            energy_efficiency: 0.8,
+            buff_strength: 2.0,
+        ),
+        hand_restriction: Some(Two),
+        weapon_name: "Buff Sceptre",
+    )),
+    quality: Modular,
+    tags: [
+        ModularComponent((toolkind: Sceptre, modkind: Damage, hands: Two)),
+    ],
+)
+
