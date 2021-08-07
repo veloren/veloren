@@ -583,9 +583,11 @@ impl PlayState for SessionState {
                                 }
                             },
                             GameInput::Fly => {
-                                // Not sure where to put comment, but I noticed when testing flight
-                                // Syncing of inputs between mounter and mountee broke with
-                                // controller change
+                                // Not sure where to put comment, but I noticed
+                                // when testing flight.
+                                //
+                                // Syncing of inputs between mounter and mountee
+                                // broke with controller change
                                 self.key_state.fly ^= state;
                                 let mut client = self.client.borrow_mut();
                                 client.handle_input(
@@ -978,40 +980,36 @@ impl PlayState for SessionState {
                 .camera_mut()
                 .compute_dependents(&*self.client.borrow().state().terrain());
 
-            // Generate debug info, if needed (it iterates through enough data that we might
+            // Generate debug info, if needed
+            // (it iterates through enough data that we might
             // as well avoid it unless we need it).
-            let debug_info = global_state
-                .settings
-                .interface
-                .toggle_debug
-                .then(|| DebugInfo {
+            let debug_info = global_state.settings.interface.toggle_debug.then(|| {
+                let client = self.client.borrow();
+                let ecs = client.state().ecs();
+                let entity = client.entity();
+                let coordinates = ecs.read_storage::<Pos>().get(entity).cloned();
+                let velocity = ecs.read_storage::<Vel>().get(entity).cloned();
+                let ori = ecs.read_storage::<comp::Ori>().get(entity).cloned();
+                let look_dir = self.inputs.look_dir;
+                let in_fluid = ecs
+                    .read_storage::<comp::PhysicsState>()
+                    .get(entity)
+                    .and_then(|state| state.in_fluid);
+                let character_state = ecs
+                    .read_storage::<comp::CharacterState>()
+                    .get(entity)
+                    .cloned();
+
+                DebugInfo {
                     tps: global_state.clock.stats().average_tps,
                     frame_time: global_state.clock.stats().average_busy_dt,
                     ping_ms: self.client.borrow().get_ping_ms_rolling_avg(),
-                    coordinates: self
-                        .client
-                        .borrow()
-                        .state()
-                        .ecs()
-                        .read_storage::<Pos>()
-                        .get(self.client.borrow().entity())
-                        .cloned(),
-                    velocity: self
-                        .client
-                        .borrow()
-                        .state()
-                        .ecs()
-                        .read_storage::<Vel>()
-                        .get(self.client.borrow().entity())
-                        .cloned(),
-                    ori: self
-                        .client
-                        .borrow()
-                        .state()
-                        .ecs()
-                        .read_storage::<comp::Ori>()
-                        .get(self.client.borrow().entity())
-                        .cloned(),
+                    coordinates,
+                    velocity,
+                    ori,
+                    look_dir,
+                    character_state,
+                    in_fluid,
                     num_chunks: self.scene.terrain().chunk_count() as u32,
                     num_lights: self.scene.lights().len() as u32,
                     num_visible_chunks: self.scene.terrain().visible_chunk_count() as u32,
@@ -1021,7 +1019,8 @@ impl PlayState for SessionState {
                     num_particles: self.scene.particle_mgr().particle_count() as u32,
                     num_particles_visible: self.scene.particle_mgr().particle_count_visible()
                         as u32,
-                });
+                }
+            });
 
             // Extract HUD events ensuring the client borrow gets dropped.
             let mut hud_events = self.hud.maintain(
