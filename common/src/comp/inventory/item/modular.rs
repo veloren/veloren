@@ -1,6 +1,6 @@
 use super::{
     tool::{self, Hands},
-    Item, ItemKind, ItemName, ItemTag, RawItemDef, TagExampleInfo, ToolKind,
+    Item, ItemDesc, ItemKind, ItemName, ItemTag, RawItemDef, TagExampleInfo, ToolKind,
 };
 use crate::{
     assets::AssetExt,
@@ -435,7 +435,9 @@ pub fn random_weapon(tool: ToolKind, material: super::Material, hands: Option<Ha
         .map_or(hands, Some);
     let held_comp_dir = make_mod_comp_dir_def(tool, ModularComponentKind::Held);
     let mut held_component = create_component(&held_comp_dir, damage_hands);
-    let material_component = Item::new_from_asset_expect(material.asset_identifier().expect("Code reviewers: open comment here if I forget about this, I got lazy during a rebase"));
+    let material_component = Item::new_from_asset_expect(material.asset_identifier().expect(
+        "Code reviewers: open comment here if I forget about this, I got lazy during a rebase",
+    ));
 
     // Insert material item into modular component of appropriate kind
     match material_comp {
@@ -453,4 +455,37 @@ pub fn random_weapon(tool: ToolKind, material: super::Material, hands: Option<Ha
 
     // Returns fully created modular weapon
     modular_weapon
+}
+
+// (Main component, material, hands)
+pub type ModularWeaponKey = (String, String, Hands);
+
+pub fn weapon_to_key(mod_weap: &dyn ItemDesc) -> ModularWeaponKey {
+    let hands = if let ItemKind::Tool(tool) = mod_weap.kind() {
+        tool.hands.resolve_hands(mod_weap.components())
+    } else {
+        Hands::One
+    };
+
+    let (main_comp, material) = if let Some(main_comp) = mod_weap.components().iter().find(|comp| {
+        matches!(comp.kind(), ItemKind::ModularComponent(mod_comp) if ModularComponentKind::main_component(mod_comp.toolkind) == mod_comp.modkind)
+    }) {
+        let material = if let Some(material) = main_comp.components().iter().filter_map(|mat| {
+            if let Some(super::ItemTag::Material(material)) = mat.tags().iter().find(|tag| matches!(tag, super::ItemTag::Material(_))) {
+                Some(material)
+            } else {
+                None
+            }
+        }).next() {
+            material.into()
+        } else {
+            ""
+        };
+
+        (main_comp.item_definition_id(), material)
+    } else {
+        ("", "")
+    };
+
+    (main_comp.to_owned(), material.to_owned(), hands)
 }

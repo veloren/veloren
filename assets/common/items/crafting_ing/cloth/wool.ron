@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Woolen",
     ),
     quality: Direct(Common),
-    tags: [MaterialKind(Cloth)],
+    tags: [MaterialKind(Cloth), Material(Wool)],
 )

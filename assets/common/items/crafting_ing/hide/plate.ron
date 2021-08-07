@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Plate",
     ),
     quality: Direct(Epic),
-    tags: [MaterialKind(Hide)],
+    tags: [MaterialKind(Hide), Material(Plate)],
 )

@@ -316,6 +316,10 @@
         "voxel.weapon.sword.iron-5",
         (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
+    ModularWeapon(("common.items.crafting_ing.modular.damage.sword.longsword", "iron", One)): VoxTrans(
+        "voxel.weapon.sword.iron-5",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
     Tool("common.items.weapons.sword.iron-6"): VoxTrans(
         "voxel.weapon.sword.iron-6",
         (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,

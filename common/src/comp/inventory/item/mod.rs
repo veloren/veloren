@@ -212,28 +212,18 @@ impl Material {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct MaterialTag {
-    material: Material,
-}
-
-impl MaterialTag {
-    pub fn material(&self) -> &Material { &self.material }
-}
-
-impl TagExampleInfo for MaterialTag {
-    fn name(&self) -> Cow<'static, str> { Cow::Borrowed(self.material.into()) }
+impl TagExampleInfo for Material {
+    fn name(&self) -> Cow<'static, str> { Cow::Borrowed(self.into()) }
 
     fn exemplar_identifier(&self) -> Cow<'static, str> {
-        Cow::Borrowed("common.items.tag_examples.placeholder")
+        Cow::Borrowed(self.asset_identifier().unwrap_or(""))
     }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ItemTag {
     Leather,
-    Material(MaterialTag),
+    Material(Material),
     MaterialKind(MaterialKind),
     ModularComponent(ModularComponentTag),
     Cultist,

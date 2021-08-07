@@ -198,14 +198,12 @@ impl CraftingTab {
             },
             CraftingTab::Glider => matches!(item.kind(), ItemKind::Glider(_)),
             CraftingTab::Potion => item.tags().contains(&ItemTag::Potion),
-            CraftingTab::ProcessedMaterial => {
-                item.tags().iter().any(|tag| {
-                    matches!(
-                        tag,
-                        &ItemTag::MaterialKind(_) | &ItemTag::Leather | &ItemTag::BaseMaterial
-                    )
-                })
-            },
+            CraftingTab::ProcessedMaterial => item.tags().iter().any(|tag| {
+                matches!(
+                    tag,
+                    &ItemTag::MaterialKind(_) | &ItemTag::Leather | &ItemTag::BaseMaterial
+                )
+            }),
             CraftingTab::Bag => item.tags().contains(&ItemTag::Bag),
             CraftingTab::Tool => item.tags().contains(&ItemTag::CraftingTool),
             CraftingTab::Utility => item.tags().contains(&ItemTag::Utility),

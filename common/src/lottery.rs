@@ -139,7 +139,11 @@ impl<T: AsRef<str>> LootSpec<T> {
                 .choose()
                 .to_item(),
             Self::Nothing => None,
-            Self::ModularWeapon { tool, material, hands } => Some(item::modular::random_weapon(*tool, *material, *hands)),
+            Self::ModularWeapon {
+                tool,
+                material,
+                hands,
+            } => Some(item::modular::random_weapon(*tool, *material, *hands)),
         }
     }
 }

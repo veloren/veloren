@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Cobalt",
     ),
     quality: Direct(High),
-    tags: [MaterialKind(Metal)],
+    tags: [MaterialKind(Metal), Material(Cobalt)],
 )

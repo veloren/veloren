@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Hardwood",
     ),
     quality: Direct(Common),
-    tags: [MaterialKind(Wood)],
+    tags: [MaterialKind(Wood), Material(Hardwood)],
 )

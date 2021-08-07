@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Frostwood",
     ),
     quality: Direct(Common),
-    tags: [MaterialKind(Wood)],
+    tags: [MaterialKind(Wood), Material(Frostwood)],
 )

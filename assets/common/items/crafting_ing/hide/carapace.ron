@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Carapace",
     ),
     quality: Direct(High),
-    tags: [MaterialKind(Hide)],
+    tags: [MaterialKind(Hide), Material(Carapace)],
 )

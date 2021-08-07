@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Leather",
     ),
     quality: Direct(Common),
-    tags: [BaseMaterial, Leather, MaterialKind(Hide)],
+    tags: [BaseMaterial, Leather, MaterialKind(Hide), Material(Leather)],
 )

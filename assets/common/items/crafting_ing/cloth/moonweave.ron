@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Moonwoven",
     ),
     quality: Direct(Epic),
-    tags: [MaterialKind(Cloth)],
+    tags: [MaterialKind(Cloth), Material(Moonweave)],
 )

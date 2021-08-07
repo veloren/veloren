@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Dragonscale",
     ),
     quality: Direct(Legendary),
-    tags: [MaterialKind(Hide)],
+    tags: [MaterialKind(Hide), Material(Dragonscale)],
 )

@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Raw Hide",
     ),
     quality: Direct(Low),
-    tags: [BaseMaterial, Leather, MaterialKind(Hide)],
+    tags: [BaseMaterial, Leather, MaterialKind(Hide), Material(Rawhide)],
 )

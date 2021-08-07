@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Iron",
     ),
     quality: Direct(Common),
-    tags: [MaterialKind(Metal)],
+    tags: [MaterialKind(Metal), Material(Iron)],
 )

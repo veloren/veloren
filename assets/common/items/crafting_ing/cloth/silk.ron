@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Silken",
     ),
     quality: Direct(Moderate),
-    tags: [MaterialKind(Cloth)],
+    tags: [MaterialKind(Cloth), Material(Silk)],
 )

@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Orichalcum",
     ),
     quality: Direct(Legendary),
-    tags: [MaterialKind(Metal)],
+    tags: [MaterialKind(Metal), Material(Orichalcum)],
 )
