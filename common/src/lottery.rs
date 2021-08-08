@@ -183,6 +183,8 @@ pub mod tests {
                 validate_table_contents(loot_table);
             },
             LootSpec::Nothing => {},
+            // TODO: Figure out later
+            LootSpec::ModularWeapon { .. } => {},
         }
     }
 

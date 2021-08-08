@@ -1,8 +1,8 @@
 ItemDef(
-    name: Component("Balanced Sceptre Held"),
+    name: Component("Medium Bow Limbs"),
     description: "",
     kind: ModularComponent((
-        toolkind: Sceptre,
+        toolkind: Bow,
         modkind: Held,
         stats: (
             equip_time_secs: 1.0,
@@ -19,7 +19,6 @@ ItemDef(
     )),
     quality: Direct(Common),
     tags: [
-        ModularComponent((toolkind: Sceptre, modkind: Held, hands: Two)),
+        ModularComponent((toolkind: Bow, modkind: Held, hands: Two)),
     ],
 )
-

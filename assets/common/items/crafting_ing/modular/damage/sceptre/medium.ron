@@ -1,9 +1,9 @@
 ItemDef(
-    name: Component("Balanced Bow Held"),
+    name: Component("Medium Nature Core"),
     description: "",
     kind: ModularComponent((
-        toolkind: Bow,
-        modkind: Held,
+        toolkind: Sceptre,
+        modkind: Damage,
         stats: (
             equip_time_secs: 1.0,
             power: 1.0,
@@ -19,7 +19,7 @@ ItemDef(
     )),
     quality: Direct(Common),
     tags: [
-        ModularComponent((toolkind: Bow, modkind: Held, hands: Two)),
+        ModularComponent((toolkind: Sceptre, modkind: Damage, hands: Two)),
     ],
 )
 

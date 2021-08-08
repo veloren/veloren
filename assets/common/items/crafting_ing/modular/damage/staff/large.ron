@@ -1,9 +1,9 @@
 ItemDef(
-    name: Component("Heavy Staff Held"),
+    name: Component("Large Fire Core"),
     description: "",
     kind: ModularComponent((
         toolkind: Staff,
-        modkind: Held,
+        modkind: Damage,
         stats: (
             equip_time_secs: 1.0,
             power: 1.5,
@@ -19,7 +19,7 @@ ItemDef(
     )),
     quality: Direct(Common),
     tags: [
-        ModularComponent((toolkind: Staff, modkind: Held, hands: Two)),
+        ModularComponent((toolkind: Staff, modkind: Damage, hands: Two)),
     ],
 )
 

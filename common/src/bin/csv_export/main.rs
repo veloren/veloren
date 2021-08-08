@@ -13,7 +13,7 @@ use veloren_common::{
         self,
         item::{
             armor::{ArmorKind, Protection},
-            tool::{Hands, MaterialStatManifest, Tool, ToolKind},
+            tool::{Hands, HandsKind, MaterialStatManifest, Tool, ToolKind},
             Item, ItemKind,
         },
     },
@@ -74,7 +74,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                 wtr.write_record(&[
                     item.item_definition_id(),
                     &kind,
-                    item.name(),
+                    &item.name(),
                     &format!("{:?}", item.quality()),
                     &protection,
                     &poise_resilience,
@@ -135,7 +135,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
             wtr.write_record(&[
                 item.item_definition_id(),
                 &kind,
-                item.name(),
+                &item.name(),
                 &hands,
                 &format!("{:?}", item.quality()),
                 &power,
@@ -177,8 +177,9 @@ fn get_tool_kind(kind: &ToolKind) -> String {
 
 fn get_tool_hands(tool: &Tool) -> String {
     match tool.hands {
-        Hands::One => "One".to_string(),
-        Hands::Two => "Two".to_string(),
+        HandsKind::Direct(Hands::One) => "One".to_string(),
+        HandsKind::Direct(Hands::Two) => "Two".to_string(),
+        HandsKind::Modular => "Modular".to_string(),
     }
 }
 
@@ -229,7 +230,7 @@ fn all_items() -> Result<(), Box<dyn Error>> {
             _ => "".to_owned(),
         };
 
-        wtr.write_record(&[item.item_definition_id(), item.name(), &kind])?;
+        wtr.write_record(&[item.item_definition_id(), &item.name(), &kind])?;
     }
 
     wtr.flush()?;
@@ -242,8 +243,8 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
         "Relative Chance",
         "Kind",
         "Item",
-        "Lower Amount",
-        "Upper Amount",
+        "Lower Amount or Material",
+        "Upper Amount or Hands",
     ])?;
 
     let loot_table = "common.loot_tables.".to_owned() + loot_table;
@@ -261,6 +262,12 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
         .div(10_f32.powi(5))
         .to_string();
 
+        let get_hands = |hands| match hands {
+            Some(Hands::One) => "One",
+            Some(Hands::Two) => "Two",
+            None => "",
+        };
+
         match item {
             LootSpec::Item(item) => wtr.write_record(&[&chance, "Item", item, "", ""])?,
             LootSpec::ItemQuantity(item, lower, upper) => wtr.write_record(&[
@@ -274,6 +281,17 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
                 wtr.write_record(&[&chance, "LootTable", table, "", ""])?
             },
             LootSpec::Nothing => wtr.write_record(&[&chance, "Nothing", "", ""])?,
+            LootSpec::ModularWeapon {
+                tool,
+                material,
+                hands,
+            } => wtr.write_record(&[
+                &chance,
+                "Modular Weapon",
+                &get_tool_kind(tool),
+                material.into(),
+                get_hands(*hands),
+            ])?,
         }
     }
 

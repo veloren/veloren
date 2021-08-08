@@ -1,25 +1,25 @@
 ItemDef(
-    name: Component("Power Sceptre Piece"),
+    name: Component("Pole Grip"),
     description: "",
     kind: ModularComponent((
-        toolkind: Sceptre,
-        modkind: Damage,
+        toolkind: Staff,
+        modkind: Held,
         stats: (
             equip_time_secs: 0.25,
-            power: 1.5,
+            power: 0.9,
             effect_power: 0.8,
             speed: 0.9,
             crit_chance: 0.15,
             range: 1.0,
             energy_efficiency: 0.8,
-            buff_strength: 0.8,
+            buff_strength: 2.0,
         ),
         hand_restriction: Some(Two),
-        weapon_name: "Power Sceptre",
+        weapon_name: "Pole",
     )),
     quality: Modular,
     tags: [
-        ModularComponent((toolkind: Sceptre, modkind: Damage, hands: Two)),
+        ModularComponent((toolkind: Staff, modkind: Held, hands: Two)),
     ],
 )
 

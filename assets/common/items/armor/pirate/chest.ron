@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Pirate Jacket",
+    name: Direct("Pirate Jacket"),
     description: "",
     kind: Armor((
         kind: Chest("Pirate"),
@@ -11,7 +11,7 @@ ItemDef(
             crit_power: Some(0.125),
         ),
     )),
-    quality: Epic,
+    quality: Direct(Epic),
     tags: [
     ],
 )

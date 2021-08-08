@@ -1,9 +1,9 @@
 ItemDef(
-    name: Component("Light Staff Held"),
+    name: Component("Small Nature Core"),
     description: "",
     kind: ModularComponent((
-        toolkind: Staff,
-        modkind: Held,
+        toolkind: Sceptre,
+        modkind: Damage,
         stats: (
             equip_time_secs: 1.0,
             power: 0.7,
@@ -19,7 +19,7 @@ ItemDef(
     )),
     quality: Direct(Common),
     tags: [
-        ModularComponent((toolkind: Staff, modkind: Held, hands: Two)),
+        ModularComponent((toolkind: Sceptre, modkind: Damage, hands: Two)),
     ],
 )
 

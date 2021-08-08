@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Gnome",
+    name: Direct("Gnome"),
     description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Foot("Gnome"),
@@ -8,6 +8,6 @@ ItemDef(
             poise_resilience: Some(Normal(1.0)),
         ),
     )),
-    quality: Low,
+    quality: Direct(Low),
     tags: [],
 )

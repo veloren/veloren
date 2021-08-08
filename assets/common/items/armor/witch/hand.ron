@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Witch Handwarmers",
+    name: Direct("Witch Handwarmers"),
     description: "",
     kind: Armor((
         kind: Hand("Witch"),
@@ -11,7 +11,7 @@ ItemDef(
             crit_power: Some(0.04),
         ),
     )),
-    quality: Epic,
+    quality: Direct(Epic),
     tags: [
     ],
 )

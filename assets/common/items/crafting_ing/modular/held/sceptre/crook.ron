@@ -1,9 +1,9 @@
 ItemDef(
-    name: Component("Buff Staff Piece"),
+    name: Component("Crook Grip"),
     description: "",
     kind: ModularComponent((
-        toolkind: Staff,
-        modkind: Damage,
+        toolkind: Sceptre,
+        modkind: Held,
         stats: (
             equip_time_secs: 0.25,
             power: 0.9,
@@ -15,11 +15,11 @@ ItemDef(
             buff_strength: 2.0,
         ),
         hand_restriction: Some(Two),
-        weapon_name: "Buff Staff",
+        weapon_name: "Crook",
     )),
     quality: Modular,
     tags: [
-        ModularComponent((toolkind: Staff, modkind: Damage, hands: Two)),
+        ModularComponent((toolkind: Sceptre, modkind: Held, hands: Two)),
     ],
 )
 
