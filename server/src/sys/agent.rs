@@ -28,7 +28,7 @@ use common::{
     path::TraversalConfig,
     resources::{DeltaTime, Time, TimeOfDay},
     rtsim::{Memory, MemoryItem, RtSimEntity, RtSimEvent},
-    states::utils::StageSection,
+    states::{basic_beam, utils::StageSection},
     terrain::{Block, TerrainGrid},
     time::DayPeriod,
     trade::{TradeAction, TradePhase, TradeResult},
@@ -1802,6 +1802,8 @@ impl<'a> AgentData<'a> {
         // And this is quite hard to debug when you don't see it in actual
         // attack handler.
         if let Some(dir) = match tactic {
+            // FIXME: this code make Staff flamethrower aim flamethrower
+            // like a projectile.
             Tactic::Bow
             | Tactic::FixedTurret
             | Tactic::QuadLowRanged
@@ -1891,13 +1893,25 @@ impl<'a> AgentData<'a> {
 
                 Dir::from_unnormalized(Vec3::new(delta_x, delta_y, -1.0))
             },
-            _ => Dir::from_unnormalized(
-                Vec3::new(
+            _ => {
+                let aim_from = match self.char_state {
+                    CharacterState::BasicBeam(_) => self.body.map_or(self.pos.0, |body| {
+                        self.pos.0
+                            + basic_beam::beam_offsets(
+                                body,
+                                controller.inputs.look_dir,
+                                self.ori.look_vec(),
+                            )
+                    }),
+                    _ => Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+                };
+                let aim_to = Vec3::new(
                     tgt_data.pos.0.x,
                     tgt_data.pos.0.y,
                     tgt_data.pos.0.z + tgt_eye_offset,
-                ) - Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
-            ),
+                );
+                Dir::from_unnormalized(aim_to - aim_from)
+            },
         } {
             controller.inputs.look_dir = dir;
         }
