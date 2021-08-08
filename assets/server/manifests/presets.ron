@@ -119,6 +119,7 @@
         (Sceptre(LRegen), 2),
 
         (Sceptre(HHeal), 3),
+        (Sceptre(HDuration), 2),
         (Sceptre(HCost), 2),
         (Sceptre(HRange), 2),
 
