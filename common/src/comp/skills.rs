@@ -606,18 +606,17 @@ pub enum SkillGroupKind {
 
 impl SkillGroupKind {
     /// Gets the cost in experience of earning a skill point
-    #[allow(clippy::many_single_char_names)]
     pub fn skill_point_cost(self, level: u16) -> u16 {
-        let exp_increment = 10.0;
-        let starting_exp = 100.0;
-        let exp_ceiling = 1000.0;
-        let scaling_factor = 0.1;
-        (exp_increment
-            * (exp_ceiling
-                / exp_increment
+        const EXP_INCREMENT: f32 = 10.0;
+        const STARTING_EXP: f32 = 70.0;
+        const EXP_CEILING: f32 = 1000.0;
+        const SCALING_FACTOR: f32 = 0.125;
+        (EXP_INCREMENT
+            * (EXP_CEILING
+                / EXP_INCREMENT
                 / (1.0
-                    + std::f32::consts::E.powf(-scaling_factor * level as f32)
-                        * (exp_ceiling / starting_exp - 1.0)))
+                    + std::f32::consts::E.powf(-SCALING_FACTOR * level as f32)
+                        * (EXP_CEILING / STARTING_EXP - 1.0)))
                 .floor()) as u16
     }
 
