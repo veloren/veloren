@@ -3536,7 +3536,7 @@ impl FigureMgr {
                                         StageSection::Buildup => {
                                             stage_time / stage.base_buildup_duration.as_secs_f32()
                                         },
-                                        StageSection::Swing => {
+                                        StageSection::Action => {
                                             stage_time / stage.base_swing_duration.as_secs_f32()
                                         },
                                         StageSection::Recover => {

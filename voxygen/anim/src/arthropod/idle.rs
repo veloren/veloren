@@ -39,23 +39,23 @@ impl Animation for IdleAnimation {
 
         next.leg_fl.position = Vec3::new(-s_a.leg_f.0, s_a.leg_f.1, s_a.leg_f.2);
         next.leg_fr.position = Vec3::new(s_a.leg_f.0, s_a.leg_f.1, s_a.leg_f.2);
-        //next.leg_fl.orientation = Quaternion::rotation_z(0.1);
-        //next.leg_fr.orientation = Quaternion::rotation_z(-0.1);
+        next.leg_fl.orientation = Quaternion::rotation_z(0.1);
+        next.leg_fr.orientation = Quaternion::rotation_z(-0.1);
 
         next.leg_fcl.position = Vec3::new(-s_a.leg_fc.0, s_a.leg_fc.1, s_a.leg_fc.2);
         next.leg_fcr.position = Vec3::new(s_a.leg_fc.0, s_a.leg_fc.1, s_a.leg_fc.2);
-        //next.leg_fcl.orientation = Quaternion::rotation_z(-0.3);
-        //next.leg_fcr.orientation = Quaternion::rotation_z(0.3);
+        next.leg_fcl.orientation = Quaternion::rotation_z(-0.3);
+        next.leg_fcr.orientation = Quaternion::rotation_z(0.3);
 
         next.leg_bcl.position = Vec3::new(-s_a.leg_bc.0, s_a.leg_bc.1, s_a.leg_bc.2);
         next.leg_bcr.position = Vec3::new(s_a.leg_bc.0, s_a.leg_bc.1, s_a.leg_bc.2);
-        //next.leg_bcl.orientation = Quaternion::rotation_z(0.0);
-        //next.leg_bcr.orientation = Quaternion::rotation_z(0.0);
+        next.leg_bcl.orientation = Quaternion::rotation_z(0.0);
+        next.leg_bcr.orientation = Quaternion::rotation_z(0.0);
 
         next.leg_bl.position = Vec3::new(-s_a.leg_b.0, s_a.leg_b.1, s_a.leg_b.2);
         next.leg_br.position = Vec3::new(s_a.leg_b.0, s_a.leg_b.1, s_a.leg_b.2);
-        //next.leg_bl.orientation = Quaternion::rotation_z(0.4);
-        //next.leg_br.orientation = Quaternion::rotation_z(-0.4);
+        next.leg_bl.orientation = Quaternion::rotation_z(0.4);
+        next.leg_br.orientation = Quaternion::rotation_z(-0.4);
 
         next
     }
