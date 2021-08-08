@@ -18,6 +18,10 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     span!(_guard, "handle_exit_ingame");
     let state = server.state_mut();
 
+    // Sync the player's character data to the database. This must be done before
+    // removing any components from the entity
+    let entity = persist_entity(state, entity);
+
     // Create new entity with just `Client`, `Uid`, `Player`, and `...Stream`
     // components Easier than checking and removing all other known components
     // Note: If other `ServerEvent`s are referring to this entity they will be
@@ -82,9 +86,6 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     }
     // Erase group component to avoid group restructure when deleting the entity
     state.ecs().write_storage::<group::Group>().remove(entity);
-
-    // Sync the player's character data to the database
-    let entity = persist_entity(state, entity);
 
     // Delete old entity
     if let Err(e) = state.delete_entity_recorded(entity) {
