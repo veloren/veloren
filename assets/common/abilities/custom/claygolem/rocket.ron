@@ -4,7 +4,7 @@ BasicRanged(
     recover_duration: 0.5,
     projectile: ClayRocket(
         damage: 500.0,
-        knockback: 25.0,
+        knockback: 18.0,
         radius: 5.0,
     ),
     projectile_body: Object(ClayRocket),
