@@ -27,7 +27,7 @@
 ## Moderation
 
 These are the policies for upholding our community's standards of conduct. If
-you feel that a thread needs moderation, please **contact** us.
+you feel that a discussion needs moderation, please **contact** us.
 
 1. Any remarks that violate the Veloren standards of conduct, are not allowed
    and will result in a ban.
@@ -39,7 +39,7 @@ you feel that a thread needs moderation, please **contact** us.
    first offence, and they offer the offended party a genuine apology.
 4. If a moderator bans someone, and you think it was unjustified, please take it
    up with that moderator, or with a different moderator, **in private**.
-   Complaints about bans are not allowd on our public channels.
+   Complaints about bans are not allowed on our public channels.
 5. Moderators, organization members, and anyone closely involved with the
    Veloren project are held to a higher standard than other community members.
    If a moderator creates an inappropriate situation, they should expect less
@@ -47,12 +47,12 @@ you feel that a thread needs moderation, please **contact** us.
 
 In the Veloren community we strive to go the extra step to look out for each
 other. Don't just aim to be technically unimpeachable, try to be your best self.
-In particular, avoid flirting with offensive or sensitive issues, particularly
+Be careful when you speak about offensive or sensitive issues, particularly
 if they're off-topic; this all too often leads to unnecessary fights, hurt
 feelings, and damaged trust; worse, it can drive people away from the community
 entirely.
 
-If someone takes issue with something you said or did, resist the urge to be
+If you have been called out for violating this code, resist the urge to be
 defensive. Just stop doing what it was they complained about and apologize. Even
 if you feel you were misinterpreted or unfairly accused, chances are good there
 was something you could've communicated better — remember that it's your
