@@ -441,6 +441,8 @@ image_ids! {
         inv_frame: "voxygen.element.ui.bag.inv_frame",
         inv_frame_bag: "voxygen.element.ui.bag.inv_frame_bag",
         inv_bg_bag: "voxygen.element.ui.bag.inv_bg_bag",
+        player_inv_frame_bag: "voxygen.element.ui.bag.player_inv_frame_bag",
+        player_inv_bg_bag: "voxygen.element.ui.bag.player_inv_bg_bag",
         inv_middle_bg_bag: "voxygen.element.ui.bag.inv_middle_bg_bag",
         inv_middle_frame: "voxygen.element.ui.bag.inv_middle_frame",
         char_art: "voxygen.element.ui.bag.icons.character",

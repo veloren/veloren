@@ -108,12 +108,12 @@ const MAX_TRADE_SLOTS: usize = 16;
 impl<'a> Trade<'a> {
     fn background(&mut self, state: &mut ConrodState<'_, State>, ui: &mut UiCell<'_>) {
         Image::new(self.imgs.inv_middle_bg_bag)
-            .w_h(424.0, 500.0)
+            .w_h(424.0, 482.0)
             .color(Some(UI_MAIN))
-            .mid_bottom_with_margin_on(ui.window, 281.0)
+            .mid_bottom_with_margin_on(ui.window, 295.0)
             .set(state.ids.bg, ui);
         Image::new(self.imgs.inv_middle_frame)
-            .w_h(424.0, 500.0)
+            .w_h(424.0, 482.0)
             .middle_of(state.ids.bg)
             .color(Some(UI_HIGHLIGHT_0))
             .set(state.ids.bg_frame, ui);
@@ -483,7 +483,7 @@ impl<'a> Trade<'a> {
             .w_h(31.0 * 5.0, 12.0 * 2.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .bottom_left_with_margins_on(state.ids.bg, 110.0, 47.0)
+            .bottom_left_with_margins_on(state.ids.bg, 90.0, 47.0)
             .label(self.localized_strings.get("hud.trade.accept"))
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)
