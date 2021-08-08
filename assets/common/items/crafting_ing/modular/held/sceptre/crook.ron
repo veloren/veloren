@@ -1,5 +1,5 @@
 ItemDef(
-    name: Component("Crook Grip"),
+    name: Component("Crook Shaft"),
     description: "",
     kind: ModularComponent((
         toolkind: Sceptre,

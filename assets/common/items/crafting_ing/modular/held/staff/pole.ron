@@ -1,5 +1,5 @@
 ItemDef(
-    name: Component("Pole Grip"),
+    name: Component("Pole Shaft"),
     description: "",
     kind: ModularComponent((
         toolkind: Staff,

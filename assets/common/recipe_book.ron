@@ -2144,4 +2144,250 @@
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
+/// MODULAR WEAPONS/BOWS/HELD COMPONENTS
+    "bow grip": (
+        output: ("common.items.crafting_ing.modular.held.bow.bow", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "composite bow grip": (
+        output: ("common.items.crafting_ing.modular.held.bow.composite", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "greatbow grip": (
+        output: ("common.items.crafting_ing.modular.held.bow.greatbow", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "longbow grip": (
+        output: ("common.items.crafting_ing.modular.held.bow.longbow", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "orante bow grip": (
+        output: ("common.items.crafting_ing.modular.held.bow.ornate", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "shortbow grip": (
+        output: ("common.items.crafting_ing.modular.held.bow.shortbow", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "warbow grip": (
+        output: ("common.items.crafting_ing.modular.held.bow.warbow", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+/// MODULAR WEAPONS/BOWS/DAMAGE COMPONENTS
+    "medium bow limbs": (
+        output: ("common.items.crafting_ing.modular.damage.bow.medium", 1),
+        inputs: [
+            (Item("common.items.log.wood"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "narrow bow limbs": (
+        output: ("common.items.crafting_ing.modular.damage.bow.narrow", 1),
+        inputs: [
+            (Item("common.items.log.wood"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "wide bow limbs": (
+        output: ("common.items.crafting_ing.modular.damage.bow.wide", 1),
+        inputs: [
+            (Item("common.items.log.wood"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+/// MODULAR WEAPONS/FIRE STAFFS/HELD COMPONENTS
+    "brand shaft": (
+        output: ("common.items.crafting_ing.modular.held.staff.brand", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "grandstaff shaft": (
+        output: ("common.items.crafting_ing.modular.held.staff.grandstaff", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "longpole shaft": (
+        output: ("common.items.crafting_ing.modular.held.staff.longpole", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "ornate staff shaft": (
+        output: ("common.items.crafting_ing.modular.held.staff.ornate", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "pole shaft": (
+        output: ("common.items.crafting_ing.modular.held.staff.pole", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "rod shaft": (
+        output: ("common.items.crafting_ing.modular.held.staff.rod", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "staff shaft": (
+        output: ("common.items.crafting_ing.modular.held.staff.staff", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+/// MODULAR WEAPONS/FIRE STAFFS/DAMAGE COMPONENTS
+    "large fire core": (
+        output: ("common.items.crafting_ing.modular.damage.staff.large", 1),
+        inputs: [
+            (Item("common.items.mineral.gem.ruby"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "medium fire core": (
+        output: ("common.items.crafting_ing.modular.damage.staff.medium", 1),
+        inputs: [
+            (Item("common.items.mineral.gem.ruby"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "small fire core": (
+        output: ("common.items.crafting_ing.modular.damage.staff.small", 1),
+        inputs: [
+            (Item("common.items.mineral.gem.ruby"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+/// MODULAR WEAPONS/NATURE SCEPTRES/HELD COMPONENTS
+    "arbor shaft": (
+        output: ("common.items.crafting_ing.modular.held.sceptre.arbor", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "cane shaft": (
+        output: ("common.items.crafting_ing.modular.held.sceptre.cane", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "crook shaft": (
+        output: ("common.items.crafting_ing.modular.held.sceptre.crook", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "crozier shaft": (
+        output: ("common.items.crafting_ing.modular.held.sceptre.crozier", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "grandsceptre shaft": (
+        output: ("common.items.crafting_ing.modular.held.sceptre.grandsceptre", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "orante sceptre shaft": (
+        output: ("common.items.crafting_ing.modular.held.sceptre.ornate", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "sceptre shaft": (
+        output: ("common.items.crafting_ing.modular.held.sceptre.sceptre", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+/// MODULAR WEAPONS/NATURE SCEPTRES/DAMAGE COMPONENTS
+    "large nature core": (
+        output: ("common.items.crafting_ing.modular.damage.sceptre.large", 1),
+        inputs: [
+            (Item("common.items.mineral.gem.emerald"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "medium nature core": (
+        output: ("common.items.crafting_ing.modular.damage.sceptre.medium", 1),
+        inputs: [
+            (Item("common.items.mineral.gem.emerald"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "small nature core": (
+        output: ("common.items.crafting_ing.modular.damage.sceptre.small", 1),
+        inputs: [
+            (Item("common.items.mineral.gem.emerald"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
 }

@@ -3,7 +3,7 @@ ItemDef(
     description: "",
     kind: ModularComponent((
         toolkind: Bow,
-        modkind: Held,
+        modkind: Damage,
         stats: (
             equip_time_secs: 1.0,
             power: 1.0,
@@ -19,6 +19,6 @@ ItemDef(
     )),
     quality: Direct(Common),
     tags: [
-        ModularComponent((toolkind: Bow, modkind: Held, hands: Two)),
+        ModularComponent((toolkind: Bow, modkind: Damage, hands: Two)),
     ],
 )

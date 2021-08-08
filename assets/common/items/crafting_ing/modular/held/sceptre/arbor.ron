@@ -1,5 +1,5 @@
 ItemDef(
-    name: Component("Arbor Grip"),
+    name: Component("Arbor Shaft"),
     description: "",
     kind: ModularComponent((
         toolkind: Sceptre,

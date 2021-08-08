@@ -1,5 +1,5 @@
 ItemDef(
-    name: Component("Brand Grip"),
+    name: Component("Brand Shaft"),
     description: "",
     kind: ModularComponent((
         toolkind: Staff,
