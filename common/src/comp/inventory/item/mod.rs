@@ -25,7 +25,7 @@ use serde::{de, Deserialize, Serialize, Serializer};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{borrow::Cow, collections::hash_map::DefaultHasher, fmt, sync::Arc};
-use strum::IntoStaticStr;
+use strum::{EnumString, IntoStaticStr};
 use tracing::error;
 use vek::Rgb;
 
@@ -105,7 +105,7 @@ pub enum MaterialKind {
     Hide,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, IntoStaticStr)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, IntoStaticStr, EnumString)]
 #[strum(serialize_all = "snake_case")]
 pub enum Material {
     Bronze,

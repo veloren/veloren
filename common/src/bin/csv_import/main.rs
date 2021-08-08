@@ -4,7 +4,7 @@
 use hashbrown::HashMap;
 use ron::ser::{to_string_pretty, PrettyConfig};
 use serde::Serialize;
-use std::{error::Error, fs::File, io::Write};
+use std::{error::Error, fs::File, io::Write, str::FromStr};
 use structopt::StructOpt;
 
 use veloren_common::{
@@ -13,8 +13,8 @@ use veloren_common::{
         self,
         item::{
             armor::{ArmorKind, Protection},
-            tool::{AbilitySpec, Stats},
-            ItemDesc, ItemKind, ItemTag, Quality,
+            tool::{AbilitySpec, Stats, ToolKind, Hands},
+            ItemDesc, ItemKind, ItemTag, Quality, Material
         },
     },
     lottery::LootSpec,
@@ -458,12 +458,40 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
 
     let mut items = Vec::<(f32, LootSpec<String>)>::new();
 
+    let get_tool_kind = |tool: String| {
+        match tool.as_str() {
+            "Sword" => Some(ToolKind::Sword),
+            "Axe" => Some(ToolKind::Axe),
+            "Hammer" => Some(ToolKind::Hammer),
+            "Bow" => Some(ToolKind::Bow),
+            "Staff" => Some(ToolKind::Staff),
+            "Sceptre" => Some(ToolKind::Sceptre),
+            "Dagger" => Some(ToolKind::Dagger),
+            "Shield" => Some(ToolKind::Shield),
+            "Spear" => Some(ToolKind::Spear),
+            "Debug" => Some(ToolKind::Debug),
+            "Farming" => Some(ToolKind::Farming),
+            "Pick" => Some(ToolKind::Pick),
+            "Natural" => Some(ToolKind::Natural),
+            "Empty" => Some(ToolKind::Empty),
+            _ => None,
+        }
+    };
+
+    let get_tool_hands = |hands: String| {
+        match hands.as_str() {
+            "One" | "one" |"1" => Some(Hands::One),
+            "Two" | "two" |"2" => Some(Hands::Two),
+            _ => None,
+        }
+    };
+
     for ref record in rdr.records().flatten() {
         let item = match record.get(headers["Kind"]).expect("No loot specifier") {
             "Item" => {
                 if let (Some(Ok(lower)), Some(Ok(upper))) = (
-                    record.get(headers["Lower Amount"]).map(|a| a.parse()),
-                    record.get(headers["Upper Amount"]).map(|a| a.parse()),
+                    record.get(headers["Lower Amount or Material"]).map(|a| a.parse()),
+                    record.get(headers["Upper Amount or Hands"]).map(|a| a.parse()),
                 ) {
                     LootSpec::ItemQuantity(
                         record.get(headers["Item"]).expect("No item").to_string(),
@@ -481,6 +509,11 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
                     .to_string(),
             ),
             "Nothing" => LootSpec::Nothing,
+            "Modular Weapon" => LootSpec::ModularWeapon {
+                tool: get_tool_kind(record.get(headers["Item"]).expect("No tool").to_string()).expect("Invalid tool kind"),
+                material: Material::from_str(&record.get(headers["Lower Amount or Material"]).expect("No material").to_string()).expect("Invalid material type"),
+                hands: get_tool_hands(record.get(headers["Upper Amount or Hands"]).expect("No hands").to_string()),
+            },
             a => panic!(
                 "Loot specifier kind must be either \"Item\", \"LootTable\", or \"Nothing\"\n{}",
                 a
