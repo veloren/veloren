@@ -436,14 +436,11 @@ impl PlayState for SessionState {
                 build_target.map(|bt| self.scene.set_select_pos(Some(bt.position_int())));
             } else {
                 self.scene.set_select_pos(None);
+                self.inputs.select_pos = entity_target.map(|et| et.position());
             }
 
             // Throw out distance info, it will be useful in the future
             self.target_entity = entity_target.and_then(Target::entity);
-
-            // controller only wants 1 target
-            // set default using entity_target as the selected_pos, and update per event
-            self.inputs.select_pos = entity_target.map(|et| et.position());
 
             macro_rules! entity_event_handler {
                 ($input: expr, $pressed: expr) => {

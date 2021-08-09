@@ -106,7 +106,7 @@ pub(super) fn targets_under_cursor(
                 Ok(Some(_)) if player_cylinder.min_distance(*cam_pos + *cam_dir * (cam_dist + 0.01)) <= MAX_PICKUP_RANGE
             ) {
                 (
-                    Some(*cam_pos + *cam_dir * (cam_dist + 0.01)),
+                    Some(*cam_pos + *cam_dir * cam_dist),
                     Some(*cam_pos + *cam_dir * (cam_dist - 0.01)),
                     cam_ray
                 )
@@ -129,7 +129,7 @@ pub(super) fn targets_under_cursor(
         (d, Ok(Some(_))) => Some(d),
         _ => None,
     }).min_by(|d1, d2| d1.partial_cmp(d2).unwrap())
-    .unwrap_or(MAX_TARGET_RANGE);
+    .unwrap_or(MAX_PICKUP_RANGE);
 
     // See if ray hits entities
     // Currently treated as spheres
