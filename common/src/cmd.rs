@@ -121,6 +121,9 @@ impl assets::Asset for SkillPresetManifest {
     const EXTENSION: &'static str = "ron";
 }
 
+pub const KIT_MANIFEST_PATH: &str = "server.manifests.kits";
+pub const PRESET_MANIFEST_PATH: &str = "server.manifests.presets";
+
 lazy_static! {
     static ref ALIGNMENTS: Vec<String> = vec!["wild", "enemy", "npc", "pet"]
         .iter()
@@ -240,7 +243,7 @@ lazy_static! {
     };
 
     static ref KITS: Vec<String> = {
-        if let Ok(kits) = KitManifest::load("server.manifests.kits") {
+        if let Ok(kits) = KitManifest::load(KIT_MANIFEST_PATH) {
             kits.read().0.keys().cloned().collect()
         } else {
             Vec::new()
@@ -248,7 +251,7 @@ lazy_static! {
     };
 
     static ref PRESETS: HashMap<String, Vec<(Skill, u8)>> = {
-        if let Ok(presets) = SkillPresetManifest::load("server.manifests.presets") {
+        if let Ok(presets) = SkillPresetManifest::load(PRESET_MANIFEST_PATH) {
             presets.read().0.clone()
         } else {
             warn!("Error while loading presets");
@@ -847,9 +850,18 @@ impl ArgumentSpec {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::comp::Item;
 
     #[test]
-    fn test_loading_skill_presets() {
-        SkillPresetManifest::load_expect("server.manifests.presets");
+    fn test_loading_skill_presets() { SkillPresetManifest::load_expect(PRESET_MANIFEST_PATH); }
+
+    #[test]
+    fn test_load_kits() {
+        let kits = KitManifest::load_expect(KIT_MANIFEST_PATH).read();
+        for kit in kits.0.values() {
+            for (item_id, _) in kit.iter() {
+                std::mem::drop(Item::new_from_asset_expect(item_id));
+            }
+        }
     }
 }
