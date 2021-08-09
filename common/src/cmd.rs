@@ -1,6 +1,6 @@
 use crate::{
     assets,
-    comp::{self, buff::BuffKind, AdminRole as Role, Skill},
+    comp::{self, buff::BuffKind, inventory::item::try_all_item_defs, AdminRole as Role, Skill},
     npc, terrain,
 };
 use assets::AssetExt;
@@ -9,7 +9,6 @@ use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::{
     fmt::{self, Display},
-    path::Path,
     str::FromStr,
 };
 use strum::IntoEnumIterator;
@@ -230,24 +229,12 @@ lazy_static! {
     static ref ROLES: Vec<String> = ["admin", "moderator"].iter().copied().map(Into::into).collect();
 
     /// List of item specifiers. Useful for tab completing
-    static ref ITEM_SPECS: Vec<String> = {
-        let path = assets::ASSETS_PATH.join("common").join("items");
-        let mut items = vec![];
-        fn list_items (path: &Path, base: &Path, mut items: &mut Vec<String>) -> std::io::Result<()>{
-            for entry in std::fs::read_dir(path)? {
-                let path = entry?.path();
-                if path.is_dir(){
-                    list_items(&path, base, &mut items)?;
-                } else if let Ok(path) = path.strip_prefix(base) {
-                    let path = path.to_string_lossy().trim_end_matches(".ron").replace('/', ".").replace('\\', ".");
-                    items.push(path);
-                }
-            }
-            Ok(())
-        }
-        if list_items(&path, &assets::ASSETS_PATH, &mut items).is_err() {
-            warn!("There was a problem listing item assets");
-        }
+    pub static ref ITEM_SPECS: Vec<String> = {
+        let mut items = try_all_item_defs()
+            .unwrap_or_else(|e| {
+                warn!(?e, "Failed to load item specifiers");
+                Vec::new()
+            });
         items.sort();
         items
     };
