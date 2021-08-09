@@ -140,7 +140,6 @@ impl Body {
             Vec3::zero()
         } else {
             let rel_flow_dir = Dir::new(rel_flow.0 / v_sq.sqrt());
-            // All the coefficients come pre-multiplied by their reference area
             0.5 * fluid_density
                 * v_sq
                 * match wings {
@@ -163,7 +162,7 @@ impl Body {
                         let aoa = angle_of_attack(&ori, &rel_flow_dir);
                         // c_l will be positive when aoa is positive (we have positive lift,
                         // producing an upward force) and negative otherwise
-                        let c_l = lift_coefficient(ar, planform_area, aoa);
+                        let c_l = lift_coefficient(ar, aoa);
 
                         // lift dir will be orthogonal to the local relative flow vector.
                         // Local relative flow is the resulting vector of (relative) freestream
@@ -187,25 +186,24 @@ impl Body {
                             ori.pitched_down(aoa_eff).up()
                         };
 
-                        // drag coefficient
-                        let c_d = {
+                        // induced drag coefficient (drag due to lift)
+                        let cdi = {
                             // Oswald's efficiency factor (empirically derived--very magical)
                             // (this definition should not be used for aspect ratios > 25)
                             let e = 1.78 * (1.0 - 0.045 * ar.powf(0.68)) - 0.64;
-                            // induced drag coefficient (drag due to lift)
-                            let cdi = c_l.powi(2) / (PI * e * ar);
-
-                            zero_lift_drag_coefficient(planform_area)
-                                + self.parasite_drag_coefficient()
-                                + cdi
+                            c_l.powi(2) / (PI * e * ar)
                         };
+
+                        // drag coefficient
+                        let c_d = zero_lift_drag_coefficient() + cdi;
                         debug_assert!(c_d.is_sign_positive());
                         debug_assert!(c_l.is_sign_positive() || aoa.is_sign_negative());
 
-                        c_l * *lift_dir + c_d * *rel_flow_dir
+                        planform_area * (c_l * *lift_dir + c_d * *rel_flow_dir)
+                            + self.parasite_drag() * *rel_flow_dir
                     },
 
-                    _ => self.parasite_drag_coefficient() * *rel_flow_dir,
+                    _ => self.parasite_drag() * *rel_flow_dir,
                 }
         }
     }
@@ -214,7 +212,7 @@ impl Body {
     /// Skin friction is the drag arising from the shear forces between a fluid
     /// and a surface, while pressure drag is due to flow separation. Both are
     /// viscous effects.
-    fn parasite_drag_coefficient(&self) -> f32 {
+    fn parasite_drag(&self) -> f32 {
         // Reference area and drag coefficient assumes best-case scenario of the
         // orientation producing least amount of drag
         match self {
@@ -330,33 +328,32 @@ pub fn angle_of_attack(ori: &Ori, rel_flow_dir: &Dir) -> f32 {
 
 /// Total lift coefficient for a finite wing of symmetric aerofoil shape and
 /// elliptical pressure distribution.
-pub fn lift_coefficient(aspect_ratio: f32, planform_area: f32, aoa: f32) -> f32 {
+pub fn lift_coefficient(aspect_ratio: f32, aoa: f32) -> f32 {
     let aoa_abs = aoa.abs();
     let stall_angle = PI * 0.1;
-    planform_area
-        * if aoa_abs < stall_angle {
-            lift_slope(aspect_ratio, None) * aoa
+    if aoa_abs < stall_angle {
+        lift_slope(aspect_ratio, None) * aoa
+    } else {
+        // This is when flow separation and turbulence starts to kick in.
+        // Going to just make something up (based on some data), as the alternative is
+        // to just throw your hands up and return 0
+        let aoa_s = aoa.signum();
+        let c_l_max = lift_slope(aspect_ratio, None) * stall_angle;
+        let deg_45 = PI / 4.0;
+        if aoa_abs < deg_45 {
+            // drop directly to 0.6 * max lift at stall angle
+            // then climb back to max at 45°
+            Lerp::lerp(0.6 * c_l_max, c_l_max, aoa_abs / deg_45) * aoa_s
         } else {
-            // This is when flow separation and turbulence starts to kick in.
-            // Going to just make something up (based on some data), as the alternative is
-            // to just throw your hands up and return 0
-            let aoa_s = aoa.signum();
-            let c_l_max = lift_slope(aspect_ratio, None) * stall_angle;
-            let deg_45 = PI / 4.0;
-            if aoa_abs < deg_45 {
-                // drop directly to 0.6 * max lift at stall angle
-                // then climb back to max at 45°
-                Lerp::lerp(0.6 * c_l_max, c_l_max, aoa_abs / deg_45) * aoa_s
-            } else {
-                // let's just say lift goes down linearly again until we're at 90°
-                Lerp::lerp(c_l_max, 0.0, (aoa_abs - deg_45) / deg_45) * aoa_s
-            }
+            // let's just say lift goes down linearly again until we're at 90°
+            Lerp::lerp(c_l_max, 0.0, (aoa_abs - deg_45) / deg_45) * aoa_s
         }
+    }
 }
 
 /// The zero-lift profile drag coefficient is the parasite drag on the wings
 /// at the angle of attack which generates no lift
-pub fn zero_lift_drag_coefficient(planform_area: f32) -> f32 { planform_area * 0.004 }
+pub fn zero_lift_drag_coefficient() -> f32 { 0.026 }
 
 /// The change in lift over change in angle of attack¹. Multiplying by angle
 /// of attack gives the lift coefficient (for a finite wing, not aerofoil).

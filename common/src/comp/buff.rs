@@ -85,6 +85,7 @@ impl BuffKind {
             | BuffKind::Saturation
             | BuffKind::Potion
             | BuffKind::CampfireHeal
+            | BuffKind::Frenzied
             | BuffKind::IncreaseMaxEnergy
             | BuffKind::IncreaseMaxHealth
             | BuffKind::Invulnerability
@@ -93,7 +94,6 @@ impl BuffKind {
             | BuffKind::Cursed
             | BuffKind::Burning
             | BuffKind::Crippled
-            | BuffKind::Frenzied
             | BuffKind::Frozen
             | BuffKind::Wet
             | BuffKind::Ensnared => false,

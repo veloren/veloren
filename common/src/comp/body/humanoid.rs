@@ -64,6 +64,25 @@ impl Body {
             .accessory
             .min(self.species.num_accessories(self.body_type) - 1);
     }
+
+    pub fn height(&self) -> f32 { (20.0 / 9.0) * self.scaler() }
+
+    pub fn scaler(&self) -> f32 {
+        match (self.species, self.body_type) {
+            (Species::Orc, BodyType::Male) => 0.91,
+            (Species::Orc, BodyType::Female) => 0.81,
+            (Species::Human, BodyType::Male) => 0.81,
+            (Species::Human, BodyType::Female) => 0.76,
+            (Species::Elf, BodyType::Male) => 0.82,
+            (Species::Elf, BodyType::Female) => 0.76,
+            (Species::Dwarf, BodyType::Male) => 0.67,
+            (Species::Dwarf, BodyType::Female) => 0.62,
+            (Species::Undead, BodyType::Male) => 0.78,
+            (Species::Undead, BodyType::Female) => 0.72,
+            (Species::Danari, BodyType::Male) => 0.56,
+            (Species::Danari, BodyType::Female) => 0.56,
+        }
+    }
 }
 
 impl From<Body> for super::Body {

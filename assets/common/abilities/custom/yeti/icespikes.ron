@@ -5,7 +5,7 @@ Shockwave(
     recover_duration: 1.0,
     damage: 100,
     poise_damage: 10,
-    knockback: (strength: 25.0, direction: Up),
+    knockback: (strength: 18.0, direction: Up),
     shockwave_angle: 90.0,
     shockwave_vertical_angle: 15.0,
     shockwave_speed: 15.0,

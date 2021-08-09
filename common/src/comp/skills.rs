@@ -576,7 +576,7 @@ pub enum SwimSkill {
 impl Boost for SwimSkill {
     fn boost(self) -> BoostValue {
         match self {
-            Self::Speed => 40.into(),
+            Self::Speed => 25.into(),
         }
     }
 }

@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - NPCs can now warn players before engaging in combat
 - Custom error message when a supported graphics backend can not be found
 - Add server setting with PvE/PvP switch
+- Can now tilt glider while only wielding it
 
 ### Changed
 
@@ -47,6 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The types of animals that can be tamed as pets are now limited to certain species, pending further balancing of pets
 - Made server-cli admin add/remove command use positional arguments again
 - Usage of "stamina" replaced with "energy"
+- Glider dimensions now depend on character height
+- Glider dimensions somewhat increased overall
 
 ### Removed
 
@@ -67,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Map will now zoom around the cursor's position and drag correctly
 - No more jittering while running down slopes with the glider out
 - Axe normal attack rewards energy without skill points
+- Gliders no longer suffer from unreasonable amounts of induced drag
 
 ## [0.10.0] - 2021-06-12
 

@@ -80,7 +80,7 @@ impl CharacterBehavior for Data {
         if data.physics.on_ground.is_some()
             && (data.vel.0 - data.physics.ground_vel).magnitude_squared() < 2_f32.powi(2)
         {
-            update.character = CharacterState::GlideWield(glide_wield::Data::default());
+            update.character = CharacterState::GlideWield(glide_wield::Data::from(data));
         } else if data.physics.in_liquid().is_some()
             || data
                 .inventory

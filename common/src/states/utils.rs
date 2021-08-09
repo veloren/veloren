@@ -184,7 +184,7 @@ impl Body {
             Body::FishMedium(_) => Some(50.0 * self.mass().0),
             Body::FishSmall(_) => Some(50.0 * self.mass().0),
             Body::Dragon(_) => Some(200.0 * self.mass().0),
-            Body::Humanoid(_) => Some(200.0 * self.mass().0),
+            Body::Humanoid(_) => Some(2500.0 * self.mass().0),
             Body::Theropod(body) => match body.species {
                 theropod::Species::Sandraptor
                 | theropod::Species::Snowraptor
@@ -375,7 +375,7 @@ fn swim_move(
         let mut water_accel = force / data.mass.0;
 
         if let Ok(Some(level)) = data.skill_set.skill_level(Skill::Swim(SwimSkill::Speed)) {
-            water_accel *= 1.4_f32.powi(level.into());
+            water_accel *= 1.25_f32.powi(level.into());
         }
 
         let dir = if data.body.can_strafe() {
@@ -638,7 +638,7 @@ pub fn attempt_glide_wield(data: &JoinData<'_>, update: &mut StateUpdate) {
             .unwrap_or(false)
         && data.body.is_humanoid()
     {
-        update.character = CharacterState::GlideWield(glide_wield::Data::default());
+        update.character = CharacterState::GlideWield(glide_wield::Data::from(data));
     }
 }
 

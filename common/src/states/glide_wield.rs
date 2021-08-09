@@ -1,6 +1,6 @@
 use super::utils::*;
 use crate::{
-    comp::{slot::EquipSlot, CharacterState, InventoryAction, StateUpdate},
+    comp::{slot::EquipSlot, CharacterState, InventoryAction, Ori, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         glide,
@@ -10,13 +10,25 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
-    // time since left ground, for preventing state transition
-    // before block snapping kicks in
-    timer: f32,
+    pub ori: Ori,
+    span_length: f32,
+    chord_length: f32,
 }
 
-impl Default for Data {
-    fn default() -> Self { Self { timer: 0.0 } }
+impl From<&JoinData<'_>> for Data {
+    fn from(data: &JoinData) -> Self {
+        let scale = data.body.dimensions().z.sqrt();
+        Self {
+            // Aspect ratio is what really matters for lift/drag ratio
+            // and the aerodynamics model works for ARs up to 25.
+            // The inflated dimensions are hopefully only a temporary
+            // bandaid for the poor glide ratio experienced under 2.5G.
+            // A span/chord ratio of 4.5 gives an AR of ~5.73.
+            span_length: scale * 4.5,
+            chord_length: scale,
+            ori: *data.ori,
+        }
+    }
 }
 
 impl CharacterBehavior for Data {
@@ -29,31 +41,37 @@ impl CharacterBehavior for Data {
         handle_dodge_input(data, &mut update);
         handle_wield(data, &mut update);
 
-        // If not on the ground while wielding glider enter gliding state
-        if data.physics.on_ground.is_none() {
-            update.character = if self.timer > 0.3 {
-                CharacterState::Glide(glide::Data::new(10.0, 0.6, *data.ori))
-            } else {
+        // If still in this state, do the things
+        if matches!(update.character, CharacterState::GlideWield(_)) {
+            // If not on the ground while wielding glider enter gliding state
+            update.character = if data.physics.on_ground.is_none() {
+                CharacterState::Glide(glide::Data::new(
+                    self.span_length,
+                    self.chord_length,
+                    self.ori,
+                ))
+            // make sure we have a glider and we're not (too deep) in water
+            } else if data
+                .inventory
+                .and_then(|inv| inv.equipped(EquipSlot::Glider))
+                .is_some()
+                && data.physics.in_liquid().map_or(true, |depth| depth < 0.5)
+            {
                 CharacterState::GlideWield(Self {
-                    timer: self.timer + data.dt.0,
+                    // Glider tilt follows look dir
+                    ori: self.ori.slerped_towards(
+                        data.ori.slerped_towards(
+                            Ori::from(data.inputs.look_dir).pitched_up(0.6),
+                            (1.0 + data.inputs.look_dir.dot(*data.ori.look_dir()).max(0.0)) / 3.0,
+                        ),
+                        5.0 * data.dt.0,
+                    ),
+                    ..*self
                 })
+            } else {
+                CharacterState::Idle
             };
         }
-        if data
-            .physics
-            .in_liquid()
-            .map(|depth| depth > 0.5)
-            .unwrap_or(false)
-        {
-            update.character = CharacterState::Idle;
-        }
-        if data
-            .inventory
-            .and_then(|inv| inv.equipped(EquipSlot::Glider))
-            .is_none()
-        {
-            update.character = CharacterState::Idle
-        };
 
         update
     }

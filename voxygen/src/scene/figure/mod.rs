@@ -1572,10 +1572,10 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::GlideWield { .. } => {
+                        CharacterState::GlideWield(data) => {
                             anim::character::GlideWieldAnimation::update_skeleton(
                                 &target_base,
-                                (),
+                                (ori, data.ori.into()),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
