@@ -688,6 +688,13 @@ impl<'a> Widget for MiniMap<'a> {
                     Some(rpos) => rpos,
                     None => continue,
                 };
+                let difficulty = match &site.kind {
+                    SiteKind::Town => None,
+                    SiteKind::Dungeon { difficulty } => Some(*difficulty),
+                    SiteKind::Castle => None,
+                    SiteKind::Cave => None,
+                    SiteKind::Tree => None,
+                };
 
                 Image::new(match &site.kind {
                     SiteKind::Town => self.imgs.mmap_site_town_bg,
@@ -702,20 +709,14 @@ impl<'a> Widget for MiniMap<'a> {
                     position::Relative::Scalar(rpos.y as f64),
                 )
                 .w_h(20.0, 20.0)
-                .color(Some(match &site.kind {
-                    SiteKind::Town => Color::Rgba(1.0, 1.0, 1.0, 0.0),
-                    SiteKind::Castle => Color::Rgba(1.0, 1.0, 1.0, 0.0),
-                    SiteKind::Dungeon { difficulty } => match difficulty {
-                        0 => QUALITY_LOW,
-                        1 => QUALITY_COMMON,
-                        2 => QUALITY_MODERATE,
-                        3 => QUALITY_HIGH,
-                        4 => QUALITY_EPIC,
-                        5 => QUALITY_DEBUG,
-                        _ => Color::Rgba(1.0, 1.0, 1.0, 0.0),
-                    },
-                    SiteKind::Cave => Color::Rgba(1.0, 1.0, 1.0, 0.0),
-                    SiteKind::Tree => Color::Rgba(1.0, 1.0, 1.0, 0.0),
+                .color(Some(match difficulty {
+                    Some(0) => QUALITY_LOW,
+                    Some(1) => QUALITY_COMMON,
+                    Some(2) => QUALITY_MODERATE,
+                    Some(3) => QUALITY_HIGH,
+                    Some(4) => QUALITY_EPIC,
+                    Some(5) => QUALITY_DEBUG,
+                    _ => Color::Rgba(1.0, 1.0, 1.0, 0.0),
                 }))
                 .set(state.ids.mmap_site_icons_bgs[i], ui);
                 Image::new(match &site.kind {

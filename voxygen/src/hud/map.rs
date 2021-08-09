@@ -787,15 +787,15 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Tree => i18n.get("hud.map.tree"),
             });
             let (difficulty, desc) = match &site.kind {
-                SiteKind::Town => (0, i18n.get("hud.map.town").to_string()),
+                SiteKind::Town => (None, i18n.get("hud.map.town").to_string()),
                 SiteKind::Dungeon { difficulty } => (
-                    *difficulty,
+                    Some(*difficulty),
                     i18n.get("hud.map.difficulty_dungeon")
-                        .replace("{difficulty}", difficulty.to_string().as_str()),
+                        .replace("{difficulty}", (difficulty + 1).to_string().as_str()),
                 ),
-                SiteKind::Castle => (0, i18n.get("hud.map.castle").to_string()),
-                SiteKind::Cave => (0, i18n.get("hud.map.cave").to_string()),
-                SiteKind::Tree => (0, i18n.get("hud.map.tree").to_string()),
+                SiteKind::Castle => (None, i18n.get("hud.map.castle").to_string()),
+                SiteKind::Cave => (None, i18n.get("hud.map.cave").to_string()),
+                SiteKind::Tree => (None, i18n.get("hud.map.tree").to_string()),
             };
             let desc = desc + &get_site_economy(site_rich);
             let site_btn = Button::image(match &site.kind {
@@ -828,12 +828,12 @@ impl<'a> Widget for Map<'a> {
                     SiteKind::Town => TEXT_COLOR,
                     SiteKind::Castle => TEXT_COLOR,
                     SiteKind::Dungeon { .. } => match difficulty {
-                        0 => QUALITY_LOW,
-                        1 => QUALITY_COMMON,
-                        2 => QUALITY_MODERATE,
-                        3 => QUALITY_HIGH,
-                        4 => QUALITY_EPIC,
-                        5 => QUALITY_DEBUG,
+                        Some(0) => QUALITY_LOW,
+                        Some(1) => QUALITY_COMMON,
+                        Some(2) => QUALITY_MODERATE,
+                        Some(3) => QUALITY_HIGH,
+                        Some(4) => QUALITY_EPIC,
+                        Some(5) => QUALITY_DEBUG,
                         _ => TEXT_COLOR,
                     },
                     SiteKind::Cave => TEXT_COLOR,
@@ -859,34 +859,40 @@ impl<'a> Widget for Map<'a> {
             // Difficulty from 0-6
             // 0 = towns and places without a difficulty level
             if show_difficulty {
-                let size = 1.8; // Size factor for difficulty indicators
+                let rsize = zoom * 1.8; // Size factor for difficulty indicators
                 let dif_img = Image::new(match difficulty {
-                    1 => self.imgs.map_dif_1,
-                    2 => self.imgs.map_dif_2,
-                    3 => self.imgs.map_dif_3,
-                    4 => self.imgs.map_dif_4,
-                    5 => self.imgs.map_dif_6,
-                    _ => self.imgs.nothing,
+                    Some(0) => self.imgs.map_dif_1,
+                    Some(1) => self.imgs.map_dif_2,
+                    Some(2) => self.imgs.map_dif_3,
+                    Some(3) => self.imgs.map_dif_4,
+                    Some(4) => self.imgs.map_dif_5,
+                    Some(5) => self.imgs.map_dif_6,
+                    Some(_) => self.imgs.map_dif_unknown,
+                    None => self.imgs.nothing,
                 })
                 .mid_top_with_margin_on(state.ids.mmap_site_icons[i], match difficulty {
-                    5 => -2.0 * zoom * size,
-                    _ => -1.0 * zoom * size,
+                    Some(0 | 1) => -1.0 * rsize,
+                    Some(_) => -2.0 * rsize,
+                    _ => -1.0 * rsize,
                 })
                 .w(match difficulty {
-                    5 => 2.0 * zoom * size,
-                    _ => 1.0 * zoom * size * difficulty as f64,
+                    Some(0) => 1.0 * rsize,
+                    Some(1 | 2 | 5) => 2.0 * rsize,
+                    Some(_) => 3.0 * rsize,
+                    _ => 1.0 * rsize,
                 })
                 .h(match difficulty {
-                    5 => 2.0 * size * zoom,
-                    _ => 1.0 * zoom * size,
+                    Some(0 | 1) => 1.0 * rsize,
+                    Some(_) => 2.0 * rsize,
+                    _ => 1.0 * rsize,
                 })
                 .color(Some(match difficulty {
-                    0 => QUALITY_LOW,
-                    1 => QUALITY_COMMON,
-                    2 => QUALITY_MODERATE,
-                    3 => QUALITY_HIGH,
-                    4 => QUALITY_EPIC,
-                    5 => QUALITY_DEBUG,
+                    Some(0) => QUALITY_LOW,
+                    Some(1) => QUALITY_COMMON,
+                    Some(2) => QUALITY_MODERATE,
+                    Some(3) => QUALITY_HIGH,
+                    Some(4) => QUALITY_EPIC,
+                    Some(5) => QUALITY_DEBUG,
                     _ => TEXT_COLOR,
                 }));
                 match &site.kind {
