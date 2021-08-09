@@ -921,7 +921,6 @@ pub enum StageSection {
     Charge,
     Movement,
     Action,
-    Use,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]

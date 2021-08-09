@@ -1462,7 +1462,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Use => stage_time,
+                                StageSection::Action => stage_time,
                                 StageSection::Recover => {
                                     stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },

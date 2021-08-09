@@ -82,7 +82,7 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::UseItem(Data {
                         static_data: self.static_data.clone(),
                         timer: Duration::default(),
-                        stage_section: StageSection::Use,
+                        stage_section: StageSection::Action,
                     });
                     if let UsePoint::BuildupUse = use_point {
                         // Create inventory manipulation event
@@ -90,7 +90,7 @@ impl CharacterBehavior for Data {
                     }
                 }
             },
-            StageSection::Use => {
+            StageSection::Action => {
                 if self.timer < self.static_data.use_duration {
                     // Item use
                     update.character = CharacterState::UseItem(Data {
