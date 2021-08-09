@@ -887,15 +887,27 @@ impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
     fn tags(&self) -> &[ItemTag] { (*self).tags() }
 }
 
+/// Returns all item asset specifiers
+///
+/// Panics in case of filesystem errors
+pub fn all_item_defs_expect() -> Vec<String> {
+    try_all_item_defs().expect("Failed to access items directory")
+}
+
+/// Returns all item asset specifiers
+pub fn try_all_item_defs() -> Result<Vec<String>, Error> {
+    let defs = assets::load_dir::<RawItemDef>("common.items", true)?;
+    Ok(defs.ids().map(|id| id.to_owned()).collect())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_assets_items() {
-        let defs = assets::load_dir::<RawItemDef>("common.items", true)
-            .expect("Failed to access items directory");
-        for item in defs.ids().map(Item::new_from_asset_expect) {
+        let ids = all_item_defs_expect();
+        for item in ids.iter().map(|id| Item::new_from_asset_expect(id)) {
             std::mem::drop(item)
         }
     }
