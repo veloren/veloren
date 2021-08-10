@@ -13,7 +13,7 @@
         "hud.group.dead" : "Мёртвый",
         "hud.group.out_of_range": "Вне досягаемости",
         "hud.group.add_friend": "Добавить в друзъя",
-        "hud.group.link_group": "Связать группы",
+        "hud.group.link_group": "Объединить группы",
         "hud.group.in_menu": "В меню",
         "hud.group.members": "Члены группы",
     },

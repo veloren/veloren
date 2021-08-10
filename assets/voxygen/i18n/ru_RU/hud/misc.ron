@@ -18,12 +18,12 @@
         "hud.press_key_to_toggle_debug_info_fmt": "Нажмите {key}, чтобы переключить отладочную информацию",
 
         // Respawn message
-        "hud.press_key_to_respawn": r#"Нажмите {key}, чтобы возродиться у последнего походного костра."#,
+        "hud.press_key_to_respawn": r#"Нажмите {key}, чтобы возродиться у последнего костра."#,
 
         // Tutorial Button
         "hud.tutorial_btn": r#"Tutorial"#,
-        "hud.tutorial_click_here": r#"Нажмите [ {key} ], чтобы освободить курсор и нажмите эту кнопку!"#,
-        "hud.tutorial_elements": r#"Ремесло"#,
+        "hud.tutorial_click_here": r#"Нажмите [ {key} ], чтобы включить курсор и нажмите эту кнопку!"#,
+        "hud.tutorial_elements": r#"Крафт"#,
 
 "hud.temp_quest_headline": r#"Привет путешественник!"#,
 "hud.temp_quest_text": r#"Чтобы начать свое путешествие, вы можете начать осматривать эту деревню и собрать немного припасов.

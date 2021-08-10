@@ -3,7 +3,7 @@
 /// Localization for RUS
 (
     string_map: {
-        "hud.crafting": "Ремесло ",
+        "hud.crafting": "Крафт ",
         "hud.crafting.recipes": "Рецепты",
         "hud.crafting.ingredients": "Ингредиенты :",
         "hud.crafting.craft": "Создать",

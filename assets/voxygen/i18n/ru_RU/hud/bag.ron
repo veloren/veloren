@@ -5,7 +5,7 @@
     string_map: {
         // Inventory
         "hud.bag.inventory": "Инвентарь {playername}",
-        "hud.bag.stats_title": "Характеристики {playername}",
+        "hud.bag.stats_title": "Статистика {playername}",
         "hud.bag.exp": "Опыт",
         "hud.bag.armor": "Броня",
         "hud.bag.stats": "Статистика",
@@ -28,7 +28,7 @@
         "hud.bag.inactive_offhand": "Неактивная вторая рука",
         "hud.bag.swap_equipped_weapons_title": "Поменять местами экипированное оружие",
         "hud.bag.swap_equipped_weapons_desc": "Нажмите {key}",
-        "hud.bag.bag": "Сумка",
+        "hud.bag.bag": "Рюкзак",
         "hud.bag.health": "Здоровье",
         "hud.bag.energy": "Энергия",
         "hud.bag.combat_rating": "Боевой рейтинг",
@@ -36,10 +36,10 @@
         "hud.bag.stun_res": "Устойчивость к оглушению",
         "hud.bag.combat_rating_desc": "Рассчитано с учетом вашего\nоборудования и здоровья.",
         "hud.bag.protection_desc": "Снижение урона за счет брони",
-        "hud.bag.stun_res_desc": "Устойчивость к оглушению от последовательных ударов.\nВосстанавливается как энергия. ",
-		"hud.bag.sort_by_name": "Сортировать по имени",
-		"hud.bag.sort_by_quality": "Сортировать по количеству",
-		"hud.bag.sort_by_category": "Сортировать по категории",
+        "hud.bag.stun_res_desc": "Устойчивость к оглушению от последовательных ударов.\nВосстанавливается как энергия.",
+        "hud.bag.sort_by_name": "Сортировать по имени",
+        "hud.bag.sort_by_quality": "Сортировать по количеству",
+        "hud.bag.sort_by_category": "Сортировать по категории",
     },
 
 

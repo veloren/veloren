@@ -11,7 +11,7 @@
         "buff.desc.heal": "Постепенное восстонавление здоровья",
         "buff.title.potion": "Зелье",
         "buff.desc.potion": "Питье...",
-        "buff.title.saturation": "Насыщенность",
+        "buff.title.saturation": "Насыщение",
         "buff.desc.saturation": "Восстонавление здоровья за счет расходных материалов.",
         "buff.title.campfire_heal": "Исцеление у костра",
         "buff.desc.campfire_heal": "Отдых у костра лечит {rate}% в секунду.",

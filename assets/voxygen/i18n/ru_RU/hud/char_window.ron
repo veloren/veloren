@@ -3,16 +3,7 @@
 /// Localization for RUS
 (
     string_map: {
-        "character_window.character_name": "Имя персонажа",
-        // Character stats
-        "character_window.character_stats": r#"Выносливость
-
-Фитнес
-
-Сила воли
-
-Защита 
-"#,
+        "character_window.character_name": "Имя персонажа"
     },
 
 
