@@ -188,12 +188,12 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::ComboMelee(Data {
                         static_data: self.static_data.clone(),
                         timer: Duration::default(),
-                        stage_section: StageSection::Swing,
+                        stage_section: StageSection::Action,
                         ..*self
                     });
                 }
             },
-            StageSection::Swing => {
+            StageSection::Action => {
                 if self.timer.as_secs_f32()
                     > self.static_data.stage_data[stage_index].hit_timing
                         * self.static_data.stage_data[stage_index]

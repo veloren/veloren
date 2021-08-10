@@ -29,7 +29,7 @@ impl Animation for DashAnimation {
             match stage_section {
                 Some(StageSection::Buildup) => (anim_time.sqrt(), 0.0, 0.0, 0.0, anim_time),
                 Some(StageSection::Charge) => (1.0, 1.0, 0.0, 0.0, 0.0),
-                Some(StageSection::Swing) => (1.0, 1.0, anim_time.powi(4), 0.0, 1.0),
+                Some(StageSection::Action) => (1.0, 1.0, anim_time.powi(4), 0.0, 1.0),
                 Some(StageSection::Recover) => (1.0, 1.0, 1.0, anim_time, 1.0),
                 _ => (0.0, 0.0, 0.0, 0.0, 0.0),
             };

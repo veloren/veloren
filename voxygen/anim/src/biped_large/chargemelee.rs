@@ -60,7 +60,7 @@ impl Animation for ChargeMeleeAnimation {
                 0.0,
                 (anim_time * 100.0).sin(),
             ),
-            Some(StageSection::Swing) => (1.0, anim_time.powf(0.25), 0.0, 0.0),
+            Some(StageSection::Action) => (1.0, anim_time.powf(0.25), 0.0, 0.0),
             Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4), 0.0),
             _ => (0.0, 0.0, 0.0, 0.0),
         };

@@ -51,12 +51,12 @@ impl CharacterBehavior for Data {
                     // Transitions to swing section of stage
                     update.character = CharacterState::BasicBlock(Data {
                         timer: Duration::default(),
-                        stage_section: StageSection::Swing,
+                        stage_section: StageSection::Action,
                         ..*self
                     });
                 }
             },
-            StageSection::Swing => {
+            StageSection::Action => {
                 if input_is_pressed(data, InputKind::Block) {
                     // Block
                     update.character = CharacterState::BasicBlock(Data {

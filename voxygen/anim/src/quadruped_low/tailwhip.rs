@@ -27,7 +27,7 @@ impl Animation for TailwhipAnimation {
             Some(StageSection::Charge) => {
                 (anim_time.min(1.2), 0.0, 0.0, (anim_time * 15.0).sin(), 0.0)
             },
-            Some(StageSection::Swing) => (1.0, anim_time.powi(4), 0.0, 1.0, 0.0),
+            Some(StageSection::Action) => (1.0, anim_time.powi(4), 0.0, 1.0, 0.0),
             Some(StageSection::Recover) => {
                 (1.0, 1.0, anim_time.powi(6), 1.0, (anim_time * 7.0).sin())
             },

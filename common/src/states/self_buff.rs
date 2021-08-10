@@ -75,12 +75,12 @@ impl CharacterBehavior for Data {
                     // Build up
                     update.character = CharacterState::SelfBuff(Data {
                         timer: Duration::default(),
-                        stage_section: StageSection::Cast,
+                        stage_section: StageSection::Action,
                         ..*self
                     });
                 }
             },
-            StageSection::Cast => {
+            StageSection::Action => {
                 if self.timer < self.static_data.cast_duration {
                     // Cast
                     update.character = CharacterState::SelfBuff(Data {

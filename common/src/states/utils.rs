@@ -920,12 +920,7 @@ pub enum StageSection {
     Recover,
     Charge,
     Movement,
-    // TODO: Consolidate these to `Action`
-    // Code reviewers: comment here to remind me to open beginner issue
-    Swing,
-    Shoot,
-    Cast,
-    Use,
+    Action,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]

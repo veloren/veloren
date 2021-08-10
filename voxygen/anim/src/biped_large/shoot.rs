@@ -94,7 +94,7 @@ impl Animation for ShootAnimation {
                     Some(StageSection::Buildup) => {
                         (anim_time, (anim_time * 10.0 + PI).sin(), 0.0, 0.0)
                     },
-                    Some(StageSection::Swing) => (1.0, 1.0, anim_time.powf(0.25), 0.0),
+                    Some(StageSection::Action) => (1.0, 1.0, anim_time.powf(0.25), 0.0),
                     Some(StageSection::Recover) => (1.0, 1.0, 1.0, anim_time),
                     _ => (0.0, 0.0, 0.0, 0.0),
                 };
@@ -143,7 +143,7 @@ impl Animation for ShootAnimation {
             Some(ToolKind::Bow) => {
                 let (move1base, move2base, move3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                    Some(StageSection::Swing) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0),
                 };
@@ -193,7 +193,7 @@ impl Animation for ShootAnimation {
                         "Wendigo Magic" => {
                             let (move1base, _move2base, move3) = match stage_section {
                                 Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                                Some(StageSection::Swing) => (1.0, anim_time, 0.0),
+                                Some(StageSection::Action) => (1.0, anim_time, 0.0),
                                 Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                                 _ => (0.0, 0.0, 0.0),
                             };
@@ -223,7 +223,7 @@ impl Animation for ShootAnimation {
                         "Yeti" => {
                             let (move1, move2, move3) = match stage_section {
                                 Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                                Some(StageSection::Swing) => (1.0, anim_time, 0.0),
+                                Some(StageSection::Action) => (1.0, anim_time, 0.0),
                                 Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                                 _ => (0.0, 0.0, 0.0),
                             };
@@ -266,7 +266,7 @@ impl Animation for ShootAnimation {
                         "Harvester" => {
                             let (move1, move2, move3) = match stage_section {
                                 Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                                Some(StageSection::Swing) => (1.0, anim_time, 0.0),
+                                Some(StageSection::Action) => (1.0, anim_time, 0.0),
                                 Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                                 _ => (0.0, 0.0, 0.0),
                             };

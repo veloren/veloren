@@ -30,7 +30,7 @@ impl Animation for ConsumeAnimation {
             Some(ItemUseKind::Consumable(ConsumableKind::Drink)) => {
                 let (move1, move2, move3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
-                    Some(StageSection::Use) => (1.0, (anim_time * 8.0).sin(), 0.0),
+                    Some(StageSection::Action) => (1.0, (anim_time * 8.0).sin(), 0.0),
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time.powf(0.25)),
                     _ => (0.0, 0.0, 0.0),
                 };
@@ -59,7 +59,7 @@ impl Animation for ConsumeAnimation {
             Some(ItemUseKind::Consumable(ConsumableKind::Food | ConsumableKind::ComplexFood)) => {
                 let (move1, move2, move3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
-                    Some(StageSection::Use) => (1.0, (anim_time * 12.0).sin(), 0.0),
+                    Some(StageSection::Action) => (1.0, (anim_time * 12.0).sin(), 0.0),
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time.powf(0.25)),
                     _ => (0.0, 0.0, 0.0),
                 };

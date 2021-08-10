@@ -126,12 +126,12 @@ impl CharacterBehavior for Data {
                     // Transitions to swing
                     update.character = CharacterState::Shockwave(Data {
                         timer: Duration::default(),
-                        stage_section: StageSection::Swing,
+                        stage_section: StageSection::Action,
                         ..*self
                     });
                 }
             },
-            StageSection::Swing => {
+            StageSection::Action => {
                 if self.timer < self.static_data.swing_duration {
                     // Swings
                     update.character = CharacterState::Shockwave(Data {

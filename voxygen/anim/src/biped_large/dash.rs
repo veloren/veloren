@@ -73,7 +73,7 @@ impl Animation for DashAnimation {
                 0.0,
                 0.0,
             ),
-            Some(StageSection::Swing) => (1.0, 1.0, 1.0, anim_time.powf(4.0), 0.0),
+            Some(StageSection::Action) => (1.0, 1.0, 1.0, anim_time.powf(4.0), 0.0),
             Some(StageSection::Recover) => (1.1, 1.0, 1.0, 1.0, anim_time.powf(4.0)),
             _ => (0.0, 0.0, 0.0, 0.0, 0.0),
         };

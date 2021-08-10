@@ -75,7 +75,7 @@ impl Animation for BeamAnimation {
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
         let (move1base, move2shake, move2base, move3) = match stage_section {
             Some(StageSection::Buildup) => ((anim_time.powf(0.25)).min(1.0), 0.0, 0.0, 0.0),
-            Some(StageSection::Cast) => (
+            Some(StageSection::Action) => (
                 1.0,
                 (anim_time * 15.0 + PI).sin(),
                 (anim_time.powf(0.1)).min(1.0),

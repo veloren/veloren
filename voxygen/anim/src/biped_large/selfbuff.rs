@@ -60,7 +60,7 @@ impl Animation for SelfBuffAnimation {
                 (anim_time * 10.0).sin(),
                 0.0,
             ),
-            Some(StageSection::Cast) => {
+            Some(StageSection::Action) => {
                 (1.0, 0.0, (anim_time * 30.0).sin(), (anim_time * 12.0).sin())
             },
             Some(StageSection::Recover) => (1.0, anim_time.powi(4), 1.0, 1.0),

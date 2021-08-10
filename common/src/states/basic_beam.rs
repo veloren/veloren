@@ -89,12 +89,12 @@ impl CharacterBehavior for Data {
                     // Build up
                     update.character = CharacterState::BasicBeam(Data {
                         timer: Duration::default(),
-                        stage_section: StageSection::Cast,
+                        stage_section: StageSection::Action,
                         ..*self
                     });
                 }
             },
-            StageSection::Cast => {
+            StageSection::Action => {
                 if input_is_pressed(data, self.static_data.ability_info.input)
                     && (self.static_data.energy_drain <= f32::EPSILON
                         || update.energy.current() > 0)

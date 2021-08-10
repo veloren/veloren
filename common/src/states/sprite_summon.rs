@@ -62,12 +62,12 @@ impl CharacterBehavior for Data {
                     // Transitions to recover section of stage
                     update.character = CharacterState::SpriteSummon(Data {
                         timer: Duration::default(),
-                        stage_section: StageSection::Cast,
+                        stage_section: StageSection::Action,
                         ..*self
                     });
                 }
             },
-            StageSection::Cast => {
+            StageSection::Action => {
                 if self.timer < self.static_data.cast_duration {
                     let timer_frac =
                         self.timer.as_secs_f32() / self.static_data.cast_duration.as_secs_f32();

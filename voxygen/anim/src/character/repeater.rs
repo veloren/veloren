@@ -39,7 +39,7 @@ impl Animation for RepeaterAnimation {
         let (move1base, move2base, move3base, move4) = match stage_section {
             Some(StageSection::Movement) => (anim_time, 0.0, 0.0, 0.0),
             Some(StageSection::Buildup) => (1.0, anim_time, 0.0, 0.0),
-            Some(StageSection::Shoot) => (1.0, 1.0, anim_time, 0.0),
+            Some(StageSection::Action) => (1.0, 1.0, anim_time, 0.0),
             Some(StageSection::Recover) => (1.1, 1.0, 1.0, anim_time),
             _ => (0.0, 0.0, 0.0, 0.0),
         };

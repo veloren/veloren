@@ -215,7 +215,7 @@ impl CharacterBehavior for Data {
                             // Stop charging now and go to swing stage section
                             update.character = CharacterState::DashMelee(Data {
                                 timer: Duration::default(),
-                                stage_section: StageSection::Swing,
+                                stage_section: StageSection::Action,
                                 exhausted: false,
                                 ..*self
                             });
@@ -238,13 +238,13 @@ impl CharacterBehavior for Data {
                     // Transitions to swing section of stage
                     update.character = CharacterState::DashMelee(Data {
                         timer: Duration::default(),
-                        stage_section: StageSection::Swing,
+                        stage_section: StageSection::Action,
                         exhausted: false,
                         ..*self
                     });
                 }
             },
-            StageSection::Swing => {
+            StageSection::Action => {
                 if self.static_data.charge_through && !self.exhausted {
                     // If can charge through and not exhausted, do one more melee attack
 

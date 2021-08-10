@@ -28,7 +28,7 @@ impl Animation for BreatheAnimation {
 
         let (movement1base, _movement2base, movement3, twitch) = match stage_section {
             Some(StageSection::Buildup) => (anim_time.sqrt(), 0.0, 0.0, 0.0),
-            Some(StageSection::Cast) => (1.0, anim_time.min(1.0), 0.0, anim_time),
+            Some(StageSection::Action) => (1.0, anim_time.min(1.0), 0.0, anim_time),
             Some(StageSection::Recover) => (1.0, 1.0, anim_time, 1.0),
             _ => (0.0, 0.0, 0.0, 0.0),
         };

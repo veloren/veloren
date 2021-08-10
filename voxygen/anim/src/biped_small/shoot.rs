@@ -82,7 +82,7 @@ impl Animation for ShootAnimation {
             Some(ToolKind::Bow) => {
                 let (move1base, move2base, move3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
-                    Some(StageSection::Swing) => (1.0, anim_time.powf(0.25), 0.0),
+                    Some(StageSection::Action) => (1.0, anim_time.powf(0.25), 0.0),
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time),
                     _ => (0.0, 0.0, 0.0),
                 };
@@ -113,7 +113,7 @@ impl Animation for ShootAnimation {
             Some(ToolKind::Staff) => {
                 let (move1base, _move2base, move3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                    Some(StageSection::Swing) => (1.0, anim_time.powf(0.25), 0.0),
+                    Some(StageSection::Action) => (1.0, anim_time.powf(0.25), 0.0),
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time),
                     _ => (0.0, 0.0, 0.0),
                 };
