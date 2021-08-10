@@ -441,7 +441,7 @@ impl Camera {
                 .ray(start, end)
                 .ignore_error()
                 .max_iter(500)
-                .until(is_transparent)
+                .until(|b| !is_transparent(b))
                 .cast()
             {
                 (d, Ok(Some(_))) => f32::min(self.dist - d - 0.03, self.dist),
@@ -464,7 +464,7 @@ impl Camera {
             * Mat4::rotation_y(self.ori.x)
             * Mat4::rotation_3d(PI / 2.0, -Vec4::unit_x())
             * Mat4::translation_3d(-self.focus.map(|e| e.fract()));
-        let view_mat_inv: Mat4<f32> = self.dependents.view_mat.inverted();
+        let view_mat_inv: Mat4<f32> = view_mat.inverted();
 
         // NOTE: We reverse the far and near planes to produce an inverted depth
         // buffer (1 to 0 z planes).
@@ -481,7 +481,7 @@ impl Camera {
             proj_mat_inv: proj_mat.inverted(),
             proj_mat_treeculler,
             cam_pos: Vec3::from(view_mat_inv * Vec4::unit_w()),
-            cam_dir: Vec3::from(self.dependents.view_mat_inv * -Vec4::unit_z()),
+            cam_dir: Vec3::from(view_mat_inv * -Vec4::unit_z()),
         }
     }
 
