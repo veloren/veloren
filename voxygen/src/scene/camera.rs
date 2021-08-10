@@ -2,7 +2,6 @@ use common::{terrain::TerrainGrid, vol::ReadVol};
 use common_base::span;
 use core::{f32::consts::PI, fmt::Debug};
 use num::traits::{real::Real, FloatConst};
-use std::convert::identity;
 use treeculler::Frustum;
 use vek::*;
 
@@ -359,6 +358,19 @@ impl Camera {
         is_transparent: fn(&V::Vox) -> bool,
     ) {
         span!(_guard, "compute_dependents", "Camera::compute_dependents");
+        // TODO: More intelligent function to decide on which strategy to use
+        if self.tgt_dist < CLIPPING_MODE_DISTANCE {
+            self.compute_dependents_near(terrain, is_transparent)
+        } else {
+            self.compute_dependents_far(terrain, is_transparent)
+        }
+    }
+
+    fn compute_dependents_near<V: ReadVol>(
+        &mut self,
+        terrain: &V,
+        is_transparent: fn(&V::Vox) -> bool,
+    ) {
         const FRUSTUM_PADDING: [Vec3<f32>; 4] = [
             Vec3::new(0.0, 0.0, -1.0),
             Vec3::new(0.0, 0.0, 1.0),
@@ -374,37 +386,6 @@ impl Camera {
         let local_dependents = self.compute_dependents_helper(self.tgt_dist);
         let frustum = self.compute_frustum(&local_dependents);
         let dist = {
-            fn dist_far(d: f32, max: f32) -> f32 { f32::min(max - d, max) }
-            fn swap((a, b): (Vec3<f32>, Vec3<f32>)) -> (Vec3<f32>, Vec3<f32>) { (b, a) }
-            fn invert(v: bool) -> bool { !v }
-
-            // Decide whther to ray cast from player to camera or in the opposite direction.
-            // Ray casting from camera to player is useful when we wish to let small objects
-            // pass between player and camera rather than make camera jump
-            // TODO: More intelligent function to decide raycast direction
-            struct CalcHelpers<T> {
-                dir_fn: fn((T, T)) -> (T, T),
-                until_fn: fn(bool) -> bool,
-                dist_fn: fn(f32, f32) -> f32,
-            }
-            let CalcHelpers {
-                dir_fn,
-                until_fn,
-                dist_fn,
-            } = if self.tgt_dist < CLIPPING_MODE_DISTANCE {
-                CalcHelpers {
-                    dir_fn: identity,
-                    until_fn: identity,
-                    dist_fn: f32::min,
-                }
-            } else {
-                CalcHelpers {
-                    dir_fn: swap,
-                    until_fn: invert,
-                    dist_fn: dist_far,
-                }
-            };
-
             frustum
                 .points
                 .iter()
@@ -416,15 +397,14 @@ impl Camera {
                 })
                 .chain([(self.focus - self.forward() * (self.dist + 0.5))])  // Padding to behind
                 .map(|pos| {
-                    let (start, end) = dir_fn((self.focus, pos));
                     match terrain
-                        .ray(start, end)
+                        .ray(self.focus, pos)
                         .ignore_error()
                         .max_iter(500)
-                        .until(|b| until_fn(is_transparent(b)))
+                        .until(is_transparent)
                         .cast()
                     {
-                        (d, Ok(Some(_))) => dist_fn(d, self.tgt_dist),
+                        (d, Ok(Some(_))) => f32::min(d, self.tgt_dist),
                         (_, Ok(None)) => self.dist,
                         (_, Err(_)) => self.dist,
                     }
@@ -447,6 +427,33 @@ impl Camera {
             self.dependents = local_dependents;
             self.frustum = frustum;
         }
+    }
+
+    fn compute_dependents_far<V: ReadVol>(
+        &mut self,
+        terrain: &V,
+        is_transparent: fn(&V::Vox) -> bool,
+    ) {
+        let dist = {
+            let (start, end) = (self.focus - self.forward() * self.dist, self.focus);
+
+            match terrain
+                .ray(start, end)
+                .ignore_error()
+                .max_iter(500)
+                .until(is_transparent)
+                .cast()
+            {
+                (d, Ok(Some(_))) => f32::min(self.dist - d - 0.03, self.dist),
+                (_, Ok(None)) => self.dist,
+                (_, Err(_)) => self.dist,
+            }
+            .max(0.0)
+        };
+
+        let dependents = self.compute_dependents_helper(dist);
+        self.frustum = self.compute_frustum(&dependents);
+        self.dependents = dependents;
     }
 
     fn compute_dependents_helper(&self, dist: f32) -> Dependents {
