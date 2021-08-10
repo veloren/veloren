@@ -165,6 +165,28 @@ fn main() {
         default_hook(panic_info);
     }));
 
+    //Setup tokio runtime
+    use common::consts::MIN_RECOMMENDED_TOKIO_THREADS;
+    use std::sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc,
+    };
+    use tokio::runtime::Builder;
+
+    let cores = num_cpus::get();
+    let tokio_runtime = Arc::new(
+        Builder::new_multi_thread()
+            .enable_all()
+            .worker_threads((cores / 4).max(MIN_RECOMMENDED_TOKIO_THREADS))
+            .thread_name_fn(|| {
+                static ATOMIC_ID: AtomicUsize = AtomicUsize::new(0);
+                let id = ATOMIC_ID.fetch_add(1, Ordering::SeqCst);
+                format!("tokio-voxygen-{}", id)
+            })
+            .build()
+            .unwrap(),
+    );
+
     #[cfg(feature = "hot-reloading")]
     assets::start_hot_reloading();
 
@@ -210,7 +232,7 @@ fn main() {
 
     // Create window
     use veloren_voxygen::{error::Error, render::RenderError};
-    let (mut window, event_loop) = match Window::new(&settings) {
+    let (mut window, event_loop) = match tokio_runtime.block_on(Window::new(&settings)) {
         Ok(ok) => ok,
         // Custom panic message when a graphics backend could not be found
         Err(Error::RenderError(RenderError::CouldNotFindAdapter)) => {
@@ -247,6 +269,7 @@ fn main() {
         audio,
         profile,
         window,
+        tokio_runtime,
         #[cfg(feature = "egui-ui")]
         egui_state,
         lazy_init,

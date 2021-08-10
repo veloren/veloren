@@ -93,7 +93,7 @@ impl PlayState for MainMenuState {
         {
             if let Some(singleplayer) = &global_state.singleplayer {
                 match singleplayer.receiver.try_recv() {
-                    Ok(Ok(runtime)) => {
+                    Ok(Ok(())) => {
                         // Attempt login after the server is finished initializing
                         attempt_login(
                             &mut global_state.info_message,
@@ -101,7 +101,7 @@ impl PlayState for MainMenuState {
                             "".to_owned(),
                             ConnectionArgs::Mpsc(14004),
                             &mut self.init,
-                            Some(runtime),
+                            &global_state.tokio_runtime,
                         );
                     },
                     Ok(Err(e)) => {
@@ -261,7 +261,7 @@ impl PlayState for MainMenuState {
                         password,
                         connection_args,
                         &mut self.init,
-                        None,
+                        &global_state.tokio_runtime,
                     );
                 },
                 MainMenuEvent::CancelLoginAttempt => {
@@ -290,7 +290,7 @@ impl PlayState for MainMenuState {
                 },
                 #[cfg(feature = "singleplayer")]
                 MainMenuEvent::StartSingleplayer => {
-                    let singleplayer = Singleplayer::new();
+                    let singleplayer = Singleplayer::new(&global_state.tokio_runtime);
 
                     global_state.singleplayer = Some(singleplayer);
                 },
@@ -450,7 +450,7 @@ fn attempt_login(
     password: String,
     connection_args: ConnectionArgs,
     init: &mut InitState,
-    runtime: Option<Arc<runtime::Runtime>>,
+    runtime: &Arc<runtime::Runtime>,
 ) {
     if let Err(err) = comp::Player::alias_validate(&username) {
         *info_message = Some(err.to_string());
@@ -463,7 +463,7 @@ fn attempt_login(
             connection_args,
             username,
             password,
-            runtime,
+            Arc::clone(runtime),
         ));
     }
 }

@@ -1,4 +1,4 @@
-use common::{clock::Clock, consts::MIN_RECOMMENDED_TOKIO_THREADS};
+use common::clock::Clock;
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender, TryRecvError};
 use server::{
     persistence::{DatabaseSettings, SqlLogMode},
@@ -6,14 +6,14 @@ use server::{
 };
 use std::{
     sync::{
-        atomic::{AtomicBool, AtomicUsize, Ordering},
+        atomic::{AtomicBool, Ordering},
         Arc,
     },
     thread::{self, JoinHandle},
     time::Duration,
 };
 use tokio::runtime::Runtime;
-use tracing::{debug, error, info, trace, warn};
+use tracing::{error, info, trace, warn};
 
 const TPS: u64 = 30;
 
@@ -22,7 +22,7 @@ const TPS: u64 = 30;
 pub struct Singleplayer {
     _server_thread: JoinHandle<()>,
     stop_server_s: Sender<()>,
-    pub receiver: Receiver<Result<Arc<Runtime>, ServerError>>,
+    pub receiver: Receiver<Result<(), ServerError>>,
     // Wether the server is stopped or not
     paused: Arc<AtomicBool>,
     // Settings that the server was started with
@@ -30,8 +30,7 @@ pub struct Singleplayer {
 }
 
 impl Singleplayer {
-    #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
+    pub fn new(runtime: &Arc<Runtime>) -> Self {
         let (stop_server_s, stop_server_r) = unbounded();
 
         // Determine folder to save server data in
@@ -82,22 +81,6 @@ impl Singleplayer {
         let settings = server::Settings::singleplayer(&server_data_dir);
         let editable_settings = server::EditableSettings::singleplayer(&server_data_dir);
 
-        // TODO: evaluate std::thread::available_concurrency as a num_cpus replacement
-        let cores = num_cpus::get();
-        debug!("Creating a new runtime for server");
-        let runtime = Arc::new(
-            tokio::runtime::Builder::new_multi_thread()
-                .enable_all()
-                .worker_threads((cores / 4).max(MIN_RECOMMENDED_TOKIO_THREADS))
-                .thread_name_fn(|| {
-                    static ATOMIC_ID: AtomicUsize = AtomicUsize::new(0);
-                    let id = ATOMIC_ID.fetch_add(1, Ordering::SeqCst);
-                    format!("tokio-sp-{}", id)
-                })
-                .build()
-                .unwrap(),
-        );
-
         let settings2 = settings.clone();
 
         // Relative to data_dir
@@ -117,24 +100,22 @@ impl Singleplayer {
         let (result_sender, result_receiver) = bounded(1);
 
         let builder = thread::Builder::new().name("singleplayer-server-thread".into());
+        let runtime = Arc::clone(runtime);
         let thread = builder
             .spawn(move || {
                 trace!("starting singleplayer server thread");
                 let mut server = None;
                 if let Err(e) = result_sender.send(
-                    match Server::new(
+                    Server::new(
                         settings2,
                         editable_settings,
                         database_settings,
                         &server_data_dir,
-                        Arc::clone(&runtime),
-                    ) {
-                        Ok(s) => {
-                            server = Some(s);
-                            Ok(runtime)
-                        },
-                        Err(e) => Err(e),
-                    },
+                        runtime,
+                    )
+                    .map(|s| {
+                        server = Some(s);
+                    }),
                 ) {
                     warn!(
                         ?e,

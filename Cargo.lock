@@ -6161,7 +6161,6 @@ dependencies = [
  "egui_winit_platform",
  "enum-iterator",
  "euc",
- "futures-executor",
  "gilrs",
  "glyph_brush",
  "guillotiere",
