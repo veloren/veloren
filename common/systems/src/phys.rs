@@ -318,7 +318,8 @@ impl<'a> PhysicsData<'a> {
                     char_state_maybe,
                 )| {
                     let is_sticky = sticky.is_some();
-                    // Code reviewers: remind me to check why on_ground was true instead of false here?
+                    // Code reviewers: remind me to check why on_ground was true instead of false
+                    // here?
                     let is_mid_air = physics.on_wall.is_none() && physics.on_ground.is_some();
                     let mut entity_entity_collision_checks = 0;
                     let mut entity_entity_collisions = 0;
@@ -425,25 +426,43 @@ impl<'a> PhysicsData<'a> {
                                             entity_entity_collisions += 1;
                                         }
 
-                                        // Don't apply e2e pushback to entities that are in a forced movement state
-                                        // (e.g. roll, leapmelee). This allows leaps to work properly (since you won't
-                                        // get pushed away before delivering the hit), and allows rolling through an
-                                        // enemy when trapped (e.g. with minotaur). This allows using e2e pushback to
-                                        // gain speed by jumping out of a roll while in the middle of a collider, this
-                                        // is an intentional combat mechanic.
-                                        let forced_movement = matches!(char_state_maybe, Some(cs) if cs.is_forced_movement());
-
-                                        // Don't apply repulsive force to projectiles or if we're colliding with a
-                                        // terrain-like entity, or if we are a terrain-like entity
+                                        // Don't apply e2e pushback to entities
+                                        // that are in a forced movement state
+                                        // (e.g. roll, leapmelee).
                                         //
-                                        // Don't apply force when entity is a sticky which is on the
+                                        // This allows leaps to work properly
+                                        // (since you won't get pushed away before
+                                        // delivering the hit), and allows
+                                        // rolling through an enemy when trapped
+                                        // (e.g. with minotaur).
+                                        //
+                                        // This allows using e2e pushback to
+                                        // gain speed by jumping out of a roll
+                                        // while in the middle of a collider, this
+                                        // is an intentional combat mechanic.
+                                        let forced_movement = matches!(
+                                            char_state_maybe,
+                                            Some(cs) if cs.is_forced_movement());
+
+                                        // Don't apply repulsive force
+                                        // to projectiles
+                                        //
+                                        // or if we're colliding with a
+                                        // terrain-like entity,
+                                        //
+                                        // or if we are a terrain-like entity
+                                        //
+                                        // Don't apply force when entity
+                                        // is a sticky which is on the
                                         // ground (or on the wall)
                                         if !forced_movement
-                                            && (!is_sticky
-                                            || is_mid_air)
+                                            && (!is_sticky || is_mid_air)
                                             && diff.magnitude_squared() > 0.0
                                             && !is_projectile
-                                            && !matches!(collider_other,Some(Collider::Voxel { .. }))
+                                            && !matches!(
+                                                collider_other,
+                                                Some(Collider::Voxel { .. })
+                                            )
                                             && !matches!(collider, Some(Collider::Voxel { .. }))
                                         {
                                             let force = 400.0
@@ -892,7 +911,8 @@ impl<'a> PhysicsData<'a> {
                                     .try_normalized()
                                     .unwrap_or_else(Vec3::zero);
 
-                                // See whether we're on the top/bottom of a block, or the side
+                                // See whether we're on the top/bottom of a block,
+                                // or the side
                                 if block_rpos.z.abs()
                                     > block_rpos.xy().map(|e| e.abs()).reduce_partial_max()
                                 {
@@ -942,11 +962,12 @@ impl<'a> PhysicsData<'a> {
                         },
                     }
 
-                    // Compute center and radius of tick path bounding sphere for the entity
-                    // for broad checks of whether it will collide with a voxel collider
+                    // Compute center and radius of tick path bounding sphere
+                    // for the entity for broad checks of whether it will
+                    // collide with a voxel collider
                     let path_sphere = {
-                        // TODO: duplicated with maintain_pushback_cache, make a common function
-                        // to call to compute all this info?
+                        // TODO: duplicated with maintain_pushback_cache,
+                        // make a common function to call to compute all this info?
                         let z_limits = calc_z_limit(character_state, Some(collider));
                         let z_limits = (z_limits.0 * scale, z_limits.1 * scale);
                         let half_height = (z_limits.1 - z_limits.0) / 2.0;
