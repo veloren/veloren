@@ -21,7 +21,7 @@ use common::{
         item::{tool::ToolKind, ItemDef, ItemDesc},
         ChatMsg, ChatType, InputKind, InventoryUpdateEvent, Pos, Stats, UtteranceKind, Vel,
     },
-    consts::{MAX_MOUNT_RANGE},
+    consts::MAX_MOUNT_RANGE,
     outcome::Outcome,
     terrain::{Block, BlockKind},
     trade::TradeResult,
@@ -48,9 +48,9 @@ use crate::{
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use hashbrown::HashMap;
+use interactable::{select_interactable, Interactable};
 use settings_change::Language::ChangeLanguage;
-use interactable::{Interactable, select_interactable};
-use target::{Target, targets_under_cursor};
+use target::{targets_under_cursor, Target};
 #[cfg(feature = "egui-ui")]
 use voxygen_egui::EguiDebugInfo;
 
@@ -415,7 +415,13 @@ impl PlayState for SessionState {
 
             // Check to see whether we're aiming at anything
             let (build_target, collect_target, entity_target, mine_target, shortest_dist) =
-                targets_under_cursor(&self.client.borrow(), cam_pos, cam_dir, can_build, is_mining);
+                targets_under_cursor(
+                    &self.client.borrow(),
+                    cam_pos,
+                    cam_dir,
+                    can_build,
+                    is_mining,
+                );
 
             self.interactable = select_interactable(
                 &self.client.borrow(),
@@ -426,7 +432,9 @@ impl PlayState for SessionState {
             );
 
             let is_nearest_target = |target: Option<Target>| {
-                target.map(|t| (t.distance() == shortest_dist)).unwrap_or(false)
+                target
+                    .map(|t| (t.distance() <= shortest_dist))
+                    .unwrap_or(false)
             };
 
             // Only highlight terrain blocks which can be interacted with
@@ -451,7 +459,7 @@ impl PlayState for SessionState {
                         self.inputs.select_pos,
                         entity_target.map(Target::entity).unwrap_or(None),
                     );
-                }
+                };
             }
 
             // Handle window events.
@@ -490,7 +498,10 @@ impl PlayState for SessionState {
                                     if let Some(build_target) = build_target {
                                         self.inputs.select_pos = Some(build_target.position());
                                         let mut client = self.client.borrow_mut();
-                                        client.place_block(build_target.position_int(), self.selected_block);
+                                        client.place_block(
+                                            build_target.position_int(),
+                                            self.selected_block,
+                                        );
                                     }
                                 } else {
                                     entity_event_handler!(InputKind::Secondary, state);
@@ -511,7 +522,8 @@ impl PlayState for SessionState {
                                                 .ok()
                                                 .copied()
                                         }) {
-                                            self.inputs.select_pos = build_target.map(Target::position);
+                                            self.inputs.select_pos =
+                                                build_target.map(Target::position);
                                             self.selected_block = block;
                                         }
                                     }
@@ -670,7 +682,8 @@ impl PlayState for SessionState {
                                                 match interaction {
                                                     Some(Interaction::Collect) => {
                                                         if block.is_collectible() {
-                                                            self.inputs.select_pos = collect_target.map(Target::position);
+                                                            self.inputs.select_pos = collect_target
+                                                                .map(Target::position);
                                                             client.collect_block(pos);
                                                         }
                                                     },

@@ -2,6 +2,7 @@ use ordered_float::OrderedFloat;
 use specs::{Join, WorldExt};
 use vek::*;
 
+use super::target::Target;
 use client::{self, Client};
 use common::{
     comp,
@@ -11,7 +12,6 @@ use common::{
     vol::ReadVol,
 };
 use common_base::span;
-use super::target::Target;
 
 use crate::scene::{terrain::Interaction, Scene};
 
