@@ -320,7 +320,7 @@ impl Inventory {
 
     pub fn populated_slots(&self) -> usize { self.slots().filter_map(|slot| slot.as_ref()).count() }
 
-    fn free_slots(&self) -> usize { self.slots().filter(|slot| slot.is_none()).count() }
+    pub fn free_slots(&self) -> usize { self.slots().filter(|slot| slot.is_none()).count() }
 
     /// Check if an item is in this inventory.
     pub fn contains(&self, item: &Item) -> bool {

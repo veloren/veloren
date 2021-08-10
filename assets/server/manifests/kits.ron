@@ -45,41 +45,30 @@
         ("common.items.food.tomatosalad", 100),
     ],
     "jewellery": [
-        // TODO: remove duplicates and handle quantity of non-stackable items
-
         // Necklace
-        ("common.items.armor.misc.neck.plain_1",1),
-        ("common.items.armor.misc.neck.shell",1),
+        ("common.items.armor.misc.neck.shell", 1),
+        ("common.items.armor.misc.neck.plain_1", 1),
 
         // Rings
         // With effects
-        ("common.items.armor.misc.ring.diamond",1),
-        ("common.items.armor.misc.ring.diamond",1),
+        ("common.items.armor.misc.ring.diamond", 2),
 
-        ("common.items.armor.misc.ring.ruby",1),
-        ("common.items.armor.misc.ring.ruby",1),
+        ("common.items.armor.misc.ring.ruby", 2),
 
-        ("common.items.armor.misc.ring.emerald",1),
-        ("common.items.armor.misc.ring.emerald",1),
+        ("common.items.armor.misc.ring.emerald", 2),
 
-        ("common.items.armor.misc.ring.sapphire",1),
-        ("common.items.armor.misc.ring.sapphire",1),
+        ("common.items.armor.misc.ring.sapphire", 2),
 
-        ("common.items.armor.misc.ring.topaz",1),
-        ("common.items.armor.misc.ring.topaz",1),
+        ("common.items.armor.misc.ring.topaz", 2),
 
-        ("common.items.armor.misc.ring.amethyst",1),
-        ("common.items.armor.misc.ring.amethyst",1),
+        ("common.items.armor.misc.ring.amethyst", 2),
 
         // Without effects
-        ("common.items.armor.misc.ring.scratched",1),
-        ("common.items.armor.misc.ring.scratched",1),
+        ("common.items.armor.misc.ring.scratched", 2),
 
-        ("common.items.armor.misc.ring.gold",1),
-        ("common.items.armor.misc.ring.gold",1),
+        ("common.items.armor.misc.ring.gold", 2),
 
-        ("common.items.armor.misc.ring.skull",1),
-        ("common.items.armor.misc.ring.skull",1),
+        ("common.items.armor.misc.ring.skull", 2),
     ],
     "endgame": [
         // Cultist weapons
@@ -326,8 +315,7 @@
 
         // weapons
         ("common.items.weapons.sword.stone-0", 1),
-        ("common.items.weapons.axe_1h.stone-0", 1),
-        ("common.items.weapons.axe_1h.stone-1", 1),
+        ("common.items.weapons.axe_1h.stone-0", 2),
         ("common.items.weapons.hammer.stone_hammer-0", 1),
         ("common.items.weapons.bow.wood-0", 1),
         ("common.items.weapons.staff.bent_fuse", 1),

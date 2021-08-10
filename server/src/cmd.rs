@@ -14,7 +14,9 @@ use authc::Uuid;
 use chrono::{NaiveTime, Timelike, Utc};
 use common::{
     assets,
-    cmd::{ChatCommand, BUFF_PACK, BUFF_PARSER},
+    cmd::{
+        ChatCommand, BUFF_PACK, BUFF_PARSER, ITEM_SPECS, KIT_MANIFEST_PATH, PRESET_MANIFEST_PATH,
+    },
     comp::{
         self,
         aura::{Aura, AuraKind, AuraTarget},
@@ -1568,49 +1570,112 @@ fn handle_kill_npcs(
 
 fn handle_kit(
     server: &mut Server,
-    _client: EcsEntity,
+    client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let Some(name) = parse_args!(args, String) {
-        if let Ok(kits) = common::cmd::KitManifest::load("server.manifests.kits") {
-            let kits = kits.read();
-            if let Some(kit) = kits.0.get(&name) {
-                if let (Some(mut target_inventory), mut target_inv_update) = (
-                    server
-                        .state()
-                        .ecs()
-                        .write_storage::<comp::Inventory>()
-                        .get_mut(target),
-                    server.state.ecs().write_storage::<comp::InventoryUpdate>(),
-                ) {
-                    for (item_id, quantity) in kit.iter() {
-                        if let Ok(mut item) = comp::Item::new_from_asset(item_id) {
-                            let _ = item.set_amount(*quantity);
-                            let (_, _) = (
-                                target_inventory.push(item),
-                                target_inv_update.insert(
-                                    target,
-                                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Debug),
-                                ),
-                            );
-                        } else {
-                            warn!("Unknown item: {}", &item_id);
-                        }
-                    }
-                    Ok(())
-                } else {
-                    Err("Could not get inventory".to_string())
-                }
-            } else {
-                Err(format!("Kit '{}' not found", name))
+    use common::cmd::KitManifest;
+
+    let notify = |server: &mut Server, kit_name: &str| {
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandInfo, format!("Gave kit: {}", kit_name)),
+        );
+    };
+    let name = parse_args!(args, String).ok_or_else(|| action.help_string())?;
+
+    match name.as_str() {
+        "all" => {
+            // TODO: we will probably want to handle modular items here too
+            let items = &ITEM_SPECS;
+            let res = push_kit(
+                items.iter().map(|item_id| (item_id.as_str(), 1)),
+                items.len(),
+                server,
+                target,
+            );
+            if res.is_ok() {
+                notify(server, "all");
             }
-        } else {
-            Err("Could not load manifest file 'server.manifests.kits'".to_string())
+            res
+        },
+        kit_name => {
+            let kits = KitManifest::load(KIT_MANIFEST_PATH)
+                .map(|kits| kits.read())
+                .map_err(|_| format!("Could not load manifest file {}", KIT_MANIFEST_PATH))?;
+
+            let kit = kits
+                .0
+                .get(kit_name)
+                .ok_or(format!("Kit '{}' not found", kit_name))?;
+
+            let res = push_kit(
+                kit.iter()
+                    .map(|&(ref item_id, quantity)| (item_id.as_str(), quantity)),
+                kit.len(),
+                server,
+                target,
+            );
+            if res.is_ok() {
+                notify(server, kit_name);
+            }
+            res
+        },
+    }
+}
+
+fn push_kit<'a, I>(kit: I, count: usize, server: &mut Server, target: EcsEntity) -> CmdResult<()>
+where
+    I: Iterator<Item = (&'a str, u32)>,
+{
+    if let (Some(mut target_inventory), mut target_inv_update) = (
+        server
+            .state()
+            .ecs()
+            .write_storage::<comp::Inventory>()
+            .get_mut(target),
+        server.state.ecs().write_storage::<comp::InventoryUpdate>(),
+    ) {
+        // TODO: implement atomic `insert_all_or_nothing` on Inventory
+        if target_inventory.free_slots() < count {
+            return Err("Inventory doesn't have enough slots".to_owned());
         }
+        for (item_id, quantity) in kit {
+            let mut item = comp::Item::new_from_asset(item_id)
+                .map_err(|_| format!("Unknown item: {}", item_id))?;
+            let mut res = Ok(());
+
+            // Either push stack or push one by one.
+            if item.is_stackable() {
+                // FIXME: in theory, this can fail,
+                // but we don't have stack sizes yet.
+                let _ = item.set_amount(quantity);
+                res = target_inventory.push(item);
+                let _ = target_inv_update.insert(
+                    target,
+                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Debug),
+                );
+            } else {
+                let ability_map = server.state.ecs().read_resource::<AbilityMap>();
+                let msm = server.state.ecs().read_resource::<MaterialStatManifest>();
+                for _ in 0..quantity {
+                    res = target_inventory.push(item.duplicate(&ability_map, &msm));
+                    let _ = target_inv_update.insert(
+                        target,
+                        comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Debug),
+                    );
+                }
+            }
+            // I think it's possible to pick-up item during this loop
+            // and fail into case where you had space but now you don't?
+            if res.is_err() {
+                return Err("Can't fit item to inventory".to_owned());
+            }
+        }
+        Ok(())
     } else {
-        Err(action.help_string())
+        Err("Could not get inventory".to_string())
     }
 }
 
@@ -3058,7 +3123,7 @@ fn handle_skill_preset(
 fn clear_skillset(skill_set: &mut comp::SkillSet) { *skill_set = comp::SkillSet::default(); }
 
 fn set_skills(skill_set: &mut comp::SkillSet, preset: &str) -> CmdResult<()> {
-    let presets = match common::cmd::SkillPresetManifest::load("server.manifests.presets") {
+    let presets = match common::cmd::SkillPresetManifest::load(PRESET_MANIFEST_PATH) {
         Ok(presets) => presets.read().0.clone(),
         Err(err) => {
             warn!("Error in preset: {}", err);
