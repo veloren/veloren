@@ -183,9 +183,10 @@ pub struct Renderer {
 impl Renderer {
     /// Create a new `Renderer` from a variety of backend-specific components
     /// and the window targets.
-    pub async fn new(
+    pub fn new(
         window: &winit::window::Window,
         mode: RenderMode,
+        runtime: &tokio::runtime::Runtime,
     ) -> Result<Self, RenderError> {
         let (pipeline_modes, mut other_modes) = mode.split();
         // Enable seamless cubemaps globally, where available--they are essentially a
@@ -223,12 +224,11 @@ impl Renderer {
         #[allow(unsafe_code)]
         let surface = unsafe { instance.create_surface(window) };
 
-        let adapter = instance
-            .request_adapter(&wgpu::RequestAdapterOptionsBase {
+        let adapter = runtime
+            .block_on(instance.request_adapter(&wgpu::RequestAdapterOptionsBase {
                 power_preference: wgpu::PowerPreference::HighPerformance,
                 compatible_surface: Some(&surface),
-            })
-            .await
+            }))
             .ok_or(RenderError::CouldNotFindAdapter)?;
 
         let info = adapter.get_info();
@@ -271,20 +271,18 @@ impl Renderer {
 
             path
         });
-        let (device, queue) = adapter
-            .request_device(
-                &wgpu::DeviceDescriptor {
-                    // TODO
-                    label: None,
-                    features: wgpu::Features::DEPTH_CLAMPING
-                        | wgpu::Features::ADDRESS_MODE_CLAMP_TO_BORDER
-                        | wgpu::Features::PUSH_CONSTANTS
-                        | (adapter.features() & wgpu_profiler::GpuProfiler::REQUIRED_WGPU_FEATURES),
-                    limits,
-                },
-                trace_path.as_deref(),
-            )
-            .await?;
+        let (device, queue) = runtime.block_on(adapter.request_device(
+            &wgpu::DeviceDescriptor {
+                // TODO
+                label: None,
+                features: wgpu::Features::DEPTH_CLAMPING
+                    | wgpu::Features::ADDRESS_MODE_CLAMP_TO_BORDER
+                    | wgpu::Features::PUSH_CONSTANTS
+                    | (adapter.features() & wgpu_profiler::GpuProfiler::REQUIRED_WGPU_FEATURES),
+                limits,
+            },
+            trace_path.as_deref(),
+        ))?;
 
         // Set error handler for wgpu errors
         // This is better for use than their default because it includes the error in

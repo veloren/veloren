@@ -232,7 +232,7 @@ fn main() {
 
     // Create window
     use veloren_voxygen::{error::Error, render::RenderError};
-    let (mut window, event_loop) = match tokio_runtime.block_on(Window::new(&settings)) {
+    let (mut window, event_loop) = match Window::new(&settings, &tokio_runtime) {
         Ok(ok) => ok,
         // Custom panic message when a graphics backend could not be found
         Err(Error::RenderError(RenderError::CouldNotFindAdapter)) => {
