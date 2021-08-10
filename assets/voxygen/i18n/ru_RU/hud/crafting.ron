@@ -1,0 +1,38 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for RUS
+(
+    string_map: {
+        "hud.crafting": "Ремесло ",
+        "hud.crafting.recipes": "Рецепты",
+        "hud.crafting.ingredients": "Ингредиенты :",
+        "hud.crafting.craft": "Создать",
+        "hud.crafting.tool_cata": "Необходимо:",
+        // Crafting Stations
+        "hud.crafting.req_crafting_station": "Необходимо:",
+        "hud.crafting.anvil": "Наковальня",
+        "hud.crafting.cauldron": "Котел",
+        "hud.crafting.cooking_pot": "Котелок",
+        "hud.crafting.crafting_bench": "Верстак",
+        "hud.crafting.forge": "Кузница",
+        "hud.crafting.loom": "Ткацкий станок",
+        "hud.crafting.spinning_wheel": "Прялка",
+        "hud.crafting.tanning_rack": "Стойка для дубления кожи",
+        // Tabs
+        "hud.crafting.tabs.all": "Все",
+        "hud.crafting.tabs.armor": "Броня",
+        "hud.crafting.tabs.dismantle": "Разобрать",
+        "hud.crafting.tabs.food": "Еда",
+        "hud.crafting.tabs.glider": "Делтопланы",
+        "hud.crafting.tabs.potion": "Зелья",
+        "hud.crafting.tabs.tool": "Инструменты",
+        "hud.crafting.tabs.utility": "Утилиты",
+        "hud.crafting.tabs.weapon": "Оружие",
+        "hud.crafting.tabs.bag": "Сумки",
+        "hud.crafting.tabs.processed_material": "Материалы",
+    },
+
+
+    vector_map: {
+    }
+)

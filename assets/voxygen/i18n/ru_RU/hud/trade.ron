@@ -1,0 +1,30 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for RUS
+(
+    string_map: {
+        "hud.trade.trade_window": "Окно торговли",
+        "hud.trade.phase1_description": "Перетащите предметы, которые вы хотите обменять\nв соответствующую область.",
+        "hud.trade.phase2_description": "Сделка теперь заблокирована, чтобы у вас было время\nеё просмотреть.",
+        /// Phase3 should only be visible for a few milliseconds if everything is working properly, but is included for completeness
+        "hud.trade.phase3_description": "Сделка обрабатывается.",
+        "hud.trade.persons_offer": "предложение от {playername}",
+        "hud.trade.has_accepted": "{playername}\nпринял",
+        "hud.trade.accept": "Принять",
+        "hud.trade.decline": "Отклонить",
+        "hud.trade.invite_sent": "Запрос на обмен отправлен {playername}.",
+        "hud.trade.result.completed": "Сделка успешно завершена.",
+        "hud.trade.result.declined": "Сделка отклонена.",
+        "hud.trade.result.nospace": "Недостаточно места для завершения сделки.",
+        "hud.trade.buy_price": "Цена покупки",
+        "hud.trade.sell_price": "Цена продажи",
+        "hud.trade.coin": "монеты",
+        "hud.trade.tooltip_hint_1": "<Shift-Click чтобы Добавить/Удалить из сделки...>",
+        "hud.trade.tooltip_hint_2": "<Ctrl-Click для автоматической балансировки с этим.>",
+    },
+
+
+    vector_map: {
+    }
+)
+

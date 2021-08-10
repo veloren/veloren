@@ -1,0 +1,38 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for RUS
+(
+    string_map: {
+        // Map and Questlog
+        "hud.map.map_title": "Карта",
+        "hud.map.qlog_title": "Задания",
+        "hud.map.topo_map": "Топографическая",
+        "hud.map.difficulty": "Сложность",
+        "hud.map.towns": "Города",
+        "hud.map.castles": "Замки",
+        "hud.map.dungeons": "Подземелья",
+        "hud.map.caves": "Пещеры",
+        "hud.map.cave": "Пещера",
+        "hud.map.peaks": "Горы",
+        "hud.map.voxel_map": "Voxel map",
+        "hud.map.trees": "Гигантские\nдеревья",
+        "hud.map.tree": "Гигантское\nдерево",
+        "hud.map.town": "Городок",
+        "hud.map.castle": "Замок",
+        "hud.map.dungeon": "Подземелье",
+        "hud.map.difficulty_dungeon": "Подземелье\n\nСложность: {difficulty}",
+        "hud.map.drag": "Тащить",
+        "hud.map.zoom": "Увеличить",
+        "hud.map.mid_click": "Установить\nпутевую точку",
+        "hud.map.recenter": "По центру",
+        "hud.map.marked_location": "Отмеченное место",
+        "hud.map.marked_location_remove": "Нажмите, чтобы удалить",
+        "hud.map.change_map_mode": "Изменить режим карты",
+        "hud.map.toggle_minimap_voxel": "Переключить вид вокселей на миникарте",
+        "hud.map.zoom_minimap_explanation": "Увеличьте миникарту, чтобы более детально рассмотреть область вокруг вас.",
+    },
+
+
+    vector_map: {
+    }
+)
