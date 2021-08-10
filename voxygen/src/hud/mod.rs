@@ -1665,8 +1665,7 @@ impl Hud {
                     .set(overitem_id, ui_widgets);
                 } else if let Some(sprite) = block.get_sprite() {
                     overitem::Overitem::new(
-                        format!("{:?}", sprite).into(), /* TODO: A better way to generate text
-                                                         * for this */
+                        get_sprite_desc(sprite, i18n),
                         overitem::TEXT_COLOR,
                         pos.distance_squared(player_pos),
                         &self.fonts,
@@ -4053,6 +4052,21 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
         BuffKind::Wet { .. } => Cow::Borrowed(localized_strings.get("buff.desc.wet")),
         BuffKind::Ensnared { .. } => Cow::Borrowed(localized_strings.get("buff.desc.ensnared")),
     }
+}
+
+pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> Cow<str> {
+    let i18n_key = match sprite {
+        SpriteKind::Anvil => "hud.crafting.anvil",
+        SpriteKind::Cauldron => "hud.crafting.cauldron",
+        SpriteKind::CookingPot => "hud.crafting.cooking_pot",
+        SpriteKind::CraftingBench => "hud.crafting.crafting_bench",
+        SpriteKind::Forge => "hud.crafting.forge",
+        SpriteKind::Loom => "hud.crafting.loom",
+        SpriteKind::SpinningWheel => "hud.crafting.spinning_wheel",
+        SpriteKind::TanningRack => "hud.crafting.tanning_rack",
+        sprite => return Cow::Owned(format!("{:?}", sprite)),
+    };
+    Cow::Borrowed(localized_strings.get(i18n_key))
 }
 
 pub fn get_buff_time(buff: BuffInfo) -> String {
