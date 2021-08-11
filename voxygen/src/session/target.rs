@@ -28,26 +28,6 @@ pub struct Target {
 
 impl Target {
     pub fn position_int(self) -> Vec3<i32> { self.position.map(|p| p.floor() as i32) }
-
-    pub fn build_above_position(self, client: &Client) -> Option<Vec3<i32>> {
-        match self.typed {
-            TargetType::Build => {
-                let mut pos_above = self.position;
-                pos_above.z += 1.0;
-                let pos_above = pos_above.map(|p| p.floor() as i32);
-                if let Ok(block) = client.state().terrain().get(pos_above) {
-                    if block.is_air() {
-                        Some(pos_above)
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
-            },
-            _ => None,
-        }
-    }
 }
 
 /// Max distance an entity can be "targeted"

@@ -411,25 +411,19 @@ impl PlayState for SessionState {
                 .map_or(false, |tool| tool.kind == ToolKind::Pick)
                 && client.is_wielding() == Some(true);
 
-            drop(client);
-
             // Check to see whether we're aiming at anything
             let (build_target, collect_target, entity_target, mine_target, shortest_dist) =
-                targets_under_cursor(
-                    &self.client.borrow(),
-                    cam_pos,
-                    cam_dir,
-                    can_build,
-                    is_mining,
-                );
+                targets_under_cursor(&client, cam_pos, cam_dir, can_build, is_mining);
 
             self.interactable = select_interactable(
-                &self.client.borrow(),
+                &client,
                 collect_target,
                 entity_target,
                 mine_target,
                 &self.scene,
             );
+
+            drop(client);
 
             let is_nearest_target = |target: Option<Target>| {
                 target
@@ -448,25 +442,12 @@ impl PlayState for SessionState {
             }
 
             // Throw out distance info, it will be useful in the future
-            let entity_under_target =
-                if let Some(TargetType::Entity(e)) = entity_target.map(|t| t.typed) {
-                    Some(e)
-                } else {
-                    None
-                };
-            self.target_entity = entity_under_target;
-
-            macro_rules! entity_event_handler {
-                ($input: expr, $pressed: expr) => {
-                    let mut client = self.client.borrow_mut();
-                    client.handle_input(
-                        $input,
-                        $pressed,
-                        self.inputs.select_pos,
-                        entity_under_target,
-                    );
-                };
-            }
+            self.target_entity = if let Some(TargetType::Entity(e)) = entity_target.map(|t| t.typed)
+            {
+                Some(e)
+            } else {
+                None
+            };
 
             // Handle window events.
             for event in events {
@@ -488,40 +469,54 @@ impl PlayState for SessionState {
 
                         match input {
                             GameInput::Primary => {
+                                let mut client = self.client.borrow_mut();
                                 // Mine and build targets can be the same block. make building take
                                 // precedence.
                                 if state && can_build && is_nearest_target(build_target) {
                                     self.inputs.select_pos = build_target.map(|t| t.position);
-                                    let mut client = self.client.borrow_mut();
                                     client.remove_block(build_target.unwrap().position_int());
-                                } else if is_mining && is_nearest_target(mine_target) {
-                                    self.inputs.select_pos = mine_target.map(|t| t.position);
-                                    entity_event_handler!(InputKind::Primary, state);
                                 } else {
-                                    entity_event_handler!(InputKind::Primary, state);
+                                    if is_mining && is_nearest_target(mine_target) {
+                                        self.inputs.select_pos = mine_target.map(|t| t.position);
+                                    }
+                                    client.handle_input(
+                                        InputKind::Primary,
+                                        state,
+                                        self.inputs.select_pos,
+                                        self.target_entity,
+                                    );
                                 }
                             },
                             GameInput::Secondary => {
+                                let mut client = self.client.borrow_mut();
                                 if state && can_build && is_nearest_target(build_target) {
                                     if let Some(build_target) = build_target {
                                         self.inputs.select_pos = Some(build_target.position);
-                                        let mut client = self.client.borrow_mut();
-                                        if let Some(pos) =
-                                            build_target.build_above_position(&client)
-                                        {
-                                            client.place_block(pos, self.selected_block);
-                                        };
+                                        client.place_block(
+                                            build_target.position_int(),
+                                            self.selected_block,
+                                        );
                                     }
                                 } else {
-                                    entity_event_handler!(InputKind::Secondary, state);
+                                    client.handle_input(
+                                        InputKind::Secondary,
+                                        state,
+                                        self.inputs.select_pos,
+                                        self.target_entity,
+                                    );
                                 }
                             },
                             GameInput::Block => {
-                                entity_event_handler!(InputKind::Block, state);
+                                self.client.borrow_mut().handle_input(
+                                    InputKind::Block,
+                                    state,
+                                    self.inputs.select_pos,
+                                    self.target_entity,
+                                );
                             },
                             GameInput::Roll => {
+                                let mut client = self.client.borrow_mut();
                                 if can_build {
-                                    let client = self.client.borrow_mut();
                                     if state {
                                         if let Some(block) = build_target.and_then(|bt| {
                                             client
@@ -537,7 +532,12 @@ impl PlayState for SessionState {
                                         }
                                     }
                                 } else {
-                                    entity_event_handler!(InputKind::Roll, state);
+                                    client.handle_input(
+                                        InputKind::Roll,
+                                        state,
+                                        self.inputs.select_pos,
+                                        self.target_entity,
+                                    );
                                 }
                             },
                             GameInput::Respawn => {
@@ -547,7 +547,12 @@ impl PlayState for SessionState {
                                 }
                             },
                             GameInput::Jump => {
-                                entity_event_handler!(InputKind::Jump, state);
+                                self.client.borrow_mut().handle_input(
+                                    InputKind::Jump,
+                                    state,
+                                    self.inputs.select_pos,
+                                    self.target_entity,
+                                );
                             },
                             GameInput::SwimUp => {
                                 self.key_state.swim_up = state;
@@ -617,7 +622,12 @@ impl PlayState for SessionState {
                                 // Syncing of inputs between mounter and mountee
                                 // broke with controller change
                                 self.key_state.fly ^= state;
-                                entity_event_handler!(InputKind::Fly, self.key_state.fly);
+                                self.client.borrow_mut().handle_input(
+                                    InputKind::Fly,
+                                    self.key_state.fly,
+                                    self.inputs.select_pos,
+                                    self.target_entity,
+                                );
                             },
                             GameInput::Climb => {
                                 self.key_state.climb_up = state;
@@ -1112,12 +1122,10 @@ impl PlayState for SessionState {
                     },
 
                     HudEvent::RemoveBuff(buff_id) => {
-                        let mut client = self.client.borrow_mut();
-                        client.remove_buff(buff_id);
+                        self.client.borrow_mut().remove_buff(buff_id);
                     },
                     HudEvent::UnlockSkill(skill) => {
-                        let mut client = self.client.borrow_mut();
-                        client.unlock_skill(skill);
+                        self.client.borrow_mut().unlock_skill(skill);
                     },
                     HudEvent::UseSlot {
                         slot,
@@ -1343,19 +1351,27 @@ impl PlayState for SessionState {
                         info!("Event! -> ChangedHotbarState")
                     },
                     HudEvent::TradeAction(action) => {
-                        let mut client = self.client.borrow_mut();
-                        client.perform_trade_action(action);
+                        self.client.borrow_mut().perform_trade_action(action);
                     },
                     HudEvent::Ability3(state) => {
-                        entity_event_handler!(InputKind::Ability(0), state);
+                        self.client.borrow_mut().handle_input(
+                            InputKind::Ability(0),
+                            state,
+                            self.inputs.select_pos,
+                            self.target_entity,
+                        );
                     },
                     HudEvent::Ability4(state) => {
-                        entity_event_handler!(InputKind::Ability(1), state);
+                        self.client.borrow_mut().handle_input(
+                            InputKind::Ability(1),
+                            state,
+                            self.inputs.select_pos,
+                            self.target_entity,
+                        );
                     },
 
                     HudEvent::RequestSiteInfo(id) => {
-                        let mut client = self.client.borrow_mut();
-                        client.request_site_economy(id);
+                        self.client.borrow_mut().request_site_economy(id);
                     },
 
                     HudEvent::CraftRecipe {

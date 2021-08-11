@@ -45,7 +45,18 @@ impl Interactable {
                 .get(target.position_int())
                 .ok()
                 .copied()
-                .map(|b| Interactable::Block(b, target.position_int(), None)),
+                .and_then(|b| {
+                    // Handling edge detection. sometimes the casting (in Target mod) returns a
+                    // position which is actually empty, which we do not want labeled as an
+                    // interactable. We are only returning the mineable air
+                    // elements (e.g. minerals). The mineable weakrock are used
+                    // in the terrain selected_pos, but is not an interactable.
+                    if b.mine_tool().is_some() && b.is_air() {
+                        Some(Interactable::Block(b, target.position_int(), None))
+                    } else {
+                        None
+                    }
+                }),
             TargetType::Build => None,
         }
     }
