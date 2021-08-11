@@ -1,6 +1,8 @@
 use specs::{Join, WorldExt};
 use vek::*;
 
+use super::interactable::Interactable;
+use crate::scene::terrain::Interaction;
 use client::{self, Client};
 use common::{
     comp,
@@ -13,40 +15,43 @@ use common::{
 use common_base::span;
 
 #[derive(Clone, Copy, Debug)]
-pub enum Target {
-    Build(Vec3<f32>, Vec3<f32>, f32), // (solid_pos, build_pos, dist)
-    Collectable(Vec3<f32>, f32),      // (pos, dist)
-    Entity(specs::Entity, Vec3<f32>, f32), // (e, pos, dist)
-    Mine(Vec3<f32>, f32),             // (pos, dist)
+pub enum TargetType {
+    Build(Vec3<f32>),
+    Collectable,
+    Entity(specs::Entity),
+    Mine,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Target {
+    pub typed: TargetType,
+    pub distance: f32,
+    pub position: Vec3<f32>,
 }
 
 impl Target {
-    pub fn entity(self) -> Option<specs::Entity> {
-        match self {
-            Self::Entity(e, _, _) => Some(e),
-            _ => None,
+    pub fn position_int(self) -> Vec3<i32> { self.position.map(|p| p.floor() as i32) }
+
+    pub fn make_interactable(self, client: &Client) -> Option<Interactable> {
+        match self.typed {
+            TargetType::Collectable => client
+                .state()
+                .terrain()
+                .get(self.position_int())
+                .ok()
+                .copied()
+                .map(|b| Interactable::Block(b, self.position_int(), Some(Interaction::Collect))),
+            TargetType::Entity(e) => Some(Interactable::Entity(e)),
+            TargetType::Mine => client
+                .state()
+                .terrain()
+                .get(self.position_int())
+                .ok()
+                .copied()
+                .map(|b| Interactable::Block(b, self.position_int(), None)),
+            TargetType::Build(_) => None,
         }
     }
-
-    pub fn distance(self) -> f32 {
-        match self {
-            Self::Collectable(_, d)
-            | Self::Entity(_, _, d)
-            | Self::Mine(_, d)
-            | Self::Build(_, _, d) => d,
-        }
-    }
-
-    pub fn position(self) -> Vec3<f32> {
-        match self {
-            Self::Collectable(sp, _)
-            | Self::Entity(_, sp, _)
-            | Self::Mine(sp, _)
-            | Self::Build(sp, _, _) => sp,
-        }
-    }
-
-    pub fn position_int(self) -> Vec3<i32> { self.position().map(|p| p.floor() as i32) }
 }
 
 /// Max distance an entity can be "targeted"
@@ -130,13 +135,14 @@ pub(super) fn targets_under_cursor(
     // FIXME: the `solid_pos` is used in the remove_block(). is this correct?
     let (solid_pos, build_pos, cam_ray_2) = find_pos(|b: Block| b.is_solid());
 
-    // collectables can be in the Air. so using solely solid_pos is not correct.
-    // so, use a minimum distance of all 3
+    // find shortest cam_dist of non-entity targets
+    // note that some of these targets can technically be in Air, such as the
+    // collectable.
     let mut cam_rays = vec![&cam_ray_0, &cam_ray_2];
     if is_mining {
         cam_rays.push(&cam_ray_1);
     }
-    let cam_dist = cam_rays
+    let shortest_cam_dist = cam_rays
         .iter()
         .filter_map(|x| match **x {
             (d, Ok(Some(_))) => Some(d),
@@ -146,10 +152,10 @@ pub(super) fn targets_under_cursor(
         .unwrap_or(MAX_PICKUP_RANGE);
 
     // See if ray hits entities
-    // Currently treated as spheres
-    // Don't cast through blocks
-    // Could check for intersection with entity from last frame to narrow this down
-    let cast_dist = cam_dist.min(MAX_TARGET_RANGE);
+    // Don't cast through blocks, (hence why use shortest_cam_dist from non-entity
+    // targets) Could check for intersection with entity from last frame to
+    // narrow this down
+    let cast_dist = shortest_cam_dist.min(MAX_TARGET_RANGE);
 
     // Need to raycast by distance to cam
     // But also filter out by distance to the player (but this only needs to be done
@@ -191,7 +197,7 @@ pub(super) fn targets_under_cursor(
 
     let seg_ray = LineSegment3 {
         start: cam_pos,
-        end: cam_pos + cam_dir * cam_dist,
+        end: cam_pos + cam_dir * shortest_cam_dist,
     };
     // TODO: fuzzy borders
     let entity_target = nearby
@@ -209,30 +215,48 @@ pub(super) fn targets_under_cursor(
             );
 
             let dist_to_player = player_cylinder.min_distance(target_cylinder);
-            (dist_to_player < MAX_TARGET_RANGE).then_some(Target::Entity(*e, p, dist_to_player))
+            if dist_to_player < MAX_TARGET_RANGE {
+                Some(Target {
+                    typed: TargetType::Entity(*e),
+                    position: p,
+                    distance: dist_to_player,
+                })
+            } else { None }
         });
 
-    let build_target = if can_build {
-        solid_pos.map(|p| Target::Build(p, build_pos.unwrap(), cam_ray_2.0))
+    let build_target = if let (true, Some(position), Some(bp)) = (can_build, solid_pos, build_pos) {
+        Some(Target {
+            typed: TargetType::Build(bp),
+            distance: cam_ray_2.0,
+            position,
+        })
     } else {
         None
     };
 
-    let mine_target = if is_mining {
-        mine_pos.map(|p| Target::Mine(p, cam_ray_1.0))
+    let collect_target = collect_pos.map(|position| Target {
+        typed: TargetType::Collectable,
+        distance: cam_ray_0.0,
+        position,
+    });
+
+    let mine_target = if let (true, Some(position)) = (is_mining, mine_pos) {
+        Some(Target {
+            typed: TargetType::Mine,
+            distance: cam_ray_1.0,
+            position,
+        })
     } else {
         None
     };
-
-    let shortest_distance = cam_dist;
 
     // Return multiple possible targets
     // GameInput events determine which target to use.
     (
         build_target,
-        collect_pos.map(|p| Target::Collectable(p, cam_ray_0.0)),
+        collect_target,
         entity_target,
         mine_target,
-        shortest_distance,
+        shortest_cam_dist,
     )
 }

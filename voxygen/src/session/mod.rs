@@ -50,7 +50,7 @@ use crate::{
 use hashbrown::HashMap;
 use interactable::{select_interactable, Interactable};
 use settings_change::Language::ChangeLanguage;
-use target::{targets_under_cursor, Target};
+use target::{targets_under_cursor, Target, TargetType};
 #[cfg(feature = "egui-ui")]
 use voxygen_egui::EguiDebugInfo;
 
@@ -433,7 +433,7 @@ impl PlayState for SessionState {
 
             let is_nearest_target = |target: Option<Target>| {
                 target
-                    .map(|t| (t.distance() <= shortest_dist))
+                    .map(|t| (t.distance <= shortest_dist))
                     .unwrap_or(false)
             };
 
@@ -444,11 +444,17 @@ impl PlayState for SessionState {
                 build_target.map(|bt| self.scene.set_select_pos(Some(bt.position_int())));
             } else {
                 self.scene.set_select_pos(None);
-                self.inputs.select_pos = entity_target.map(|et| et.position());
+                self.inputs.select_pos = entity_target.map(|et| et.position);
             }
 
             // Throw out distance info, it will be useful in the future
-            self.target_entity = entity_target.and_then(Target::entity);
+            let entity_under_target =
+                if let Some(TargetType::Entity(e)) = entity_target.map(|t| t.typed) {
+                    Some(e)
+                } else {
+                    None
+                };
+            self.target_entity = entity_under_target;
 
             macro_rules! entity_event_handler {
                 ($input: expr, $pressed: expr) => {
@@ -457,7 +463,7 @@ impl PlayState for SessionState {
                         $input,
                         $pressed,
                         self.inputs.select_pos,
-                        entity_target.map(Target::entity).unwrap_or(None),
+                        entity_under_target,
                     );
                 };
             }
@@ -483,10 +489,10 @@ impl PlayState for SessionState {
                         match input {
                             GameInput::Primary => {
                                 if is_mining && is_nearest_target(mine_target) {
-                                    self.inputs.select_pos = mine_target.map(Target::position);
+                                    self.inputs.select_pos = mine_target.map(|t| t.position);
                                     entity_event_handler!(InputKind::Primary, state);
                                 } else if state && can_build && is_nearest_target(build_target) {
-                                    self.inputs.select_pos = build_target.map(Target::position);
+                                    self.inputs.select_pos = build_target.map(|t| t.position);
                                     let mut client = self.client.borrow_mut();
                                     client.remove_block(build_target.unwrap().position_int());
                                 } else {
@@ -496,7 +502,7 @@ impl PlayState for SessionState {
                             GameInput::Secondary => {
                                 if state && can_build && is_nearest_target(build_target) {
                                     if let Some(build_target) = build_target {
-                                        self.inputs.select_pos = Some(build_target.position());
+                                        self.inputs.select_pos = Some(build_target.position);
                                         let mut client = self.client.borrow_mut();
                                         client.place_block(
                                             build_target.position_int(),
@@ -523,7 +529,7 @@ impl PlayState for SessionState {
                                                 .copied()
                                         }) {
                                             self.inputs.select_pos =
-                                                build_target.map(Target::position);
+                                                build_target.map(|t| t.position);
                                             self.selected_block = block;
                                         }
                                     }
@@ -682,8 +688,8 @@ impl PlayState for SessionState {
                                                 match interaction {
                                                     Some(Interaction::Collect) => {
                                                         if block.is_collectible() {
-                                                            self.inputs.select_pos = collect_target
-                                                                .map(Target::position);
+                                                            self.inputs.select_pos =
+                                                                collect_target.map(|t| t.position);
                                                             client.collect_block(pos);
                                                         }
                                                     },
