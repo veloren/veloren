@@ -165,7 +165,7 @@ fn main() {
         default_hook(panic_info);
     }));
 
-    //Setup tokio runtime
+    // Setup tokio runtime
     use common::consts::MIN_RECOMMENDED_TOKIO_THREADS;
     use std::sync::{
         atomic::{AtomicUsize, Ordering},
@@ -173,6 +173,7 @@ fn main() {
     };
     use tokio::runtime::Builder;
 
+    // TODO: evaluate std::thread::available_concurrency as a num_cpus replacement
     let cores = num_cpus::get();
     let tokio_runtime = Arc::new(
         Builder::new_multi_thread()

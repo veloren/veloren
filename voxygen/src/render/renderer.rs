@@ -247,8 +247,9 @@ impl Renderer {
             ..Default::default()
         };
 
-        let trace_path = std::env::var_os("WGPU_TRACE_DIR").map(|v| {
-            let path = std::path::PathBuf::from(v);
+        let trace_env = std::env::var_os("WGPU_TRACE_DIR");
+        let trace_path = trace_env.as_ref().map(|v| {
+            let path = std::path::Path::new(v);
             // We don't want to continue if we can't actually collect the api trace
             assert!(
                 path.exists(),
@@ -271,6 +272,7 @@ impl Renderer {
 
             path
         });
+
         let (device, queue) = runtime.block_on(adapter.request_device(
             &wgpu::DeviceDescriptor {
                 // TODO

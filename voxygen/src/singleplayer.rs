@@ -104,33 +104,28 @@ impl Singleplayer {
         let thread = builder
             .spawn(move || {
                 trace!("starting singleplayer server thread");
-                let mut server = None;
-                if let Err(e) = result_sender.send(
-                    Server::new(
-                        settings2,
-                        editable_settings,
-                        database_settings,
-                        &server_data_dir,
-                        runtime,
-                    )
-                    .map(|s| {
-                        server = Some(s);
-                    }),
+
+                let (server, init_result) = match Server::new(
+                    settings2,
+                    editable_settings,
+                    database_settings,
+                    &server_data_dir,
+                    runtime,
                 ) {
-                    warn!(
+                    Ok(server) => (Some(server), Ok(())),
+                    Err(err) => (None, Err(err)),
+                };
+
+                match (result_sender.send(init_result), server) {
+                    (Err(e), _) => warn!(
                         ?e,
                         "Failed to send singleplayer server initialization result. Most likely \
                          the channel was closed by cancelling server creation. Stopping Server"
-                    );
-                    return;
-                };
+                    ),
+                    (Ok(()), None) => (),
+                    (Ok(()), Some(server)) => run_server(server, stop_server_r, paused1),
+                }
 
-                let server = match server {
-                    Some(s) => s,
-                    None => return,
-                };
-
-                run_server(server, stop_server_r, paused1);
                 trace!("ending singleplayer server thread");
             })
             .unwrap();
