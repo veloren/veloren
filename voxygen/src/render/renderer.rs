@@ -183,7 +183,11 @@ pub struct Renderer {
 impl Renderer {
     /// Create a new `Renderer` from a variety of backend-specific components
     /// and the window targets.
-    pub fn new(window: &winit::window::Window, mode: RenderMode) -> Result<Self, RenderError> {
+    pub fn new(
+        window: &winit::window::Window,
+        mode: RenderMode,
+        runtime: &tokio::runtime::Runtime,
+    ) -> Result<Self, RenderError> {
         let (pipeline_modes, mut other_modes) = mode.split();
         // Enable seamless cubemaps globally, where available--they are essentially a
         // strict improvement on regular cube maps.
@@ -220,13 +224,12 @@ impl Renderer {
         #[allow(unsafe_code)]
         let surface = unsafe { instance.create_surface(window) };
 
-        let adapter = futures_executor::block_on(instance.request_adapter(
-            &wgpu::RequestAdapterOptionsBase {
+        let adapter = runtime
+            .block_on(instance.request_adapter(&wgpu::RequestAdapterOptionsBase {
                 power_preference: wgpu::PowerPreference::HighPerformance,
                 compatible_surface: Some(&surface),
-            },
-        ))
-        .ok_or(RenderError::CouldNotFindAdapter)?;
+            }))
+            .ok_or(RenderError::CouldNotFindAdapter)?;
 
         let info = adapter.get_info();
         info!(
@@ -244,7 +247,33 @@ impl Renderer {
             ..Default::default()
         };
 
-        let (device, queue) = futures_executor::block_on(adapter.request_device(
+        let trace_env = std::env::var_os("WGPU_TRACE_DIR");
+        let trace_path = trace_env.as_ref().map(|v| {
+            let path = std::path::Path::new(v);
+            // We don't want to continue if we can't actually collect the api trace
+            assert!(
+                path.exists(),
+                "WGPU_TRACE_DIR is set to the path \"{}\" which doesn't exist",
+                path.display()
+            );
+            assert!(
+                path.is_dir(),
+                "WGPU_TRACE_DIR is set to the path \"{}\" which is not a directory",
+                path.display()
+            );
+            assert!(
+                path.read_dir()
+                    .expect("Could not read the directory that is specified by WGPU_TRACE_DIR")
+                    .next()
+                    .is_some(),
+                "WGPU_TRACE_DIR is set to the path \"{}\" which already contains other files",
+                path.display()
+            );
+
+            path
+        });
+
+        let (device, queue) = runtime.block_on(adapter.request_device(
             &wgpu::DeviceDescriptor {
                 // TODO
                 label: None,
@@ -254,36 +283,7 @@ impl Renderer {
                     | (adapter.features() & wgpu_profiler::GpuProfiler::REQUIRED_WGPU_FEATURES),
                 limits,
             },
-            std::env::var_os("WGPU_TRACE_DIR").as_ref().map(|v| {
-                let path = std::path::Path::new(v);
-                // We don't want to continue if we can't actually collect the api trace
-                if !path.exists() {
-                    panic!(
-                        "WGPU_TRACE_DIR is set to the path \"{}\" which doesn't exist",
-                        path.display()
-                    );
-                }
-                if !path.is_dir() {
-                    panic!(
-                        "WGPU_TRACE_DIR is set to the path \"{}\" which is not a directory",
-                        path.display()
-                    );
-                }
-                if path
-                    .read_dir()
-                    .expect("Could not read the directory that is specified by WGPU_TRACE_DIR")
-                    .next()
-                    .is_some()
-                {
-                    panic!(
-                        "WGPU_TRACE_DIR is set to the path \"{}\" which already contains other \
-                         files",
-                        path.display()
-                    );
-                }
-
-                path
-            }),
+            trace_path.as_deref(),
         ))?;
 
         // Set error handler for wgpu errors
