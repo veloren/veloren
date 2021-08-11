@@ -10,7 +10,7 @@
         "hud.settings.press_behavior.hold": "Держать",
         "hud.settings.help_window": "Окно помощи",
         "hud.settings.debug_info": "Отладочная информация",
-        "hud.settings.show_hitboxes": "показать хитбоксы",
+        "hud.settings.show_hitboxes": "Показать хитбоксы",
         "hud.settings.show_chat": "Показать чат",
         "hud.settings.tips_on_startup": "Советы при запуске",
         "hud.settings.ui_scale": "Масштаб пользовательского интерфейса",

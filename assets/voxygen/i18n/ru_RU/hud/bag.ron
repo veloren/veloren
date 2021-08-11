@@ -5,10 +5,10 @@
     string_map: {
         // Inventory
         "hud.bag.inventory": "Инвентарь {playername}",
-        "hud.bag.stats_title": "Статистика {playername}",
+        "hud.bag.stats_title": "Характеристики {playername}",
         "hud.bag.exp": "Опыт",
         "hud.bag.armor": "Броня",
-        "hud.bag.stats": "Статистика",
+        "hud.bag.stats": "Характеристики",
         "hud.bag.head": "Голова",
         "hud.bag.neck": "Шея",
         "hud.bag.tabard": "Плащ",
