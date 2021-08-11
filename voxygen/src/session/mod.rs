@@ -1,6 +1,6 @@
 pub mod interactable;
 pub mod settings_change;
-pub(self) mod target;
+mod target;
 
 use std::{cell::RefCell, collections::HashSet, rc::Rc, result::Result, sync::Arc, time::Duration};
 
@@ -488,7 +488,7 @@ impl PlayState for SessionState {
 
                         match input {
                             GameInput::Primary => {
-                                // mine and build targets can be the same block. make building take
+                                // Mine and build targets can be the same block. make building take
                                 // precedence.
                                 if state && can_build && is_nearest_target(build_target) {
                                     self.inputs.select_pos = build_target.map(|t| t.position);

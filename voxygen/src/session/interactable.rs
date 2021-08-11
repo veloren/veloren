@@ -2,7 +2,7 @@ use ordered_float::OrderedFloat;
 use specs::{Join, WorldExt};
 use vek::*;
 
-use super::target::Target;
+use super::target::{Target, TargetType};
 use client::{self, Client};
 use common::{
     comp,
@@ -25,7 +25,28 @@ impl Interactable {
     pub fn entity(self) -> Option<specs::Entity> {
         match self {
             Self::Entity(e) => Some(e),
-            _ => None,
+            Self::Block(_, _, _) => None,
+        }
+    }
+
+    pub fn from_target(target: Target, client: &Client) -> Option<Interactable> {
+        match target.typed {
+            TargetType::Collectable => client
+                .state()
+                .terrain()
+                .get(target.position_int())
+                .ok()
+                .copied()
+                .map(|b| Interactable::Block(b, target.position_int(), Some(Interaction::Collect))),
+            TargetType::Entity(e) => Some(Interactable::Entity(e)),
+            TargetType::Mine => client
+                .state()
+                .terrain()
+                .get(target.position_int())
+                .ok()
+                .copied()
+                .map(|b| Interactable::Block(b, target.position_int(), None)),
+            TargetType::Build => None,
         }
     }
 }
@@ -52,19 +73,19 @@ pub(super) fn select_interactable(
     if let Some(interactable) = entity_target
         .and_then(|t| {
             if t.distance < MAX_PICKUP_RANGE {
-                t.make_interactable(client)
+                Interactable::from_target(t, client)
             } else {
                 None
             }
         })
         .or_else(|| {
             collect_target
-                .map(|t| t.make_interactable(client))
+                .map(|t| Interactable::from_target(t, client))
                 .unwrap_or(None)
         })
         .or_else(|| {
             mine_target
-                .map(|t| t.make_interactable(client))
+                .map(|t| Interactable::from_target(t, client))
                 .unwrap_or(None)
         })
     {
@@ -115,7 +136,7 @@ pub(super) fn select_interactable(
         // TODO: consider doing this one first?
         let closest_interactable_block_pos = Spiral2d::new()
             // TODO: this formula for the number to take was guessed
-            // Note: assume RECT_SIZE.x == RECT_SIZE.y
+            // Note: assumes RECT_SIZE.x == RECT_SIZE.y
             .take(((search_dist / TerrainChunk::RECT_SIZE.x as f32).ceil() as usize * 2 + 1).pow(2))
             .flat_map(|offset| {
                 let chunk_pos = player_chunk + offset;
@@ -141,7 +162,7 @@ pub(super) fn select_interactable(
             .min_by_key(|(_, dist_sqr, _)| OrderedFloat(*dist_sqr))
             .map(|(block_pos, _, interaction)| (block_pos, interaction));
 
-        // return the closest, and the 2 closest inertactable options (entity or block)
+        // Return the closest of the 2 closest
         closest_interactable_block_pos
             .filter(|(block_pos, _)| {
                 player_cylinder.min_distance(Cube {

@@ -1,16 +1,13 @@
 use specs::{Join, WorldExt};
 use vek::*;
 
-use super::interactable::Interactable;
-use crate::scene::terrain::Interaction;
 use client::{self, Client};
 use common::{
     comp,
     consts::MAX_PICKUP_RANGE,
-    terrain::{Block, TerrainChunk},
+    terrain::Block,
     util::find_dist::{Cylinder, FindDist},
     vol::ReadVol,
-    volumes::vol_grid_2d::VolGrid2dError,
 };
 use common_base::span;
 
@@ -51,27 +48,6 @@ impl Target {
             _ => None,
         }
     }
-
-    pub fn make_interactable(self, client: &Client) -> Option<Interactable> {
-        match self.typed {
-            TargetType::Collectable => client
-                .state()
-                .terrain()
-                .get(self.position_int())
-                .ok()
-                .copied()
-                .map(|b| Interactable::Block(b, self.position_int(), Some(Interaction::Collect))),
-            TargetType::Entity(e) => Some(Interactable::Entity(e)),
-            TargetType::Mine => client
-                .state()
-                .terrain()
-                .get(self.position_int())
-                .ok()
-                .copied()
-                .map(|b| Interactable::Block(b, self.position_int(), None)),
-            TargetType::Build => None,
-        }
-    }
 }
 
 /// Max distance an entity can be "targeted"
@@ -91,7 +67,7 @@ pub(super) fn targets_under_cursor(
     Option<Target>,
     f32,
 ) {
-    span!(_guard, "under_cursor");
+    span!(_guard, "targets_under_cursor");
     // Choose a spot above the player's head for item distance checks
     let player_entity = client.entity();
     let ecs = client.state().ecs();
@@ -110,57 +86,51 @@ pub(super) fn targets_under_cursor(
         colliders.get(player_entity),
         char_states.get(player_entity),
     );
+    let terrain = client.state().terrain();
 
-    fn curry_find_pos<'a>(
-        client: &'a Client,
-        cam_pos: &'a Vec3<f32>,
-        cam_dir: &'a Vec3<f32>,
-        player_cylinder: &'a Cylinder,
-    ) -> impl FnMut(
-        fn(Block) -> bool,
-    ) -> (
-        Option<Vec3<f32>>,
-        (f32, Result<Option<Block>, VolGrid2dError<TerrainChunk>>),
-    ) + 'a {
-        let terrain = client.state().terrain();
+    let find_pos = |hit: fn(Block) -> bool| {
+        let cam_ray = terrain
+            .ray(cam_pos, cam_pos + cam_dir * 100.0)
+            .until(|block| hit(*block))
+            .cast();
+        let cam_ray = (cam_ray.0, cam_ray.1.map(|x| x.copied()));
+        let cam_dist = cam_ray.0;
 
-        move |hit: fn(Block) -> bool| {
-            let cam_ray = terrain
-                .ray(*cam_pos, *cam_pos + *cam_dir * 100.0)
-                .until(|block| hit(*block))
-                .cast();
-            let cam_ray = (cam_ray.0, cam_ray.1.map(|x| x.copied()));
-            let cam_dist = cam_ray.0;
-
-            if matches!(
-                cam_ray.1,
-                Ok(Some(_)) if player_cylinder.min_distance(*cam_pos + *cam_dir * (cam_dist + 0.01)) <= MAX_PICKUP_RANGE
-            ) {
-                (Some(*cam_pos + *cam_dir * cam_dist), cam_ray)
-            } else {
-                (None, cam_ray)
-            }
+        if matches!(
+            cam_ray.1,
+            Ok(Some(_)) if player_cylinder.min_distance(cam_pos + cam_dir * (cam_dist + 0.01)) <= MAX_PICKUP_RANGE
+        ) {
+            (
+                Some(cam_pos + cam_dir * (cam_dist + 0.01)),
+                Some(cam_pos + cam_dir * (cam_dist - 0.01)),
+                Some(cam_ray),
+            )
+        } else {
+            (None, None, None)
         }
-    }
+    };
 
-    let mut find_pos = curry_find_pos(client, &cam_pos, &cam_dir, &player_cylinder);
+    let (collect_pos, _, collect_cam_ray) = find_pos(|b: Block| b.is_collectible());
+    let (mine_pos, _, mine_cam_ray) = is_mining
+        .then(|| find_pos(|b: Block| b.mine_tool().is_some()))
+        .unwrap_or((None, None, None));
+    let (_, solid_pos, solid_cam_ray) = can_build
+        .then(|| find_pos(|b: Block| b.is_solid()))
+        .unwrap_or((None, None, None));
 
-    let (collect_pos, cam_ray_0) = find_pos(|b: Block| b.is_collectible());
-    let (mine_pos, cam_ray_1) = find_pos(|b: Block| b.mine_tool().is_some());
-    // FIXME: the `solid_pos` is used in the remove_block(). is this correct?
-    let (solid_pos, cam_ray_2) = find_pos(|b: Block| b.is_solid());
-
-    // find shortest cam_dist of non-entity targets
-    // note that some of these targets can technically be in Air, such as the
+    // Find shortest cam_dist of non-entity targets.
+    // Note that some of these targets can technically be in Air, such as the
     // collectable.
-    let mut cam_rays = vec![&cam_ray_0, &cam_ray_2];
-    if is_mining {
-        cam_rays.push(&cam_ray_1);
-    }
-    let shortest_cam_dist = cam_rays
+    let shortest_cam_dist = [&collect_cam_ray, &solid_cam_ray]
         .iter()
+        .chain(
+            is_mining
+                .then(|| [&mine_cam_ray])
+                .unwrap_or([&solid_cam_ray])
+                .iter(),
+        )
         .filter_map(|x| match **x {
-            (d, Ok(Some(_))) => Some(d),
+            Some((d, Ok(Some(_)))) => Some(d),
             _ => None,
         })
         .min_by(|d1, d2| d1.partial_cmp(d2).unwrap())
@@ -170,7 +140,10 @@ pub(super) fn targets_under_cursor(
     // Don't cast through blocks, (hence why use shortest_cam_dist from non-entity
     // targets) Could check for intersection with entity from last frame to
     // narrow this down
-    let cast_dist = shortest_cam_dist.min(MAX_TARGET_RANGE);
+    let cast_dist = solid_cam_ray
+        .as_ref()
+        .map(|(d, _)| d.min(MAX_TARGET_RANGE))
+        .unwrap_or(MAX_TARGET_RANGE);
 
     // Need to raycast by distance to cam
     // But also filter out by distance to the player (but this only needs to be done
@@ -239,26 +212,30 @@ pub(super) fn targets_under_cursor(
             } else { None }
         });
 
-    let build_target = if let (true, Some(position)) = (can_build, solid_pos) {
+    let build_target = if let (Some(position), Some(ray)) = (solid_pos, solid_cam_ray) {
         Some(Target {
             typed: TargetType::Build,
-            distance: cam_ray_2.0,
+            distance: ray.0,
             position,
         })
     } else {
         None
     };
 
-    let collect_target = collect_pos.map(|position| Target {
-        typed: TargetType::Collectable,
-        distance: cam_ray_0.0,
-        position,
-    });
+    let collect_target = if let (Some(position), Some(ray)) = (collect_pos, collect_cam_ray) {
+        Some(Target {
+            typed: TargetType::Collectable,
+            distance: ray.0,
+            position,
+        })
+    } else {
+        None
+    };
 
-    let mine_target = if let (true, Some(position)) = (is_mining, mine_pos) {
+    let mine_target = if let (Some(position), Some(ray)) = (mine_pos, mine_cam_ray) {
         Some(Target {
             typed: TargetType::Mine,
-            distance: cam_ray_1.0,
+            distance: ray.0,
             position,
         })
     } else {
