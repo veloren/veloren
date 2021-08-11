@@ -3,7 +3,7 @@
 /// Localization for "global" English
 (
     string_map: {
-        "hud.trade.trade_window": "Trade window",
+        "hud.trade.trade_window": "Trade",
         "hud.trade.phase1_description": "Drag the items you want to trade\n into the corresponding area.",
         "hud.trade.phase2_description": "The trade is now locked to give you\n time to review it.",
         /// Phase3 should only be visible for a few milliseconds if everything is working properly, but is included for completeness
@@ -21,6 +21,8 @@
         "hud.trade.coin": "coin(s)",
         "hud.trade.tooltip_hint_1": "<Shift-Click to Add/Remove from trade.>",
         "hud.trade.tooltip_hint_2": "<Ctrl-Click to Auto-Balance with this.>",
+        "hud.trade.your_offer": "Your offer",
+        "hud.trade.their_offer": "Their offer",
     },
 
 
