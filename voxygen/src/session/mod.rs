@@ -488,13 +488,15 @@ impl PlayState for SessionState {
 
                         match input {
                             GameInput::Primary => {
-                                if is_mining && is_nearest_target(mine_target) {
-                                    self.inputs.select_pos = mine_target.map(|t| t.position);
-                                    entity_event_handler!(InputKind::Primary, state);
-                                } else if state && can_build && is_nearest_target(build_target) {
+                                // mine and build targets can be the same block. make building take
+                                // precedence.
+                                if state && can_build && is_nearest_target(build_target) {
                                     self.inputs.select_pos = build_target.map(|t| t.position);
                                     let mut client = self.client.borrow_mut();
                                     client.remove_block(build_target.unwrap().position_int());
+                                } else if is_mining && is_nearest_target(mine_target) {
+                                    self.inputs.select_pos = mine_target.map(|t| t.position);
+                                    entity_event_handler!(InputKind::Primary, state);
                                 } else {
                                     entity_event_handler!(InputKind::Primary, state);
                                 }
@@ -504,10 +506,11 @@ impl PlayState for SessionState {
                                     if let Some(build_target) = build_target {
                                         self.inputs.select_pos = Some(build_target.position);
                                         let mut client = self.client.borrow_mut();
-                                        client.place_block(
-                                            build_target.position_int(),
-                                            self.selected_block,
-                                        );
+                                        if let Some(pos) =
+                                            build_target.build_above_position(&client)
+                                        {
+                                            client.place_block(pos, self.selected_block);
+                                        };
                                     }
                                 } else {
                                     entity_event_handler!(InputKind::Secondary, state);

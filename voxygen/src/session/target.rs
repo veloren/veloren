@@ -16,7 +16,7 @@ use common_base::span;
 
 #[derive(Clone, Copy, Debug)]
 pub enum TargetType {
-    Build(Vec3<f32>),
+    Build,
     Collectable,
     Entity(specs::Entity),
     Mine,
@@ -31,6 +31,26 @@ pub struct Target {
 
 impl Target {
     pub fn position_int(self) -> Vec3<i32> { self.position.map(|p| p.floor() as i32) }
+
+    pub fn build_above_position(self, client: &Client) -> Option<Vec3<i32>> {
+        match self.typed {
+            TargetType::Build => {
+                let mut pos_above = self.position;
+                pos_above.z += 1.0;
+                let pos_above = pos_above.map(|p| p.floor() as i32);
+                if let Ok(block) = client.state().terrain().get(pos_above) {
+                    if block.is_air() {
+                        Some(pos_above)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            },
+            _ => None,
+        }
+    }
 
     pub fn make_interactable(self, client: &Client) -> Option<Interactable> {
         match self.typed {
@@ -49,7 +69,7 @@ impl Target {
                 .ok()
                 .copied()
                 .map(|b| Interactable::Block(b, self.position_int(), None)),
-            TargetType::Build(_) => None,
+            TargetType::Build => None,
         }
     }
 }
@@ -100,7 +120,6 @@ pub(super) fn targets_under_cursor(
         fn(Block) -> bool,
     ) -> (
         Option<Vec3<f32>>,
-        Option<Vec3<f32>>,
         (f32, Result<Option<Block>, VolGrid2dError<TerrainChunk>>),
     ) + 'a {
         let terrain = client.state().terrain();
@@ -117,23 +136,19 @@ pub(super) fn targets_under_cursor(
                 cam_ray.1,
                 Ok(Some(_)) if player_cylinder.min_distance(*cam_pos + *cam_dir * (cam_dist + 0.01)) <= MAX_PICKUP_RANGE
             ) {
-                (
-                    Some(*cam_pos + *cam_dir * cam_dist),
-                    Some(*cam_pos + *cam_dir * (cam_dist - 0.01)),
-                    cam_ray,
-                )
+                (Some(*cam_pos + *cam_dir * cam_dist), cam_ray)
             } else {
-                (None, None, cam_ray)
+                (None, cam_ray)
             }
         }
     }
 
     let mut find_pos = curry_find_pos(client, &cam_pos, &cam_dir, &player_cylinder);
 
-    let (collect_pos, _, cam_ray_0) = find_pos(|b: Block| b.is_collectible());
-    let (mine_pos, _, cam_ray_1) = find_pos(|b: Block| b.mine_tool().is_some());
+    let (collect_pos, cam_ray_0) = find_pos(|b: Block| b.is_collectible());
+    let (mine_pos, cam_ray_1) = find_pos(|b: Block| b.mine_tool().is_some());
     // FIXME: the `solid_pos` is used in the remove_block(). is this correct?
-    let (solid_pos, build_pos, cam_ray_2) = find_pos(|b: Block| b.is_solid());
+    let (solid_pos, cam_ray_2) = find_pos(|b: Block| b.is_solid());
 
     // find shortest cam_dist of non-entity targets
     // note that some of these targets can technically be in Air, such as the
@@ -224,9 +239,9 @@ pub(super) fn targets_under_cursor(
             } else { None }
         });
 
-    let build_target = if let (true, Some(position), Some(bp)) = (can_build, solid_pos, build_pos) {
+    let build_target = if let (true, Some(position)) = (can_build, solid_pos) {
         Some(Target {
-            typed: TargetType::Build(bp),
+            typed: TargetType::Build,
             distance: cam_ray_2.0,
             position,
         })
