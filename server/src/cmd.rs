@@ -529,6 +529,7 @@ fn handle_make_block(
             let new_block = Block::new(bk, Rgb::new(r, g, b).map(|e| e.unwrap_or(255)));
             let pos = pos.0.map(|e| e.floor() as i32);
             server.state.set_block(pos, new_block);
+            #[cfg(feature = "persistent_world")]
             if let Some(terrain_persistence) = server
                 .state
                 .ecs()
@@ -564,6 +565,7 @@ fn handle_make_sprite(
                 .unwrap_or_else(|| Block::air(SpriteKind::Empty))
                 .with_sprite(sk);
             server.state.set_block(pos, new_block);
+            #[cfg(feature = "persistent_world")]
             if let Some(terrain_persistence) = server
                 .state
                 .ecs()

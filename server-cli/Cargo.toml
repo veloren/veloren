@@ -16,9 +16,10 @@ This package includes the official server CLI.
 
 [features]
 worldgen = ["server/worldgen"]
+persistent_world = ["server/persistent_world"]
 # needed to stay compatible with voxygens format
 default-publish = ["default"]
-default = ["worldgen"]
+default = ["worldgen", "persistent_world"]
 tracy = ["common-frontend/tracy"]
 plugins = ["server/plugins"]
 

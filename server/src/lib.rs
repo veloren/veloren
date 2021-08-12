@@ -31,6 +31,7 @@ pub mod rtsim;
 pub mod settings;
 pub mod state_ext;
 pub mod sys;
+#[cfg(feature = "persistent_world")]
 pub mod terrain_persistence;
 #[cfg(not(feature = "worldgen"))] mod test_world;
 pub mod wiring;
@@ -44,6 +45,8 @@ pub use crate::{
     settings::{EditableSettings, Settings},
 };
 
+#[cfg(feature = "persistent_world")]
+use crate::terrain_persistence::TerrainPersistence;
 use crate::{
     alias_validator::AliasValidator,
     chunk_generator::ChunkGenerator,
@@ -56,7 +59,6 @@ use crate::{
     rtsim::RtSim,
     state_ext::StateExt,
     sys::sentinel::{DeletedEntities, TrackedComps},
-    terrain_persistence::TerrainPersistence,
 };
 #[cfg(not(feature = "worldgen"))]
 use common::grid::Grid;
@@ -219,15 +221,23 @@ impl Server {
         state.ecs_mut().insert(tick_metrics);
         state.ecs_mut().insert(physics_metrics);
         if settings.experimental_terrain_persistence {
-            warn!(
-                "Experimental terrain persistence support is enabled. This feature may break, be \
-                 disabled, or otherwise change under your feet at *any time*. Additionally, it is \
-                 expected to be replaced in the future *without* migration or warning. You have \
-                 been warned."
+            #[cfg(feature = "persistent_world")]
+            {
+                warn!(
+                    "Experimental terrain persistence support is enabled. This feature may break, \
+                     be disabled, or otherwise change under your feet at *any time*. \
+                     Additionally, it is expected to be replaced in the future *without* \
+                     migration or warning. You have been warned."
+                );
+                state
+                    .ecs_mut()
+                    .insert(TerrainPersistence::new(data_dir.to_owned()));
+            }
+            #[cfg(not(feature = "persistent_world"))]
+            error!(
+                "Experimental terrain persistence support was requested, but the server was not \
+                 compiled with the feature. Terrain modifications will *not* be persisted."
             );
-            state
-                .ecs_mut()
-                .insert(TerrainPersistence::new(data_dir.to_owned()));
         }
         state
             .ecs_mut()
@@ -874,6 +884,7 @@ impl Server {
         self.state.cleanup();
 
         // Maintain persisted terrain
+        #[cfg(feature = "persistent_world")]
         self.state
             .ecs()
             .try_fetch_mut::<TerrainPersistence>()
@@ -1253,8 +1264,11 @@ impl Server {
 impl Drop for Server {
     fn drop(&mut self) {
         self.metrics_shutdown.notify_one();
+
         self.state
             .notify_players(ServerGeneral::Disconnect(DisconnectReason::Shutdown));
+
+        #[cfg(feature = "persistent_world")]
         self.state
             .ecs()
             .try_fetch_mut::<TerrainPersistence>()

@@ -1,3 +1,5 @@
+#[cfg(feature = "persistent_world")]
+use crate::TerrainPersistence;
 use crate::{
     chunk_generator::ChunkGenerator,
     client::Client,
@@ -5,7 +7,7 @@ use crate::{
     presence::{Presence, RepositionOnChunkLoad},
     rtsim::RtSim,
     settings::Settings,
-    SpawnPoint, TerrainPersistence, Tick,
+    SpawnPoint, Tick,
 };
 use common::{
     comp::{self, agent, bird_medium, Alignment, BehaviorCapability, ForceUpdate, Pos, Waypoint},
@@ -23,6 +25,11 @@ use comp::Behavior;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteExpect, WriteStorage};
 use std::sync::Arc;
 use vek::*;
+
+#[cfg(feature = "persistent_world")]
+pub type TerrainPersistenceData<'a> = Option<Write<'a, TerrainPersistence>>;
+#[cfg(not(feature = "persistent_world"))]
+pub type TerrainPersistenceData<'a> = ();
 
 pub(crate) struct LazyTerrainMessage {
     lazy_msg_lo: Option<crate::client::PreparedMsg>,
@@ -99,7 +106,7 @@ impl<'a> System<'a> for Sys {
         WriteExpect<'a, TerrainGrid>,
         Write<'a, TerrainChanges>,
         WriteExpect<'a, RtSim>,
-        Option<WriteExpect<'a, TerrainPersistence>>,
+        TerrainPersistenceData<'a>,
         WriteStorage<'a, Pos>,
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Client>,
@@ -126,7 +133,7 @@ impl<'a> System<'a> for Sys {
             mut terrain,
             mut terrain_changes,
             mut rtsim,
-            mut terrain_persistence,
+            mut _terrain_persistence,
             mut positions,
             presences,
             clients,
@@ -143,6 +150,7 @@ impl<'a> System<'a> for Sys {
         // Also, send the chunk data to anybody that is close by.
         let mut new_chunks = Vec::new();
         'insert_terrain_chunks: while let Some((key, res)) = chunk_generator.recv_new_chunk() {
+            #[allow(unused_mut)]
             let (mut chunk, supplement) = match res {
                 Ok((chunk, supplement)) => (chunk, supplement),
                 Err(Some(entity)) => {
@@ -160,7 +168,8 @@ impl<'a> System<'a> for Sys {
             };
 
             // Apply changes from terrain persistence to this chunk
-            if let Some(terrain_persistence) = terrain_persistence.as_mut() {
+            #[cfg(feature = "persistent_world")]
+            if let Some(terrain_persistence) = _terrain_persistence.as_mut() {
                 terrain_persistence.apply_changes(key, &mut chunk);
             }
 
@@ -417,7 +426,8 @@ impl<'a> System<'a> for Sys {
 
         for key in chunks_to_remove {
             // Register the unloading of this chunk from terrain persistence
-            if let Some(terrain_persistence) = terrain_persistence.as_mut() {
+            #[cfg(feature = "persistent_world")]
+            if let Some(terrain_persistence) = _terrain_persistence.as_mut() {
                 terrain_persistence.unload_chunk(key);
             }
 

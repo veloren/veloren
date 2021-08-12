@@ -1,4 +1,6 @@
-use crate::{client::Client, presence::Presence, Settings, TerrainPersistence};
+#[cfg(feature = "persistent_world")]
+use crate::TerrainPersistence;
+use crate::{client::Client, presence::Presence, Settings};
 use common::{
     comp::{
         Admin, CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Player, Pos, SkillSet,
@@ -15,6 +17,11 @@ use common_state::{BlockChange, BuildAreas};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
 use tracing::{debug, trace, warn};
 use vek::*;
+
+#[cfg(feature = "persistent_world")]
+pub type TerrainPersistenceData<'a> = Option<Write<'a, TerrainPersistence>>;
+#[cfg(not(feature = "persistent_world"))]
+pub type TerrainPersistenceData<'a> = ();
 
 impl Sys {
     #[allow(clippy::too_many_arguments)]
@@ -36,7 +43,7 @@ impl Sys {
         settings: &Read<'_, Settings>,
         build_areas: &Read<'_, BuildAreas>,
         player_physics_settings: &mut Write<'_, PlayerPhysicsSettings>,
-        terrain_persistence: &mut Option<Write<'_, TerrainPersistence>>,
+        _terrain_persistence: &mut TerrainPersistenceData<'_>,
         maybe_player: &Option<&Player>,
         maybe_admin: &Option<&Admin>,
         msg: ClientGeneral,
@@ -200,9 +207,10 @@ impl Sys {
                                 .and_then(|_| terrain.get(pos).ok())
                             {
                                 let new_block = old_block.into_vacant();
-                                let was_placed = block_changes.try_set(pos, new_block).is_some();
-                                if was_placed {
-                                    if let Some(terrain_persistence) = terrain_persistence.as_mut()
+                                let _was_set = block_changes.try_set(pos, new_block).is_some();
+                                #[cfg(feature = "persistent_world")]
+                                if _was_set {
+                                    if let Some(terrain_persistence) = _terrain_persistence.as_mut()
                                     {
                                         terrain_persistence.set_block(pos, new_block);
                                     }
@@ -224,9 +232,10 @@ impl Sys {
                                 .filter(|aabb| aabb.contains_point(pos))
                                 .is_some()
                             {
-                                let was_placed = block_changes.try_set(pos, new_block).is_some();
-                                if was_placed {
-                                    if let Some(terrain_persistence) = terrain_persistence.as_mut()
+                                let _was_set = block_changes.try_set(pos, new_block).is_some();
+                                #[cfg(feature = "persistent_world")]
+                                if _was_set {
+                                    if let Some(terrain_persistence) = _terrain_persistence.as_mut()
                                     {
                                         terrain_persistence.set_block(pos, new_block);
                                     }
@@ -301,7 +310,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, Settings>,
         Read<'a, BuildAreas>,
         Write<'a, PlayerPhysicsSettings>,
-        Option<Write<'a, TerrainPersistence>>,
+        TerrainPersistenceData<'a>,
         ReadStorage<'a, Player>,
         ReadStorage<'a, Admin>,
     );

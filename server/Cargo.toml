@@ -8,8 +8,9 @@ edition = "2018"
 worldgen = []
 simd = ["vek/platform_intrinsics"]
 plugins = ["common-state/plugins"]
+persistent_world = []
 
-default = ["worldgen", "plugins", "simd"]
+default = ["worldgen", "plugins", "simd", "persistent_world"]
 
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
