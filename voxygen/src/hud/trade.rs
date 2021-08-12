@@ -201,27 +201,15 @@ impl<'a> Trade<'a> {
             })
             .unwrap_or_else(|| format!("Player {}", who));
 
-        let offer_header = self
-            .client
-            .player_list()
-            .get(&uid)
-            .map(|_| {
-                self.localized_strings
-                    .get("hud.trade.your_offer")
-                    .to_owned()
-            })
-            .or_else(|| {
-                self.client
-                    .state()
-                    .read_storage::<Stats>()
-                    .get(entity)
-                    .map(|_| {
-                        self.localized_strings
-                            .get("hud.trade.their_offer")
-                            .to_owned()
-                    })
-            })
-            .unwrap_or_else(|| format!("Player {}", who));
+        let offer_header = if who == 1 {
+            self.localized_strings
+                .get("hud.trade.their_offer")
+                .to_owned()
+        } else {
+            self.localized_strings
+                .get("hud.trade.your_offer")
+                .to_owned()
+        };
 
         Text::new(&offer_header)
             .up_from(state.ids.inv_alignment[who], 20.0)
