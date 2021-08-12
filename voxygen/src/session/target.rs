@@ -12,21 +12,25 @@ use common::{
 use common_base::span;
 
 #[derive(Clone, Copy, Debug)]
-pub enum TargetType {
-    Build,
-    Collectable,
-    Entity(specs::Entity),
-    Mine,
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct Target {
-    pub typed: TargetType,
+pub struct Target<T> {
+    pub typed: T,
     pub distance: f32,
     pub position: Vec3<f32>,
 }
 
-impl Target {
+#[derive(Clone, Copy, Debug)]
+pub struct Build;
+
+#[derive(Clone, Copy, Debug)]
+pub struct Collectable;
+
+#[derive(Clone, Copy, Debug)]
+pub struct Entity(pub specs::Entity);
+
+#[derive(Clone, Copy, Debug)]
+pub struct Mine;
+
+impl<T> Target<T> {
     pub fn position_int(self) -> Vec3<i32> { self.position.map(|p| p.floor() as i32) }
 }
 
@@ -41,10 +45,10 @@ pub(super) fn targets_under_cursor(
     can_build: bool,
     is_mining: bool,
 ) -> (
-    Option<Target>,
-    Option<Target>,
-    Option<Target>,
-    Option<Target>,
+    Option<Target<Build>>,
+    Option<Target<Collectable>>,
+    Option<Target<Entity>>,
+    Option<Target<Mine>>,
     f32,
 ) {
     span!(_guard, "targets_under_cursor");
@@ -185,7 +189,7 @@ pub(super) fn targets_under_cursor(
             let dist_to_player = player_cylinder.min_distance(target_cylinder);
             if dist_to_player < MAX_TARGET_RANGE {
                 Some(Target {
-                    typed: TargetType::Entity(*e),
+                    typed: Entity(*e),
                     position: p,
                     distance: dist_to_player,
                 })
@@ -194,7 +198,7 @@ pub(super) fn targets_under_cursor(
 
     let build_target = if let (Some(position), Some(ray)) = (solid_pos, solid_cam_ray) {
         Some(Target {
-            typed: TargetType::Build,
+            typed: Build,
             distance: ray.0,
             position,
         })
@@ -204,7 +208,7 @@ pub(super) fn targets_under_cursor(
 
     let collect_target = if let (Some(position), Some(ray)) = (collect_pos, collect_cam_ray) {
         Some(Target {
-            typed: TargetType::Collectable,
+            typed: Collectable,
             distance: ray.0,
             position,
         })
@@ -214,7 +218,7 @@ pub(super) fn targets_under_cursor(
 
     let mine_target = if let (Some(position), Some(ray)) = (mine_pos, mine_cam_ray) {
         Some(Target {
-            typed: TargetType::Mine,
+            typed: Mine,
             distance: ray.0,
             position,
         })

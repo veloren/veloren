@@ -50,7 +50,7 @@ use crate::{
 use hashbrown::HashMap;
 use interactable::{select_interactable, Interactable};
 use settings_change::Language::ChangeLanguage;
-use target::{targets_under_cursor, Target, TargetType};
+use target::{targets_under_cursor, Target};
 #[cfg(feature = "egui-ui")]
 use voxygen_egui::EguiDebugInfo;
 
@@ -425,16 +425,16 @@ impl PlayState for SessionState {
 
             drop(client);
 
-            let is_nearest_target = |target: Option<Target>| {
+            fn is_nearest_target<T>(shortest_dist: f32, target: Option<Target<T>>) -> bool {
                 target
                     .map(|t| (t.distance <= shortest_dist))
                     .unwrap_or(false)
-            };
+            }
 
             // Only highlight terrain blocks which can be interacted with
-            if is_mining && is_nearest_target(mine_target) {
+            if is_mining && is_nearest_target(shortest_dist, mine_target) {
                 mine_target.map(|mt| self.scene.set_select_pos(Some(mt.position_int())));
-            } else if can_build && is_nearest_target(build_target) {
+            } else if can_build && is_nearest_target(shortest_dist, build_target) {
                 build_target.map(|bt| self.scene.set_select_pos(Some(bt.position_int())));
             } else {
                 self.scene.set_select_pos(None);
@@ -442,8 +442,7 @@ impl PlayState for SessionState {
             }
 
             // Throw out distance info, it will be useful in the future
-            self.target_entity = if let Some(TargetType::Entity(e)) = entity_target.map(|t| t.typed)
-            {
+            self.target_entity = if let Some(target::Entity(e)) = entity_target.map(|t| t.typed) {
                 Some(e)
             } else {
                 None
@@ -472,11 +471,14 @@ impl PlayState for SessionState {
                                 let mut client = self.client.borrow_mut();
                                 // Mine and build targets can be the same block. make building take
                                 // precedence.
-                                if state && can_build && is_nearest_target(build_target) {
+                                if state
+                                    && can_build
+                                    && is_nearest_target(shortest_dist, build_target)
+                                {
                                     self.inputs.select_pos = build_target.map(|t| t.position);
                                     client.remove_block(build_target.unwrap().position_int());
                                 } else {
-                                    if is_mining && is_nearest_target(mine_target) {
+                                    if is_mining && is_nearest_target(shortest_dist, mine_target) {
                                         self.inputs.select_pos = mine_target.map(|t| t.position);
                                     }
                                     client.handle_input(
@@ -489,7 +491,10 @@ impl PlayState for SessionState {
                             },
                             GameInput::Secondary => {
                                 let mut client = self.client.borrow_mut();
-                                if state && can_build && is_nearest_target(build_target) {
+                                if state
+                                    && can_build
+                                    && is_nearest_target(shortest_dist, build_target)
+                                {
                                     if let Some(build_target) = build_target {
                                         self.inputs.select_pos = Some(build_target.position);
                                         client.place_block(

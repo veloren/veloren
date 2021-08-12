@@ -2,7 +2,7 @@ use ordered_float::OrderedFloat;
 use specs::{Join, WorldExt};
 use vek::*;
 
-use super::target::{Target, TargetType};
+use super::target::{self, Target};
 use client::{self, Client};
 use common::{
     comp,
@@ -28,38 +28,6 @@ impl Interactable {
             Self::Block(_, _, _) => None,
         }
     }
-
-    pub fn from_target(target: Target, client: &Client) -> Option<Interactable> {
-        match target.typed {
-            TargetType::Collectable => client
-                .state()
-                .terrain()
-                .get(target.position_int())
-                .ok()
-                .copied()
-                .map(|b| Interactable::Block(b, target.position_int(), Some(Interaction::Collect))),
-            TargetType::Entity(e) => Some(Interactable::Entity(e)),
-            TargetType::Mine => client
-                .state()
-                .terrain()
-                .get(target.position_int())
-                .ok()
-                .copied()
-                .and_then(|b| {
-                    // Handling edge detection. sometimes the casting (in Target mod) returns a
-                    // position which is actually empty, which we do not want labeled as an
-                    // interactable. We are only returning the mineable air
-                    // elements (e.g. minerals). The mineable weakrock are used
-                    // in the terrain selected_pos, but is not an interactable.
-                    if b.mine_tool().is_some() && b.is_air() {
-                        Some(Interactable::Block(b, target.position_int(), None))
-                    } else {
-                        None
-                    }
-                }),
-            TargetType::Build => None,
-        }
-    }
 }
 
 /// Select interactable to hightlight, display interaction text for, and to
@@ -73,30 +41,57 @@ impl Interactable {
 ///     -> closest of nearest interactable entity/block
 pub(super) fn select_interactable(
     client: &Client,
-    collect_target: Option<Target>,
-    entity_target: Option<Target>,
-    mine_target: Option<Target>,
+    collect_target: Option<Target<target::Collectable>>,
+    entity_target: Option<Target<target::Entity>>,
+    mine_target: Option<Target<target::Mine>>,
     scene: &Scene,
 ) -> Option<Interactable> {
     span!(_guard, "select_interactable");
     use common::{spiral::Spiral2d, terrain::TerrainChunk, vol::RectRasterableVol};
 
+    fn get_block<T>(client: &Client, target: Target<T>) -> Option<Block> {
+        client
+            .state()
+            .terrain()
+            .get(target.position_int())
+            .ok()
+            .copied()
+    }
+
     if let Some(interactable) = entity_target
         .and_then(|t| {
             if t.distance < MAX_PICKUP_RANGE {
-                Interactable::from_target(t, client)
+                let entity = t.typed.0;
+                Some(Interactable::Entity(entity))
             } else {
                 None
             }
         })
         .or_else(|| {
             collect_target
-                .map(|t| Interactable::from_target(t, client))
+                .map(|t| {
+                    get_block(client, t).map(|b| {
+                        Interactable::Block(b, t.position_int(), Some(Interaction::Collect))
+                    })
+                })
                 .unwrap_or(None)
         })
         .or_else(|| {
             mine_target
-                .map(|t| Interactable::from_target(t, client))
+                .map(|t| {
+                    get_block(client, t).and_then(|b| {
+                        // Handling edge detection. sometimes the casting (in Target mod) returns a
+                        // position which is actually empty, which we do not want labeled as an
+                        // interactable. We are only returning the mineable air
+                        // elements (e.g. minerals). The mineable weakrock are used
+                        // in the terrain selected_pos, but is not an interactable.
+                        if b.mine_tool().is_some() && b.is_air() {
+                            Some(Interactable::Block(b, t.position_int(), None))
+                        } else {
+                            None
+                        }
+                    })
+                })
                 .unwrap_or(None)
         })
     {
