@@ -27,11 +27,11 @@ impl Combo {
     pub fn reset(&mut self) { self.counter = 0; }
 
     pub fn change_by(&mut self, amount: i32, time: f64) {
-        if amount > 0 {
-            self.counter = self.counter.saturating_add(amount as u32);
+        self.counter = if amount > 0 {
+            self.counter.saturating_add(amount as u32)
         } else {
-            self.counter = self.counter.saturating_sub(amount.abs() as u32);
-        }
+            self.counter.saturating_sub(amount.abs() as u32)
+        };
         self.last_increase = time;
     }
 }
