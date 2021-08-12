@@ -201,13 +201,13 @@ impl<'a> Trade<'a> {
             })
             .unwrap_or_else(|| format!("Player {}", who));
 
-        let offer_header = if who == 1 {
+        let offer_header = if ours {
             self.localized_strings
-                .get("hud.trade.their_offer")
+                .get("hud.trade.your_offer")
                 .to_owned()
         } else {
             self.localized_strings
-                .get("hud.trade.your_offer")
+                .get("hud.trade.their_offer")
                 .to_owned()
         };
 
