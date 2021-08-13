@@ -32,8 +32,7 @@
             "O que você acha que faz os Restos Brilhantes(Glowing Remains) brilharem?.",
             "Acho que está na hora dum segundo café da manhã!",
             "Já capturou uma libélula(firefly)?",
-            "Não consigo entender de onde vem tantos Sauroks.",
-            "Gostaria que alguém conseguisse espantar os lobos (wolves) da aldeia.",
+            "Gostaria que alguém conseguisse espantar os lobos da aldeia.",
             "Tive um sonho magnífico sobre queijo ontem. O que será que significa?",
             "Deixei um pouco de queijo com meu irmão. Agora não sei se existe ou não. Eu chamo de queijo de Schrödinger.",
             "Deixei um pouco de queijo com minha irmã. Agora não sei se existe ou não. Eu chamo de queijo de Schrödinger.",
@@ -78,7 +77,6 @@
             "Prove o gume da minha espada, seu cultista sujo!",
             "Nada pode limpar o sangue de suas mãos, cultista!",
             "Com mil milhões de macacos e raios e coriscos! Um cultista entre nós!",
-            "Com um milhão de tubarões! Um cultista entre nós!",
             "Os males deste cultista estão prestes a acabar!",
             "Este cultista é meu!",
             "Prepare-se para encontrar o seu criador, oh sórdido cultista!",
@@ -179,6 +177,14 @@
             "Destruí meu inimigo!",
             "Finalmente em paz!",
             "... agora, o que eu estava fazendo?",
-        ]
+        ],
+        "npc.speech.menacing": [
+            "Estou te avisando!",
+            "Se chegar mais perto eu ataco!",
+            "Não tenho medo de você!",
+            "Se manda daqui!",
+            "Vaza daqui se deseja viver!",
+            "Você não é bem-vindo aqui!",
+        ],
     }
 )

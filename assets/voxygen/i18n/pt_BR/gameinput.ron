@@ -21,6 +21,8 @@
         "gameinput.help": "Mostar/Ocultar Janela de Ajuda",
         "gameinput.toggleinterface": "Mostar/Ocultar Interface",
         "gameinput.toggledebug": "Mostar/Ocultar informações de depuração e FPS",
+        "gameinput.toggle_egui_debug": "Mostrar/Ocultar informações de depuração EGUI",
+        "gameinput.togglechat": "Mostrar/Ocultar Chat",
         "gameinput.screenshot": "Capturar Tela",
         "gameinput.toggleingameui": "Mostar/Ocultar Nametags",
         "gameinput.fullscreen": "Alternar Tela Cheia",
@@ -65,6 +67,7 @@
         "gameinput.swimup": "Emergir",
         "gameinput.mapzoomin": "Aumentar zoom do mapa",
         "gameinput.mapzoomout": "Reduzir zoom do mapa",     
+        "gameinput.greet": "Saudação",
     },
 
 
