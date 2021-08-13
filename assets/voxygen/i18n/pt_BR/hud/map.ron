@@ -27,6 +27,9 @@
         "hud.map.recenter": "Recentralizar",
         "hud.map.marked_location": "Localização Marcada",
         "hud.map.marked_location_remove": "Clique para remover", 
+        "hud.map.change_map_mode": "Alterar modo do mapa",
+        "hud.map.toggle_minimap_voxel": "Alternar Modo Voxel no Minimapa",
+        "hud.map.zoom_minimap_explanation": "Dê zoom no minimapa para ver\nsua área em maior detalhes",
     },
 
 

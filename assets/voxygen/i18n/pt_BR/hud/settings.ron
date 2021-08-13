@@ -101,7 +101,6 @@
         "hud.settings.save_window_size": "Salvar Dim. da Janela",
         "hud.settings.reset_graphics": "Restaurar Padrões",
 
-
         "hud.settings.master_volume": "Volume Principal",
         "hud.settings.inactive_master_volume_perc": "Volume Principal (janela inativa)",
         "hud.settings.music_volume": "Volume da Música",
@@ -127,7 +126,6 @@
         "hud.settings.world": "Mundo",
         "hud.settings.region": "Região",
         "hud.settings.say": "Fala",
-        "hud.settings.none": "Nenhum",
         "hud.settings.all": "Todos",
         "hud.settings.group_only": "Grupo apenas",
         "hud.settings.reset_chat" : "Restaurar Padrões",
