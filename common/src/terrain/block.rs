@@ -309,15 +309,46 @@ impl Block {
             Block::air(SpriteKind::Empty)
         }
     }
+
+    /// Attempt to convert a [`u32`] to a block
+    #[inline]
+    pub fn from_u32(x: u32) -> Option<Self> {
+        let [bk, r, g, b] = x.to_le_bytes();
+        Some(Self {
+            kind: BlockKind::from_u8(bk)?,
+            attr: [r, g, b],
+        })
+    }
+
+    #[inline]
+    pub fn to_u32(&self) -> u32 {
+        u32::from_le_bytes([self.kind as u8, self.attr[0], self.attr[1], self.attr[2]])
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use strum::IntoEnumIterator;
 
     #[test]
     fn block_size() {
         assert_eq!(std::mem::size_of::<BlockKind>(), 1);
         assert_eq!(std::mem::size_of::<Block>(), 4);
+    }
+
+    #[test]
+    fn convert_u32() {
+        for bk in BlockKind::iter() {
+            let block = Block::new(bk, Rgb::new(165, 90, 204)); // Pretty unique bit patterns
+            if bk.is_filled() {
+                assert_eq!(Block::from_u32(block.to_u32()), Some(block));
+            } else {
+                assert_eq!(
+                    Block::from_u32(block.to_u32()),
+                    Some(Block::new(bk, Rgb::zero())),
+                );
+            }
+        }
     }
 }

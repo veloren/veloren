@@ -523,13 +523,21 @@ fn handle_make_block(
     args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let Some(block_name) = parse_args!(args, String) {
+    if let (Some(block_name), r, g, b) = parse_args!(args, String, u8, u8, u8) {
         if let Ok(bk) = BlockKind::from_str(block_name.as_str()) {
             let pos = position(server, target, "target")?;
-            server.state.set_block(
-                pos.0.map(|e| e.floor() as i32),
-                Block::new(bk, Rgb::broadcast(255)),
-            );
+            let new_block = Block::new(bk, Rgb::new(r, g, b).map(|e| e.unwrap_or(255)));
+            let pos = pos.0.map(|e| e.floor() as i32);
+            server.state.set_block(pos, new_block);
+            #[cfg(feature = "persistent_world")]
+            if let Some(terrain_persistence) = server
+                .state
+                .ecs()
+                .try_fetch_mut::<crate::TerrainPersistence>()
+                .as_mut()
+            {
+                terrain_persistence.set_block(pos, new_block);
+            }
             Ok(())
         } else {
             Err(format!("Invalid block kind: {}", block_name))
@@ -557,6 +565,15 @@ fn handle_make_sprite(
                 .unwrap_or_else(|| Block::air(SpriteKind::Empty))
                 .with_sprite(sk);
             server.state.set_block(pos, new_block);
+            #[cfg(feature = "persistent_world")]
+            if let Some(terrain_persistence) = server
+                .state
+                .ecs()
+                .try_fetch_mut::<crate::TerrainPersistence>()
+                .as_mut()
+            {
+                terrain_persistence.set_block(pos, new_block);
+            }
             Ok(())
         } else {
             Err(format!("Invalid sprite kind: {}", sprite_name))
@@ -1392,12 +1409,23 @@ fn handle_build(
         .write_storage::<comp::CanBuild>()
         .get_mut(target)
     {
-        let toggle_string = if can_build.enabled { "off" } else { "on" };
-        let chat_msg = ServerGeneral::server_msg(
-            ChatType::CommandInfo,
-            format!("Toggled {:?} build mode!", toggle_string),
-        );
         can_build.enabled ^= true;
+
+        let toggle_string = if can_build.enabled { "on" } else { "off" };
+        let msg = format!(
+            "Toggled build mode {}.{}",
+            toggle_string,
+            if !can_build.enabled {
+                ""
+            } else if server.settings().experimental_terrain_persistence {
+                " Experimental terrain persistence is enabled. The server will attempt to persist \
+                 changes, but this is not guaranteed."
+            } else {
+                " Changes will not be persisted when a chunk unloads."
+            },
+        );
+
+        let chat_msg = ServerGeneral::server_msg(ChatType::CommandInfo, msg);
         if client != target {
             server.notify_client(target, chat_msg.clone());
         }

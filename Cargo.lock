@@ -6075,6 +6075,7 @@ version = "0.10.0"
 dependencies = [
  "atomicwrites",
  "authc",
+ "bincode",
  "chrono",
  "crossbeam-channel",
  "futures-util",

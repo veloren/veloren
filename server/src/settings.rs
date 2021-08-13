@@ -62,6 +62,11 @@ pub struct Settings {
     pub spawn_town: Option<String>,
     pub safe_spawn: bool,
     pub max_player_for_kill_broadcast: Option<usize>,
+
+    /// Experimental feature. No guaranteed forwards-compatibility, may be
+    /// removed at *any time* with no migration.
+    #[serde(default, skip_serializing)]
+    pub experimental_terrain_persistence: bool,
 }
 
 impl Default for Settings {
@@ -84,6 +89,7 @@ impl Default for Settings {
             spawn_town: None,
             safe_spawn: true,
             max_player_for_kill_broadcast: None,
+            experimental_terrain_persistence: false,
         }
     }
 }

@@ -83,7 +83,7 @@ vek = {version = "=0.14.1", features = ["serde"]}
 gilrs = {version = "0.8.0", features = ["serde-serialize"]}
 
 # Singleplayer
-server = {package = "veloren-server", path = "../server", optional = true}
+server = { package = "veloren-server", path = "../server", optional = true, default-features = false, features = ["worldgen"] }
 
 # Utility
 backtrace = "0.3.40"
