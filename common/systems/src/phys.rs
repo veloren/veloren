@@ -318,9 +318,7 @@ impl<'a> PhysicsData<'a> {
                     char_state_maybe,
                 )| {
                     let is_sticky = sticky.is_some();
-                    // Code reviewers: remind me to check why on_ground was true instead of false
-                    // here?
-                    let is_mid_air = physics.on_wall.is_none() && physics.on_ground.is_some();
+                    let is_mid_air = physics.on_surface().is_none();
                     let mut entity_entity_collision_checks = 0;
                     let mut entity_entity_collisions = 0;
 
