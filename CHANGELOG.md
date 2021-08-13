@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add server setting with PvE/PvP switch
 - Can now tilt glider while only wielding it
 - Experimental terrain persistence (see server documentation)
+- Add GPU filtering using WGPU_ADAPTER environment variable
 
 ### Changed
 
