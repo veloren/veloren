@@ -22,8 +22,10 @@ widget_ids! {
         reset_sound_button,
         audio_volume_slider,
         audio_volume_text,
+        audio_volume_number,
         sfx_volume_slider,
         sfx_volume_text,
+        sfx_volume_number,
         master_volume_slider,
         master_volume_text,
         master_volume_number,
@@ -174,7 +176,7 @@ impl<'a> Widget for Sound<'a> {
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.audio_volume_text, ui);
-
+        // Music Volume Slider
         if let Some(new_val) = ImageSlider::continuous(
             self.global_state.settings.audio.music_volume,
             0.0,
@@ -191,6 +193,16 @@ impl<'a> Widget for Sound<'a> {
         {
             events.push(AdjustMusicVolume(new_val));
         }
+        // Music Volume Number
+        Text::new(&format!(
+            "{:2.0}",
+            self.global_state.settings.audio.music_volume * 100.0
+        ))
+        .right_from(state.ids.audio_volume_slider, 8.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.audio_volume_number, ui);
 
         // SFX Volume -------------------------------------------------------
         Text::new(
@@ -202,7 +214,7 @@ impl<'a> Widget for Sound<'a> {
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)
         .set(state.ids.sfx_volume_text, ui);
-
+        // SFX Volume Slider
         if let Some(new_val) = ImageSlider::continuous(
             self.global_state.settings.audio.sfx_volume,
             0.0,
@@ -219,6 +231,16 @@ impl<'a> Widget for Sound<'a> {
         {
             events.push(AdjustSfxVolume(new_val));
         }
+        // SFX Volume Number
+        Text::new(&format!(
+            "{:2.0}",
+            self.global_state.settings.audio.sfx_volume * 100.0
+        ))
+        .right_from(state.ids.sfx_volume_slider, 8.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.sfx_volume_number, ui);
 
         // Audio Device Selector
         // --------------------------------------------
