@@ -495,9 +495,19 @@ impl<'a> System<'a> for Sys {
                                                     if let Some(old_tgt_pos) =
                                                         read_data.positions.get(old_tgt.target)
                                                     {
-                                                        !old_tgt.aggro_on
-                                                            || old_tgt_pos.0.distance_squared(pos.0)
-                                                                < tgt_pos.0.distance_squared(pos.0)
+                                                        // Fuzzy factor that makes it harder for
+                                                        // players to cheese enemies by making them
+                                                        // quickly flip aggro between two players.
+                                                        // It
+                                                        // does this by only switching aggro if the
+                                                        // new target is closer to the enemy by a
+                                                        // specific proportional threshold.
+                                                        const FUZZY_DIST_COMPARISON: f32 = 0.8;
+                                                        // Only switch to new target if it is closer
+                                                        // than the old target
+                                                        tgt_pos.0.distance(pos.0)
+                                                            < old_tgt_pos.0.distance(pos.0)
+                                                                * FUZZY_DIST_COMPARISON
                                                     } else {
                                                         true
                                                     }
