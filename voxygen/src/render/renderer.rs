@@ -224,12 +224,39 @@ impl Renderer {
         #[allow(unsafe_code)]
         let surface = unsafe { instance.create_surface(window) };
 
-        let adapter = runtime
-            .block_on(instance.request_adapter(&wgpu::RequestAdapterOptionsBase {
-                power_preference: wgpu::PowerPreference::HighPerformance,
-                compatible_surface: Some(&surface),
-            }))
-            .ok_or(RenderError::CouldNotFindAdapter)?;
+        let adapters = instance
+            .enumerate_adapters(backend_bit)
+            .enumerate()
+            .collect::<Vec<_>>();
+
+        for (i, adapter) in adapters.iter() {
+            let info = adapter.get_info();
+            info!(
+                ?info.name,
+                ?info.vendor,
+                ?info.backend,
+                ?info.device,
+                ?info.device_type,
+                "graphics device #{}", i,
+            );
+        }
+
+        let adapter = match std::env::var("WGPU_ADAPTER").ok() {
+            Some(filter) if !filter.is_empty() => adapters.into_iter().find_map(|(i, adapter)| {
+                let info = adapter.get_info();
+
+                let full_name = format!("#{} {} {:?}", i, info.name, info.device_type,);
+
+                full_name.contains(&filter).then(|| adapter)
+            }),
+            Some(_) | None => {
+                runtime.block_on(instance.request_adapter(&wgpu::RequestAdapterOptionsBase {
+                    power_preference: wgpu::PowerPreference::HighPerformance,
+                    compatible_surface: Some(&surface),
+                }))
+            },
+        }
+        .ok_or(RenderError::CouldNotFindAdapter)?;
 
         let info = adapter.get_info();
         info!(
