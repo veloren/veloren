@@ -157,8 +157,19 @@ impl<'a> System<'a> for Sys {
                 for effect in projectile.hit_solid.drain(..) {
                     match effect {
                         projectile::Effect::Explode(e) => {
+                            // We offset position a little back on the way,
+                            // so if we hit non-exploadable block
+                            // we still can affect blocks around it.
+                            //
+                            // TODO: orientation of fallen projectile is
+                            // fragile heuristic for direction, find more
+                            // robust method.
+                            let projectile_direction = orientations
+                                .get(entity)
+                                .map_or_else(Vec3::zero, |ori| ori.look_vec());
+                            let offset = -0.2 * projectile_direction;
                             server_emitter.emit(ServerEvent::Explosion {
-                                pos: pos.0,
+                                pos: pos.0 + offset,
                                 explosion: e,
                                 owner: projectile.owner,
                             });

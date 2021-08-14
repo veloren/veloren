@@ -13,7 +13,12 @@ pub struct Ray<'a, V: ReadVol, F: FnMut(&V::Vox) -> bool, G: RayForEach<V::Vox>>
     ignore_error: bool,
 }
 
-impl<'a, V: ReadVol, F: FnMut(&V::Vox) -> bool, G: RayForEach<V::Vox>> Ray<'a, V, F, G> {
+impl<'a, V, F, G> Ray<'a, V, F, G>
+where
+    V: ReadVol,
+    F: FnMut(&V::Vox) -> bool,
+    G: RayForEach<V::Vox>,
+{
     pub fn new(vol: &'a V, from: Vec3<f32>, to: Vec3<f32>, until: F) -> Self {
         Self {
             vol,
