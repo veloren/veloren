@@ -19,19 +19,21 @@ widget_ids! {
         window,
         window_r,
         window_scrollbar,
-        reset_sound_button,
-        audio_volume_slider,
-        audio_volume_text,
-        sfx_volume_slider,
-        sfx_volume_text,
-        master_volume_slider,
         master_volume_text,
+        master_volume_slider,
         master_volume_number,
-        inactive_master_volume_slider,
         inactive_master_volume_text,
+        inactive_master_volume_slider,
         inactive_master_volume_number,
-        audio_device_list,
-        audio_device_text,
+        music_volume_text,
+        music_volume_slider,
+        music_volume_number,
+        sfx_volume_text,
+        sfx_volume_slider,
+        sfx_volume_number,
+        //audio_device_list,
+        //audio_device_text,
+        reset_sound_button,
     }
 }
 
@@ -99,19 +101,14 @@ impl<'a> Widget for Sound<'a> {
             .rgba(0.33, 0.33, 0.33, 1.0)
             .set(state.ids.window_scrollbar, ui);
 
-        // Master Volume ----------------------------------------------------
-        let master_volume = self.global_state.settings.audio.master_volume;
-        let master_val = format!("{:2.0}", master_volume * 100.0);
-        let inactive_master_volume_perc =
-            self.global_state.settings.audio.inactive_master_volume_perc;
-        let inactive_val = format!("{:2.0}%", inactive_master_volume_perc * 100.0);
+        // Master Volume
         Text::new(self.localized_strings.get("hud.settings.master_volume"))
             .top_left_with_margins_on(state.ids.window, 10.0, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.master_volume_text, ui);
-
+        // Master Volume Slider
         if let Some(new_val) = ImageSlider::continuous(
             self.global_state.settings.audio.master_volume,
             0.0,
@@ -128,13 +125,18 @@ impl<'a> Widget for Sound<'a> {
         {
             events.push(AdjustMasterVolume(new_val));
         }
-        Text::new(&master_val)
-            .right_from(state.ids.master_volume_slider, 8.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .color(TEXT_COLOR)
-            .set(state.ids.master_volume_number, ui);
-        // Master Volume (inactive window) ----------------------------------
+        // Master Volume Number
+        Text::new(&format!(
+            "{:2.0}%",
+            self.global_state.settings.audio.master_volume * 100.0
+        ))
+        .right_from(state.ids.master_volume_slider, 8.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.master_volume_number, ui);
+
+        // Master Volume (inactive window)
         Text::new(
             self.localized_strings
                 .get("hud.settings.inactive_master_volume_perc"),
@@ -144,7 +146,7 @@ impl<'a> Widget for Sound<'a> {
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)
         .set(state.ids.inactive_master_volume_text, ui);
-
+        // Master Volume (inactive window) Slider
         if let Some(new_val) = ImageSlider::continuous(
             self.global_state.settings.audio.inactive_master_volume_perc,
             0.0,
@@ -161,20 +163,25 @@ impl<'a> Widget for Sound<'a> {
         {
             events.push(AdjustInactiveMasterVolume(new_val));
         }
-        Text::new(&inactive_val)
-            .right_from(state.ids.inactive_master_volume_slider, 8.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .color(TEXT_COLOR)
-            .set(state.ids.inactive_master_volume_number, ui);
-        // Music Volume -----------------------------------------------------
+        // Master Volume (inactive window) Number
+        Text::new(&format!(
+            "{:2.0}%",
+            self.global_state.settings.audio.inactive_master_volume_perc * 100.0
+        ))
+        .right_from(state.ids.inactive_master_volume_slider, 8.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.inactive_master_volume_number, ui);
+
+        // Music Volume
         Text::new(self.localized_strings.get("hud.settings.music_volume"))
             .down_from(state.ids.inactive_master_volume_slider, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
-            .set(state.ids.audio_volume_text, ui);
-
+            .set(state.ids.music_volume_text, ui);
+        // Music Volume Slider
         if let Some(new_val) = ImageSlider::continuous(
             self.global_state.settings.audio.music_volume,
             0.0,
@@ -183,26 +190,36 @@ impl<'a> Widget for Sound<'a> {
             self.imgs.slider,
         )
         .w_h(104.0, 22.0)
-        .down_from(state.ids.audio_volume_text, 10.0)
+        .down_from(state.ids.music_volume_text, 10.0)
         .track_breadth(12.0)
         .slider_length(10.0)
         .pad_track((5.0, 5.0))
-        .set(state.ids.audio_volume_slider, ui)
+        .set(state.ids.music_volume_slider, ui)
         {
             events.push(AdjustMusicVolume(new_val));
         }
+        // Music Volume Number
+        Text::new(&format!(
+            "{:2.0}%",
+            self.global_state.settings.audio.music_volume * 100.0
+        ))
+        .right_from(state.ids.music_volume_slider, 8.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.music_volume_number, ui);
 
-        // SFX Volume -------------------------------------------------------
+        // SFX Volume
         Text::new(
             self.localized_strings
                 .get("hud.settings.sound_effect_volume"),
         )
-        .down_from(state.ids.audio_volume_slider, 10.0)
+        .down_from(state.ids.music_volume_slider, 10.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)
         .set(state.ids.sfx_volume_text, ui);
-
+        // SFX Volume Slider
         if let Some(new_val) = ImageSlider::continuous(
             self.global_state.settings.audio.sfx_volume,
             0.0,
@@ -219,6 +236,16 @@ impl<'a> Widget for Sound<'a> {
         {
             events.push(AdjustSfxVolume(new_val));
         }
+        // SFX Volume Number
+        Text::new(&format!(
+            "{:2.0}%",
+            self.global_state.settings.audio.sfx_volume * 100.0
+        ))
+        .right_from(state.ids.sfx_volume_slider, 8.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.sfx_volume_number, ui);
 
         // Audio Device Selector
         // --------------------------------------------
