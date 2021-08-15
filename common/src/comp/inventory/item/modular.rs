@@ -274,13 +274,13 @@ pub(super) fn synthesize_modular_asset(specifier: &str) -> Option<RawItemDef> {
 pub(super) fn modular_name<'a>(item: &'a Item, arg1: &'a str) -> Cow<'a, str> {
     match item.kind() {
         ItemKind::Tool(tool) => {
-            let damage_components = item.components().iter().filter(|comp| {
+            let main_components = item.components().iter().filter(|comp| {
                 matches!(comp.kind(), ItemKind::ModularComponent(ModularComponent { modkind, .. })
-                        if matches!(modkind, ModularComponentKind::Damage)
+                        if *modkind == ModularComponentKind::main_component(tool.kind)
                 )
             });
             // Last fine as there should only ever be one damage component on a weapon
-            let (material_name, weapon_name) = if let Some(component) = damage_components.last() {
+            let (material_name, weapon_name) = if let Some(component) = main_components.last() {
                 let materials =
                     component
                         .components()
