@@ -10,10 +10,9 @@ use crate::{
     SpawnPoint, Tick,
 };
 use common::{
-    comp::{self, agent, bird_medium, Alignment, BehaviorCapability, ForceUpdate, Pos, Waypoint},
+    comp::{self, agent, bird_medium, BehaviorCapability, ForceUpdate, Pos, Waypoint},
     event::{EventBus, ServerEvent},
-    generation::{get_npc_name, EntityInfo},
-    npc::NPC_NAMES,
+    generation::EntityInfo,
     resources::Time,
     terrain::TerrainGrid,
     LoadoutBuilder, SkillSetBuilder,
@@ -22,6 +21,7 @@ use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{SerializedTerrainChunk, ServerGeneral};
 use common_state::TerrainChanges;
 use comp::Behavior;
+use rand::Rng;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteExpect, WriteStorage};
 use std::sync::Arc;
 use vek::*;
@@ -199,145 +199,43 @@ impl<'a> System<'a> for Sys {
                     "Chunk spawned entity that wasn't nearby",
                 );
 
-                if entity.is_waypoint {
-                    server_emitter.emit(ServerEvent::CreateWaypoint(entity.pos));
-                    continue;
-                }
-
-                let mut body = entity.body;
-                let name = entity.name.unwrap_or_else(|| "Unnamed".to_string());
-                let alignment = entity.alignment;
-                let mut stats = comp::Stats::new(name);
-
-                let mut scale = entity.scale;
-
-                // Replace stuff if it's a boss
-                if entity.is_giant {
-                    if rand::random::<f32>() < 0.65 && entity.alignment != Alignment::Enemy {
-                        let body_new = comp::humanoid::Body::random();
-                        let npc_names = NPC_NAMES.read();
-
-                        body = comp::Body::Humanoid(body_new);
-                        stats = comp::Stats::new(format!(
-                            "Gentle Giant {}",
-                            get_npc_name(&npc_names.humanoid, body_new.species)
-                        ));
-                    }
-                    scale = 2.0 + rand::random::<f32>();
-                }
-
-                let EntityInfo {
-                    skillset_asset,
-                    main_tool,
-                    second_tool,
-                    loadout_asset,
-                    make_loadout,
-                    trading_information: economy,
-                    ..
-                } = entity;
-
-                let skill_set = {
-                    let skillset_builder = SkillSetBuilder::default();
-                    if let Some(skillset_asset) = skillset_asset {
-                        skillset_builder.with_asset_expect(&skillset_asset).build()
-                    } else {
-                        skillset_builder.build()
-                    }
-                };
-
-                let loadout = {
-                    let mut loadout_builder = LoadoutBuilder::empty();
-                    let rng = &mut rand::thread_rng();
-
-                    // If main tool is passed, use it. Otherwise fallback to default tool
-                    if let Some(main_tool) = main_tool {
-                        loadout_builder = loadout_builder.active_mainhand(Some(main_tool));
-                    } else {
-                        loadout_builder = loadout_builder.with_default_maintool(&body);
-                    }
-
-                    // If second tool is passed, use it as well
-                    if let Some(second_tool) = second_tool {
-                        loadout_builder = loadout_builder.active_offhand(Some(second_tool));
-                    }
-
-                    // If there is config, apply it.
-                    // If not, use default equipement for this body.
-                    if let Some(asset) = loadout_asset {
-                        loadout_builder = loadout_builder.with_asset_expect(&asset, rng);
-                    } else {
-                        loadout_builder = loadout_builder.with_default_equipment(&body);
-                    }
-
-                    // Evaluate lazy function for loadout creation
-                    if let Some(make_loadout) = make_loadout {
-                        loadout_builder =
-                            loadout_builder.with_creator(make_loadout, economy.as_ref());
-                    }
-                    loadout_builder.build()
-                };
-
-                let health = Some(comp::Health::new(body, entity.level.unwrap_or(0)));
-                let poise = comp::Poise::new(body);
-
-                let can_speak = match body {
-                    comp::Body::Humanoid(_) => true,
-                    comp::Body::BirdMedium(bird_medium) => match bird_medium.species {
-                        // Parrots like to have a word in this, too...
-                        bird_medium::Species::Parrot => alignment == comp::Alignment::Npc,
-                        _ => false,
+                let rng = &mut rand::thread_rng();
+                let data = NpcData::from_entity_info(entity, rng);
+                match data {
+                    NpcData::Waypoint(pos) => {
+                        server_emitter.emit(ServerEvent::CreateWaypoint(pos));
                     },
-                    _ => false,
-                };
-                let trade_for_site = if matches!(entity.agent_mark, Some(agent::Mark::Merchant)) {
-                    economy.map(|e| e.id)
-                } else {
-                    None
-                };
-
-                // TODO: This code sets an appropriate base_damage for the enemy. This doesn't
-                // work because the damage is now saved in an ability
-                /*
-                if let Some(item::ItemKind::Tool(item::ToolData { base_damage, .. })) =
-                    &mut loadout.active_item.map(|i| i.item.kind)
-                {
-                    *base_damage = stats.level.level() as u32 * 3;
-                }
-                */
-                server_emitter.emit(ServerEvent::CreateNpc {
-                    pos: Pos(entity.pos),
-                    stats,
-                    skill_set,
-                    health,
-                    poise,
-                    loadout,
-                    agent: if entity.has_agency {
-                        Some(
-                            comp::Agent::from_body(&body)
-                                .with_behavior(
-                                    Behavior::default()
-                                        .maybe_with_capabilities(
-                                            can_speak.then(|| BehaviorCapability::SPEAK),
-                                        )
-                                        .with_trade_site(trade_for_site),
-                                )
-                                .with_patrol_origin(entity.pos)
-                                .with_no_flee(!matches!(
-                                    entity.agent_mark,
-                                    Some(agent::Mark::Guard)
-                                )),
-                        )
-                    } else {
-                        None
+                    NpcData::Data {
+                        pos,
+                        stats,
+                        skill_set,
+                        health,
+                        poise,
+                        loadout,
+                        agent,
+                        body,
+                        alignment,
+                        scale,
+                        drop_item,
+                    } => {
+                        server_emitter.emit(ServerEvent::CreateNpc {
+                            pos,
+                            stats,
+                            skill_set,
+                            health,
+                            poise,
+                            loadout,
+                            agent,
+                            body,
+                            alignment,
+                            scale,
+                            anchor: Some(comp::Anchor::Chunk(key)),
+                            drop_item,
+                            rtsim_entity: None,
+                            projectile: None,
+                        });
                     },
-                    body,
-                    alignment,
-                    scale: comp::Scale(scale),
-                    anchor: Some(comp::Anchor::Chunk(key)),
-                    drop_item: entity.loot_drop,
-                    rtsim_entity: None,
-                    projectile: None,
-                })
+                }
             }
 
             // Insert a safezone if chunk contains the spawn position
@@ -438,6 +336,145 @@ impl<'a> System<'a> for Sys {
             }
 
             chunk_generator.cancel_if_pending(key);
+        }
+    }
+}
+
+/// Convinient structure to use when you need to create new npc
+/// from EntityInfo
+// TODO: better name?
+pub enum NpcData {
+    Data {
+        pos: Pos,
+        stats: comp::Stats,
+        skill_set: comp::SkillSet,
+        health: Option<comp::Health>,
+        poise: comp::Poise,
+        loadout: comp::inventory::loadout::Loadout,
+        agent: Option<comp::Agent>,
+        body: comp::Body,
+        alignment: comp::Alignment,
+        scale: comp::Scale,
+        drop_item: Option<comp::Item>,
+    },
+    Waypoint(Vec3<f32>),
+}
+
+impl NpcData {
+    pub fn from_entity_info(entity: EntityInfo, rng: &mut impl Rng) -> Self {
+        let EntityInfo {
+            // flags
+            is_waypoint,
+            has_agency,
+            agent_mark,
+            alignment,
+            // stats
+            body,
+            name,
+            scale,
+            pos,
+            level,
+            loot_drop,
+            // tools and skills
+            skillset_asset,
+            main_tool,
+            second_tool,
+            loadout_asset,
+            make_loadout,
+            trading_information: economy,
+            // unused
+            is_giant: _, // TODO: remove?
+            pet: _,      // TODO: I had no idea we have this.
+        } = entity;
+
+        if is_waypoint {
+            return Self::Waypoint(pos);
+        }
+
+        let name = name.unwrap_or_else(|| "Unnamed".to_string());
+        let stats = comp::Stats::new(name);
+
+        let skill_set = {
+            let skillset_builder = SkillSetBuilder::default();
+            if let Some(skillset_asset) = skillset_asset {
+                skillset_builder.with_asset_expect(&skillset_asset).build()
+            } else {
+                skillset_builder.build()
+            }
+        };
+
+        let loadout = {
+            let mut loadout_builder = LoadoutBuilder::empty();
+
+            // If main tool is passed, use it. Otherwise fallback to default tool
+            if let Some(main_tool) = main_tool {
+                loadout_builder = loadout_builder.active_mainhand(Some(main_tool));
+            } else {
+                loadout_builder = loadout_builder.with_default_maintool(&body);
+            }
+
+            // If second tool is passed, use it as well
+            if let Some(second_tool) = second_tool {
+                loadout_builder = loadout_builder.active_offhand(Some(second_tool));
+            }
+
+            // If there is config, apply it.
+            // If not, use default equipement for this body.
+            if let Some(asset) = loadout_asset {
+                loadout_builder = loadout_builder.with_asset_expect(&asset, rng);
+            } else {
+                loadout_builder = loadout_builder.with_default_equipment(&body);
+            }
+
+            // Evaluate lazy function for loadout creation
+            if let Some(make_loadout) = make_loadout {
+                loadout_builder = loadout_builder.with_creator(make_loadout, economy.as_ref());
+            }
+            loadout_builder.build()
+        };
+
+        let health = Some(comp::Health::new(body, level.unwrap_or(0)));
+        let poise = comp::Poise::new(body);
+
+        let can_speak = match body {
+            comp::Body::Humanoid(_) => true,
+            comp::Body::BirdMedium(bird_medium) => match bird_medium.species {
+                // Parrots like to have a word in this, too...
+                bird_medium::Species::Parrot => alignment == comp::Alignment::Npc,
+                _ => false,
+            },
+            _ => false,
+        };
+
+        let trade_for_site = if matches!(agent_mark, Some(agent::Mark::Merchant)) {
+            economy.map(|e| e.id)
+        } else {
+            None
+        };
+
+        let agent = has_agency.then(|| {
+            comp::Agent::from_body(&body)
+                .with_behavior(
+                    Behavior::default()
+                        .maybe_with_capabilities(can_speak.then(|| BehaviorCapability::SPEAK))
+                        .with_trade_site(trade_for_site),
+                )
+                .with_patrol_origin(pos)
+                .with_no_flee(!matches!(agent_mark, Some(agent::Mark::Guard)))
+        });
+
+        NpcData::Data {
+            pos: Pos(pos),
+            stats,
+            skill_set,
+            health,
+            poise,
+            loadout,
+            agent,
+            body,
+            alignment,
+            scale: comp::Scale(scale),
+            drop_item: loot_drop,
         }
     }
 }
