@@ -802,6 +802,10 @@ INSERT INTO _temp_modular_items VALUES('common.items.weapons.axe_1h.wood-1', 'co
 INSERT INTO _temp_modular_items VALUES('common.items.weapons.axe_1h.wood-1', 'common.items.crafting_ing.modular.damage.axe.axe', 794, 793);
 INSERT INTO _temp_modular_items VALUES('common.items.weapons.axe_1h.wood-1', 'common.items.crafting_ing.modular.held.axe.short', 795, 793);
 INSERT INTO _temp_modular_items VALUES('common.items.weapons.axe_1h.wood-1', 'common.items.mineral.ingot.bronze', 796, 794);
+INSERT INTO _temp_modular_items VALUES('common.items.weapons.staff.phoenix', 'common.items.weapons.modular.staff', 797, NULL);
+INSERT INTO _temp_modular_items VALUES('common.items.weapons.staff.phoenix', 'common.items.crafting_ing.modular.damage.staff.medium', 798, 797);
+INSERT INTO _temp_modular_items VALUES('common.items.weapons.staff.phoenix', 'common.items.crafting_ing.modular.held.staff.grandstaff', 799, 797);
+INSERT INTO _temp_modular_items VALUES('common.items.weapons.staff.phoenix', 'common.items.log.eldwood', 800, 799);
 
 -- Create a temporary table to hold data for the modular weapon items
 CREATE TEMP TABLE _temp_modular_component_items

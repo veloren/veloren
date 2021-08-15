@@ -1,9 +1,5 @@
 [
-    // Legendary staves and sceptres
-    Set([
-        "common.items.weapons.staff.phoenix",
-        "common.items.weapons.staff.laevateinn",
-    ]),
+    // Legendary sceptres
     Set([
         "common.items.weapons.sceptre.root_evil",
         "common.items.weapons.sceptre.caduceus",

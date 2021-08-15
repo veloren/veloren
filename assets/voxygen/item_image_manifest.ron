@@ -90,6 +90,10 @@
         (0.0, 0.0, 0.0), (125.0, 90.0, 80.0), 1.0,
     ),
     // Bows
+    ModularWeapon(("common.items.crafting_ing.modular.damage.sword.longsword", "iron", One)): VoxTrans(
+        "voxel.weapon.sword.iron-5",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
     Tool("common.items.weapons.bow.bone-0"): VoxTrans(
         "voxel.weapon.bow.bone-0",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
@@ -1268,7 +1272,7 @@
     Armor(Hand("Merchant")): VoxTrans(
         "voxel.armor.merchant.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),    
+    ),
     Armor(Head("Merchant")): VoxTrans(
         "voxel.armor.merchant.turban",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
@@ -3032,13 +3036,5 @@
     Ingredient("Diamond"): VoxTrans(
         "voxel.sprite.mineral.gem.diamondgem",
         (0.0, 0.0, 0.0), (-55.0, 30.0, 20.0), 0.6,
-    ),
-    ModularComponent("common.items.crafting_ing.modular.damage.sword.tier5"): VoxTrans(
-        "voxel.weapon_components.sword.cultist.cultist_purp_2h-0_blade",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
-    ),
-    ModularComponent("common.items.crafting_ing.modular.held.sword.tier5"): VoxTrans(
-        "voxel.weapon_components.sword.cultist.cultist_purp_2h-0_handle",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
     ),
 })
