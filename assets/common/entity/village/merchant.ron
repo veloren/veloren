@@ -7,10 +7,26 @@
     inventory: (
         loadout: Inline((
             active_hands: ([
-                (2, "common.items.weapons.bow.eldwood-0"),
-                (1, "common.items.weapons.sword.steel-0"),
-                (1, "common.items.weapons.sword_1h.bloodsteel-0"),
-                (2, "common.items.weapons.staff.flamethrower_0"),
+                (2, (
+                    tool: Bow,
+                    material: Eldwood,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Sword,
+                    material: Steel,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Sword,
+                    material: Bloodsteel,
+                    hands: None,
+                )),
+                (2, (
+                    tool: Staff,
+                    material: Ironwood,
+                    hands: None,
+                )),
             ], None),
         )),
     ),

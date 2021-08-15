@@ -8,9 +8,21 @@
         loadout: Inline((
             inherit: Asset("common.loadout.village.guard"),
             active_hands: ([
-                (1, "common.items.weapons.sword.cobalt-0"),
-                (2, "common.items.weapons.bow.metal-2"),
-                (1, "common.items.weapons.axe.cobalt_axe-0"),
+                (1, (
+                    tool: Sword,
+                    material: Cobalt,
+                    hands: None,
+                )),
+                (2, (
+                    tool: Bow,
+                    material: Ironwood,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Axe,
+                    material: Cobalt,
+                    hands: None,
+                )),
             ], None),
         )),
         items: [

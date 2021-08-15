@@ -7,7 +7,18 @@
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.spots.pirate"),
-            active_hands: ("common.items.weapons.sword_1h.iron-2", "common.items.weapons.sword_1h.iron-2"),
+            active_hands: (
+                (
+                    tool: Sword,
+                    material: Iron,
+                    hands: Some(One),
+                ),
+                (
+                    tool: Sword,
+                    material: Iron,
+                    hands: Some(One),
+                )
+            ),
         )),
     ),
     meta: [

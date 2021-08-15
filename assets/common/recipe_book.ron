@@ -489,32 +489,6 @@
         ],
         craft_sprite: None,
     ),
-    "Soothing Loop": (
-        output: ("common.items.weapons.sceptre.loops0", 1),
-        inputs: [
-            (Item("common.items.crafting_ing.twigs"), 20, false),
-            (Item("common.items.mineral.ore.veloritefrag"), 8, false),
-            (Item("common.items.mineral.gem.ruby"), 4, false),
-            (Item("common.items.tool.craftsman_hammer"), 0, false),
-        ],
-        craft_sprite: Some(CraftingBench),
-    ),
-    "Hunting Bow": (
-        output: ("common.items.weapons.bow.wood-2", 1),
-        inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 8, false),
-            (Item("common.items.crafting_ing.twigs"), 6, false),
-        ],
-        craft_sprite: Some(CraftingBench),
-    ),
-    "Forest Spirit": (
-        output: ("common.items.weapons.sword.wood-2", 1),
-        inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 4, false),
-            (Item("common.items.crafting_ing.twigs"), 10, false),
-        ],
-        craft_sprite: Some(Anvil),
-    ),
     "Burnt Drumstick": (
         output: ("common.items.weapons.hammer.burnt_drumstick", 1),
         inputs: [

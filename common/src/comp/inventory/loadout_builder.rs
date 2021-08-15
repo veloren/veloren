@@ -6,7 +6,7 @@ use crate::{
             loadout::Loadout,
             slot::{ArmorSlot, EquipSlot},
         },
-        item::Item,
+        item::{self, Item},
         object, quadruped_low, quadruped_medium, theropod, Body,
     },
     trade::SiteInformation,
@@ -39,6 +39,18 @@ pub enum ValidationError {
 enum ItemSpec {
     Item(String),
     Choice(Vec<(Weight, Option<ItemSpec>)>),
+    /// Modular weapon
+    /// Example:
+    /// ModularWeapon {
+    ///     tool: Sword,
+    ///     material: Iron,
+    ///     hands: Some(Two),
+    /// }
+    ModularWeapon {
+        tool: item::tool::ToolKind,
+        material: item::Material,
+        hands: Option<item::tool::Hands>,
+    },
 }
 
 impl ItemSpec {
@@ -117,6 +129,11 @@ impl Hands {
 
                 pair_spec.try_to_pair(rng)
             },
+            ItemSpec::ModularWeapon {
+                tool,
+                material,
+                hands,
+            } => Some(item::modular::random_weapon(*tool, *material, *hands)),
         }
     }
 
@@ -139,6 +156,20 @@ impl Hands {
                     choice.validate()?;
                 }
                 Ok(())
+            },
+            ItemSpec::ModularWeapon {
+                tool,
+                material,
+                hands,
+            } => {
+                let item = item::modular::random_weapon(*tool, *material, *hands);
+                if !equip_slot.can_hold(&item) {
+                    panic!(
+                        "Tried to place {:?} handed {:?} {:?} into {:?}",
+                        hands, material, tool, equip_slot
+                    );
+                }
+                std::mem::drop(item);
             },
         }
     }

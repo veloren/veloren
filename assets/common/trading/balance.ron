@@ -15,5 +15,4 @@
     (20.0, Item("common.items.tool.craftsman_hammer")),
     (20.0, Item("common.items.tool.pickaxe_stone")),
     (20.0, Item("common.items.weapons.hammer.burnt_drumstick")),
-    (20.0, Item("common.items.weapons.sword.wood-2")),
 ]

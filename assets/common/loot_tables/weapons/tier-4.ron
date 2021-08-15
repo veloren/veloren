@@ -1,8 +1,32 @@
 [
-    (1.0, LootTable("common.loot_tables.weapons.sword.cobalt")),
-    (1.0, LootTable("common.loot_tables.weapons.axe.cobalt")),
-    (1.0, LootTable("common.loot_tables.weapons.hammer.cobalt")),
-    (1.0, LootTable("common.loot_tables.weapons.bow.frostwood")),
-    (1.0, LootTable("common.loot_tables.weapons.staff.frostwood")),
-    (1.0, LootTable("common.loot_tables.weapons.sceptre.frostwood")),
+    (1.0, ModularWeapon(
+        tool: Sword,
+        material: Bloodsteel,
+        hands: None,
+    )),
+    (1.0, ModularWeapon(
+        tool: Axe,
+        material: Bloodsteel,
+        hands: None,
+    )),
+    (1.0, ModularWeapon(
+        tool: Hammer,
+        material: Bloodsteel,
+        hands: None,
+    )),
+    (1.0, ModularWeapon(
+        tool: Bow,
+        material: Frostwood,
+        hands: None,
+    )),
+    (1.0, ModularWeapon(
+        tool: Staff,
+        material: Frostwood,
+        hands: None,
+    )),
+    (1.0, ModularWeapon(
+        tool: Sceptre,
+        material: Frostwood,
+        hands: None,
+    )),
 ]

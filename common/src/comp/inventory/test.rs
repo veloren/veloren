@@ -225,7 +225,7 @@ fn unequip_items_both_hands() {
     let ability_map = &AbilityMap::default();
     let mut inv = Inventory::new_empty();
 
-    let sword = Item::new_from_asset_expect("common.items.weapons.sword.steel-8");
+    let sword = Item::new_from_asset_expect("common.items.weapons.sword.starter");
 
     inv.replace_loadout_item(
         EquipSlot::ActiveMainhand,

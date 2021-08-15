@@ -9,7 +9,11 @@
             inherit: Asset("common.loadout.dungeon.tier-5.beastmaster"),
             active_hands: ([
                 (1, "common.items.weapons.axe.malachite_axe-0"),
-                (1, "common.items.weapons.sword.bloodsteel-1"),
+                (1, (
+                    tool: Sword,
+                    material: Bloodsteel,
+                    hands: Some(Two),
+                )),
                 (1, "common.items.weapons.bow.velorite"),
             ], None),
         )),

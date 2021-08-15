@@ -105,7 +105,9 @@ pub enum MaterialKind {
     Hide,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, IntoStaticStr, EnumString)]
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, IntoStaticStr, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum Material {
     Bronze,

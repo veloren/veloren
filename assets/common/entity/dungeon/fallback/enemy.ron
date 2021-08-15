@@ -13,7 +13,7 @@
                 (1, "common.items.weapons.tool.rake"),
                 (1, "common.items.weapons.tool.shovel-0"),
                 (1, "common.items.weapons.tool.shovel-1"),
-                (1, "common.items.weapons.bow.bone-1"),
+                (1, "common.items.weapons.bow.starter"),
             ], None),
         )),
     ),
