@@ -1,6 +1,6 @@
 //! # Implementing new commands.
-//! To implement a new command, add an instance of `ChatCommand` to
-//! `CHAT_COMMANDS` and provide a handler function.
+//! To implement a new command provide a handler function
+//! in [do_command].
 
 use crate::{
     settings::{
@@ -68,6 +68,7 @@ impl ChatCommandExt for ChatCommand {
 }
 
 type CmdResult<T> = Result<T, String>;
+
 /// Handler function called when the command is executed.
 /// # Arguments
 /// * `&mut Server` - the `Server` instance executing the command.
@@ -140,6 +141,7 @@ fn do_command(
         ChatCommand::Lantern => handle_lantern,
         ChatCommand::Light => handle_light,
         ChatCommand::MakeBlock => handle_make_block,
+        ChatCommand::MakeNpc => handle_make_npc,
         ChatCommand::MakeSprite => handle_make_sprite,
         ChatCommand::Motd => handle_motd,
         ChatCommand::Object => handle_object,
@@ -545,6 +547,16 @@ fn handle_make_block(
     } else {
         Err(action.help_string())
     }
+}
+
+fn handle_make_npc(
+    _server: &mut Server,
+    _client: EcsEntity,
+    _target: EcsEntity,
+    _args: Vec<String>,
+    _action: &ChatCommand,
+) -> CmdResult<()> {
+    Err("Not implemented".to_owned())
 }
 
 fn handle_make_sprite(

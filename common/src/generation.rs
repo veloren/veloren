@@ -1,5 +1,5 @@
 use crate::{
-    assets::{self, AssetExt},
+    assets::{self, AssetExt, Error},
     comp::{
         self, agent, humanoid,
         inventory::loadout_builder::{ItemSpec, LoadoutBuilder},
@@ -138,6 +138,12 @@ impl EntityConfig {
         Self::load_owned(asset_specifier)
             .unwrap_or_else(|e| panic!("Failed to load {}. Error: {}", asset_specifier, e))
     }
+}
+
+/// Return all entity config specifiers
+pub fn try_all_entity_configs() -> Result<Vec<String>, Error> {
+    let configs = assets::load_dir::<EntityConfig>("common.entity", true)?;
+    Ok(configs.ids().map(|id| id.to_owned()).collect())
 }
 
 #[derive(Clone)]
@@ -554,10 +560,10 @@ mod tests {
 
     #[test]
     fn test_all_entity_assets() {
-        // It just load everything that could
-        let entity_configs = assets::load_dir::<EntityConfig>("common.entity", true)
-            .expect("Failed to access entity directory");
-        for config_asset in entity_configs.ids() {
+        // Get list of entity configs, load everything, validate content.
+        let entity_configs =
+            try_all_entity_configs().expect("Failed to access entity configs directory");
+        for config_asset in entity_configs {
             // print asset name so we don't need to find errors everywhere
             // it'll be ignored by default so you'll see it only in case of errors
             //
@@ -568,7 +574,7 @@ mod tests {
             // 2) Add try_from_asset() for LoadoutBuilder and
             // SkillSet builder which will return Result and we will happily
             // panic in validate_meta() with the name of config_asset
-            println!("{}:", config_asset);
+            println!("{}:", &config_asset);
 
             let EntityConfig {
                 hands,
@@ -577,12 +583,12 @@ mod tests {
                 loot,
                 meta,
                 alignment: _alignment, // can't fail if serialized, it's a boring enum
-            } = EntityConfig::from_asset_expect(config_asset);
+            } = EntityConfig::from_asset_expect(&config_asset);
 
-            validate_hands(hands, config_asset);
-            validate_body_and_name(body, name, config_asset);
-            validate_loot(loot, config_asset);
-            validate_meta(meta, config_asset);
+            validate_hands(hands, &config_asset);
+            validate_body_and_name(body, name, &config_asset);
+            validate_loot(loot, &config_asset);
+            validate_meta(meta, &config_asset);
         }
     }
 }
