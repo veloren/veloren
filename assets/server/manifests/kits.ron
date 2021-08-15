@@ -123,12 +123,7 @@
         ("common.items.armor.mail.orichalcum.shoulder", 1),
 
         // Weapons
-        ("common.items.weapons.sword.bloodsteel-0", 1),
-        ("common.items.weapons.axe.bloodsteel_axe-0", 1),
-        ("common.items.weapons.hammer.runic_hammer", 1),
-        ("common.items.weapons.bow.eldwood-0", 1),
-        ("common.items.weapons.staff.ruby_rod", 1),
-        ("common.items.weapons.sceptre.emerald", 1),
+        // TODO: Make modular weapons load from this
 
         // Potion Kit
         ("common.items.consumable.potion_med", 100),
@@ -162,12 +157,7 @@
         ("common.items.armor.mail.bloodsteel.shoulder", 1),
 
         // Weapons
-        ("common.items.weapons.sword.cobalt-0", 1),
-        ("common.items.weapons.axe.cobalt_axe-0", 1),
-        ("common.items.weapons.hammer.cobalt_hammer-0", 1),
-        ("common.items.weapons.bow.frostwood-0", 1),
-        ("common.items.weapons.staff.frostwood_torch", 1),
-        ("common.items.weapons.sceptre.fork0", 1),
+        // TODO: Make modular weapons load from this
 
         // Potion Kit
         ("common.items.consumable.potion_med", 100),
@@ -201,12 +191,7 @@
         ("common.items.armor.mail.cobalt.shoulder", 1),
 
         // Weapons
-        ("common.items.weapons.sword.steel-0", 1),
-        ("common.items.weapons.axe.steel_axe-0", 1),
-        ("common.items.weapons.hammer.steel_hammer-0", 1),
-        ("common.items.weapons.bow.metal-0", 1),
-        ("common.items.weapons.staff.flamethrower_0", 1),
-        ("common.items.weapons.sceptre.coralline_cane", 1),
+        // TODO: Make modular weapons load from this
 
         // Potion Kit
         ("common.items.consumable.potion_med", 100),
@@ -240,13 +225,8 @@
         ("common.items.armor.mail.steel.shoulder", 1),
 
         // Weapons
-        ("common.items.weapons.sword.iron-0", 1),
-        ("common.items.weapons.axe.iron_axe-0", 1),
-        ("common.items.weapons.hammer.iron_hammer-0", 1),
-        ("common.items.weapons.bow.hardwood-0", 1),
-        ("common.items.weapons.staff.heated_arm", 1),
-        ("common.items.weapons.sceptre.druids_arbor", 1),
-        
+        // TODO: Make modular weapons load from this
+
         // Potion Kit
         ("common.items.consumable.potion_med", 100),
     ],
@@ -279,13 +259,8 @@
         ("common.items.armor.mail.iron.shoulder", 1),
 
         // Weapons
-        ("common.items.weapons.sword.bronze-0", 1),
-        ("common.items.weapons.axe.bronze_axe-0", 1),
-        ("common.items.weapons.hammer.bronze_hammer-0", 1),
-        ("common.items.weapons.bow.bone-0", 1),
-        ("common.items.weapons.staff.bone_staff", 1),
-        ("common.items.weapons.sceptre.divine_gohei", 1),
-        
+        // TODO: Make modular weapons load from this
+
         // Potion Kit
         ("common.items.consumable.potion_minor", 100),
     ],
@@ -318,12 +293,7 @@
         ("common.items.armor.mail.bronze.shoulder", 1),
 
         // weapons
-        ("common.items.weapons.sword.stone-0", 1),
-        ("common.items.weapons.axe_1h.stone-0", 2),
-        ("common.items.weapons.hammer.stone_hammer-0", 1),
-        ("common.items.weapons.bow.wood-0", 1),
-        ("common.items.weapons.staff.bent_fuse", 1),
-        ("common.items.weapons.sceptre.divine_gohei", 1),
+        // TODO: Make modular weapons load from this
 
         // potion kit
         ("common.items.consumable.potion_minor", 100),
@@ -336,7 +306,6 @@
         ("common.items.armor.ferocious.shoulder",1),
         ("common.items.armor.ferocious.belt",1),
         ("common.items.armor.ferocious.back",1),
-        ("common.items.weapons.sword.bloodsteel-1",1),
     ],
     "cultist": [
         ("common.items.armor.cultist.chest",1),
