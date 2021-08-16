@@ -129,80 +129,8 @@ pub enum BoostValue {
     NonDescriptive,
 }
 
-impl BoostValue {
-    pub fn as_mult_maybe(self) -> Option<f32> {
-        match self {
-            Self::Number(x) => Some(1.0 + x as f32 * 0.01),
-            Self::NonDescriptive => None,
-        }
-    }
-
-    pub fn as_i16_maybe(self) -> Option<i16> {
-        match self {
-            Self::Number(x) => Some(x),
-            Self::NonDescriptive => None,
-        }
-    }
-}
-
 impl From<i16> for BoostValue {
     fn from(number: i16) -> Self { BoostValue::Number(number) }
-}
-
-pub fn adjust_with_level(skillset: &SkillSet, skill: Skill, effect: impl FnOnce(f32, u16)) {
-    // NOTE: We are unwrapping before checking skill level,
-    // because if it falls we want know it even if we don't have this level
-    let multiplier = match skill.boost().as_mult_maybe() {
-        Some(m) => m,
-        None => return invalid_skill_boost(skill),
-    };
-    if let Ok(Some(level)) = skillset.skill_level(skill) {
-        effect(multiplier, level);
-    }
-}
-
-pub fn adjust_counter_with_level(skillset: &SkillSet, skill: Skill, effect: impl FnOnce(i16, i16)) {
-    // NOTE: We are unwrapping before checking skill level,
-    // because if it falls we want know it even if we don't have this level
-    let counter = match skill.boost().as_i16_maybe() {
-        Some(c) => c,
-        None => return invalid_skill_boost(skill),
-    };
-    if let Ok(Some(level)) = skillset.skill_level(skill) {
-        effect(counter, level as i16);
-    }
-}
-
-pub fn set_if_has(skillset: &SkillSet, skill: Skill, effect: impl FnOnce(f32)) {
-    // NOTE: We are unwrapping before checking skill level,
-    // because if it falls we want know it even if we don't have this level
-    let multiplier = match skill.boost().as_mult_maybe() {
-        Some(c) => c,
-        None => return invalid_skill_boost(skill),
-    };
-    if skillset.has_skill(skill) {
-        effect(multiplier);
-    }
-}
-
-#[track_caller]
-pub fn invalid_skill_boost(skill: Skill) {
-    let err_msg = format!(
-        r#"
-
-        {:?} produced unexpected BoostValue: {:?}
-
-        Clearly that shouldn't happen and tests should catch this.
-
-        If they didn't, probably because we've added new skills/weapons.
-        In this case, please find `test_adjusting_skills`,
-        fix tests and fix corresponding `impl Boost` for this skill.
-
-        "#,
-        skill,
-        skill.boost()
-    );
-    common_base::dev_panic!(err_msg);
 }
 
 /// Returns value which corresponds to the boost given by this skill
