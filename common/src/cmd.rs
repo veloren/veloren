@@ -1,6 +1,7 @@
 use crate::{
     assets,
     comp::{self, buff::BuffKind, inventory::item::try_all_item_defs, AdminRole as Role, Skill},
+    generation::try_all_entity_configs,
     npc, terrain,
 };
 use assets::AssetExt;
@@ -76,6 +77,7 @@ pub enum ChatCommand {
     Lantern,
     Light,
     MakeBlock,
+    MakeNpc,
     MakeSprite,
     Motd,
     Object,
@@ -240,6 +242,15 @@ lazy_static! {
             });
         items.sort();
         items
+    };
+
+    /// List of all entity configs. Useful for tab completing
+    static ref ENTITY_CONFIGS: Vec<String> = {
+        try_all_entity_configs()
+            .unwrap_or_else(|e| {
+                warn!(?e, "Failed to load entity configs");
+                Vec::new()
+            })
     };
 
     static ref KITS: Vec<String> = {
@@ -461,6 +472,14 @@ impl ChatCommand {
                 "Make a block at your location with a color",
                 Some(Admin),
             ),
+            ChatCommand::MakeNpc => cmd(
+                vec![
+                    Enum("entity_config", ENTITY_CONFIGS.clone(), Required),
+                    Integer("num", 1, Optional),
+                ],
+                "Spawn entity from config near you",
+                Some(Admin),
+            ),
             ChatCommand::MakeSprite => cmd(
                 vec![Enum("sprite", SPRITE_KINDS.clone(), Required)],
                 "Make a sprite at your location",
@@ -521,8 +540,8 @@ impl ChatCommand {
                 "Set the server description",
                 Some(Admin),
             ),
-            // Uses Message because site names can contain spaces, which would be assumed to be
-            // separators otherwise
+            // Uses Message because site names can contain spaces,
+            // which would be assumed to be separators otherwise
             ChatCommand::Site => cmd(
                 vec![Message(Required)],
                 "Teleport to a site",
@@ -634,6 +653,7 @@ impl ChatCommand {
             ChatCommand::Lantern => "lantern",
             ChatCommand::Light => "light",
             ChatCommand::MakeBlock => "make_block",
+            ChatCommand::MakeNpc => "make_npc",
             ChatCommand::MakeSprite => "make_sprite",
             ChatCommand::Motd => "motd",
             ChatCommand::Object => "object",
@@ -788,7 +808,6 @@ pub enum ArgumentSpec {
 }
 
 impl ArgumentSpec {
-    #[allow(clippy::nonstandard_macro_braces)] //tmp as of false positive !?
     pub fn usage_string(&self) -> String {
         match self {
             ArgumentSpec::PlayerName(req) => {
@@ -836,9 +855,9 @@ impl ArgumentSpec {
             ArgumentSpec::SubCommand => "<[/]command> [args...]".to_string(),
             ArgumentSpec::Enum(label, _, req) => {
                 if &Requirement::Required == req {
-                    format! {"<{}>", label}
+                    format!("<{}>", label)
                 } else {
-                    format! {"[{}]", label}
+                    format!("[{}]", label)
                 }
             },
             ArgumentSpec::Boolean(label, _, req) => {

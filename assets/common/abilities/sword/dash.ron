@@ -14,6 +14,7 @@ DashMelee(
     charge_duration: 1.2,
     swing_duration: 0.1,
     recover_duration: 0.5,
+    ori_modifier: 0.3,
     charge_through: true,
     is_interruptible: true,
     damage_kind: Piercing,

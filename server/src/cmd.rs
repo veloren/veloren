@@ -1,11 +1,12 @@
 //! # Implementing new commands.
-//! To implement a new command, add an instance of `ChatCommand` to
-//! `CHAT_COMMANDS` and provide a handler function.
+//! To implement a new command provide a handler function
+//! in [do_command].
 
 use crate::{
     settings::{
         Ban, BanAction, BanInfo, EditableSetting, SettingError, WhitelistInfo, WhitelistRecord,
     },
+    sys::terrain::NpcData,
     wiring::{Logic, OutputFormula},
     Server, SpawnPoint, StateExt,
 };
@@ -28,6 +29,7 @@ use common::{
     depot,
     effect::Effect,
     event::{EventBus, ServerEvent},
+    generation::EntityInfo,
     npc::{self, get_npc_name},
     resources::{PlayerPhysicsSettings, TimeOfDay},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
@@ -68,6 +70,7 @@ impl ChatCommandExt for ChatCommand {
 }
 
 type CmdResult<T> = Result<T, String>;
+
 /// Handler function called when the command is executed.
 /// # Arguments
 /// * `&mut Server` - the `Server` instance executing the command.
@@ -140,6 +143,7 @@ fn do_command(
         ChatCommand::Lantern => handle_lantern,
         ChatCommand::Light => handle_light,
         ChatCommand::MakeBlock => handle_make_block,
+        ChatCommand::MakeNpc => handle_make_npc,
         ChatCommand::MakeSprite => handle_make_sprite,
         ChatCommand::Motd => handle_motd,
         ChatCommand::Object => handle_object,
@@ -545,6 +549,93 @@ fn handle_make_block(
     } else {
         Err(action.help_string())
     }
+}
+
+fn handle_make_npc(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ChatCommand,
+) -> CmdResult<()> {
+    let (entity_config, number) = parse_args!(args, String, i8);
+
+    let entity_config = entity_config.ok_or_else(|| action.help_string())?;
+    let number = match number {
+        Some(i8::MIN..=0) => {
+            return Err("Number of entities should be at least 1".to_owned());
+        },
+        Some(50..=i8::MAX) => {
+            return Err("Number of entities should be less than 50".to_owned());
+        },
+        Some(number) => number,
+        None => 1,
+    };
+
+    let rng = &mut rand::thread_rng();
+    for _ in 0..number {
+        let comp::Pos(pos) = position(server, target, "target")?;
+        let entity_info = EntityInfo::at(pos).with_asset_expect(&entity_config);
+        match NpcData::from_entity_info(entity_info, rng) {
+            NpcData::Waypoint(_) => {
+                return Err("Waypoint spawning is not implemented".to_owned());
+            },
+            NpcData::Data {
+                loadout,
+                pos,
+                stats,
+                skill_set,
+                poise,
+                health,
+                body,
+                agent,
+                alignment,
+                scale,
+                drop_item,
+            } => {
+                let inventory = Inventory::new_with_loadout(loadout);
+
+                let mut entity_builder = server
+                    .state
+                    .create_npc(pos, stats, skill_set, health, poise, inventory, body)
+                    .with(alignment)
+                    .with(scale)
+                    .with(comp::Vel(Vec3::new(0.0, 0.0, 0.0)))
+                    .with(comp::MountState::Unmounted);
+
+                if let Some(agent) = agent {
+                    entity_builder = entity_builder.with(agent);
+                }
+
+                if let Some(drop_item) = drop_item {
+                    entity_builder = entity_builder.with(comp::ItemDrop(drop_item));
+                }
+
+                // Some would say it's a hack, some would say it's incomplete
+                // simulation. But this is what we do to avoid PvP between npc.
+                use comp::Alignment;
+                let npc_group = match alignment {
+                    Alignment::Enemy => Some(comp::group::ENEMY),
+                    Alignment::Npc | Alignment::Tame => Some(comp::group::NPC),
+                    Alignment::Wild | Alignment::Passive | Alignment::Owned(_) => None,
+                };
+                if let Some(group) = npc_group {
+                    entity_builder = entity_builder.with(group);
+                }
+                entity_builder.build();
+            },
+        };
+    }
+
+    server.notify_client(
+        client,
+        ServerGeneral::server_msg(
+            ChatType::CommandInfo,
+            format!("Spawned {} entities from config: {}", number, entity_config),
+        ),
+    );
+
+    Ok(())
 }
 
 fn handle_make_sprite(
