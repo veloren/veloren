@@ -9,6 +9,7 @@
     (1.0, ItemQuantity("common.items.crafting_ing.cloth.moonweave", 3, 10)),
     (1.0, ItemQuantity("common.items.crafting_ing.hide.plate", 3, 10)),
     (1.0, ItemQuantity("common.items.mineral.ingot.bloodsteel", 3, 10)),
+    (1.0, ItemQuantity("common.items.log.frostwood", 3, 10)),
     // Consumables
     (2.0, LootTable("common.loot_tables.consumable.good")),
 ]

@@ -8,6 +8,7 @@
     (1.0, ItemQuantity("common.items.crafting_ing.cloth.linen", 3, 10)),
     (1.0, ItemQuantity("common.items.crafting_ing.leather.simple_leather", 3, 10)),
     (1.0, ItemQuantity("common.items.mineral.ingot.bronze", 3, 10)),
+    (1.0, ItemQuantity("common.items.log.wood", 3, 10)),
     // Consumables
     (2.0, LootTable("common.loot_tables.consumable.poor")),
 ]

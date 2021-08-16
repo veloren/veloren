@@ -16,4 +16,5 @@
     (1.0, ItemQuantity("common.items.crafting_ing.cloth.sunsilk", 3, 10)),
     (1.0, ItemQuantity("common.items.crafting_ing.hide.dragon_scale", 3, 10)),
     (1.0, ItemQuantity("common.items.mineral.ingot.orichalcum", 3, 10)),
+    (1.0, ItemQuantity("common.items.log.eldwood", 3, 10)),
 ]
