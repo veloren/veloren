@@ -370,11 +370,18 @@ impl<'a> Widget for Group<'a> {
                 let is_leader = uid == leader;
                 let body = entity.and_then(|entity| bodies.get(entity));
 
-                if let (Some(stats), Some(skill_set), Some(inventory), Some(health), Some(body)) =
-                    (stats, skill_set, inventory, health, body)
+                if let (
+                    Some(stats),
+                    Some(skill_set),
+                    Some(inventory),
+                    Some(health),
+                    Some(energy),
+                    Some(body),
+                ) = (stats, skill_set, inventory, health, energy, body)
                 {
-                    let combat_rating =
-                        combat::combat_rating(inventory, health, skill_set, *body, self.msm);
+                    let combat_rating = combat::combat_rating(
+                        inventory, health, energy, skill_set, *body, self.msm,
+                    );
                     let char_name = stats.name.to_string();
                     let health_perc =
                         health.current() as f64 / health.base_max().max(health.maximum()) as f64;
@@ -483,15 +490,13 @@ impl<'a> Widget for Group<'a> {
                             .color(if is_leader { ERROR_COLOR } else { GROUP_COLOR })
                             .w(300.0) // limit name length display
                             .set(state.ids.member_panels_txt[i], ui);
-                    if let Some(energy) = energy {
-                        let stam_perc = energy.current() as f64 / energy.maximum() as f64;
-                        // Energy
-                        Image::new(self.imgs.bar_content)
-                            .w_h(100.0 * stam_perc, 8.0)
-                            .color(Some(STAMINA_COLOR))
-                            .top_left_with_margins_on(state.ids.member_panels_bg[i], 26.0, 2.0)
-                            .set(state.ids.member_energy[i], ui);
-                    }
+                    let stam_perc = energy.current() as f64 / energy.maximum() as f64;
+                    // Energy
+                    Image::new(self.imgs.bar_content)
+                        .w_h(100.0 * stam_perc, 8.0)
+                        .color(Some(STAMINA_COLOR))
+                        .top_left_with_margins_on(state.ids.member_panels_bg[i], 26.0, 2.0)
+                        .set(state.ids.member_energy[i], ui);
                     if let Some(buffs) = buffs {
                         // Limit displayed buffs to 11
                         let buff_count = buffs.kinds.len().min(11);

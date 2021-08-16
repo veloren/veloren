@@ -209,6 +209,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
     (|| {
         let mut skill_set = state.ecs().write_storage::<SkillSet>();
         let healths = state.ecs().read_storage::<Health>();
+        let energies = state.ecs().read_storage::<Energy>();
         let inventories = state.ecs().read_storage::<Inventory>();
         let players = state.ecs().read_storage::<Player>();
         let bodies = state.ecs().read_storage::<Body>();
@@ -222,26 +223,30 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         } else {
             return;
         };
-        let (entity_skill_set, entity_health, entity_inventory, entity_body) = if let (
-            Some(entity_skill_set),
-            Some(entity_health),
-            Some(entity_inventory),
-            Some(entity_body),
-        ) = (
-            skill_set.get(entity),
-            healths.get(entity),
-            inventories.get(entity),
-            bodies.get(entity),
-        ) {
-            (
-                entity_skill_set,
-                entity_health,
-                entity_inventory,
-                entity_body,
-            )
-        } else {
-            return;
-        };
+        let (entity_skill_set, entity_health, entity_energy, entity_inventory, entity_body) =
+            if let (
+                Some(entity_skill_set),
+                Some(entity_health),
+                Some(entity_energy),
+                Some(entity_inventory),
+                Some(entity_body),
+            ) = (
+                skill_set.get(entity),
+                healths.get(entity),
+                energies.get(entity),
+                inventories.get(entity),
+                bodies.get(entity),
+            ) {
+                (
+                    entity_skill_set,
+                    entity_health,
+                    entity_energy,
+                    entity_inventory,
+                    entity_body,
+                )
+            } else {
+                return;
+            };
 
         let groups = state.ecs().read_storage::<Group>();
         let attacker_group = groups.get(attacker);
@@ -262,6 +267,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         let mut exp_reward = combat::combat_rating(
             entity_inventory,
             entity_health,
+            entity_energy,
             entity_skill_set,
             *entity_body,
             &msm,
