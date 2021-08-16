@@ -956,6 +956,15 @@ impl SkillSet {
         }
     }
 
+    /// Returns the level of the skill or passed value as default
+    pub fn skill_level_or(&self, skill: Skill, default: u16) -> u16 {
+        if let Ok(Some(level)) = self.skill_level(skill) {
+            level
+        } else {
+            default
+        }
+    }
+
     /// Checks the next level of a skill
     fn next_skill_level(&self, skill: Skill) -> Option<u16> {
         if let Ok(level) = self.skill_level(skill) {
