@@ -354,22 +354,18 @@ pub fn handle_mine_block(
                     let mut rng = rand::thread_rng();
                     if item.item_definition_id().contains("mineral.ore.")
                         && rng.gen_bool(
-                            0.05 * skillset
-                                .skill_level(Skill::Pick(MiningSkill::OreGain))
-                                .ok()
-                                .flatten()
-                                .unwrap_or(0) as f64,
+                            0.05 * f64::from(
+                                skillset.skill_level_or(Skill::Pick(MiningSkill::OreGain), 0),
+                            ),
                         )
                     {
                         let _ = item.increase_amount(1);
                     }
                     if item.item_definition_id().contains("mineral.gem.")
                         && rng.gen_bool(
-                            0.05 * skillset
-                                .skill_level(Skill::Pick(MiningSkill::GemGain))
-                                .ok()
-                                .flatten()
-                                .unwrap_or(0) as f64,
+                            0.05 * f64::from(
+                                skillset.skill_level_or(Skill::Pick(MiningSkill::GemGain), 0),
+                            ),
                         )
                     {
                         let _ = item.increase_amount(1);

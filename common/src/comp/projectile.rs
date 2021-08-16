@@ -366,6 +366,7 @@ impl ProjectileConstructor {
         }
     }
 
+    // TODO: split this to three methods per stat
     pub fn modified_projectile(mut self, power: f32, regen: f32, range: f32) -> Self {
         use ProjectileConstructor::*;
         match self {

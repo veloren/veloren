@@ -47,9 +47,10 @@ impl Asset for SkillPrerequisitesMap {
 }
 
 lazy_static! {
-    // Determines the skills that comprise each skill group - this data is used to determine
-    // which of a player's skill groups a particular skill should be added to when a skill unlock
-    // is requested.
+    // Determines the skills that comprise each skill group.
+    //
+    // This data is used to determine which of a player's skill groups a
+    // particular skill should be added to when a skill unlock is requested.
     pub static ref SKILL_GROUP_DEFS: HashMap<SkillGroupKind, SkillGroupDef> = {
         let map = SkillTreeMap::load_expect_cloned(
             "common.skill_trees.skills_skill-groups_manifest",
@@ -98,6 +99,8 @@ lazy_static! {
 /// kind of active ability, or a passive effect etc. Obviously because this is
 /// an enum it doesn't describe what the skill actually -does-, this will be
 /// handled by dedicated ECS systems.
+// NOTE: if skill does use some constant, add it to corresponding
+// SkillTree Modifiers below.
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Skill {
     General(GeneralSkill),
@@ -114,6 +117,365 @@ pub enum Skill {
     Pick(MiningSkill),
 }
 
+/// Tree of modifiers that represent how stats are
+/// changed per each skill level.
+///
+/// It's used as bridge between ECS systems
+/// and voxygen Diary for skill descriptions and helps to sync them.
+///
+/// NOTE: Just adding constant does nothing, you need to use it in both
+/// ECS systems and Diary.
+pub struct SkillTreeModifiers {
+    pub sword_tree: SwordTreeModifiers,
+    pub axe_tree: AxeTreeModifiers,
+    pub hammer_tree: HammerTreeModifiers,
+    pub bow_tree: BowTreeModifiers,
+    pub staff_tree: StaffTreeModifiers,
+    pub sceptre_tree: SceptreTreeModifiers,
+    pub mining_tree: MiningTreeModifiers,
+    pub general_tree: GeneralTreeModifiers,
+}
+
+pub struct SwordTreeModifiers {
+    pub dash: SwordDashModifiers,
+    pub spin: SwordSpinModifiers,
+}
+
+pub struct SwordDashModifiers {
+    pub energy_cost: f32,
+    pub energy_drain: f32,
+    pub base_damage: f32,
+    pub scaled_damage: f32,
+    pub forward_speed: f32,
+}
+
+pub struct SwordSpinModifiers {
+    pub base_damage: f32,
+    pub swing_duration: f32,
+    pub energy_cost: f32,
+    pub num: u32,
+}
+
+impl SwordTreeModifiers {
+    pub const fn get() -> Self {
+        Self {
+            dash: SwordDashModifiers {
+                energy_cost: 0.75,
+                energy_drain: 0.75,
+                base_damage: 1.2,
+                scaled_damage: 1.2,
+                forward_speed: 1.15,
+            },
+            spin: SwordSpinModifiers {
+                base_damage: 1.4,
+                swing_duration: 0.8,
+                energy_cost: 0.75,
+                num: 1,
+            },
+        }
+    }
+}
+
+pub struct AxeTreeModifiers {
+    pub spin: AxeSpinModifiers,
+    pub leap: AxeLeapModifiers,
+}
+
+pub struct AxeSpinModifiers {
+    pub base_damage: f32,
+    pub swing_duration: f32,
+    pub energy_cost: f32,
+}
+
+pub struct AxeLeapModifiers {
+    pub base_damage: f32,
+    pub knockback: f32,
+    pub energy_cost: f32,
+    // TODO: split to forward and vertical?
+    pub leap_strength: f32,
+}
+
+impl AxeTreeModifiers {
+    pub const fn get() -> Self {
+        Self {
+            spin: AxeSpinModifiers {
+                base_damage: 1.3,
+                swing_duration: 0.8,
+                energy_cost: 0.75,
+            },
+            leap: AxeLeapModifiers {
+                base_damage: 1.35,
+                knockback: 1.4,
+                energy_cost: 0.75,
+                leap_strength: 1.2,
+            },
+        }
+    }
+}
+
+pub struct HammerTreeModifiers {
+    pub single_strike: HammerStrikeModifiers,
+    pub charged: HammerChargedModifers,
+    pub leap: HammerLeapModifiers,
+}
+
+pub struct HammerStrikeModifiers {
+    pub knockback: f32,
+}
+
+pub struct HammerChargedModifers {
+    pub scaled_damage: f32,
+    pub scaled_knockback: f32,
+    pub energy_drain: f32,
+    pub charge_rate: f32,
+}
+
+pub struct HammerLeapModifiers {
+    pub base_damage: f32,
+    pub knockback: f32,
+    pub energy_cost: f32,
+    pub leap_strength: f32,
+    pub range: f32,
+}
+
+impl HammerTreeModifiers {
+    pub const fn get() -> Self {
+        Self {
+            single_strike: HammerStrikeModifiers { knockback: 1.5 },
+            charged: HammerChargedModifers {
+                scaled_damage: 1.25,
+                scaled_knockback: 1.5,
+                energy_drain: 0.75,
+                charge_rate: 1.25,
+            },
+            leap: HammerLeapModifiers {
+                base_damage: 1.4,
+                knockback: 1.5,
+                energy_cost: 0.75,
+                leap_strength: 1.25,
+                range: 1.0,
+            },
+        }
+    }
+}
+
+pub struct BowTreeModifiers {
+    pub universal: BowUniversalModifiers,
+    pub charged: BowChargedModifiers,
+    pub repeater: BowRepeaterModifiers,
+    pub shotgun: BowShotgunModifiers,
+}
+
+pub struct BowUniversalModifiers {
+    // TODO: split per abilities?
+    pub projectile_speed: f32,
+}
+
+pub struct BowChargedModifiers {
+    pub damage_scaling: f32,
+    pub regen_scaling: f32,
+    pub knockback_scaling: f32,
+    pub charge_rate: f32,
+    pub move_speed: f32,
+}
+
+pub struct BowRepeaterModifiers {
+    pub power: f32,
+    pub energy_cost: f32,
+    pub max_speed: f32,
+}
+
+pub struct BowShotgunModifiers {
+    pub power: f32,
+    pub energy_cost: f32,
+    pub num_projectiles: u32,
+    pub spread: f32,
+}
+
+impl BowTreeModifiers {
+    pub const fn get() -> Self {
+        Self {
+            universal: BowUniversalModifiers {
+                projectile_speed: 1.2,
+            },
+            charged: BowChargedModifiers {
+                damage_scaling: 1.2,
+                regen_scaling: 1.2,
+                knockback_scaling: 1.2,
+                charge_rate: 1.1,
+                move_speed: 1.1,
+            },
+            repeater: BowRepeaterModifiers {
+                power: 1.2,
+                energy_cost: 0.8,
+                max_speed: 1.2,
+            },
+            shotgun: BowShotgunModifiers {
+                power: 1.2,
+                energy_cost: 1.2,
+                num_projectiles: 1,
+                spread: 0.8,
+            },
+        }
+    }
+}
+
+pub struct StaffTreeModifiers {
+    pub fireball: StaffFireballModifiers,
+    pub flamethrower: StaffFlamethrowerModifiers,
+    pub shockwave: StaffShockwaveModifiers,
+}
+
+pub struct StaffFireballModifiers {
+    pub power: f32,
+    pub regen: f32,
+    pub range: f32,
+}
+
+pub struct StaffFlamethrowerModifiers {
+    pub damage: f32,
+    pub range: f32,
+    pub energy_drain: f32,
+    pub velocity: f32,
+}
+
+pub struct StaffShockwaveModifiers {
+    pub damage: f32,
+    pub knockback: f32,
+    pub duration: f32,
+    pub energy_cost: f32,
+}
+
+impl StaffTreeModifiers {
+    pub const fn get() -> Self {
+        Self {
+            fireball: StaffFireballModifiers {
+                power: 1.2,
+                regen: 1.2,
+                range: 1.15,
+            },
+            flamethrower: StaffFlamethrowerModifiers {
+                damage: 1.3,
+                range: 1.25,
+                energy_drain: 0.8,
+                velocity: 1.25,
+            },
+            shockwave: StaffShockwaveModifiers {
+                damage: 1.3,
+                knockback: 1.3,
+                duration: 1.2,
+                energy_cost: 0.8,
+            },
+        }
+    }
+}
+
+pub struct SceptreTreeModifiers {
+    pub beam: SceptreBeamModifiers,
+    pub healing_aura: SceptreHealingAuraModifiers,
+    pub warding_aura: SceptreWardingAuraModifiers,
+}
+
+pub struct SceptreBeamModifiers {
+    pub damage: f32,
+    pub range: f32,
+    pub energy_regen: f32,
+    pub lifesteal: f32,
+}
+
+pub struct SceptreHealingAuraModifiers {
+    pub strength: f32,
+    pub duration: f32,
+    pub range: f32,
+    pub energy_cost: f32,
+}
+
+pub struct SceptreWardingAuraModifiers {
+    pub strength: f32,
+    pub duration: f32,
+    pub range: f32,
+    pub energy_cost: f32,
+}
+
+impl SceptreTreeModifiers {
+    pub const fn get() -> Self {
+        Self {
+            beam: SceptreBeamModifiers {
+                damage: 1.2,
+                range: 1.2,
+                energy_regen: 1.2,
+                lifesteal: 1.15,
+            },
+            healing_aura: SceptreHealingAuraModifiers {
+                strength: 1.15,
+                duration: 1.2,
+                range: 1.25,
+                energy_cost: 0.85,
+            },
+            warding_aura: SceptreWardingAuraModifiers {
+                strength: 1.15,
+                duration: 1.2,
+                range: 1.25,
+                energy_cost: 0.85,
+            },
+        }
+    }
+}
+
+pub struct MiningTreeModifiers {
+    pub speed: f32,
+    pub gem_gain: f32,
+    pub ore_gain: f32,
+}
+
+impl MiningTreeModifiers {
+    pub const fn get() -> Self {
+        Self {
+            speed: 1.1,
+            gem_gain: 0.05,
+            ore_gain: 0.05,
+        }
+    }
+}
+
+pub struct GeneralTreeModifiers {
+    pub roll: RollTreeModifiers,
+    pub swim: SwimTreeModifiers,
+    pub climb: ClimbTreeModifiers,
+}
+
+pub struct RollTreeModifiers {
+    pub energy_cost: f32,
+    pub strength: f32,
+    pub duration: f32,
+}
+
+pub struct SwimTreeModifiers {
+    pub speed: f32,
+}
+
+pub struct ClimbTreeModifiers {
+    pub energy_cost: f32,
+    pub speed: f32,
+}
+
+impl GeneralTreeModifiers {
+    pub const fn get() -> Self {
+        Self {
+            roll: RollTreeModifiers {
+                energy_cost: 0.9,
+                strength: 1.1,
+                duration: 1.1,
+            },
+            swim: SwimTreeModifiers { speed: 1.25 },
+            climb: ClimbTreeModifiers {
+                energy_cost: 0.8,
+                speed: 1.2,
+            },
+        }
+    }
+}
+
 /// Enum which returned as result from `boost` function
 /// `Number` can represent values from -inf to +inf,
 /// but it should generaly be in range -50..50
@@ -123,6 +485,8 @@ pub enum Skill {
 ///
 /// Number(15) says that some value
 /// will be increased by 15% (for example damage)
+// TODO: move it to voxygen diary code
+// (and inline directly to formating skill descriptions)
 #[derive(Debug, Clone, Copy)]
 pub enum BoostValue {
     Number(i16),

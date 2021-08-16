@@ -893,7 +893,6 @@ impl CharacterAbility {
         skillset: &skills::SkillSet,
         tool: Option<ToolKind>,
     ) -> Self {
-        use skills::Skill;
         match tool {
             Some(ToolKind::Sword) => self.adjusted_by_sword_skills(skillset),
             Some(ToolKind::Axe) => self.adjusted_by_axe_skills(skillset),
@@ -901,54 +900,65 @@ impl CharacterAbility {
             Some(ToolKind::Bow) => self.adjusted_by_bow_skills(skillset),
             Some(ToolKind::Staff) => self.adjusted_by_staff_skills(skillset),
             Some(ToolKind::Sceptre) => self.adjusted_by_sceptre_skills(skillset),
-            Some(ToolKind::Pick) => {
-                use skills::MiningSkill::Speed;
-
-                if let CharacterAbility::BasicMelee {
-                    ref mut buildup_duration,
-                    ref mut swing_duration,
-                    ref mut recover_duration,
-                    ..
-                } = self
-                {
-                    if let Ok(Some(level)) = skillset.skill_level(Skill::Pick(Speed)) {
-                        let speed = 1.1_f32.powi(level.into());
-                        *buildup_duration /= speed;
-                        *swing_duration /= speed;
-                        *recover_duration /= speed;
-                    }
-                }
-            },
-            None => {
-                if let CharacterAbility::Roll {
-                    ref mut energy_cost,
-                    ref mut roll_strength,
-                    ref mut movement_duration,
-                    ..
-                } = self
-                {
-                    use skills::RollSkill::{Cost, Duration, Strength};
-
-                    if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(Cost)) {
-                        *energy_cost *= 0.9_f32.powi(level.into());
-                    }
-                    if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(Strength)) {
-                        *roll_strength *= 1.1_f32.powi(level.into());
-                    }
-                    if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(Duration)) {
-                        *movement_duration *= 1.1_f32.powi(level.into());
-                    }
-                }
-            },
+            Some(ToolKind::Pick) => self.adjusted_by_mining_skills(skillset),
+            None => self.adjusted_by_general_skills(skillset),
             Some(_) => {},
         }
         self
     }
 
     #[warn(clippy::pedantic)]
+    fn adjusted_by_mining_skills(&mut self, skillset: &skills::SkillSet) {
+        use skills::{MiningSkill::Speed, MiningTreeModifiers, Skill};
+
+        if let CharacterAbility::BasicMelee {
+            ref mut buildup_duration,
+            ref mut swing_duration,
+            ref mut recover_duration,
+            ..
+        } = self
+        {
+            if let Ok(Some(level)) = skillset.skill_level(Skill::Pick(Speed)) {
+                let modifiers = MiningTreeModifiers::get();
+                let speed = modifiers.speed.powi(level.into());
+                *buildup_duration /= speed;
+                *swing_duration /= speed;
+                *recover_duration /= speed;
+            }
+        }
+    }
+
+    #[warn(clippy::pedantic)]
+    fn adjusted_by_general_skills(&mut self, skillset: &skills::SkillSet) {
+        use skills::{GeneralTreeModifiers, Skill};
+        const GENERAL_MODIFIERS: GeneralTreeModifiers = GeneralTreeModifiers::get();
+        if let CharacterAbility::Roll {
+            ref mut energy_cost,
+            ref mut roll_strength,
+            ref mut movement_duration,
+            ..
+        } = self
+        {
+            use skills::RollSkill::{Cost, Duration, Strength};
+            let modifiers = GENERAL_MODIFIERS.roll;
+            if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(Cost)) {
+                *energy_cost *= modifiers.energy_cost.powi(level.into());
+            }
+            if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(Strength)) {
+                *roll_strength *= modifiers.strength.powi(level.into());
+            }
+            if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(Duration)) {
+                *movement_duration *= modifiers.duration.powi(level.into());
+            }
+        }
+    }
+
+    #[warn(clippy::pedantic)]
     fn adjusted_by_sword_skills(&mut self, skillset: &skills::SkillSet) {
         #![allow(clippy::enum_glob_use)]
-        use skills::{Skill::Sword, SwordSkill::*};
+        use skills::{Skill::Sword, SwordSkill::*, SwordTreeModifiers};
+
+        const SWORD_MODIFIERS: SwordTreeModifiers = SwordTreeModifiers::get();
 
         match self {
             CharacterAbility::ComboMelee {
@@ -994,21 +1004,22 @@ impl CharacterAbility {
                 ref mut charge_through,
                 ..
             } => {
+                let modifiers = SWORD_MODIFIERS.dash;
                 *is_interruptible = skillset.has_skill(Sword(InterruptingAttacks));
                 if let Ok(Some(level)) = skillset.skill_level(Sword(DCost)) {
-                    *energy_cost *= 0.75_f32.powi(level.into());
+                    *energy_cost *= modifiers.energy_cost.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Sword(DDrain)) {
-                    *energy_drain *= 0.75_f32.powi(level.into());
+                    *energy_drain *= modifiers.energy_drain.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Sword(DDamage)) {
-                    *base_damage *= 1.2_f32.powi(level.into());
+                    *base_damage *= modifiers.base_damage.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Sword(DScaling)) {
-                    *scaled_damage *= 1.2_f32.powi(level.into());
+                    *scaled_damage *= modifiers.scaled_damage.powi(level.into());
                 }
                 if skillset.has_skill(Sword(DSpeed)) {
-                    *forward_speed *= 1.15;
+                    *forward_speed *= modifiers.forward_speed;
                 }
                 *charge_through = skillset.has_skill(Sword(DInfinite));
             },
@@ -1020,18 +1031,19 @@ impl CharacterAbility {
                 ref mut num_spins,
                 ..
             } => {
+                let modifiers = SWORD_MODIFIERS.spin;
                 *is_interruptible = skillset.has_skill(Sword(InterruptingAttacks));
                 if let Ok(Some(level)) = skillset.skill_level(Sword(SDamage)) {
-                    *base_damage *= 1.4_f32.powi(level.into());
+                    *base_damage *= modifiers.base_damage.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Sword(SSpeed)) {
-                    *swing_duration *= 0.8_f32.powi(level.into());
+                    *swing_duration *= modifiers.swing_duration.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Sword(SCost)) {
-                    *energy_cost *= 0.75_f32.powi(level.into());
+                    *energy_cost *= modifiers.energy_cost.powi(level.into());
                 }
                 let spin_level = skillset.skill_level_or(Sword(SSpins), 0);
-                *num_spins = u32::from(spin_level) + 1;
+                *num_spins = u32::from(spin_level) * modifiers.num + 1;
             },
             _ => {},
         }
@@ -1040,7 +1052,9 @@ impl CharacterAbility {
     #[warn(clippy::pedantic)]
     fn adjusted_by_axe_skills(&mut self, skillset: &skills::SkillSet) {
         #![allow(clippy::enum_glob_use)]
-        use skills::{AxeSkill::*, Skill::Axe};
+        use skills::{AxeSkill::*, AxeTreeModifiers, Skill::Axe};
+
+        const AXE_MODIFIERS: AxeTreeModifiers = AxeTreeModifiers::get();
 
         match self {
             CharacterAbility::ComboMelee {
@@ -1077,6 +1091,7 @@ impl CharacterAbility {
                 ref mut movement_behavior,
                 ..
             } => {
+                let modifiers = AXE_MODIFIERS.spin;
                 *is_infinite = skillset.has_skill(Axe(SInfinite));
                 *movement_behavior = if skillset.has_skill(Axe(SHelicopter)) {
                     spin_melee::MovementBehavior::AxeHover
@@ -1084,13 +1099,13 @@ impl CharacterAbility {
                     spin_melee::MovementBehavior::ForwardGround
                 };
                 if let Ok(Some(level)) = skillset.skill_level(Axe(SDamage)) {
-                    *base_damage *= 1.3_f32.powi(level.into());
+                    *base_damage *= modifiers.base_damage.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Axe(SSpeed)) {
-                    *swing_duration *= 0.8_f32.powi(level.into());
+                    *swing_duration *= modifiers.swing_duration.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Axe(SCost)) {
-                    *energy_cost *= 0.75_f32.powi(level.into());
+                    *energy_cost *= modifiers.energy_cost.powi(level.into());
                 }
             },
             CharacterAbility::LeapMelee {
@@ -1101,18 +1116,20 @@ impl CharacterAbility {
                 ref mut vertical_leap_strength,
                 ..
             } => {
+                let modifiers = AXE_MODIFIERS.leap;
                 if let Ok(Some(level)) = skillset.skill_level(Axe(LDamage)) {
-                    *base_damage *= 1.35_f32.powi(level.into());
+                    *base_damage *= modifiers.base_damage.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Axe(LKnockback)) {
-                    *knockback *= 1.4_f32.powi(level.into());
+                    *knockback *= modifiers.knockback.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Axe(LCost)) {
-                    *energy_cost *= 0.75_f32.powi(level.into());
+                    *energy_cost *= modifiers.energy_cost.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Axe(LDistance)) {
-                    *forward_leap_strength *= 1.2_f32.powi(level.into());
-                    *vertical_leap_strength *= 1.2_f32.powi(level.into());
+                    let strength = modifiers.leap_strength;
+                    *forward_leap_strength *= strength.powi(level.into());
+                    *vertical_leap_strength *= strength.powi(level.into());
                 }
             },
             _ => {},
@@ -1122,7 +1139,10 @@ impl CharacterAbility {
     #[warn(clippy::pedantic)]
     fn adjusted_by_hammer_skills(&mut self, skillset: &skills::SkillSet) {
         #![allow(clippy::enum_glob_use)]
-        use skills::{HammerSkill::*, Skill::Hammer};
+        use skills::{HammerSkill::*, HammerTreeModifiers, Skill::Hammer};
+
+        const HAMMER_MODIFIERS: HammerTreeModifiers = HammerTreeModifiers::get();
+
         match self {
             CharacterAbility::ComboMelee {
                 ref mut speed_increase,
@@ -1132,10 +1152,11 @@ impl CharacterAbility {
                 ref mut scales_from_combo,
                 ..
             } => {
+                let modifiers = HAMMER_MODIFIERS.single_strike;
                 if let Ok(Some(level)) = skillset.skill_level(Hammer(SsKnockback)) {
                     *stage_data = (*stage_data)
                         .iter()
-                        .map(|s| s.modify_strike(1.5_f32.powi(level.into())))
+                        .map(|s| s.modify_strike(modifiers.knockback.powi(level.into())))
                         .collect::<Vec<_>>();
                 }
                 let speed_segments = f32::from(Hammer(SsSpeed).max_level().unwrap_or(1));
@@ -1160,17 +1181,19 @@ impl CharacterAbility {
                 ref mut charge_duration,
                 ..
             } => {
+                let modifiers = HAMMER_MODIFIERS.charged;
                 if let Ok(Some(level)) = skillset.skill_level(Hammer(CDamage)) {
-                    *scaled_damage *= 1.25_f32.powi(level.into());
+                    *scaled_damage *= modifiers.scaled_damage.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Hammer(CKnockback)) {
-                    *scaled_knockback *= 1.5_f32.powi(level.into());
+                    *scaled_knockback *= modifiers.scaled_knockback.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Hammer(CDrain)) {
-                    *energy_drain *= 0.75_f32.powi(level.into());
+                    *energy_drain *= modifiers.energy_drain.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Hammer(CSpeed)) {
-                    *charge_duration /= 1.25_f32.powi(level.into());
+                    let charge_time = 1.0 / modifiers.charge_rate;
+                    *charge_duration *= charge_time.powi(level.into());
                 }
             },
             CharacterAbility::LeapMelee {
@@ -1182,21 +1205,23 @@ impl CharacterAbility {
                 ref mut range,
                 ..
             } => {
+                let modifiers = HAMMER_MODIFIERS.leap;
                 if let Ok(Some(level)) = skillset.skill_level(Hammer(LDamage)) {
-                    *base_damage *= 1.4_f32.powi(level.into());
+                    *base_damage *= modifiers.base_damage.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Hammer(LKnockback)) {
-                    *knockback *= 1.5_f32.powi(level.into());
+                    *knockback *= modifiers.base_damage.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Hammer(LCost)) {
-                    *energy_cost *= 0.75_f32.powi(level.into());
+                    *energy_cost *= modifiers.base_damage.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Hammer(LDistance)) {
-                    *forward_leap_strength *= 1.25_f32.powi(level.into());
-                    *vertical_leap_strength *= 1.25_f32.powi(level.into());
+                    let strength = modifiers.leap_strength;
+                    *forward_leap_strength *= strength.powi(level.into());
+                    *vertical_leap_strength *= strength.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Hammer(LRange)) {
-                    *range += 1.0 * f32::from(level);
+                    *range += modifiers.range * f32::from(level);
                 }
             },
             _ => {},
@@ -1206,8 +1231,9 @@ impl CharacterAbility {
     #[warn(clippy::pedantic)]
     fn adjusted_by_bow_skills(&mut self, skillset: &skills::SkillSet) {
         #![allow(clippy::enum_glob_use)]
-        use skills::{BowSkill::*, Skill::Bow};
+        use skills::{BowSkill::*, BowTreeModifiers, Skill::Bow};
 
+        const BOW_MODIFIERS: BowTreeModifiers = BowTreeModifiers::get();
         match self {
             CharacterAbility::ChargedRanged {
                 ref mut initial_damage,
@@ -1222,31 +1248,34 @@ impl CharacterAbility {
                 ref mut charge_duration,
                 ..
             } => {
+                let projectile_speed_modifier = BOW_MODIFIERS.universal.projectile_speed;
+                let modifiers = BOW_MODIFIERS.charged;
                 if let Ok(Some(level)) = skillset.skill_level(Bow(ProjSpeed)) {
-                    let projectile_speed_scaling = 1.2_f32.powi(level.into());
+                    let projectile_speed_scaling = projectile_speed_modifier.powi(level.into());
                     *initial_projectile_speed *= projectile_speed_scaling;
                     *scaled_projectile_speed *= projectile_speed_scaling;
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Bow(CDamage)) {
-                    let damage_scaling = 1.2_f32.powi(level.into());
+                    let damage_scaling = modifiers.damage_scaling.powi(level.into());
                     *initial_damage *= damage_scaling;
                     *scaled_damage *= damage_scaling;
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Bow(CRegen)) {
-                    let regen_scaling = 1.2_f32.powi(level.into());
+                    let regen_scaling = modifiers.regen_scaling.powi(level.into());
                     *initial_regen *= regen_scaling;
                     *scaled_regen *= regen_scaling;
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Bow(CKnockback)) {
-                    let knockback_scaling = 1.2_f32.powi(level.into());
+                    let knockback_scaling = modifiers.knockback_scaling.powi(level.into());
                     *initial_knockback *= knockback_scaling;
                     *scaled_knockback *= knockback_scaling;
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Bow(CSpeed)) {
-                    *charge_duration /= 1.1_f32.powi(level.into());
+                    let charge_time = 1.0 / modifiers.charge_rate;
+                    *charge_duration *= charge_time.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Bow(CMove)) {
-                    *move_speed *= 1.1_f32.powi(level.into());
+                    *move_speed *= modifiers.charge_rate.powi(level.into());
                 }
             },
             CharacterAbility::RepeaterRanged {
@@ -1256,18 +1285,20 @@ impl CharacterAbility {
                 ref mut projectile_speed,
                 ..
             } => {
+                let projectile_speed_modifier = BOW_MODIFIERS.universal.projectile_speed;
+                let modifiers = BOW_MODIFIERS.repeater;
                 if let Ok(Some(level)) = skillset.skill_level(Bow(ProjSpeed)) {
-                    *projectile_speed *= 1.2_f32.powi(level.into());
+                    *projectile_speed *= projectile_speed_modifier.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Bow(RDamage)) {
-                    let power = 1.2_f32.powi(level.into());
+                    let power = modifiers.power.powi(level.into());
                     *projectile = projectile.modified_projectile(power, 1_f32, 1_f32);
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Bow(RCost)) {
-                    *energy_cost *= 0.8_f32.powi(level.into());
+                    *energy_cost *= modifiers.energy_cost.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Bow(RSpeed)) {
-                    *max_speed *= 1.2_f32.powi(level.into());
+                    *max_speed *= modifiers.max_speed.powi(level.into());
                 }
             },
             CharacterAbility::BasicRanged {
@@ -1278,21 +1309,23 @@ impl CharacterAbility {
                 ref mut projectile_speed,
                 ..
             } => {
+                let projectile_speed_modifier = BOW_MODIFIERS.universal.projectile_speed;
+                let modifiers = BOW_MODIFIERS.shotgun;
                 if let Ok(Some(level)) = skillset.skill_level(Bow(ProjSpeed)) {
-                    *projectile_speed *= 1.2_f32.powi(level.into());
+                    *projectile_speed *= projectile_speed_modifier.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Bow(SDamage)) {
-                    let power = 1.2_f32.powi(level.into());
+                    let power = modifiers.power.powi(level.into());
                     *projectile = projectile.modified_projectile(power, 1_f32, 1_f32);
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Bow(SCost)) {
-                    *energy_cost *= 0.8_f32.powi(level.into());
+                    *energy_cost *= modifiers.energy_cost.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Bow(SArrows)) {
-                    *num_projectiles += u32::from(level);
+                    *num_projectiles += u32::from(level) * modifiers.num_projectiles;
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Bow(SSpread)) {
-                    *projectile_spread *= 0.8_f32.powi(level.into());
+                    *projectile_spread *= modifiers.spread.powi(level.into());
                 }
             },
             _ => {},
@@ -1302,18 +1335,20 @@ impl CharacterAbility {
     #[warn(clippy::pedantic)]
     fn adjusted_by_staff_skills(&mut self, skillset: &skills::SkillSet) {
         #![allow(clippy::enum_glob_use)]
-        use skills::{Skill::Staff, StaffSkill::*};
+        use skills::{Skill::Staff, StaffSkill::*, StaffTreeModifiers};
 
+        const STAFF_MODIFIERS: StaffTreeModifiers = StaffTreeModifiers::get();
         match self {
             CharacterAbility::BasicRanged {
                 ref mut projectile, ..
             } => {
+                let modifiers = STAFF_MODIFIERS.fireball;
                 let damage_level = skillset.skill_level_or(Staff(BDamage), 0);
                 let regen_level = skillset.skill_level_or(Staff(BRegen), 0);
                 let range_level = skillset.skill_level_or(Staff(BRadius), 0);
-                let power = 1.2_f32.powi(damage_level.into());
-                let regen = 1.2_f32.powi(regen_level.into());
-                let range = 1.15_f32.powi(range_level.into());
+                let power = modifiers.power.powi(damage_level.into());
+                let regen = modifiers.power.powi(regen_level.into());
+                let range = modifiers.power.powi(range_level.into());
                 *projectile = projectile.modified_projectile(power, regen, range);
             },
             CharacterAbility::BasicBeam {
@@ -1323,20 +1358,21 @@ impl CharacterAbility {
                 ref mut beam_duration,
                 ..
             } => {
+                let modifiers = STAFF_MODIFIERS.flamethrower;
                 if let Ok(Some(level)) = skillset.skill_level(Staff(FDamage)) {
-                    *damage *= 1.3_f32.powi(level.into());
+                    *damage *= modifiers.damage.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Staff(FRange)) {
-                    let range_mod = 1.25_f32.powi(level.into());
+                    let range_mod = modifiers.range.powi(level.into());
                     *range *= range_mod;
                     // Duration modified to keep velocity constant
                     *beam_duration *= range_mod;
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Staff(FDrain)) {
-                    *energy_drain *= 0.8_f32.powi(level.into());
+                    *energy_drain *= modifiers.energy_drain.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Staff(FVelocity)) {
-                    let velocity_increase = 1.25_f32.powi(level.into());
+                    let velocity_increase = modifiers.velocity.powi(level.into());
                     let duration_mod = 1.0 / (1.0 + velocity_increase);
                     *beam_duration *= duration_mod;
                 }
@@ -1348,17 +1384,19 @@ impl CharacterAbility {
                 ref mut energy_cost,
                 ..
             } => {
+                let modifiers = STAFF_MODIFIERS.shockwave;
                 if let Ok(Some(level)) = skillset.skill_level(Staff(SDamage)) {
-                    *damage *= 1.3_f32.powi(level.into());
+                    *damage *= modifiers.damage.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Staff(SKnockback)) {
-                    *knockback = knockback.modify_strength(1.3_f32.powi(level.into()));
+                    let knockback_mod = modifiers.knockback.powi(level.into());
+                    *knockback = knockback.modify_strength(knockback_mod);
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Staff(SRange)) {
-                    *shockwave_duration *= 1.2_f32.powi(level.into());
+                    *shockwave_duration *= modifiers.duration.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Staff(SCost)) {
-                    *energy_cost *= 0.8_f32.powi(level.into());
+                    *energy_cost *= modifiers.energy_cost.powi(level.into());
                 }
             },
             _ => {},
@@ -1368,7 +1406,9 @@ impl CharacterAbility {
     #[warn(clippy::pedantic)]
     fn adjusted_by_sceptre_skills(&mut self, skillset: &skills::SkillSet) {
         #![allow(clippy::enum_glob_use)]
-        use skills::{SceptreSkill::*, Skill::Sceptre};
+        use skills::{SceptreSkill::*, SceptreTreeModifiers, Skill::Sceptre};
+
+        const SCEPTRE_MODIFIERS: SceptreTreeModifiers = SceptreTreeModifiers::get();
         match self {
             CharacterAbility::BasicBeam {
                 ref mut damage,
@@ -1378,42 +1418,23 @@ impl CharacterAbility {
                 ref mut energy_regen,
                 ..
             } => {
+                let modifiers = SCEPTRE_MODIFIERS.beam;
                 if let Ok(Some(level)) = skillset.skill_level(Sceptre(LDamage)) {
-                    *damage *= 1.2_f32.powi(level.into());
+                    *damage *= modifiers.damage.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Sceptre(LRange)) {
-                    let range_mod = 1.2_f32.powi(level.into());
+                    let range_mod = modifiers.range.powi(level.into());
                     *range *= range_mod;
                     // Duration modified to keep velocity constant
                     *beam_duration *= range_mod;
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Sceptre(LRegen)) {
-                    *energy_regen *= 1.2_f32.powi(level.into());
+                    *energy_regen *= modifiers.energy_regen.powi(level.into());
                 }
                 if let (Ok(Some(level)), Some(CombatEffect::Lifesteal(ref mut lifesteal))) =
                     (skillset.skill_level(Sceptre(LLifesteal)), damage_effect)
                 {
-                    *lifesteal *= 1.15_f32.powi(level.into());
-                }
-            },
-            CharacterAbility::BasicAura {
-                ref mut aura,
-                ref mut range,
-                ref mut energy_cost,
-                specifier: aura::Specifier::WardingAura,
-                ..
-            } => {
-                if let Ok(Some(level)) = skillset.skill_level(Sceptre(AStrength)) {
-                    aura.strength *= 1.15_f32.powi(level.into());
-                }
-                if let Ok(Some(level)) = skillset.skill_level(Sceptre(ADuration)) {
-                    aura.duration.map(|dur| dur * 1.2_f32.powi(level.into()));
-                }
-                if let Ok(Some(level)) = skillset.skill_level(Sceptre(ARange)) {
-                    *range *= 1.25_f32.powi(level.into());
-                }
-                if let Ok(Some(level)) = skillset.skill_level(Sceptre(ACost)) {
-                    *energy_cost *= 0.85_f32.powi(level.into());
+                    *lifesteal *= modifiers.lifesteal.powi(level.into());
                 }
             },
             CharacterAbility::BasicAura {
@@ -1423,17 +1444,43 @@ impl CharacterAbility {
                 specifier: aura::Specifier::HealingAura,
                 ..
             } => {
+                let modifiers = SCEPTRE_MODIFIERS.healing_aura;
                 if let Ok(Some(level)) = skillset.skill_level(Sceptre(HHeal)) {
-                    aura.strength *= 1.15_f32.powi(level.into());
+                    aura.strength *= modifiers.strength.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Sceptre(HDuration)) {
-                    aura.duration.map(|dur| dur * 1.2_f32.powi(level.into()));
+                    if let Some(ref mut duration) = aura.duration {
+                        *duration *= modifiers.duration.powi(level.into());
+                    }
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Sceptre(HRange)) {
-                    *range *= 1.25_f32.powi(level.into());
+                    *range *= modifiers.range.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Sceptre(HCost)) {
-                    *energy_cost *= 0.85_f32.powi(level.into());
+                    *energy_cost *= modifiers.energy_cost.powi(level.into());
+                }
+            },
+            CharacterAbility::BasicAura {
+                ref mut aura,
+                ref mut range,
+                ref mut energy_cost,
+                specifier: aura::Specifier::WardingAura,
+                ..
+            } => {
+                let modifiers = SCEPTRE_MODIFIERS.warding_aura;
+                if let Ok(Some(level)) = skillset.skill_level(Sceptre(AStrength)) {
+                    aura.strength *= modifiers.strength.powi(level.into());
+                }
+                if let Ok(Some(level)) = skillset.skill_level(Sceptre(ADuration)) {
+                    if let Some(ref mut duration) = aura.duration {
+                        *duration *= modifiers.duration.powi(level.into());
+                    }
+                }
+                if let Ok(Some(level)) = skillset.skill_level(Sceptre(ARange)) {
+                    *range *= modifiers.range.powi(level.into());
+                }
+                if let Ok(Some(level)) = skillset.skill_level(Sceptre(ACost)) {
+                    *energy_cost *= modifiers.energy_cost.powi(level.into());
                 }
             },
             _ => {},

@@ -98,6 +98,7 @@ impl Stage<f32> {
         }
     }
 
+    // TODO: name it as using knockback
     pub fn modify_strike(mut self, knockback_mult: f32) -> Self {
         self.knockback *= knockback_mult;
         self
