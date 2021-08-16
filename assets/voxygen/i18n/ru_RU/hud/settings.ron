@@ -40,7 +40,7 @@
         "hud.settings.loading_tips": "Советы при загрузке",
         "hud.settings.reset_interface": "По умолчанию",
 
-        "hud.settings.pan_sensitivity": "Чувствительность мышки",
+        "hud.settings.pan_sensitivity": "Чувствительность мыши",
         "hud.settings.zoom_sensitivity": "Чувствительность масштабирования",
         "hud.settings.camera_clamp_angle": "Угол для режима вертикального фиксатора камеры",
         "hud.settings.invert_scroll_zoom": "Инвертировать масштаб прокрутки",
@@ -82,7 +82,7 @@
         "hud.settings.fullscreen_mode": "Полноэкранный режим",
         "hud.settings.fullscreen_mode.exclusive": "Эксклюзивный",
         "hud.settings.fullscreen_mode.borderless": "Окно без рамок",
-        "hud.settings.gpu_profiler": "Показания GPU(не везде поддерживается)",
+        "hud.settings.gpu_profiler": "Замеры GPU(не везде поддерживается)",
         "hud.settings.particles": "Частицы",
         "hud.settings.lossy_terrain_compression": "Сжатие рельефа с потерями",
         "hud.settings.resolution": "Разрешение",
