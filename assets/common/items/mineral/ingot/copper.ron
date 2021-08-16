@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Copper",
     ),
     quality: Direct(Low),
-    tags: [MaterialKind(Metal)],
+    tags: [],
 )

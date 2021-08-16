@@ -1,5 +1,5 @@
 ItemDef(
-    name: Component("Orante Staff Shaft"),
+    name: Component("Ornate Staff Shaft"),
     description: "",
     kind: ModularComponent((
         toolkind: Staff,

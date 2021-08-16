@@ -1,0 +1,11 @@
+ItemDef(
+    name: Direct("Elegant Crest"),
+    description: "A flawless crest from some majestic creature.",
+    kind: Ingredient(
+        kind: "ElegantCrest",
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Direct(Common),
+    tags: [],
+)

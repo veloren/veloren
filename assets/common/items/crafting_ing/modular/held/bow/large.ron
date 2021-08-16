@@ -1,9 +1,9 @@
 ItemDef(
-    name: Component("Wide Bow Limbs"),
+    name: Component("Large Bow Grip"),
     description: "",
     kind: ModularComponent((
         toolkind: Bow,
-        modkind: Damage,
+        modkind: Held,
         stats: (
             equip_time_secs: 1.0,
             power: 1.5,
@@ -19,7 +19,7 @@ ItemDef(
     )),
     quality: Direct(Common),
     tags: [
-        ModularComponent((toolkind: Bow, modkind: Damage, hands: Two)),
+        ModularComponent((toolkind: Bow, modkind: Held, hands: Two)),
     ],
 )
 

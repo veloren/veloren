@@ -30,8 +30,8 @@ impl ModularComponentKind {
     /// material component
     fn main_component(tool: ToolKind) -> Self {
         match tool {
-            ToolKind::Sword | ToolKind::Axe | ToolKind::Hammer => Self::Damage,
-            ToolKind::Bow | ToolKind::Staff | ToolKind::Sceptre => Self::Held,
+            ToolKind::Sword | ToolKind::Axe | ToolKind::Hammer | ToolKind::Bow => Self::Damage,
+            ToolKind::Staff | ToolKind::Sceptre => Self::Held,
             _ => unreachable!(),
         }
     }

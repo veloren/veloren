@@ -1877,6 +1877,7 @@
         output: ("common.items.crafting_ing.modular.damage.sword.longsword", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -1885,6 +1886,8 @@
         output: ("common.items.crafting_ing.modular.damage.sword.sawblade", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.sharp_fang"), 1, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -1893,6 +1896,8 @@
         output: ("common.items.crafting_ing.modular.damage.sword.katana", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.claw"), 1, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -1901,6 +1906,8 @@
         output: ("common.items.crafting_ing.modular.damage.sword.zweihander", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.long_tusk"), 1, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -1909,6 +1916,8 @@
         output: ("common.items.crafting_ing.modular.damage.sword.sabre", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.strong_pincer"), 1, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -1917,6 +1926,8 @@
         output: ("common.items.crafting_ing.modular.damage.sword.greatsword", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.large_horn"), 1, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -1925,6 +1936,8 @@
         output: ("common.items.crafting_ing.modular.damage.sword.ornate", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.elegant_crest"), 1, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -1934,6 +1947,7 @@
         output: ("common.items.crafting_ing.modular.held.sword.one-handed", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 1, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -1942,6 +1956,7 @@
         output: ("common.items.crafting_ing.modular.held.sword.two-handed", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 1, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -1950,6 +1965,7 @@
         output: ("common.items.crafting_ing.modular.held.sword.hand-and-half", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 1, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -1959,6 +1975,7 @@
         output: ("common.items.crafting_ing.modular.damage.hammer.hammer", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -1967,6 +1984,8 @@
         output: ("common.items.crafting_ing.modular.damage.hammer.spikedmace", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.sharp_fang"), 1, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -1975,6 +1994,8 @@
         output: ("common.items.crafting_ing.modular.damage.hammer.warhammer", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.claw"), 1, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -1983,6 +2004,8 @@
         output: ("common.items.crafting_ing.modular.damage.hammer.maul", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.long_tusk"), 1, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -1991,6 +2014,8 @@
         output: ("common.items.crafting_ing.modular.damage.hammer.greatmace", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.strong_pincer"), 1, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -1999,6 +2024,8 @@
         output: ("common.items.crafting_ing.modular.damage.hammer.greathammer", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.large_horn"), 1, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2007,6 +2034,8 @@
         output: ("common.items.crafting_ing.modular.damage.hammer.ornate", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.elegant_crest"), 1, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2016,6 +2045,7 @@
         output: ("common.items.crafting_ing.modular.held.hammer.short", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2024,6 +2054,7 @@
         output: ("common.items.crafting_ing.modular.held.hammer.long", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2032,6 +2063,7 @@
         output: ("common.items.crafting_ing.modular.held.hammer.medium", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2041,6 +2073,8 @@
         output: ("common.items.crafting_ing.modular.damage.axe.axe", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.sharp_fang"), 1, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2049,6 +2083,7 @@
         output: ("common.items.crafting_ing.modular.damage.axe.jagged", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2057,6 +2092,8 @@
         output: ("common.items.crafting_ing.modular.damage.axe.battleaxe", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.claw"), 1, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2065,6 +2102,8 @@
         output: ("common.items.crafting_ing.modular.damage.axe.poleaxe", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.long_tusk"), 1, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2073,6 +2112,8 @@
         output: ("common.items.crafting_ing.modular.damage.axe.labrys", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.strong_pincer"), 1, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2081,6 +2122,8 @@
         output: ("common.items.crafting_ing.modular.damage.axe.greataxe", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.large_horn"), 1, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2089,6 +2132,8 @@
         output: ("common.items.crafting_ing.modular.damage.axe.ornate", 1),
         inputs: [
             (TagSameItem(MaterialKind(Metal)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.elegant_crest"), 1, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
         is_recycling: false,
@@ -2098,6 +2143,7 @@
         output: ("common.items.crafting_ing.modular.held.axe.short", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2106,6 +2152,7 @@
         output: ("common.items.crafting_ing.modular.held.axe.long", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2114,88 +2161,105 @@
         output: ("common.items.crafting_ing.modular.held.axe.medium", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
-        ],
-        craft_sprite: Some(CraftingBench),
-        is_recycling: false,
-    ),
-/// MODULAR WEAPONS/BOWS/HELD COMPONENTS
-    "bow grip": (
-        output: ("common.items.crafting_ing.modular.held.bow.bow", 1),
-        inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
-        ],
-        craft_sprite: Some(CraftingBench),
-        is_recycling: false,
-    ),
-    "composite bow grip": (
-        output: ("common.items.crafting_ing.modular.held.bow.composite", 1),
-        inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
-        ],
-        craft_sprite: Some(CraftingBench),
-        is_recycling: false,
-    ),
-    "greatbow grip": (
-        output: ("common.items.crafting_ing.modular.held.bow.greatbow", 1),
-        inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
-        ],
-        craft_sprite: Some(CraftingBench),
-        is_recycling: false,
-    ),
-    "longbow grip": (
-        output: ("common.items.crafting_ing.modular.held.bow.longbow", 1),
-        inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
-        ],
-        craft_sprite: Some(CraftingBench),
-        is_recycling: false,
-    ),
-    "orante bow grip": (
-        output: ("common.items.crafting_ing.modular.held.bow.ornate", 1),
-        inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
-        ],
-        craft_sprite: Some(CraftingBench),
-        is_recycling: false,
-    ),
-    "shortbow grip": (
-        output: ("common.items.crafting_ing.modular.held.bow.shortbow", 1),
-        inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
-        ],
-        craft_sprite: Some(CraftingBench),
-        is_recycling: false,
-    ),
-    "warbow grip": (
-        output: ("common.items.crafting_ing.modular.held.bow.warbow", 1),
-        inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
 /// MODULAR WEAPONS/BOWS/DAMAGE COMPONENTS
-    "medium bow limbs": (
-        output: ("common.items.crafting_ing.modular.damage.bow.medium", 1),
+    "bow limbs": (
+        output: ("common.items.crafting_ing.modular.damage.bow.bow", 1),
         inputs: [
-            (Item("common.items.log.wood"), 1, false),
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.sticky_thread"), 3, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
-    "narrow bow limbs": (
-        output: ("common.items.crafting_ing.modular.damage.bow.narrow", 1),
+    "composite bow limbs": (
+        output: ("common.items.crafting_ing.modular.damage.bow.composite", 1),
         inputs: [
-            (Item("common.items.log.wood"), 1, false),
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.sharp_fang"), 1, false),
+            (Item("common.items.crafting_ing.sticky_thread"), 3, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
-    "wide bow limbs": (
-        output: ("common.items.crafting_ing.modular.damage.bow.wide", 1),
+    "greatbow limbs": (
+        output: ("common.items.crafting_ing.modular.damage.bow.greatbow", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.large_horn"), 1, false),
+            (Item("common.items.crafting_ing.sticky_thread"), 3, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "longbow limbs": (
+        output: ("common.items.crafting_ing.modular.damage.bow.longbow", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.long_tusk"), 1, false),
+            (Item("common.items.crafting_ing.sticky_thread"), 3, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "ornate bow limbs": (
+        output: ("common.items.crafting_ing.modular.damage.bow.ornate", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.elegant_crest"), 1, false),
+            (Item("common.items.crafting_ing.sticky_thread"), 3, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "shortbow limbs": (
+        output: ("common.items.crafting_ing.modular.damage.bow.shortbow", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.claw"), 1, false),
+            (Item("common.items.crafting_ing.sticky_thread"), 3, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "warbow limbs": (
+        output: ("common.items.crafting_ing.modular.damage.bow.warbow", 1),
+        inputs: [
+            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.strong_pincer"), 1, false),
+            (Item("common.items.crafting_ing.sticky_thread"), 3, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+/// MODULAR WEAPONS/BOWS/HELD COMPONENTS
+    "medium bow grip": (
+        output: ("common.items.crafting_ing.modular.held.bow.medium", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "small bow grip": (
+        output: ("common.items.crafting_ing.modular.held.bow.small", 1),
+        inputs: [
+            (Item("common.items.log.wood"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "large bow grip": (
+        output: ("common.items.crafting_ing.modular.held.bow.large", 1),
+        inputs: [
+            (Item("common.items.log.wood"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 1, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2205,6 +2269,8 @@
         output: ("common.items.crafting_ing.modular.held.staff.brand", 1),
         inputs: [
             (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.claw"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2213,6 +2279,8 @@
         output: ("common.items.crafting_ing.modular.held.staff.grandstaff", 1),
         inputs: [
             (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.large_horn"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2221,6 +2289,8 @@
         output: ("common.items.crafting_ing.modular.held.staff.longpole", 1),
         inputs: [
             (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.long_tusk"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2229,6 +2299,8 @@
         output: ("common.items.crafting_ing.modular.held.staff.ornate", 1),
         inputs: [
             (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.elegant_crest"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2237,6 +2309,8 @@
         output: ("common.items.crafting_ing.modular.held.staff.pole", 1),
         inputs: [
             (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.sharp_fang"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2245,6 +2319,8 @@
         output: ("common.items.crafting_ing.modular.held.staff.rod", 1),
         inputs: [
             (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.strong_pincer"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2253,6 +2329,7 @@
         output: ("common.items.crafting_ing.modular.held.staff.staff", 1),
         inputs: [
             (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2262,6 +2339,7 @@
         output: ("common.items.crafting_ing.modular.damage.staff.large", 1),
         inputs: [
             (Item("common.items.mineral.gem.ruby"), 1, false),
+            (Item("common.items.mineral.ore.veloritefrag"), 3, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2270,6 +2348,7 @@
         output: ("common.items.crafting_ing.modular.damage.staff.medium", 1),
         inputs: [
             (Item("common.items.mineral.gem.ruby"), 1, false),
+            (Item("common.items.mineral.ore.veloritefrag"), 3, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2278,6 +2357,7 @@
         output: ("common.items.crafting_ing.modular.damage.staff.small", 1),
         inputs: [
             (Item("common.items.mineral.gem.ruby"), 1, false),
+            (Item("common.items.mineral.ore.veloritefrag"), 3, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2287,6 +2367,8 @@
         output: ("common.items.crafting_ing.modular.held.sceptre.arbor", 1),
         inputs: [
             (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.long_tusk"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2295,6 +2377,8 @@
         output: ("common.items.crafting_ing.modular.held.sceptre.cane", 1),
         inputs: [
             (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.strong_pincer"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2303,6 +2387,8 @@
         output: ("common.items.crafting_ing.modular.held.sceptre.crook", 1),
         inputs: [
             (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.sharp_fang"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2311,6 +2397,8 @@
         output: ("common.items.crafting_ing.modular.held.sceptre.crozier", 1),
         inputs: [
             (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.claw"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2319,14 +2407,18 @@
         output: ("common.items.crafting_ing.modular.held.sceptre.grandsceptre", 1),
         inputs: [
             (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.large_horn"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
-    "orante sceptre shaft": (
+    "ornate sceptre shaft": (
         output: ("common.items.crafting_ing.modular.held.sceptre.ornate", 1),
         inputs: [
             (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.animal_misc.elegant_crest"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2335,6 +2427,7 @@
         output: ("common.items.crafting_ing.modular.held.sceptre.sceptre", 1),
         inputs: [
             (TagSameItem(MaterialKind(Wood)), 5, true),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2344,6 +2437,7 @@
         output: ("common.items.crafting_ing.modular.damage.sceptre.large", 1),
         inputs: [
             (Item("common.items.mineral.gem.emerald"), 1, false),
+            (Item("common.items.mineral.ore.veloritefrag"), 3, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2352,6 +2446,7 @@
         output: ("common.items.crafting_ing.modular.damage.sceptre.medium", 1),
         inputs: [
             (Item("common.items.mineral.gem.emerald"), 1, false),
+            (Item("common.items.mineral.ore.veloritefrag"), 3, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2360,6 +2455,7 @@
         output: ("common.items.crafting_ing.modular.damage.sceptre.small", 1),
         inputs: [
             (Item("common.items.mineral.gem.emerald"), 1, false),
+            (Item("common.items.mineral.ore.veloritefrag"), 3, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,

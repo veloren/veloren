@@ -6,5 +6,5 @@ ItemDef(
         descriptor: "Golden",
     ),
     quality: Direct(Epic),
-    tags: [MaterialKind(Metal)],
+    tags: [],
 )
