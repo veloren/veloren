@@ -383,8 +383,7 @@ impl NpcData {
             make_loadout,
             trading_information: economy,
             // unused
-            is_giant: _, // TODO: remove?
-            pet: _,      // TODO: I had no idea we have this.
+            pet: _, // TODO: I had no idea we have this.
         } = entity;
 
         if is_waypoint {

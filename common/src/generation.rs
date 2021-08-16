@@ -150,7 +150,6 @@ pub fn try_all_entity_configs() -> Result<Vec<String>, Error> {
 pub struct EntityInfo {
     pub pos: Vec3<f32>,
     pub is_waypoint: bool, // Edge case, overrides everything else
-    pub is_giant: bool,
     pub has_agency: bool,
     pub alignment: Alignment,
     pub agent_mark: Option<agent::Mark>,
@@ -176,7 +175,6 @@ impl EntityInfo {
         Self {
             pos,
             is_waypoint: false,
-            is_giant: false,
             has_agency: true,
             alignment: Alignment::Wild,
             agent_mark: None,
@@ -313,11 +311,6 @@ impl EntityInfo {
         self
     }
 
-    pub fn into_giant(mut self) -> Self {
-        self.is_giant = true;
-        self
-    }
-
     pub fn with_alignment(mut self, alignment: Alignment) -> Self {
         self.alignment = alignment;
         self
@@ -388,7 +381,7 @@ impl EntityInfo {
 
     pub fn with_automatic_name(mut self) -> Self {
         let npc_names = NPC_NAMES.read();
-        self.name = match &self.body {
+        let name = match &self.body {
             Body::Humanoid(body) => Some(get_npc_name(&npc_names.humanoid, body.species)),
             Body::QuadrupedMedium(body) => {
                 Some(get_npc_name(&npc_names.quadruped_medium, body.species))
@@ -406,14 +399,8 @@ impl EntityInfo {
             Body::Golem(body) => Some(get_npc_name(&npc_names.golem, body.species)),
             Body::BipedLarge(body) => Some(get_npc_name(&npc_names.biped_large, body.species)),
             _ => None,
-        }
-        .map(|s| {
-            if self.is_giant {
-                format!("Giant {}", s)
-            } else {
-                s.to_string()
-            }
-        });
+        };
+        self.name = name.map(str::to_owned);
         self
     }
 
