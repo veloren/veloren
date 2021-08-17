@@ -12,13 +12,15 @@
 - We will exclude you from interaction if you insult, demean or harass anyone.
   That is not welcome behavior; we strive to be inclusive. In particular, we
   don't tolerate behavior that excludes people in socially marginalized groups.
-- If you feel beeing harassed or made uncomfortable, please **contact** us.
+- If you feel you are being harassed, or someone else's actions have made you
+  uncomfortable, please **contact** us.
   Whether you're a regular contributor or a newcomer, we care about making this 
   community a safe place for you and we've got your back. If the offender was 
   an admin or core developer, use [report@veloren.net](mailto:report@veloren.net).
-- Respect that people have differences of opinion and that every design or
-  implementation choice carries a trade-off and numerous costs. There is seldom
-  a right answer.
+  Emails send to this address will be forwarded only to one person appointed to
+  handle those issues.
+- Respect that people have differing opinions and that every design or
+  implementation choice carries a trade-offs. There is seldom one right answer.
 - Please keep unstructured critique to a minimum. If you have solid ideas you
   want to experiment with, make a branch and see how it works.
 - This community exists to focus on Veloren, keep off-topic content to the 
