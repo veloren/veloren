@@ -86,7 +86,7 @@ pub(in super::super) fn create_verts_buffer(
     // TODO: type Buffer by wgpu::BufferUsage
     SpriteVerts(Buffer::new(
         device,
-        wgpu::BufferUsage::STORAGE,
+        wgpu::BufferUsages::STORAGE,
         mesh.vertices(),
     ))
 }
@@ -154,7 +154,7 @@ impl Instance {
         ];
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<Self>() as wgpu::BufferAddress,
-            step_mode: wgpu::InputStepMode::Instance,
+            step_mode: wgpu::VertexStepMode::Instance,
             attributes: &ATTRIBUTES,
         }
     }
@@ -195,7 +195,7 @@ impl SpriteLayout {
             // sprite_verts
             wgpu::BindGroupLayoutEntry {
                 binding: 15,
-                visibility: wgpu::ShaderStage::VERTEX,
+                visibility: wgpu::ShaderStages::VERTEX,
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Storage { read_only: true },
                     has_dynamic_offset: false,
@@ -266,6 +266,7 @@ impl SpritePipeline {
         layout: &SpriteLayout,
         terrain_layout: &TerrainLayout,
         aa_mode: AaMode,
+        format: wgpu::TextureFormat,
     ) -> Self {
         common_base::span!(_guard, "SpritePipeline::new");
         let render_pipeline_layout =
@@ -296,7 +297,7 @@ impl SpritePipeline {
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Back),
-                clamp_depth: false,
+                unclipped_depth: false,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
             },
@@ -308,7 +309,7 @@ impl SpritePipeline {
                     front: wgpu::StencilFaceState::IGNORE,
                     back: wgpu::StencilFaceState::IGNORE,
                     read_mask: !0,
-                    write_mask: !0,
+                    write_mask: 0,
                 },
                 bias: wgpu::DepthBiasState {
                     constant: 0,
@@ -325,8 +326,8 @@ impl SpritePipeline {
                 module: fs_module,
                 entry_point: "main",
                 targets: &[
-                    wgpu::ColorTargetState {
-                        format: wgpu::TextureFormat::Rgba16Float,
+                    Some(wgpu::ColorTargetState {
+                        format,
                         // TODO: can we remove sprite transparency?
                         blend: Some(wgpu::BlendState {
                             color: wgpu::BlendComponent {
@@ -340,15 +341,16 @@ impl SpritePipeline {
                                 operation: wgpu::BlendOperation::Add,
                             },
                         }),
-                        write_mask: wgpu::ColorWrite::ALL,
-                    },
-                    wgpu::ColorTargetState {
+                        write_mask: wgpu::ColorWrites::ALL,
+                    }),
+                    Some(wgpu::ColorTargetState {
                         format: wgpu::TextureFormat::Rgba8Uint,
                         blend: None,
-                        write_mask: wgpu::ColorWrite::ALL,
-                    },
+                        write_mask: wgpu::ColorWrites::ALL,
+                    }),
                 ],
             }),
+            multiview: None,
         });
 
         Self {

@@ -19,11 +19,8 @@ use common::{
     resources::Time,
 };
 use core::mem;
-use egui::{
-    plot::{Plot, Value},
-    widgets::plot::Curve,
-    CollapsingHeader, Color32, Grid, Pos2, ScrollArea, Slider, Ui, Window,
-};
+use egui::{CollapsingHeader, Color32, Grid, Pos2, ScrollArea, Slider, Ui, Window};
+use egui_plot::{Line, Plot, PlotPoints};
 
 use crate::{
     admin::draw_admin_commands_window, character_states::draw_char_state_group,
@@ -281,13 +278,13 @@ pub fn maintain_egui_inner(
 
     Window::new("🔧 Settings")
         .open(&mut windows.egui_settings)
-        .scroll(true)
+        .vscroll(true)
         .show(ctx, |ui| {
             ctx.settings_ui(ui);
         });
     Window::new("🔍 Inspection")
         .open(&mut windows.egui_inspection)
-        .scroll(true)
+        .vscroll(true)
         .show(ctx, |ui| {
             ctx.inspection_ui(ui);
         });
@@ -304,14 +301,15 @@ pub fn maintain_egui_inner(
         .default_width(200.0)
         .default_height(200.0)
         .show(ctx, |ui| {
-            let plot = Plot::new("Frame Time").curve(Curve::from_values_iter(
-                egui_state
-                    .frame_times
-                    .iter()
-                    .enumerate()
-                    .map(|(i, x)| Value::new(i as f64, *x)),
-            ));
-            ui.add(plot);
+            Plot::new("Frame Time").show(ui, |plot_ui| {
+                plot_ui.line(Line::new(PlotPoints::from_iter(
+                    egui_state
+                        .frame_times
+                        .iter()
+                        .enumerate()
+                        .map(|(i, x)| [i as f64, *x as f64]),
+                )))
+            });
         });
 
     if windows.ecs_entities {
@@ -340,8 +338,8 @@ pub fn maintain_egui_inner(
                         .text("Cylinder height"),
                 );
 
-                let scroll_area = ScrollArea::from_max_height(800.0);
-                let (_current_scroll, _max_scroll) = scroll_area.show(ui, |ui| {
+                let scroll_area = ScrollArea::vertical().max_height(800.0);
+                scroll_area.show(ui, |ui| {
                     Grid::new("entities_grid")
                         .spacing([40.0, 4.0])
                         .max_col_width(300.0)

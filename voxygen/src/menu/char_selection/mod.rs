@@ -324,7 +324,8 @@ impl PlayState for CharSelectionState {
         // Bloom (does nothing if bloom is disabled)
         drawer.run_bloom_passes();
         // PostProcess and UI
-        let mut third_pass = drawer.third_pass();
+        let mut third_pass_prepared = drawer.prepare_third_pass();
+        let mut third_pass = third_pass_prepared.drawer();
         third_pass.draw_postprocess();
         // Draw the UI to the screen.
         if let Some(mut ui_drawer) = third_pass.draw_ui() {

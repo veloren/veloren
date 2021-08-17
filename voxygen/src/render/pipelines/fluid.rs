@@ -43,7 +43,7 @@ impl Vertex {
         ];
         wgpu::VertexBufferLayout {
             array_stride: Self::STRIDE,
-            step_mode: wgpu::InputStepMode::Vertex,
+            step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &ATTRIBUTES,
         }
     }
@@ -66,6 +66,7 @@ impl FluidPipeline {
         global_layout: &GlobalsLayouts,
         terrain_layout: &TerrainLayout,
         aa_mode: AaMode,
+        format: wgpu::TextureFormat,
     ) -> Self {
         common_base::span!(_guard, "FluidPipeline::new");
         let render_pipeline_layout =
@@ -94,7 +95,7 @@ impl FluidPipeline {
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: None,
-                clamp_depth: false,
+                unclipped_depth: false,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
             },
@@ -106,7 +107,7 @@ impl FluidPipeline {
                     front: wgpu::StencilFaceState::IGNORE,
                     back: wgpu::StencilFaceState::IGNORE,
                     read_mask: !0,
-                    write_mask: !0,
+                    write_mask: 0,
                 },
                 bias: wgpu::DepthBiasState {
                     constant: 0,
@@ -123,8 +124,8 @@ impl FluidPipeline {
                 module: fs_module,
                 entry_point: "main",
                 targets: &[
-                    wgpu::ColorTargetState {
-                        format: wgpu::TextureFormat::Rgba16Float,
+                    Some(wgpu::ColorTargetState {
+                        format,
                         blend: Some(wgpu::BlendState {
                             color: wgpu::BlendComponent {
                                 src_factor: wgpu::BlendFactor::SrcAlpha,
@@ -137,15 +138,16 @@ impl FluidPipeline {
                                 operation: wgpu::BlendOperation::Min,
                             },
                         }),
-                        write_mask: wgpu::ColorWrite::ALL,
-                    },
-                    wgpu::ColorTargetState {
+                        write_mask: wgpu::ColorWrites::ALL,
+                    }),
+                    Some(wgpu::ColorTargetState {
                         format: wgpu::TextureFormat::Rgba8Uint,
                         blend: None,
-                        write_mask: wgpu::ColorWrite::ALL,
-                    },
+                        write_mask: wgpu::ColorWrites::ALL,
+                    }),
                 ],
             }),
+            multiview: None,
         });
 
         Self {

@@ -47,7 +47,7 @@ impl Vertex {
             wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3];
         wgpu::VertexBufferLayout {
             array_stride: Self::STRIDE,
-            step_mode: wgpu::InputStepMode::Vertex,
+            step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &ATTRIBUTES,
         }
     }
@@ -71,7 +71,7 @@ impl RopeLayout {
                     // locals
                     wgpu::BindGroupLayoutEntry {
                         binding: 0,
-                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                        visibility: wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::FRAGMENT,
                         ty: wgpu::BindingType::Buffer {
                             ty: wgpu::BufferBindingType::Uniform,
                             has_dynamic_offset: false,
@@ -141,7 +141,7 @@ impl RopePipeline {
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Back),
-                clamp_depth: false,
+                unclipped_depth: false,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
             },
@@ -170,7 +170,7 @@ impl RopePipeline {
                 module: fs_module,
                 entry_point: "main",
                 targets: &[
-                    wgpu::ColorTargetState {
+                    Some(wgpu::ColorTargetState {
                         // TODO: use a constant and/or pass in this format on pipeline construction
                         format: wgpu::TextureFormat::Rgba16Float,
                         blend: Some(wgpu::BlendState {
@@ -185,15 +185,16 @@ impl RopePipeline {
                                 operation: wgpu::BlendOperation::Add,
                             },
                         }),
-                        write_mask: wgpu::ColorWrite::ALL,
-                    },
-                    wgpu::ColorTargetState {
+                        write_mask: wgpu::ColorWrites::ALL,
+                    }),
+                    Some(wgpu::ColorTargetState {
                         format: wgpu::TextureFormat::Rgba8Uint,
                         blend: None,
-                        write_mask: wgpu::ColorWrite::ALL,
-                    },
+                        write_mask: wgpu::ColorWrites::ALL,
+                    }),
                 ],
             }),
+            multiview: None,
         });
 
         Self {

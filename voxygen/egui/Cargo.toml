@@ -11,8 +11,9 @@ be-dyn-lib = []
 [dependencies]
 client = {package = "veloren-client", path = "../../client"}
 common = {package = "veloren-common", path = "../../common"}
-egui = "0.12"
-egui_winit_platform = { git = "https://github.com/Imberflur/egui_winit_platform.git", tag = "veloren-winit-0.28" }
+egui = "0.23"
+egui_plot = "0.23"
+egui_winit_platform = "0.20"
 lazy_static = { workspace = true }
 common-dynlib = {package = "veloren-common-dynlib", path = "../../common/dynlib", optional = true}
 

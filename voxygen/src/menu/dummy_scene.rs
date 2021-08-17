@@ -11,7 +11,7 @@ impl Scene {
     pub fn new(renderer: &mut Renderer) -> Self {
         let global_data = GlobalModel {
             globals: renderer.create_consts(&[Globals::default()]),
-            lights: renderer.create_consts(&[Light::default(); 32]),
+            lights: renderer.create_consts(&[Light::default(); 20]),
             shadows: renderer.create_consts(&[Shadow::default(); 32]),
             shadow_mats: renderer.create_shadow_bound_locals(&[ShadowLocals::default()]),
             rain_occlusion_mats: renderer

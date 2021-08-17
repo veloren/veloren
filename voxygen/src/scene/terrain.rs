@@ -782,7 +782,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             .map(|fmt| {
                 renderer.create_texture_raw(
                     &wgpu::TextureDescriptor {
-                        label: Some("Terrain atlas texture"),
+                        label: Some("Atlas texture"),
                         size: wgpu::Extent3d {
                             width: max_texture_size,
                             height: max_texture_size,
@@ -792,10 +792,11 @@ impl<V: RectRasterableVol> Terrain<V> {
                         sample_count: 1,
                         dimension: wgpu::TextureDimension::D2,
                         format: fmt,
-                        usage: wgpu::TextureUsage::COPY_DST | wgpu::TextureUsage::SAMPLED,
+                        usage: wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::TEXTURE_BINDING,
+                        view_formats: &[],
                     },
                     &wgpu::TextureViewDescriptor {
-                        label: Some("Terrain atlas texture view"),
+                        label: Some("Atlas texture view"),
                         format: Some(fmt),
                         dimension: Some(wgpu::TextureViewDimension::D2),
                         aspect: wgpu::TextureAspect::All,
@@ -805,7 +806,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                         array_layer_count: None,
                     },
                     &wgpu::SamplerDescriptor {
-                        label: Some("Terrain atlas texture sampler"),
+                        label: Some("Atlas sampler"),
                         address_mode_u: wgpu::AddressMode::ClampToEdge,
                         address_mode_v: wgpu::AddressMode::ClampToEdge,
                         address_mode_w: wgpu::AddressMode::ClampToEdge,

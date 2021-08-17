@@ -1039,17 +1039,12 @@ impl Window {
     pub fn is_cursor_grabbed(&self) -> bool { self.cursor_grabbed }
 
     pub fn grab_cursor(&mut self, grab: bool) {
-        use winit::window::CursorGrabMode;
-
         self.cursor_grabbed = grab;
         self.window.set_cursor_visible(!grab);
-        let res = if grab {
-            self.window
-                .set_cursor_grab(CursorGrabMode::Locked)
-                .or_else(|_e| self.window.set_cursor_grab(CursorGrabMode::Confined))
-        } else {
-            self.window.set_cursor_grab(CursorGrabMode::None)
-        };
+        let res = self.window.set_cursor_grab(match grab {
+            true => winit::window::CursorGrabMode::Confined,
+            false => winit::window::CursorGrabMode::None,
+        });
 
         if let Err(e) = res {
             error!(?e, ?grab, "Failed to toggle cursor grab");

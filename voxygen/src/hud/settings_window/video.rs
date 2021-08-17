@@ -1549,7 +1549,7 @@ impl<'a> Widget for Video<'a> {
             .iter()
             .filter(
                 |mode| match self.global_state.settings.graphics.fullscreen.refresh_rate_millihertz {
-                    Some(rate) => mode.refresh_rate_millihertz() == rate,
+                    Some(refresh_rate) => mode.refresh_rate_millihertz() == refresh_rate,
                     None => true,
                 },
             )
@@ -1610,9 +1610,8 @@ impl<'a> Widget for Video<'a> {
                     None => true,
                 },
             )
-            // TODO: why do we sort by this and then map to it?
-            .sorted_by_key(|mode| mode.refresh_rate_millihertz())
             .map(|mode| mode.refresh_rate_millihertz())
+            .sorted()
             .rev()
             .dedup()
             .collect();
