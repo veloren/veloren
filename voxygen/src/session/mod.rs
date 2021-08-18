@@ -494,9 +494,10 @@ impl PlayState for SessionState {
                                 if let Some(build_target) = build_target.filter(|bt| {
                                     state && can_build && is_nearest_target(shortest_dist, *bt)
                                 }) {
-                                    self.inputs.select_pos = Some(build_target.position);
+                                    let selected_pos = build_target.kind.0;
+                                    self.inputs.select_pos = Some(selected_pos);
                                     client.place_block(
-                                        build_target.position_int(),
+                                        selected_pos.map(|p| p.floor() as i32),
                                         self.selected_block,
                                     );
                                 } else {

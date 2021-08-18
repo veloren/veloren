@@ -20,7 +20,7 @@ pub struct Target<T> {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct Build;
+pub struct Build(pub Vec3<f32>);
 
 #[derive(Clone, Copy, Debug)]
 pub struct Collectable;
@@ -99,7 +99,7 @@ pub(super) fn targets_under_cursor(
     let (mine_pos, _, mine_cam_ray) = is_mining
         .then(|| find_pos(|b: Block| b.mine_tool().is_some()))
         .unwrap_or((None, None, None));
-    let (_, solid_pos, solid_cam_ray) = find_pos(|b: Block| b.is_solid());
+    let (solid_pos, place_block_pos, solid_cam_ray) = find_pos(|b: Block| b.is_solid());
 
     // Find shortest cam_dist of non-entity targets.
     // Note that some of these targets can technically be in Air, such as the
@@ -196,11 +196,13 @@ pub(super) fn targets_under_cursor(
         });
 
     let build_target = if can_build {
-        solid_pos.zip(solid_cam_ray).map(|(position, ray)| Target {
-            kind: Build,
-            distance: ray.0,
-            position,
-        })
+        place_block_pos
+            .zip(solid_pos.zip(solid_cam_ray))
+            .map(|(place_pos, (position, ray))| Target {
+                kind: Build(place_pos),
+                distance: ray.0,
+                position,
+            })
     } else {
         None
     };
