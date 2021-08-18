@@ -1,3 +1,4 @@
+use ordered_float::OrderedFloat;
 use specs::{Join, WorldExt};
 use vek::*;
 
@@ -13,7 +14,7 @@ use common_base::span;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Target<T> {
-    pub typed: T,
+    pub kind: T,
     pub distance: f32,
     pub position: Vec3<f32>,
 }
@@ -98,9 +99,7 @@ pub(super) fn targets_under_cursor(
     let (mine_pos, _, mine_cam_ray) = is_mining
         .then(|| find_pos(|b: Block| b.mine_tool().is_some()))
         .unwrap_or((None, None, None));
-    let (_, solid_pos, solid_cam_ray) = can_build
-        .then(|| find_pos(|b: Block| b.is_solid()))
-        .unwrap_or((None, None, None));
+    let (_, solid_pos, solid_cam_ray) = find_pos(|b: Block| b.is_solid());
 
     // Find shortest cam_dist of non-entity targets.
     // Note that some of these targets can technically be in Air, such as the
@@ -117,7 +116,7 @@ pub(super) fn targets_under_cursor(
             Some((d, Ok(Some(_)))) => Some(d),
             _ => None,
         })
-        .min_by(|d1, d2| d1.partial_cmp(d2).unwrap())
+        .min_by(|d1, d2| OrderedFloat(*d1).cmp(&OrderedFloat(*d2)))
         .unwrap_or(MAX_PICKUP_RANGE);
 
     // See if ray hits entities
@@ -189,16 +188,16 @@ pub(super) fn targets_under_cursor(
             let dist_to_player = player_cylinder.min_distance(target_cylinder);
             if dist_to_player < MAX_TARGET_RANGE {
                 Some(Target {
-                    typed: Entity(*e),
+                    kind: Entity(*e),
                     position: p,
                     distance: dist_to_player,
                 })
             } else { None }
         });
 
-    let build_target = if let (Some(position), Some(ray)) = (solid_pos, solid_cam_ray) {
-        Some(Target {
-            typed: Build,
+    let build_target = if can_build {
+        solid_pos.zip(solid_cam_ray).map(|(position, ray)| Target {
+            kind: Build,
             distance: ray.0,
             position,
         })
@@ -206,25 +205,19 @@ pub(super) fn targets_under_cursor(
         None
     };
 
-    let collect_target = if let (Some(position), Some(ray)) = (collect_pos, collect_cam_ray) {
-        Some(Target {
-            typed: Collectable,
+    let collect_target = collect_pos
+        .zip(collect_cam_ray)
+        .map(|(position, ray)| Target {
+            kind: Collectable,
             distance: ray.0,
             position,
-        })
-    } else {
-        None
-    };
+        });
 
-    let mine_target = if let (Some(position), Some(ray)) = (mine_pos, mine_cam_ray) {
-        Some(Target {
-            typed: Mine,
-            distance: ray.0,
-            position,
-        })
-    } else {
-        None
-    };
+    let mine_target = mine_pos.zip(mine_cam_ray).map(|(position, ray)| Target {
+        kind: Mine,
+        distance: ray.0,
+        position,
+    });
 
     // Return multiple possible targets
     // GameInput events determine which target to use.

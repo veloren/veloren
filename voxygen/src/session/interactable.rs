@@ -3,7 +3,7 @@ use specs::{Join, WorldExt};
 use vek::*;
 
 use super::target::{self, Target};
-use client::{self, Client};
+use client::Client;
 use common::{
     comp,
     consts::MAX_PICKUP_RANGE,
@@ -61,42 +61,39 @@ pub(super) fn select_interactable(
     if let Some(interactable) = entity_target
         .and_then(|t| {
             if t.distance < MAX_PICKUP_RANGE {
-                let entity = t.typed.0;
+                let entity = t.kind.0;
                 Some(Interactable::Entity(entity))
             } else {
                 None
             }
         })
         .or_else(|| {
-            collect_target
-                .map(|t| {
-                    get_block(client, t).map(|b| {
-                        Interactable::Block(b, t.position_int(), Some(Interaction::Collect))
-                    })
-                })
-                .unwrap_or(None)
+            collect_target.and_then(|t| {
+                get_block(client, t)
+                    .map(|b| Interactable::Block(b, t.position_int(), Some(Interaction::Collect)))
+            })
         })
         .or_else(|| {
-            mine_target
-                .map(|t| {
-                    get_block(client, t).and_then(|b| {
-                        // Handling edge detection. sometimes the casting (in Target mod) returns a
-                        // position which is actually empty, which we do not want labeled as an
-                        // interactable. We are only returning the mineable air
-                        // elements (e.g. minerals). The mineable weakrock are used
-                        // in the terrain selected_pos, but is not an interactable.
-                        if b.mine_tool().is_some() && b.is_air() {
-                            Some(Interactable::Block(b, t.position_int(), None))
-                        } else {
-                            None
-                        }
-                    })
+            mine_target.and_then(|t| {
+                get_block(client, t).and_then(|b| {
+                    // Handling edge detection. sometimes the casting (in Target mod) returns a
+                    // position which is actually empty, which we do not want labeled as an
+                    // interactable. We are only returning the mineable air
+                    // elements (e.g. minerals). The mineable weakrock are used
+                    // in the terrain selected_pos, but is not an interactable.
+                    if b.mine_tool().is_some() && b.is_air() {
+                        Some(Interactable::Block(b, t.position_int(), None))
+                    } else {
+                        None
+                    }
                 })
-                .unwrap_or(None)
+            })
         })
     {
         Some(interactable)
     } else {
+        // If there are no directly targeted interactables select the closest one if any
+        // are in range
         let ecs = client.state().ecs();
         let player_entity = client.entity();
         let positions = ecs.read_storage::<comp::Pos>();

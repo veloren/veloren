@@ -425,28 +425,26 @@ impl PlayState for SessionState {
 
             drop(client);
 
-            fn is_nearest_target<T>(shortest_dist: f32, target: Option<Target<T>>) -> bool {
-                target
-                    .map(|t| (t.distance <= shortest_dist))
-                    .unwrap_or(false)
+            fn is_nearest_target<T>(shortest_dist: f32, target: Target<T>) -> bool {
+                target.distance <= shortest_dist
             }
 
             // Only highlight terrain blocks which can be interacted with
-            if is_mining && is_nearest_target(shortest_dist, mine_target) {
-                mine_target.map(|mt| self.scene.set_select_pos(Some(mt.position_int())));
-            } else if can_build && is_nearest_target(shortest_dist, build_target) {
-                build_target.map(|bt| self.scene.set_select_pos(Some(bt.position_int())));
+            if let Some(mt) =
+                mine_target.filter(|mt| is_mining && is_nearest_target(shortest_dist, *mt))
+            {
+                self.scene.set_select_pos(Some(mt.position_int()));
+            } else if let Some(bt) =
+                build_target.filter(|bt| can_build && is_nearest_target(shortest_dist, *bt))
+            {
+                self.scene.set_select_pos(Some(bt.position_int()));
             } else {
                 self.scene.set_select_pos(None);
                 self.inputs.select_pos = entity_target.map(|et| et.position);
             }
 
             // Throw out distance info, it will be useful in the future
-            self.target_entity = if let Some(target::Entity(e)) = entity_target.map(|t| t.typed) {
-                Some(e)
-            } else {
-                None
-            };
+            self.target_entity = entity_target.map(|t| t.kind.0);
 
             // Handle window events.
             for event in events {
@@ -471,15 +469,17 @@ impl PlayState for SessionState {
                                 let mut client = self.client.borrow_mut();
                                 // Mine and build targets can be the same block. make building take
                                 // precedence.
-                                if state
-                                    && can_build
-                                    && is_nearest_target(shortest_dist, build_target)
-                                {
-                                    self.inputs.select_pos = build_target.map(|t| t.position);
-                                    client.remove_block(build_target.unwrap().position_int());
+                                // Order of precedence: build, then mining, then attack.
+                                if let Some(build_target) = build_target.filter(|bt| {
+                                    state && can_build && is_nearest_target(shortest_dist, *bt)
+                                }) {
+                                    self.inputs.select_pos = Some(build_target.position);
+                                    client.remove_block(build_target.position_int());
                                 } else {
-                                    if is_mining && is_nearest_target(shortest_dist, mine_target) {
-                                        self.inputs.select_pos = mine_target.map(|t| t.position);
+                                    if let Some(mine_target) = mine_target.filter(|mt| {
+                                        is_mining && is_nearest_target(shortest_dist, *mt)
+                                    }) {
+                                        self.inputs.select_pos = Some(mine_target.position);
                                     }
                                     client.handle_input(
                                         InputKind::Primary,
@@ -491,17 +491,14 @@ impl PlayState for SessionState {
                             },
                             GameInput::Secondary => {
                                 let mut client = self.client.borrow_mut();
-                                if state
-                                    && can_build
-                                    && is_nearest_target(shortest_dist, build_target)
-                                {
-                                    if let Some(build_target) = build_target {
-                                        self.inputs.select_pos = Some(build_target.position);
-                                        client.place_block(
-                                            build_target.position_int(),
-                                            self.selected_block,
-                                        );
-                                    }
+                                if let Some(build_target) = build_target.filter(|bt| {
+                                    state && can_build && is_nearest_target(shortest_dist, *bt)
+                                }) {
+                                    self.inputs.select_pos = Some(build_target.position);
+                                    client.place_block(
+                                        build_target.position_int(),
+                                        self.selected_block,
+                                    );
                                 } else {
                                     client.handle_input(
                                         InputKind::Secondary,
