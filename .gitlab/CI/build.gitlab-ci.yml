@@ -2,6 +2,7 @@ unittests:
   extends: .recompile-branch
   stage: build
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
+  tags: ["veloren/veloren", "check"]
   variables:
     GIT_DEPTH: 9999999999999
   script:
@@ -15,6 +16,7 @@ translation:
   extends: .release
   stage: build
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
+  tags: ["veloren/veloren", "check"]
   script:
     - ln -s /dockercache/target target
     - cat ./.gitlab/scripts/translation.sh
@@ -34,8 +36,7 @@ benchmarks:
   extends: .release
   stage: build
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/bench:${CACHE_IMAGE_TAG}
-  tags:
-    - veloren-benchmark
+  tags: ["veloren/veloren", "check", "benchmark"]
   script:
     - unset DISABLE_GIT_LFS_CHECK
     - ln -s /dockercache/target target
@@ -58,6 +59,7 @@ coverage:
   extends: .release
   stage: build
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/tarpaulin:${CACHE_IMAGE_TAG}
+  tags: ["veloren/veloren", "check"]
   script:
     - ln -s /dockercache/target target
     - cat ./.gitlab/scripts/coverage.sh
@@ -146,48 +148,57 @@ linux:
   extends:
     - .tlinux
     - .release
+  tags: ["veloren/veloren", "build", "publish", "trusted"]
 
 windows:
   extends:
     - .twindows
     - .release
+  tags: ["veloren/veloren", "build", "publish", "trusted"]
 
 macos:
   extends:
     - .tmacos
     - .release
     - .tmacos-master-cache
+  tags: ["veloren/veloren:macos", "build", "publish", "trusted"]
 
 # build on schedule quickfix till airshipper 0.5
 air-linux:
   extends:
     - .tlinux
     - .release-nightly-tmp-fix-airshipper
+  tags: ["veloren/veloren", "build", "publish", "trusted"]
 
 air-windows:
   extends:
     - .twindows
     - .release-nightly-tmp-fix-airshipper
+  tags: ["veloren/veloren", "build", "publish", "trusted"]
 
 air-macos:
   extends:
     - .tmacos
     - .release-nightly-tmp-fix-airshipper
     - .tmacos-master-cache
+  tags: ["veloren/veloren:macos", "build", "publish", "trusted"]
 
 # if NOT release or master, allow optional builds
 opt-linux:
   extends:
     - .tlinux
     - .optional-release
+  tags: ["veloren/veloren", "build"]
 
 opt-windows:
   extends:
     - .twindows
     - .optional-release
+  tags: ["veloren/veloren", "build"]
 
 opt-macos:
   extends:
     - .tmacos
     - .optional-release
     - .tmacos-mr-cache
+  tags: ["veloren/veloren:macos", "build"]

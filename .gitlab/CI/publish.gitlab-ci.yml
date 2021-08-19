@@ -19,6 +19,7 @@ docker:
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
+  tags: ["veloren/veloren", "publish", "trusted"]
   dependencies:
     - linux
   before_script:
@@ -35,6 +36,7 @@ docker-nightly:
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
+  tags: ["veloren/veloren", "publish", "trusted"]
   dependencies:
     - air-linux
   before_script:
@@ -49,8 +51,7 @@ docker-nightly:
 tag-nightly:
   extends: .publish-nightly
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
-  tags:
-    - veloren-benchmark
+  tags: ["veloren/veloren", "publish", "trusted"]
   script:
     - git config --global user.email "gitlab-veloren-bot@veloren.net"
     - git config --global user.name "veloren-bot"
@@ -62,6 +63,7 @@ tag-nightly:
 pages:
   extends: .publish
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
+  tags: ["veloren/veloren", "publish"]
   artifacts:
     paths:
       - public
