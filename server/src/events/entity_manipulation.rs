@@ -4,9 +4,10 @@ use crate::{
         agent::{Agent, AgentEvent, Sound, SoundKind},
         biped_large, bird_large, quadruped_low, quadruped_medium, quadruped_small,
         skills::SkillGroupKind,
-        theropod, PhysicsState,
+        theropod, BuffKind, BuffSource, PhysicsState,
     },
     rtsim::RtSim,
+    sys::terrain::SAFE_ZONE_RADIUS,
     Server, SpawnPoint, StateExt,
 };
 use common::{
@@ -16,8 +17,9 @@ use common::{
         self, aura, buff,
         chat::{KillSource, KillType},
         inventory::item::MaterialStatManifest,
-        object, Alignment, Body, CharacterState, Energy, EnergyChange, Group, Health, HealthChange,
-        HealthSource, Inventory, Player, Poise, PoiseChange, PoiseSource, Pos, SkillSet, Stats,
+        object, Alignment, Auras, Body, CharacterState, Energy, EnergyChange, Group, Health,
+        HealthChange, HealthSource, Inventory, Player, Poise, PoiseChange, PoiseSource, Pos,
+        SkillSet, Stats,
     },
     event::{EventBus, ServerEvent},
     lottery::{LootSpec, Lottery},
@@ -741,10 +743,45 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
 
     // TODO: Faster RNG?
     let mut rng = rand::thread_rng();
-    for effect in explosion.effects {
+    'effects: for effect in explosion.effects {
         match effect {
             RadiusEffect::TerrainDestruction(power) => {
                 const RAYS: usize = 500;
+
+                let spatial_grid = ecs.read_resource::<common::CachedSpatialGrid>();
+                let auras = ecs.read_storage::<Auras>();
+                let positions = ecs.read_storage::<Pos>();
+
+                // Prevent block colour changes within the radius of a safe zone aura
+                if spatial_grid
+                    .0
+                    .in_circle_aabr(pos.xy(), SAFE_ZONE_RADIUS)
+                    .filter_map(|entity| {
+                        auras
+                            .get(entity)
+                            .and_then(|entity_auras| {
+                                positions.get(entity).map(|pos| (entity_auras, pos))
+                            })
+                            .and_then(|(entity_auras, pos)| {
+                                entity_auras
+                                    .auras
+                                    .iter()
+                                    .find(|(_, aura)| {
+                                        matches!(aura.aura_kind, aura::AuraKind::Buff {
+                                            kind: BuffKind::Invulnerability,
+                                            source: BuffSource::World,
+                                            ..
+                                        })
+                                    })
+                                    .map(|(_, aura)| (*pos, aura.radius))
+                            })
+                    })
+                    .any(|(aura_pos, aura_radius)| {
+                        pos.distance_squared(aura_pos.0) < aura_radius.powi(2)
+                    })
+                {
+                    continue 'effects;
+                }
 
                 // Color terrain
                 let mut touched_blocks = Vec::new();

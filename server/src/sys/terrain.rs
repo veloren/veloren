@@ -36,6 +36,8 @@ pub(crate) struct LazyTerrainMessage {
     lazy_msg_hi: Option<crate::client::PreparedMsg>,
 }
 
+pub const SAFE_ZONE_RADIUS: f32 = 200.0;
+
 impl LazyTerrainMessage {
     #[allow(clippy::new_without_default)]
     pub(crate) fn new() -> Self {
@@ -241,7 +243,7 @@ impl<'a> System<'a> for Sys {
             // Insert a safezone if chunk contains the spawn position
             if server_settings.safe_spawn && is_spawn_chunk(key, *spawn_point, &terrain) {
                 server_emitter.emit(ServerEvent::CreateSafezone {
-                    range: Some(100.0),
+                    range: Some(SAFE_ZONE_RADIUS),
                     pos: Pos(spawn_point.0),
                 });
             }

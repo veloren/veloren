@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Can now tilt glider while only wielding it
 - Experimental terrain persistence (see server documentation)
 - Add GPU filtering using WGPU_ADAPTER environment variable
+- Explosions no longer change block colours within safe zones
 
 ### Changed
 
@@ -53,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Glider dimensions now depend on character height
 - Glider dimensions somewhat increased overall
 - Dungeon difficulty level starts at 1 instead of 0
+- The radius of the safe zone around the starting town has been doubled
 
 ### Removed
 
