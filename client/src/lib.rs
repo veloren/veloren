@@ -1369,8 +1369,8 @@ impl Client {
     }
 
     pub fn collect_block(&mut self, pos: Vec3<i32>) {
-        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
-            InventoryEvent::Collect(pos),
+        self.control_action(ControlAction::InventoryAction(InventoryAction::Collect(
+            pos,
         )));
     }
 

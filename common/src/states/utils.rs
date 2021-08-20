@@ -13,6 +13,7 @@ use crate::{
     event::{LocalEvent, ServerEvent},
     states::{behavior::JoinData, *},
     util::Dir,
+    vol::ReadVol,
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -584,44 +585,87 @@ pub fn handle_manipulate_loadout(
     update: &mut StateUpdate,
     inv_action: InventoryAction,
 ) {
-    use use_item::ItemUseKind;
-    if let InventoryAction::Use(Slot::Inventory(inv_slot)) = inv_action {
-        // If inventory action is using a slot, and slot is in the inventory
-        // TODO: Do some non lazy way of handling the possibility that items equipped in
-        // the loadout will have effects that are desired to be non-instantaneous
-        if let Some((item_kind, item)) = data
-            .inventory
-            .and_then(|inv| inv.get(inv_slot))
-            .and_then(|item| Option::<ItemUseKind>::from(item.kind()).zip(Some(item)))
-        {
-            let (buildup_duration, use_duration, recover_duration) = item_kind.durations();
-            // If item returns a valid kind for item use, do into use item character state
-            update.character = CharacterState::UseItem(use_item::Data {
-                static_data: use_item::StaticData {
-                    buildup_duration,
-                    use_duration,
-                    recover_duration,
-                    inv_slot,
-                    item_kind,
-                    item_definition_id: item.item_definition_id().to_string(),
-                    was_wielded: matches!(data.character, CharacterState::Wielding),
-                    was_sneak: matches!(data.character, CharacterState::Sneak),
-                },
-                timer: Duration::default(),
-                stage_section: StageSection::Buildup,
-            });
-        } else {
-            // Else emit inventory action instantnaneously
+    match inv_action {
+        InventoryAction::Use(Slot::Inventory(inv_slot)) => {
+            // If inventory action is using a slot, and slot is in the inventory
+            // TODO: Do some non lazy way of handling the possibility that items equipped in
+            // the loadout will have effects that are desired to be non-instantaneous
+            use use_item::ItemUseKind;
+            if let Some((item_kind, item)) = data
+                .inventory
+                .and_then(|inv| inv.get(inv_slot))
+                .and_then(|item| Option::<ItemUseKind>::from(item.kind()).zip(Some(item)))
+            {
+                let (buildup_duration, use_duration, recover_duration) = item_kind.durations();
+                // If item returns a valid kind for item use, do into use item character state
+                update.character = CharacterState::UseItem(use_item::Data {
+                    static_data: use_item::StaticData {
+                        buildup_duration,
+                        use_duration,
+                        recover_duration,
+                        inv_slot,
+                        item_kind,
+                        item_definition_id: item.item_definition_id().to_string(),
+                        was_wielded: matches!(data.character, CharacterState::Wielding),
+                        was_sneak: matches!(data.character, CharacterState::Sneak),
+                    },
+                    timer: Duration::default(),
+                    stage_section: StageSection::Buildup,
+                });
+            } else {
+                // Else emit inventory action instantnaneously
+                update
+                    .server_events
+                    .push_front(ServerEvent::InventoryManip(data.entity, inv_action.into()));
+            }
+        },
+        InventoryAction::Collect(pos) => {
+            // First, get sprite data for position, if there is a sprite
+            use sprite_interact::SpriteInteractKind;
+            let sprite_at_pos = data
+                .terrain
+                .get(pos)
+                .ok()
+                .copied()
+                .and_then(|b| b.get_sprite());
+
+            // Checks if position has a collectible sprite as wella s what sprite is at the
+            // position
+            let sprite_interact = sprite_at_pos.and_then(Option::<SpriteInteractKind>::from);
+
+            if let Some(sprite_interact) = sprite_interact {
+                // If the sprite is collectible, enter the sprite interaction character state
+                // TODO: Handle cases for sprite being interactible, but not collectible (none
+                // currently exist)
+                let (buildup_duration, use_duration, recover_duration) =
+                    sprite_interact.durations();
+
+                update.character = CharacterState::SpriteInteract(sprite_interact::Data {
+                    static_data: sprite_interact::StaticData {
+                        buildup_duration,
+                        use_duration,
+                        recover_duration,
+                        sprite_pos: pos,
+                        sprite_kind: sprite_interact,
+                        was_wielded: matches!(data.character, CharacterState::Wielding),
+                        was_sneak: matches!(data.character, CharacterState::Sneak),
+                    },
+                    timer: Duration::default(),
+                    stage_section: StageSection::Buildup,
+                })
+            } else {
+                // Otherwise send server event immediately
+                update
+                    .server_events
+                    .push_front(ServerEvent::InventoryManip(data.entity, inv_action.into()));
+            }
+        },
+        _ => {
+            // Else just do event instantaneously
             update
                 .server_events
                 .push_front(ServerEvent::InventoryManip(data.entity, inv_action.into()));
-        }
-    } else {
-        // Else if inventory action is not item use, or if slot is in loadout, just do
-        // event instantaneously
-        update
-            .server_events
-            .push_front(ServerEvent::InventoryManip(data.entity, inv_action.into()));
+        },
     }
 }
 
