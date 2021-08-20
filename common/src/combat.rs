@@ -13,7 +13,7 @@ use crate::{
         poise::PoiseChange,
         skills::SkillGroupKind,
         Body, CharacterState, Combo, Energy, EnergyChange, EnergySource, Health, HealthChange,
-        HealthSource, Inventory, Ori, Player, SkillSet, Stats,
+        HealthSource, Inventory, Ori, Player, Poise, SkillSet, Stats,
     },
     event::ServerEvent,
     outcome::Outcome,
@@ -852,17 +852,30 @@ fn get_weapon_rating(inventory: &Inventory, msm: &MaterialStatManifest) -> f32 {
 pub fn combat_rating(
     inventory: &Inventory,
     health: &Health,
+    energy: &Energy,
     skill_set: &SkillSet,
     body: Body,
     msm: &MaterialStatManifest,
 ) -> f32 {
     const WEAPON_WEIGHT: f32 = 1.0;
-    const HEALTH_WEIGHT: f32 = 1.0;
+    const HEALTH_WEIGHT: f32 = 0.5;
+    const ENERGY_WEIGHT: f32 = 0.5;
     const SKILLS_WEIGHT: f32 = 1.0;
+    const POISE_WEIGHT: f32 = 0.5;
+    const CRIT_WEIGHT: f32 = 0.6;
     // Assumes a "standard" max health of 100
     let health_rating = health.base_max() as f32
         / 100.0
         / (1.0 - Damage::compute_damage_reduction(Some(inventory), None, None)).max(0.00001);
+
+    let energy_rating = energy.maximum() as f32
+        * (1.0 + compute_max_energy_mod(energy, Some(inventory)))
+        * compute_energy_reward_mod(Some(inventory))
+        / 200.0;
+
+    let poise_rating = 10.0 / (1.0 - Poise::compute_poise_damage_reduction(inventory)).max(0.00001);
+
+    let crit_rating = 10.0 * compute_crit_mult(Some(inventory));
 
     // Assumes a standard person has earned 20 skill points in the general skill
     // tree and 10 skill points for the weapon skill tree
@@ -870,12 +883,21 @@ pub fn combat_rating(
         + weapon_skills(inventory, skill_set) / 10.0)
         / 2.0;
 
-    let weapon_rating = get_weapon_rating(inventory, msm);
+    //Multiply weapon rating by 10 to keep it in the same scale as the others
+    let weapon_rating = 10.0 * get_weapon_rating(inventory, msm);
 
     let combined_rating = (health_rating * HEALTH_WEIGHT
+        + energy_rating * ENERGY_WEIGHT
+        + poise_rating * POISE_WEIGHT
+        + crit_rating * CRIT_WEIGHT
         + skills_rating * SKILLS_WEIGHT
         + weapon_rating * WEAPON_WEIGHT)
-        / (HEALTH_WEIGHT + SKILLS_WEIGHT + WEAPON_WEIGHT);
+        / (HEALTH_WEIGHT
+            + ENERGY_WEIGHT
+            + POISE_WEIGHT
+            + CRIT_WEIGHT
+            + SKILLS_WEIGHT
+            + WEAPON_WEIGHT);
 
     // Body multiplier meant to account for an enemy being harder than equipment and
     // skills would account for. It should only not be 1.0 for non-humanoids
