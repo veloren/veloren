@@ -326,6 +326,7 @@ impl Route {
 #[derive(Default, Clone, Debug)]
 pub struct Chaser {
     last_search_tgt: Option<Vec3<f32>>,
+    /// `bool` indicates whether the Route is a complete route to the target
     route: Option<(Route, bool)>,
     /// We use this hasher (AAHasher) because:
     /// (1) we care about DDOS attacks (ruling out FxHash);
