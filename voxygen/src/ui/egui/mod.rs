@@ -5,12 +5,11 @@ use crate::{
 use client::Client;
 use egui::FontDefinitions;
 use egui_winit_platform::{Platform, PlatformDescriptor};
-use voxygen_egui::{DebugShapeAction, EguiDebugInfo, EguiInnerState, EguiWindows};
+use voxygen_egui::{EguiAction, EguiDebugInfo, EguiDebugShapeAction, EguiInnerState};
 
 pub struct EguiState {
     pub platform: Platform,
     egui_inner_state: EguiInnerState,
-    egui_windows: EguiWindows,
     new_debug_shape_id: Option<u64>,
 }
 
@@ -27,43 +26,48 @@ impl EguiState {
         Self {
             platform,
             egui_inner_state: EguiInnerState::default(),
-            egui_windows: EguiWindows::default(),
             new_debug_shape_id: None,
         }
     }
 
     pub fn maintain(
         &mut self,
-        client: &Client,
+        client: &mut Client,
         scene: &mut Scene,
         debug_info: Option<EguiDebugInfo>,
     ) {
         let egui_actions = voxygen_egui::maintain(
             &mut self.platform,
             &mut self.egui_inner_state,
-            &mut self.egui_windows,
             client,
             debug_info,
             self.new_debug_shape_id.take(),
         );
 
-        egui_actions.actions.iter().for_each(|action| match action {
-            DebugShapeAction::AddCylinder { height, radius } => {
-                let shape_id = scene.debug.add_shape(DebugShape::Cylinder {
-                    height: *height,
-                    radius: *radius,
-                });
-                self.new_debug_shape_id = Some(shape_id.0);
-            },
-            DebugShapeAction::RemoveShape(debug_shape_id) => {
-                scene.debug.remove_shape(DebugShapeId(*debug_shape_id));
-            },
-            DebugShapeAction::SetPosAndColor { id, pos, color } => {
-                let identity_ori = [0.0, 0.0, 0.0, 1.0];
-                scene
-                    .debug
-                    .set_context(DebugShapeId(*id), *pos, *color, identity_ori);
-            },
-        })
+        egui_actions
+            .actions
+            .into_iter()
+            .for_each(|action| match action {
+                EguiAction::ChatCommand { cmd, args } => {
+                    client.send_command(cmd.keyword().into(), args);
+                },
+                EguiAction::DebugShape(debug_shape_action) => match debug_shape_action {
+                    EguiDebugShapeAction::AddCylinder { height, radius } => {
+                        let shape_id = scene
+                            .debug
+                            .add_shape(DebugShape::Cylinder { height, radius });
+                        self.new_debug_shape_id = Some(shape_id.0);
+                    },
+                    EguiDebugShapeAction::RemoveShape(debug_shape_id) => {
+                        scene.debug.remove_shape(DebugShapeId(debug_shape_id));
+                    },
+                    EguiDebugShapeAction::SetPosAndColor { id, pos, color } => {
+                        let identity_ori = [0.0, 0.0, 0.0, 1.0];
+                        scene
+                            .debug
+                            .set_context(DebugShapeId(id), pos, color, identity_ori);
+                    },
+                },
+            })
     }
 }

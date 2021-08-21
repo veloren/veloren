@@ -1091,7 +1091,7 @@ impl PlayState for SessionState {
             #[cfg(feature = "egui-ui")]
             if global_state.settings.interface.egui_enabled() {
                 global_state.egui_state.maintain(
-                    &self.client.borrow(),
+                    &mut self.client.borrow_mut(),
                     &mut self.scene,
                     debug_info.map(|debug_info| EguiDebugInfo {
                         frame_time: debug_info.frame_time,

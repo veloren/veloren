@@ -255,9 +255,11 @@ lazy_static! {
             })
     };
 
-    static ref KITS: Vec<String> = {
+    pub static ref KITS: Vec<String> = {
         if let Ok(kits) = KitManifest::load(KIT_MANIFEST_PATH) {
-            kits.read().0.keys().cloned().collect()
+            let mut kits = kits.read().0.keys().cloned().collect::<Vec<String>>();
+            kits.sort();
+            kits
         } else {
             Vec::new()
         }

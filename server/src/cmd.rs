@@ -472,7 +472,16 @@ fn handle_give_item(
         if let Ok(item) = Item::new_from_asset(&item_name.replace('/', ".").replace("\\", ".")) {
             let mut item: Item = item;
             let mut res = Ok(());
-            if let Ok(()) = item.set_amount(give_amount.min(2000)) {
+
+            const MAX_GIVE_AMOUNT: u32 = 2000;
+            // Cap give_amount for non-stackable items
+            let give_amount = if item.is_stackable() {
+                give_amount
+            } else {
+                give_amount.min(MAX_GIVE_AMOUNT)
+            };
+
+            if let Ok(()) = item.set_amount(give_amount) {
                 server
                     .state
                     .ecs()
