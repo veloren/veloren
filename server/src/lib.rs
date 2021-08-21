@@ -1331,8 +1331,8 @@ pub fn add_admin(
                     role: role_,
                 }) {
                     None => Some(format!(
-                        "Successfully added {} ({}) as an admin!",
-                        username, uuid
+                        "Successfully added {} ({}) as {:?}!",
+                        username, uuid, role
                     )),
                     Some(old_admin) if old_admin.role == role_ => {
                         info!("{} ({}) already has role: {:?}!", username, uuid, role);
