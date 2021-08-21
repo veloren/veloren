@@ -10,6 +10,7 @@ hot-reloading = ["common-assets/hot-reloading"]
 simd = ["vek/platform_intrinsics"]
 bin_csv = ["ron", "csv", "structopt"]
 bin_graphviz = ["petgraph"]
+bin_cmd_doc_gen = []
 
 default = ["simd"]
 
@@ -98,3 +99,7 @@ required-features = ["bin_csv"]
 [[bin]]
 name = "recipe_graphviz"
 required-features = ["bin_graphviz"]
+
+[[bin]]
+name = "cmd_doc_gen"
+required-features = ["bin_cmd_doc_gen"]

@@ -4,6 +4,7 @@ rustflags = [
 ]
 
 [alias]
+cmd-doc-gen = "run --features=bin_cmd_doc_gen --bin cmd_doc_gen"
 csv-export = "run --manifest-path common/Cargo.toml --features=bin_csv --bin csv_export"
 csv-import = "run --manifest-path common/Cargo.toml --features=bin_csv --bin csv_import"
 test-server = "run --bin veloren-server-cli --no-default-features"
