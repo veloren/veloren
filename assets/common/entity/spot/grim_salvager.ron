@@ -11,7 +11,7 @@
                 (
                     tool: Hammer,
                     material: Steel,
-                    hands: None,
+                    hands: Some(Two),
                 ),
                 None
             ),
