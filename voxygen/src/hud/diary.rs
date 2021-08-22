@@ -231,6 +231,7 @@ impl<'a> Diary<'a> {
 
 pub type SelectedSkillTree = skills::SkillGroupKind;
 
+// TODO: make it enum?
 const TREES: [&str; 8] = [
     "General Combat",
     "Sword",
@@ -260,9 +261,10 @@ impl<'a> Widget for Diary<'a> {
     fn update(mut self, args: widget::UpdateArgs<Self>) -> Self::Event {
         common_base::prof_span!("Diary::update");
         let widget::UpdateArgs {
-            id: _, state, ui, ..
+            state, ui, ..
         } = args;
         let mut events = Vec::new();
+
         // Tooltips
         let diary_tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
@@ -281,8 +283,11 @@ impl<'a> Widget for Diary<'a> {
         .desc_font_size(self.fonts.cyri.scale(12))
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
+
         let sel_tab = &self.show.skilltreetab;
-        let frame_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer Frame
+        //Animation timer Frame
+        let frame_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8;
+
         Image::new(self.imgs.diary_bg)
             .w_h(1202.0, 886.0)
             .mid_top_with_margin_on(ui.window, 5.0)
@@ -345,94 +350,110 @@ impl<'a> Widget for Diary<'a> {
             s.lock_imgs
                 .resize(TREES.len(), &mut ui.widget_id_generator())
         });
-        for i in TREES.iter().copied().enumerate() {
-            let locked = !skill_tree_from_str(i.1)
-                .map_or(false, |st| self.skill_set.contains_skill_group(st));
 
-            // Background weapon image
-            let img = Image::new(match i.1 {
-                "General Combat" => self.imgs.swords_crossed,
-                "Sword" => self.imgs.sword,
-                "Hammer" => self.imgs.hammer,
-                "Axe" => self.imgs.axe,
-                "Sceptre" => self.imgs.sceptre,
-                "Bow" => self.imgs.bow,
-                "Fire Staff" => self.imgs.staff,
-                "Mining" => self.imgs.mining,
-                _ => self.imgs.nothing,
-            });
+        // Draw skillgroup tab's icons
+        for (i, skilltree_name) in TREES.iter().copied().enumerate() {
+            let skill_group = match skill_tree_from_str(skilltree_name) {
+                Some(st) => st,
+                None => {
+                    tracing::warn!("unexpected tree name: {}", skilltree_name);
+                    continue;
+                },
+            };
 
-            let img = if i.0 == 0 {
-                img.top_left_with_margins_on(state.content_align, 10.0, 5.0)
-            } else {
-                img.down_from(state.weapon_btns[i.0 - 1], 5.0)
+            // Check if we have this skill tree unlocked
+            let locked = !self.skill_set.contains_skill_group(skill_group);
+
+            // Weapon button image
+            let btn_img = {
+                let img = match skilltree_name {
+                    "General Combat" => self.imgs.swords_crossed,
+                    "Sword" => self.imgs.sword,
+                    "Hammer" => self.imgs.hammer,
+                    "Axe" => self.imgs.axe,
+                    "Sceptre" => self.imgs.sceptre,
+                    "Bow" => self.imgs.bow,
+                    "Fire Staff" => self.imgs.staff,
+                    "Mining" => self.imgs.mining,
+                    _ => self.imgs.nothing,
+                };
+
+                if i == 0 {
+                    Image::new(img).top_left_with_margins_on(state.content_align, 10.0, 5.0)
+                } else {
+                    Image::new(img).down_from(state.weapon_btns[i - 1], 5.0)
+                }
             };
-            let tooltip_txt = if !locked {
-                ""
-            } else {
-                self.localized_strings.get("hud.skill.not_unlocked")
-            };
-            img.w_h(50.0, 50.0).set(state.weapon_imgs[i.0], ui);
+            btn_img.w_h(50.0, 50.0).set(state.weapon_imgs[i], ui);
+
             // Lock Image
             if locked {
                 Image::new(self.imgs.lock)
                     .w_h(50.0, 50.0)
-                    .middle_of(state.weapon_imgs[i.0])
-                    .graphics_for(state.weapon_imgs[i.0])
+                    .middle_of(state.weapon_imgs[i])
+                    .graphics_for(state.weapon_imgs[i])
                     .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.8)))
-                    .set(state.lock_imgs[i.0], ui);
+                    .set(state.lock_imgs[i], ui);
             }
+
             // Weapon icons
-            let available_pts = skill_tree_from_str(i.1)
-                .map(|st| {
-                    (
-                        st,
-                        self.skill_set.available_sp(st),
-                        self.skill_set.earned_sp(st),
-                    )
-                })
-                .map_or(false, |(st, a_pts, e_pts)| {
-                    a_pts > 0 && (e_pts - a_pts) < st.total_skill_point_cost()
-                });
-            if Button::image(
-                if skill_tree_from_str(i.1).map_or(false, |st| st == *sel_tab || available_pts) {
-                    self.imgs.wpn_icon_border_pressed
-                } else {
-                    self.imgs.wpn_icon_border
-                },
-            )
-            .w_h(50.0, 50.0)
-            .hover_image(match skill_tree_from_str(i.1).map(|st| st == *sel_tab) {
-                Some(true) => self.imgs.wpn_icon_border_pressed,
-                Some(false) => self.imgs.wpn_icon_border_mo,
-                None => self.imgs.wpn_icon_border,
-            })
-            .press_image(match skill_tree_from_str(i.1).map(|st| st == *sel_tab) {
-                Some(true) => self.imgs.wpn_icon_border_pressed,
-                Some(false) => self.imgs.wpn_icon_border_press,
-                None => self.imgs.wpn_icon_border,
-            })
-            .middle_of(state.weapon_imgs[i.0])
-            .image_color(
-                if skill_tree_from_str(i.1).map_or(false, |st| st != *sel_tab && available_pts) {
-                    Color::Rgba(0.92, 0.76, 0.0, frame_ani)
-                } else {
-                    TEXT_COLOR
-                },
-            )
-            .with_tooltip(
-                self.tooltip_manager,
-                i.1,
-                tooltip_txt,
-                &diary_tooltip,
-                TEXT_COLOR,
-            )
-            .set(state.weapon_btns[i.0], ui)
-            .was_clicked()
-            {
-                events.push(skill_tree_from_str(i.1).map_or(Event::Close, Event::ChangeSkillTree))
+            let have_points = {
+                let available = self.skill_set.available_sp(skill_group);
+                let earned = self.skill_set.earned_sp(skill_group);
+                let total_cost = skill_group.total_skill_point_cost();
+
+                available > 0 && (earned - available) < total_cost
+            };
+
+            let border_image = if skill_group == *sel_tab || have_points {
+                self.imgs.wpn_icon_border_pressed
+            } else {
+                self.imgs.wpn_icon_border
+            };
+
+            let hover_image = if skill_group == *sel_tab {
+                self.imgs.wpn_icon_border_pressed
+            } else {
+                self.imgs.wpn_icon_border_mo
+            };
+
+            let press_image = if skill_group == *sel_tab {
+                self.imgs.wpn_icon_border_pressed
+            } else {
+                self.imgs.wpn_icon_border_press
+            };
+
+            let color = if skill_group != *sel_tab && have_points {
+                Color::Rgba(0.92, 0.76, 0.0, frame_ani)
+            } else {
+                TEXT_COLOR
+            };
+
+            let tooltip_txt = if locked {
+                self.localized_strings.get("hud.skill.not_unlocked")
+            } else {
+                ""
+            };
+
+            let wpn_button = Button::image(border_image)
+                .w_h(50.0, 50.0)
+                .hover_image(hover_image)
+                .press_image(press_image)
+                .middle_of(state.weapon_imgs[i])
+                .image_color(color)
+                .with_tooltip(
+                    self.tooltip_manager,
+                    skilltree_name,
+                    tooltip_txt,
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.weapon_btns[i], ui);
+            if wpn_button.was_clicked() {
+                events.push(Event::ChangeSkillTree(skill_group))
             }
         }
+
         // Exp Bars and Rank Display
         let current_exp = self.skill_set.experience(*sel_tab) as f64;
         let max_exp = self.skill_set.skill_point_cost(*sel_tab) as f64;
@@ -2058,36 +2079,6 @@ impl<'a> Widget for Diary<'a> {
     }
 }
 
-fn create_skill_button<'a>(
-    image: Id,
-    state: widget::Id,
-    skill_set: &'a skills::SkillSet,
-    skill: Skill,
-    fonts: &'a Fonts,
-    label: &'a str,
-) -> Button<'a, button::Image> {
-    Button::image(image)
-        .w_h(74.0, 74.0)
-        .mid_top_with_margin_on(state, 3.0)
-        .label(label)
-        .label_y(conrod_core::position::Relative::Scalar(-47.0))
-        .label_x(conrod_core::position::Relative::Scalar(0.0))
-        .label_color(if skill_set.is_at_max_level(skill) {
-            TEXT_COLOR
-        } else if skill_set.sufficient_skill_points(skill) {
-            HP_COLOR
-        } else {
-            CRITICAL_HP_COLOR
-        })
-        .label_font_size(fonts.cyri.scale(15))
-        .label_font_id(fonts.cyri.conrod_id)
-        .image_color(if skill_set.prerequisites_met(skill) {
-            TEXT_COLOR
-        } else {
-            Color::Rgba(0.41, 0.41, 0.41, 0.7)
-        })
-}
-
 fn get_skill_label(skill: Skill, skill_set: &skills::SkillSet) -> String {
     if skill_set.prerequisites_met(skill) {
         format!(
@@ -2177,7 +2168,7 @@ impl<'a> Diary<'a> {
         events: &mut Vec<Event>,
         diary_tooltip: &Tooltip,
     ) {
-        if create_skill_button(
+        if Self::create_skill_button(
             id,
             conrod_widget_id,
             self.skill_set,
@@ -2204,5 +2195,36 @@ impl<'a> Diary<'a> {
         {
             events.push(Event::UnlockSkill(skill));
         };
+    }
+
+    // FIXME: inline before merge
+    fn create_skill_button<'b>(
+        image: Id,
+        state: widget::Id,
+        skill_set: &'b skills::SkillSet,
+        skill: Skill,
+        fonts: &'b Fonts,
+        label: &'b str,
+    ) -> Button<'b, button::Image> {
+        Button::image(image)
+            .w_h(74.0, 74.0)
+            .mid_top_with_margin_on(state, 3.0)
+            .label(label)
+            .label_y(conrod_core::position::Relative::Scalar(-47.0))
+            .label_x(conrod_core::position::Relative::Scalar(0.0))
+            .label_color(if skill_set.is_at_max_level(skill) {
+                TEXT_COLOR
+            } else if skill_set.sufficient_skill_points(skill) {
+                HP_COLOR
+            } else {
+                CRITICAL_HP_COLOR
+            })
+            .label_font_size(fonts.cyri.scale(15))
+            .label_font_id(fonts.cyri.conrod_id)
+            .image_color(if skill_set.prerequisites_met(skill) {
+                TEXT_COLOR
+            } else {
+                Color::Rgba(0.41, 0.41, 0.41, 0.7)
+            })
     }
 }
