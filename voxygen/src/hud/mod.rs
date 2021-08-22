@@ -325,10 +325,17 @@ widget_ids! {
 // TODO: extend as you need it
 #[derive(Clone, Copy)]
 pub enum PositionSpecifier {
-    MidBottomWithMarginOn(widget::Id, f64),
+    // Place the widget near other widget with the given margins
+    TopLeftWithMarginsOn(widget::Id, f64, f64),
     TopRightWithMarginsOn(widget::Id, f64, f64),
-    BottomRightWithMarginsOn(widget::Id, f64, f64),
+    MidBottomWithMarginOn(widget::Id, f64),
     BottomLeftWithMarginsOn(widget::Id, f64, f64),
+    BottomRightWithMarginsOn(widget::Id, f64, f64),
+    // Place the widget near other widget at given distance
+    MiddleOf(widget::Id),
+    UpFrom(widget::Id, f64),
+    DownFrom(widget::Id, f64),
+    LeftFrom(widget::Id, f64),
     RightFrom(widget::Id, f64),
 }
 
@@ -385,11 +392,15 @@ pub trait Position {
 impl<W: Positionable> Position for W {
     fn position(self, request: PositionSpecifier) -> Self {
         match request {
-            PositionSpecifier::MidBottomWithMarginOn(other, margin) => {
-                self.mid_bottom_with_margin_on(other, margin)
+            // Place the widget near other widget with the given margins
+            PositionSpecifier::TopLeftWithMarginsOn(other, top, right) => {
+                self.top_left_with_margins_on(other, top, right)
             },
             PositionSpecifier::TopRightWithMarginsOn(other, top, right) => {
                 self.top_right_with_margins_on(other, top, right)
+            },
+            PositionSpecifier::MidBottomWithMarginOn(other, margin) => {
+                self.mid_bottom_with_margin_on(other, margin)
             },
             PositionSpecifier::BottomRightWithMarginsOn(other, bottom, right) => {
                 self.bottom_right_with_margins_on(other, bottom, right)
@@ -397,6 +408,11 @@ impl<W: Positionable> Position for W {
             PositionSpecifier::BottomLeftWithMarginsOn(other, bottom, left) => {
                 self.bottom_left_with_margins_on(other, bottom, left)
             },
+            // Place the widget near other widget at given distance
+            PositionSpecifier::MiddleOf(other) => self.middle_of(other),
+            PositionSpecifier::UpFrom(other, offset) => self.up_from(other, offset),
+            PositionSpecifier::DownFrom(other, offset) => self.down_from(other, offset),
+            PositionSpecifier::LeftFrom(other, offset) => self.left_from(other, offset),
             PositionSpecifier::RightFrom(other, offset) => self.right_from(other, offset),
         }
     }

@@ -1,7 +1,8 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::{animate_by_pulse, ItemImgs, ItemKey::Tool},
-    Show, CRITICAL_HP_COLOR, HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
+    Position, PositionSpecifier, Show, CRITICAL_HP_COLOR, HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0,
+    UI_MAIN, XP_COLOR,
 };
 use crate::ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable};
 use conrod_core::{
@@ -624,101 +625,92 @@ impl<'a> Widget for Diary<'a> {
         //        8 2 7
         //
         //
-        // TOP-LEFT Skills
         let offset_0 = 22.0;
         let offset_1 = -122.0;
         let offset_2 = offset_1 - -20.0;
-        while self.created_btns_top_l < skills_top_l {
-            let mut img = Button::image(self.imgs.wpn_icon_border_skills).w_h(80.0, 100.0);
-            match self.created_btns_top_l {
-                0 => img = img.middle_of(state.skills_top_l_align), // Central Skill
-                1 => img = img.up_from(state.skills_top_l[0], offset_0), // 12:00
-                2 => img = img.down_from(state.skills_top_l[0], offset_0), // 6:00
-                3 => img = img.left_from(state.skills_top_l[0], offset_0), // 3:00
-                4 => img = img.right_from(state.skills_top_l[0], offset_0), // 9:00
-                5 => img = img.top_left_with_margins_on(state.skills_top_l[0], offset_1, offset_2), /* 10:30 */
-                6 => img = img.top_right_with_margins_on(state.skills_top_l[0], offset_1, offset_2), /* 1:30 */
-                7 => {
-                    img = img.bottom_left_with_margins_on(state.skills_top_l[0], offset_1, offset_2)
-                }, /* 4:30 */
-                8 => {
-                    img =
-                        img.bottom_right_with_margins_on(state.skills_top_l[0], offset_1, offset_2)
-                }, /* 7:30 */
-                _ => {},
+
+        let skill_pos = |idx, align, cental_skill| {
+            use PositionSpecifier::*;
+            match idx {
+                // Central skill
+                0 => MiddleOf(align),
+                // 12:00
+                1 => UpFrom(central_skill, offset_0),
+                // 6:00
+                2 => DownFrom(central_skill, offset_0),
+                // 3:00
+                3 => LeftFrom(central_skill, offset_0),
+                // 9:00
+                4 => RightFrom(central_skill, offset_0),
+                // 10:30
+                5 => TopLeftWithMarginsOn(central_skill, offset_1, offset_2),
+                // 1:30
+                6 => TopRightWithMarginsOn(central_skill, offset_1, offset_2),
+                // 4:30
+                7 => BottomLeftWithMarginsOn(central_skill, offset_1, offset_2),
+                // 7:30
+                8 => BottomRightWithMarginsOn(central_skill, offset_1, offset_2),
+                buttons => {
+                    panic!("{} > 8 position number", buttons);
+                },
             }
-            img.set(state.skills_top_l[self.created_btns_top_l], ui);
+        };
+        // TOP-LEFT Skills
+        //
+        // Why this uses while loop on field of struct and not just
+        // `for i in 0..skils_top_l`
+        while self.created_btns_top_l < skills_top_l {
+            let pos = skill_pos(
+                self.created_btns_top_l,
+                state.skills_top_l_align,
+                state.skills_top_l[0],
+            );
+            Button::image(self.imgs.wpn_icon_border_skills)
+                .w_h(80.0, 100.0)
+                .position(pos)
+                .set(state.skills_top_l[self.created_btns_top_l], ui);
             self.created_btns_top_l += 1;
         }
         // TOP-RIGHT Skills
         while self.created_btns_top_r < skills_top_r {
-            let mut img = Button::image(self.imgs.wpn_icon_border_skills).w_h(80.0, 100.0);
-            match self.created_btns_top_r {
-                0 => img = img.middle_of(state.skills_top_r_align), // Central Skill
-                1 => img = img.up_from(state.skills_top_r[0], offset_0), // 12:00
-                2 => img = img.down_from(state.skills_top_r[0], offset_0), // 6:00
-                3 => img = img.left_from(state.skills_top_r[0], offset_0), // 3:00
-                4 => img = img.right_from(state.skills_top_r[0], offset_0), // 9:00
-                5 => img = img.top_left_with_margins_on(state.skills_top_r[0], offset_1, offset_2), /* 10:30 */
-                6 => img = img.top_right_with_margins_on(state.skills_top_r[0], offset_1, offset_2), /* 1:30 */
-                7 => {
-                    img = img.bottom_left_with_margins_on(state.skills_top_r[0], offset_1, offset_2)
-                }, /* 4:30 */
-                8 => {
-                    img =
-                        img.bottom_right_with_margins_on(state.skills_top_r[0], offset_1, offset_2)
-                }, /* 7:30 */
-                _ => {},
-            }
-            img.set(state.skills_top_r[self.created_btns_top_r], ui);
+            let pos = skill_pos(
+                self.created_btns_top_r,
+                state.skills_top_r_align,
+                state.skills_top_r[0],
+            );
+            Button::image(self.imgs.wpn_icon_border_skills)
+                .w_h(80.0, 100.0)
+                .position(pos)
+                .set(state.skills_top_r[self.created_btns_top_r], ui);
             self.created_btns_top_r += 1;
         }
         // BOTTOM-LEFT Skills
         while self.created_btns_bot_l < skills_bot_l {
-            let mut img = Button::image(self.imgs.wpn_icon_border_skills).w_h(80.0, 100.0);
-            match self.created_btns_bot_l {
-                0 => img = img.middle_of(state.skills_bot_l_align), // Central Skill
-                1 => img = img.up_from(state.skills_bot_l[0], offset_0), // 12:00
-                2 => img = img.down_from(state.skills_bot_l[0], offset_0), // 6:00
-                3 => img = img.left_from(state.skills_bot_l[0], offset_0), // 3:00
-                4 => img = img.right_from(state.skills_bot_l[0], offset_0), // 9:00
-                5 => img = img.top_left_with_margins_on(state.skills_bot_l[0], offset_1, offset_2), /* 10:30 */
-                6 => img = img.top_right_with_margins_on(state.skills_bot_l[0], offset_1, offset_2), /* 1:30 */
-                7 => {
-                    img = img.bottom_left_with_margins_on(state.skills_bot_l[0], offset_1, offset_2)
-                }, /* 4:30 */
-                8 => {
-                    img =
-                        img.bottom_right_with_margins_on(state.skills_bot_l[0], offset_1, offset_2)
-                }, /* 7:30 */
-                _ => {},
-            }
-            img.set(state.skills_bot_l[self.created_btns_bot_l], ui);
+            let pos = skill_pos(
+                self.created_btns_bot_l,
+                state.skills_bot_l_align,
+                state.skills_bot_l[0],
+            );
+            Button::image(self.imgs.wpn_icon_border_skills)
+                .w_h(80.0, 100.0)
+                .position(pos)
+                .set(state.skills_bot_l[self.created_btns_bot_l], ui);
             self.created_btns_bot_l += 1;
         }
         // BOTTOM-RIGHT Skills
         while self.created_btns_bot_r < skills_bot_r {
-            let mut img = Image::new(self.imgs.wpn_icon_border_skills).w_h(80.0, 100.0);
-            match self.created_btns_bot_r {
-                0 => img = img.middle_of(state.skills_bot_r_align), // Central Skill
-                1 => img = img.up_from(state.skills_bot_r[0], offset_0), // 12:00
-                2 => img = img.down_from(state.skills_bot_r[0], offset_0), // 6:00
-                3 => img = img.left_from(state.skills_bot_r[0], offset_0), // 3:00
-                4 => img = img.right_from(state.skills_bot_r[0], offset_0), // 9:00
-                5 => img = img.top_left_with_margins_on(state.skills_bot_r[0], offset_1, offset_2), /* 10:30 */
-                6 => img = img.top_right_with_margins_on(state.skills_bot_r[0], offset_1, offset_2), /* 1:30 */
-                7 => {
-                    img = img.bottom_left_with_margins_on(state.skills_bot_r[0], offset_1, offset_2)
-                }, /* 4:30 */
-                8 => {
-                    img =
-                        img.bottom_right_with_margins_on(state.skills_bot_r[0], offset_1, offset_2)
-                }, /* 7:30 */
-                _ => {},
-            }
-            img.set(state.skills_bot_r[self.created_btns_bot_r], ui);
+            let pos = skill_pos(
+                self.created_btns_bot_r,
+                state.skills_bot_r_align,
+                state.skills_bot_r[0],
+            );
+            Button::image(self.imgs.wpn_icon_border_skills)
+                .w_h(80.0, 100.0)
+                .position(pos)
+                .set(state.skills_bot_r[self.created_btns_bot_r], ui);
             self.created_btns_bot_r += 1;
         }
+
         // Skill-Icons and Functionality
         // Art dimensions
         let art_size = [320.0, 320.0];
@@ -2191,7 +2183,7 @@ impl<'a> Diary<'a> {
         };
     }
 
-    // FIXME: inline before merge
+    // FIXME: inline this before merge
     fn create_skill_button<'b>(
         image: Id,
         state: widget::Id,
