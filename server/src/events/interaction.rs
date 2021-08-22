@@ -87,10 +87,12 @@ pub fn handle_npc_interaction(server: &mut Server, interactor: EcsEntity, npc_en
         .write_storage::<comp::Agent>()
         .get_mut(npc_entity)
     {
-        if let Some(interactor_uid) = state.ecs().uid_from_entity(interactor) {
-            agent
-                .inbox
-                .push_back(AgentEvent::Talk(interactor_uid, Subject::Regular));
+        if agent.target.is_none() {
+            if let Some(interactor_uid) = state.ecs().uid_from_entity(interactor) {
+                agent
+                    .inbox
+                    .push_back(AgentEvent::Talk(interactor_uid, Subject::Regular));
+            }
         }
     }
 }
