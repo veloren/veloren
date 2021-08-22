@@ -125,6 +125,9 @@ pub enum Skill {
 ///
 /// NOTE: Just adding constant does nothing, you need to use it in both
 /// ECS systems and Diary.
+// TODO: make it lazy_static and move to .ron?
+pub const SKILL_MODIFIERS: SkillTreeModifiers = SkillTreeModifiers::get();
+
 pub struct SkillTreeModifiers {
     pub sword_tree: SwordTreeModifiers,
     pub axe_tree: AxeTreeModifiers,
@@ -134,6 +137,21 @@ pub struct SkillTreeModifiers {
     pub sceptre_tree: SceptreTreeModifiers,
     pub mining_tree: MiningTreeModifiers,
     pub general_tree: GeneralTreeModifiers,
+}
+
+impl SkillTreeModifiers {
+    const fn get() -> Self {
+        Self {
+            sword_tree: SwordTreeModifiers::get(),
+            axe_tree: AxeTreeModifiers::get(),
+            hammer_tree: HammerTreeModifiers::get(),
+            bow_tree: BowTreeModifiers::get(),
+            staff_tree: StaffTreeModifiers::get(),
+            sceptre_tree: SceptreTreeModifiers::get(),
+            mining_tree: MiningTreeModifiers::get(),
+            general_tree: GeneralTreeModifiers::get(),
+        }
+    }
 }
 
 pub struct SwordTreeModifiers {
@@ -157,7 +175,7 @@ pub struct SwordSpinModifiers {
 }
 
 impl SwordTreeModifiers {
-    pub const fn get() -> Self {
+    const fn get() -> Self {
         Self {
             dash: SwordDashModifiers {
                 energy_cost: 0.75,
@@ -196,7 +214,7 @@ pub struct AxeLeapModifiers {
 }
 
 impl AxeTreeModifiers {
-    pub const fn get() -> Self {
+    const fn get() -> Self {
         Self {
             spin: AxeSpinModifiers {
                 base_damage: 1.3,
@@ -239,7 +257,7 @@ pub struct HammerLeapModifiers {
 }
 
 impl HammerTreeModifiers {
-    pub const fn get() -> Self {
+    const fn get() -> Self {
         Self {
             single_strike: HammerStrikeModifiers { knockback: 1.5 },
             charged: HammerChargedModifers {
@@ -293,7 +311,7 @@ pub struct BowShotgunModifiers {
 }
 
 impl BowTreeModifiers {
-    pub const fn get() -> Self {
+    const fn get() -> Self {
         Self {
             universal: BowUniversalModifiers {
                 projectile_speed: 1.2,
@@ -347,7 +365,7 @@ pub struct StaffShockwaveModifiers {
 }
 
 impl StaffTreeModifiers {
-    pub const fn get() -> Self {
+    const fn get() -> Self {
         Self {
             fireball: StaffFireballModifiers {
                 power: 1.2,
@@ -398,7 +416,7 @@ pub struct SceptreWardingAuraModifiers {
 }
 
 impl SceptreTreeModifiers {
-    pub const fn get() -> Self {
+    const fn get() -> Self {
         Self {
             beam: SceptreBeamModifiers {
                 damage: 1.2,
@@ -424,12 +442,12 @@ impl SceptreTreeModifiers {
 
 pub struct MiningTreeModifiers {
     pub speed: f32,
-    pub gem_gain: f32,
-    pub ore_gain: f32,
+    pub gem_gain: f64,
+    pub ore_gain: f64,
 }
 
 impl MiningTreeModifiers {
-    pub const fn get() -> Self {
+    const fn get() -> Self {
         Self {
             speed: 1.1,
             gem_gain: 0.05,
@@ -460,7 +478,7 @@ pub struct ClimbTreeModifiers {
 }
 
 impl GeneralTreeModifiers {
-    pub const fn get() -> Self {
+    const fn get() -> Self {
         Self {
             roll: RollTreeModifiers {
                 energy_cost: 0.9,

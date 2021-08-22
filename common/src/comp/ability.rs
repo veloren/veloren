@@ -5,7 +5,8 @@ use crate::{
         self, aura, beam, buff,
         inventory::item::tool::{Stats, ToolKind},
         projectile::ProjectileConstructor,
-        skills, Body, CharacterState, EnergySource, LightEmitter, StateUpdate,
+        skills::{self, SKILL_MODIFIERS},
+        Body, CharacterState, EnergySource, LightEmitter, StateUpdate,
     },
     states::{
         behavior::JoinData,
@@ -909,7 +910,7 @@ impl CharacterAbility {
 
     #[warn(clippy::pedantic)]
     fn adjusted_by_mining_skills(&mut self, skillset: &skills::SkillSet) {
-        use skills::{MiningSkill::Speed, MiningTreeModifiers, Skill};
+        use skills::{MiningSkill::Speed, Skill};
 
         if let CharacterAbility::BasicMelee {
             ref mut buildup_duration,
@@ -919,7 +920,8 @@ impl CharacterAbility {
         } = self
         {
             if let Ok(Some(level)) = skillset.skill_level(Skill::Pick(Speed)) {
-                let modifiers = MiningTreeModifiers::get();
+                let modifiers = SKILL_MODIFIERS.mining_tree;
+
                 let speed = modifiers.speed.powi(level.into());
                 *buildup_duration /= speed;
                 *swing_duration /= speed;
@@ -930,8 +932,8 @@ impl CharacterAbility {
 
     #[warn(clippy::pedantic)]
     fn adjusted_by_general_skills(&mut self, skillset: &skills::SkillSet) {
-        use skills::{GeneralTreeModifiers, Skill};
-        const GENERAL_MODIFIERS: GeneralTreeModifiers = GeneralTreeModifiers::get();
+        use skills::Skill;
+
         if let CharacterAbility::Roll {
             ref mut energy_cost,
             ref mut roll_strength,
@@ -940,7 +942,9 @@ impl CharacterAbility {
         } = self
         {
             use skills::RollSkill::{Cost, Duration, Strength};
-            let modifiers = GENERAL_MODIFIERS.roll;
+
+            let modifiers = SKILL_MODIFIERS.general_tree.roll;
+
             if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(Cost)) {
                 *energy_cost *= modifiers.energy_cost.powi(level.into());
             }
@@ -956,9 +960,7 @@ impl CharacterAbility {
     #[warn(clippy::pedantic)]
     fn adjusted_by_sword_skills(&mut self, skillset: &skills::SkillSet) {
         #![allow(clippy::enum_glob_use)]
-        use skills::{Skill::Sword, SwordSkill::*, SwordTreeModifiers};
-
-        const SWORD_MODIFIERS: SwordTreeModifiers = SwordTreeModifiers::get();
+        use skills::{Skill::Sword, SwordSkill::*};
 
         match self {
             CharacterAbility::ComboMelee {
@@ -1004,7 +1006,7 @@ impl CharacterAbility {
                 ref mut charge_through,
                 ..
             } => {
-                let modifiers = SWORD_MODIFIERS.dash;
+                let modifiers = SKILL_MODIFIERS.sword_tree.dash;
                 *is_interruptible = skillset.has_skill(Sword(InterruptingAttacks));
                 if let Ok(Some(level)) = skillset.skill_level(Sword(DCost)) {
                     *energy_cost *= modifiers.energy_cost.powi(level.into());
@@ -1031,7 +1033,7 @@ impl CharacterAbility {
                 ref mut num_spins,
                 ..
             } => {
-                let modifiers = SWORD_MODIFIERS.spin;
+                let modifiers = SKILL_MODIFIERS.sword_tree.spin;
                 *is_interruptible = skillset.has_skill(Sword(InterruptingAttacks));
                 if let Ok(Some(level)) = skillset.skill_level(Sword(SDamage)) {
                     *base_damage *= modifiers.base_damage.powi(level.into());
@@ -1052,9 +1054,7 @@ impl CharacterAbility {
     #[warn(clippy::pedantic)]
     fn adjusted_by_axe_skills(&mut self, skillset: &skills::SkillSet) {
         #![allow(clippy::enum_glob_use)]
-        use skills::{AxeSkill::*, AxeTreeModifiers, Skill::Axe};
-
-        const AXE_MODIFIERS: AxeTreeModifiers = AxeTreeModifiers::get();
+        use skills::{AxeSkill::*, Skill::Axe};
 
         match self {
             CharacterAbility::ComboMelee {
@@ -1091,7 +1091,8 @@ impl CharacterAbility {
                 ref mut movement_behavior,
                 ..
             } => {
-                let modifiers = AXE_MODIFIERS.spin;
+                let modifiers = SKILL_MODIFIERS.axe_tree.spin;
+
                 *is_infinite = skillset.has_skill(Axe(SInfinite));
                 *movement_behavior = if skillset.has_skill(Axe(SHelicopter)) {
                     spin_melee::MovementBehavior::AxeHover
@@ -1116,7 +1117,7 @@ impl CharacterAbility {
                 ref mut vertical_leap_strength,
                 ..
             } => {
-                let modifiers = AXE_MODIFIERS.leap;
+                let modifiers = SKILL_MODIFIERS.axe_tree.leap;
                 if let Ok(Some(level)) = skillset.skill_level(Axe(LDamage)) {
                     *base_damage *= modifiers.base_damage.powi(level.into());
                 }
@@ -1139,9 +1140,7 @@ impl CharacterAbility {
     #[warn(clippy::pedantic)]
     fn adjusted_by_hammer_skills(&mut self, skillset: &skills::SkillSet) {
         #![allow(clippy::enum_glob_use)]
-        use skills::{HammerSkill::*, HammerTreeModifiers, Skill::Hammer};
-
-        const HAMMER_MODIFIERS: HammerTreeModifiers = HammerTreeModifiers::get();
+        use skills::{HammerSkill::*, Skill::Hammer};
 
         match self {
             CharacterAbility::ComboMelee {
@@ -1152,7 +1151,8 @@ impl CharacterAbility {
                 ref mut scales_from_combo,
                 ..
             } => {
-                let modifiers = HAMMER_MODIFIERS.single_strike;
+                let modifiers = SKILL_MODIFIERS.hammer_tree.single_strike;
+
                 if let Ok(Some(level)) = skillset.skill_level(Hammer(SsKnockback)) {
                     *stage_data = (*stage_data)
                         .iter()
@@ -1181,7 +1181,8 @@ impl CharacterAbility {
                 ref mut charge_duration,
                 ..
             } => {
-                let modifiers = HAMMER_MODIFIERS.charged;
+                let modifiers = SKILL_MODIFIERS.hammer_tree.charged;
+
                 if let Ok(Some(level)) = skillset.skill_level(Hammer(CDamage)) {
                     *scaled_damage *= modifiers.scaled_damage.powi(level.into());
                 }
@@ -1205,7 +1206,7 @@ impl CharacterAbility {
                 ref mut range,
                 ..
             } => {
-                let modifiers = HAMMER_MODIFIERS.leap;
+                let modifiers = SKILL_MODIFIERS.hammer_tree.leap;
                 if let Ok(Some(level)) = skillset.skill_level(Hammer(LDamage)) {
                     *base_damage *= modifiers.base_damage.powi(level.into());
                 }
@@ -1231,9 +1232,9 @@ impl CharacterAbility {
     #[warn(clippy::pedantic)]
     fn adjusted_by_bow_skills(&mut self, skillset: &skills::SkillSet) {
         #![allow(clippy::enum_glob_use)]
-        use skills::{BowSkill::*, BowTreeModifiers, Skill::Bow};
+        use skills::{BowSkill::*, Skill::Bow};
 
-        const BOW_MODIFIERS: BowTreeModifiers = BowTreeModifiers::get();
+        let projectile_speed_modifier = SKILL_MODIFIERS.bow_tree.universal.projectile_speed;
         match self {
             CharacterAbility::ChargedRanged {
                 ref mut initial_damage,
@@ -1248,8 +1249,7 @@ impl CharacterAbility {
                 ref mut charge_duration,
                 ..
             } => {
-                let projectile_speed_modifier = BOW_MODIFIERS.universal.projectile_speed;
-                let modifiers = BOW_MODIFIERS.charged;
+                let modifiers = SKILL_MODIFIERS.bow_tree.charged;
                 if let Ok(Some(level)) = skillset.skill_level(Bow(ProjSpeed)) {
                     let projectile_speed_scaling = projectile_speed_modifier.powi(level.into());
                     *initial_projectile_speed *= projectile_speed_scaling;
@@ -1285,8 +1285,7 @@ impl CharacterAbility {
                 ref mut projectile_speed,
                 ..
             } => {
-                let projectile_speed_modifier = BOW_MODIFIERS.universal.projectile_speed;
-                let modifiers = BOW_MODIFIERS.repeater;
+                let modifiers = SKILL_MODIFIERS.bow_tree.repeater;
                 if let Ok(Some(level)) = skillset.skill_level(Bow(ProjSpeed)) {
                     *projectile_speed *= projectile_speed_modifier.powi(level.into());
                 }
@@ -1309,8 +1308,7 @@ impl CharacterAbility {
                 ref mut projectile_speed,
                 ..
             } => {
-                let projectile_speed_modifier = BOW_MODIFIERS.universal.projectile_speed;
-                let modifiers = BOW_MODIFIERS.shotgun;
+                let modifiers = SKILL_MODIFIERS.bow_tree.shotgun;
                 if let Ok(Some(level)) = skillset.skill_level(Bow(ProjSpeed)) {
                     *projectile_speed *= projectile_speed_modifier.powi(level.into());
                 }
@@ -1335,14 +1333,13 @@ impl CharacterAbility {
     #[warn(clippy::pedantic)]
     fn adjusted_by_staff_skills(&mut self, skillset: &skills::SkillSet) {
         #![allow(clippy::enum_glob_use)]
-        use skills::{Skill::Staff, StaffSkill::*, StaffTreeModifiers};
+        use skills::{Skill::Staff, StaffSkill::*};
 
-        const STAFF_MODIFIERS: StaffTreeModifiers = StaffTreeModifiers::get();
         match self {
             CharacterAbility::BasicRanged {
                 ref mut projectile, ..
             } => {
-                let modifiers = STAFF_MODIFIERS.fireball;
+                let modifiers = SKILL_MODIFIERS.staff_tree.fireball;
                 let damage_level = skillset.skill_level_or(Staff(BDamage), 0);
                 let regen_level = skillset.skill_level_or(Staff(BRegen), 0);
                 let range_level = skillset.skill_level_or(Staff(BRadius), 0);
@@ -1358,7 +1355,7 @@ impl CharacterAbility {
                 ref mut beam_duration,
                 ..
             } => {
-                let modifiers = STAFF_MODIFIERS.flamethrower;
+                let modifiers = SKILL_MODIFIERS.staff_tree.flamethrower;
                 if let Ok(Some(level)) = skillset.skill_level(Staff(FDamage)) {
                     *damage *= modifiers.damage.powi(level.into());
                 }
@@ -1384,7 +1381,7 @@ impl CharacterAbility {
                 ref mut energy_cost,
                 ..
             } => {
-                let modifiers = STAFF_MODIFIERS.shockwave;
+                let modifiers = SKILL_MODIFIERS.staff_tree.shockwave;
                 if let Ok(Some(level)) = skillset.skill_level(Staff(SDamage)) {
                     *damage *= modifiers.damage.powi(level.into());
                 }
@@ -1406,9 +1403,8 @@ impl CharacterAbility {
     #[warn(clippy::pedantic)]
     fn adjusted_by_sceptre_skills(&mut self, skillset: &skills::SkillSet) {
         #![allow(clippy::enum_glob_use)]
-        use skills::{SceptreSkill::*, SceptreTreeModifiers, Skill::Sceptre};
+        use skills::{SceptreSkill::*, Skill::Sceptre};
 
-        const SCEPTRE_MODIFIERS: SceptreTreeModifiers = SceptreTreeModifiers::get();
         match self {
             CharacterAbility::BasicBeam {
                 ref mut damage,
@@ -1418,7 +1414,7 @@ impl CharacterAbility {
                 ref mut energy_regen,
                 ..
             } => {
-                let modifiers = SCEPTRE_MODIFIERS.beam;
+                let modifiers = SKILL_MODIFIERS.sceptre_tree.beam;
                 if let Ok(Some(level)) = skillset.skill_level(Sceptre(LDamage)) {
                     *damage *= modifiers.damage.powi(level.into());
                 }
@@ -1444,7 +1440,7 @@ impl CharacterAbility {
                 specifier: aura::Specifier::HealingAura,
                 ..
             } => {
-                let modifiers = SCEPTRE_MODIFIERS.healing_aura;
+                let modifiers = SKILL_MODIFIERS.sceptre_tree.healing_aura;
                 if let Ok(Some(level)) = skillset.skill_level(Sceptre(HHeal)) {
                     aura.strength *= modifiers.strength.powi(level.into());
                 }
@@ -1467,7 +1463,7 @@ impl CharacterAbility {
                 specifier: aura::Specifier::WardingAura,
                 ..
             } => {
-                let modifiers = SCEPTRE_MODIFIERS.warding_aura;
+                let modifiers = SKILL_MODIFIERS.sceptre_tree.warding_aura;
                 if let Ok(Some(level)) = skillset.skill_level(Sceptre(AStrength)) {
                     aura.strength *= modifiers.strength.powi(level.into());
                 }

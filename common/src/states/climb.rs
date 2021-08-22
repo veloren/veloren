@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        skills::{ClimbSkill::*, GeneralTreeModifiers, Skill},
+        skills::{ClimbSkill::*, Skill, SKILL_MODIFIERS},
         CharacterState, Climb, EnergySource, InputKind, Ori, StateUpdate,
     },
     consts::GRAVITY,
@@ -30,8 +30,7 @@ pub struct Data {
 
 impl Data {
     pub fn create_adjusted_by_skills(join_data: &JoinData) -> Self {
-        const GENERAL_MODIFIERS: GeneralTreeModifiers = GeneralTreeModifiers::get();
-        let modifiers = GENERAL_MODIFIERS.climb;
+        let modifiers = SKILL_MODIFIERS.general_tree.climb;
         let mut data = Data::default();
         if let Ok(Some(level)) = join_data.skill_set.skill_level(Skill::Climb(Cost)) {
             data.static_data.energy_cost *= modifiers.energy_cost.powi(level.into());
