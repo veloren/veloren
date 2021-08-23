@@ -305,25 +305,6 @@ impl<'a> System<'a> for Sys {
                     // obstacles that smaller entities would not).
                     let node_tolerance = scale * 1.5;
                     let slow_factor = body.map_or(0.0, |b| b.base_accel() / 250.0).min(1.0);
-                    let rrt_test = if let Some(target_info) = agent.target {
-                        let Target {
-                            target, hostile, ..
-                        } = target_info;
-                        if let Some(Alignment::Owned(uid)) = alignment {
-                            if read_data.uids.get(target) == Some(&uid) {
-                                controller
-                                    .actions
-                                    .push(ControlAction::basic_input(InputKind::Fly));
-                                true
-                            } else {
-                                false
-                            }
-                        } else {
-                            false
-                        }
-                    } else {
-                        false
-                    };
                     let traversal_config = TraversalConfig {
                         node_tolerance,
                         slow_factor,
@@ -332,7 +313,6 @@ impl<'a> System<'a> for Sys {
                         min_tgt_dist: 1.0,
                         can_climb: body.map_or(false, Body::can_climb),
                         can_fly: body.map_or(false, |b| b.fly_thrust().is_some()),
-                        rrt_test,
                     };
 
                     let flees = alignment.map_or(true, |a| {

@@ -25,7 +25,8 @@ serde = { version = "1.0.110", features = ["derive", "rc"] }
 # Util
 enum-iterator = "0.6"
 vek = { version = "=0.14.1", features = ["serde"] }
-kiddo = "0.1"
+# Used for RRT pathfinding (disabled until flight controls are improved)
+# kiddo = "0.1"
 
 # Strum
 strum = { version = "0.21", features = ["derive"] }
