@@ -16,7 +16,7 @@ use crate::{
 };
 use rand::Rng;
 use serde::{Deserialize, Serialize};
-use std::{f32::consts::PI, time::Duration};
+use std::{f32::consts::PI, ops::Sub, time::Duration};
 use vek::*;
 
 /// Separated out to condense update portions of character state
@@ -129,16 +129,17 @@ impl CharacterBehavior for Data {
                         let ray_vector = Vec3::new(
                             (summon_frac * 2.0 * PI).sin() * length,
                             (summon_frac * 2.0 * PI).cos() * length,
-                            data.body.eye_height(),
+                            0.0,
                         );
 
-                        // Check for collision on the xy plane
+                        // Check for collision on the xy plane, subtract 1 to get point before block
                         let obstacle_xy = data
                             .terrain
                             .ray(data.pos.0, data.pos.0 + length * ray_vector)
                             .until(Block::is_solid)
                             .cast()
-                            .0;
+                            .0
+                            .sub(1.0);
 
                         let collision_vector = Vec3::new(
                             data.pos.0.x + (summon_frac * 2.0 * PI).sin() * obstacle_xy,
