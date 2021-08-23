@@ -11,8 +11,6 @@ use common_ecs::{Job, Origin, Phase, System};
 use specs::{Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::sync::Arc;
 
-const ENTITY_TICK_PERIOD: u64 = 30;
-
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
@@ -38,7 +36,7 @@ impl<'a> System<'a> for Sys {
         _job: &mut Job<Self>,
         (
             time,
-            dt,
+            _dt,
             server_event_bus,
             mut rtsim,
             terrain,
@@ -52,13 +50,23 @@ impl<'a> System<'a> for Sys {
         let rtsim = &mut *rtsim;
         rtsim.tick += 1;
 
-        // Update rtsim entities
-        // TODO: don't update all of them each tick
+        // Update unloaded rtsim entities, in groups at a time
+        const TICK_STAGGER: usize = 30;
+        let entities_per_iteration = rtsim.entities.len() / TICK_STAGGER;
         let mut to_reify = Vec::new();
-        for (id, entity) in rtsim.entities.iter_mut() {
-            if entity.is_loaded {
-                // Nothing here yet
-            } else if rtsim
+        for (id, entity) in rtsim
+            .entities
+            .iter_mut()
+            .skip((rtsim.tick as usize % TICK_STAGGER) * entities_per_iteration)
+            .take(entities_per_iteration)
+            .filter(|(_, e)| !e.is_loaded)
+        {
+            // Calculating dt ourselves because the dt provided to this fn was since the
+            // last frame, not since the last iteration that these entities acted
+            let dt = (time.0 - entity.last_time_ticked) as f32;
+            entity.last_time_ticked = time.0;
+
+            if rtsim
                 .chunks
                 .chunk_at(entity.pos.xy())
                 .map(|c| c.is_loaded)
@@ -75,7 +83,7 @@ impl<'a> System<'a> for Sys {
                             .unwrap_or_else(Vec2::zero)
                             * entity.get_body().max_speed_approx()
                             * entity.controller.speed_factor,
-                    ) * dt.0;
+                    ) * dt;
                 }
 
                 if let Some(alt) = world
@@ -85,12 +93,13 @@ impl<'a> System<'a> for Sys {
                     entity.pos.z = alt;
                 }
             }
+            entity.tick(&time, &terrain, &world, &index.as_index_ref());
+        }
 
-            // Tick entity AI
-            if entity.last_tick + ENTITY_TICK_PERIOD <= rtsim.tick {
-                entity.tick(&time, &terrain, &world, &index.as_index_ref());
-                entity.last_tick = rtsim.tick;
-            }
+        // Tick entity AI each time if it's loaded
+        for (_, entity) in rtsim.entities.iter_mut().filter(|(_, e)| e.is_loaded) {
+            entity.last_time_ticked = time.0;
+            entity.tick(&time, &terrain, &world, &index.as_index_ref());
         }
 
         let mut server_emitter = server_event_bus.emitter();
@@ -160,10 +169,14 @@ impl<'a> System<'a> for Sys {
 
         // Update rtsim with real entity data
         for (pos, rtsim_entity, agent) in (&positions, &rtsim_entities, &mut agents).join() {
-            rtsim.entities.get_mut(rtsim_entity.0).map(|entity| {
-                entity.pos = pos.0;
-                agent.rtsim_controller = entity.controller.clone();
-            });
+            rtsim
+                .entities
+                .get_mut(rtsim_entity.0)
+                .filter(|e| e.is_loaded)
+                .map(|entity| {
+                    entity.pos = pos.0;
+                    agent.rtsim_controller = entity.controller.clone();
+                });
         }
     }
 }

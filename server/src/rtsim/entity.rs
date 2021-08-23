@@ -19,7 +19,7 @@ pub struct Entity {
     pub is_loaded: bool,
     pub pos: Vec3<f32>,
     pub seed: u32,
-    pub last_tick: u64,
+    pub last_time_ticked: f64,
     pub controller: RtSimController,
 
     pub brain: Brain,
