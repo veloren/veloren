@@ -6,5 +6,5 @@
     Armor(Hands): Item("common.items.armor.witch.hand"),
     Armor(Legs): Item("common.items.armor.witch.pants"),
     Armor(Feet): Item("common.items.armor.witch.foot"),
-    Lantern: Item("common.items.lantern.black_0"),
+    Lantern: Item("common.items.lantern.pumpkin"),
 })

@@ -24,5 +24,9 @@
           vox_spec: ("lantern.geode_purp", (-2.5, -2.5, -9.5)),
           color: None
       ),
+      "PumpkinLantern": (
+          vox_spec: ("lantern.pumpkin", (-3.5, -4.0, -8.5)),
+          color: None
+      ),
     },
 ))
