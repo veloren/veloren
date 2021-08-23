@@ -6,9 +6,8 @@ use super::{
 };
 use crate::ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable};
 use conrod_core::{
-    color,
-    image::Id,
-    widget::{self, button, Button, Image, Rectangle, State, Text},
+    color, image,
+    widget::{self, Button, Image, Rectangle, State, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
 use i18n::Localization;
@@ -663,6 +662,7 @@ impl<'a> Diary<'a> {
         .middle_of(state.content_align)
         .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
         .set(state.general_combat_render_0, ui);
+
         Image::new(animate_by_pulse(
             &self
                 .item_imgs
@@ -2382,84 +2382,72 @@ impl<'a> Diary<'a> {
     fn create_unlock_skill_button(
         &mut self,
         skill: Skill,
-        id: Id,
-        conrod_widget_id: conrod_core::widget::id::Id,
+        skill_image: image::Id,
+        relative_from: widget::Id,
         skill_key: &str,
         widget_id: widget::Id,
         ui: &mut UiCell,
         events: &mut Vec<Event>,
         diary_tooltip: &Tooltip,
     ) {
-        if Self::create_skill_button(
-            id,
-            conrod_widget_id,
-            self.skill_set,
-            skill,
-            self.fonts,
-            &Self::get_skill_label(skill, self.skill_set),
-        )
-        .with_tooltip(
-            self.tooltip_manager,
-            self.localized_strings
-                .get(&format!("hud.skill.{}_title", skill_key)),
-            &format_skill_description(
-                self.localized_strings
-                    .get(&format!("hud.skill.{}", skill_key)),
-                skill,
-                self.skill_set,
-                self.localized_strings,
-            ),
-            diary_tooltip,
-            TEXT_COLOR,
-        )
-        .set(widget_id, ui)
-        .was_clicked()
-        {
-            events.push(Event::UnlockSkill(skill));
-        };
-    }
-
-    // FIXME: inline this before merge
-    fn create_skill_button<'b>(
-        image: Id,
-        state: widget::Id,
-        skill_set: &'b skills::SkillSet,
-        skill: Skill,
-        fonts: &'b Fonts,
-        label: &'b str,
-    ) -> Button<'b, button::Image> {
-        Button::image(image)
-            .w_h(74.0, 74.0)
-            .mid_top_with_margin_on(state, 3.0)
-            .label(label)
-            .label_y(conrod_core::position::Relative::Scalar(-47.0))
-            .label_x(conrod_core::position::Relative::Scalar(0.0))
-            .label_color(if skill_set.is_at_max_level(skill) {
-                TEXT_COLOR
-            } else if skill_set.sufficient_skill_points(skill) {
-                HP_COLOR
-            } else {
-                CRITICAL_HP_COLOR
-            })
-            .label_font_size(fonts.cyri.scale(15))
-            .label_font_id(fonts.cyri.conrod_id)
-            .image_color(if skill_set.prerequisites_met(skill) {
-                TEXT_COLOR
-            } else {
-                Color::Rgba(0.41, 0.41, 0.41, 0.7)
-            })
-    }
-
-    // FIXME: inline this before merge
-    fn get_skill_label(skill: Skill, skill_set: &skills::SkillSet) -> String {
-        if skill_set.prerequisites_met(skill) {
+        let label = if self.skill_set.prerequisites_met(skill) {
             format!(
                 "{}/{}",
-                skill_set.skill_level(skill).map_or(0, |l| l.unwrap_or(1)),
+                self.skill_set
+                    .skill_level(skill)
+                    .map_or(0, |l| l.unwrap_or(1)),
                 skill.max_level().unwrap_or(1)
             )
         } else {
             "".to_string()
-        }
+        };
+
+        let label_color = if self.skill_set.is_at_max_level(skill) {
+            TEXT_COLOR
+        } else if self.skill_set.sufficient_skill_points(skill) {
+            HP_COLOR
+        } else {
+            CRITICAL_HP_COLOR
+        };
+
+        let image_color = if self.skill_set.prerequisites_met(skill) {
+            TEXT_COLOR
+        } else {
+            Color::Rgba(0.41, 0.41, 0.41, 0.7)
+        };
+
+        let skill_title_key = &format!("hud.skill.{}_title", skill_key);
+        let skill_title = self.localized_strings.get(skill_title_key);
+
+        let skill_description_key = &format!("hud.skill.{}", skill_key);
+        let skill_description = &format_skill_description(
+            self.localized_strings.get(skill_description_key),
+            skill,
+            self.skill_set,
+            self.localized_strings,
+        );
+
+        let button = Button::image(skill_image)
+            .w_h(74.0, 74.0)
+            .mid_top_with_margin_on(relative_from, 3.0)
+            .label(&label)
+            .label_y(conrod_core::position::Relative::Scalar(-47.0))
+            .label_x(conrod_core::position::Relative::Scalar(0.0))
+            .label_color(label_color)
+            .label_font_size(self.fonts.cyri.scale(15))
+            .label_font_id(self.fonts.cyri.conrod_id)
+            .image_color(image_color)
+            .with_tooltip(
+                self.tooltip_manager,
+                skill_title,
+                skill_description,
+                diary_tooltip,
+                TEXT_COLOR,
+            )
+            .set(widget_id, ui);
+
+        if button.was_clicked() {
+            events.push(Event::UnlockSkill(skill));
+        };
     }
 }
