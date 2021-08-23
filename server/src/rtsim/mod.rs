@@ -110,6 +110,8 @@ pub fn init(state: &mut State, #[cfg(feature = "worldgen")] world: &world::World
     #[cfg(not(feature = "worldgen"))]
     let mut rtsim = RtSim::new(Vec2::new(40, 40));
 
+    // TODO: Determine number of rtsim entities based on things like initial site
+    // populations rather than world size
     #[cfg(feature = "worldgen")]
     for _ in 0..world.sim().get_size().product() / 400 {
         let pos = rtsim
@@ -124,7 +126,7 @@ pub fn init(state: &mut State, #[cfg(feature = "worldgen")] world: &world::World
             pos: Vec3::from(pos.map(|e| e as f32)),
             seed: thread_rng().gen(),
             controller: RtSimController::default(),
-            last_tick: 0,
+            last_time_ticked: 0.0,
             brain: Default::default(),
         });
     }
