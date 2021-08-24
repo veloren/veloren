@@ -504,10 +504,13 @@ impl<'a> System<'a> for Sys {
                                                         // specific proportional threshold.
                                                         const FUZZY_DIST_COMPARISON: f32 = 0.8;
                                                         // Only switch to new target if it is closer
-                                                        // than the old target
-                                                        tgt_pos.0.distance(pos.0)
-                                                            < old_tgt_pos.0.distance(pos.0)
-                                                                * FUZZY_DIST_COMPARISON
+                                                        // than the old target, or if the old target
+                                                        // had not triggered aggro (the new target
+                                                        // has because damage always triggers it)
+                                                        !old_tgt.aggro_on
+                                                            || tgt_pos.0.distance(pos.0)
+                                                                < old_tgt_pos.0.distance(pos.0)
+                                                                    * FUZZY_DIST_COMPARISON
                                                     } else {
                                                         true
                                                     }
