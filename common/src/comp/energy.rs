@@ -1,9 +1,8 @@
-use crate::comp::Body;
+use crate::{comp::Body, consts::ENERGY_PER_LEVEL};
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 
-pub const ENERGY_PER_LEVEL: u32 = 50;
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Energy {
     current: u32,

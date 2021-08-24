@@ -1211,10 +1211,10 @@ impl CharacterAbility {
                     *base_damage *= modifiers.base_damage.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Hammer(LKnockback)) {
-                    *knockback *= modifiers.base_damage.powi(level.into());
+                    *knockback *= modifiers.knockback.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Hammer(LCost)) {
-                    *energy_cost *= modifiers.base_damage.powi(level.into());
+                    *energy_cost *= modifiers.energy_cost.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Hammer(LDistance)) {
                     let strength = modifiers.leap_strength;
@@ -1275,7 +1275,7 @@ impl CharacterAbility {
                     *charge_duration *= charge_time.powi(level.into());
                 }
                 if let Ok(Some(level)) = skillset.skill_level(Bow(CMove)) {
-                    *move_speed *= modifiers.charge_rate.powi(level.into());
+                    *move_speed *= modifiers.move_speed.powi(level.into());
                 }
             },
             CharacterAbility::RepeaterRanged {
@@ -1344,8 +1344,8 @@ impl CharacterAbility {
                 let regen_level = skillset.skill_level_or(Staff(BRegen), 0);
                 let range_level = skillset.skill_level_or(Staff(BRadius), 0);
                 let power = modifiers.power.powi(damage_level.into());
-                let regen = modifiers.power.powi(regen_level.into());
-                let range = modifiers.power.powi(range_level.into());
+                let regen = modifiers.regen.powi(regen_level.into());
+                let range = modifiers.range.powi(range_level.into());
                 *projectile = projectile.modified_projectile(power, regen, range);
             },
             CharacterAbility::BasicBeam {

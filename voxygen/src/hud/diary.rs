@@ -4,7 +4,10 @@ use super::{
     Position, PositionSpecifier, Show, CRITICAL_HP_COLOR, HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0,
     UI_MAIN, XP_COLOR,
 };
-use crate::ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable};
+use crate::{
+    hud,
+    ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
+};
 use conrod_core::{
     color, image,
     widget::{self, Button, Image, Rectangle, State, Text},
@@ -13,11 +16,19 @@ use conrod_core::{
 use i18n::Localization;
 
 use client::{self, Client};
-use common::comp::{
-    item::tool::ToolKind,
-    skills::{self, Boost, BoostValue, Skill},
-    SkillSet,
+use common::{
+    comp::{
+        item::tool::ToolKind,
+        skills::{
+            self, AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, MiningSkill,
+            RollSkill, SceptreSkill, Skill, SkillGroupKind, StaffSkill, SwimSkill, SwordSkill,
+            SKILL_MODIFIERS,
+        },
+        SkillSet,
+    },
+    consts::{ENERGY_PER_LEVEL, HUMANOID_HP_PER_LEVEL},
 };
+use std::borrow::Cow;
 
 const ART_SIZE: [f64; 2] = [320.0, 320.0];
 
@@ -576,42 +587,6 @@ fn skill_tree_from_str(string: &str) -> Option<SelectedSkillTree> {
     }
 }
 
-/// Formats skill description, e.g.
-///
-/// "Increase max health by {boost}{SP}"
-///
-/// turns into
-///
-/// """
-///   Increase max health by 5
-///
-///   Requires 4 SP
-/// """
-fn format_skill_description<'a>(
-    raw_description: &'a str,
-    skill: Skill,
-    skill_set: &'a skills::SkillSet,
-    localized_strings: &'a Localization,
-) -> String {
-    let boost = skill.boost();
-    let with_values = match boost {
-        BoostValue::Number(x) => {
-            let value = x.abs();
-            raw_description.replace("{boost}", &value.to_string())
-        },
-        BoostValue::NonDescriptive => raw_description.to_owned(),
-    };
-    match skill_set.skill_level(skill) {
-        Ok(level) if level == skill.max_level() => with_values.replace("{SP}", ""),
-        _ => with_values.replace(
-            "{SP}",
-            &localized_strings
-                .get("hud.skill.req_sp")
-                .replace("{number}", &format!("{}", skill_set.skill_cost(skill))),
-        ),
-    }
-}
-
 impl<'a> Diary<'a> {
     fn handle_general_skills_window(
         &mut self,
@@ -643,13 +618,7 @@ impl<'a> Diary<'a> {
             skills_bot_l,
             skills_bot_r,
         );
-        use skills::{
-            ClimbSkill,
-            GeneralSkill::*,
-            RollSkill::{self, *},
-            SkillGroupKind::*,
-            SwimSkill,
-        };
+        use skills::{GeneralSkill::*, RollSkill::*, SkillGroupKind::*};
         use ToolKind::*;
         // General Combat
         Image::new(animate_by_pulse(
@@ -2391,15 +2360,14 @@ impl<'a> Diary<'a> {
         diary_tooltip: &Tooltip,
     ) {
         let label = if self.skill_set.prerequisites_met(skill) {
-            format!(
-                "{}/{}",
-                self.skill_set
-                    .skill_level(skill)
-                    .map_or(0, |l| l.unwrap_or(1)),
-                skill.max_level().unwrap_or(1)
-            )
+            let current = self
+                .skill_set
+                .skill_level(skill)
+                .map_or(0, |l| l.unwrap_or(1));
+            let max = skill.max_level().unwrap_or(1);
+            format!("{}/{}", current, max)
         } else {
-            "".to_string()
+            "".to_owned()
         };
 
         let label_color = if self.skill_set.is_at_max_level(skill) {
@@ -2416,16 +2384,13 @@ impl<'a> Diary<'a> {
             Color::Rgba(0.41, 0.41, 0.41, 0.7)
         };
 
-        let skill_title_key = &format!("hud.skill.{}_title", skill_key);
-        let skill_title = self.localized_strings.get(skill_title_key);
+        let (skill_title, skill_description) = self.skill_info(skill);
 
-        let skill_description_key = &format!("hud.skill.{}", skill_key);
-        let skill_description = &format_skill_description(
-            self.localized_strings.get(skill_description_key),
-            skill,
-            self.skill_set,
-            self.localized_strings,
-        );
+        // Borrowcheck forced me to do this.
+        // I need to borrow self.tooltip_manager mutably later, while
+        // keeping references to self.localized_strings otherwise.
+        let skill_title: String = skill_title.to_owned();
+        let skill_description: String = skill_description.into_owned();
 
         let button = Button::image(skill_image)
             .w_h(74.0, 74.0)
@@ -2439,8 +2404,8 @@ impl<'a> Diary<'a> {
             .image_color(image_color)
             .with_tooltip(
                 self.tooltip_manager,
-                skill_title,
-                skill_description,
+                &skill_title,
+                &skill_description,
                 diary_tooltip,
                 TEXT_COLOR,
             )
@@ -2450,4 +2415,759 @@ impl<'a> Diary<'a> {
             events.push(Event::UnlockSkill(skill));
         };
     }
+
+    fn skill_info(&self, skill: Skill) -> (&str, Cow<str>) {
+        let (title, description) = skill_strings(skill, self.localized_strings);
+        let description = if description.contains("{SP}") {
+            Cow::Owned(self.splice_skill_reqs(skill, &description))
+        } else {
+            description
+        };
+
+        (title, description)
+    }
+
+    fn splice_skill_reqs(&self, skill: Skill, desc: &str) -> String {
+        let current_level = self.skill_set.skill_level(skill);
+        if matches!(current_level, Ok(level) if level == skill.max_level()) {
+            desc.replace("{SP}", "")
+        } else {
+            let req_sp_text = self.localized_strings.get("hud.skill.req_sp");
+            let skill_cost_text = self.skill_set.skill_cost(skill).to_string();
+            desc.replace("{SP}", &req_sp_text.replace("{number}", &skill_cost_text))
+        }
+    }
+}
+
+/// Returns skill info as a tuple of title and description.
+///
+/// Title is ready to use, description may include `"{SP}"` placeholder you
+/// will want to handle yourself.
+pub fn skill_strings(skill: Skill, i18n: &Localization) -> (&str, Cow<str>) {
+    match skill {
+        // general tree
+        Skill::General(s) => general_skill_strings(s, i18n),
+        Skill::UnlockGroup(s) => unlock_skill_strings(s, i18n),
+        // weapon trees
+        Skill::Sword(s) => sword_skill_strings(s, i18n),
+        Skill::Axe(s) => axe_skill_strings(s, i18n),
+        Skill::Hammer(s) => hammer_skill_strings(s, i18n),
+        Skill::Bow(s) => bow_skill_strings(s, i18n),
+        Skill::Staff(s) => staff_skill_strings(s, i18n),
+        Skill::Sceptre(s) => sceptre_skill_strings(s, i18n),
+        // movement trees
+        Skill::Roll(s) => roll_skill_strings(s, i18n),
+        Skill::Climb(s) => climb_skill_strings(s, i18n),
+        Skill::Swim(s) => swim_skill_strings(s, i18n),
+        // mining
+        Skill::Pick(s) => mining_skill_strings(s, i18n),
+    }
+}
+
+fn general_skill_strings(skill: GeneralSkill, i18n: &Localization) -> (&str, Cow<str>) {
+    match skill {
+        GeneralSkill::HealthIncrease => splice_constant(
+            i18n,
+            "hud.skill.inc_health_title",
+            "hud.skill.inc_health",
+            HUMANOID_HP_PER_LEVEL / 10,
+        ),
+        GeneralSkill::EnergyIncrease => splice_constant(
+            i18n,
+            "hud.skill.inc_energy_title",
+            "hud.skill.inc_energy",
+            ENERGY_PER_LEVEL / 10,
+        ),
+    }
+}
+
+fn unlock_skill_strings(group: SkillGroupKind, i18n: &Localization) -> (&str, Cow<str>) {
+    match group {
+        SkillGroupKind::Weapon(ToolKind::Sword) => {
+            localize(i18n, "hud.skill.unlck_sword_title", "hud.skill.unlck_sword")
+        },
+        SkillGroupKind::Weapon(ToolKind::Axe) => {
+            localize(i18n, "hud.skill.unlck_axe_title", "hud.skill.unlck_axe")
+        },
+        SkillGroupKind::Weapon(ToolKind::Hammer) => localize(
+            i18n,
+            "hud.skill.unlck_hammer_title",
+            "hud.skill.unlck_hammer",
+        ),
+        SkillGroupKind::Weapon(ToolKind::Bow) => {
+            localize(i18n, "hud.skill.unlck_bow_title", "hud.skill.unlck_bow")
+        },
+        SkillGroupKind::Weapon(ToolKind::Staff) => {
+            localize(i18n, "hud.skill.unlck_staff_title", "hud.skill.unlck_staff")
+        },
+        SkillGroupKind::Weapon(ToolKind::Sceptre) => localize(
+            i18n,
+            "hud.skill.unlck_sceptre_title",
+            "hud.skill.unlck_sceptre",
+        ),
+        SkillGroupKind::General
+        | SkillGroupKind::Weapon(
+            ToolKind::Dagger
+            | ToolKind::Shield
+            | ToolKind::Spear
+            | ToolKind::Debug
+            | ToolKind::Farming
+            | ToolKind::Pick
+            | ToolKind::Natural
+            | ToolKind::Empty,
+        ) => {
+            tracing::warn!("Requesting title for unlocking unexpected skill group");
+            ("", Cow::Owned(String::new()))
+        },
+    }
+}
+
+fn sword_skill_strings<'a>(skill: SwordSkill, i18n: &'a Localization) -> (&str, Cow<str>) {
+    let modifiers = SKILL_MODIFIERS.sword_tree;
+    match skill {
+        // triple strike
+        SwordSkill::TsCombo => localize(
+            i18n,
+            "hud.skill.sw_trip_str_combo_title",
+            "hud.skill.sw_trip_str_combo",
+        ),
+        SwordSkill::TsDamage => localize(
+            i18n,
+            "hud.skill.sw_trip_str_dmg_title",
+            "hud.skill.sw_trip_str_dmg",
+        ),
+        SwordSkill::TsSpeed => localize(
+            i18n,
+            "hud.skill.sw_trip_str_sp_title",
+            "hud.skill.sw_trip_str_sp",
+        ),
+        SwordSkill::TsRegen => localize(
+            i18n,
+            "hud.skill.sw_trip_str_reg_title",
+            "hud.skill.sw_trip_str_reg",
+        ),
+        // dash
+        SwordSkill::DDamage => splice_multiplier(
+            i18n,
+            "hud.skill.sw_dash_dmg_title",
+            "hud.skill.sw_dash_dmg",
+            modifiers.dash.base_damage,
+        ),
+        SwordSkill::DDrain => splice_multiplier(
+            i18n,
+            "hud.skill.sw_dash_drain_title",
+            "hud.skill.sw_dash_drain",
+            modifiers.dash.energy_drain,
+        ),
+        SwordSkill::DCost => splice_multiplier(
+            i18n,
+            "hud.skill.sw_dash_cost_title",
+            "hud.skill.sw_dash_cost",
+            modifiers.dash.energy_cost,
+        ),
+        SwordSkill::DSpeed => splice_multiplier(
+            i18n,
+            "hud.skill.sw_dash_speed_title",
+            "hud.skill.sw_dash_speed",
+            modifiers.dash.forward_speed,
+        ),
+        SwordSkill::DInfinite => localize(
+            i18n,
+            "hud.skill.sw_dash_charge_through_title",
+            "hud.skill.sw_dash_charge_through",
+        ),
+        SwordSkill::DScaling => splice_multiplier(
+            i18n,
+            "hud.skill.sw_dash_scale_title",
+            "hud.skill.sw_dash_scale",
+            modifiers.dash.scaled_damage,
+        ),
+        // spin
+        SwordSkill::UnlockSpin => localize(i18n, "hud.skill.sw_spin_title", "hud.skill.sw_spin"),
+        SwordSkill::SDamage => splice_multiplier(
+            i18n,
+            "hud.skill.sw_spin_dmg_title",
+            "hud.skill.sw_spin_dmg",
+            modifiers.spin.base_damage,
+        ),
+        SwordSkill::SSpeed => splice_multiplier(
+            i18n,
+            "hud.skill.sw_spin_spd_title",
+            "hud.skill.sw_spin_spd",
+            modifiers.spin.swing_duration,
+        ),
+        SwordSkill::SCost => splice_multiplier(
+            i18n,
+            "hud.skill.sw_spin_cost_title",
+            "hud.skill.sw_spin_cost",
+            modifiers.spin.energy_cost,
+        ),
+        SwordSkill::SSpins => splice_constant(
+            i18n,
+            "hud.skill.sw_spin_spins_title",
+            "hud.skill.sw_spin_spins",
+            modifiers.spin.num,
+        ),
+        // independent skills
+        SwordSkill::InterruptingAttacks => localize(
+            i18n,
+            "hud.skill.sw_interrupt_title",
+            "hud.skill.sw_interrupt",
+        ),
+    }
+}
+
+fn axe_skill_strings(skill: AxeSkill, i18n: &Localization) -> (&str, Cow<str>) {
+    let modifiers = SKILL_MODIFIERS.axe_tree;
+    match skill {
+        // Double strike upgrades
+        AxeSkill::DsCombo => localize(
+            i18n,
+            "hud.skill.axe_double_strike_combo_title",
+            "hud.skill.axe_double_strike_combo",
+        ),
+        AxeSkill::DsDamage => localize(
+            i18n,
+            "hud.skill.axe_double_strike_damage_title",
+            "hud.skill.axe_double_strike_damage",
+        ),
+        AxeSkill::DsSpeed => localize(
+            i18n,
+            "hud.skill.axe_double_strike_speed_title",
+            "hud.skill.axe_double_strike_speed",
+        ),
+        AxeSkill::DsRegen => localize(
+            i18n,
+            "hud.skill.axe_double_strike_regen_title",
+            "hud.skill.axe_double_strike_regen",
+        ),
+        // Spin upgrades
+        AxeSkill::SInfinite => localize(
+            i18n,
+            "hud.skill.axe_infinite_axe_spin_title",
+            "hud.skill.axe_infinite_axe_spin",
+        ),
+        AxeSkill::SHelicopter => localize(
+            i18n,
+            "hud.skill.axe_spin_helicopter_title",
+            "hud.skill.axe_spin_helicopter",
+        ),
+        AxeSkill::SDamage => splice_multiplier(
+            i18n,
+            "hud.skill.axe_spin_damage_title",
+            "hud.skill.axe_spin_damage",
+            modifiers.spin.base_damage,
+        ),
+        AxeSkill::SSpeed => splice_multiplier(
+            i18n,
+            "hud.skill.axe_spin_speed_title",
+            "hud.skill.axe_spin_speed",
+            modifiers.spin.swing_duration,
+        ),
+        AxeSkill::SCost => splice_multiplier(
+            i18n,
+            "hud.skill.axe_spin_cost_title",
+            "hud.skill.axe_spin_cost",
+            modifiers.spin.energy_cost,
+        ),
+        // Leap upgrades
+        AxeSkill::UnlockLeap => localize(
+            i18n,
+            "hud.skill.axe_unlock_leap_title",
+            "hud.skill.axe_unlock_leap",
+        ),
+        AxeSkill::LDamage => splice_multiplier(
+            i18n,
+            "hud.skill.axe_leap_damage_title",
+            "hud.skill.axe_leap_damage",
+            modifiers.leap.base_damage,
+        ),
+        AxeSkill::LKnockback => splice_multiplier(
+            i18n,
+            "hud.skill.axe_leap_knockback_title",
+            "hud.skill.axe_leap_knockback",
+            modifiers.leap.knockback,
+        ),
+        AxeSkill::LCost => splice_multiplier(
+            i18n,
+            "hud.skill.axe_leap_cost_title",
+            "hud.skill.axe_leap_cost",
+            modifiers.leap.energy_cost,
+        ),
+        AxeSkill::LDistance => splice_multiplier(
+            i18n,
+            "hud.skill.axe_leap_distance_title",
+            "hud.skill.axe_leap_distance",
+            modifiers.leap.leap_strength,
+        ),
+    }
+}
+
+fn hammer_skill_strings(skill: HammerSkill, i18n: &Localization) -> (&str, Cow<str>) {
+    let modifiers = SKILL_MODIFIERS.hammer_tree;
+    // Single strike upgrades
+    match skill {
+        HammerSkill::SsKnockback => splice_multiplier(
+            i18n,
+            "hud.skill.hmr_single_strike_knockback_title",
+            "hud.skill.hmr_single_strike_knockback",
+            modifiers.single_strike.knockback,
+        ),
+        HammerSkill::SsDamage => localize(
+            i18n,
+            "hud.skill.hmr_single_strike_damage_title",
+            "hud.skill.hmr_single_strike_damage",
+        ),
+        HammerSkill::SsSpeed => localize(
+            i18n,
+            "hud.skill.hmr_single_strike_speed_title",
+            "hud.skill.hmr_single_strike_speed",
+        ),
+        HammerSkill::SsRegen => localize(
+            i18n,
+            "hud.skill.hmr_single_strike_regen_title",
+            "hud.skill.hmr_single_strike_regen",
+        ),
+        // Charged melee upgrades
+        HammerSkill::CDamage => splice_multiplier(
+            i18n,
+            "hud.skill.hmr_charged_melee_damage_title",
+            "hud.skill.hmr_charged_melee_damage",
+            modifiers.charged.scaled_damage,
+        ),
+        HammerSkill::CKnockback => splice_multiplier(
+            i18n,
+            "hud.skill.hmr_charged_melee_knockback_title",
+            "hud.skill.hmr_charged_melee_knockback",
+            modifiers.charged.scaled_knockback,
+        ),
+        HammerSkill::CDrain => splice_multiplier(
+            i18n,
+            "hud.skill.hmr_charged_melee_nrg_drain_title",
+            "hud.skill.hmr_charged_melee_nrg_drain",
+            modifiers.charged.energy_drain,
+        ),
+        HammerSkill::CSpeed => splice_multiplier(
+            i18n,
+            "hud.skill.hmr_charged_rate_title",
+            "hud.skill.hmr_charged_rate",
+            modifiers.charged.charge_rate,
+        ),
+        // Leap upgrades
+        HammerSkill::UnlockLeap => localize(
+            i18n,
+            "hud.skill.hmr_unlock_leap_title",
+            "hud.skill.hmr_unlock_leap",
+        ),
+        HammerSkill::LDamage => splice_multiplier(
+            i18n,
+            "hud.skill.hmr_leap_damage_title",
+            "hud.skill.hmr_leap_damage",
+            modifiers.leap.base_damage,
+        ),
+        HammerSkill::LCost => splice_multiplier(
+            i18n,
+            "hud.skill.hmr_leap_cost_title",
+            "hud.skill.hmr_leap_cost",
+            modifiers.leap.energy_cost,
+        ),
+        HammerSkill::LDistance => splice_multiplier(
+            i18n,
+            "hud.skill.hmr_leap_distance_title",
+            "hud.skill.hmr_leap_distance",
+            modifiers.leap.leap_strength,
+        ),
+        HammerSkill::LKnockback => splice_multiplier(
+            i18n,
+            "hud.skill.hmr_leap_knockback_title",
+            "hud.skill.hmr_leap_knockback",
+            modifiers.leap.knockback,
+        ),
+        HammerSkill::LRange => splice_multiplier(
+            i18n,
+            "hud.skill.hmr_leap_radius_title",
+            "hud.skill.hmr_leap_radius",
+            modifiers.leap.range,
+        ),
+    }
+}
+
+fn bow_skill_strings(skill: BowSkill, i18n: &Localization) -> (&str, Cow<str>) {
+    let modifiers = SKILL_MODIFIERS.bow_tree;
+    match skill {
+        // Passives
+        BowSkill::ProjSpeed => splice_multiplier(
+            i18n,
+            "hud.skill.bow_projectile_speed_title",
+            "hud.skill.bow_projectile_speed",
+            modifiers.universal.projectile_speed,
+        ),
+        // Charged upgrades
+        BowSkill::CDamage => splice_multiplier(
+            i18n,
+            "hud.skill.bow_charged_damage_title",
+            "hud.skill.bow_charged_damage",
+            modifiers.charged.damage_scaling,
+        ),
+        BowSkill::CRegen => splice_multiplier(
+            i18n,
+            "hud.skill.bow_charged_energy_regen_title",
+            "hud.skill.bow_charged_energy_regen",
+            modifiers.charged.regen_scaling,
+        ),
+        BowSkill::CKnockback => splice_multiplier(
+            i18n,
+            "hud.skill.bow_charged_knockback_title",
+            "hud.skill.bow_charged_knockback",
+            modifiers.charged.knockback_scaling,
+        ),
+        BowSkill::CSpeed => splice_multiplier(
+            i18n,
+            "hud.skill.bow_charged_speed_title",
+            "hud.skill.bow_charged_speed",
+            modifiers.charged.charge_rate,
+        ),
+        BowSkill::CMove => splice_multiplier(
+            i18n,
+            "hud.skill.bow_charged_move_title",
+            "hud.skill.bow_charged_move",
+            modifiers.charged.move_speed,
+        ),
+        // Repeater upgrades
+        BowSkill::RDamage => splice_multiplier(
+            i18n,
+            "hud.skill.bow_repeater_damage_title",
+            "hud.skill.bow_repeater_damage",
+            modifiers.repeater.power,
+        ),
+        BowSkill::RCost => splice_multiplier(
+            i18n,
+            "hud.skill.bow_repeater_cost_title",
+            "hud.skill.bow_repeater_cost",
+            modifiers.repeater.energy_cost,
+        ),
+        BowSkill::RSpeed => splice_multiplier(
+            i18n,
+            "hud.skill.bow_repeater_speed_title",
+            "hud.skill.bow_repeater_speed",
+            modifiers.repeater.max_speed,
+        ),
+        // Shotgun upgrades
+        BowSkill::UnlockShotgun => localize(
+            i18n,
+            "hud.skill.bow_shotgun_unlock_title",
+            "hud.skill.bow_shotgun_unlock",
+        ),
+        BowSkill::SDamage => splice_multiplier(
+            i18n,
+            "hud.skill.bow_shotgun_damage_title",
+            "hud.skill.bow_shotgun_damage",
+            modifiers.shotgun.power,
+        ),
+        BowSkill::SCost => splice_multiplier(
+            i18n,
+            "hud.skill.bow_shotgun_cost_title",
+            "hud.skill.bow_shotgun_cost",
+            modifiers.shotgun.energy_cost,
+        ),
+        BowSkill::SArrows => splice_constant(
+            i18n,
+            "hud.skill.bow_shotgun_arrow_count_title",
+            "hud.skill.bow_shotgun_arrow_count",
+            modifiers.shotgun.num_projectiles,
+        ),
+        BowSkill::SSpread => splice_multiplier(
+            i18n,
+            "hud.skill.bow_shotgun_spread_title",
+            "hud.skill.bow_shotgun_spread",
+            modifiers.shotgun.spread,
+        ),
+    }
+}
+
+fn staff_skill_strings(skill: StaffSkill, i18n: &Localization) -> (&str, Cow<str>) {
+    let modifiers = SKILL_MODIFIERS.staff_tree;
+    match skill {
+        // Basic ranged upgrades
+        StaffSkill::BDamage => splice_multiplier(
+            i18n,
+            "hud.skill.st_damage_title",
+            "hud.skill.st_damage",
+            modifiers.fireball.power,
+        ),
+        StaffSkill::BRegen => splice_multiplier(
+            i18n,
+            "hud.skill.st_energy_regen_title",
+            "hud.skill.st_energy_regen",
+            modifiers.fireball.regen,
+        ),
+        StaffSkill::BRadius => splice_multiplier(
+            i18n,
+            "hud.skill.st_explosion_radius_title",
+            "hud.skill.st_explosion_radius",
+            modifiers.fireball.range,
+        ),
+        // Flamethrower upgrades
+        StaffSkill::FDamage => splice_multiplier(
+            i18n,
+            "hud.skill.st_flamethrower_damage_title",
+            "hud.skill.st_flamethrower_damage",
+            modifiers.flamethrower.damage,
+        ),
+        StaffSkill::FRange => splice_multiplier(
+            i18n,
+            "hud.skill.st_flamethrower_range_title",
+            "hud.skill.st_flamethrower_range",
+            modifiers.flamethrower.range,
+        ),
+        StaffSkill::FDrain => splice_multiplier(
+            i18n,
+            "hud.skill.st_energy_drain_title",
+            "hud.skill.st_energy_drain",
+            modifiers.flamethrower.energy_drain,
+        ),
+        StaffSkill::FVelocity => splice_multiplier(
+            i18n,
+            "hud.skill.st_flame_velocity_title",
+            "hud.skill.st_flame_velocity",
+            modifiers.flamethrower.velocity,
+        ),
+        // Shockwave upgrades
+        StaffSkill::UnlockShockwave => localize(
+            i18n,
+            "hud.skill.st_shockwave_unlock_title",
+            "hud.skill.st_shockwave_unlock",
+        ),
+        StaffSkill::SDamage => splice_multiplier(
+            i18n,
+            "hud.skill.st_shockwave_damage_title",
+            "hud.skill.st_shockwave_damage",
+            modifiers.shockwave.damage,
+        ),
+        StaffSkill::SKnockback => splice_multiplier(
+            i18n,
+            "hud.skill.st_shockwave_knockback_title",
+            "hud.skill.st_shockwave_knockback",
+            modifiers.shockwave.knockback,
+        ),
+        StaffSkill::SRange => splice_multiplier(
+            i18n,
+            "hud.skill.st_shockwave_range_title",
+            "hud.skill.st_shockwave_range",
+            modifiers.shockwave.duration,
+        ),
+        StaffSkill::SCost => splice_multiplier(
+            i18n,
+            "hud.skill.st_shockwave_cost_title",
+            "hud.skill.st_shockwave_cost",
+            modifiers.shockwave.energy_cost,
+        ),
+    }
+}
+
+fn sceptre_skill_strings(skill: SceptreSkill, i18n: &Localization) -> (&str, Cow<str>) {
+    let modifiers = SKILL_MODIFIERS.sceptre_tree;
+    match skill {
+        // Lifesteal beam upgrades
+        SceptreSkill::LDamage => splice_multiplier(
+            i18n,
+            "hud.skill.sc_lifesteal_damage_title",
+            "hud.skill.sc_lifesteal_damage",
+            modifiers.beam.damage,
+        ),
+        SceptreSkill::LRange => splice_multiplier(
+            i18n,
+            "hud.skill.sc_lifesteal_range_title",
+            "hud.skill.sc_lifesteal_range",
+            modifiers.beam.range,
+        ),
+        SceptreSkill::LLifesteal => splice_multiplier(
+            i18n,
+            "hud.skill.sc_lifesteal_lifesteal_title",
+            "hud.skill.sc_lifesteal_lifesteal",
+            modifiers.beam.lifesteal,
+        ),
+        SceptreSkill::LRegen => splice_multiplier(
+            i18n,
+            "hud.skill.sc_lifesteal_regen_title",
+            "hud.skill.sc_lifesteal_regen",
+            modifiers.beam.energy_regen,
+        ),
+        // Healing aura upgrades
+        SceptreSkill::HHeal => splice_multiplier(
+            i18n,
+            "hud.skill.sc_heal_heal_title",
+            "hud.skill.sc_heal_heal",
+            modifiers.healing_aura.strength,
+        ),
+        SceptreSkill::HRange => splice_multiplier(
+            i18n,
+            "hud.skill.sc_heal_range_title",
+            "hud.skill.sc_heal_range",
+            modifiers.healing_aura.range,
+        ),
+        SceptreSkill::HDuration => splice_multiplier(
+            i18n,
+            "hud.skill.sc_heal_duration_title",
+            "hud.skill.sc_heal_duration",
+            modifiers.healing_aura.duration,
+        ),
+        SceptreSkill::HCost => splice_multiplier(
+            i18n,
+            "hud.skill.sc_heal_cost_title",
+            "hud.skill.sc_heal_cost",
+            modifiers.healing_aura.energy_cost,
+        ),
+        // Warding aura upgrades
+        SceptreSkill::UnlockAura => localize(
+            i18n,
+            "hud.skill.sc_wardaura_unlock_title",
+            "hud.skill.sc_wardaura_unlock",
+        ),
+        SceptreSkill::AStrength => splice_multiplier(
+            i18n,
+            "hud.skill.sc_wardaura_strength_title",
+            "hud.skill.sc_wardaura_strength",
+            modifiers.warding_aura.strength,
+        ),
+        SceptreSkill::ADuration => splice_multiplier(
+            i18n,
+            "hud.skill.sc_wardaura_duration_title",
+            "hud.skill.sc_wardaura_duration",
+            modifiers.warding_aura.duration,
+        ),
+        SceptreSkill::ARange => splice_multiplier(
+            i18n,
+            "hud.skill.sc_wardaura_range_title",
+            "hud.skill.sc_wardaura_range",
+            modifiers.warding_aura.range,
+        ),
+        SceptreSkill::ACost => splice_multiplier(
+            i18n,
+            "hud.skill.sc_wardaura_cost_title",
+            "hud.skill.sc_wardaura_cost",
+            modifiers.warding_aura.energy_cost,
+        ),
+    }
+}
+
+fn roll_skill_strings(skill: RollSkill, i18n: &Localization) -> (&str, Cow<str>) {
+    let modifiers = SKILL_MODIFIERS.general_tree.roll;
+    match skill {
+        RollSkill::Cost => splice_multiplier(
+            i18n,
+            "hud.skill.roll_energy_title",
+            "hud.skill.roll_energy",
+            modifiers.energy_cost,
+        ),
+        RollSkill::Strength => splice_multiplier(
+            i18n,
+            "hud.skill.roll_speed_title",
+            "hud.skill.roll_speed",
+            modifiers.strength,
+        ),
+        RollSkill::Duration => splice_multiplier(
+            i18n,
+            "hud.skill.roll_dur_title",
+            "hud.skill.roll_dur",
+            modifiers.duration,
+        ),
+    }
+}
+
+fn climb_skill_strings(skill: ClimbSkill, i18n: &Localization) -> (&str, Cow<str>) {
+    let modifiers = SKILL_MODIFIERS.general_tree.climb;
+    match skill {
+        ClimbSkill::Cost => splice_multiplier(
+            i18n,
+            "hud.skill.climbing_cost_title",
+            "hud.skill.climbing_cost",
+            modifiers.energy_cost,
+        ),
+        ClimbSkill::Speed => splice_multiplier(
+            i18n,
+            "hud.skill.climbing_speed_title",
+            "hud.skill.climbing_speed",
+            modifiers.speed,
+        ),
+    }
+}
+
+fn swim_skill_strings(skill: SwimSkill, i18n: &Localization) -> (&str, Cow<str>) {
+    let modifiers = SKILL_MODIFIERS.general_tree.swim;
+    match skill {
+        SwimSkill::Speed => splice_multiplier(
+            i18n,
+            "hud.skill.swim_speed_title",
+            "hud.skill.swim_speed",
+            modifiers.speed,
+        ),
+    }
+}
+
+fn mining_skill_strings(skill: MiningSkill, i18n: &Localization) -> (&str, Cow<str>) {
+    let modifiers = SKILL_MODIFIERS.mining_tree;
+    match skill {
+        MiningSkill::Speed => splice_multiplier(
+            i18n,
+            "hud.skill.pick_strike_speed_title",
+            "hud.skill.pick_strike_speed",
+            modifiers.speed,
+        ),
+        MiningSkill::OreGain => splice_multiplier(
+            i18n,
+            "hud.skill.pick_strike_oregain_title",
+            "hud.skill.pick_strike_oregain",
+            modifiers.ore_gain,
+        ),
+        MiningSkill::GemGain => splice_multiplier(
+            i18n,
+            "hud.skill.pick_strike_gemgain_title",
+            "hud.skill.pick_strike_gemgain",
+            modifiers.gem_gain,
+        ),
+    }
+}
+
+/// Helper function which takes title i18n key and description i18n key
+/// and returns localized title and localized description replacing "{boost}"
+/// placeholder with passed constant.
+// TODO: do something better when we get to multimodifier skills
+fn splice_constant<'loc>(
+    i18n: &'loc Localization,
+    title: &'loc str,
+    desc: &str,
+    constant: u32,
+) -> (&'loc str, Cow<'loc, str>) {
+    let title = i18n.get(title);
+    let desc = i18n.get(desc);
+    let desc = desc.replace("{boost}", &constant.to_string());
+
+    (title, Cow::Owned(desc))
+}
+
+/// Helper function which takes title i18n key and description i18n key
+/// and returns localized title and localized description replacing "{boost}"
+/// placeholder with absolute value of percentage effect of multiplier.
+// TODO: do something better when we get to multimodifier skills
+fn splice_multiplier<'loc>(
+    i18n: &'loc Localization,
+    title: &'loc str,
+    desc: &str,
+    multipler: f32,
+) -> (&'loc str, Cow<'loc, str>) {
+    let percentage = hud::multiplier_to_percentage(multipler).unsigned_abs();
+    splice_constant(i18n, title, desc, percentage)
+}
+
+// Small helper function to get localized skill text.
+fn localize<'loc>(
+    i18n: &'loc Localization,
+    title: &'loc str,
+    desc: &'loc str,
+) -> (&'loc str, Cow<'loc, str>) {
+    let title = i18n.get(title);
+    let desc = i18n.get(desc);
+
+    (title, Cow::Borrowed(desc))
 }

@@ -16,7 +16,7 @@ pub mod theropod;
 
 use crate::{
     assets::{self, Asset},
-    consts::{HUMAN_DENSITY, WATER_DENSITY},
+    consts::{HUMANOID_HP_PER_LEVEL, HUMAN_DENSITY, WATER_DENSITY},
     make_case_elim,
     npc::NpcKind,
 };
@@ -563,7 +563,7 @@ impl Body {
     #[allow(unreachable_patterns)]
     pub fn base_health_increase(&self) -> u32 {
         match self {
-            Body::Humanoid(_) => 50,
+            Body::Humanoid(_) => HUMANOID_HP_PER_LEVEL,
             Body::QuadrupedSmall(quadruped_small) => match quadruped_small.species {
                 quadruped_small::Species::Boar => 20,
                 quadruped_small::Species::Batfox => 10,

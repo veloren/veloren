@@ -4132,3 +4132,14 @@ pub fn angle_of_attack_text(
         "Angle of Attack: Not moving".to_owned()
     }
 }
+
+/// Converts multiplier to percentage.
+///
+/// # Examples
+/// ```
+/// use veloren_voxygen::hud::multiplier_to_percentage;
+///
+/// assert_eq!(multiplier_to_percentage(1.05), 5);
+/// assert_eq!(multiplier_to_percentage(0.85), -15);
+/// ```
+pub fn multiplier_to_percentage(value: f32) -> i32 { (value * 100.0 - 100.0).round() as i32 }

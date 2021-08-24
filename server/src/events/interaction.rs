@@ -354,14 +354,14 @@ pub fn handle_mine_block(
                     let mut rng = rand::thread_rng();
 
                     let need_double_ore = |rng: &mut rand::rngs::ThreadRng| {
-                        let chance_mod = SKILL_MODIFIERS.mining_tree.ore_gain;
+                        let chance_mod = f64::from(SKILL_MODIFIERS.mining_tree.ore_gain);
                         let skill_level =
                             skillset.skill_level_or(Skill::Pick(MiningSkill::OreGain), 0);
 
                         rng.gen_bool(chance_mod * f64::from(skill_level))
                     };
                     let need_double_gem = |rng: &mut rand::rngs::ThreadRng| {
-                        let chance_mod = SKILL_MODIFIERS.mining_tree.gem_gain;
+                        let chance_mod = f64::from(SKILL_MODIFIERS.mining_tree.gem_gain);
                         let skill_level =
                             skillset.skill_level_or(Skill::Pick(MiningSkill::GemGain), 0);
 
