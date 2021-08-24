@@ -15,6 +15,8 @@ use common_base::span;
 
 use crate::scene::{terrain::Interaction, Scene};
 
+// TODO: extract mining blocks (the None case in the Block variant) from this
+// enum since they don't use the interaction key
 #[derive(Clone, Copy, Debug)]
 pub enum Interactable {
     Block(Block, Vec3<i32>, Option<Interaction>),
