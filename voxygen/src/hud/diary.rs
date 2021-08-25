@@ -587,6 +587,22 @@ fn skill_tree_from_str(string: &str) -> Option<SelectedSkillTree> {
     }
 }
 
+enum SkillIcon<'a> {
+    Unlockable {
+        skill: Skill,
+        image: image::Id,
+        position: PositionSpecifier,
+        id: widget::Id,
+    },
+    Descriptive {
+        title: &'a str,
+        desc: &'a str,
+        image: image::Id,
+        position: PositionSpecifier,
+        id: widget::Id,
+    },
+}
+
 impl<'a> Diary<'a> {
     fn handle_general_skills_window(
         &mut self,
@@ -642,188 +658,124 @@ impl<'a> Diary<'a> {
         .middle_of(state.general_combat_render_0)
         .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
         .set(state.general_combat_render_1, ui);
-        // Top Left skills
-        //        5 1 6
-        //        3 0 4
-        //        8 2 7
-        self.create_unlock_skill_button(
-            Skill::General(HealthIncrease),
-            self.imgs.health_plus_skill,
-            state.skills_top_l[0],
-            "inc_health",
-            state.skill_general_stat_0,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::General(EnergyIncrease),
-            self.imgs.energy_plus_skill,
-            state.skills_top_l[1],
-            "inc_energy",
-            state.skill_general_stat_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        // Top right skills
-        self.create_unlock_skill_button(
-            Skill::UnlockGroup(Weapon(Sword)),
-            self.imgs.unlock_sword_skill,
-            state.skills_top_r[0],
-            "unlck_sword",
-            state.skill_general_tree_0,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::UnlockGroup(Weapon(Axe)),
-            self.imgs.unlock_axe_skill,
-            state.skills_top_r[1],
-            "unlck_axe",
-            state.skill_general_tree_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::UnlockGroup(Weapon(Hammer)),
-            self.imgs.unlock_hammer_skill,
-            state.skills_top_r[2],
-            "unlck_hammer",
-            state.skill_general_tree_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::UnlockGroup(Weapon(Bow)),
-            self.imgs.unlock_bow_skill,
-            state.skills_top_r[3],
-            "unlck_bow",
-            state.skill_general_tree_3,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::UnlockGroup(Weapon(Staff)),
-            self.imgs.unlock_staff_skill0,
-            state.skills_top_r[4],
-            "unlck_staff",
-            state.skill_general_tree_4,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::UnlockGroup(Weapon(Sceptre)),
-            self.imgs.unlock_sceptre_skill,
-            state.skills_top_r[5],
-            "unlck_sceptre",
-            state.skill_general_tree_5,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        // Bottom left skills
-        Button::image(self.imgs.skill_dodge_skill)
-            .w_h(74.0, 74.0)
-            .mid_top_with_margin_on(state.skills_bot_l[0], 3.0)
-            .with_tooltip(
-                self.tooltip_manager,
-                self.localized_strings.get("hud.skill.dodge_title"),
-                self.localized_strings.get("hud.skill.dodge"),
-                &diary_tooltip,
-                TEXT_COLOR,
-            )
-            .set(state.skill_general_roll_0, ui);
-        self.create_unlock_skill_button(
-            Skill::Roll(RollSkill::Cost),
-            self.imgs.utility_cost_skill,
-            state.skills_bot_l[1],
-            "roll_energy",
-            state.skill_general_roll_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Roll(Strength),
-            self.imgs.utility_speed_skill,
-            state.skills_bot_l[2],
-            "roll_speed",
-            state.skill_general_roll_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Roll(Duration),
-            self.imgs.utility_duration_skill,
-            state.skills_bot_l[3],
-            "roll_dur",
-            state.skill_general_roll_3,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        // Bottom right skills
-        Button::image(self.imgs.skill_climbing_skill)
-            .w_h(74.0, 74.0)
-            .mid_top_with_margin_on(state.skills_bot_r[0], 3.0)
-            .with_tooltip(
-                self.tooltip_manager,
-                self.localized_strings.get("hud.skill.climbing_title"),
-                self.localized_strings.get("hud.skill.climbing"),
-                &diary_tooltip,
-                TEXT_COLOR,
-            )
-            .set(state.skill_general_climb_0, ui);
-        self.create_unlock_skill_button(
-            Skill::Climb(ClimbSkill::Cost),
-            self.imgs.utility_cost_skill,
-            state.skills_bot_r[1],
-            "climbing_cost",
-            state.skill_general_climb_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Climb(ClimbSkill::Speed),
-            self.imgs.utility_speed_skill,
-            state.skills_bot_r[2],
-            "climbing_speed",
-            state.skill_general_climb_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
 
-        Button::image(self.imgs.skill_swim_skill)
-            .w_h(74.0, 74.0)
-            .mid_top_with_margin_on(state.skills_bot_r[3], 3.0)
-            .with_tooltip(
-                self.tooltip_manager,
-                self.localized_strings.get("hud.skill.swim_title"),
-                self.localized_strings.get("hud.skill.swim"),
-                &diary_tooltip,
-                TEXT_COLOR,
-            )
-            .set(state.skill_general_swim_0, ui);
-        self.create_unlock_skill_button(
-            Skill::Swim(SwimSkill::Speed),
-            self.imgs.utility_speed_skill,
-            state.skills_bot_r[4],
-            "swim_speed",
-            state.skill_general_swim_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
+        use PositionSpecifier::MidTopWithMarginOn;
+        let skill_buttons = &[
+            // Top Left skills
+            //        5 1 6
+            //        3 0 4
+            //        8 2 7
+            SkillIcon::Unlockable {
+                skill: Skill::General(HealthIncrease),
+                image: self.imgs.health_plus_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[0], 3.0),
+                id: state.skill_general_stat_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::General(EnergyIncrease),
+                image: self.imgs.energy_plus_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[1], 3.0),
+                id: state.skill_general_stat_1,
+            },
+            // Top right skills
+            SkillIcon::Unlockable {
+                skill: Skill::UnlockGroup(Weapon(Sword)),
+                image: self.imgs.unlock_sword_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[0], 3.0),
+                id: state.skill_general_tree_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::UnlockGroup(Weapon(Axe)),
+                image: self.imgs.unlock_axe_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[1], 3.0),
+                id: state.skill_general_tree_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::UnlockGroup(Weapon(Hammer)),
+                image: self.imgs.unlock_hammer_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[2], 3.0),
+                id: state.skill_general_tree_2,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::UnlockGroup(Weapon(Bow)),
+                image: self.imgs.unlock_bow_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[3], 3.0),
+                id: state.skill_general_tree_3,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::UnlockGroup(Weapon(Staff)),
+                image: self.imgs.unlock_staff_skill0,
+                position: MidTopWithMarginOn(state.skills_top_r[4], 3.0),
+                id: state.skill_general_tree_4,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::UnlockGroup(Weapon(Sceptre)),
+                image: self.imgs.unlock_sceptre_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[5], 3.0),
+                id: state.skill_general_tree_5,
+            },
+            // Bottom left skills
+            SkillIcon::Descriptive {
+                title: "hud.skill.dodge_title",
+                desc: "hud.skill.dodge",
+                image: self.imgs.skill_dodge_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[0], 3.0),
+                id: state.skill_general_roll_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Roll(RollSkill::Cost),
+                image: self.imgs.utility_cost_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[1], 3.0),
+                id: state.skill_general_roll_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Roll(Strength),
+                image: self.imgs.utility_speed_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[2], 3.0),
+                id: state.skill_general_roll_2,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Roll(Duration),
+                image: self.imgs.utility_duration_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[3], 3.0),
+                id: state.skill_general_roll_3,
+            },
+            // Bottom right skills
+            SkillIcon::Descriptive {
+                title: "hud.skill.climbing_title",
+                desc: "hud.skill.climbing",
+                image: self.imgs.skill_climbing_skill,
+                position: MidTopWithMarginOn(state.skills_bot_r[0], 3.0),
+                id: state.skill_general_climb_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Climb(ClimbSkill::Cost),
+                image: self.imgs.utility_cost_skill,
+                position: MidTopWithMarginOn(state.skills_bot_r[1], 3.0),
+                id: state.skill_general_climb_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Climb(ClimbSkill::Speed),
+                image: self.imgs.utility_speed_skill,
+                position: MidTopWithMarginOn(state.skills_bot_r[2], 3.0),
+                id: state.skill_general_climb_2,
+            },
+            SkillIcon::Descriptive {
+                title: "hud.skill.swim_title",
+                desc: "hud.skill.swim",
+                image: self.imgs.skill_swim_skill,
+                position: MidTopWithMarginOn(state.skills_bot_r[3], 3.0),
+                id: state.skill_general_swim_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Swim(SwimSkill::Speed),
+                image: self.imgs.utility_speed_skill,
+                position: MidTopWithMarginOn(state.skills_bot_r[4], 3.0),
+                id: state.skill_general_swim_1,
+            },
+        ];
 
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
         events
     }
 
@@ -873,196 +825,128 @@ impl<'a> Diary<'a> {
         .middle_of(state.content_align)
         .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
         .set(state.sword_render, ui);
-        // Top Left skills
-        //        5 1 6
-        //        3 0 4
-        //        8 2 7
-        Button::image(self.imgs.twohsword_m1)
-            .w_h(74.0, 74.0)
-            .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
-            .with_tooltip(
-                self.tooltip_manager,
-                self.localized_strings.get("hud.skill.sw_trip_str_title"),
-                self.localized_strings.get("hud.skill.sw_trip_str"),
-                &diary_tooltip,
-                TEXT_COLOR,
-            )
-            .set(state.skill_sword_combo_0, ui);
-        self.create_unlock_skill_button(
-            Skill::Sword(TsCombo),
-            self.imgs.physical_combo_skill,
-            state.skills_top_l[1],
-            "sw_trip_str_combo",
-            state.skill_sword_combo_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sword(TsDamage),
-            self.imgs.physical_damage_skill,
-            state.skills_top_l[2],
-            "sw_trip_str_dmg",
-            state.skill_sword_combo_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sword(TsSpeed),
-            self.imgs.physical_speed_skill,
-            state.skills_top_l[3],
-            "sw_trip_str_sp",
-            state.skill_sword_combo_3,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sword(TsRegen),
-            self.imgs.physical_energy_regen_skill,
-            state.skills_top_l[4],
-            "sw_trip_str_reg",
-            state.skill_sword_combo_4,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        // Top right skills
-        Button::image(self.imgs.twohsword_m2)
-            .w_h(74.0, 74.0)
-            .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
-            .with_tooltip(
-                self.tooltip_manager,
-                self.localized_strings.get("hud.skill.sw_dash_title"),
-                self.localized_strings.get("hud.skill.sw_dash"),
-                &diary_tooltip,
-                TEXT_COLOR,
-            )
-            .set(state.skill_sword_dash_0, ui);
-        self.create_unlock_skill_button(
-            Skill::Sword(DDamage),
-            self.imgs.physical_damage_skill,
-            state.skills_top_r[1],
-            "sw_dash_dmg",
-            state.skill_sword_dash_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sword(DDrain),
-            self.imgs.physical_energy_drain_skill,
-            state.skills_top_r[2],
-            "sw_dash_drain",
-            state.skill_sword_dash_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sword(DCost),
-            self.imgs.physical_cost_skill,
-            state.skills_top_r[3],
-            "sw_dash_cost",
-            state.skill_sword_dash_3,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sword(DSpeed),
-            self.imgs.physical_speed_skill,
-            state.skills_top_r[4],
-            "sw_dash_speed",
-            state.skill_sword_dash_4,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sword(DInfinite),
-            self.imgs.physical_distance_skill,
-            state.skills_top_r[5],
-            "sw_dash_charge_through",
-            state.skill_sword_dash_5,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sword(DScaling),
-            self.imgs.physical_amount_skill,
-            state.skills_top_r[6],
-            "sw_dash_scale",
-            state.skill_sword_dash_6,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        // Bottom left skills
-        self.create_unlock_skill_button(
-            Skill::Sword(UnlockSpin),
-            self.imgs.sword_whirlwind,
-            state.skills_bot_l[0],
-            "sw_spin",
-            state.skill_sword_spin_0,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sword(SDamage),
-            self.imgs.physical_damage_skill,
-            state.skills_bot_l[1],
-            "sw_spin_dmg",
-            state.skill_sword_spin_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sword(SSpeed),
-            self.imgs.physical_damage_skill,
-            state.skills_bot_l[2],
-            "sw_spin_spd",
-            state.skill_sword_spin_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sword(SCost),
-            self.imgs.physical_cost_skill,
-            state.skills_bot_l[3],
-            "sw_spin_cost",
-            state.skill_sword_spin_3,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sword(SSpins),
-            self.imgs.physical_amount_skill,
-            state.skills_bot_l[4],
-            "sw_spin_spins",
-            state.skill_sword_spin_4,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        // Bottom right skills
-        self.create_unlock_skill_button(
-            Skill::Sword(InterruptingAttacks),
-            self.imgs.physical_damage_skill,
-            state.skills_bot_r[0],
-            "sw_interrupt",
-            state.skill_sword_passive_0,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
+        use PositionSpecifier::MidTopWithMarginOn;
+        let skill_buttons = &[
+            // Top Left skills
+            //        5 1 6
+            //        3 0 4
+            //        8 2 7
+            SkillIcon::Descriptive {
+                title: "hud.skill.sw_trip_str_title",
+                desc: "hud.skill.sw_trip_str",
+                image: self.imgs.twohsword_m1,
+                position: MidTopWithMarginOn(state.skills_top_l[0], 3.0),
+                id: state.skill_sword_combo_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sword(TsCombo),
+                image: self.imgs.physical_combo_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[1], 3.0),
+                id: state.skill_sword_combo_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sword(TsDamage),
+                image: self.imgs.physical_damage_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[2], 3.0),
+                id: state.skill_sword_combo_2,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sword(TsSpeed),
+                image: self.imgs.physical_speed_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[3], 3.0),
+                id: state.skill_sword_combo_3,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sword(TsRegen),
+                image: self.imgs.physical_energy_regen_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[4], 3.0),
+                id: state.skill_sword_combo_4,
+            },
+            // Top right skills
+            SkillIcon::Descriptive {
+                title: "hud.skill.sw_dash_title",
+                desc: "hud.skill.sw_dash",
+                image: self.imgs.twohsword_m2,
+                position: MidTopWithMarginOn(state.skills_top_r[0], 3.0),
+                id: state.skill_sword_dash_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sword(DDamage),
+                image: self.imgs.physical_damage_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[1], 3.0),
+                id: state.skill_sword_dash_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sword(DDrain),
+                image: self.imgs.physical_energy_drain_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[2], 3.0),
+                id: state.skill_sword_dash_2,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sword(DCost),
+                image: self.imgs.physical_cost_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[3], 3.0),
+                id: state.skill_sword_dash_3,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sword(DSpeed),
+                image: self.imgs.physical_speed_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[4], 3.0),
+                id: state.skill_sword_dash_4,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sword(DInfinite),
+                image: self.imgs.physical_distance_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[5], 3.0),
+                id: state.skill_sword_dash_5,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sword(DScaling),
+                image: self.imgs.physical_amount_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[6], 3.0),
+                id: state.skill_sword_dash_6,
+            },
+            // Bottom left skills
+            SkillIcon::Unlockable {
+                skill: Skill::Sword(UnlockSpin),
+                image: self.imgs.sword_whirlwind,
+                position: MidTopWithMarginOn(state.skills_bot_l[0], 3.0),
+                id: state.skill_sword_spin_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sword(SDamage),
+                image: self.imgs.physical_damage_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[1], 3.0),
+                id: state.skill_sword_spin_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sword(SSpeed),
+                image: self.imgs.physical_damage_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[2], 3.0),
+                id: state.skill_sword_spin_2,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sword(SCost),
+                image: self.imgs.physical_cost_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[3], 3.0),
+                id: state.skill_sword_spin_3,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sword(SSpins),
+                image: self.imgs.physical_amount_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[4], 3.0),
+                id: state.skill_sword_spin_4,
+            },
+            // Bottom right skills
+            SkillIcon::Unlockable {
+                skill: Skill::Sword(InterruptingAttacks),
+                image: self.imgs.physical_damage_skill,
+                position: MidTopWithMarginOn(state.skills_bot_r[0], 3.0),
+                id: state.skill_sword_passive_0,
+            },
+        ];
 
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
         events
     }
 
@@ -1112,177 +996,115 @@ impl<'a> Diary<'a> {
         .middle_of(state.content_align)
         .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
         .set(state.hammer_render, ui);
-        // Top Left skills
-        //        5 1 6
-        //        3 0 4
-        //        8 2 7
-        Button::image(self.imgs.twohhammer_m1)
-            .w_h(74.0, 74.0)
-            .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
-            .with_tooltip(
-                self.tooltip_manager,
-                self.localized_strings
-                    .get("hud.skill.hmr_single_strike_title"),
-                self.localized_strings.get("hud.skill.hmr_single_strike"),
-                &diary_tooltip,
-                TEXT_COLOR,
-            )
-            .set(state.skill_hammer_combo_0, ui);
-        self.create_unlock_skill_button(
-            Skill::Hammer(SsKnockback),
-            self.imgs.physical_knockback_skill,
-            state.skills_top_l[1],
-            "hmr_single_strike_knockback",
-            state.skill_hammer_combo_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Hammer(SsDamage),
-            self.imgs.physical_damage_skill,
-            state.skills_top_l[2],
-            "hmr_single_strike_damage",
-            state.skill_hammer_combo_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Hammer(SsSpeed),
-            self.imgs.physical_speed_skill,
-            state.skills_top_l[3],
-            "hmr_single_strike_speed",
-            state.skill_hammer_combo_3,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Hammer(SsRegen),
-            self.imgs.physical_energy_regen_skill,
-            state.skills_top_l[4],
-            "hmr_single_strike_regen",
-            state.skill_hammer_combo_4,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        // Top right skills
-        Button::image(self.imgs.hammergolf)
-            .w_h(74.0, 74.0)
-            .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
-            .with_tooltip(
-                self.tooltip_manager,
-                self.localized_strings
-                    .get("hud.skill.hmr_charged_melee_title"),
-                self.localized_strings.get("hud.skill.hmr_charged_melee"),
-                &diary_tooltip,
-                TEXT_COLOR,
-            )
-            .set(state.skill_hammer_charged_0, ui);
-        self.create_unlock_skill_button(
-            Skill::Hammer(CKnockback),
-            self.imgs.physical_knockback_skill,
-            state.skills_top_r[1],
-            "hmr_charged_melee_knockback",
-            state.skill_hammer_charged_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Hammer(CDamage),
-            self.imgs.physical_damage_skill,
-            state.skills_top_r[2],
-            "hmr_charged_melee_damage",
-            state.skill_hammer_charged_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Hammer(CDrain),
-            self.imgs.physical_energy_drain_skill,
-            state.skills_top_r[3],
-            "hmr_charged_melee_nrg_drain",
-            state.skill_hammer_charged_3,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Hammer(CSpeed),
-            self.imgs.physical_amount_skill,
-            state.skills_top_r[4],
-            "hmr_charged_rate",
-            state.skill_hammer_charged_4,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        // Bottom left skills
-        self.create_unlock_skill_button(
-            Skill::Hammer(UnlockLeap),
-            self.imgs.hammerleap,
-            state.skills_bot_l[0],
-            "hmr_unlock_leap",
-            state.skill_hammer_leap_0,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Hammer(LDamage),
-            self.imgs.physical_damage_skill,
-            state.skills_bot_l[1],
-            "hmr_leap_damage",
-            state.skill_hammer_leap_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Hammer(LKnockback),
-            self.imgs.physical_knockback_skill,
-            state.skills_bot_l[2],
-            "hmr_leap_knockback",
-            state.skill_hammer_leap_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Hammer(LCost),
-            self.imgs.physical_cost_skill,
-            state.skills_bot_l[3],
-            "hmr_leap_cost",
-            state.skill_hammer_leap_3,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Hammer(LDistance),
-            self.imgs.physical_distance_skill,
-            state.skills_bot_l[4],
-            "hmr_leap_distance",
-            state.skill_hammer_leap_4,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Hammer(LRange),
-            self.imgs.physical_radius_skill,
-            state.skills_bot_l[5],
-            "hmr_leap_radius",
-            state.skill_hammer_leap_5,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
+        use PositionSpecifier::MidTopWithMarginOn;
+        let skill_buttons = &[
+            // Top Left skills
+            //        5 1 6
+            //        3 0 4
+            //        8 2 7
+            SkillIcon::Descriptive {
+                title: "hud.skill.hmr_single_strike_title",
+                desc: "hud.skill.hmr_single_strike",
+                image: self.imgs.twohhammer_m1,
+                position: MidTopWithMarginOn(state.skills_top_l[0], 3.0),
+                id: state.skill_hammer_combo_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Hammer(SsKnockback),
+                image: self.imgs.physical_knockback_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[1], 3.0),
+                id: state.skill_hammer_combo_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Hammer(SsDamage),
+                image: self.imgs.physical_damage_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[2], 3.0),
+                id: state.skill_hammer_combo_2,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Hammer(SsSpeed),
+                image: self.imgs.physical_speed_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[3], 3.0),
+                id: state.skill_hammer_combo_3,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Hammer(SsRegen),
+                image: self.imgs.physical_energy_regen_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[4], 3.0),
+                id: state.skill_hammer_combo_4,
+            },
+            // Top right skills
+            SkillIcon::Descriptive {
+                title: "hud.skill.hmr_charged_melee_title",
+                desc: "hud.skill.hmr_charged_melee",
+                image: self.imgs.hammergolf,
+                position: MidTopWithMarginOn(state.skills_top_r[0], 3.0),
+                id: state.skill_hammer_charged_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Hammer(CKnockback),
+                image: self.imgs.physical_knockback_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[1], 3.0),
+                id: state.skill_hammer_charged_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Hammer(CDamage),
+                image: self.imgs.physical_damage_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[2], 3.0),
+                id: state.skill_hammer_charged_2,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Hammer(CDrain),
+                image: self.imgs.physical_energy_drain_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[3], 3.0),
+                id: state.skill_hammer_charged_3,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Hammer(CSpeed),
+                image: self.imgs.physical_amount_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[4], 3.0),
+                id: state.skill_hammer_charged_4,
+            },
+            // Bottom left skills
+            SkillIcon::Unlockable {
+                skill: Skill::Hammer(UnlockLeap),
+                image: self.imgs.hammerleap,
+                position: MidTopWithMarginOn(state.skills_bot_l[0], 3.0),
+                id: state.skill_hammer_leap_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Hammer(LDamage),
+                image: self.imgs.physical_damage_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[1], 3.0),
+                id: state.skill_hammer_leap_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Hammer(LKnockback),
+                image: self.imgs.physical_knockback_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[2], 3.0),
+                id: state.skill_hammer_leap_2,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Hammer(LCost),
+                image: self.imgs.physical_cost_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[3], 3.0),
+                id: state.skill_hammer_leap_3,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Hammer(LDistance),
+                image: self.imgs.physical_distance_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[4], 3.0),
+                id: state.skill_hammer_leap_4,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Hammer(LRange),
+                image: self.imgs.physical_radius_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[5], 3.0),
+                id: state.skill_hammer_leap_5,
+            },
+        ];
 
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
         events
     }
 
@@ -1332,176 +1154,115 @@ impl<'a> Diary<'a> {
         .middle_of(state.content_align)
         .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
         .set(state.axe_render, ui);
-        // Top Left skills
-        //        5 1 6
-        //        3 0 4
-        //        8 2 7
-        Button::image(self.imgs.twohaxe_m1)
-            .w_h(74.0, 74.0)
-            .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
-            .with_tooltip(
-                self.tooltip_manager,
-                self.localized_strings
-                    .get("hud.skill.axe_double_strike_title"),
-                self.localized_strings.get("hud.skill.axe_double_strike"),
-                &diary_tooltip,
-                TEXT_COLOR,
-            )
-            .set(state.skill_axe_combo_0, ui);
-        self.create_unlock_skill_button(
-            Skill::Axe(DsCombo),
-            self.imgs.physical_combo_skill,
-            state.skills_top_l[1],
-            "axe_double_strike_combo",
-            state.skill_axe_combo_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Axe(DsDamage),
-            self.imgs.physical_damage_skill,
-            state.skills_top_l[2],
-            "axe_double_strike_damage",
-            state.skill_axe_combo_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Axe(DsSpeed),
-            self.imgs.physical_speed_skill,
-            state.skills_top_l[3],
-            "axe_double_strike_speed",
-            state.skill_axe_combo_3,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Axe(DsRegen),
-            self.imgs.physical_energy_regen_skill,
-            state.skills_top_l[4],
-            "axe_double_strike_regen",
-            state.skill_axe_combo_4,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        // Top right skills
-        Button::image(self.imgs.axespin)
-            .w_h(74.0, 74.0)
-            .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
-            .with_tooltip(
-                self.tooltip_manager,
-                self.localized_strings.get("hud.skill.axe_spin_title"),
-                self.localized_strings.get("hud.skill.axe_spin"),
-                &diary_tooltip,
-                TEXT_COLOR,
-            )
-            .set(state.skill_axe_spin_0, ui);
-        self.create_unlock_skill_button(
-            Skill::Axe(SInfinite),
-            self.imgs.physical_infinite_skill,
-            state.skills_top_r[1],
-            "axe_infinite_axe_spin",
-            state.skill_axe_spin_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Axe(SDamage),
-            self.imgs.physical_damage_skill,
-            state.skills_top_r[2],
-            "axe_spin_damage",
-            state.skill_axe_spin_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Axe(SHelicopter),
-            self.imgs.physical_helicopter_skill,
-            state.skills_top_r[3],
-            "axe_spin_helicopter",
-            state.skill_axe_spin_3,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Axe(SSpeed),
-            self.imgs.physical_speed_skill,
-            state.skills_top_r[4],
-            "axe_spin_speed",
-            state.skill_axe_spin_4,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Axe(SCost),
-            self.imgs.physical_cost_skill,
-            state.skills_top_r[5],
-            "axe_spin_cost",
-            state.skill_axe_spin_5,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        // Bottom left skills
-        self.create_unlock_skill_button(
-            Skill::Axe(UnlockLeap),
-            self.imgs.skill_axe_leap_slash,
-            state.skills_bot_l[0],
-            "axe_unlock_leap",
-            state.skill_axe_leap_0,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Axe(LDamage),
-            self.imgs.physical_damage_skill,
-            state.skills_bot_l[1],
-            "axe_leap_damage",
-            state.skill_axe_leap_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Axe(LKnockback),
-            self.imgs.physical_knockback_skill,
-            state.skills_bot_l[2],
-            "axe_leap_knockback",
-            state.skill_axe_leap_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Axe(LCost),
-            self.imgs.physical_cost_skill,
-            state.skills_bot_l[3],
-            "axe_leap_cost",
-            state.skill_axe_leap_3,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Axe(LDistance),
-            self.imgs.physical_distance_skill,
-            state.skills_bot_l[4],
-            "axe_leap_distance",
-            state.skill_axe_leap_4,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
+        use PositionSpecifier::MidTopWithMarginOn;
+        let skill_buttons = &[
+            // Top Left skills
+            //        5 1 6
+            //        3 0 4
+            //        8 2 7
+            SkillIcon::Descriptive {
+                title: "hud.skill.axe_double_strike_title",
+                desc: "hud.skill.axe_double_strike",
+                image: self.imgs.twohaxe_m1,
+                position: MidTopWithMarginOn(state.skills_top_l[0], 3.0),
+                id: state.skill_axe_combo_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Axe(DsCombo),
+                image: self.imgs.physical_combo_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[1], 3.0),
+                id: state.skill_axe_combo_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Axe(DsDamage),
+                image: self.imgs.physical_damage_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[2], 3.0),
+                id: state.skill_axe_combo_2,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Axe(DsSpeed),
+                image: self.imgs.physical_speed_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[3], 3.0),
+                id: state.skill_axe_combo_3,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Axe(DsRegen),
+                image: self.imgs.physical_energy_regen_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[4], 3.0),
+                id: state.skill_axe_combo_4,
+            },
+            // Top right skills
+            SkillIcon::Descriptive {
+                title: "hud.skill.axe_spin_title",
+                desc: "hud.skill.axe_spin",
+                image: self.imgs.axespin,
+                position: MidTopWithMarginOn(state.skills_top_r[0], 3.0),
+                id: state.skill_axe_spin_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Axe(SInfinite),
+                image: self.imgs.physical_infinite_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[1], 3.0),
+                id: state.skill_axe_spin_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Axe(SDamage),
+                image: self.imgs.physical_damage_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[2], 3.0),
+                id: state.skill_axe_spin_2,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Axe(SHelicopter),
+                image: self.imgs.physical_helicopter_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[3], 3.0),
+                id: state.skill_axe_spin_3,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Axe(SSpeed),
+                image: self.imgs.physical_speed_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[4], 3.0),
+                id: state.skill_axe_spin_4,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Axe(SCost),
+                image: self.imgs.physical_cost_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[5], 3.0),
+                id: state.skill_axe_spin_5,
+            },
+            // Bottom left skills
+            SkillIcon::Unlockable {
+                skill: Skill::Axe(UnlockLeap),
+                image: self.imgs.skill_axe_leap_slash,
+                position: MidTopWithMarginOn(state.skills_bot_l[0], 3.0),
+                id: state.skill_axe_leap_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Axe(LDamage),
+                image: self.imgs.physical_damage_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[1], 3.0),
+                id: state.skill_axe_leap_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Axe(LKnockback),
+                image: self.imgs.physical_knockback_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[2], 3.0),
+                id: state.skill_axe_leap_2,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Axe(LCost),
+                image: self.imgs.physical_cost_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[3], 3.0),
+                id: state.skill_axe_leap_3,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Axe(LDistance),
+                image: self.imgs.physical_distance_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[4], 3.0),
+                id: state.skill_axe_leap_4,
+            },
+        ];
 
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
         events
     }
 
@@ -1551,165 +1312,109 @@ impl<'a> Diary<'a> {
         .middle_of(state.content_align)
         .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
         .set(state.sceptre_render, ui);
-        // Top Left skills
-        //        5 1 6
-        //        3 0 4
-        //        8 2 7
-        Button::image(self.imgs.skill_sceptre_lifesteal)
-            .w_h(74.0, 74.0)
-            .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
-            .with_tooltip(
-                self.tooltip_manager,
-                self.localized_strings.get("hud.skill.sc_lifesteal_title"),
-                self.localized_strings.get("hud.skill.sc_lifesteal"),
-                &diary_tooltip,
-                TEXT_COLOR,
-            )
-            .set(state.skill_sceptre_lifesteal_0, ui);
-        self.create_unlock_skill_button(
-            Skill::Sceptre(LDamage),
-            self.imgs.magic_damage_skill,
-            state.skills_top_l[1],
-            "sc_lifesteal_damage",
-            state.skill_sceptre_lifesteal_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sceptre(LRange),
-            self.imgs.magic_distance_skill,
-            state.skills_top_l[2],
-            "sc_lifesteal_range",
-            state.skill_sceptre_lifesteal_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sceptre(LLifesteal),
-            self.imgs.magic_lifesteal_skill,
-            state.skills_top_l[3],
-            "sc_lifesteal_lifesteal",
-            state.skill_sceptre_lifesteal_3,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sceptre(LRegen),
-            self.imgs.magic_energy_regen_skill,
-            state.skills_top_l[4],
-            "sc_lifesteal_regen",
-            state.skill_sceptre_lifesteal_4,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        // Top right skills
-        Button::image(self.imgs.skill_sceptre_heal)
-            .w_h(74.0, 74.0)
-            .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
-            .with_tooltip(
-                self.tooltip_manager,
-                self.localized_strings.get("hud.skill.sc_heal_title"),
-                self.localized_strings.get("hud.skill.sc_heal"),
-                &diary_tooltip,
-                TEXT_COLOR,
-            )
-            .set(state.skill_sceptre_heal_0, ui);
-        self.create_unlock_skill_button(
-            Skill::Sceptre(HHeal),
-            self.imgs.heal_heal_skill,
-            state.skills_top_r[1],
-            "sc_heal_heal",
-            state.skill_sceptre_heal_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sceptre(HDuration),
-            self.imgs.heal_duration_skill,
-            state.skills_top_r[2],
-            "sc_heal_duration",
-            state.skill_sceptre_heal_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sceptre(HRange),
-            self.imgs.heal_radius_skill,
-            state.skills_top_r[3],
-            "sc_heal_range",
-            state.skill_sceptre_heal_3,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sceptre(HCost),
-            self.imgs.heal_cost_skill,
-            state.skills_top_r[4],
-            "sc_heal_cost",
-            state.skill_sceptre_heal_4,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        // Bottom left skills
-        self.create_unlock_skill_button(
-            Skill::Sceptre(UnlockAura),
-            self.imgs.skill_sceptre_aura,
-            state.skills_bot_l[0],
-            "sc_wardaura_unlock",
-            state.skill_sceptre_aura_0,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sceptre(AStrength),
-            self.imgs.buff_damage_skill,
-            state.skills_bot_l[1],
-            "sc_wardaura_strength",
-            state.skill_sceptre_aura_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sceptre(ADuration),
-            self.imgs.buff_duration_skill,
-            state.skills_bot_l[2],
-            "sc_wardaura_duration",
-            state.skill_sceptre_aura_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sceptre(ARange),
-            self.imgs.buff_radius_skill,
-            state.skills_bot_l[3],
-            "sc_wardaura_range",
-            state.skill_sceptre_aura_3,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Sceptre(ACost),
-            self.imgs.buff_cost_skill,
-            state.skills_bot_l[4],
-            "sc_wardaura_cost",
-            state.skill_sceptre_aura_4,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
+        use PositionSpecifier::MidTopWithMarginOn;
+        let skill_buttons = &[
+            // Top Left skills
+            //        5 1 6
+            //        3 0 4
+            //        8 2 7
+            SkillIcon::Descriptive {
+                title: "hud.skill.sc_lifesteal_title",
+                desc: "hud.skill.sc_lifesteal",
+                image: self.imgs.skill_sceptre_lifesteal,
+                position: MidTopWithMarginOn(state.skills_top_l[0], 3.0),
+                id: state.skill_sceptre_lifesteal_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sceptre(LDamage),
+                image: self.imgs.magic_damage_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[1], 3.0),
+                id: state.skill_sceptre_lifesteal_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sceptre(LRange),
+                image: self.imgs.magic_distance_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[2], 3.0),
+                id: state.skill_sceptre_lifesteal_2,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sceptre(LLifesteal),
+                image: self.imgs.magic_lifesteal_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[3], 3.0),
+                id: state.skill_sceptre_lifesteal_3,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sceptre(LRegen),
+                image: self.imgs.magic_energy_regen_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[4], 3.0),
+                id: state.skill_sceptre_lifesteal_4,
+            },
+            // Top right skills
+            SkillIcon::Descriptive {
+                title: "hud.skill.sc_heal_title",
+                desc: "hud.skill.sc_heal",
+                image: self.imgs.skill_sceptre_heal,
+                position: MidTopWithMarginOn(state.skills_top_r[0], 3.0),
+                id: state.skill_sceptre_heal_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sceptre(HHeal),
+                image: self.imgs.heal_heal_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[1], 3.0),
+                id: state.skill_sceptre_heal_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sceptre(HDuration),
+                image: self.imgs.heal_duration_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[2], 3.0),
+                id: state.skill_sceptre_heal_2,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sceptre(HRange),
+                image: self.imgs.heal_radius_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[3], 3.0),
+                id: state.skill_sceptre_heal_3,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sceptre(HCost),
+                image: self.imgs.heal_cost_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[4], 3.0),
+                id: state.skill_sceptre_heal_4,
+            },
+            // Bottom left skills
+            SkillIcon::Unlockable {
+                skill: Skill::Sceptre(UnlockAura),
+                image: self.imgs.skill_sceptre_aura,
+                position: MidTopWithMarginOn(state.skills_bot_l[0], 3.0),
+                id: state.skill_sceptre_aura_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sceptre(AStrength),
+                image: self.imgs.buff_damage_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[1], 3.0),
+                id: state.skill_sceptre_aura_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sceptre(ADuration),
+                image: self.imgs.buff_duration_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[2], 3.0),
+                id: state.skill_sceptre_aura_2,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sceptre(ARange),
+                image: self.imgs.buff_radius_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[3], 3.0),
+                id: state.skill_sceptre_aura_3,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Sceptre(ACost),
+                image: self.imgs.buff_cost_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[4], 3.0),
+                id: state.skill_sceptre_aura_4,
+            },
+        ];
 
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
         events
     }
 
@@ -1758,176 +1463,116 @@ impl<'a> Diary<'a> {
         .wh(ART_SIZE)
         .middle_of(state.content_align)
         .set(state.bow_render, ui);
-        // Top Left skills
-        //        5 1 6
-        //        3 0 4
-        //        8 2 7
-        Button::image(self.imgs.bow_m1)
-            .w_h(74.0, 74.0)
-            .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
-            .with_tooltip(
-                self.tooltip_manager,
-                self.localized_strings.get("hud.skill.bow_charged_title"),
-                self.localized_strings.get("hud.skill.bow_charged"),
-                &diary_tooltip,
-                TEXT_COLOR,
-            )
-            .set(state.skill_bow_charged_0, ui);
-        self.create_unlock_skill_button(
-            Skill::Bow(CDamage),
-            self.imgs.physical_damage_skill,
-            state.skills_top_l[1],
-            "bow_charged_damage",
-            state.skill_bow_charged_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Bow(CRegen),
-            self.imgs.physical_energy_regen_skill,
-            state.skills_top_l[2],
-            "bow_charged_energy_regen",
-            state.skill_bow_charged_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Bow(CKnockback),
-            self.imgs.physical_knockback_skill,
-            state.skills_top_l[3],
-            "bow_charged_knockback",
-            state.skill_bow_charged_3,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Bow(CSpeed),
-            self.imgs.physical_speed_skill,
-            state.skills_top_l[4],
-            "bow_charged_speed",
-            state.skill_bow_charged_4,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Bow(CMove),
-            self.imgs.physical_speed_skill,
-            state.skills_top_l[5],
-            "bow_charged_move",
-            state.skill_bow_charged_5,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        // Top right skills
-        Button::image(self.imgs.bow_m2)
-            .w_h(74.0, 74.0)
-            .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
-            .with_tooltip(
-                self.tooltip_manager,
-                self.localized_strings.get("hud.skill.bow_repeater_title"),
-                self.localized_strings.get("hud.skill.bow_repeater"),
-                &diary_tooltip,
-                TEXT_COLOR,
-            )
-            .set(state.skill_bow_repeater_0, ui);
-        self.create_unlock_skill_button(
-            Skill::Bow(RDamage),
-            self.imgs.physical_damage_skill,
-            state.skills_top_r[1],
-            "bow_repeater_damage",
-            state.skill_bow_repeater_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Bow(RCost),
-            self.imgs.physical_cost_skill,
-            state.skills_top_r[2],
-            "bow_repeater_cost",
-            state.skill_bow_repeater_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Bow(RSpeed),
-            self.imgs.physical_speed_skill,
-            state.skills_top_r[3],
-            "bow_repeater_speed",
-            state.skill_bow_repeater_3,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        // Bottom left skills
-        self.create_unlock_skill_button(
-            Skill::Bow(UnlockShotgun),
-            self.imgs.skill_bow_jump_burst,
-            state.skills_bot_l[0],
-            "bow_shotgun_unlock",
-            state.skill_bow_shotgun_0,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Bow(SDamage),
-            self.imgs.physical_damage_skill,
-            state.skills_bot_l[1],
-            "bow_shotgun_damage",
-            state.skill_bow_shotgun_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Bow(SCost),
-            self.imgs.physical_cost_skill,
-            state.skills_bot_l[2],
-            "bow_shotgun_cost",
-            state.skill_bow_shotgun_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Bow(SArrows),
-            self.imgs.physical_amount_skill,
-            state.skills_bot_l[3],
-            "bow_shotgun_arrow_count",
-            state.skill_bow_shotgun_3,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Bow(SSpread),
-            self.imgs.physical_explosion_skill,
-            state.skills_bot_l[4],
-            "bow_shotgun_spread",
-            state.skill_bow_shotgun_4,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        // Bottom right skills
-        self.create_unlock_skill_button(
-            Skill::Bow(ProjSpeed),
-            self.imgs.physical_projectile_speed_skill,
-            state.skills_bot_r[0],
-            "bow_projectile_speed",
-            state.skill_bow_passive_0,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
+        use PositionSpecifier::MidTopWithMarginOn;
+        let skill_buttons = &[
+            // Top Left skills
+            //        5 1 6
+            //        3 0 4
+            //        8 2 7
+            SkillIcon::Descriptive {
+                title: "hud.skill.bow_charged_title",
+                desc: "hud.skill.bow_charged",
+                image: self.imgs.bow_m1,
+                position: MidTopWithMarginOn(state.skills_top_l[0], 3.0),
+                id: state.skill_bow_charged_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Bow(CDamage),
+                image: self.imgs.physical_damage_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[1], 3.0),
+                id: state.skill_bow_charged_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Bow(CRegen),
+                image: self.imgs.physical_energy_regen_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[2], 3.0),
+                id: state.skill_bow_charged_2,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Bow(CKnockback),
+                image: self.imgs.physical_knockback_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[3], 3.0),
+                id: state.skill_bow_charged_3,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Bow(CSpeed),
+                image: self.imgs.physical_speed_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[4], 3.0),
+                id: state.skill_bow_charged_4,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Bow(CMove),
+                image: self.imgs.physical_speed_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[5], 3.0),
+                id: state.skill_bow_charged_5,
+            },
+            // Top right skills
+            SkillIcon::Descriptive {
+                title: "hud.skill.bow_repeater_title",
+                desc: "hud.skill.bow_repeater",
+                image: self.imgs.bow_m2,
+                position: MidTopWithMarginOn(state.skills_top_r[0], 3.0),
+                id: state.skill_bow_repeater_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Bow(RDamage),
+                image: self.imgs.physical_damage_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[1], 3.0),
+                id: state.skill_bow_repeater_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Bow(RCost),
+                image: self.imgs.physical_cost_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[2], 3.0),
+                id: state.skill_bow_repeater_2,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Bow(RSpeed),
+                image: self.imgs.physical_speed_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[3], 3.0),
+                id: state.skill_bow_repeater_3,
+            },
+            // Bottom left skills
+            SkillIcon::Unlockable {
+                skill: Skill::Bow(UnlockShotgun),
+                image: self.imgs.skill_bow_jump_burst,
+                position: MidTopWithMarginOn(state.skills_bot_l[0], 3.0),
+                id: state.skill_bow_shotgun_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Bow(SDamage),
+                image: self.imgs.physical_damage_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[1], 3.0),
+                id: state.skill_bow_shotgun_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Bow(SCost),
+                image: self.imgs.physical_cost_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[2], 3.0),
+                id: state.skill_bow_shotgun_2,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Bow(SArrows),
+                image: self.imgs.physical_amount_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[3], 3.0),
+                id: state.skill_bow_shotgun_3,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Bow(SSpread),
+                image: self.imgs.physical_explosion_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[4], 3.0),
+                id: state.skill_bow_shotgun_4,
+            },
+            // Bottom right skills
+            SkillIcon::Unlockable {
+                skill: Skill::Bow(ProjSpeed),
+                image: self.imgs.physical_projectile_speed_skill,
+                position: MidTopWithMarginOn(state.skills_bot_r[0], 3.0),
+                id: state.skill_bow_passive_0,
+            },
+        ];
 
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
         events
     }
 
@@ -1977,156 +1622,104 @@ impl<'a> Diary<'a> {
         .middle_of(state.content_align)
         .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
         .set(state.staff_render, ui);
-        // Top Left skills
-        //        5 1 6
-        //        3 0 4
-        //        8 2 7
-        Button::image(self.imgs.fireball)
-            .w_h(74.0, 74.0)
-            .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
-            .with_tooltip(
-                self.tooltip_manager,
-                self.localized_strings.get("hud.skill.st_fireball_title"),
-                self.localized_strings.get("hud.skill.st_fireball"),
-                &diary_tooltip,
-                TEXT_COLOR,
-            )
-            .set(state.skill_staff_basic_0, ui);
-        self.create_unlock_skill_button(
-            Skill::Staff(BDamage),
-            self.imgs.magic_damage_skill,
-            state.skills_top_l[1],
-            "st_damage",
-            state.skill_staff_basic_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Staff(BRegen),
-            self.imgs.magic_energy_regen_skill,
-            state.skills_top_l[2],
-            "st_energy_regen",
-            state.skill_staff_basic_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Staff(BRadius),
-            self.imgs.magic_radius_skill,
-            state.skills_top_l[3],
-            "st_explosion_radius",
-            state.skill_staff_basic_3,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        // Top right skills
-        Button::image(self.imgs.flamethrower)
-            .w_h(74.0, 74.0)
-            .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
-            .with_tooltip(
-                self.tooltip_manager,
-                self.localized_strings
-                    .get("hud.skill.st_flamethrower_title"),
-                self.localized_strings.get("hud.skill.st_flamethrower"),
-                &diary_tooltip,
-                TEXT_COLOR,
-            )
-            .set(state.skill_staff_beam_0, ui);
-        self.create_unlock_skill_button(
-            Skill::Staff(FDamage),
-            self.imgs.magic_damage_skill,
-            state.skills_top_r[1],
-            "st_flamethrower_damage",
-            state.skill_staff_beam_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Staff(FDrain),
-            self.imgs.magic_energy_drain_skill,
-            state.skills_top_r[2],
-            "st_energy_drain",
-            state.skill_staff_beam_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Staff(FRange),
-            self.imgs.magic_radius_skill,
-            state.skills_top_r[3],
-            "st_flamethrower_range",
-            state.skill_staff_beam_3,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Staff(FVelocity),
-            self.imgs.magic_projectile_speed_skill,
-            state.skills_top_r[4],
-            "st_flame_velocity",
-            state.skill_staff_beam_4,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        // Bottom left skills
-        self.create_unlock_skill_button(
-            Skill::Staff(UnlockShockwave),
-            self.imgs.fire_aoe,
-            state.skills_bot_l[0],
-            "st_shockwave_unlock",
-            state.skill_staff_shockwave_0,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Staff(SDamage),
-            self.imgs.magic_damage_skill,
-            state.skills_bot_l[1],
-            "st_shockwave_damage",
-            state.skill_staff_shockwave_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Staff(SKnockback),
-            self.imgs.magic_knockback_skill,
-            state.skills_bot_l[2],
-            "st_shockwave_knockback",
-            state.skill_staff_shockwave_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Staff(SCost),
-            self.imgs.magic_cost_skill,
-            state.skills_bot_l[3],
-            "st_shockwave_cost",
-            state.skill_staff_shockwave_3,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Staff(SRange),
-            self.imgs.magic_radius_skill,
-            state.skills_bot_l[4],
-            "st_shockwave_range",
-            state.skill_staff_shockwave_4,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
 
+        use PositionSpecifier::MidTopWithMarginOn;
+        let skill_buttons = &[
+            // Top Left skills
+            //        5 1 6
+            //        3 0 4
+            //        8 2 7
+            SkillIcon::Descriptive {
+                title: "hud.skill.st_fireball_title",
+                desc: "hud.skill.st_fireball",
+                image: self.imgs.fireball,
+                position: MidTopWithMarginOn(state.skills_top_l[0], 3.0),
+                id: state.skill_staff_basic_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Staff(BDamage),
+                image: self.imgs.magic_damage_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[1], 3.0),
+                id: state.skill_staff_basic_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Staff(BRegen),
+                image: self.imgs.magic_energy_regen_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[2], 3.0),
+                id: state.skill_staff_basic_2,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Staff(BRadius),
+                image: self.imgs.magic_radius_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[3], 3.0),
+                id: state.skill_staff_basic_3,
+            },
+            // Top right skills
+            SkillIcon::Descriptive {
+                title: "hud.skill.st_flamethrower_title",
+                desc: "hud.skill.st_flamethrower",
+                image: self.imgs.flamethrower,
+                position: MidTopWithMarginOn(state.skills_top_r[0], 3.0),
+                id: state.skill_staff_beam_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Staff(FDamage),
+                image: self.imgs.magic_damage_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[1], 3.0),
+                id: state.skill_staff_beam_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Staff(FDrain),
+                image: self.imgs.magic_energy_drain_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[2], 3.0),
+                id: state.skill_staff_beam_2,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Staff(FRange),
+                image: self.imgs.magic_radius_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[3], 3.0),
+                id: state.skill_staff_beam_3,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Staff(FVelocity),
+                image: self.imgs.magic_projectile_speed_skill,
+                position: MidTopWithMarginOn(state.skills_top_r[4], 3.0),
+                id: state.skill_staff_beam_4,
+            },
+            // Bottom left skills
+            SkillIcon::Unlockable {
+                skill: Skill::Staff(UnlockShockwave),
+                image: self.imgs.fire_aoe,
+                position: MidTopWithMarginOn(state.skills_bot_l[0], 3.0),
+                id: state.skill_staff_shockwave_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Staff(SDamage),
+                image: self.imgs.magic_damage_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[1], 3.0),
+                id: state.skill_staff_shockwave_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Staff(SKnockback),
+                image: self.imgs.magic_knockback_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[2], 3.0),
+                id: state.skill_staff_shockwave_2,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Staff(SCost),
+                image: self.imgs.magic_cost_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[3], 3.0),
+                id: state.skill_staff_shockwave_3,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Staff(SRange),
+                image: self.imgs.magic_radius_skill,
+                position: MidTopWithMarginOn(state.skills_bot_l[4], 3.0),
+                id: state.skill_staff_shockwave_4,
+            },
+        ];
+
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
         events
     }
 
@@ -2176,53 +1769,89 @@ impl<'a> Diary<'a> {
         .middle_of(state.content_align)
         .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
         .set(state.pick_render, ui);
-        // Top Left skills
-        //        5 1 6
-        //        3 0 4
-        //        8 2 7
-        Button::image(self.imgs.pickaxe)
-            .w_h(74.0, 74.0)
-            .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
-            .with_tooltip(
-                self.tooltip_manager,
-                self.localized_strings.get("hud.skill.pick_strike_title"),
-                self.localized_strings.get("hud.skill.pick_strike"),
-                &diary_tooltip,
-                TEXT_COLOR,
-            )
-            .set(state.skill_pick_m1, ui);
-        self.create_unlock_skill_button(
-            Skill::Pick(Speed),
-            self.imgs.pickaxe_speed_skill,
-            state.skills_top_l[1],
-            "pick_strike_speed",
-            state.skill_pick_m1_0,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Pick(OreGain),
-            self.imgs.pickaxe_oregain_skill,
-            state.skills_top_l[2],
-            "pick_strike_oregain",
-            state.skill_pick_m1_1,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
-        self.create_unlock_skill_button(
-            Skill::Pick(GemGain),
-            self.imgs.pickaxe_gemgain_skill,
-            state.skills_top_l[3],
-            "pick_strike_gemgain",
-            state.skill_pick_m1_2,
-            ui,
-            &mut events,
-            &diary_tooltip,
-        );
 
+        use PositionSpecifier::MidTopWithMarginOn;
+        let skill_buttons = &[
+            // Top Left skills
+            //        5 1 6
+            //        3 0 4
+            //        8 2 7
+            SkillIcon::Descriptive {
+                title: "hud.skill.pick_strike_title",
+                desc: "hud.skill.pick_strike",
+                image: self.imgs.pickaxe,
+                position: MidTopWithMarginOn(state.skills_top_l[0], 3.0),
+                id: state.skill_pick_m1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Pick(Speed),
+                image: self.imgs.pickaxe_speed_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[1], 3.0),
+                id: state.skill_pick_m1_0,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Pick(OreGain),
+                image: self.imgs.pickaxe_oregain_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[2], 3.0),
+                id: state.skill_pick_m1_1,
+            },
+            SkillIcon::Unlockable {
+                skill: Skill::Pick(GemGain),
+                image: self.imgs.pickaxe_gemgain_skill,
+                position: MidTopWithMarginOn(state.skills_top_l[3], 3.0),
+                id: state.skill_pick_m1_2,
+            },
+        ];
+
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
         events
+    }
+
+    fn handle_skill_buttons(
+        &mut self,
+        icons: &[SkillIcon],
+        ui: &mut UiCell,
+        events: &mut Vec<Event>,
+        diary_tooltip: &Tooltip,
+    ) {
+        for icon in icons {
+            match icon {
+                SkillIcon::Descriptive {
+                    title,
+                    desc,
+                    image,
+                    position,
+                    id,
+                } => {
+                    // TODO: shouldn't this be a `Image::new`?
+                    Button::image(*image)
+                        .w_h(74.0, 74.0)
+                        .position(*position)
+                        .with_tooltip(
+                            self.tooltip_manager,
+                            self.localized_strings.get(title),
+                            self.localized_strings.get(desc),
+                            diary_tooltip,
+                            TEXT_COLOR,
+                        )
+                        .set(*id, ui);
+                },
+                SkillIcon::Unlockable {
+                    skill,
+                    image,
+                    position,
+                    id,
+                } => self.create_unlock_skill_button(
+                    *skill,
+                    *image,
+                    *position,
+                    *id,
+                    ui,
+                    events,
+                    diary_tooltip,
+                ),
+            }
+        }
     }
 
     fn setup_state_for_skill_icons(
@@ -2352,8 +1981,7 @@ impl<'a> Diary<'a> {
         &mut self,
         skill: Skill,
         skill_image: image::Id,
-        relative_from: widget::Id,
-        skill_key: &str,
+        position: PositionSpecifier,
         widget_id: widget::Id,
         ui: &mut UiCell,
         events: &mut Vec<Event>,
@@ -2384,17 +2012,16 @@ impl<'a> Diary<'a> {
             Color::Rgba(0.41, 0.41, 0.41, 0.7)
         };
 
-        let (skill_title, skill_description) = self.skill_info(skill);
-
-        // Borrowcheck forced me to do this.
-        // I need to borrow self.tooltip_manager mutably later, while
-        // keeping references to self.localized_strings otherwise.
-        let skill_title: String = skill_title.to_owned();
-        let skill_description: String = skill_description.into_owned();
+        let (title, description) = skill_strings(skill, self.localized_strings);
+        let description = if description.contains("{SP}") {
+            Cow::Owned(self.splice_skill_reqs(skill, &description))
+        } else {
+            description
+        };
 
         let button = Button::image(skill_image)
             .w_h(74.0, 74.0)
-            .mid_top_with_margin_on(relative_from, 3.0)
+            .position(position)
             .label(&label)
             .label_y(conrod_core::position::Relative::Scalar(-47.0))
             .label_x(conrod_core::position::Relative::Scalar(0.0))
@@ -2404,8 +2031,8 @@ impl<'a> Diary<'a> {
             .image_color(image_color)
             .with_tooltip(
                 self.tooltip_manager,
-                &skill_title,
-                &skill_description,
+                title,
+                &description,
                 diary_tooltip,
                 TEXT_COLOR,
             )
@@ -2414,17 +2041,6 @@ impl<'a> Diary<'a> {
         if button.was_clicked() {
             events.push(Event::UnlockSkill(skill));
         };
-    }
-
-    fn skill_info(&self, skill: Skill) -> (&str, Cow<str>) {
-        let (title, description) = skill_strings(skill, self.localized_strings);
-        let description = if description.contains("{SP}") {
-            Cow::Owned(self.splice_skill_reqs(skill, &description))
-        } else {
-            description
-        };
-
-        (title, description)
     }
 
     fn splice_skill_reqs(&self, skill: Skill, desc: &str) -> String {
@@ -2522,7 +2138,7 @@ fn unlock_skill_strings(group: SkillGroupKind, i18n: &Localization) -> (&str, Co
     }
 }
 
-fn sword_skill_strings<'a>(skill: SwordSkill, i18n: &'a Localization) -> (&str, Cow<str>) {
+fn sword_skill_strings(skill: SwordSkill, i18n: &Localization) -> (&str, Cow<str>) {
     let modifiers = SKILL_MODIFIERS.sword_tree;
     match skill {
         // triple strike

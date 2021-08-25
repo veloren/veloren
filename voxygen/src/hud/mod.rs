@@ -331,6 +331,8 @@ pub enum PositionSpecifier {
     MidBottomWithMarginOn(widget::Id, f64),
     BottomLeftWithMarginsOn(widget::Id, f64, f64),
     BottomRightWithMarginsOn(widget::Id, f64, f64),
+    // Place the widget near other widget with given margin
+    MidTopWithMarginOn(widget::Id, f64),
     // Place the widget near other widget at given distance
     MiddleOf(widget::Id),
     UpFrom(widget::Id, f64),
@@ -407,6 +409,10 @@ impl<W: Positionable> Position for W {
             },
             PositionSpecifier::BottomLeftWithMarginsOn(other, bottom, left) => {
                 self.bottom_left_with_margins_on(other, bottom, left)
+            },
+            // Place the widget near other widget with given margin
+            PositionSpecifier::MidTopWithMarginOn(other, margin) => {
+                self.mid_top_with_margin_on(other, margin)
             },
             // Place the widget near other widget at given distance
             PositionSpecifier::MiddleOf(other) => self.middle_of(other),
