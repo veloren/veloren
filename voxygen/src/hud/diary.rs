@@ -2399,12 +2399,13 @@ fn hammer_skill_strings(skill: HammerSkill, i18n: &Localization) -> (&str, Cow<s
             "hud.skill.hmr_leap_knockback",
             modifiers.leap.knockback,
         ),
-        HammerSkill::LRange => splice_multiplier(
-            i18n,
-            "hud.skill.hmr_leap_radius_title",
-            "hud.skill.hmr_leap_radius",
-            modifiers.leap.range,
-        ),
+        HammerSkill::LRange => {
+            let title = i18n.get("hud.skill.hmr_leap_radius_title");
+            let desc = i18n.get("hud.skill.hmr_leap_radius");
+            let desc = desc.replace("{boost}", &format!("{}", modifiers.leap.range));
+
+            (title, Cow::Owned(desc))
+        },
     }
 }
 
@@ -2730,17 +2731,17 @@ fn mining_skill_strings(skill: MiningSkill, i18n: &Localization) -> (&str, Cow<s
             "hud.skill.pick_strike_speed",
             modifiers.speed,
         ),
-        MiningSkill::OreGain => splice_multiplier(
+        MiningSkill::OreGain => splice_constant(
             i18n,
             "hud.skill.pick_strike_oregain_title",
             "hud.skill.pick_strike_oregain",
-            modifiers.ore_gain,
+            (modifiers.ore_gain * 100.0).round() as u32,
         ),
-        MiningSkill::GemGain => splice_multiplier(
+        MiningSkill::GemGain => splice_constant(
             i18n,
             "hud.skill.pick_strike_gemgain_title",
             "hud.skill.pick_strike_gemgain",
-            modifiers.gem_gain,
+            (modifiers.gem_gain * 100.0).round() as u32,
         ),
     }
 }
