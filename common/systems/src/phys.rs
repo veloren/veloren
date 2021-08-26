@@ -419,7 +419,10 @@ impl<'a> PhysicsData<'a> {
                                             <= pos_other.z
                                                 + z_limits_other.1 * previous_cache_other.scale
                                     {
-                                        if !collided {
+                                        // If entities have not yet collided this tick (but just
+                                        // did) and if entity is either in mid air or is not sticky,
+                                        // then mark them as colliding with the other entity
+                                        if !collided && (is_mid_air || !is_sticky) {
                                             physics.touch_entities.insert(*other);
                                             entity_entity_collisions += 1;
                                         }
