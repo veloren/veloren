@@ -1,7 +1,6 @@
 use common::{
     combat,
     comp::{
-        agent::owner_of,
         aura::{AuraChange, AuraKey, AuraKind, AuraTarget},
         buff::{Buff, BuffCategory, BuffChange, BuffSource},
         group::Group,
@@ -178,7 +177,7 @@ fn activate_aura(
             // Which means that you can't apply debuffs on you and your group
             // even if it's intented mechanic.
             //
-            // Not that we have this for now, but think about this
+            // We don't have this for now, but think about this
             // when we will add this.
             let may_harm = || {
                 let owner = match source {
@@ -187,18 +186,12 @@ fn activate_aura(
                     },
                     _ => None,
                 };
-                let owner_if_pet = |entity| {
-                    // Return owner entity if pet,
-                    // or just return entity back otherwise
-                    owner_of(
-                        read_data.alignments.get(entity).copied(),
-                        &read_data.uid_allocator,
-                    )
-                    .unwrap_or(entity)
-                };
                 combat::may_harm(
-                    owner.and_then(|owner| read_data.players.get(owner_if_pet(owner))),
-                    read_data.players.get(owner_if_pet(target)),
+                    &read_data.alignments,
+                    &read_data.players,
+                    &read_data.uid_allocator,
+                    owner,
+                    target,
                 )
             };
 

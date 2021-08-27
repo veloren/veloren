@@ -31,7 +31,7 @@ use common::{
     event::{EventBus, ServerEvent},
     generation::EntityInfo,
     npc::{self, get_npc_name},
-    resources::{PlayerPhysicsSettings, TimeOfDay, BattleMode},
+    resources::{BattleMode, PlayerPhysicsSettings, TimeOfDay},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     uid::Uid,
     vol::RectVolSize,

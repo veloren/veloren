@@ -12,13 +12,13 @@ use crate::{
         },
         poise::PoiseChange,
         skills::SkillGroupKind,
-        Body, CharacterState, Combo, Energy, EnergyChange, EnergySource, Health, HealthChange,
-        HealthSource, Inventory, Ori, Player, Poise, SkillSet, Stats,
+        Alignment, Body, CharacterState, Combo, Energy, EnergyChange, EnergySource, Health,
+        HealthChange, HealthSource, Inventory, Ori, Player, Poise, SkillSet, Stats,
     },
     event::ServerEvent,
     outcome::Outcome,
     states::utils::StageSection,
-    uid::Uid,
+    uid::{Uid, UidAllocator},
     util::Dir,
 };
 
@@ -28,7 +28,7 @@ use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
 #[cfg(not(target_arch = "wasm32"))]
-use specs::Entity as EcsEntity;
+use specs::{saveload::MarkerAllocator, Entity as EcsEntity, ReadStorage};
 #[cfg(not(target_arch = "wasm32"))]
 use std::{ops::MulAssign, time::Duration};
 #[cfg(not(target_arch = "wasm32"))] use vek::*;
@@ -469,14 +469,56 @@ impl Attack {
     }
 }
 
-/// Says if we should allow negative effects from one player to another
+/// Function that checks for unintentional PvP between players.
 ///
-/// NOTE: this function doesn't handle pets or friendly-fire, you will need to
-/// figure it out on call-side.
-pub fn may_harm(attacker: Option<&Player>, target: Option<&Player>) -> bool {
-    attacker
-        .zip(target)
-        .map_or(true, |(attacker, target)| attacker.may_harm(target))
+/// Returns `false` if attack will create unintentional conflict,
+/// e.g. if player with PvE mode will harm pets of other players
+/// or other players will do the same to such player.
+///
+/// If both players have PvP mode enabled, interact with NPC and
+/// in any other case, this function will return `true`
+// TODO: add parameter for doing self-harm?
+pub fn may_harm(
+    alignments: &ReadStorage<Alignment>,
+    players: &ReadStorage<Player>,
+    uid_allocator: &UidAllocator,
+    attacker: Option<EcsEntity>,
+    target: EcsEntity,
+) -> bool {
+    // Return owner entity if pet,
+    // or just return entity back otherwise
+    let owner_if_pet = |entity| {
+        let alignment = alignments.get(entity).copied();
+        if let Some(Alignment::Owned(uid)) = alignment {
+            // return original entity
+            // if can't get owner
+            uid_allocator
+                .retrieve_entity_internal(uid.into())
+                .unwrap_or(entity)
+        } else {
+            entity
+        }
+    };
+
+    // Just return ok if attacker is unknown, it's probably
+    // environment or command.
+    let attacker = match attacker {
+        Some(attacker) => attacker,
+        None => return true,
+    };
+
+    // "Dereference" to owner if this is a pet.
+    let attacker = owner_if_pet(attacker);
+    let target = owner_if_pet(target);
+
+    // Get player components
+    let attacker_info = players.get(attacker);
+    let target_info = players.get(target);
+
+    // Return `true` if not players.
+    attacker_info
+        .zip(target_info)
+        .map_or(true, |(a, t)| a.may_harm(t))
 }
 
 #[cfg(not(target_arch = "wasm32"))]

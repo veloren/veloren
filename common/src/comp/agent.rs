@@ -3,10 +3,10 @@ use crate::{
     path::Chaser,
     rtsim::RtSimController,
     trade::{PendingTrade, ReducedInventory, SiteId, SitePrices, TradeId, TradeResult},
-    uid::{Uid, UidAllocator},
+    uid::Uid,
 };
 use serde::Deserialize;
-use specs::{saveload::MarkerAllocator, Component, Entity as EcsEntity};
+use specs::{Component, Entity as EcsEntity};
 use specs_idvs::IdvStorage;
 use std::{collections::VecDeque, fmt};
 use strum::IntoEnumIterator;
@@ -32,15 +32,6 @@ pub enum Alignment {
     Owned(Uid),
     /// Passive objects like training dummies
     Passive,
-}
-
-// Helper function to get owner
-pub fn owner_of(alignment: Option<Alignment>, uid_allocator: &UidAllocator) -> Option<EcsEntity> {
-    if let Some(Alignment::Owned(uid)) = alignment {
-        uid_allocator.retrieve_entity_internal(uid.into())
-    } else {
-        None
-    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]

@@ -1,7 +1,7 @@
 use common::{
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
-        agent::{owner_of, Sound, SoundKind},
+        agent::{Sound, SoundKind},
         Alignment, Body, CharacterState, Combo, Energy, Group, Health, Inventory, Melee, Ori,
         Player, Pos, Scale, Stats,
     },
@@ -165,18 +165,12 @@ impl<'a> System<'a> for Sys {
                     };
 
                     // PvP check
-                    let owner_if_pet = |entity| {
-                        // Return owner entity if pet,
-                        // or just return entity back otherwise
-                        owner_of(
-                            read_data.alignments.get(entity).copied(),
-                            &read_data.uid_allocator,
-                        )
-                        .unwrap_or(entity)
-                    };
                     let may_harm = combat::may_harm(
-                        read_data.players.get(owner_if_pet(attacker)),
-                        read_data.players.get(owner_if_pet(target)),
+                        &read_data.alignments,
+                        &read_data.players,
+                        &read_data.uid_allocator,
+                        Some(attacker),
+                        target,
                     );
 
                     let attack_options = AttackOptions {

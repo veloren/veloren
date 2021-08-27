@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     comp::{
-        agent::{owner_of, Agent, AgentEvent, Sound, SoundKind},
+        agent::{Agent, AgentEvent, Sound, SoundKind},
         biped_large, bird_large, quadruped_low, quadruped_medium, quadruped_small,
         skills::SkillGroupKind,
         theropod, BuffKind, BuffSource, PhysicsState,
@@ -945,15 +945,12 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                         };
 
                         // PvP check
-                        let owner_if_pet = |entity| {
-                            // Return owner entity if pet,
-                            // or just return entity back otherwise
-                            owner_of(alignments.get(entity).copied(), uid_allocator)
-                                .unwrap_or(entity)
-                        };
                         let may_harm = combat::may_harm(
-                            owner_entity.and_then(|owner| players.get(owner_if_pet(owner))),
-                            players.get(owner_if_pet(entity_b)),
+                            alignments,
+                            players,
+                            uid_allocator,
+                            owner_entity,
+                            entity_b,
                         );
                         let attack_options = combat::AttackOptions {
                             // cool guyz maybe don't look at explosions
@@ -994,27 +991,22 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                         1.0 - distance_squared / explosion.radius.powi(2)
                     };
 
-                    // Player check only accounts for PvP/PvE flag.
+                    // Player check only accounts for PvP/PvE flag, but bombs
+                    // are intented to do friendly fire.
                     //
-                    // But bombs are intented to do
-                    // friendly fire.
-                    //
-                    // What exactly friendly fire is subject to discussion.
+                    // What exactly is friendly fire is subject to discussion.
                     // As we probably want to minimize possibility of being dick
                     // even to your group members, the only exception is when
                     // you want to harm yourself.
                     //
                     // This can be changed later.
-                    // PvP check
-                    let owner_if_pet = |entity| {
-                        // Return owner entity if pet,
-                        // or just return entity back otherwise
-                        owner_of(alignments.get(entity).copied(), uid_allocator).unwrap_or(entity)
-                    };
                     let may_harm = || {
                         combat::may_harm(
-                            owner_entity.and_then(|owner| players.get(owner_if_pet(owner))),
-                            players.get(owner_if_pet(entity_b)),
+                            alignments,
+                            players,
+                            uid_allocator,
+                            owner_entity,
+                            entity_b,
                         ) || owner_entity.map_or(true, |entity_a| entity_a == entity_b)
                     };
                     if strength > 0.0 {

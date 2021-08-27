@@ -323,6 +323,7 @@ impl ChatCommand {
                  true for overwrite to alter an existing ban..",
                 Some(Moderator),
             ),
+            #[rustfmt::skip]
             ChatCommand::BattleMode => cmd(
                 vec![Enum(
                     "battle mode",
