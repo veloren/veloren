@@ -1,10 +1,11 @@
 use common::{
     combat,
     comp::{
+        agent::owner_of,
         aura::{AuraChange, AuraKey, AuraKind, AuraTarget},
         buff::{Buff, BuffCategory, BuffChange, BuffSource},
         group::Group,
-        Aura, Auras, BuffKind, Buffs, CharacterState, Health, Player, Pos,
+        Alignment, Aura, Auras, BuffKind, Buffs, CharacterState, Health, Player, Pos,
     },
     event::{Emitter, EventBus, ServerEvent},
     resources::DeltaTime,
@@ -27,6 +28,7 @@ pub struct ReadData<'a> {
     cached_spatial_grid: Read<'a, common::CachedSpatialGrid>,
     positions: ReadStorage<'a, Pos>,
     char_states: ReadStorage<'a, CharacterState>,
+    alignments: ReadStorage<'a, Alignment>,
     healths: ReadStorage<'a, Health>,
     groups: ReadStorage<'a, Group>,
     uids: ReadStorage<'a, Uid>,
@@ -174,7 +176,7 @@ fn activate_aura(
             // TODO: this check will disable friendly fire with PvE switch.
             //
             // Which means that you can't apply debuffs on you and your group
-            // even if it's intented mechanics.
+            // even if it's intented mechanic.
             //
             // Not that we have this for now, but think about this
             // when we will add this.
@@ -185,11 +187,19 @@ fn activate_aura(
                     },
                     _ => None,
                 };
-                owner.map_or(true, |attacker| {
-                    let attacker = read_data.players.get(attacker);
-                    let target = read_data.players.get(target);
-                    combat::may_harm(attacker, target)
-                })
+                let owner_if_pet = |entity| {
+                    // Return owner entity if pet,
+                    // or just return entity back otherwise
+                    owner_of(
+                        read_data.alignments.get(entity).copied(),
+                        &read_data.uid_allocator,
+                    )
+                    .unwrap_or(entity)
+                };
+                combat::may_harm(
+                    owner.and_then(|owner| read_data.players.get(owner_if_pet(owner))),
+                    read_data.players.get(owner_if_pet(target)),
+                )
             };
 
             conditions_held && (kind.is_buff() || may_harm())

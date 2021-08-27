@@ -1,14 +1,14 @@
 use common::{
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
-        agent::{Sound, SoundKind},
-        Body, CharacterState, Combo, Energy, Group, Health, Inventory, Melee, Ori, Player, Pos,
-        Scale, Stats,
+        agent::{owner_of, Sound, SoundKind},
+        Alignment, Body, CharacterState, Combo, Energy, Group, Health, Inventory, Melee, Ori,
+        Player, Pos, Scale, Stats,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
     resources::Time,
-    uid::Uid,
+    uid::{Uid, UidAllocator},
     util::Dir,
     GroupTarget,
 };
@@ -21,11 +21,13 @@ use vek::*;
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     time: Read<'a, Time>,
+    uid_allocator: Read<'a, UidAllocator>,
     entities: Entities<'a>,
     players: ReadStorage<'a, Player>,
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
     orientations: ReadStorage<'a, Ori>,
+    alignments: ReadStorage<'a, Alignment>,
     scales: ReadStorage<'a, Scale>,
     bodies: ReadStorage<'a, Body>,
     healths: ReadStorage<'a, Health>,
@@ -162,9 +164,19 @@ impl<'a> System<'a> for Sys {
                         char_state: read_data.char_states.get(target),
                     };
 
+                    // PvP check
+                    let owner_if_pet = |entity| {
+                        // Return owner entity if pet,
+                        // or just return entity back otherwise
+                        owner_of(
+                            read_data.alignments.get(entity).copied(),
+                            &read_data.uid_allocator,
+                        )
+                        .unwrap_or(entity)
+                    };
                     let may_harm = combat::may_harm(
-                        read_data.players.get(attacker),
-                        read_data.players.get(target),
+                        read_data.players.get(owner_if_pet(attacker)),
+                        read_data.players.get(owner_if_pet(target)),
                     );
 
                     let attack_options = AttackOptions {

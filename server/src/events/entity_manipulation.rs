@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     comp::{
-        agent::{Agent, AgentEvent, Sound, SoundKind},
+        agent::{owner_of, Agent, AgentEvent, Sound, SoundKind},
         biped_large, bird_large, quadruped_low, quadruped_medium, quadruped_small,
         skills::SkillGroupKind,
         theropod, BuffKind, BuffSource, PhysicsState,
@@ -873,6 +873,8 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                 let energies = &ecs.read_storage::<comp::Energy>();
                 let combos = &ecs.read_storage::<comp::Combo>();
                 let inventories = &ecs.read_storage::<comp::Inventory>();
+                let alignments = &ecs.read_storage::<Alignment>();
+                let uid_allocator = &ecs.read_resource::<UidAllocator>();
                 let players = &ecs.read_storage::<comp::Player>();
                 for (
                     entity_b,
@@ -942,9 +944,16 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             char_state: char_state_b_maybe,
                         };
 
+                        // PvP check
+                        let owner_if_pet = |entity| {
+                            // Return owner entity if pet,
+                            // or just return entity back otherwise
+                            owner_of(alignments.get(entity).copied(), uid_allocator)
+                                .unwrap_or(entity)
+                        };
                         let may_harm = combat::may_harm(
-                            owner_entity.and_then(|owner| players.get(owner)),
-                            players.get(entity_b),
+                            owner_entity.and_then(|owner| players.get(owner_if_pet(owner))),
+                            players.get(owner_if_pet(entity_b)),
                         );
                         let attack_options = combat::AttackOptions {
                             // cool guyz maybe don't look at explosions
@@ -968,6 +977,8 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                 }
             },
             RadiusEffect::Entity(mut effect) => {
+                let alignments = &ecs.read_storage::<Alignment>();
+                let uid_allocator = &ecs.read_resource::<UidAllocator>();
                 let players = &ecs.read_storage::<comp::Player>();
                 for (entity_b, pos_b, body_b_maybe) in (
                     &ecs.entities(),
@@ -994,12 +1005,17 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                     // you want to harm yourself.
                     //
                     // This can be changed later.
+                    // PvP check
+                    let owner_if_pet = |entity| {
+                        // Return owner entity if pet,
+                        // or just return entity back otherwise
+                        owner_of(alignments.get(entity).copied(), uid_allocator).unwrap_or(entity)
+                    };
                     let may_harm = || {
-                        owner_entity.map_or(false, |attacker| {
-                            let attacker_player = players.get(attacker);
-                            let target_player = players.get(entity_b);
-                            combat::may_harm(attacker_player, target_player) || attacker == entity_b
-                        })
+                        combat::may_harm(
+                            owner_entity.and_then(|owner| players.get(owner_if_pet(owner))),
+                            players.get(owner_if_pet(entity_b)),
+                        ) || owner_entity.map_or(true, |entity_a| entity_a == entity_b)
                     };
                     if strength > 0.0 {
                         let is_alive = ecs

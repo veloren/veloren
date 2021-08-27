@@ -1,9 +1,9 @@
 use common::{
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
-        agent::{Sound, SoundKind},
-        Beam, BeamSegment, Body, CharacterState, Combo, Energy, Group, Health, HealthSource,
-        Inventory, Ori, Player, Pos, Scale, Stats,
+        agent::{owner_of, Sound, SoundKind},
+        Alignment, Beam, BeamSegment, Body, CharacterState, Combo, Energy, Group, Health,
+        HealthSource, Inventory, Ori, Player, Pos, Scale, Stats,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
@@ -36,6 +36,7 @@ pub struct ReadData<'a> {
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
     orientations: ReadStorage<'a, Ori>,
+    alignments: ReadStorage<'a, Alignment>,
     scales: ReadStorage<'a, Scale>,
     bodies: ReadStorage<'a, Body>,
     healths: ReadStorage<'a, Health>,
@@ -214,9 +215,19 @@ impl<'a> System<'a> for Sys {
                     };
 
 
+                    // PvP check
+                    let owner_if_pet = |entity| {
+                        // Return owner entity if pet,
+                        // or just return entity back otherwise
+                        owner_of(
+                            read_data.alignments.get(entity).copied(),
+                            &read_data.uid_allocator,
+                        )
+                        .unwrap_or(entity)
+                    };
                     let may_harm = combat::may_harm(
-                        beam_owner.and_then(|owner| read_data.players.get(owner)),
-                        read_data.players.get(target),
+                        beam_owner.and_then(|owner| read_data.players.get(owner_if_pet(owner))),
+                        read_data.players.get(owner_if_pet(target)),
                     );
                     let attack_options = AttackOptions {
                         // No luck with dodging beams

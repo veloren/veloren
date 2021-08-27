@@ -1,9 +1,9 @@
 use common::{
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
-        agent::{Sound, SoundKind},
-        projectile, Body, CharacterState, Combo, Energy, Group, Health, HealthSource, Inventory,
-        Ori, PhysicsState, Player, Pos, Projectile, Stats, Vel,
+        agent::{owner_of, Sound, SoundKind},
+        projectile, Alignment, Body, CharacterState, Combo, Energy, Group, Health, HealthSource,
+        Inventory, Ori, PhysicsState, Player, Pos, Projectile, Stats, Vel,
     },
     event::{Emitter, EventBus, ServerEvent},
     outcome::Outcome,
@@ -31,6 +31,7 @@ pub struct ReadData<'a> {
     server_bus: Read<'a, EventBus<ServerEvent>>,
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
+    alignments: ReadStorage<'a, Alignment>,
     physics_states: ReadStorage<'a, PhysicsState>,
     velocities: ReadStorage<'a, Vel>,
     inventories: ReadStorage<'a, Inventory>,
@@ -299,9 +300,19 @@ fn dispatch_hit(
                 });
             }
 
+            // PvP check
+            let owner_if_pet = |entity| {
+                // Return owner entity if pet,
+                // or just return entity back otherwise
+                owner_of(
+                    read_data.alignments.get(entity).copied(),
+                    &read_data.uid_allocator,
+                )
+                .unwrap_or(entity)
+            };
             let may_harm = combat::may_harm(
-                owner.and_then(|owner| read_data.players.get(owner)),
-                read_data.players.get(target),
+                owner.and_then(|owner| read_data.players.get(owner_if_pet(owner))),
+                read_data.players.get(owner_if_pet(target)),
             );
 
             let attack_options = AttackOptions {

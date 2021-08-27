@@ -469,11 +469,10 @@ impl Attack {
     }
 }
 
-/// Checks if we should allow negative effects from one player to another
-// FIXME: handle pets?
-// This code works only with players.
-// You still can kill someone's pet and
-// you still can be killed by someone's pet
+/// Says if we should allow negative effects from one player to another
+///
+/// NOTE: this function doesn't handle pets or friendly-fire, you will need to
+/// figure it out on call-side.
 pub fn may_harm(attacker: Option<&Player>, target: Option<&Player>) -> bool {
     attacker
         .zip(target)
