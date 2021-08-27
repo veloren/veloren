@@ -5,9 +5,13 @@ use crate::{
 };
 use common_base::span;
 use hashbrown::hash_map::DefaultHashBuilder;
-//use kiddo::{distance::squared_euclidean, KdTree}; // For RRT paths (disabled
-// for now)
+#[cfg(rrt_pathfinding)] use hashbrown::HashMap;
+#[cfg(rrt_pathfinding)]
+use kiddo::{distance::squared_euclidean, KdTree}; // For RRT paths (disabled for now)
+#[cfg(rrt_pathfinding)]
+use rand::distributions::Uniform;
 use rand::{thread_rng, Rng};
+#[cfg(rrt_pathfinding)] use std::f32::consts::PI;
 use std::iter::FromIterator;
 use vek::*;
 
@@ -416,10 +420,10 @@ impl Chaser {
             {
                 self.last_search_tgt = Some(tgt);
 
-                let (path, complete) = /*if traversal_cfg.can_fly {
+                // NOTE: Enable air paths when air braking has been figured out
+                let (path, complete) = /*if cfg!(rrt_pathfinding) && traversal_cfg.can_fly {
                     find_air_path(vol, pos, tgt, &traversal_cfg)
                 } else */{
-                    // Enable air paths when air braking has been figured out
                     find_path(&mut self.astar, vol, pos, tgt, &traversal_cfg)
                 };
 
@@ -669,7 +673,6 @@ where
 }
 
 // Enable when airbraking/sensible flight is a thing
-/*
 /// Attempts to find a path from a start to the end using an informed
 /// RRT-Connect algorithm. A point is sampled from a bounding spheroid
 /// between the start and end. Two separate rapidly exploring random
@@ -680,6 +683,7 @@ where
 /// with wider gaps, such as flying through a forest than for terrain
 /// with narrow gaps, such as navigating a maze.
 /// Returns a path and whether that path is complete or not.
+#[cfg(rrt_pathfinding)]
 fn find_air_path<V>(
     vol: &V,
     startf: Vec3<f32>,
@@ -698,19 +702,10 @@ where
         .ray(startf + Vec3::unit_z(), endf + Vec3::unit_z())
         .until(Block::is_opaque)
         .cast()
-        .0.powi(2)
-        >= total_dist_sqrd {
-        //let step = (endf - startf).normalized().map(|a| a * radius);
-        //let mut node: Vec3<f32>;
-        //// Maximum of 500 steps
-        //for i in 1..500 {
-        //    node = startf + step.map(|s| s * i as f32);
-        //    path.push(endf.map(|e| e.floor() as i32));
-        //    if node.distance_squared(endf) < radius{
-        //        connect = true;
-        //        break;
-        //    }
-        //}
+        .0
+        .powi(2)
+        >= total_dist_sqrd
+    {
         path.push(endf.map(|e| e.floor() as i32));
         connect = true;
     // Else use RRTs
@@ -722,7 +717,8 @@ where
                 .0
                 .powi(2)
                 > (*start).distance_squared(*end)
-            //vol.get(*pos).ok().copied().unwrap_or_else(Block::empty).is_fluid();
+            //vol.get(*pos).ok().copied().unwrap_or_else(Block::empty).
+            // is_fluid();
         };
         let mut node_index1: usize = 0;
         let mut node_index2: usize = 0;
@@ -795,8 +791,10 @@ where
             let nearest2 = nodes2[nearest_index2];
 
             // Extend toward the sampled point from the nearest node of each tree
-            let new_point1 = nearest1 + (sampled_point1 - nearest1).normalized().map(|a| a * radius);
-            let new_point2 = nearest2 + (sampled_point2 - nearest2).normalized().map(|a| a * radius);
+            let new_point1 =
+                nearest1 + (sampled_point1 - nearest1).normalized().map(|a| a * radius);
+            let new_point2 =
+                nearest2 + (sampled_point2 - nearest2).normalized().map(|a| a * radius);
 
             // Ensure the new nodes are valid/traversable
             if is_traversable(&nearest1, &new_point1) {
@@ -889,7 +887,8 @@ where
             }
             path1.push(nodes1[current_node_index1].map(|e| e.floor() as i32));
             // Construct the path
-            while current_node_index1 != 0 && nodes1[current_node_index1].distance_squared(startf) > 4.0
+            while current_node_index1 != 0
+                && nodes1[current_node_index1].distance_squared(startf) > 4.0
             {
                 current_node_index1 = *parents1.get(&current_node_index1).unwrap_or(&0);
                 path1.push(nodes1[current_node_index1].map(|e| e.floor() as i32));
@@ -913,7 +912,8 @@ where
             let next_node = path[next_idx];
             let start_pos = node.map(|e| e as f32 + 0.5);
             let end_pos = next_node.map(|e| e as f32 + 0.5);
-            if vol.ray(start_pos, end_pos)
+            if vol
+                .ray(start_pos, end_pos)
                 .until(Block::is_solid)
                 .cast()
                 .0
@@ -931,9 +931,7 @@ where
     }
     (Some(path.into_iter().collect()), connect)
 }
-*/
 
-/*
 /// Returns a random point within a radially symmetrical ellipsoid with given
 /// foci and a `search parameter` to determine the size of the ellipse beyond
 /// the foci. Technically the point is within a prolate spheroid translated and
@@ -945,6 +943,7 @@ where
 /// greater than zero. In order to increase the sample area, the
 /// search_parameter should be increased linearly as the search continues.
 #[allow(clippy::many_single_char_names)]
+#[cfg(rrt_pathfinding)]
 pub fn point_on_prolate_spheroid(
     focus1: Vec3<f32>,
     focus2: Vec3<f32>,
@@ -1059,4 +1058,3 @@ pub fn point_on_prolate_spheroid(
     // let global_coords = midpoint + rot_2_mat * (rot_z_mat * point);
     midpoint + rot_2_mat * point
 }
-*/
