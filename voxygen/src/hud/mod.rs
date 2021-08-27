@@ -4140,12 +4140,15 @@ pub fn angle_of_attack_text(
 }
 
 /// Converts multiplier to percentage.
+/// NOTE: floats are not the most precise type.
 ///
 /// # Examples
 /// ```
 /// use veloren_voxygen::hud::multiplier_to_percentage;
 ///
-/// assert_eq!(multiplier_to_percentage(1.05), 5);
-/// assert_eq!(multiplier_to_percentage(0.85), -15);
+/// let positive = multiplier_to_percentage(1.05);
+/// assert!((positive - 5.0).abs() < 0.0001);
+/// let negative = multiplier_to_percentage(0.85);
+/// assert!((negative - (-15.0)).abs() < 0.0001);
 /// ```
-pub fn multiplier_to_percentage(value: f32) -> i32 { (value * 100.0 - 100.0).round() as i32 }
+pub fn multiplier_to_percentage(value: f32) -> f32 { value * 100.0 - 100.0 }

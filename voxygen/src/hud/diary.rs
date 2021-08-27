@@ -2773,8 +2773,13 @@ fn splice_multiplier<'loc>(
     desc: &str,
     multipler: f32,
 ) -> (&'loc str, Cow<'loc, str>) {
-    let percentage = hud::multiplier_to_percentage(multipler).unsigned_abs();
-    splice_constant(i18n, title, desc, percentage)
+    let percentage = hud::multiplier_to_percentage(multipler).abs();
+
+    let title = i18n.get(title);
+    let desc = i18n.get(desc);
+    let desc = desc.replace("{boost}", &format!("{:.0}", percentage));
+
+    (title, Cow::Owned(desc))
 }
 
 // Small helper function to get localized skill text.
