@@ -4,6 +4,7 @@ pub mod beta;
 pub mod block;
 pub mod chargeswing;
 pub mod climb;
+pub mod collect;
 pub mod consume;
 pub mod dance;
 pub mod dash;
@@ -34,8 +35,8 @@ pub mod wield;
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, beam::BeamAnimation, beta::BetaAnimation, block::BlockAnimation,
-    chargeswing::ChargeswingAnimation, climb::ClimbAnimation, consume::ConsumeAnimation,
-    dance::DanceAnimation, dash::DashAnimation, equip::EquipAnimation,
+    chargeswing::ChargeswingAnimation, climb::ClimbAnimation, collect::CollectAnimation,
+    consume::ConsumeAnimation, dance::DanceAnimation, dash::DashAnimation, equip::EquipAnimation,
     glidewield::GlideWieldAnimation, gliding::GlidingAnimation, idle::IdleAnimation,
     jump::JumpAnimation, leapmelee::LeapAnimation, mount::MountAnimation,
     repeater::RepeaterAnimation, roll::RollAnimation, run::RunAnimation,
