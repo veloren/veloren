@@ -2,6 +2,7 @@ use crate::{
     client::Client,
     login_provider::{LoginProvider, PendingLogin},
     metrics::PlayerMetrics,
+    settings::ServerBattleMode,
     EditableSettings, Settings,
 };
 use common::{
@@ -173,7 +174,14 @@ impl<'a> System<'a> for Sys {
                     return Ok(());
                 }
 
-                let player = Player::new(username, read_data.settings.battle_mode, uuid);
+                let battle_mode = match read_data.settings.battle_mode {
+                    ServerBattleMode::Global(mode) => mode,
+                    // FIXME:
+                    // Should this use just default battle_mode
+                    // or should we take it from last change?
+                    ServerBattleMode::PerPlayer { default: mode } => mode,
+                };
+                let player = Player::new(username, battle_mode, uuid);
                 let admin = read_data.editable_settings.admins.get(&uuid);
 
                 if !player.is_valid() {
