@@ -47,6 +47,8 @@ pub enum ChatCommand {
     Alias,
     ApplyBuff,
     Ban,
+    BattleMode,
+    BattleModeForce,
     Build,
     BuildAreaAdd,
     BuildAreaList,
@@ -320,6 +322,25 @@ impl ChatCommand {
                 "Ban a player with a given username, for a given duration (if provided).  Pass \
                  true for overwrite to alter an existing ban..",
                 Some(Moderator),
+            ),
+            ChatCommand::BattleMode => cmd(
+                vec![Enum(
+                    "battle mode",
+                    vec!["pvp".to_owned(), "pve".to_owned()],
+                    Optional,
+                )],
+                "Set your battle mode to pvp/pve.\n\
+                If called without arguments will show current battle mode.",
+                None,
+            ),
+            ChatCommand::BattleModeForce => cmd(
+                vec![Enum(
+                    "battle mode",
+                    vec!["pvp".to_owned(), "pve".to_owned()],
+                    Required,
+                )],
+                "Change your battle mode flag without any checks",
+                Some(Admin),
             ),
             ChatCommand::Build => cmd(vec![], "Toggles build mode on and off", None),
             ChatCommand::BuildAreaAdd => cmd(
@@ -623,6 +644,8 @@ impl ChatCommand {
             ChatCommand::Alias => "alias",
             ChatCommand::ApplyBuff => "buff",
             ChatCommand::Ban => "ban",
+            ChatCommand::BattleMode => "battlemode",
+            ChatCommand::BattleModeForce => "battlemode_force",
             ChatCommand::Build => "build",
             ChatCommand::BuildAreaAdd => "build_area_add",
             ChatCommand::BuildAreaList => "build_area_list",

@@ -31,7 +31,7 @@ use common::{
     event::{EventBus, ServerEvent},
     generation::EntityInfo,
     npc::{self, get_npc_name},
-    resources::{PlayerPhysicsSettings, TimeOfDay},
+    resources::{PlayerPhysicsSettings, TimeOfDay, BattleMode},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     uid::Uid,
     vol::RectVolSize,
@@ -113,6 +113,8 @@ fn do_command(
         ChatCommand::Alias => handle_alias,
         ChatCommand::ApplyBuff => handle_apply_buff,
         ChatCommand::Ban => handle_ban,
+        ChatCommand::BattleMode => handle_battlemode,
+        ChatCommand::BattleModeForce => handle_battlemode_force,
         ChatCommand::Build => handle_build,
         ChatCommand::BuildAreaAdd => handle_build_area_add,
         ChatCommand::BuildAreaList => handle_build_area_list,
@@ -3091,6 +3093,62 @@ fn handle_ban(
         Ok(())
     } else {
         Err(action.help_string())
+    }
+}
+
+fn handle_battlemode(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    _action: &ChatCommand,
+) -> CmdResult<()> {
+    let ecs = &server.state.ecs();
+    if let Some(mode) = parse_args!(args, String) {
+        Err("Seting mode isn't implemented".to_owned())
+    } else {
+        let players = ecs.read_storage::<comp::Player>();
+        let player = players
+            .get(target)
+            .ok_or_else(|| "Cannot get player component for target".to_string())?;
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                format!("Battle mode is {:?}", player.battle_mode),
+            ),
+        );
+        Ok(())
+    }
+}
+
+fn handle_battlemode_force(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ChatCommand,
+) -> CmdResult<()> {
+    let ecs = &server.state.ecs();
+    let mut players = ecs.write_storage::<comp::Player>();
+    let mode = parse_args!(args, String).ok_or_else(|| action.help_string())?;
+    let mode = match mode.as_str() {
+        "pvp" => BattleMode::PvP,
+        "pve" => BattleMode::PvE,
+        _ => return Err("Available modes: pvp, pve".to_owned()),
+    };
+    if let Some(ref mut player) = players.get_mut(target) {
+        player.battle_mode = mode;
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                format!("Set battle_mode to {:?}", player.battle_mode),
+            ),
+        );
+        Ok(())
+    } else {
+        Err("Cannot get player component for target".to_owned())
     }
 }
 
