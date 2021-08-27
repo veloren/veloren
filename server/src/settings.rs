@@ -46,6 +46,15 @@ pub enum ServerBattleMode {
     PerPlayer { default: BattleMode },
 }
 
+impl ServerBattleMode {
+    pub fn allow_choosing(&self) -> bool {
+        match self {
+            ServerBattleMode::Global { .. } => false,
+            ServerBattleMode::PerPlayer { .. } => true,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Settings {

@@ -3,12 +3,15 @@
 //! in [do_command].
 
 use crate::{
+    client::Client,
+    login_provider::LoginProvider,
     settings::{
         Ban, BanAction, BanInfo, EditableSetting, SettingError, WhitelistInfo, WhitelistRecord,
     },
     sys::terrain::NpcData,
+    wiring,
     wiring::{Logic, OutputFormula},
-    Server, SpawnPoint, StateExt,
+    Server, Settings, SpawnPoint, StateExt,
 };
 use assets::AssetExt;
 use authc::Uuid;
@@ -52,7 +55,6 @@ use vek::*;
 use wiring::{Circuit, Wire, WiringAction, WiringActionEffect, WiringElement};
 use world::{site::SiteKind, util::Sampler};
 
-use crate::{client::Client, login_provider::LoginProvider, wiring};
 use std::ops::DerefMut;
 use tracing::{error, info, warn};
 
@@ -3105,6 +3107,10 @@ fn handle_battlemode(
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     let ecs = server.state.ecs();
+    let settings = ecs.read_resource::<Settings>();
+    if !settings.battle_mode.allow_choosing() {
+        return Err("Toggling battlemode is disabled.".to_owned());
+    }
     if let Some(mode) = parse_args!(args, String) {
         let world = &server.world;
         let index = &server.index;
@@ -3113,7 +3119,7 @@ fn handle_battlemode(
         let chunk_pos = Vec2::from(pos.0).map(|x: f32| x as i32);
         let chunk = sim
             .get(chunk_pos)
-            .ok_or_else(|| "Cannot get current chunk for target")?;
+            .ok_or("Cannot get current chunk for target")?;
         let site_ids = &chunk.sites;
         let mut in_town = false;
         for site_id in site_ids.iter() {
@@ -3131,7 +3137,7 @@ fn handle_battlemode(
         let mut players = ecs.write_storage::<comp::Player>();
         let mut player = players
             .get_mut(target)
-            .ok_or_else(|| "Cannot get player component for target".to_owned())?;
+            .ok_or("Cannot get player component for target")?;
         // FIXME: handle cooldown before merge here!
         //
         set_battlemode(&mode, player.deref_mut(), server, client)
@@ -3139,7 +3145,7 @@ fn handle_battlemode(
         let players = ecs.read_storage::<comp::Player>();
         let player = players
             .get(target)
-            .ok_or_else(|| "Cannot get player component for target".to_string())?;
+            .ok_or("Cannot get player component for target")?;
         server.notify_client(
             client,
             ServerGeneral::server_msg(
@@ -3160,10 +3166,20 @@ fn handle_battlemode_force(
 ) -> CmdResult<()> {
     let mode = parse_args!(args, String).ok_or_else(|| action.help_string())?;
     let ecs = server.state.ecs();
+    let settings = ecs.read_resource::<Settings>();
+    if !settings.battle_mode.allow_choosing() {
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                "Warning! Forcing battle_mode while not enabled in settings!".to_owned(),
+            ),
+        );
+    }
     let mut players = ecs.write_storage::<comp::Player>();
     let mut player = players
         .get_mut(target)
-        .ok_or_else(|| "Cannot get player component for target".to_owned())?;
+        .ok_or("Cannot get player component for target")?;
     set_battlemode(&mode, player.deref_mut(), server, client)
 }
 
