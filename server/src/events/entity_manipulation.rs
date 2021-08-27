@@ -1001,13 +1001,8 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                     //
                     // This can be changed later.
                     let may_harm = || {
-                        combat::may_harm(
-                            alignments,
-                            players,
-                            uid_allocator,
-                            owner_entity,
-                            entity_b,
-                        ) || owner_entity.map_or(true, |entity_a| entity_a == entity_b)
+                        combat::may_harm(alignments, players, uid_allocator, owner_entity, entity_b)
+                            || owner_entity.map_or(true, |entity_a| entity_a == entity_b)
                     };
                     if strength > 0.0 {
                         let is_alive = ecs

@@ -50,9 +50,10 @@ use specs::{storage::StorageEntry, Builder, Entity as EcsEntity, Join, WorldExt}
 use std::str::FromStr;
 use vek::*;
 use wiring::{Circuit, Wire, WiringAction, WiringActionEffect, WiringElement};
-use world::util::Sampler;
+use world::{site::SiteKind, util::Sampler};
 
 use crate::{client::Client, login_provider::LoginProvider, wiring};
+use std::ops::DerefMut;
 use tracing::{error, info, warn};
 
 pub trait ChatCommandExt {
@@ -3103,9 +3104,37 @@ fn handle_battlemode(
     args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
-    let ecs = &server.state.ecs();
+    let ecs = server.state.ecs();
     if let Some(mode) = parse_args!(args, String) {
-        Err("Seting mode isn't implemented".to_owned())
+        let world = &server.world;
+        let index = &server.index;
+        let sim = world.sim();
+        let pos = position(server, target, "target")?;
+        let chunk_pos = Vec2::from(pos.0).map(|x: f32| x as i32);
+        let chunk = sim
+            .get(chunk_pos)
+            .ok_or_else(|| "Cannot get current chunk for target")?;
+        let site_ids = &chunk.sites;
+        let mut in_town = false;
+        for site_id in site_ids.iter() {
+            let site = index.sites.get(*site_id);
+            if matches!(site.kind, SiteKind::Settlement(_)) {
+                in_town = true;
+                break;
+            }
+        }
+
+        if !in_town {
+            return Err("You can change battle_mode only in town".to_owned());
+        }
+
+        let mut players = ecs.write_storage::<comp::Player>();
+        let mut player = players
+            .get_mut(target)
+            .ok_or_else(|| "Cannot get player component for target".to_owned())?;
+        // FIXME: handle cooldown before merge here!
+        //
+        set_battlemode(&mode, player.deref_mut(), server, client)
     } else {
         let players = ecs.read_storage::<comp::Player>();
         let player = players
@@ -3129,27 +3158,35 @@ fn handle_battlemode_force(
     args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    let ecs = &server.state.ecs();
-    let mut players = ecs.write_storage::<comp::Player>();
     let mode = parse_args!(args, String).ok_or_else(|| action.help_string())?;
-    let mode = match mode.as_str() {
+    let ecs = server.state.ecs();
+    let mut players = ecs.write_storage::<comp::Player>();
+    let mut player = players
+        .get_mut(target)
+        .ok_or_else(|| "Cannot get player component for target".to_owned())?;
+    set_battlemode(&mode, player.deref_mut(), server, client)
+}
+
+fn set_battlemode(
+    mode: &str,
+    player_info: &mut comp::Player,
+    server: &Server,
+    client: EcsEntity,
+) -> CmdResult<()> {
+    let mode = match mode {
         "pvp" => BattleMode::PvP,
         "pve" => BattleMode::PvE,
         _ => return Err("Available modes: pvp, pve".to_owned()),
     };
-    if let Some(ref mut player) = players.get_mut(target) {
-        player.battle_mode = mode;
-        server.notify_client(
-            client,
-            ServerGeneral::server_msg(
-                ChatType::CommandInfo,
-                format!("Set battle_mode to {:?}", player.battle_mode),
-            ),
-        );
-        Ok(())
-    } else {
-        Err("Cannot get player component for target".to_owned())
-    }
+    player_info.battle_mode = mode;
+    server.notify_client(
+        client,
+        ServerGeneral::server_msg(
+            ChatType::CommandInfo,
+            format!("Set battle_mode to {:?}", player_info.battle_mode),
+        ),
+    );
+    Ok(())
 }
 
 fn handle_unban(
