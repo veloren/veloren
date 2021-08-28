@@ -3108,27 +3108,35 @@ fn handle_battlemode(
 ) -> CmdResult<()> {
     let ecs = server.state.ecs();
     let settings = ecs.read_resource::<Settings>();
-    if !settings.battle_mode.allow_choosing() {
-        return Err("Toggling battlemode is disabled.".to_owned());
-    }
     if let Some(mode) = parse_args!(args, String) {
-        let world = &server.world;
-        let index = &server.index;
-        let sim = world.sim();
-        let pos = position(server, target, "target")?;
-        let chunk_pos = Vec2::from(pos.0).map(|x: f32| x as i32);
-        let chunk = sim
-            .get(chunk_pos)
-            .ok_or("Cannot get current chunk for target")?;
-        let site_ids = &chunk.sites;
-        let mut in_town = false;
-        for site_id in site_ids.iter() {
-            let site = index.sites.get(*site_id);
-            if matches!(site.kind, SiteKind::Settlement(_)) {
-                in_town = true;
-                break;
-            }
+        if !settings.battle_mode.allow_choosing() {
+            return Err("Toggling battlemode is disabled.".to_owned());
         }
+
+        #[cfg(feature = "worldgen")]
+        let in_town = {
+            let world = &server.world;
+            let index = &server.index;
+            let sim = world.sim();
+            let pos = position(server, target, "target")?;
+            let chunk_pos = Vec2::from(pos.0).map(|x: f32| x as i32);
+            let chunk = sim
+                .get(chunk_pos)
+                .ok_or("Cannot get current chunk for target")?;
+            let site_ids = &chunk.sites;
+            let mut in_town = false;
+            for site_id in site_ids.iter() {
+                let site = index.sites.get(*site_id);
+                if matches!(site.kind, SiteKind::Settlement(_)) {
+                    in_town = true;
+                    break;
+                }
+            }
+            in_town
+        };
+        // just skip this check, if worldgen is disabled
+        #[cfg(not(feature = "worldgen"))]
+        let in_town = true;
 
         if !in_town {
             return Err("You can change battle_mode only in town".to_owned());
