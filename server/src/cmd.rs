@@ -3110,7 +3110,7 @@ fn handle_battlemode(
     let settings = ecs.read_resource::<Settings>();
     if let Some(mode) = parse_args!(args, String) {
         if !settings.battle_mode.allow_choosing() {
-            return Err("Toggling battlemode is disabled.".to_owned());
+            return Err("Command disabled in server settings".to_owned());
         }
 
         #[cfg(feature = "worldgen")]
@@ -3118,11 +3118,19 @@ fn handle_battlemode(
             let world = &server.world;
             let index = &server.index;
             let sim = world.sim();
+            // get chunk position
             let pos = position(server, target, "target")?;
-            let chunk_pos = Vec2::from(pos.0).map(|x: f32| x as i32);
+            let wpos = pos.0.xy().map(|x| x as i32);
+            let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |pos, size: u32| {
+                pos / size as i32
+            });
             let chunk = sim
                 .get(chunk_pos)
                 .ok_or("Cannot get current chunk for target")?;
+            // search for towns in chunk
+            //
+            // NOTE: this code finds town even if it is far from it.
+            // Does it count plant fields?
             let site_ids = &chunk.sites;
             let mut in_town = false;
             for site_id in site_ids.iter() {
@@ -3139,7 +3147,7 @@ fn handle_battlemode(
         let in_town = true;
 
         if !in_town {
-            return Err("You can change battle_mode only in town".to_owned());
+            return Err("Too far from town".to_owned());
         }
 
         let mut players = ecs.write_storage::<comp::Player>();
@@ -3158,7 +3166,7 @@ fn handle_battlemode(
             client,
             ServerGeneral::server_msg(
                 ChatType::CommandInfo,
-                format!("Battle mode is {:?}", player.battle_mode),
+                format!("Current battle mode: {:?}", player.battle_mode),
             ),
         );
         Ok(())
@@ -3180,7 +3188,7 @@ fn handle_battlemode_force(
             client,
             ServerGeneral::server_msg(
                 ChatType::CommandInfo,
-                "Warning! Forcing battle_mode while not enabled in settings!".to_owned(),
+                "Warning! Forcing battle mode while not enabled in settings!".to_owned(),
             ),
         );
     }
@@ -3207,7 +3215,7 @@ fn set_battlemode(
         client,
         ServerGeneral::server_msg(
             ChatType::CommandInfo,
-            format!("Set battle_mode to {:?}", player_info.battle_mode),
+            format!("New battle mode: {:?}", player_info.battle_mode),
         ),
     );
     Ok(())
