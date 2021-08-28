@@ -1,0 +1,8 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.natural.saurok-altar",
+        center: (10, 13, 3),
+    ),
+]

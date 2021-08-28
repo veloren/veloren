@@ -33,6 +33,9 @@ use vek::*;
 pub enum Spot {
     // *Themed Spots*
     DwarvenGrave,
+    SaurokAltar,
+    RockCircle,
+    MyrmidonTemple,
     GnarlingTotem,
     WitchHouse,
     //BanditCamp,
@@ -50,6 +53,7 @@ pub enum Spot {
     DesertBones,
     AirshipCrash,
     FruitTree,
+    Shipwreck,
 }
 
 // Available Biomes are:
@@ -67,6 +71,7 @@ pub enum Spot {
 
 impl Spot {
     pub fn generate(world: &mut WorldSim) {
+        use BiomeKind::*;
         // Trees/spawn: false => *No* trees around the spot
         // Themed Spots -> Act as an introduction to themes of sites
         Self::generate_spots(
@@ -79,7 +84,10 @@ impl Spot {
                     && !c.river.near_water()
                     && !c.path.0.is_way()
                     && c.sites.is_empty()
-                    && !matches!(c.get_biome(), BiomeKind::Ocean | BiomeKind::Mountain)
+                    && matches!(
+                        c.get_biome(),
+                        Grassland | Forest | Taiga | Snowland | Jungle
+                    )
             },
             false,
         );
@@ -93,7 +101,48 @@ impl Spot {
                     && !c.river.near_water()
                     && !c.path.0.is_way()
                     && c.sites.is_empty()
-                    && matches!(c.get_biome(), BiomeKind::Jungle | BiomeKind::Forest)
+                    && matches!(c.get_biome(), Jungle | Forest)
+            },
+            false,
+        );
+        Self::generate_spots(
+            Spot::SaurokAltar,
+            world,
+            2.0,
+            |g, c| {
+                g < 0.25
+                    && !c.near_cliffs()
+                    && !c.river.near_water()
+                    && !c.path.0.is_way()
+                    && c.sites.is_empty()
+                    && matches!(c.get_biome(), Jungle | Forest)
+            },
+            false,
+        );
+        Self::generate_spots(
+            Spot::RockCircle,
+            world,
+            2.0,
+            |g, c| {
+                g < 0.1
+                    && !c.near_cliffs()
+                    && !c.river.near_water()
+                    && !c.path.0.is_way()
+                    && c.sites.is_empty()
+            },
+            false,
+        );
+        Self::generate_spots(
+            Spot::MyrmidonTemple,
+            world,
+            3.0,
+            |g, c| {
+                g < 0.1
+                    && !c.near_cliffs()
+                    && !c.river.near_water()
+                    && !c.path.0.is_way()
+                    && c.sites.is_empty()
+                    && matches!(c.get_biome(), Desert | Jungle)
             },
             false,
         );
@@ -107,7 +156,7 @@ impl Spot {
                     && !c.river.near_water()
                     && !c.path.0.is_way()
                     && c.sites.is_empty()
-                    && matches!(c.get_biome(), BiomeKind::Forest | BiomeKind::Grassland)
+                    && matches!(c.get_biome(), Forest | Grassland)
             },
             false,
         );
@@ -123,7 +172,7 @@ impl Spot {
                     && !c.river.near_water()
                     && !c.path.0.is_way()
                     && c.sites.is_empty()
-                    && matches!(c.get_biome(), BiomeKind::Savannah)
+                    && matches!(c.get_biome(), Savannah)
             },
             false,
         );
@@ -137,7 +186,7 @@ impl Spot {
                     && !c.river.near_water()
                     && !c.path.0.is_way()
                     && c.sites.is_empty()
-                    && matches!(c.get_biome(), BiomeKind::Jungle | BiomeKind::Forest)
+                    && matches!(c.get_biome(), Jungle | Forest)
             },
             true,
         );
@@ -151,7 +200,7 @@ impl Spot {
                     && !c.river.near_water()
                     && !c.path.0.is_way()
                     && c.sites.is_empty()
-                    && matches!(c.get_biome(), BiomeKind::Desert)
+                    && matches!(c.get_biome(), Desert)
             },
             false,
         );
@@ -165,10 +214,7 @@ impl Spot {
                     && !c.river.near_water()
                     && !c.path.0.is_way()
                     && c.sites.is_empty()
-                    && !matches!(
-                        c.get_biome(),
-                        BiomeKind::Mountain | BiomeKind::Void | BiomeKind::Ocean
-                    )
+                    && !matches!(c.get_biome(), Mountain | Void | Ocean)
             },
             false,
         );
@@ -182,7 +228,16 @@ impl Spot {
                     && !c.river.near_water()
                     && !c.path.0.is_way()
                     && c.sites.is_empty()
-                    && matches!(c.get_biome(), BiomeKind::Forest)
+                    && matches!(c.get_biome(), Forest)
+            },
+            true,
+        );
+        Self::generate_spots(
+            Spot::Shipwreck,
+            world,
+            4.0,
+            |g, c| {
+                g < 0.25 && c.is_underwater() && c.sites.is_empty() && c.water_alt > c.alt + 30.0
             },
             true,
         );
@@ -267,6 +322,29 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 entity_radius: 60.0,
                 entities: &[(6..12, "common.entity.spot.bandit_camp.dwarf_grave_robber")],
             },
+            Spot::SaurokAltar => SpotConfig {
+                base_structures: Some("spots.jungle.saurok-altar"),
+                entity_radius: 6.0,
+                entities: &[
+                    (2..4, "common.entity.wild.aggressive.occult_saurok"),
+                    (2..4, "common.entity.wild.aggressive.sly_saurok"),
+                    (2..4, "common.entity.wild.aggressive.mighty_saurok"),
+                ],
+            },
+            Spot::RockCircle => SpotConfig {
+                base_structures: Some("spots.rock-circle"),
+                entity_radius: 20.0,
+                entities: &[
+                    (0..2, "common.entity.wild.aggressive.archaeos"),
+                    (0..2, "common.entity.wild.aggressive.ntouka"),
+                    (0..2, "common.entity.wild.aggressive.dreadhorn"),
+                ],
+            },
+            Spot::MyrmidonTemple => SpotConfig {
+                base_structures: Some("spots.myrmidon-temple"),
+                entity_radius: 10.0,
+                entities: &[(8..10, "common.entity.spot.myrmidon.spear")],
+            },
             Spot::WitchHouse => SpotConfig {
                 base_structures: Some("spots_general.witch_hut"),
                 entity_radius: 1.0,
@@ -310,6 +388,11 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 base_structures: Some("trees.fruit_trees"),
                 entity_radius: 2.0,
                 entities: &[(0..2, "common.entity.wild.peaceful.bear")],
+            },
+            Spot::Shipwreck => SpotConfig {
+                base_structures: Some("spots.water.shipwreck"),
+                entity_radius: 2.0,
+                entities: &[(0..2, "common.entity.wild.peaceful.clownfish")],
             },
         };
         // Blit base structure

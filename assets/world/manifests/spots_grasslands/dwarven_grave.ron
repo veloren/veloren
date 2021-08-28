@@ -3,6 +3,10 @@
 [
     (
         specifier: "world.structure.natural.dwarven_grave",
-        center: (20, 23, 5)
+        center: (20, 23, 5),
+		custom_indices: {
+            151: Filled(GlowingRock, (r: 50, g: 255, b: 210)),
+            152: Filled(GlowingRock, (r: 36, g: 187, b: 151)),
+         },
     ),
 ]
