@@ -401,7 +401,7 @@ impl<'a> PhysicsData<'a> {
                                     .ceil()
                                     as usize;
                                 let step_delta = 1.0 / increments as f32;
-                                let mut collided = false;
+                                let mut collision_registered = false;
 
                                 for i in 0..increments {
                                     let factor = i as f32 * step_delta;
@@ -419,7 +419,10 @@ impl<'a> PhysicsData<'a> {
                                             <= pos_other.z
                                                 + z_limits_other.1 * previous_cache_other.scale
                                     {
-                                        if !collided {
+                                        // If entities have not yet collided this tick (but just
+                                        // did) and if entity is either in mid air or is not sticky,
+                                        // then mark them as colliding with the other entity
+                                        if !collision_registered && (is_mid_air || !is_sticky) {
                                             physics.touch_entities.insert(*other);
                                             entity_entity_collisions += 1;
                                         }
@@ -472,7 +475,7 @@ impl<'a> PhysicsData<'a> {
                                                 Vec3::from(diff.normalized()) * force * step_delta;
                                         }
 
-                                        collided = true;
+                                        collision_registered = true;
                                     }
                                 }
                             },
