@@ -9,7 +9,7 @@ use crate::{
         theropod, Body, CharacterAbility, CharacterState, Density, InputAttr, InputKind,
         InventoryAction, StateUpdate,
     },
-    consts::{FRIC_GROUND, GRAVITY},
+    consts::{FRIC_GROUND, GRAVITY, MAX_PICKUP_RANGE},
     event::{LocalEvent, ServerEvent},
     states::{behavior::JoinData, *},
     util::Dir,
@@ -355,12 +355,12 @@ pub fn handle_orientation(
     efficiency: f32,
     dir_override: Option<Dir>,
 ) {
-    let dir = dir_override.unwrap_or_else(||
+    let dir = dir_override.unwrap_or_else(|| {
         (is_strafing(data, update) || update.character.is_attack())
             .then(|| data.inputs.look_dir.to_horizontal().unwrap_or_default())
             .or_else(|| Dir::from_unnormalized(data.inputs.move_dir.into()))
-            .unwrap_or_else(|| data.ori.to_horizontal().look_dir()),
-    );
+            .unwrap_or_else(|| data.ori.to_horizontal().look_dir())
+    });
     let rate = {
         let angle = update.ori.look_dir().angle_between(*dir);
         data.body.base_ori_rate() * efficiency * std::f32::consts::PI / angle
@@ -626,45 +626,56 @@ pub fn handle_manipulate_loadout(
                     .push_front(ServerEvent::InventoryManip(data.entity, inv_action.into()));
             }
         },
-        InventoryAction::Collect(pos) => {
-            // First, get sprite data for position, if there is a sprite
-            use sprite_interact::SpriteInteractKind;
-            let sprite_at_pos = data
-                .terrain
-                .get(pos)
-                .ok()
-                .copied()
-                .and_then(|b| b.get_sprite());
+        InventoryAction::Collect(sprite_pos) => {
+            // CLosure to check if distance between a point and the sprite is less than
+            // MAX_PICKUP_RANGE
+            let sprite_range_check = |pos: Vec3<f32>| {
+                (sprite_pos.map(|x| x as f32) - pos).magnitude_squared()
+                    < MAX_PICKUP_RANGE.powi(2)
+            };
+            // Checks if player's feet or head is near to sprite
+            let close_to_sprite = sprite_range_check(data.pos.0)
+                || sprite_range_check(data.pos.0 + Vec3::new(0.0, 0.0, data.body.height()));
+            if close_to_sprite {
+                // First, get sprite data for position, if there is a sprite
+                use sprite_interact::SpriteInteractKind;
+                let sprite_at_pos = data
+                    .terrain
+                    .get(sprite_pos)
+                    .ok()
+                    .copied()
+                    .and_then(|b| b.get_sprite());
 
-            // Checks if position has a collectible sprite as wella s what sprite is at the
-            // position
-            let sprite_interact = sprite_at_pos.and_then(Option::<SpriteInteractKind>::from);
+                // Checks if position has a collectible sprite as wella s what sprite is at the
+                // position
+                let sprite_interact = sprite_at_pos.and_then(Option::<SpriteInteractKind>::from);
 
-            if let Some(sprite_interact) = sprite_interact {
-                // If the sprite is collectible, enter the sprite interaction character state
-                // TODO: Handle cases for sprite being interactible, but not collectible (none
-                // currently exist)
-                let (buildup_duration, use_duration, recover_duration) =
-                    sprite_interact.durations();
+                if let Some(sprite_interact) = sprite_interact {
+                    // If the sprite is collectible, enter the sprite interaction character state
+                    // TODO: Handle cases for sprite being interactible, but not collectible (none
+                    // currently exist)
+                    let (buildup_duration, use_duration, recover_duration) =
+                        sprite_interact.durations();
 
-                update.character = CharacterState::SpriteInteract(sprite_interact::Data {
-                    static_data: sprite_interact::StaticData {
-                        buildup_duration,
-                        use_duration,
-                        recover_duration,
-                        sprite_pos: pos,
-                        sprite_kind: sprite_interact,
-                        was_wielded: matches!(data.character, CharacterState::Wielding),
-                        was_sneak: matches!(data.character, CharacterState::Sneak),
-                    },
-                    timer: Duration::default(),
-                    stage_section: StageSection::Buildup,
-                })
-            } else {
-                // Otherwise send server event immediately
-                update
-                    .server_events
-                    .push_front(ServerEvent::InventoryManip(data.entity, inv_action.into()));
+                    update.character = CharacterState::SpriteInteract(sprite_interact::Data {
+                        static_data: sprite_interact::StaticData {
+                            buildup_duration,
+                            use_duration,
+                            recover_duration,
+                            sprite_pos,
+                            sprite_kind: sprite_interact,
+                            was_wielded: matches!(data.character, CharacterState::Wielding),
+                            was_sneak: matches!(data.character, CharacterState::Sneak),
+                        },
+                        timer: Duration::default(),
+                        stage_section: StageSection::Buildup,
+                    })
+                } else {
+                    // Otherwise send server event immediately
+                    update
+                        .server_events
+                        .push_front(ServerEvent::InventoryManip(data.entity, inv_action.into()));
+                }
             }
         },
         _ => {
