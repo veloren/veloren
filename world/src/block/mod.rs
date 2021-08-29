@@ -11,12 +11,14 @@ use core::ops::{Div, Mul, Range};
 use serde::Deserialize;
 use vek::*;
 
+type Gradients = Vec<Range<(u8, u8, u8)>>;
+
 #[derive(Deserialize)]
 pub struct Colors {
     // TODO(@Sharp): After the merge, construct enough infrastructure to make it convenient to
     // define mapping functions over the input; i.e. we should be able to interpret some fields as
     // defining App<Abs<Fun, Type>, Arg>, where Fun : (Context, Arg) → (S, Type).
-    pub structure_blocks: structure::structure_block::PureCases<Option<Vec<Range<(u8, u8, u8)>>>>,
+    pub structure_blocks: structure::structure_block::PureCases<Option<Gradients>>,
 }
 
 pub struct BlockGen<'a> {
@@ -297,7 +299,7 @@ pub fn block_from_structure(
                 .as_ref()
                 .map(Vec::as_slice)
                 .unwrap_or(&[]);
-            let range = if ranges.len() == 0 {
+            let range = if ranges.is_empty() {
                 None
             } else {
                 ranges.get(RandomPerm::new(structure_seed).get(13) as usize % ranges.len())

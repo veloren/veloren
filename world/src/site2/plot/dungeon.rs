@@ -1383,9 +1383,12 @@ impl SiteStructure for Dungeon {
         let entrances = entrances.read();
         let entrance = entrances[self.seed as usize % entrances.len()].clone();
 
-        let entrance_prim = prim(Primitive::Prefab(entrance.clone()));
+        let entrance_prim = prim(Primitive::Prefab(Box::new(entrance.clone())));
         let entrance_prim = prim(Primitive::Translate(entrance_prim, origin));
-        fill(entrance_prim, Fill::Prefab(entrance, origin, self.seed));
+        fill(
+            entrance_prim,
+            Fill::Prefab(Box::new(entrance), origin, self.seed),
+        );
 
         let mut z = self.alt + ALT_OFFSET;
         for floor in &self.floors {

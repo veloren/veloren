@@ -31,7 +31,7 @@ pub enum Primitive {
     /// A sampling function is always a subset of another primitive to avoid
     /// needing infinite bounds
     Sampling(Id<Primitive>, Box<dyn Fn(Vec3<i32>) -> bool>),
-    Prefab(PrefabStructure),
+    Prefab(Box<PrefabStructure>),
 
     // Combinators
     And(Id<Primitive>, Id<Primitive>),
@@ -52,7 +52,7 @@ pub enum Fill {
     // TODO: the offset field for Prefab is a hack that breaks the compositionality of Translate,
     // we probably need an evaluator for the primitive tree that gets which point is queried at
     // leaf nodes given an input point to make Translate/Rotate work generally
-    Prefab(PrefabStructure, Vec3<i32>, u32),
+    Prefab(Box<PrefabStructure>, Vec3<i32>, u32),
     Sampling(Arc<dyn Fn(Vec3<i32>) -> Option<Block>>),
 }
 

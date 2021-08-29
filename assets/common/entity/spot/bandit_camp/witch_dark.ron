@@ -1,9 +1,9 @@
 EntityConfig (
     name: Name("Witch"),
     body: Exact(Humanoid(Body(
-    species: Human, 
-    body_type: Female, 
-    hair_style: 2, 
+    species: Human,
+    body_type: Female,
+    hair_style: 2,
     beard: 0,
     eyes: 0,
     accessory: 0,
@@ -13,7 +13,7 @@ EntityConfig (
     ))),
 	alignment: Alignment(Enemy),
 
-    loot: LootTable("common.loot_tables.creature.biped_large.saurok"),
+    loot: LootTable("common.loot_tables.humanoids"),
 
 	hands: TwoHanded(Item("common.items.weapons.sceptre.belzeshrub")),
 

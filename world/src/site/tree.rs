@@ -61,13 +61,11 @@ impl Tree {
 
                 let (branch, leaves, _, _) = self.tree.is_branch_or_leaves_at(rposf);
 
-                if branch || leaves {
-                    if above && col.snow_cover {
-                        canvas.set(
-                            wpos + Vec3::unit_z(),
-                            Block::new(BlockKind::Snow, Rgb::new(255, 255, 255)),
-                        );
-                    }
+                if (branch || leaves) && above && col.snow_cover {
+                    canvas.set(
+                        wpos + Vec3::unit_z(),
+                        Block::new(BlockKind::Snow, Rgb::new(255, 255, 255)),
+                    );
                 }
 
                 let block = if leaves {

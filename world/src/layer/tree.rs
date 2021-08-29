@@ -430,7 +430,7 @@ impl TreeConfig {
             splits: 1.75..2.0,
             split_range: 0.75..1.5,
             branch_len_bias: 0.0,
-            leaf_vertical_scale: 0.2,
+            leaf_vertical_scale: 0.4,
             proportionality: 0.0,
             inhabited: false,
             hanging_sprites: &[(0.0005, SpriteKind::Beehive)],
@@ -478,7 +478,7 @@ impl TreeConfig {
             splits: 3.0..3.5,
             split_range: 0.5..1.25,
             branch_len_bias: 0.0,
-            leaf_vertical_scale: 0.35,
+            leaf_vertical_scale: 0.5,
             proportionality: 0.5,
             inhabited: false,
             hanging_sprites: &[(0.0005, SpriteKind::Beehive)],
@@ -577,7 +577,7 @@ impl ProceduralTree {
         for _ in 0..4 {
             let dir =
                 Vec3::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), -1.0).normalized();
-            let len = 8.0;
+            let len = config.trunk_len * 0.75;
             let radius = config.trunk_radius;
             let mut aabb = Aabb {
                 min: trunk_origin,
