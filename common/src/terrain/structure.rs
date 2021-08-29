@@ -34,6 +34,8 @@ make_case_elim!(
         Log = 16,
         Filled(kind: BlockKind, color: Rgb<u8>) = 17,
         Sprite(kind: SpriteKind) = 18,
+        Chestnut = 19,
+        Baobab = 20,
     }
 );
 

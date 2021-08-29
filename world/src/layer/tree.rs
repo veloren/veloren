@@ -95,8 +95,26 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                                 *FRUIT_TREES
                             },
                             ForestKind::Palm => *PALMS,
-                            ForestKind::Acacia => *ACACIAS,
-                            ForestKind::Baobab => *BAOBABS,
+                            ForestKind::Acacia => {
+                                break 'model TreeModel::Procedural(
+                                    ProceduralTree::generate(
+                                        TreeConfig::acacia(&mut RandomPerm::new(seed), scale),
+                                        &mut RandomPerm::new(seed),
+                                    ),
+                                    StructureBlock::Acacia,
+                                );
+                            },
+                            // ForestKind::Acacia => *ACACIAS,
+                            ForestKind::Baobab => {
+                                break 'model TreeModel::Procedural(
+                                    ProceduralTree::generate(
+                                        TreeConfig::baobab(&mut RandomPerm::new(seed), scale),
+                                        &mut RandomPerm::new(seed),
+                                    ),
+                                    StructureBlock::Baobab,
+                                );
+                            },
+                            // ForestKind::Baobab => *BAOBABS,
                             // ForestKind::Oak => *OAKS,
                             ForestKind::Oak => {
                                 break 'model TreeModel::Procedural(
@@ -105,6 +123,15 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                                         &mut RandomPerm::new(seed),
                                     ),
                                     StructureBlock::TemperateLeaves,
+                                );
+                            },
+                            ForestKind::Chestnut => {
+                                break 'model TreeModel::Procedural(
+                                    ProceduralTree::generate(
+                                        TreeConfig::chestnut(&mut RandomPerm::new(seed), scale),
+                                        &mut RandomPerm::new(seed),
+                                    ),
+                                    StructureBlock::Chestnut,
                                 );
                             },
                             //ForestKind::Pine => *PINES,
@@ -117,8 +144,26 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                                     StructureBlock::PineLeaves,
                                 );
                             },
+                            ForestKind::Cedar => {
+                                break 'model TreeModel::Procedural(
+                                    ProceduralTree::generate(
+                                        TreeConfig::cedar(&mut RandomPerm::new(seed), scale),
+                                        &mut RandomPerm::new(seed),
+                                    ),
+                                    StructureBlock::PineLeaves,
+                                );
+                            },
                             ForestKind::Birch => *BIRCHES,
-                            ForestKind::Mangrove => *MANGROVE_TREES,
+                            // ForestKind::Mangrove => *MANGROVE_TREES,
+                            ForestKind::Mangrove => {
+                                break 'model TreeModel::Procedural(
+                                    ProceduralTree::generate(
+                                        TreeConfig::jungle(&mut RandomPerm::new(seed), scale),
+                                        &mut RandomPerm::new(seed),
+                                    ),
+                                    StructureBlock::Mangrove,
+                                );
+                            },
                             ForestKind::Swamp => *SWAMP_TREES,
                             ForestKind::Giant => {
                                 break 'model TreeModel::Procedural(
@@ -163,6 +208,11 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                 // Skip this column
                 continue;
             }
+
+            let hanging_sprites = match &tree.model {
+                TreeModel::Structure(_) => &[(0.0004, SpriteKind::Beehive)],
+                TreeModel::Procedural(t, _) => t.config.hanging_sprites,
+            };
 
             let mut is_top = true;
             let mut is_leaf_top = true;
@@ -228,8 +278,13 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                     last_block = block;
                 })
                 .unwrap_or_else(|| {
-                    if last_block.kind() == BlockKind::Wood && dynamic_rng.gen_range(0..2048) == 0 {
-                        canvas.set(wpos, Block::air(SpriteKind::Beehive));
+                    // Hanging sprites
+                    if last_block.is_filled() {
+                        for (chance, sprite) in hanging_sprites {
+                            if dynamic_rng.gen_bool(*chance as f64) {
+                                canvas.map(wpos, |block| block.with_sprite(*sprite));
+                            }
+                        }
                     }
 
                     is_leaf_top = true;
@@ -282,11 +337,12 @@ pub struct TreeConfig {
     pub proportionality: f32,
     /// Whether the tree is inhabited (adds various features and effects)
     pub inhabited: bool,
+    pub hanging_sprites: &'static [(f32, SpriteKind)],
 }
 
 impl TreeConfig {
     pub fn oak(rng: &mut impl Rng, scale: f32) -> Self {
-        let scale = scale * (0.8 + rng.gen::<f32>().powi(4) * 0.75);
+        let scale = scale * (0.8 + rng.gen::<f32>().powi(2) * 0.5);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
@@ -305,6 +361,127 @@ impl TreeConfig {
             leaf_vertical_scale: 1.0,
             proportionality: 0.0,
             inhabited: false,
+            hanging_sprites: &[(0.0005, SpriteKind::Beehive)],
+        }
+    }
+
+    pub fn jungle(rng: &mut impl Rng, scale: f32) -> Self {
+        let scale = scale * (0.9 + rng.gen::<f32>().powi(4) * 1.0);
+        let log_scale = 1.0 + scale.log2().max(0.0);
+
+        Self {
+            trunk_len: 44.0 * scale,
+            trunk_radius: 2.25 * scale,
+            branch_child_len: 0.35,
+            branch_child_radius: 0.5,
+            branch_child_radius_lerp: true,
+            leaf_radius: 4.0 * log_scale..4.5 * log_scale,
+            leaf_radius_scaled: 0.0,
+            straightness: 0.2,
+            max_depth: 2,
+            splits: 7.5..8.5,
+            split_range: 0.3..1.25,
+            branch_len_bias: 0.5,
+            leaf_vertical_scale: 0.4,
+            proportionality: 0.8,
+            inhabited: false,
+            hanging_sprites: &[(0.00015, SpriteKind::Beehive), (0.015, SpriteKind::Liana)],
+        }
+    }
+
+    pub fn baobab(rng: &mut impl Rng, scale: f32) -> Self {
+        let scale = scale * (0.5 + rng.gen::<f32>().powi(4) * 1.0);
+        let log_scale = 1.0 + scale.log2().max(0.0);
+
+        Self {
+            trunk_len: 24.0 * scale,
+            trunk_radius: 7.0 * scale,
+            branch_child_len: 0.55,
+            branch_child_radius: 0.3,
+            branch_child_radius_lerp: true,
+            leaf_radius: 2.5 * log_scale..3.0 * log_scale,
+            leaf_radius_scaled: 0.0,
+            straightness: 0.5,
+            max_depth: 4,
+            splits: 3.0..3.5,
+            split_range: 0.95..1.0,
+            branch_len_bias: 0.0,
+            leaf_vertical_scale: 0.2,
+            proportionality: 1.0,
+            inhabited: false,
+            hanging_sprites: &[(0.0005, SpriteKind::Beehive)],
+        }
+    }
+
+    pub fn cedar(rng: &mut impl Rng, scale: f32) -> Self {
+        let scale = scale * (0.8 + rng.gen::<f32>().powi(2) * 0.5);
+        let log_scale = 1.0 + scale.log2().max(0.0);
+
+        Self {
+            trunk_len: 9.0 * scale,
+            trunk_radius: 2.0 * scale,
+            branch_child_len: 0.9,
+            branch_child_radius: 0.75,
+            branch_child_radius_lerp: true,
+            leaf_radius: 4.0 * log_scale..5.0 * log_scale,
+            leaf_radius_scaled: 0.0,
+            straightness: 0.55,
+            max_depth: 4,
+            splits: 1.75..2.0,
+            split_range: 0.75..1.5,
+            branch_len_bias: 0.0,
+            leaf_vertical_scale: 0.2,
+            proportionality: 0.0,
+            inhabited: false,
+            hanging_sprites: &[(0.0005, SpriteKind::Beehive)],
+        }
+    }
+
+    pub fn acacia(rng: &mut impl Rng, scale: f32) -> Self {
+        let scale = scale * (0.9 + rng.gen::<f32>().powi(4) * 0.3);
+        let log_scale = 1.0 + scale.log2().max(0.0);
+
+        Self {
+            trunk_len: 12.0 * scale,
+            trunk_radius: 1.5 * scale,
+            branch_child_len: 0.75,
+            branch_child_radius: 0.75,
+            branch_child_radius_lerp: true,
+            leaf_radius: 6.0 * log_scale..7.0 * log_scale,
+            leaf_radius_scaled: 0.0,
+            straightness: 0.3,
+            max_depth: 5,
+            splits: 1.75..2.25,
+            split_range: 1.0..1.25,
+            branch_len_bias: 0.0,
+            leaf_vertical_scale: 0.15,
+            proportionality: 1.0,
+            inhabited: false,
+            hanging_sprites: &[(0.0005, SpriteKind::Beehive)],
+        }
+    }
+
+    pub fn chestnut(rng: &mut impl Rng, scale: f32) -> Self {
+        let scale = scale * (0.85 + rng.gen::<f32>().powi(4) * 0.3);
+        let log_scale = 1.0 + scale.log2().max(0.0);
+
+        Self {
+            trunk_len: 13.0 * scale,
+            trunk_radius: 1.5 * scale,
+            branch_child_len: 0.75,
+            branch_child_radius: 0.75,
+            branch_child_radius_lerp: true,
+            leaf_radius: 2.5 * log_scale..2.6 * log_scale,
+            leaf_radius_scaled: 0.0,
+            straightness: 0.4,
+            max_depth: 5,
+            splits: 3.0..3.5,
+            split_range: 0.5..1.25,
+            branch_len_bias: 0.0,
+            leaf_vertical_scale: 0.35,
+            proportionality: 0.5,
+            inhabited: false,
+            hanging_sprites: &[(0.0005, SpriteKind::Beehive)],
         }
     }
 
@@ -328,6 +505,7 @@ impl TreeConfig {
             leaf_vertical_scale: 0.3,
             proportionality: 1.0,
             inhabited: false,
+            hanging_sprites: &[(0.0005, SpriteKind::Beehive)],
         }
     }
 
@@ -350,6 +528,7 @@ impl TreeConfig {
             leaf_vertical_scale: 0.6,
             proportionality: 0.0,
             inhabited,
+            hanging_sprites: &[(0.0005, SpriteKind::Beehive)],
         }
     }
 }
@@ -466,7 +645,7 @@ impl ProceduralTree {
                 // Now, interpolate between the target direction and the parent branch's
                 // direction to find a direction
                 let branch_dir =
-                    Lerp::lerp(tgt - branch_start, dir, config.straightness).normalized();
+                    Lerp::lerp_unclamped(tgt - branch_start, dir, config.straightness).normalized();
 
                 let (branch_idx, branch_aabb) = self.add_branch(
                     config,
