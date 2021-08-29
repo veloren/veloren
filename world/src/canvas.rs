@@ -9,7 +9,7 @@ use crate::{
 };
 use common::{
     generation::EntityInfo,
-    terrain::{Block, Structure, TerrainChunk, TerrainChunkSize},
+    terrain::{Block, BlockKind, Structure, TerrainChunk, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, WriteVol},
 };
 use std::{borrow::Cow, ops::Deref};
@@ -199,16 +199,19 @@ impl<'a> Canvas<'a> {
         structure: &Structure,
         seed: u32,
         units: Vec2<Vec2<i32>>,
+        with_snow: bool,
     ) {
         let info = self.info();
         self.foreach_col(|canvas, wpos2d, col| {
             let rpos2d = wpos2d - origin.xy();
             let rpos2d = units.x * rpos2d.x + units.y * rpos2d.y;
 
-            for z in structure.get_bounds().min.z..structure.get_bounds().max.z {
+            let mut above = true;
+            for z in (structure.get_bounds().min.z..structure.get_bounds().max.z).rev() {
                 if let Ok(sblock) = structure.get(rpos2d.with_z(z)) {
+                    let mut add_snow = false;
                     let _ = canvas.map(wpos2d.with_z(origin.z + z), |block| {
-                        if let Some(block) = block_from_structure(
+                        if let Some(new_block) = block_from_structure(
                             info.index,
                             *sblock,
                             wpos2d.with_z(origin.z + z),
@@ -217,11 +220,24 @@ impl<'a> Canvas<'a> {
                             col,
                             |sprite| block.with_sprite(sprite),
                         ) {
-                            block
+                            if !new_block.is_air() {
+                                if with_snow && col.snow_cover && above {
+                                    add_snow = true;
+                                }
+                                above = false;
+                            }
+                            new_block
                         } else {
                             block
                         }
                     });
+
+                    if add_snow {
+                        let _ = canvas.set(
+                            wpos2d.with_z(origin.z + z + 1),
+                            Block::new(BlockKind::Snow, Rgb::new(210, 210, 255)),
+                        );
+                    }
                 }
             }
         });

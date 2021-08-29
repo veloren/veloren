@@ -405,7 +405,7 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                     .map(|c| c.alt as i32)
                     .unwrap_or(0),
             );
-            canvas.blit_structure(origin, &structure, seed, units);
+            canvas.blit_structure(origin, &structure, seed, units, true);
         }
 
         // Spawn entities
