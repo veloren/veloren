@@ -239,7 +239,7 @@ pub fn block_from_structure(
 
     match sblock {
         StructureBlock::None => None,
-        StructureBlock::Hollow => Some(with_sprite(SpriteKind::Empty)),
+        StructureBlock::Hollow => Some(Block::air(SpriteKind::Empty)),
         StructureBlock::Grass => Some(Block::new(
             BlockKind::Grass,
             sample.surface_color.map(|e| (e * 255.0) as u8),
@@ -270,10 +270,16 @@ pub fn block_from_structure(
             }
         },
         StructureBlock::Chest => {
-            if structure_seed % 10 < 7 {
-                Some(Block::empty())
+            let old_block = with_sprite(SpriteKind::Empty);
+            let block = if old_block.is_fluid() {
+                old_block
             } else {
-                Some(with_sprite(SpriteKind::Chest))
+                Block::air(SpriteKind::Empty)
+            };
+            if field.get(pos + structure_pos) % 16 < 8 {
+                Some(block)
+            } else {
+                Some(block.with_sprite(SpriteKind::Chest))
             }
         },
         StructureBlock::Log => Some(Block::new(BlockKind::Wood, Rgb::new(60, 30, 0))),

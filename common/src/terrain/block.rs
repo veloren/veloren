@@ -237,6 +237,7 @@ impl Block {
             BlockKind::Snow => Some(0.1),
             BlockKind::Lava => None,
             _ => self.get_sprite().and_then(|sprite| match sprite {
+                sprite if sprite.is_container() => None,
                 SpriteKind::Anvil
                 | SpriteKind::Cauldron
                 | SpriteKind::CookingPot

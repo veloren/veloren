@@ -1,8 +1,8 @@
 #![enable(unwrap_newtypes)]
 
-[    
+[
     (
         specifier: "world.structure.natural.airship-crashsite_0",
-        center: (28, 40, 14)
+        center: (28, 40, 14),
     ),
 ]
