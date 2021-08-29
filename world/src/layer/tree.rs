@@ -425,7 +425,7 @@ impl TreeConfig {
             branch_child_radius_lerp: true,
             leaf_radius: 4.0 * log_scale..5.0 * log_scale,
             leaf_radius_scaled: 0.0,
-            straightness: 0.55,
+            straightness: 0.4,
             max_depth: 4,
             splits: 1.75..2.0,
             split_range: 0.75..1.5,
@@ -438,11 +438,11 @@ impl TreeConfig {
     }
 
     pub fn acacia(rng: &mut impl Rng, scale: f32) -> Self {
-        let scale = scale * (0.9 + rng.gen::<f32>().powi(4) * 0.3);
+        let scale = scale * (0.9 + rng.gen::<f32>().powi(4) * 0.6);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
-            trunk_len: 12.0 * scale,
+            trunk_len: 9.0 * scale,
             trunk_radius: 1.5 * scale,
             branch_child_len: 0.75,
             branch_child_radius: 0.75,
@@ -467,7 +467,7 @@ impl TreeConfig {
 
         Self {
             trunk_len: 13.0 * scale,
-            trunk_radius: 1.5 * scale,
+            trunk_radius: 1.65 * scale,
             branch_child_len: 0.75,
             branch_child_radius: 0.75,
             branch_child_radius_lerp: true,
@@ -538,6 +538,8 @@ pub struct ProceduralTree {
     branches: Vec<Branch>,
     trunk_idx: usize,
     config: TreeConfig,
+    roots: Vec<Root>,
+    root_aabb: Aabb<f32>,
 }
 
 impl ProceduralTree {
@@ -547,13 +549,18 @@ impl ProceduralTree {
             branches: Vec::new(),
             trunk_idx: 0, // Gets replaced later
             config: config.clone(),
+            roots: Vec::new(),
+            root_aabb: Aabb::new_empty(Vec3::zero()),
         };
+
+        // Make the roots visible a little
+        let trunk_origin = Vec3::unit_z() * (config.trunk_radius * 0.25 + 3.0);
 
         // Add the tree trunk (and sub-branches) recursively
         let (trunk_idx, _) = this.add_branch(
             &config,
             // Our trunk starts at the origin...
-            Vec3::zero(),
+            trunk_origin,
             // ...and has a roughly upward direction
             Vec3::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), 10.0).normalized(),
             config.trunk_len,
@@ -564,6 +571,34 @@ impl ProceduralTree {
             rng,
         );
         this.trunk_idx = trunk_idx;
+
+        // Add roots
+        let mut root_aabb = Aabb::new_empty(Vec3::zero());
+        for _ in 0..4 {
+            let dir =
+                Vec3::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), -1.0).normalized();
+            let len = 8.0;
+            let radius = config.trunk_radius;
+            let mut aabb = Aabb {
+                min: trunk_origin,
+                max: trunk_origin + dir * len,
+            }
+            .made_valid();
+            aabb.min -= radius;
+            aabb.max += radius;
+
+            root_aabb.expand_to_contain(aabb);
+
+            this.roots.push(Root {
+                line: LineSegment3 {
+                    start: trunk_origin,
+                    end: trunk_origin + dir * 10.0,
+                },
+                radius,
+            });
+        }
+
+        this.root_aabb = root_aabb;
 
         this
     }
@@ -686,7 +721,9 @@ impl ProceduralTree {
     }
 
     /// Get the bounding box that covers the tree (all branches and leaves)
-    pub fn get_bounds(&self) -> Aabb<f32> { self.branches[self.trunk_idx].aabb }
+    pub fn get_bounds(&self) -> Aabb<f32> {
+        self.branches[self.trunk_idx].aabb.union(self.root_aabb)
+    }
 
     // Recursively search for branches or leaves by walking the tree's branch graph.
     fn is_branch_or_leaves_at_inner(
@@ -730,7 +767,21 @@ impl ProceduralTree {
     pub fn is_branch_or_leaves_at(&self, pos: Vec3<f32>) -> (bool, bool, bool, bool) {
         let (log, leaf, platform, air) =
             self.is_branch_or_leaves_at_inner(pos, &self.branches[self.trunk_idx], self.trunk_idx);
-        (log /* & !air */, leaf & !air, platform & !air, air)
+        let root = if self.root_aabb.contains_point(pos) {
+            self.roots.iter().any(|root| {
+                let p = root.line.projected_point(pos);
+                let d2 = p.distance_squared(pos);
+                d2 < root.radius.powi(2)
+            })
+        } else {
+            false
+        };
+        (
+            (log || root), /* & !air */
+            leaf & !air,
+            platform & !air,
+            air,
+        )
     }
 }
 
@@ -841,4 +892,9 @@ impl Branch {
 
         (mask, d2)
     }
+}
+
+struct Root {
+    line: LineSegment3<f32>,
+    radius: f32,
 }
