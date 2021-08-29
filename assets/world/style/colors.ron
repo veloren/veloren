@@ -18,7 +18,7 @@
             GreenSludge: None,
             // Leaves all actually get interpolated.
             TemperateLeaves: [
-				(start: (0, 91, 68), end: (124, 173, 0)),
+				(start: (0, 100, 50), end: (105, 175, 0)),
 				//(start: (178, 216, 0), end: (255, 185, 63)),
 				//(start: (142, 164, 0), end: (142, 164, 0)),
 				//(start: (168, 81, 0), end: (54, 150, 31)),
