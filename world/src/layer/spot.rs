@@ -77,7 +77,7 @@ impl Spot {
         Self::generate_spots(
             Spot::WitchHouse,
             world,
-            2.0,
+            1.0,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()
@@ -94,7 +94,7 @@ impl Spot {
         Self::generate_spots(
             Spot::DwarvenGrave,
             world,
-            2.0,
+            1.0,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()
@@ -108,7 +108,7 @@ impl Spot {
         Self::generate_spots(
             Spot::SaurokAltar,
             world,
-            2.0,
+            1.0,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()
@@ -122,7 +122,7 @@ impl Spot {
         Self::generate_spots(
             Spot::RockCircle,
             world,
-            2.0,
+            0.5,
             |g, c| {
                 g < 0.1
                     && !c.near_cliffs()
@@ -135,7 +135,7 @@ impl Spot {
         Self::generate_spots(
             Spot::MyrmidonTemple,
             world,
-            3.0,
+            1.0,
             |g, c| {
                 g < 0.1
                     && !c.near_cliffs()
@@ -149,7 +149,7 @@ impl Spot {
         Self::generate_spots(
             Spot::GnarlingTotem,
             world,
-            2.0,
+            1.0,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()
@@ -165,7 +165,7 @@ impl Spot {
         Self::generate_spots(
             Spot::LionRock,
             world,
-            1.0,
+            1.5,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()
@@ -207,7 +207,7 @@ impl Spot {
         Self::generate_spots(
             Spot::AirshipCrash,
             world,
-            1.0,
+            0.5,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()
@@ -235,7 +235,7 @@ impl Spot {
         Self::generate_spots(
             Spot::Shipwreck,
             world,
-            4.0,
+            2.0,
             |g, c| {
                 g < 0.25 && c.is_underwater() && c.sites.is_empty() && c.water_alt > c.alt + 30.0
             },

@@ -2067,7 +2067,7 @@ impl WorldSim {
                     temp: chunk.temp,
                     near_water: if chunk.river.is_lake()
                         || chunk.river.near_river()
-                        || chunk.alt < CONFIG.sea_level + 3.0
+                        || chunk.alt < CONFIG.sea_level + 6.0
                     {
                         1.0
                     } else {
