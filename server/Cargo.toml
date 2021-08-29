@@ -9,6 +9,7 @@ worldgen = []
 simd = ["vek/platform_intrinsics"]
 plugins = ["common-state/plugins"]
 persistent_world = []
+hot-reloading = ["common/hot-reloading"]
 
 default = ["worldgen", "plugins", "persistent_world", "simd"]
 

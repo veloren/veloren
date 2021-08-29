@@ -22,6 +22,7 @@ default-publish = ["default"]
 default = ["worldgen", "persistent_world"]
 tracy = ["common-frontend/tracy"]
 plugins = ["server/plugins"]
+hot-reloading = ["server/hot-reloading"]
 
 [dependencies]
 server = { package = "veloren-server", path = "../server", default-features = false, features = ["simd"] }

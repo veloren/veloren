@@ -151,6 +151,17 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 None,
             )
         }),
+        (Pumpkin, false, |c, _| {
+            (
+                close(c.temp, CONFIG.temperate_temp, 0.5).min(close(
+                    c.humidity,
+                    CONFIG.forest_hum,
+                    0.5,
+                )) * MUSH_FACT
+                    * 500.0,
+                Some((512.0, 0.05)),
+            )
+        }),
         // Collectable Objects
         // Only spawn twigs in temperate forests
         (Twigs, false, |c, _| {

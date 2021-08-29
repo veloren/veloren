@@ -17,13 +17,18 @@
             Water: None,
             GreenSludge: None,
             // Leaves all actually get interpolated.
-            TemperateLeaves: (start: (0, 70, 45), end: (90, 140, 0)),
-            PineLeaves: (start: (0, 60, 50), end: (30, 80, 10)),
-            PalmLeavesInner: (start: (70, 140, 43), end: (55, 140, 32)),
-            PalmLeavesOuter: (start: (60, 130, 38), end: (30, 130, 65)),
-            Acacia: (start: (30, 100, 0), end: (90, 110, 20)),
-            Liana: (start: (0, 125, 107), end: (0, 155, 129)),
-            Mangrove: (start: (15, 80, 10), end: (20, 120, 47)),
+            TemperateLeaves: [
+				(start: (0, 91, 68), end: (124, 173, 0)),
+				//(start: (178, 216, 0), end: (255, 185, 63)),
+				//(start: (142, 164, 0), end: (142, 164, 0)),
+				//(start: (168, 81, 0), end: (54, 150, 31)),
+			],
+            PineLeaves: [(start: (0, 60, 50), end: (30, 80, 10))],
+            PalmLeavesInner: [(start: (70, 140, 43), end: (55, 140, 32))],
+            PalmLeavesOuter: [(start: (60, 130, 38), end: (30, 130, 65))],
+            Acacia: [(start: (30, 100, 0), end: (90, 110, 20))],
+            Liana: [(start: (0, 125, 107), end: (0, 155, 129))],
+            Mangrove: [(start: (15, 80, 10), end: (20, 120, 47))],
         )
 
         // Water blocks ignore color now so this isn't used, but just in case this color was worth
