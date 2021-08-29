@@ -54,7 +54,7 @@ impl CharacterBehavior for Data {
         update.should_strafe = false;
 
         // Smooth orientation
-        handle_orientation(data, &mut update, 2.5);
+        handle_orientation(data, &mut update, 2.5, None);
 
         match self.stage_section {
             StageSection::Buildup => {

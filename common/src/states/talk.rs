@@ -15,7 +15,7 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         handle_wield(data, &mut update);
-        handle_orientation(data, &mut update, TURN_RATE);
+        handle_orientation(data, &mut update, TURN_RATE, None);
 
         update
     }

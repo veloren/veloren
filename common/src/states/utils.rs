@@ -349,11 +349,18 @@ pub fn handle_forced_movement(
     }
 }
 
-pub fn handle_orientation(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) {
-    let dir = (is_strafing(data, update) || update.character.is_attack())
-        .then(|| data.inputs.look_dir.to_horizontal().unwrap_or_default())
-        .or_else(|| Dir::from_unnormalized(data.inputs.move_dir.into()))
-        .unwrap_or_else(|| data.ori.to_horizontal().look_dir());
+pub fn handle_orientation(
+    data: &JoinData<'_>,
+    update: &mut StateUpdate,
+    efficiency: f32,
+    dir_override: Option<Dir>,
+) {
+    let dir = dir_override.unwrap_or_else(||
+        (is_strafing(data, update) || update.character.is_attack())
+            .then(|| data.inputs.look_dir.to_horizontal().unwrap_or_default())
+            .or_else(|| Dir::from_unnormalized(data.inputs.move_dir.into()))
+            .unwrap_or_else(|| data.ori.to_horizontal().look_dir()),
+    );
     let rate = {
         let angle = update.ori.look_dir().angle_between(*dir);
         data.body.base_ori_rate() * efficiency * std::f32::consts::PI / angle
@@ -422,7 +429,7 @@ pub fn fly_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) 
         let thrust = efficiency * force;
         let accel = thrust / data.mass.0;
 
-        handle_orientation(data, update, efficiency);
+        handle_orientation(data, update, efficiency, None);
 
         // Elevation control
         match data.body {

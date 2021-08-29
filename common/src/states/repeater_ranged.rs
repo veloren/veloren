@@ -54,7 +54,7 @@ pub struct Data {
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        handle_orientation(data, &mut update, 1.0);
+        handle_orientation(data, &mut update, 1.0, None);
         handle_move(data, &mut update, 0.3);
 
         match self.stage_section {

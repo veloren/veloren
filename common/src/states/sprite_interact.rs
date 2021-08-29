@@ -4,6 +4,7 @@ use crate::{
     event::ServerEvent,
     states::behavior::{CharacterBehavior, JoinData},
     terrain::SpriteKind,
+    util::Dir,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -43,7 +44,10 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_orientation(data, &mut update, 0.0);
+        let ori_dir = Dir::from_unnormalized(Vec3::from(
+            (self.static_data.sprite_pos.map(|x| x as f32) - data.pos.0).xy(),
+        ));
+        handle_orientation(data, &mut update, 1.0, ori_dir);
         handle_move(data, &mut update, 0.0);
 
         match self.stage_section {

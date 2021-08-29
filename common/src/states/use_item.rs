@@ -52,11 +52,11 @@ impl CharacterBehavior for Data {
 
         match self.static_data.item_kind {
             ItemUseKind::Consumable(ConsumableKind::Drink) => {
-                handle_orientation(data, &mut update, 1.0);
+                handle_orientation(data, &mut update, 1.0, None);
                 handle_move(data, &mut update, 1.0);
             },
             ItemUseKind::Consumable(ConsumableKind::Food | ConsumableKind::ComplexFood) => {
-                handle_orientation(data, &mut update, 0.0);
+                handle_orientation(data, &mut update, 0.0, None);
                 handle_move(data, &mut update, 0.0);
             },
         }
