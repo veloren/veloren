@@ -452,6 +452,13 @@ impl Attack {
                 }
             }
         }
+        // Emits event to handle things that should happen for any successful attack,
+        // regardless of if the attack had any damages or effects in it
+        if is_applied {
+            emit(ServerEvent::EntityAttackedHook {
+                entity: target.entity,
+            });
+        }
         is_applied
     }
 }

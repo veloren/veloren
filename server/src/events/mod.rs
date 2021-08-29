@@ -7,7 +7,7 @@ use entity_creation::{
 };
 use entity_manipulation::{
     handle_aura, handle_bonk, handle_buff, handle_combo_change, handle_damage, handle_delete,
-    handle_destroy, handle_energy_change, handle_explosion, handle_knockback,
+    handle_destroy, handle_energy_change, handle_entity_attacked_hook, handle_explosion, handle_knockback,
     handle_land_on_ground, handle_poise, handle_respawn, handle_teleport_to,
 };
 use group_manip::handle_group;
@@ -229,6 +229,9 @@ impl Server {
                     pet_entity,
                     owner_entity,
                 } => handle_tame_pet(self, pet_entity, owner_entity),
+                ServerEvent::EntityAttackedHook { entity } => {
+                    handle_entity_attacked_hook(self, entity)
+                },
             }
         }
 
