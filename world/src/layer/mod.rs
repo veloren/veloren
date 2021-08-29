@@ -671,9 +671,13 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             let mushroom = if let Some(mushroom) =
                 mushroom_cache.entry(wpos2d).or_insert_with(|| {
                     let mut rng = RandomPerm::new(seed);
-                    let (cavern_bottom, cavern_top, _, _, floor, _, water_level) = cavern_at(wpos2d);
+                    let (cavern_bottom, cavern_top, _, _, floor, _, water_level) =
+                        cavern_at(wpos2d);
                     let pos = wpos2d.with_z(cavern_bottom + floor);
-                    if rng.gen_bool(0.15) && cavern_top - cavern_bottom > 32 && pos.z as i32 > water_level - 2 {
+                    if rng.gen_bool(0.15)
+                        && cavern_top - cavern_bottom > 32
+                        && pos.z as i32 > water_level - 2
+                    {
                         Some(Mushroom {
                             pos,
                             stalk: 12.0 + rng.gen::<f32>().powf(2.0) * 35.0,
@@ -727,7 +731,11 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                         < head_radius * (1.0 - (rpos.z - mushroom.stalk) / head_height).powf(0.125)
                 {
                     if head_dist < 0.85 {
-                        return Some(Block::new(BlockKind::GlowingMushroom, Rgb::new(90, 50, 0)));
+                        let radial = (rpos.x.atan2(rpos.y) * 10.0).sin() * 0.5 + 0.5;
+                        return Some(Block::new(
+                            BlockKind::GlowingMushroom,
+                            Rgb::new(30, 50 + (radial * 100.0) as u8, 100 - (radial * 50.0) as u8),
+                        ));
                     } else if head_dist < 1.0 {
                         return Some(Block::new(BlockKind::Wood, mushroom.head_color));
                     }
@@ -762,8 +770,15 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             return;
         }
 
-        let (cavern_bottom, cavern_top, cavern_avg_bottom, cavern_avg_top, floor, stalagtite, water_level) =
-            cavern_at(wpos2d);
+        let (
+            cavern_bottom,
+            cavern_top,
+            cavern_avg_bottom,
+            cavern_avg_top,
+            floor,
+            stalagtite,
+            water_level,
+        ) = cavern_at(wpos2d);
 
         let mini_stalagtite = info
             .index()
@@ -885,34 +900,36 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                             SpriteKind::SeaGrapes,
                             SpriteKind::SeaweedTemperate,
                             SpriteKind::StonyCoral,
-                        ].choose(dynamic_rng).unwrap()
+                        ]
+                        .choose(dynamic_rng)
+                        .unwrap()
                     } else {
                         SpriteKind::Empty
                     },
                 )
-            } else if z == water_level && dynamic_rng.gen_bool(Lerp::lerp(0.0, 0.05, plant_factor)) && last_kind == BlockKind::Water {
+            } else if z == water_level
+                && dynamic_rng.gen_bool(Lerp::lerp(0.0, 0.05, plant_factor))
+                && last_kind == BlockKind::Water
+            {
                 Block::air(SpriteKind::CavernLillypadBlue)
-            } else if z == cavern_bottom + floor && dynamic_rng.gen_bool(Lerp::lerp(0.0, 0.5, plant_factor)) && last_kind == BlockKind::Grass {
+            } else if z == cavern_bottom + floor
+                && dynamic_rng.gen_bool(Lerp::lerp(0.0, 0.5, plant_factor))
+                && last_kind == BlockKind::Grass
+            {
                 Block::air(
-                    *if dynamic_rng.gen_bool(0.9) { // High density
+                    *if dynamic_rng.gen_bool(0.9) {
+                        // High density
                         &[
                             CavernGrassBlueShort,
                             CavernGrassBlueMedium,
                             CavernGrassBlueLong,
                         ] as &[_]
-                    } else if dynamic_rng.gen_bool(0.5) { // Medium density
-                        &[
-                            CaveMushroom,
-                        ] as &[_]
-                    } else { // Low density
-                        &[
-                            LeafyPlant,
-                            Fern,
-                            Pyrebloom,
-                            Moonbell,
-                            Welwitch,
-                            GrassBlue,
-                        ] as &[_]
+                    } else if dynamic_rng.gen_bool(0.5) {
+                        // Medium density
+                        &[CaveMushroom] as &[_]
+                    } else {
+                        // Low density
+                        &[LeafyPlant, Fern, Pyrebloom, Moonbell, Welwitch, GrassBlue] as &[_]
                     }
                     .choose(dynamic_rng)
                     .unwrap(),
@@ -934,10 +951,12 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             last_kind = block.kind();
 
             let block = if block.is_filled() {
-                Block::new(block.kind(), block
-                    .get_color()
-                    .unwrap_or_default()
-                    .map(|e| (e as f32 * dynamic_rng.gen_range(0.95..1.05)).clamped(0.0, 255.0) as u8))
+                Block::new(
+                    block.kind(),
+                    block.get_color().unwrap_or_default().map(|e| {
+                        (e as f32 * dynamic_rng.gen_range(0.95..1.05)).clamped(0.0, 255.0) as u8
+                    }),
+                )
             } else {
                 block
             };
