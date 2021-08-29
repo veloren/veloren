@@ -1148,7 +1148,7 @@ impl FigureMgr {
                             };
                             anim::character::CollectAnimation::update_skeleton(
                                 &target_base,
-                                (pos.0, time, Some(s.stage_section), sprite_pos),
+                                (pos.0, time, Some(s.stage_section), anim::vek::Vec3::from(sprite_pos.map(|x| x as f32))),
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,

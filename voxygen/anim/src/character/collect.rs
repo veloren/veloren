@@ -9,7 +9,7 @@ pub struct CollectAnimation;
 
 impl Animation for CollectAnimation {
     #[allow(clippy::type_complexity)]
-    type Dependency<'a> = (Vec3<f32>, f32, Option<StageSection>, Vec3<i32>);
+    type Dependency<'a> = (Vec3<f32>, f32, Option<StageSection>, Vec3<f32>);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
