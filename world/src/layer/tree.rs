@@ -438,23 +438,23 @@ impl TreeConfig {
     }
 
     pub fn acacia(rng: &mut impl Rng, scale: f32) -> Self {
-        let scale = scale * (0.9 + rng.gen::<f32>().powi(4) * 0.6);
+        let scale = scale * (0.9 + rng.gen::<f32>().powi(4) * 0.75);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
-            trunk_len: 9.0 * scale,
+            trunk_len: 7.5 * scale,
             trunk_radius: 1.5 * scale,
             branch_child_len: 0.75,
             branch_child_radius: 0.75,
             branch_child_radius_lerp: true,
-            leaf_radius: 6.0 * log_scale..7.0 * log_scale,
+            leaf_radius: 4.5 * log_scale..5.5 * log_scale,
             leaf_radius_scaled: 0.0,
             straightness: 0.3,
             max_depth: 5,
             splits: 1.75..2.25,
             split_range: 1.0..1.25,
             branch_len_bias: 0.0,
-            leaf_vertical_scale: 0.15,
+            leaf_vertical_scale: 0.2,
             proportionality: 1.0,
             inhabited: false,
             hanging_sprites: &[(0.0005, SpriteKind::Beehive)],
