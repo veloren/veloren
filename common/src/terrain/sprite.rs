@@ -175,6 +175,7 @@ make_case_elim!(
         Orb = 0x94,
         EnsnaringVines = 0x95,
         WitchWindow = 0x96,
+        SmokeDummy = 0x97,
     }
 );
 

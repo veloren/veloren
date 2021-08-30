@@ -98,6 +98,9 @@ impl BlocksOfInterest {
                             fires.push(pos);
                             smokers.push(pos);
                         },
+                        Some(SpriteKind::SmokeDummy) => {
+                            smokers.push(pos);
+                        },
                         // Offset positions to account for block height.
                         // TODO: Is this a good idea?
                         Some(SpriteKind::StreetLamp) => fire_bowls.push(pos + Vec3::unit_z() * 2),
