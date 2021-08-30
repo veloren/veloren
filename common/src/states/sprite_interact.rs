@@ -159,6 +159,7 @@ impl From<SpriteKind> for Option<SpriteInteractKind> {
             | SpriteKind::ChestBuried
             | SpriteKind::Mud
             | SpriteKind::Crate => Some(SpriteInteractKind::Chest),
+            _ if sprite_kind.is_collectible() => Some(SpriteInteractKind::Collectible),
             _ => None,
         }
     }
