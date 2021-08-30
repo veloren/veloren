@@ -695,7 +695,7 @@ pub fn handle_manipulate_loadout(
                     .copied()
                     .and_then(|b| b.get_sprite());
 
-                // Checks if position has a collectible sprite as wella s what sprite is at the
+                // Checks if position has a collectible sprite as well as what sprite is at the
                 // position
                 let sprite_interact = sprite_at_pos.and_then(Option::<SpriteInteractKind>::from);
 
@@ -719,11 +719,6 @@ pub fn handle_manipulate_loadout(
                         timer: Duration::default(),
                         stage_section: StageSection::Buildup,
                     })
-                } else {
-                    // Otherwise send server event immediately
-                    update
-                        .server_events
-                        .push_front(ServerEvent::InventoryManip(data.entity, inv_action.into()));
                 }
             }
         },
