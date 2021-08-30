@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The 'spot' system, which generates smaller site-like structures and scenarios
 - Chestnut and cedar tree varieties
 - Shooting sprites, such as apples and hives, can knock them out of trees
+- Sprite pickup animations
 
 ### Changed
 
@@ -66,6 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enemies no more spawn in dungeon boss room
 - Melee critical hit no more applies after reduction by armour
 - Removed Healing Sceptre as a starting weapon as it is considered an advanced weapon
+- The ability to pickup sprites through walls
 
 ### Fixed
 

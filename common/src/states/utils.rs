@@ -632,15 +632,16 @@ pub fn handle_manipulate_loadout(
         InventoryAction::Collect(sprite_pos) => {
             let sprite_pos_f32 = sprite_pos.map(|x| x as f32);
             // CLosure to check if distance between a point and the sprite is less than
-            // MAX_PICKUP_RANGE
+            // MAX_PICKUP_RANGE and the radius of the body
             let sprite_range_check = |pos: Vec3<f32>| {
-                (sprite_pos_f32 - pos).magnitude_squared() < MAX_PICKUP_RANGE.powi(2)
+                (sprite_pos_f32 - pos).magnitude_squared()
+                    < (MAX_PICKUP_RANGE + data.body.radius()).powi(2)
             };
 
             // Also do a check that a path can be found between sprite and entity
             // interacting with sprite Use manhattan distance * 1.5 for number
             // of iterations
-            let iters = (2.0 * (sprite_pos_f32 - data.pos.0).map(|x| x.abs()).sum()) as usize;
+            let iters = (3.0 * (sprite_pos_f32 - data.pos.0).map(|x| x.abs()).sum()) as usize;
             // Heuristic compares manhattan distance of start and end pos
             let heuristic = move |pos: &Vec3<i32>| (sprite_pos - pos).map(|x| x.abs()).sum() as f32;
 
