@@ -669,7 +669,7 @@ pub fn handle_manipulate_loadout(
                         data.terrain
                             .get(pos)
                             .ok()
-                            .and_then(|block| block.is_air().then_some(pos))
+                            .and_then(|block| (!block.is_filled()).then_some(pos))
                     })
             };
             // Transition uses manhattan distance as the cost
