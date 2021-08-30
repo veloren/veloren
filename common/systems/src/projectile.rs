@@ -181,6 +181,13 @@ impl<'a> System<'a> for Sys {
                             });
                             projectile_vanished = true;
                         },
+                        projectile::Effect::Bonk => {
+                            server_emitter.emit(ServerEvent::Bonk {
+                                pos: pos.0,
+                                owner: projectile.owner,
+                                target: None,
+                            });
+                        },
                         _ => {},
                     }
                 }
@@ -323,6 +330,15 @@ fn dispatch_hit(
                 pos,
                 explosion: e,
                 owner: owner_uid,
+            });
+        },
+        projectile::Effect::Bonk => {
+            let Pos(pos) = *projectile_info.pos;
+            let owner_uid = projectile_info.owner_uid;
+            server_emitter.emit(ServerEvent::Bonk {
+                pos,
+                owner: owner_uid,
+                target: Some(projectile_target_info.uid),
             });
         },
         projectile::Effect::Vanish => {

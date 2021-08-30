@@ -238,6 +238,7 @@ impl SpriteKind {
             | SpriteKind::MedFlatCactus
             | SpriteKind::ShortFlatCactus
             | SpriteKind::Apple
+            | SpriteKind::Beehive
             | SpriteKind::Velorite
             | SpriteKind::VeloriteFrag
             | SpriteKind::Coconut

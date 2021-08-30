@@ -872,15 +872,14 @@ impl<'a> PhysicsData<'a> {
                                 .terrain
                                 .get(pos.0.map(|e| e.floor() as i32))
                                 .ok()
-                                .filter(|b| b.is_filled())
-                            // TODO: `is_solid`, when arrows are special-cased
+                                .filter(|b| b.is_solid())
                             {
                                 (0.0, Some(block))
                             } else {
                                 let (dist, block) = read
                                     .terrain
                                     .ray(pos.0, pos.0 + pos_delta)
-                                    .until(|block: &Block| block.is_filled())
+                                    .until(|block: &Block| block.is_solid())
                                     .ignore_error()
                                     .cast();
                                 (dist, block.unwrap()) // Can't fail since we do ignore_error above
@@ -897,7 +896,7 @@ impl<'a> PhysicsData<'a> {
                                     .zip(read.bodies.get(entity).copied())
                                 {
                                     outcomes.push(Outcome::ProjectileHit {
-                                        pos: pos.0,
+                                        pos: pos.0 + pos_delta * dist,
                                         body,
                                         vel: vel.0,
                                         source: projectile.owner,

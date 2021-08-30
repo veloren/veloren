@@ -19,6 +19,7 @@ pub enum Effect {
     Vanish,
     Stick,
     Possess,
+    Bonk, // Knock/dislodge/change objects on hit
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -127,7 +128,7 @@ impl ProjectileConstructor {
                     .with_combo_increment();
 
                 Projectile {
-                    hit_solid: vec![Effect::Stick],
+                    hit_solid: vec![Effect::Stick, Effect::Bonk],
                     hit_entity: vec![Effect::Attack(attack), Effect::Vanish],
                     time_left: Duration::from_secs(15),
                     owner,
