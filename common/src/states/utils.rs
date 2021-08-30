@@ -1,4 +1,5 @@
 use crate::{
+    astar::Astar,
     combat,
     comp::{
         biped_large, biped_small,
@@ -15,6 +16,8 @@ use crate::{
     util::Dir,
     vol::ReadVol,
 };
+use core::hash::BuildHasherDefault;
+use fxhash::FxHasher64;
 use serde::{Deserialize, Serialize};
 use std::{
     ops::{Add, Div},
@@ -627,16 +630,61 @@ pub fn handle_manipulate_loadout(
             }
         },
         InventoryAction::Collect(sprite_pos) => {
+            let sprite_pos_f32 = sprite_pos.map(|x| x as f32);
             // CLosure to check if distance between a point and the sprite is less than
             // MAX_PICKUP_RANGE
             let sprite_range_check = |pos: Vec3<f32>| {
-                (sprite_pos.map(|x| x as f32) - pos).magnitude_squared()
-                    < MAX_PICKUP_RANGE.powi(2)
+                (sprite_pos_f32 - pos).magnitude_squared() < MAX_PICKUP_RANGE.powi(2)
             };
+
+            // Also do a check that a path can be found between sprite and entity
+            // interacting with sprite Use manhattan distance * 1.5 for number
+            // of iterations
+            let iters = (2.0 * (sprite_pos_f32 - data.pos.0).map(|x| x.abs()).sum()) as usize;
+            // Heuristic compares manhattan distance of start and end pos
+            let heuristic = move |pos: &Vec3<i32>| (sprite_pos - pos).map(|x| x.abs()).sum() as f32;
+
+            let mut astar = Astar::new(
+                iters,
+                data.pos.0.map(|x| x.floor() as i32),
+                heuristic,
+                BuildHasherDefault::<FxHasher64>::default(),
+            );
+
+            // Neighbors are all neighboring blocks that are air
+            let neighbors = |pos: &Vec3<i32>| {
+                const DIRS: [Vec3<i32>; 6] = [
+                    Vec3::new(1, 0, 0),
+                    Vec3::new(-1, 0, 0),
+                    Vec3::new(0, 1, 0),
+                    Vec3::new(0, -1, 0),
+                    Vec3::new(0, 0, 1),
+                    Vec3::new(0, 0, -1),
+                ];
+                let pos = *pos;
+                DIRS.iter()
+                    .map(move |dir| dir + pos)
+                    .filter_map(move |pos| {
+                        data.terrain
+                            .get(pos)
+                            .ok()
+                            .and_then(|block| block.is_air().then_some(pos))
+                    })
+            };
+            // Transition uses manhattan distance as the cost
+            let transition = |_: &Vec3<i32>, _: &Vec3<i32>| 1.0;
+            // Pathing satisfied when it reaches the sprite position
+            let satisfied = |pos: &Vec3<i32>| *pos == sprite_pos;
+
+            let not_blocked_by_terrain = astar
+                .poll(iters, heuristic, neighbors, transition, satisfied)
+                .into_path()
+                .is_some();
+
             // Checks if player's feet or head is near to sprite
             let close_to_sprite = sprite_range_check(data.pos.0)
                 || sprite_range_check(data.pos.0 + Vec3::new(0.0, 0.0, data.body.height()));
-            if close_to_sprite {
+            if close_to_sprite && not_blocked_by_terrain {
                 // First, get sprite data for position, if there is a sprite
                 use sprite_interact::SpriteInteractKind;
                 let sprite_at_pos = data
