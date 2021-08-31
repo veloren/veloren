@@ -47,6 +47,7 @@ spin_sleep = "1.0"
 tracing = { version = "0.1", default-features = false }
 uuid = { version = "0.8.1", default-features = false, features = ["serde", "v4"] }
 rand = "0.8"
+fxhash = "0.2.1"
 
 # Assets
 common-assets = {package = "veloren-common-assets", path = "assets"}

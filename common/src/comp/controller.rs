@@ -17,7 +17,6 @@ use vek::*;
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum InventoryEvent {
     Pickup(Uid),
-    Collect(Vec3<i32>),
     Swap(InvSlotId, InvSlotId),
     SplitSwap(InvSlotId, InvSlotId),
     Drop(InvSlotId),
@@ -35,6 +34,7 @@ pub enum InventoryAction {
     Drop(EquipSlot),
     Use(Slot),
     Sort,
+    Collect(Vec3<i32>),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -61,6 +61,7 @@ impl From<InventoryAction> for InventoryManip {
             InventoryAction::Swap(equip, slot) => Self::Swap(Slot::Equip(equip), slot),
             InventoryAction::Drop(equip) => Self::Drop(Slot::Equip(equip)),
             InventoryAction::Sort => Self::Sort,
+            InventoryAction::Collect(collect) => Self::Collect(collect),
         }
     }
 }
@@ -69,7 +70,6 @@ impl From<InventoryEvent> for InventoryManip {
     fn from(inv_event: InventoryEvent) -> Self {
         match inv_event {
             InventoryEvent::Pickup(pickup) => Self::Pickup(pickup),
-            InventoryEvent::Collect(collect) => Self::Collect(collect),
             InventoryEvent::Swap(inv1, inv2) => {
                 Self::Swap(Slot::Inventory(inv1), Slot::Inventory(inv2))
             },

@@ -197,6 +197,9 @@ pub enum ServerEvent {
         pet_entity: EcsEntity,
         owner_entity: EcsEntity,
     },
+    EntityAttackedHook {
+        entity: EcsEntity,
+    },
 }
 
 pub struct EventBus<E> {

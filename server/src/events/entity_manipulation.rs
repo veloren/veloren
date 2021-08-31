@@ -1230,3 +1230,30 @@ pub fn handle_teleport_to(server: &Server, entity: EcsEntity, target: Uid, max_r
         }
     }
 }
+
+/// Intended to handle things that should happen for any successful attack,
+/// regardless of the damages and effects specific to that attack
+pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
+    let ecs = &server.state.ecs();
+    let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
+
+    if let Some(mut char_state) = ecs.write_storage::<CharacterState>().get_mut(entity) {
+        // Interrupt sprite interaction and item use if any attack is applied to entity
+        if matches!(
+            *char_state,
+            CharacterState::SpriteInteract(_) | CharacterState::UseItem(_)
+        ) {
+            *char_state = CharacterState::Idle;
+        }
+    }
+
+    // Remove potion/saturation buff if attacked
+    server_eventbus.emit_now(ServerEvent::Buff {
+        entity,
+        buff_change: buff::BuffChange::RemoveByKind(buff::BuffKind::Potion),
+    });
+    server_eventbus.emit_now(ServerEvent::Buff {
+        entity,
+        buff_change: buff::BuffChange::RemoveByKind(buff::BuffKind::Saturation),
+    });
+}

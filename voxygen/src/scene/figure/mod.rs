@@ -1133,6 +1133,32 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::SpriteInteract(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+                            let sprite_pos = s.static_data.sprite_pos;
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Action => s.timer.as_secs_f32(),
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
+                            anim::character::CollectAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    pos.0,
+                                    time,
+                                    Some(s.stage_section),
+                                    anim::vek::Vec3::from(sprite_pos.map(|x| x as f32)),
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         CharacterState::Boost(_) => {
                             anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,

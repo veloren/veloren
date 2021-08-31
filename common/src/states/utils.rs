@@ -1,4 +1,5 @@
 use crate::{
+    astar::Astar,
     combat,
     comp::{
         biped_large, biped_small,
@@ -9,11 +10,14 @@ use crate::{
         theropod, Body, CharacterAbility, CharacterState, Density, InputAttr, InputKind,
         InventoryAction, StateUpdate,
     },
-    consts::{FRIC_GROUND, GRAVITY},
+    consts::{FRIC_GROUND, GRAVITY, MAX_PICKUP_RANGE},
     event::{LocalEvent, ServerEvent},
     states::{behavior::JoinData, *},
     util::Dir,
+    vol::ReadVol,
 };
+use core::hash::BuildHasherDefault;
+use fxhash::FxHasher64;
 use serde::{Deserialize, Serialize};
 use std::{
     ops::{Add, Div},
@@ -348,11 +352,23 @@ pub fn handle_forced_movement(
     }
 }
 
-pub fn handle_orientation(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) {
-    let dir = (is_strafing(data, update) || update.character.is_attack())
-        .then(|| data.inputs.look_dir.to_horizontal().unwrap_or_default())
-        .or_else(|| Dir::from_unnormalized(data.inputs.move_dir.into()))
-        .unwrap_or_else(|| data.ori.to_horizontal().look_dir());
+pub fn handle_orientation(
+    data: &JoinData<'_>,
+    update: &mut StateUpdate,
+    efficiency: f32,
+    dir_override: Option<Dir>,
+) {
+    // Direction is set to the override if one is provided, else if entity is
+    // strafing or attacking the horiontal component of the look direction is used,
+    // else the current horizontal movement direction is used
+    let dir = if let Some(dir_override) = dir_override {
+        dir_override
+    } else if is_strafing(data, update) || update.character.is_attack() {
+        data.inputs.look_dir.to_horizontal().unwrap_or_default()
+    } else {
+        Dir::from_unnormalized(data.inputs.move_dir.into())
+            .unwrap_or_else(|| data.ori.to_horizontal().look_dir())
+    };
     let rate = {
         let angle = update.ori.look_dir().angle_between(*dir);
         data.body.base_ori_rate() * efficiency * std::f32::consts::PI / angle
@@ -421,7 +437,7 @@ pub fn fly_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) 
         let thrust = efficiency * force;
         let accel = thrust / data.mass.0;
 
-        handle_orientation(data, update, efficiency);
+        handle_orientation(data, update, efficiency, None);
 
         // Elevation control
         match data.body {
@@ -584,44 +600,145 @@ pub fn handle_manipulate_loadout(
     update: &mut StateUpdate,
     inv_action: InventoryAction,
 ) {
-    use use_item::ItemUseKind;
-    if let InventoryAction::Use(Slot::Inventory(inv_slot)) = inv_action {
-        // If inventory action is using a slot, and slot is in the inventory
-        // TODO: Do some non lazy way of handling the possibility that items equipped in
-        // the loadout will have effects that are desired to be non-instantaneous
-        if let Some((item_kind, item)) = data
-            .inventory
-            .and_then(|inv| inv.get(inv_slot))
-            .and_then(|item| Option::<ItemUseKind>::from(item.kind()).zip(Some(item)))
-        {
-            let (buildup_duration, use_duration, recover_duration) = item_kind.durations();
-            // If item returns a valid kind for item use, do into use item character state
-            update.character = CharacterState::UseItem(use_item::Data {
-                static_data: use_item::StaticData {
-                    buildup_duration,
-                    use_duration,
-                    recover_duration,
-                    inv_slot,
-                    item_kind,
-                    item_definition_id: item.item_definition_id().to_string(),
-                    was_wielded: matches!(data.character, CharacterState::Wielding),
-                    was_sneak: matches!(data.character, CharacterState::Sneak),
-                },
-                timer: Duration::default(),
-                stage_section: StageSection::Buildup,
-            });
-        } else {
-            // Else emit inventory action instantnaneously
+    match inv_action {
+        InventoryAction::Use(Slot::Inventory(inv_slot)) => {
+            // If inventory action is using a slot, and slot is in the inventory
+            // TODO: Do some non lazy way of handling the possibility that items equipped in
+            // the loadout will have effects that are desired to be non-instantaneous
+            use use_item::ItemUseKind;
+            if let Some((item_kind, item)) = data
+                .inventory
+                .and_then(|inv| inv.get(inv_slot))
+                .and_then(|item| Option::<ItemUseKind>::from(item.kind()).zip(Some(item)))
+            {
+                let (buildup_duration, use_duration, recover_duration) = item_kind.durations();
+                // If item returns a valid kind for item use, do into use item character state
+                update.character = CharacterState::UseItem(use_item::Data {
+                    static_data: use_item::StaticData {
+                        buildup_duration,
+                        use_duration,
+                        recover_duration,
+                        inv_slot,
+                        item_kind,
+                        item_definition_id: item.item_definition_id().to_string(),
+                        was_wielded: matches!(data.character, CharacterState::Wielding),
+                        was_sneak: matches!(data.character, CharacterState::Sneak),
+                    },
+                    timer: Duration::default(),
+                    stage_section: StageSection::Buildup,
+                });
+            } else {
+                // Else emit inventory action instantnaneously
+                update
+                    .server_events
+                    .push_front(ServerEvent::InventoryManip(data.entity, inv_action.into()));
+            }
+        },
+        InventoryAction::Collect(sprite_pos) => {
+            let sprite_pos_f32 = sprite_pos.map(|x| x as f32);
+            // CLosure to check if distance between a point and the sprite is less than
+            // MAX_PICKUP_RANGE and the radius of the body
+            let sprite_range_check = |pos: Vec3<f32>| {
+                (sprite_pos_f32 - pos).magnitude_squared()
+                    < (MAX_PICKUP_RANGE + data.body.radius()).powi(2)
+            };
+
+            // Checks if player's feet or head is near to sprite
+            let close_to_sprite = sprite_range_check(data.pos.0)
+                || sprite_range_check(data.pos.0 + Vec3::new(0.0, 0.0, data.body.height()));
+            if close_to_sprite {
+                // First, get sprite data for position, if there is a sprite
+                use sprite_interact::SpriteInteractKind;
+                let sprite_at_pos = data
+                    .terrain
+                    .get(sprite_pos)
+                    .ok()
+                    .copied()
+                    .and_then(|b| b.get_sprite());
+
+                // Checks if position has a collectible sprite as well as what sprite is at the
+                // position
+                let sprite_interact = sprite_at_pos.and_then(Option::<SpriteInteractKind>::from);
+
+                if let Some(sprite_interact) = sprite_interact {
+                    // Do a check that a path can be found between sprite and entity
+                    // interacting with sprite Use manhattan distance * 1.5 for number
+                    // of iterations
+                    let iters =
+                        (3.0 * (sprite_pos_f32 - data.pos.0).map(|x| x.abs()).sum()) as usize;
+                    // Heuristic compares manhattan distance of start and end pos
+                    let heuristic =
+                        move |pos: &Vec3<i32>| (sprite_pos - pos).map(|x| x.abs()).sum() as f32;
+
+                    let mut astar = Astar::new(
+                        iters,
+                        data.pos.0.map(|x| x.floor() as i32),
+                        heuristic,
+                        BuildHasherDefault::<FxHasher64>::default(),
+                    );
+
+                    // Neighbors are all neighboring blocks that are air
+                    let neighbors = |pos: &Vec3<i32>| {
+                        const DIRS: [Vec3<i32>; 6] = [
+                            Vec3::new(1, 0, 0),
+                            Vec3::new(-1, 0, 0),
+                            Vec3::new(0, 1, 0),
+                            Vec3::new(0, -1, 0),
+                            Vec3::new(0, 0, 1),
+                            Vec3::new(0, 0, -1),
+                        ];
+                        let pos = *pos;
+                        DIRS.iter().map(move |dir| dir + pos).filter(|pos| {
+                            data.terrain
+                                .get(*pos)
+                                .ok()
+                                .map_or(false, |block| !block.is_filled())
+                        })
+                    };
+                    // Transition uses manhattan distance as the cost, which is always 1 since we
+                    // only ever step one block at a time
+                    let transition = |_: &Vec3<i32>, _: &Vec3<i32>| 1.0;
+                    // Pathing satisfied when it reaches the sprite position
+                    let satisfied = |pos: &Vec3<i32>| *pos == sprite_pos;
+
+                    let not_blocked_by_terrain = astar
+                        .poll(iters, heuristic, neighbors, transition, satisfied)
+                        .into_path()
+                        .is_some();
+
+                    // If path can be found between entity interacting with sprite and entity, start
+                    // interaction with sprite
+                    if not_blocked_by_terrain {
+                        // If the sprite is collectible, enter the sprite interaction character
+                        // state TODO: Handle cases for sprite being
+                        // interactible, but not collectible (none currently
+                        // exist)
+                        let (buildup_duration, use_duration, recover_duration) =
+                            sprite_interact.durations();
+
+                        update.character = CharacterState::SpriteInteract(sprite_interact::Data {
+                            static_data: sprite_interact::StaticData {
+                                buildup_duration,
+                                use_duration,
+                                recover_duration,
+                                sprite_pos,
+                                sprite_kind: sprite_interact,
+                                was_wielded: matches!(data.character, CharacterState::Wielding),
+                                was_sneak: matches!(data.character, CharacterState::Sneak),
+                            },
+                            timer: Duration::default(),
+                            stage_section: StageSection::Buildup,
+                        })
+                    }
+                }
+            }
+        },
+        _ => {
+            // Else just do event instantaneously
             update
                 .server_events
                 .push_front(ServerEvent::InventoryManip(data.entity, inv_action.into()));
-        }
-    } else {
-        // Else if inventory action is not item use, or if slot is in loadout, just do
-        // event instantaneously
-        update
-            .server_events
-            .push_front(ServerEvent::InventoryManip(data.entity, inv_action.into()));
+        },
     }
 }
 

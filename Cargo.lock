@@ -5859,6 +5859,7 @@ dependencies = [
  "csv",
  "dot_vox",
  "enum-iterator",
+ "fxhash",
  "hashbrown 0.11.2",
  "indexmap",
  "lazy_static",

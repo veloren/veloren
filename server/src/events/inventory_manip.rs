@@ -188,21 +188,6 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
             if let Some(block) = block {
                 if block.is_collectible() && state.can_set_block(pos) {
-                    // Check if the block is within pickup range
-                    let entity_cylinder = get_cylinder(state, entity);
-                    if !within_pickup_range(entity_cylinder, || {
-                        Some(find_dist::Cube {
-                            min: pos.as_(),
-                            side_length: 1.0,
-                        })
-                    }) {
-                        debug!(
-                            ?entity_cylinder,
-                            "Failed to pick up block as not within range, block pos: {}", pos
-                        );
-                        return;
-                    };
-
                     if let Some(item) = comp::Item::try_reclaim_from_block(block) {
                         // NOTE: We dup the item for message purposes.
                         let item_msg = item.duplicate(

@@ -108,6 +108,9 @@ pub enum CharacterState {
     SpriteSummon(sprite_summon::Data),
     /// Handles logic for using an item so it is not simply instant
     UseItem(use_item::Data),
+    /// Handles logic for interacting with a sprite, e.g. using a chest or
+    /// picking a plant
+    SpriteInteract(sprite_interact::Data),
 }
 
 impl CharacterState {
@@ -255,6 +258,7 @@ impl CharacterState {
             CharacterState::SelfBuff(data) => data.behavior(j),
             CharacterState::SpriteSummon(data) => data.behavior(j),
             CharacterState::UseItem(data) => data.behavior(j),
+            CharacterState::SpriteInteract(data) => data.behavior(j),
         }
     }
 
@@ -295,6 +299,7 @@ impl CharacterState {
             CharacterState::SelfBuff(data) => data.handle_event(j, action),
             CharacterState::SpriteSummon(data) => data.handle_event(j, action),
             CharacterState::UseItem(data) => data.handle_event(j, action),
+            CharacterState::SpriteInteract(data) => data.handle_event(j, action),
         }
     }
 }

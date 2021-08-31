@@ -261,7 +261,8 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::Climb { .. }
                 | CharacterState::Stunned { .. }
                 | CharacterState::BasicBlock { .. }
-                | CharacterState::UseItem { .. } => {},
+                | CharacterState::UseItem { .. }
+                | CharacterState::SpriteInteract { .. } => {},
             }
         }
 
