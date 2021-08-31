@@ -2023,7 +2023,7 @@ dependencies = [
  "khronos-egl",
  "libloading 0.7.0",
  "log",
- "naga",
+ "naga 0.4.0",
  "parking_lot 0.11.1",
  "raw-window-handle",
  "spirv_cross",
@@ -2047,7 +2047,7 @@ dependencies = [
  "gfx-hal",
  "log",
  "metal",
- "naga",
+ "naga 0.4.0",
  "objc",
  "parking_lot 0.11.1",
  "profiling",
@@ -2070,7 +2070,7 @@ dependencies = [
  "inplace_it",
  "libloading 0.7.0",
  "log",
- "naga",
+ "naga 0.4.0",
  "objc",
  "parking_lot 0.11.1",
  "raw-window-handle",
@@ -2085,7 +2085,7 @@ version = "0.8.0"
 source = "git+https://github.com/gfx-rs/gfx?rev=27a1dae3796d33d23812f2bb8c7e3b5aea18b521#27a1dae3796d33d23812f2bb8c7e3b5aea18b521"
 dependencies = [
  "bitflags",
- "naga",
+ "naga 0.4.0",
  "raw-window-handle",
  "thiserror",
 ]
@@ -2173,6 +2173,16 @@ dependencies = [
  "slotmap 0.4.2",
  "wasm-bindgen",
  "web-sys",
+]
+
+[[package]]
+name = "glsl-include"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "daa2afb1631e7ab4543e0dde0e3fc68bb49c58fee89c07f30a26553b1f684ab6"
+dependencies = [
+ "lazy_static",
+ "regex",
 ]
 
 [[package]]
@@ -3192,6 +3202,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "naga"
+version = "0.6.0"
+source = "git+https://github.com/gfx-rs/naga.git?rev=2069ea698f4ff570c7d065b899f16a88725aca85#2069ea698f4ff570c7d065b899f16a88725aca85"
+dependencies = [
+ "bit-set",
+ "bitflags",
+ "codespan-reporting",
+ "fxhash",
+ "log",
+ "num-traits",
+ "pp-rs",
+ "spirv",
+ "thiserror",
+]
+
+[[package]]
 name = "native-dialog"
 version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3910,6 +3936,15 @@ version = "0.1.0"
 source = "git+https://github.com/xMAC94x/portpicker-rs?rev=df6b37872f3586ac3b21d08b56c8ec7cd92fb172#df6b37872f3586ac3b21d08b56c8ec7cd92fb172"
 dependencies = [
  "rand 0.8.4",
+]
+
+[[package]]
+name = "pp-rs"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bb458bb7f6e250e6eb79d5026badc10a3ebb8f9a15d1fff0f13d17c71f4d6dee"
+dependencies = [
+ "unicode-xid 0.2.2",
 ]
 
 [[package]]
@@ -4838,26 +4873,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2579985fda508104f7587689507983eadd6a6e84dd35d6d115361f530916fa0d"
 
 [[package]]
-name = "shaderc"
-version = "0.6.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "50b8aeaae10b9bda5cba66736a7e265f67698e912e1cc6a4678acba286e22be9"
-dependencies = [
- "libc",
- "shaderc-sys",
-]
-
-[[package]]
-name = "shaderc-sys"
-version = "0.6.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b12d7c62d6732884c9dfab587503fa3a795b108df152415a89da23812d4737e"
-dependencies = [
- "cmake",
- "libc",
-]
-
-[[package]]
 name = "sharded-slab"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5110,6 +5125,16 @@ checksum = "2a98101bdc3833e192713c2af0b0dd2614f50d1cf1f7a97c5221b7aac052acc7"
 dependencies = [
  "once_cell",
  "winapi 0.3.9",
+]
+
+[[package]]
+name = "spirv"
+version = "0.2.0+1.5.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "246bfa38fe3db3f1dfc8ca5a2cdeb7348c78be2112740cc0ec8ef18b6d94f830"
+dependencies = [
+ "bitflags",
+ "num-traits",
 ]
 
 [[package]]
@@ -6147,6 +6172,7 @@ dependencies = [
  "bytemuck",
  "chrono",
  "chumsky",
+ "codespan-reporting",
  "conrod_core",
  "conrod_winit",
  "copy_dir",
@@ -6164,6 +6190,7 @@ dependencies = [
  "enum-iterator",
  "euc",
  "gilrs",
+ "glsl-include",
  "glyph_brush",
  "guillotiere",
  "hashbrown 0.11.2",
@@ -6173,6 +6200,7 @@ dependencies = [
  "itertools 0.10.1",
  "keyboard-keynames",
  "lazy_static",
+ "naga 0.6.0",
  "native-dialog",
  "num 0.4.0",
  "num_cpus",
@@ -6183,7 +6211,6 @@ dependencies = [
  "rodio",
  "ron",
  "serde",
- "shaderc",
  "specs",
  "specs-idvs",
  "strum",
@@ -6764,7 +6791,7 @@ dependencies = [
  "arrayvec",
  "js-sys",
  "log",
- "naga",
+ "naga 0.4.0",
  "parking_lot 0.11.1",
  "raw-window-handle",
  "serde",
@@ -6796,7 +6823,7 @@ dependencies = [
  "gpu-alloc",
  "gpu-descriptor",
  "log",
- "naga",
+ "naga 0.4.0",
  "parking_lot 0.11.1",
  "profiling",
  "raw-window-handle",
