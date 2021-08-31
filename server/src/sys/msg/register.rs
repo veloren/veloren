@@ -174,14 +174,15 @@ impl<'a> System<'a> for Sys {
                     return Ok(());
                 }
 
+                // FIXME:
+                // Take last battle_mode and last battle_mode change
+                // from in-memory persistence
                 let battle_mode = match read_data.settings.battle_mode {
                     ServerBattleMode::Global(mode) => mode,
-                    // FIXME:
-                    // Should this use just default battle_mode
-                    // or should we take it from last change?
                     ServerBattleMode::PerPlayer { default: mode } => mode,
                 };
-                let player = Player::new(username, battle_mode, uuid);
+                let player = Player::new(username, battle_mode, uuid, None);
+
                 let admin = read_data.editable_settings.admins.get(&uuid);
 
                 if !player.is_valid() {

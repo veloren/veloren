@@ -3,7 +3,7 @@ use specs::{Component, DerefFlaggedStorage, NullStorage};
 use specs_idvs::IdvStorage;
 use uuid::Uuid;
 
-use crate::resources::BattleMode;
+use crate::resources::{BattleMode, Time};
 
 const MAX_ALIAS_LEN: usize = 32;
 
@@ -20,6 +20,7 @@ pub enum DisconnectReason {
 pub struct Player {
     pub alias: String,
     pub battle_mode: BattleMode,
+    pub last_battlemode_change: Option<Time>,
     uuid: Uuid,
 }
 
@@ -30,10 +31,16 @@ impl BattleMode {
 }
 
 impl Player {
-    pub fn new(alias: String, battle_mode: BattleMode, uuid: Uuid) -> Self {
+    pub fn new(
+        alias: String,
+        battle_mode: BattleMode,
+        uuid: Uuid,
+        last_battlemode_change: Option<Time>,
+    ) -> Self {
         Self {
             alias,
             battle_mode,
+            last_battlemode_change,
             uuid,
         }
     }

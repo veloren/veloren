@@ -34,7 +34,7 @@ use common::{
     event::{EventBus, ServerEvent},
     generation::EntityInfo,
     npc::{self, get_npc_name},
-    resources::{BattleMode, PlayerPhysicsSettings, TimeOfDay},
+    resources::{BattleMode, PlayerPhysicsSettings, Time, TimeOfDay},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     uid::Uid,
     vol::RectVolSize,
@@ -55,7 +55,6 @@ use vek::*;
 use wiring::{Circuit, Wire, WiringAction, WiringActionEffect, WiringElement};
 use world::{site::SiteKind, util::Sampler};
 
-use std::ops::DerefMut;
 use tracing::{error, info, warn};
 
 pub trait ChatCommandExt {
@@ -3128,12 +3127,11 @@ fn handle_battlemode(
                 .get(chunk_pos)
                 .ok_or("Cannot get current chunk for target")?;
             // search for towns in chunk
-            //
-            // NOTE: this code finds town even if it is far from it.
-            // Does it count plant fields?
             let site_ids = &chunk.sites;
             let mut in_town = false;
             for site_id in site_ids.iter() {
+                // NOTE: this code finds town even if it is far from actual
+                // houses in settlement. Is it because of plant fields?
                 let site = index.sites.get(*site_id);
                 if matches!(site.kind, SiteKind::Settlement(_)) {
                     in_town = true;
@@ -3151,12 +3149,40 @@ fn handle_battlemode(
         }
 
         let mut players = ecs.write_storage::<comp::Player>();
-        let mut player = players
+        let mut player_info = players
             .get_mut(target)
             .ok_or("Cannot get player component for target")?;
-        // FIXME: handle cooldown before merge here!
-        //
-        set_battlemode(&mode, player.deref_mut(), server, client)
+        let time = ecs.read_resource::<Time>();
+        if let Some(Time(last_change)) = player_info.last_battlemode_change {
+            const COOLDOWN: f64 = 60.0 * 5.0;
+
+            let Time(time) = *time;
+            let elapsed = time - last_change;
+            if elapsed < COOLDOWN {
+                #[rustfmt::skip]
+                let msg = format!(
+                    "You can switch battlemode only once in {:.0} seconds. \
+                    Last change was {:.0} seconds before",
+                    COOLDOWN, elapsed,
+                );
+                return Err(msg);
+            }
+        }
+        let mode = match mode.as_str() {
+            "pvp" => BattleMode::PvP,
+            "pve" => BattleMode::PvE,
+            _ => return Err("Available modes: pvp, pve".to_owned()),
+        };
+        player_info.battle_mode = mode;
+        player_info.last_battlemode_change = Some(*time);
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                format!("New battle mode: {:?}", mode),
+            ),
+        );
+        Ok(())
     } else {
         let players = ecs.read_storage::<comp::Player>();
         let player = players
@@ -3180,42 +3206,27 @@ fn handle_battlemode_force(
     args: Vec<String>,
     action: &ChatCommand,
 ) -> CmdResult<()> {
-    let mode = parse_args!(args, String).ok_or_else(|| action.help_string())?;
     let ecs = server.state.ecs();
     let settings = ecs.read_resource::<Settings>();
     if !settings.battle_mode.allow_choosing() {
-        server.notify_client(
-            client,
-            ServerGeneral::server_msg(
-                ChatType::CommandInfo,
-                "Warning! Forcing battle mode while not enabled in settings!".to_owned(),
-            ),
-        );
+        return Err("Command disabled in server settings".to_owned());
     }
-    let mut players = ecs.write_storage::<comp::Player>();
-    let mut player = players
-        .get_mut(target)
-        .ok_or("Cannot get player component for target")?;
-    set_battlemode(&mode, player.deref_mut(), server, client)
-}
-
-fn set_battlemode(
-    mode: &str,
-    player_info: &mut comp::Player,
-    server: &Server,
-    client: EcsEntity,
-) -> CmdResult<()> {
-    let mode = match mode {
+    let mode = parse_args!(args, String).ok_or_else(|| action.help_string())?;
+    let mode = match mode.as_str() {
         "pvp" => BattleMode::PvP,
         "pve" => BattleMode::PvE,
         _ => return Err("Available modes: pvp, pve".to_owned()),
     };
+    let mut players = ecs.write_storage::<comp::Player>();
+    let mut player_info = players
+        .get_mut(target)
+        .ok_or("Cannot get player component for target")?;
     player_info.battle_mode = mode;
     server.notify_client(
         client,
         ServerGeneral::server_msg(
             ChatType::CommandInfo,
-            format!("New battle mode: {:?}", player_info.battle_mode),
+            format!("Set battle mode to: {:?}", mode),
         ),
     );
     Ok(())
