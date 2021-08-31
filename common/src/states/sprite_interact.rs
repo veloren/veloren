@@ -150,16 +150,11 @@ impl From<SpriteKind> for Option<SpriteInteractKind> {
             | SpriteKind::Bowl
             | SpriteKind::PotionMinor
             | SpriteKind::Seashells => Some(SpriteInteractKind::Collectible),
-            SpriteKind::DungeonChest0
-            | SpriteKind::DungeonChest1
-            | SpriteKind::DungeonChest2
-            | SpriteKind::DungeonChest3
-            | SpriteKind::DungeonChest4
-            | SpriteKind::DungeonChest5
-            | SpriteKind::Chest
-            | SpriteKind::ChestBuried
-            | SpriteKind::Mud
-            | SpriteKind::Crate => Some(SpriteInteractKind::Chest),
+            // Collectible checked in addition to container for case that sprite requires a tool to
+            // collect and cannot be collected by hand, yet still meets the container check
+            _ if sprite_kind.is_container() && sprite_kind.is_collectible() => {
+                Some(SpriteInteractKind::Chest)
+            },
             _ if sprite_kind.is_collectible() => Some(SpriteInteractKind::Fallback),
             _ => None,
         }
