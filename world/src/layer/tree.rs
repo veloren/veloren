@@ -360,7 +360,7 @@ impl TreeConfig {
     }
 
     pub fn jungle(rng: &mut impl Rng, scale: f32) -> Self {
-        let scale = scale * (0.9 + rng.gen::<f32>().powi(4) * 1.0);
+        let scale = scale * (0.8 + rng.gen::<f32>() * 0.5);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
@@ -469,14 +469,14 @@ impl TreeConfig {
             branch_child_len: 0.75,
             branch_child_radius: 0.75,
             branch_child_radius_lerp: true,
-            leaf_radius: 2.0 * log_scale..2.1 * log_scale,
+            leaf_radius: 1.5 * log_scale..2.0 * log_scale,
             leaf_radius_scaled: 0.0,
             straightness: 0.3,
             max_depth: 5,
             splits: 3.5..4.25,
             split_range: 0.5..1.25,
             branch_len_bias: 0.0,
-            leaf_vertical_scale: 0.5,
+            leaf_vertical_scale: 0.65,
             proportionality: 0.5,
             inhabited: false,
             hanging_sprites: &[(0.00007, SpriteKind::Beehive)],
