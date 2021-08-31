@@ -37,7 +37,7 @@ use common_state::BlockChange;
 use comp::chat::GenericChatMsg;
 use hashbrown::HashSet;
 use rand::Rng;
-use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt};
+use specs::{join::Join, saveload::MarkerAllocator, Builder, Entity as EcsEntity, WorldExt};
 use tracing::error;
 use vek::{Vec2, Vec3};
 
@@ -378,7 +378,6 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
     {
         // Only drop loot if entity has agency (not a player), and if it is not owned by
         // another entity (not a pet)
-        use specs::Builder;
 
         // Decide for a loot drop before turning into a lootbag
         let old_body = state.ecs().write_storage::<Body>().remove(entity);
@@ -1017,6 +1016,36 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                     }
                 }
             },
+        }
+    }
+}
+
+pub fn handle_bonk(server: &mut Server, pos: Vec3<f32>, _owner: Option<Uid>, target: Option<Uid>) {
+    let ecs = &server.state.ecs();
+    let terrain = ecs.read_resource::<TerrainGrid>();
+    let mut block_change = ecs.write_resource::<BlockChange>();
+
+    if let Some(_target) = target {
+        // TODO: bonk entities but do no damage?
+    } else {
+        use common::terrain::SpriteKind;
+        let pos = pos.map(|e| e.floor() as i32);
+        if let Some(block) = terrain.get(pos).ok().copied().filter(|b| b.is_bonkable()) {
+            if let Some(item) = comp::Item::try_reclaim_from_block(block) {
+                if block_change
+                    .try_set(pos, block.with_sprite(SpriteKind::Empty))
+                    .is_some()
+                {
+                    drop(terrain);
+                    drop(block_change);
+                    server
+                        .state
+                        .create_object(Default::default(), comp::object::Body::Pouch)
+                        .with(comp::Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)))
+                        .with(item)
+                        .build();
+                }
+            }
         }
     }
 }

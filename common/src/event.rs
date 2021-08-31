@@ -42,6 +42,11 @@ pub enum ServerEvent {
         explosion: Explosion,
         owner: Option<Uid>,
     },
+    Bonk {
+        pos: Vec3<f32>,
+        owner: Option<Uid>,
+        target: Option<Uid>,
+    },
     Damage {
         entity: EcsEntity,
         change: comp::HealthChange,

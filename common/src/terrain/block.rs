@@ -259,6 +259,14 @@ impl Block {
             .unwrap_or(false)
     }
 
+    #[inline]
+    pub fn is_bonkable(&self) -> bool {
+        match self.get_sprite() {
+            Some(SpriteKind::Apple | SpriteKind::Beehive | SpriteKind::Coconut) => self.is_solid(),
+            _ => false,
+        }
+    }
+
     /// The tool required to mine this block. For blocks that cannot be mined,
     /// `None` is returned.
     #[inline]

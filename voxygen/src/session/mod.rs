@@ -77,7 +77,6 @@ pub struct SessionState {
     target_entity: Option<specs::Entity>,
     selected_entity: Option<(specs::Entity, std::time::Instant)>,
     interactable: Option<Interactable>,
-    saved_zoom_dist: Option<f32>,
     hitboxes: HashMap<specs::Entity, DebugShapeId>,
 }
 
@@ -125,7 +124,6 @@ impl SessionState {
             target_entity: None,
             selected_entity: None,
             interactable: None,
-            saved_zoom_dist: None,
             hitboxes: HashMap::new(),
         }
     }
@@ -328,18 +326,8 @@ impl PlayState for SessionState {
                 if cr.charge_frac() > 0.5 {
                     fov_scaling -= 3.0 * cr.charge_frac() / 5.0;
                 }
-                let max_dist = if let Some(dist) = self.saved_zoom_dist {
-                    dist
-                } else {
-                    let dist = camera.get_distance();
-                    self.saved_zoom_dist = Some(dist);
-                    dist
-                };
-                camera.set_distance(Lerp::lerp(max_dist, 2.0, 1.0 - fov_scaling));
-            } else if let Some(dist) = self.saved_zoom_dist.take() {
-                camera.set_distance(dist);
             }
-            camera.set_fov((global_state.settings.graphics.fov as f32 * fov_scaling).to_radians());
+            camera.set_fixate(fov_scaling);
 
             // Compute camera data
             camera.compute_dependents(&*self.client.borrow().state().terrain());

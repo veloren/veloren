@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explosions no longer change block colours within safe zones
 - The 'spot' system, which generates smaller site-like structures and scenarios
 - Chestnut and cedar tree varieties
+- Shooting sprites, such as apples and hives, can knock them out of trees
 
 ### Changed
 
