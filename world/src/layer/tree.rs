@@ -20,17 +20,11 @@ use std::{f32, ops::Range};
 use vek::*;
 
 lazy_static! {
-    static ref OAKS: AssetHandle<StructuresGroup> = Structure::load_group("trees.oaks");
     static ref OAK_STUMPS: AssetHandle<StructuresGroup> = Structure::load_group("trees.oak_stumps");
-    static ref PINES: AssetHandle<StructuresGroup> = Structure::load_group("trees.pines");
     static ref PALMS: AssetHandle<StructuresGroup> = Structure::load_group("trees.palms");
-    static ref ACACIAS: AssetHandle<StructuresGroup> = Structure::load_group("trees.acacias");
-    static ref BAOBABS: AssetHandle<StructuresGroup> = Structure::load_group("trees.baobabs");
     static ref FRUIT_TREES: AssetHandle<StructuresGroup> =
         Structure::load_group("trees.fruit_trees");
     static ref BIRCHES: AssetHandle<StructuresGroup> = Structure::load_group("trees.birch");
-    static ref MANGROVE_TREES: AssetHandle<StructuresGroup> =
-        Structure::load_group("trees.mangrove_trees");
     static ref SWAMP_TREES: AssetHandle<StructuresGroup> =
         Structure::load_group("trees.swamp_trees");
 }
@@ -104,7 +98,6 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                                     StructureBlock::Acacia,
                                 );
                             },
-                            // ForestKind::Acacia => *ACACIAS,
                             ForestKind::Baobab => {
                                 break 'model TreeModel::Procedural(
                                     ProceduralTree::generate(
@@ -114,8 +107,6 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                                     StructureBlock::Baobab,
                                 );
                             },
-                            // ForestKind::Baobab => *BAOBABS,
-                            // ForestKind::Oak => *OAKS,
                             ForestKind::Oak => {
                                 break 'model TreeModel::Procedural(
                                     ProceduralTree::generate(
@@ -134,7 +125,6 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                                     StructureBlock::Chestnut,
                                 );
                             },
-                            //ForestKind::Pine => *PINES,
                             ForestKind::Pine => {
                                 break 'model TreeModel::Procedural(
                                     ProceduralTree::generate(
@@ -154,7 +144,6 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                                 );
                             },
                             ForestKind::Birch => *BIRCHES,
-                            // ForestKind::Mangrove => *MANGROVE_TREES,
                             ForestKind::Mangrove => {
                                 break 'model TreeModel::Procedural(
                                     ProceduralTree::generate(
@@ -449,7 +438,7 @@ impl TreeConfig {
             branch_child_radius_lerp: true,
             leaf_radius: 4.5 * log_scale..5.5 * log_scale,
             leaf_radius_scaled: 0.0,
-            straightness: 0.3,
+            straightness: 0.4,
             max_depth: 5,
             splits: 1.75..2.25,
             split_range: 1.0..1.25,

@@ -278,7 +278,7 @@ pub fn block_from_structure(
             } else {
                 Block::air(SpriteKind::Empty)
             };
-            if field.get(pos + structure_pos) % 16 < 8 {
+            if field.chance(pos + structure_pos, 0.5) {
                 Some(block)
             } else {
                 Some(block.with_sprite(SpriteKind::Chest))
@@ -302,7 +302,9 @@ pub fn block_from_structure(
             let range = if ranges.is_empty() {
                 None
             } else {
-                ranges.get(RandomPerm::new(structure_seed).get(13) as usize % ranges.len())
+                ranges.get(
+                    RandomPerm::new(structure_seed).get(structure_seed) as usize % ranges.len(),
+                )
             };
 
             range.map(|range| {

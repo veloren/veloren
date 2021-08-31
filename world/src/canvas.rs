@@ -57,6 +57,8 @@ impl<'a> CanvasInfo<'a> {
         })
     }
 
+    /// Find all spots within range of this canvas's chunk. Returns `(wpos,
+    /// spot, seed)`.
     pub fn nearby_spots(&self) -> impl Iterator<Item = (Vec2<i32>, Spot, u32)> + '_ {
         (-1..2)
             .map(|x| (-1..2).map(move |y| Vec2::new(x, y)))

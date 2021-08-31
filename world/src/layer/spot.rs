@@ -31,7 +31,6 @@ use vek::*;
 /// that composes the spot and the entities that should be spawned there.
 #[derive(Copy, Clone, Debug)]
 pub enum Spot {
-    // *Themed Spots*
     DwarvenGrave,
     SaurokAltar,
     RockCircle,
@@ -55,19 +54,6 @@ pub enum Spot {
     FruitTree,
     Shipwreck,
 }
-
-// Available Biomes are:
-//Void
-//Lake
-//Grassland
-//Ocean
-//Mountain
-//Snowland
-//Desert
-//Swamp
-//Jungle
-//Forest
-//Savannah
 
 impl Spot {
     pub fn generate(world: &mut WorldSim) {
@@ -312,6 +298,8 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
             entity_radius: f32,
             // The entities that should be spawned in the spot, from closest to furthest
             // (count_range, spec)
+            // count_range = number of entities, chosen randomly within this range
+            // spec = Manifest spec for the entity kind
             entities: &'a [(Range<u32>, &'a str)],
         }
 
@@ -320,7 +308,7 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
             Spot::DwarvenGrave => SpotConfig {
                 base_structures: Some("spots_grasslands.dwarven_grave"),
                 entity_radius: 60.0,
-                entities: &[(6..12, "common.entity.spot.bandit_camp.dwarf_grave_robber")],
+                entities: &[(6..12, "common.entity.spot.dwarf_grave_robber")],
             },
             Spot::SaurokAltar => SpotConfig {
                 base_structures: Some("spots.jungle.saurok-altar"),
@@ -349,7 +337,7 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 base_structures: Some("spots_general.witch_hut"),
                 entity_radius: 1.0,
                 entities: &[
-                    (1..2, "common.entity.spot.bandit_camp.witch_dark"),
+                    (1..2, "common.entity.spot.witch_dark"),
                     (0..4, "common.entity.wild.peaceful.cat"),
                     (0..3, "common.entity.wild.peaceful.frog"),
                 ],
@@ -382,7 +370,7 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
             Spot::AirshipCrash => SpotConfig {
                 base_structures: Some("trees.airship_crash"),
                 entity_radius: 20.0,
-                entities: &[(4..9, "common.entity.spot.bandit_camp.grim_salvager")],
+                entities: &[(4..9, "common.entity.spot.grim_salvager")],
             },
             Spot::FruitTree => SpotConfig {
                 base_structures: Some("trees.fruit_trees"),

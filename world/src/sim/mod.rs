@@ -2068,6 +2068,7 @@ impl WorldSim {
                     near_water: if chunk.river.is_lake()
                         || chunk.river.near_river()
                         || chunk.alt < CONFIG.sea_level + 6.0
+                    // Close to sea in altitude
                     {
                         1.0
                     } else {
