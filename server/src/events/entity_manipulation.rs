@@ -1020,14 +1020,13 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
     }
 }
 
-pub fn handle_bonk(server: &mut Server, pos: Vec3<f32>, owner: Option<Uid>, target: Option<Uid>) {
+pub fn handle_bonk(server: &mut Server, pos: Vec3<f32>, _owner: Option<Uid>, target: Option<Uid>) {
     let ecs = &server.state.ecs();
     let terrain = ecs.read_resource::<TerrainGrid>();
     let mut block_change = ecs.write_resource::<BlockChange>();
 
     if let Some(_target) = target {
         // TODO: bonk entities but do no damage?
-        drop(owner);
     } else {
         use common::terrain::SpriteKind;
         let pos = pos.map(|e| e.floor() as i32);

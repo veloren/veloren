@@ -682,7 +682,7 @@ impl Scene {
         let sun_dir = scene_data.get_sun_dir();
         let is_daylight = sun_dir.z < 0.0;
         if renderer.pipeline_modes().shadow.is_map() && (is_daylight || !lights.is_empty()) {
-            let fov = self.camera.get_fov();
+            let fov = self.camera.get_effective_fov();
             let aspect_ratio = self.camera.get_aspect_ratio();
 
             let view_dir = ((focus_pos.map(f32::fract)) - cam_pos).normalized();

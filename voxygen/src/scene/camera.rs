@@ -49,6 +49,8 @@ pub struct Camera {
     dist: f32,
     tgt_fov: f32,
     fov: f32,
+    tgt_fixate: f32,
+    fixate: f32,
     aspect: f32,
     mode: CameraMode,
 
@@ -327,6 +329,8 @@ impl Camera {
             dist: 10.0,
             tgt_fov: 1.1,
             fov: 1.1,
+            tgt_fixate: 1.0,
+            fixate: 1.0,
             aspect,
             mode,
 
@@ -466,13 +470,14 @@ impl Camera {
             * Mat4::translation_3d(-self.focus.map(|e| e.fract()));
         let view_mat_inv: Mat4<f32> = view_mat.inverted();
 
+        let fov = self.get_effective_fov();
         // NOTE: We reverse the far and near planes to produce an inverted depth
         // buffer (1 to 0 z planes).
         let proj_mat =
-            perspective_rh_zo_general(self.fov, self.aspect, 1.0 / FAR_PLANE, 1.0 / NEAR_PLANE);
+            perspective_rh_zo_general(fov, self.aspect, 1.0 / FAR_PLANE, 1.0 / NEAR_PLANE);
         // For treeculler, we also produce a version without inverted depth.
         let proj_mat_treeculler =
-            perspective_rh_zo_general(self.fov, self.aspect, 1.0 / NEAR_PLANE, 1.0 / FAR_PLANE);
+            perspective_rh_zo_general(fov, self.aspect, 1.0 / NEAR_PLANE, 1.0 / FAR_PLANE);
 
         Dependents {
             view_mat,
@@ -501,6 +506,7 @@ impl Camera {
     /// Rotate the camera about its focus by the given delta, limiting the input
     /// accordingly.
     pub fn rotate_by(&mut self, delta: Vec3<f32>) {
+        let delta = delta * self.fixate;
         // Wrap camera yaw
         self.tgt_ori.x = (self.tgt_ori.x + delta.x).rem_euclid(2.0 * PI);
         // Clamp camera pitch to the vertical limits
@@ -575,6 +581,14 @@ impl Camera {
             );
         }
 
+        if (self.fixate - self.tgt_fixate).abs() > 0.01 {
+            self.fixate = vek::Lerp::lerp(
+                self.fixate,
+                self.tgt_fixate,
+                0.65 * (delta as f32) / self.interp_time(),
+            );
+        }
+
         if (self.focus - self.tgt_focus).magnitude_squared() > 0.001 {
             let lerped_focus = Lerp::lerp(
                 self.focus,
@@ -639,11 +653,19 @@ impl Camera {
     /// Get the orientation of the camera.
     pub fn get_orientation(&self) -> Vec3<f32> { self.ori }
 
-    /// Get the field of view of the camera in radians.
-    pub fn get_fov(&self) -> f32 { self.fov }
+    /// Get the field of view of the camera in radians, taking into account
+    /// fixation.
+    pub fn get_effective_fov(&self) -> f32 { self.fov * self.fixate }
+
+    // /// Get the field of view of the camera in radians.
+    // pub fn get_fov(&self) -> f32 { self.fov }
 
     /// Set the field of view of the camera in radians.
     pub fn set_fov(&mut self, fov: f32) { self.tgt_fov = fov; }
+
+    /// Set the 'fixation' proportion, allowing the camera to focus in with
+    /// precise aiming. Fixation is applied on top of the regular FoV.
+    pub fn set_fixate(&mut self, fixate: f32) { self.tgt_fixate = fixate; }
 
     /// Set the FOV in degrees
     pub fn set_fov_deg(&mut self, fov: u16) {
