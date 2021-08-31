@@ -1,0 +1,16 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.dungeon.desert_entrance.1",
+        center: (35, 50, 21)
+    ),
+    (
+        specifier: "world.structure.dungeon.desert_entrance.2",
+        center: (21, 21, 41)
+    ),
+    (
+        specifier: "world.structure.dungeon.desert_entrance.3",
+        center: (32, 31, 28)
+    ),
+]

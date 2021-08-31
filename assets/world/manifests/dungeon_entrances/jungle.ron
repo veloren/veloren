@@ -2,7 +2,15 @@
 
 [
     (
-        specifier: "world.structure.dungeon.jungle_temple.entrance.1",
+        specifier: "world.structure.dungeon.jungle_entrance.1",
         center: (50, 40, 10)
+    ),
+    (
+        specifier: "world.structure.dungeon.jungle_entrance.2",
+        center: (60, 36, 36)
+    ),
+    (
+        specifier: "world.structure.dungeon.jungle_entrance.3",
+        center: (24, 22, 44)
     ),
 ]

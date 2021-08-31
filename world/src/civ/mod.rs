@@ -131,7 +131,7 @@ impl Civs {
 
             let (radius, flatten_radius) = match &site.kind {
                 SiteKind::Settlement => (32i32, 10.0),
-                SiteKind::Dungeon => (8i32, 2.0),
+                SiteKind::Dungeon => (8i32, 3.0),
                 SiteKind::Castle => (16i32, 5.0),
                 SiteKind::Refactor => (0i32, 0.0),
                 SiteKind::Tree => (12i32, 8.0),
