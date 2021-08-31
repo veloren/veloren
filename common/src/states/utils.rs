@@ -358,12 +358,17 @@ pub fn handle_orientation(
     efficiency: f32,
     dir_override: Option<Dir>,
 ) {
-    let dir = dir_override.unwrap_or_else(|| {
-        (is_strafing(data, update) || update.character.is_attack())
-            .then(|| data.inputs.look_dir.to_horizontal().unwrap_or_default())
-            .or_else(|| Dir::from_unnormalized(data.inputs.move_dir.into()))
+    // Direction is set to the override if one is provided, else if entity is
+    // strafing or attacking the horiontal component of the look direction is used,
+    // else the current horizontal movement direction is used
+    let dir = if let Some(dir_override) = dir_override {
+        dir_override
+    } else if is_strafing(data, update) || update.character.is_attack() {
+        data.inputs.look_dir.to_horizontal().unwrap_or_default()
+    } else {
+        Dir::from_unnormalized(data.inputs.move_dir.into())
             .unwrap_or_else(|| data.ori.to_horizontal().look_dir())
-    });
+    };
     let rate = {
         let angle = update.ori.look_dir().angle_between(*dir);
         data.body.base_ori_rate() * efficiency * std::f32::consts::PI / angle
@@ -638,54 +643,10 @@ pub fn handle_manipulate_loadout(
                     < (MAX_PICKUP_RANGE + data.body.radius()).powi(2)
             };
 
-            // Also do a check that a path can be found between sprite and entity
-            // interacting with sprite Use manhattan distance * 1.5 for number
-            // of iterations
-            let iters = (3.0 * (sprite_pos_f32 - data.pos.0).map(|x| x.abs()).sum()) as usize;
-            // Heuristic compares manhattan distance of start and end pos
-            let heuristic = move |pos: &Vec3<i32>| (sprite_pos - pos).map(|x| x.abs()).sum() as f32;
-
-            let mut astar = Astar::new(
-                iters,
-                data.pos.0.map(|x| x.floor() as i32),
-                heuristic,
-                BuildHasherDefault::<FxHasher64>::default(),
-            );
-
-            // Neighbors are all neighboring blocks that are air
-            let neighbors = |pos: &Vec3<i32>| {
-                const DIRS: [Vec3<i32>; 6] = [
-                    Vec3::new(1, 0, 0),
-                    Vec3::new(-1, 0, 0),
-                    Vec3::new(0, 1, 0),
-                    Vec3::new(0, -1, 0),
-                    Vec3::new(0, 0, 1),
-                    Vec3::new(0, 0, -1),
-                ];
-                let pos = *pos;
-                DIRS.iter()
-                    .map(move |dir| dir + pos)
-                    .filter_map(move |pos| {
-                        data.terrain
-                            .get(pos)
-                            .ok()
-                            .and_then(|block| (!block.is_filled()).then_some(pos))
-                    })
-            };
-            // Transition uses manhattan distance as the cost
-            let transition = |_: &Vec3<i32>, _: &Vec3<i32>| 1.0;
-            // Pathing satisfied when it reaches the sprite position
-            let satisfied = |pos: &Vec3<i32>| *pos == sprite_pos;
-
-            let not_blocked_by_terrain = astar
-                .poll(iters, heuristic, neighbors, transition, satisfied)
-                .into_path()
-                .is_some();
-
             // Checks if player's feet or head is near to sprite
             let close_to_sprite = sprite_range_check(data.pos.0)
                 || sprite_range_check(data.pos.0 + Vec3::new(0.0, 0.0, data.body.height()));
-            if close_to_sprite && not_blocked_by_terrain {
+            if close_to_sprite {
                 // First, get sprite data for position, if there is a sprite
                 use sprite_interact::SpriteInteractKind;
                 let sprite_at_pos = data
@@ -700,25 +661,75 @@ pub fn handle_manipulate_loadout(
                 let sprite_interact = sprite_at_pos.and_then(Option::<SpriteInteractKind>::from);
 
                 if let Some(sprite_interact) = sprite_interact {
-                    // If the sprite is collectible, enter the sprite interaction character state
-                    // TODO: Handle cases for sprite being interactible, but not collectible (none
-                    // currently exist)
-                    let (buildup_duration, use_duration, recover_duration) =
-                        sprite_interact.durations();
+                    // Do a check that a path can be found between sprite and entity
+                    // interacting with sprite Use manhattan distance * 1.5 for number
+                    // of iterations
+                    let iters =
+                        (3.0 * (sprite_pos_f32 - data.pos.0).map(|x| x.abs()).sum()) as usize;
+                    // Heuristic compares manhattan distance of start and end pos
+                    let heuristic =
+                        move |pos: &Vec3<i32>| (sprite_pos - pos).map(|x| x.abs()).sum() as f32;
 
-                    update.character = CharacterState::SpriteInteract(sprite_interact::Data {
-                        static_data: sprite_interact::StaticData {
-                            buildup_duration,
-                            use_duration,
-                            recover_duration,
-                            sprite_pos,
-                            sprite_kind: sprite_interact,
-                            was_wielded: matches!(data.character, CharacterState::Wielding),
-                            was_sneak: matches!(data.character, CharacterState::Sneak),
-                        },
-                        timer: Duration::default(),
-                        stage_section: StageSection::Buildup,
-                    })
+                    let mut astar = Astar::new(
+                        iters,
+                        data.pos.0.map(|x| x.floor() as i32),
+                        heuristic,
+                        BuildHasherDefault::<FxHasher64>::default(),
+                    );
+
+                    // Neighbors are all neighboring blocks that are air
+                    let neighbors = |pos: &Vec3<i32>| {
+                        const DIRS: [Vec3<i32>; 6] = [
+                            Vec3::new(1, 0, 0),
+                            Vec3::new(-1, 0, 0),
+                            Vec3::new(0, 1, 0),
+                            Vec3::new(0, -1, 0),
+                            Vec3::new(0, 0, 1),
+                            Vec3::new(0, 0, -1),
+                        ];
+                        let pos = *pos;
+                        DIRS.iter().map(move |dir| dir + pos).filter(|pos| {
+                            data.terrain
+                                .get(*pos)
+                                .ok()
+                                .map_or(false, |block| !block.is_filled())
+                        })
+                    };
+                    // Transition uses manhattan distance as the cost, which is always 1 since we
+                    // only ever step one block at a time
+                    let transition = |_: &Vec3<i32>, _: &Vec3<i32>| 1.0;
+                    // Pathing satisfied when it reaches the sprite position
+                    let satisfied = |pos: &Vec3<i32>| *pos == sprite_pos;
+
+                    let not_blocked_by_terrain = astar
+                        .poll(iters, heuristic, neighbors, transition, satisfied)
+                        .into_path()
+                        .is_some();
+
+                    // If path can be found between entity interacting with sprite and entity, start
+                    // interaction with sprite
+                    if not_blocked_by_terrain {
+                        // If the sprite is collectible, enter the sprite interaction character
+                        // state TODO: Handle cases for sprite being
+                        // interactible, but not collectible (none currently
+                        // exist)
+                        let (buildup_duration, use_duration, recover_duration) =
+                            sprite_interact.durations();
+
+                        update.character = CharacterState::SpriteInteract(sprite_interact::Data {
+                            static_data: sprite_interact::StaticData {
+                                buildup_duration,
+                                use_duration,
+                                recover_duration,
+                                sprite_pos,
+                                sprite_kind: sprite_interact,
+                                was_wielded: matches!(data.character, CharacterState::Wielding),
+                                was_sneak: matches!(data.character, CharacterState::Sneak),
+                            },
+                            timer: Duration::default(),
+                            stage_section: StageSection::Buildup,
+                        })
+                    }
                 }
             }
         },

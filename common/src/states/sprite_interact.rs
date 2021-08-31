@@ -13,11 +13,11 @@ use vek::Vec3;
 /// Separated out to condense update portions of character state
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
-    /// Buildup to item use
+    /// Buildup to sprite interaction
     pub buildup_duration: Duration,
-    /// Duration of item use
+    /// Duration of sprite interaction
     pub use_duration: Duration,
-    /// Recovery after item use
+    /// Recovery after sprite interaction
     pub recover_duration: Duration,
     /// Position sprite is located at
     pub sprite_pos: Vec3<i32>,
@@ -69,7 +69,7 @@ impl CharacterBehavior for Data {
             },
             StageSection::Action => {
                 if self.timer < self.static_data.use_duration {
-                    // Item use
+                    // sprite interaction
                     update.character = CharacterState::SpriteInteract(Data {
                         timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
@@ -119,12 +119,13 @@ impl CharacterBehavior for Data {
     }
 }
 
-/// Used to control effects based off of the type of item used
+/// Used to control effects based off of the type of sprite interacted with
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum SpriteInteractKind {
     Chest,
     Harvestable,
     Collectible,
+    Fallback,
 }
 
 impl From<SpriteKind> for Option<SpriteInteractKind> {
@@ -159,7 +160,7 @@ impl From<SpriteKind> for Option<SpriteInteractKind> {
             | SpriteKind::ChestBuried
             | SpriteKind::Mud
             | SpriteKind::Crate => Some(SpriteInteractKind::Chest),
-            _ if sprite_kind.is_collectible() => Some(SpriteInteractKind::Collectible),
+            _ if sprite_kind.is_collectible() => Some(SpriteInteractKind::Fallback),
             _ => None,
         }
     }
@@ -183,6 +184,11 @@ impl SpriteInteractKind {
                 Duration::from_secs_f32(0.3),
                 Duration::from_secs_f32(0.5),
                 Duration::from_secs_f32(0.2),
+            ),
+            Self::Fallback => (
+                Duration::from_secs_f32(5.0),
+                Duration::from_secs_f32(5.0),
+                Duration::from_secs_f32(5.0),
             ),
         }
     }
