@@ -1,0 +1,11 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.natural.gnarling_totem",
+        center: (9, 5, 5),
+        custom_indices: {
+            217: Filled(GlowingRock, (r: 0, g: 255, b: 246)),
+         },
+    ),
+]

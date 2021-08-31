@@ -140,6 +140,10 @@
             vox_spec: ("armor.cloth.silken.pants", (-5.0, -4.0, 0.5)),
             color: None
         ),
+        "Witch": (
+            vox_spec: ("armor.witch.pants", (-5.0, -4.0, 0.5)),
+            color: None
+        ),
         "Druid": (
             vox_spec: ("armor.cloth.druid.pants", (-5.0, -4.0, 0.5)),
             color: None

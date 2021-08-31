@@ -1,0 +1,13 @@
+EntityConfig (
+    name: Name("Myrmidon Hoplite"),
+    body: RandomWith("myrmidon"),
+    alignment: Alignment(Enemy),
+
+    loot: LootTable("common.loot_tables.dungeon.tier-4.enemy"),
+
+    hands: TwoHanded(Item("common.items.npc_weapons.biped_small.myrmidon.wooden_spear")),
+
+    meta: [
+        LoadoutAsset("common.loadout.dungeon.tier-4.myrmidon"),
+    ],
+)

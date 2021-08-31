@@ -1,8 +1,9 @@
 pub mod scatter;
+pub mod spot;
 pub mod tree;
 pub mod wildlife;
 
-pub use self::{scatter::apply_scatter_to, tree::apply_trees_to};
+pub use self::{scatter::apply_scatter_to, spot::apply_spots_to, tree::apply_trees_to};
 
 use crate::{
     column::ColumnSample,
@@ -252,7 +253,7 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                     canvas.set(
                         Vec3::new(wpos2d.x, wpos2d.y, z),
                         Block::new(
-                            BlockKind::WeakRock,
+                            BlockKind::GlowingRock,
                             noisy_color(info.index().colors.layer.vein.into(), 16),
                         ),
                     );
@@ -264,7 +265,7 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                     canvas.set(
                         Vec3::new(wpos2d.x, wpos2d.y, z),
                         Block::new(
-                            BlockKind::WeakRock,
+                            BlockKind::GlowingRock,
                             noisy_color(info.index().colors.layer.vein.into(), 16),
                         ),
                     );

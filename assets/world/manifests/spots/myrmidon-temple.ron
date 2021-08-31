@@ -1,0 +1,8 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.natural.myrmidon-temple",
+        center: (13, 23, 5),
+    ),
+]

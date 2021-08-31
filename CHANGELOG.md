@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Experimental terrain persistence (see server documentation)
 - Add GPU filtering using WGPU_ADAPTER environment variable
 - Explosions no longer change block colours within safe zones
+- The 'spot' system, which generates smaller site-like structures and scenarios
+- Chestnut and cedar tree varieties
 
 ### Changed
 

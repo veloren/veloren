@@ -1,18 +1,19 @@
-use super::BlockKind;
+use super::{BlockKind, SpriteKind};
 use crate::{
     assets::{self, AssetExt, AssetHandle, DotVoxAsset, Error},
     make_case_elim,
     vol::{BaseVol, ReadVol, SizedVol, WriteVol},
     volumes::dyna::{Dyna, DynaError},
 };
+use hashbrown::HashMap;
 use serde::Deserialize;
-use std::sync::Arc;
+use std::{num::NonZeroU8, sync::Arc};
 use vek::*;
 
 make_case_elim!(
     structure_block,
-    #[derive(Copy, Clone, PartialEq, Debug)]
-    #[repr(u32)]
+    #[derive(Copy, Clone, PartialEq, Debug, Deserialize)]
+    #[repr(u8)]
     pub enum StructureBlock {
         None = 0,
         Grass = 1,
@@ -31,7 +32,10 @@ make_case_elim!(
         Liana = 14,
         Normal(color: Rgb<u8>) = 15,
         Log = 16,
-        Block(kind: BlockKind, color: Rgb<u8>) = 17,
+        Filled(kind: BlockKind, color: Rgb<u8>) = 17,
+        Sprite(kind: SpriteKind) = 18,
+        Chestnut = 19,
+        Baobab = 20,
     }
 );
 
@@ -44,12 +48,13 @@ pub enum StructureError {
 pub struct Structure {
     center: Vec3<i32>,
     base: Arc<BaseStructure>,
+    custom_indices: [Option<StructureBlock>; 256],
 }
 
 #[derive(Debug)]
 struct BaseStructure {
-    vol: Dyna<StructureBlock, ()>,
-    default_kind: BlockKind,
+    vol: Dyna<Option<NonZeroU8>, ()>,
+    palette: [StructureBlock; 256],
 }
 
 pub struct StructuresGroup(Vec<Structure>);
@@ -76,6 +81,16 @@ impl assets::Compound for StructuresGroup {
                     Ok(Structure {
                         center: Vec3::from(sp.center),
                         base,
+                        custom_indices: {
+                            let mut indices = [None; 256];
+                            for (&idx, &custom) in default_custom_indices()
+                                .iter()
+                                .chain(sp.custom_indices.iter())
+                            {
+                                indices[idx as usize] = Some(custom);
+                            }
+                            indices
+                        },
                     })
                 })
                 .collect::<Result<_, Error>>()?,
@@ -99,8 +114,6 @@ impl Structure {
             max: self.base.vol.size().map(|e| e as i32) - self.center,
         }
     }
-
-    pub fn default_kind(&self) -> BlockKind { self.base.default_kind }
 }
 
 impl BaseVol for Structure {
@@ -112,7 +125,11 @@ impl ReadVol for Structure {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, StructureError> {
         match self.base.vol.get(pos + self.center) {
-            Ok(block) => Ok(block),
+            Ok(None) => Ok(&StructureBlock::None),
+            Ok(Some(index)) => match &self.custom_indices[index.get() as usize] {
+                Some(sb) => Ok(sb),
+                None => Ok(&self.base.palette[index.get() as usize]),
+            },
             Err(DynaError::OutOfBounds) => Err(StructureError::OutOfBounds),
         }
     }
@@ -127,54 +144,35 @@ impl assets::Compound for BaseStructure {
         let dot_vox_data = &dot_vox_data.0;
 
         if let Some(model) = dot_vox_data.models.get(0) {
-            let palette = dot_vox_data
+            let mut palette = [StructureBlock::None; 256];
+
+            for (i, col) in dot_vox_data
                 .palette
                 .iter()
                 .map(|col| Rgba::from(col.to_ne_bytes()).into())
-                .collect::<Vec<_>>();
+                .enumerate()
+            {
+                palette[(i + 1).min(255)] = StructureBlock::Filled(BlockKind::Misc, col);
+            }
 
             let mut vol = Dyna::filled(
                 Vec3::new(model.size.x, model.size.y, model.size.z),
-                StructureBlock::None,
+                None,
                 (),
             );
 
             for voxel in &model.voxels {
-                let block = match voxel.i {
-                    0 => StructureBlock::TemperateLeaves,
-                    1 => StructureBlock::PineLeaves,
-                    3 => StructureBlock::Water,
-                    4 => StructureBlock::Acacia,
-                    5 => StructureBlock::Mangrove,
-                    6 => StructureBlock::GreenSludge,
-                    7 => StructureBlock::Fruit,
-                    8 => StructureBlock::Grass,
-                    9 => StructureBlock::Liana,
-                    10 => StructureBlock::Chest,
-                    11 => StructureBlock::Coconut,
-                    13 => StructureBlock::PalmLeavesOuter,
-                    14 => StructureBlock::PalmLeavesInner,
-                    15 => StructureBlock::Hollow,
-                    index => {
-                        let color = palette
-                            .get(index as usize)
-                            .copied()
-                            .unwrap_or_else(|| Rgb::broadcast(0));
-                        StructureBlock::Normal(color)
-                    },
-                };
-
-                let _ = vol.set(Vec3::new(voxel.x, voxel.y, voxel.z).map(i32::from), block);
+                let _ = vol.set(
+                    Vec3::new(voxel.x, voxel.y, voxel.z).map(i32::from),
+                    Some(NonZeroU8::new(voxel.i + 1).unwrap()),
+                );
             }
 
-            Ok(BaseStructure {
-                vol,
-                default_kind: BlockKind::Misc,
-            })
+            Ok(BaseStructure { vol, palette })
         } else {
             Ok(BaseStructure {
-                vol: Dyna::filled(Vec3::zero(), StructureBlock::None, ()),
-                default_kind: BlockKind::Misc,
+                vol: Dyna::filled(Vec3::zero(), None, ()),
+                palette: [StructureBlock::None; 256],
             })
         }
     }
@@ -184,6 +182,35 @@ impl assets::Compound for BaseStructure {
 struct StructureSpec {
     specifier: String,
     center: [i32; 3],
+    #[serde(default)]
+    custom_indices: HashMap<u8, StructureBlock>,
+}
+
+fn default_custom_indices() -> HashMap<u8, StructureBlock> {
+    let blocks: [_; 16] = [
+        /* 1 */ Some(StructureBlock::TemperateLeaves),
+        /* 2 */ Some(StructureBlock::PineLeaves),
+        /* 3 */ None,
+        /* 4 */ Some(StructureBlock::Water),
+        /* 5 */ Some(StructureBlock::Acacia),
+        /* 6 */ Some(StructureBlock::Mangrove),
+        /* 7 */ Some(StructureBlock::GreenSludge),
+        /* 8 */ Some(StructureBlock::Fruit),
+        /* 9 */ Some(StructureBlock::Grass),
+        /* 10 */ Some(StructureBlock::Liana),
+        /* 11 */ Some(StructureBlock::Chest),
+        /* 12 */ Some(StructureBlock::Coconut),
+        /* 13 */ None,
+        /* 14 */ Some(StructureBlock::PalmLeavesOuter),
+        /* 15 */ Some(StructureBlock::PalmLeavesInner),
+        /* 16 */ Some(StructureBlock::Hollow),
+    ];
+
+    blocks
+        .iter()
+        .enumerate()
+        .filter_map(|(i, sb)| Some((i as u8 + 1, (*sb)?)))
+        .collect()
 }
 
 #[derive(Deserialize)]

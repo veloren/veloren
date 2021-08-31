@@ -1,0 +1,24 @@
+EntityConfig (
+    name: Name("Witch"),
+    body: Exact(Humanoid(Body(
+        species: Human,
+        body_type: Female,
+        hair_style: 2,
+        beard: 0,
+        eyes: 0,
+        accessory: 0,
+        hair_color: 0,
+        skin: 0,
+        eye_color: 0,
+    ))),
+    alignment: Alignment(Enemy),
+
+    loot: LootTable("common.loot_tables.humanoids"),
+
+    hands: TwoHanded(Item("common.items.weapons.sceptre.belzeshrub")),
+
+    meta: [
+        SkillSetAsset("common.skillset.dungeon.tier-5.sceptre"),
+        LoadoutAsset("common.loadout.spots.witch"),
+    ],
+)

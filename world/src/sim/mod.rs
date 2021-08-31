@@ -30,6 +30,7 @@ use crate::{
     block::BlockGen,
     civ::Place,
     column::ColumnGen,
+    layer::spot::Spot,
     site::Site,
     util::{
         seed_expan, DHashSet, FastNoise, FastNoise2d, RandomField, Sampler, StructureGen2d,
@@ -2064,7 +2065,11 @@ impl WorldSim {
                 let env = Environment {
                     humid: chunk.humidity,
                     temp: chunk.temp,
-                    near_water: if chunk.river.is_lake() || chunk.river.near_river() {
+                    near_water: if chunk.river.is_lake()
+                        || chunk.river.near_river()
+                        || chunk.alt < CONFIG.sea_level + 6.0
+                    // Close to sea in altitude
+                    {
                         1.0
                     } else {
                         0.0
@@ -2134,6 +2139,7 @@ pub struct SimChunk {
     pub path: (Way, Path),
     pub cave: (Way, Cave),
     pub cliff_height: f32,
+    pub spot: Option<Spot>,
 
     pub contains_waypoint: bool,
 }
@@ -2363,6 +2369,7 @@ impl SimChunk {
             path: Default::default(),
             cave: Default::default(),
             cliff_height: 0.0,
+            spot: None,
 
             contains_waypoint: false,
         }
@@ -2375,6 +2382,8 @@ impl SimChunk {
     pub fn get_base_z(&self) -> f32 { self.alt - self.chaos * 50.0 - 16.0 }
 
     pub fn get_biome(&self) -> BiomeKind {
+        let savannah_hum_temp = [0.05..0.55, 0.3..1.6];
+        let taiga_hum_temp = [0.2..1.4, -0.7..-0.3];
         if self.river.is_ocean() {
             BiomeKind::Ocean
         } else if self.river.is_lake() {
@@ -2387,6 +2396,14 @@ impl SimChunk {
             BiomeKind::Desert
         } else if self.tree_density > 0.65 && self.humidity > 0.65 && self.temp > 0.45 {
             BiomeKind::Jungle
+        } else if savannah_hum_temp[0].contains(&self.humidity)
+            && savannah_hum_temp[1].contains(&self.temp)
+        {
+            BiomeKind::Savannah
+        } else if taiga_hum_temp[0].contains(&self.humidity)
+            && taiga_hum_temp[1].contains(&self.temp)
+        {
+            BiomeKind::Taiga
         } else if self.tree_density > 0.4 {
             BiomeKind::Forest
         // } else if self.humidity > 0.8 {

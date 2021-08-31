@@ -45,6 +45,7 @@ pub use index::{IndexOwned, IndexRef};
 use crate::{
     column::ColumnGen,
     index::Index,
+    layer::spot::Spot,
     site::SiteKind,
     util::{Grid, Sampler},
 };
@@ -104,6 +105,8 @@ impl World {
             let civs = civ::Civs::generate(seed, &mut sim, &mut index);
 
             sim2::simulate(&mut index, &mut sim);
+
+            Spot::generate(&mut sim);
 
             (Self { sim, civs }, IndexOwned::new(index))
         })
@@ -338,6 +341,7 @@ impl World {
         // Apply layers (paths, caves, etc.)
         let mut canvas = Canvas {
             info: CanvasInfo {
+                chunk_pos,
                 wpos: chunk_pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                 column_grid: &zcache_grid,
                 column_grid_border: grid_border,
@@ -346,12 +350,14 @@ impl World {
                 chunk: sim_chunk,
             },
             chunk: &mut chunk,
+            entities: Vec::new(),
         };
 
         layer::apply_caves_to(&mut canvas, &mut dynamic_rng);
         layer::apply_trees_to(&mut canvas, &mut dynamic_rng);
         layer::apply_scatter_to(&mut canvas, &mut dynamic_rng);
         layer::apply_paths_to(&mut canvas);
+        layer::apply_spots_to(&mut canvas, &mut dynamic_rng);
         // layer::apply_coral_to(&mut canvas);
 
         // Apply site generation
@@ -359,6 +365,10 @@ impl World {
             .sites
             .iter()
             .for_each(|site| index.sites[*site].apply_to(&mut canvas, &mut dynamic_rng));
+
+        let mut supplement = ChunkSupplement {
+            entities: canvas.entities,
+        };
 
         let gen_entity_pos = |dynamic_rng: &mut rand::rngs::ThreadRng| {
             let lpos2d = TerrainChunkSize::RECT_SIZE
@@ -374,10 +384,6 @@ impl World {
             }
 
             (Vec3::from(chunk_wpos2d) + lpos).map(|e: i32| e as f32) + 0.5
-        };
-
-        let mut supplement = ChunkSupplement {
-            entities: Vec::new(),
         };
 
         if sim_chunk.contains_waypoint {

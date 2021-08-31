@@ -174,6 +174,8 @@ make_case_elim!(
         CeilingMushroom = 0x93,
         Orb = 0x94,
         EnsnaringVines = 0x95,
+        WitchWindow = 0x96,
+        SmokeDummy = 0x97,
     }
 );
 
@@ -244,7 +246,8 @@ impl SpriteKind {
             | SpriteKind::Window2
             | SpriteKind::Window3
             | SpriteKind::Window4
-            | SpriteKind::DropGate => 1.0,
+            | SpriteKind::DropGate
+            | SpriteKind::WitchWindow => 1.0,
             // TODO: Figure out if this should be solid or not.
             SpriteKind::Shelf => 1.0,
             SpriteKind::Lantern => 0.9,

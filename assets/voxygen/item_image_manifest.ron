@@ -1045,6 +1045,10 @@
         "voxel.lantern.geode_purp",
         (0.0, 0.0, 0.0), (-90.0, 120.0, 0.0), 0.9,
     ),
+    Lantern("PumpkinLantern"): VoxTrans(
+        "voxel.lantern.pumpkin",
+        (0.0, 0.0, 0.0), (-90.0, 120.0, 0.0), 0.9,
+    ),
     // Farming Equipment
     Tool("common.items.weapons.tool.broom"): VoxTrans(
         "voxel.weapon.tool.broom-0",

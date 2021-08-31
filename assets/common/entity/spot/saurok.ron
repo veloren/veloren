@@ -1,0 +1,9 @@
+EntityConfig (
+    name: Name("Saurok Bandit"),
+    body: RandomWith("saurok_mighty"),
+    alignment: Alignment(Enemy),
+
+    loot: LootTable("common.loot_tables.creature.biped_large.saurok"),
+
+    hands: TwoHanded(Item("common.items.npc_weapons.bow.saurok_bow")),
+)

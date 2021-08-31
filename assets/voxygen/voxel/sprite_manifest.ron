@@ -1247,6 +1247,17 @@ Ember: Some((
     ],
     wind_sway: 0.8,
 )),
+// Smoke dummy
+Smoke: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.ember.dummy",
+            offset: (-5.5, -5.5, -5.5),
+            lod_axes: (1.0, 1.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.8,
+)),
 // Corn
 Corn: Some((
     variations: [
@@ -3252,6 +3263,17 @@ EnsnaringVines: Some((
         (
             model: "voxygen.voxel.sprite.misc.ensnaring_vines",
             offset: (-5.0, -6.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// WitchWindow
+WitchWindow: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.window.witch_purple",
+            offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
     ],

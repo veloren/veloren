@@ -1,0 +1,8 @@
+#![enable(unwrap_newtypes)]
+
+[    
+    (
+        specifier: "world.structure.natural.tree-house",
+        center: (20, 15, 10)
+    ),
+]

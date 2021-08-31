@@ -1,0 +1,11 @@
+EntityConfig (
+    name: Automatic,
+    body: RandomWith("cat"),
+    alignment: Alignment(Wild),
+
+    loot: Uninit,
+
+    hands: Uninit,
+
+    meta: [],
+)

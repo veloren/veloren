@@ -1,0 +1,14 @@
+EntityConfig (
+    name: Name("Grave Robber"),
+    body: RandomWith("dwarf"),
+	alignment: Alignment(Enemy),
+
+    loot: LootTable("common.loot_tables.humanoids"),
+
+	hands: TwoHanded(Item("common.items.weapons.hammer.steel_hammer-3")),
+
+    meta: [
+        SkillSetAsset("common.skillset.village.guard"),
+        LoadoutAsset("common.loadout.spots.dwarf_graverobber"),
+    ],
+)

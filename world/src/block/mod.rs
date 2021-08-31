@@ -1,6 +1,6 @@
 use crate::{
     column::{ColumnGen, ColumnSample},
-    util::{FastNoise, RandomField, Sampler, SmallCache},
+    util::{FastNoise, RandomField, RandomPerm, Sampler, SmallCache},
     IndexRef,
 };
 use common::terrain::{
@@ -11,12 +11,14 @@ use core::ops::{Div, Mul, Range};
 use serde::Deserialize;
 use vek::*;
 
+type Gradients = Vec<Range<(u8, u8, u8)>>;
+
 #[derive(Deserialize)]
 pub struct Colors {
     // TODO(@Sharp): After the merge, construct enough infrastructure to make it convenient to
     // define mapping functions over the input; i.e. we should be able to interpret some fields as
     // defining App<Abs<Fun, Type>, Arg>, where Fun : (Context, Arg) → (S, Type).
-    pub structure_blocks: structure::structure_block::PureCases<Option<Range<(u8, u8, u8)>>>,
+    pub structure_blocks: structure::structure_block::PureCases<Option<Gradients>>,
 }
 
 pub struct BlockGen<'a> {
@@ -239,13 +241,14 @@ pub fn block_from_structure(
 
     match sblock {
         StructureBlock::None => None,
-        StructureBlock::Hollow => Some(with_sprite(SpriteKind::Empty)),
+        StructureBlock::Hollow => Some(Block::air(SpriteKind::Empty)),
         StructureBlock::Grass => Some(Block::new(
             BlockKind::Grass,
             sample.surface_color.map(|e| (e * 255.0) as u8),
         )),
         StructureBlock::Normal(color) => Some(Block::new(BlockKind::Misc, color)),
-        StructureBlock::Block(kind, color) => Some(Block::new(kind, color)),
+        StructureBlock::Filled(kind, color) => Some(Block::new(kind, color)),
+        StructureBlock::Sprite(kind) => Some(with_sprite(kind).into_vacant().with_sprite(kind)),
         StructureBlock::Water => Some(Block::water(SpriteKind::Empty)),
         // TODO: If/when liquid supports other colors again, revisit this.
         StructureBlock::GreenSludge => Some(Block::water(SpriteKind::Empty)),
@@ -269,10 +272,16 @@ pub fn block_from_structure(
             }
         },
         StructureBlock::Chest => {
-            if structure_seed % 10 < 7 {
-                Some(Block::empty())
+            let old_block = with_sprite(SpriteKind::Empty);
+            let block = if old_block.is_fluid() {
+                old_block
             } else {
-                Some(with_sprite(SpriteKind::Chest))
+                Block::air(SpriteKind::Empty)
+            };
+            if field.chance(pos + structure_pos, 0.5) {
+                Some(block)
+            } else {
+                Some(block.with_sprite(SpriteKind::Chest))
             }
         },
         StructureBlock::Log => Some(Block::new(BlockKind::Wood, Rgb::new(60, 30, 0))),
@@ -282,10 +291,23 @@ pub fn block_from_structure(
         | StructureBlock::PalmLeavesInner
         | StructureBlock::PalmLeavesOuter
         | StructureBlock::Acacia
-        | StructureBlock::Mangrove => sblock
-            .elim_case_pure(&index.colors.block.structure_blocks)
-            .as_ref()
-            .map(|range| {
+        | StructureBlock::Mangrove
+        | StructureBlock::Chestnut
+        | StructureBlock::Baobab => {
+            let ranges = sblock
+                .elim_case_pure(&index.colors.block.structure_blocks)
+                .as_ref()
+                .map(Vec::as_slice)
+                .unwrap_or(&[]);
+            let range = if ranges.is_empty() {
+                None
+            } else {
+                ranges.get(
+                    RandomPerm::new(structure_seed).get(structure_seed) as usize % ranges.len(),
+                )
+            };
+
+            range.map(|range| {
                 Block::new(
                     BlockKind::Leaves,
                     Rgb::<f32>::lerp(
@@ -295,6 +317,7 @@ pub fn block_from_structure(
                     )
                     .map(|e| e as u8),
                 )
-            }),
+            })
+        },
     }
 }

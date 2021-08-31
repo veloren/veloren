@@ -1,0 +1,13 @@
+({
+    Armor(Chest): Item("common.items.armor.hide.rawhide.chest"),
+    Armor(Shoulders): Item("common.items.armor.hide.rawhide.shoulder"),
+    Armor(Belt): Item("common.items.armor.hide.rawhide.belt"),
+    Armor(Hands): Item("common.items.armor.hide.rawhide.hand"),
+    Armor(Legs): Item("common.items.armor.hide.rawhide.pants"),
+    Armor(Feet): Item("common.items.armor.hide.rawhide.foot"),
+
+    Lantern: Choice([
+        (1.0, Some(Item("common.items.lantern.black_0"))),
+        (2.0, None),
+    ]),
+})

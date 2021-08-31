@@ -4,7 +4,10 @@ use crate::{
     util::{FastNoise, Sampler},
     Canvas, Land,
 };
-use common::terrain::{Block, BlockKind};
+use common::{
+    generation::EntityInfo,
+    terrain::{Block, BlockKind, SpriteKind},
+};
 use rand::prelude::*;
 use vek::*;
 
@@ -38,7 +41,7 @@ impl Tree {
         }
     }
 
-    pub fn render(&self, canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
+    pub fn render(&self, canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
         let nz = FastNoise::new(self.seed);
 
         canvas.foreach_col(|canvas, wpos2d, col| {
@@ -51,38 +54,67 @@ impl Tree {
             }
 
             let mut above = true;
+            let mut last = None;
             for z in (bounds.min.z..bounds.max.z + 1).rev() {
                 let wpos = wpos2d.with_z(self.alt + z);
                 let rposf = (wpos - self.origin.with_z(self.alt)).map(|e| e as f32 + 0.5);
 
                 let (branch, leaves, _, _) = self.tree.is_branch_or_leaves_at(rposf);
 
-                if branch || leaves {
-                    if above && col.snow_cover {
-                        canvas.set(
-                            wpos + Vec3::unit_z(),
-                            Block::new(BlockKind::Snow, Rgb::new(255, 255, 255)),
-                        );
-                    }
-
-                    if leaves {
-                        let dark = Rgb::new(10, 70, 50).map(|e| e as f32);
-                        let light = Rgb::new(80, 140, 10).map(|e| e as f32);
-                        let leaf_col = Lerp::lerp(
-                            dark,
-                            light,
-                            nz.get(rposf.map(|e| e as f64) * 0.05) * 0.5 + 0.5,
-                        );
-                        canvas.set(
-                            wpos,
-                            Block::new(BlockKind::Leaves, leaf_col.map(|e| e as u8)),
-                        );
-                    } else if branch {
-                        canvas.set(wpos, Block::new(BlockKind::Wood, Rgb::new(80, 32, 0)));
-                    }
-
-                    above = false;
+                if (branch || leaves) && above && col.snow_cover {
+                    canvas.set(
+                        wpos + Vec3::unit_z(),
+                        Block::new(BlockKind::Snow, Rgb::new(255, 255, 255)),
+                    );
                 }
+
+                let block = if leaves {
+                    if above && dynamic_rng.gen_bool(0.0005) {
+                        canvas.spawn(
+                            EntityInfo::at(wpos.map(|e| e as f32) + Vec3::unit_z())
+                                .with_asset_expect(match dynamic_rng.gen_range(0..2) {
+                                    0 => "common.entity.wild.aggressive.deadwood",
+                                    _ => "common.entity.wild.aggressive.maneater",
+                                }),
+                        );
+                    } else if above && dynamic_rng.gen_bool(0.0001) {
+                        canvas.spawn(
+                            EntityInfo::at(wpos.map(|e| e as f32) + Vec3::unit_z())
+                                .with_asset_expect("common.entity.wild.aggressive.swamp_troll"),
+                        );
+                    }
+
+                    let dark = Rgb::new(10, 70, 50).map(|e| e as f32);
+                    let light = Rgb::new(80, 140, 10).map(|e| e as f32);
+                    let leaf_col = Lerp::lerp(
+                        dark,
+                        light,
+                        nz.get(rposf.map(|e| e as f64) * 0.05) * 0.5 + 0.5,
+                    );
+
+                    Some(Block::new(BlockKind::Leaves, leaf_col.map(|e| e as u8)))
+                } else if branch {
+                    Some(Block::new(BlockKind::Wood, Rgb::new(80, 32, 0)))
+                } else {
+                    None
+                };
+
+                // Chests in trees
+                if last.is_none() && block.is_some() && dynamic_rng.gen_bool(0.00025) {
+                    canvas.set(wpos + Vec3::unit_z(), Block::air(SpriteKind::Chest));
+                }
+
+                if let Some(block) = block {
+                    above = false;
+                    canvas.set(wpos, block);
+                } else if last.map_or(false, |b: Block| {
+                    matches!(b.kind(), BlockKind::Leaves | BlockKind::Wood)
+                }) && dynamic_rng.gen_bool(0.0005)
+                {
+                    canvas.set(wpos, Block::air(SpriteKind::Beehive));
+                }
+
+                last = block;
             }
         });
     }

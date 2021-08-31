@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Automatic,
+    name: Name("Villager"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Npc),
 
