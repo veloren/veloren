@@ -1031,7 +1031,7 @@ impl PlayState for SessionState {
 
             // Maintain egui (debug interface)
             #[cfg(feature = "egui-ui")]
-            if global_state.settings.interface.toggle_debug {
+            if global_state.settings.interface.egui_enabled() {
                 global_state.egui_state.maintain(
                     &self.client.borrow(),
                     &mut self.scene,
