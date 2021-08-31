@@ -131,6 +131,7 @@ impl Attack {
         source: AttackSource,
         dir: Dir,
         kind: DamageKind,
+        mut emit: impl FnMut(ServerEvent),
         mut emit_outcome: impl FnMut(Outcome),
     ) -> f32 {
         let damage_reduction =
@@ -147,6 +148,10 @@ impl Attack {
                             parry,
                             pos: target.pos,
                             uid: target.uid,
+                        });
+                        emit(ServerEvent::Parry {
+                            entity: target.entity,
+                            energy_cost: data.static_data.energy_cost,
                         });
                         if parry {
                             1.0
@@ -213,6 +218,7 @@ impl Attack {
                 attack_source,
                 dir,
                 damage.damage.kind,
+                |e| emit(e),
                 |o| emit_outcome(o),
             );
             let change = damage.damage.calculate_health_change(
