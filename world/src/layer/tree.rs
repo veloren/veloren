@@ -350,7 +350,7 @@ impl TreeConfig {
             leaf_vertical_scale: 1.0,
             proportionality: 0.0,
             inhabited: false,
-            hanging_sprites: &[(0.0005, SpriteKind::Beehive)],
+            hanging_sprites: &[(0.0002, SpriteKind::Apple), (0.00015, SpriteKind::Beehive)],
         }
     }
 
@@ -398,7 +398,7 @@ impl TreeConfig {
             leaf_vertical_scale: 0.2,
             proportionality: 1.0,
             inhabited: false,
-            hanging_sprites: &[(0.0005, SpriteKind::Beehive)],
+            hanging_sprites: &[(0.00015, SpriteKind::Beehive)],
         }
     }
 
@@ -422,7 +422,7 @@ impl TreeConfig {
             leaf_vertical_scale: 0.4,
             proportionality: 0.0,
             inhabited: false,
-            hanging_sprites: &[(0.0005, SpriteKind::Beehive)],
+            hanging_sprites: &[(0.00015, SpriteKind::Beehive)],
         }
     }
 
@@ -446,7 +446,7 @@ impl TreeConfig {
             leaf_vertical_scale: 0.2,
             proportionality: 1.0,
             inhabited: false,
-            hanging_sprites: &[(0.0005, SpriteKind::Beehive)],
+            hanging_sprites: &[(0.00005, SpriteKind::Beehive)],
         }
     }
 
@@ -470,7 +470,7 @@ impl TreeConfig {
             leaf_vertical_scale: 0.5,
             proportionality: 0.5,
             inhabited: false,
-            hanging_sprites: &[(0.0005, SpriteKind::Beehive)],
+            hanging_sprites: &[(0.00015, SpriteKind::Beehive)],
         }
     }
 
@@ -494,7 +494,7 @@ impl TreeConfig {
             leaf_vertical_scale: 0.3,
             proportionality: 1.0,
             inhabited: false,
-            hanging_sprites: &[(0.0005, SpriteKind::Beehive)],
+            hanging_sprites: &[(0.0001, SpriteKind::Beehive)],
         }
     }
 
@@ -517,7 +517,7 @@ impl TreeConfig {
             leaf_vertical_scale: 0.6,
             proportionality: 0.0,
             inhabited,
-            hanging_sprites: &[(0.0005, SpriteKind::Beehive)],
+            hanging_sprites: &[(0.00025, SpriteKind::Apple), (0.00025, SpriteKind::Beehive)],
         }
     }
 }
