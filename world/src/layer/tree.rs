@@ -456,7 +456,6 @@ impl TreeConfig {
             inhabited: false,
             hanging_sprites: &[(0.00005, SpriteKind::Beehive)],
             wood_color: Rgb::new(150, 95, 65),
-
         }
     }
 
