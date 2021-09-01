@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Glider dimensions somewhat increased overall
 - Dungeon difficulty level starts at 1 instead of 0
 - The radius of the safe zone around the starting town has been doubled
+- NPCs can sometimes drop no loot at all
 
 ### Removed
 

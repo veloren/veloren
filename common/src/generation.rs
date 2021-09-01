@@ -255,12 +255,16 @@ impl EntityInfo {
 
         match loot {
             LootKind::Item(asset) => {
-                self = self.with_loot_drop(Item::new_from_asset_expect(&asset));
+                if let Ok(item) = Item::new_from_asset(&asset) {
+                    self = self.with_loot_drop(item);
+                }
             },
             LootKind::LootTable(asset) => {
-                let table = Lottery::<LootSpec<String>>::load_expect(&asset);
-                let drop = table.read().choose().to_item();
-                self = self.with_loot_drop(drop);
+                if let Ok(table) = Lottery::<LootSpec<String>>::load(&asset) {
+                    if let Some(drop) = table.read().choose().to_item() {
+                        self = self.with_loot_drop(drop);
+                    }
+                }
             },
             LootKind::Uninit => {},
         }

@@ -795,7 +795,7 @@ impl Item {
     pub fn slot_mut(&mut self, slot: usize) -> Option<&mut InvSlot> { self.slots.get_mut(slot) }
 
     pub fn try_reclaim_from_block(block: Block) -> Option<Self> {
-        Some(block.get_sprite()?.collectible_id()?.to_item())
+        block.get_sprite()?.collectible_id()?.to_item()
     }
 
     pub fn ability_spec(&self) -> Option<&AbilitySpec> { self.item_def.ability_spec.as_ref() }
