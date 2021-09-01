@@ -84,26 +84,32 @@ pub enum LootSpec<T: AsRef<str>> {
     ItemQuantity(T, u32, u32),
     /// Loot table
     LootTable(T),
+    /// No loot given
+    None,
 }
 
 impl<T: AsRef<str>> LootSpec<T> {
-    pub fn to_item(&self) -> Item {
+    pub fn to_item(&self) -> Option<Item> {
         match self {
-            Self::Item(item) => Item::new_from_asset_expect(item.as_ref()),
+            Self::Item(item) => Item::new_from_asset(item.as_ref()).ok(),
             Self::ItemQuantity(item, lower, upper) => {
                 let range = *lower..=*upper;
                 let quantity = thread_rng().gen_range(range);
-                let mut item = Item::new_from_asset_expect(item.as_ref());
-                // TODO: Handle multiple of an item that is unstackable
-                if item.set_amount(quantity).is_err() {
-                    warn!("Tried to set quantity on non stackable item");
+                if let Ok(mut item) = Item::new_from_asset(item.as_ref()) {
+                    // TODO: Handle multiple of an item that is unstackable
+                    if item.set_amount(quantity).is_err() {
+                        warn!("Tried to set quantity on non stackable item");
+                    }
+                    Some(item)
+                } else {
+                    None
                 }
-                item
             },
             Self::LootTable(table) => Lottery::<LootSpec<String>>::load_expect(table.as_ref())
                 .read()
                 .choose()
                 .to_item(),
+            Self::None => None,
         }
     }
 }
@@ -141,6 +147,7 @@ mod tests {
                             Lottery::<LootSpec<String>>::load_expect_cloned(loot_table);
                         validate_table_contents(loot_table);
                     },
+                    LootSpec::None => {},
                 }
             }
         }
