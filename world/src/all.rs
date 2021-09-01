@@ -35,7 +35,7 @@ impl ForestKind {
             ForestKind::Cedar => 0.275..1.45,
             ForestKind::Pine => 0.2..1.4,
             ForestKind::Birch => 0.0..0.6,
-            ForestKind::Mangrove => 0.65..1.3,
+            ForestKind::Mangrove => 0.5..1.3,
             ForestKind::Swamp => 0.5..1.1,
             _ => 0.0..0.0,
         }
@@ -51,7 +51,7 @@ impl ForestKind {
             ForestKind::Cedar => -0.65..0.15,
             ForestKind::Pine => -1.8..-0.2,
             ForestKind::Birch => -0.7..0.25,
-            ForestKind::Mangrove => 0.4..1.6,
+            ForestKind::Mangrove => 0.35..1.6,
             ForestKind::Swamp => -0.6..0.8,
             _ => 0.0..0.0,
         }
