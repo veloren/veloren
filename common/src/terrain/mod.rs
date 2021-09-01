@@ -293,7 +293,25 @@ pub fn river_spline_coeffs(
 pub fn quadratic_nearest_point(
     spline: &Vec3<Vec2<f64>>,
     point: Vec2<f64>,
+    line: Vec2<Vec2<f64>>,
 ) -> Option<(f64, Vec2<f64>, f64)> {
+    let line = LineSegment2 {
+        start: line.x,
+        end: line.y,
+    };
+    let len_sq = line.start.distance_squared(line.end);
+    let t = ((point - line.start).dot(line.end - line.start) / len_sq).clamped(0.0, 1.0);
+    let pos = line.start + (line.end - line.start) * t;
+    return Some((t, pos, pos.distance_squared(point)));
+
+    // let curve = QuadraticBezier2 {
+    //     start: spline.x,
+    //     ctrl: spline.y,
+    //     end: spline.z,
+    // };
+    // let (t, pos) = curve.binary_search_point_by_steps(point, 16, 0.001);
+    // return Some((t, pos, curve.evaluate(t).distance_squared(point)));
+
     let a = spline.z.x;
     let b = spline.y.x;
     let c = spline.x.x;

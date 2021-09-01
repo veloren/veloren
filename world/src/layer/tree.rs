@@ -467,7 +467,7 @@ impl TreeConfig {
             trunk_len: 13.0 * scale,
             trunk_radius: 1.65 * scale,
             branch_child_len: 0.75,
-            branch_child_radius: 0.75,
+            branch_child_radius: 0.6,
             branch_child_radius_lerp: true,
             leaf_radius: 1.5 * log_scale..2.0 * log_scale,
             leaf_radius_scaled: 0.0,

@@ -35,6 +35,7 @@ pub fn apply_shrubs_to(canvas: &mut Canvas, rng: &mut impl Rng) {
 
                 if RandomPerm::new(seed).chance(37, col.tree_density * 0.3)
                     && col.water_dist.map_or(true, |d| d > 8.0)
+                    && col.alt > col.water_level
                     && col.spawn_rate > 0.9
                     && col.path.map_or(true, |(d, _, _, _)| d > 6.0)
                 {

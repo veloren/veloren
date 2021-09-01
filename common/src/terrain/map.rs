@@ -551,7 +551,7 @@ impl<'a> MapConfig<'a> {
                                 downhill_wpos,
                             );
                             let (_t, _pt, dist) = if let Some((t, pt, dist)) =
-                                quadratic_nearest_point(&coeffs, wposf)
+                                quadratic_nearest_point(&coeffs, wposf, Vec2::new(neighbor_wpos, downhill_wpos))
                             {
                                 (t, pt, dist)
                             } else {

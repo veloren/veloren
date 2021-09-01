@@ -1563,8 +1563,10 @@ impl WorldSim {
                         let dist = rpos.map(|e| e as f32).magnitude();
                         if let Some(c) = self.get_mut(cliff + rpos) {
                             let warp = 1.0 / (1.0 + dist);
-                            c.tree_density *= 1.0 - warp;
-                            c.cliff_height = Lerp::lerp(44.0, 0.0, -1.0 + dist / 3.5);
+                            if !c.river.near_water() {
+                                c.tree_density *= 1.0 - warp;
+                                c.cliff_height = Lerp::lerp(44.0, 0.0, -1.0 + dist / 3.5);
+                            }
                         }
                     });
             }
@@ -2219,7 +2221,9 @@ impl SimChunk {
         } else {
             Some(
                 uniform_idx_as_vec2(map_size_lg, downhill_pre as usize)
-                    * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                    * TerrainChunkSize::RECT_SIZE.map(|e| e as i32)
+                    // + TerrainChunkSize::RECT_SIZE.map(|e| e as i32 / 2)
+                ,
             )
         };
 
@@ -2295,10 +2299,10 @@ impl SimChunk {
             .min(1.0);
 
         // Add geologically short timescale undulation to the world for various reasons
-        let alt = alt
+        let alt =
             // Don't add undulation to rivers, mainly because this could accidentally result in rivers flowing uphill
-            + if river.near_water() {
-                0.0
+            if river.near_water() {
+                alt
             } else {
                 // Sand dunes (formed over a short period of time, so we don't care about erosion sim)
                 let warp = Vec2::new(
@@ -2323,7 +2327,12 @@ impl SimChunk {
                 const SOIL_SCALE: f32 = 16.0;
                 let soil = soil_nz * SOIL_SCALE * tree_density.sqrt() * humidity.sqrt();
 
-                dune + soil
+                // Prevent dunes pushing the altitude underwater
+                if alt + dune + soil < water_alt {
+                    alt
+                } else {
+                    alt + dune + soil
+                }
             };
 
         Self {
