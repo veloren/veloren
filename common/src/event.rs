@@ -167,6 +167,10 @@ pub enum ServerEvent {
         entity: EcsEntity,
         change: i32,
     },
+    Parry {
+        entity: EcsEntity,
+        energy_cost: i32,
+    },
     RequestSiteInfo {
         entity: EcsEntity,
         id: SiteId,

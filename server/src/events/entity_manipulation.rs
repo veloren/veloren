@@ -17,9 +17,9 @@ use common::{
         self, aura, buff,
         chat::{KillSource, KillType},
         inventory::item::MaterialStatManifest,
-        object, Alignment, Auras, Body, CharacterState, Energy, EnergyChange, Group, Health,
-        HealthChange, HealthSource, Inventory, Player, Poise, PoiseChange, PoiseSource, Pos,
-        SkillSet, Stats,
+        object, Alignment, Auras, Body, CharacterState, Energy, EnergyChange, EnergySource, Group,
+        Health, HealthChange, HealthSource, Inventory, Player, Poise, PoiseChange, PoiseSource,
+        Pos, SkillSet, Stats,
     },
     event::{EventBus, ServerEvent},
     lottery::{LootSpec, Lottery},
@@ -1203,6 +1203,19 @@ pub fn handle_combo_change(server: &Server, entity: EcsEntity, change: i32) {
                 combo: combo.counter(),
             });
         }
+    }
+}
+
+pub fn handle_parry(server: &Server, entity: EcsEntity, energy_cost: i32) {
+    let ecs = &server.state.ecs();
+    if let Some(mut character) = ecs.write_storage::<comp::CharacterState>().get_mut(entity) {
+        *character = CharacterState::Wielding;
+    };
+    if let Some(mut energy) = ecs.write_storage::<Energy>().get_mut(entity) {
+        energy.change_by(EnergyChange {
+            amount: energy_cost,
+            source: EnergySource::Ability,
+        });
     }
 }
 

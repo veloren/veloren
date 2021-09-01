@@ -1572,13 +1572,14 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 recover_duration,
                 max_angle,
                 block_strength,
-                energy_cost: _,
+                energy_cost,
             } => CharacterState::BasicBlock(basic_block::Data {
                 static_data: basic_block::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     max_angle: *max_angle,
                     block_strength: *block_strength,
+                    energy_cost: *energy_cost as i32,
                     ability_info,
                 },
                 timer: Duration::default(),
