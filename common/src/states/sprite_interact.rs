@@ -45,7 +45,7 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         let ori_dir = Dir::from_unnormalized(Vec3::from(
-            (self.static_data.sprite_pos.map(|x| x as f32) - data.pos.0).xy(),
+            (self.static_data.sprite_pos.map(|x| x as f32 + 0.5) - data.pos.0).xy(),
         ));
         handle_orientation(data, &mut update, 1.0, ori_dir);
         handle_move(data, &mut update, 0.0);
