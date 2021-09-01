@@ -1,13 +1,13 @@
 use crate::{
     comp::{Density, Mass},
-    consts::AIR_DENSITY,
+    consts::{AIR_DENSITY, WATER_DENSITY},
     make_case_elim,
 };
 use rand::prelude::SliceRandom;
 use serde::{Deserialize, Serialize};
 use vek::Vec3;
 
-pub const ALL_BODIES: [Body; 2] = [Body::DefaultAirship, Body::AirBalloon];
+pub const ALL_BODIES: [Body; 3] = [Body::DefaultAirship, Body::AirBalloon, Body::SailBoat];
 
 make_case_elim!(
     body,
@@ -16,6 +16,7 @@ make_case_elim!(
     pub enum Body {
         DefaultAirship = 0,
         AirBalloon = 1,
+        SailBoat = 2,
     }
 );
 
@@ -35,6 +36,7 @@ impl Body {
         match self {
             Body::DefaultAirship => "airship_human.structure",
             Body::AirBalloon => "air_balloon.structure",
+            Body::SailBoat => "sail_boat.structure",
         }
     }
 
@@ -42,15 +44,21 @@ impl Body {
         match self {
             Body::DefaultAirship => Vec3::new(25.0, 50.0, 40.0),
             Body::AirBalloon => Vec3::new(25.0, 50.0, 40.0),
+            Body::SailBoat => Vec3::new(13.0, 31.0, 6.0),
         }
     }
 
     fn balloon_vol(&self) -> f32 {
-        let spheroid_vol = |equat_d: f32, polar_d: f32| -> f32 {
-            (std::f32::consts::PI / 6.0) * equat_d.powi(2) * polar_d
-        };
-        let dim = self.dimensions();
-        spheroid_vol(dim.z, dim.y)
+        match self {
+            Body::DefaultAirship | Body::AirBalloon => {
+                let spheroid_vol = |equat_d: f32, polar_d: f32| -> f32 {
+                    (std::f32::consts::PI / 6.0) * equat_d.powi(2) * polar_d
+                };
+                let dim = self.dimensions();
+                spheroid_vol(dim.z, dim.y)
+            },
+            _ => 0.0,
+        }
     }
 
     fn hull_vol(&self) -> f32 {
@@ -66,14 +74,24 @@ impl Body {
         Density(ratio * oak_density + (1.0 - ratio) * AIR_DENSITY)
     }
 
-    pub fn density(&self) -> Density { Density(AIR_DENSITY) }
+    pub fn density(&self) -> Density {
+        match self {
+            Body::DefaultAirship | Body::AirBalloon => Density(AIR_DENSITY),
+            _ => Density(AIR_DENSITY * 0.75 + WATER_DENSITY * 0.25), // Most boats should be buoyant
+        }
+    }
 
     pub fn mass(&self) -> Mass { Mass((self.hull_vol() + self.balloon_vol()) * self.density().0) }
 
     pub fn can_fly(&self) -> bool {
         match self {
             Body::DefaultAirship | Body::AirBalloon => true,
+            _ => false,
         }
+    }
+
+    pub fn has_water_thrust(&self) -> bool {
+        !self.can_fly() // TODO: Differentiate this more carefully
     }
 }
 

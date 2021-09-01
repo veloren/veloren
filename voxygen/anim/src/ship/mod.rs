@@ -31,7 +31,9 @@ impl Skeleton for ShipSkeleton {
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
     ) -> Offsets {
-        let bone0_mat = base_mat * Mat4::scaling_3d(1.0 / 11.0) * Mat4::<f32>::from(self.bone0);
+        let scale_mat = Mat4::scaling_3d(1.0 / 11.0);
+
+        let bone0_mat = base_mat * scale_mat * Mat4::<f32>::from(self.bone0);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
             make_bone(bone0_mat),
@@ -43,10 +45,12 @@ impl Skeleton for ShipSkeleton {
             lantern: None,
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
-                position: common::comp::Body::Ship(body)
-                    .mountee_offset()
-                    .into_tuple()
-                    .into(),
+                position: (base_mat * scale_mat).mul_point(
+                    common::comp::Body::Ship(body)
+                        .mountee_offset()
+                        .into_tuple()
+                        .into(),
+                ),
                 ..Default::default()
             },
         }
@@ -89,18 +93,22 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             bone0: match body {
                 DefaultAirship => (0.0, 0.0, 0.0),
                 AirBalloon => (0.0, 0.0, 0.0),
+                SailBoat => (0.0, 0.0, 0.0),
             },
             bone1: match body {
                 DefaultAirship => (-13.0, -25.0, 10.0),
                 AirBalloon => (0.0, 0.0, 0.0),
+                SailBoat => (0.0, 0.0, 0.0),
             },
             bone2: match body {
                 DefaultAirship => (13.0, -25.0, 10.0),
                 AirBalloon => (0.0, 0.0, 0.0),
+                SailBoat => (0.0, 0.0, 0.0),
             },
             bone3: match body {
                 DefaultAirship => (0.0, -27.5, 8.5),
                 AirBalloon => (0.0, -9.0, 8.0),
+                SailBoat => (0.0, 0.0, 0.0),
             },
         }
     }

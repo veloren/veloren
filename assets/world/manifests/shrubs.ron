@@ -7,26 +7,26 @@
     ),
     (
         specifier: "world.shrub.jungle-bush-0",
-        center: (5, 5, 1),
+        center: (5, 5, 3),
     ),
     (
         specifier: "world.shrub.jungle-bush-1",
-        center: (5, 5, 1),
+        center: (5, 5, 2),
     ),
     (
         specifier: "world.shrub.jungle-bush-2",
-        center: (5, 5, 1),
+        center: (5, 5, 3),
     ),
     (
         specifier: "world.shrub.jungle-bush-3",
-        center: (5, 5, 1),
+        center: (5, 5, 3),
     ),
     (
         specifier: "world.shrub.jungle-bush-4",
-        center: (5, 5, 1),
+        center: (5, 5, 4),
     ),
     (
         specifier: "world.shrub.jungle-bush-5",
-        center: (5, 5, 1),
+        center: (5, 5, 5),
     ),
 ]
