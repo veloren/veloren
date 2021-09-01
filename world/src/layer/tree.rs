@@ -199,7 +199,7 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
             }
 
             let hanging_sprites = match &tree.model {
-                TreeModel::Structure(_) => &[(0.0004, SpriteKind::Beehive)],
+                TreeModel::Structure(_) => [(0.0004, SpriteKind::Beehive)].as_ref(),
                 TreeModel::Procedural(t, _) => t.config.hanging_sprites,
             };
 
@@ -223,10 +223,12 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                         TreeModel::Procedural(t, leaf_block) => Some(
                             match t.is_branch_or_leaves_at(model_pos.map(|e| e as f32 + 0.5)) {
                                 (_, _, true, _) => {
-                                    StructureBlock::Filled(BlockKind::Wood, Rgb::new(110, 68, 22))
+                                    StructureBlock::Filled(BlockKind::Wood, Rgb::new(150, 98, 41))
                                 },
                                 (_, _, _, true) => StructureBlock::None,
-                                (true, _, _, _) => StructureBlock::Log,
+                                (true, _, _, _) => {
+                                    StructureBlock::Filled(BlockKind::Wood, t.config.wood_color)
+                                },
                                 (_, true, _, _) => *leaf_block,
                                 _ => StructureBlock::None,
                             },
@@ -327,6 +329,8 @@ pub struct TreeConfig {
     /// Whether the tree is inhabited (adds various features and effects)
     pub inhabited: bool,
     pub hanging_sprites: &'static [(f32, SpriteKind)],
+    /// The colour of branches and the trunk.
+    pub wood_color: Rgb<u8>,
 }
 
 impl TreeConfig {
@@ -350,7 +354,8 @@ impl TreeConfig {
             leaf_vertical_scale: 1.0,
             proportionality: 0.0,
             inhabited: false,
-            hanging_sprites: &[(0.0002, SpriteKind::Apple), (0.00015, SpriteKind::Beehive)],
+            hanging_sprites: &[(0.0002, SpriteKind::Apple), (0.00007, SpriteKind::Beehive)],
+            wood_color: Rgb::new(90, 45, 15),
         }
     }
 
@@ -374,7 +379,8 @@ impl TreeConfig {
             leaf_vertical_scale: 0.4,
             proportionality: 0.8,
             inhabited: false,
-            hanging_sprites: &[(0.00015, SpriteKind::Beehive), (0.015, SpriteKind::Liana)],
+            hanging_sprites: &[(0.00007, SpriteKind::Beehive), (0.015, SpriteKind::Liana)],
+            wood_color: Rgb::new(118, 67, 42),
         }
     }
 
@@ -398,7 +404,8 @@ impl TreeConfig {
             leaf_vertical_scale: 0.2,
             proportionality: 1.0,
             inhabited: false,
-            hanging_sprites: &[(0.00015, SpriteKind::Beehive)],
+            hanging_sprites: &[(0.00007, SpriteKind::Beehive)],
+            wood_color: Rgb::new(125, 60, 6),
         }
     }
 
@@ -422,7 +429,8 @@ impl TreeConfig {
             leaf_vertical_scale: 0.4,
             proportionality: 0.0,
             inhabited: false,
-            hanging_sprites: &[(0.00015, SpriteKind::Beehive)],
+            hanging_sprites: &[(0.00007, SpriteKind::Beehive)],
+            wood_color: Rgb::new(110, 68, 65),
         }
     }
 
@@ -447,6 +455,7 @@ impl TreeConfig {
             proportionality: 1.0,
             inhabited: false,
             hanging_sprites: &[(0.00005, SpriteKind::Beehive)],
+            wood_color: Rgb::new(150, 95, 65),
         }
     }
 
@@ -460,17 +469,18 @@ impl TreeConfig {
             branch_child_len: 0.75,
             branch_child_radius: 0.75,
             branch_child_radius_lerp: true,
-            leaf_radius: 2.5 * log_scale..2.6 * log_scale,
+            leaf_radius: 2.0 * log_scale..2.1 * log_scale,
             leaf_radius_scaled: 0.0,
-            straightness: 0.4,
+            straightness: 0.3,
             max_depth: 5,
-            splits: 3.0..3.5,
+            splits: 3.5..4.25,
             split_range: 0.5..1.25,
             branch_len_bias: 0.0,
             leaf_vertical_scale: 0.5,
             proportionality: 0.5,
             inhabited: false,
-            hanging_sprites: &[(0.00015, SpriteKind::Beehive)],
+            hanging_sprites: &[(0.00007, SpriteKind::Beehive)],
+            wood_color: Rgb::new(110, 42, 28),
         }
     }
 
@@ -495,6 +505,7 @@ impl TreeConfig {
             proportionality: 1.0,
             inhabited: false,
             hanging_sprites: &[(0.0001, SpriteKind::Beehive)],
+            wood_color: Rgb::new(90, 35, 15),
         }
     }
 
@@ -518,6 +529,7 @@ impl TreeConfig {
             proportionality: 0.0,
             inhabited,
             hanging_sprites: &[(0.00025, SpriteKind::Apple), (0.00025, SpriteKind::Beehive)],
+            wood_color: Rgb::new(110, 68, 22),
         }
     }
 }
