@@ -169,7 +169,6 @@
         "hud.skill.hmr_single_strike_damage" : "Increases the damage with each successive strike{SP}",
         "hud.skill.hmr_single_strike_knockback_title" : "Single Strike Knockback",
         "hud.skill.hmr_single_strike_knockback" : "Increase throw potential of swings by {boost}%{SP}",
-        "hud.skill." : "",
         // Sword
         "hud.skill.sw_trip_str_title": "Triple Strike",
         "hud.skill.sw_trip_str": "Strike, up to three times",
