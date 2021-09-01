@@ -48,7 +48,7 @@ impl ForestKind {
             ForestKind::Baobab => 0.4..0.9,
             ForestKind::Oak => -0.35..0.45,
             ForestKind::Chestnut => -0.35..0.45,
-            ForestKind::Cedar => -1.0..0.1,
+            ForestKind::Cedar => -0.65..0.15,
             ForestKind::Pine => -1.8..-0.2,
             ForestKind::Birch => -0.7..0.25,
             ForestKind::Mangrove => 0.4..1.6,

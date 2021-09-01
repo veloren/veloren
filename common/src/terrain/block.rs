@@ -38,6 +38,7 @@ make_case_elim!(
         WeakRock = 0x11, // Explodable
         Lava = 0x12,     // TODO: Reevaluate whether this should be in the rock section
         GlowingRock = 0x13,
+        GlowingWeakRock = 0x14,
         // 0x12 <= x < 0x20 is reserved for future rocks
         Grass = 0x20, // Note: *not* the same as grass sprites
         Snow = 0x21,
@@ -168,7 +169,7 @@ impl Block {
     pub fn get_glow(&self) -> Option<u8> {
         match self.kind() {
             BlockKind::Lava => Some(24),
-            BlockKind::GlowingRock => Some(12),
+            BlockKind::GlowingRock | BlockKind::GlowingWeakRock => Some(12),
             _ => match self.get_sprite()? {
                 SpriteKind::StreetLamp | SpriteKind::StreetLampTall => Some(24),
                 SpriteKind::Ember => Some(20),
@@ -272,7 +273,7 @@ impl Block {
     #[inline]
     pub fn mine_tool(&self) -> Option<ToolKind> {
         match self.kind() {
-            BlockKind::WeakRock => Some(ToolKind::Pick),
+            BlockKind::WeakRock | BlockKind::GlowingWeakRock => Some(ToolKind::Pick),
             _ => self.get_sprite().and_then(|s| s.mine_tool()),
         }
     }

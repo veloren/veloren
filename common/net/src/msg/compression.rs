@@ -609,6 +609,11 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageDecoding for TriPngEncoding<AVERAGE_
                             g: 229,
                             b: 198,
                         },
+                        GlowingWeakRock => Rgb {
+                            r: 61,
+                            g: 185,
+                            b: 240,
+                        },
                         Grass => Rgb {
                             r: 51,
                             g: 160,
