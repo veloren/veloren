@@ -1,0 +1,12 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.natural.arch",
+        center: (32, 14, 10)
+    ),  
+    (
+        specifier: "world.structure.natural.arch-1",
+        center: (14, 12, 10)
+    ),  
+]

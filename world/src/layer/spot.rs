@@ -37,6 +37,10 @@ pub enum Spot {
     MyrmidonTemple,
     GnarlingTotem,
     WitchHouse,
+    PirateHideout,
+    BigMushroom,
+    WolfBurrow,
+    Igloo,
     //BanditCamp,
     //EnchantedRock,
     //TowerRuin,
@@ -50,6 +54,7 @@ pub enum Spot {
     LionRock,
     TreeStumpForest,
     DesertBones,
+    Arch,
     AirshipCrash,
     FruitTree,
     Shipwreck,
@@ -74,6 +79,34 @@ impl Spot {
                         c.get_biome(),
                         Grassland | Forest | Taiga | Snowland | Jungle
                     )
+            },
+            false,
+        );
+        Self::generate_spots(
+            Spot::Igloo,
+            world,
+            100.0,
+            |g, c| {
+                g < 0.5
+                    && !c.near_cliffs()
+                    && !c.river.near_water()
+                    && !c.path.0.is_way()
+                    && c.sites.is_empty()
+                    && matches!(c.get_biome(), Snowland)
+            },
+            false,
+        );
+        Self::generate_spots(
+            Spot::PirateHideout,
+            world,
+            3.0,
+            |g, c| {
+                g < 0.25
+                    && !c.near_cliffs()
+                    && !c.river.near_water()
+                    && !c.path.0.is_way()
+                    && c.sites.is_empty()
+                    && matches!(c.get_biome(), Forest | Jungle)
             },
             false,
         );
@@ -163,6 +196,20 @@ impl Spot {
             false,
         );
         Self::generate_spots(
+            Spot::WolfBurrow,
+            world,
+            10.0,
+            |g, c| {
+                g < 0.25
+                    && !c.near_cliffs()
+                    && !c.river.near_water()
+                    && !c.path.0.is_way()
+                    && c.sites.is_empty()
+                    && matches!(c.get_biome(), Forest | Grassland)
+            },
+            false,
+        );
+        Self::generate_spots(
             Spot::TreeStumpForest,
             world,
             20.0,
@@ -191,6 +238,20 @@ impl Spot {
             false,
         );
         Self::generate_spots(
+            Spot::Arch,
+            world,
+            2.0,
+            |g, c| {
+                g < 0.25
+                    && !c.near_cliffs()
+                    && !c.river.near_water()
+                    && !c.path.0.is_way()
+                    && c.sites.is_empty()
+                    && matches!(c.get_biome(), Desert)
+            },
+            false,
+        );
+        Self::generate_spots(
             Spot::AirshipCrash,
             world,
             0.5,
@@ -206,6 +267,20 @@ impl Spot {
         );
         Self::generate_spots(
             Spot::FruitTree,
+            world,
+            20.0,
+            |g, c| {
+                g < 0.25
+                    && !c.near_cliffs()
+                    && !c.river.near_water()
+                    && !c.path.0.is_way()
+                    && c.sites.is_empty()
+                    && matches!(c.get_biome(), Forest)
+            },
+            true,
+        );
+        Self::generate_spots(
+            Spot::BigMushroom,
             world,
             20.0,
             |g, c| {
@@ -342,6 +417,24 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                     (0..3, "common.entity.wild.peaceful.frog"),
                 ],
             },
+            Spot::Igloo => SpotConfig {
+                base_structures: Some("spots_general.igloo"),
+                entity_radius: 2.0,
+                entities: &[
+                    (3..5, "common.entity.dungeon.tier-1.spear"),
+                    (3..5, "common.entity.dungeon.tier-1.bow"),
+                    (2..3, "common.entity.dungeon.tier-1.staff"),
+                ],
+            },
+            Spot::PirateHideout => SpotConfig {
+                base_structures: Some("spots_general.pirate_hideout"),
+                entity_radius: 70.0,
+                entities: &[
+                    (12..16, "common.entity.spot.pirate"),
+                    (2..4, "common.entity.wild.peaceful.parrot"),
+                    (4..6, "common.entity.wild.peaceful.rat"),
+                ],
+            },
             Spot::GnarlingTotem => SpotConfig {
                 base_structures: Some("spots_grasslands.gnarling_totem"),
                 entity_radius: 30.0,
@@ -357,15 +450,25 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 entity_radius: 20.0,
                 entities: &[(5..8, "common.entity.wild.aggressive.lion")],
             },
+            Spot::WolfBurrow => SpotConfig {
+                base_structures: Some("spots_savannah.wolf_burrow"),
+                entity_radius: 0.2,
+                entities: &[(5..8, "common.entity.wild.aggressive.wolf")],
+            },
             Spot::TreeStumpForest => SpotConfig {
                 base_structures: Some("trees.oak_stumps"),
                 entity_radius: 30.0,
                 entities: &[(0..2, "common.entity.wild.aggressive.deadwood")],
             },
             Spot::DesertBones => SpotConfig {
-                base_structures: Some("trees.quirky_dry"),
+                base_structures: Some("spots.bones"),
                 entity_radius: 40.0,
                 entities: &[(4..9, "common.entity.wild.aggressive.hyena")],
+            },
+            Spot::Arch => SpotConfig {
+                base_structures: Some("spots.arch"),
+                entity_radius: 50.0,
+                entities: &[(2..3, "common.entity.wild.aggressive.ngoubou")],
             },
             Spot::AirshipCrash => SpotConfig {
                 base_structures: Some("trees.airship_crash"),
@@ -376,6 +479,11 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 base_structures: Some("trees.fruit_trees"),
                 entity_radius: 2.0,
                 entities: &[(0..2, "common.entity.wild.peaceful.bear")],
+            },
+            Spot::BigMushroom => SpotConfig {
+                base_structures: Some("spots.big-mushroom"),
+                entity_radius: 40.0,
+                entities: &[(7..10, "common.entity.spot.gnome.spear")],
             },
             Spot::Shipwreck => SpotConfig {
                 base_structures: Some("spots.water.shipwreck"),

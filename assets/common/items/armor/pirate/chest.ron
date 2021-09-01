@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Pirate Jacket",
+    description: "",
+    kind: Armor((
+        kind: Chest("Pirate"),
+        stats: (
+            protection: Normal(48.0),
+            poise_resilience: Normal(6.0),
+            energy_max: 135,
+            energy_reward: 0.135,
+            crit_power: 0.125,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [
+
+    ],
+)

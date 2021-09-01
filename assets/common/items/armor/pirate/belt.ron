@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Pirate Belt",
+    description: "",
+    kind: Armor((
+        kind: Belt("Pirate"),
+        stats: (
+            protection: Normal(8.0),
+            poise_resilience: Normal(1.0),
+            energy_max: 20,
+            energy_reward: 0.025,
+            crit_power: 0.02,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [
+
+    ],
+)
