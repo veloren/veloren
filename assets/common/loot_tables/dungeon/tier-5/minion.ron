@@ -1,6 +1,6 @@
 [
     // Currency
-    (50.0, ItemQuantity("common.items.utility.coins", 100, 300)),
+    (50.0, ItemQuantity("common.items.utility.coins", 50, 100)),
     // Nothing
     (50.0, None),
     // Special

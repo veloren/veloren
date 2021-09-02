@@ -63,6 +63,8 @@ lazy_static! {
             .clone();
 }
 
+fn floor_amount(difficulty: u32) -> u32 { 3 + difficulty / 2 }
+
 impl Dungeon {
     pub fn generate(wpos: Vec2<i32>, land: &Land, rng: &mut impl Rng) -> Self {
         let mut ctx = GenCtx { land, rng };
@@ -75,7 +77,7 @@ impl Dungeon {
                     err
                 )
             });
-        let floors = 3 + difficulty / 2;
+        let floors = floor_amount(difficulty);
 
         Self {
             name: {
@@ -383,7 +385,7 @@ impl Floor {
         difficulty: u32,
     ) -> (Self, Vec2<i32>) {
         const MAX_WIDTH: u32 = 4;
-        let floors = 3 + difficulty / 2;
+        let floors = floor_amount(difficulty);
         let final_level = level == floors as i32 - 1;
         let width = (2 + difficulty / 2).min(MAX_WIDTH);
         let height = (15 + difficulty * 3).min(30);
@@ -516,11 +518,20 @@ impl Floor {
                 None => return,
             };
 
+            let loot_density = |difficulty, level| {
+                let max_floor = floor_amount(difficulty);
+                // We count floors from 0, don't divide by zero
+                let current_floor = level + 1;
+                let ratio = f64::from(current_floor) / f64::from(max_floor);
+                // filter starting floors
+                let ratio = 0.0_f64.max(ratio - 0.55);
+                0.00175 * ratio as f32
+            };
             match ctx.rng.gen_range(0..5) {
                 // Miniboss room
                 0 => self.create_room(Room {
                     seed: ctx.rng.gen(),
-                    loot_density: 0.000025 + level as f32 * 0.00015,
+                    loot_density: loot_density(self.difficulty, level),
                     kind: RoomKind::Miniboss,
                     area,
                     height: ctx.rng.gen_range(15..20),
@@ -530,7 +541,7 @@ impl Floor {
                 // Fight room with enemies in it
                 _ => self.create_room(Room {
                     seed: ctx.rng.gen(),
-                    loot_density: 0.000025 + level as f32 * 0.00015,
+                    loot_density: loot_density(self.difficulty, level),
                     kind: RoomKind::Fight,
                     area,
                     height: ctx.rng.gen_range(10..15),
@@ -1219,8 +1230,9 @@ impl Floor {
                     let seed = room.seed;
                     let loot_density = room.loot_density;
                     let difficulty = room.difficulty;
-                    // Place chests with a random distribution based on the room's loot density in
-                    // valid sprite locations, filled based on the room's difficulty
+                    // Place chests with a random distribution based on the
+                    // room's loot density in valid sprite locations,
+                    // filled based on the room's difficulty
                     let chest_sprite = prim(Primitive::Sampling(
                         sprite_layer,
                         Box::new(move |pos| RandomField::new(seed).chance(pos, loot_density * 0.5)),
@@ -1236,9 +1248,10 @@ impl Floor {
                     }));
                     chests = Some((chest_sprite, chest_sprite_fill));
 
-                    // If a room has pillars, the current tile aligns with the pillar spacing, and
-                    // we're not too close to a wall (i.e. the adjacent tiles are rooms and not
-                    // hallways/solid), place a pillar
+                    // If a room has pillars, the current tile aligns with
+                    // the pillar spacing, and we're not too close to a wall
+                    // (i.e. the adjacent tiles are rooms and not hallways/solid),
+                    // place a pillar
                     if room
                         .pillars
                         .map(|pillar_space| {
