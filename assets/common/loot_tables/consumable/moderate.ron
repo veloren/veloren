@@ -1,0 +1,14 @@
+[
+    // Fireworks
+    (1.0, ItemQuantity("common.items.utility.firework_blue", 3, 5)),
+    (1.0, ItemQuantity("common.items.utility.firework_green", 3, 5)),
+    (1.0, ItemQuantity("common.items.utility.firework_purple", 3, 5)),
+    (1.0, ItemQuantity("common.items.utility.firework_red", 3, 5)),
+    (1.0, ItemQuantity("common.items.utility.firework_white", 3, 5)),
+    (1.0, ItemQuantity("common.items.utility.firework_yellow", 3, 5)),
+    // Potions
+    (10.0, ItemQuantity("common.items.consumable.potion_med", 2, 5)),
+    // Misc
+    (5.0, ItemQuantity("common.items.utility.collar", 1, 2)),
+    (5.0, ItemQuantity("common.items.utility.bomb", 3, 5)),
+]

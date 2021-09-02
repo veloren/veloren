@@ -38,8 +38,6 @@ loot_tables: [
     // Place them back we will have better situation with potions
     // and economy.
     //
-    // Misc
-    (0.1, true, "common.loot_tables.consumable.throwable"),
     // Collections
     (0.00001, false, "common.trading.collection"),
     // Manual balance

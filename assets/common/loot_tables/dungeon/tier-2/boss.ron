@@ -1,3 +1,7 @@
 [
-    (1.0, LootTable("common.loot_tables.weapons.tier-2")),
+    // Equipment
+    (5.0, LootTable("common.loot_tables.weapons.tier-2")),
+    (5.0, LootTable("common.loot_tables.armor.tier-2")),
+    // Special Loot
+    (1.0, Item("common.items.armor.misc.bag.heavy_seabag")),
 ]

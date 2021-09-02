@@ -1,0 +1,5 @@
+[
+    (1.0, LootTable("common.loot_tables.armor.cloth.linen")),
+    (1.0, LootTable("common.loot_tables.armor.hide.rawhide")),
+    (1.0, LootTable("common.loot_tables.armor.metal.bronze")),
+]

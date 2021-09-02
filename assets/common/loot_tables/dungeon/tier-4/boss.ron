@@ -1,3 +1,4 @@
 [
     (1.0, LootTable("common.loot_tables.weapons.tier-4")),
+    (1.0, LootTable("common.loot_tables.armor.tier-4")),
 ]

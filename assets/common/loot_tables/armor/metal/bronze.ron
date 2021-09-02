@@ -1,0 +1,9 @@
+[
+    (1.0, Item("common.items.armor.mail.bronze.back")),
+    (1.0, Item("common.items.armor.mail.bronze.belt")),
+    (1.0, Item("common.items.armor.mail.bronze.chest")),
+    (1.0, Item("common.items.armor.mail.bronze.foot")),
+    (1.0, Item("common.items.armor.mail.bronze.hand")),
+    (1.0, Item("common.items.armor.mail.bronze.pants")),
+    (1.0, Item("common.items.armor.mail.bronze.shoulder")),
+]

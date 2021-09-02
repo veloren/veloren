@@ -1,17 +1,13 @@
 [
     // Gear
-    // Don't put progression items until we have progression gates
-    // such as skill requirements or opening chest animations
-
+    (1.0, LootTable("common.loot_tables.weapons.tier-2")),
+    (1.0, LootTable("common.loot_tables.armor.tier-2")),
     // Currency
-    (2.0, ItemQuantity("common.items.utility.coins", 50, 100)),
+    (3.0, ItemQuantity("common.items.utility.coins", 50, 100)),
+    // Materials
+    (1.0, ItemQuantity("common.items.crafting_ing.cloth.silk", 3, 10)),
+    (1.0, ItemQuantity("common.items.crafting_ing.hide.scales", 3, 10)),
+    (1.0, ItemQuantity("common.items.mineral.ingot.steel", 3, 10)),
     // Consumables
-    (1.0, ItemQuantity("common.items.consumable.potion_minor", 1, 2)),
-    (0.2, Item("common.items.consumable.potion_med")),
-    // Food
-    (1.0, ItemQuantity("common.items.food.cheese", 1, 3)),
-    (1.0, ItemQuantity("common.items.food.tomatosalad", 1, 3)),
-    (0.5, ItemQuantity("common.items.food.apple_stick", 1, 2)),
-    (0.5, ItemQuantity("common.items.food.mushroom_stick", 1, 2)),
-    (0.1, Item("common.items.food.sunflower_icetea")),
+    (2.0, LootTable("common.loot_tables.consumable.moderate")),
 ]

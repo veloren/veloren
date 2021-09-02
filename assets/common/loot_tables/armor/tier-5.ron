@@ -1,0 +1,5 @@
+[
+    (1.0, LootTable("common.loot_tables.armor.cloth.sunsilk")),
+    (1.0, LootTable("common.loot_tables.armor.hide.dragonscale")),
+    (1.0, LootTable("common.loot_tables.armor.metal.orichalcum")),
+]

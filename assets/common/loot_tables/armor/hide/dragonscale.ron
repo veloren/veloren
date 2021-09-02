@@ -1,0 +1,9 @@
+[
+    (1.0, Item("common.items.armor.hide.dragonscale.back")),
+    (1.0, Item("common.items.armor.hide.dragonscale.belt")),
+    (1.0, Item("common.items.armor.hide.dragonscale.chest")),
+    (1.0, Item("common.items.armor.hide.dragonscale.foot")),
+    (1.0, Item("common.items.armor.hide.dragonscale.hand")),
+    (1.0, Item("common.items.armor.hide.dragonscale.pants")),
+    (1.0, Item("common.items.armor.hide.dragonscale.shoulder")),
+]

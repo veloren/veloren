@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("dwarf"),
 	alignment: Alignment(Enemy),
 
-    loot: LootTable("common.loot_tables.humanoids"),
+    loot: LootTable("common.loot_tables.creature.humanoid"),
 
 	hands: TwoHanded(Item("common.items.weapons.hammer.steel_hammer-3")),
 

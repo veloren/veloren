@@ -1,18 +1,8 @@
 [
-    // Materials
-    (1.0, LootTable("common.loot_tables.materials.common")),
-    (1.0, LootTable("common.loot_tables.food.wild_ingredients")),
+    // Currency
+    (1.0, ItemQuantity("common.items.utility.coins", 200, 500)),
+    // Food
     (1.0, LootTable("common.loot_tables.food.prepared")),
-    (5.0, Item("common.items.food.cheese")),
-    // Gear
-    (3.0, LootTable("common.loot_tables.weapons.tier-5")),
-    (0.25, Item("common.items.armor.misc.neck.plain_1")),
-    (0.5, Item("common.items.armor.misc.ring.gold")),
-    (0.25, Item("common.items.armor.misc.ring.skull")),
-    // Misc
-    (0.1, Item("common.items.glider.glider_blue")),
-    (0.001, Item("common.items.armor.misc.back.backpack")),
-    (0.1, Item("common.items.armor.misc.bag.heavy_seabag")),
-    (1.0, LootTable("common.loot_tables.consumable.default")),
-    (4.0, Item("common.items.crafting_ing.hide.dragon_scale")),
+    // Cheese
+    (2.0, ItemQuantity("common.items.food.cheese", 3, 5)),
 ]
