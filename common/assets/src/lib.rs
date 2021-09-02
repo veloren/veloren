@@ -19,10 +19,21 @@ lazy_static! {
     /// The HashMap where all loaded assets are stored in.
     static ref ASSETS: AssetCache =
         AssetCache::new(&*ASSETS_PATH).unwrap();
+    /// Asset cache for overrides
+    static ref ASSETS_OVERRIDE: Option<AssetCache> = {
+        std::env::var("VELOREN_ASSETS_OVERRIDE").ok().map(|path| {
+            AssetCache::new(path).unwrap()
+        })
+    };
 }
 
 #[cfg(feature = "hot-reloading")]
-pub fn start_hot_reloading() { ASSETS.enhance_hot_reloading(); }
+pub fn start_hot_reloading() {
+    ASSETS.enhance_hot_reloading();
+    if let Some(cache) = &*ASSETS_OVERRIDE {
+        cache.enhance_hot_reloading();
+    }
+}
 
 pub type AssetHandle<T> = assets_manager::Handle<'static, T>;
 pub type AssetGuard<T> = assets_manager::AssetGuard<'static, T>;
@@ -104,8 +115,21 @@ pub fn load_dir<T: DirLoadable>(
     specifier: &str,
     recursive: bool,
 ) -> Result<AssetDirHandle<T>, Error> {
+    use std::io;
+
     let specifier = specifier.strip_suffix(".*").unwrap_or(specifier);
-    ASSETS.load_dir(specifier, recursive)
+    // Try override path first
+    let from_override = match &*ASSETS_OVERRIDE {
+        Some(cache) => cache.load_dir(specifier, recursive),
+        None => return ASSETS.load_dir(specifier, recursive),
+    };
+    // If not found in override path, try load from main asset path
+    match from_override {
+        Err(Error::Io(e)) if e.kind() == io::ErrorKind::NotFound => {
+            ASSETS.load_dir(specifier, recursive)
+        },
+        _ => from_override,
+    }
 }
 
 /// Loads directory and all files in it
@@ -125,12 +149,67 @@ pub fn read_expect_dir<T: DirLoadable>(
 }
 
 impl<T: Compound> AssetExt for T {
-    fn load(specifier: &str) -> Result<AssetHandle<Self>, Error> { ASSETS.load(specifier) }
+    fn load(specifier: &str) -> Result<AssetHandle<Self>, Error> {
+        use std::io;
+        // Try override path first
+        let from_override = match &*ASSETS_OVERRIDE {
+            Some(cache) => cache.load(specifier),
+            None => return ASSETS.load(specifier),
+        };
+        // If not found in override path, try load from main asset path
+        //
+        // NOTE: this won't work if asset catches error with
+        // Asset::default_value during Asset::load.
+        //
+        // We don't use it, and hopefully won't because there is
+        // `AssetExt::get_or_insert` or `AssetExt::load_or_insert_with`
+        // that allows you to do the same.
+        //
+        // If accidentaly we end up using Asset::default_value,
+        // there is possibility of this code trying to load
+        // from override cache and end there returning default value
+        // for `cache.load(specifier)` above.
+        match from_override {
+            Err(Error::Io(e)) if e.kind() == io::ErrorKind::NotFound => ASSETS.load(specifier),
+            _ => from_override,
+        }
+    }
 
-    fn load_owned(specifier: &str) -> Result<Self, Error> { ASSETS.load_owned(specifier) }
+    fn load_owned(specifier: &str) -> Result<Self, Error> {
+        use std::io;
+        // Try override path first
+        let from_override = match &*ASSETS_OVERRIDE {
+            Some(cache) => cache.load_owned(specifier),
+            None => return ASSETS.load_owned(specifier),
+        };
+        // If not found in override path, try load from main asset path
+        match from_override {
+            Err(Error::Io(e)) if e.kind() == io::ErrorKind::NotFound => {
+                ASSETS.load_owned(specifier)
+            },
+            _ => from_override,
+        }
+    }
 
     fn get_or_insert(specifier: &str, default: Self) -> AssetHandle<Self> {
-        ASSETS.get_or_insert(specifier, default)
+        // 1) Check if we have ASSETS_OVERRIDE, if not - use main ASSETS
+        // 2) Check if we have this asset in ASSETS_OVERRIDE, if not -
+        // use main ASSETS
+        // 3) If we have this asset in ASSETS_OVERRIDE, use ASSETS_OVERRIDE.
+        use std::io;
+
+        let override_cache = match &*ASSETS_OVERRIDE {
+            Some(cache) => cache,
+            None => return ASSETS.get_or_insert(specifier, default),
+        };
+        let from_override = override_cache.load::<T>(specifier);
+        // If not found in override path, try load from main asset path
+        match from_override {
+            Err(Error::Io(e)) if e.kind() == io::ErrorKind::NotFound => {
+                ASSETS.get_or_insert(specifier, default)
+            },
+            _ => override_cache.get_or_insert(specifier, default),
+        }
     }
 }
 

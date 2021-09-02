@@ -23,12 +23,6 @@ impl assets::Asset for OggSound {
     type Loader = SoundLoader;
 
     const EXTENSION: &'static str = "ogg";
-
-    fn default_value(specifier: &str, error: assets::Error) -> Result<Self, assets::Error> {
-        warn!(?specifier, ?error, "Failed to load sound");
-
-        Ok(OggSound::empty())
-    }
 }
 
 /// Wrapper for decoded audio data
