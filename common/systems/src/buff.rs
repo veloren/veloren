@@ -92,7 +92,7 @@ impl<'a> System<'a> for Sys {
             if let Some(physics_state) = physics_state {
                 if matches!(
                     physics_state.on_ground.and_then(|b| b.get_sprite()),
-                    Some(SpriteKind::EnsnaringVines)
+                    Some(SpriteKind::EnsnaringVines) | Some(SpriteKind::EnsnaringWeb)
                 ) {
                     // If on ensnaring vines, apply ensnared debuff
                     server_emitter.emit(ServerEvent::Buff {
@@ -233,6 +233,30 @@ impl<'a> System<'a> for Sys {
                                             cause,
                                             time: *read_data.time,
                                         },
+                                    });
+                                    *accumulated = 0.0;
+                                };
+                            },
+                            BuffEffect::EnergyChangeOverTime {
+                                rate,
+                                accumulated,
+                                kind,
+                            } => {
+                                *accumulated += *rate * dt;
+                                // Apply energy change only once per second, per energy, or
+                                // when a buff is removed
+                                if accumulated.abs() > rate.abs().min(10.0)
+                                    || buff.time.map_or(false, |dur| dur == Duration::default())
+                                {
+                                    let amount = match *kind {
+                                        ModifierKind::Additive => *accumulated,
+                                        ModifierKind::Fractional => {
+                                            health.maximum() as f32 * *accumulated
+                                        },
+                                    };
+                                    server_emitter.emit(ServerEvent::EnergyChange {
+                                        entity,
+                                        change: amount,
                                     });
                                     *accumulated = 0.0;
                                 };

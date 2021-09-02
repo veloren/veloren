@@ -74,6 +74,9 @@ pub enum BuffKind {
     /// Strength scales the movement speed debuff non-linearly. 0.5 is 50%
     /// speed, 1.0 is 33% speed.
     Ensnared,
+    /// Does damage to a creature over time
+    /// Strength should be 10x the DPS of the debuff
+    Poisoned,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -96,7 +99,8 @@ impl BuffKind {
             | BuffKind::Crippled
             | BuffKind::Frozen
             | BuffKind::Wet
-            | BuffKind::Ensnared => false,
+            | BuffKind::Ensnared
+            | BuffKind::Poisoned => false,
         }
     }
 
@@ -140,6 +144,12 @@ pub enum ModifierKind {
 pub enum BuffEffect {
     /// Periodically damages or heals entity
     HealthChangeOverTime {
+        rate: f32,
+        accumulated: f32,
+        kind: ModifierKind,
+    },
+    /// Periodically consume entity energy
+    EnergyChangeOverTime {
         rate: f32,
         accumulated: f32,
         kind: ModifierKind,
@@ -286,6 +296,14 @@ impl Buff {
             ),
             BuffKind::Burning => (
                 vec![BuffEffect::HealthChangeOverTime {
+                    rate: -data.strength,
+                    accumulated: 0.0,
+                    kind: ModifierKind::Additive,
+                }],
+                data.duration,
+            ),
+            BuffKind::Poisoned => (
+                vec![BuffEffect::EnergyChangeOverTime {
                     rate: -data.strength,
                     accumulated: 0.0,
                     kind: ModifierKind::Additive,

@@ -190,6 +190,7 @@ make_case_elim!(
         Bomb = 0xA3,
         ChristmasOrnament = 0xA4,
         ChristmasWreath = 0xA5,
+        EnsnaringWeb = 0xA6,
     }
 );
 
@@ -278,7 +279,9 @@ impl SpriteKind {
             | SpriteKind::Tin
             | SpriteKind::Silver
             | SpriteKind::Gold => 0.6,
-            SpriteKind::EnsnaringVines | SpriteKind::CavernLillypadBlue => 0.1,
+            SpriteKind::EnsnaringVines
+            | SpriteKind::CavernLillypadBlue
+            | SpriteKind::EnsnaringWeb => 0.1,
             SpriteKind::LillyPads => 0.1,
             _ => return None,
         })
