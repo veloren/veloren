@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chestnut and cedar tree varieties
 - Shooting sprites, such as apples and hives, can knock them out of trees
 - Sprite pickup animations
+- Add VELOREN_ASSETS_OVERRIDE variable for specifying folder to partially override assets.
 
 ### Changed
 
