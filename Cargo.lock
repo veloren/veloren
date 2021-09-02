@@ -3185,6 +3185,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0debeb9fcf88823ea64d64e4a815ab1643f33127d995978e099942ce38f25238"
 
 [[package]]
+name = "mumble-link"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a92ff7d87d3ca752fda7a1ccfcde284ea3de84fc8b8a0c43bf434652226bd95"
+dependencies = [
+ "kernel32-sys",
+ "libc",
+ "winapi 0.2.8",
+]
+
+[[package]]
 name = "naga"
 version = "0.4.0"
 source = "git+https://github.com/gfx-rs/naga?tag=gfx-25#057d03ad86f18e3bb3866b20901d8d4e892dd3d6"
@@ -6200,6 +6211,7 @@ dependencies = [
  "itertools 0.10.1",
  "keyboard-keynames",
  "lazy_static",
+ "mumble-link",
  "naga 0.6.0",
  "native-dialog",
  "num 0.4.0",
