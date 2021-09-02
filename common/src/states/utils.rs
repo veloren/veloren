@@ -6,7 +6,7 @@ use crate::{
         inventory::slot::{EquipSlot, Slot},
         item::{Hands, ItemKind, Tool, ToolKind},
         quadruped_low, quadruped_medium, quadruped_small,
-        skills::{Skill, SwimSkill},
+        skills::{Skill, SwimSkill, SKILL_MODIFIERS},
         theropod, Body, CharacterAbility, CharacterState, Density, InputAttr, InputKind,
         InventoryAction, StateUpdate,
     },
@@ -391,7 +391,8 @@ fn swim_move(
         let mut water_accel = force / data.mass.0;
 
         if let Ok(Some(level)) = data.skill_set.skill_level(Skill::Swim(SwimSkill::Speed)) {
-            water_accel *= 1.25_f32.powi(level.into());
+            let modifiers = SKILL_MODIFIERS.general_tree.swim;
+            water_accel *= modifiers.speed.powi(level.into());
         }
 
         let dir = if data.body.can_strafe() {

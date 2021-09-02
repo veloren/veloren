@@ -349,29 +349,32 @@ pub fn handle_mine_block(
                                 xp_pools: HashSet::from_iter(vec![SkillGroupKind::Weapon(tool)]),
                             });
                     }
-                    use common::comp::skills::{MiningSkill, Skill};
+                    use common::comp::skills::{MiningSkill, Skill, SKILL_MODIFIERS};
                     use rand::Rng;
                     let mut rng = rand::thread_rng();
-                    if item.item_definition_id().contains("mineral.ore.")
-                        && rng.gen_bool(
-                            0.05 * skillset
-                                .skill_level(Skill::Pick(MiningSkill::OreGain))
-                                .ok()
-                                .flatten()
-                                .unwrap_or(0) as f64,
-                        )
-                    {
-                        let _ = item.increase_amount(1);
-                    }
-                    if item.item_definition_id().contains("mineral.gem.")
-                        && rng.gen_bool(
-                            0.05 * skillset
-                                .skill_level(Skill::Pick(MiningSkill::GemGain))
-                                .ok()
-                                .flatten()
-                                .unwrap_or(0) as f64,
-                        )
-                    {
+
+                    let need_double_ore = |rng: &mut rand::rngs::ThreadRng| {
+                        let chance_mod = f64::from(SKILL_MODIFIERS.mining_tree.ore_gain);
+                        let skill_level =
+                            skillset.skill_level_or(Skill::Pick(MiningSkill::OreGain), 0);
+
+                        rng.gen_bool(chance_mod * f64::from(skill_level))
+                    };
+                    let need_double_gem = |rng: &mut rand::rngs::ThreadRng| {
+                        let chance_mod = f64::from(SKILL_MODIFIERS.mining_tree.gem_gain);
+                        let skill_level =
+                            skillset.skill_level_or(Skill::Pick(MiningSkill::GemGain), 0);
+
+                        rng.gen_bool(chance_mod * f64::from(skill_level))
+                    };
+
+                    let double_gain = (item.item_definition_id().contains("mineral.ore.")
+                        && need_double_ore(&mut rng))
+                        || (item.item_definition_id().contains("mineral.gem.")
+                            && need_double_gem(&mut rng));
+
+                    if double_gain {
+                        // Ignore non-stackable errors
                         let _ = item.increase_amount(1);
                     }
                 }

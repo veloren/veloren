@@ -14,19 +14,25 @@ use std::{
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ToolKind {
+    // weapons
     Sword,
     Axe,
     Hammer,
     Bow,
-    Dagger,
     Staff,
     Sceptre,
+    // future weapons
+    Dagger,
     Shield,
     Spear,
-    Natural, // Intended for invisible weapons (e.g. a creature using its claws or biting)
+    // tools
     Debug,
     Farming,
     Pick,
+    // npcs
+    /// Intended for invisible weapons (e.g. a creature using its claws or
+    /// biting)
+    Natural,
     /// This is an placeholder item, it is used by non-humanoid npcs to attack
     Empty,
 }
