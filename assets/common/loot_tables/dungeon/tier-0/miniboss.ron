@@ -1,5 +1,8 @@
 [
-    (1.0, LootTable("common.loot_tables.armor.cloth")),
-    (2.0, LootTable("common.loot_tables.weapons.tier-0")),
-    (2.0, LootTable("common.loot_tables.consumable.potion")),
+    // Currency
+    (1.0, ItemQuantity("common.items.utility.coins", 10, 20)),
+    // Food
+    (1.0, LootTable("common.loot_tables.food.wild_ingredients")),
+    // Consumables
+    (2.0, LootTable("common.loot_tables.consumable.poor")),
 ]

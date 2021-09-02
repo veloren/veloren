@@ -1,0 +1,9 @@
+[
+    (1.0, Item("common.items.armor.mail.orichalcum.back")),
+    (1.0, Item("common.items.armor.mail.orichalcum.belt")),
+    (1.0, Item("common.items.armor.mail.orichalcum.chest")),
+    (1.0, Item("common.items.armor.mail.orichalcum.foot")),
+    (1.0, Item("common.items.armor.mail.orichalcum.hand")),
+    (1.0, Item("common.items.armor.mail.orichalcum.pants")),
+    (1.0, Item("common.items.armor.mail.orichalcum.shoulder")),
+]

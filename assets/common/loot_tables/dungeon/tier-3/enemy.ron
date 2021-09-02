@@ -1,4 +1,8 @@
 [
-    (1.0, LootTable("common.loot_tables.humanoids")),
-    (1.0, LootTable("common.loot_tables.weapons.tier-3")),
+    // Currency
+    (1.0, ItemQuantity("common.items.utility.coins", 50, 100)),
+    // Food
+    (1.0, LootTable("common.loot_tables.food.prepared")),
+    // Nothing
+    (2.0, None),
 ]

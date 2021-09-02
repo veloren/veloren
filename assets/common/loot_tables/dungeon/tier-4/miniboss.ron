@@ -1,8 +1,10 @@
 [
-    // weapons
-    (3.0, LootTable("common.loot_tables.weapons.tier-4")),
+    // Currency
+    (10.0, ItemQuantity("common.items.utility.coins", 200, 500)),
+    // Food
+    (5.0, LootTable("common.loot_tables.food.prepared")),
+    // Consumables
+    (5.0, LootTable("common.loot_tables.consumable.good")),
     // lantern
-    (0.05, Item("common.items.lantern.blue_0")),
-    // materials
-    (1.0, LootTable("common.loot_tables.materials.underground")),
+    (1.0, Item("common.items.lantern.blue_0")),
 ]

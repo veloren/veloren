@@ -1,0 +1,9 @@
+[
+    (1.0, Item("common.items.armor.hide.carapace.back")),
+    (1.0, Item("common.items.armor.hide.carapace.belt")),
+    (1.0, Item("common.items.armor.hide.carapace.chest")),
+    (1.0, Item("common.items.armor.hide.carapace.foot")),
+    (1.0, Item("common.items.armor.hide.carapace.hand")),
+    (1.0, Item("common.items.armor.hide.carapace.pants")),
+    (1.0, Item("common.items.armor.hide.carapace.shoulder")),
+]

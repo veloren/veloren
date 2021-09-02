@@ -7,7 +7,7 @@ EntityConfig (
 
     alignment: Alignment(Enemy),
 
-    loot: LootTable("common.loot_tables.humanoids"),
+    loot: LootTable("common.loot_tables.creature.humanoid"),
 
     hands: TwoHanded(Item("common.items.weapons.sword.cultist")),
 

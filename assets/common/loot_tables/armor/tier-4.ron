@@ -1,0 +1,5 @@
+[
+    (1.0, LootTable("common.loot_tables.armor.cloth.moonweave")),
+    (1.0, LootTable("common.loot_tables.armor.hide.plate")),
+    (1.0, LootTable("common.loot_tables.armor.metal.bloodsteel")),
+]

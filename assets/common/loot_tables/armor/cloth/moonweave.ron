@@ -1,0 +1,9 @@
+[
+    (1.0, Item("common.items.armor.cloth.moonweave.back")),
+    (1.0, Item("common.items.armor.cloth.moonweave.belt")),
+    (1.0, Item("common.items.armor.cloth.moonweave.chest")),
+    (1.0, Item("common.items.armor.cloth.moonweave.foot")),
+    (1.0, Item("common.items.armor.cloth.moonweave.hand")),
+    (1.0, Item("common.items.armor.cloth.moonweave.pants")),
+    (1.0, Item("common.items.armor.cloth.moonweave.shoulder")),
+]

@@ -1,14 +1,13 @@
 [
     // Gear
-    (0.5, LootTable("common.loot_tables.weapons.tier-0")),
-    (0.5, LootTable("common.loot_tables.armor.cloth")),
+    (1.0, LootTable("common.loot_tables.weapons.tier-0")),
+    (1.0, LootTable("common.loot_tables.armor.tier-0")),
     // Currency
-    (2.0, ItemQuantity("common.items.utility.coins", 10, 20)),
+    (3.0, ItemQuantity("common.items.utility.coins", 10, 20)),
+    // Materials
+    (1.0, ItemQuantity("common.items.crafting_ing.cloth.linen", 3, 10)),
+    (1.0, ItemQuantity("common.items.crafting_ing.leather.simple_leather", 3, 10)),
+    (1.0, ItemQuantity("common.items.mineral.ingot.bronze", 3, 10)),
     // Consumables
-    (1.0, Item("common.items.consumable.potion_minor")),
-    // Food
-    (1.0, Item("common.items.food.cheese")),
-    (1.0, Item("common.items.food.plainsalad")),
-    (0.5, Item("common.items.food.apple_stick")),
-    (0.5, Item("common.items.food.mushroom_stick")),
+    (2.0, LootTable("common.loot_tables.consumable.poor")),
 ]

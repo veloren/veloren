@@ -1,0 +1,9 @@
+[
+    (1.0, Item("common.items.armor.cloth.sunsilk.back")),
+    (1.0, Item("common.items.armor.cloth.sunsilk.belt")),
+    (1.0, Item("common.items.armor.cloth.sunsilk.chest")),
+    (1.0, Item("common.items.armor.cloth.sunsilk.foot")),
+    (1.0, Item("common.items.armor.cloth.sunsilk.hand")),
+    (1.0, Item("common.items.armor.cloth.sunsilk.pants")),
+    (1.0, Item("common.items.armor.cloth.sunsilk.shoulder")),
+]

@@ -1,4 +1,0 @@
-[
-    // bombs
-    (1.0, ItemQuantity("common.items.utility.bomb", 1, 3)),
-]
