@@ -1,11 +1,14 @@
 pub mod alpha;
 pub mod idle;
 pub mod jump;
+pub mod leapmelee;
 pub mod run;
+pub mod stunned;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation,
+    alpha::AlphaAnimation, idle::IdleAnimation, jump::JumpAnimation, leapmelee::LeapMeleeAnimation,
+    run::RunAnimation, stunned::StunnedAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
@@ -87,7 +90,8 @@ impl Skeleton for ArthropodSkeleton {
             make_bone(leg_br_mat),
         ];
 
-        use comp::arthropod::Species::*;
+        // TODO: mount points
+        //use comp::arthropod::Species::*;
         let (mount_bone_mat, mount_bone_ori) = match (body.species, body.body_type) {
             _ => (chest_mat, self.chest.orientation),
         };
@@ -122,6 +126,7 @@ pub struct SkeletonAttr {
     leg_bc: (f32, f32, f32),
     leg_b: (f32, f32, f32),
     scaler: f32,
+    leg_ori: (f32, f32, f32, f32),
 }
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -148,6 +153,7 @@ impl Default for SkeletonAttr {
             leg_bc: (0.0, 0.0, 0.0),
             leg_b: (0.0, 0.0, 0.0),
             scaler: 0.0,
+            leg_ori: (0.0, 0.0, 0.0, 0.0),
         }
     }
 }
@@ -224,7 +230,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             leg_f: match (body.species, body.body_type) {
                 (Tarantula, _) => (4.0, 11.0, -1.5),
                 (Blackwidow, _) => (4.0, 13.5, -6.0),
-                (Antlion, _) => (1.5, 12.0, -4.0),
+                (Antlion, _) => (4.0, 11.5, -4.0),
                 (Hornbeetle, _) => (5.0, 6.0, -3.0),
                 (Leafbeetle, _) => (5.0, 6.0, -1.0),
                 (Stagbeetle, _) => (5.0, 6.0, -2.0),
@@ -237,7 +243,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             leg_fc: match (body.species, body.body_type) {
                 (Tarantula, _) => (1.5, 13.5, -1.5),
                 (Blackwidow, _) => (2.5, 13.0, -5.5),
-                (Antlion, _) => (1.5, 8.0, -4.0),
+                (Antlion, _) => (1.5, 6.0, -4.0),
                 (Hornbeetle, _) => (1.5, 7.5, -3.0),
                 (Leafbeetle, _) => (1.5, 6.5, -1.5),
                 (Stagbeetle, _) => (1.5, 7.5, -2.0),
@@ -250,7 +256,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             leg_bc: match (body.species, body.body_type) {
                 (Tarantula, _) => (1.5, 10.5, -1.5),
                 (Blackwidow, _) => (2.5, 10.0, -5.5),
-                (Antlion, _) => (7.0, 7.5, -4.0),
+                (Antlion, _) => (6.0, 7.5, -4.0),
                 (Hornbeetle, _) => (6.0, 6.0, -3.0),
                 (Leafbeetle, _) => (6.0, 5.0, -2.5),
                 (Stagbeetle, _) => (6.0, 6.0, -2.0),
@@ -286,12 +292,18 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mosscrawler, _) => (1.0),
                 (Sandcrawler, _) => (1.0),
             },
+            // Z ori (front, front center, back center, center)
+            leg_ori: match (body.species, body.body_type) {
+                (Antlion, _) => (0.7, -0.3, -0.4, 0.4),
+                (_, _) => (0.1, -0.3, 0.0, 0.4),
+            },
         }
     }
 }
 
 fn mount_point(body: &Body) -> Vec3<f32> {
-    use comp::arthropod::{BodyType::*, Species::*};
+    // TODO: mount points
+    //use comp::arthropod::{BodyType::*, Species::*};
     match (body.species, body.body_type) {
         (_, _) => (0.0, -6.0, 6.0),
     }

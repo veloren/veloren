@@ -295,7 +295,7 @@ impl Body {
                 theropod::Species::Yale => 1_000.0,
             },
             Body::Ship(ship) => ship.mass().0,
-            Body::Arthropod(body) => 500.0,
+            Body::Arthropod(_) => 200.0,
         };
         Mass(m)
     }
@@ -402,7 +402,19 @@ impl Body {
                 theropod::Species::Woodraptor => Vec3::new(2.0, 3.0, 2.6),
                 theropod::Species::Yale => Vec3::new(1.5, 3.2, 4.0),
             },
-            Body::Arthropod(body) => Vec3::new(4.0, 4.0, 4.0),
+            Body::Arthropod(body) => match body.species {
+                arthropod::Species::Tarantula => Vec3::new(2.0, 3.0, 2.6),
+                arthropod::Species::Blackwidow => Vec3::new(2.0, 3.0, 2.6),
+                arthropod::Species::Antlion => Vec3::new(2.0, 3.0, 2.6),
+                arthropod::Species::Hornbeetle => Vec3::new(2.0, 3.0, 2.6),
+                arthropod::Species::Leafbeetle => Vec3::new(2.0, 3.0, 2.6),
+                arthropod::Species::Stagbeetle => Vec3::new(2.0, 3.0, 2.6),
+                arthropod::Species::Weevil => Vec3::new(2.0, 3.0, 2.6),
+                arthropod::Species::Cavespider => Vec3::new(2.0, 3.0, 2.6),
+                arthropod::Species::Moltencrawler => Vec3::new(2.0, 3.0, 2.6),
+                arthropod::Species::Mosscrawler => Vec3::new(2.0, 3.0, 2.6),
+                arthropod::Species::Sandcrawler => Vec3::new(2.0, 3.0, 2.6),
+            },
         }
     }
 

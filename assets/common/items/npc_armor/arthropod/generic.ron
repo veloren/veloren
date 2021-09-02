@@ -1,0 +1,17 @@
+ItemDef(
+    name: "Arthropod Armor",
+    description: "Worn by arthropods.",
+    kind: Armor((
+        kind: Chest("Arthropod"),
+        stats: (
+            protection: Normal(100.0),
+            poise_resilience: Normal(1.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Legendary,
+    tags: [],
+)

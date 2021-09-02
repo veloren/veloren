@@ -228,6 +228,13 @@
         secondary: "common.abilities.custom.theropodbasic.dash",
         abilities: [],
     ),
+    Custom("Arthropod Basic"): (
+        primary: "common.abilities.custom.arthropodbasic.singlestrike",
+        secondary: "common.abilities.custom.arthropodbasic.ensnaringweb",
+        abilities: [
+            (None, "common.abilities.custom.arthropodbasic.leap"),
+        ],
+    ),
     Custom("Turret"): (
         primary: "common.abilities.custom.turret.arrows",
         secondary: "common.abilities.custom.turret.arrows",

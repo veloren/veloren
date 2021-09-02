@@ -257,11 +257,11 @@
             lateral: ("armor.empty"),
         ),
         leg_fl: (
-            offset: (-11.0, -0.5, -4.5),
+            offset: (-0.5, 0.0, -4.5),
             lateral: ("npc.antlion.male.leg_fr"),
         ),
         leg_fr: (
-            offset: (-0.0, -0.5, -4.5),
+            offset: (-0.5, 0.0, -4.5),
             lateral: ("npc.antlion.male.leg_fr"),
         ),
         leg_fcl: (
@@ -315,11 +315,11 @@
             lateral: ("armor.empty"),
         ),
         leg_fl: (
-            offset: (-11.0, -0.5, -4.5),
+            offset: (-0.5, 0.0, -4.5),
             lateral: ("npc.antlion.male.leg_fr"),
         ),
         leg_fr: (
-            offset: (-0.0, -0.5, -4.5),
+            offset: (-0.5, 0.0, -4.5),
             lateral: ("npc.antlion.male.leg_fr"),
         ),
         leg_fcl: (

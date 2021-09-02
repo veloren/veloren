@@ -267,7 +267,7 @@ fn default_main_tool(body: &Body) -> Item {
         },
         Body::Arthropod(arthropod) => match arthropod.species {
             _ => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.theropodbasic",
+                "common.items.npc_weapons.unique.arthropodbasic",
             )),
         },
         Body::BipedLarge(biped_large) => match (biped_large.species, biped_large.body_type) {
@@ -476,6 +476,7 @@ impl LoadoutBuilder {
                 | theropod::Species::Odonto => Some("common.items.npc_armor.theropod.rugged"),
                 _ => None,
             },
+            Body::Arthropod(_) => Some("common.items.npc_armor.arthropod.generic"),
             _ => None,
         };
 
