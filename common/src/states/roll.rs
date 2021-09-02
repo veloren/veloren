@@ -111,6 +111,7 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Recover => {
+                handle_move(data, &mut update, 1.0);
                 // Allows for jumps to interrupt recovery in roll
                 if self.timer < self.static_data.recover_duration
                     && !handle_jump(data, &mut update, 1.5)
