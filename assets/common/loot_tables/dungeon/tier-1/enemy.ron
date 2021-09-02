@@ -1,6 +1,6 @@
 [
     // Currency
-    (1.0, ItemQuantity("common.items.utility.coins", 10, 25)),
+    (1.0, ItemQuantity("common.items.utility.coins", 4, 10)),
     // Food
     (1.0, LootTable("common.loot_tables.food.wild_ingredients")),
     // Nothing
