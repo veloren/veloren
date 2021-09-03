@@ -16,7 +16,7 @@ use common::{
         Group, Inventory, Poise,
     },
     effect::Effect,
-    resources::TimeOfDay,
+    resources::{BattleModeBuffer, TimeOfDay},
     slowjob::SlowJobPool,
     uid::{Uid, UidAllocator},
 };
@@ -496,8 +496,8 @@ impl StateExt for State {
                 }),
             ));
 
-            // NOTE: By fetching the player_uid, we validated that the entity exists, and we
-            // call nothing that can delete it in any of the subsequent
+            // NOTE: By fetching the player_uid, we validated that the entity exists,
+            // and we call nothing that can delete it in any of the subsequent
             // commands, so we can assume that all of these calls succeed,
             // justifying ignoring the result of insertion.
             self.write_component_ignore_entity_dead(entity, comp::Collider::Box {
@@ -566,6 +566,23 @@ impl StateExt for State {
                 }
             } else {
                 warn!("Player has no pos, cannot load {} pets", pets.len());
+            }
+
+            let presences = self.ecs().read_storage::<Presence>();
+            let presence = presences.get(entity);
+            if let Some(Presence {
+                kind: PresenceKind::Character(char_id),
+                ..
+            }) = presence
+            {
+                let mut battlemode_buffer = self.ecs().fetch_mut::<BattleModeBuffer>();
+                if let Some((mode, change)) = battlemode_buffer.pop(char_id) {
+                    let mut players = self.ecs().write_storage::<comp::Player>();
+                    if let Some(mut player_info) = players.get_mut(entity) {
+                        player_info.battle_mode = mode;
+                        player_info.last_battlemode_change = Some(change);
+                    }
+                }
             }
         }
     }

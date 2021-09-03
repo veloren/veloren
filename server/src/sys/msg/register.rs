@@ -174,9 +174,10 @@ impl<'a> System<'a> for Sys {
                     return Ok(());
                 }
 
-                // FIXME:
-                // Take last battle_mode and last battle_mode change
-                // from in-memory persistence
+                // NOTE: this is just default value.
+                //
+                // It will be overwritten in ServerExt::update_character_data
+                // from stored last battlemode change if such exists.
                 let battle_mode = match read_data.settings.battle_mode {
                     ServerBattleMode::Global(mode) => mode,
                     ServerBattleMode::PerPlayer { default: mode } => mode,

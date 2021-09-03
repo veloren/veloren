@@ -6,6 +6,7 @@ use crate::{
 use common::{
     comp,
     comp::{group, pet::is_tameable},
+    resources::BattleModeBuffer,
     uid::{Uid, UidAllocator},
 };
 use common_base::span;
@@ -201,12 +202,14 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
         Some(skill_set),
         Some(inventory),
         Some(player_uid),
+        Some(player_info),
         mut character_updater,
     ) = (
         state.read_storage::<Presence>().get(entity),
         state.read_storage::<comp::SkillSet>().get(entity),
         state.read_storage::<comp::Inventory>().get(entity),
         state.read_storage::<Uid>().get(entity),
+        state.read_storage::<comp::Player>().get(entity),
         state.ecs().fetch_mut::<CharacterUpdater>(),
     ) {
         match presence.kind {
@@ -216,6 +219,13 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
                     .read_storage::<common::comp::Waypoint>()
                     .get(entity)
                     .cloned();
+                // Store last battle mode change
+                let mut battlemode_buffer = state.ecs().fetch_mut::<BattleModeBuffer>();
+                if let Some(change) = player_info.last_battlemode_change {
+                    let mode = player_info.battle_mode;
+                    let save = (mode, change);
+                    battlemode_buffer.push(char_id, save);
+                }
 
                 // Get player's pets
                 let alignments = state.ecs().read_storage::<comp::Alignment>();

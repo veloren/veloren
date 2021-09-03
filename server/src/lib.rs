@@ -69,7 +69,7 @@ use common::{
     comp::{item::MaterialStatManifest, CharacterAbility},
     event::{EventBus, ServerEvent},
     recipe::default_recipe_book,
-    resources::TimeOfDay,
+    resources::{BattleModeBuffer, TimeOfDay},
     rtsim::RtSimEntity,
     slowjob::SlowJobPool,
     terrain::{TerrainChunk, TerrainChunkSize},
@@ -196,8 +196,10 @@ impl Server {
         let ecs_system_metrics = EcsSystemMetrics::new(&registry).unwrap();
         let tick_metrics = TickMetrics::new(&registry).unwrap();
         let physics_metrics = PhysicsMetrics::new(&registry).unwrap();
+        let battlemode_buffer = BattleModeBuffer::default();
 
         let mut state = State::server();
+        state.ecs_mut().insert(battlemode_buffer);
         state.ecs_mut().insert(settings.clone());
         state.ecs_mut().insert(editable_settings);
         state.ecs_mut().insert(DataDir {
