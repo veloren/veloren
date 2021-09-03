@@ -97,20 +97,16 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                 } else {
-                    // Keeps rolling if sufficient energy, else transitions to recover section of
-                    // stage
-                    if input_is_pressed(data, self.static_data.ability_info.input) {
-                        reset_state(self, data, &mut update);
-                    } else {
-                        update.character = CharacterState::Roll(Data {
-                            timer: Duration::default(),
-                            stage_section: StageSection::Recover,
-                            ..*self
-                        });
-                    }
+                    // Transition to recover section of stage
+                    update.character = CharacterState::Roll(Data {
+                        timer: Duration::default(),
+                        stage_section: StageSection::Recover,
+                        ..*self
+                    });
                 }
             },
             StageSection::Recover => {
+                handle_move(data, &mut update, 1.0);
                 // Allows for jumps to interrupt recovery in roll
                 if self.timer < self.static_data.recover_duration
                     && !handle_jump(data, &mut update, 1.5)
@@ -149,21 +145,5 @@ impl CharacterBehavior for Data {
         }
 
         update
-    }
-}
-
-fn reset_state(data: &Data, join: &JoinData, update: &mut StateUpdate) {
-    handle_input(join, update, data.static_data.ability_info.input);
-
-    if let CharacterState::Roll(r) = &mut update.character {
-        r.was_combo = data.was_combo;
-        r.was_sneak = data.was_sneak;
-        r.was_wielded = data.was_wielded;
-        if matches!(r.stage_section, StageSection::Movement) {
-            r.timer = Duration::default();
-            r.stage_section = StageSection::Recover;
-        } else {
-            r.stage_section = StageSection::Movement;
-        }
     }
 }
