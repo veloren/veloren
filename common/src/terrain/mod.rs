@@ -295,6 +295,10 @@ pub fn quadratic_nearest_point(
     point: Vec2<f64>,
     line: Vec2<Vec2<f64>>,
 ) -> Option<(f64, Vec2<f64>, f64)> {
+    let eval_at = |t: f64| spline.x * t * t + spline.y * t + spline.z;
+
+    // Linear
+
     // let line = LineSegment2 {
     //     start: line.x,
     //     end: line.y,
@@ -304,13 +308,37 @@ pub fn quadratic_nearest_point(
     // let pos = line.start + (line.end - line.start) * t;
     // return Some((t, pos, pos.distance_squared(point)));
 
+    // Quadratic
+
     // let curve = QuadraticBezier2 {
-    //     start: spline.x,
-    //     ctrl: spline.y,
-    //     end: spline.z,
+    //     start: line.x,
+    //     ctrl: eval_at(0.5),
+    //     end: line.y,
     // };
     // let (t, pos) = curve.binary_search_point_by_steps(point, 16, 0.001);
-    // return Some((t, pos, curve.evaluate(t).distance_squared(point)));
+    // let t = t.clamped(0.0, 1.0);
+    // let pos = curve.evaluate(t);
+    // return Some((t, pos, pos.distance_squared(point)));
+
+    // Cubic
+
+    let ctrl_at = |t: f64, end: f64| {
+        let a = eval_at(end);
+        let b = eval_at(Lerp::lerp(end, t, 0.1));
+        let dir = (b - a).normalized();
+        let exact = eval_at(t);
+        a + dir * exact.distance(a)
+    };
+    let curve = CubicBezier2 {
+        start: line.x,
+        ctrl0: ctrl_at(0.33, 0.0),
+        ctrl1: ctrl_at(0.66, 1.0),
+        end: line.y,
+    };
+    let (t, pos) = curve.binary_search_point_by_steps(point, 16, 0.001);
+    let t = t.clamped(0.0, 1.0);
+    let pos = curve.evaluate(t);
+    return Some((t, pos, pos.distance_squared(point)));
 
     let a = spline.z.x;
     let b = spline.y.x;
