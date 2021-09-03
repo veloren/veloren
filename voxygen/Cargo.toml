@@ -84,9 +84,6 @@ vek = {version = "=0.14.1", features = ["serde"]}
 # Controller
 gilrs = {version = "0.8.0", features = ["serde-serialize"]}
 
-# Mumble
-mumble-link = "0.1.0"
-
 # Singleplayer
 server = { package = "veloren-server", path = "../server", optional = true, default-features = false, features = ["worldgen"] }
 
@@ -136,6 +133,10 @@ coreaudio-sys = { version = "=0.2.8", default-features = false }
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"
+
+# Mumble
+[target.'cfg(not(target_os="macos"))'.dependencies]
+mumble-link = "0.1.0"
 
 [dev-dependencies]
 criterion = "0.3"
