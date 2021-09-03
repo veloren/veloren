@@ -3105,7 +3105,11 @@ fn handle_battlemode(
     args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
+    // TODO: discuss time
+    const COOLDOWN: f64 = 60.0 * 5.0;
+
     let ecs = server.state.ecs();
+    let time = ecs.read_resource::<Time>();
     let settings = ecs.read_resource::<Settings>();
     if let Some(mode) = parse_args!(args, String) {
         if !settings.battle_mode.allow_choosing() {
@@ -3152,10 +3156,7 @@ fn handle_battlemode(
         let mut player_info = players
             .get_mut(target)
             .ok_or("Cannot get player component for target")?;
-        let time = ecs.read_resource::<Time>();
         if let Some(Time(last_change)) = player_info.last_battlemode_change {
-            const COOLDOWN: f64 = 60.0 * 5.0;
-
             let Time(time) = *time;
             let elapsed = time - last_change;
             if elapsed < COOLDOWN {
@@ -3173,6 +3174,9 @@ fn handle_battlemode(
             "pve" => BattleMode::PvE,
             _ => return Err("Available modes: pvp, pve".to_owned()),
         };
+        if player_info.battle_mode == mode {
+            return Err("Attempted to set the same battlemode".to_owned());
+        }
         player_info.battle_mode = mode;
         player_info.last_battlemode_change = Some(*time);
         server.notify_client(
@@ -3188,12 +3192,23 @@ fn handle_battlemode(
         let player = players
             .get(target)
             .ok_or("Cannot get player component for target")?;
+        let mut msg = format!("Current battle mode: {:?}.", player.battle_mode);
+        if settings.battle_mode.allow_choosing() {
+            msg.push_str(" Possible to change.");
+        } else {
+            msg.push_str(" Global.");
+        }
+        if let Some(change) = player.last_battlemode_change {
+            let Time(time) = *time;
+            let Time(change) = change;
+            let elapsed = time - change;
+            let next = COOLDOWN - elapsed;
+            let notice = format!(" Next change will be available in: {:.0} seconds", next);
+            msg.push_str(&notice);
+        }
         server.notify_client(
             client,
-            ServerGeneral::server_msg(
-                ChatType::CommandInfo,
-                format!("Current battle mode: {:?}", player.battle_mode),
-            ),
+            ServerGeneral::server_msg(ChatType::CommandInfo, msg),
         );
         Ok(())
     }
