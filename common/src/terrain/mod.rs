@@ -295,14 +295,14 @@ pub fn quadratic_nearest_point(
     point: Vec2<f64>,
     line: Vec2<Vec2<f64>>,
 ) -> Option<(f64, Vec2<f64>, f64)> {
-    let line = LineSegment2 {
-        start: line.x,
-        end: line.y,
-    };
-    let len_sq = line.start.distance_squared(line.end);
-    let t = ((point - line.start).dot(line.end - line.start) / len_sq).clamped(0.0, 1.0);
-    let pos = line.start + (line.end - line.start) * t;
-    return Some((t, pos, pos.distance_squared(point)));
+    // let line = LineSegment2 {
+    //     start: line.x,
+    //     end: line.y,
+    // };
+    // let len_sq = line.start.distance_squared(line.end);
+    // let t = ((point - line.start).dot(line.end - line.start) / len_sq).clamped(0.0, 1.0);
+    // let pos = line.start + (line.end - line.start) * t;
+    // return Some((t, pos, pos.distance_squared(point)));
 
     // let curve = QuadraticBezier2 {
     //     start: spline.x,
@@ -346,19 +346,25 @@ pub fn quadratic_nearest_point(
     let min_root = roots
         .iter()
         .copied()
+        // .chain((0..30).map(|i| i as f64 / 30.0))
         .filter_map(|root| {
             let river_point = spline.x * root * root + spline.y * root + spline.z;
             let river_zero = spline.z;
             let river_one = spline.x + spline.y + spline.z;
             if root > 0.0 && root < 1.0 {
                 Some((root, river_point))
-            } else if river_point.distance_squared(river_zero) < 0.5 {
-                Some((root, /*river_point*/ river_zero))
-            } else if river_point.distance_squared(river_one) < 0.5 {
-                Some((root, /*river_point*/ river_one))
             } else {
-                None
+                let root = root.clamped(0.0, 1.0);
+                let river_point = spline.x * root * root + spline.y * root + spline.z;
+                Some((root, river_point))
             }
+            // } else if river_point.distance_squared(river_zero) < 0.5 {
+            //     Some((root, /*river_point*/ river_zero))
+            // } else if river_point.distance_squared(river_one) < 0.5 {
+            //     Some((root, /*river_point*/ river_one))
+            // } else {
+            //     None
+            // }
         })
         .map(|(root, river_point)| {
             let river_distance = river_point.distance_squared(point);
@@ -372,4 +378,9 @@ pub fn quadratic_nearest_point(
                 .unwrap()
         });
     min_root
+        // .map(|(t, pt, dist)| {
+        //     let t = t.clamped(0.0, 1.0);
+        //     let pos = spline.x * t * t + spline.y * t + spline.z;
+        //     (t, pos, pos.distance_squared(point))
+        // })
 }

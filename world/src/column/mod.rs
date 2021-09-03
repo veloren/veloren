@@ -145,6 +145,13 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                         let (t, pos) = curve.binary_search_point_by_steps(wposf, 16, 0.001);
                         Some((t, pos, curve.evaluate(t).distance_squared(wposf)))
                     }*/ {
+                        let (t, pt, dist) = if dist > wposf.distance_squared(neighbor_wpos) {
+                            (0.0, neighbor_wpos, wposf.distance_squared(neighbor_wpos))
+                        } else if dist > wposf.distance_squared(downhill_wpos) {
+                            (1.0, downhill_wpos, wposf.distance_squared(downhill_wpos))
+                        } else {
+                            (t, pt, dist)
+                        };
                         (direction, coeffs, downhill_chunk, t, pt, dist.sqrt())
                     } else {
                         let ndist = wposf.distance_squared(neighbor_wpos);
@@ -325,7 +332,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         }
 
         let water_level = neighbor_river_data.clone().fold(
-            WeightedSum::default(),
+            WeightedSum::default().with_max(CONFIG.sea_level + 2.0), // TODO: Don't add 2.0
             |water_level, (river_chunk_idx, river_chunk, river, dist_info)| match (river.river_kind, dist_info) {
                 (
                     Some(kind/*RiverKind::River { cross_section }*/),
@@ -345,7 +352,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                             water_level.with(river_water_alt, near_river)
                         },
                         // Slightly wider threshold is chosen in case the lake bounds are a bit wrong
-                        RiverKind::Lake { .. } if river_edge_dist <= 16.0 => {
+                        RiverKind::Lake { .. } if river_edge_dist <= 8.0 => {
                             let lake_water_alt = Lerp::lerp(
                                 river_chunk.alt.max(river_chunk.water_alt),
                                 downhill_chunk.alt.max(downhill_chunk.water_alt),
@@ -399,7 +406,9 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                             const MIN_DEPTH: f32 = 0.5;
                             let near_centre = ((river_dist / (river_width * 0.5)) as f32).min(1.0).mul(f32::consts::PI).cos().add(1.0).mul(0.5);;
                             let riverbed_depth = near_centre * river_width as f32 * 0.35 + MIN_DEPTH;
-                            alt.with_min(water_alt - riverbed_depth)
+                            // Handle rivers debouching into the ocean nicely by 'flattening' their bottom
+                            let riverbed_alt = (water_alt - riverbed_depth).max(riverless_alt.min(CONFIG.sea_level));
+                            alt.with_min(riverbed_alt)
                         } else {
                             const GORGE: f32 = 0.5;
                             const BANK_SCALE: f32 = 24.0;
@@ -1223,7 +1232,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                     // Land
                     ground,
                     // Beach
-                    ((ocean_level - 1.0) / 2.0).max(0.0),
+                    ((ocean_level - 0.0) / 2.0).max(0.0),
                 ),
                 surface_veg,
             ),

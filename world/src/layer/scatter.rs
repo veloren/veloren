@@ -603,7 +603,8 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
     ];
 
     canvas.foreach_col(|canvas, wpos2d, col| {
-        let underwater = col.alt < col.water_level;
+        // TODO: Why do we need to add 1.0 here? Idk...
+        let underwater = col.alt.floor() + 1.0 < col.water_level.floor();
 
         let kind = scatter
             .iter()

@@ -152,7 +152,7 @@ impl<'a> BlockGen<'a> {
                 .div(grass_depth)
                 .sqrt();
             // Surface
-            Some(if water_level.floor() > height {
+            Some(if water_level > height.ceil() {
                 Block::new(
                     BlockKind::Sand,
                     sub_surface_color.map(|e| (e * 255.0) as u8),
