@@ -1,7 +1,5 @@
-use crate::character::CharacterId;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::comp::Pos;
-use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 #[cfg(not(target_arch = "wasm32"))]
 use specs::Entity;
@@ -77,27 +75,11 @@ pub struct PlayerPhysicsSettings {
     pub settings: hashbrown::HashMap<uuid::Uuid, PlayerPhysicsSetting>,
 }
 
-/// Store of BattleMode cooldowns for players while they go offline
-#[derive(Clone, Default, Debug)]
-pub struct BattleModeBuffer {
-    map: HashMap<CharacterId, (BattleMode, Time)>,
-}
-
-impl BattleModeBuffer {
-    pub fn push(&mut self, char_id: CharacterId, save: (BattleMode, Time)) {
-        self.map.insert(char_id, save);
-    }
-
-    pub fn pop(&mut self, char_id: &CharacterId) -> Option<(BattleMode, Time)> {
-        self.map.remove(char_id)
-    }
-}
-
 /// Describe how players interact with other players.
 ///
 /// May be removed when we will discover better way
 /// to handle duels and murders
-#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, Deserialize, Serialize)]
 pub enum BattleMode {
     PvP,
     PvE,

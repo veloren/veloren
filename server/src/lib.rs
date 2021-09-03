@@ -64,12 +64,13 @@ use crate::{
 use common::grid::Grid;
 use common::{
     assets::AssetExt,
+    character::CharacterId,
     cmd::ChatCommand,
     comp,
     comp::{item::MaterialStatManifest, CharacterAbility},
     event::{EventBus, ServerEvent},
     recipe::default_recipe_book,
-    resources::{BattleModeBuffer, TimeOfDay},
+    resources::{BattleMode, Time, TimeOfDay},
     rtsim::RtSimEntity,
     slowjob::SlowJobPool,
     terrain::{TerrainChunk, TerrainChunkSize},
@@ -109,6 +110,7 @@ use crate::{
     persistence::{DatabaseSettings, SqlLogMode},
     sys::terrain,
 };
+use hashbrown::HashMap;
 use std::sync::RwLock;
 
 #[cfg(feature = "plugins")]
@@ -151,6 +153,26 @@ enum DisconnectType {
 // Start of Tick, used for metrics
 #[derive(Copy, Clone)]
 pub struct TickStart(Instant);
+
+/// Store of BattleMode cooldowns for players while they go offline
+#[derive(Clone, Default, Debug)]
+pub struct BattleModeBuffer {
+    map: HashMap<CharacterId, (BattleMode, Time)>,
+}
+
+impl BattleModeBuffer {
+    pub fn push(&mut self, char_id: CharacterId, save: (BattleMode, Time)) {
+        self.map.insert(char_id, save);
+    }
+
+    pub fn get(&self, char_id: &CharacterId) -> Option<&(BattleMode, Time)> {
+        self.map.get(char_id)
+    }
+
+    pub fn pop(&mut self, char_id: &CharacterId) -> Option<(BattleMode, Time)> {
+        self.map.remove(char_id)
+    }
+}
 
 pub struct Server {
     state: State,

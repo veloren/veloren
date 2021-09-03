@@ -2,7 +2,6 @@ use crate::{
     client::Client,
     login_provider::{LoginProvider, PendingLogin},
     metrics::PlayerMetrics,
-    settings::ServerBattleMode,
     EditableSettings, Settings,
 };
 use common::{
@@ -176,12 +175,8 @@ impl<'a> System<'a> for Sys {
 
                 // NOTE: this is just default value.
                 //
-                // It will be overwritten in ServerExt::update_character_data
-                // from stored last battlemode change if such exists.
-                let battle_mode = match read_data.settings.battle_mode {
-                    ServerBattleMode::Global(mode) => mode,
-                    ServerBattleMode::PerPlayer { default: mode } => mode,
-                };
+                // It will be overwritten in ServerExt::update_character_data.
+                let battle_mode = read_data.settings.battle_mode.default_mode();
                 let player = Player::new(username, battle_mode, uuid, None);
 
                 let admin = read_data.editable_settings.admins.get(&uuid);

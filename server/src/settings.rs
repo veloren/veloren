@@ -53,6 +53,13 @@ impl ServerBattleMode {
             ServerBattleMode::PerPlayer { .. } => true,
         }
     }
+
+    pub fn default_mode(&self) -> BattleMode {
+        match self {
+            ServerBattleMode::Global(mode) => *mode,
+            ServerBattleMode::PerPlayer { default: mode } => *mode,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

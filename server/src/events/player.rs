@@ -1,12 +1,11 @@
 use super::Event;
 use crate::{
     client::Client, metrics::PlayerMetrics, persistence::character_updater::CharacterUpdater,
-    presence::Presence, state_ext::StateExt, Server,
+    presence::Presence, state_ext::StateExt, BattleModeBuffer, Server,
 };
 use common::{
     comp,
     comp::{group, pet::is_tameable},
-    resources::BattleModeBuffer,
     uid::{Uid, UidAllocator},
 };
 use common_base::span;
@@ -204,6 +203,7 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
         Some(player_uid),
         Some(player_info),
         mut character_updater,
+        mut battlemode_buffer,
     ) = (
         state.read_storage::<Presence>().get(entity),
         state.read_storage::<comp::SkillSet>().get(entity),
@@ -211,6 +211,7 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
         state.read_storage::<Uid>().get(entity),
         state.read_storage::<comp::Player>().get(entity),
         state.ecs().fetch_mut::<CharacterUpdater>(),
+        state.ecs().fetch_mut::<BattleModeBuffer>(),
     ) {
         match presence.kind {
             PresenceKind::Character(char_id) => {
@@ -220,7 +221,6 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
                     .get(entity)
                     .cloned();
                 // Store last battle mode change
-                let mut battlemode_buffer = state.ecs().fetch_mut::<BattleModeBuffer>();
                 if let Some(change) = player_info.last_battlemode_change {
                     let mode = player_info.battle_mode;
                     let save = (mode, change);

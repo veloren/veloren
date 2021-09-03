@@ -5,7 +5,7 @@ use crate::{
     presence::{Presence, RepositionOnChunkLoad},
     settings::Settings,
     sys::sentinel::DeletedEntities,
-    wiring, SpawnPoint,
+    wiring, BattleModeBuffer, SpawnPoint,
 };
 use common::{
     character::CharacterId,
@@ -16,7 +16,7 @@ use common::{
         Group, Inventory, Poise,
     },
     effect::Effect,
-    resources::{BattleModeBuffer, TimeOfDay},
+    resources::TimeOfDay,
     slowjob::SlowJobPool,
     uid::{Uid, UidAllocator},
 };
@@ -575,12 +575,25 @@ impl StateExt for State {
                 ..
             }) = presence
             {
-                let mut battlemode_buffer = self.ecs().fetch_mut::<BattleModeBuffer>();
-                if let Some((mode, change)) = battlemode_buffer.pop(char_id) {
-                    let mut players = self.ecs().write_storage::<comp::Player>();
+                let battlemode_buffer = self.ecs().fetch::<BattleModeBuffer>();
+                let mut players = self.ecs().write_storage::<comp::Player>();
+                if let Some((mode, change)) = battlemode_buffer.get(char_id) {
+                    if let Some(mut player_info) = players.get_mut(entity) {
+                        player_info.battle_mode = *mode;
+                        player_info.last_battlemode_change = Some(*change);
+                    }
+                } else {
+                    // FIXME:
+                    // ???
+                    //
+                    // This probably shouldn't exist,
+                    // but without this code, character gets battle_mode from
+                    // another character on this account.
+                    let settings = self.ecs().read_resource::<Settings>();
+                    let mode = settings.battle_mode.default_mode();
                     if let Some(mut player_info) = players.get_mut(entity) {
                         player_info.battle_mode = mode;
-                        player_info.last_battlemode_change = Some(change);
+                        player_info.last_battlemode_change = None;
                     }
                 }
             }
