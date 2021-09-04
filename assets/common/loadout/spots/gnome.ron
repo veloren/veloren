@@ -1,0 +1,7 @@
+({
+    Armor(Head): Item("common.items.npc_armor.biped_small.gnome.head.gnome"),
+    Armor(Feet): Item("common.items.npc_armor.biped_small.gnome.foot.gnome"),
+    Armor(Hands): Item("common.items.npc_armor.biped_small.gnome.hand.gnome"),
+    Armor(Chest): Item("common.items.npc_armor.biped_small.gnome.chest.gnome"),
+    Armor(Legs): Item("common.items.npc_armor.biped_small.gnome.pants.gnome"),
+})

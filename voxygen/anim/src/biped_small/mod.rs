@@ -1,4 +1,5 @@
 pub mod alpha;
+pub mod beam;
 pub mod dash;
 pub mod idle;
 pub mod run;
@@ -8,8 +9,8 @@ pub mod wield;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, dash::DashAnimation, idle::IdleAnimation, run::RunAnimation,
-    shoot::ShootAnimation, stunned::StunnedAnimation, wield::WieldAnimation,
+    alpha::AlphaAnimation, beam::BeamAnimation, dash::DashAnimation, idle::IdleAnimation,
+    run::RunAnimation, shoot::ShootAnimation, stunned::StunnedAnimation, wield::WieldAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};

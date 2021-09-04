@@ -170,6 +170,14 @@
           vox_spec: ("armor.hide.savage.chest", (-7.0, -4.0, 1.0)),
           color: None
         ),
+        "Witch": (
+          vox_spec: ("armor.witch.chest", (-7.0, -4.0, 2.0)),
+          color: None
+        ),
+        "Pirate": (
+          vox_spec: ("armor.pirate.chest", (-7.0, -4.0, 2.0)),
+          color: None
+        ),
         "Linen": (
           vox_spec: ("armor.cloth.linen.chest", (-7.0, -4.0, 2.0)),
           color: None
@@ -180,10 +188,6 @@
         ),
         "Silken": (
           vox_spec: ("armor.cloth.silken.chest", (-7.0, -4.0, 1.0)),
-          color: None
-        ),
-        "Witch": (
-          vox_spec: ("armor.witch.chest", (-7.0, -4.0, 1.0)),
           color: None
         ),
         "Druid": (

@@ -32,5 +32,9 @@
             vox_spec: ("armor.witch.hat", (-2.0, -2.0, 5.0)),
             color: None
         ),
+        (Human, "Pirate"): (
+            vox_spec: ("armor.pirate.hat", (-2.0, -2.0, 5.0)),
+            color: None
+        ),
     }
 ))

@@ -55,13 +55,14 @@ impl Animation for RollAnimation {
             Some(StageSection::Recover) => (1.0, 1.0, anim_time.powf(0.75)),
             _ => (0.0, 0.0, 0.0),
         };
-        let movement1 = movement1base * (1.0 - movement3);
+        let pullback = 1.0 - movement3;
+        let movement1 = movement1base * pullback;
         next.head.position = Vec3::new(
             0.0,
-            s_a.head.0 + 3.0 * movement1,
+            s_a.head.0 + 1.5 * movement1,
             s_a.head.1 - 1.0 * movement1,
         );
-        next.head.orientation = Quaternion::rotation_x(-0.75 * movement1base + 0.75 * movement2);
+        next.head.orientation = Quaternion::rotation_x(-0.3 * movement1);
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0, -9.5 * movement1 + s_a.chest.1);
         next.chest.orientation = Quaternion::rotation_x(-0.2 * movement1);

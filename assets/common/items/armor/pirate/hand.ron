@@ -1,8 +1,8 @@
 ItemDef(
-    name: "Witch Boots",
+    name: "Pirate Gloves",
     description: "",
     kind: Armor((
-        kind: Foot("Witch"),
+        kind: Hand("Pirate"),
         stats: (
             protection: Normal(16.0),
             poise_resilience: Normal(2.0),

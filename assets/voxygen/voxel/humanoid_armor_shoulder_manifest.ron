@@ -301,6 +301,26 @@
                 color: None
             )
         ),
+        "Witch": (
+            left: (
+                vox_spec: ("armor.witch.shoulder", (-5.0, -4.0 , -2.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.witch.shoulder", (-1.0, -4.0 , -2.0)),
+            color: None
+            )
+        ),
+        "Pirate": (
+            left: (
+                vox_spec: ("armor.pirate.shoulder", (-5.0, -4.0 , -2.0)),
+                color: None
+            ),
+            right: (
+            vox_spec: ("armor.empty", (-3.0, -3.5, 1.0)),
+            color: None
+            )
+        ),
         "Linen": (
             left: (
                 vox_spec: ("armor.cloth.linen.shoulder", (-3.5, -4.0 , -1.0)),
@@ -328,16 +348,6 @@
             ),
             right: (
                 vox_spec: ("armor.cloth.silken.shoulder", (-1.0, -4.0, -2.0)),
-                color: None
-            )
-        ),
-        "Witch": (
-            left: (
-                vox_spec: ("armor.witch.shoulder", (-5.0, -4.0 , -2.0)),
-                color: None
-            ),
-            right: (
-                vox_spec: ("armor.witch.shoulder", (-1.0, -4.0, -2.0)),
                 color: None
             )
         ),

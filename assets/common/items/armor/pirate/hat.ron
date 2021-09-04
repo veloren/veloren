@@ -1,8 +1,8 @@
 ItemDef(
-    name: "Witch Cape",
+    name: "Pirate Hat",
     description: "",
     kind: Armor((
-        kind: Back("Witch"),
+        kind: Head("Pirate"),
         stats: (
             protection: Normal(32.0),
             poise_resilience: Normal(5.0),

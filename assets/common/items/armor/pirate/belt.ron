@@ -1,8 +1,8 @@
 ItemDef(
-    name: "Witch Belt",
+    name: "Pirate Belt",
     description: "",
     kind: Armor((
-        kind: Belt("Witch"),
+        kind: Belt("Pirate"),
         stats: (
             protection: Normal(8.0),
             poise_resilience: Normal(1.0),
