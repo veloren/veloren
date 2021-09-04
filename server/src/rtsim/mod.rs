@@ -136,28 +136,41 @@ pub fn init(
                 brain: Default::default(),
             });
         }
-        for site in world
+        for (site_id, site) in world
             .civs()
             .sites
             .iter()
-            .filter_map(|(_, site)| site.site_tmp.map(|id| &index.sites[id]))
+            .filter_map(|(site_id, site)| site.site_tmp.map(|id| (site_id, &index.sites[id])))
         {
             use world::site::SiteKind;
             match &site.kind {
                 SiteKind::Dungeon(dungeon) => match dungeon.dungeon_difficulty() {
                     Some(5) => {
                         let pos = site.get_origin();
-
-                        for _ in 0..25 {
-                            rtsim.entities.insert(Entity {
-                                is_loaded: false,
-                                pos: Vec3::from(pos.map(|e| e as f32)),
-                                seed: thread_rng().gen(),
-                                controller: RtSimController::default(),
-                                last_time_ticked: 0.0,
-                                kind: RtSimEntityKind::Cultist,
-                                brain: Brain::idle(),
-                            });
+                        if let Some(nearest_village) = world
+                            .civs()
+                            .sites
+                            .iter()
+                            .filter(|s| s.1.is_settlement())
+                            .min_by_key(|(_, site)| {
+                                let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                                wpos.map(|e| e as f32)
+                                    .distance_squared(pos.map(|x| x as f32))
+                                    as u32
+                            })
+                            .map(|(id, _)| id)
+                        {
+                            for _ in 0..25 {
+                                rtsim.entities.insert(Entity {
+                                    is_loaded: false,
+                                    pos: Vec3::from(pos.map(|e| e as f32)),
+                                    seed: thread_rng().gen(),
+                                    controller: RtSimController::default(),
+                                    last_time_ticked: 0.0,
+                                    kind: RtSimEntityKind::Cultist,
+                                    brain: Brain::raid(site_id, nearest_village),
+                                });
+                            }
                         }
                     },
                     _ => {},

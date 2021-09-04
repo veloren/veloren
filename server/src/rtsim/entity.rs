@@ -475,6 +475,58 @@ impl Entity {
                     Travel::Lost
                 }
             },
+            Travel::DirectRaid {
+                target_id,
+                home_id,
+                raid_complete,
+            } => {
+                let dest_site = if raid_complete {
+                    &world.civs().sites[home_id]
+                } else {
+                    &world.civs().sites[target_id]
+                };
+                let destination_name = dest_site
+                    .site_tmp
+                    .map_or("".to_string(), |id| index.sites[id].name().to_string());
+
+                let wpos = dest_site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                let dist = wpos.map(|e| e as f32).distance_squared(self.pos.xy()) as u32;
+
+                if dist < 64_u32.pow(2) {
+                    Travel::DirectRaid {
+                        target_id,
+                        home_id,
+                        raid_complete: !raid_complete,
+                    }
+                } else {
+                    let travel_to = self.pos.xy()
+                        + Vec3::from(
+                            (wpos.map(|e| e as f32 + 0.5) - self.pos.xy())
+                                .try_normalized()
+                                .unwrap_or_else(Vec2::zero),
+                        ) * 64.0;
+                    let travel_to_alt = world
+                        .sim()
+                        .get_alt_approx(travel_to.map(|e| e as i32))
+                        .unwrap_or(0.0) as i32;
+                    let travel_to = terrain
+                        .find_space(Vec3::new(
+                            travel_to.x as i32,
+                            travel_to.y as i32,
+                            travel_to_alt,
+                        ))
+                        .map(|e| e as f32)
+                        + Vec3::new(0.5, 0.5, 0.0);
+
+                    self.controller.travel_to = Some((travel_to, destination_name));
+                    self.controller.speed_factor = 0.70;
+                    Travel::DirectRaid {
+                        target_id,
+                        home_id,
+                        raid_complete,
+                    }
+                }
+            },
             Travel::Idle => Travel::Idle,
         };
 
@@ -517,6 +569,12 @@ enum Travel {
         progress: usize,
         reversed: bool,
     },
+    // Move directly towards a target site, then head back to a home territory
+    DirectRaid {
+        target_id: Id<Site>,
+        home_id: Id<Site>,
+        raid_complete: bool,
+    },
     // For testing purposes
     Idle,
 }
@@ -540,6 +598,20 @@ impl Brain {
             begin: None,
             tgt: None,
             route: Travel::Idle,
+            last_visited: None,
+            memories: Vec::new(),
+        }
+    }
+
+    pub fn raid(home_id: Id<Site>, target_id: Id<Site>) -> Self {
+        Self {
+            begin: None,
+            tgt: None,
+            route: Travel::DirectRaid {
+                target_id,
+                home_id,
+                raid_complete: false,
+            },
             last_visited: None,
             memories: Vec::new(),
         }
