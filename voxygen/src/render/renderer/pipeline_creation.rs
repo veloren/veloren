@@ -13,39 +13,6 @@ use super::{
 use common_base::prof_span;
 use std::sync::Arc;
 
-/// Shader compiler
-pub struct Compiler {
-    glsl: naga::front::glsl::Parser,
-    validator: naga::valid::Validator,
-    spirv: naga::back::spv::Writer,
-}
-
-impl Compiler {
-    pub fn new() -> Self {
-        use naga::{
-            back::spv,
-            front::glsl,
-            valid::{Capabilities, ValidationFlags, Validator},
-        };
-
-        let glsl = glsl::Parser::default();
-        let validator = Validator::new(ValidationFlags::all(), Capabilities::all());
-        let options = spv::Options {
-            flags: spv::WriterFlags::DEBUG,
-            ..Default::default()
-        };
-        let spirv = spv::Writer::new(&options)
-            // Only happens if the options are invalid
-            .expect("Failed to create spirv emitter");
-
-        Compiler {
-            glsl,
-            validator,
-            spirv,
-        }
-    }
-}
-
 /// All the pipelines
 pub struct Pipelines {
     pub debug: debug::DebugPipeline,
@@ -164,6 +131,7 @@ impl ShaderModules {
         has_shadow_views: bool,
     ) -> Result<Self, RenderError> {
         prof_span!(_guard, "ShaderModules::new");
+        use shaderc::{CompileOptions, Compiler, OptimizationLevel, ResolvedInclude, ShaderKind};
 
         let constants = shaders.get("include.constants").unwrap();
         let globals = shaders.get("include.globals").unwrap();
@@ -248,30 +216,41 @@ impl ShaderModules {
             })
             .unwrap();
 
-        let mut context = glsl_include::Context::new();
-        context.include("constants.glsl", &constants);
-        context.include("globals.glsl", &globals.0);
-        context.include("shadows.glsl", &shadows.0);
-        context.include("sky.glsl", &sky.0);
-        context.include("light.glsl", &light.0);
-        context.include("srgb.glsl", &srgb.0);
-        context.include("random.glsl", &random.0);
-        context.include("lod.glsl", &lod.0);
-        context.include("anti-aliasing.glsl", &anti_alias.0);
-        context.include("cloud.glsl", &cloud.0);
+        let mut compiler = Compiler::new().ok_or(RenderError::ErrorInitializingCompiler)?;
+        let mut options = CompileOptions::new().ok_or(RenderError::ErrorInitializingCompiler)?;
+        options.set_optimization_level(OptimizationLevel::Performance);
+        options.set_forced_version_profile(430, shaderc::GlslProfile::Core);
+        options.set_include_callback(move |name, _, shader_name, _| {
+            Ok(ResolvedInclude {
+                resolved_name: name.to_string(),
+                content: match name {
+                    "constants.glsl" => constants.clone(),
+                    "globals.glsl" => globals.0.to_owned(),
+                    "shadows.glsl" => shadows.0.to_owned(),
+                    "sky.glsl" => sky.0.to_owned(),
+                    "light.glsl" => light.0.to_owned(),
+                    "srgb.glsl" => srgb.0.to_owned(),
+                    "random.glsl" => random.0.to_owned(),
+                    "lod.glsl" => lod.0.to_owned(),
+                    "anti-aliasing.glsl" => anti_alias.0.to_owned(),
+                    "cloud.glsl" => cloud.0.to_owned(),
+                    other => {
+                        return Err(format!(
+                            "Include {} in {} is not defined",
+                            other, shader_name
+                        ));
+                    },
+                },
+            })
+        });
 
-        let mut compiler = Compiler::new();
-
-        let mut create_shader = |name, stage| {
+        let mut create_shader = |name, kind| {
             let glsl = &shaders
                 .get(name)
                 .unwrap_or_else(|| panic!("Can't retrieve shader: {}", name))
                 .0;
             let file_name = format!("{}.glsl", name);
-            let source = context
-                .expand(glsl)
-                .map_err(|err| (file_name.as_str(), err))?;
-            create_shader_module(device, &file_name, &source, stage, &mut compiler)
+            create_shader_module(device, &mut compiler, glsl, kind, &file_name, &options)
         };
 
         let selected_fluid_shader = ["fluid-frag.", match pipeline_modes.fluid {
@@ -281,50 +260,47 @@ impl ShaderModules {
         .concat();
 
         Ok(Self {
+            skybox_vert: create_shader("skybox-vert", ShaderKind::Vertex)?,
+            skybox_frag: create_shader("skybox-frag", ShaderKind::Fragment)?,
+            debug_vert: create_shader("debug-vert", ShaderKind::Vertex)?,
+            debug_frag: create_shader("debug-frag", ShaderKind::Fragment)?,
+            figure_vert: create_shader("figure-vert", ShaderKind::Vertex)?,
+            figure_frag: create_shader("figure-frag", ShaderKind::Fragment)?,
+            terrain_vert: create_shader("terrain-vert", ShaderKind::Vertex)?,
+            terrain_frag: create_shader("terrain-frag", ShaderKind::Fragment)?,
+            fluid_vert: create_shader("fluid-vert", ShaderKind::Vertex)?,
+            fluid_frag: create_shader(&selected_fluid_shader, ShaderKind::Fragment)?,
+            sprite_vert: create_shader("sprite-vert", ShaderKind::Vertex)?,
+            sprite_frag: create_shader("sprite-frag", ShaderKind::Fragment)?,
+            particle_vert: create_shader("particle-vert", ShaderKind::Vertex)?,
+            particle_frag: create_shader("particle-frag", ShaderKind::Fragment)?,
+            ui_vert: create_shader("ui-vert", ShaderKind::Vertex)?,
+            ui_frag: create_shader("ui-frag", ShaderKind::Fragment)?,
+            lod_terrain_vert: create_shader("lod-terrain-vert", ShaderKind::Vertex)?,
+            lod_terrain_frag: create_shader("lod-terrain-frag", ShaderKind::Fragment)?,
+            clouds_vert: create_shader("clouds-vert", ShaderKind::Vertex)?,
+            clouds_frag: create_shader("clouds-frag", ShaderKind::Fragment)?,
             dual_downsample_filtered_frag: create_shader(
                 "dual-downsample-filtered-frag",
-                naga::ShaderStage::Fragment,
+                ShaderKind::Fragment,
             )?,
-            dual_downsample_frag: create_shader(
-                "dual-downsample-frag",
-                naga::ShaderStage::Fragment,
-            )?,
-            dual_upsample_frag: create_shader("dual-upsample-frag", naga::ShaderStage::Fragment)?,
-            skybox_vert: create_shader("skybox-vert", naga::ShaderStage::Vertex)?,
-            skybox_frag: create_shader("skybox-frag", naga::ShaderStage::Fragment)?,
-            debug_vert: create_shader("debug-vert", naga::ShaderStage::Vertex)?,
-            debug_frag: create_shader("debug-frag", naga::ShaderStage::Fragment)?,
-            figure_vert: create_shader("figure-vert", naga::ShaderStage::Vertex)?,
-            figure_frag: create_shader("figure-frag", naga::ShaderStage::Fragment)?,
-            terrain_vert: create_shader("terrain-vert", naga::ShaderStage::Vertex)?,
-            terrain_frag: create_shader("terrain-frag", naga::ShaderStage::Fragment)?,
-            fluid_vert: create_shader("fluid-vert", naga::ShaderStage::Vertex)?,
-            fluid_frag: create_shader(&selected_fluid_shader, naga::ShaderStage::Fragment)?,
-            sprite_vert: create_shader("sprite-vert", naga::ShaderStage::Vertex)?,
-            sprite_frag: create_shader("sprite-frag", naga::ShaderStage::Fragment)?,
-            particle_vert: create_shader("particle-vert", naga::ShaderStage::Vertex)?,
-            particle_frag: create_shader("particle-frag", naga::ShaderStage::Fragment)?,
-            ui_vert: create_shader("ui-vert", naga::ShaderStage::Vertex)?,
-            ui_frag: create_shader("ui-frag", naga::ShaderStage::Fragment)?,
-            lod_terrain_vert: create_shader("lod-terrain-vert", naga::ShaderStage::Vertex)?,
-            lod_terrain_frag: create_shader("lod-terrain-frag", naga::ShaderStage::Fragment)?,
-            clouds_vert: create_shader("clouds-vert", naga::ShaderStage::Vertex)?,
-            clouds_frag: create_shader("clouds-frag", naga::ShaderStage::Fragment)?,
-            postprocess_vert: create_shader("postprocess-vert", naga::ShaderStage::Vertex)?,
-            postprocess_frag: create_shader("postprocess-frag", naga::ShaderStage::Fragment)?,
-            blit_vert: create_shader("blit-vert", naga::ShaderStage::Vertex)?,
-            blit_frag: create_shader("blit-frag", naga::ShaderStage::Fragment)?,
+            dual_downsample_frag: create_shader("dual-downsample-frag", ShaderKind::Fragment)?,
+            dual_upsample_frag: create_shader("dual-upsample-frag", ShaderKind::Fragment)?,
+            postprocess_vert: create_shader("postprocess-vert", ShaderKind::Vertex)?,
+            postprocess_frag: create_shader("postprocess-frag", ShaderKind::Fragment)?,
+            blit_vert: create_shader("blit-vert", ShaderKind::Vertex)?,
+            blit_frag: create_shader("blit-frag", ShaderKind::Fragment)?,
             point_light_shadows_vert: create_shader(
                 "point-light-shadows-vert",
-                naga::ShaderStage::Vertex,
+                ShaderKind::Vertex,
             )?,
             light_shadows_directed_vert: create_shader(
                 "light-shadows-directed-vert",
-                naga::ShaderStage::Vertex,
+                ShaderKind::Vertex,
             )?,
             light_shadows_figure_vert: create_shader(
                 "light-shadows-figure-vert",
-                naga::ShaderStage::Vertex,
+                ShaderKind::Vertex,
             )?,
         })
     }
@@ -332,57 +308,23 @@ impl ShaderModules {
 
 fn create_shader_module(
     device: &wgpu::Device,
-    file_name: &str,
+    compiler: &mut shaderc::Compiler,
     source: &str,
-    stage: naga::ShaderStage,
-    compiler: &mut Compiler,
+    kind: shaderc::ShaderKind,
+    file_name: &str,
+    options: &shaderc::CompileOptions,
 ) -> Result<wgpu::ShaderModule, RenderError> {
     prof_span!(_guard, "create_shader_modules");
+    use std::borrow::Cow;
 
-    use codespan_reporting::{
-        diagnostic::{Diagnostic, Label},
-        files::SimpleFile,
-        term::{
-            self,
-            termcolor::{ColorChoice, StandardStream},
-        },
-    };
-    use naga::front::glsl;
+    let spv = compiler
+        .compile_into_spirv(source, kind, file_name, "main", Some(options))
+        .map_err(|e| (file_name, e))?;
 
-    // Parse
-    let options = glsl::Options::from(stage);
-    let module = compiler.glsl.parse(&options, source).map_err(|errors| {
-        let files = SimpleFile::new(file_name, source);
-        let config = codespan_reporting::term::Config::default();
-        let writer = StandardStream::stderr(ColorChoice::Auto);
-
-        for err in errors {
-            let diagnostic = Diagnostic::error()
-                .with_message(err.kind.to_string())
-                .with_labels(vec![Label::primary((), err.meta)]);
-
-            let _ = term::emit(&mut writer.lock(), &config, &files, &diagnostic);
-        }
-
-        RenderError::ParserError(file_name.to_string())
-    })?;
-
-    // Validate
-    let info = compiler
-        .validator
-        .validate(&module)
-        .map_err(|err| (file_name, err))?;
-
-    // Emit
-    let mut spv = Vec::new();
-    compiler
-        .spirv
-        .write(&module, &info, &mut spv)
-        .map_err(|err| (file_name, err))?;
-
+    let label = [file_name, "\n\n", source].concat();
     Ok(device.create_shader_module(&wgpu::ShaderModuleDescriptor {
-        label: Some(file_name),
-        source: wgpu::ShaderSource::SpirV(spv.into()),
+        label: Some(&label),
+        source: wgpu::ShaderSource::SpirV(Cow::Borrowed(spv.as_binary())),
         flags: wgpu::ShaderFlags::empty(),
         // TODO: renable // flags: wgpu::ShaderFlags::VALIDATION,
     }))
