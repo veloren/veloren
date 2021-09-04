@@ -146,7 +146,10 @@ impl<'a> System<'a> for Sys {
                     body,
                     agent,
                     alignment: match body {
-                        comp::Body::Humanoid(_) => comp::Alignment::Npc,
+                        comp::Body::Humanoid(_) => match entity.kind {
+                            RtSimEntityKind::Random => comp::Alignment::Npc,
+                            RtSimEntityKind::Cultist => comp::Alignment::Enemy,
+                        },
                         comp::Body::BirdLarge(bird_large) => match bird_large.species {
                             comp::bird_large::Species::Roc => comp::Alignment::Enemy,
                             comp::bird_large::Species::Cockatrice => comp::Alignment::Enemy,

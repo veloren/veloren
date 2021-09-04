@@ -21,8 +21,13 @@ pub struct Entity {
     pub seed: u32,
     pub last_time_ticked: f64,
     pub controller: RtSimController,
-
+    pub kind: RtSimEntityKind,
     pub brain: Brain,
+}
+
+pub enum RtSimEntityKind {
+    Random,
+    Cultist,
 }
 
 const PERM_SPECIES: u32 = 0;
@@ -35,22 +40,34 @@ impl Entity {
     pub fn rng(&self, perm: u32) -> impl Rng { RandomPerm::new(self.seed + perm) }
 
     pub fn get_body(&self) -> comp::Body {
-        match self.rng(PERM_GENUS).gen::<f32>() {
-            // we want 5% airships, 45% birds, 50% humans
-            x if x < 0.05 => comp::ship::Body::random_with(&mut self.rng(PERM_BODY)).into(),
-            x if x < 0.45 => {
-                let species = *(&comp::bird_medium::ALL_SPECIES)
-                    .choose(&mut self.rng(PERM_SPECIES))
-                    .unwrap();
-                comp::bird_medium::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
+        match self.kind {
+            RtSimEntityKind::Random => {
+                match self.rng(PERM_GENUS).gen::<f32>() {
+                    // we want 5% airships, 45% birds, 50% humans
+                    x if x < 0.05 => comp::ship::Body::random_with(&mut self.rng(PERM_BODY)).into(),
+                    x if x < 0.45 => {
+                        let species = *(&comp::bird_medium::ALL_SPECIES)
+                            .choose(&mut self.rng(PERM_SPECIES))
+                            .unwrap();
+                        comp::bird_medium::Body::random_with(&mut self.rng(PERM_BODY), &species)
+                            .into()
+                    },
+                    x if x < 0.50 => {
+                        let species = *(&comp::bird_large::ALL_SPECIES)
+                            .choose(&mut self.rng(PERM_SPECIES))
+                            .unwrap();
+                        comp::bird_large::Body::random_with(&mut self.rng(PERM_BODY), &species)
+                            .into()
+                    },
+                    _ => {
+                        let species = *(&comp::humanoid::ALL_SPECIES)
+                            .choose(&mut self.rng(PERM_SPECIES))
+                            .unwrap();
+                        comp::humanoid::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
+                    },
+                }
             },
-            x if x < 0.50 => {
-                let species = *(&comp::bird_large::ALL_SPECIES)
-                    .choose(&mut self.rng(PERM_SPECIES))
-                    .unwrap();
-                comp::bird_large::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
-            },
-            _ => {
+            RtSimEntityKind::Cultist => {
                 let species = *(&comp::humanoid::ALL_SPECIES)
                     .choose(&mut self.rng(PERM_SPECIES))
                     .unwrap();
@@ -60,30 +77,47 @@ impl Entity {
     }
 
     pub fn get_name(&self) -> String {
-        use common::{generation::get_npc_name, npc::NPC_NAMES};
-        let npc_names = NPC_NAMES.read();
-        match self.get_body() {
-            comp::Body::BirdMedium(b) => {
-                get_npc_name(&npc_names.bird_medium, b.species).to_string()
+        match self.kind {
+            RtSimEntityKind::Random => {
+                use common::{generation::get_npc_name, npc::NPC_NAMES};
+                let npc_names = NPC_NAMES.read();
+                match self.get_body() {
+                    comp::Body::BirdMedium(b) => {
+                        get_npc_name(&npc_names.bird_medium, b.species).to_string()
+                    },
+                    comp::Body::BirdLarge(b) => {
+                        get_npc_name(&npc_names.bird_large, b.species).to_string()
+                    },
+                    comp::Body::Dragon(b) => get_npc_name(&npc_names.dragon, b.species).to_string(),
+                    comp::Body::Humanoid(b) => {
+                        get_npc_name(&npc_names.humanoid, b.species).to_string()
+                    },
+                    comp::Body::Ship(_) => "Veloren Air".to_string(),
+                    //TODO: finish match as necessary
+                    _ => unimplemented!(),
+                }
             },
-            comp::Body::BirdLarge(b) => get_npc_name(&npc_names.bird_large, b.species).to_string(),
-            comp::Body::Dragon(b) => get_npc_name(&npc_names.dragon, b.species).to_string(),
-            comp::Body::Humanoid(b) => get_npc_name(&npc_names.humanoid, b.species).to_string(),
-            comp::Body::Ship(_) => "Veloren Air".to_string(),
-            //TODO: finish match as necessary
-            _ => unimplemented!(),
+            RtSimEntityKind::Cultist => "Cultist Raider".to_string(),
         }
     }
 
     pub fn get_loadout(&self) -> comp::inventory::loadout::Loadout {
         let mut rng = self.rng(PERM_LOADOUT);
-
-        LoadoutBuilder::from_asset_expect("common.loadout.world.traveler", Some(&mut rng))
-            .bag(
-                comp::inventory::slot::ArmorSlot::Bag1,
-                Some(comp::inventory::loadout_builder::make_potion_bag(100)),
+        match self.kind {
+            RtSimEntityKind::Random => {
+                LoadoutBuilder::from_asset_expect("common.loadout.world.traveler", Some(&mut rng))
+                    .bag(
+                        comp::inventory::slot::ArmorSlot::Bag1,
+                        Some(comp::inventory::loadout_builder::make_potion_bag(100)),
+                    )
+                    .build()
+            },
+            RtSimEntityKind::Cultist => LoadoutBuilder::from_asset_expect(
+                "common.loadout.dungeon.tier-5.cultist",
+                Some(&mut rng),
             )
-            .build()
+            .build(),
+        }
     }
 
     pub fn tick(&mut self, time: &Time, terrain: &TerrainGrid, world: &World, index: &IndexRef) {
