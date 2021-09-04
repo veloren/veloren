@@ -322,23 +322,23 @@ pub fn quadratic_nearest_point(
 
     // Cubic
 
-    let ctrl_at = |t: f64, end: f64| {
-        let a = eval_at(end);
-        let b = eval_at(Lerp::lerp(end, t, 0.1));
-        let dir = (b - a).normalized();
-        let exact = eval_at(t);
-        a + dir * exact.distance(a)
-    };
-    let curve = CubicBezier2 {
-        start: line.x,
-        ctrl0: ctrl_at(0.33, 0.0),
-        ctrl1: ctrl_at(0.66, 1.0),
-        end: line.y,
-    };
-    let (t, pos) = curve.binary_search_point_by_steps(point, 16, 0.001);
-    let t = t.clamped(0.0, 1.0);
-    let pos = curve.evaluate(t);
-    return Some((t, pos, pos.distance_squared(point)));
+    // let ctrl_at = |t: f64, end: f64| {
+    //     let a = eval_at(end);
+    //     let b = eval_at(Lerp::lerp(end, t, 0.1));
+    //     let dir = (b - a).normalized();
+    //     let exact = eval_at(t);
+    //     a + dir * exact.distance(a)
+    // };
+    // let curve = CubicBezier2 {
+    //     start: line.x,
+    //     ctrl0: ctrl_at(0.33, 0.0),
+    //     ctrl1: ctrl_at(0.66, 1.0),
+    //     end: line.y,
+    // };
+    // let (t, pos) = curve.binary_search_point_by_steps(point, 12, 0.01);
+    // let t = t.clamped(0.0, 1.0);
+    // let pos = curve.evaluate(t);
+    // return Some((t, pos, pos.distance_squared(point)));
 
     let a = spline.z.x;
     let b = spline.y.x;

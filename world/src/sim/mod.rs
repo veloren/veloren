@@ -2222,7 +2222,7 @@ impl SimChunk {
             Some(
                 uniform_idx_as_vec2(map_size_lg, downhill_pre as usize)
                     * TerrainChunkSize::RECT_SIZE.map(|e| e as i32)
-                    // + TerrainChunkSize::RECT_SIZE.map(|e| e as i32 / 2)
+                    + TerrainChunkSize::RECT_SIZE.map(|e| e as i32 / 2)
                 ,
             )
         };

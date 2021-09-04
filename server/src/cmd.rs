@@ -2704,6 +2704,8 @@ temp {:?}
 humidity {:?}
 rockiness {:?}
 tree_density {:?}
+in_river {:?}
+in_lake {:?}
 spawn_rate {:?} "#,
             wpos,
             alt,
@@ -2720,6 +2722,8 @@ spawn_rate {:?} "#,
             humidity,
             rockiness,
             tree_density,
+            col.in_river,
+            col.in_lake,
             spawn_rate
         ))
     };
