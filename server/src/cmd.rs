@@ -53,7 +53,7 @@ use specs::{storage::StorageEntry, Builder, Entity as EcsEntity, Join, WorldExt}
 use std::str::FromStr;
 use vek::*;
 use wiring::{Circuit, Wire, WiringAction, WiringActionEffect, WiringElement};
-use world::{site::SiteKind, util::Sampler};
+use world::util::Sampler;
 
 use tracing::{error, info, warn};
 
@@ -3118,53 +3118,42 @@ fn handle_battlemode(
 
         #[cfg(feature = "worldgen")]
         let in_town = {
-            let world = &server.world;
-            let index = &server.index;
-            let sim = world.sim();
             // get chunk position
             let pos = position(server, target, "target")?;
             let wpos = pos.0.xy().map(|x| x as i32);
-            let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |pos, size: u32| {
-                pos / size as i32
+            let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |wpos, size: u32| {
+                wpos / size as i32
             });
-            let chunk = sim
-                .get(chunk_pos)
-                .ok_or("Cannot get current chunk for target")?;
-            // search for towns in chunk
-            let site_ids = &chunk.sites;
-            let mut in_town = false;
-            for site_id in site_ids.iter() {
-                // NOTE: this code finds town even if it is far from actual
-                // houses in settlement. Is it because of plant fields?
-                let site = index.sites.get(*site_id);
-                if matches!(site.kind, SiteKind::Settlement(_)) {
-                    in_town = true;
-                    break;
-                }
-            }
-            in_town
+            server.world.civs().sites().any(|site| {
+                // empirical
+                const RADIUS: f32 = 9.0;
+                let delta = site
+                    .center
+                    .map(|x| x as f32)
+                    .distance(chunk_pos.map(|x| x as f32));
+                delta < RADIUS
+            })
         };
         // just skip this check, if worldgen is disabled
         #[cfg(not(feature = "worldgen"))]
         let in_town = true;
 
         if !in_town {
-            return Err("Too far from town".to_owned());
+            return Err("You need to be in town to change battle mode!".to_owned());
         }
 
         let mut players = ecs.write_storage::<comp::Player>();
-        let mut player_info = players
-            .get_mut(target)
-            .ok_or("Cannot get player component for target")?;
+        let mut player_info = players.get_mut(target).ok_or_else(|| {
+            error!("Can't get player component for player");
+            "Error!"
+        })?;
         if let Some(Time(last_change)) = player_info.last_battlemode_change {
             let Time(time) = *time;
             let elapsed = time - last_change;
             if elapsed < COOLDOWN {
-                #[rustfmt::skip]
                 let msg = format!(
-                    "You can switch battlemode only once in {:.0} seconds. \
-                    Last change was {:.0} seconds before",
-                    COOLDOWN, elapsed,
+                    "Cooldown period active. Try again in {} second",
+                    COOLDOWN - elapsed,
                 );
                 return Err(msg);
             }
@@ -3189,9 +3178,10 @@ fn handle_battlemode(
         Ok(())
     } else {
         let players = ecs.read_storage::<comp::Player>();
-        let player = players
-            .get(target)
-            .ok_or("Cannot get player component for target")?;
+        let player = players.get(target).ok_or_else(|| {
+            error!("Can't get player component for player");
+            "Error!"
+        })?;
         let mut msg = format!("Current battle mode: {:?}.", player.battle_mode);
         if settings.battle_mode.allow_choosing() {
             msg.push_str(" Possible to change.");
