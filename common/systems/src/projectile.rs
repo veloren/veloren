@@ -2,8 +2,8 @@ use common::{
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
-        projectile, Body, CharacterState, Combo, Energy, Group, Health, HealthSource, Inventory,
-        Ori, PhysicsState, Player, Pos, Projectile, Stats, Vel,
+        projectile, Alignment, Body, CharacterState, Combo, Energy, Group, Health, HealthSource,
+        Inventory, Ori, PhysicsState, Player, Pos, Projectile, Stats, Vel,
     },
     event::{Emitter, EventBus, ServerEvent},
     outcome::Outcome,
@@ -31,6 +31,7 @@ pub struct ReadData<'a> {
     server_bus: Read<'a, EventBus<ServerEvent>>,
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
+    alignments: ReadStorage<'a, Alignment>,
     physics_states: ReadStorage<'a, PhysicsState>,
     velocities: ReadStorage<'a, Vel>,
     inventories: ReadStorage<'a, Inventory>,
@@ -299,9 +300,13 @@ fn dispatch_hit(
                 });
             }
 
+            // PvP check
             let may_harm = combat::may_harm(
-                owner.and_then(|owner| read_data.players.get(owner)),
-                read_data.players.get(target),
+                &read_data.alignments,
+                &read_data.players,
+                &read_data.uid_allocator,
+                owner,
+                target,
             );
 
             let attack_options = AttackOptions {

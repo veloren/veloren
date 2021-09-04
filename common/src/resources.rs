@@ -79,7 +79,7 @@ pub struct PlayerPhysicsSettings {
 ///
 /// May be removed when we will discover better way
 /// to handle duels and murders
-#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, Deserialize, Serialize)]
 pub enum BattleMode {
     PvP,
     PvE,

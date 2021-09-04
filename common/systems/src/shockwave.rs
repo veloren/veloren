@@ -2,8 +2,8 @@ use common::{
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
-        Body, CharacterState, Combo, Energy, Group, Health, HealthSource, Inventory, Ori,
-        PhysicsState, Player, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
+        Alignment, Body, CharacterState, Combo, Energy, Group, Health, HealthSource, Inventory,
+        Ori, PhysicsState, Player, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
@@ -31,6 +31,7 @@ pub struct ReadData<'a> {
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
     orientations: ReadStorage<'a, Ori>,
+    alignments: ReadStorage<'a, Alignment>,
     scales: ReadStorage<'a, Scale>,
     bodies: ReadStorage<'a, Body>,
     healths: ReadStorage<'a, Health>,
@@ -209,9 +210,13 @@ impl<'a> System<'a> for Sys {
                         char_state: read_data.character_states.get(target),
                     };
 
+                    // PvP check
                     let may_harm = combat::may_harm(
-                        shockwave_owner.and_then(|owner| read_data.players.get(owner)),
-                        read_data.players.get(target),
+                        &read_data.alignments,
+                        &read_data.players,
+                        &read_data.uid_allocator,
+                        shockwave_owner,
+                        target,
                     );
                     let attack_options = AttackOptions {
                         // Trying roll during earthquake isn't the best idea

@@ -2,8 +2,8 @@ use common::{
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
-        Beam, BeamSegment, Body, CharacterState, Combo, Energy, Group, Health, HealthSource,
-        Inventory, Ori, Player, Pos, Scale, Stats,
+        Alignment, Beam, BeamSegment, Body, CharacterState, Combo, Energy, Group, Health,
+        HealthSource, Inventory, Ori, Player, Pos, Scale, Stats,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
@@ -36,6 +36,7 @@ pub struct ReadData<'a> {
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
     orientations: ReadStorage<'a, Ori>,
+    alignments: ReadStorage<'a, Alignment>,
     scales: ReadStorage<'a, Scale>,
     bodies: ReadStorage<'a, Body>,
     healths: ReadStorage<'a, Health>,
@@ -214,9 +215,13 @@ impl<'a> System<'a> for Sys {
                     };
 
 
+                    // PvP check
                     let may_harm = combat::may_harm(
-                        beam_owner.and_then(|owner| read_data.players.get(owner)),
-                        read_data.players.get(target),
+                        &read_data.alignments,
+                        &read_data.players,
+                        &read_data.uid_allocator,
+                        beam_owner,
+                        target,
                     );
                     let attack_options = AttackOptions {
                         // No luck with dodging beams

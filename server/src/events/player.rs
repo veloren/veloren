@@ -1,7 +1,7 @@
 use super::Event;
 use crate::{
     client::Client, metrics::PlayerMetrics, persistence::character_updater::CharacterUpdater,
-    presence::Presence, state_ext::StateExt, Server,
+    presence::Presence, state_ext::StateExt, BattleModeBuffer, Server,
 };
 use common::{
     comp,
@@ -201,13 +201,17 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
         Some(skill_set),
         Some(inventory),
         Some(player_uid),
+        Some(player_info),
         mut character_updater,
+        mut battlemode_buffer,
     ) = (
         state.read_storage::<Presence>().get(entity),
         state.read_storage::<comp::SkillSet>().get(entity),
         state.read_storage::<comp::Inventory>().get(entity),
         state.read_storage::<Uid>().get(entity),
+        state.read_storage::<comp::Player>().get(entity),
         state.ecs().fetch_mut::<CharacterUpdater>(),
+        state.ecs().fetch_mut::<BattleModeBuffer>(),
     ) {
         match presence.kind {
             PresenceKind::Character(char_id) => {
@@ -216,6 +220,12 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
                     .read_storage::<common::comp::Waypoint>()
                     .get(entity)
                     .cloned();
+                // Store last battle mode change
+                if let Some(change) = player_info.last_battlemode_change {
+                    let mode = player_info.battle_mode;
+                    let save = (mode, change);
+                    battlemode_buffer.push(char_id, save);
+                }
 
                 // Get player's pets
                 let alignments = state.ecs().read_storage::<comp::Alignment>();

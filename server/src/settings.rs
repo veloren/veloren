@@ -40,6 +40,28 @@ pub struct X509FilePair {
     pub key: PathBuf,
 }
 
+#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
+pub enum ServerBattleMode {
+    Global(BattleMode),
+    PerPlayer { default: BattleMode },
+}
+
+impl ServerBattleMode {
+    pub fn allow_choosing(&self) -> bool {
+        match self {
+            ServerBattleMode::Global { .. } => false,
+            ServerBattleMode::PerPlayer { .. } => true,
+        }
+    }
+
+    pub fn default_mode(&self) -> BattleMode {
+        match self {
+            ServerBattleMode::Global(mode) => *mode,
+            ServerBattleMode::PerPlayer { default: mode } => *mode,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Settings {
@@ -49,7 +71,7 @@ pub struct Settings {
     pub quic_files: Option<X509FilePair>,
     pub max_players: usize,
     pub world_seed: u32,
-    pub battle_mode: BattleMode,
+    pub battle_mode: ServerBattleMode,
     pub server_name: String,
     pub start_time: f64,
     /// When set to None, loads the default map file (if available); otherwise,
@@ -79,7 +101,7 @@ impl Default for Settings {
             world_seed: DEFAULT_WORLD_SEED,
             server_name: "Veloren Alpha".into(),
             max_players: 100,
-            battle_mode: BattleMode::PvP,
+            battle_mode: ServerBattleMode::Global(BattleMode::PvP),
             start_time: 9.0 * 3600.0,
             map_file: None,
             max_view_distance: Some(65),
