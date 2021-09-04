@@ -499,7 +499,10 @@ impl Entity {
                     // If time_to_move is not set yet, use current time, ceiling to nearest multiple
                     // of 100, and then add another 100.
                     let time_to_move = if time_to_move.is_none() {
-                        Some((time.0 / 100.0).ceil() * 100.0 + 100.0)
+                        // Time increment is how long raiders stay at a site about. Is longer for
+                        // home site and shorter for target site.
+                        let time_increment = if raid_complete { 300.0 } else { 60.0 };
+                        Some((time.0 / time_increment).ceil() * time_increment + time_increment)
                     } else {
                         time_to_move
                     };
@@ -515,7 +518,8 @@ impl Entity {
                     } else {
                         let theta = (time.0 / 30.0).floor() as f32 * self.seed as f32;
                         // Otherwise wander around site (or "plunder" if target site)
-                        let travel_to = wpos.map(|e| e as f32) + Vec2::new(theta.cos(), theta.sin()) * 100.0/* * RandomPerm::new(theta as u32).gen_range(0.0..1.0)*/;
+                        let travel_to =
+                            wpos.map(|e| e as f32) + Vec2::new(theta.cos(), theta.sin()) * 100.0;
                         let travel_to_alt = world
                             .sim()
                             .get_alt_approx(travel_to.map(|e| e as i32))
