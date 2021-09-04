@@ -441,6 +441,7 @@ impl Entity {
                     Travel::Lost
                 }
             },
+            Travel::Idle => Travel::Idle,
         };
 
         // Forget old memories
@@ -482,6 +483,8 @@ enum Travel {
         progress: usize,
         reversed: bool,
     },
+    // For testing purposes
+    Idle,
 }
 
 impl Default for Travel {
@@ -498,6 +501,16 @@ pub struct Brain {
 }
 
 impl Brain {
+    pub fn idle() -> Self {
+        Self {
+            begin: None,
+            tgt: None,
+            route: Travel::Idle,
+            last_visited: None,
+            memories: Vec::new(),
+        }
+    }
+
     pub fn add_memory(&mut self, memory: Memory) { self.memories.push(memory); }
 
     pub fn forget_enemy(&mut self, to_forget: &str) {

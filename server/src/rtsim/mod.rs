@@ -20,7 +20,7 @@ use slab::Slab;
 use specs::{DispatcherBuilder, WorldExt};
 use vek::*;
 
-pub use self::entity::Entity;
+pub use self::entity::{Entity, Brain};
 
 pub struct RtSim {
     tick: u64,
@@ -104,7 +104,7 @@ pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     ]);
 }
 
-pub fn init(state: &mut State, #[cfg(feature = "worldgen")] world: &world::World) {
+pub fn init(state: &mut State, #[cfg(feature = "worldgen")] world: &world::World, #[cfg(feature = "worldgen")] index: world::IndexRef) {
     #[cfg(feature = "worldgen")]
     let mut rtsim = RtSim::new(world.sim().get_size());
     #[cfg(not(feature = "worldgen"))]
@@ -113,22 +113,49 @@ pub fn init(state: &mut State, #[cfg(feature = "worldgen")] world: &world::World
     // TODO: Determine number of rtsim entities based on things like initial site
     // populations rather than world size
     #[cfg(feature = "worldgen")]
-    for _ in 0..world.sim().get_size().product() / 400 {
-        let pos = rtsim
-            .chunks
-            .size()
-            .map2(TerrainChunk::RECT_SIZE, |sz, chunk_sz| {
-                thread_rng().gen_range(0..sz * chunk_sz) as i32
-            });
+    {
+        for _ in 0..world.sim().get_size().product() / 400 {
+            let pos = rtsim
+                .chunks
+                .size()
+                .map2(TerrainChunk::RECT_SIZE, |sz, chunk_sz| {
+                    thread_rng().gen_range(0..sz * chunk_sz) as i32
+                });
 
-        rtsim.entities.insert(Entity {
-            is_loaded: false,
-            pos: Vec3::from(pos.map(|e| e as f32)),
-            seed: thread_rng().gen(),
-            controller: RtSimController::default(),
-            last_time_ticked: 0.0,
-            brain: Default::default(),
-        });
+            rtsim.entities.insert(Entity {
+                is_loaded: false,
+                pos: Vec3::from(pos.map(|e| e as f32)),
+                seed: thread_rng().gen(),
+                controller: RtSimController::default(),
+                last_time_ticked: 0.0,
+                brain: Default::default(),
+            });
+        }
+        for site in world.civs().sites.iter().filter_map(|(_, site)| site.site_tmp.map(|id| &index.sites[id])) {
+            use world::site::SiteKind;
+            match &site.kind {
+                SiteKind::Dungeon(dungeon) => {
+                    match dungeon.dungeon_difficulty() {
+                        Some(5) => {
+                            let pos = site.get_origin();
+
+                            for _ in 0..25 {
+                                rtsim.entities.insert(Entity {
+                                    is_loaded: false,
+                                    pos: Vec3::from(pos.map(|e| e as f32)),
+                                    seed: thread_rng().gen(),
+                                    controller: RtSimController::default(),
+                                    last_time_ticked: 0.0,
+                                    brain: Brain::idle(),
+                                });
+                            }
+                        },
+                        _ => {},
+                    }
+                },
+                _ => {},
+            }
+        }
     }
 
     state.ecs_mut().insert(rtsim);
