@@ -1,21 +1,21 @@
 EntityConfig (
     name: Name("Pirate"),
     body: Exact(Humanoid(Body(
-    species: Human, 
-    body_type: Female, 
-    hair_style: 2, 
-    beard: 0,
-    eyes: 0,
-    accessory: 0,
-    hair_color: 0,
-    skin: 0,
-    eye_color: 0,
+        species: Human, 
+        body_type: Female, 
+        hair_style: 2, 
+        beard: 0,
+        eyes: 0,
+        accessory: 0,
+        hair_color: 0,
+        skin: 0,
+        eye_color: 0,
     ))),
-	alignment: Alignment(Enemy),
+    alignment: Alignment(Enemy),
 
     loot: LootTable("common.loot_tables.creature.biped_large.saurok"),
 
-	hands: Paired(Item("common.items.weapons.sword_1h.iron-2")),
+    hands: Paired(Item("common.items.weapons.sword_1h.iron-2")),
 
     meta: [
         SkillSetAsset("common.skillset.dungeon.tier-5.sword"),

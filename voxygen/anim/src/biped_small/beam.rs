@@ -78,38 +78,38 @@ impl Animation for BeamAnimation {
         next.hand_l.orientation = Quaternion::rotation_x(0.0);
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
 
-                let (move1base, move2base, move3) = match stage_section {
-                    Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                    Some(StageSection::Action) => (1.0, (anim_time * 4.0).sin(), 0.0),
-                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
-                    _ => (0.0, 0.0, 0.0),
-                };
-                let pullback = 1.0 - move3;
-                let move1abs = move1base * pullback;
-                next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
-                next.control_r.position = Vec3::new(
-                    7.0 + s_a.grip.0 * 2.0 + move1abs * -8.0,
-                    -4.0 + move1abs * 0.0,
-                    3.0 + move1abs * 10.0,
-                );
+        let (move1base, move2base, move3) = match stage_section {
+            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+            Some(StageSection::Action) => (1.0, (anim_time * 4.0).sin(), 0.0),
+            Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+            _ => (0.0, 0.0, 0.0),
+        };
+        let pullback = 1.0 - move3;
+        let move1abs = move1base * pullback;
+        next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
+        next.control_r.position = Vec3::new(
+            7.0 + s_a.grip.0 * 2.0 + move1abs * -8.0,
+            -4.0 + move1abs * 0.0,
+            3.0 + move1abs * 10.0,
+        );
 
-                next.control.position = Vec3::new(
-                    -5.0,
-                    -1.0 + s_a.grip.2,
-                    -2.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + move1abs * 5.0,
-                );
+        next.control.position = Vec3::new(
+            -5.0,
+            -1.0 + s_a.grip.2,
+            -2.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + move1abs * 5.0,
+        );
 
-                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + move1abs * 0.8)
-                    * Quaternion::rotation_y(-0.3)
-                    * Quaternion::rotation_z(-0.3);
-                next.control_r.orientation =
-                    Quaternion::rotation_x(PI / 2.0 + s_a.grip.0 * 0.2 + move1abs * 0.8)
-                        * Quaternion::rotation_y(-0.4 + s_a.grip.0 * 0.2 + move1abs * 0.8)
-                        * Quaternion::rotation_z(-0.0 + move1abs * 2.0 + move2base * 0.6);
+        next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + move1abs * 0.8)
+            * Quaternion::rotation_y(-0.3)
+            * Quaternion::rotation_z(-0.3);
+        next.control_r.orientation =
+            Quaternion::rotation_x(PI / 2.0 + s_a.grip.0 * 0.2 + move1abs * 0.8)
+                * Quaternion::rotation_y(-0.4 + s_a.grip.0 * 0.2 + move1abs * 0.8)
+                * Quaternion::rotation_z(-0.0 + move1abs * 2.0 + move2base * 0.6);
 
-                next.control.orientation = Quaternion::rotation_x(-0.3 + move1abs * -0.6)
-                    * Quaternion::rotation_y(-0.2 * speednorm + move1abs * 0.8)
-                    * Quaternion::rotation_z(0.5 + move1abs * 0.6);
+        next.control.orientation = Quaternion::rotation_x(-0.3 + move1abs * -0.6)
+            * Quaternion::rotation_y(-0.2 * speednorm + move1abs * 0.8)
+            * Quaternion::rotation_z(0.5 + move1abs * 0.6);
 
         next
     }

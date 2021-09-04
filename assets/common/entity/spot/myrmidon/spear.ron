@@ -8,6 +8,7 @@ EntityConfig (
     hands: TwoHanded(Item("common.items.npc_weapons.biped_small.myrmidon.wooden_spear")),
 
     meta: [
-        LoadoutAsset("common.loadout.spot.gnome"),
+        LoadoutAsset("common.loadout.dungeon.tier-4.myrmidon"),
+
     ],
 )

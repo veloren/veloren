@@ -1,10 +1,10 @@
 ItemDef(
-    name: "Gnarling",
+    name: "Gnome",
     description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Chest("Gnome"),
         stats: (
-            protection: Normal(2.0),
+            protection: Normal(36.0),
             poise_resilience: Normal(1.0),
             energy_max: 0,
             energy_reward: 0.0,
