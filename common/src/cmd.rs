@@ -330,7 +330,9 @@ impl ChatCommand {
                     vec!["pvp".to_owned(), "pve".to_owned()],
                     Optional,
                 )],
-                "Set your battle mode to pvp (player vs player) or pve (player vs environment).\n\
+                "Set your battle mode to:\n\
+                * pvp (player vs player)\n\
+                * pve (player vs environment).\n\
                 If called without arguments will show current battle mode.",
                 None,
             ),

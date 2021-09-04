@@ -3152,7 +3152,7 @@ fn handle_battlemode(
             let elapsed = time - last_change;
             if elapsed < COOLDOWN {
                 let msg = format!(
-                    "Cooldown period active. Try again in {} second",
+                    "Cooldown period active. Try again in {:.0} seconds",
                     COOLDOWN - elapsed,
                 );
                 return Err(msg);
