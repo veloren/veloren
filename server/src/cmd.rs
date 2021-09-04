@@ -21,7 +21,8 @@ use common::{
     assets,
     calendar::Calendar,
     cmd::{
-        ChatCommand, BUFF_PACK, BUFF_PARSER, ITEM_SPECS, KIT_MANIFEST_PATH, PRESET_MANIFEST_PATH,
+        ChatCommand, KitSpec, BUFF_PACK, BUFF_PARSER, ITEM_SPECS, KIT_MANIFEST_PATH,
+        PRESET_MANIFEST_PATH,
     },
     comp::{
         self,
@@ -1886,7 +1887,9 @@ fn handle_kit(
             // TODO: we will probably want to handle modular items here too
             let items = &ITEM_SPECS;
             let res = push_kit(
-                items.iter().map(|item_id| (item_id.as_str(), 1)),
+                items
+                    .iter()
+                    .map(|item_id| (KitSpec::Item(item_id.to_string()), 1)),
                 items.len(),
                 server,
                 target,
@@ -1908,7 +1911,7 @@ fn handle_kit(
 
             let res = push_kit(
                 kit.iter()
-                    .map(|&(ref item_id, quantity)| (item_id.as_str(), quantity)),
+                    .map(|(item_id, quantity)| (item_id.clone(), *quantity)),
                 kit.len(),
                 server,
                 target,
@@ -1921,9 +1924,9 @@ fn handle_kit(
     }
 }
 
-fn push_kit<'a, I>(kit: I, count: usize, server: &mut Server, target: EcsEntity) -> CmdResult<()>
+fn push_kit<I>(kit: I, count: usize, server: &mut Server, target: EcsEntity) -> CmdResult<()>
 where
-    I: Iterator<Item = (&'a str, u32)>,
+    I: Iterator<Item = (KitSpec, u32)>,
 {
     if let (Some(mut target_inventory), mut target_inv_update) = (
         server
@@ -1938,8 +1941,13 @@ where
             return Err("Inventory doesn't have enough slots".to_owned());
         }
         for (item_id, quantity) in kit {
-            let mut item = comp::Item::new_from_asset(item_id)
-                .map_err(|_| format!("Unknown item: {}", item_id))?;
+            let mut item = match &item_id {
+                KitSpec::Item(item_id) => comp::Item::new_from_asset(item_id)
+                    .map_err(|_| format!("Unknown item: {:#?}", item_id))?,
+                KitSpec::ModularWeapon { tool, material } => {
+                    comp::item::modular::random_weapon(*tool, *material, None)
+                },
+            };
             let mut res = Ok(());
 
             // Either push stack or push one by one.

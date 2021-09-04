@@ -184,7 +184,11 @@ pub mod tests {
             },
             LootSpec::Nothing => {},
             // TODO: Figure out later
-            LootSpec::ModularWeapon { .. } => {},
+            LootSpec::ModularWeapon {
+                tool,
+                material,
+                hands,
+            } => std::mem::drop(item::modular::random_weapon(*tool, *material, *hands)),
         }
     }
 
