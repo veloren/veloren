@@ -525,6 +525,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         _ => "common.loot_tables.creature.quad_low.generic",
                     }
                 },
+                Some(common::comp::Body::BipedSmall(_)) => "common.loot_tables.nothing",
                 _ => "common.loot_tables.fallback",
             })
         };
