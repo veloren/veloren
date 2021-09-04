@@ -468,7 +468,7 @@ impl Server {
 
         // Initiate real-time world simulation
         #[cfg(feature = "worldgen")]
-        rtsim::init(&mut state, &world);
+        rtsim::init(&mut state, &world, index.as_index_ref());
         #[cfg(not(feature = "worldgen"))]
         rtsim::init(&mut state);
 

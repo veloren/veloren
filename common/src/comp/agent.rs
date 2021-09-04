@@ -504,6 +504,11 @@ impl Agent {
         self.position_pid_controller = Some(pid);
         self
     }
+
+    pub fn with_aggro_no_warn(mut self) -> Self {
+        self.psyche.aggro_dist = None;
+        self
+    }
 }
 
 impl Component for Agent {

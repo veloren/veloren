@@ -21,8 +21,13 @@ pub struct Entity {
     pub seed: u32,
     pub last_time_ticked: f64,
     pub controller: RtSimController,
-
+    pub kind: RtSimEntityKind,
     pub brain: Brain,
+}
+
+pub enum RtSimEntityKind {
+    Random,
+    Cultist,
 }
 
 const PERM_SPECIES: u32 = 0;
@@ -35,22 +40,34 @@ impl Entity {
     pub fn rng(&self, perm: u32) -> impl Rng { RandomPerm::new(self.seed + perm) }
 
     pub fn get_body(&self) -> comp::Body {
-        match self.rng(PERM_GENUS).gen::<f32>() {
-            // we want 5% airships, 45% birds, 50% humans
-            x if x < 0.05 => comp::ship::Body::random_with(&mut self.rng(PERM_BODY)).into(),
-            x if x < 0.45 => {
-                let species = *(&comp::bird_medium::ALL_SPECIES)
-                    .choose(&mut self.rng(PERM_SPECIES))
-                    .unwrap();
-                comp::bird_medium::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
+        match self.kind {
+            RtSimEntityKind::Random => {
+                match self.rng(PERM_GENUS).gen::<f32>() {
+                    // we want 5% airships, 45% birds, 50% humans
+                    x if x < 0.05 => comp::ship::Body::random_with(&mut self.rng(PERM_BODY)).into(),
+                    x if x < 0.45 => {
+                        let species = *(&comp::bird_medium::ALL_SPECIES)
+                            .choose(&mut self.rng(PERM_SPECIES))
+                            .unwrap();
+                        comp::bird_medium::Body::random_with(&mut self.rng(PERM_BODY), &species)
+                            .into()
+                    },
+                    x if x < 0.50 => {
+                        let species = *(&comp::bird_large::ALL_SPECIES)
+                            .choose(&mut self.rng(PERM_SPECIES))
+                            .unwrap();
+                        comp::bird_large::Body::random_with(&mut self.rng(PERM_BODY), &species)
+                            .into()
+                    },
+                    _ => {
+                        let species = *(&comp::humanoid::ALL_SPECIES)
+                            .choose(&mut self.rng(PERM_SPECIES))
+                            .unwrap();
+                        comp::humanoid::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
+                    },
+                }
             },
-            x if x < 0.50 => {
-                let species = *(&comp::bird_large::ALL_SPECIES)
-                    .choose(&mut self.rng(PERM_SPECIES))
-                    .unwrap();
-                comp::bird_large::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
-            },
-            _ => {
+            RtSimEntityKind::Cultist => {
                 let species = *(&comp::humanoid::ALL_SPECIES)
                     .choose(&mut self.rng(PERM_SPECIES))
                     .unwrap();
@@ -60,30 +77,47 @@ impl Entity {
     }
 
     pub fn get_name(&self) -> String {
-        use common::{generation::get_npc_name, npc::NPC_NAMES};
-        let npc_names = NPC_NAMES.read();
-        match self.get_body() {
-            comp::Body::BirdMedium(b) => {
-                get_npc_name(&npc_names.bird_medium, b.species).to_string()
+        match self.kind {
+            RtSimEntityKind::Random => {
+                use common::{generation::get_npc_name, npc::NPC_NAMES};
+                let npc_names = NPC_NAMES.read();
+                match self.get_body() {
+                    comp::Body::BirdMedium(b) => {
+                        get_npc_name(&npc_names.bird_medium, b.species).to_string()
+                    },
+                    comp::Body::BirdLarge(b) => {
+                        get_npc_name(&npc_names.bird_large, b.species).to_string()
+                    },
+                    comp::Body::Dragon(b) => get_npc_name(&npc_names.dragon, b.species).to_string(),
+                    comp::Body::Humanoid(b) => {
+                        get_npc_name(&npc_names.humanoid, b.species).to_string()
+                    },
+                    comp::Body::Ship(_) => "Veloren Air".to_string(),
+                    //TODO: finish match as necessary
+                    _ => unimplemented!(),
+                }
             },
-            comp::Body::BirdLarge(b) => get_npc_name(&npc_names.bird_large, b.species).to_string(),
-            comp::Body::Dragon(b) => get_npc_name(&npc_names.dragon, b.species).to_string(),
-            comp::Body::Humanoid(b) => get_npc_name(&npc_names.humanoid, b.species).to_string(),
-            comp::Body::Ship(_) => "Veloren Air".to_string(),
-            //TODO: finish match as necessary
-            _ => unimplemented!(),
+            RtSimEntityKind::Cultist => "Cultist Raider".to_string(),
         }
     }
 
     pub fn get_loadout(&self) -> comp::inventory::loadout::Loadout {
         let mut rng = self.rng(PERM_LOADOUT);
-
-        LoadoutBuilder::from_asset_expect("common.loadout.world.traveler", Some(&mut rng))
-            .bag(
-                comp::inventory::slot::ArmorSlot::Bag1,
-                Some(comp::inventory::loadout_builder::make_potion_bag(100)),
+        match self.kind {
+            RtSimEntityKind::Random => {
+                LoadoutBuilder::from_asset_expect("common.loadout.world.traveler", Some(&mut rng))
+                    .bag(
+                        comp::inventory::slot::ArmorSlot::Bag1,
+                        Some(comp::inventory::loadout_builder::make_potion_bag(100)),
+                    )
+                    .build()
+            },
+            RtSimEntityKind::Cultist => LoadoutBuilder::from_asset_expect(
+                "common.loadout.dungeon.tier-5.cultist",
+                Some(&mut rng),
             )
-            .build()
+            .build(),
+        }
     }
 
     pub fn tick(&mut self, time: &Time, terrain: &TerrainGrid, world: &World, index: &IndexRef) {
@@ -441,6 +475,104 @@ impl Entity {
                     Travel::Lost
                 }
             },
+            Travel::DirectRaid {
+                target_id,
+                home_id,
+                raid_complete,
+                time_to_move,
+            } => {
+                // Destination site is home if raid is complete, else it is target site
+                let dest_site = if raid_complete {
+                    &world.civs().sites[home_id]
+                } else {
+                    &world.civs().sites[target_id]
+                };
+                let destination_name = dest_site
+                    .site_tmp
+                    .map_or("".to_string(), |id| index.sites[id].name().to_string());
+
+                let wpos = dest_site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                let dist = wpos.map(|e| e as f32).distance_squared(self.pos.xy()) as u32;
+
+                // Once at site, stay for a bit, then move to other site
+                if dist < 128_u32.pow(2) {
+                    // If time_to_move is not set yet, use current time, ceiling to nearest multiple
+                    // of 100, and then add another 100.
+                    let time_to_move = if time_to_move.is_none() {
+                        // Time increment is how long raiders stay at a site about. Is longer for
+                        // home site and shorter for target site.
+                        let time_increment = if raid_complete { 300.0 } else { 60.0 };
+                        Some((time.0 / time_increment).ceil() * time_increment + time_increment)
+                    } else {
+                        time_to_move
+                    };
+
+                    // If the time has come to move, flip raid bool
+                    if time_to_move.map_or(false, |t| time.0 > t) {
+                        Travel::DirectRaid {
+                            target_id,
+                            home_id,
+                            raid_complete: !raid_complete,
+                            time_to_move: None,
+                        }
+                    } else {
+                        let theta = (time.0 / 30.0).floor() as f32 * self.seed as f32;
+                        // Otherwise wander around site (or "plunder" if target site)
+                        let travel_to =
+                            wpos.map(|e| e as f32) + Vec2::new(theta.cos(), theta.sin()) * 100.0;
+                        let travel_to_alt = world
+                            .sim()
+                            .get_alt_approx(travel_to.map(|e| e as i32))
+                            .unwrap_or(0.0) as i32;
+                        let travel_to = terrain
+                            .find_space(Vec3::new(
+                                travel_to.x as i32,
+                                travel_to.y as i32,
+                                travel_to_alt,
+                            ))
+                            .map(|e| e as f32)
+                            + Vec3::new(0.5, 0.5, 0.0);
+
+                        self.controller.travel_to = Some((travel_to, destination_name));
+                        self.controller.speed_factor = 0.75;
+                        Travel::DirectRaid {
+                            target_id,
+                            home_id,
+                            raid_complete,
+                            time_to_move,
+                        }
+                    }
+                } else {
+                    let travel_to = self.pos.xy()
+                        + Vec3::from(
+                            (wpos.map(|e| e as f32 + 0.5) - self.pos.xy())
+                                .try_normalized()
+                                .unwrap_or_else(Vec2::zero),
+                        ) * 64.0;
+                    let travel_to_alt = world
+                        .sim()
+                        .get_alt_approx(travel_to.map(|e| e as i32))
+                        .unwrap_or(0.0) as i32;
+                    let travel_to = terrain
+                        .find_space(Vec3::new(
+                            travel_to.x as i32,
+                            travel_to.y as i32,
+                            travel_to_alt,
+                        ))
+                        .map(|e| e as f32)
+                        + Vec3::new(0.5, 0.5, 0.0);
+
+                    self.controller.travel_to = Some((travel_to, destination_name));
+                    self.controller.speed_factor = 0.90;
+                    Travel::DirectRaid {
+                        target_id,
+                        home_id,
+                        raid_complete,
+                        time_to_move,
+                    }
+                }
+            },
+            Travel::Idle => Travel::Idle,
         };
 
         // Forget old memories
@@ -482,6 +614,15 @@ enum Travel {
         progress: usize,
         reversed: bool,
     },
+    // Move directly towards a target site, then head back to a home territory
+    DirectRaid {
+        target_id: Id<Site>,
+        home_id: Id<Site>,
+        raid_complete: bool,
+        time_to_move: Option<f64>,
+    },
+    // For testing purposes
+    Idle,
 }
 
 impl Default for Travel {
@@ -498,6 +639,31 @@ pub struct Brain {
 }
 
 impl Brain {
+    pub fn idle() -> Self {
+        Self {
+            begin: None,
+            tgt: None,
+            route: Travel::Idle,
+            last_visited: None,
+            memories: Vec::new(),
+        }
+    }
+
+    pub fn raid(home_id: Id<Site>, target_id: Id<Site>) -> Self {
+        Self {
+            begin: None,
+            tgt: None,
+            route: Travel::DirectRaid {
+                target_id,
+                home_id,
+                raid_complete: false,
+                time_to_move: None,
+            },
+            last_visited: None,
+            memories: Vec::new(),
+        }
+    }
+
     pub fn add_memory(&mut self, memory: Memory) { self.memories.push(memory); }
 
     pub fn forget_enemy(&mut self, to_forget: &str) {
