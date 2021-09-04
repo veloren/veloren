@@ -107,18 +107,34 @@ impl<'a> System<'a> for Sys {
             rtsim.reify_entity(id);
             let entity = &rtsim.entities[id];
             let body = entity.get_body();
+            let alignment = match body {
+                comp::Body::Humanoid(_) => match entity.kind {
+                    RtSimEntityKind::Random => comp::Alignment::Npc,
+                    RtSimEntityKind::Cultist => comp::Alignment::Enemy,
+                },
+                comp::Body::BirdLarge(bird_large) => match bird_large.species {
+                    comp::bird_large::Species::Roc => comp::Alignment::Enemy,
+                    comp::bird_large::Species::Cockatrice => comp::Alignment::Enemy,
+                    _ => comp::Alignment::Wild,
+                },
+                _ => comp::Alignment::Wild,
+            };
             let spawn_pos = terrain
                 .find_space(entity.pos.map(|e| e.floor() as i32))
                 .map(|e| e as f32)
                 + Vec3::new(0.5, 0.5, body.flying_height());
             let pos = comp::Pos(spawn_pos);
-            let agent = Some(comp::Agent::from_body(&body).with_behavior(
+            let mut agent = Some(comp::Agent::from_body(&body).with_behavior(
                 if matches!(body, comp::Body::Humanoid(_)) {
                     Behavior::from(BehaviorCapability::SPEAK)
                 } else {
                     Behavior::default()
                 },
             ));
+
+            if matches!(alignment, comp::Alignment::Enemy) {
+                agent = agent.map(|a| a.with_aggro_no_warn());
+            }
 
             let rtsim_entity = Some(RtSimEntity(id));
 
@@ -145,18 +161,7 @@ impl<'a> System<'a> for Sys {
                     poise: comp::Poise::new(body),
                     body,
                     agent,
-                    alignment: match body {
-                        comp::Body::Humanoid(_) => match entity.kind {
-                            RtSimEntityKind::Random => comp::Alignment::Npc,
-                            RtSimEntityKind::Cultist => comp::Alignment::Enemy,
-                        },
-                        comp::Body::BirdLarge(bird_large) => match bird_large.species {
-                            comp::bird_large::Species::Roc => comp::Alignment::Enemy,
-                            comp::bird_large::Species::Cockatrice => comp::Alignment::Enemy,
-                            _ => comp::Alignment::Wild,
-                        },
-                        _ => comp::Alignment::Wild,
-                    },
+                    alignment,
                     scale: match body {
                         comp::Body::Ship(_) => comp::Scale(comp::ship::AIRSHIP_SCALE),
                         _ => comp::Scale(1.0),

@@ -143,7 +143,9 @@ pub fn init(
             .filter_map(|(site_id, site)| site.site_tmp.map(|id| (site_id, &index.sites[id])))
         {
             use world::site::SiteKind;
+            #[allow(clippy::single_match)]
             match &site.kind {
+                #[allow(clippy::single_match)]
                 SiteKind::Dungeon(dungeon) => match dungeon.dungeon_difficulty() {
                     Some(5) => {
                         let pos = site.get_origin();
