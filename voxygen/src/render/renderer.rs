@@ -12,7 +12,6 @@ use pipeline_creation::{
     IngameAndShadowPipelines, InterfacePipelines, PipelineCreation, Pipelines, ShadowPipelines,
 };
 use shaders::Shaders;
-
 use shadow_map::{ShadowMap, ShadowMapRenderer};
 
 use super::{

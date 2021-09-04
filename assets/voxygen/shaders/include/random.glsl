@@ -98,5 +98,8 @@ vec4 rand_perm_4(vec4 pos) {
 
 vec3 smooth_rand(vec3 pos, float lerp_axis) {
     return vec3(snoise(vec4(pos, lerp_axis)), snoise(vec4(pos + 400.0, lerp_axis)), snoise(vec4(pos + 1000.0, lerp_axis)));
+    vec3 r0 = rand_perm_3(vec3(pos.x, pos.y, pos.z) + floor(lerp_axis));
+    vec3 r1 = rand_perm_3(vec3(pos.x, pos.y, pos.z) + floor(lerp_axis + 1.0));
+    return r0 + (r1 - r0) * fract(lerp_axis);
 }
 #endif

@@ -55,9 +55,7 @@ winit = {version = "0.25.0", features = ["serde"]}
 wgpu = { version = "=0.8.0", features = ["trace", "cross"] }
 wgpu-profiler = { git = "https://github.com/Imberflur/wgpu-profiler", tag = "wgpu-0.8" }
 bytemuck = { version="1.4", features=["derive"] }
-naga = { version = "=0.6.0", features = ["glsl-in", "glsl-validate", "spv-out", "codespan-reporting"] }
-glsl-include = "0.3.1"
-codespan-reporting = "0.11.1"
+shaderc = "0.6.2"
 
 # Ui
 conrod_core = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
