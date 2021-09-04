@@ -1384,6 +1384,8 @@ impl SiteStructure for Dungeon {
                 Structure::load_group("dungeon_entrances.jungle");
             pub static ref GRASSLAND: AssetHandle<StructuresGroup> =
                 Structure::load_group("dungeon_entrances.grassland");
+            pub static ref DESERT: AssetHandle<StructuresGroup> =
+                Structure::load_group("dungeon_entrances.desert");
         }
 
         let biome = land
@@ -1391,6 +1393,7 @@ impl SiteStructure for Dungeon {
             .map_or(BiomeKind::Void, |c| c.get_biome());
         let entrances = match biome {
             BiomeKind::Jungle => *JUNGLE,
+            BiomeKind::Desert => *DESERT,
             _ => *GRASSLAND,
         };
         let entrances = entrances.read();
