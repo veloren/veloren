@@ -479,7 +479,9 @@ impl Entity {
                 target_id,
                 home_id,
                 raid_complete,
+                time_to_move,
             } => {
+                // Destination site is home if raid is complete, else it is target site
                 let dest_site = if raid_complete {
                     &world.civs().sites[home_id]
                 } else {
@@ -492,11 +494,50 @@ impl Entity {
                 let wpos = dest_site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
                 let dist = wpos.map(|e| e as f32).distance_squared(self.pos.xy()) as u32;
 
-                if dist < 64_u32.pow(2) {
-                    Travel::DirectRaid {
-                        target_id,
-                        home_id,
-                        raid_complete: !raid_complete,
+                // Once at site, stay for a bit, then move to other site
+                if dist < 10_u32.pow(2) {
+                    // If time_to_move is not set yet, use current time, ceiling to nearest multiple
+                    // of 100, and then add another 100.
+                    let time_to_move = if time_to_move.is_none() {
+                        Some((time.0 / 100.0).ceil() * 100.0 + 100.0)
+                    } else {
+                        time_to_move
+                    };
+
+                    // If the time has come to move, flip raid bool
+                    if time_to_move.map_or(false, |t| time.0 > t) {
+                        Travel::DirectRaid {
+                            target_id,
+                            home_id,
+                            raid_complete: !raid_complete,
+                            time_to_move: None,
+                        }
+                    } else {
+                        let mut rng = RandomPerm::new((time.0 / 25.0) as u32);
+                        // Otherwise wander around site (or "plunder" if target site)
+                        let travel_to =
+                            self.pos.xy() + Vec2::<f32>::zero().map(|_| rng.gen_range(-50.0..50.0));
+                        let travel_to_alt = world
+                            .sim()
+                            .get_alt_approx(travel_to.map(|e| e as i32))
+                            .unwrap_or(0.0) as i32;
+                        let travel_to = terrain
+                            .find_space(Vec3::new(
+                                travel_to.x as i32,
+                                travel_to.y as i32,
+                                travel_to_alt,
+                            ))
+                            .map(|e| e as f32)
+                            + Vec3::new(0.5, 0.5, 0.0);
+
+                        self.controller.travel_to = Some((travel_to, destination_name));
+                        self.controller.speed_factor = 0.25;
+                        Travel::DirectRaid {
+                            target_id,
+                            home_id,
+                            raid_complete,
+                            time_to_move,
+                        }
                     }
                 } else {
                     let travel_to = self.pos.xy()
@@ -524,6 +565,7 @@ impl Entity {
                         target_id,
                         home_id,
                         raid_complete,
+                        time_to_move,
                     }
                 }
             },
@@ -574,6 +616,7 @@ enum Travel {
         target_id: Id<Site>,
         home_id: Id<Site>,
         raid_complete: bool,
+        time_to_move: Option<f64>,
     },
     // For testing purposes
     Idle,
@@ -611,6 +654,7 @@ impl Brain {
                 target_id,
                 home_id,
                 raid_complete: false,
+                time_to_move: None,
             },
             last_visited: None,
             memories: Vec::new(),
