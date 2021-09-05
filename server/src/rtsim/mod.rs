@@ -108,6 +108,7 @@ pub fn init(
     state: &mut State,
     #[cfg(feature = "worldgen")] world: &world::World,
     #[cfg(feature = "worldgen")] index: world::IndexRef,
+    #[cfg(feature = "worldgen")] spawn_point: crate::SpawnPoint,
 ) {
     #[cfg(feature = "worldgen")]
     let mut rtsim = RtSim::new(world.sim().get_size());
@@ -143,6 +144,16 @@ pub fn init(
             .filter_map(|(site_id, site)| site.site_tmp.map(|id| (site_id, &index.sites[id])))
         {
             use world::site::SiteKind;
+            let spawn_town_id = world
+                .civs()
+                .sites
+                .iter()
+                .filter(|(_, site)| site.is_settlement())
+                .min_by_key(|(_, site)| {
+                    let wpos = site.center * TerrainChunk::RECT_SIZE.map(|x| x as i32);
+                    wpos.distance_squared(spawn_point.0.xy().map(|x| x as i32))
+                })
+                .map(|(id, _)| id);
             #[allow(clippy::single_match)]
             match &site.kind {
                 #[allow(clippy::single_match)]
@@ -153,7 +164,11 @@ pub fn init(
                             .civs()
                             .sites
                             .iter()
-                            .filter(|s| s.1.is_settlement())
+                            .filter(|&(site_id, site)| {
+                                site.is_settlement()
+                                    // TODO: Remove this later, starting town should not be special-cased
+                                    && spawn_town_id.map_or(false, |spawn_id| spawn_id != site_id)
+                            })
                             .min_by_key(|(_, site)| {
                                 let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
                                 wpos.map(|e| e as f32)

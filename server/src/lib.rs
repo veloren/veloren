@@ -127,7 +127,7 @@ use world::{
 };
 
 #[derive(Copy, Clone)]
-pub struct SpawnPoint(Vec3<f32>);
+pub struct SpawnPoint(pub Vec3<f32>);
 
 impl Default for SpawnPoint {
     fn default() -> Self { Self(Vec3::new(0.0, 0.0, 256.0)) }
@@ -492,7 +492,7 @@ impl Server {
 
         // Initiate real-time world simulation
         #[cfg(feature = "worldgen")]
-        rtsim::init(&mut state, &world, index.as_index_ref());
+        rtsim::init(&mut state, &world, index.as_index_ref(), spawn_point);
         #[cfg(not(feature = "worldgen"))]
         rtsim::init(&mut state);
 
