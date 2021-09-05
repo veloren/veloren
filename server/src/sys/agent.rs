@@ -1858,7 +1858,7 @@ impl<'a> AgentData<'a> {
                 let direction_weight = match tactic {
                     Tactic::Hammer => 0.1,
                     Tactic::Axe => 0.3,
-                    _ => panic!("Direction weight called on unknown tactic."),
+                    _ => unreachable!("Direction weight called on incorrect tactic."),
                 };
 
                 let tgt_pos = tgt_data.pos.0;
