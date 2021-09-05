@@ -1814,44 +1814,24 @@ impl<'a> AgentData<'a> {
         // Not all attacks may want their direction overwritten.
         // And this is quite hard to debug when you don't see it in actual
         // attack handler.
-        if let Some(dir) = match tactic {
-            // FIXME: this code make Staff flamethrower aim flamethrower
-            // like a projectile.
-            Tactic::Bow
-            | Tactic::FixedTurret
-            | Tactic::QuadLowRanged
-            | Tactic::QuadMedJump
-            | Tactic::RotatingTurret
-            | Tactic::Staff
-            | Tactic::Turret
-                if dist_sqrd > 0.0 =>
-            {
-                if matches!(self.char_state, CharacterState::ChargedRanged(_)) {
+        if let Some(dir) = match self.char_state {
+            CharacterState::ChargedRanged(c)
+                if dist_sqrd > 0.0 => {
+                    let projectile_speed = c.static_data.initial_projectile_speed + 0.5 * c.static_data.scaled_projectile_speed;
                     aim_projectile(
-                        175.0,
-                        Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+                        projectile_speed, 
+                        Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset), 
                         Vec3::new(
                             tgt_data.pos.0.x,
                             tgt_data.pos.0.y,
                             tgt_data.pos.0.z + tgt_eye_offset,
                         ),
                     )
-                } else {
-                    aim_projectile(
-                        90.0, // + self.vel.0.magnitude(),
-                        Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
-                        Vec3::new(
-                            tgt_data.pos.0.x,
-                            tgt_data.pos.0.y,
-                            tgt_data.pos.0.z + tgt_eye_offset,
-                        ),
-                    )
-                }
-            }
-            Tactic::ClayGolem if matches!(self.char_state, CharacterState::BasicRanged(_)) => {
-                const ROCKET_SPEED: f32 = 30.0;
+                },
+            CharacterState::BasicRanged(c) => {
+                let projectile_speed = c.static_data.projectile_speed;
                 aim_projectile(
-                    ROCKET_SPEED,
+                    projectile_speed,
                     Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
                     Vec3::new(
                         tgt_data.pos.0.x,
@@ -1860,64 +1840,31 @@ impl<'a> AgentData<'a> {
                     ),
                 )
             },
-            Tactic::Yeti if matches!(self.char_state, CharacterState::BasicRanged(_)) => {
-                const SNOWBALL_SPEED: f32 = 60.0;
-                aim_projectile(
-                    SNOWBALL_SPEED,
-                    Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
-                    Vec3::new(
-                        tgt_data.pos.0.x,
-                        tgt_data.pos.0.y,
-                        tgt_data.pos.0.z + tgt_eye_offset,
-                    ),
-                )
-            },
-            Tactic::Harvester if matches!(self.char_state, CharacterState::BasicRanged(_)) => {
-                const PUMPKIN_SPEED: f32 = 30.0;
-                aim_projectile(
-                    PUMPKIN_SPEED,
-                    Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
-                    Vec3::new(
-                        tgt_data.pos.0.x,
-                        tgt_data.pos.0.y,
-                        tgt_data.pos.0.z + tgt_eye_offset,
-                    ),
-                )
-            },
-            // Leap into direction of the target
-            // TODO: test with different weapons/tactics
-            Tactic::Hammer if matches!(self.char_state, CharacterState::LeapMelee(_)) => {
-                let tgt_pos = tgt_data.pos.0;
-                let self_pos = self.pos.0;
-
-                let direction_weight = 0.1;
-                let delta_x = (tgt_pos.x - self_pos.x) * direction_weight;
-                let delta_y = (tgt_pos.y - self_pos.y) * direction_weight;
-
-                Dir::from_unnormalized(Vec3::new(delta_x, delta_y, -1.0))
-            },
-            Tactic::Axe if matches!(self.char_state, CharacterState::LeapMelee(_)) => {
-                let tgt_pos = tgt_data.pos.0;
-                let self_pos = self.pos.0;
-
-                let direction_weight = 0.3;
-                let delta_x = (tgt_pos.x - self_pos.x) * direction_weight;
-                let delta_y = (tgt_pos.y - self_pos.y) * direction_weight;
-
-                Dir::from_unnormalized(Vec3::new(delta_x, delta_y, -1.0))
-            },
-            _ => {
-                let aim_from = match self.char_state {
-                    CharacterState::BasicBeam(_) => self.body.map_or(self.pos.0, |body| {
-                        self.pos.0
-                            + basic_beam::beam_offsets(
-                                body,
-                                controller.inputs.look_dir,
-                                self.ori.look_vec(),
-                            )
-                    }),
-                    _ => Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+            CharacterState::LeapMelee(_) 
+                if matches!(tactic, Tactic::Hammer) || matches!(tactic, Tactic::Axe) => {
+                let direction_weight = match tactic {
+                    Tactic::Hammer => 0.1,
+                    Tactic::Axe => 0.3,
+                    _ => 0.0, // should not be called
                 };
+
+                let tgt_pos = tgt_data.pos.0;
+                let self_pos = self.pos.0;
+
+                let delta_x = (tgt_pos.x - self_pos.x) * direction_weight;
+                let delta_y = (tgt_pos.y - self_pos.y) * direction_weight;
+
+                Dir::from_unnormalized(Vec3::new(delta_x, delta_y, -1.0))
+            },
+            CharacterState::BasicBeam(_) => {
+                let aim_from = self.body.map_or(self.pos.0, |body| {
+                    self.pos.0
+                        + basic_beam::beam_offsets(
+                            body,
+                            controller.inputs.look_dir,
+                            self.ori.look_vec(),
+                        )
+                });
                 let aim_to = Vec3::new(
                     tgt_data.pos.0.x,
                     tgt_data.pos.0.y,
@@ -1925,6 +1872,15 @@ impl<'a> AgentData<'a> {
                 );
                 Dir::from_unnormalized(aim_to - aim_from)
             },
+            _ => {
+                let aim_from = Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset);
+                let aim_to = Vec3::new(
+                    tgt_data.pos.0.x,
+                    tgt_data.pos.0.y,
+                    tgt_data.pos.0.z + tgt_eye_offset,
+                );
+                Dir::from_unnormalized(aim_to - aim_from)
+            }
         } {
             controller.inputs.look_dir = dir;
         }
