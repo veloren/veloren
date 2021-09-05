@@ -100,7 +100,7 @@ impl Tui {
                 },
                 Ok(_) => {
                     debug!(?line, "basic mode: command entered");
-                    crate::cli::parse_command(&line, &mut msg_s);
+                    crate::cli::parse_command(line.trim(), &mut msg_s);
                 },
             }
         }
