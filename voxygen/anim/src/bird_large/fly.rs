@@ -26,7 +26,7 @@ impl Animation for FlyAnimation {
         let fast = (anim_time * 4.0).sin();
 
         // Harmonic series hack to get a sine/saw mix
-        let freq = if s_a.wyvern {6.0} else {8.0};
+        let freq = if s_a.wyvern { 6.0 } else { 8.0 };
         let off1 = 0.0;
         let off2 = -1.7;
         let off3 = -2.0;
@@ -60,11 +60,11 @@ impl Animation for FlyAnimation {
 
         next.head.scale = Vec3::one() * 0.99;
         next.neck.scale = Vec3::one() * 1.01;
-        next.leg_l.scale = Vec3::one() / 8.0;
-        next.leg_r.scale = Vec3::one() / 8.0;
+        next.leg_l.scale = Vec3::one();
+        next.leg_r.scale = Vec3::one();
         next.foot_l.scale = Vec3::one() * 1.01;
         next.foot_r.scale = Vec3::one() * 1.01;
-        next.chest.scale = Vec3::one() * s_a.scaler  * 0.99;
+        next.chest.scale = Vec3::one() * s_a.scaler * 0.99;
         next.tail_front.scale = Vec3::one() * 1.01;
         next.tail_rear.scale = Vec3::one() * 0.99;
 

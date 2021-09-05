@@ -43,8 +43,8 @@ impl Animation for SwimAnimation {
 
         next.head.scale = Vec3::one() * 0.99;
         next.neck.scale = Vec3::one() * 1.01;
-        next.leg_l.scale = Vec3::one() / 8.0;
-        next.leg_r.scale = Vec3::one() / 8.0;
+        next.leg_l.scale = Vec3::one();
+        next.leg_r.scale = Vec3::one();
         next.foot_l.scale = Vec3::one() * 1.01;
         next.foot_r.scale = Vec3::one() * 1.01;
         next.chest.scale = Vec3::one() * s_a.scaler * 0.99;

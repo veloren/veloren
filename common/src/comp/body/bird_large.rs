@@ -71,7 +71,7 @@ pub const ALL_SPECIES: [Species; 4] = [
     Species::Cockatrice,
     Species::Roc,
     Species::FlameWyvern,
-    ];
+];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     type IntoIter = std::iter::Copied<std::slice::Iter<'static, Self::Item>>;

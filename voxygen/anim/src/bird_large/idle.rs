@@ -39,11 +39,11 @@ impl Animation for IdleAnimation {
 
         next.head.scale = Vec3::one() * 0.99;
         next.neck.scale = Vec3::one() * 1.01;
-        next.leg_l.scale = Vec3::one() / 8.0;
-        next.leg_r.scale = Vec3::one() / 8.0;
+        next.leg_l.scale = Vec3::one();
+        next.leg_r.scale = Vec3::one();
         next.foot_l.scale = Vec3::one() * 1.01;
         next.foot_r.scale = Vec3::one() * 1.01;
-        next.chest.scale = Vec3::one() * s_a.scaler / 8.0 * 0.99;
+        next.chest.scale = Vec3::one() * s_a.scaler * 0.99;
         next.tail_front.scale = Vec3::one() * 1.01;
         next.tail_rear.scale = Vec3::one() * 0.99;
 
@@ -53,7 +53,7 @@ impl Animation for IdleAnimation {
         next.beak.position = Vec3::new(0.0, s_a.beak.0, s_a.beak.1);
         next.beak.orientation = Quaternion::rotation_x(wave_slow_cos * -0.02 - 0.02);
 
-        next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2) / 8.0;
+        next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2);
         next.leg_l.orientation = Quaternion::rotation_x(0.0);
         next.leg_r.position = Vec3::new(s_a.leg.0, s_a.leg.1, s_a.leg.2);
         next.leg_r.orientation = Quaternion::rotation_x(0.0);
@@ -65,7 +65,7 @@ impl Animation for IdleAnimation {
 
         if s_a.wyvern {
             next.chest.position =
-                Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + wave_slow_cos * 0.06) * s_a.scaler / 8.0;
+                Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + wave_slow_cos * 0.06) * s_a.scaler;
             next.chest.orientation = Quaternion::rotation_x(-0.1);
 
             next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
@@ -104,8 +104,7 @@ impl Animation for IdleAnimation {
                 * Quaternion::rotation_z(-0.55);
         } else {
             next.chest.position =
-                Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + wave_slow_cos * 0.06 + 1.5) * s_a.scaler
-                    / 8.0;
+                Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + wave_slow_cos * 0.06 + 1.5) * s_a.scaler;
             next.chest.orientation = Quaternion::rotation_x(0.0);
 
             next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
