@@ -1815,19 +1815,21 @@ impl<'a> AgentData<'a> {
         // And this is quite hard to debug when you don't see it in actual
         // attack handler.
         if let Some(dir) = match self.char_state {
-            CharacterState::ChargedRanged(c)
-                if dist_sqrd > 0.0 => {
-                    let projectile_speed = c.static_data.initial_projectile_speed + 0.5 * c.static_data.scaled_projectile_speed;
-                    aim_projectile(
-                        projectile_speed, 
-                        Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset), 
-                        Vec3::new(
-                            tgt_data.pos.0.x,
-                            tgt_data.pos.0.y,
-                            tgt_data.pos.0.z + tgt_eye_offset,
-                        ),
-                    )
-                },
+            CharacterState::ChargedRanged(c) if dist_sqrd > 0.0 => {
+                let charge_factor =
+                    c.timer.as_secs_f32() / c.static_data.charge_duration.as_secs_f32();
+                let projectile_speed = c.static_data.initial_projectile_speed
+                    + charge_factor * c.static_data.scaled_projectile_speed;
+                aim_projectile(
+                    projectile_speed,
+                    Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+                    Vec3::new(
+                        tgt_data.pos.0.x,
+                        tgt_data.pos.0.y,
+                        tgt_data.pos.0.z + tgt_eye_offset,
+                    ),
+                )
+            },
             CharacterState::BasicRanged(c) => {
                 let projectile_speed = c.static_data.projectile_speed;
                 aim_projectile(
@@ -1840,12 +1842,23 @@ impl<'a> AgentData<'a> {
                     ),
                 )
             },
-            CharacterState::LeapMelee(_) 
-                if matches!(tactic, Tactic::Hammer) || matches!(tactic, Tactic::Axe) => {
+            CharacterState::RepeaterRanged(c) => {
+                let projectile_speed = c.static_data.projectile_speed;
+                aim_projectile(
+                    projectile_speed,
+                    Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+                    Vec3::new(
+                        tgt_data.pos.0.x,
+                        tgt_data.pos.0.y,
+                        tgt_data.pos.0.z + tgt_eye_offset,
+                    ),
+                )
+            },
+            CharacterState::LeapMelee(_) if matches!(tactic, Tactic::Hammer | Tactic::Axe) => {
                 let direction_weight = match tactic {
                     Tactic::Hammer => 0.1,
                     Tactic::Axe => 0.3,
-                    _ => 0.0, // should not be called
+                    _ => panic!("Direction weight called on unknown tactic."),
                 };
 
                 let tgt_pos = tgt_data.pos.0;
@@ -1880,7 +1893,7 @@ impl<'a> AgentData<'a> {
                     tgt_data.pos.0.z + tgt_eye_offset,
                 );
                 Dir::from_unnormalized(aim_to - aim_from)
-            }
+            },
         } {
             controller.inputs.look_dir = dir;
         }
