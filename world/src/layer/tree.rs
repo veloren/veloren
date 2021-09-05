@@ -143,7 +143,15 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                                     StructureBlock::PineLeaves,
                                 );
                             },
-                            ForestKind::Birch => *BIRCHES,
+                            ForestKind::Birch => {
+                                break 'model TreeModel::Procedural(
+                                    ProceduralTree::generate(
+                                        TreeConfig::birch(&mut RandomPerm::new(seed), scale),
+                                        &mut RandomPerm::new(seed),
+                                    ),
+                                    StructureBlock::TemperateLeaves,
+                                );
+                            },
                             ForestKind::Mangrove => {
                                 break 'model TreeModel::Procedural(
                                     ProceduralTree::generate(
@@ -431,6 +439,31 @@ impl TreeConfig {
             inhabited: false,
             hanging_sprites: &[(0.00007, SpriteKind::Beehive)],
             wood_color: Rgb::new(110, 68, 65),
+        }
+    }
+
+    pub fn birch(rng: &mut impl Rng, scale: f32) -> Self {
+        let scale = scale * (0.8 + rng.gen::<f32>().powi(2) * 0.5);
+        let log_scale = 1.0 + scale.log2().max(0.0);
+
+        Self {
+            trunk_len: 24.0 * scale,
+            trunk_radius: 1.2 * scale,
+            branch_child_len: 0.4,
+            branch_child_radius: 0.75,
+            branch_child_radius_lerp: true,
+            leaf_radius: 4.0 * log_scale..5.0 * log_scale,
+            leaf_radius_scaled: 0.0,
+            straightness: 0.6,
+            max_depth: 4,
+            splits: 1.75..2.5,
+            split_range: 0.6..1.2,
+            branch_len_bias: 0.0,
+            leaf_vertical_scale: 0.5,
+            proportionality: 0.0,
+            inhabited: false,
+            hanging_sprites: &[(0.00007, SpriteKind::Beehive)],
+            wood_color: Rgb::new(220, 170, 160),
         }
     }
 
