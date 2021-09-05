@@ -2706,6 +2706,7 @@ rockiness {:?}
 tree_density {:?}
 in_river {:?}
 in_lake {:?}
+unbounded_water_level {:?}
 spawn_rate {:?} "#,
             wpos,
             alt,
@@ -2724,6 +2725,7 @@ spawn_rate {:?} "#,
             tree_density,
             col.in_river,
             col.in_lake,
+            col.unbounded_water_level,
             spawn_rate
         ))
     };
