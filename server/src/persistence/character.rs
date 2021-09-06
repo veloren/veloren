@@ -544,6 +544,14 @@ pub fn delete_character(
     stmt.execute(&[&char_id])?;
     drop(stmt);
 
+    let pet_ids = get_pet_ids(char_id, transaction)?
+        .iter()
+        .map(|x| Value::from(*x))
+        .collect::<Vec<Value>>();
+    if !pet_ids.is_empty() {
+        delete_pets(transaction, char_id, Rc::new(pet_ids))?;
+    }
+
     // Delete character
     let mut stmt = transaction.prepare_cached(
         "
@@ -596,14 +604,6 @@ pub fn delete_character(
              {})",
             char_id, deleted_item_count
         )));
-    }
-
-    let pet_ids = get_pet_ids(char_id, transaction)?
-        .iter()
-        .map(|x| Value::from(*x))
-        .collect::<Vec<Value>>();
-    if !pet_ids.is_empty() {
-        delete_pets(transaction, char_id, Rc::new(pet_ids))?;
     }
 
     load_character_list(requesting_player_uuid, transaction)
