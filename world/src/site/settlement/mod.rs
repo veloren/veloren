@@ -895,7 +895,7 @@ impl Settlement {
                 let entity_wpos = Vec3::new(wpos2d.x as f32, wpos2d.y as f32, col_sample.alt + 3.0);
 
                 if matches!(sample.plot, Some(Plot::Town { .. }))
-                    && RandomField::new(self.seed).chance(Vec3::from(wpos2d), 1.0 / (50.0 * 40.0))
+                    && RandomField::new(self.seed).chance(Vec3::from(wpos2d), 1.0 / (20.0 * 40.0))
                 {
                     let is_dummy =
                         RandomField::new(self.seed + 1).chance(Vec3::from(wpos2d), 1.0 / 15.0);
@@ -1004,13 +1004,13 @@ fn bird(pos: Vec3<f32>, dynamic_rng: &mut impl Rng) -> EntityInfo {
 
 fn humanoid(pos: Vec3<f32>, economy: &SiteInformation, dynamic_rng: &mut impl Rng) -> EntityInfo {
     let entity = EntityInfo::at(pos);
-    match dynamic_rng.gen_range(0..12) {
-        0 => entity
+    match dynamic_rng.gen_range(0..8) {
+        0 | 1 => entity
             .with_agent_mark(agent::Mark::Guard)
             .with_lazy_loadout(guard_loadout)
             .with_level(dynamic_rng.gen_range(10..15))
             .with_asset_expect("common.entity.village.guard"),
-        1 | 2 => entity
+        2 => entity
             .with_agent_mark(agent::Mark::Merchant)
             .with_economy(economy)
             .with_lazy_loadout(merchant_loadout)
