@@ -1,9 +1,7 @@
 ({
     ActiveMainhand: Choice([
         (1.0, Some(Item("common.items.weapons.sword.wood-2"))),
-        (1.0, Some(Item("common.items.weapons.sword.starter"))),
-        (1.0, Some(Item("common.items.weapons.sword.wood-0"))),
-        (1.0, Some(Item("common.items.weapons.bow.starter"))),
+        (1.0, Some(Item("common.items.weapons.sword.iron-0"))),
         (1.0, Some(Item("common.items.weapons.bow.hardwood-2"))),
     ]),
 
