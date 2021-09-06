@@ -542,7 +542,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
                             let depth = water_level - Lerp::lerp(riverless_alt.min(water_level), water_level - 4.0, 0.5);
 
-                            let min_alt = Lerp::lerp(riverless_alt, lake_water_alt, ((river_dist - 7.5) / (river_width * 0.5 - 7.5).max(0.01)).clamped(0.0, 1.0) as f32);
+                            let min_alt = Lerp::lerp(riverless_alt, lake_water_alt, ((river_dist - 8.5) / (river_width * 0.5 - 8.5).max(0.01)).clamped(0.0, 1.0) as f32);
 
                             Some((lake_water_alt, /*river_width as f32 * 0.15*/ depth, Some(min_alt)))
                         },
@@ -1314,10 +1314,10 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .add(((marble - 0.5) / 0.5) * 0.5)
             .add(((marble_mid - 0.5) / 0.5) * 0.25)
             .add(((marble_small - 0.5) / 0.5) * 0.175);
-        let (alt, ground, sub_surface_color) = if snow_cover <= 0.0 {
+        let (alt, ground, sub_surface_color) = if snow_cover <= 0.0 && alt > water_level {
             // Allow snow cover.
             (
-                alt + if alt > water_level { 1.0 - snow_cover.max(0.0) } else { 0.0 },
+                alt + 1.0 - snow_cover.max(0.0),
                 Rgb::lerp(snow, ground, snow_cover),
                 Lerp::lerp(sub_surface_color, ground, alt.sub(basement).mul(0.15)),
             )
