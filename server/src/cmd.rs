@@ -55,8 +55,8 @@ use vek::*;
 use wiring::{Circuit, Wire, WiringAction, WiringActionEffect, WiringElement};
 use world::util::Sampler;
 
-use tracing::{error, info, warn};
 use common::comp::Alignment;
+use tracing::{error, info, warn};
 
 pub trait ChatCommandExt {
     fn execute(&self, server: &mut Server, entity: EcsEntity, args: Vec<String>);
@@ -1682,15 +1682,14 @@ fn handle_kill_npcs(
     let alignments = ecs.read_storage::<comp::Alignment>();
     let mut count = 0;
 
-    for (mut health, (), alignment)
-    in (&mut healths, !&players, alignments.maybe()).join() {
-        let should_kill = kill_pets ||
-            if let Some(Alignment::Owned(owned)) = alignment {
-            ecs.entity_from_uid(owned.0)
-                .map_or(true, |owner| !players.contains(owner))
-        } else {
-            true
-        };
+    for (mut health, (), alignment) in (&mut healths, !&players, alignments.maybe()).join() {
+        let should_kill = kill_pets
+            || if let Some(Alignment::Owned(owned)) = alignment {
+                ecs.entity_from_uid(owned.0)
+                    .map_or(true, |owner| !players.contains(owner))
+            } else {
+                true
+            };
 
         if should_kill {
             count += 1;
