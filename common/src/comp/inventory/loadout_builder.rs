@@ -266,6 +266,11 @@ fn default_main_tool(body: &Body) -> Item {
             )),
         },
         Body::Arthropod(arthropod) => match arthropod.species {
+            arthropod::Species::Hornbeetle
+            | arthropod::Species::Stagbeetle
+            | arthropod::Species::Antlion => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.arthropodcharge",
+            )),
             _ => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.arthropodbasic",
             )),

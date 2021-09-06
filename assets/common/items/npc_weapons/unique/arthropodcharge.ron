@@ -1,0 +1,21 @@
+ItemDef(
+    name: "Arthropod Charge",
+    description: "testing123",
+    kind: Tool((
+        kind: Natural,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.01,
+            power: 1.0,
+            effect_power: 1.0,
+            speed: 1.0,
+            crit_chance: 0.1,
+            range: 1.0,
+            energy_efficiency: 1.0,
+            buff_strength: 1.0,
+        )),
+    )),
+    quality: Low,
+    tags: [],
+    ability_spec: Some(Custom("Arthropod Charge")),
+)

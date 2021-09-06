@@ -235,6 +235,11 @@
             (None, "common.abilities.custom.arthropodbasic.leap"),
         ],
     ),
+    Custom("Arthropod Charge"): (
+        primary: "common.abilities.custom.arthropodcharge.singlestrike",
+        secondary: "common.abilities.custom.arthropodcharge.charge",
+        abilities: [],
+    ),
     Custom("Turret"): (
         primary: "common.abilities.custom.turret.arrows",
         secondary: "common.abilities.custom.turret.arrows",

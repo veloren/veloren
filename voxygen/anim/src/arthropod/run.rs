@@ -110,7 +110,7 @@ impl Animation for RunAnimation {
             * Quaternion::rotation_z(s_a.leg_ori.3 + (mixed_vel + PI / 2.0).sin() * 0.2);
         next.leg_br.orientation = Quaternion::rotation_x((mixed_vel).sin() * 0.2)
             * Quaternion::rotation_y((mixed_vel).sin().min(0.0) * 0.7)
-            * Quaternion::rotation_z(s_a.leg_ori.3 - (mixed_vel + PI * 1.5).sin() * 0.2);
+            * Quaternion::rotation_z(-s_a.leg_ori.3 - (mixed_vel + PI * 1.5).sin() * 0.2);
 
         next
     }

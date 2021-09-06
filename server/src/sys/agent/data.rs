@@ -93,6 +93,8 @@ pub enum Tactic {
     BirdLargeBreathe,
     BirdLargeFire,
     BirdLargeBasic,
+    ArthropodCharge,
+    ArthropodBasic,
     Minotaur,
     ClayGolem,
     TidalWarrior,
