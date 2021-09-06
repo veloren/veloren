@@ -1670,11 +1670,11 @@ fn handle_kill_npcs(
     args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
-    let mut kill_pets = false;
-
-    if let Some(kill_option) = parse_args!(args, String) {
-        kill_pets = kill_option.contains("--also-pets");
-    }
+    let kill_pets = if let Some(kill_option) = parse_args!(args, String) {
+        kill_option.contains("--also-pets")
+    } else {
+        false
+    };
 
     let ecs = server.state.ecs();
     let mut healths = ecs.write_storage::<comp::Health>();
@@ -1682,21 +1682,15 @@ fn handle_kill_npcs(
     let alignments = ecs.read_storage::<comp::Alignment>();
     let mut count = 0;
 
-    for (mut health, (), alignment) in (&mut healths, !&players, &alignments).join() {
-        let mut should_kill = true;
-
-        if !kill_pets {
-            match alignment {
-                Alignment::Owned(uid) => {
-                    if let Some(owner) = ecs.entity_from_uid(uid.0) {
-                        if players.contains(owner) {
-                            should_kill = false;
-                        }
-                    }
-                }
-                _ => (),
-            }
-        }
+    for (mut health, (), alignment)
+    in (&mut healths, !&players, alignments.maybe()).join() {
+        let should_kill = kill_pets ||
+            if let Some(Alignment::Owned(owned)) = alignment {
+            ecs.entity_from_uid(owned.0)
+                .map_or(true, |owner| !players.contains(owner))
+        } else {
+            true
+        };
 
         if should_kill {
             count += 1;
