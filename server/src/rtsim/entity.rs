@@ -501,7 +501,7 @@ impl Entity {
                     let time_to_move = if time_to_move.is_none() {
                         // Time increment is how long raiders stay at a site about. Is longer for
                         // home site and shorter for target site.
-                        let time_increment = if raid_complete { 300.0 } else { 60.0 };
+                        let time_increment = if raid_complete { 600.0 } else { 60.0 };
                         Some((time.0 / time_increment).ceil() * time_increment + time_increment)
                     } else {
                         time_to_move

@@ -6,8 +6,10 @@ EntityConfig (
     loot: Uninit,
 
     hands: TwoHanded(Choice([
-        (2.0, Some(Item("common.items.weapons.sword.cobalt-0"))),
+        (1.0, Some(Item("common.items.weapons.sword.cobalt-0"))),
         (2.0, Some(Item("common.items.weapons.bow.metal-2"))),
+        (1.0, Some(Item("common.items.weapons.axe.cobalt_axe-0"))),
+
     ])),
     meta: [
         SkillSetAsset("common.skillset.village.guard"),

@@ -1,4 +1,5 @@
 ([
     Tree("common.skillset.dungeon.tier-5.sword"),
     Tree("common.skillset.dungeon.tier-5.bow"),
+    Tree("common.skillset.dungeon.tier-5.axe"),
 ])
