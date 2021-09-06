@@ -86,7 +86,13 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                                 *OAK_STUMPS
                             },
                             ForestKind::Oak if QUIRKY_RAND.chance(seed + 2, 1.0 / 20.0) => {
-                                *FRUIT_TREES
+                                break 'model TreeModel::Procedural(
+                                    ProceduralTree::generate(
+                                        TreeConfig::apple(&mut RandomPerm::new(seed), scale),
+                                        &mut RandomPerm::new(seed),
+                                    ),
+                                    StructureBlock::TemperateLeaves,
+                                );
                             },
                             ForestKind::Palm => *PALMS,
                             ForestKind::Acacia => {
@@ -361,6 +367,31 @@ impl TreeConfig {
             proportionality: 0.0,
             inhabited: false,
             hanging_sprites: &[(0.0002, SpriteKind::Apple), (0.00007, SpriteKind::Beehive)],
+            trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(90, 45, 15)),
+        }
+    }
+
+    pub fn apple(rng: &mut impl Rng, scale: f32) -> Self {
+        let scale = scale * (0.8 + rng.gen::<f32>().powi(2) * 0.5);
+        let log_scale = 1.0 + scale.log2().max(0.0);
+
+        Self {
+            trunk_len: 3.0 * scale,
+            trunk_radius: 1.5 * scale,
+            branch_child_len: 0.9,
+            branch_child_radius: 0.9,
+            branch_child_radius_lerp: true,
+            leaf_radius: 2.0 * log_scale..3.0 * log_scale,
+            leaf_radius_scaled: 0.0,
+            straightness: 0.4,
+            max_depth: 6,
+            splits: 1.0..3.0,
+            split_range: 0.5..2.0,
+            branch_len_bias: 0.0,
+            leaf_vertical_scale: 0.7,
+            proportionality: 0.0,
+            inhabited: false,
+            hanging_sprites: &[(0.03, SpriteKind::Apple), (0.02, SpriteKind::Beehive)],
             trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(90, 45, 15)),
         }
     }
