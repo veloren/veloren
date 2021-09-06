@@ -56,6 +56,7 @@ use wiring::{Circuit, Wire, WiringAction, WiringActionEffect, WiringElement};
 use world::util::Sampler;
 
 use tracing::{error, info, warn};
+use common::comp::Alignment;
 
 pub trait ChatCommandExt {
     fn execute(&self, server: &mut Server, entity: EcsEntity, args: Vec<String>);
@@ -617,7 +618,6 @@ fn handle_make_npc(
 
                 // Some would say it's a hack, some would say it's incomplete
                 // simulation. But this is what we do to avoid PvP between npc.
-                use comp::Alignment;
                 let npc_group = match alignment {
                     Alignment::Enemy => Some(comp::group::ENEMY),
                     Alignment::Npc | Alignment::Tame => Some(comp::group::NPC),
@@ -1667,22 +1667,49 @@ fn handle_kill_npcs(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    _args: Vec<String>,
+    args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
+    let mut kill_pets = false;
+
+    if let Some(kill_option) = parse_args!(args, String) {
+        kill_pets = kill_option.contains("--also-pets");
+    }
+
     let ecs = server.state.ecs();
     let mut healths = ecs.write_storage::<comp::Health>();
     let players = ecs.read_storage::<comp::Player>();
+    let alignments = ecs.read_storage::<comp::Alignment>();
     let mut count = 0;
-    for (mut health, ()) in (&mut healths, !&players).join() {
-        count += 1;
-        health.set_to(0, comp::HealthSource::Command);
+
+    for (mut health, (), alignment) in (&mut healths, !&players, &alignments).join() {
+        let mut should_kill = true;
+
+        if !kill_pets {
+            match alignment {
+                Alignment::Owned(uid) => {
+                    if let Some(owner) = ecs.entity_from_uid(uid.0) {
+                        if players.contains(owner) {
+                            should_kill = false;
+                        }
+                    }
+                }
+                _ => (),
+            }
+        }
+
+        if should_kill {
+            count += 1;
+            health.set_to(0, comp::HealthSource::Command);
+        }
     }
+
     let text = if count > 0 {
         format!("Destroyed {} NPCs.", count)
     } else {
         "No NPCs on server.".to_string()
     };
+
     server.notify_client(
         client,
         ServerGeneral::server_msg(ChatType::CommandInfo, text),
