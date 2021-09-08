@@ -636,8 +636,8 @@ pub fn handle_manipulate_loadout(
             }
         },
         InventoryAction::Collect(sprite_pos) => {
-            let sprite_pos_f32 = sprite_pos.map(|x| x as f32);
-            // CLosure to check if distance between a point and the sprite is less than
+            let sprite_pos_f32 = sprite_pos.map(|x| x as f32 + 0.5);
+            // Closure to check if distance between a point and the sprite is less than
             // MAX_PICKUP_RANGE and the radius of the body
             let sprite_range_check = |pos: Vec3<f32>| {
                 (sprite_pos_f32 - pos).magnitude_squared()
@@ -696,9 +696,12 @@ pub fn handle_manipulate_loadout(
                                 .map_or(false, |block| !block.is_filled())
                         })
                     };
-                    // Transition uses manhattan distance as the cost, which is always 1 since we
-                    // only ever step one block at a time
-                    let transition = |_: &Vec3<i32>, _: &Vec3<i32>| 1.0;
+                    // Transition uses manhattan distance as the cost, with a slightly lower cost
+                    // for z transitions
+                    let transition = |a: &Vec3<i32>, b: &Vec3<i32>| {
+                        let (a, b) = (a.map(|x| x as f32), b.map(|x| x as f32));
+                        ((a - b) * Vec3::new(1.0, 1.0, 0.9)).map(|e| e.abs()).sum()
+                    };
                     // Pathing satisfied when it reaches the sprite position
                     let satisfied = |pos: &Vec3<i32>| *pos == sprite_pos;
 
