@@ -160,8 +160,7 @@ pub struct ReadData<'a> {
     combos: ReadStorage<'a, Combo>,
 }
 
-// This is 3.1 to last longer than the last damage timer (3.0 seconds)
-const DAMAGE_MEMORY_DURATION: f64 = 3.1;
+const DAMAGE_MEMORY_DURATION: f64 = 0.25;
 const FLEE_DURATION: f32 = 3.0;
 const MAX_FOLLOW_DIST: f32 = 12.0;
 const MAX_PATH_DIST: f32 = 170.0;
@@ -507,10 +506,20 @@ impl<'a> System<'a> for Sys {
                                                         // than the old target, or if the old target
                                                         // had not triggered aggro (the new target
                                                         // has because damage always triggers it)
-                                                        !old_tgt.aggro_on
-                                                            || tgt_pos.0.distance(pos.0)
+                                                        let old_tgt_not_threat = !old_tgt.aggro_on;
+                                                        let old_tgt_further =
+                                                            tgt_pos.0.distance(pos.0)
                                                                 < old_tgt_pos.0.distance(pos.0)
-                                                                    * FUZZY_DIST_COMPARISON
+                                                                    * FUZZY_DIST_COMPARISON;
+                                                        let new_tgt_hostile = read_data
+                                                            .alignments
+                                                            .get(attacker)
+                                                            .zip(alignment)
+                                                            .map_or(false, |(attacker, us)| {
+                                                                us.hostile_towards(*attacker)
+                                                            });
+                                                        old_tgt_not_threat
+                                                            || (old_tgt_further && new_tgt_hostile)
                                                     } else {
                                                         true
                                                     }
