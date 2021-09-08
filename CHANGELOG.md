@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sprite pickup animations
 - Add VELOREN_ASSETS_OVERRIDE variable for specifying folder to partially override assets.
 - Cultist raiders
+- Bloom Slider
 
 ### Changed
 
