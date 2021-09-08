@@ -644,6 +644,8 @@ impl Scene {
                 .terrain()
                 .get((cam_pos + focus_off).map(|e| e.floor() as i32))
                 .map(|b| b.kind())
+                // Don't block the camera's view in solid blocks if the player is a moderator
+                .filter(|b| !(b.is_filled() && self.client.is_moderator()))
                 .unwrap_or(BlockKind::Air),
             self.select_pos.map(|e| e - focus_off.map(|e| e as i32)),
             scene_data.gamma,
