@@ -340,7 +340,7 @@ impl Scene {
     /// window closed).
     ///
     /// If the event is handled, return true.
-    pub fn handle_input_event(&mut self, event: Event) -> bool {
+    pub fn handle_input_event(&mut self, event: Event, client: &Client) -> bool {
         match event {
             // When the window is resized, change the camera's aspect ratio
             Event::Resize(dims) => {
@@ -357,13 +357,16 @@ impl Scene {
                 // when zooming in the distance the camera travelles should be based on the
                 // final distance. This is to make sure the camera travelles the
                 // same distance when zooming in and out
+                let cap = (!client.is_moderator()).then_some(30.0);
                 if delta < 0.0 {
                     self.camera.zoom_switch(
+                        // Thank you Imbris for doing the math
                         delta * (0.05 + self.camera.get_distance() * 0.01) / (1.0 - delta * 0.01),
-                    ); // Thank you Imbris for doing the math
+                        cap,
+                    );
                 } else {
                     self.camera
-                        .zoom_switch(delta * (0.05 + self.camera.get_distance() * 0.01));
+                        .zoom_switch(delta * (0.05 + self.camera.get_distance() * 0.01), cap);
                 }
                 true
             },
@@ -643,9 +646,10 @@ impl Scene {
                 .state
                 .terrain()
                 .get((cam_pos + focus_off).map(|e| e.floor() as i32))
-                .map(|b| b.kind())
+                .ok()
                 // Don't block the camera's view in solid blocks if the player is a moderator
-                .filter(|b| !(b.is_filled() && self.client.is_moderator()))
+                .filter(|b| !(b.is_filled() && client.is_moderator()))
+                .map(|b| b.kind())
                 .unwrap_or(BlockKind::Air),
             self.select_pos.map(|e| e - focus_off.map(|e| e as i32)),
             scene_data.gamma,

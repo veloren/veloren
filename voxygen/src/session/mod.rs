@@ -826,7 +826,10 @@ impl PlayState for SessionState {
                             self.key_state.analog_matrix.y = v;
                         },
                         other => {
-                            self.scene.handle_input_event(Event::AnalogGameInput(other));
+                            self.scene.handle_input_event(
+                                Event::AnalogGameInput(other),
+                                &self.client.borrow(),
+                            );
                         },
                     },
                     Event::ScreenshotMessage(screenshot_message) => {
@@ -838,7 +841,7 @@ impl PlayState for SessionState {
 
                     // Pass all other events to the scene
                     event => {
-                        self.scene.handle_input_event(event);
+                        self.scene.handle_input_event(event, &self.client.borrow());
                     }, // TODO: Do something if the event wasn't handled?
                 }
             }

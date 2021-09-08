@@ -527,15 +527,19 @@ impl Camera {
     }
 
     /// Zoom the camera by the given delta, limiting the input accordingly.
-    pub fn zoom_by(&mut self, delta: f32) {
+    pub fn zoom_by(&mut self, delta: f32, cap: Option<f32>) {
         if self.mode == CameraMode::ThirdPerson {
             // Clamp camera dist to the 2 <= x <= infinity range
             self.tgt_dist = (self.tgt_dist + delta).max(2.0);
         }
+
+        if let Some(cap) = cap {
+            self.tgt_dist = self.tgt_dist.min(cap);
+        }
     }
 
     /// Zoom with the ability to switch between first and third-person mode.
-    pub fn zoom_switch(&mut self, delta: f32) {
+    pub fn zoom_switch(&mut self, delta: f32, cap: Option<f32>) {
         if delta > 0_f32 || self.mode != CameraMode::FirstPerson {
             let t = self.tgt_dist + delta;
             const MIN_THIRD_PERSON: f32 = 2.35;
@@ -553,6 +557,10 @@ impl Camera {
                 },
                 _ => {},
             }
+        }
+
+        if let Some(cap) = cap {
+            self.tgt_dist = self.tgt_dist.min(cap);
         }
     }
 
@@ -679,13 +687,13 @@ impl Camera {
             self.mode = mode;
             match self.mode {
                 CameraMode::ThirdPerson => {
-                    self.zoom_by(5.0);
+                    self.zoom_by(5.0, None);
                 },
                 CameraMode::FirstPerson => {
                     self.set_distance(MIN_ZOOM);
                 },
                 CameraMode::Freefly => {
-                    self.zoom_by(0.0);
+                    self.zoom_by(0.0, None);
                 },
             }
         }
