@@ -275,11 +275,11 @@ pub enum BloomFactor {
     Custom(f32),
     // other variant has to be placed last
     #[serde(other)]
-    Standard,
+    Medium,
 }
 
 impl Default for BloomFactor {
-    fn default() -> Self { Self::Standard }
+    fn default() -> Self { Self::Low }
 }
 
 impl BloomFactor {
@@ -287,7 +287,7 @@ impl BloomFactor {
     pub fn fraction(self) -> f32 {
         match self {
             Self::Low => 0.05,
-            Self::Standard => 0.10,
+            Self::Medium => 0.10,
             Self::High => 0.25,
             Self::Custom(val) => val.max(0.0).min(1.0),
         }
@@ -299,14 +299,14 @@ impl BloomFactor {
 pub struct BloomConfig {
     /// Controls fraction of output image luminosity that is blurred bloom
     ///
-    /// Defaults to `Standard`
-    factor: BloomFactor,
+    /// Defaults to `Low`
+    pub factor: BloomFactor,
     /// Turning this on make the bloom blur less sharply concentrated around the
     /// high intensity phenomena (removes adding in less blurred layers to the
     /// final blur)
     ///
     /// Defaults to `false`
-    uniform_blur: bool,
+    pub uniform_blur: bool,
     // TODO: allow configuring the blur radius and/or the number of passes
 }
 
@@ -318,7 +318,12 @@ pub enum BloomMode {
 }
 
 impl Default for BloomMode {
-    fn default() -> Self { Self::Off }
+    fn default() -> Self {
+        Self::On(BloomConfig {
+            factor: BloomFactor::default(),
+            uniform_blur: false,
+        })
+    }
 }
 
 impl BloomMode {
