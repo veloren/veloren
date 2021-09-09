@@ -1,5 +1,5 @@
 use common::{
-    comp::{HealthSource, Object, PhysicsState, PoiseChange, PoiseSource, Pos, Vel},
+    comp::{Object, PhysicsState, PoiseChange, PoiseSource, Pos, Vel},
     effect::Effect,
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
@@ -46,10 +46,7 @@ impl<'a> System<'a> for Sys {
             match object {
                 Object::Bomb { owner } => {
                     if physics.on_surface().is_some() {
-                        server_emitter.emit(ServerEvent::Destroy {
-                            entity,
-                            cause: HealthSource::Suicide,
-                        });
+                        server_emitter.emit(ServerEvent::Delete(entity));
                         server_emitter.emit(ServerEvent::Explosion {
                             pos: pos.0,
                             explosion: Explosion {
@@ -143,10 +140,7 @@ impl<'a> System<'a> for Sys {
                                 });
                             }
                         }
-                        server_emitter.emit(ServerEvent::Destroy {
-                            entity,
-                            cause: HealthSource::Suicide,
-                        });
+                        server_emitter.emit(ServerEvent::Delete(entity));
                         server_emitter.emit(ServerEvent::Explosion {
                             pos: pos.0,
                             explosion: Explosion {

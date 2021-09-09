@@ -1217,9 +1217,10 @@ impl Hud {
                         );
                         // Calculate total change
                         // Ignores healing
-                        let hp_damage = floaters.iter().fold(0, |acc, f| f.hp_change.min(0) + acc);
-                        // Divide by 10 to stay in the same dimension as the HP display
-                        let hp_dmg_rounded_abs = ((hp_damage + 5) / 10).abs();
+                        let hp_damage = floaters
+                            .iter()
+                            .fold(0.0, |acc, f| f.hp_change.min(0.0) + acc);
+                        let hp_dmg_rounded_abs = hp_damage.round().abs() as u32;
                         let max_hp_frac = hp_damage.abs() as f32 / health.maximum() as f32;
                         let timer = floaters
                             .last()
@@ -1242,7 +1243,7 @@ impl Hud {
                         Text::new(&format!("{}", hp_dmg_rounded_abs))
                             .font_size(font_size)
                             .font_id(self.fonts.cyri.conrod_id)
-                            .color(if hp_damage < 0 {
+                            .color(if hp_damage < 0.0 {
                                 Color::Rgba(0.0, 0.0, 0.0, hp_fade)
                             } else {
                                 Color::Rgba(0.0, 0.0, 0.0, 0.0)
@@ -1252,7 +1253,7 @@ impl Hud {
                         Text::new(&format!("{}", hp_dmg_rounded_abs))
                             .font_size(font_size)
                             .font_id(self.fonts.cyri.conrod_id)
-                            .color(if hp_damage < 0 {
+                            .color(if hp_damage < 0.0 {
                                 Color::Rgba(1.0, 0.1, 0.0, hp_fade)
                             } else {
                                 Color::Rgba(0.0, 0.0, 0.0, 0.0)
@@ -1263,7 +1264,8 @@ impl Hud {
                     for floater in floaters {
                         // Healing always single numbers so just skip damage when in batch mode
 
-                        if global_state.settings.interface.sct_player_batch && floater.hp_change < 0
+                        if global_state.settings.interface.sct_player_batch
+                            && floater.hp_change < 0.0
                         {
                             continue;
                         }
@@ -1287,7 +1289,7 @@ impl Hud {
                                 0
                             };
                         // Timer sets the widget offset
-                        let y = if floater.hp_change < 0 {
+                        let y = if floater.hp_change < 0.0 {
                             floater.timer as f64
                             * number_speed
                             * floater.hp_change.signum() as f64
@@ -1303,7 +1305,7 @@ impl Hud {
                                 - ui_widgets.win_h * 0.5
                         };
                         // Healing is offset randomly
-                        let x = if floater.hp_change < 0 {
+                        let x = if floater.hp_change < 0.0 {
                             0.0
                         } else {
                             (floater.rand as f64 - 0.5) * 0.2 * ui_widgets.win_w
@@ -1312,17 +1314,17 @@ impl Hud {
                         let hp_fade = ((crate::ecs::sys::floater::MY_HP_SHOWTIME - floater.timer)
                             * 0.25)
                             + 0.2;
-                        if floater.hp_change.abs() > 10 {
-                            Text::new(&format!("{}", (floater.hp_change / 10).abs()))
+                        if floater.hp_change.abs() > 1.0 {
+                            Text::new(&format!("{:.0}", floater.hp_change.abs()))
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .color(Color::Rgba(0.0, 0.0, 0.0, hp_fade))
                                 .x_y(x, y - 3.0)
                                 .set(player_sct_bg_id, ui_widgets);
-                            Text::new(&format!("{}", (floater.hp_change / 10).abs()))
+                            Text::new(&format!("{:.0}", floater.hp_change.abs()))
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
-                                .color(if floater.hp_change < 0 {
+                                .color(if floater.hp_change < 0.0 {
                                     Color::Rgba(1.0, 0.1, 0.0, hp_fade)
                                 } else {
                                     Color::Rgba(0.1, 1.0, 0.1, hp_fade)
@@ -1330,16 +1332,16 @@ impl Hud {
                                 .x_y(x, y)
                                 .set(player_sct_id, ui_widgets);
                         } else {
-                            Text::new(&format!("{}", (floater.hp_change as f32 / 10.0).abs()))
+                            Text::new(&format!("{:.1}", floater.hp_change.abs()))
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .color(Color::Rgba(0.0, 0.0, 0.0, hp_fade))
                                 .x_y(x, y - 3.0)
                                 .set(player_sct_bg_id, ui_widgets);
-                            Text::new(&format!("{}", (floater.hp_change as f32 / 10.0).abs()))
+                            Text::new(&format!("{:.1}", floater.hp_change.abs()))
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
-                                .color(if floater.hp_change < 0 {
+                                .color(if floater.hp_change < 0.0 {
                                     Color::Rgba(1.0, 0.1, 0.0, hp_fade)
                                 } else {
                                     Color::Rgba(0.1, 1.0, 0.1, hp_fade)
@@ -1871,17 +1873,15 @@ impl Hud {
                             .next(&mut self.ids.sct_bgs, &mut ui_widgets.widget_id_generator());
                         // Calculate total change
                         // Ignores healing
-                        let hp_damage = floaters.iter().fold(0, |acc, f| {
-                            if f.hp_change < 0 {
+                        let hp_damage = floaters.iter().fold(0.0, |acc, f| {
+                            if f.hp_change < 0.0 {
                                 acc + f.hp_change
                             } else {
                                 acc
                             }
                         });
-                        // Divide by 10 to stay in the same dimension as the HP display
-                        let hp_dmg_rounded_abs = ((hp_damage + 5) / 10).abs();
-                        let max_hp_frac =
-                            hp_damage.abs() as f32 / health.map_or(1.0, |h| h.maximum() as f32);
+                        let hp_dmg_rounded_abs = hp_damage.round().abs();
+                        let max_hp_frac = hp_damage.abs() / health.map_or(1.0, |h| h.maximum());
                         let timer = floaters
                             .last()
                             .expect("There must be at least one floater")
@@ -1902,20 +1902,20 @@ impl Hud {
                             + 100.0;
                         // Timer sets text transparency
                         let fade = ((crate::ecs::sys::floater::HP_SHOWTIME - timer) * 0.25) + 0.2;
-                        if hp_damage.abs() < 10 {
+                        if hp_damage.abs() < 1.0 {
                             // Damage and heal below 10/10 are shown as decimals
-                            Text::new(&format!("{}", hp_damage.abs() as f32 / 10.0))
+                            Text::new(&format!("{}", hp_damage.abs()))
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                                 .x_y(0.0, y - 3.0)
                                 .position_ingame(ingame_pos)
                                 .set(sct_bg_id, ui_widgets);
-                            Text::new(&format!("{}", hp_damage.abs() as f32 / 10.0))
+                            Text::new(&format!("{}", hp_damage.abs()))
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .x_y(0.0, y)
-                                .color(if hp_damage < 0 {
+                                .color(if hp_damage < 0.0 {
                                     Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
                                 } else {
                                     Color::Rgba(0.1, 1.0, 0.1, fade)
@@ -1936,7 +1936,7 @@ impl Hud {
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .x_y(0.0, y)
-                                .color(if hp_damage < 0 {
+                                .color(if hp_damage < 0.0 {
                                     Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
                                 } else {
                                     Color::Rgba(0.1, 1.0, 0.1, fade)
@@ -1973,12 +1973,12 @@ impl Hud {
                             let fade = ((crate::ecs::sys::floater::HP_SHOWTIME - floater.timer)
                                 * 0.25)
                                 + 0.2;
-                            if floater.hp_change.abs() < 10 {
+                            if floater.hp_change.abs() < 1.0 {
                                 // Damage and heal below 10/10 are shown as decimals
-                                Text::new(&format!("{}", (floater.hp_change.abs() as f32 / 10.0)))
+                                Text::new(&format!("{:.0}", floater.hp_change.abs()))
                                     .font_size(font_size)
                                     .font_id(self.fonts.cyri.conrod_id)
-                                    .color(if floater.hp_change < 0 {
+                                    .color(if floater.hp_change < 0.0 {
                                         Color::Rgba(0.0, 0.0, 0.0, fade)
                                     } else {
                                         Color::Rgba(0.0, 0.0, 0.0, 1.0)
@@ -1986,11 +1986,11 @@ impl Hud {
                                     .x_y(0.0, y - 3.0)
                                     .position_ingame(ingame_pos)
                                     .set(sct_bg_id, ui_widgets);
-                                Text::new(&format!("{}", (floater.hp_change.abs() as f32 / 10.0)))
+                                Text::new(&format!("{:.0}", floater.hp_change.abs()))
                                     .font_size(font_size)
                                     .font_id(self.fonts.cyri.conrod_id)
                                     .x_y(0.0, y)
-                                    .color(if floater.hp_change < 0 {
+                                    .color(if floater.hp_change < 0.0 {
                                         Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
                                     } else {
                                         Color::Rgba(0.1, 1.0, 0.1, 1.0)
@@ -1999,10 +1999,10 @@ impl Hud {
                                     .set(sct_id, ui_widgets);
                             } else {
                                 // Damage and heal above 10/10 are shown rounded
-                                Text::new(&format!("{}", (floater.hp_change / 10).abs()))
+                                Text::new(&format!("{:.1}", floater.hp_change.abs()))
                                     .font_size(font_size)
                                     .font_id(self.fonts.cyri.conrod_id)
-                                    .color(if floater.hp_change < 0 {
+                                    .color(if floater.hp_change < 0.0 {
                                         Color::Rgba(0.0, 0.0, 0.0, fade)
                                     } else {
                                         Color::Rgba(0.0, 0.0, 0.0, 1.0)
@@ -2010,11 +2010,11 @@ impl Hud {
                                     .x_y(0.0, y - 3.0)
                                     .position_ingame(ingame_pos)
                                     .set(sct_bg_id, ui_widgets);
-                                Text::new(&format!("{}", (floater.hp_change / 10).abs()))
+                                Text::new(&format!("{:.1}", floater.hp_change.abs()))
                                     .font_size(font_size)
                                     .font_id(self.fonts.cyri.conrod_id)
                                     .x_y(0.0, y)
-                                    .color(if floater.hp_change < 0 {
+                                    .color(if floater.hp_change < 0.0 {
                                         Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
                                     } else {
                                         Color::Rgba(0.1, 1.0, 0.1, 1.0)

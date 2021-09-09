@@ -518,7 +518,7 @@ fn selected_entity_window(
                             .show(ui, |ui| {
                                 two_col_row(ui, "Name", stats.name.to_string());
                                 two_col_row(ui, "Damage Reduction", format!("{:.1}", stats.damage_reduction));
-                                two_col_row(ui, "Max Health Modifier", format!("{:.1}", stats.max_health_modifier));
+                                two_col_row(ui, "Multiplicative Max Health Modifier", format!("{:.1}", stats.max_health_modifiers.mult_mod));
                                 two_col_row(ui, "Move Speed Modifier", format!("{:.1}", stats.move_speed_modifier));
                             });
 

@@ -99,4 +99,4 @@ pub use self::{
     visual::{LightAnimation, LightEmitter},
 };
 
-pub use health::{Health, HealthChange, HealthSource};
+pub use health::{Health, HealthChange};

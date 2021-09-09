@@ -6,8 +6,8 @@ use entity_creation::{
     handle_initialize_character, handle_loaded_character_data, handle_shockwave, handle_shoot,
 };
 use entity_manipulation::{
-    handle_aura, handle_bonk, handle_buff, handle_combo_change, handle_damage, handle_delete,
-    handle_destroy, handle_energy_change, handle_entity_attacked_hook, handle_explosion,
+    handle_aura, handle_bonk, handle_buff, handle_combo_change, handle_delete, handle_destroy,
+    handle_energy_change, handle_entity_attacked_hook, handle_explosion, handle_health_change,
     handle_knockback, handle_land_on_ground, handle_parry, handle_poise, handle_respawn,
     handle_teleport_to,
 };
@@ -91,7 +91,9 @@ impl Server {
                 ServerEvent::Knockback { entity, impulse } => {
                     handle_knockback(self, entity, impulse)
                 },
-                ServerEvent::Damage { entity, change } => handle_damage(self, entity, change),
+                ServerEvent::HealthChange { entity, change } => {
+                    handle_health_change(self, entity, change)
+                },
                 ServerEvent::PoiseChange {
                     entity,
                     change,

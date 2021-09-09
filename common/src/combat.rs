@@ -13,7 +13,7 @@ use crate::{
         poise::PoiseChange,
         skills::SkillGroupKind,
         Alignment, Body, CharacterState, Combo, Energy, EnergyChange, EnergySource, Health,
-        HealthChange, HealthSource, Inventory, Ori, Player, Poise, SkillSet, Stats,
+        HealthChange, Inventory, Ori, Player, Poise, SkillSet, Stats,
     },
     event::ServerEvent,
     outcome::Outcome,
@@ -231,8 +231,8 @@ impl Attack {
             let applied_damage = -change.amount as f32;
             accumulated_damage += applied_damage;
             emit_outcome(Outcome::Damage { pos: target.pos });
-            if change.amount != 0 {
-                emit(ServerEvent::Damage {
+            if change.amount.abs() > f32::EPSILON {
+                emit(ServerEvent::HealthChange {
                     entity: target.entity,
                     change,
                 });
@@ -273,13 +273,12 @@ impl Attack {
                         CombatEffect::Lifesteal(l) => {
                             if let Some(attacker_entity) = attacker.map(|a| a.entity) {
                                 let change = HealthChange {
-                                    amount: (applied_damage * l) as i32,
-                                    cause: HealthSource::Heal {
-                                        by: attacker.map(|a| a.uid),
-                                    },
+                                    amount: applied_damage * l,
+                                    by: attacker.map(|a| a.uid),
+                                    cause: None,
                                 };
-                                if change.amount != 0 {
-                                    emit(ServerEvent::Damage {
+                                if change.amount.abs() > f32::EPSILON {
+                                    emit(ServerEvent::HealthChange {
                                         entity: attacker_entity,
                                         change,
                                     });
@@ -298,13 +297,12 @@ impl Attack {
                         },
                         CombatEffect::Heal(h) => {
                             let change = HealthChange {
-                                amount: *h as i32,
-                                cause: HealthSource::Heal {
-                                    by: attacker.map(|a| a.uid),
-                                },
+                                amount: *h,
+                                by: attacker.map(|a| a.uid),
+                                cause: None,
                             };
-                            if change.amount != 0 {
-                                emit(ServerEvent::Damage {
+                            if change.amount.abs() > f32::EPSILON {
+                                emit(ServerEvent::HealthChange {
                                     entity: target.entity,
                                     change,
                                 });
@@ -410,13 +408,12 @@ impl Attack {
                     CombatEffect::Lifesteal(l) => {
                         if let Some(attacker_entity) = attacker.map(|a| a.entity) {
                             let change = HealthChange {
-                                amount: (accumulated_damage * l) as i32,
-                                cause: HealthSource::Heal {
-                                    by: attacker.map(|a| a.uid),
-                                },
+                                amount: accumulated_damage * l,
+                                by: attacker.map(|a| a.uid),
+                                cause: None,
                             };
-                            if change.amount != 0 {
-                                emit(ServerEvent::Damage {
+                            if change.amount.abs() > f32::EPSILON {
+                                emit(ServerEvent::HealthChange {
                                     entity: attacker_entity,
                                     change,
                                 });
@@ -435,13 +432,12 @@ impl Attack {
                     },
                     CombatEffect::Heal(h) => {
                         let change = HealthChange {
-                            amount: h as i32,
-                            cause: HealthSource::Heal {
-                                by: attacker.map(|a| a.uid),
-                            },
+                            amount: h,
+                            by: attacker.map(|a| a.uid),
+                            cause: None,
                         };
-                        if change.amount != 0 {
-                            emit(ServerEvent::Damage {
+                        if change.amount.abs() > f32::EPSILON {
+                            emit(ServerEvent::HealthChange {
                                 entity: target.entity,
                                 change,
                             });
@@ -699,11 +695,9 @@ impl Damage {
                 damage *= 1.0 - damage_reduction;
 
                 HealthChange {
-                    amount: -damage as i32,
-                    cause: HealthSource::Damage {
-                        kind: self.source,
-                        by: uid,
-                    },
+                    amount: -damage,
+                    by: uid,
+                    cause: Some(self.source),
                 }
             },
             DamageSource::Falling => {
@@ -712,16 +706,15 @@ impl Damage {
                     damage = 0.0;
                 }
                 HealthChange {
-                    amount: -damage as i32,
-                    cause: HealthSource::World,
+                    amount: -damage,
+                    by: None,
+                    cause: Some(self.source),
                 }
             },
             DamageSource::Buff(_) | DamageSource::Other => HealthChange {
-                amount: -damage as i32,
-                cause: HealthSource::Damage {
-                    kind: self.source,
-                    by: uid,
-                },
+                amount: -damage,
+                by: None,
+                cause: Some(self.source),
             },
         }
     }

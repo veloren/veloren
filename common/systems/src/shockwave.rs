@@ -2,8 +2,8 @@ use common::{
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
-        Alignment, Body, CharacterState, Combo, Energy, Group, Health, HealthSource, Inventory,
-        Ori, PhysicsState, Player, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
+        Alignment, Body, CharacterState, Combo, Energy, Group, Health, Inventory, Ori,
+        PhysicsState, Player, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
@@ -101,10 +101,7 @@ impl<'a> System<'a> for Sys {
             // If shockwave is out of time emit destroy event but still continue since it
             // may have traveled and produced effects a bit before reaching it's end point
             if time > end_time {
-                server_emitter.emit(ServerEvent::Destroy {
-                    entity,
-                    cause: HealthSource::World,
-                });
+                server_emitter.emit(ServerEvent::Delete(entity));
                 continue;
             }
 

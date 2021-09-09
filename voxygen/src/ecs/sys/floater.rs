@@ -1,6 +1,6 @@
 use crate::ecs::comp::{HpFloater, HpFloaterList};
 use common::{
-    comp::{Health, HealthSource, Pos},
+    comp::{Health, Pos},
     resources::{DeltaTime, PlayerEntity},
     uid::Uid,
 };
@@ -61,7 +61,7 @@ impl<'a> System<'a> for Sys {
 
             // Check if health has changed (won't work if damaged and then healed with
             // equivalently in the same frame)
-            if hp_floater_list.last_hp != health.current() {
+            if (hp_floater_list.last_hp - health.current()).abs() > f32::EPSILON {
                 hp_floater_list.last_hp = health.current();
                 // TODO: What if multiple health changes occurred since last check here
                 // Also, If we make health store a vec of the last_changes (from say the last
@@ -71,9 +71,23 @@ impl<'a> System<'a> for Sys {
                 // would just be a transient glitch in the display of these damage numbers)
                 // (maybe health changes could be sent to the client as a list
                 // of events)
-                if match health.last_change.1.cause {
-                    HealthSource::Damage { by: Some(by), .. }
-                    | HealthSource::Heal { by: Some(by) } => {
+                if match health.last_change.1.by {
+                    // HealthSource::Damage { by: Some(by), .. }
+                    // | HealthSource::Heal { by: Some(by) } => {
+                    //     let by_me = my_uid.map_or(false, |&uid| by == uid);
+                    //     // If the attack was by me also reset this timer
+                    //     if by_me {
+                    //         hp_floater_list.time_since_last_dmg_by_me = Some(0.0);
+                    //     }
+                    //     my_entity.0 == Some(entity) || by_me
+                    // },
+                    // HealthSource::Suicide => my_entity.0 == Some(entity),
+                    // HealthSource::World => my_entity.0 == Some(entity),
+                    // HealthSource::LevelUp => my_entity.0 == Some(entity),
+                    // HealthSource::Command => true,
+                    // HealthSource::Item => true,
+                    // _ => false,
+                    Some(by) => {
                         let by_me = my_uid.map_or(false, |&uid| by == uid);
                         // If the attack was by me also reset this timer
                         if by_me {
@@ -81,12 +95,7 @@ impl<'a> System<'a> for Sys {
                         }
                         my_entity.0 == Some(entity) || by_me
                     },
-                    HealthSource::Suicide => my_entity.0 == Some(entity),
-                    HealthSource::World => my_entity.0 == Some(entity),
-                    HealthSource::LevelUp => my_entity.0 == Some(entity),
-                    HealthSource::Command => true,
-                    HealthSource::Item => true,
-                    _ => false,
+                    None => false,
                 } {
                     let last_floater = hp_floater_list.floaters.last_mut();
                     match last_floater {
@@ -144,7 +153,7 @@ impl<'a> System<'a> for Sys {
                     } else {
                         MY_HP_SHOWTIME
                     }
-                    || *last_hp == 0
+                    || last_hp.abs() < f32::EPSILON
             }) {
                 floaters.clear();
             }

@@ -2086,7 +2086,7 @@ fn general_skill_strings(skill: GeneralSkill, i18n: &Localization) -> (&str, Cow
             i18n,
             "hud.skill.inc_health_title",
             "hud.skill.inc_health",
-            HUMANOID_HP_PER_LEVEL / 10,
+            u32::from(HUMANOID_HP_PER_LEVEL),
         ),
         GeneralSkill::EnergyIncrease => splice_constant(
             i18n,

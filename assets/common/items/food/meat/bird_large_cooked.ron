@@ -7,7 +7,7 @@ ItemDef(
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 55.0,
+                    strength: 5.5,
                     duration: Some((
                             secs: 15,
                             nanos: 0,

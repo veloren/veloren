@@ -47,7 +47,7 @@ pub enum ServerEvent {
         owner: Option<Uid>,
         target: Option<Uid>,
     },
-    Damage {
+    HealthChange {
         entity: EcsEntity,
         change: comp::HealthChange,
     },
@@ -59,7 +59,7 @@ pub enum ServerEvent {
     Delete(EcsEntity),
     Destroy {
         entity: EcsEntity,
-        cause: comp::HealthSource,
+        cause: comp::HealthChange,
     },
     InventoryManip(EcsEntity, comp::InventoryManip),
     GroupManip(EcsEntity, comp::GroupManip),

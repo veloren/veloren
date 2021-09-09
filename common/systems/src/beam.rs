@@ -3,7 +3,7 @@ use common::{
     comp::{
         agent::{Sound, SoundKind},
         Alignment, Beam, BeamSegment, Body, CharacterState, Combo, Energy, Group, Health,
-        HealthSource, Inventory, Ori, Player, Pos, Scale, Stats,
+        Inventory, Ori, Player, Pos, Scale, Stats,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
@@ -108,10 +108,7 @@ impl<'a> System<'a> for Sys {
             // may have traveled and produced effects a bit before reaching its
             // end point
             if end_time < time {
-                server_events.push(ServerEvent::Destroy {
-                    entity,
-                    cause: HealthSource::World,
-                });
+                server_events.push(ServerEvent::Delete(entity));
             }
 
             // Determine area that was covered by the beam in the last tick

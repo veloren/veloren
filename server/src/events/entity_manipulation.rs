@@ -18,8 +18,8 @@ use common::{
         chat::{KillSource, KillType},
         inventory::item::MaterialStatManifest,
         object, Alignment, Auras, Body, CharacterState, Energy, EnergyChange, EnergySource, Group,
-        Health, HealthChange, HealthSource, Inventory, Player, Poise, PoiseChange, PoiseSource,
-        Pos, SkillSet, Stats,
+        Health, HealthChange, Inventory, Player, Poise, PoiseChange, PoiseSource, Pos, SkillSet,
+        Stats,
     },
     event::{EventBus, ServerEvent},
     lottery::{LootSpec, Lottery},
@@ -58,14 +58,14 @@ pub fn handle_poise(
     }
 }
 
-pub fn handle_damage(server: &Server, entity: EcsEntity, change: HealthChange) {
+pub fn handle_health_change(server: &Server, entity: EcsEntity, change: HealthChange) {
     let ecs = &server.state.ecs();
     if let Some(mut health) = ecs.write_storage::<Health>().get_mut(entity) {
         health.change_by(change);
     }
     // This if statement filters out anything under 5 damage, for DOT ticks
     // TODO: Find a better way to separate direct damage from DOT here
-    if change.amount < -50 {
+    if change.amount < -5.0 {
         if let Some(agent) = ecs.write_storage::<Agent>().get_mut(entity) {
             agent.inbox.push_front(AgentEvent::Hurt);
         }
@@ -111,7 +111,7 @@ pub fn handle_knockback(server: &Server, entity: EcsEntity, impulse: Vec3<f32>) 
 // the loop; but repeating the loop would currently be very inefficient since it has to
 // rescan every entity on the server again.
 #[allow(clippy::needless_collect)]
-pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSource) {
+pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: HealthChange) {
     let state = server.state_mut();
 
     // TODO: Investigate duplicate `Destroy` events (but don't remove this).
@@ -161,43 +161,22 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
     // If it was a player that died
     if let Some(_player) = state.ecs().read_storage::<Player>().get(entity) {
         if let Some(uid) = state.ecs().read_storage::<Uid>().get(entity) {
-            let kill_source = match cause {
-                HealthSource::Damage {
-                    kind: DamageSource::Melee,
-                    by: Some(by),
-                } => get_attacker_name(KillType::Melee, by),
-                HealthSource::Damage {
-                    kind: DamageSource::Projectile,
-                    by: Some(by),
-                } => {
-                    // TODO: add names to projectiles and send in message
+            let kill_source = match (last_change.cause, last_change.by) {
+                (Some(DamageSource::Melee), Some(by)) => get_attacker_name(KillType::Melee, by),
+                (Some(DamageSource::Projectile), Some(by)) => {
                     get_attacker_name(KillType::Projectile, by)
                 },
-                HealthSource::Damage {
-                    kind: DamageSource::Explosion,
-                    by: Some(by),
-                } => get_attacker_name(KillType::Explosion, by),
-                HealthSource::Damage {
-                    kind: DamageSource::Energy,
-                    by: Some(by),
-                } => get_attacker_name(KillType::Energy, by),
-                HealthSource::Damage {
-                    kind: DamageSource::Buff(buff_kind),
-                    by: Some(by),
-                } => get_attacker_name(KillType::Buff(buff_kind), by),
-                HealthSource::Damage {
-                    kind: DamageSource::Other,
-                    by: Some(by),
-                } => get_attacker_name(KillType::Other, by),
-                HealthSource::World => KillSource::FallDamage,
-                HealthSource::Suicide => KillSource::Suicide,
-                HealthSource::Damage { .. }
-                | HealthSource::Revive
-                | HealthSource::Command
-                | HealthSource::LevelUp
-                | HealthSource::Item
-                | HealthSource::Heal { by: _ }
-                | HealthSource::Unknown => KillSource::Other,
+                (Some(DamageSource::Explosion), Some(by)) => {
+                    get_attacker_name(KillType::Explosion, by)
+                },
+                (Some(DamageSource::Energy), Some(by)) => get_attacker_name(KillType::Energy, by),
+                (Some(DamageSource::Buff(buff_kind)), Some(by)) => {
+                    get_attacker_name(KillType::Buff(buff_kind), by)
+                },
+                (Some(DamageSource::Other), Some(by)) => get_attacker_name(KillType::Other, by),
+                (Some(DamageSource::Falling), _) => KillSource::FallDamage,
+                // HealthSource::Suicide => KillSource::Suicide,
+                _ => KillSource::Other,
             };
 
             state.send_chat(GenericChatMsg {
@@ -215,7 +194,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         let inventories = state.ecs().read_storage::<Inventory>();
         let players = state.ecs().read_storage::<Player>();
         let bodies = state.ecs().read_storage::<Body>();
-        let by = if let HealthSource::Damage { by: Some(by), .. } = cause {
+        let by = if let Some(by) = last_change.by {
             by
         } else {
             return;

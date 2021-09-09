@@ -437,21 +437,21 @@ impl<'a> Widget for Group<'a> {
                         // Health Text
                         let txt = format!(
                             "{}/{}",
-                            health.current() / 10_u32,
-                            health.maximum() / 10_u32,
+                            health.current().round() as u32,
+                            health.maximum().round() as u32,
                         );
                         // Change font size depending on health amount
                         let font_size = match health.maximum() {
-                            0..=999 => 14,
-                            1000..=9999 => 13,
-                            10000..=99999 => 12,
+                            x if (0.0..100.0).contains(&x) => 14,
+                            x if (100.0..=1000.0).contains(&x) => 13,
+                            x if (1000.0..=10000.0).contains(&x) => 12,
                             _ => 11,
                         };
                         // Change text offset depending on health amount
                         let txt_offset = match health.maximum() {
-                            0..=999 => 4.0,
-                            1000..=9999 => 4.5,
-                            10000..=99999 => 5.0,
+                            x if (0.0..=100.0).contains(&x) => 4.0,
+                            x if (100.0..=1000.0).contains(&x) => 4.5,
+                            x if (1000.0..=10000.0).contains(&x) => 5.0,
                             _ => 5.5,
                         };
                         Text::new(&txt)
