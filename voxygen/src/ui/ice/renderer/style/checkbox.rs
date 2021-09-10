@@ -5,6 +5,7 @@ struct Background {
     default: image::Handle,
     hover: image::Handle,
     press: image::Handle,
+    hover_checked: image::Handle,
 }
 
 impl Background {
@@ -13,6 +14,7 @@ impl Background {
             default: image,
             hover: image,
             press: image,
+            hover_checked: image,
         }
     }
 }
@@ -53,13 +55,28 @@ impl Style {
         self
     }
 
-    pub fn pressed(&self) -> Option<image::Handle> { self.background.as_ref().map(|b| b.press) }
+    pub fn hover_checked_image(mut self, image: image::Handle) -> Self {
+        self.background = Some(match self.background {
+            Some(mut background) => {
+                background.hover_checked = image;
+                background
+            },
+            None => Background::new(image),
+        });
+        self
+    }
 
     pub fn checked(&self) -> Option<image::Handle> { self.checked }
 
-    pub fn hovered(&self) -> Option<image::Handle> { self.background.as_ref().map(|b| b.hover) }
+    pub fn bg_check(&self) -> Option<image::Handle> { self.background.as_ref().map(|b| b.press) }
 
-    pub fn background(&self) -> Option<image::Handle> {
+    pub fn bg_hover(&self) -> Option<image::Handle> { self.background.as_ref().map(|b| b.hover) }
+
+    pub fn bg_hover_check(&self) -> Option<image::Handle> {
+        self.background.as_ref().map(|b| b.hover_checked)
+    }
+
+    pub fn bg_default(&self) -> Option<image::Handle> {
         self.background.as_ref().map(|b| b.default)
     }
 }
