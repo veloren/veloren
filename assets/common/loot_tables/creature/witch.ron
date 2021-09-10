@@ -1,0 +1,8 @@
+[    
+    (0.001, Item("common.items.lantern.pumpkin")),
+    (2.0, LootTable("common.loot_tables.materials.common")),    
+    (0.1, Item("common.items.armor.misc.ring.gold")),    
+    (1.0, LootTable("common.loot_tables.weapons.tier-3")),
+    (0.1, LootTable("common.loot_tables.weapons.tier-4")),
+    (1.5, LootTable("common.loot_tables.food.prepared")),
+]

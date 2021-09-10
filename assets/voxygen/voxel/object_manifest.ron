@@ -769,4 +769,34 @@
             central: ("armor.empty"),
         )
     ),
+    Apple: (
+        bone0: (
+            offset: (-5.5, -5.5, 0.0),
+            central: ("sprite.fruit.apple"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    Hive: (
+        bone0: (
+            offset: (-5.5, -5.5, 0.0),
+            central: ("sprite.beehive.beehive"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    Coconut: (
+        bone0: (
+            offset: (-4.5, -4.5, 0.0),
+            central: ("sprite.fruit.coconut"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

@@ -504,9 +504,17 @@ impl<'a> Widget for Diary<'a> {
                 .set(state.exp_bar_txt, ui);
         }
         Text::new(&rank_txt)
-            .mid_top_with_margin_on(state.exp_bar_frame, 5.0)
+            .mid_top_with_margin_on(state.exp_bar_frame, match rank {
+                0..=99 => 5.0,
+                100..=999 => 8.0,
+                _ => 10.0,
+            })
             .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(28))
+            .font_size(self.fonts.cyri.scale(match rank {
+                0..=99 => 28,
+                100..=999 => 21,
+                _ => 15,
+            }))
             .color(TEXT_COLOR)
             .set(state.exp_bar_rank, ui);
 

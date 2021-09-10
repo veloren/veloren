@@ -38,7 +38,7 @@ pub enum Spot {
     GnarlingTotem,
     WitchHouse,
     PirateHideout,
-    BigMushroom,
+    GnomeSpring,
     WolfBurrow,
     Igloo,
     //BanditCamp,
@@ -85,7 +85,7 @@ impl Spot {
         Self::generate_spots(
             Spot::Igloo,
             world,
-            100.0,
+            2.0,
             |g, c| {
                 g < 0.5
                     && !c.near_cliffs()
@@ -99,7 +99,7 @@ impl Spot {
         Self::generate_spots(
             Spot::PirateHideout,
             world,
-            3.0,
+            2.0,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()
@@ -198,7 +198,7 @@ impl Spot {
         Self::generate_spots(
             Spot::WolfBurrow,
             world,
-            10.0,
+            1.5,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()
@@ -280,9 +280,9 @@ impl Spot {
             true,
         );
         Self::generate_spots(
-            Spot::BigMushroom,
+            Spot::GnomeSpring,
             world,
-            20.0,
+            1.0,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()
@@ -291,7 +291,7 @@ impl Spot {
                     && c.sites.is_empty()
                     && matches!(c.get_biome(), Forest)
             },
-            true,
+            false,
         );
         Self::generate_spots(
             Spot::Shipwreck,
@@ -305,7 +305,6 @@ impl Spot {
 
         // Missing:
         /*
-        Witch House
         Bandit Camp
         Hunter Camp
         TowerRuinForest
@@ -314,9 +313,6 @@ impl Spot {
         Merchant Outpost -> Near a road!
         *Quirky:*
         TreeHouse (Forest)
-        TreeStump (Forest, Grassland)
-        DesertBones (Desert, Savannah)
-        AirshipCrash (Desert, Savannah, Grassland)
         EnchantedRock (Forest, Jungle)
         */
     }
@@ -389,9 +385,9 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 base_structures: Some("spots.jungle.saurok-altar"),
                 entity_radius: 6.0,
                 entities: &[
-                    (2..4, "common.entity.wild.aggressive.occult_saurok"),
-                    (2..4, "common.entity.wild.aggressive.sly_saurok"),
-                    (2..4, "common.entity.wild.aggressive.mighty_saurok"),
+                    (0..3, "common.entity.wild.aggressive.occult_saurok"),
+                    (0..3, "common.entity.wild.aggressive.sly_saurok"),
+                    (0..3, "common.entity.wild.aggressive.mighty_saurok"),
                 ],
             },
             Spot::RockCircle => SpotConfig {
@@ -452,7 +448,7 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
             },
             Spot::WolfBurrow => SpotConfig {
                 base_structures: Some("spots_savannah.wolf_burrow"),
-                entity_radius: 0.2,
+                entity_radius: 10.0,
                 entities: &[(5..8, "common.entity.wild.aggressive.wolf")],
             },
             Spot::TreeStumpForest => SpotConfig {
@@ -480,8 +476,8 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 entity_radius: 2.0,
                 entities: &[(0..2, "common.entity.wild.peaceful.bear")],
             },
-            Spot::BigMushroom => SpotConfig {
-                base_structures: Some("spots.big-mushroom"),
+            Spot::GnomeSpring => SpotConfig {
+                base_structures: Some("spots.gnome_spring"),
                 entity_radius: 40.0,
                 entities: &[(7..10, "common.entity.spot.gnome.spear")],
             },

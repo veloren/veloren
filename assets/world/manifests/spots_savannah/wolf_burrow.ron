@@ -3,6 +3,12 @@
 [
     (
         specifier: "world.structure.natural.wolf_burrow",
-        center: (10, 10, 0),
+        center: (10, 10, 6),
+        custom_indices: {
+            20: Sprite(ShortGrass),
+            19: Sprite(Mushroom),
+            18: Sprite(Chest),
+            17: Sprite(Bones),            
+         },
     ),
 ]
