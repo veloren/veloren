@@ -377,7 +377,8 @@ impl<'a> Skillbar<'a> {
         let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8;
         let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
         let bar_values = self.global_state.settings.interface.bar_numbers;
-        let show_health = (self.health.current() - self.health.maximum()).abs() > f32::EPSILON;
+        let show_health =
+            (self.health.current() - self.health.maximum()).abs() > Health::HEALTH_EPSILON;
         let show_energy = self.energy.current() != self.energy.maximum();
         let decayed_health = 1.0 - self.health.maximum() as f64 / self.health.base_max() as f64;
 

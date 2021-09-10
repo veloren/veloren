@@ -67,7 +67,7 @@ pub struct Info<'a> {
 
 /// Determines whether to show the healthbar
 pub fn should_show_healthbar(health: &Health) -> bool {
-    (health.current() - health.maximum()).abs() > f32::EPSILON
+    (health.current() - health.maximum()).abs() > Health::HEALTH_EPSILON
         || health.current() < health.base_max()
 }
 /// Determines if there is decayed health being applied

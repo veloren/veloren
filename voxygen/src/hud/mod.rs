@@ -1217,9 +1217,8 @@ impl Hud {
                         );
                         // Calculate total change
                         // Ignores healing
-                        let hp_damage = floaters
-                            .iter()
-                            .fold(0.0, |acc, f| f.hp_change.min(0.0) + acc);
+                        let hp_damage: f32 = floaters.iter().map(|f| f.hp_change.min(0.0)).sum();
+                        // .fold(0.0, |acc, f| f.hp_change.min(0.0) + acc);
                         let hp_dmg_rounded_abs = hp_damage.round().abs() as u32;
                         let max_hp_frac = hp_damage.abs() as f32 / health.maximum() as f32;
                         let timer = floaters

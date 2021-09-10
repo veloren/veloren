@@ -65,7 +65,8 @@ pub fn handle_health_change(server: &Server, entity: EcsEntity, change: HealthCh
     }
     // This if statement filters out anything under 5 damage, for DOT ticks
     // TODO: Find a better way to separate direct damage from DOT here
-    if change.amount < -5.0 {
+    let damage = -change.amount;
+    if damage > -5.0 {
         if let Some(agent) = ecs.write_storage::<Agent>().get_mut(entity) {
             agent.inbox.push_front(AgentEvent::Hurt);
         }

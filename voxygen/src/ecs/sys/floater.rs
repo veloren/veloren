@@ -61,7 +61,7 @@ impl<'a> System<'a> for Sys {
 
             // Check if health has changed (won't work if damaged and then healed with
             // equivalently in the same frame)
-            if (hp_floater_list.last_hp - health.current()).abs() > f32::EPSILON {
+            if (hp_floater_list.last_hp - health.current()).abs() > Health::HEALTH_EPSILON {
                 hp_floater_list.last_hp = health.current();
                 // TODO: What if multiple health changes occurred since last check here
                 // Also, If we make health store a vec of the last_changes (from say the last
@@ -153,7 +153,7 @@ impl<'a> System<'a> for Sys {
                     } else {
                         MY_HP_SHOWTIME
                     }
-                    || last_hp.abs() < f32::EPSILON
+                    || last_hp.abs() < Health::HEALTH_EPSILON
             }) {
                 floaters.clear();
             }

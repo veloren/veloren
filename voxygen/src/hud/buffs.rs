@@ -127,7 +127,8 @@ impl<'a> Widget for BuffsBar<'a> {
         .desc_text_color(TEXT_COLOR);
         if let BuffPosition::Bar = buff_position {
             let decayed_health = 1.0 - self.health.maximum() / self.health.base_max();
-            let show_health = (self.health.current() - self.health.maximum()).abs() > f32::EPSILON
+            let show_health = (self.health.current() - self.health.maximum()).abs()
+                > Health::HEALTH_EPSILON
                 || decayed_health > 0.0;
             let show_energy = self.energy.current() != self.energy.maximum();
             let offset = if show_energy && show_health {

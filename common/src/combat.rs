@@ -231,7 +231,7 @@ impl Attack {
             let applied_damage = -change.amount as f32;
             accumulated_damage += applied_damage;
             emit_outcome(Outcome::Damage { pos: target.pos });
-            if change.amount.abs() > f32::EPSILON {
+            if change.amount.abs() > Health::HEALTH_EPSILON {
                 emit(ServerEvent::HealthChange {
                     entity: target.entity,
                     change,
@@ -277,7 +277,7 @@ impl Attack {
                                     by: attacker.map(|a| a.uid),
                                     cause: None,
                                 };
-                                if change.amount.abs() > f32::EPSILON {
+                                if change.amount.abs() > Health::HEALTH_EPSILON {
                                     emit(ServerEvent::HealthChange {
                                         entity: attacker_entity,
                                         change,
@@ -301,7 +301,7 @@ impl Attack {
                                 by: attacker.map(|a| a.uid),
                                 cause: None,
                             };
-                            if change.amount.abs() > f32::EPSILON {
+                            if change.amount.abs() > Health::HEALTH_EPSILON {
                                 emit(ServerEvent::HealthChange {
                                     entity: target.entity,
                                     change,
@@ -412,7 +412,7 @@ impl Attack {
                                 by: attacker.map(|a| a.uid),
                                 cause: None,
                             };
-                            if change.amount.abs() > f32::EPSILON {
+                            if change.amount.abs() > Health::HEALTH_EPSILON {
                                 emit(ServerEvent::HealthChange {
                                     entity: attacker_entity,
                                     change,
@@ -436,7 +436,7 @@ impl Attack {
                             by: attacker.map(|a| a.uid),
                             cause: None,
                         };
-                        if change.amount.abs() > f32::EPSILON {
+                        if change.amount.abs() > Health::HEALTH_EPSILON {
                             emit(ServerEvent::HealthChange {
                                 entity: target.entity,
                                 change,

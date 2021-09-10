@@ -114,7 +114,7 @@ impl<'a> System<'a> for Sys {
 
             let update_max_hp = {
                 stat.max_health_modifiers.update_maximum()
-                    || (health.base_max() - health.maximum()).abs() > f32::EPSILON
+                    || (health.base_max() - health.maximum()).abs() > Health::HEALTH_EPSILON
             };
 
             if update_max_hp {

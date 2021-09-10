@@ -27,9 +27,17 @@ impl HealthChange {
 // floats rather than integers.
 pub struct Health {
     // Current and base_max are scaled by 256 within this module compared to what is visible to
-    // outside this module
+    // outside this module. The scaling is done to allow health to function as a fixed point while
+    // still having the advantages of being an integer. The scaling of 256 was chosen so that max
+    // health could be u16::MAX - 1, and then the scaled health could fit inside an f32 with no
+    // precision loss
+    /// Current health is how much health the entity currently has
     current: u32,
+    /// Base max is the amount of health the entity has without considering
+    /// temporary modifiers such as buffs
     base_max: u32,
+    /// Maximum is the amount of health the entity has after temporary modifiers
+    /// are considered
     maximum: u32,
     // Time since last change and what the last change was
     // TODO: Remove the time since last change, either convert to time of last change or just emit
@@ -39,13 +47,20 @@ pub struct Health {
 }
 
 impl Health {
+    /// Used when comparisons to health are needed outside this module.
+    // This value is chosen as anything smaller than this is more precise than our
+    // units of health.
+    pub const HEALTH_EPSILON: f32 = 0.5 / Self::MAX_SCALED_HEALTH as f32;
+    /// Maximum value allowed for health before scaling
+    const MAX_HEALTH: u16 = u16::MAX - 1;
     /// The maximum value allowed for current and maximum health
-    /// Maximum value is u16:MAX - 1 * 256, which only requires 24 bits. This
+    /// Maximum value is (u16:MAX - 1) * 256, which only requires 24 bits. This
     /// can fit into an f32 with no loss to precision
-    const MAX_HEALTH: u32 = 16776960;
+    // Cast to u32 done as u32::from cannot be called inside constant
+    const MAX_SCALED_HEALTH: u32 = Self::MAX_HEALTH as u32 * Self::SCALING_FACTOR_INT;
     /// The amount health is scaled by within this module
     const SCALING_FACTOR_FLOAT: f32 = 256.;
-    const SCALING_FACTOR_INT: u32 = 256;
+    const SCALING_FACTOR_INT: u32 = Self::SCALING_FACTOR_FLOAT as u32;
 
     /// Returns the current value of health casted to a float
     pub fn current(&self) -> f32 { self.current as f32 / Self::SCALING_FACTOR_FLOAT }
@@ -63,14 +78,17 @@ impl Health {
     pub fn update_maximum(&mut self, modifiers: comp::stats::StatsModifier) {
         let maximum = modifiers
             .compute_maximum(self.base_max as f32)
-            .min(Self::MAX_HEALTH as f32) as u32;
+            // NaN does not need to be handled here as rust will automatically change to 0 when casting to u32
+            .clamp(0.0, Self::MAX_SCALED_HEALTH as f32) as u32;
         self.maximum = maximum;
     }
 
     #[cfg(not(target_arch = "wasm32"))]
     pub fn new(body: comp::Body, level: u16) -> Self {
-        let health = u32::from(body.base_health() + body.base_health_increase() * level)
-            * Self::SCALING_FACTOR_INT;
+        let health = u32::from(
+            body.base_health()
+                .saturating_add(body.base_health_increase().saturating_mul(level)),
+        ) * Self::SCALING_FACTOR_INT;
         Health {
             current: health,
             base_max: health,
@@ -88,15 +106,18 @@ impl Health {
     #[cfg(not(target_arch = "wasm32"))]
     pub fn update_max_hp(&mut self, body: comp::Body, level: u16) {
         let old_max = self.base_max;
-        self.base_max = u32::from(body.base_health() + body.base_health_increase() * level)
-            * Self::SCALING_FACTOR_INT;
+        self.base_max = u32::from(
+            body.base_health()
+                .saturating_add(body.base_health_increase().saturating_mul(level)),
+        ) * Self::SCALING_FACTOR_INT;
         self.current = (self.current + self.base_max - old_max).min(self.maximum);
     }
 
     #[cfg(not(target_arch = "wasm32"))]
     pub fn change_by(&mut self, change: HealthChange) {
-        self.current = (((self.current() + change.amount) as u32 * Self::SCALING_FACTOR_INT).max(0)
-            as u32)
+        self.current = (((self.current() + change.amount).clamp(0.0, f32::from(Self::MAX_HEALTH))
+            as u32
+            * Self::SCALING_FACTOR_INT) as u32)
             .min(self.maximum);
         self.last_change = (0.0, change);
     }
