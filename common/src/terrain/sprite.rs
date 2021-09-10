@@ -176,6 +176,7 @@ make_case_elim!(
         EnsnaringVines = 0x95,
         WitchWindow = 0x96,
         SmokeDummy = 0x97,
+        Bones = 0x98,
     }
 );
 

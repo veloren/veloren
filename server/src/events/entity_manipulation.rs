@@ -1044,12 +1044,18 @@ pub fn handle_bonk(server: &mut Server, pos: Vec3<f32>, _owner: Option<Uid>, tar
                     drop(block_change);
                     server
                         .state
-                        .create_object(Default::default(), comp::object::Body::Pouch)
+                        .create_object(Default::default(), match block.get_sprite() {
+                            // Create different containers depending on the original sprite
+                            Some(SpriteKind::Apple) => comp::object::Body::Apple,
+                            Some(SpriteKind::Beehive) => comp::object::Body::Hive,
+                            Some(SpriteKind::Coconut) => comp::object::Body::Coconut,
+                            _ => comp::object::Body::Pouch,
+                        })
                         .with(comp::Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)))
                         .with(item)
                         .build();
                 }
-            }
+            };
         }
     }
 }

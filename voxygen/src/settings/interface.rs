@@ -65,7 +65,7 @@ impl Default for InterfaceSettings {
             ui_scale: ScaleMode::RelativeToWindow([1920.0, 1080.0].into()),
             map_zoom: 10.0,
             map_drag: Vec2 { x: 0.0, y: 0.0 },
-            map_show_topo_map: false,
+            map_show_topo_map: true,
             map_show_difficulty: true,
             map_show_towns: true,
             map_show_dungeons: true,
@@ -74,10 +74,10 @@ impl Default for InterfaceSettings {
             map_show_caves: true,
             map_show_trees: false,
             map_show_peaks: false,
-            map_show_voxel_map: false,
+            map_show_voxel_map: true,
             minimap_show: true,
-            minimap_face_north: false,
-            minimap_zoom: 10.0,
+            minimap_face_north: true,
+            minimap_zoom: 160.0,
         }
     }
 }

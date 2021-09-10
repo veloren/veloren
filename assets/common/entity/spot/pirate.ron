@@ -7,9 +7,9 @@ EntityConfig (
         beard: 0,
         eyes: 0,
         accessory: 0,
-        hair_color: 0,
-        skin: 0,
-        eye_color: 0,
+        hair_color: 12,
+        skin: 8,
+        eye_color: 3,
     ))),
     alignment: Alignment(Enemy),
 

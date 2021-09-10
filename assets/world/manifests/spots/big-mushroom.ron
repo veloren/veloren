@@ -3,6 +3,6 @@
 [
     (
         specifier: "world.structure.natural.big_mushroom",
-        center: (12, 12, 4),
+        center: (14, 14, 15),
     ),
 ]

@@ -7,6 +7,6 @@
     ),  
     (
         specifier: "world.structure.natural.arch-1",
-        center: (14, 12, 10)
+        center: (12, 12, 10)
     ),  
 ]
