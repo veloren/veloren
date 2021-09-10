@@ -185,10 +185,11 @@ void main() {
 
     // float bright_color = (bright_color0 + bright_color1 + bright_color2 + bright_color3 + bright_color4) / 5.0;
 
-    if (medium.x == 2u) {
-        tgt_color = vec4(0, 0.005, 0.01, 1) * (1 + hash_fast(uvec3(vec3(uv * screen_res.xy / 32.0, 0))));
-        return;
-    }
+    // TODO: this causes flickering when the camera is moving into and out of solid blocks, resolve before uncommenting
+    // if (medium.x == 2u) {
+    //     tgt_color = vec4(0, 0.005, 0.01, 1) * (1 + hash_fast(uvec3(vec3(uv * screen_res.xy / 32.0, 0))));
+    //     return;
+    // }
 
     vec4 aa_color = aa_apply(t_src_color, s_src_color, uv * screen_res.xy, screen_res.xy);
 
