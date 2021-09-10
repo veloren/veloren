@@ -53,7 +53,7 @@ impl Skeleton for ArthropodSkeleton {
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
     ) -> Offsets {
-        let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 4.0);
+        let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 6.0);
 
         let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
         let head_mat = chest_mat * Mat4::<f32>::from(self.head);
@@ -177,17 +177,17 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Sandcrawler, _) => (4.0, -1.0),
             },
             chest: match (body.species, body.body_type) {
-                (Tarantula, _) => (-9.0, 6.0),
-                (Blackwidow, _) => (-9.0, 10.0),
-                (Antlion, _) => (-9.0, 8.5),
-                (Hornbeetle, _) => (-9.0, 7.5),
-                (Leafbeetle, _) => (-9.0, 6.0),
-                (Stagbeetle, _) => (-9.0, 6.5),
-                (Weevil, _) => (-9.0, 6.0),
-                (Cavespider, _) => (-9.0, 7.0),
-                (Moltencrawler, _) => (-9.0, 6.0),
-                (Mosscrawler, _) => (-9.0, 6.5),
-                (Sandcrawler, _) => (-9.0, 6.0),
+                (Tarantula, _) => (-5.0, 6.0),
+                (Blackwidow, _) => (-5.0, 10.0),
+                (Antlion, _) => (-5.0, 8.5),
+                (Hornbeetle, _) => (-5.0, 7.5),
+                (Leafbeetle, _) => (-5.0, 6.0),
+                (Stagbeetle, _) => (-5.0, 6.5),
+                (Weevil, _) => (-5.0, 6.0),
+                (Cavespider, _) => (-5.0, 7.0),
+                (Moltencrawler, _) => (-7.0, 6.0),
+                (Mosscrawler, _) => (-7.0, 6.5),
+                (Sandcrawler, _) => (-7.0, 6.0),
             },
             mandible: match (body.species, body.body_type) {
                 (Tarantula, _) => (1.5, 7.0, -0.5),

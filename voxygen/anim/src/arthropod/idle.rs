@@ -14,8 +14,8 @@ impl Animation for IdleAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "arthropod_idle")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        global_time: Self::Dependency<'a>,
-        anim_time: f32,
+        _global_time: Self::Dependency<'a>,
+        _anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {

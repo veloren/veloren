@@ -16,7 +16,7 @@ impl Animation for DashAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "arthropod_dash")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (_velocity, global_time, stage_section, timer): Self::Dependency<'a>,
+        (_velocity, _global_time, stage_section, _timer): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -31,21 +31,21 @@ impl Animation for DashAnimation {
             _ => (0.0, 0.0, 0.0, 0.0),
         };
         let pullback = 1.0 - movement3;
-        let subtract = global_time - timer;
-        let check = subtract - subtract.trunc();
-        let mirror = (check - 0.5).signum();
-        let twitch1 = (mirror * movement1base * 9.5).sin();
-        let twitch1fast = (mirror * movement1base * 25.0).sin();
+        //let subtract = global_time - timer;
+        //let check = subtract - subtract.trunc();
+        //let mirror = (check - 0.5).signum();
+        //let twitch1 = (mirror * movement1base * 9.5).sin();
+        //let twitch1fast = (mirror * movement1base * 25.0).sin();
         //let twitch3 = (mirror * movement3 * 4.0).sin();
         //let movement1 = mirror * movement1base * pullback;
         //let movement2 = mirror * movement2base * pullback;
         let movement1abs = movement1base * pullback;
         let movement2abs = movement2base * pullback;
-        let short = ((1.0 / (0.72 + 0.28 * ((anim_time * 16.0_f32 + PI * 0.25).sin()).powi(2)))
-            .sqrt())
-            * ((anim_time * 16.0 + PI * 0.25).sin())
-            * chargemovementbase
-            * pullback;
+        //let short = ((1.0 / (0.72 + 0.28 * ((anim_time * 16.0_f32 + PI *
+        // 0.25).sin()).powi(2)))    .sqrt())
+        //    * ((anim_time * 16.0 + PI * 0.25).sin())
+        //    * chargemovementbase
+        //    * pullback;
         let shortalt = (anim_time * 200.0 + PI * 0.25).sin() * chargemovementbase * pullback;
 
         next.chest.scale = Vec3::one();

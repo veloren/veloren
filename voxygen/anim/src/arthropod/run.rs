@@ -15,46 +15,50 @@ impl Animation for RunAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "arthropod_run")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel): Self::Dependency<'a>,
+        (_velocity, _orientation, _last_ori, _global_time, _avg_vel, acc_vel): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
-        let speed = (Vec2::<f32>::from(velocity).magnitude()).min(22.0);
+        //let speed = (Vec2::<f32>::from(velocity).magnitude()).min(22.0);
         *rate = 1.0;
 
         //let speednorm = speed / 13.0;
-        let speednorm = (speed / 13.0).powf(0.25);
+        //let speednorm = (speed / 13.0).powf(0.25);
         let mixed_vel = (acc_vel + anim_time * 6.0) * 0.8; //sets run frequency using speed, with anim_time setting a floor
 
-        let speedmult = 1.0;
-        let lab: f32 = 0.6; //6
+        //let speedmult = 1.0;
+        //let lab: f32 = 0.6; //6
 
-        let short = ((1.0
-            / (0.72
-                + 0.28 * ((mixed_vel * 1.0 * lab * speedmult + PI * -0.15 - 0.5).sin()).powi(2)))
-        .sqrt())
-            * ((mixed_vel * 1.0 * lab * speedmult + PI * -0.15 - 0.5).sin())
-            * speednorm;
+        //let short = ((1.0
+        //    / (0.72
+        //        + 0.28 * ((mixed_vel * 1.0 * lab * speedmult + PI * -0.15 -
+        // 0.5).sin()).powi(2)))
+        //.sqrt())
+        // 
+        //    * ((mixed_vel * 1.0 * lab * speedmult + PI * -0.15 - 0.5).sin())
+        //    * speednorm;
 
         //
-        let shortalt = (mixed_vel * 1.0 * lab * speedmult + PI * 3.0 / 8.0 - 0.5).sin() * speednorm;
+        //let shortalt = (mixed_vel * 1.0 * lab * speedmult + PI * 3.0 / 8.0 -
+        // 0.5).sin() * speednorm;
 
-        let ori: Vec2<f32> = Vec2::from(orientation);
-        let last_ori = Vec2::from(last_ori);
-        let tilt = if ::vek::Vec2::new(ori, last_ori)
-            .map(|o| o.magnitude_squared())
-            .map(|m| m > 0.001 && m.is_finite())
-            .reduce_and()
-            && ori.angle_between(last_ori).is_finite()
-        {
-            ori.angle_between(last_ori).min(0.2)
-                * last_ori.determine_side(Vec2::zero(), ori).signum()
-        } else {
-            0.0
-        } * 1.3;
-        let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude()) * speednorm;
+        //let ori: Vec2<f32> = Vec2::from(orientation);
+        //let last_ori = Vec2::from(last_ori);
+        //let tilt = if ::vek::Vec2::new(ori, last_ori)
+        //    .map(|o| o.magnitude_squared())
+        //    .map(|m| m > 0.001 && m.is_finite())
+        //    .reduce_and()
+        //    && ori.angle_between(last_ori).is_finite()
+        //{
+        //    ori.angle_between(last_ori).min(0.2)
+        //        * last_ori.determine_side(Vec2::zero(), ori).signum()
+        //} else {
+        //    0.0
+        //} 
+        //} * 1.3;
+        //let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude()) * speednorm;
 
         next.chest.scale = Vec3::one() / s_a.scaler;
         next.wing_bl.scale = Vec3::one() * 0.98;
